@@ -8,6 +8,7 @@
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/mapped_module_image.h"
+#include "modlock/gameinterop/modifier_states.h"
 #include "modlock/gameinterop/native_damage.h"
 
 #if defined(_WIN32)
@@ -1103,10 +1104,10 @@ std::expected<void, std::string> PawnObserver::SetPreparationFrozen(int32_t slot
 #endif
 }
 
-// SetGhostVisible toggles EModifierState::DoNotDrawModel (0xB6) inside the
-// pawn's CModifierProperty::m_bvEnabledStateMask, the same modifier-bit
-// contract TagPawnRules::Apply replicates. The property pointer and mask are
-// schema-resolved; every other state bit is preserved unchanged.
+// SetGhostVisible toggles EModifierState::DoNotDrawModel inside the pawn's
+// CModifierProperty::m_bvEnabledStateMask. Game updates renumber the states,
+// so the bit is read by name from server.dll's schema; the property pointer
+// and mask are schema-resolved, and every other state bit is preserved.
 std::expected<void, std::string> PawnObserver::SetGhostVisible(int32_t slot, bool visible) {
 #if defined(_WIN32)
   const auto sample = Observe(slot);
@@ -1118,7 +1119,11 @@ std::expected<void, std::string> PawnObserver::SetGhostVisible(int32_t slot, boo
   auto mask = SchemaFieldOf(*schema, "server.dll", "CModifierProperty", "m_bvEnabledStateMask");
   if (!property || property->size != sizeof(void*) || !mask || mask->size < 24)
     return std::unexpected("ghost modifier schema unavailable");
-  constexpr uint32_t kDoNotDrawModelState = 0xB6;
+  auto server = MappedModuleImage::ForModule(L"server.dll");
+  if (!server) return std::unexpected(server.error());
+  auto hidden = ModifierStateIndex(*server, "MODIFIER_STATE_DO_NOT_DRAW_MODEL");
+  if (!hidden) return std::unexpected(hidden.error());
+  const uint32_t kDoNotDrawModelState = *hidden;
   const size_t mask_offset = mask->offset + (kDoNotDrawModelState / 32) * sizeof(uint32_t);
   if (mask_offset + sizeof(uint32_t) > mask->offset + mask->size)
     return std::unexpected("ghost modifier state exceeds the native state mask.");

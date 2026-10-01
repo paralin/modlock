@@ -116,6 +116,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/native_sound.cc
   src/gameinterop/native_trace.cc
   src/gameinterop/native_user_messages.cc
+  src/gameinterop/modifier_states.cc
   src/gameinterop/pawn_observer.cc
   src/gameinterop/player_selection.cc
   src/gameinterop/respawn_guard.cc
@@ -233,6 +234,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ModlockConfig.cmake
 if(BUILD_TESTING)
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
+  add_executable(modifier_states_test tests/modifier_states_test.cc)
+  target_link_libraries(modifier_states_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME modifier_states_test COMMAND modifier_states_test)
   add_executable(camera_path_test tests/camera_path_test.cc)
   target_link_libraries(camera_path_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME camera_path_test COMMAND camera_path_test)
