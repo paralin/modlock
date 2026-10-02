@@ -8,8 +8,11 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <cstring>
 #include <limits>
+#include <span>
+#include <string>
 #include <vector>
 
 namespace {
@@ -313,6 +316,66 @@ TEST(DecodeDamageTaken, RetainsSourceAbilityFromTheNativeDescriptor) {
   ASSERT_TRUE(decoded) << decoded.error();
   EXPECT_EQ(decoded->ability_handle, 47);
   EXPECT_EQ(decoded->health_lost, 10);
+}
+
+// EnumImage lays out enumerator records the way a module's schema tables do:
+// NUL-terminated names, then 16-byte {name pointer, int64 value} records.
+class EnumImage : public modlock::gameinterop::ModuleImage {
+ public:
+  static constexpr std::uintptr_t kBase = 0x180000000;
+
+  void Add(const std::string& name, int64_t value) {
+    const size_t at = bytes_.size() + 1;
+    bytes_.push_back(0);
+    bytes_.insert(bytes_.end(), name.begin(), name.end());
+    bytes_.push_back(0);
+    records_.push_back({kBase + at, value});
+  }
+
+  // Seal appends the aligned records after the names.
+  void Seal() {
+    while (bytes_.size() % 8 != 0) bytes_.push_back(0xCC);
+    for (const auto& [pointer, value] : records_) {
+      const size_t at = bytes_.size();
+      bytes_.resize(at + 16);
+      std::memcpy(bytes_.data() + at, &pointer, 8);
+      std::memcpy(bytes_.data() + at + 8, &value, 8);
+    }
+  }
+
+  std::uintptr_t base() const override { return kBase; }
+  std::span<const uint8_t> image_bytes() const override { return bytes_; }
+
+ private:
+  std::vector<uint8_t> bytes_;
+  std::vector<std::pair<uint64_t, int64_t>> records_;
+};
+
+TEST(ModifierEventIndex, ReadsTheRunningGamesValueByName) {
+  EnumImage image;
+  // A longer name sharing the prefix must not match.
+  image.Add("MODIFIER_EVENT_MELEE_ATTACK_STARTED_LATE", 0x70);
+  image.Add("MODIFIER_EVENT_MELEE_ATTACK_STARTED", 0x59);
+  image.Add("MODIFIER_EVENT_DAMAGE_TAKEN", 0x18);
+  image.Seal();
+  auto melee = modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_MELEE_ATTACK_STARTED");
+  ASSERT_TRUE(melee) << melee.error();
+  EXPECT_EQ(*melee, 0x59u);
+  auto damage = modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_DAMAGE_TAKEN");
+  ASSERT_TRUE(damage) << damage.error();
+  EXPECT_EQ(*damage, 0x18u);
+  EXPECT_FALSE(modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_MISSING"));
+}
+
+TEST(ModifierEventIndex, RefusesANameWithoutARecord) {
+  EnumImage image;
+  image.Add("MODIFIER_EVENT_SLIDE", 0x3f);
+  // The name exists but no record points at it.
+  EnumImage bare;
+  bare.Seal();
+  image.Seal();
+  EXPECT_TRUE(modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_SLIDE"));
+  EXPECT_FALSE(modlock::gameinterop::ModifierEventIndex(bare, "MODIFIER_EVENT_SLIDE"));
 }
 
 }  // namespace
