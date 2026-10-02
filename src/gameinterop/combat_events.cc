@@ -1,9 +1,12 @@
 #include "modlock/gameinterop/combat_events.h"
 
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <string_view>
+#include <utility>
 
 #include "modlock/gameinterop/entity_abi.h"
 
@@ -53,10 +56,39 @@ std::string Unreadable(const void* address, std::string_view what) {
   return "combat event: cannot read " + std::string(what) + " at " + AddressName(address);
 }
 
+// kMaxModifierEvent bounds a plausible EModifierEvent value.
+constexpr int64_t kMaxModifierEvent = 1024;
+
+// kMovementEventNames pairs each movement fact with its EModifierEvent name.
+constexpr std::array<std::pair<std::string_view, MovementExecution>, 10> kMovementEventNames{{
+    {"MODIFIER_EVENT_LANDED_ON_GROUND", MovementExecution::kLandedOnGround},
+    {"MODIFIER_EVENT_ATTACHED_TO_ZIPLINE", MovementExecution::kAttachedToZipline},
+    {"MODIFIER_EVENT_PLAYER_GROUND_DASH_STARTED", MovementExecution::kGroundDash},
+    {"MODIFIER_EVENT_PLAYER_SLIDE_STARTED", MovementExecution::kSlide},
+    {"MODIFIER_EVENT_BOUNCE_PAD_ACTIVATED", MovementExecution::kBouncePadActivated},
+    {"MODIFIER_EVENT_DASH_JUMP_EXECUTED", MovementExecution::kDashJump},
+    {"MODIFIER_EVENT_AIR_JUMP_EXECUTED", MovementExecution::kAirJump},
+    {"MODIFIER_EVENT_WALL_JUMP_EXECUTED", MovementExecution::kWallJump},
+    {"MODIFIER_EVENT_AIR_DASH_EXECUTED", MovementExecution::kAirDash},
+    {"MODIFIER_EVENT_MELEE_ATTACK_STARTED", MovementExecution::kMeleeAttackStarted},
+}};
+
 #if defined(_WIN32)
 
 // Thunk state: one hook may exist at a time. The handler and the schema
 // offsets are set once at install; the decoded event is per call.
+// EventIds are the running game's EModifierEvent values, resolved by name at
+// install; the thunk dispatches on these, never on the framework's constants.
+struct EventIds {
+  uint32_t pre_damage = 0;
+  uint32_t damage = 0;
+  uint32_t health = 0;
+  uint32_t ability = 0;
+  uint32_t shield_broadcast = 0;
+  std::array<std::pair<uint32_t, MovementExecution>, kMovementEventNames.size()> movement{};
+};
+EventIds g_ids;
+
 CombatEventsHook::Handler* g_handler = nullptr;
 DamageResultOffsets g_damage_offsets;
 DamageContactOffsets g_contact_offsets;
@@ -68,21 +100,21 @@ safetyhook::InlineHook* g_broadcast_hook = nullptr;
 void DecodeAndDispatch(uint32_t event, void* event_data) {
   if (g_handler == nullptr) return;
   CombatEvent decoded;
-  if (event == kCombatEventDamageTaken) {
+  if (event == g_ids.damage) {
     if (auto value = DecodeDamageTaken(event_data, g_damage_offsets, OsBoundedReader)) {
       decoded.kind = CombatEvent::Kind::kDamageTaken;
       decoded.damage = *value;
     } else {
       decoded.reason = value.error();
     }
-  } else if (event == kCombatEventHealthTaken) {
+  } else if (event == g_ids.health) {
     if (auto value = DecodeHealthTaken(event_data, OsBoundedReader)) {
       decoded.kind = CombatEvent::Kind::kHealthTaken;
       decoded.health = *value;
     } else {
       decoded.reason = value.error();
     }
-  } else if (event == kCombatEventAbilityExecuted) {
+  } else if (event == g_ids.ability) {
     if (auto value = DecodeAbilityExecuted(event_data, OsBoundedReader)) {
       decoded.kind = CombatEvent::Kind::kAbilityExecuted;
       decoded.ability = *value;
@@ -97,7 +129,7 @@ void DecodeAndDispatch(uint32_t event, void* event_data) {
 
 __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* target,
                                           void* cast_entity, void* event_data) {
-  if (event == kCombatEventPreDamageTaken &&
+  if (event == g_ids.pre_damage &&
       ((g_suppress_damage && *g_suppress_damage) || (g_adjust_damage && *g_adjust_damage))) {
     auto processed = ProcessDamageContact(
         event_data, g_contact_offsets, OsBoundedReader,
@@ -117,30 +149,20 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
   // native dispatch is entitled to reuse once its listeners return. Damage,
   // healing and ability execution use modifier events; their broadcast
   // duplicates stay undecoded so nothing counts twice.
-  if (event == kCombatEventDamageTaken || event == kCombatEventHealthTaken ||
-      event == kCombatEventAbilityExecuted) {
+  if (event == g_ids.damage || event == g_ids.health || event == g_ids.ability) {
     DecodeAndDispatch(event, event_data);
   }
-  switch (static_cast<MovementExecution>(event)) {
-    case MovementExecution::kLandedOnGround:
-    case MovementExecution::kAttachedToZipline:
-    case MovementExecution::kGroundDash:
-    case MovementExecution::kSlide:
-    case MovementExecution::kBouncePadActivated:
-    case MovementExecution::kDashJump:
-    case MovementExecution::kAirJump:
-    case MovementExecution::kWallJump:
-    case MovementExecution::kAirDash:
-    case MovementExecution::kMeleeAttackStarted:
-      if (g_handler) {
-        if (const auto handle = ReferenceHandleOf(caster)) {
-          CombatEvent decoded;
-          decoded.kind = CombatEvent::Kind::kMovementExecuted;
-          decoded.movement = MovementExecutedEvent{static_cast<MovementExecution>(event), *handle};
-          (*g_handler)(decoded);
-        }
+  for (const auto& [id, execution] : g_ids.movement) {
+    if (event != id) continue;
+    if (g_handler) {
+      if (const auto handle = ReferenceHandleOf(caster)) {
+        CombatEvent decoded;
+        decoded.kind = CombatEvent::Kind::kMovementExecuted;
+        decoded.movement = MovementExecutedEvent{execution, *handle};
+        (*g_handler)(decoded);
       }
-      break;
+    }
+    break;
   }
   // The native returns the aggregated modifier response; every argument is
   // forwarded unconditionally so observation never suppresses native events.
@@ -149,7 +171,7 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
 
 __int64 __fastcall BroadcastThunk(uint32_t event, void* event_data) {
   // Damage/heal broadcasts duplicate modifier events and are not observed.
-  if (event == kCombatBroadcastShieldAbsorbed && g_handler) {
+  if (event == g_ids.shield_broadcast && g_handler) {
     CombatEvent decoded;
     if (auto value = DecodeShieldDamage(event_data, OsBoundedReader)) {
       decoded.kind = CombatEvent::Kind::kShieldDamage;
@@ -349,6 +371,41 @@ CombatEventsHook::CombatEventsHook(CombatEventsHook&&) noexcept = default;
 CombatEventsHook& CombatEventsHook::operator=(CombatEventsHook&&) noexcept = default;
 CombatEventsHook::~CombatEventsHook() = default;
 
+std::expected<uint32_t, std::string> ModifierEventIndex(const ModuleImage& image,
+                                                       std::string_view name) {
+  const auto bytes = image.image_bytes();
+  const std::string_view view(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  // The name is a whole NUL-terminated string, not a prefix of a longer one.
+  std::string needle;
+  needle.reserve(name.size() + 2);
+  needle.push_back('\0');
+  needle.append(name);
+  needle.push_back('\0');
+  const auto at = view.find(needle);
+  if (at == std::string_view::npos)
+    return std::unexpected("modifier event " + std::string(name) + " is not in the game module");
+  const uint64_t address = static_cast<uint64_t>(image.base()) + at + 1;
+  char pointer[sizeof(address)];
+  std::memcpy(pointer, &address, sizeof(address));
+  const std::string_view pointer_view(pointer, sizeof(pointer));
+
+  // Every enumerator record naming this string must agree on one value.
+  std::optional<int64_t> value;
+  for (auto hit = view.find(pointer_view); hit != std::string_view::npos;
+       hit = view.find(pointer_view, hit + 1)) {
+    if (hit % alignof(uint64_t) != 0 || hit + 2 * sizeof(uint64_t) > view.size()) continue;
+    int64_t candidate = 0;
+    std::memcpy(&candidate, view.data() + hit + sizeof(uint64_t), sizeof(candidate));
+    if (candidate < 0 || candidate >= kMaxModifierEvent) continue;
+    if (value && *value != candidate)
+      return std::unexpected("modifier event " + std::string(name) + " has conflicting values");
+    value = candidate;
+  }
+  if (!value)
+    return std::unexpected("modifier event " + std::string(name) + " has no enumerator record");
+  return static_cast<uint32_t>(*value);
+}
+
 std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     const ModuleImage& server, void* schema_system, Handler handler,
     std::function<bool(const DamageContactEvent&)> suppress_damage, AdjustDamage adjust_damage) {
@@ -360,6 +417,27 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
   if (!target) return std::unexpected(target.error());
   auto broadcast = ResolveSignature(server, "combat.broadcast");
   if (!broadcast) return std::unexpected(broadcast.error());
+
+  // Game updates renumber EModifierEvent, so every id is read by name from
+  // the running server module.
+  EventIds ids;
+  const std::pair<const char*, uint32_t*> named[] = {
+      {"MODIFIER_EVENT_PRE_DAMAGE_TAKEN", &ids.pre_damage},
+      {"MODIFIER_EVENT_DAMAGE_TAKEN", &ids.damage},
+      {"MODIFIER_EVENT_HEALTH_TAKEN", &ids.health},
+      {"MODIFIER_EVENT_ABILITY_EXECUTED", &ids.ability},
+      {"MODIFIER_EVENT_UNIT_SHIELD_ABSORBED_DAMAGE_BROADCAST", &ids.shield_broadcast},
+  };
+  for (const auto& [name, slot] : named) {
+    auto id = ModifierEventIndex(server, name);
+    if (!id) return std::unexpected(id.error());
+    *slot = *id;
+  }
+  for (size_t i = 0; i < kMovementEventNames.size(); ++i) {
+    auto id = ModifierEventIndex(server, kMovementEventNames[i].first);
+    if (!id) return std::unexpected(id.error());
+    ids.movement[i] = {*id, kMovementEventNames[i].second};
+  }
 
   // The result fields are schema-resolved at runtime; no offset is invented.
   DamageResultOffsets offsets{};
@@ -421,6 +499,7 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
   impl->broadcast = safetyhook::create_inline(*broadcast, reinterpret_cast<void*>(&BroadcastThunk),
                                               safetyhook::InlineHook::StartDisabled);
   if (!impl->broadcast) return std::unexpected("combat broadcast hook could not be created");
+  g_ids = ids;
   g_hook = &impl->hook;
   g_broadcast_hook = &impl->broadcast;
   g_damage_offsets = offsets;

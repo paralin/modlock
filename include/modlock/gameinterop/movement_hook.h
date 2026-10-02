@@ -13,7 +13,9 @@ namespace modlock::gameinterop {
 
 // MovementCall is one native player movement step borrowed for its handler.
 // Angles are degrees; input axes are -1..1; positions are feet-origin world
-// units and velocities are world units per second. Ticks and fractions bound
+// units and velocities are world units per second. A handler may rewrite the
+// angles and input axes as well as the buttons; the native step then runs on
+// the rewritten command. Ticks and fractions bound
 // the step's share of the command in the engine's own time base.
 struct MovementCall {
   // services is the pawn's movement-services component; pawn is its owner,

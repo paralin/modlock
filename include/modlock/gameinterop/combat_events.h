@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "modlock/export.h"
 #include "modlock/gameinterop/game_symbols.h"
@@ -14,9 +15,13 @@
 
 namespace modlock::gameinterop {
 
-// Native modifier-event IDs decoded by the combat observer.
-// The 0x1/0x2 broadcast ids are the same damage/heal facts delivered twice;
-// only the modifier-path ids are decoded, so no event is counted twice.
+// Native modifier-event IDs decoded by the combat observer, as numbered in
+// the build the framework was written against. Game updates renumber
+// EModifierEvent, so CombatEventsHook resolves the running game's ids by name
+// (ModifierEventIndex) and never dispatches on these numbers; they remain for
+// fixtures and existing callers.
+// The broadcast ids are the same damage/heal facts delivered twice; only the
+// modifier-path ids are decoded, so no event is counted twice.
 inline constexpr uint32_t kCombatEventDamageTaken = 0x16;
 inline constexpr uint32_t kCombatEventPreDamageTaken = 0x15;
 inline constexpr uint32_t kCombatEventHealthTaken = 0x18;
@@ -96,7 +101,9 @@ struct AbilityExecutedEvent {
 
 // Native movement executions from FireModifierEvent. The caster is copied
 // while the engine owns its entity; consumers must match the full pawn handle.
-// Values are the game's modifier event identifiers.
+// The enumerators name movement facts with the modifier event ids of the build
+// the framework was written against; the hook maps the running game's ids onto
+// them by name, so they stay stable across game updates.
 enum class MovementExecution : uint32_t {
   kLandedOnGround = 0x32,
   kAttachedToZipline = 0x33,
@@ -183,6 +190,13 @@ struct DamageResultOffsets {
 // preserved without validation, including an invalid target handle.
 [[nodiscard]] MODLOCK_API std::expected<AbilityExecutedEvent, std::string> DecodeAbilityExecuted(
     const void* event_data, const BoundedReader& read);
+
+// ModifierEventIndex reads one EModifierEvent value by its schema name, such
+// as "MODIFIER_EVENT_MELEE_ATTACK_STARTED", from the module's own enumerator
+// records: the record that points at the name's string carries its value
+// beside the pointer. A name that is absent or ambiguous is an error.
+[[nodiscard]] MODLOCK_API std::expected<uint32_t, std::string> ModifierEventIndex(
+    const ModuleImage& image, std::string_view name);
 
 // CombatEventsHook interposes the native FireModifierEvent free function
 // through a native detour. The thunk forwards every event

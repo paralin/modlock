@@ -122,6 +122,7 @@ void Dispatch(Hook& hook, void* services, void* data) {
   Read(owner, hook.layout->buttons + kButtonStates, call.buttons);
   const auto buttons = call.buttons;
   Read(move, kMoveAngles, call.angles);
+  const auto angles = call.angles;
   std::array<float, 3> input;
   Read(move, kMoveInput, input);
   call.forward = input[0];
@@ -142,6 +143,11 @@ void Dispatch(Hook& hook, void* services, void* data) {
   if (call.buttons != buttons)
     std::memcpy(static_cast<unsigned char*>(services) + hook.layout->buttons + kButtonStates,
                 call.buttons.data(), sizeof(call.buttons));
+  // Rewritten angles and movement axes steer the native step itself, so its
+  // movement state and animation follow the replaced command.
+  if (call.angles != angles) std::memcpy(move + kMoveAngles, call.angles.data(), sizeof(call.angles));
+  const std::array<float, 3> axes{call.forward, call.left, call.up};
+  if (axes != input) std::memcpy(move + kMoveInput, axes.data(), sizeof(axes));
   hook.detour->call<void>(services, data);
   if (!replaced) return;
   std::memcpy(move + kMoveOrigin, call.origin.data(), sizeof(call.origin));
