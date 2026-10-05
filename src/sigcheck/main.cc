@@ -4,11 +4,14 @@
 // the previous build, a failed entry also gets a suggested replacement
 // pattern: the old match is decoded, its relative operands are wildcarded,
 // and the shortest instruction-aligned prefix that matches once in the new
-// build is printed.
+// build is printed. With --signatures, it checks that game data file in place
+// of the signatures it was built with, so a repaired file is checked before
+// it ships.
 //
 //   modlock-sigcheck <deadlock-dir> [--baseline <old-deadlock-dir>]
+//                    [--signatures <game_signatures.txtpb>]
 //
-// Exit status is zero only when every entry resolves.
+// Exit status is zero only when every entry loads and resolves.
 #include <Zydis.h>
 
 #include <algorithm>
@@ -234,10 +237,13 @@ std::expected<Install, std::string> LoadInstall(const fs::path& root) {
 int main(int argc, char** argv) {
   std::optional<fs::path> game;
   std::optional<fs::path> baseline_root;
+  std::optional<fs::path> signatures;
   for (int i = 1; i < argc; ++i) {
     const std::string_view arg = argv[i];
     if (arg == "--baseline" && i + 1 < argc) {
       baseline_root = argv[++i];
+    } else if (arg == "--signatures" && i + 1 < argc) {
+      signatures = argv[++i];
     } else if (!arg.starts_with("--") && !game) {
       game = arg;
     } else {
@@ -247,8 +253,21 @@ int main(int argc, char** argv) {
   }
   if (!game) {
     std::fprintf(stderr,
-                 "usage: modlock-sigcheck <deadlock-dir> [--baseline <old-deadlock-dir>]\n");
+                 "usage: modlock-sigcheck <deadlock-dir> [--baseline <old-deadlock-dir>] "
+                 "[--signatures <game_signatures.txtpb>]\n");
     return 2;
+  }
+
+  // A skipped entry fails the check like an entry that does not resolve.
+  size_t failed = 0;
+  if (signatures) {
+    const auto load = modlock::gameinterop::LoadGameSignatures(*signatures);
+    if (!load) {
+      std::fprintf(stderr, "%s\n", load.error().c_str());
+      return 2;
+    }
+    for (const auto& skipped : load->skipped) std::printf("FAIL  %s\n", skipped.c_str());
+    failed = load->skipped.size();
   }
 
   auto current = LoadInstall(*game);
@@ -268,8 +287,7 @@ int main(int argc, char** argv) {
   }
   std::printf("build %s\n", BuildVersion(*game).c_str());
 
-  size_t failed = 0;
-  size_t checked = 0;
+  size_t checked = failed;
   for (const auto& signature : modlock::gameinterop::GameSignatures()) {
     for (const auto module : kModules) {
       if (!signature.In(module)) continue;

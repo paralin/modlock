@@ -19,9 +19,14 @@ Portable parsing, callback dispatch, and fixture tests run without game modules.
 ## Signatures and addresses
 
 `ParseSignature` and `SignatureScan` operate on borrowed byte spans. Every
-game signature is one `GameSignature` entry in
-`src/gameinterop/game_signatures.cc`: a stable id, the modules that carry it,
-the pattern, what the match resolves to, and the native shape. Callers resolve
+game signature is one entry in the game data file
+`data/game_signatures.txtpb`, a protobuf text file of
+`proto/modlock/game_signatures.proto`: a stable id, the modules that carry it,
+the pattern, what the match resolves to, and the native shape. The SDK embeds
+the file as of its build, and `modlock-host` loads the copy installed beside
+it at start, so a game patch that moves a pattern ships as a new file without
+a new host. A malformed entry is skipped with a log line, and only the
+features that resolve its id fail. Callers resolve
 an entry with `ResolveSignature(image, id)`. The target is the match itself,
 the `E8` call at a delta into the match, or the RIP-relative operand of a
 seven-byte instruction at a delta. Missing and ambiguous matches fail with the
@@ -32,15 +37,17 @@ After a game update, build `modlock-sigcheck` and run it against the Deadlock
 install:
 
 ```sh
-modlock-sigcheck <deadlock-dir> [--baseline <previous-deadlock-dir>]
+modlock-sigcheck <deadlock-dir> [--baseline <previous-deadlock-dir>] \
+  [--signatures data/game_signatures.txtpb]
 ```
 
 It resolves every entry in every module it names and exits nonzero when any
-fails. With a copy of the previous build as the baseline, each failed entry
+fails. `--signatures` checks an edited game data file without a rebuild. With a copy of the previous build as the baseline, each failed entry
 also gets a suggested pattern: the old match is decoded, its relative
 displacements and branch targets become wildcards, and the shortest
 instruction-aligned prefix that resolves once in the new build is printed.
-Review each suggestion against the recorded shape before replacing the entry.
+Review each suggestion against the recorded shape before replacing the entry
+in the game data file.
 
 An address is evidence of a pattern match, not proof that an arbitrary function
 signature is safe to call. Callers must use the recorded calling convention and

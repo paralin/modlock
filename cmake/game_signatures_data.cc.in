@@ -1,0 +1,8 @@
+#include <string_view>
+
+namespace modlock::gameinterop {
+
+// kBuiltInGameSignatures is data/game_signatures.txtpb as of the build.
+extern const std::string_view kBuiltInGameSignatures = R"modlock(@MODLOCK_GAME_SIGNATURES@)modlock";
+
+}  // namespace modlock::gameinterop

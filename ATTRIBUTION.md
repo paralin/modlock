@@ -10,7 +10,7 @@ framework for Deadlock, released under the MIT License; its copyright line
 appears in [LICENSE](LICENSE). Modlock used it as a reference implementation
 for these parts of the engine interface:
 
-- **Signatures.** The byte patterns in `src/gameinterop/game_signatures.cc`
+- **Signatures.** The byte patterns in `data/game_signatures.txtpb`
   started from the Deadworks signature database (`deadworks_mem.jsonc`) and
   were then checked against the live game binaries.
 - **Virtual table slots.** The `GameFrame` slot hooked in

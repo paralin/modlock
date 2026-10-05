@@ -87,6 +87,12 @@ target_include_directories(utf8_range PUBLIC
 add_subdirectory(${MODLOCK_PROTOBUF_DIR} build-deps/protobuf)
 include(cmake/wasmtime.cmake)
 
+# The SDK embeds the game data file so every program starts with its
+# signatures; modlock-host replaces them with the copy installed beside it.
+file(READ data/game_signatures.txtpb MODLOCK_GAME_SIGNATURES)
+configure_file(cmake/game_signatures_data.cc.in src/gameinterop/game_signatures_data.cc @ONLY)
+configure_file(data/game_signatures.txtpb game_signatures.txtpb COPYONLY)
+
 add_library(modlock_sdk SHARED
   src/camera/camera_path.cc
   src/engine_host.cc
@@ -108,6 +114,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/frame_hook.cc
   src/gameinterop/game_rules.cc
   src/gameinterop/game_signatures.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/src/gameinterop/game_signatures_data.cc
   src/gameinterop/game_symbols.cc
   src/gameinterop/hero_definitions.cc
   src/gameinterop/hero_initialization.cc
@@ -155,6 +162,7 @@ add_library(modlock_sdk SHARED
   src/wasm/wasm_host.cc
   proto/modlock/camera.pb.cc
   proto/modlock/chat.pb.cc
+  proto/modlock/game_signatures.pb.cc
   proto/modlock/hud.pb.cc
   proto/modlock/stamina_consumed.pb.cc
   proto/modlock/types.pb.cc
@@ -230,6 +238,7 @@ if(WIN32)
   target_link_libraries(modlock-host PRIVATE ws2_32)
 endif()
 install(TARGETS modlock-host RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES data/game_signatures.txtpb DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(WIN32)
   install(FILES ${MODLOCK_WASMTIME_LIBRARY} DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
@@ -496,6 +505,8 @@ if(BUILD_TESTING)
   add_test(NAME mapped_module_image_test COMMAND mapped_module_image_test)
   add_executable(game_symbols_test tests/game_symbols_test.cc)
   target_link_libraries(game_symbols_test PRIVATE modlock::sdk gtest_main)
+  target_compile_definitions(game_symbols_test PRIVATE
+    MODLOCK_GAME_SIGNATURES_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/game_signatures.txtpb")
   add_test(NAME game_symbols_test COMMAND game_symbols_test)
   add_executable(gameinterop_world_entities_test tests/gameinterop_world_entities_test.cc)
   target_link_libraries(gameinterop_world_entities_test PRIVATE modlock::sdk gtest_main)

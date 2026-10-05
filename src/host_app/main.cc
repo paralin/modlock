@@ -11,6 +11,7 @@
 #include "host_app/control_link.h"
 #include "modlock/build.h"
 #include "modlock/engine_host.h"
+#include "modlock/gameinterop/game_symbols.h"
 #include "modlock/host.h"
 #include "modlock/host_app/stdio_guard.h"
 #include "modlock/plugin_library.h"
@@ -43,6 +44,17 @@ std::optional<uint16_t> Port(std::string_view value) {
     return std::nullopt;
   }
   return static_cast<uint16_t>(port);
+}
+
+// LoadSignatures reads the game data file and logs every entry it skips, so a
+// broken entry disables only the features that resolve it.
+void LoadSignatures(const std::filesystem::path& path) {
+  const auto load = modlock::gameinterop::LoadGameSignatures(path);
+  if (!load) {
+    std::cerr << load.error() << "; using the built-in signatures\n";
+    return;
+  }
+  for (const auto& skipped : load->skipped) std::cerr << "game signatures: " << skipped << '\n';
 }
 
 // FailureRecorder keeps the first error of a mod that stopped, which fails
@@ -149,6 +161,10 @@ int main(int argc, char** argv) {
     std::cerr << "Select a plugin with --plugin PATH. Use --help for usage.\n";
     return 2;
   }
+  // The game data file and the interpreter modules ship beside the executable.
+  const auto directory = std::filesystem::absolute(argv[0]).parent_path();
+  LoadSignatures(directory / "game_signatures.txtpb");
+
   modlock::EngineHost engine;
   if (!check_only) {
     if (game_dir.empty()) {
@@ -161,12 +177,11 @@ int main(int argc, char** argv) {
     }
   }
 
-  // The interpreter modules ship beside the executable. The
-  // control link reports the mods' progress to the program that started the
-  // host; a lost controller leaves the server running.
-  // A settings file outlives the mods that keep players' settings in it.
+  // The control link reports the mods' progress to the program that started
+  // the host; a lost controller leaves the server running. A settings file
+  // outlives the mods that keep players' settings in it.
   std::optional<modlock::FileSettings> settings;
-  modlock::WasmHost mods(std::filesystem::absolute(argv[0]).parent_path());
+  modlock::WasmHost mods(directory);
   if (!settings_file.empty()) mods.KeepSettings(&settings.emplace(settings_file));
   FailureRecorder failures;
   mods.Observe(&failures);

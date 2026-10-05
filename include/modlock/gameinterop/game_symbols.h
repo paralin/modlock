@@ -3,9 +3,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <expected>
+#include <filesystem>
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "modlock/export.h"
 
@@ -76,9 +78,29 @@ struct GameSignature {
   }
 };
 
-// GameSignatures returns every recorded signature. The table in
-// game_signatures.cc is the one place to change patterns after a game update.
+// GameSignatures returns every recorded signature, sorted by id. The game
+// data file data/game_signatures.txtpb is the one place to change patterns
+// after a game update; the build carries a copy, which LoadGameSignatures
+// replaces with the file a release ships.
 [[nodiscard]] MODLOCK_API std::span<const GameSignature> GameSignatures();
+
+// GameSignatureLoad reports a game data file that replaced the recorded
+// signatures.
+struct GameSignatureLoad {
+  // loaded counts the signatures now recorded.
+  size_t loaded = 0;
+  // skipped explains each entry left out, naming its id when it has one.
+  std::vector<std::string> skipped;
+};
+
+// LoadGameSignatures replaces the recorded signatures with the game data
+// file at path. A malformed entry is skipped, so only the features that
+// resolve its id fail; an unreadable or unparsable file is an error and keeps
+// the current signatures. Call it before any lookup: replacing the table
+// invalidates every earlier GameSignatures span and FindGameSignature
+// pointer, and it must not run concurrently with lookups.
+[[nodiscard]] MODLOCK_API std::expected<GameSignatureLoad, std::string> LoadGameSignatures(
+    const std::filesystem::path& path);
 
 // FindGameSignature returns the recorded signature with id, or nullptr.
 [[nodiscard]] MODLOCK_API const GameSignature* FindGameSignature(std::string_view id);

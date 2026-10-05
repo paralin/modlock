@@ -1,0 +1,443 @@
+# proto-file: proto/modlock/game_signatures.proto
+# proto-message: modlock.gamedata.GameSignatureFile
+#
+# Every byte pattern modlock scans for in the game binaries. After a game
+# update, run modlock-sigcheck against the new binaries and repair the failing
+# entries here; callers resolve by id and need no change while the native
+# shapes hold. Entries sort by id.
+
+signatures {
+  id: "ability.create-and-register"
+  modules: GAME_MODULE_SERVER
+  pattern: "4C 89 4C 24 ?? 53 57 41 54 41 55 48 83 EC ?? 49 8B D9"
+  shape: "void* CreateAbility(CCitadelAbilityComponent*, definition, uint16 slot, uint64 upgrade, bool, KeyValues3* extra)"
+}
+
+# CCitadelPlayerPawn::RemoveItem, which finds and detaches the ability slot.
+signatures {
+  id: "ability.detach-slot"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 55 56 57 48 83 EC 60 41 0F B6 E8 48 8B F2 48 8B F9"
+  call_at: 0x8b
+  shape: "detaches the found ability slot inside RemoveItem"
+}
+
+# CCitadelPlayerPawn::RemoveItem, which finds and detaches the ability slot.
+signatures {
+  id: "ability.find-slot"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 55 56 57 48 83 EC 60 41 0F B6 E8 48 8B F2 48 8B F9"
+  call_at: 0x7b
+  shape: "finds the ability slot inside RemoveItem"
+}
+
+signatures {
+  id: "ability.refresh-charges"
+  modules: GAME_MODULE_SERVER
+  pattern: "FF 90 ?? ?? ?? ?? 84 C0 74 17 48 8B 1F 48 8B CF FF 93 ?? ?? ?? ?? 8B D0 48 8B CF FF 93 ?? ?? ?? ?? 45 33 D2 FF C5 49 83 C6 04"
+  shape: "HeroRefresh loop calling HasCharges (+2) and GetMaxCharges (+18) virtual slots; callers read the slot displacements"
+}
+
+# CCitadelPlayerPawn::RemoveItem, which finds and detaches the ability slot.
+signatures {
+  id: "ability.remove-item"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 55 56 57 48 83 EC 60 41 0F B6 E8 48 8B F2 48 8B F9"
+  shape: "void RemoveItem(CCitadelAbilityComponent*, CCitadelBaseAbility*, uint8)"
+}
+
+signatures {
+  id: "ability.set-upgrade-bits"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 8B C4 55 57 48 8D 68 ?? 48 81 EC ?? ?? ?? ?? 48 89 58 ?? 41 B9"
+  shape: "void SetUpgradeBits(CCitadelBaseAbility*, uint32 bits)"
+}
+
+signatures {
+  id: "ability.set-upgrade-low-word"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 41 54 41 56 41 57 48 8B EC 48 83 EC ?? 44 8B F2 4C 8B E1 E8 ?? ?? ?? ?? 44 8B F8 41 3B C6"
+  shape: "void (CCitadelBaseAbility*, uint32 value); sets m_nUpgradeInfo's low word, which CreateAndRegisterAbility takes from its upgrade value's high dword"
+}
+
+signatures {
+  id: "ability.swap-item-slots"
+  modules: GAME_MODULE_SERVER
+  pattern: "66 41 3B D0 0F 84 ?? ?? ?? ?? 66 44 89 44 24 18 66 89 54 24 10 55 57 41 56"
+  shape: "void SwapItemSlots(CCitadelAbilityComponent*, uint16, uint16)"
+}
+
+signatures {
+  id: "ability.think"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 4C 24 ?? 55 53 57 41 54 41 55 41 56 48 8D AC 24"
+  shape: "CCitadelBaseAbility::AbilityThink"
+}
+
+signatures {
+  id: "bot.create"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 55 41 54 41 55 48 83 EC 38 4C 8B E1 49 8B E9 48 8B 0D ?? ?? ?? ?? 41 8B D8 44 8B EA"
+  shape: "CreateCitadelBot(const char* name, int team, int hero, const Vector* position)"
+}
+
+signatures {
+  id: "combat.broadcast"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 54 24 10 89 4C 24 08 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 E1"
+  shape: "native combat event broadcast for damage, healing and shield events"
+}
+
+signatures {
+  id: "combat.fire-modifier-event"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 56 41 55 48 8D 6C 24 ?? 48 81 EC ?? ?? ?? ?? 33 F6"
+  shape: "FireModifierEvent"
+}
+
+signatures {
+  id: "controller.create-hero-pawn"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 8B C4 48 89 48 ?? 55 57 48 8D 68 ?? 48 81 EC ?? ?? ?? ?? 48 89 58 ?? 48 8B F9 48 8B 0D"
+  shape: "CCitadelPlayerPawn* CreateHeroPawn(CCitadelPlayerController*, int team)"
+}
+
+signatures {
+  id: "controller.set-pawn"
+  modules: GAME_MODULE_SERVER
+  pattern: "44 88 4C 24 ?? 53 57"
+  shape: "CBasePlayerController::SetPawn"
+}
+
+signatures {
+  id: "controller.spawn-observer"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 8B C4 55 53 48 8D 68 ?? 48 81 EC ?? ?? ?? ?? 48 89 78 ?? 4C 89 60"
+  shape: "void* SpawnObserverPawn(CCitadelPlayerController*)"
+}
+
+signatures {
+  id: "damage.construct"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 48 83 EC 50 F3 0F 10 84 24 80 00 00 00 48 8D 05"
+  shape: "CTakeDamageInfo constructor"
+}
+
+signatures {
+  id: "damage.destroy"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC ?? 33 ED 48 8D 05 ?? ?? ?? ?? ?? ?? ?? 48 8B F9 F7 81"
+  shape: "CTakeDamageInfo destructor"
+}
+
+signatures {
+  id: "entity-instance.accept-input"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 48 89 6C 24 ?? 56 57 41 56 48 81 EC ?? ?? ?? ?? 4D 8B F0 48 8B F1"
+  shape: "bool AcceptInput(CEntityInstance*, const char* input, CEntityInstance* activator, CEntityInstance* caller, variant_t* value)"
+}
+
+# The allocator wrapper repeats; the neighboring realloc wrapper makes
+# the match unique.
+signatures {
+  id: "entity-keyvalues.allocate"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 8B 05 ?? ?? ?? ?? 48 8B D1 48 8B 08 48 8B 01 48 FF 60 08 CC CC CC CC CC CC CC CC CC CC CC CC 48 8B 05 ?? ?? ?? ?? 4C 8B C9 4C 8B C2 49 8B D1"
+  shape: "void* (size_t); engine MemAlloc_Alloc wrapper"
+}
+
+signatures {
+  id: "entity-keyvalues.construct"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 08 57 48 83 EC 20 33 FF 48 8B D9 48 89 79 28 48 89 79 30 44 88 41 25 48 85 D2 74 ??"
+  shape: "CEntityKeyValues* (storage, CKV3Arena*, EntityKVAllocatorType_t)"
+}
+
+signatures {
+  id: "entity-keyvalues.set-key-value"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 55 56 48 83 EC 30 66 83 79 22 00 41 0F B6 E8 48 8B F2 48 8B D9 7E ??"
+  shape: "KeyValues3* (CEntityKeyValues*, const CKV3MemberName*, bool)"
+}
+
+signatures {
+  id: "entity-system.create-entity-by-name"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 83 EC ?? 48 8B 0D ?? ?? ?? ?? 41 8B C0"
+  shape: "CEntityInstance* (void* ignored, const char* class_name, int edict); reads the global entity system itself"
+}
+
+signatures {
+  id: "entity-system.execute-queued-creation"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 57 48 81 EC ?? ?? ?? ?? FF 81 ?? ?? ?? ?? 48 8D 44 24"
+  shape: "void (CGameEntitySystem*)"
+}
+
+signatures {
+  id: "entity-system.queue-spawn-entity"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 56 57 41 56 48 83 EC ?? F7 42"
+  shape: "void (CGameEntitySystem*, CEntityIdentity*, CEntityKeyValues*)"
+}
+
+signatures {
+  id: "entity.emit-sound"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 55 48 8B EC 48 81 EC ?? ?? ?? ?? 33 C0"
+  shape: "CBaseEntity::EmitSoundParams"
+}
+
+signatures {
+  id: "entity.remove"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 85 C9 74 ? 48 8B D1 48 8B 0D"
+  shape: "void UTIL_Remove(CEntityInstance*); queues removal at the next entity frame"
+}
+
+# The inner Teleport inlines this setter; the pawn movement update after
+# SetAbsOrigin still calls it.
+signatures {
+  id: "entity.set-abs-angles"
+  modules: GAME_MODULE_SERVER
+  pattern: "E8 ?? ?? ?? ?? 48 8B 03 48 8B CB FF 90 ?? ?? ?? ?? 0F 28 74 24 ?? 84 C0 75 ?? 48 8D 15 ?? ?? ?? ?? 48 8B CB E8"
+  call_at: 0x24
+  shape: "void SetAbsAngles(CBaseEntity*, const QAngle*)"
+}
+
+# CBaseEntity's inner Teleport, which calls the absolute-state setters.
+signatures {
+  id: "entity.set-abs-origin"
+  modules: GAME_MODULE_SERVER
+  pattern: "4C 89 4C 24 20 4C 89 44 24 18 48 89 54 24 10 48 89 4C 24 08 53 55 56 57 41 54 41 56 41 57 48 83 EC 60 48 8B 1A"
+  call_at: 0x4ed
+  shape: "void SetAbsOrigin(CBaseEntity*, const Vector*)"
+}
+
+# CBaseEntity's inner Teleport, which calls the absolute-state setters.
+signatures {
+  id: "entity.set-abs-velocity"
+  modules: GAME_MODULE_SERVER
+  pattern: "4C 89 4C 24 20 4C 89 44 24 18 48 89 54 24 10 48 89 4C 24 08 53 55 56 57 41 54 41 56 41 57 48 83 EC 60 48 8B 1A"
+  call_at: 0x4cd
+  shape: "void SetAbsVelocity(CBaseEntity*, const Vector*)"
+}
+
+signatures {
+  id: "entity.set-move-type"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 48 89 7C 24 20 41 56 48 83 EC 20 41 0F B6 F0 0F B6 EA 48 8B F9 38 91 F3 02 00 00"
+  shape: "void SetMoveType(CBaseEntity*, uint8 move_type, uint8 move_collide)"
+}
+
+signatures {
+  id: "entity.take-damage"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 53 56 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 49 8B D8"
+  shape: "CBaseEntity::TakeDamageOld(CTakeDamageInfo*)"
+}
+
+signatures {
+  id: "game-rules.add-resource"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 57 48 83 EC ?? 48 8B FA 48 8B D9 48 85 C9 74 ?? ?? ?? ?? 74"
+  shape: "adds one resource path to the session manifest"
+}
+
+# The citadel_force_koth_spawn callback: push rsi; sub rsp,30; mov rsi,[rip+disp32].
+signatures {
+  id: "game-rules.current"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 56 48 83 EC 30 48 8B 35 ?? ?? ?? ?? 48 85 F6 0F 84"
+  rip_relative_at: 6
+  shape: "CCitadelGameRules** global loaded by the force-KOTH callback"
+}
+
+# CCitadelGameRules::BuildGameSessionManifest.
+signatures {
+  id: "game-rules.manifest-builder"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02 48 8D 0D ?? ?? ?? ?? 4C 8B F2"
+  shape: "CCitadelGameRules::BuildGameSessionManifest"
+}
+
+# CCitadelGameRules::BuildGameSessionManifest.
+signatures {
+  id: "game-rules.precache-call"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02 48 8D 0D ?? ?? ?? ?? 4C 8B F2"
+  call_at: 0x342
+  shape: "hero precache helper called by the manifest builder"
+}
+
+# CCitadelGameRules::BuildGameSessionManifest.
+signatures {
+  id: "game-rules.precache-global"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02 48 8D 0D ?? ?? ?? ?? 4C 8B F2"
+  rip_relative_at: 0x33b
+  shape: "hero precache context loaded by the manifest builder"
+}
+
+# The citadel_toggle_server_pause callback.
+signatures {
+  id: "game-rules.refresh-pause"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 48 83 EC 20 48 8B 1D ?? ?? ?? ?? 48 85 DB 74 ?? 80 BB ?? ?? ?? ?? 00"
+  call_at: 0x51
+  shape: "void (CCitadelGameRules*); pause-modifier reconciliation"
+}
+
+# The citadel_force_koth_spawn callback: push rsi; sub rsp,30; mov rsi,[rip+disp32].
+signatures {
+  id: "game-rules.start-koth"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 56 48 83 EC 30 48 8B 35 ?? ?? ?? ?? 48 85 F6 0F 84"
+  call_at: 0xcb
+  shape: "void (CCitadelGameRules*); KOTH warning and spawn routine"
+}
+
+# The citadel_toggle_server_pause callback.
+signatures {
+  id: "game-rules.toggle-server-pause"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 48 83 EC 20 48 8B 1D ?? ?? ?? ?? 48 85 DB 74 ?? 80 BB ?? ?? ?? ?? 00"
+  shape: "citadel_toggle_server_pause callback"
+}
+
+signatures {
+  id: "hero-definition-manager.get-hero-by-id"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 8B C1 85 D2 74 04 3B 11 72 03 33 C0 C3 48 8B 40 08 48 63 CA 48 8B 04 C8 C3"
+  shape: "CHeroDefinition* GetHeroById(CHeroDefinitionManager*, unsigned hero_id)"
+}
+
+signatures {
+  id: "hero-definition-manager.get-manager"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 56 41 55 48 83 EC 30 8B DA 48 8B F1 E8"
+  call_at: 0xE
+  shape: "CHeroDefinitionManager* GetManager(); TLS-guarded getter"
+}
+
+signatures {
+  id: "hero-definition-manager.hero-name-to-id"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 57 48 83 EC ?? 49 8B C8"
+  shape: "int* HeroNameToId(CHeroDefinitionManager*, int* out_id, const char* name)"
+}
+
+signatures {
+  id: "modifier.add"
+  modules: GAME_MODULE_SERVER
+  pattern: "44 89 44 24 ?? 48 89 54 24 ?? 53 55 56 57 41 55"
+  shape: "CModifierProperty::AddModifier"
+}
+
+# The source line stored at +0x1b changes between builds.
+signatures {
+  id: "movement.process"
+  modules: GAME_MODULE_SERVER
+  modules: GAME_MODULE_CLIENT
+  pattern: "48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 70 48 8D 05 ?? ?? ?? ?? 48 C7 44 24 28 ?? ?? 00 00 48 89 44 24 20 4C 8D 44 24 40 0F 10 44 24 20 48 8D 05 ?? ?? ?? ?? 48 8B F2"
+  shape: "ProcessMovement(movement services, CMoveData*)"
+}
+
+signatures {
+  id: "pawn.add-item"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC ?? 48 8B F9 49 8B E9 B9"
+  shape: "CCitadelBaseAbility* AddItem(CCitadelPlayerPawn*, const char* name, uint64 upgrade, KeyValues3* extra)"
+}
+
+signatures {
+  id: "pawn.initialize-hero"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 41 56 48 83 EC ?? 0F B6 81"
+  shape: "CCitadelPlayerPawn::InitializeHeroOnPawn"
+}
+
+signatures {
+  id: "pawn.modify-currency"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 54 41 55 41 56 41 57 48 8D 6C 24"
+  shape: "CCitadelPlayerPawn::ModifyCurrency"
+}
+
+signatures {
+  id: "pawn.reset-hero"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 74 24 ?? 57 48 83 EC 20 0F B6 81 ?? ?? ?? ?? 0F B6 F2"
+  shape: "int64 ResetHero(CCitadelPlayerPawn*, bool reset_abilities)"
+}
+
+signatures {
+  id: "pawn.respawn"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 08 57 48 83 EC 20 48 8B D9 0F B6 FA 48 8B 89 ?? ?? 00 00 48 85 C9"
+  shape: "void Respawn(CCitadelPlayerPawn*, bool force)"
+}
+
+signatures {
+  id: "pawn.select-hero-internal"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 41 54 41 55 41 56 48 8D AC 24"
+  shape: "void SelectHeroInternal(CCitadelPlayerPawn*, CHeroDefinition*)"
+}
+
+signatures {
+  id: "pawn.teleport-client-camera"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 08 48 89 74 24 18 48 89 7C 24 20 55 41 56 41 57 48 8D 6C 24 B9 48 81 EC D0 00 00 00 48 8B 02 49 8B F9 4D 8B D0"
+  shape: "teleports a pawn and its client camera together"
+}
+
+signatures {
+  id: "physics.trace-shape"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 56 41 57 48 8D AC 24"
+  shape: "TraceShape(physics, Ray_t*, Vector* start, Vector* end, CTraceFilter*, CGameTrace*)"
+}
+
+signatures {
+  id: "preparation.damage-gate"
+  modules: GAME_MODULE_SERVER
+  pattern: "80 BE E0 02 00 00 00 0F 84 ?? ?? ?? ?? 4C 89 A4 24"
+  shape: "TakeDamageOld's m_bTakesDamage test"
+}
+
+signatures {
+  id: "preparation.frozen-input"
+  modules: GAME_MODULE_SERVER
+  pattern: "F6 80 90 03 00 00 20 75 ?? 48 8D 94 24 ?? ?? ?? ?? 48 8B CE E8"
+  shape: "movement setup's FL_FROZEN test before it clears input"
+}
+
+signatures {
+  id: "projectile.contact"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 56 41 55 41 56 41 57 48 8D 6C 24 ?? 48 81 EC ?? ?? 00 00 80 B9 ?? ?? 00 00 00"
+  shape: "projectile contact handler"
+}
+
+signatures {
+  id: "projectile.impact"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 10 48 89 74 24 18 57 41 56 41 57 48 83 EC 50 44 8B 91 ?? ?? 00 00 45 33 FF 41 0F B6 D9"
+  shape: "projectile impact handler"
+}
+
+signatures {
+  id: "server.reply-connection"
+  modules: GAME_MODULE_ENGINE
+  pattern: "48 8B C4 55 41 55 41 56"
+  shape: "CNetworkGameServerBase::ReplyConnection"
+}
+
+signatures {
+  id: "vdata.lookup-by-hash"
+  modules: GAME_MODULE_SERVER
+  modules: GAME_MODULE_CLIENT
+  pattern: "40 53 48 83 EC ?? 89 54 24 ?? 8B D9"
+  shape: "void* LookupVData(int kind, uint32 hash); EDX is the full 32-bit hash"
+}
