@@ -110,13 +110,15 @@ function ahead(player: Player, distance: number, side = 0): Vector | undefined {
 
 /** top traces down onto a placed object and returns the height of its top. */
 function top(spot: LoadedSpot, index: number): number | undefined {
+  // Find the object placed at this index.
   const placed = spot.objects()[index]
   if (!placed) {
     return undefined
   }
+
+  // Trace down from just above the probe box, which stands 64 tall, so a low
+  // ceiling over the spawn does not catch the trace.
   const { x, y, z } = placed.object.position
-  // Start just above the probe box, which stands 64 tall, so a low ceiling
-  // over the spawn does not catch the trace.
   const hit = trace({ start: { x, y, z: z + 96 * placed.object.scale }, end: { x, y, z }, exclude: triggers })
   return hit?.entity === placed.entity ? hit.position.z : undefined
 }
@@ -131,20 +133,27 @@ function grounded(position: Vector): boolean {
  * checks that failed.
  */
 function probe(player: Player, count: number): string[] {
+  // Find two crate positions beside each other ahead of the hero.
   const failures: string[] = []
   const small = ahead(player, 200, -80)
   const large = ahead(player, 200, 80)
   if (!small || !large) {
     return ['the player has no hero']
   }
+
+  // Record every catalog model the game deletes when placed.
   for (const model of lost(ahead(player, 600)!)) {
     failures.push(`the game deleted ${model}`)
   }
+
+  // Place a small and a large crate and check that both exist.
   const spot = loadSpot({ map: 'dl_midtown', objects: [crate(small, 1), crate(large, 2)] })
   log(`probe: placed ${spot.objects().length} of 2`)
   if (spot.objects().length !== 2) {
     failures.push('a crate was not placed')
   }
+
+  // Check that the large crate's top stands at twice the small crate's height.
   const heights = [top(spot, 0), top(spot, 1)].map((z, i) => (z === undefined ? undefined : z - [small, large][i]!.z))
   log(`probe: crate tops at ${heights.join(' and ')}`)
   if (heights.some((height) => height === undefined)) {
@@ -153,6 +162,7 @@ function probe(player: Player, count: number): string[] {
     failures.push('the large crate does not collide at twice the height')
   }
 
+  // Move the small crate up and check that it collides where it moved.
   const first = spot.objects()[0]
   if (first) {
     spot.move(first, { ...first.object.position, z: first.object.position.z + 64 }, { pitch: 0, yaw: 45, roll: 0 })
@@ -162,6 +172,8 @@ function probe(player: Player, count: number): string[] {
       failures.push('the moved crate does not collide where it moved')
     }
   }
+
+  // Check that the spot encodes to the same bytes twice, then clear it.
   const encoded = encodeSpot(spot.spot())
   const again = encodeSpot(spot.spot())
   log(`probe: encoding ${encoded.length} bytes`)
@@ -170,6 +182,7 @@ function probe(player: Player, count: number): string[] {
   }
   spot.clear()
 
+  // Place count crates in rows of 20 and time the load.
   const origin = ahead(player, 400)!
   const objects = Array.from({ length: count }, (_, i) =>
     crate({ x: origin.x + (i % 20) * 72 - 720, y: origin.y, z: origin.z + Math.floor(i / 20) * 64 }, 1),
@@ -180,6 +193,8 @@ function probe(player: Player, count: number): string[] {
   if (many.objects().length !== count) {
     failures.push(`${count - many.objects().length} of ${count} crates were not placed`)
   }
+
+  // Clear the crates and return the failed checks.
   many.clear()
   return failures
 }

@@ -138,6 +138,7 @@ export class LoadedSpot {
    * the game cannot place logs why and returns nothing.
    */
   place(object: SpotObject): Placed | undefined {
+    // Create the object's solid model in the world.
     const world = createModel({
       resource: object.model,
       position: object.position,
@@ -145,12 +146,16 @@ export class LoadedSpot {
       scale: object.scale,
       solid: true,
     })
+
+    // Skip an object the game does not create.
     const entity = world?.entity()
     if (!world || entity === undefined) {
       world?.remove()
       log(`spot: skipped ${object.model}`)
       return undefined
     }
+
+    // Index the placed object by its entity.
     const placed = { object, world, entity }
     this.placed.push(placed)
     this.entities.set(entity, placed)
@@ -164,10 +169,13 @@ export class LoadedSpot {
 
   /** move puts a placed object at position and facing, keeping its order. */
   move(placed: Placed, position: Vector, facing: Angles): Placed {
+    // Move the model; a record not in this spot or a failed move stays as it was.
     const index = this.placed.indexOf(placed)
     if (index < 0 || !placed.world.move(position, facing)) {
       return placed
     }
+
+    // Replace the record with the moved object.
     const moved = { ...placed, object: { ...placed.object, position, facing } }
     this.placed[index] = moved
     this.entities.set(moved.entity, moved)
@@ -176,10 +184,13 @@ export class LoadedSpot {
 
   /** remove takes a placed object out of the world and the spot. */
   remove(placed: Placed): void {
+    // Find the record in this spot.
     const index = this.placed.indexOf(placed)
     if (index < 0) {
       return
     }
+
+    // Remove the model and its record.
     placed.world.remove()
     this.placed.splice(index, 1)
     this.entities.delete(placed.entity)

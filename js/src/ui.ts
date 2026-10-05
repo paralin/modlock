@@ -218,13 +218,16 @@ function view(player: Player): View {
 
 /** draw sends what changed in player's interface and notices. */
 function draw(player: Player): boolean {
+  // Render the player's view and any notices against the last screen sent.
   const current = view(player)
   const root = [current.root, current.notices.length !== 0 && notices(current.notices)]
   const previous = screens.get(player.slot)
   const next = render(previous, root)
   const change = diff(previous, next)
+
+  // Send the change; a failed send means the player may have left, so send
+  // the screen whole.
   if (change && !send(player.slot, change)) {
-    // The player may have left, which drops their interface; send it whole.
     const whole = render(undefined, root)
     if (!send(player.slot, diff(undefined, whole)!)) {
       screens.delete(player.slot)
@@ -233,6 +236,8 @@ function draw(player: Player): boolean {
     screens.set(player.slot, whole)
     return true
   }
+
+  // Keep the screen the player now holds.
   screens.set(player.slot, next)
   return true
 }
@@ -294,6 +299,7 @@ const screens = new Map<number, Screen>()
 
 /** render lays root out as nodes, keeping the ids of elements that stayed in place. */
 function render(previous: Screen | undefined, root: Child): Screen {
+  // Start a screen that continues the previous screen's id counter.
   const screen: Screen = { nodes: new Map(), ids: new Map(), presses: new Map(), next: previous?.next ?? 0 }
 
   // id returns the node id for the element at place.
@@ -313,6 +319,7 @@ function render(previous: Screen | undefined, root: Child): Screen {
 
   // place lays out child at place and returns its nodes' ids.
   const place = (child: Child, at: string): string[] => {
+    // Lay out empty values, lists, text, and function components.
     if (child === null || child === undefined || typeof child === 'boolean') {
       return []
     }
@@ -430,6 +437,7 @@ function wireStyle(style: Style | undefined): WireStyle | undefined {
 
 /** length encodes a length. */
 function length(value: Length | undefined): WireLength | undefined {
+  // Convert each length form to its wire case.
   if (value === undefined) {
     return undefined
   }

@@ -101,14 +101,19 @@ export class Dropper {
 
   /** toggle starts or stops building for player. */
   toggle(player: Player): void {
+    // A second toggle ends the player's build session.
     if (this.builders.has(player.slot)) {
       this.stop(player)
       return
     }
+
+    // Require a connected player and a nonempty catalog.
     const connection = players().find((connection) => connection.player.slot === player.slot)
     if (!connection || this.catalog.length === 0) {
       return
     }
+
+    // Start the builder facing the hero's yaw, snapped to a turn step.
     const yaw = player.pawn()?.eyeAngles.yaw ?? 0
     this.builders.set(player.slot, {
       player,
@@ -117,20 +122,27 @@ export class Dropper {
       yaw: Math.round(yaw / turnDegrees) * turnDegrees,
       drops: [],
     })
+
+    // Take the build buttons from the hero and show the dropper.
     player.blockInput(dropperButtons)
     this.draw(this.builders.get(player.slot)!)
   }
 
   /** stop ends building for player, putting back an object they held. */
   stop(player: Player): void {
+    // Find the player's builder.
     const builder = this.builders.get(player.slot)
     if (!builder) {
       return
     }
+
+    // Place any held object back, then remove the preview.
     if (builder.held) {
       this.spot.place(builder.held)
     }
     builder.preview?.remove()
+
+    // Forget the builder and return the buttons and HUD.
     this.builders.delete(player.slot)
     player.blockInput(0n)
     hide(player)
@@ -165,10 +177,13 @@ export class Dropper {
 
   /** input applies a builder's key presses. */
   input(player: Player, pressed: bigint): void {
+    // Find the player's builder.
     const builder = this.builders.get(player.slot)
     if (!builder) {
       return
     }
+
+    // Run the action of each pressed button.
     if (pressed & Buttons.attack) {
       this.drop(builder)
     }
@@ -240,6 +255,7 @@ export class Dropper {
 
   /** aim places the builder's preview where they look. */
   private aim(builder: Builder): void {
+    // Clear the last aim and target before tracing again.
     const pawn = builder.player.pawn()
     const model = builder.held?.model ?? this.catalog[builder.entry]!.model
     builder.aim = undefined
@@ -247,6 +263,8 @@ export class Dropper {
     if (!pawn) {
       return
     }
+
+    // Trace along the hero's view to the reach distance.
     const pitch = (pawn.eyeAngles.pitch * Math.PI) / 180
     const yaw = (pawn.eyeAngles.yaw * Math.PI) / 180
     const eye = pawn.eyePosition
@@ -256,6 +274,8 @@ export class Dropper {
       z: eye.z - Math.sin(pitch) * reach,
     }
     const hit = trace({ start: eye, end, exclude: triggers, ignore: [pawn.entity] })
+
+    // Aim at the hit surface: snapped on a floor, facing out of a wall.
     if (hit && !hit.startSolid) {
       builder.target = this.spot.at(hit.entity)
       const floor = hit.normal.z >= floorNormal
@@ -264,24 +284,33 @@ export class Dropper {
       const facingYaw = floor ? builder.yaw : (Math.atan2(hit.normal.y, hit.normal.x) * 180) / Math.PI
       builder.aim = { position, facing: { pitch: 0, yaw: facingYaw, roll: 0 } }
     }
+
+    // Show the preview at the new aim.
     this.preview(builder, model)
   }
 
   /** preview draws the builder's preview at their aim, or hides it. */
   private preview(builder: Builder, model: string): void {
+    // Remove a preview whose model changed or that has no aim.
     if (builder.previewModel !== model || !builder.aim) {
       builder.preview?.remove()
       builder.preview = undefined
       builder.previewModel = undefined
     }
+
+    // Without an aim there is nothing to preview.
     const aim = builder.aim
     if (!aim) {
       return
     }
+
+    // Move an existing preview to the aim.
     if (builder.preview) {
       builder.preview.move(aim.position, aim.facing)
       return
     }
+
+    // Create the preview model at the aim.
     builder.preview = createModel({
       resource: model,
       position: aim.position,
@@ -295,20 +324,27 @@ export class Dropper {
 
   /** drop places the preview as a solid object. */
   private drop(builder: Builder): void {
+    // Build the object at the aim, or explain why there is none.
     const object = this.object(builder)
     if (!object) {
       toast(builder.player, 'Aim at a surface to drop.')
       return
     }
+
+    // Refuse a new object when the spot is full.
     if (!builder.held && this.spot.objects().length >= this.capacity) {
       toast(builder.player, 'The spot is full. Delete an object to drop another.')
       return
     }
+
+    // Place the object in the spot.
     const placed = this.spot.place(object)
     if (!placed) {
       toast(builder.player, 'That object could not be placed.')
       return
     }
+
+    // Record the drop for undo and publish the changed spot.
     builder.held = undefined
     builder.drops = [...builder.drops, placed.entity].slice(-undoDepth)
     this.draw(builder)
@@ -317,17 +353,24 @@ export class Dropper {
 
   /** pickUp lifts the aimed object to move it, or puts a held one back. */
   private pickUp(builder: Builder): void {
+    // A second press while holding drops the held object.
     if (builder.held) {
       this.drop(builder)
       return
     }
+
+    // Require an aimed object to pick up.
     const target = builder.target
     if (!target) {
       return
     }
+
+    // Lift the object out of the spot into the builder's hands.
     this.spot.remove(target)
     builder.held = target.object
     builder.yaw = target.object.facing.yaw
+
+    // Redraw and publish the changed spot.
     this.draw(builder)
     this.changed?.(this.spot.spot())
   }

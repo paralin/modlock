@@ -42,6 +42,7 @@ export class Bridge {
 
   /** read takes one state title: a part of a screen, or the page's status. */
   private read(title: string): boolean {
+    // A title means the page loaded; cancel its load deadline.
     if (this.loading !== undefined) {
       $.CancelScheduled(this.loading)
       this.loading = undefined
@@ -57,6 +58,8 @@ export class Bridge {
       }
       return false
     }
+
+    // Skip a title already read.
     if (title === this.lastTitle) {
       return false
     }
@@ -87,6 +90,8 @@ export class Bridge {
       this.parts = null
       return false
     }
+
+    // Draw the complete screen.
     try {
       this.show(screen)
     } catch (error) {

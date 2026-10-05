@@ -98,10 +98,12 @@ function screen(...nodes: object[]): Screen {
 }
 
 test('draws a tree, keeps panels that stay and reports presses', () => {
+  // Draw onto a fake root panel and record each press.
   const root = new FakePanel('Panel', 'ModlockUi')
   const presses: string[] = []
   const drawing = new Drawing($, root as unknown as Panel, (mod, node) => presses.push(`${mod}:${node}`))
 
+  // Draw a label and a button that holds a label.
   drawing.draw(
     screen(
       { id: '', children: ['a', 'b'] },
@@ -112,16 +114,22 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
   )
   const tree = root.children[0]!
   const [label, button] = tree.children
+
+  // The tree fills the root, and the label carries its text and style.
   expect(tree.style.width).toBe('100%')
   expect(label!.text).toBe('Round 1')
   expect(label!.style.fontSize).toBe('32px')
   expect(label!.style.color).toBe('rgba(255, 0, 0, 1.000)')
   expect(label!.hittest).toBe(false)
+
+  // The button takes presses and caps its width at the tree's.
   expect(button!.paneltype).toBe('Button')
   expect(button!.hittest).toBe(true)
   expect(button!.style.width).toBe('100%')
   expect(button!.style.margin).toBe('80px 0px 0px 0px')
   expect(button!.children[0]!.text).toBe('Ready')
+
+  // Pressing the button reports its mod and node.
   button!.events.get('onactivate')!()
   expect(presses).toEqual(['arena:b'])
 
@@ -155,6 +163,7 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
 })
 
 test('reads screens in acknowledged parts', () => {
+  // Start a bridge on a fake state panel, which loads the bridge page.
   const state = new FakePanel('HTML', 'ModlockUiState')
   const shown: (Screen | null)[] = []
   new Bridge(state as unknown as Panel, 'https://relay/bridge.html', (screen) => shown.push(screen))
@@ -167,11 +176,17 @@ test('reads screens in acknowledged parts', () => {
   const half = Math.floor(source.length / 2)
   const part = (offset: number, chunk: string) =>
     `modlock:snapshot:${JSON.stringify({ id: 7, offset, total: source.length, chunk })}`
+
+  // The ready title ends the page's load deadline.
   title('modlock:bridge-ready')
   expect(scheduled.size).toBe(0)
+
+  // The first part is acknowledged but not shown.
   title(part(0, source.slice(0, half)))
   expect(JSON.parse(decodeURIComponent(state.url.split('#')[1]!))).toEqual({ frameAck: 7, offset: half })
   expect(shown).toEqual([])
+
+  // The second part shows the screen.
   title(part(half, source.slice(half)))
   expect(shown.length).toBe(1)
   expect(shown[0]!.trees[0]!.mod).toBe('arena')

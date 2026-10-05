@@ -81,6 +81,7 @@ export class Drawing {
 
   /** drawTree draws one mod's nodes from its root down. */
   private drawTree(mod: string, nodes: Map<string, Node>): void {
+    // Draw the mod's tree from its root, reusing the panels drawn last time.
     const previous = this.mods.get(mod) ?? new Map<string, Drawn>()
     const drawn = new Map<string, Drawn>()
     const root = nodes.get('') ?? { id: '' }
@@ -104,13 +105,16 @@ export class Drawing {
     drawn: Map<string, Drawn>,
     nodes: Map<string, Node>,
   ): Panel {
-    // Reuse the node's panel when its type and parent stay and its style
-    // keeps every property, since Panorama cannot unset some of them; or make
-    // one.
+
+    // Resolve the node's id, panel type, and style.
     const id = node.id ?? ''
     const kind = node.kind ?? Kind.PANEL
     const type = id === '' ? 'Panel' : panelTypes[kind] ?? 'Panel'
     const style = styleOf(node.style, id === '')
+
+    // Reuse the node's panel when its type and parent stay and its style
+    // keeps every property, since Panorama cannot unset some of them; or make
+    // one.
     const old = previous.get(id)
     let panel = old?.panel
     let written = old?.style ?? {}
