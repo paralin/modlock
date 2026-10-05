@@ -201,8 +201,9 @@ service Host {
   // releases the hold. The hold ends with the entity.
   rpc HoldModifierState(HoldModifierStateRequest) returns (Empty);
 
-  // CreateModel places a model with no collision in the world. The world
-  // removes it when the world ends; stopping the mod removes it too.
+  // CreateModel places a model in the world, solid when the options ask.
+  // The world removes it when the world ends; stopping the mod removes it
+  // too.
   rpc CreateModel(ModelOptions) returns (ObjectResponse);
 
   // CreateText places text that floats in the world.
@@ -224,6 +225,9 @@ service Host {
 
   // RemoveObject takes the object out of the world.
   rpc RemoveObject(ObjectRequest) returns (Empty);
+
+  // ObjectEntity returns the entity handle of a model, as traces report it.
+  rpc ObjectEntity(ObjectRequest) returns (EntityResponse);
 
   // AddBot adds a bot player and returns it. The bot leaves when the world
   // ends or the mod stops.
@@ -1416,7 +1420,7 @@ message HoldModifierStateRequest {
   optional bool active = 3;
 }
 
-// ModelOptions describes a model with no collision.
+// ModelOptions describes a model placed in the world.
 message ModelOptions {
   // Resource is the model's path, which the mod precached.
   string resource = 1;
@@ -1435,6 +1439,10 @@ message ModelOptions {
 
   // Glow outlines the model through walls.
   optional bool glow = 6;
+
+  // Solid makes heroes and traces collide with the model's physics shape,
+  // scaled with the model. Without it, everything passes through.
+  optional bool solid = 7;
 }
 
 // TextOptions describes text that floats in the world.
@@ -1519,6 +1527,11 @@ message FogOptions {
 // ObjectResponse holds the object a Create call placed.
 message ObjectResponse {
   uint32 object = 1;
+}
+
+// EntityResponse holds one entity handle.
+message EntityResponse {
+  uint32 entity = 1;
 }
 
 // ObjectRequest addresses one object the mod created.

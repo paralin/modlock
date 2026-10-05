@@ -38,7 +38,8 @@ struct ParticleSettings {
   std::optional<std::uint32_t> parent;
 };
 
-// WorldModelSettings describes a non-solid visual prop. It has no NPC behavior.
+// WorldModelSettings describes a prop. It has no NPC behavior. A solid prop
+// collides through the model's physics shape, scaled with the model.
 struct WorldModelSettings {
   std::string resource;
   Vec3 origin;
@@ -46,6 +47,7 @@ struct WorldModelSettings {
   float scale = 1;
   std::uint32_t color_rgba = UINT32_MAX;
   bool glow = false;
+  bool solid = false;
 };
 
 // WorldEffect is one live visual entity handle. The handle is non-owning
@@ -54,8 +56,13 @@ class MODLOCK_API WorldEffect {
  public:
   virtual ~WorldEffect() = default;
 
-  // Move updates the effect origin through the entity's proven Teleport slot.
-  virtual void Move(const modlock::Vec3& origin) = 0;
+  // Move updates the effect origin through the entity's proven Teleport slot,
+  // turning it to angles when given.
+  virtual void Move(const modlock::Vec3& origin,
+                    const std::optional<std::array<float, 3>>& angles) = 0;
+
+  // Handle returns the entity's packed handle while it is live.
+  virtual std::optional<std::uint32_t> Handle() const = 0;
 
   // Remove queues this effect for destruction exactly once.
   virtual void Remove() = 0;
@@ -64,8 +71,8 @@ class MODLOCK_API WorldEffect {
   virtual void InvalidateAfterEngineReset() {}
 };
 
-// WorldEffectFactory creates native particles and non-solid visual props. Raw game ABI calls remain
-// inside its implementation.
+// WorldEffectFactory creates native particles and props. Raw game ABI calls
+// remain inside its implementation.
 class MODLOCK_API WorldEffectFactory {
  public:
   virtual ~WorldEffectFactory() = default;
@@ -75,7 +82,7 @@ class MODLOCK_API WorldEffectFactory {
   virtual std::expected<std::unique_ptr<WorldEffect>, std::string> Create(
       const ParticleSettings& settings) = 0;
 
-  // CreateModel spawns a persistent visual prop with collision disabled.
+  // CreateModel spawns a persistent prop, solid when settings ask.
   virtual std::expected<std::unique_ptr<WorldEffect>, std::string> CreateModel(
       const WorldModelSettings& settings) = 0;
 };

@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package modlock.spot;
+
+option go_package = "github.com/paralin/modlock/proto/modlock/spot;spot";
+
+// Spot is a base map and the objects players placed on it. A mode loads a
+// spot by spawning each object on the compiled map; nothing is compiled.
+// Objects name their model and builder by index into the spot's tables, so a
+// spot of a few hundred objects fits in a few kilobytes. Every field is a
+// scalar or a list, so encoding a spot twice yields the same bytes.
+message Spot {
+  // Map is the base map's name, such as dl_midtown.
+  string map = 1;
+
+  // Models are the model paths the objects use, such as
+  // models/props/crate.vmdl, each once. A mode precaches the models of the
+  // spots it loads.
+  repeated string models = 2;
+
+  // Builders are the Steam IDs of the players who placed objects, each once.
+  repeated fixed64 builders = 3;
+
+  // Objects are the placed objects in placement order.
+  repeated SpotObject objects = 4;
+}
+
+// SpotObject is one solid object placed in a spot.
+message SpotObject {
+  // Model indexes the spot's models.
+  uint32 model = 1;
+
+  // X, Y and Z are the model's origin.
+  float x = 2;
+  float y = 3;
+  float z = 4;
+
+  // Pitch, yaw and roll are the model's rotation, in degrees.
+  float pitch = 5;
+  float yaw = 6;
+  float roll = 7;
+
+  // Scale multiplies the model's size; zero means 1.
+  float scale = 8;
+
+  // Bounce launches a hero who lands on the object upward at this speed, in
+  // units per second. Zero makes an ordinary object.
+  float bounce = 9;
+
+  // Builder indexes the spot's builders, plus one; zero means nobody.
+  uint32 builder = 10;
+}

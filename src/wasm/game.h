@@ -307,6 +307,7 @@ class Game : public HostService {
   std::expected<void, std::string> MoveObject(const MoveObjectRequest& request) override;
   std::expected<void, std::string> SetText(const SetTextRequest& request) override;
   std::expected<void, std::string> RemoveObject(const ObjectRequest& request) override;
+  std::expected<EntityResponse, std::string> ObjectEntity(const ObjectRequest& request) override;
   std::expected<BotResponse, std::string> AddBot(const BotOptions& request) override;
   std::expected<void, std::string> RemoveBot(const PlayerRequest& request) override;
   std::expected<void, std::string> BlockInput(const InputRequest& request) override;

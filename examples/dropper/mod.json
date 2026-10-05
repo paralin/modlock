@@ -1,0 +1,7 @@
+{
+  "slug": "dropper",
+  "name": "Dropper",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "map": "dl_midtown"
+}

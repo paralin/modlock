@@ -278,8 +278,9 @@ class HostService {
     return std::unexpected("this host does not support HoldModifierState");
   }
 
-  // CreateModel places a model with no collision in the world. The world
-  // removes it when the world ends; stopping the mod removes it too.
+  // CreateModel places a model in the world, solid when the options ask.
+  // The world removes it when the world ends; stopping the mod removes it
+  // too.
   virtual std::expected<ObjectResponse, std::string> CreateModel(const ModelOptions& /*request*/) {
     return std::unexpected("this host does not support CreateModel");
   }
@@ -315,6 +316,12 @@ class HostService {
   // RemoveObject takes the object out of the world.
   virtual std::expected<void, std::string> RemoveObject(const ObjectRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveObject");
+  }
+
+  // ObjectEntity returns the entity handle of a model, as traces report it.
+  virtual std::expected<EntityResponse, std::string> ObjectEntity(
+      const ObjectRequest& /*request*/) {
+    return std::unexpected("this host does not support ObjectEntity");
   }
 
   // AddBot adds a bot player and returns it. The bot leaves when the world
@@ -864,6 +871,14 @@ class HostService {
              return detail::Fail("the RemoveObject request is malformed");
            }
            return detail::Answer(host.RemoveObject(request));
+         }},
+        {"ObjectEntity",
+         [](HostService& host, const std::string& bytes) {
+           ObjectRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the ObjectEntity request is malformed");
+           }
+           return detail::Answer(host.ObjectEntity(request));
          }},
         {"AddBot",
          [](HostService& host, const std::string& bytes) {

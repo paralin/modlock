@@ -198,6 +198,10 @@ class Empty;
 struct EmptyDefaultTypeInternal;
 MODLOCK_API extern EmptyDefaultTypeInternal _Empty_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Empty_class_data_;
+class EntityResponse;
+struct EntityResponseDefaultTypeInternal;
+MODLOCK_API extern EntityResponseDefaultTypeInternal _EntityResponse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityResponse_class_data_;
 class EquipmentTarget;
 struct EquipmentTargetDefaultTypeInternal;
 MODLOCK_API extern EquipmentTargetDefaultTypeInternal _EquipmentTarget_default_instance_;
@@ -1906,7 +1910,7 @@ class MODLOCK_API StoredSetting final : public ::google::protobuf::Message
     return *reinterpret_cast<const StoredSetting*>(
         &_StoredSetting_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 121;
+  static constexpr int kIndexInFileMessages = 122;
   friend void swap(StoredSetting& a, StoredSetting& b) { a.Swap(&b); }
   inline void Swap(StoredSetting* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3196,7 +3200,7 @@ class MODLOCK_API SettingChoice final : public ::google::protobuf::Message
     return *reinterpret_cast<const SettingChoice*>(
         &_SettingChoice_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 116;
+  static constexpr int kIndexInFileMessages = 117;
   friend void swap(SettingChoice& a, SettingChoice& b) { a.Swap(&b); }
   inline void Swap(SettingChoice* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3632,7 +3636,7 @@ class MODLOCK_API SetTextRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetTextRequest*>(
         &_SetTextRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 82;
+  static constexpr int kIndexInFileMessages = 83;
   friend void swap(SetTextRequest& a, SetTextRequest& b) { a.Swap(&b); }
   inline void Swap(SetTextRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4063,7 +4067,7 @@ class MODLOCK_API SetNpcHealthRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetNpcHealthRequest*>(
         &_SetNpcHealthRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 95;
+  static constexpr int kIndexInFileMessages = 96;
   friend void swap(SetNpcHealthRequest& a, SetNpcHealthRequest& b) { a.Swap(&b); }
   inline void Swap(SetNpcHealthRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5376,7 +5380,7 @@ class MODLOCK_API RiftState final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftState*>(
         &_RiftState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 112;
+  static constexpr int kIndexInFileMessages = 113;
   friend void swap(RiftState& a, RiftState& b) { a.Swap(&b); }
   inline void Swap(RiftState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6264,7 +6268,7 @@ class MODLOCK_API RemoveEntitiesRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const RemoveEntitiesRequest*>(
         &_RemoveEntitiesRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 100;
+  static constexpr int kIndexInFileMessages = 101;
   friend void swap(RemoveEntitiesRequest& a, RemoveEntitiesRequest& b) { a.Swap(&b); }
   inline void Swap(RemoveEntitiesRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6459,7 +6463,7 @@ class MODLOCK_API RemapInputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RemapInputRequest*>(
         &_RemapInputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 87;
+  static constexpr int kIndexInFileMessages = 88;
   friend void swap(RemapInputRequest& a, RemapInputRequest& b) { a.Swap(&b); }
   inline void Swap(RemapInputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7955,7 +7959,7 @@ class MODLOCK_API PlayerInputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerInputRequest*>(
         &_PlayerInputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 86;
+  static constexpr int kIndexInFileMessages = 87;
   friend void swap(PlayerInputRequest& a, PlayerInputRequest& b) { a.Swap(&b); }
   inline void Swap(PlayerInputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8157,7 +8161,7 @@ class MODLOCK_API PickupResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const PickupResponse*>(
         &_PickupResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 98;
+  static constexpr int kIndexInFileMessages = 99;
   friend void swap(PickupResponse& a, PickupResponse& b) { a.Swap(&b); }
   inline void Swap(PickupResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8347,7 +8351,7 @@ class MODLOCK_API PickupRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PickupRequest*>(
         &_PickupRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 99;
+  static constexpr int kIndexInFileMessages = 100;
   friend void swap(PickupRequest& a, PickupRequest& b) { a.Swap(&b); }
   inline void Swap(PickupRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8537,7 +8541,7 @@ class MODLOCK_API PauseRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PauseRequest*>(
         &_PauseRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 108;
+  static constexpr int kIndexInFileMessages = 109;
   friend void swap(PauseRequest& a, PauseRequest& b) { a.Swap(&b); }
   inline void Swap(PauseRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8917,7 +8921,7 @@ class MODLOCK_API ObjectRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ObjectRequest*>(
         &_ObjectRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 80;
+  static constexpr int kIndexInFileMessages = 81;
   friend void swap(ObjectRequest& a, ObjectRequest& b) { a.Swap(&b); }
   inline void Swap(ObjectRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9302,7 +9306,7 @@ class MODLOCK_API NpcResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcResponse*>(
         &_NpcResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 90;
+  static constexpr int kIndexInFileMessages = 91;
   friend void swap(NpcResponse& a, NpcResponse& b) { a.Swap(&b); }
   inline void Swap(NpcResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9492,7 +9496,7 @@ class MODLOCK_API NpcRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcRequest*>(
         &_NpcRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 91;
+  static constexpr int kIndexInFileMessages = 92;
   friend void swap(NpcRequest& a, NpcRequest& b) { a.Swap(&b); }
   inline void Swap(NpcRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9682,7 +9686,7 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
     return *reinterpret_cast<const Movement*>(
         &_Movement_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 122;
+  static constexpr int kIndexInFileMessages = 123;
   friend void swap(Movement& a, Movement& b) { a.Swap(&b); }
   inline void Swap(Movement* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10123,7 +10127,7 @@ class MODLOCK_API MetricTotal final : public ::google::protobuf::Message
     return *reinterpret_cast<const MetricTotal*>(
         &_MetricTotal_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 118;
+  static constexpr int kIndexInFileMessages = 119;
   friend void swap(MetricTotal& a, MetricTotal& b) { a.Swap(&b); }
   inline void Swap(MetricTotal* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10347,7 +10351,7 @@ class MODLOCK_API Metric final : public ::google::protobuf::Message
     return *reinterpret_cast<const Metric*>(
         &_Metric_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 117;
+  static constexpr int kIndexInFileMessages = 118;
   friend void swap(Metric& a, Metric& b) { a.Swap(&b); }
   inline void Swap(Metric* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10600,7 +10604,7 @@ class MODLOCK_API MatchClockResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const MatchClockResponse*>(
         &_MatchClockResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 109;
+  static constexpr int kIndexInFileMessages = 110;
   friend void swap(MatchClockResponse& a, MatchClockResponse& b) { a.Swap(&b); }
   inline void Swap(MatchClockResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -11199,7 +11203,7 @@ class MODLOCK_API InputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const InputRequest*>(
         &_InputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 85;
+  static constexpr int kIndexInFileMessages = 86;
   friend void swap(InputRequest& a, InputRequest& b) { a.Swap(&b); }
   inline void Swap(InputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12043,7 +12047,7 @@ class MODLOCK_API HoldMatchClockRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const HoldMatchClockRequest*>(
         &_HoldMatchClockRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 110;
+  static constexpr int kIndexInFileMessages = 111;
   friend void swap(HoldMatchClockRequest& a, HoldMatchClockRequest& b) { a.Swap(&b); }
   inline void Swap(HoldMatchClockRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12234,7 +12238,7 @@ class MODLOCK_API HitOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const HitOptions*>(
         &_HitOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 102;
+  static constexpr int kIndexInFileMessages = 103;
   friend void swap(HitOptions& a, HitOptions& b) { a.Swap(&b); }
   inline void Swap(HitOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -13669,6 +13673,196 @@ class MODLOCK_API EquipmentTarget final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EquipmentTarget_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API EntityResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.EntityResponse) */ {
+ public:
+  inline EntityResponse() : EntityResponse(nullptr) {}
+  ~EntityResponse() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(EntityResponse* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(EntityResponse));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR EntityResponse(::google::protobuf::internal::ConstantInitialized);
+
+  inline EntityResponse(const EntityResponse& from) : EntityResponse(nullptr, from) {}
+  inline EntityResponse(EntityResponse&& from) noexcept
+      : EntityResponse(nullptr, ::std::move(from)) {}
+  inline EntityResponse& operator=(const EntityResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline EntityResponse& operator=(EntityResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const EntityResponse& default_instance() {
+    return *reinterpret_cast<const EntityResponse*>(
+        &_EntityResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 80;
+  friend void swap(EntityResponse& a, EntityResponse& b) { a.Swap(&b); }
+  inline void Swap(EntityResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(EntityResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  EntityResponse* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<EntityResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const EntityResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const EntityResponse& from) { EntityResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(EntityResponse* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.EntityResponse"; }
+
+  explicit EntityResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  EntityResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const EntityResponse& from);
+  EntityResponse(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, EntityResponse&& from) noexcept
+      : EntityResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kEntityFieldNumber = 1,
+  };
+  // uint32 entity = 1;
+  void clear_entity() ;
+  ::uint32_t entity() const;
+  void set_entity(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_entity() const;
+  void _internal_set_entity(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.EntityResponse)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const EntityResponse& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t entity_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityResponse_class_data_;
+// -------------------------------------------------------------------
+
 class Empty final : public ::google::protobuf::internal::ZeroFieldsBase
 /* @@protoc_insertion_point(class_definition:modlock.wasm.Empty) */ {
  public:
@@ -14781,7 +14975,7 @@ class MODLOCK_API CountResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const CountResponse*>(
         &_CountResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 101;
+  static constexpr int kIndexInFileMessages = 102;
   friend void swap(CountResponse& a, CountResponse& b) { a.Swap(&b); }
   inline void Swap(CountResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -16641,7 +16835,7 @@ class MODLOCK_API BotResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const BotResponse*>(
         &_BotResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 84;
+  static constexpr int kIndexInFileMessages = 85;
   friend void swap(BotResponse& a, BotResponse& b) { a.Swap(&b); }
   inline void Swap(BotResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -17055,7 +17249,7 @@ class MODLOCK_API AliveResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const AliveResponse*>(
         &_AliveResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 96;
+  static constexpr int kIndexInFileMessages = 97;
   friend void swap(AliveResponse& a, AliveResponse& b) { a.Swap(&b); }
   inline void Swap(AliveResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -18578,7 +18772,7 @@ class MODLOCK_API TraceOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceOptions*>(
         &_TraceOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 103;
+  static constexpr int kIndexInFileMessages = 104;
   friend void swap(TraceOptions& a, TraceOptions& b) { a.Swap(&b); }
   inline void Swap(TraceOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -18837,7 +19031,7 @@ class MODLOCK_API TraceHit final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceHit*>(
         &_TraceHit_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 105;
+  static constexpr int kIndexInFileMessages = 106;
   friend void swap(TraceHit& a, TraceHit& b) { a.Swap(&b); }
   inline void Swap(TraceHit* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -19595,7 +19789,7 @@ class MODLOCK_API StoredSettings final : public ::google::protobuf::Message
     return *reinterpret_cast<const StoredSettings*>(
         &_StoredSettings_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 120;
+  static constexpr int kIndexInFileMessages = 121;
   friend void swap(StoredSettings& a, StoredSettings& b) { a.Swap(&b); }
   inline void Swap(StoredSettings* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -19792,7 +19986,7 @@ class MODLOCK_API StartRiftRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const StartRiftRequest*>(
         &_StartRiftRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 113;
+  static constexpr int kIndexInFileMessages = 114;
   friend void swap(StartRiftRequest& a, StartRiftRequest& b) { a.Swap(&b); }
   inline void Swap(StartRiftRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -19987,7 +20181,7 @@ class MODLOCK_API Setting final : public ::google::protobuf::Message
     return *reinterpret_cast<const Setting*>(
         &_Setting_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 115;
+  static constexpr int kIndexInFileMessages = 116;
   friend void swap(Setting& a, Setting& b) { a.Swap(&b); }
   inline void Swap(Setting* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -20731,7 +20925,7 @@ class MODLOCK_API RiftResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftResponse*>(
         &_RiftResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 111;
+  static constexpr int kIndexInFileMessages = 112;
   friend void swap(RiftResponse& a, RiftResponse& b) { a.Swap(&b); }
   inline void Swap(RiftResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -21703,7 +21897,7 @@ class MODLOCK_API NpcTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcTarget*>(
         &_NpcTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 107;
+  static constexpr int kIndexInFileMessages = 108;
   friend void swap(NpcTarget& a, NpcTarget& b) { a.Swap(&b); }
   inline void Swap(NpcTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -22010,7 +22204,7 @@ class MODLOCK_API NpcState final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcState*>(
         &_NpcState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 93;
+  static constexpr int kIndexInFileMessages = 94;
   friend void swap(NpcState& a, NpcState& b) { a.Swap(&b); }
   inline void Swap(NpcState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -22258,7 +22452,7 @@ class MODLOCK_API NpcOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcOptions*>(
         &_NpcOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 89;
+  static constexpr int kIndexInFileMessages = 90;
   friend void swap(NpcOptions& a, NpcOptions& b) { a.Swap(&b); }
   inline void Swap(NpcOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -23018,7 +23212,7 @@ class MODLOCK_API MoveObjectRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const MoveObjectRequest*>(
         &_MoveObjectRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 81;
+  static constexpr int kIndexInFileMessages = 82;
   friend void swap(MoveObjectRequest& a, MoveObjectRequest& b) { a.Swap(&b); }
   inline void Swap(MoveObjectRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -23242,7 +23436,7 @@ class MODLOCK_API MoveNpcRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const MoveNpcRequest*>(
         &_MoveNpcRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 94;
+  static constexpr int kIndexInFileMessages = 95;
   friend void swap(MoveNpcRequest& a, MoveNpcRequest& b) { a.Swap(&b); }
   inline void Swap(MoveNpcRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -23817,6 +24011,7 @@ class MODLOCK_API ModelOptions final : public ::google::protobuf::Message
     kScaleFieldNumber = 4,
     kColorFieldNumber = 5,
     kGlowFieldNumber = 6,
+    kSolidFieldNumber = 7,
   };
   // string resource = 1;
   void clear_resource() ;
@@ -23896,11 +24091,22 @@ class MODLOCK_API ModelOptions final : public ::google::protobuf::Message
   void _internal_set_glow(bool value);
 
   public:
+  // optional bool solid = 7;
+  bool has_solid() const;
+  void clear_solid() ;
+  bool solid() const;
+  void set_solid(bool value);
+
+  private:
+  bool _internal_solid() const;
+  void _internal_set_solid(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ModelOptions)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 6,
+  static const ::google::protobuf::internal::TcParseTable<3, 7,
                                    2, 42,
                                    2>
       _table_;
@@ -23928,6 +24134,7 @@ class MODLOCK_API ModelOptions final : public ::google::protobuf::Message
     float scale_;
     ::uint32_t color_;
     bool glow_;
+    bool solid_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -23992,7 +24199,7 @@ class MODLOCK_API MetricTotals final : public ::google::protobuf::Message
     return *reinterpret_cast<const MetricTotals*>(
         &_MetricTotals_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 119;
+  static constexpr int kIndexInFileMessages = 120;
   friend void swap(MetricTotals& a, MetricTotals& b) { a.Swap(&b); }
   inline void Swap(MetricTotals* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -25632,7 +25839,7 @@ class MODLOCK_API CreatePickupRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const CreatePickupRequest*>(
         &_CreatePickupRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 97;
+  static constexpr int kIndexInFileMessages = 98;
   friend void swap(CreatePickupRequest& a, CreatePickupRequest& b) { a.Swap(&b); }
   inline void Swap(CreatePickupRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -25844,7 +26051,7 @@ class MODLOCK_API BotOptions final : public ::google::protobuf::Message
     kHeroId = 4,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 83;
+  static constexpr int kIndexInFileMessages = 84;
   friend void swap(BotOptions& a, BotOptions& b) { a.Swap(&b); }
   inline void Swap(BotOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -26110,7 +26317,7 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
     return *reinterpret_cast<const AbilityTuning*>(
         &_AbilityTuning_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 126;
+  static constexpr int kIndexInFileMessages = 127;
   friend void swap(AbilityTuning& a, AbilityTuning& b) { a.Swap(&b); }
   inline void Swap(AbilityTuning* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -26815,7 +27022,7 @@ class MODLOCK_API TraceResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceResponse*>(
         &_TraceResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 104;
+  static constexpr int kIndexInFileMessages = 105;
   friend void swap(TraceResponse& a, TraceResponse& b) { a.Swap(&b); }
   inline void Swap(TraceResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -27010,7 +27217,7 @@ class MODLOCK_API RestoreNpcsRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RestoreNpcsRequest*>(
         &_RestoreNpcsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 106;
+  static constexpr int kIndexInFileMessages = 107;
   friend void swap(RestoreNpcsRequest& a, RestoreNpcsRequest& b) { a.Swap(&b); }
   inline void Swap(RestoreNpcsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -27894,7 +28101,7 @@ class MODLOCK_API NpcStateResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcStateResponse*>(
         &_NpcStateResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 92;
+  static constexpr int kIndexInFileMessages = 93;
   friend void swap(NpcStateResponse& a, NpcStateResponse& b) { a.Swap(&b); }
   inline void Swap(NpcStateResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -28089,7 +28296,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     return *reinterpret_cast<const Manifest*>(
         &_Manifest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 114;
+  static constexpr int kIndexInFileMessages = 115;
   friend void swap(Manifest& a, Manifest& b) { a.Swap(&b); }
   inline void Swap(Manifest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -28913,7 +29120,7 @@ class MODLOCK_API UiRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiRequest*>(
         &_UiRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 88;
+  static constexpr int kIndexInFileMessages = 89;
   friend void swap(UiRequest& a, UiRequest& b) { a.Swap(&b); }
   inline void Swap(UiRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -40332,6 +40539,35 @@ inline void ModelOptions::_internal_set_glow(bool value) {
   _impl_.glow_ = value;
 }
 
+// optional bool solid = 7;
+inline bool ModelOptions::has_solid() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000040U);
+  return value;
+}
+inline void ModelOptions::clear_solid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.solid_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000040U);
+}
+inline bool ModelOptions::solid() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ModelOptions.solid)
+  return _internal_solid();
+}
+inline void ModelOptions::set_solid(bool value) {
+  _internal_set_solid(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ModelOptions.solid)
+}
+inline bool ModelOptions::_internal_solid() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.solid_;
+}
+inline void ModelOptions::_internal_set_solid(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.solid_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // TextOptions
@@ -41719,6 +41955,35 @@ inline ::uint32_t ObjectResponse::_internal_object() const {
 inline void ObjectResponse::_internal_set_object(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.object_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// EntityResponse
+
+// uint32 entity = 1;
+inline void EntityResponse::clear_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t EntityResponse::entity() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.EntityResponse.entity)
+  return _internal_entity();
+}
+inline void EntityResponse::set_entity(::uint32_t value) {
+  _internal_set_entity(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.EntityResponse.entity)
+}
+inline ::uint32_t EntityResponse::_internal_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.entity_;
+}
+inline void EntityResponse::_internal_set_entity(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = value;
 }
 
 // -------------------------------------------------------------------

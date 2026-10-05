@@ -3384,7 +3384,7 @@ export const HoldModifierStateRequest: MessageType<HoldModifierStateRequest> = /
 });
 
 /**
- * ModelOptions describes a model with no collision.
+ * ModelOptions describes a model placed in the world.
  *
  * @generated from message modlock.wasm.ModelOptions
  */
@@ -3425,6 +3425,13 @@ export interface ModelOptions {
    * @generated from field: optional bool glow = 6;
    */
   glow?: boolean;
+  /**
+   * Solid makes heroes and traces collide with the model's physics shape,
+   * scaled with the model. Without it, everything passes through.
+   *
+   * @generated from field: optional bool solid = 7;
+   */
+  solid?: boolean;
 
 };
 
@@ -3437,6 +3444,7 @@ export const ModelOptions: MessageType<ModelOptions> = /* @__PURE__ */ createMes
         { no: 4, name: "scale", kind: "scalar", T: ScalarType.FLOAT, opt: true },
         { no: 5, name: "color", kind: "scalar", T: ScalarType.FIXED32, opt: true },
         { no: 6, name: "glow", kind: "scalar", T: ScalarType.BOOL, opt: true },
+        { no: 7, name: "solid", kind: "scalar", T: ScalarType.BOOL, opt: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });
@@ -3677,6 +3685,27 @@ export const ObjectResponse: MessageType<ObjectResponse> = /* @__PURE__ */ creat
     typeName: "modlock.wasm.ObjectResponse",
     fields: [
         { no: 1, name: "object", kind: "scalar", T: ScalarType.UINT32 },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * EntityResponse holds one entity handle.
+ *
+ * @generated from message modlock.wasm.EntityResponse
+ */
+export interface EntityResponse {
+  /**
+   * @generated from field: uint32 entity = 1;
+   */
+  entity?: number;
+
+};
+
+export const EntityResponse: MessageType<EntityResponse> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntityResponse",
+    fields: [
+        { no: 1, name: "entity", kind: "scalar", T: ScalarType.UINT32 },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

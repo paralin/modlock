@@ -570,7 +570,7 @@ export type ScreenTiming = {
 -- type, a vector or text.
 export type FieldValue = boolean | number | string | Vector
 
--- ModelOptions describes a model with no collision.
+-- ModelOptions describes a model placed in the world.
 export type ModelOptions = {
 	-- resource is the model's path, which the mod precached.
 	resource: string,
@@ -584,6 +584,9 @@ export type ModelOptions = {
 	color: number?,
 	-- glow outlines the model through walls.
 	glow: boolean?,
+	-- solid makes heroes and traces collide with the model's physics shape,
+	-- scaled with the model. Without it, everything passes through.
+	solid: boolean?,
 }
 
 -- TextOptions describes text that floats in the world.
@@ -1139,6 +1142,8 @@ export type WorldObject = {
 	setText: (self: WorldObject, text: string) -> boolean,
 	-- remove takes the object out of the world.
 	remove: (self: WorldObject) -> boolean,
+	-- entity returns the entity handle of a model, as traces report it.
+	entity: (self: WorldObject) -> number?,
 }
 local WorldObject = {}
 WorldObject.__index = WorldObject
@@ -1161,6 +1166,15 @@ end
 -- remove takes the object out of the world.
 function WorldObject.remove(self: WorldObject): boolean
 	return call("RemoveObject", "ObjectRequest", { object = self }) ~= nil
+end
+
+-- entity returns the entity handle of a model, as traces report it.
+function WorldObject.entity(self: WorldObject): number?
+	local response = call("ObjectEntity", "ObjectRequest", { object = self }, "EntityResponse")
+	if response == nil then
+		return nil
+	end
+	return response.entity
 end
 
 M.WorldObject = WorldObject
@@ -1678,6 +1692,7 @@ schema.ModelOptions = {
 	{ number = 4, name = "scale", kind = "float", optional = true },
 	{ number = 5, name = "color", kind = "fixed32", optional = true },
 	{ number = 6, name = "glow", kind = "bool", optional = true },
+	{ number = 7, name = "solid", kind = "bool", optional = true },
 }
 schema.TextOptions = {
 	{ number = 1, name = "text", kind = "string" },
@@ -1711,6 +1726,9 @@ schema.FogOptions = {
 }
 schema.ObjectResponse = {
 	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
+}
+schema.EntityResponse = {
+	{ number = 1, name = "entity", kind = "uint32" },
 }
 schema.ObjectRequest = {
 	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
@@ -1926,8 +1944,9 @@ function M.holdModifierState(entity: number, state: string, active: boolean?): b
 	return call("HoldModifierState", "HoldModifierStateRequest", { entity = entity, state = state, active = active }) ~= nil
 end
 
--- createModel places a model with no collision in the world. The world
--- removes it when the world ends; stopping the mod removes it too.
+-- createModel places a model in the world, solid when the options ask.
+-- The world removes it when the world ends; stopping the mod removes it
+-- too.
 function M.createModel(options: ModelOptions): WorldObject?
 	local response = call("CreateModel", "ModelOptions", options, "ObjectResponse")
 	if response == nil then

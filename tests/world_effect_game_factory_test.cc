@@ -111,7 +111,7 @@ TEST_F(EffectTest, CreatesMovesAndRemovesOneNativeEffect) {
                        "kv:effect_name=particles/environment/powerup_spawner_ambient.vpcf",
                        "kv:start_active=1", "teleport:4", "queue", "execute", "input:Start"}));
   at.set_x(8);
-  effect->get()->Move(at);
+  effect->get()->Move(at, std::nullopt);
   EXPECT_EQ(steps.back(), "teleport:8");
   effect->get()->Remove();
   effect->reset();
@@ -219,7 +219,7 @@ TEST_F(EffectTest, VisualModelDisablesCollisionAndOwnsItsLifetime) {
   EXPECT_EQ(steps.back(), "execute");
   modlock::Vec3 origin;
   origin.set_x(42);
-  model->get()->Move(origin);
+  model->get()->Move(origin, std::nullopt);
   EXPECT_EQ(steps.back(), "teleport:42");
   model->reset();
   EXPECT_EQ(removes, 1);
@@ -228,6 +228,15 @@ TEST_F(EffectTest, VisualModelDisablesCollisionAndOwnsItsLifetime) {
   model->get()->InvalidateAfterEngineReset();
   model->reset();
   EXPECT_EQ(removes, 1);
+}
+
+TEST_F(EffectTest, SolidModelCollidesThroughItsPhysicsShape) {
+  auto model = factory->CreateModel(modlock::render::WorldModelSettings{
+      .resource = "models/props_gameplay/crate_wood_small.vmdl", .solid = true});
+  ASSERT_TRUE(model) << model.error();
+  for (const auto* expected : {"kv:solid=6", "kv:spawnflags=1536"}) {
+    EXPECT_NE(std::find(steps.begin(), steps.end(), expected), steps.end()) << expected;
+  }
 }
 
 TEST_F(EffectTest, FogVolumesRemoveOnceAndInvalidateWithTheirWorld) {

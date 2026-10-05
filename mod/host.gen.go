@@ -191,7 +191,7 @@ type TimerTarget = wasm.TimerTarget
 // ScreenTiming is a screen effect's timing in seconds.
 type ScreenTiming = wasm.ScreenTiming
 
-// ModelOptions describes a model with no collision.
+// ModelOptions describes a model placed in the world.
 type ModelOptions = wasm.ModelOptions
 
 // TextOptions describes text that floats in the world.
@@ -569,8 +569,9 @@ func HoldModifierState(entity uint32, state string, active *bool) error {
 	return invoke("HoldModifierState", &wasm.HoldModifierStateRequest{Entity: entity, State: state, Active: active}, nil)
 }
 
-// CreateModel places a model with no collision in the world. The world
-// removes it when the world ends; stopping the mod removes it too.
+// CreateModel places a model in the world, solid when the options ask.
+// The world removes it when the world ends; stopping the mod removes it
+// too.
 func CreateModel(options *ModelOptions) (WorldObject, error) {
 	response := &wasm.ObjectResponse{}
 	if err := invoke("CreateModel", options, response); err != nil {
@@ -621,6 +622,16 @@ func (w WorldObject) SetText(text string) error {
 // Remove takes the object out of the world.
 func (w WorldObject) Remove() error {
 	return invoke("RemoveObject", &wasm.ObjectRequest{Object: w.ID}, nil)
+}
+
+// Entity returns the entity handle of a model, as traces report it.
+func (w WorldObject) Entity() (uint32, error) {
+	request := &wasm.ObjectRequest{Object: w.ID}
+	response := &wasm.EntityResponse{}
+	if err := invoke("ObjectEntity", request, response); err != nil {
+		return 0, err
+	}
+	return response.GetEntity(), nil
 }
 
 // AddBot adds a bot player and returns it. The bot leaves when the world

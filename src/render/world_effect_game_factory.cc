@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 #include <utility>
 
 #include "modlock/gameinterop/entity_abi.h"
@@ -91,9 +92,14 @@ class GameWorldEffect final : public WorldParticle {
       : factory_(factory), settings_(std::move(settings)) {}
   ~GameWorldEffect() override { Remove(); }
 
-  void Move(const modlock::Vec3& origin) override {
+  void Move(const modlock::Vec3& origin,
+            const std::optional<std::array<float, 3>>& angles) override {
     if (entity_ == nullptr) return;
-    (void)Transform(origin, settings_.angles);
+    (void)Transform(origin, angles.value_or(settings_.angles));
+  }
+
+  std::optional<std::uint32_t> Handle() const override {
+    return gameinterop::ReferenceHandleOf(entity_);
   }
 
   std::expected<void, std::string> Start() override { return Input("Start"); }
@@ -238,8 +244,14 @@ class GameWorldEntity final : public WorldEffect {
       : factory_(factory), entity_(entity), angles_(angles) {}
   ~GameWorldEntity() override { Remove(); }
 
-  void Move(const Vec3& origin) override {
-    if (entity_) Teleport(entity_, origin, angles_);
+  void Move(const Vec3& origin, const std::optional<std::array<float, 3>>& angles) override {
+    if (!entity_) return;
+    if (angles) angles_ = *angles;
+    Teleport(entity_, origin, angles_);
+  }
+
+  std::optional<std::uint32_t> Handle() const override {
+    return gameinterop::ReferenceHandleOf(entity_);
   }
 
   void Remove() override {
@@ -322,8 +334,10 @@ std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory:
       static_cast<uint8_t>(rgba >> 24)};
   const gameinterop::EntityKeyValue properties[] = {
       {.key = "model", .value = std::string_view(settings.resource)},
-      {.key = "solid", .value = 0},
-      {.key = "spawnflags", .value = 256 | 512 | 1024},
+      // Solid 6 collides through the model's physics shape; spawnflag 256
+      // starts a prop with collision disabled.
+      {.key = "solid", .value = settings.solid ? 6 : 0},
+      {.key = "spawnflags", .value = (settings.solid ? 0 : 256) | 512 | 1024},
       {.key = "scales",
        .value = gameinterop::KeyValueVector{settings.scale, settings.scale, settings.scale}},
       {.key = "rendercolor", .value = color},

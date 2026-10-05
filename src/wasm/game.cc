@@ -1270,6 +1270,7 @@ std::expected<ObjectResponse, std::string> Game::CreateModel(const ModelOptions&
       // The factory reads red from the low byte, as 0xAABBGGRR.
       .color_rgba = request.color() == 0 ? UINT32_MAX : std::byteswap(request.color()),
       .glow = request.glow(),
+      .solid = request.solid(),
   };
   auto model = (*effects)->CreateModel(settings);
   if (!model) return std::unexpected(model.error());
@@ -1295,7 +1296,9 @@ std::expected<void, std::string> Game::MoveObject(const MoveObjectRequest& reque
   auto found = objects_.find(request.object());
   if (found == objects_.end()) return std::unexpected("no object has that identifier");
   if (auto* model = std::get_if<std::unique_ptr<render::WorldEffect>>(&found->second)) {
-    (*model)->Move(request.position());
+    std::optional<std::array<float, 3>> angles;
+    if (request.has_facing()) angles = Floats(request.facing());
+    (*model)->Move(request.position(), angles);
   } else {
     std::get<std::unique_ptr<render::WorldTextEntity>>(found->second)
         ->SetOrigin(request.position(), request.facing());
@@ -1318,6 +1321,18 @@ std::expected<void, std::string> Game::RemoveObject(const ObjectRequest& request
   std::visit([](auto& handle) { handle->Remove(); }, found->second);
   objects_.erase(found);
   return {};
+}
+
+std::expected<EntityResponse, std::string> Game::ObjectEntity(const ObjectRequest& request) {
+  auto found = objects_.find(request.object());
+  if (found == objects_.end()) return std::unexpected("no object has that identifier");
+  auto* model = std::get_if<std::unique_ptr<render::WorldEffect>>(&found->second);
+  if (model == nullptr) return std::unexpected("the object is text, which has no entity");
+  auto handle = (*model)->Handle();
+  if (!handle) return std::unexpected("the object is no longer live");
+  EntityResponse response;
+  response.set_entity(*handle);
+  return response;
 }
 
 std::expected<BotResponse, std::string> Game::AddBot(const BotOptions& request) {

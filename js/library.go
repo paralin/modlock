@@ -41,7 +41,7 @@ const Renderer = "ui.js"
 
 // Files are the built library's files, which modlock build installs into
 // each script project.
-var Files = []string{"index.js", "index.d.ts", "globals.d.ts", "host.gen.d.ts", "entities.js", "entities.d.ts", "ui.d.ts"}
+var Files = []string{"index.js", "index.d.ts", "globals.d.ts", "host.gen.d.ts", "entities.js", "entities.d.ts", "ui.d.ts", "bits.d.ts", "spot.d.ts", "dropper.d.ts"}
 
 // modulePath is the Modlock module path.
 const modulePath = "github.com/paralin/modlock"
@@ -55,7 +55,7 @@ const banner = "/*! Includes protobuf-es-lite under the Apache License 2.0: http
 
 // revision changes whenever Build changes its output, so a cached build from
 // the same sources is rebuilt.
-const revision = "3"
+const revision = "4"
 
 // sources are the paths under the Modlock source that Build reads.
 var sources = []string{"js/src", "js/tsconfig.json", "proto/modlock", "panorama/src"}
@@ -235,7 +235,7 @@ func Build(ctx context.Context, source, out string) error {
 		"globals.d.ts": globals,
 		"index.d.ts":   append([]byte("/// <reference path=\"./globals.d.ts\" />\n"), index...),
 	}
-	for _, name := range []string{"host.gen.d.ts", "entities.d.ts", "ui.d.ts"} {
+	for _, name := range []string{"host.gen.d.ts", "entities.d.ts", "ui.d.ts", "bits.d.ts", "spot.d.ts", "dropper.d.ts"} {
 		if files[name], err = os.ReadFile(filepath.Join(declared, name)); err != nil {
 			return err
 		}

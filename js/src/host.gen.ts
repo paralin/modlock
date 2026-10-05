@@ -918,7 +918,7 @@ function fromFieldValue(message: pb.FieldValue | undefined): FieldValue | undefi
   return value.value
 }
 
-/** ModelOptions describes a model with no collision. */
+/** ModelOptions describes a model placed in the world. */
 export interface ModelOptions {
   /** resource is the model's path, which the mod precached. */
   resource: string
@@ -932,6 +932,11 @@ export interface ModelOptions {
   color?: number
   /** glow outlines the model through walls. */
   glow?: boolean
+  /**
+   * solid makes heroes and traces collide with the model's physics shape,
+   * scaled with the model. Without it, everything passes through.
+   */
+  solid?: boolean
 }
 
 /** TextOptions describes text that floats in the world. */
@@ -1509,6 +1514,14 @@ export class WorldObject {
   remove(): boolean {
     return call('RemoveObject', pb.ObjectRequest.toBinary({ object: this.id })) !== undefined
   }
+
+  /** entity returns the entity handle of a model, as traces report it. */
+  entity(): number | undefined {
+    const reply = call('ObjectEntity', pb.ObjectRequest.toBinary({ object: this.id }))
+    if (reply === undefined) return undefined
+    const response = pb.EntityResponse.fromBinary(reply)
+    return response.entity ?? 0
+  }
 }
 
 /** Npc is one unit the mod spawned. */
@@ -1666,8 +1679,9 @@ export function holdModifierState(entity: number, state: string, active?: boolea
 }
 
 /**
- * createModel places a model with no collision in the world. The world
- * removes it when the world ends; stopping the mod removes it too.
+ * createModel places a model in the world, solid when the options ask.
+ * The world removes it when the world ends; stopping the mod removes it
+ * too.
  */
 export function createModel(options: ModelOptions): WorldObject | undefined {
   const reply = call('CreateModel', pb.ModelOptions.toBinary(options))

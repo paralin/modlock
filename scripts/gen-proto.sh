@@ -26,10 +26,12 @@ GOFLAGS=-mod=mod go run -mod=mod -tags=purego github.com/aperturerobotics/common
   --rpc none --targets './proto/modlock/*.proto' --targets './proto/modlock/control/*.proto' "$@"
 
 # The publishing messages and the command line's events serve the command line
-# and the programs that read its --json output.
+# and the programs that read its --json output; the spot document serves the
+# mod libraries.
 GOFLAGS=-mod=mod go run -mod=mod -tags=purego github.com/aperturerobotics/common/cmd/aptre generate \
   --language go --language ts --rpc none \
-  --targets './proto/modlock/publish/*.proto' --targets './proto/modlock/cli/*.proto'
+  --targets './proto/modlock/publish/*.proto' --targets './proto/modlock/cli/*.proto' \
+  --targets './proto/modlock/spot/*.proto'
 
 python3 scripts/restore-proto-exports.py
 

@@ -188,6 +188,7 @@ The [`mod`](mod) package offers:
 | `mod.BlockInput(buttons)`, `player.BlockInput(buttons)`, `player.Press(buttons)` | Withhold buttons from every hero or one, or press them for one. |
 | `mod.RemapInput(from, to, repeat)` | Make one button act as another for every hero. |
 | `mod.CreateModel`, `mod.CreateText` | Place a model or floating text; move, retext or remove it later. |
+| `mod.LoadSpot(spot)`, `mod.EncodeSpot`, `mod.DecodeSpot` | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document. |
 | `mod.AddBot`, `mod.RemoveBot` | Add or remove a bot player. |
 | `mod.Precache(options)` | Load heroes and resources with the next world. |
 | `player.Abilities()`, `SetAbility` | Read the hero's abilities, or set one's upgrades and charges. |
@@ -247,6 +248,8 @@ one.
 | `blockInput(buttons)`, `player.blockInput(buttons)`, `player.press(buttons)` | Withhold buttons from every hero or one, or press them for one. |
 | `remapInput(from, to, repeat)` | Make one button act as another for every hero. |
 | `createModel`, `createText` | Place a model or floating text; move, retext or remove it later. |
+| `loadSpot(spot)`, `encodeSpot`, `decodeSpot` | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document. |
+| `new Dropper(catalog, spot)` | Let players build a spot while they play: pick an object, aim a preview, drop, move, delete and undo. |
 | `addBot`, `removeBot` | Add or remove a bot player. |
 | `precache({heroes, resources})` | Load heroes and resources with the next world. |
 | `player.abilities()`, `setAbility` | Read the hero's abilities, or set one's upgrades and charges. |
@@ -265,6 +268,13 @@ one.
 `new CCitadelPlayerPawn(pawn.entity).m_iHealth`; a mod's bundle keeps only
 the classes it uses. A call that fails logs the failure and returns `false`
 or `undefined`; it never stops the mod.
+
+A spot is a base map and the solid objects players placed on it; nothing is
+compiled. [`examples/dropper`](examples/dropper) builds one on Midtown:
+`/build` opens the catalog for any player, and every player drops into the
+same spot. The document in
+[`proto/modlock/spot/spot.proto`](proto/modlock/spot/spot.proto) stores each
+model path and builder once, so a few hundred objects fit in a few kilobytes.
 
 An interface is JSX in a `.tsx` file, built from four elements: `panel`,
 `label`, `image` and `button`, styled with a closed set of layout and paint

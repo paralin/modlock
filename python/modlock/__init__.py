@@ -677,7 +677,7 @@ type FieldValue = bool | float | int | str | Vector
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class ModelOptions:
-    """ModelOptions describes a model with no collision."""
+    """ModelOptions describes a model placed in the world."""
 
     # resource is the model's path, which the mod precached.
     resource: str = ""
@@ -691,6 +691,9 @@ class ModelOptions:
     color: int | None = None
     # glow outlines the model through walls.
     glow: bool | None = None
+    # solid makes heroes and traces collide with the model's physics shape,
+    # scaled with the model. Without it, everything passes through.
+    solid: bool | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1153,6 +1156,13 @@ class WorldObject:
     def remove(self) -> bool:
         """remove takes the object out of the world."""
         return _call("RemoveObject", "ObjectRequest", {"object": self}) is not None
+
+    def entity(self) -> int | None:
+        """entity returns the entity handle of a model, as traces report it."""
+        response = _call("ObjectEntity", "ObjectRequest", {"object": self}, "EntityResponse")
+        if response is None:
+            return None
+        return response["entity"]
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -1859,6 +1869,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "scale", "float", optional=True),
             wire.Field(5, "color", "fixed32", optional=True),
             wire.Field(6, "glow", "bool", optional=True),
+            wire.Field(7, "solid", "bool", optional=True),
         ],
     ),
     "TextOptions": (
@@ -1907,6 +1918,12 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "object", "uint32", cls=WorldObject, key="id"),
+        ],
+    ),
+    "EntityResponse": (
+        None,
+        [
+            wire.Field(1, "entity", "uint32"),
         ],
     ),
     "ObjectRequest": (
@@ -2228,8 +2245,9 @@ def hold_modifier_state(entity: int, state: str, active: bool | None = None) -> 
 
 
 def create_model(options: ModelOptions) -> WorldObject | None:
-    """create_model places a model with no collision in the world. The world
-    removes it when the world ends; stopping the mod removes it too.
+    """create_model places a model in the world, solid when the options ask.
+    The world removes it when the world ends; stopping the mod removes it
+    too.
     """
     response = _call("CreateModel", "ModelOptions", options, "ObjectResponse")
     if response is None:

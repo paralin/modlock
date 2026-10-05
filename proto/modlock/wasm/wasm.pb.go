@@ -3552,7 +3552,7 @@ func (x *HoldModifierStateRequest) GetActive() bool {
 	return false
 }
 
-// ModelOptions describes a model with no collision.
+// ModelOptions describes a model placed in the world.
 type ModelOptions struct {
 	unknownFields []byte
 	// Resource is the model's path, which the mod precached.
@@ -3567,6 +3567,9 @@ type ModelOptions struct {
 	Color *uint32 `protobuf:"fixed32,5,opt,name=color,proto3,oneof" json:"color,omitempty"`
 	// Glow outlines the model through walls.
 	Glow *bool `protobuf:"varint,6,opt,name=glow,proto3,oneof" json:"glow,omitempty"`
+	// Solid makes heroes and traces collide with the model's physics shape,
+	// scaled with the model. Without it, everything passes through.
+	Solid *bool `protobuf:"varint,7,opt,name=solid,proto3,oneof" json:"solid,omitempty"`
 }
 
 func (x *ModelOptions) Reset() {
@@ -3613,6 +3616,13 @@ func (x *ModelOptions) GetColor() uint32 {
 func (x *ModelOptions) GetGlow() bool {
 	if x != nil && x.Glow != nil {
 		return *x.Glow
+	}
+	return false
+}
+
+func (x *ModelOptions) GetSolid() bool {
+	if x != nil && x.Solid != nil {
+		return *x.Solid
 	}
 	return false
 }
@@ -3875,6 +3885,25 @@ func (*ObjectResponse) ProtoMessage() {}
 func (x *ObjectResponse) GetObject() uint32 {
 	if x != nil {
 		return x.Object
+	}
+	return 0
+}
+
+// EntityResponse holds one entity handle.
+type EntityResponse struct {
+	unknownFields []byte
+	Entity        uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+}
+
+func (x *EntityResponse) Reset() {
+	*x = EntityResponse{}
+}
+
+func (*EntityResponse) ProtoMessage() {}
+
+func (x *EntityResponse) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
 	}
 	return 0
 }
@@ -7064,6 +7093,7 @@ func (m *ModelOptions) CloneVT() *ModelOptions {
 	r.Scale = protobuf_go_lite.ClonePtr(m.Scale)
 	r.Color = protobuf_go_lite.ClonePtr(m.Color)
 	r.Glow = protobuf_go_lite.ClonePtr(m.Glow)
+	r.Solid = protobuf_go_lite.ClonePtr(m.Solid)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -7169,6 +7199,22 @@ func (m *ObjectResponse) CloneVT() *ObjectResponse {
 }
 
 func (m *ObjectResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *EntityResponse) CloneVT() *EntityResponse {
+	if m == nil {
+		return (*EntityResponse)(nil)
+	}
+	r := new(EntityResponse)
+	r.Entity = m.Entity
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *EntityResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -10043,6 +10089,9 @@ func (this *ModelOptions) EqualVT(that *ModelOptions) bool {
 	if !protobuf_go_lite.EqualPtr(this.Glow, that.Glow) {
 		return false
 	}
+	if !protobuf_go_lite.EqualPtr(this.Solid, that.Solid) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -10197,6 +10246,25 @@ func (this *ObjectResponse) EqualVT(that *ObjectResponse) bool {
 
 func (this *ObjectResponse) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ObjectResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *EntityResponse) EqualVT(that *EntityResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Entity != that.Entity {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *EntityResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*EntityResponse)
 	if !ok {
 		return false
 	}
@@ -16420,6 +16488,11 @@ func (x *ModelOptions) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("glow")
 		s.WriteBool(*x.Glow)
 	}
+	if x.Solid != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("solid")
+		s.WriteBool(*x.Solid)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -16478,6 +16551,14 @@ func (x *ModelOptions) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			t := s.ReadBool()
 			x.Glow = &t
+		case "solid":
+			s.AddField("solid")
+			if s.ReadNil() {
+				x.Solid = nil
+				return
+			}
+			t := s.ReadBool()
+			x.Solid = &t
 		}
 	})
 }
@@ -16913,6 +16994,48 @@ func (x *ObjectResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ObjectResponse from JSON.
 func (x *ObjectResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the EntityResponse message to JSON.
+func (x *EntityResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Entity != 0 || s.HasField("entity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entity")
+		s.WriteUint32(x.Entity)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the EntityResponse to JSON.
+func (x *EntityResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the EntityResponse message from JSON.
+func (x *EntityResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "entity":
+			s.AddField("entity")
+			x.Entity = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the EntityResponse from JSON.
+func (x *EntityResponse) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -24038,6 +24161,11 @@ func (m *ModelOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Solid != nil {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, *m.Solid)
+		i--
+		dAtA[i] = 0x38
+	}
 	if m.Glow != nil {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, *m.Glow)
 		i--
@@ -24400,6 +24528,43 @@ func (m *ObjectResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Object != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Object))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EntityResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EntityResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *EntityResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Entity != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -27843,6 +28008,7 @@ func (m *ModelOptions) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Scale)
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Color)
 	n += protobuf_go_lite.SizeBoolPtr(1, m.Glow)
+	n += protobuf_go_lite.SizeBoolPtr(1, m.Solid)
 	n += len(m.unknownFields)
 	return n
 }
@@ -27946,6 +28112,17 @@ func (m *ObjectResponse) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Object)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *EntityResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
 	n += len(m.unknownFields)
 	return n
 }
@@ -30398,6 +30575,10 @@ func (x *ModelOptions) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "glow")
 		protobuf_go_lite.TextWriteBool(&sb, *x.Glow)
 	}
+	if x.Solid != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "solid")
+		protobuf_go_lite.TextWriteBool(&sb, *x.Solid)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -30539,6 +30720,19 @@ func (x *ObjectResponse) MarshalProtoText() string {
 }
 
 func (x *ObjectResponse) String() string {
+	return x.MarshalProtoText()
+}
+func (x *EntityResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityResponse")
+	if x.Entity != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entity")
+		protobuf_go_lite.TextWriteUint(&sb, x.Entity)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *EntityResponse) String() string {
 	return x.MarshalProtoText()
 }
 func (x *ObjectRequest) MarshalProtoText() string {
@@ -37442,6 +37636,17 @@ func (m *ModelOptions) UnmarshalVT(dAtA []byte) error {
 			}
 			b := bool(v)
 			m.Glow = &b
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Solid", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.Solid = &b
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -37941,6 +38146,57 @@ func (m *ObjectResponse) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Object = 0
 			m.Object, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EntityResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EntityResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EntityResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Entity", wireType)
+			}
+			m.Entity = 0
+			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
