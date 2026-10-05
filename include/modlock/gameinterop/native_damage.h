@@ -24,7 +24,8 @@ class MODLOCK_API NativeDamage {
   // rewards or item procs. The pawn may die during this synchronous call.
   std::expected<void, std::string> Hazard(void* pawn, float amount) const;
   // Hit applies ordinary attributed damage through the engine. All entities are
-  // borrowed live pointers; the victim may die during this synchronous call.
+  // borrowed live pointers, and ability may be null for a hit without one; the
+  // victim may die during this synchronous call.
   // hit_group retains an attributed trace group; -1 leaves the native default.
   std::expected<void, std::string> Hit(void* victim, void* inflictor, void* attacker, void* ability,
                                        float amount, int32_t hit_group = -1) const;

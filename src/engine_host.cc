@@ -55,7 +55,8 @@ struct EngineHost::Impl {
   std::vector<std::unique_ptr<host_app::LoadedModule>> modules;
   bool opened = false;
   bool ran = false;
-  bool world_active = false;
+  // world_map names the map of the world that is ready, if any.
+  std::optional<std::string> world_map;
   std::expected<int, std::string> result = std::unexpected("engine has not run");
 
   Callbacks<void()> frames;
@@ -239,11 +240,11 @@ std::expected<void, std::string> EngineHost::EnsureWorldHook() {
           if (impl_->trace) impl_->trace->InvalidateAfterEngineReset();
         },
         [this](std::string_view map) {
-          impl_->world_active = true;
+          impl_->world_map = std::string(map);
           impl_->after_world.Dispatch(map);
         },
         [this] {
-          if (!std::exchange(impl_->world_active, false)) return;
+          if (!std::exchange(impl_->world_map, std::nullopt)) return;
           impl_->ending_world.Dispatch();
           if (impl_->trace) impl_->trace->InvalidateAfterEngineReset();
         },
@@ -268,7 +269,10 @@ std::expected<Subscription, std::string> EngineHost::OnWorld(
   if (auto ready = EnsureWorldHook(); !ready) return std::unexpected(ready.error());
   Subscription subscription;
   if (before) subscription.Add(impl_->before_world.Add(std::move(before)));
-  if (after) subscription.Add(impl_->after_world.Add(std::move(after)));
+  if (!after) return subscription;
+  // A subscriber that arrives while a world is ready learns of it at once.
+  if (impl_->world_map) after(*impl_->world_map);
+  subscription.Add(impl_->after_world.Add(std::move(after)));
   return subscription;
 }
 

@@ -1,0 +1,8 @@
+<root>
+  <scripts>
+    <include src="file://{resources}/scripts/modlock/ui.js" />
+  </scripts>
+  <Panel hittest="false">
+    <HTML id="ModlockUiState" hittest="false" style="width: 2px; height: 2px; opacity: 0;" />
+  </Panel>
+</root>

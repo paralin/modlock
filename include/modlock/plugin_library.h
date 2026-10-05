@@ -18,6 +18,7 @@
 namespace modlock {
 
 class EngineHost;
+class WasmHost;
 namespace net {
 struct LaunchConfig;
 }
@@ -30,6 +31,10 @@ struct PluginContext {
   const char* const* argv = nullptr;
   bool check_only = false;
   const net::LaunchConfig* launch = nullptr;
+  // Wasm runs the sandboxed mods a plugin loads, such as a game's modes. The
+  // host's interface controller sees their interfaces as it sees the host's
+  // own mods. It is null when the host runs no sandboxed mods.
+  WasmHost* wasm = nullptr;
 };
 
 // PluginManifest is inspected before invoking any C++ plugin implementation.

@@ -55,6 +55,8 @@ class MODLOCK_API EngineHost {
       gameinterop::AdjustDamage adjust_damage = {});
   std::expected<Subscription, std::string> OnConnection(
       std::shared_ptr<gameinterop::ConnectionEventSink> sink);
+  // OnWorld runs before as each world's map starts loading and after once it
+  // is ready; a world already ready runs after during the call.
   std::expected<Subscription, std::string> OnWorld(std::function<void(std::string_view)> before,
                                                    std::function<void(std::string_view)> after);
   std::expected<Subscription, std::string> OnRespawn(std::function<bool(uint32_t)> blocked);

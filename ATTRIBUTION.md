@@ -45,3 +45,10 @@ Deadlock Dolly contributors. The notice is kept in those files.
 | [safetyhook](https://github.com/cursey/safetyhook) | `third_party/safetyhook/safetyhook.*` | Boost Software License 1.0, in `LICENSE` |
 | [Zydis](https://github.com/zyantific/zydis) | `third_party/safetyhook/Zydis.*` | MIT, in `LICENSE.Zydis` |
 | [GoogleTest](https://github.com/google/googletest) | `third_party/googletest` (tests only) | BSD 3-Clause |
+| [QuickJS-ng](https://github.com/quickjs-ng/quickjs) | Compiled into `quickjs.wasm` | MIT, installed as `quickjs-LICENSE` |
+| [Luau](https://github.com/luau-lang/luau) | Compiled into `luau.wasm`; `luau-analyze` checks Luau mods | MIT, installed as `luau-LICENSE` |
+| [CPython](https://github.com/python/cpython) | Compiled into `python.wasm` with its standard library, from the [CPython WASI builds](https://github.com/brettcannon/cpython-wasi-build) | Python Software Foundation License, installed as `python-LICENSE` |
+| [wasi-sdk](https://github.com/WebAssembly/wasi-sdk) | Its C library and unwinder are linked into `luau.wasm` and `python.wasm` | Apache License 2.0 with LLVM exceptions, and MIT |
+| [Wasmtime](https://github.com/bytecodealliance/wasmtime) | Linked into `modlock-host`; its `wizer` command snapshots `python.wasm` at build time | Apache License 2.0 with LLVM exceptions |
+| [protobuf-es-lite](https://github.com/aperturerobotics/protobuf-es-lite) | Bundled into the TypeScript library, the interface renderer and every script mod | Apache License 2.0 |
+| [esbuild](https://github.com/evanw/esbuild) | Linked into the `modlock` command | MIT |

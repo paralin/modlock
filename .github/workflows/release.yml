@@ -1,0 +1,37 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build the Windows host
+        run: |
+          scripts/proton-build.sh
+          mkdir -p dist
+          (cd build-proton/sdk/bin && zip -r "$GITHUB_WORKSPACE/dist/modlock-host-windows-x64.zip" .)
+      - name: Build the command line
+        run: |
+          for target in windows/amd64 linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
+            os=${target%/*}
+            arch=${target#*/}
+            name="modlock-$os-$arch"
+            if [ "$os" = windows ]; then name="$name.exe"; fi
+            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath \
+              -ldflags "-X main.Version=$GITHUB_REF_NAME" -o "dist/$name" ./cmd/modlock
+          done
+      - name: Build the TypeScript library
+        run: go run ./cmd/modlock-library dist/modlock-library.tar.gz
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Modlock $GITHUB_REF_NAME" --generate-notes

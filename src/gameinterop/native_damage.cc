@@ -70,7 +70,7 @@ std::expected<void, std::string> NativeDamage::Hit(void* victim, void* inflictor
                                                    void* ability, float amount,
                                                    int32_t hit_group) const {
   if (!ReferenceHandleOf(victim) || !ReferenceHandleOf(inflictor) || !ReferenceHandleOf(attacker) ||
-      !ReferenceHandleOf(ability))
+      (ability && !ReferenceHandleOf(ability)))
     return std::unexpected("native damage participant is absent");
   return Apply(victim, inflictor, attacker, ability, amount, 0, hit_group);
 }

@@ -85,8 +85,8 @@ class MODLOCK_API WorldEntities {
   void FinishSpawns();
   // ReadNpc samples one live NPC by handle; nullopt once it is gone or dead.
   std::expected<std::optional<Sample>, std::string> ReadNpc(uint32_t handle) const;
-  // RemoveNpc deletes one entity through UTIL_Remove without rewards. It
-  // returns false when the handle no longer names a live entity.
+  // RemoveNpc deletes one NPC or pickup through UTIL_Remove without rewards.
+  // It returns false when the handle no longer names one.
   std::expected<bool, std::string> RemoveNpc(uint32_t handle);
   // Move teleports one live NPC this class may spawn, for modes that steer
   // units themselves each frame; false when it is gone.

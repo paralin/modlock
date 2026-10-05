@@ -2,29 +2,34 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "host_app/control_link.h"
 #include "modlock/build.h"
 #include "modlock/engine_host.h"
 #include "modlock/host.h"
 #include "modlock/host_app/stdio_guard.h"
 #include "modlock/plugin_library.h"
-#include "modlock/wasm_plugin.h"
+#include "modlock/wasm_host.h"
 
 namespace {
 
 void Help() {
   std::cout << "Modlock hosts Deadlock mods: sandboxed WebAssembly modules and native plugins.\n\n"
                "Usage: modlock-host --plugin PATH [options] [-- plugin arguments]\n\n"
-               "  --plugin PATH       Load a WebAssembly mod (.wasm) or a plugin library; may\n"
-               "                      be repeated\n"
+               "  --plugin PATH       Load a built mod (a directory with mod.json or a .wasm\n"
+               "                      file) or a plugin library; may be repeated\n"
                "  --game-dir PATH     Deadlock installation (or DEADLOCK_DIR)\n"
                "  --hostport PORT     Server UDP port (default 27067)\n"
                "  --map NAME          Startup map (default dl_midtown)\n"
                "  --connect ADDRESS   Run a game client that joins ADDRESS instead of a server\n"
                "  --engine-args ARGS  Append engine command-line arguments\n"
+               "  --control ADDRESS   Report to and take reloads from the controller at\n"
+               "                      ADDRESS, a host and port\n"
                "  --check-plugin      Check library compatibility and lifecycle without a game\n"
                "  --version           Print the framework source revision\n"
                "  --help              Show this help\n";
@@ -39,6 +44,20 @@ std::optional<uint16_t> Port(std::string_view value) {
   return static_cast<uint16_t>(port);
 }
 
+// FailureRecorder keeps the first error of a mod that stopped, which fails
+// a check: a mod stops itself without stopping the host.
+class FailureRecorder final : public modlock::WasmHostObserver {
+ public:
+  std::string error;
+
+  void Started(std::string_view, bool) override {}
+  void Logged(std::string_view, std::string_view) override {}
+  void Failed(std::string_view mod, std::string_view why) override {
+    if (error.empty()) error = std::string(mod) + ": " + std::string(why);
+  }
+  void Ui(std::string_view, int32_t, const modlock::ui::Change&) override {}
+};
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -46,6 +65,7 @@ int main(int argc, char** argv) {
   std::cout << std::unitbuf;
   std::vector<std::filesystem::path> libraries;
   std::filesystem::path game_dir;
+  std::string_view control;
   modlock::net::LaunchConfig launch;
   bool check_only = false;
   int plugin_argc = 0;
@@ -79,7 +99,8 @@ int main(int argc, char** argv) {
       break;
     }
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
-        argument != "--map" && argument != "--connect" && argument != "--engine-args") {
+        argument != "--map" && argument != "--connect" && argument != "--engine-args" &&
+        argument != "--control") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
       return 2;
     }
@@ -90,6 +111,7 @@ int main(int argc, char** argv) {
     const std::string_view value(argv[index]);
     if (argument == "--plugin") libraries.emplace_back(value);
     if (argument == "--engine-args") launch.engine_arguments = value;
+    if (argument == "--control") control = value;
     if (argument == "--connect") {
       if (value.empty() ||
           value.find_first_not_of(
@@ -136,17 +158,39 @@ int main(int argc, char** argv) {
     }
   }
 
-  // The host destroys plugin instances and libraries before engine resources.
+  // The interpreter modules ship beside the executable. The
+  // control link reports the mods' progress to the program that started the
+  // host; a lost controller leaves the server running.
+  modlock::WasmHost mods(std::filesystem::absolute(argv[0]).parent_path());
+  FailureRecorder failures;
+  mods.Observe(&failures);
+  std::unique_ptr<modlock::host_app::ControlLink> link;
+  if (!control.empty()) {
+    auto dialed = modlock::host_app::ControlLink::Dial(control);
+    if (!dialed) {
+      std::cerr << dialed.error() << '\n';
+      return 1;
+    }
+    link = std::move(*dialed);
+    mods.Observe(link.get());
+    if (auto watched = link->Watch(engine); !watched && !check_only) {
+      std::cerr << "control: " << watched.error() << '\n';
+    }
+  }
+
+  // The host destroys plugin instances and libraries before the mods, the
+  // link and engine resources.
   modlock::host::PluginHost plugins;
   const modlock::PluginContext context{.engine = &engine,
                                        .argc = plugin_argc,
                                        .argv = plugin_argv,
                                        .check_only = check_only,
-                                       .launch = &launch};
+                                       .launch = &launch,
+                                       .wasm = &mods};
   for (const auto& library : libraries) {
     const auto path = std::filesystem::absolute(library);
-    auto plugin = path.extension() == ".wasm" ? modlock::LoadWasmPlugin(path, context)
-                                              : modlock::LoadPluginLibrary(path, context);
+    const bool built = path.extension() == ".wasm" || std::filesystem::is_directory(path);
+    auto plugin = built ? mods.Load(path, context) : modlock::LoadPluginLibrary(path, context);
     if (!plugin) {
       std::cerr << plugin.error() << '\n';
       return 1;
@@ -164,10 +208,17 @@ int main(int argc, char** argv) {
   if (check_only) {
     plugins.TickAll();
     plugins.StopAll();
+    if (!failures.error.empty()) {
+      std::cerr << failures.error << '\n';
+      return 1;
+    }
     std::cout << "Plugin compatibility and lifecycle check passed. No game was started.\n";
     return 0;
   }
-  auto frames = engine.OnFrame([&plugins] { plugins.TickAll(); });
+  auto frames = engine.OnFrame([&plugins, &mods, &link] {
+    if (link) link->RunRequests(mods);
+    plugins.TickAll();
+  });
   if (!frames) {
     std::cerr << frames.error() << '\n';
     return 1;

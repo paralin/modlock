@@ -246,7 +246,7 @@ TEST(DecodeAbilityExecuted, RejectsMissingOrUnreadablePayload) {
   }
 }
 
-TEST(ProcessDamageContact, AdjustsNativeAmountAndPreservesSuppressionPriority) {
+TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
   using namespace modlock::gameinterop;
   struct Info {
     uint32_t attacker = 11;
@@ -283,14 +283,21 @@ TEST(ProcessDamageContact, AdjustsNativeAmountAndPreservesSuppressionPriority) {
     EXPECT_EQ(event.inflictor_handle, 0x12340027);
     EXPECT_EQ(event.hit_group, 1);
     EXPECT_EQ(event.flags, kDamageHeavyMelee);
+    EXPECT_EQ(event.amount, amount);
     ++calls;
     amount *= 2;
   };
   ASSERT_TRUE(ProcessDamageContact(&payload, offsets, read, write, {}, adjust));
   EXPECT_EQ(info.amount, 200);
   EXPECT_EQ(info.flags, kDamageHeavyMelee);
-  ASSERT_TRUE(ProcessDamageContact(
-      &payload, offsets, read, write, [](const auto&) { return true; }, adjust));
+  // Suppression sees the whole hit, including what delivered it.
+  const auto suppress = [](const DamageContactEvent& event) {
+    EXPECT_EQ(event.inflictor_handle, 0x12340027);
+    EXPECT_EQ(event.ability_handle, 23);
+    EXPECT_EQ(event.amount, 200);
+    return true;
+  };
+  ASSERT_TRUE(ProcessDamageContact(&payload, offsets, read, write, suppress, adjust));
   EXPECT_EQ(calls, 1);
   EXPECT_EQ(info.amount, 200);
   EXPECT_NE(info.flags & 1, 0);

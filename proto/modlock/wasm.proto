@@ -4,20 +4,402 @@ package modlock.wasm;
 
 option go_package = "github.com/paralin/modlock/proto/modlock/wasm;wasm";
 
-// Event is one engine event the host delivers to a WebAssembly mod through
-// its modlock_event export. A new event is a new body case.
-message Event {
-  // Body selects the event.
-  oneof body {
-    // Start begins the mod's active lifetime, once, before any other event.
-    StartEvent start = 1;
+import "github.com/paralin/modlock/proto/modlock/types.proto";
+import "github.com/paralin/modlock/proto/modlock/ui.proto";
 
-    // Frame runs once per server frame while the mod asked for frames.
-    FrameEvent frame = 2;
+// The two services below declare the whole boundary between the game and a
+// mod. cmd/modlock-sdkgen generates each language's mod library and the
+// host's dispatch from them, following these conventions:
+//
+//   - A request's first field named player, object, npc or pickup makes the
+//     call a method of that class, and the method name drops the class's
+//     noun: MoveObject becomes WorldObject.move.
+//   - A request named *Options is one options argument. Any other request's
+//     fields are positional arguments in declaration order.
+//   - A field marked optional, or repeated, may be omitted. A host treats an
+//     omitted field as its comment says.
+//   - A response with one field returns that field's value. Empty returns
+//     whether the call succeeded.
+//   - Enum values become lowerCamel names without the enum's prefix.
+//   - A message holding only a oneof is a union of its cases' types.
+//
+// A published mod keeps working on a newer host: the wire names each method
+// and leaves the rest to the messages, whose field numbers stay stable.
 
-    // Command offers one command a player typed.
-    CommandEvent command = 3;
-  }
+// Call is one method call across the boundary: a mod calling the game
+// through modlock.host_call, or the game delivering an event through the
+// mod's modlock_event export.
+message Call {
+  // Method names the method, such as "Chat".
+  string method = 1;
+
+  // Request is the method's encoded request.
+  bytes request = 2;
+}
+
+// Reply answers one Call.
+message Reply {
+  // Error describes why the call failed, or is empty on success.
+  string error = 1;
+
+  // Response is the method's encoded response.
+  bytes response = 2;
+}
+
+// Empty is a request or response without fields.
+message Empty {}
+
+// Host is the game a mod calls into. A call that fails logs why on the host
+// and returns the language's empty value, so a mod can retry on a later
+// frame instead of stopping.
+service Host {
+  // Log writes one line to the server log under the mod's name.
+  rpc Log(LogRequest) returns (Empty);
+
+  // ServerCommand runs one line at the server console, as if typed there. A
+  // line that sets a variable may set a development-only or cheat-protected
+  // one.
+  rpc ServerCommand(ServerCommandRequest) returns (Empty);
+
+  // Chat sends a server chat line to the player.
+  rpc Chat(ChatRequest) returns (Empty);
+
+  // CenterText shows text in the middle of the player's screen until it is
+  // replaced. Empty text clears it.
+  rpc CenterText(CenterTextRequest) returns (Empty);
+
+  // Announce shows a game announcement with a title to the player.
+  rpc Announce(AnnounceRequest) returns (Empty);
+
+  // Precache loads heroes and resources with the next world. Call it during
+  // start, before the first world loads.
+  rpc Precache(PrecacheOptions) returns (Empty);
+
+  // Players lists the occupied player slots in slot order.
+  rpc Players(Empty) returns (PlayersResponse);
+
+  // Pawn returns the player's hero this frame, or nothing without one.
+  rpc Pawn(PlayerRequest) returns (PawnResponse);
+
+  // SelectHero gives the player a hero on a team, 2 or 3, and returns the
+  // hero's identifier as Pawn.hero reports it. The hero appears on a later
+  // frame.
+  rpc SelectHero(SelectHeroRequest) returns (HeroResponse);
+
+  // Respawn revives the player's dead hero.
+  rpc Respawn(PlayerRequest) returns (Empty);
+
+  // ClearItems removes every item the player's hero owns.
+  rpc ClearItems(PlayerRequest) returns (Empty);
+
+  // Freeze holds the player's hero in place, without input or damage, until
+  // it is released. Stopping the mod releases it.
+  rpc Freeze(FreezeRequest) returns (Empty);
+
+  // RestoreStamina refills the player's stamina.
+  rpc RestoreStamina(PlayerRequest) returns (Empty);
+
+  // RefreshAbility ends the cooldown of the hero's ability named ability,
+  // such as citadel_ability_melee_parry.
+  rpc RefreshAbility(RefreshAbilityRequest) returns (Empty);
+
+  // Abilities lists the abilities of the player's hero in the hero's order,
+  // or none without a live hero.
+  rpc Abilities(PlayerRequest) returns (AbilitiesResponse);
+
+  // SetAbility changes the upgrades, charges or timers of one of the hero's
+  // abilities. An omitted option stays as it is.
+  rpc SetAbility(AbilityOptions) returns (Empty);
+
+  // GiveItem gives the hero an item, enabled and free. A hero that owns it
+  // keeps its one copy.
+  rpc GiveItem(GiveItemRequest) returns (Empty);
+
+  // ReplaceAbility puts the ability named ability, untrained, in the hero's
+  // ability slot index, as Ability.slot, removing the ability there.
+  rpc ReplaceAbility(ReplaceAbilityRequest) returns (Empty);
+
+  // HoldModifier keeps an ability's modifier, named "<ability>/<modifier>",
+  // on the hero with no expiry, giving it back whenever the game removes it
+  // or the hero returns. The hero must own the ability or item. Every hero
+  // that gains the modifier from the same ability keeps it until the hold
+  // ends. Releasing leaves the hero's current modifier until it dies.
+  rpc HoldModifier(HoldModifierRequest) returns (Empty);
+
+  // GiveModifier gives the hero an ability's modifier, named
+  // "<ability>/<modifier>", for seconds, as if the hero's own ability applied
+  // it; a hero without that ability applies it with its first ability. The
+  // game may end it sooner, as invisibility ends on a shot.
+  rpc GiveModifier(GiveModifierRequest) returns (Empty);
+
+  // Teleport moves the player's hero and turns it and the camera. With a
+  // velocity it also sets the hero's motion, as a launch, and the camera
+  // follows the hero.
+  rpc Teleport(TeleportRequest) returns (Empty);
+
+  // AdjustSouls gives the player delta souls, or takes them when delta is
+  // negative. A spend larger than the player's souls fails and spends
+  // nothing. Silent skips the pickup's sound and number.
+  rpc AdjustSouls(AdjustSoulsRequest) returns (Empty);
+
+  // StartingSouls sets the souls the player's hero spawns with.
+  rpc StartingSouls(StartingSoulsRequest) returns (Empty);
+
+  // Heal restores health to the player's hero, up to its maximum.
+  rpc Heal(HealRequest) returns (Empty);
+
+  // Sound plays a game sound event, such as Damage.Send.Crit, on the
+  // player's hero.
+  rpc Sound(SoundRequest) returns (Empty);
+
+  // RestoreHero gives the player's live hero target over the next few
+  // seconds: the build first, then health, stamina and pose once it settles,
+  // then charges and cooldowns. A Restored event reports when the result has
+  // held for a second, or why it could not. A new call replaces the running
+  // one.
+  rpc RestoreHero(RestoreHeroRequest) returns (Empty);
+
+  // ScreenEffect plays a full-screen effect on the player's view. Effects of
+  // one kind stack. The player's hero must be alive.
+  rpc ScreenEffect(ScreenEffectRequest) returns (Empty);
+
+  // ClearScreenEffect ends every running instance of effect on the player's
+  // view.
+  rpc ClearScreenEffect(ClearScreenEffectRequest) returns (Empty);
+
+  // ReadField reads one schema field of a live entity, such as the int32
+  // m_iHealth of CBaseEntity. The host finds the field by name, so it
+  // survives game updates that move it.
+  rpc ReadField(ReadFieldRequest) returns (FieldResponse);
+
+  // WriteField writes one schema field of a live entity and sends the change
+  // to the players. The value takes the form ReadField returns for the type;
+  // text fields cannot be written.
+  rpc WriteField(WriteFieldRequest) returns (Empty);
+
+  // ModifierState reports whether an entity has a modifier state, such as
+  // MODIFIER_STATE_PARRY_ACTIVE.
+  rpc ModifierState(ModifierStateRequest) returns (ActiveResponse);
+
+  // HoldModifierState holds a modifier state, such as
+  // MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
+  // releases the hold. The hold ends with the entity.
+  rpc HoldModifierState(HoldModifierStateRequest) returns (Empty);
+
+  // CreateModel places a model with no collision in the world. The world
+  // removes it when the world ends; stopping the mod removes it too.
+  rpc CreateModel(ModelOptions) returns (ObjectResponse);
+
+  // CreateText places text that floats in the world.
+  rpc CreateText(TextOptions) returns (ObjectResponse);
+
+  // CreateParticle starts a particle effect. Removing the object stops it;
+  // moving it moves the effect.
+  rpc CreateParticle(ParticleOptions) returns (ObjectResponse);
+
+  // CreateFog fills a box with tinted fog whose density fades across the
+  // box's boundary. Removing the object clears it; moving it moves the box.
+  rpc CreateFog(FogOptions) returns (ObjectResponse);
+
+  // MoveObject places the object at position, turning it to facing.
+  rpc MoveObject(MoveObjectRequest) returns (Empty);
+
+  // SetText replaces a text object's words.
+  rpc SetText(SetTextRequest) returns (Empty);
+
+  // RemoveObject takes the object out of the world.
+  rpc RemoveObject(ObjectRequest) returns (Empty);
+
+  // AddBot adds a bot player and returns it. The bot leaves when the world
+  // ends or the mod stops.
+  rpc AddBot(BotOptions) returns (BotResponse);
+
+  // RemoveBot removes a bot the mod added.
+  rpc RemoveBot(PlayerRequest) returns (Empty);
+
+  // BlockInput withholds buttons from every player's hero until called
+  // again. Stopping the mod releases them.
+  rpc BlockInput(InputRequest) returns (Empty);
+
+  // BlockPlayerInput withholds buttons from the player's hero until called
+  // again, on top of the block on everyone. Zero releases the player.
+  rpc BlockPlayerInput(PlayerInputRequest) returns (Empty);
+
+  // Press presses buttons at the player's next input, even through a block.
+  // A bot presses them as a player would.
+  rpc Press(PlayerInputRequest) returns (Empty);
+
+  // WatchInput replaces the buttons whose presses and releases arrive as
+  // Input events. Watching does not withhold a press; block it with
+  // BlockInput.
+  rpc WatchInput(InputRequest) returns (Empty);
+
+  // RemapInput makes the from buttons act as the to buttons for every
+  // player's hero until called again; from reads as up. With repeat, a held
+  // from button uses the to ability again as soon as it is ready. A zero from
+  // stops remapping, and stopping the mod does too. BlockInput applies after
+  // the remap.
+  rpc RemapInput(RemapInputRequest) returns (Empty);
+
+  // Ui changes the interface the mod shows the player. The host keeps each
+  // player's tree until the mod stops or the player leaves.
+  rpc Ui(UiRequest) returns (Empty);
+
+  // CallService calls method of a service the host provides outside Modlock,
+  // such as a game mode's match, and returns the service's answer. The
+  // service defines the payload's encoding.
+  rpc CallService(ServiceCall) returns (ServiceReply);
+
+  // SpawnNpc adds a unit that is not a player, such as a trooper. It thinks
+  // from the next frame. The world removes it when the world ends; stopping
+  // the mod removes it too.
+  rpc SpawnNpc(NpcOptions) returns (NpcResponse);
+
+  // ReadNpc returns the unit's state, or nothing once it is gone.
+  rpc ReadNpc(NpcRequest) returns (NpcStateResponse);
+
+  // MoveNpc places the unit and sets its velocity, which drives its walk
+  // animation. It reports false once the unit is gone.
+  rpc MoveNpc(MoveNpcRequest) returns (AliveResponse);
+
+  // SetNpcHealth sets the unit's health, and its maximum when given. It
+  // reports false once the unit is gone.
+  rpc SetNpcHealth(SetNpcHealthRequest) returns (AliveResponse);
+
+  // RemoveNpc takes the unit out of the world without rewards. It reports
+  // false when the unit was already gone.
+  rpc RemoveNpc(NpcRequest) returns (AliveResponse);
+
+  // CreatePickup places an urn, which a hero carries once collected, or a
+  // movement buff. Stopping the mod removes it.
+  rpc CreatePickup(CreatePickupRequest) returns (PickupResponse);
+
+  // PickupPresent reports whether the pickup still lies in the world,
+  // uncollected.
+  rpc PickupPresent(PickupRequest) returns (AliveResponse);
+
+  // RemovePickup takes the pickup out of the world. It reports false when a
+  // player had collected it.
+  rpc RemovePickup(PickupRequest) returns (AliveResponse);
+
+  // RemoveEntities removes every entity of a class, such as npc_trooper,
+  // without rewards, and returns how many it removed.
+  rpc RemoveEntities(RemoveEntitiesRequest) returns (CountResponse);
+
+  // ClearMap removes the map's own units and objectives, such as troopers,
+  // guardians and walkers, so a mode can use the map as an arena.
+  rpc ClearMap(Empty) returns (Empty);
+
+  // Damage deals a hit as the game would. The mod's Damage events do not
+  // include its own hits.
+  rpc Damage(HitOptions) returns (Empty);
+
+  // Trace returns where a line first hits something, or nothing when it hits
+  // nothing or the world's collision is not ready.
+  rpc Trace(TraceOptions) returns (TraceResponse);
+
+  // RestoreNpcs replaces the map's lane units and objectives with targets
+  // over the next frames. Units of these classes not in the list are
+  // removed, structures that match are kept, and moving units are spawned
+  // again in place. An NpcsRestored event reports when every target stands
+  // as its own unit, or why not. A new call replaces the running one.
+  rpc RestoreNpcs(RestoreNpcsRequest) returns (Empty);
+
+  // Pause stops or resumes the game clock, as the pause command would.
+  // Stopping the mod resumes it.
+  rpc Pause(PauseRequest) returns (Empty);
+
+  // MatchClock returns the match time in seconds that the scoreboard shows.
+  rpc MatchClock(Empty) returns (MatchClockResponse);
+
+  // HoldMatchClock keeps the match time at seconds every frame until called
+  // again; omitted seconds let it run.
+  rpc HoldMatchClock(HoldMatchClockRequest) returns (Empty);
+
+  // Rift reads the Rift objective's state.
+  rpc Rift(Empty) returns (RiftResponse);
+
+  // StartRift opens the Rift objective at position now.
+  rpc StartRift(StartRiftRequest) returns (Empty);
+
+  // MoveEntity places any entity, such as a projectile, and replaces its
+  // facing and motion when given.
+  rpc MoveEntity(MoveEntityRequest) returns (Empty);
+
+  // EmitSound plays one game sound on any entity, such as a projectile.
+  rpc EmitSound(EmitSoundRequest) returns (Empty);
+
+  // Kill kills a player's hero, crediting no one.
+  rpc Kill(PlayerRequest) returns (Empty);
+
+  // SetVelocity replaces the motion of a player's hero without moving it.
+  rpc SetVelocity(SetVelocityRequest) returns (Empty);
+
+  // Buttons returns the buttons a player holds, as Buttons bits, while the
+  // player is alive or dead.
+  rpc Buttons(PlayerRequest) returns (ButtonsResponse);
+
+  // WatchMovement adds a player's hero to the movement samples of each Frame
+  // event on a new tick, or removes it.
+  rpc WatchMovement(WatchMovementRequest) returns (Empty);
+
+  // WatchProjectiles reports the projectiles with these designer names, such
+  // as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
+  // call replaces the list; an empty list stops watching.
+  rpc WatchProjectiles(ProjectileOptions) returns (Empty);
+}
+
+// Mod is the mod the game delivers events to, one at a time on the server's
+// frame thread.
+service Mod {
+  // Start begins the mod's active lifetime, once, before any other event.
+  rpc Start(StartEvent) returns (StartResult);
+
+  // Frame runs once per server frame while the mod asked for frames.
+  rpc Frame(FrameEvent) returns (Empty);
+
+  // Command offers one command a player typed.
+  rpc Command(CommandEvent) returns (CommandResult);
+
+  // World follows each world load, and start when a world has already
+  // loaded. Objects and bots from an earlier world are gone by then.
+  rpc World(WorldEvent) returns (Empty);
+
+  // UiPress reports a press on a button in a player's interface.
+  rpc UiPress(UiPressEvent) returns (Empty);
+
+  // Serve calls a service the mod serves from the host.
+  rpc Serve(ServiceCall) returns (ServiceReply);
+
+  // Damage offers one hit before the game applies it, while the mod asked
+  // for damage. The mod's answer may block the hit or change its amount.
+  rpc Damage(DamageEvent) returns (DamageResult);
+
+  // Damaged reports one hit the game applied, while the mod asked for
+  // damage reports. Hits arrive before the next frame.
+  rpc Damaged(DamagedEvent) returns (Empty);
+
+  // Input reports one player's presses of watched buttons, before the next
+  // frame. A block in place still withholds them from the hero.
+  rpc Input(InputEvent) returns (Empty);
+
+  // Restored ends one RestoreHero, before the next frame.
+  rpc Restored(RestoredEvent) returns (Empty);
+
+  // NpcsRestored ends one RestoreNpcs, before the next frame.
+  rpc NpcsRestored(NpcsRestoredEvent) returns (Empty);
+
+  // Launch reports a watched projectile's first frame, before the next frame.
+  rpc Launch(LaunchEvent) returns (Empty);
+
+  // Impact reports a watched projectile striking something, inside the
+  // game's impact and after its own explosion. The mod's calls apply before
+  // the game continues.
+  rpc Impact(ImpactEvent) returns (Empty);
+
+  // Landed reports a hero landing under the manifest's QuakeWorld movement,
+  // before the next frame.
+  rpc Landed(LandedEvent) returns (Empty);
 }
 
 // StartEvent describes the server the mod starts in.
@@ -26,8 +408,24 @@ message StartEvent {
   repeated string args = 1;
 
   // CheckOnly is true when the host checks the mod without starting a game;
-  // engine requests then fail.
+  // every call but Log then fails.
   bool check_only = 2;
+
+  // Source holds an interpreted mod's entry, which the interpreter module
+  // evaluates during start. It is empty for a compiled mod.
+  bytes source = 3;
+}
+
+// StartResult declares which events the mod consumes.
+message StartResult {
+  // Frames asks for a Frame event every server frame.
+  bool frames = 1;
+
+  // Damage asks for a Damage event before each hit.
+  bool damage = 2;
+
+  // Damaged asks for a Damaged event after each hit.
+  bool damaged = 3;
 }
 
 // FrameEvent identifies one server frame.
@@ -37,60 +435,285 @@ message FrameEvent {
 
   // TimeSeconds is the game clock at this frame, in seconds.
   double time_seconds = 2;
+
+  // Movement holds one sample per watched, live hero when this frame starts a
+  // new tick, and is empty otherwise.
+  repeated MovementSample movement = 3;
 }
 
-// CommandEvent carries one command line from a player: a chat line that starts
-// with a slash, without the slash, or a console command the server received.
+// MovementAction is a movement fact the game announced for a hero.
+enum MovementAction {
+  MOVEMENT_ACTION_UNKNOWN = 0;
+  MOVEMENT_ACTION_LANDED = 1;
+  MOVEMENT_ACTION_ZIPLINE_ATTACHED = 2;
+  MOVEMENT_ACTION_GROUND_DASH = 3;
+  MOVEMENT_ACTION_SLIDE = 4;
+  MOVEMENT_ACTION_BOUNCE_PAD = 5;
+  MOVEMENT_ACTION_DASH_JUMP = 6;
+  MOVEMENT_ACTION_AIR_JUMP = 7;
+  MOVEMENT_ACTION_WALL_JUMP = 8;
+  MOVEMENT_ACTION_AIR_DASH = 9;
+  MOVEMENT_ACTION_MELEE_STARTED = 10;
+  // AbilityExecuted is any ability the hero cast.
+  MOVEMENT_ACTION_ABILITY_EXECUTED = 11;
+}
+
+// MovementSample is one watched hero's movement on one tick, as the game keeps
+// it. A hero whose position, velocity or ground the game does not provide has
+// no sample; another field the game did not provide is absent or zero.
+message MovementSample {
+  // Player is the hero's player slot.
+  int32 player = 1;
+
+  // Pawn is the hero's entity handle.
+  uint32 pawn = 2;
+
+  // Position is the hero's origin, at its feet.
+  modlock.Vec3 position = 3;
+
+  // Velocity is the hero's motion in units per second.
+  modlock.Vec3 velocity = 4;
+
+  // Grounded is true while the hero stands on something. Sliding, Mantling,
+  // Climbing and Dashing are the game's movement states.
+  bool grounded = 6;
+  bool sliding = 7;
+  bool mantling = 8;
+  bool climbing = 9;
+  bool dashing = 10;
+
+  // JumpAbility is the hero's jump ability, and WallJumps the game's count of
+  // consecutive wall jumps on it.
+  uint32 jump_ability = 11;
+  int32 wall_jumps = 12;
+
+  // MantleAbility is the hero's mantle ability, and MantleStart the game time
+  // its latest mantle began.
+  uint32 mantle_ability = 13;
+  float mantle_start = 14;
+
+  // WallContact is where the hero was when the jump ability last found a wall
+  // to jump off; it holds still once no wall qualifies.
+  modlock.Vec3 wall_contact = 15;
+
+  // WallNormal is the last wall touched, never cleared.
+  modlock.Vec3 wall_normal = 16;
+
+  // WallJumpNormal is the normal the latest wall jump used.
+  modlock.Vec3 wall_jump_normal = 17;
+
+  // WallJumpFacing is the game's EWallJumpFacing, zero when not on a wall.
+  uint32 wall_jump_facing = 18;
+
+  // ZiplineTime is the game time the hero last rode a zipline; it advances on
+  // every tick of a ride.
+  optional float zipline_time = 19;
+
+  // Actions are the movement facts the game announced since the last tick.
+  repeated MovementAction actions = 20;
+
+  // Casts are the abilities the hero cast since the last tick, one per
+  // MOVEMENT_ACTION_ABILITY_EXECUTED, by entity handle as Ability.entity
+  // reports it; Abilities names each one's slot.
+  repeated uint32 casts = 21;
+}
+
+// CommandEvent carries one command line from a player: a chat line that
+// starts with a slash, without the slash, or a console command the server
+// received.
 message CommandEvent {
-  // Slot identifies the player who typed the command.
-  int32 slot = 1;
+  // Player is the player who typed the command.
+  int32 player = 1;
 
   // Line is the complete command line, starting with the command name.
   string line = 2;
 }
 
-// EventResult is the mod's answer to one Event. An event with no answer
-// returns an empty result.
-message EventResult {
-  // Body carries the answer for the event case that asks for one.
-  oneof body {
-    // Start answers a StartEvent.
-    StartResult start = 1;
-
-    // Command answers a CommandEvent.
-    CommandResult command = 2;
-  }
-}
-
-// StartResult declares which events the mod consumes.
-message StartResult {
-  // Frames asks for a FrameEvent every server frame.
-  bool frames = 1;
-}
-
 // CommandResult answers whether the mod handled a command.
 message CommandResult {
-  // Claimed ends the command's dispatch; the game and later mods do not see it.
+  // Claimed ends the command's dispatch; the game and later mods do not see
+  // it.
   bool claimed = 1;
 }
 
-// HostRequest is one call from a mod to the host through modlock.host_call.
-// A new capability is a new body case.
-message HostRequest {
-  // Body selects the call.
-  oneof body {
-    // Log writes one line to the server log under the mod's name.
-    LogRequest log = 1;
+// WorldEvent announces a loaded world.
+message WorldEvent {
+  // Map names the world's map.
+  string map = 1;
+}
 
-    // ServerCommand runs one line at the server console.
-    ServerCommandRequest server_command = 2;
+// UiPressEvent reports a press on a button in a player's interface.
+message UiPressEvent {
+  // Player is the player who pressed.
+  int32 player = 1;
 
-    // Chat sends server chat to one player.
-    ChatRequest chat = 3;
+  // Node is the id of the pressed button.
+  string node = 2;
+}
 
-    // CenterText shows text in the middle of one player's screen.
-    CenterTextRequest center_text = 4;
-  }
+// ServiceCall calls one method of a service outside Modlock. A host that
+// embeds Modlock provides services of its own, such as a game mode's match,
+// and a mod may serve one to the host. The service and its caller agree on
+// the payload's encoding.
+message ServiceCall {
+  // Service names the service, such as "arena.match".
+  string service = 1;
+
+  // Method names the method within the service.
+  string method = 2;
+
+  // Payload is the call's argument.
+  bytes payload = 3;
+}
+
+// ServiceReply is a service's answer.
+message ServiceReply {
+  // Payload is the answer.
+  bytes payload = 1;
+}
+
+// DamageEvent is one hit before the game applies it. Handles are zero when
+// the game names no such entity.
+message DamageEvent {
+  // Victim is the entity taking the hit.
+  uint32 victim = 1;
+
+  // Attacker is the entity credited with the hit. Zero makes the hit a
+  // hazard, such as poison gas, which credits no one and ignores the
+  // inflictor and hit group.
+  uint32 attacker = 2;
+
+  // Inflictor is what delivered the hit, such as a projectile.
+  uint32 inflictor = 3;
+
+  // Ability is the ability that dealt the hit.
+  uint32 ability = 4;
+
+  // Flags are the game's damage flags.
+  uint64 flags = 5;
+
+  // HitGroup is the body part hit; 1 is the head and -1 means none.
+  int32 hit_group = 6;
+
+  // Amount is the hit's damage before resistances.
+  float amount = 7;
+}
+
+// DamageResult answers a DamageEvent. An empty result lets the hit through.
+message DamageResult {
+  // Block cancels the hit's health loss, force, effects and procs.
+  optional bool block = 1;
+
+  // Amount replaces the hit's damage when present.
+  optional float amount = 2;
+}
+
+// DamagedEvent reports one hit the game applied.
+message DamagedEvent {
+  // Victim is the entity that took the hit.
+  uint32 victim = 1;
+
+  // Attacker is the entity credited with the hit, or zero for a hazard.
+  uint32 attacker = 2;
+
+  // Ability is the ability that dealt the hit.
+  uint32 ability = 3;
+
+  // HealthLost is the health the hit removed, after resistances.
+  int32 health_lost = 4;
+
+  // HealthBefore is the victim's health before the hit; a hit that removes
+  // all of it kills.
+  int32 health_before = 5;
+
+  // Dealt is the hit's damage after resistances, before the victim's health
+  // capped it.
+  int32 dealt = 6;
+}
+
+// InputEvent is one player's watched buttons that went down or up.
+message InputEvent {
+  // Player is the player who pressed.
+  int32 player = 1;
+
+  // Pressed holds one bit per button that went down.
+  uint64 pressed = 2;
+
+  // Released holds one bit per button that went up.
+  uint64 released = 3;
+}
+
+// RestoredEvent reports how a RestoreHero ended.
+message RestoredEvent {
+  // Player is the player whose hero was restored.
+  int32 player = 1;
+
+  // Error describes why the hero does not match its target, or is empty when
+  // it held the target for a second.
+  string error = 2;
+}
+
+// NpcsRestoredEvent reports how a RestoreNpcs ended.
+message NpcsRestoredEvent {
+  // Error describes the unit that does not match its target, or is empty
+  // when every target was found in place.
+  string error = 1;
+}
+
+// LaunchEvent is a watched projectile's first frame.
+message LaunchEvent {
+  // Entity is the projectile's entity handle.
+  uint32 entity = 1;
+
+  // Name is the projectile's designer name.
+  string name = 2;
+
+  // Owner is the entity that fired it, or zero.
+  uint32 owner = 3;
+
+  // Player is the slot of the player whose hero fired it, or -1.
+  int32 player = 4;
+
+  // Position is where the projectile is.
+  modlock.Vec3 position = 5;
+}
+
+// ImpactEvent is a watched projectile striking something.
+message ImpactEvent {
+  // Entity is the projectile's entity handle.
+  uint32 entity = 1;
+
+  // Name is the projectile's designer name.
+  string name = 2;
+
+  // Owner is the entity that fired it, or zero.
+  uint32 owner = 3;
+
+  // Player is the slot of the player whose hero fired it, or -1.
+  int32 player = 4;
+
+  // Start and End are the projectile's movement this frame, which ended in
+  // the strike.
+  modlock.Vec3 start = 5;
+  modlock.Vec3 end = 6;
+
+  // Position is where it struck.
+  modlock.Vec3 position = 7;
+
+  // Hit is the entity struck, or zero for the world.
+  uint32 hit = 8;
+}
+
+// LandedEvent is one hero landing.
+message LandedEvent {
+  // Player is the slot of the player who landed.
+  int32 player = 1;
+
+  // On is the slot of the player landed on, or -1 for the world.
+  int32 on = 2;
+
+  // Speed is the downward speed just before landing, in units per second.
+  float speed = 3;
 }
 
 // LogRequest carries one log line.
@@ -105,10 +728,15 @@ message ServerCommandRequest {
   string command = 1;
 }
 
+// PlayerRequest addresses one player.
+message PlayerRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+}
+
 // ChatRequest addresses server chat to one player.
 message ChatRequest {
-  // Slot identifies the receiving player.
-  int32 slot = 1;
+  int32 player = 1;
 
   // Text is the chat line.
   string text = 2;
@@ -116,15 +744,1177 @@ message ChatRequest {
 
 // CenterTextRequest replaces one player's center text.
 message CenterTextRequest {
-  // Slot identifies the receiving player.
-  int32 slot = 1;
+  int32 player = 1;
 
   // Text is the text to show; empty text clears it.
   string text = 2;
 }
 
-// HostResponse is the host's answer to one HostRequest.
-message HostResponse {
-  // Error describes why the call failed, or is empty on success.
-  string error = 1;
+// AnnounceRequest addresses a game announcement to one player.
+message AnnounceRequest {
+  int32 player = 1;
+
+  // Title is the announcement's heading.
+  string title = 2;
+
+  // Text is the announcement's body.
+  string text = 3;
+}
+
+// PrecacheOptions names what the next world loads ahead of use.
+message PrecacheOptions {
+  // Heroes are hero names, such as hero_wraith.
+  repeated string heroes = 1;
+
+  // Resources are model and particle paths, such as models/props/crate.vmdl.
+  repeated string resources = 2;
+}
+
+// PlayersResponse lists the occupied player slots in slot order.
+message PlayersResponse {
+  repeated Connection players = 1;
+}
+
+// Connection is one occupied player slot.
+message Connection {
+  // Player is the connection's server slot.
+  int32 player = 1;
+
+  // SteamId identifies a human's account, or is zero for a bot.
+  uint64 steam_id = 2;
+
+  // Name is the player's name.
+  string name = 3;
+
+  // Bot is true for a bot player.
+  bool bot = 4;
+
+  // Ready is true once a human has finished joining; bots are always ready.
+  bool ready = 5;
+
+  // Generation changes each time a new connection takes the slot.
+  uint32 generation = 6;
+}
+
+// PawnResponse holds the player's hero, absent without a live one.
+message PawnResponse {
+  Pawn pawn = 1;
+}
+
+// Pawn is one player's hero this frame.
+message Pawn {
+  // Entity is the hero's entity handle, which ReadField reads.
+  uint32 entity = 1;
+
+  // Hero identifies the hero, as SelectHero returns it.
+  uint32 hero = 2;
+
+  // Team is the hero's team number.
+  int32 team = 3;
+
+  // Health is the hero's health; zero or less is dead.
+  int32 health = 4;
+
+  // MaxHealth is the hero's networked maximum health.
+  int32 max_health = 5;
+
+  // Position is the hero's origin, at its feet.
+  modlock.Vec3 position = 6;
+
+  // EyeAngles is where the hero aims.
+  modlock.EulerAngles eye_angles = 7;
+
+  // CameraAngles is where the player's camera looks.
+  modlock.EulerAngles camera_angles = 8;
+
+  // Stamina is the hero's stamina, absent until it has spawned fully.
+  optional float stamina = 9;
+
+  // MaxStamina is the hero's maximum stamina, present with stamina.
+  optional float max_stamina = 10;
+
+  // Generation is the connection generation the hero belongs to.
+  uint32 generation = 11;
+
+  // Souls is the souls the player holds.
+  int32 souls = 12;
+
+  // EyePosition is where the hero's view starts, for aiming traces.
+  modlock.Vec3 eye_position = 13;
+
+  // Velocity is the hero's motion in units per second.
+  modlock.Vec3 velocity = 14;
+}
+
+// SelectHeroRequest gives a player a hero.
+message SelectHeroRequest {
+  int32 player = 1;
+
+  // Hero names the hero, such as hero_wraith, or gives its identifier as
+  // Pawn.hero reports it.
+  oneof hero {
+    string hero_name = 2;
+    uint32 hero_id = 3;
+  }
+
+  // Team is the team number to join: 2 or 3.
+  int32 team = 4;
+}
+
+// HeroResponse identifies the hero SelectHero gave.
+message HeroResponse {
+  uint32 hero = 1;
+}
+
+// FreezeRequest holds or releases one player's hero.
+message FreezeRequest {
+  int32 player = 1;
+
+  // Frozen holds the hero when true or omitted; false releases it.
+  optional bool frozen = 2;
+}
+
+// RefreshAbilityRequest names one ability of a player's hero.
+message RefreshAbilityRequest {
+  int32 player = 1;
+
+  // Ability is the ability's name.
+  string ability = 2;
+}
+
+// AbilitiesResponse lists a hero's abilities in the hero's order.
+message AbilitiesResponse {
+  repeated Ability abilities = 1;
+}
+
+// Ability is one ability a hero owns.
+message Ability {
+  // Name is the ability's name, such as citadel_ability_hornet_snipe.
+  string name = 1;
+
+  // Slot is the ability's place on the hero: 0 to 3 are the ability keys.
+  int32 slot = 2;
+
+  // Entity is the ability's entity handle, as DamageEvent.ability reports
+  // it.
+  uint32 entity = 3;
+
+  // Upgrades holds the bought tiers: bit 0 unlocks it and bits 1 to 3 are
+  // its upgrades.
+  uint32 upgrades = 4;
+
+  // Charges is the charges the ability holds.
+  int32 charges = 5;
+
+  // CooldownEnd is the game time its cooldown ends, or zero without one.
+  float cooldown_end = 6;
+
+  // Id identifies the ability's definition, as replays record it.
+  uint32 id = 7;
+
+  // State is the packed upgrade word; its high half is upgrades.
+  uint32 state = 8;
+
+  // CooldownStart is the game time its cooldown began.
+  float cooldown_start = 9;
+
+  // RechargeStart is the game time its next charge began recovering.
+  float recharge_start = 10;
+
+  // RechargeEnd is the game time its next charge returns, or zero without
+  // one.
+  float recharge_end = 11;
+}
+
+// AbilityOptions changes one ability of a player's hero.
+message AbilityOptions {
+  int32 player = 1;
+
+  // Ability is the ability's name.
+  string ability = 2;
+
+  // Upgrades replaces the bought tiers, as Ability.upgrades: 0b1111 unlocks
+  // it with all three upgrades.
+  optional uint32 upgrades = 3;
+
+  // Charges replaces the charges the ability holds, keeping its timers.
+  optional int32 charges = 4;
+
+  // CooldownEnd replaces the game time its cooldown ends.
+  optional float cooldown_end = 5;
+
+  // RechargeEnd replaces the game time its next charge returns.
+  optional float recharge_end = 6;
+}
+
+// GiveItemRequest gives one player's hero an item.
+message GiveItemRequest {
+  int32 player = 1;
+
+  // Item is the item's name, such as upgrade_fleetfoot_boots.
+  string item = 2;
+}
+
+// ReplaceAbilityRequest puts an ability in one of a player's ability slots.
+message ReplaceAbilityRequest {
+  int32 player = 1;
+
+  // Index is the ability slot, as Ability.slot.
+  uint32 index = 2;
+
+  // Ability is the new ability's name, such as ability_viper_slide.
+  string ability = 3;
+}
+
+// HoldModifierRequest holds or releases an ability's modifier on one
+// player's hero.
+message HoldModifierRequest {
+  int32 player = 1;
+
+  // Modifier names the modifier as "<ability>/<modifier>", such as
+  // upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
+  string modifier = 2;
+
+  // Active holds the modifier when true or omitted; false releases the hold.
+  optional bool active = 3;
+}
+
+// GiveModifierRequest gives one player's living hero an ability's modifier.
+message GiveModifierRequest {
+  int32 player = 1;
+
+  // Modifier names the modifier as "<ability>/<modifier>", such as
+  // ability_smoke_bomb/smokebomb_modifier_invis.
+  string modifier = 2;
+
+  // Seconds is how long the modifier lasts.
+  float seconds = 3;
+}
+
+// TeleportRequest places one player's hero.
+message TeleportRequest {
+  int32 player = 1;
+
+  // Position is the hero's new origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is where the hero and camera face afterwards.
+  modlock.EulerAngles facing = 3;
+
+  // Velocity replaces the hero's motion when present.
+  optional modlock.Vec3 velocity = 4;
+}
+
+// AdjustSoulsRequest changes one player's souls.
+message AdjustSoulsRequest {
+  int32 player = 1;
+
+  // Delta adds souls, or spends them when negative.
+  int32 delta = 2;
+
+  // Silent hides the game's souls notice.
+  optional bool silent = 3;
+}
+
+// StartingSoulsRequest sets the souls one player's hero spawns with.
+message StartingSoulsRequest {
+  int32 player = 1;
+
+  // Souls is the amount the player should hold at least.
+  int32 souls = 2;
+}
+
+// HealRequest restores health to a player's hero.
+message HealRequest {
+  int32 player = 1;
+
+  // Amount is the health to add; the hero stops at its maximum.
+  int32 amount = 2;
+}
+
+// SoundRequest plays one sound on a player's hero.
+message SoundRequest {
+  int32 player = 1;
+
+  // Sound is the game sound event's name, such as Player.ClaimOrb.
+  string sound = 2;
+}
+
+// MoveEntityRequest places one entity.
+message MoveEntityRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // Position is the entity's new origin.
+  modlock.Vec3 position = 2;
+
+  // Facing replaces the entity's angles when present.
+  optional modlock.EulerAngles facing = 3;
+
+  // Velocity replaces the entity's motion when present.
+  optional modlock.Vec3 velocity = 4;
+}
+
+// EmitSoundRequest plays one sound on an entity.
+message EmitSoundRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // Sound is the game sound event's name.
+  string sound = 2;
+}
+
+// SetVelocityRequest replaces one hero's motion.
+message SetVelocityRequest {
+  int32 player = 1;
+
+  // Velocity is the hero's new motion in units per second.
+  modlock.Vec3 velocity = 2;
+}
+
+// WatchMovementRequest starts or stops one player's movement samples.
+message WatchMovementRequest {
+  int32 player = 1;
+  bool watch = 2;
+}
+
+// ButtonsResponse holds the buttons a player holds.
+message ButtonsResponse {
+  uint64 buttons = 1;
+}
+
+// ProjectileOptions selects the projectiles a mod watches.
+message ProjectileOptions {
+  // Names lists designer names, such as rocket_launcher_rocket_projectile.
+  repeated string names = 1;
+
+  // KeepMomentum gives each live hero back the motion it had before a
+  // watched projectile's explosion, so the mod's Impact handler sets the
+  // push.
+  optional bool keep_momentum = 2;
+}
+
+// RestoreHeroRequest starts restoring a player's live hero to a target.
+message RestoreHeroRequest {
+  int32 player = 1;
+
+  // Target is the state to give the hero.
+  HeroTarget target = 2;
+}
+
+// HeroTarget is the state RestoreHero gives one hero. Omitted parts keep the
+// hero's own.
+message HeroTarget {
+  // Position is the hero's origin.
+  modlock.Vec3 position = 1;
+
+  // Facing is where the camera faces; a bot's hero faces it.
+  modlock.EulerAngles facing = 2;
+
+  // Fresh gives full health and stamina and readies every ability, in place
+  // of health, max health, upgrade bonuses and timers. A bot's ability
+  // upgrades may grow while the restore runs.
+  optional bool fresh = 3;
+
+  // Level sets the hero's level.
+  optional int32 level = 4;
+
+  // Health and MaxHealth set the hero's health and its base maximum. Both
+  // are required unless the target is fresh.
+  optional int32 health = 5;
+  optional int32 max_health = 6;
+
+  // UpgradeBonuses are the three stat bonuses purchases add, as replays
+  // record them.
+  repeated float upgrade_bonuses = 7;
+
+  // Abilities sets the hero's abilities in their slots.
+  repeated EquipmentTarget abilities = 8;
+
+  // Items lists the items that replace the hero's when ReplaceItems is set.
+  repeated EquipmentTarget items = 9;
+
+  // ReplaceItems replaces every item the hero owns with Items; an empty list
+  // removes them.
+  optional bool replace_items = 10;
+
+  // Timers sets the charges and cooldowns of owned abilities and items.
+  repeated TimerTarget timers = 11;
+}
+
+// EquipmentTarget is one ability or item a HeroTarget gives the hero.
+message EquipmentTarget {
+  // Id identifies the definition, as Ability.id.
+  uint32 id = 1;
+
+  // Slot is its place on the hero, as Ability.slot; abilities need one, and
+  // an item without one goes where the game puts it.
+  optional int32 slot = 2;
+
+  // State is the packed upgrade word, as Ability.state.
+  uint32 state = 3;
+}
+
+// TimerTarget sets one owned ability's or item's charges and cooldowns.
+// Times are seconds from the moment the host writes them; an omitted start
+// and end mean no timer.
+message TimerTarget {
+  // Id identifies the ability, as Ability.id.
+  uint32 id = 1;
+
+  // Charges is the charges it holds.
+  int32 charges = 2;
+
+  // CooldownStart and CooldownEnd bound its cooldown.
+  optional float cooldown_start = 3;
+  optional float cooldown_end = 4;
+
+  // RechargeStart and RechargeEnd bound the recovery of its next charge.
+  optional float recharge_start = 5;
+  optional float recharge_end = 6;
+}
+
+// ScreenEffect is a stock full-screen view effect.
+enum ScreenEffect {
+  // SCREEN_EFFECT_KILLED is the death treatment.
+  SCREEN_EFFECT_KILLED = 0;
+
+  // SCREEN_EFFECT_BLACK fades the view to black.
+  SCREEN_EFFECT_BLACK = 1;
+
+  // SCREEN_EFFECT_BLINDED is the blind treatment.
+  SCREEN_EFFECT_BLINDED = 2;
+
+  // SCREEN_EFFECT_DARKNESS is Drifter's darkness view.
+  SCREEN_EFFECT_DARKNESS = 3;
+
+  // SCREEN_EFFECT_MATCH_INTRO is the match start treatment.
+  SCREEN_EFFECT_MATCH_INTRO = 4;
+}
+
+// ScreenEffectRequest plays a screen effect on one player's view.
+message ScreenEffectRequest {
+  int32 player = 1;
+
+  // Effect is the effect to play.
+  ScreenEffect effect = 2;
+
+  // Timing is the effect's timing; omitted, the effect's own.
+  optional ScreenTiming timing = 3;
+}
+
+// ScreenTiming is a screen effect's timing in seconds.
+message ScreenTiming {
+  // Delay is the time before the effect starts.
+  optional float delay = 1;
+
+  // FadeIn is the time the effect takes to reach full strength.
+  optional float fade_in = 2;
+
+  // Hold is the time the effect stays at full strength.
+  optional float hold = 3;
+
+  // FadeOut is the time the effect takes to end.
+  optional float fade_out = 4;
+}
+
+// ClearScreenEffectRequest ends a screen effect on one player's view.
+message ClearScreenEffectRequest {
+  int32 player = 1;
+
+  // Effect is the effect to end.
+  ScreenEffect effect = 2;
+}
+
+// FieldType is how ReadField and WriteField interpret a field's storage.
+enum FieldType {
+  // FIELD_TYPE_UNKNOWN is an unset type, which the host refuses.
+  FIELD_TYPE_UNKNOWN = 0;
+
+  // FIELD_TYPE_BOOL is one byte read as a boolean.
+  FIELD_TYPE_BOOL = 1;
+
+  // FIELD_TYPE_INT8 through FIELD_TYPE_UINT32 are integers read as numbers.
+  FIELD_TYPE_INT8 = 2;
+  FIELD_TYPE_INT16 = 3;
+  FIELD_TYPE_INT32 = 4;
+  FIELD_TYPE_UINT8 = 5;
+  FIELD_TYPE_UINT16 = 6;
+  FIELD_TYPE_UINT32 = 7;
+
+  // FIELD_TYPE_INT64 and FIELD_TYPE_UINT64 are 64-bit integers.
+  FIELD_TYPE_INT64 = 8;
+  FIELD_TYPE_UINT64 = 9;
+
+  // FIELD_TYPE_FLOAT32 and FIELD_TYPE_FLOAT64 are floating point numbers.
+  FIELD_TYPE_FLOAT32 = 10;
+  FIELD_TYPE_FLOAT64 = 11;
+
+  // FIELD_TYPE_VECTOR is three floats, such as a position or angles.
+  FIELD_TYPE_VECTOR = 12;
+
+  // FIELD_TYPE_HANDLE is an entity handle, read as a number.
+  FIELD_TYPE_HANDLE = 13;
+
+  // FIELD_TYPE_STRING is a string the field points to.
+  FIELD_TYPE_STRING = 14;
+}
+
+// ReadFieldRequest names one schema field of a live entity.
+message ReadFieldRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // ClassName is the server class that declares the field, or a subclass.
+  string class_name = 2;
+
+  // Field is the field's schema name, such as m_iHealth.
+  string field = 3;
+
+  // Type is how to read the field.
+  FieldType type = 4;
+}
+
+// FieldResponse holds the value ReadField read.
+message FieldResponse {
+  FieldValue value = 1;
+}
+
+// FieldValue is one field's value. The host accepts any numeric case for a
+// numeric type and answers with the case its type reads as: a boolean, a
+// number for a type of 32 bits or less and a handle, an integer for a 64-bit
+// type, a vector or text.
+message FieldValue {
+  oneof value {
+    bool boolean = 1;
+    double number = 2;
+    int64 integer = 3;
+    string text = 4;
+    modlock.Vec3 vector = 5;
+  }
+}
+
+// WriteFieldRequest writes one schema field of a live entity.
+message WriteFieldRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // ClassName is the server class that declares the field, or a subclass.
+  string class_name = 2;
+
+  // Field is the field's schema name, such as m_iClip.
+  string field = 3;
+
+  // Type is how to write the field.
+  FieldType type = 4;
+
+  // Value is the field's new value.
+  FieldValue value = 5;
+}
+
+// ModifierStateRequest asks whether a modifier state is active on an entity.
+message ModifierStateRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // State is the EModifierState name, such as MODIFIER_STATE_PARRY_ACTIVE.
+  string state = 2;
+}
+
+// ActiveResponse reports whether a state is active.
+message ActiveResponse {
+  bool active = 1;
+}
+
+// HoldModifierStateRequest holds one modifier state on an entity, or
+// releases it.
+message HoldModifierStateRequest {
+  // Entity is the entity handle, such as Pawn.entity.
+  uint32 entity = 1;
+
+  // State is the state's name, such as MODIFIER_STATE_ITEMS_DISABLED.
+  string state = 2;
+
+  // Active holds the state when true or omitted; false releases the hold.
+  optional bool active = 3;
+}
+
+// ModelOptions describes a model with no collision.
+message ModelOptions {
+  // Resource is the model's path, which the mod precached.
+  string resource = 1;
+
+  // Position is the model's origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is the model's rotation.
+  optional modlock.EulerAngles facing = 3;
+
+  // Scale multiplies the model's size; the default is 1.
+  optional float scale = 4;
+
+  // Color tints the model as 0xRRGGBBAA.
+  optional fixed32 color = 5;
+
+  // Glow outlines the model through walls.
+  optional bool glow = 6;
+}
+
+// TextOptions describes text that floats in the world.
+message TextOptions {
+  // Text is the words to show; a newline starts a second line.
+  string text = 1;
+
+  // Position is the text's origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is the text's rotation when it does not face the camera.
+  optional modlock.EulerAngles facing = 3;
+
+  // FontSize is the text's size; the default is 100.
+  optional float font_size = 4;
+
+  // Color is the text's color as 0xRRGGBBAA; the default is white.
+  optional fixed32 color = 5;
+
+  // FaceCamera turns the text toward each viewer.
+  optional bool face_camera = 6;
+
+  // Scale multiplies the text's size in the world; the default is 1.
+  optional float scale = 7;
+}
+
+// ParticleOptions describes a particle effect.
+message ParticleOptions {
+  // Resource is the particle system's path, which the mod precached, such
+  // as particles/abilities/assassinate_laser_targetting.vpcf.
+  string resource = 1;
+
+  // Position is the effect's origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is the effect's rotation.
+  optional modlock.EulerAngles facing = 3;
+
+  // Color tints the effect as 0xRRGGBBAA.
+  optional fixed32 color = 4;
+
+  // TintPoint is the control point the color sets.
+  optional int32 tint_point = 5;
+
+  // Point sets one control point to a position, such as a beam's far end.
+  optional ParticlePoint point = 6;
+
+  // Parent is the handle of an entity the effect follows, such as a hero's.
+  optional uint32 parent = 7;
+}
+
+// ParticlePoint places one control point of a particle effect.
+message ParticlePoint {
+  // Index is the control point's number.
+  int32 index = 1;
+
+  // Position is the control point's value.
+  modlock.Vec3 position = 2;
+}
+
+// FogOptions describes an oriented box of tinted fog.
+message FogOptions {
+  // Position is the box's origin.
+  modlock.Vec3 position = 1;
+
+  // Facing is the box's rotation.
+  optional modlock.EulerAngles facing = 2;
+
+  // Mins is the box's lower corner, relative to position.
+  modlock.Vec3 mins = 3;
+
+  // Maxs is the box's upper corner, relative to position.
+  modlock.Vec3 maxs = 4;
+
+  // Strength is the fog's density.
+  float strength = 5;
+
+  // Color tints the fog as 0xRRGGBBAA; alpha is ignored.
+  fixed32 color = 6;
+}
+
+// ObjectResponse holds the object a Create call placed.
+message ObjectResponse {
+  uint32 object = 1;
+}
+
+// ObjectRequest addresses one object the mod created.
+message ObjectRequest {
+  // Object identifies the object among the mod's objects.
+  uint32 object = 1;
+}
+
+// MoveObjectRequest moves one object the mod created.
+message MoveObjectRequest {
+  uint32 object = 1;
+
+  // Position is the object's new origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is the object's new rotation, kept when omitted.
+  optional modlock.EulerAngles facing = 3;
+}
+
+// SetTextRequest replaces a text object's words.
+message SetTextRequest {
+  uint32 object = 1;
+
+  // Text is the new words.
+  string text = 2;
+}
+
+// BotOptions describes a bot player.
+message BotOptions {
+  // Name is the bot's player name.
+  string name = 1;
+
+  // Team is the team number to join: 2 or 3.
+  int32 team = 2;
+
+  // Hero names the bot's hero, such as hero_wraith, or gives its identifier
+  // as Pawn.hero reports it.
+  oneof hero {
+    string hero_name = 3;
+    uint32 hero_id = 4;
+  }
+
+  // Position is where the bot appears.
+  optional modlock.Vec3 position = 5;
+}
+
+// BotResponse holds the bot AddBot added.
+message BotResponse {
+  int32 player = 1;
+}
+
+// InputRequest names buttons for every player. Buttons are the game's input
+// bits; bit 42 is parry.
+message InputRequest {
+  // Buttons holds one bit per button; zero names none.
+  uint64 buttons = 1;
+}
+
+// PlayerInputRequest names buttons for one player.
+message PlayerInputRequest {
+  int32 player = 1;
+
+  // Buttons holds one bit per button.
+  uint64 buttons = 2;
+}
+
+// RemapInputRequest replaces the button the mod remaps for every hero.
+message RemapInputRequest {
+  // From holds the buttons the player presses; zero stops remapping.
+  uint64 from = 1;
+
+  // To holds the buttons the hero receives in their place.
+  uint64 to = 2;
+
+  // Repeat marks to as newly pressed in every input while from is held.
+  optional bool repeat = 3;
+}
+
+// UiRequest changes the interface the mod shows one player.
+message UiRequest {
+  int32 player = 1;
+
+  // Change updates the player's tree.
+  modlock.ui.Change change = 2;
+}
+
+// NpcOptions describes a unit that is not a player, such as a trooper.
+message NpcOptions {
+  // ClassName is the unit's entity class, such as npc_trooper or
+  // npc_trooper_boss.
+  string class_name = 1;
+
+  // Unit names the unit's game data entry, such as trooper_melee.
+  string unit = 2;
+
+  // Team is the unit's team number; 4 is neutral.
+  int32 team = 3;
+
+  // Position is the unit's origin, at its feet.
+  modlock.Vec3 position = 4;
+
+  // Facing is where the unit faces.
+  optional modlock.EulerAngles facing = 5;
+
+  // Health is the unit's health; the default is the unit's own.
+  optional int32 health = 6;
+
+  // MaxHealth is the unit's maximum health; the default is health.
+  optional int32 max_health = 7;
+
+  // Lane is the lane a trooper walks.
+  optional uint32 lane = 8;
+}
+
+// NpcResponse holds the unit SpawnNpc added.
+message NpcResponse {
+  uint32 npc = 1;
+}
+
+// NpcRequest addresses one unit the mod spawned.
+message NpcRequest {
+  // Npc is the unit's entity handle, as damage events report it.
+  uint32 npc = 1;
+}
+
+// NpcStateResponse holds a live unit's state, absent once it is gone.
+message NpcStateResponse {
+  NpcState state = 1;
+}
+
+// NpcState is a unit's state this frame.
+message NpcState {
+  // Position is the unit's origin.
+  modlock.Vec3 position = 1;
+
+  // Facing is where the unit faces.
+  modlock.EulerAngles facing = 2;
+
+  // Health is the unit's health.
+  int32 health = 3;
+
+  // MaxHealth is the unit's maximum health.
+  int32 max_health = 4;
+
+  // Team is the unit's team number.
+  int32 team = 5;
+}
+
+// MoveNpcRequest places one unit.
+message MoveNpcRequest {
+  uint32 npc = 1;
+
+  // Position is the unit's new origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is where the unit faces afterwards.
+  optional modlock.EulerAngles facing = 3;
+
+  // Velocity is the unit's motion, which drives its walk animation.
+  optional modlock.Vec3 velocity = 4;
+}
+
+// SetNpcHealthRequest sets one unit's health.
+message SetNpcHealthRequest {
+  uint32 npc = 1;
+
+  // Health is the unit's new health.
+  int32 health = 2;
+
+  // MaxHealth is the unit's new maximum health; the default is health.
+  optional int32 max_health = 3;
+}
+
+// AliveResponse reports whether a unit or pickup was still in the world.
+message AliveResponse {
+  bool alive = 1;
+}
+
+// PickupKind is a kind of item players collect by walking over it.
+enum PickupKind {
+  // PICKUP_KIND_URN is the soul urn, which its carrier delivers.
+  PICKUP_KIND_URN = 0;
+
+  // PICKUP_KIND_MOVEMENT_BUFF is the movement speed buff.
+  PICKUP_KIND_MOVEMENT_BUFF = 1;
+}
+
+// CreatePickupRequest places one pickup.
+message CreatePickupRequest {
+  // Kind is the pickup.
+  PickupKind kind = 1;
+
+  // Position is where the pickup rests.
+  modlock.Vec3 position = 2;
+}
+
+// PickupResponse holds the pickup CreatePickup placed.
+message PickupResponse {
+  uint32 pickup = 1;
+}
+
+// PickupRequest addresses one pickup the mod placed.
+message PickupRequest {
+  // Pickup is the pickup's entity handle.
+  uint32 pickup = 1;
+}
+
+// RemoveEntitiesRequest names one entity class.
+message RemoveEntitiesRequest {
+  // ClassName is the exact entity class, such as npc_trooper.
+  string class_name = 1;
+}
+
+// CountResponse holds how many entities a call changed.
+message CountResponse {
+  int32 count = 1;
+}
+
+// HitOptions describes damage the mod deals.
+message HitOptions {
+  // Victim is the entity to hurt.
+  uint32 victim = 1;
+
+  // Attacker is the entity credited with the hit. Without one the hit is a
+  // hazard, such as poison gas, which credits no one and ignores the
+  // inflictor and hit group.
+  optional uint32 attacker = 2;
+
+  // Inflictor is what delivered the hit; the default is the attacker.
+  optional uint32 inflictor = 3;
+
+  // Amount is the damage before resistances.
+  float amount = 4;
+
+  // HitGroup is the body part hit; 1 is the head. The default is the game's
+  // choice.
+  optional int32 hit_group = 5;
+
+  // Ability is the entity handle of the ability that dealt the hit, as
+  // Ability.entity reports it.
+  optional uint32 ability = 6;
+}
+
+// TraceOptions describes a line to test against the world. Layers are bits
+// of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
+// 18 player and 19 NPC.
+message TraceOptions {
+  // Start is where the line begins.
+  modlock.Vec3 start = 1;
+
+  // End is where the line ends.
+  modlock.Vec3 end = 2;
+
+  // Layers selects what the line can hit; the default is solid and
+  // hitboxes.
+  optional uint64 layers = 3;
+
+  // Exclude removes things in these layers from the hits.
+  optional uint64 exclude = 4;
+
+  // Ignore lists entity handles the line passes through.
+  repeated uint32 ignore = 5;
+}
+
+// TraceResponse holds where a line hit, absent for a miss.
+message TraceResponse {
+  TraceHit hit = 1;
+}
+
+// TraceHit is where a traced line first hit something.
+message TraceHit {
+  // Position is the hit point.
+  modlock.Vec3 position = 1;
+
+  // Normal is the surface's direction at the hit point.
+  modlock.Vec3 normal = 2;
+
+  // StartSolid is true when the line began inside something solid.
+  bool start_solid = 3;
+
+  // Entity is the entity hit, or zero for the world.
+  uint32 entity = 4;
+}
+
+// RestoreNpcsRequest lists the units the map should hold.
+message RestoreNpcsRequest {
+  repeated NpcTarget npcs = 1;
+}
+
+// NpcTarget is one unit or objective RestoreNpcs places, as replays record
+// it.
+message NpcTarget {
+  // ClassName is the unit's entity class: npc_trooper, npc_trooper_neutral,
+  // npc_boss_tier1 to npc_boss_tier3, npc_barrack_boss,
+  // npc_base_defense_sentry, npc_super_neutral or
+  // npc_neutral_sinners_sacrifice.
+  string class_name = 1;
+
+  // Id identifies the unit's game data entry.
+  uint32 id = 2;
+
+  // Team is the unit's team number; 4 is neutral.
+  int32 team = 3;
+
+  // Position is the unit's origin, at its feet.
+  modlock.Vec3 position = 4;
+
+  // Facing is where the unit faces.
+  modlock.EulerAngles facing = 5;
+
+  // Velocity is the unit's motion in units per second.
+  optional modlock.Vec3 velocity = 6;
+
+  // Health and MaxHealth are the unit's health.
+  int32 health = 7;
+  int32 max_health = 8;
+
+  // Lane is the lane a trooper walks; troopers need one.
+  optional uint32 lane = 9;
+}
+
+// PauseRequest pauses or resumes the game.
+message PauseRequest {
+  bool paused = 1;
+}
+
+// MatchClockResponse holds the match time.
+message MatchClockResponse {
+  float seconds = 1;
+}
+
+// HoldMatchClockRequest holds the match clock, or releases it.
+message HoldMatchClockRequest {
+  // Seconds is the time to hold; omitted releases the clock.
+  optional float seconds = 1;
+}
+
+// RiftResponse holds the Rift objective's state.
+message RiftResponse {
+  RiftState state = 1;
+}
+
+// RiftState is the Rift objective's timing as the game holds it. Times are
+// game times in seconds, or zero when unset.
+message RiftState {
+  // ScoringTeam is the team holding the Rift, or zero.
+  int32 scoring_team = 1;
+  float scoring_time = 2;
+  float cash_in_started = 3;
+  float give_up_time = 4;
+
+  // NextSpawn is when the Rift next opens.
+  float next_spawn = 5;
+  float spawn_window = 6;
+}
+
+// StartRiftRequest starts the Rift objective at an authored position.
+message StartRiftRequest {
+  modlock.Vec3 position = 1;
+}
+
+// Manifest describes a mod in its mod.json. A source project's manifest names
+// its language; modlock build writes a built mod's manifest beside the entry,
+// naming its runtime and entry instead.
+message Manifest {
+  // Runtime is the WebAssembly module that runs a built mod.
+  enum Runtime {
+    // RUNTIME_UNKNOWN is an unset or unsupported runtime.
+    RUNTIME_UNKNOWN = 0;
+
+    // RUNTIME_WASM runs the entry itself, a module compiled from the mod.
+    RUNTIME_WASM = 1;
+
+    // RUNTIME_QUICKJS runs the entry, one JavaScript bundle, on QuickJS.
+    RUNTIME_QUICKJS = 2;
+
+    // RUNTIME_LUAU runs the entry, a zip of Luau sources, on Luau.
+    RUNTIME_LUAU = 3;
+
+    // RUNTIME_PYTHON runs the entry, a zip of Python sources, on CPython.
+    RUNTIME_PYTHON = 4;
+  }
+
+  // Language is the language a mod's source is written in.
+  enum Language {
+    // LANGUAGE_UNKNOWN is an unset or unsupported language.
+    LANGUAGE_UNKNOWN = 0;
+
+    // LANGUAGE_GO builds with Go into a module of its own.
+    LANGUAGE_GO = 1;
+
+    // LANGUAGE_TYPESCRIPT bundles to JavaScript for QuickJS.
+    LANGUAGE_TYPESCRIPT = 2;
+
+    // LANGUAGE_JAVASCRIPT bundles for QuickJS, type checked from JSDoc.
+    LANGUAGE_JAVASCRIPT = 3;
+
+    // LANGUAGE_LUAU runs on Luau.
+    LANGUAGE_LUAU = 4;
+
+    // LANGUAGE_PYTHON runs on CPython.
+    LANGUAGE_PYTHON = 5;
+  }
+
+  // Slug identifies the mod: lowercase letters, digits and hyphens.
+  string slug = 1;
+
+  // Name is the mod's display name.
+  string name = 2;
+
+  // Version is the mod's semantic version.
+  string version = 3;
+
+  // Language is the source language, set in a source project.
+  Language language = 4;
+
+  // Runtime is the module that runs the built mod.
+  Runtime runtime = 5;
+
+  // Entry is the built mod's entry file, relative to mod.json.
+  string entry = 6;
+
+  // Map is the map the mod plays on; empty plays the default map.
+  string map = 7;
+
+  // Movement replaces how heroes move on the server and in each player's
+  // game.
+  Movement movement = 8;
+
+  // Abilities change abilities' data on the server and in each player's
+  // game.
+  repeated AbilityTuning abilities = 9;
+}
+
+// Movement selects the movement model heroes walk and jump with.
+message Movement {
+  // Model is a movement model the host runs every tick.
+  enum Model {
+    // MODEL_NATIVE is the game's own movement.
+    MODEL_NATIVE = 0;
+
+    // MODEL_QUAKEWORLD is QuakeWorld's player movement against the map's
+    // Quake collision, maps/<map>.bsp, a version 29 BSP. Heroes are solid
+    // boxes to each other, and a landing raises a Landed event.
+    MODEL_QUAKEWORLD = 1;
+  }
+
+  Model model = 1;
+
+  // Scale is game units per Quake unit; zero means 1.
+  float scale = 2;
+
+  // Unpredicted_buttons are left out of the commands the client predicts.
+  // They name inputs the mod remaps or blocks on the server, so the client
+  // predicts no cast or shot the server will not make.
+  uint64 unpredicted_buttons = 3;
+}
+
+// AbilityTuning changes one ability's data where the game keeps it parsed.
+message AbilityTuning {
+  // Ability is the ability's name, such as gunslinger_rocket_launcher.
+  string ability = 1;
+
+  // Properties replaces the values of the ability's named properties, such
+  // as AbilityCooldown.
+  map<string, float> properties = 2;
+
+  // Fields writes float schema fields, named as a path of class.field steps
+  // from the ability's data, such as
+  // CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed.
+  map<string, float> fields = 3;
+
+  // CopyFields copies the field at each value's path over the field at its
+  // key's path; both must be the same size.
+  map<string, string> copy_fields = 4;
 }

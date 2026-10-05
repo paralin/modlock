@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package modlock.publish;
+
+option go_package = "github.com/paralin/modlock/proto/modlock/publish;publish";
+
+// The messages of hyperline.gg's publishing API, which modlock publish uses by
+// default. Each request and response body is one binary message; the field
+// numbers are the service's. The command line also saves Session.
+
+// SignInExchange trades the one-use code the browser handed back, with the
+// verifier that proves this command line started the sign-in, for a session.
+message SignInExchange {
+  // Code is the one-use code from the browser.
+  string code = 1;
+
+  // Verifier is the secret whose hash the sign-in page received.
+  string verifier = 2;
+}
+
+// SignedIn is the session the exchange returns.
+message SignedIn {
+  // Token is the bearer credential.
+  string token = 1;
+
+  // ExpiresAt is the session's expiry in Unix milliseconds.
+  int64 expires_at = 2;
+
+  // Account is the signed-in account.
+  Account account = 3;
+}
+
+// Account names the signed-in player.
+message Account {
+  // DisplayName is the player's name.
+  string display_name = 4;
+
+  // SteamId64 is the player's Steam account.
+  uint64 steam_id64 = 6;
+}
+
+// Release is a published release as the service reports it.
+message Release {
+  // Slug is the mod's slug.
+  string slug = 1;
+
+  // Version is the release's version.
+  string version = 2;
+
+  // Name is the mod's name.
+  string name = 3;
+
+  // ReviewState is the release's review decision.
+  ReviewState review_state = 10;
+
+  // ReviewNote explains the decision.
+  string review_note = 13;
+}
+
+// ReviewState is a release's review decision.
+enum ReviewState {
+  // REVIEW_STATE_UNKNOWN awaits a decision, as PENDING does.
+  REVIEW_STATE_UNKNOWN = 0;
+
+  // REVIEW_STATE_PENDING awaits a person's decision.
+  REVIEW_STATE_PENDING = 1;
+
+  // REVIEW_STATE_APPROVED may be played.
+  REVIEW_STATE_APPROVED = 2;
+
+  // REVIEW_STATE_REJECTED was refused.
+  REVIEW_STATE_REJECTED = 3;
+}
+
+// Error is a refused request's explanation.
+message Error {
+  // Code names the refusal for programs.
+  string code = 1;
+
+  // Message explains the refusal to the creator.
+  string message = 2;
+}
+
+// Session is the saved sign-in for one service origin.
+message Session {
+  // Origin is the service that issued the session.
+  string origin = 1;
+
+  // Token is the bearer credential.
+  string token = 2;
+
+  // ExpiresAt is the session's expiry in Unix milliseconds.
+  int64 expires_at = 3;
+
+  // Name is the signed-in player's name.
+  string name = 4;
+}

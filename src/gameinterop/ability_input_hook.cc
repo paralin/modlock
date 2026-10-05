@@ -22,20 +22,10 @@ safetyhook::InlineHook* g_hook = nullptr;
 bool g_failed = false;
 bool g_include_bots = false;
 
-bool Read(const void* source, void* target, size_t size) {
-  SIZE_T count = 0;
-  return ReadProcessMemory(GetCurrentProcess(), source, target, size, &count) && count == size;
-}
-
 void Filter(void* pawn) {
   if (g_failed) return;
   auto result = AbilityInputHook::Process(
-      pawn, g_offsets, Read,
-      [](void* target, const void* source, size_t size) {
-        SIZE_T count = 0;
-        return WriteProcessMemory(GetCurrentProcess(), target, source, size, &count) &&
-               count == size;
-      },
+      pawn, g_offsets, ReadNative, WriteNative,
       [](AbilityInputHook::Input& input) {
         const auto connection = ConnectionTracker::StateForSlot(input.slot);
         if (!connection.occupied || (connection.is_bot && !g_include_bots)) return uint64_t{0};

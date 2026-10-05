@@ -154,6 +154,11 @@ void TeleportEntity(void* entity, float x, float y, float z) {
   TeleportEntity(entity, {x, y, z}, {}, {});
 }
 
+void TeleportEntity(void* entity, const float* position, const float* angles,
+                    const float* velocity) {
+  Teleport(entity, position, angles, velocity);
+}
+
 void SetEntityVelocity(void* entity, const std::array<float, 3>& velocity) {
   Teleport(entity, nullptr, nullptr, velocity.data());
 }

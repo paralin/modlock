@@ -65,6 +65,9 @@ MODLOCK_API void TeleportEntity(void* entity, const std::array<float, 3>& positi
                                 const std::array<float, 3>& velocity);
 // The coordinate overload resets angles and velocity to zero.
 MODLOCK_API void TeleportEntity(void* entity, float x, float y, float z);
+// The pointer overload leaves each null part unchanged.
+MODLOCK_API void TeleportEntity(void* entity, const float* position, const float* angles,
+                                const float* velocity);
 // SetEntityVelocity changes native velocity without moving or turning the entity.
 MODLOCK_API void SetEntityVelocity(void* entity, const std::array<float, 3>& velocity);
 

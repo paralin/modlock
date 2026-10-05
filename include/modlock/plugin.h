@@ -14,7 +14,7 @@ class EulerAngles;
 
 // PluginInterfaceVersion is the ABI contract this header declares. A plugin
 // built against a different value is rejected at registration.
-inline constexpr uint32_t PluginInterfaceVersion = 5;
+inline constexpr uint32_t PluginInterfaceVersion = 6;
 
 // PawnSample is one pawn position observed at a host tick, in world units.
 struct PawnSample {

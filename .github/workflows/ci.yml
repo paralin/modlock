@@ -14,7 +14,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Resolve dependencies
-        run: go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp
+        run: go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp github.com/aperturerobotics/starpc
       - name: Build and test SDK
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -32,5 +32,13 @@ jobs:
           cmake -S examples/hello -B build-fail -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$PWD/build/sdk" -DSAMPLE_FAIL_START=ON
           cmake --build build-fail --parallel
           if build/sdk/bin/modlock-host --check-plugin --plugin "$PWD/build-fail/libhello.so"; then exit 1; fi
+      - name: Build and check TypeScript, Luau and Python mods
+        run: |
+          go build -o build/modlock ./cmd/modlock
+          for language in typescript luau python; do
+            build/modlock new --language $language build/$language-check
+            build/modlock build build/$language-check
+            build/sdk/bin/modlock-host --check-plugin --plugin "$PWD/build/$language-check/build"
+          done
       - name: Go protocol tests
         run: go test ./...

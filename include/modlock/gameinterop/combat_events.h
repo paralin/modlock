@@ -51,6 +51,8 @@ struct DamageContactEvent {
   uint32_t inflictor_handle = UINT32_MAX;
   // HitGroup is the engine trace classification; -1 means no hit group.
   int32_t hit_group = -1;
+  // Amount is the native pre-mitigation damage.
+  float amount = 0;
 };
 
 // AdjustDamage changes the native pre-mitigation amount in place. Subscribers

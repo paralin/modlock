@@ -10,6 +10,7 @@
 #include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/mapped_module_image.h"
+#include "modlock/gameinterop/native_memory.h"
 #include "modlock/gameinterop/thunk_owner.h"
 
 #if defined(_WIN32)
@@ -35,17 +36,13 @@ std::string ReadCommand(void* args) {
   if (args == nullptr) return {};
   int32_t count = 0;
   const char* data = nullptr;
-  SIZE_T read = 0;
   const auto* base = static_cast<const unsigned char*>(args);
-  if (!ReadProcessMemory(GetCurrentProcess(), base + 8, &count, sizeof(count), &read) ||
-      read != sizeof(count) || count <= 0 || count > 512 ||
-      !ReadProcessMemory(GetCurrentProcess(), base + 16, &data, sizeof(data), &read) ||
-      read != sizeof(data) || data == nullptr)
+  if (!ReadNative(base + 8, &count, sizeof(count)) || count <= 0 || count > 512 ||
+      !ReadNative(base + 16, &data, sizeof(data)) || data == nullptr) {
     return {};
+  }
   std::array<char, 512> text{};
-  if (!ReadProcessMemory(GetCurrentProcess(), data, text.data(), count, &read) ||
-      read != static_cast<SIZE_T>(count))
-    return {};
+  if (!ReadNative(data, text.data(), count)) return {};
   const auto* end = static_cast<const char*>(std::memchr(text.data(), '\0', count));
   if (end == nullptr) return {};
   return std::string(text.data(), static_cast<size_t>(end - text.data()));

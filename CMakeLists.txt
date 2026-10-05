@@ -93,6 +93,8 @@ add_library(modlock_sdk SHARED
   src/plugin_library.cc
   src/gameinterop/ability_definitions.cc
   src/gameinterop/ability_input_hook.cc
+  src/gameinterop/ability_modifier.cc
+  src/gameinterop/ability_slots.cc
   src/gameinterop/projectile_impact_hook.cc
   src/gameinterop/movement_hook.cc
   src/gameinterop/bot_creation.cc
@@ -133,15 +135,27 @@ add_library(modlock_sdk SHARED
   src/host_app/game_paths.cc
   src/host_app/stdio_guard.cc
   src/net/listen_boot.cc
+  src/quake/bsp_world.cc
+  src/quake/collision_hull.cc
+  src/quake/collision_scene.cc
+  src/quake/movement.cc
+  src/quake/player_movement.cc
   src/render/world_effect_game_factory.cc
   src/render/world_text_game_factory.cc
   src/wasm/instance.cc
-  src/wasm/wasm_plugin.cc
+  src/wasm/runtime.cc
+  src/wasm/ability_tuning.cc
+  src/wasm/game.cc
+  src/wasm/hero_restore.cc
+  src/wasm/npc_restore.cc
+  src/wasm/ui.cc
+  src/wasm/wasm_host.cc
   proto/modlock/camera.pb.cc
   proto/modlock/chat.pb.cc
   proto/modlock/hud.pb.cc
   proto/modlock/stamina_consumed.pb.cc
   proto/modlock/types.pb.cc
+  proto/modlock/ui.pb.cc
   proto/modlock/wasm.pb.cc
 )
 add_library(modlock::sdk ALIAS modlock_sdk)
@@ -173,6 +187,7 @@ endif()
 if(WIN32)
   target_sources(modlock_sdk PRIVATE
     src/gameinterop/windows/mapped_module_image.cc
+    src/gameinterop/windows/native_memory.cc
     src/host_app/windows/vconsole_port.cc
     src/host_app/windows/windows_module_loader.cc
     third_party/safetyhook/safetyhook.cpp
@@ -181,18 +196,201 @@ if(WIN32)
   target_compile_definitions(modlock_sdk PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
   target_link_libraries(modlock_sdk PRIVATE ws2_32 psapi)
 else()
-  target_sources(modlock_sdk PRIVATE src/gameinterop/unsupported/mapped_module_image.cc)
+  target_sources(modlock_sdk PRIVATE
+    src/gameinterop/unsupported/mapped_module_image.cc
+    src/gameinterop/unsupported/native_memory.cc)
 endif()
 
 target_link_libraries(modlock_sdk PRIVATE ${CMAKE_DL_LIBS})
-add_executable(modlock-host src/host_app/main.cc)
+
+# The server and each predicting client must compute identical Quake movement,
+# so its arithmetic is strict IEEE with no fused multiply-add.
+set(modlock_quake_sources
+  src/quake/bsp_world.cc
+  src/quake/collision_hull.cc
+  src/quake/collision_scene.cc
+  src/quake/movement.cc
+  src/quake/player_movement.cc)
+if(MSVC)
+  set_source_files_properties(${modlock_quake_sources} PROPERTIES COMPILE_OPTIONS /fp:strict)
+else()
+  set_source_files_properties(${modlock_quake_sources} PROPERTIES COMPILE_OPTIONS -ffp-contract=off)
+endif()
+
+add_executable(modlock-host
+  src/host_app/control_link.cc
+  src/host_app/main.cc
+  proto/modlock/control/control.pb.cc)
+target_include_directories(modlock-host PRIVATE src)
 target_link_libraries(modlock-host PRIVATE modlock::sdk)
+if(WIN32)
+  target_link_libraries(modlock-host PRIVATE ws2_32)
+endif()
 install(TARGETS modlock-host RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(WIN32)
   install(FILES ${MODLOCK_WASMTIME_LIBRARY} DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
   install(FILES ${MODLOCK_WASMTIME_LIBRARY} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+# TypeScript and JavaScript mods run on QuickJS, itself a WebAssembly module
+# that Zig compiles for WASI. modlock-host loads it from beside the executable,
+# where the build and the install both put it.
+find_program(MODLOCK_ZIG_EXECUTABLE zig)
+if(MODLOCK_ZIG_EXECUTABLE)
+  include(FetchContent)
+  FetchContent_Declare(quickjs_ng
+    URL https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.17.0.tar.gz
+    URL_HASH SHA256=559bc4c420475e55c7ab4510adbc562f55d7524d75e8e89d79ce4bb02f5687d9
+    SOURCE_SUBDIR none)
+  FetchContent_MakeAvailable(quickjs_ng)
+  set(quickjs_sources
+    ${quickjs_ng_SOURCE_DIR}/dtoa.c
+    ${quickjs_ng_SOURCE_DIR}/libregexp.c
+    ${quickjs_ng_SOURCE_DIR}/libunicode.c
+    ${quickjs_ng_SOURCE_DIR}/quickjs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/quickjs/runtime.c)
+  set(quickjs_wasm ${CMAKE_CURRENT_BINARY_DIR}/quickjs.wasm)
+  add_custom_command(OUTPUT ${quickjs_wasm}
+    COMMAND ${MODLOCK_ZIG_EXECUTABLE} cc -target wasm32-wasi -Oz -s -mexec-model=reactor
+      -D_GNU_SOURCE -I${quickjs_ng_SOURCE_DIR} -Wl,-z,stack-size=2097152
+      -o ${quickjs_wasm} ${quickjs_sources}
+    DEPENDS ${quickjs_sources} ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/boundary.h
+    COMMENT "Compiling the QuickJS runtime")
+  add_custom_target(quickjs_runtime ALL DEPENDS ${quickjs_wasm})
+  install(FILES ${quickjs_wasm} DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${quickjs_ng_SOURCE_DIR}/LICENSE DESTINATION ${CMAKE_INSTALL_BINDIR}
+    RENAME quickjs-LICENSE)
+else()
+  message(WARNING "Zig is missing, so this build cannot run TypeScript or JavaScript mods.")
+endif()
+
+# Luau mods run on Luau, compiled for WASI by wasi-sdk because Luau raises its
+# errors as C++ exceptions, which need the WebAssembly exception handling
+# proposal and its unwinder.
+include(FetchContent)
+cmake_host_system_information(RESULT host_os QUERY OS_NAME)
+string(TOLOWER "${CMAKE_HOST_SYSTEM_PROCESSOR}" host_arch)
+if(host_arch MATCHES "^(arm64|aarch64)$")
+  set(host_arch arm64)
+else()
+  set(host_arch x86_64)
+endif()
+if(host_os STREQUAL "macOS")
+  set(wasi_sdk_platform ${host_arch}-macos)
+elseif(host_os STREQUAL "Windows")
+  set(wasi_sdk_platform ${host_arch}-windows)
+else()
+  set(wasi_sdk_platform ${host_arch}-linux)
+endif()
+set(wasi_sdk_hashes
+  arm64-linux f7e243dff54d60bcc576e94d6166b69f410f2500ae4a9ceef34315be10e77971
+  arm64-macos 9c59398106b417f8f14913380fdf0097a8cc0ff4af9eb3ce0065a859e88d49e9
+  arm64-windows 45e1c71f3e965621e7b98ebe1d37b0e4b1f77f3e8072113ffb4534e67b1a4b7c
+  x86_64-linux b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
+  x86_64-macos 87d27fa8adc68dee59bfbf2e22a6d34ef717c34d6bf1d8af2a56fc929d9ce0eb
+  x86_64-windows cccb5c323a9b34f0349a9b09e8804a0a7632c68c3310f4b5f437ed57d7e71d8f)
+list(FIND wasi_sdk_hashes ${wasi_sdk_platform} wasi_sdk_index)
+math(EXPR wasi_sdk_index "${wasi_sdk_index} + 1")
+list(GET wasi_sdk_hashes ${wasi_sdk_index} wasi_sdk_hash)
+FetchContent_Declare(wasi_sdk
+  URL https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-34/wasi-sdk-34.0-${wasi_sdk_platform}.tar.gz
+  URL_HASH SHA256=${wasi_sdk_hash}
+  SOURCE_SUBDIR none)
+FetchContent_Declare(luau
+  URL https://github.com/luau-lang/luau/archive/refs/tags/0.741.tar.gz
+  URL_HASH SHA256=deee653d0f5971b809ef67f50dbe8109ad369d7575e344cfe2013774fed2f4c6
+  SOURCE_SUBDIR none)
+FetchContent_MakeAvailable(wasi_sdk luau)
+set(luau_parts Common Ast Bytecode Compiler VM)
+set(luau_sources ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/luau/runtime.cc)
+set(luau_includes)
+foreach(part IN LISTS luau_parts)
+  file(GLOB part_sources ${luau_SOURCE_DIR}/${part}/src/*.cpp)
+  list(APPEND luau_sources ${part_sources})
+  list(APPEND luau_includes -I${luau_SOURCE_DIR}/${part}/include)
+endforeach()
+set(luau_wasm ${CMAKE_CURRENT_BINARY_DIR}/luau.wasm)
+add_custom_command(OUTPUT ${luau_wasm}
+  COMMAND ${wasi_sdk_SOURCE_DIR}/bin/clang++ --target=wasm32-wasip1 -std=c++20 -O2 -s
+    -fwasm-exceptions -mllvm -wasm-use-legacy-eh=false -mexec-model=reactor
+    -D_WASI_EMULATED_PROCESS_CLOCKS -Wno-c23-extensions ${luau_includes}
+    -Wl,-z,stack-size=2097152
+    -o ${luau_wasm} ${luau_sources} -lunwind -lwasi-emulated-process-clocks
+  DEPENDS ${luau_sources} ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/boundary.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/luau/prelude.luau
+  COMMENT "Compiling the Luau runtime")
+add_custom_target(luau_runtime ALL DEPENDS ${luau_wasm})
+install(FILES ${luau_wasm} DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES ${luau_SOURCE_DIR}/LICENSE.txt DESTINATION ${CMAKE_INSTALL_BINDIR}
+  RENAME luau-LICENSE)
+
+# Python mods run on CPython for WASI, linked from its published WASI build
+# and snapshotted by Wizer after the interpreter starts, so an instance begins
+# with Python initialized and reads no files.
+if(host_os STREQUAL "Windows")
+  set(wasmtime_cli_archive zip)
+else()
+  set(wasmtime_cli_archive tar.xz)
+endif()
+string(REPLACE arm64 aarch64 wasmtime_cli_platform ${wasi_sdk_platform})
+set(wasmtime_cli_hashes
+  aarch64-linux ca14988c6da3d92512bd9c3bad6cbd06b1f5743b6911a9e709f1a6fa30637d7f
+  aarch64-macos ea5a79261caa39819b863fd850879428cf90548353e1e5cf9bcbcc4e7addf2c1
+  aarch64-windows e3a5cf6a18b9af5e922f5e3434711278311b58da010765d9bb5b7885a1bf2095
+  x86_64-linux a4d6e9e3a5a60f527cf7793d674c48930c80c2e8977995b8a275cad3254b9322
+  x86_64-macos b24513efff6a5dbeb196e2a01097ba632a8b0ea1563ba297ada26ceb3aa067d9
+  x86_64-windows c95a3925acde6398808baabe5ad13d0b1df02b004bc256c00cf8e2a36daccea8)
+list(FIND wasmtime_cli_hashes ${wasmtime_cli_platform} wasmtime_cli_index)
+math(EXPR wasmtime_cli_index "${wasmtime_cli_index} + 1")
+list(GET wasmtime_cli_hashes ${wasmtime_cli_index} wasmtime_cli_hash)
+FetchContent_Declare(wasmtime_cli
+  URL https://github.com/bytecodealliance/wasmtime/releases/download/v${MODLOCK_WASMTIME_VERSION}/wasmtime-v${MODLOCK_WASMTIME_VERSION}-${wasmtime_cli_platform}.${wasmtime_cli_archive}
+  URL_HASH SHA256=${wasmtime_cli_hash}
+  SOURCE_SUBDIR none)
+set(python_version 3.14.7)
+set(python_wasi https://github.com/brettcannon/cpython-wasi-build/releases/download/v${python_version})
+FetchContent_Declare(cpython
+  URL https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tgz
+  URL_HASH SHA256=62859805f6fdf25e2bcbf3fa3217801e1996887ca33e6a2af80674bdfa2dbe07
+  SOURCE_SUBDIR none)
+FetchContent_Declare(cpython_wasi_build
+  URL ${python_wasi}/_build-python-${python_version}-wasi_sdk-24.zip
+  URL_HASH SHA256=a2a9fca77dc47bb9d2b0dd7d04538f8aa188e5f0a87b362fd569c0d024039100
+  SOURCE_SUBDIR none)
+FetchContent_Declare(cpython_wasi
+  URL ${python_wasi}/python-${python_version}-wasi_sdk-24.zip
+  URL_HASH SHA256=2e064d3fb8172471d39d741348efa722349c40b96301f69968dff714999c584b
+  SOURCE_SUBDIR none)
+FetchContent_MakeAvailable(wasmtime_cli cpython cpython_wasi_build cpython_wasi)
+set(python_build ${cpython_wasi_build_SOURCE_DIR})
+file(GLOB python_hacl ${python_build}/Modules/_hacl/*.a)
+set(python_libraries ${python_build}/libpython3.14.a ${python_build}/Modules/_decimal/libmpdec/libmpdec.a
+  ${python_hacl} ${python_build}/Modules/expat/libexpat.a)
+set(python_sources ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/python/runtime.c)
+set(python_raw_wasm ${CMAKE_CURRENT_BINARY_DIR}/python-uninitialized.wasm)
+set(python_wasm ${CMAKE_CURRENT_BINARY_DIR}/python.wasm)
+add_custom_command(OUTPUT ${python_raw_wasm}
+  COMMAND ${wasi_sdk_SOURCE_DIR}/bin/clang --target=wasm32-wasip1 -std=c23 -O2 -s
+    -mexec-model=reactor -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_GETPID
+    -D_WASI_EMULATED_PROCESS_CLOCKS -I${cpython_SOURCE_DIR}/Include -I${python_build}
+    -Wl,-z,stack-size=8388608 -Wl,--stack-first
+    -o ${python_raw_wasm} ${python_sources} ${python_libraries} -ldl -lm
+    -lwasi-emulated-signal -lwasi-emulated-getpid -lwasi-emulated-process-clocks
+  DEPENDS ${python_sources} ${python_libraries} ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/boundary.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/python/prelude.py
+  COMMENT "Compiling the Python runtime")
+add_custom_command(OUTPUT ${python_wasm}
+  COMMAND ${wasmtime_cli_SOURCE_DIR}/wasmtime wizer -S cli=y -f modlock_initialize
+    --dir ${cpython_wasi_SOURCE_DIR}/lib::/lib
+    --preload modlock=${CMAKE_CURRENT_SOURCE_DIR}/runtimes/python/host.wat
+    -o ${python_wasm} ${python_raw_wasm}
+  DEPENDS ${python_raw_wasm} ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/python/host.wat
+  COMMENT "Initializing the Python runtime")
+add_custom_target(python_runtime ALL DEPENDS ${python_wasm})
+install(FILES ${python_wasm} DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES ${cpython_SOURCE_DIR}/LICENSE DESTINATION ${CMAKE_INSTALL_BINDIR}
+  RENAME python-LICENSE)
 
 # modlock-sigcheck checks the recorded signatures against game binaries on
 # disk; it runs on any host, so it carries its own copy of the decoder.
@@ -324,13 +522,18 @@ if(BUILD_TESTING)
   add_executable(setpawn_observe_test tests/setpawn_observe_test.cc)
   target_link_libraries(setpawn_observe_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME setpawn_observe_test COMMAND setpawn_observe_test)
+  add_executable(quake_movement_test tests/quake_movement_test.cc ${modlock_quake_sources})
+  target_include_directories(quake_movement_test PRIVATE src)
+  target_link_libraries(quake_movement_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME quake_movement_test COMMAND quake_movement_test)
   add_executable(stdio_guard_test tests/stdio_guard_test.cc)
   target_link_libraries(stdio_guard_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME stdio_guard_test COMMAND stdio_guard_test)
   add_executable(world_effect_game_factory_test tests/world_effect_game_factory_test.cc)
   target_link_libraries(world_effect_game_factory_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME world_effect_game_factory_test COMMAND world_effect_game_factory_test)
-  # wasm_instance_test runs the Go example mod, so it builds it with Go.
+  # wasm_instance_test runs the Go example mod, so it builds it with Go, and
+  # the Luau example on the Luau runtime.
   set(hello_go_wasm ${CMAKE_CURRENT_BINARY_DIR}/hello-go.wasm)
   file(GLOB hello_go_sources CONFIGURE_DEPENDS mod/*.go examples/hello-go/*.go proto/modlock/wasm/*.go)
   add_custom_command(OUTPUT ${hello_go_wasm}
@@ -339,12 +542,45 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${hello_go_sources} go.mod)
   add_custom_target(hello_go_wasm DEPENDS ${hello_go_wasm})
-  add_executable(wasm_instance_test tests/wasm_instance_test.cc src/wasm/instance.cc)
-  add_dependencies(wasm_instance_test hello_go_wasm)
+  add_executable(wasm_instance_test tests/wasm_instance_test.cc src/wasm/instance.cc
+    src/wasm/runtime.cc)
+  add_dependencies(wasm_instance_test hello_go_wasm luau_runtime python_runtime)
   target_include_directories(wasm_instance_test PRIVATE src)
-  target_compile_definitions(wasm_instance_test PRIVATE HELLO_GO_WASM="${hello_go_wasm}")
+  target_compile_definitions(wasm_instance_test PRIVATE HELLO_GO_WASM="${hello_go_wasm}"
+    LUAU_WASM="${luau_wasm}"
+    HELLO_LUAU_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-luau/main.luau"
+    LUAU_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/luau/modlock" PYTHON_WASM="${python_wasm}"
+    HELLO_PYTHON_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-python/main.py"
+    PYTHON_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/python/modlock")
   target_link_libraries(wasm_instance_test PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
   add_test(NAME wasm_instance_test COMMAND wasm_instance_test)
+  # wasm_host_test runs a Go mod that serves and calls extension services.
+  set(extension_go_wasm ${CMAKE_CURRENT_BINARY_DIR}/extension-go.wasm)
+  file(GLOB extension_go_sources CONFIGURE_DEPENDS mod/*.go tests/wasm/extension-go/*.go
+    proto/modlock/wasm/*.go)
+  add_custom_command(OUTPUT ${extension_go_wasm}
+    COMMAND ${CMAKE_COMMAND} -E env GOOS=wasip1 GOARCH=wasm
+      ${GO_EXECUTABLE} build -buildmode=c-shared -o ${extension_go_wasm} ./tests/wasm/extension-go
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${extension_go_sources} go.mod)
+  add_custom_target(extension_go_wasm DEPENDS ${extension_go_wasm})
+  add_executable(wasm_host_test tests/wasm_host_test.cc)
+  add_dependencies(wasm_host_test extension_go_wasm)
+  target_compile_definitions(wasm_host_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")
+  target_link_libraries(wasm_host_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME wasm_host_test COMMAND wasm_host_test)
+  add_executable(wasm_ui_test tests/wasm_ui_test.cc src/wasm/ui.cc)
+  target_include_directories(wasm_ui_test PRIVATE src)
+  target_link_libraries(wasm_ui_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME wasm_ui_test COMMAND wasm_ui_test)
+  add_executable(wasm_hero_restore_test tests/wasm_hero_restore_test.cc src/wasm/hero_restore.cc)
+  target_include_directories(wasm_hero_restore_test PRIVATE src)
+  target_link_libraries(wasm_hero_restore_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME wasm_hero_restore_test COMMAND wasm_hero_restore_test)
+  add_executable(wasm_npc_restore_test tests/wasm_npc_restore_test.cc src/wasm/npc_restore.cc)
+  target_include_directories(wasm_npc_restore_test PRIVATE src)
+  target_link_libraries(wasm_npc_restore_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME wasm_npc_restore_test COMMAND wasm_npc_restore_test)
   add_executable(world_text_game_factory_test tests/world_text_game_factory_test.cc)
   target_link_libraries(world_text_game_factory_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME world_text_game_factory_test COMMAND world_text_game_factory_test)

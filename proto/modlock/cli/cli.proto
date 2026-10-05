@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package modlock.cli;
+
+option go_package = "github.com/paralin/modlock/proto/modlock/cli;cli";
+
+import "github.com/paralin/modlock/proto/modlock/control/control.proto";
+import "github.com/paralin/modlock/proto/modlock/publish/publish.proto";
+
+// With --json, the modlock command line writes one Event per line on standard
+// output as protobuf JSON, and stops when its standard input closes. Tool
+// output for people, such as compiler errors, still goes to standard error.
+
+// Event is one thing the command line did or saw.
+message Event {
+  // Body selects the event.
+  oneof body {
+    // Note is a line of progress for the creator.
+    string note = 1;
+
+    // Building reports that a build of the project started.
+    Building building = 2;
+
+    // Built reports a finished build.
+    Built built = 3;
+
+    // Host carries an event from the running server.
+    modlock.control.HostEvent host = 4;
+
+    // Published reports a release the provider recorded.
+    Published published = 5;
+  }
+}
+
+// Building identifies the project a build started for.
+message Building {
+  // Dir is the project directory.
+  string dir = 1;
+}
+
+// Built reports a finished build. A failed build leaves the previous built mod
+// in place.
+message Built {
+  // Dir is the project directory.
+  string dir = 1;
+
+  // Ok is true when the build wrote the built mod.
+  bool ok = 2;
+
+  // Error explains a failed build in one line.
+  string error = 3;
+
+  // Diagnostics lists the problems the checks and compilers found. A finished
+  // build replaces the previous build's diagnostics.
+  repeated Diagnostic diagnostics = 4;
+}
+
+// Diagnostic is one problem found in a source file.
+message Diagnostic {
+  // File is the file's absolute path.
+  string file = 1;
+
+  // Line is the 1-based line.
+  uint32 line = 2;
+
+  // Column is the 1-based column, zero when unknown.
+  uint32 column = 3;
+
+  // Message describes the problem.
+  string message = 4;
+
+  // Source names the tool that found it: tsgo, esbuild, go vet or go build.
+  string source = 5;
+
+  // Code is the tool's code for the problem, such as TS2322, if it has one.
+  string code = 6;
+}
+
+// Published reports a release.
+message Published {
+  // Provider is where the mod went: hyperline, archive or github.
+  string provider = 1;
+
+  // Release is the release hyperline.gg recorded.
+  modlock.publish.Release release = 2;
+
+  // Location is the archive's path or the GitHub release tag.
+  string location = 3;
+}

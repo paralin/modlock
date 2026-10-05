@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package modlock.control;
+
+option go_package = "github.com/paralin/modlock/proto/modlock/control;control";
+
+import "github.com/paralin/modlock/proto/modlock/ui.proto";
+
+// The control link connects modlock-host to the program that started it. The
+// host dials the address given with --control; then the controller sends
+// ControlRequest messages and the host sends HostEvent messages, each framed
+// by its length as a little-endian uint32. The link lasts for the host's
+// lifetime; the host keeps running when the controller disconnects.
+
+// ControlRequest is one request from the controller.
+message ControlRequest {
+  // Body selects the request.
+  oneof body {
+    // Reload replaces a running mod with a new build.
+    ReloadRequest reload = 1;
+  }
+}
+
+// ReloadRequest replaces one mod in place. The mod keeps its place among the
+// host's plugins; its old instance stops and the new build starts.
+message ReloadRequest {
+  // Path is the built mod to load: a directory with mod.json or a .wasm file,
+  // as the host sees it.
+  string path = 1;
+}
+
+// HostEvent is one thing that happened in the host.
+message HostEvent {
+  // Body selects the event.
+  oneof body {
+    // Started reports a mod that started or restarted after a reload.
+    ModStarted started = 1;
+
+    // Log carries one line a mod logged.
+    ModLog log = 2;
+
+    // Failed reports a mod that stopped or a reload that did not load.
+    ModFailed failed = 3;
+
+    // Joined reports a player who finished joining the server.
+    PlayerJoined joined = 4;
+
+    // Ready reports that players can join the server.
+    ServerReady ready = 5;
+
+    // Ui carries a change to the interface a mod shows a player. The host
+    // sends every tree as a reset change when the call opens.
+    UiChanged ui = 6;
+
+    // Left reports a player who left the server.
+    PlayerLeft left = 7;
+  }
+}
+
+// ModStarted identifies a mod that started.
+message ModStarted {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Reloaded is true when a reload replaced an earlier instance.
+  bool reloaded = 2;
+}
+
+// ModLog carries one log line.
+message ModLog {
+  // Mod is the name of the mod that logged.
+  string mod = 1;
+
+  // Text is the line, without a trailing newline.
+  string text = 2;
+}
+
+// ModFailed explains why a mod stopped or a reload failed. A failed reload
+// leaves the previous instance running.
+message ModFailed {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Error describes the failure.
+  string error = 2;
+}
+
+// PlayerJoined identifies a player who joined.
+message PlayerJoined {
+  // Slot is the player's slot.
+  int32 slot = 1;
+
+  // Name is the player's name.
+  string name = 2;
+
+  // SteamId is the player's Steam ID, zero for a bot.
+  fixed64 steam_id = 3;
+}
+
+// PlayerLeft identifies a player who left. Bots leave too; a controller drops
+// a slot it never saw join.
+message PlayerLeft {
+  // Slot is the player's former slot.
+  int32 slot = 1;
+}
+
+// ServerReady reports the loaded map.
+message ServerReady {
+  // Map is the map the server loaded.
+  string map = 1;
+}
+
+// UiChanged carries a change to the interface a mod shows a player.
+message UiChanged {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Slot identifies the player.
+  int32 slot = 2;
+
+  // Change updates the player's tree for the mod.
+  modlock.ui.Change change = 3;
+}

@@ -437,8 +437,11 @@ std::expected<bool, std::string> WorldEntities::RemoveNpc(uint32_t handle) {
   auto system = ResolveLiveEntitySystem();
   if (!system) return std::unexpected(system.error());
   void* entity = EntityInstance(*system, handle);
-  // Only an NPC this class may spawn is removed; any other entity is refused.
-  if (!entity || !IsSpawnableNpc(DesignerName(entity))) return false;
+  // Only an NPC or pickup this class may create is removed; any other entity
+  // is refused.
+  if (!entity) return false;
+  const auto name = DesignerName(entity);
+  if (!IsSpawnableNpc(name) && !IsPickup(name)) return false;
   calls_.remove(entity);
   return true;
 }

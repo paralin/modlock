@@ -1,0 +1,7 @@
+{
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.14",
+  "extraPaths": [".modlock"],
+  "reportMissingModuleSource": false,
+  "exclude": ["build", ".modlock"]
+}

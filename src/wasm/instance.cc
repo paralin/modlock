@@ -1,17 +1,13 @@
 #include "wasm/instance.h"
 
-#include <condition_variable>
+#include <algorithm>
+#include <chrono>
 #include <cstring>
-#include <mutex>
 #include <utility>
 #include <variant>
 
 namespace modlock::wasm {
 namespace {
-
-// kEpochTick is how often the ticker advances the engine epoch; budgets are
-// rounded up to whole ticks.
-constexpr std::chrono::milliseconds kEpochTick{10};
 
 // Bytes returns the mod memory range [data, data + size), or nullopt when the
 // range leaves memory.
@@ -33,31 +29,19 @@ std::optional<std::span<uint8_t>> CallerBytes(wasmtime::Caller& caller, uint32_t
 
 }  // namespace
 
-Instance::Instance(wasmtime::Engine engine, const Limits& limits, HostCall host_call)
-    : engine_(std::move(engine)),
+Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
+    : runtime_(runtime),
       limits_(limits),
       host_call_(std::move(host_call)),
-      store_(engine_) {
+      store_(runtime.Engine()) {
   store_.limiter(limits_.memory_bytes, -1, -1, -1, -1);
-
-  // Advance the epoch so a running call meets its deadline.
-  ticker_ = std::jthread([engine = engine_](std::stop_token stop) {
-    std::mutex mu;
-    std::condition_variable_any wake;
-    std::unique_lock lock(mu);
-    auto stopped = [&stop] { return stop.stop_requested(); };
-    while (!wake.wait_for(lock, stop, kEpochTick, stopped)) engine.increment_epoch();
-  });
 }
 
 Instance::~Instance() = default;
 
 std::expected<std::unique_ptr<Instance>, std::string> Instance::Load(
-    std::span<const uint8_t> module, const Limits& limits, HostCall host_call) {
-  wasmtime::Config config;
-  config.epoch_interruption(true);
-  std::unique_ptr<Instance> instance(
-      new Instance(wasmtime::Engine(std::move(config)), limits, std::move(host_call)));
+    Runtime& runtime, std::span<const uint8_t> module, const Limits& limits, HostCall host_call) {
+  std::unique_ptr<Instance> instance(new Instance(runtime, limits, std::move(host_call)));
   if (auto instantiated = instance->Instantiate(module); !instantiated) {
     return std::unexpected(instantiated.error());
   }
@@ -65,10 +49,10 @@ std::expected<std::unique_ptr<Instance>, std::string> Instance::Load(
 }
 
 std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> module) {
-  // Compile the module; Wasmtime only reads the bytes.
-  auto compiled = wasmtime::Module::compile(
-      engine_, wasmtime::Span<uint8_t>(const_cast<uint8_t*>(module.data()), module.size()));
-  if (!compiled) return std::unexpected("cannot compile the mod: " + compiled.err().message());
+  // Compile the module, or share the copy another instance compiled.
+  auto compiled = runtime_.Compile(module);
+  if (!compiled) return std::unexpected(compiled.error());
+  module_ = std::move(*compiled);
 
   // Give the mod standard output and error and nothing else from WASI.
   wasmtime::WasiConfig wasi;
@@ -79,13 +63,13 @@ std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> 
   }
 
   // Link WASI and the modlock imports, then instantiate.
-  wasmtime::Linker linker(engine_);
+  wasmtime::Linker linker(runtime_.Engine());
   if (auto defined = linker.define_wasi(); !defined) {
     return std::unexpected("cannot define WASI: " + defined.err().message());
   }
   if (auto defined = DefineImports(linker); !defined) return defined;
   SetBudget(limits_.start_budget);
-  auto instance = linker.instantiate(store_.context(), compiled.ok_ref());
+  auto instance = linker.instantiate(store_.context(), *module_);
   if (!instance) return std::unexpected("cannot instantiate the mod: " + instance.err().message());
 
   // Find the memory and the event entry point the boundary needs.
@@ -127,14 +111,14 @@ std::expected<void, std::string> Instance::DefineImports(wasmtime::Linker& linke
   return {};
 }
 
-std::expected<EventResult, std::string> Instance::Deliver(const Event& event) {
+std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
   if (failure_) return std::unexpected(*failure_);
   if (busy_) return std::unexpected("the mod is already handling an event");
 
-  // Call the mod, which copies the event out with host_read.
+  // Call the mod, which copies the call out with host_read.
   auto typed = event_->typed<uint32_t, uint64_t>(store_.context());
   if (!typed) return std::unexpected(Fail("modlock_event must take i32 and return i64"));
-  event.SerializeToString(&pending_);
+  call.SerializeToString(&pending_);
   SetBudget(limits_.event_budget);
   busy_ = true;
   auto called = typed.ok_ref().call(store_.context(), static_cast<uint32_t>(pending_.size()));
@@ -142,31 +126,34 @@ std::expected<EventResult, std::string> Instance::Deliver(const Event& event) {
   pending_.clear();
   if (!called) return std::unexpected(Fail(called.err().message()));
 
-  // Decode the answer the mod left in its memory.
+  // Decode the reply the mod left in its memory.
   const uint64_t packed = called.ok();
-  EventResult result;
-  if (packed == 0) return result;
+  Reply reply;
+  if (packed == 0) return reply;
   auto bytes = Bytes(memory_->data(store_.context()), static_cast<uint32_t>(packed >> 32),
                      static_cast<uint32_t>(packed));
-  if (!bytes) return std::unexpected(Fail("modlock_event returned a result outside memory"));
-  if (!result.ParseFromArray(bytes->data(), static_cast<int>(bytes->size()))) {
-    return std::unexpected(Fail("modlock_event returned an invalid EventResult"));
+  if (!bytes) return std::unexpected(Fail("modlock_event returned a reply outside memory"));
+  if (!reply.ParseFromArray(bytes->data(), static_cast<int>(bytes->size()))) {
+    return std::unexpected(Fail("modlock_event returned an invalid Reply"));
   }
-  return result;
+  return reply;
 }
 
 wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Caller caller,
                                                                     uint32_t data, uint32_t size) {
-  // Decode the request from mod memory.
+  // Decode the call from mod memory.
   auto bytes = CallerBytes(caller, data, size);
-  if (!bytes) return wasmtime::Trap("modlock.host_call: the request is outside memory");
-  HostRequest request;
-  if (!request.ParseFromArray(bytes->data(), static_cast<int>(bytes->size()))) {
-    return wasmtime::Trap("modlock.host_call: invalid HostRequest");
+  if (!bytes) return wasmtime::Trap("modlock.host_call: the call is outside memory");
+  Call call;
+  if (!call.ParseFromArray(bytes->data(), static_cast<int>(bytes->size()))) {
+    return wasmtime::Trap("modlock.host_call: invalid Call");
   }
 
-  // Answer it and hold the encoded response for host_read.
-  host_call_(request).SerializeToString(&pending_);
+  // Answer it and hold the encoded reply for host_read.
+  const auto entered = std::chrono::steady_clock::now();
+  host_call_(call).SerializeToString(&pending_);
+  deadline_ += std::chrono::steady_clock::now() - entered;
+  ArmDeadline();
   return static_cast<uint32_t>(pending_.size());
 }
 
@@ -184,8 +171,15 @@ wasmtime::Result<std::monostate, wasmtime::Trap> Instance::HostReadImport(wasmti
 }
 
 void Instance::SetBudget(std::chrono::milliseconds budget) {
-  const uint64_t ticks = (budget + kEpochTick - std::chrono::milliseconds{1}) / kEpochTick;
-  store_.context().set_epoch_deadline(ticks);
+  deadline_ = std::chrono::steady_clock::now() + budget;
+  ArmDeadline();
+}
+
+void Instance::ArmDeadline() {
+  const auto left = std::max(std::chrono::steady_clock::duration::zero(),
+                             deadline_ - std::chrono::steady_clock::now());
+  store_.context().set_epoch_deadline((left + kEpochTick - std::chrono::nanoseconds{1}) /
+                                      kEpochTick);
 }
 
 std::string Instance::Fail(std::string reason) {

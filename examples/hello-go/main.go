@@ -13,12 +13,12 @@ func init() {
 
 	// Report the first server frame once.
 	seen := false
-	mod.OnFrame(func(f mod.Frame) {
+	mod.OnFrame(func(f *mod.FrameEvent) {
 		if seen {
 			return
 		}
 		seen = true
-		mod.Log("first frame at tick ", f.Tick)
+		mod.Log("first frame at tick ", f.GetTick())
 	})
 }
 

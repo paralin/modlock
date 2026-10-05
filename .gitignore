@@ -5,3 +5,5 @@
 /.tmp/
 /node_modules/
 /.protoc-manifest.json
+/js/dist/
+/panorama/scripts/

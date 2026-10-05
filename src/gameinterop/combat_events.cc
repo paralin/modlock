@@ -30,21 +30,6 @@ constexpr size_t kAbilityCasterOffset = 0;
 constexpr size_t kAbilityHandleOffset = 4;
 constexpr size_t kAbilityTargetOffset = 8;
 
-// OsBoundedReader is the production reader: it copies through the OS the same
-// way client_command_hook.cc reads engine-owned memory, so a bad pointer
-// returns false instead of faulting the process.
-bool OsBoundedReader(const void* source, void* out, size_t size) {
-#if defined(_WIN32)
-  SIZE_T read = 0;
-  return ReadProcessMemory(GetCurrentProcess(), source, out, size, &read) && read == size;
-#else
-  (void)source;
-  (void)out;
-  (void)size;
-  return false;
-#endif
-}
-
 std::string AddressName(const void* address) {
   char text[32] = {};
   std::snprintf(text, sizeof(text), "0x%llx",
@@ -104,21 +89,21 @@ void DecodeAndDispatch(uint32_t event, void* event_data) {
   if (g_handler == nullptr) return;
   CombatEvent decoded;
   if (event == g_ids.damage) {
-    if (auto value = DecodeDamageTaken(event_data, g_damage_offsets, OsBoundedReader)) {
+    if (auto value = DecodeDamageTaken(event_data, g_damage_offsets, ReadNative)) {
       decoded.kind = CombatEvent::Kind::kDamageTaken;
       decoded.damage = *value;
     } else {
       decoded.reason = value.error();
     }
   } else if (event == g_ids.health) {
-    if (auto value = DecodeHealthTaken(event_data, OsBoundedReader)) {
+    if (auto value = DecodeHealthTaken(event_data, ReadNative)) {
       decoded.kind = CombatEvent::Kind::kHealthTaken;
       decoded.health = *value;
     } else {
       decoded.reason = value.error();
     }
   } else if (event == g_ids.ability) {
-    if (auto value = DecodeAbilityExecuted(event_data, OsBoundedReader)) {
+    if (auto value = DecodeAbilityExecuted(event_data, ReadNative)) {
       decoded.kind = CombatEvent::Kind::kAbilityExecuted;
       decoded.ability = *value;
     } else {
@@ -135,7 +120,7 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
   if (event == g_ids.pre_damage &&
       ((g_suppress_damage && *g_suppress_damage) || (g_adjust_damage && *g_adjust_damage))) {
     auto processed = ProcessDamageContact(
-        event_data, g_contact_offsets, OsBoundedReader,
+        event_data, g_contact_offsets, ReadNative,
         [](void* target, const void* source, size_t size) {
           SIZE_T written = 0;
           return WriteProcessMemory(GetCurrentProcess(), target, source, size, &written) &&
@@ -176,7 +161,7 @@ __int64 __fastcall BroadcastThunk(uint32_t event, void* event_data) {
   // Damage/heal broadcasts duplicate modifier events and are not observed.
   if (event == g_ids.shield_broadcast && g_handler) {
     CombatEvent decoded;
-    if (auto value = DecodeShieldDamage(event_data, OsBoundedReader)) {
+    if (auto value = DecodeShieldDamage(event_data, ReadNative)) {
       decoded.kind = CombatEvent::Kind::kShieldDamage;
       decoded.shield = *value;
     } else {
@@ -210,18 +195,17 @@ std::expected<void, std::string> ProcessDamageContact(
   if (offsets.hit_group &&
       !read(damage + *offsets.hit_group, &event.hit_group, sizeof(event.hit_group)))
     return std::unexpected("combat contact: unreadable damage hit group");
+  if (!read(damage + offsets.amount, &event.amount, sizeof(event.amount)) ||
+      !read(damage + offsets.ability, &event.ability_handle, sizeof(event.ability_handle)))
+    return std::unexpected("combat contact: unreadable damage amount or ability");
+  if (offsets.inflictor &&
+      !read(damage + *offsets.inflictor, &event.inflictor_handle, sizeof(event.inflictor_handle)))
+    return std::unexpected("combat contact: unreadable damage inflictor");
   if (!suppress || !suppress(event)) {
     if (!adjust) return {};
-    float amount = 0;
-    if (!read(damage + offsets.amount, &amount, sizeof(amount)) ||
-        !read(damage + offsets.ability, &event.ability_handle, sizeof(event.ability_handle)))
-      return std::unexpected("combat contact: unreadable damage amount or ability");
-    if (offsets.inflictor &&
-        !read(damage + *offsets.inflictor, &event.inflictor_handle, sizeof(event.inflictor_handle)))
-      return std::unexpected("combat contact: unreadable damage inflictor");
-    const float original = amount;
+    float amount = event.amount;
     adjust(event, amount);
-    if (amount == original) return {};
+    if (amount == event.amount) return {};
     if (!std::isfinite(amount) || amount < 0)
       return std::unexpected("combat contact: adjusted damage must be finite and nonnegative");
     if (!write(damage + offsets.amount, &amount, sizeof(amount)))
