@@ -85,6 +85,7 @@ local damageds: { (hit: DamagedEvent) -> () } = {}
 local launches: { (projectile: LaunchEvent) -> () } = {}
 local impacts: { (impact: ImpactEvent) -> () } = {}
 local landeds: { (landing: LandedEvent) -> () } = {}
+local settingChanges: { (player: Player, key: string, value: string) -> () } = {}
 
 -- serve answers the host's calls to service with handler, replacing its
 -- earlier handler.
@@ -164,6 +165,13 @@ end
 -- movement, before the next frame.
 function M.onLanded(handler: (landing: LandedEvent) -> ())
 	table.insert(landeds, handler)
+end
+
+-- onSettingChanged calls handler when a player's setting changes outside the
+-- mod, such as on the player's profile. The mod's own player:setSetting calls
+-- do not reach it.
+function M.onSettingChanged(handler: (player: Player, key: string, value: string) -> ())
+	table.insert(settingChanges, handler)
 end
 
 -- handlers delivers each event to the handlers the mod registered.
@@ -264,6 +272,12 @@ local handlers: ModHandlers = {
 	landed = function(event)
 		for _, handler in landeds do
 			handler(event)
+		end
+	end,
+
+	settingChanged = function(event)
+		for _, handler in settingChanges do
+			handler(event.player, event.key, event.value)
 		end
 	end,
 }

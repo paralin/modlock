@@ -374,6 +374,16 @@ export type LandedEvent = {
 	speed: number,
 }
 
+-- SettingChangedEvent is one player's new value of one setting.
+export type SettingChangedEvent = {
+	-- player is the player's server slot.
+	player: Player,
+	-- key names the setting.
+	key: string,
+	-- value is the new value.
+	value: string,
+}
+
 -- PrecacheOptions names what the next world loads ahead of use.
 export type PrecacheOptions = {
 	-- heroes are hero names, such as hero_wraith.
@@ -785,6 +795,18 @@ export type Player = {
 	announce: (self: Player, title: string, text: string) -> boolean,
 	-- pawn returns the player's hero this frame, or nothing without one.
 	pawn: (self: Player) -> Pawn?,
+	-- setting returns the player's value of a setting the manifest
+	-- declares: the value they chose, or the setting's default. A bot has the
+	-- defaults.
+	setting: (self: Player, key: string) -> string?,
+	-- setSetting changes the player's value of a setting the manifest
+	-- declares. The value follows the player to later games and other mods'
+	-- servers of the same mod; a bot keeps the defaults.
+	setSetting: (self: Player, key: string, value: string) -> boolean,
+	-- addMetric adds to the player's total of a metric the manifest declares.
+	-- The host keeps each player's totals in memory and hands them on once,
+	-- when the player leaves or the mod stops; a bot keeps none.
+	addMetric: (self: Player, name: string, value: number, label: string?) -> boolean,
 	-- selectHero gives the player a hero on a team, 2 or 3, and returns the
 	-- hero's identifier as Pawn.hero reports it. The hero appears on a later
 	-- frame.
@@ -901,6 +923,31 @@ function Player.pawn(self: Player): Pawn?
 		return nil
 	end
 	return response.pawn
+end
+
+-- setting returns the player's value of a setting the manifest
+-- declares: the value they chose, or the setting's default. A bot has the
+-- defaults.
+function Player.setting(self: Player, key: string): string?
+	local response = call("PlayerSetting", "PlayerSettingRequest", { player = self, key = key }, "SettingResponse")
+	if response == nil then
+		return nil
+	end
+	return response.value
+end
+
+-- setSetting changes the player's value of a setting the manifest
+-- declares. The value follows the player to later games and other mods'
+-- servers of the same mod; a bot keeps the defaults.
+function Player.setSetting(self: Player, key: string, value: string): boolean
+	return call("SetPlayerSetting", "SetPlayerSettingRequest", { player = self, key = key, value = value }) ~= nil
+end
+
+-- addMetric adds to the player's total of a metric the manifest declares.
+-- The host keeps each player's totals in memory and hands them on once,
+-- when the player leaves or the mod stops; a bot keeps none.
+function Player.addMetric(self: Player, name: string, value: number, label: string?): boolean
+	return call("AddMetric", "AddMetricRequest", { player = self, name = name, value = value, label = label }) ~= nil
 end
 
 -- selectHero gives the player a hero on a team, 2 or 3, and returns the
@@ -1357,6 +1404,11 @@ schema.LandedEvent = {
 	{ number = 2, name = "on", kind = "int32" },
 	{ number = 3, name = "speed", kind = "float" },
 }
+schema.SettingChangedEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "key", kind = "string" },
+	{ number = 3, name = "value", kind = "string" },
+}
 schema.LogRequest = {
 	{ number = 1, name = "message", kind = "string" },
 }
@@ -1365,6 +1417,24 @@ schema.ServerCommandRequest = {
 }
 schema.PlayerRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+}
+schema.PlayerSettingRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "key", kind = "string" },
+}
+schema.SettingResponse = {
+	{ number = 1, name = "value", kind = "string" },
+}
+schema.AddMetricRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "name", kind = "string" },
+	{ number = 3, name = "value", kind = "double" },
+	{ number = 4, name = "label", kind = "string", optional = true },
+}
+schema.SetPlayerSettingRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "key", kind = "string" },
+	{ number = 3, name = "value", kind = "string" },
 }
 schema.ChatRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -2090,6 +2160,10 @@ export type ModHandlers = {
 	-- landed reports a hero landing under the manifest's QuakeWorld movement,
 	-- before the next frame.
 	landed: (event: LandedEvent) -> (),
+	-- settingChanged reports a player's setting that changed outside the mod,
+	-- such as on the player's profile. A mod's own SetPlayerSetting reports
+	-- nothing.
+	settingChanged: (event: SettingChangedEvent) -> (),
 }
 
 -- events holds each Mod method's request, response and handler.
@@ -2108,6 +2182,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Launch = { request = "LaunchEvent", response = "Empty", handler = "launch" },
 	Impact = { request = "ImpactEvent", response = "Empty", handler = "impact" },
 	Landed = { request = "LandedEvent", response = "Empty", handler = "landed" },
+	SettingChanged = { request = "SettingChangedEvent", response = "Empty", handler = "settingChanged" },
 }
 
 -- serveMod runs the encoded Call in bytes on handlers and returns the encoded
@@ -2218,6 +2293,7 @@ local damageds: { (hit: DamagedEvent) -> () } = {}
 local launches: { (projectile: LaunchEvent) -> () } = {}
 local impacts: { (impact: ImpactEvent) -> () } = {}
 local landeds: { (landing: LandedEvent) -> () } = {}
+local settingChanges: { (player: Player, key: string, value: string) -> () } = {}
 
 -- serve answers the host's calls to service with handler, replacing its
 -- earlier handler.
@@ -2297,6 +2373,13 @@ end
 -- movement, before the next frame.
 function M.onLanded(handler: (landing: LandedEvent) -> ())
 	table.insert(landeds, handler)
+end
+
+-- onSettingChanged calls handler when a player's setting changes outside the
+-- mod, such as on the player's profile. The mod's own player:setSetting calls
+-- do not reach it.
+function M.onSettingChanged(handler: (player: Player, key: string, value: string) -> ())
+	table.insert(settingChanges, handler)
 end
 
 -- handlers delivers each event to the handlers the mod registered.
@@ -2397,6 +2480,12 @@ local handlers: ModHandlers = {
 	landed = function(event)
 		for _, handler in landeds do
 			handler(event)
+		end
+	end,
+
+	settingChanged = function(event)
+		for _, handler in settingChanges do
+			handler(event.player, event.key, event.value)
 		end
 	end,
 }

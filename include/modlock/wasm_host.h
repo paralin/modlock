@@ -11,6 +11,8 @@
 #include "modlock/export.h"
 #include "modlock/plugin.h"
 #include "modlock/plugin_library.h"
+#include "modlock/wasm_metrics.h"
+#include "modlock/wasm_settings.h"
 #include "proto/modlock/ui.pb.h"
 
 namespace modlock {
@@ -84,6 +86,22 @@ class MODLOCK_API WasmHost {
   // Provide answers mods' calls to service with extension, replacing the
   // service's earlier extension. An empty extension withdraws the service.
   void Provide(std::string service, WasmExtension extension);
+
+  // KeepSettings keeps players' settings in settings, which must stay valid
+  // until the host is destroyed or keeps them elsewhere. A null settings
+  // returns to the host's own, which last until it is destroyed.
+  void KeepSettings(WasmSettings* settings);
+
+  // KeepMetrics hands players' metric totals to metrics, which must stay
+  // valid until the host is destroyed or hands them elsewhere. Without
+  // metrics, each mod logs its players' totals.
+  void KeepMetrics(WasmMetrics* metrics);
+
+  // SettingChanged tells mod that a player changed a setting outside it,
+  // such as on the player's profile, when the player is in the game. The
+  // settings already hold the new value.
+  void SettingChanged(std::string_view mod, uint64_t steam_id, std::string_view key,
+                      std::string_view value);
 
   // Call calls method of the service mod serves and returns the mod's answer.
   // A mod that is not running, serves no such service or fails returns an

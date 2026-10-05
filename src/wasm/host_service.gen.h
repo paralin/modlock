@@ -95,6 +95,29 @@ class HostService {
     return std::unexpected("this host does not support Pawn");
   }
 
+  // PlayerSetting returns the player's value of a setting the manifest
+  // declares: the value they chose, or the setting's default. A bot has the
+  // defaults.
+  virtual std::expected<SettingResponse, std::string> PlayerSetting(
+      const PlayerSettingRequest& /*request*/) {
+    return std::unexpected("this host does not support PlayerSetting");
+  }
+
+  // SetPlayerSetting changes the player's value of a setting the manifest
+  // declares. The value follows the player to later games and other mods'
+  // servers of the same mod; a bot keeps the defaults.
+  virtual std::expected<void, std::string> SetPlayerSetting(
+      const SetPlayerSettingRequest& /*request*/) {
+    return std::unexpected("this host does not support SetPlayerSetting");
+  }
+
+  // AddMetric adds to the player's total of a metric the manifest declares.
+  // The host keeps each player's totals in memory and hands them on once,
+  // when the player leaves or the mod stops; a bot keeps none.
+  virtual std::expected<void, std::string> AddMetric(const AddMetricRequest& /*request*/) {
+    return std::unexpected("this host does not support AddMetric");
+  }
+
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
   // frame.
@@ -569,6 +592,30 @@ class HostService {
              return detail::Fail("the Pawn request is malformed");
            }
            return detail::Answer(host.Pawn(request));
+         }},
+        {"PlayerSetting",
+         [](HostService& host, const std::string& bytes) {
+           PlayerSettingRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the PlayerSetting request is malformed");
+           }
+           return detail::Answer(host.PlayerSetting(request));
+         }},
+        {"SetPlayerSetting",
+         [](HostService& host, const std::string& bytes) {
+           SetPlayerSettingRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SetPlayerSetting request is malformed");
+           }
+           return detail::Answer(host.SetPlayerSetting(request));
+         }},
+        {"AddMetric",
+         [](HostService& host, const std::string& bytes) {
+           AddMetricRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the AddMetric request is malformed");
+           }
+           return detail::Answer(host.AddMetric(request));
          }},
         {"SelectHero",
          [](HostService& host, const std::string& bytes) {
@@ -1176,6 +1223,13 @@ class ModClient {
   // before the next frame.
   std::expected<void, std::string> Landed(const LandedEvent& event) {
     return Send<void>("Landed", event);
+  }
+
+  // SettingChanged reports a player's setting that changed outside the mod,
+  // such as on the player's profile. A mod's own SetPlayerSetting reports
+  // nothing.
+  std::expected<void, std::string> SettingChanged(const SettingChangedEvent& event) {
+    return Send<void>("SettingChanged", event);
   }
 
  private:

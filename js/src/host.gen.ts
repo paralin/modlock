@@ -572,6 +572,25 @@ function fromLandedEvent(message: pb.LandedEvent): LandedEvent {
   }
 }
 
+/** SettingChangedEvent is one player's new value of one setting. */
+export interface SettingChangedEvent {
+  /** player is the player's server slot. */
+  readonly player: Player
+  /** key names the setting. */
+  readonly key: string
+  /** value is the new value. */
+  readonly value: string
+}
+
+/** fromSettingChangedEvent decodes a SettingChangedEvent. */
+function fromSettingChangedEvent(message: pb.SettingChangedEvent): SettingChangedEvent {
+  return {
+    player: new Player(message.player ?? 0),
+    key: message.key ?? '',
+    value: message.value ?? '',
+  }
+}
+
 /** PrecacheOptions names what the next world loads ahead of use. */
 export interface PrecacheOptions {
   /** heroes are hero names, such as hero_wraith. */
@@ -1222,6 +1241,36 @@ export class Player {
     if (reply === undefined) return undefined
     const response = pb.PawnResponse.fromBinary(reply)
     return response.pawn === undefined ? undefined : fromPawn(response.pawn)
+  }
+
+  /**
+   * setting returns the player's value of a setting the manifest
+   * declares: the value they chose, or the setting's default. A bot has the
+   * defaults.
+   */
+  setting(key: string): string | undefined {
+    const reply = call('PlayerSetting', pb.PlayerSettingRequest.toBinary({ player: this.slot, key }))
+    if (reply === undefined) return undefined
+    const response = pb.SettingResponse.fromBinary(reply)
+    return response.value ?? ''
+  }
+
+  /**
+   * setSetting changes the player's value of a setting the manifest
+   * declares. The value follows the player to later games and other mods'
+   * servers of the same mod; a bot keeps the defaults.
+   */
+  setSetting(key: string, value: string): boolean {
+    return call('SetPlayerSetting', pb.SetPlayerSettingRequest.toBinary({ player: this.slot, key, value })) !== undefined
+  }
+
+  /**
+   * addMetric adds to the player's total of a metric the manifest declares.
+   * The host keeps each player's totals in memory and hands them on once,
+   * when the player leaves or the mod stops; a bot keeps none.
+   */
+  addMetric(name: string, value: number, label?: string): boolean {
+    return call('AddMetric', pb.AddMetricRequest.toBinary({ player: this.slot, name, value, label })) !== undefined
   }
 
   /**
@@ -1890,6 +1939,12 @@ export interface ModHandlers {
    * before the next frame.
    */
   landed(event: LandedEvent): void
+  /**
+   * settingChanged reports a player's setting that changed outside the mod,
+   * such as on the player's profile. A mod's own SetPlayerSetting reports
+   * nothing.
+   */
+  settingChanged(event: SettingChangedEvent): void
 }
 
 /**
@@ -1938,6 +1993,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'Landed':
         handlers.landed(fromLandedEvent(pb.LandedEvent.fromBinary(input)))
+        return reply()
+      case 'SettingChanged':
+        handlers.settingChanged(fromSettingChangedEvent(pb.SettingChangedEvent.fromBinary(input)))
         return reply()
     }
   } catch (error) {

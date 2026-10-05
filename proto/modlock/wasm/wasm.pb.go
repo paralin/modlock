@@ -346,6 +346,95 @@ func (x Manifest_Language) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// Kind is the kind of value a setting holds.
+type Setting_Kind int32
+
+const (
+	// KIND_UNKNOWN is an unset or unsupported kind.
+	Setting_KIND_UNKNOWN Setting_Kind = 0
+	// KIND_CHOICE is one of the setting's choices.
+	Setting_KIND_CHOICE Setting_Kind = 1
+	// KIND_SWITCH is on or off.
+	Setting_KIND_SWITCH Setting_Kind = 2
+	// KIND_NUMBER is a number from min to max, on a step from min when step
+	// is above zero.
+	Setting_KIND_NUMBER Setting_Kind = 3
+)
+
+// Enum value maps for Setting_Kind.
+var (
+	Setting_Kind_name = map[int32]string{
+		0: "KIND_UNKNOWN",
+		1: "KIND_CHOICE",
+		2: "KIND_SWITCH",
+		3: "KIND_NUMBER",
+	}
+	Setting_Kind_value = map[string]int32{
+		"KIND_UNKNOWN": 0,
+		"KIND_CHOICE":  1,
+		"KIND_SWITCH":  2,
+		"KIND_NUMBER":  3,
+	}
+)
+
+func (x Setting_Kind) Enum() *Setting_Kind {
+	p := new(Setting_Kind)
+	*p = x
+	return p
+}
+
+func (x Setting_Kind) String() string {
+	name, valid := Setting_Kind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// Kind is how a metric combines the values added to it.
+type Metric_Kind int32
+
+const (
+	// KIND_UNKNOWN is an unset or unsupported kind.
+	Metric_KIND_UNKNOWN Metric_Kind = 0
+	// KIND_COUNT counts the calls.
+	Metric_KIND_COUNT Metric_Kind = 1
+	// KIND_SUM adds the values.
+	Metric_KIND_SUM Metric_Kind = 2
+	// KIND_MAX keeps the largest value.
+	Metric_KIND_MAX Metric_Kind = 3
+)
+
+// Enum value maps for Metric_Kind.
+var (
+	Metric_Kind_name = map[int32]string{
+		0: "KIND_UNKNOWN",
+		1: "KIND_COUNT",
+		2: "KIND_SUM",
+		3: "KIND_MAX",
+	}
+	Metric_Kind_value = map[string]int32{
+		"KIND_UNKNOWN": 0,
+		"KIND_COUNT":   1,
+		"KIND_SUM":     2,
+		"KIND_MAX":     3,
+	}
+)
+
+func (x Metric_Kind) Enum() *Metric_Kind {
+	p := new(Metric_Kind)
+	*p = x
+	return p
+}
+
+func (x Metric_Kind) String() string {
+	name, valid := Metric_Kind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // Model is a movement model the host runs every tick.
 type Movement_Model int32
 
@@ -1367,6 +1456,44 @@ func (x *LandedEvent) GetSpeed() float32 {
 	return 0
 }
 
+// SettingChangedEvent is one player's new value of one setting.
+type SettingChangedEvent struct {
+	unknownFields []byte
+	// Player is the player's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Key names the setting.
+	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	// Value is the new value.
+	Value string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *SettingChangedEvent) Reset() {
+	*x = SettingChangedEvent{}
+}
+
+func (*SettingChangedEvent) ProtoMessage() {}
+
+func (x *SettingChangedEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SettingChangedEvent) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SettingChangedEvent) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 // LogRequest carries one log line.
 type LogRequest struct {
 	unknownFields []byte
@@ -1425,6 +1552,143 @@ func (x *PlayerRequest) GetPlayer() int32 {
 		return x.Player
 	}
 	return 0
+}
+
+// PlayerSettingRequest names one of a player's settings.
+type PlayerSettingRequest struct {
+	unknownFields []byte
+	// Player is the player's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Key names a setting the manifest declares.
+	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+}
+
+func (x *PlayerSettingRequest) Reset() {
+	*x = PlayerSettingRequest{}
+}
+
+func (*PlayerSettingRequest) ProtoMessage() {}
+
+func (x *PlayerSettingRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *PlayerSettingRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+// SettingResponse holds a setting's value.
+type SettingResponse struct {
+	unknownFields []byte
+	// Value is the value as text: a choice's value, "true" or "false", or a
+	// number.
+	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *SettingResponse) Reset() {
+	*x = SettingResponse{}
+}
+
+func (*SettingResponse) ProtoMessage() {}
+
+func (x *SettingResponse) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+// AddMetricRequest adds to one of a player's metric totals.
+type AddMetricRequest struct {
+	unknownFields []byte
+	// Player is the player's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Name names a metric the manifest declares.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Value is the amount a sum adds and the value a maximum compares; a
+	// count adds one.
+	Value float64 `protobuf:"fixed64,3,opt,name=value,proto3" json:"value,omitempty"`
+	// Label is one of the metric's declared labels, or empty for a metric
+	// without labels.
+	Label *string `protobuf:"bytes,4,opt,name=label,proto3,oneof" json:"label,omitempty"`
+}
+
+func (x *AddMetricRequest) Reset() {
+	*x = AddMetricRequest{}
+}
+
+func (*AddMetricRequest) ProtoMessage() {}
+
+func (x *AddMetricRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *AddMetricRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AddMetricRequest) GetValue() float64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+func (x *AddMetricRequest) GetLabel() string {
+	if x != nil && x.Label != nil {
+		return *x.Label
+	}
+	return ""
+}
+
+// SetPlayerSettingRequest changes one of a player's settings.
+type SetPlayerSettingRequest struct {
+	unknownFields []byte
+	// Player is the player's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Key names a setting the manifest declares.
+	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	// Value is one of the setting's values, as SettingResponse holds it.
+	Value string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *SetPlayerSettingRequest) Reset() {
+	*x = SetPlayerSettingRequest{}
+}
+
+func (*SetPlayerSettingRequest) ProtoMessage() {}
+
+func (x *SetPlayerSettingRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SetPlayerSettingRequest) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SetPlayerSettingRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
 }
 
 // ChatRequest addresses server chat to one player.
@@ -4814,6 +5078,12 @@ type Manifest struct {
 	// Abilities change abilities' data on the server and in each player's
 	// game.
 	Abilities []*AbilityTuning `protobuf:"bytes,9,rep,name=abilities,proto3" json:"abilities,omitempty"`
+	// Settings are the choices each player makes about the mod, which the mod
+	// reads with PlayerSetting.
+	Settings []*Setting `protobuf:"bytes,10,rep,name=settings,proto3" json:"settings,omitempty"`
+	// Metrics are the measures the mod keeps for each player, which the mod
+	// adds to with AddMetric.
+	Metrics []*Metric `protobuf:"bytes,11,rep,name=metrics,proto3" json:"metrics,omitempty"`
 }
 
 func (x *Manifest) Reset() {
@@ -4883,6 +5153,291 @@ func (x *Manifest) GetAbilities() []*AbilityTuning {
 		return x.Abilities
 	}
 	return nil
+}
+
+func (x *Manifest) GetSettings() []*Setting {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+func (x *Manifest) GetMetrics() []*Metric {
+	if x != nil {
+		return x.Metrics
+	}
+	return nil
+}
+
+// Setting is one choice a player makes about a mod, such as a HUD layout.
+// Each value is text: a choice's value, "true" or "false", or a number.
+type Setting struct {
+	unknownFields []byte
+	// Key names the setting in the mod's code: up to 64 letters, digits and
+	// underscores, not starting with a digit.
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Label names the setting to players.
+	Label string       `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Kind  Setting_Kind `protobuf:"varint,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Choices are a choice setting's values, in the order players see them.
+	Choices []*SettingChoice `protobuf:"bytes,4,rep,name=choices,proto3" json:"choices,omitempty"`
+	// Min, max and step bound a number setting.
+	Min  float64 `protobuf:"fixed64,5,opt,name=min,proto3" json:"min,omitempty"`
+	Max  float64 `protobuf:"fixed64,6,opt,name=max,proto3" json:"max,omitempty"`
+	Step float64 `protobuf:"fixed64,7,opt,name=step,proto3" json:"step,omitempty"`
+	// Default is the value a player starts with. Empty means the first choice,
+	// off, or min.
+	DefaultValue string `protobuf:"bytes,8,opt,name=default_value,json=default,proto3" json:"default,omitempty"`
+}
+
+func (x *Setting) Reset() {
+	*x = Setting{}
+}
+
+func (*Setting) ProtoMessage() {}
+
+func (x *Setting) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Setting) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *Setting) GetKind() Setting_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Setting_KIND_UNKNOWN
+}
+
+func (x *Setting) GetChoices() []*SettingChoice {
+	if x != nil {
+		return x.Choices
+	}
+	return nil
+}
+
+func (x *Setting) GetMin() float64 {
+	if x != nil {
+		return x.Min
+	}
+	return 0
+}
+
+func (x *Setting) GetMax() float64 {
+	if x != nil {
+		return x.Max
+	}
+	return 0
+}
+
+func (x *Setting) GetStep() float64 {
+	if x != nil {
+		return x.Step
+	}
+	return 0
+}
+
+func (x *Setting) GetDefaultValue() string {
+	if x != nil {
+		return x.DefaultValue
+	}
+	return ""
+}
+
+// SettingChoice is one value of a choice setting.
+type SettingChoice struct {
+	unknownFields []byte
+	// Value is the value the mod reads: letters, digits, dots, underscores
+	// and hyphens.
+	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	// Label names the choice to players; empty shows the value.
+	Label string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+}
+
+func (x *SettingChoice) Reset() {
+	*x = SettingChoice{}
+}
+
+func (*SettingChoice) ProtoMessage() {}
+
+func (x *SettingChoice) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *SettingChoice) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+// Metric is one measure a mod keeps for each player, such as how often the
+// player opens a HUD panel. A metric with labels keeps one total per label,
+// such as one per HUD layout.
+type Metric struct {
+	unknownFields []byte
+	// Name names the metric in the mod's code: up to 64 letters, digits,
+	// underscores and dots, starting with a letter or an underscore.
+	Name string      `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Kind Metric_Kind `protobuf:"varint,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Labels are the values a call may label the metric with: letters,
+	// digits, dots, underscores and hyphens. Empty takes no label.
+	Labels []string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty"`
+}
+
+func (x *Metric) Reset() {
+	*x = Metric{}
+}
+
+func (*Metric) ProtoMessage() {}
+
+func (x *Metric) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Metric) GetKind() Metric_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Metric_KIND_UNKNOWN
+}
+
+func (x *Metric) GetLabels() []string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+// MetricTotal is one player's total of one metric and label.
+type MetricTotal struct {
+	unknownFields []byte
+	Name          string  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Label         string  `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Value         float64 `protobuf:"fixed64,3,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *MetricTotal) Reset() {
+	*x = MetricTotal{}
+}
+
+func (*MetricTotal) ProtoMessage() {}
+
+func (x *MetricTotal) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetricTotal) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *MetricTotal) GetValue() float64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+// MetricTotals are one player's totals for one mod's session.
+type MetricTotals struct {
+	unknownFields []byte
+	Totals        []*MetricTotal `protobuf:"bytes,1,rep,name=totals,proto3" json:"totals,omitempty"`
+}
+
+func (x *MetricTotals) Reset() {
+	*x = MetricTotals{}
+}
+
+func (*MetricTotals) ProtoMessage() {}
+
+func (x *MetricTotals) GetTotals() []*MetricTotal {
+	if x != nil {
+		return x.Totals
+	}
+	return nil
+}
+
+// StoredSettings is the file a host without a settings service keeps
+// players' settings in.
+type StoredSettings struct {
+	unknownFields []byte
+	Values        []*StoredSetting `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+}
+
+func (x *StoredSettings) Reset() {
+	*x = StoredSettings{}
+}
+
+func (*StoredSettings) ProtoMessage() {}
+
+func (x *StoredSettings) GetValues() []*StoredSetting {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+// StoredSetting is one player's value of one mod's setting.
+type StoredSetting struct {
+	unknownFields []byte
+	Mod           string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	SteamId       uint64 `protobuf:"varint,2,opt,name=steam_id,json=steamId,proto3" json:"steamId,omitempty"`
+	Key           string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *StoredSetting) Reset() {
+	*x = StoredSetting{}
+}
+
+func (*StoredSetting) ProtoMessage() {}
+
+func (x *StoredSetting) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *StoredSetting) GetSteamId() uint64 {
+	if x != nil {
+		return x.SteamId
+	}
+	return 0
+}
+
+func (x *StoredSetting) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *StoredSetting) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
 }
 
 // Movement selects the movement model heroes walk and jump with.
@@ -5463,6 +6018,24 @@ func (m *LandedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *SettingChangedEvent) CloneVT() *SettingChangedEvent {
+	if m == nil {
+		return (*SettingChangedEvent)(nil)
+	}
+	r := new(SettingChangedEvent)
+	r.Player = m.Player
+	r.Key = m.Key
+	r.Value = m.Value
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SettingChangedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *LogRequest) CloneVT() *LogRequest {
 	if m == nil {
 		return (*LogRequest)(nil)
@@ -5508,6 +6081,76 @@ func (m *PlayerRequest) CloneVT() *PlayerRequest {
 }
 
 func (m *PlayerRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *PlayerSettingRequest) CloneVT() *PlayerSettingRequest {
+	if m == nil {
+		return (*PlayerSettingRequest)(nil)
+	}
+	r := new(PlayerSettingRequest)
+	r.Player = m.Player
+	r.Key = m.Key
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PlayerSettingRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SettingResponse) CloneVT() *SettingResponse {
+	if m == nil {
+		return (*SettingResponse)(nil)
+	}
+	r := new(SettingResponse)
+	r.Value = m.Value
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SettingResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *AddMetricRequest) CloneVT() *AddMetricRequest {
+	if m == nil {
+		return (*AddMetricRequest)(nil)
+	}
+	r := new(AddMetricRequest)
+	r.Player = m.Player
+	r.Name = m.Name
+	r.Value = m.Value
+	r.Label = protobuf_go_lite.ClonePtr(m.Label)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *AddMetricRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SetPlayerSettingRequest) CloneVT() *SetPlayerSettingRequest {
+	if m == nil {
+		return (*SetPlayerSettingRequest)(nil)
+	}
+	r := new(SetPlayerSettingRequest)
+	r.Player = m.Player
+	r.Key = m.Key
+	r.Value = m.Value
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SetPlayerSettingRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -7167,6 +7810,8 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Map = m.Map
 	r.Movement = protobuf_go_lite.CloneVTValue(m.Movement)
 	r.Abilities = protobuf_go_lite.CloneVTSlice(m.Abilities)
+	r.Settings = protobuf_go_lite.CloneVTSlice(m.Settings)
+	r.Metrics = protobuf_go_lite.CloneVTSlice(m.Metrics)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -7174,6 +7819,133 @@ func (m *Manifest) CloneVT() *Manifest {
 }
 
 func (m *Manifest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Setting) CloneVT() *Setting {
+	if m == nil {
+		return (*Setting)(nil)
+	}
+	r := new(Setting)
+	r.Key = m.Key
+	r.Label = m.Label
+	r.Kind = m.Kind
+	r.Min = m.Min
+	r.Max = m.Max
+	r.Step = m.Step
+	r.DefaultValue = m.DefaultValue
+	r.Choices = protobuf_go_lite.CloneVTSlice(m.Choices)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Setting) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SettingChoice) CloneVT() *SettingChoice {
+	if m == nil {
+		return (*SettingChoice)(nil)
+	}
+	r := new(SettingChoice)
+	r.Value = m.Value
+	r.Label = m.Label
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SettingChoice) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Metric) CloneVT() *Metric {
+	if m == nil {
+		return (*Metric)(nil)
+	}
+	r := new(Metric)
+	r.Name = m.Name
+	r.Kind = m.Kind
+	r.Labels = protobuf_go_lite.CloneSlice(m.Labels)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Metric) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *MetricTotal) CloneVT() *MetricTotal {
+	if m == nil {
+		return (*MetricTotal)(nil)
+	}
+	r := new(MetricTotal)
+	r.Name = m.Name
+	r.Label = m.Label
+	r.Value = m.Value
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *MetricTotal) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *MetricTotals) CloneVT() *MetricTotals {
+	if m == nil {
+		return (*MetricTotals)(nil)
+	}
+	r := new(MetricTotals)
+	r.Totals = protobuf_go_lite.CloneVTSlice(m.Totals)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *MetricTotals) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *StoredSettings) CloneVT() *StoredSettings {
+	if m == nil {
+		return (*StoredSettings)(nil)
+	}
+	r := new(StoredSettings)
+	r.Values = protobuf_go_lite.CloneVTSlice(m.Values)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *StoredSettings) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *StoredSetting) CloneVT() *StoredSetting {
+	if m == nil {
+		return (*StoredSetting)(nil)
+	}
+	r := new(StoredSetting)
+	r.Mod = m.Mod
+	r.SteamId = m.SteamId
+	r.Key = m.Key
+	r.Value = m.Value
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *StoredSetting) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -7806,6 +8578,31 @@ func (this *LandedEvent) EqualMessageVT(thatMsg any) bool {
 	}
 	return this.EqualVT(that)
 }
+func (this *SettingChangedEvent) EqualVT(that *SettingChangedEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Key != that.Key {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SettingChangedEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SettingChangedEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
 func (this *LogRequest) EqualVT(that *LogRequest) bool {
 	if this == that {
 		return true
@@ -7858,6 +8655,100 @@ func (this *PlayerRequest) EqualVT(that *PlayerRequest) bool {
 
 func (this *PlayerRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*PlayerRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *PlayerSettingRequest) EqualVT(that *PlayerSettingRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Key != that.Key {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PlayerSettingRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PlayerSettingRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SettingResponse) EqualVT(that *SettingResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SettingResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SettingResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *AddMetricRequest) EqualVT(that *AddMetricRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Label, that.Label) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AddMetricRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*AddMetricRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SetPlayerSettingRequest) EqualVT(that *SetPlayerSettingRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Key != that.Key {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SetPlayerSettingRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SetPlayerSettingRequest)
 	if !ok {
 		return false
 	}
@@ -10187,11 +11078,195 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Abilities, that.Abilities, func() *AbilityTuning { return &AbilityTuning{} }) {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Settings, that.Settings, func() *Setting { return &Setting{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Metrics, that.Metrics, func() *Metric { return &Metric{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Manifest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Manifest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Setting) EqualVT(that *Setting) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Key != that.Key {
+		return false
+	}
+	if this.Label != that.Label {
+		return false
+	}
+	if this.Kind != that.Kind {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Choices, that.Choices, func() *SettingChoice { return &SettingChoice{} }) {
+		return false
+	}
+	if this.Min != that.Min {
+		return false
+	}
+	if this.Max != that.Max {
+		return false
+	}
+	if this.Step != that.Step {
+		return false
+	}
+	if this.DefaultValue != that.DefaultValue {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Setting) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Setting)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SettingChoice) EqualVT(that *SettingChoice) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	if this.Label != that.Label {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SettingChoice) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SettingChoice)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Metric) EqualVT(that *Metric) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Kind != that.Kind {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Labels, that.Labels) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Metric) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Metric)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *MetricTotal) EqualVT(that *MetricTotal) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Label != that.Label {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *MetricTotal) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*MetricTotal)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *MetricTotals) EqualVT(that *MetricTotals) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Totals, that.Totals, func() *MetricTotal { return &MetricTotal{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *MetricTotals) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*MetricTotals)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *StoredSettings) EqualVT(that *StoredSettings) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Values, that.Values, func() *StoredSetting { return &StoredSetting{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *StoredSettings) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*StoredSettings)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *StoredSetting) EqualVT(that *StoredSetting) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if this.SteamId != that.SteamId {
+		return false
+	}
+	if this.Key != that.Key {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *StoredSetting) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*StoredSetting)
 	if !ok {
 		return false
 	}
@@ -11889,6 +12964,64 @@ func (x *LandedEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the SettingChangedEvent message to JSON.
+func (x *SettingChangedEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SettingChangedEvent to JSON.
+func (x *SettingChangedEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SettingChangedEvent message from JSON.
+func (x *SettingChangedEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SettingChangedEvent from JSON.
+func (x *SettingChangedEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the LogRequest message to JSON.
 func (x *LogRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -12012,6 +13145,227 @@ func (x *PlayerRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the PlayerRequest from JSON.
 func (x *PlayerRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the PlayerSettingRequest message to JSON.
+func (x *PlayerSettingRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PlayerSettingRequest to JSON.
+func (x *PlayerSettingRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PlayerSettingRequest message from JSON.
+func (x *PlayerSettingRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PlayerSettingRequest from JSON.
+func (x *PlayerSettingRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SettingResponse message to JSON.
+func (x *SettingResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SettingResponse to JSON.
+func (x *SettingResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SettingResponse message from JSON.
+func (x *SettingResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SettingResponse from JSON.
+func (x *SettingResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the AddMetricRequest message to JSON.
+func (x *AddMetricRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteFloat64(x.Value)
+	}
+	if x.Label != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("label")
+		s.WriteString(*x.Label)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the AddMetricRequest to JSON.
+func (x *AddMetricRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the AddMetricRequest message from JSON.
+func (x *AddMetricRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadFloat64()
+		case "label":
+			s.AddField("label")
+			if s.ReadNil() {
+				x.Label = nil
+				return
+			}
+			t := s.ReadString()
+			x.Label = &t
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the AddMetricRequest from JSON.
+func (x *AddMetricRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SetPlayerSettingRequest message to JSON.
+func (x *SetPlayerSettingRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SetPlayerSettingRequest to JSON.
+func (x *SetPlayerSettingRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SetPlayerSettingRequest message from JSON.
+func (x *SetPlayerSettingRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SetPlayerSettingRequest from JSON.
+func (x *SetPlayerSettingRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -17741,6 +19095,28 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if len(x.Settings) > 0 || s.HasField("settings") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("settings")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Settings {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("settings"))
+		}
+		s.WriteArrayEnd()
+	}
+	if len(x.Metrics) > 0 || s.HasField("metrics") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("metrics")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Metrics {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("metrics"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -17804,12 +19180,609 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Abilities = append(x.Abilities, v)
 			})
+		case "settings":
+			s.AddField("settings")
+			if s.ReadNil() {
+				x.Settings = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Settings = append(x.Settings, nil)
+					return
+				}
+				v := &Setting{}
+				v.UnmarshalProtoJSON(s.WithField("settings", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Settings = append(x.Settings, v)
+			})
+		case "metrics":
+			s.AddField("metrics")
+			if s.ReadNil() {
+				x.Metrics = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Metrics = append(x.Metrics, nil)
+					return
+				}
+				v := &Metric{}
+				v.UnmarshalProtoJSON(s.WithField("metrics", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Metrics = append(x.Metrics, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Manifest from JSON.
 func (x *Manifest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Setting_Kind to JSON.
+func (x Setting_Kind) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Setting_Kind_name)
+}
+
+// MarshalText marshals the Setting_Kind to text.
+func (x Setting_Kind) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Setting_Kind_name)), nil
+}
+
+// MarshalJSON marshals the Setting_Kind to JSON.
+func (x Setting_Kind) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Setting_Kind from JSON.
+func (x *Setting_Kind) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Setting_Kind_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Kind enum: %v", err)
+		return
+	}
+	*x = Setting_Kind(v)
+}
+
+// UnmarshalText unmarshals the Setting_Kind from text.
+func (x *Setting_Kind) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Setting_Kind_value)
+	if err != nil {
+		return err
+	}
+	*x = Setting_Kind(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Setting_Kind from JSON.
+func (x *Setting_Kind) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Setting message to JSON.
+func (x *Setting) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Label != "" || s.HasField("label") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("label")
+		s.WriteString(x.Label)
+	}
+	if x.Kind != 0 || s.HasField("kind") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kind")
+		x.Kind.MarshalProtoJSON(s)
+	}
+	if len(x.Choices) > 0 || s.HasField("choices") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("choices")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Choices {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("choices"))
+		}
+		s.WriteArrayEnd()
+	}
+	if x.Min != 0 || s.HasField("min") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("min")
+		s.WriteFloat64(x.Min)
+	}
+	if x.Max != 0 || s.HasField("max") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("max")
+		s.WriteFloat64(x.Max)
+	}
+	if x.Step != 0 || s.HasField("step") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("step")
+		s.WriteFloat64(x.Step)
+	}
+	if x.DefaultValue != "" || s.HasField("default") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("default")
+		s.WriteString(x.DefaultValue)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Setting to JSON.
+func (x *Setting) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Setting message from JSON.
+func (x *Setting) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "label":
+			s.AddField("label")
+			x.Label = s.ReadString()
+		case "kind":
+			s.AddField("kind")
+			x.Kind.UnmarshalProtoJSON(s)
+		case "choices":
+			s.AddField("choices")
+			if s.ReadNil() {
+				x.Choices = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Choices = append(x.Choices, nil)
+					return
+				}
+				v := &SettingChoice{}
+				v.UnmarshalProtoJSON(s.WithField("choices", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Choices = append(x.Choices, v)
+			})
+		case "min":
+			s.AddField("min")
+			x.Min = s.ReadFloat64()
+		case "max":
+			s.AddField("max")
+			x.Max = s.ReadFloat64()
+		case "step":
+			s.AddField("step")
+			x.Step = s.ReadFloat64()
+		case "default_value", "default":
+			s.AddField("default_value")
+			x.DefaultValue = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Setting from JSON.
+func (x *Setting) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SettingChoice message to JSON.
+func (x *SettingChoice) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	if x.Label != "" || s.HasField("label") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("label")
+		s.WriteString(x.Label)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SettingChoice to JSON.
+func (x *SettingChoice) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SettingChoice message from JSON.
+func (x *SettingChoice) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		case "label":
+			s.AddField("label")
+			x.Label = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SettingChoice from JSON.
+func (x *SettingChoice) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Metric_Kind to JSON.
+func (x Metric_Kind) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Metric_Kind_name)
+}
+
+// MarshalText marshals the Metric_Kind to text.
+func (x Metric_Kind) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Metric_Kind_name)), nil
+}
+
+// MarshalJSON marshals the Metric_Kind to JSON.
+func (x Metric_Kind) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Metric_Kind from JSON.
+func (x *Metric_Kind) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Metric_Kind_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Kind enum: %v", err)
+		return
+	}
+	*x = Metric_Kind(v)
+}
+
+// UnmarshalText unmarshals the Metric_Kind from text.
+func (x *Metric_Kind) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Metric_Kind_value)
+	if err != nil {
+		return err
+	}
+	*x = Metric_Kind(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Metric_Kind from JSON.
+func (x *Metric_Kind) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Metric message to JSON.
+func (x *Metric) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Kind != 0 || s.HasField("kind") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kind")
+		x.Kind.MarshalProtoJSON(s)
+	}
+	if len(x.Labels) > 0 || s.HasField("labels") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("labels")
+		s.WriteStringArray(x.Labels)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Metric to JSON.
+func (x *Metric) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Metric message from JSON.
+func (x *Metric) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "kind":
+			s.AddField("kind")
+			x.Kind.UnmarshalProtoJSON(s)
+		case "labels":
+			s.AddField("labels")
+			if s.ReadNil() {
+				x.Labels = nil
+				return
+			}
+			x.Labels = s.ReadStringArray()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Metric from JSON.
+func (x *Metric) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the MetricTotal message to JSON.
+func (x *MetricTotal) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Label != "" || s.HasField("label") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("label")
+		s.WriteString(x.Label)
+	}
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteFloat64(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the MetricTotal to JSON.
+func (x *MetricTotal) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MetricTotal message from JSON.
+func (x *MetricTotal) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "label":
+			s.AddField("label")
+			x.Label = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadFloat64()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the MetricTotal from JSON.
+func (x *MetricTotal) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the MetricTotals message to JSON.
+func (x *MetricTotals) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Totals) > 0 || s.HasField("totals") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("totals")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Totals {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("totals"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the MetricTotals to JSON.
+func (x *MetricTotals) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MetricTotals message from JSON.
+func (x *MetricTotals) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "totals":
+			s.AddField("totals")
+			if s.ReadNil() {
+				x.Totals = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Totals = append(x.Totals, nil)
+					return
+				}
+				v := &MetricTotal{}
+				v.UnmarshalProtoJSON(s.WithField("totals", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Totals = append(x.Totals, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the MetricTotals from JSON.
+func (x *MetricTotals) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the StoredSettings message to JSON.
+func (x *StoredSettings) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Values) > 0 || s.HasField("values") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("values")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Values {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("values"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the StoredSettings to JSON.
+func (x *StoredSettings) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the StoredSettings message from JSON.
+func (x *StoredSettings) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "values":
+			s.AddField("values")
+			if s.ReadNil() {
+				x.Values = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Values = append(x.Values, nil)
+					return
+				}
+				v := &StoredSetting{}
+				v.UnmarshalProtoJSON(s.WithField("values", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Values = append(x.Values, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the StoredSettings from JSON.
+func (x *StoredSettings) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the StoredSetting message to JSON.
+func (x *StoredSetting) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.SteamId != 0 || s.HasField("steamId") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steamId")
+		s.WriteUint64(x.SteamId)
+	}
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the StoredSetting to JSON.
+func (x *StoredSetting) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the StoredSetting message from JSON.
+func (x *StoredSetting) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "steam_id", "steamId":
+			s.AddField("steam_id")
+			x.SteamId = s.ReadUint64()
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the StoredSetting from JSON.
+func (x *StoredSetting) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -19339,6 +21312,53 @@ func (m *LandedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SettingChangedEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SettingChangedEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SettingChangedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Value) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Value)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Key) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *LogRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -19441,6 +21461,184 @@ func (m *PlayerRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlayerSettingRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlayerSettingRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PlayerSettingRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Key) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SettingResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SettingResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SettingResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Value) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Value)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AddMetricRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AddMetricRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *AddMetricRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Label != nil {
+		i = protobuf_go_lite.EncodeString(dAtA, i, *m.Label)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Value != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Value))))
+		i--
+		dAtA[i] = 0x19
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetPlayerSettingRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetPlayerSettingRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SetPlayerSettingRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Value) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Value)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Key) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
+		i--
+		dAtA[i] = 0x12
 	}
 	if m.Player != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
@@ -23905,6 +26103,30 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Metrics) > 0 {
+		for iNdEx := len(m.Metrics) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Metrics[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x5a
+		}
+	}
+	if len(m.Settings) > 0 {
+		for iNdEx := len(m.Settings) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Settings[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x52
+		}
+	}
 	if len(m.Abilities) > 0 {
 		for iNdEx := len(m.Abilities) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Abilities[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -23959,6 +26181,363 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if len(m.Slug) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Slug)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Setting) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Setting) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Setting) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.DefaultValue) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.DefaultValue)
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.Step != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Step))))
+		i--
+		dAtA[i] = 0x39
+	}
+	if m.Max != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Max))))
+		i--
+		dAtA[i] = 0x31
+	}
+	if m.Min != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Min))))
+		i--
+		dAtA[i] = 0x29
+	}
+	if len(m.Choices) > 0 {
+		for iNdEx := len(m.Choices) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Choices[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.Kind != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Kind))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Label) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Label)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Key) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SettingChoice) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SettingChoice) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SettingChoice) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Label) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Label)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Value) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Value)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Metric) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Metric) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Metric) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Labels) > 0 {
+		for iNdEx := len(m.Labels) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Labels[iNdEx])
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.Kind != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Kind))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetricTotal) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetricTotal) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *MetricTotal) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Value != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(math.Float64bits(float64(m.Value))))
+		i--
+		dAtA[i] = 0x19
+	}
+	if len(m.Label) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Label)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetricTotals) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetricTotals) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *MetricTotals) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Totals) > 0 {
+		for iNdEx := len(m.Totals) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Totals[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *StoredSettings) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StoredSettings) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *StoredSettings) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Values) > 0 {
+		for iNdEx := len(m.Values) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Values[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *StoredSetting) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StoredSetting) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *StoredSetting) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Value) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Value)
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Key) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Key)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.SteamId != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.SteamId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
 		i--
 		dAtA[i] = 0xa
 	}
@@ -24424,6 +27003,19 @@ func (m *LandedEvent) SizeVT() (n int) {
 	return n
 }
 
+func (m *SettingChangedEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Value)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *LogRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -24453,6 +27045,56 @@ func (m *PlayerRequest) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *PlayerSettingRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SettingResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Value)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *AddMetricRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Value)
+	n += protobuf_go_lite.SizeStringPtr(1, m.Label)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SetPlayerSettingRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Value)
 	n += len(m.unknownFields)
 	return n
 }
@@ -25847,6 +28489,115 @@ func (m *Manifest) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	for _, e := range m.Settings {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	for _, e := range m.Metrics {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Setting) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Label)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Kind)
+	for _, e := range m.Choices {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Min)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Max)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Step)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.DefaultValue)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SettingChoice) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Value)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Label)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Metric) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Kind)
+	n += protobuf_go_lite.SizeStringSlice(1, m.Labels)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *MetricTotal) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Label)
+	n += protobuf_go_lite.SizeFixed64NonZero(1, m.Value)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *MetricTotals) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Totals {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *StoredSettings) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Values {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *StoredSetting) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.SteamId)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Key)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Value)
 	n += len(m.unknownFields)
 	return n
 }
@@ -26443,6 +29194,27 @@ func (x *LandedEvent) MarshalProtoText() string {
 func (x *LandedEvent) String() string {
 	return x.MarshalProtoText()
 }
+func (x *SettingChangedEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SettingChangedEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SettingChangedEvent) String() string {
+	return x.MarshalProtoText()
+}
 func (x *LogRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "LogRequest")
@@ -26480,6 +29252,82 @@ func (x *PlayerRequest) MarshalProtoText() string {
 }
 
 func (x *PlayerRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *PlayerSettingRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PlayerSettingRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PlayerSettingRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *SettingResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SettingResponse")
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SettingResponse) String() string {
+	return x.MarshalProtoText()
+}
+func (x *AddMetricRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AddMetricRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Value)
+	}
+	if x.Label != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "label")
+		protobuf_go_lite.TextWriteString(&sb, *x.Label)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *AddMetricRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *SetPlayerSettingRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SetPlayerSettingRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SetPlayerSettingRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *ChatRequest) MarshalProtoText() string {
@@ -28412,10 +31260,219 @@ func (x *Manifest) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if len(x.Settings) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "settings")
+		for i, v := range x.Settings {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Setting{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Metrics) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "metrics")
+		for i, v := range x.Metrics {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Metric{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Manifest) String() string {
+	return x.MarshalProtoText()
+}
+func (x Setting_Kind) MarshalProtoText() string {
+	return x.String()
+}
+func (x *Setting) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Setting")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Label != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "label")
+		protobuf_go_lite.TextWriteString(&sb, x.Label)
+	}
+	if x.Kind != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kind")
+		protobuf_go_lite.TextWriteStringer(&sb, Setting_Kind(x.Kind))
+	}
+	if len(x.Choices) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "choices")
+		for i, v := range x.Choices {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &SettingChoice{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Min != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "min")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Min)
+	}
+	if x.Max != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Max)
+	}
+	if x.Step != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "step")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Step)
+	}
+	if x.DefaultValue != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "default_value")
+		protobuf_go_lite.TextWriteString(&sb, x.DefaultValue)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Setting) String() string {
+	return x.MarshalProtoText()
+}
+func (x *SettingChoice) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SettingChoice")
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	if x.Label != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "label")
+		protobuf_go_lite.TextWriteString(&sb, x.Label)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SettingChoice) String() string {
+	return x.MarshalProtoText()
+}
+func (x Metric_Kind) MarshalProtoText() string {
+	return x.String()
+}
+func (x *Metric) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Metric")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Kind != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kind")
+		protobuf_go_lite.TextWriteStringer(&sb, Metric_Kind(x.Kind))
+	}
+	if len(x.Labels) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "labels")
+		for i, v := range x.Labels {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Metric) String() string {
+	return x.MarshalProtoText()
+}
+func (x *MetricTotal) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MetricTotal")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Label != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "label")
+		protobuf_go_lite.TextWriteString(&sb, x.Label)
+	}
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteFloat64(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *MetricTotal) String() string {
+	return x.MarshalProtoText()
+}
+func (x *MetricTotals) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MetricTotals")
+	if len(x.Totals) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "totals")
+		for i, v := range x.Totals {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &MetricTotal{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *MetricTotals) String() string {
+	return x.MarshalProtoText()
+}
+func (x *StoredSettings) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "StoredSettings")
+	if len(x.Values) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "values")
+		for i, v := range x.Values {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &StoredSetting{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *StoredSettings) String() string {
+	return x.MarshalProtoText()
+}
+func (x *StoredSetting) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "StoredSetting")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.SteamId != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steam_id")
+		protobuf_go_lite.TextWriteUint(&sb, x.SteamId)
+	}
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *StoredSetting) String() string {
 	return x.MarshalProtoText()
 }
 func (x Movement_Model) MarshalProtoText() string {
@@ -30326,6 +33383,77 @@ func (m *LandedEvent) UnmarshalVT(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *SettingChangedEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SettingChangedEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SettingChangedEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Key = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *LogRequest) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -30459,6 +33587,273 @@ func (m *PlayerRequest) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PlayerSettingRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlayerSettingRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlayerSettingRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Key = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SettingResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SettingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SettingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AddMetricRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AddMetricRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AddMetricRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 3:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Value = float64(math.Float64frombits(v))
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Label", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Label = &v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetPlayerSettingRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetPlayerSettingRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetPlayerSettingRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Key = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -37116,6 +40511,564 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Settings", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Settings = append(m.Settings, &Setting{})
+			if err := m.Settings[len(m.Settings)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metrics", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Metrics = append(m.Metrics, &Metric{})
+			if err := m.Metrics[len(m.Metrics)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Setting) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Setting: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Setting: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Key = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Label", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Label = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kind", wireType)
+			}
+			m.Kind = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Kind = Setting_Kind(_v)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Choices", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Choices = append(m.Choices, &SettingChoice{})
+			if err := m.Choices[len(m.Choices)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Min", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Min = float64(math.Float64frombits(v))
+		case 6:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Max", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Max = float64(math.Float64frombits(v))
+		case 7:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Step", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Step = float64(math.Float64frombits(v))
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DefaultValue", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.DefaultValue = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SettingChoice) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SettingChoice: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SettingChoice: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Label", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Label = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Metric) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Metric: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Metric: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kind", wireType)
+			}
+			m.Kind = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Kind = Metric_Kind(_v)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Labels", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Labels = append(m.Labels, v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetricTotal) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetricTotal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetricTotal: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Label", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Label = v
+		case 3:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v uint64
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint64(_v64)
+			m.Value = float64(math.Float64frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetricTotals) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetricTotals: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetricTotals: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Totals", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Totals = append(m.Totals, &MetricTotal{})
+			if err := m.Totals[len(m.Totals)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *StoredSettings) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StoredSettings: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StoredSettings: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Values", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Values = append(m.Values, &StoredSetting{})
+			if err := m.Values[len(m.Values)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *StoredSetting) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StoredSetting: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StoredSetting: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SteamId", wireType)
+			}
+			m.SteamId = 0
+			m.SteamId, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Key = v
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

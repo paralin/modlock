@@ -397,6 +397,91 @@ export const Manifest_Language_Enum = /* @__PURE__ */ createEnumType("modlock.wa
 ]);
 
 /**
+ * Kind is the kind of value a setting holds.
+ *
+ * @generated from enum modlock.wasm.Setting.Kind
+ */
+export enum Setting_Kind {
+  /**
+   * KIND_UNKNOWN is an unset or unsupported kind.
+   *
+   * @generated from enum value: KIND_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * KIND_CHOICE is one of the setting's choices.
+   *
+   * @generated from enum value: KIND_CHOICE = 1;
+   */
+  CHOICE = 1,
+
+  /**
+   * KIND_SWITCH is on or off.
+   *
+   * @generated from enum value: KIND_SWITCH = 2;
+   */
+  SWITCH = 2,
+
+  /**
+   * KIND_NUMBER is a number from min to max, on a step from min when step
+   * is above zero.
+   *
+   * @generated from enum value: KIND_NUMBER = 3;
+   */
+  NUMBER = 3,
+}
+
+export const Setting_Kind_Enum = /* @__PURE__ */ createEnumType("modlock.wasm.Setting.Kind", [
+  [0, "KIND_UNKNOWN"],
+  [1, "KIND_CHOICE"],
+  [2, "KIND_SWITCH"],
+  [3, "KIND_NUMBER"],
+]);
+
+/**
+ * Kind is how a metric combines the values added to it.
+ *
+ * @generated from enum modlock.wasm.Metric.Kind
+ */
+export enum Metric_Kind {
+  /**
+   * KIND_UNKNOWN is an unset or unsupported kind.
+   *
+   * @generated from enum value: KIND_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * KIND_COUNT counts the calls.
+   *
+   * @generated from enum value: KIND_COUNT = 1;
+   */
+  COUNT = 1,
+
+  /**
+   * KIND_SUM adds the values.
+   *
+   * @generated from enum value: KIND_SUM = 2;
+   */
+  SUM = 2,
+
+  /**
+   * KIND_MAX keeps the largest value.
+   *
+   * @generated from enum value: KIND_MAX = 3;
+   */
+  MAX = 3,
+}
+
+export const Metric_Kind_Enum = /* @__PURE__ */ createEnumType("modlock.wasm.Metric.Kind", [
+  [0, "KIND_UNKNOWN"],
+  [1, "KIND_COUNT"],
+  [2, "KIND_SUM"],
+  [3, "KIND_MAX"],
+]);
+
+/**
  * Model is a movement model the host runs every tick.
  *
  * @generated from enum modlock.wasm.Movement.Model
@@ -1346,6 +1431,43 @@ export const LandedEvent: MessageType<LandedEvent> = /* @__PURE__ */ createMessa
 });
 
 /**
+ * SettingChangedEvent is one player's new value of one setting.
+ *
+ * @generated from message modlock.wasm.SettingChangedEvent
+ */
+export interface SettingChangedEvent {
+  /**
+   * Player is the player's server slot.
+   *
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Key names the setting.
+   *
+   * @generated from field: string key = 2;
+   */
+  key?: string;
+  /**
+   * Value is the new value.
+   *
+   * @generated from field: string value = 3;
+   */
+  value?: string;
+
+};
+
+export const SettingChangedEvent: MessageType<SettingChangedEvent> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SettingChangedEvent",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "key", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "value", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * LogRequest carries one log line.
  *
  * @generated from message modlock.wasm.LogRequest
@@ -1410,6 +1532,143 @@ export const PlayerRequest: MessageType<PlayerRequest> = /* @__PURE__ */ createM
     typeName: "modlock.wasm.PlayerRequest",
     fields: [
         { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * PlayerSettingRequest names one of a player's settings.
+ *
+ * @generated from message modlock.wasm.PlayerSettingRequest
+ */
+export interface PlayerSettingRequest {
+  /**
+   * Player is the player's server slot.
+   *
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Key names a setting the manifest declares.
+   *
+   * @generated from field: string key = 2;
+   */
+  key?: string;
+
+};
+
+export const PlayerSettingRequest: MessageType<PlayerSettingRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.PlayerSettingRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "key", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * SettingResponse holds a setting's value.
+ *
+ * @generated from message modlock.wasm.SettingResponse
+ */
+export interface SettingResponse {
+  /**
+   * Value is the value as text: a choice's value, "true" or "false", or a
+   * number.
+   *
+   * @generated from field: string value = 1;
+   */
+  value?: string;
+
+};
+
+export const SettingResponse: MessageType<SettingResponse> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SettingResponse",
+    fields: [
+        { no: 1, name: "value", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * AddMetricRequest adds to one of a player's metric totals.
+ *
+ * @generated from message modlock.wasm.AddMetricRequest
+ */
+export interface AddMetricRequest {
+  /**
+   * Player is the player's server slot.
+   *
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Name names a metric the manifest declares.
+   *
+   * @generated from field: string name = 2;
+   */
+  name?: string;
+  /**
+   * Value is the amount a sum adds and the value a maximum compares; a
+   * count adds one.
+   *
+   * @generated from field: double value = 3;
+   */
+  value?: number;
+  /**
+   * Label is one of the metric's declared labels, or empty for a metric
+   * without labels.
+   *
+   * @generated from field: optional string label = 4;
+   */
+  label?: string;
+
+};
+
+export const AddMetricRequest: MessageType<AddMetricRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.AddMetricRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "name", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "value", kind: "scalar", T: ScalarType.DOUBLE },
+        { no: 4, name: "label", kind: "scalar", T: ScalarType.STRING, opt: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * SetPlayerSettingRequest changes one of a player's settings.
+ *
+ * @generated from message modlock.wasm.SetPlayerSettingRequest
+ */
+export interface SetPlayerSettingRequest {
+  /**
+   * Player is the player's server slot.
+   *
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Key names a setting the manifest declares.
+   *
+   * @generated from field: string key = 2;
+   */
+  key?: string;
+  /**
+   * Value is one of the setting's values, as SettingResponse holds it.
+   *
+   * @generated from field: string value = 3;
+   */
+  value?: string;
+
+};
+
+export const SetPlayerSettingRequest: MessageType<SetPlayerSettingRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SetPlayerSettingRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "key", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "value", kind: "scalar", T: ScalarType.STRING },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });
@@ -4640,6 +4899,145 @@ export const AbilityTuning: MessageType<AbilityTuning> = /* @__PURE__ */ createM
 });
 
 /**
+ * SettingChoice is one value of a choice setting.
+ *
+ * @generated from message modlock.wasm.SettingChoice
+ */
+export interface SettingChoice {
+  /**
+   * Value is the value the mod reads: letters, digits, dots, underscores
+   * and hyphens.
+   *
+   * @generated from field: string value = 1;
+   */
+  value?: string;
+  /**
+   * Label names the choice to players; empty shows the value.
+   *
+   * @generated from field: string label = 2;
+   */
+  label?: string;
+
+};
+
+export const SettingChoice: MessageType<SettingChoice> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SettingChoice",
+    fields: [
+        { no: 1, name: "value", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "label", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Setting is one choice a player makes about a mod, such as a HUD layout.
+ * Each value is text: a choice's value, "true" or "false", or a number.
+ *
+ * @generated from message modlock.wasm.Setting
+ */
+export interface Setting {
+  /**
+   * Key names the setting in the mod's code: up to 64 letters, digits and
+   * underscores, not starting with a digit.
+   *
+   * @generated from field: string key = 1;
+   */
+  key?: string;
+  /**
+   * Label names the setting to players.
+   *
+   * @generated from field: string label = 2;
+   */
+  label?: string;
+  /**
+   * @generated from field: modlock.wasm.Setting.Kind kind = 3;
+   */
+  kind?: Setting_Kind;
+  /**
+   * Choices are a choice setting's values, in the order players see them.
+   *
+   * @generated from field: repeated modlock.wasm.SettingChoice choices = 4;
+   */
+  choices?: SettingChoice[];
+  /**
+   * Min, max and step bound a number setting.
+   *
+   * @generated from field: double min = 5;
+   */
+  min?: number;
+  /**
+   * @generated from field: double max = 6;
+   */
+  max?: number;
+  /**
+   * @generated from field: double step = 7;
+   */
+  step?: number;
+  /**
+   * Default is the value a player starts with. Empty means the first choice,
+   * off, or min.
+   *
+   * @generated from field: string default_value = 8 [json_name = "default"];
+   */
+  defaultValue?: string;
+
+};
+
+export const Setting: MessageType<Setting> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.Setting",
+    fields: [
+        { no: 1, name: "key", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "label", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "kind", kind: "enum", T: Setting_Kind_Enum },
+        { no: 4, name: "choices", kind: "message", T: () => SettingChoice, repeated: true },
+        { no: 5, name: "min", kind: "scalar", T: ScalarType.DOUBLE },
+        { no: 6, name: "max", kind: "scalar", T: ScalarType.DOUBLE },
+        { no: 7, name: "step", kind: "scalar", T: ScalarType.DOUBLE },
+        { no: 8, name: "default_value", jsonName: "default", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Metric is one measure a mod keeps for each player, such as how often the
+ * player opens a HUD panel. A metric with labels keeps one total per label,
+ * such as one per HUD layout.
+ *
+ * @generated from message modlock.wasm.Metric
+ */
+export interface Metric {
+  /**
+   * Name names the metric in the mod's code: up to 64 letters, digits,
+   * underscores and dots, starting with a letter or an underscore.
+   *
+   * @generated from field: string name = 1;
+   */
+  name?: string;
+  /**
+   * @generated from field: modlock.wasm.Metric.Kind kind = 2;
+   */
+  kind?: Metric_Kind;
+  /**
+   * Labels are the values a call may label the metric with: letters,
+   * digits, dots, underscores and hyphens. Empty takes no label.
+   *
+   * @generated from field: repeated string labels = 3;
+   */
+  labels?: string[];
+
+};
+
+export const Metric: MessageType<Metric> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.Metric",
+    fields: [
+        { no: 1, name: "name", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "kind", kind: "enum", T: Metric_Kind_Enum },
+        { no: 3, name: "labels", kind: "scalar", T: ScalarType.STRING, repeated: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * Manifest describes a mod in its mod.json. A source project's manifest names
  * its language; modlock build writes a built mod's manifest beside the entry,
  * naming its runtime and entry instead.
@@ -4703,6 +5101,20 @@ export interface Manifest {
    * @generated from field: repeated modlock.wasm.AbilityTuning abilities = 9;
    */
   abilities?: AbilityTuning[];
+  /**
+   * Settings are the choices each player makes about the mod, which the mod
+   * reads with PlayerSetting.
+   *
+   * @generated from field: repeated modlock.wasm.Setting settings = 10;
+   */
+  settings?: Setting[];
+  /**
+   * Metrics are the measures the mod keeps for each player, which the mod
+   * adds to with AddMetric.
+   *
+   * @generated from field: repeated modlock.wasm.Metric metrics = 11;
+   */
+  metrics?: Metric[];
 
 };
 
@@ -4718,6 +5130,118 @@ export const Manifest: MessageType<Manifest> = /* @__PURE__ */ createMessageType
         { no: 7, name: "map", kind: "scalar", T: ScalarType.STRING },
         { no: 8, name: "movement", kind: "message", T: () => Movement },
         { no: 9, name: "abilities", kind: "message", T: () => AbilityTuning, repeated: true },
+        { no: 10, name: "settings", kind: "message", T: () => Setting, repeated: true },
+        { no: 11, name: "metrics", kind: "message", T: () => Metric, repeated: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * MetricTotal is one player's total of one metric and label.
+ *
+ * @generated from message modlock.wasm.MetricTotal
+ */
+export interface MetricTotal {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name?: string;
+  /**
+   * @generated from field: string label = 2;
+   */
+  label?: string;
+  /**
+   * @generated from field: double value = 3;
+   */
+  value?: number;
+
+};
+
+export const MetricTotal: MessageType<MetricTotal> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.MetricTotal",
+    fields: [
+        { no: 1, name: "name", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "label", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "value", kind: "scalar", T: ScalarType.DOUBLE },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * MetricTotals are one player's totals for one mod's session.
+ *
+ * @generated from message modlock.wasm.MetricTotals
+ */
+export interface MetricTotals {
+  /**
+   * @generated from field: repeated modlock.wasm.MetricTotal totals = 1;
+   */
+  totals?: MetricTotal[];
+
+};
+
+export const MetricTotals: MessageType<MetricTotals> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.MetricTotals",
+    fields: [
+        { no: 1, name: "totals", kind: "message", T: () => MetricTotal, repeated: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * StoredSetting is one player's value of one mod's setting.
+ *
+ * @generated from message modlock.wasm.StoredSetting
+ */
+export interface StoredSetting {
+  /**
+   * @generated from field: string mod = 1;
+   */
+  mod?: string;
+  /**
+   * @generated from field: uint64 steam_id = 2;
+   */
+  steamId?: bigint;
+  /**
+   * @generated from field: string key = 3;
+   */
+  key?: string;
+  /**
+   * @generated from field: string value = 4;
+   */
+  value?: string;
+
+};
+
+export const StoredSetting: MessageType<StoredSetting> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.StoredSetting",
+    fields: [
+        { no: 1, name: "mod", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "steam_id", kind: "scalar", T: ScalarType.UINT64 },
+        { no: 3, name: "key", kind: "scalar", T: ScalarType.STRING },
+        { no: 4, name: "value", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * StoredSettings is the file a host without a settings service keeps
+ * players' settings in.
+ *
+ * @generated from message modlock.wasm.StoredSettings
+ */
+export interface StoredSettings {
+  /**
+   * @generated from field: repeated modlock.wasm.StoredSetting values = 1;
+   */
+  values?: StoredSetting[];
+
+};
+
+export const StoredSettings: MessageType<StoredSettings> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.StoredSettings",
+    fields: [
+        { no: 1, name: "values", kind: "message", T: () => StoredSetting, repeated: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

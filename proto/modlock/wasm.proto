@@ -81,6 +81,21 @@ service Host {
   // Pawn returns the player's hero this frame, or nothing without one.
   rpc Pawn(PlayerRequest) returns (PawnResponse);
 
+  // PlayerSetting returns the player's value of a setting the manifest
+  // declares: the value they chose, or the setting's default. A bot has the
+  // defaults.
+  rpc PlayerSetting(PlayerSettingRequest) returns (SettingResponse);
+
+  // SetPlayerSetting changes the player's value of a setting the manifest
+  // declares. The value follows the player to later games and other mods'
+  // servers of the same mod; a bot keeps the defaults.
+  rpc SetPlayerSetting(SetPlayerSettingRequest) returns (Empty);
+
+  // AddMetric adds to the player's total of a metric the manifest declares.
+  // The host keeps each player's totals in memory and hands them on once,
+  // when the player leaves or the mod stops; a bot keeps none.
+  rpc AddMetric(AddMetricRequest) returns (Empty);
+
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
   // frame.
@@ -400,6 +415,11 @@ service Mod {
   // Landed reports a hero landing under the manifest's QuakeWorld movement,
   // before the next frame.
   rpc Landed(LandedEvent) returns (Empty);
+
+  // SettingChanged reports a player's setting that changed outside the mod,
+  // such as on the player's profile. A mod's own SetPlayerSetting reports
+  // nothing.
+  rpc SettingChanged(SettingChangedEvent) returns (Empty);
 }
 
 // StartEvent describes the server the mod starts in.
@@ -716,6 +736,18 @@ message LandedEvent {
   float speed = 3;
 }
 
+// SettingChangedEvent is one player's new value of one setting.
+message SettingChangedEvent {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Key names the setting.
+  string key = 2;
+
+  // Value is the new value.
+  string value = 3;
+}
+
 // LogRequest carries one log line.
 message LogRequest {
   // Message is the text to log, without a trailing newline.
@@ -732,6 +764,51 @@ message ServerCommandRequest {
 message PlayerRequest {
   // Player is the player's server slot.
   int32 player = 1;
+}
+
+// PlayerSettingRequest names one of a player's settings.
+message PlayerSettingRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Key names a setting the manifest declares.
+  string key = 2;
+}
+
+// SettingResponse holds a setting's value.
+message SettingResponse {
+  // Value is the value as text: a choice's value, "true" or "false", or a
+  // number.
+  string value = 1;
+}
+
+// AddMetricRequest adds to one of a player's metric totals.
+message AddMetricRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Name names a metric the manifest declares.
+  string name = 2;
+
+  // Value is the amount a sum adds and the value a maximum compares; a
+  // count adds one.
+  double value = 3;
+
+  // Label is one of the metric's declared labels, or empty for a metric
+  // without labels.
+  optional string label = 4;
+}
+
+// SetPlayerSettingRequest changes one of a player's settings.
+message SetPlayerSettingRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Key names a setting the manifest declares.
+  string key = 2;
+
+  // Value is one of the setting's values, as SettingResponse holds it.
+  string value = 3;
 }
 
 // ChatRequest addresses server chat to one player.
@@ -1874,6 +1951,121 @@ message Manifest {
   // Abilities change abilities' data on the server and in each player's
   // game.
   repeated AbilityTuning abilities = 9;
+
+  // Settings are the choices each player makes about the mod, which the mod
+  // reads with PlayerSetting.
+  repeated Setting settings = 10;
+
+  // Metrics are the measures the mod keeps for each player, which the mod
+  // adds to with AddMetric.
+  repeated Metric metrics = 11;
+}
+
+// Setting is one choice a player makes about a mod, such as a HUD layout.
+// Each value is text: a choice's value, "true" or "false", or a number.
+message Setting {
+  // Kind is the kind of value a setting holds.
+  enum Kind {
+    // KIND_UNKNOWN is an unset or unsupported kind.
+    KIND_UNKNOWN = 0;
+
+    // KIND_CHOICE is one of the setting's choices.
+    KIND_CHOICE = 1;
+
+    // KIND_SWITCH is on or off.
+    KIND_SWITCH = 2;
+
+    // KIND_NUMBER is a number from min to max, on a step from min when step
+    // is above zero.
+    KIND_NUMBER = 3;
+  }
+
+  // Key names the setting in the mod's code: up to 64 letters, digits and
+  // underscores, not starting with a digit.
+  string key = 1;
+
+  // Label names the setting to players.
+  string label = 2;
+
+  Kind kind = 3;
+
+  // Choices are a choice setting's values, in the order players see them.
+  repeated SettingChoice choices = 4;
+
+  // Min, max and step bound a number setting.
+  double min = 5;
+  double max = 6;
+  double step = 7;
+
+  // Default is the value a player starts with. Empty means the first choice,
+  // off, or min.
+  string default_value = 8 [json_name = "default"];
+}
+
+// SettingChoice is one value of a choice setting.
+message SettingChoice {
+  // Value is the value the mod reads: letters, digits, dots, underscores
+  // and hyphens.
+  string value = 1;
+
+  // Label names the choice to players; empty shows the value.
+  string label = 2;
+}
+
+// Metric is one measure a mod keeps for each player, such as how often the
+// player opens a HUD panel. A metric with labels keeps one total per label,
+// such as one per HUD layout.
+message Metric {
+  // Kind is how a metric combines the values added to it.
+  enum Kind {
+    // KIND_UNKNOWN is an unset or unsupported kind.
+    KIND_UNKNOWN = 0;
+
+    // KIND_COUNT counts the calls.
+    KIND_COUNT = 1;
+
+    // KIND_SUM adds the values.
+    KIND_SUM = 2;
+
+    // KIND_MAX keeps the largest value.
+    KIND_MAX = 3;
+  }
+
+  // Name names the metric in the mod's code: up to 64 letters, digits,
+  // underscores and dots, starting with a letter or an underscore.
+  string name = 1;
+
+  Kind kind = 2;
+
+  // Labels are the values a call may label the metric with: letters,
+  // digits, dots, underscores and hyphens. Empty takes no label.
+  repeated string labels = 3;
+}
+
+// MetricTotal is one player's total of one metric and label.
+message MetricTotal {
+  string name = 1;
+  string label = 2;
+  double value = 3;
+}
+
+// MetricTotals are one player's totals for one mod's session.
+message MetricTotals {
+  repeated MetricTotal totals = 1;
+}
+
+// StoredSettings is the file a host without a settings service keeps
+// players' settings in.
+message StoredSettings {
+  repeated StoredSetting values = 1;
+}
+
+// StoredSetting is one player's value of one mod's setting.
+message StoredSetting {
+  string mod = 1;
+  uint64 steam_id = 2;
+  string key = 3;
+  string value = 4;
 }
 
 // Movement selects the movement model heroes walk and jump with.

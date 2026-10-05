@@ -1,7 +1,8 @@
 // Package check decides whether a built mod may run, without a game. It is
 // the check a publishing service runs before it offers a release to players:
 // a WebAssembly mod must keep to the host's imports and start in the host's
-// sandbox limits, and an interpreted mod must name a runtime Modlock ships.
+// sandbox limits, an interpreted mod must name a runtime Modlock ships, and
+// the settings and metrics a mod declares must be well formed.
 package check
 
 import (
@@ -9,8 +10,10 @@ import (
 	"io/fs"
 	"regexp"
 
+	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/proto/modlock/wasm"
 	"github.com/paralin/modlock/sandbox"
+	"github.com/paralin/modlock/settings"
 	"github.com/pkg/errors"
 )
 
@@ -41,6 +44,12 @@ func Mod(ctx context.Context, dist fs.FS) (*wasm.Manifest, error) {
 	}
 	if manifest.GetVersion() == "" {
 		return nil, errors.New("mod.json names no version")
+	}
+	if err := settings.Validate(manifest); err != nil {
+		return nil, err
+	}
+	if err := metrics.Validate(manifest); err != nil {
+		return nil, err
 	}
 
 	// Run a module; an interpreted mod's runtime is Modlock's own.

@@ -14,15 +14,19 @@
 #include <vector>
 
 #include "modlock/engine_host.h"
+#include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/movement_hook.h"
 #include "modlock/net/listen_boot.h"
+#include "modlock/wasm_settings.h"
 #include "quake/player_movement.h"
 #include "wasm/ability_tuning.h"
 #include "wasm/game.h"
 #include "wasm/instance.h"
+#include "wasm/metrics.h"
 #include "wasm/runtime.h"
+#include "wasm/settings.h"
 #include "wasm/ui.h"
 
 namespace modlock {
@@ -40,6 +44,13 @@ struct Mods {
   std::map<std::string, WasmPlugin*, std::less<>> plugins;
   // extensions holds the services the host provides, by name.
   std::map<std::string, WasmExtension, std::less<>> extensions;
+  // settings keeps players' settings: kept unless the host was given a
+  // keeper.
+  FileSettings kept;
+  WasmSettings* settings = &kept;
+  // metrics receives players' metric totals; without one, each mod logs
+  // them.
+  WasmMetrics* metrics = nullptr;
 
   // Notify calls report with each observer. An observer may stop observing
   // from its callback.
@@ -221,6 +232,11 @@ class PluginGame final : public wasm::Game {
   std::expected<void, std::string> Ui(const wasm::UiRequest& request) override;
   std::expected<wasm::ServiceReply, std::string> CallService(
       const wasm::ServiceCall& request) override;
+  std::expected<wasm::SettingResponse, std::string> PlayerSetting(
+      const wasm::PlayerSettingRequest& request) override;
+  std::expected<void, std::string> SetPlayerSetting(
+      const wasm::SetPlayerSettingRequest& request) override;
+  std::expected<void, std::string> AddMetric(const wasm::AddMetricRequest& request) override;
   void Impacted(const wasm::ImpactEvent& event) override;
 
   // plugin_ owns the game.
@@ -284,6 +300,24 @@ class WasmPlugin final : public Plugin {
   // CallService answers the mod's call to a service the host provides.
   std::expected<wasm::ServiceReply, std::string> CallService(const wasm::ServiceCall& call);
 
+  // PlayerSetting returns the value of the setting named key for the player
+  // in slot: the kept value while the manifest still accepts it, and the
+  // default otherwise.
+  std::expected<std::string, std::string> PlayerSetting(int32_t slot, std::string_view key);
+
+  // SetPlayerSetting keeps the player's new value of the setting named key.
+  std::expected<void, std::string> SetPlayerSetting(int32_t slot, std::string_view key,
+                                                    std::string_view value);
+
+  // SettingChanged delivers a setting a player changed outside the mod, when
+  // the player is in the game and the manifest accepts the value.
+  void SettingChanged(uint64_t steam_id, std::string_view key, std::string_view value);
+
+  // AddMetric adds to the total of the metric named name for the player in
+  // slot.
+  std::expected<void, std::string> AddMetric(int32_t slot, std::string_view name, double value,
+                                             std::string_view label);
+
   // Impacted delivers a watched projectile's impact to the mod.
   void Impacted(const wasm::ImpactEvent& event) {
     if (instance_) static_cast<void>(mod_.Impact(event));
@@ -299,6 +333,9 @@ class WasmPlugin final : public Plugin {
   void Begin(bool reloaded);
   void Halt();
   void World();
+  // SteamId returns the account of the player in slot, or zero for a bot or
+  // an empty slot.
+  static uint64_t SteamId(int32_t slot);
   // Send is the transport of mod_: it delivers one event and stops a mod
   // whose instance failed.
   std::expected<wasm::Reply, std::string> Send(const wasm::Call& call);
@@ -324,6 +361,9 @@ class WasmPlugin final : public Plugin {
   bool Command(int32_t slot, std::string_view line);
   void ShowUi(int32_t slot, const ui::Change& change);
   void Leave(int32_t slot);
+  // HandOn hands the player's metric totals to the host's metrics, or logs
+  // them, and forgets them.
+  void HandOn(int32_t slot);
   // Call answers one call from the mod and logs a failed one.
   wasm::Reply Call(const wasm::Call& call);
   void Failed(std::string_view error);
@@ -381,6 +421,9 @@ class WasmPlugin final : public Plugin {
   std::optional<uint64_t> sampled_;
   // ui_ follows the interface the running instance shows each player.
   wasm::UiTrees ui_;
+  // tallies_ holds each player's metric totals by slot, with the account
+  // they belong to, until the player leaves or the mod stops.
+  std::map<int32_t, std::pair<uint64_t, wasm::Tally>> tallies_;
 };
 
 // kMaxDamaged bounds the applied hits and the movement facts queued between
@@ -560,6 +603,7 @@ void WasmPlugin::Stop() {
   world_.Reset();
   Halt();
   instance_.reset();
+  while (!tallies_.empty()) HandOn(tallies_.begin()->first);
 }
 
 void WasmPlugin::Move() {
@@ -825,6 +869,7 @@ void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {
 }
 
 void WasmPlugin::Leave(int32_t slot) {
+  HandOn(slot);
   game_.Leave(slot);
   if (!ui_.Drop(slot)) return;
   ui::Change reset;
@@ -866,6 +911,89 @@ std::expected<wasm::ServiceReply, std::string> WasmPlugin::CallService(
   return reply;
 }
 
+std::expected<std::string, std::string> WasmPlugin::PlayerSetting(int32_t slot,
+                                                                  std::string_view key) {
+  const auto* setting = wasm::FindSetting(manifest_, key);
+  if (!setting) return std::unexpected("mod.json declares no setting " + std::string(key));
+  if (const auto steam_id = SteamId(slot); steam_id != 0) {
+    if (auto kept = host_.settings->Value(name_, steam_id, key)) {
+      if (auto value = wasm::Canonical(*setting, *kept)) return *value;
+    }
+  }
+  return wasm::DefaultValue(*setting);
+}
+
+std::expected<void, std::string> WasmPlugin::SetPlayerSetting(int32_t slot, std::string_view key,
+                                                              std::string_view value) {
+  // Keep only a value the manifest declares, for a player with an account.
+  const auto* setting = wasm::FindSetting(manifest_, key);
+  if (!setting) return std::unexpected("mod.json declares no setting " + std::string(key));
+  const auto canonical = wasm::Canonical(*setting, value);
+  if (!canonical) {
+    return std::unexpected(std::string(value) + " is not a value of setting " + std::string(key));
+  }
+  if (const auto steam_id = SteamId(slot); steam_id != 0) {
+    host_.settings->Store(name_, steam_id, key, *canonical);
+  }
+  return {};
+}
+
+void WasmPlugin::SettingChanged(uint64_t steam_id, std::string_view key, std::string_view value) {
+  // Deliver only a declared value to a running mod.
+  const auto* setting = wasm::FindSetting(manifest_, key);
+  if (!instance_ || !setting || steam_id == 0) return;
+  const auto canonical = wasm::Canonical(*setting, value);
+  if (!canonical) return;
+
+  // Tell the mod for each slot the player holds.
+  for (int32_t slot = 0; slot < wasm::kMaxPlayers; ++slot) {
+    if (SteamId(slot) != steam_id) continue;
+    wasm::SettingChangedEvent event;
+    event.set_player(slot);
+    event.set_key(std::string(key));
+    event.set_value(*canonical);
+    static_cast<void>(mod_.SettingChanged(event));
+  }
+}
+
+std::expected<void, std::string> WasmPlugin::AddMetric(int32_t slot, std::string_view name,
+                                                       double value, std::string_view label) {
+  // Count only a declared metric and label, for a player with an account.
+  const auto* metric = wasm::FindMetric(manifest_, name);
+  if (!metric) return std::unexpected("mod.json declares no metric " + std::string(name));
+  if (!wasm::Labeled(*metric, label)) {
+    return std::unexpected(std::string(label) + " is not a label of metric " + std::string(name));
+  }
+  const auto steam_id = SteamId(slot);
+  if (steam_id == 0) return {};
+
+  // A new player in the slot starts their own totals.
+  if (auto found = tallies_.find(slot); found != tallies_.end() && found->second.first != steam_id)
+    HandOn(slot);
+  auto& [account, tally] = tallies_[slot];
+  account = steam_id;
+  tally.Add(*metric, label, value);
+  return {};
+}
+
+void WasmPlugin::HandOn(int32_t slot) {
+  auto found = tallies_.find(slot);
+  if (found == tallies_.end()) return;
+  auto [steam_id, tally] = std::move(found->second);
+  tallies_.erase(found);
+  if (tally.Empty()) return;
+  if (host_.metrics) {
+    host_.metrics->Keep(name_, steam_id, tally.Totals());
+  } else {
+    Log("metrics for " + std::to_string(steam_id) + ": " + tally.Text());
+  }
+}
+
+uint64_t WasmPlugin::SteamId(int32_t slot) {
+  const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+  return state.occupied && !state.is_bot ? state.xuid : 0;
+}
+
 void WasmPlugin::Log(std::string_view text) {
   std::cerr << name_ << ": " << text << '\n';
   host_.Notify([&](WasmHostObserver& observer) { observer.Logged(name_, text); });
@@ -888,6 +1016,24 @@ std::expected<void, std::string> PluginGame::Ui(const wasm::UiRequest& request) 
 std::expected<wasm::ServiceReply, std::string> PluginGame::CallService(
     const wasm::ServiceCall& request) {
   return plugin_.CallService(request);
+}
+
+std::expected<wasm::SettingResponse, std::string> PluginGame::PlayerSetting(
+    const wasm::PlayerSettingRequest& request) {
+  auto value = plugin_.PlayerSetting(request.player(), request.key());
+  if (!value) return std::unexpected(value.error());
+  wasm::SettingResponse response;
+  response.set_value(std::move(*value));
+  return response;
+}
+
+std::expected<void, std::string> PluginGame::SetPlayerSetting(
+    const wasm::SetPlayerSettingRequest& request) {
+  return plugin_.SetPlayerSetting(request.player(), request.key(), request.value());
+}
+
+std::expected<void, std::string> PluginGame::AddMetric(const wasm::AddMetricRequest& request) {
+  return plugin_.AddMetric(request.player(), request.name(), request.value(), request.label());
 }
 
 void PluginGame::Impacted(const wasm::ImpactEvent& event) { plugin_.Impacted(event); }
@@ -946,6 +1092,19 @@ void WasmHost::Provide(std::string service, WasmExtension extension) {
     impl_->extensions.insert_or_assign(std::move(service), std::move(extension));
   } else {
     impl_->extensions.erase(service);
+  }
+}
+
+void WasmHost::KeepSettings(WasmSettings* settings) {
+  impl_->settings = settings ? settings : &impl_->kept;
+}
+
+void WasmHost::KeepMetrics(WasmMetrics* metrics) { impl_->metrics = metrics; }
+
+void WasmHost::SettingChanged(std::string_view mod, uint64_t steam_id, std::string_view key,
+                              std::string_view value) {
+  if (auto found = impl_->plugins.find(mod); found != impl_->plugins.end()) {
+    found->second->SettingChanged(steam_id, key, value);
   }
 }
 

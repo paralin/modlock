@@ -120,6 +120,28 @@ each player's game: each entry names an ability, then sets its `properties`,
 such as `AbilityCooldown`, its float schema `fields` by
 `Class.m_field/Class.m_field` path, and its `copyFields`.
 
+An optional `"settings"` list declares choices each player makes about the
+mod, such as a HUD layout. Each entry has a `key`, a `label` and a `kind`:
+`KIND_CHOICE` with `choices` of `{"value", "label"}`, `KIND_SWITCH`, or
+`KIND_NUMBER` with `min`, `max` and `step`. An optional `default` is the value
+a player starts with; without one a player starts at the first choice, off,
+or `min`. The mod reads a player's value with the player's `setting` method,
+changes it with `setSetting`, and reads a switch or a number with types through
+`SettingOn` and `SettingNumber` in Go, or `settingOn` and `settingNumber` in
+JavaScript. It hears of changes made elsewhere, such as on
+a profile page, through its setting-changed handler. Bots read the defaults.
+`modlock build` refuses a declaration players could not choose from.
+
+An optional `"metrics"` list declares measures the mod keeps for each player,
+such as how often a HUD panel opens. Each entry has a `name` of letters, digits,
+underscores and dots, a `kind` (`KIND_COUNT` counts calls, `KIND_SUM` adds
+values, `KIND_MAX` keeps the largest) and optional `labels`, such as one per
+HUD layout. The mod adds to a player's total with the player's `addMetric`
+method, naming one of the labels when the metric has them. The host keeps the
+totals in memory and hands them on once, when the player leaves or the mod
+stops; without a host service that takes them, the mod logs them, so
+`modlock dev` shows a session's totals as it ends. Bots keep no totals.
+
 The built mod in `build/` has its own `mod.json` naming the runtime and the
 entry; `modlock-host --plugin build` loads it.
 
@@ -503,6 +525,7 @@ modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 | --- | --- |
 | `--plugin PATH` | Load a built mod (a directory with `mod.json`, or a `.wasm` file) or a plugin library; repeat for several. |
 | `--control ADDRESS` | Report mod starts, logs, failures and player joins to the controller at `ADDRESS`, and take reloads from it. The `modlock` command line uses it. |
+| `--settings PATH` | Keep players' mod settings in the JSON file at `PATH`; without it they last for the run. A native plugin may keep them instead. |
 | `--check-plugin` | Load, start, and stop the plugins without opening game modules. |
 | `--game-dir DIR` | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`). |
 | `--map NAME` | Start on `NAME` (default `dl_midtown`). |

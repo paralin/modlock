@@ -41,6 +41,9 @@
 
 namespace modlock::wasm {
 
+// kMaxPlayers bounds the player slots a Deadlock server holds.
+inline constexpr int32_t kMaxPlayers = 64;
+
 class Game;
 
 // GameServices holds the engine services a host's mods share. Each resolves on

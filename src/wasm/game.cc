@@ -18,9 +18,6 @@
 namespace modlock::wasm {
 namespace {
 
-// kMaxPlayers bounds the player slots a Deadlock server holds.
-constexpr int32_t kMaxPlayers = 64;
-
 // kMaxString bounds the bytes ReadField copies for a string field.
 constexpr size_t kMaxString = 256;
 

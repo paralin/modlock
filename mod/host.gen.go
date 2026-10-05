@@ -155,6 +155,9 @@ type ImpactEvent = wasm.ImpactEvent
 // LandedEvent is one hero landing.
 type LandedEvent = wasm.LandedEvent
 
+// SettingChangedEvent is one player's new value of one setting.
+type SettingChangedEvent = wasm.SettingChangedEvent
+
 // PrecacheOptions names what the next world loads ahead of use.
 type PrecacheOptions = wasm.PrecacheOptions
 
@@ -346,6 +349,32 @@ func (p Player) Pawn() (*Pawn, error) {
 		return nil, err
 	}
 	return response.GetPawn(), nil
+}
+
+// Setting returns the player's value of a setting the manifest
+// declares: the value they chose, or the setting's default. A bot has the
+// defaults.
+func (p Player) Setting(key string) (string, error) {
+	request := &wasm.PlayerSettingRequest{Player: p.Slot, Key: key}
+	response := &wasm.SettingResponse{}
+	if err := invoke("PlayerSetting", request, response); err != nil {
+		return "", err
+	}
+	return response.GetValue(), nil
+}
+
+// SetSetting changes the player's value of a setting the manifest
+// declares. The value follows the player to later games and other mods'
+// servers of the same mod; a bot keeps the defaults.
+func (p Player) SetSetting(key, value string) error {
+	return invoke("SetPlayerSetting", &wasm.SetPlayerSettingRequest{Player: p.Slot, Key: key, Value: value}, nil)
+}
+
+// AddMetric adds to the player's total of a metric the manifest declares.
+// The host keeps each player's totals in memory and hands them on once,
+// when the player leaves or the mod stops; a bot keeps none.
+func (p Player) AddMetric(name string, value float64, label *string) error {
+	return invoke("AddMetric", &wasm.AddMetricRequest{Player: p.Slot, Name: name, Value: value, Label: label}, nil)
 }
 
 // SelectHero gives the player a hero on a team, 2 or 3, and returns the
@@ -901,6 +930,10 @@ type modHandlers interface {
 	// Landed reports a hero landing under the manifest's QuakeWorld movement,
 	// before the next frame.
 	Landed(event *LandedEvent) error
+	// SettingChanged reports a player's setting that changed outside the mod,
+	// such as on the player's profile. A mod's own SetPlayerSetting reports
+	// nothing.
+	SettingChanged(event *SettingChangedEvent) error
 }
 
 // serveMod runs call on handlers and returns its reply.
@@ -990,6 +1023,12 @@ func serveMod(handlers modHandlers, call *wasm.Call) *wasm.Reply {
 			return &wasm.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.Landed(event))
+	case "SettingChanged":
+		event := &SettingChangedEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasm.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.SettingChanged(event))
 	}
 	return &wasm.Reply{Error: "the mod has no method " + call.GetMethod()}
 }

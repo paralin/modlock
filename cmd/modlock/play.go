@@ -123,9 +123,10 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 	// package.
 	out.sandbox(reason)
 	return sandbox.Start(c.Context, sandbox.Config{
-		Mods: mods,
-		Map:  mapName,
-		Args: c.StringSlice("arg"),
+		Mods:     mods,
+		Map:      mapName,
+		Args:     c.StringSlice("arg"),
+		Settings: settingsFile(),
 		Interpreters: func(ctx context.Context) (string, error) {
 			host, err := session.FindHost(ctx, Version)
 			return filepath.Dir(host), err
@@ -160,6 +161,7 @@ func startServer(c *cli.Context, out *printer, mods []string, mapName, logPath s
 		Port:       uint16(c.Uint("port")),
 		Map:        mapName,
 		Args:       c.StringSlice("arg"),
+		Settings:   settingsFile(),
 		Launch:     !c.Bool("no-game"),
 		HostOutput: log,
 		Interface:  ui,
@@ -175,6 +177,17 @@ func startServer(c *cli.Context, out *printer, mods []string, mapName, logPath s
 	out.note("starting the server; its console is in", logPath)
 	out.note("to join from a running game, enter in its console: connect 127.0.0.1:" + strconv.Itoa(int(c.Uint("port"))))
 	return running, nil
+}
+
+// settingsFile returns the file that keeps players' settings across
+// sessions, or empty to keep them for the session when this computer names no
+// configuration directory.
+func settingsFile() string {
+	config, err := os.UserConfigDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(config, "modlock", "settings.json")
 }
 
 // waitSession waits for the session to end, or ends it on Ctrl-C. In the

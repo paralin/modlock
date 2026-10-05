@@ -74,6 +74,7 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 		Port:       config.Port,
 		Map:        config.Map,
 		Args:       config.Args,
+		Settings:   config.Settings,
 		Steam:      steam,
 		Output:     config.HostOutput,
 	})

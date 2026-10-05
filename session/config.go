@@ -19,6 +19,9 @@ type Config struct {
 	Map string
 	// Args are passed to each mod's start handlers.
 	Args []string
+	// Settings is the file that keeps players' settings, or empty to keep
+	// them for the session only.
+	Settings string
 	// Launch starts the Deadlock client once the server is ready.
 	Launch bool
 	// HostOutput receives the host's console output.

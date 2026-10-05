@@ -83,6 +83,7 @@ _damageds: list[Callable[[DamagedEvent], object]] = []
 _launches: list[Callable[[LaunchEvent], object]] = []
 _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
+_setting_changes: list[Callable[[Player, str, str], object]] = []
 
 
 def serve(service: str) -> Callable[[Service], Service]:
@@ -188,6 +189,14 @@ def on_landed[F: Callable[[LandedEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_setting_changed[F: Callable[[Player, str, str], object]](handler: F) -> F:
+    """on_setting_changed calls handler when a player's setting changes
+    outside the mod, such as on the player's profile. The mod's own
+    Player.set_setting calls do not reach it."""
+    _setting_changes.append(handler)
+    return handler
+
+
 def _start(event: StartEvent) -> StartResult:
     for handler in _starts:
         handler(event.args)
@@ -273,6 +282,11 @@ def _landed(event: LandedEvent) -> None:
         handler(event)
 
 
+def _setting_changed(event: SettingChangedEvent) -> None:
+    for handler in _setting_changes:
+        handler(event.player, event.key, event.value)
+
+
 # _HANDLERS delivers each event to the handlers the mod registered.
 _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "start": _start,
@@ -289,6 +303,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "launch": _launch,
     "impact": _impact,
     "landed": _landed,
+    "setting_changed": _setting_changed,
 }
 
 _modlock.handle(lambda data: _serve_mod(_HANDLERS, data))

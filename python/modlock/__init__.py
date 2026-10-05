@@ -455,6 +455,18 @@ class LandedEvent:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class SettingChangedEvent:
+    """SettingChangedEvent is one player's new value of one setting."""
+
+    # player is the player's server slot.
+    player: Player
+    # key names the setting.
+    key: str = ""
+    # value is the new value.
+    value: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class PrecacheOptions:
     """PrecacheOptions names what the next world loads ahead of use."""
 
@@ -932,6 +944,30 @@ class Player:
             return None
         return response["pawn"]
 
+    def setting(self, key: str) -> str | None:
+        """setting returns the player's value of a setting the manifest
+        declares: the value they chose, or the setting's default. A bot has the
+        defaults.
+        """
+        response = _call("PlayerSetting", "PlayerSettingRequest", {"player": self, "key": key}, "SettingResponse")
+        if response is None:
+            return None
+        return response["value"]
+
+    def set_setting(self, key: str, value: str) -> bool:
+        """set_setting changes the player's value of a setting the manifest
+        declares. The value follows the player to later games and other mods'
+        servers of the same mod; a bot keeps the defaults.
+        """
+        return _call("SetPlayerSetting", "SetPlayerSettingRequest", {"player": self, "key": key, "value": value}) is not None
+
+    def add_metric(self, name: str, value: float, label: str | None = None) -> bool:
+        """add_metric adds to the player's total of a metric the manifest declares.
+        The host keeps each player's totals in memory and hands them on once,
+        when the player leaves or the mod stops; a bot keeps none.
+        """
+        return _call("AddMetric", "AddMetricRequest", {"player": self, "name": name, "value": value, "label": label}) is not None
+
     def select_hero(self, hero: str | int, team: int) -> int | None:
         """select_hero gives the player a hero on a team, 2 or 3, and returns the
         hero's identifier as Pawn.hero reports it. The hero appears on a later
@@ -1391,6 +1427,14 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "speed", "float"),
         ],
     ),
+    "SettingChangedEvent": (
+        SettingChangedEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "key", "string"),
+            wire.Field(3, "value", "string"),
+        ],
+    ),
     "LogRequest": (
         None,
         [
@@ -1407,6 +1451,36 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
+        ],
+    ),
+    "PlayerSettingRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "key", "string"),
+        ],
+    ),
+    "SettingResponse": (
+        None,
+        [
+            wire.Field(1, "value", "string"),
+        ],
+    ),
+    "AddMetricRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "name", "string"),
+            wire.Field(3, "value", "double"),
+            wire.Field(4, "label", "string", optional=True),
+        ],
+    ),
+    "SetPlayerSettingRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "key", "string"),
+            wire.Field(3, "value", "string"),
         ],
     ),
     "ChatRequest": (
@@ -2373,6 +2447,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Launch": ("LaunchEvent", "Empty", "launch"),
     "Impact": ("ImpactEvent", "Empty", "impact"),
     "Landed": ("LandedEvent", "Empty", "landed"),
+    "SettingChanged": ("SettingChangedEvent", "Empty", "setting_changed"),
 }
 
 
@@ -2477,6 +2552,7 @@ _damageds: list[Callable[[DamagedEvent], object]] = []
 _launches: list[Callable[[LaunchEvent], object]] = []
 _impacts: list[Callable[[ImpactEvent], object]] = []
 _landeds: list[Callable[[LandedEvent], object]] = []
+_setting_changes: list[Callable[[Player, str, str], object]] = []
 
 
 def serve(service: str) -> Callable[[Service], Service]:
@@ -2582,6 +2658,14 @@ def on_landed[F: Callable[[LandedEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_setting_changed[F: Callable[[Player, str, str], object]](handler: F) -> F:
+    """on_setting_changed calls handler when a player's setting changes
+    outside the mod, such as on the player's profile. The mod's own
+    Player.set_setting calls do not reach it."""
+    _setting_changes.append(handler)
+    return handler
+
+
 def _start(event: StartEvent) -> StartResult:
     for handler in _starts:
         handler(event.args)
@@ -2667,6 +2751,11 @@ def _landed(event: LandedEvent) -> None:
         handler(event)
 
 
+def _setting_changed(event: SettingChangedEvent) -> None:
+    for handler in _setting_changes:
+        handler(event.player, event.key, event.value)
+
+
 # _HANDLERS delivers each event to the handlers the mod registered.
 _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "start": _start,
@@ -2683,6 +2772,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "launch": _launch,
     "impact": _impact,
     "landed": _landed,
+    "setting_changed": _setting_changed,
 }
 
 _modlock.handle(lambda data: _serve_mod(_HANDLERS, data))

@@ -204,6 +204,35 @@ export function onLanded(handler: (landing: LandedEvent) => void): void {
   landeds.push(handler)
 }
 
+/**
+ * onSettingChanged calls handler when a player's setting changes outside the
+ * mod, such as on the player's profile. The mod's own player.setSetting calls
+ * do not reach it.
+ */
+export function onSettingChanged(
+  handler: (player: Player, key: string, value: string) => void,
+): void {
+  settingChanges.push(handler)
+}
+
+/**
+ * settingOn returns the player's value of a switch setting the manifest
+ * declares, or undefined when the host refuses the read.
+ */
+export function settingOn(player: Player, key: string): boolean | undefined {
+  const value = player.setting(key)
+  return value === undefined ? undefined : value === 'true'
+}
+
+/**
+ * settingNumber returns the player's value of a number setting the manifest
+ * declares, or undefined when the host refuses the read.
+ */
+export function settingNumber(player: Player, key: string): number | undefined {
+  const value = player.setting(key)
+  return value === undefined ? undefined : Number(value)
+}
+
 /** commands maps each registered command name to its handler. */
 const commands = new Map<string, (player: Player, args: string) => void>()
 
@@ -222,6 +251,7 @@ const damageds: ((hit: DamagedEvent) => void)[] = []
 const launches: ((projectile: LaunchEvent) => void)[] = []
 const impacts: ((impact: ImpactEvent) => void)[] = []
 const landeds: ((landing: LandedEvent) => void)[] = []
+const settingChanges: ((player: Player, key: string, value: string) => void)[] = []
 
 /** handlers delivers each event to the handlers the mod registered. */
 const handlers: ModHandlers = {
@@ -323,6 +353,12 @@ const handlers: ModHandlers = {
   landed(event) {
     for (const handler of landeds) {
       handler(event)
+    }
+  },
+
+  settingChanged(event) {
+    for (const handler of settingChanges) {
+      handler(event.player, event.key, event.value)
     }
   },
 }

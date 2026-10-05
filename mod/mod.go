@@ -52,6 +52,7 @@ type handlers struct {
 	launches      []func(*LaunchEvent)
 	impacts       []func(*ImpactEvent)
 	landeds       []func(*LandedEvent)
+	settings      []func(p Player, key, value string)
 
 	// result holds the last encoded Reply until the host has copied it.
 	result []byte
@@ -138,6 +139,13 @@ func OnImpact(handler func(impact *ImpactEvent)) {
 // movement, before the next frame.
 func OnLanded(handler func(landing *LandedEvent)) {
 	registered.landeds = append(registered.landeds, handler)
+}
+
+// OnSettingChanged calls handler when a player's setting changes outside the
+// mod, such as on the player's profile. The mod's own Player.SetSetting calls
+// do not reach it.
+func OnSettingChanged(handler func(p Player, key, value string)) {
+	registered.settings = append(registered.settings, handler)
 }
 
 // Start runs the start handlers and asks for the events the mod handles.
@@ -270,6 +278,14 @@ func (h *handlers) Impact(event *ImpactEvent) error {
 func (h *handlers) Landed(event *LandedEvent) error {
 	for _, handler := range h.landeds {
 		handler(event)
+	}
+	return nil
+}
+
+// SettingChanged runs the setting handlers.
+func (h *handlers) SettingChanged(event *SettingChangedEvent) error {
+	for _, handler := range h.settings {
+		handler(Player{Slot: event.GetPlayer()}, event.GetKey(), event.GetValue())
 	}
 	return nil
 }

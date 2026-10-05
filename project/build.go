@@ -9,7 +9,9 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/proto/modlock/wasm"
+	"github.com/paralin/modlock/settings"
 	"github.com/pkg/errors"
 )
 
@@ -25,9 +27,18 @@ const MapsDir = "maps"
 // compiler errors go to output and fail the build with a *CheckError that
 // locates them; a failed build leaves the previous built mod in place.
 func (p *Project) Build(ctx context.Context, output io.Writer) error {
+	// Check the declarations and ship the map before compiling.
+	if err := settings.Validate(p.Manifest); err != nil {
+		return err
+	}
+	if err := metrics.Validate(p.Manifest); err != nil {
+		return err
+	}
 	if err := p.shipMap(); err != nil {
 		return err
 	}
+
+	// Compile the mod for its language.
 	switch p.Manifest.GetLanguage() {
 	case wasm.Manifest_LANGUAGE_GO:
 		return p.buildGo(ctx, output)
@@ -97,6 +108,7 @@ func (p *Project) writeBuiltManifest(runtime wasm.Manifest_Runtime, entry string
 		Map:       p.Manifest.GetMap(),
 		Movement:  p.Manifest.GetMovement(),
 		Abilities: p.Manifest.GetAbilities(),
+		Settings:  p.Manifest.GetSettings(),
 	})
 }
 
@@ -113,6 +125,7 @@ func (p *Project) shipMap() error {
 
 // shipMapFile copies one map file, when the project has it.
 func (p *Project) shipMapFile(name string) error {
+	// Open the project's map file; a stock map has none.
 	if p.Manifest.GetMap() == "" || !filepath.IsLocal(name) {
 		return nil
 	}

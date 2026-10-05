@@ -20,4 +20,7 @@ type Config struct {
 	Interpreters func(ctx context.Context) (string, error)
 	// Events receives each event a server would report, on one goroutine.
 	Events func(*control.HostEvent)
+	// Settings is the file that keeps the player's settings, or empty to
+	// keep them for the session only.
+	Settings string
 }

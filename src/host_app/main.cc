@@ -28,6 +28,7 @@ void Help() {
                "  --map NAME          Startup map (default dl_midtown)\n"
                "  --connect ADDRESS   Run a game client that joins ADDRESS instead of a server\n"
                "  --engine-args ARGS  Append engine command-line arguments\n"
+               "  --settings PATH     Keep players' mod settings in the JSON file PATH\n"
                "  --control ADDRESS   Report to and take reloads from the controller at\n"
                "                      ADDRESS, a host and port\n"
                "  --check-plugin      Check library compatibility and lifecycle without a game\n"
@@ -66,6 +67,7 @@ int main(int argc, char** argv) {
   std::vector<std::filesystem::path> libraries;
   std::filesystem::path game_dir;
   std::string_view control;
+  std::filesystem::path settings_file;
   modlock::net::LaunchConfig launch;
   bool check_only = false;
   int plugin_argc = 0;
@@ -100,7 +102,7 @@ int main(int argc, char** argv) {
     }
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
         argument != "--map" && argument != "--connect" && argument != "--engine-args" &&
-        argument != "--control") {
+        argument != "--control" && argument != "--settings") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
       return 2;
     }
@@ -112,6 +114,7 @@ int main(int argc, char** argv) {
     if (argument == "--plugin") libraries.emplace_back(value);
     if (argument == "--engine-args") launch.engine_arguments = value;
     if (argument == "--control") control = value;
+    if (argument == "--settings") settings_file = value;
     if (argument == "--connect") {
       if (value.empty() ||
           value.find_first_not_of(
@@ -161,7 +164,10 @@ int main(int argc, char** argv) {
   // The interpreter modules ship beside the executable. The
   // control link reports the mods' progress to the program that started the
   // host; a lost controller leaves the server running.
+  // A settings file outlives the mods that keep players' settings in it.
+  std::optional<modlock::FileSettings> settings;
   modlock::WasmHost mods(std::filesystem::absolute(argv[0]).parent_path());
+  if (!settings_file.empty()) mods.KeepSettings(&settings.emplace(settings_file));
   FailureRecorder failures;
   mods.Observe(&failures);
   std::unique_ptr<modlock::host_app::ControlLink> link;

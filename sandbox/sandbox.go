@@ -4,11 +4,14 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/proto/modlock/control"
 	"github.com/paralin/modlock/proto/modlock/wasm"
+	"github.com/paralin/modlock/settings"
 	"github.com/pkg/errors"
 	"github.com/tetratelabs/wazero"
 )
@@ -48,6 +51,11 @@ type Sandbox struct {
 	interpreters string
 	// tick counts frames.
 	tick uint64
+	// settings keeps the player's settings.
+	settings *settings.File
+	// tallies holds the stand-in player's metric totals by mod, which the
+	// session logs when it ends.
+	tallies map[string]*metrics.Tally
 }
 
 // running is one mod in the session.
@@ -70,6 +78,7 @@ func Start(ctx context.Context, config Config) *Sandbox {
 		actions: make(chan func(context.Context)),
 		stop:    stop,
 		done:    make(chan struct{}),
+		tallies: map[string]*metrics.Tally{},
 	}
 	go s.run(ctx)
 	return s
@@ -125,6 +134,12 @@ func (s *Sandbox) run(ctx context.Context) {
 	// Stop the mods and mark the session ended on return.
 	defer close(s.done)
 	defer s.close()
+
+	// Read the player's settings; a file that does not read starts empty.
+	var err error
+	if s.settings, err = settings.Open(s.config.Settings); err != nil {
+		s.log("", "settings: "+err.Error()+"; starting without them")
+	}
 
 	// Start the world and its mods, then the player joins.
 	s.event(&control.HostEvent{Body: &control.HostEvent_Ready{Ready: &control.ServerReady{Map: s.config.Map}}})
@@ -208,7 +223,7 @@ func (s *Sandbox) start(ctx context.Context, name string, build *Build) (*Mod, *
 
 	// Load it with the sandbox answering its host calls.
 	mod, err := Load(ctx, module, Options{
-		Calls:  func(call *wasm.Call) *wasm.Reply { return s.answer(name, call) },
+		Calls:  func(call *wasm.Call) *wasm.Reply { return s.answer(build.Manifest, call) },
 		Output: &lines{write: func(line string) { s.log(name, line) }},
 		Cache:  s.cache,
 	})
@@ -309,11 +324,13 @@ func (s *Sandbox) deliver(ctx context.Context, mod *running, method string, requ
 	return false
 }
 
-// answer answers a mod's host call. It reports what the player would see or
-// what the server log would show, names the stand-in player, and answers the
-// rest empty, as for a player without a hero.
-func (s *Sandbox) answer(mod string, call *wasm.Call) *wasm.Reply {
+// answer answers a host call from the mod manifest describes. It reports
+// what the player would see or what the server log would show, names the
+// stand-in player, keeps the player's settings, and answers the rest empty,
+// as for a player without a hero.
+func (s *Sandbox) answer(manifest *wasm.Manifest, call *wasm.Call) *wasm.Reply {
 	// Decode the requests the sandbox reports.
+	mod := manifest.GetSlug()
 	switch call.GetMethod() {
 	case "Log":
 		request := &wasm.LogRequest{}
@@ -352,6 +369,22 @@ func (s *Sandbox) answer(mod string, call *wasm.Call) *wasm.Reply {
 	case "Players":
 		response, _ := (&wasm.PlayersResponse{Players: []*wasm.Connection{player}}).MarshalVT()
 		return &wasm.Reply{Response: response}
+	case "PlayerSetting":
+		request := &wasm.PlayerSettingRequest{}
+		if request.UnmarshalVT(call.GetRequest()) == nil {
+			response, _ := (&wasm.SettingResponse{Value: s.setting(manifest, request.GetPlayer(), request.GetKey())}).MarshalVT()
+			return &wasm.Reply{Response: response}
+		}
+	case "SetPlayerSetting":
+		request := &wasm.SetPlayerSettingRequest{}
+		if request.UnmarshalVT(call.GetRequest()) == nil {
+			s.setSetting(manifest, request.GetPlayer(), request.GetKey(), request.GetValue())
+		}
+	case "AddMetric":
+		request := &wasm.AddMetricRequest{}
+		if request.UnmarshalVT(call.GetRequest()) == nil {
+			s.addMetric(manifest, request)
+		}
 	}
 
 	return &wasm.Reply{}
@@ -368,6 +401,74 @@ func (s *Sandbox) message(mod string, slot int32, kind control.MessageKind, titl
 	}}})
 }
 
+// setting returns the player's value of a setting manifest declares: the
+// kept value while the setting accepts it, or its default. An undeclared
+// setting reads empty.
+func (s *Sandbox) setting(manifest *wasm.Manifest, slot int32, key string) string {
+	declared := settings.Find(manifest, key)
+	if declared == nil {
+		return ""
+	}
+	if slot == player.GetPlayer() {
+		if kept, ok := s.settings.Value(manifest.GetSlug(), player.GetSteamId(), key); ok {
+			if value, ok := settings.Canonical(declared, kept); ok {
+				return value
+			}
+		}
+	}
+	return settings.Default(declared)
+}
+
+// setSetting keeps the player's new value of a setting manifest declares,
+// logging a value the setting refuses.
+func (s *Sandbox) setSetting(manifest *wasm.Manifest, slot int32, key, value string) {
+	// Accept only a value of a declared setting.
+	mod := manifest.GetSlug()
+	declared := settings.Find(manifest, key)
+	if declared == nil {
+		s.log(mod, "mod.json declares no setting "+key)
+		return
+	}
+	canonical, ok := settings.Canonical(declared, value)
+	if !ok {
+		s.log(mod, value+" is not a value of "+declared.GetLabel())
+		return
+	}
+
+	// Keep it for the stand-in player; another slot is a bot's.
+	if slot != player.GetPlayer() {
+		return
+	}
+	if err := s.settings.Store(mod, player.GetSteamId(), key, canonical); err != nil {
+		s.log(mod, "settings: "+err.Error())
+	}
+}
+
+// addMetric adds to the stand-in player's total of a metric manifest
+// declares, logging a call the declaration refuses.
+func (s *Sandbox) addMetric(manifest *wasm.Manifest, request *wasm.AddMetricRequest) {
+	// Count only a declared metric and label.
+	mod := manifest.GetSlug()
+	declared := metrics.Find(manifest, request.GetName())
+	if declared == nil {
+		s.log(mod, "mod.json declares no metric "+request.GetName())
+		return
+	}
+	if !metrics.Labeled(declared, request.GetLabel()) {
+		s.log(mod, request.GetLabel()+" is not a label of metric "+request.GetName())
+		return
+	}
+
+	// Keep it for the stand-in player; another slot is a bot's.
+	if request.GetPlayer() != player.GetPlayer() {
+		return
+	}
+	if s.tallies[mod] == nil {
+		s.tallies[mod] = &metrics.Tally{}
+	}
+	s.tallies[mod].Add(declared, request.GetLabel(), request.GetValue())
+}
+
 // log reports one line the mod logged.
 func (s *Sandbox) log(mod, text string) {
 	s.event(&control.HostEvent{Body: &control.HostEvent_Log{Log: &control.ModLog{Mod: mod, Text: text}}})
@@ -380,6 +481,13 @@ func (s *Sandbox) event(event *control.HostEvent) {
 
 // close stops every mod and frees the compiled modules.
 func (s *Sandbox) close() {
+	// Report the player's metrics as the mods stop, as a server does when
+	// the player leaves.
+	for _, mod := range s.mods {
+		if tally := s.tallies[mod.name]; tally != nil {
+			s.log(mod.name, "metrics for "+strconv.FormatUint(player.GetSteamId(), 10)+": "+tally.Text())
+		}
+	}
 	ctx := context.Background()
 	for _, mod := range s.mods {
 		if mod.mod != nil {

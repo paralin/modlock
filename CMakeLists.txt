@@ -149,6 +149,9 @@ add_library(modlock_sdk SHARED
   src/wasm/hero_restore.cc
   src/wasm/npc_restore.cc
   src/wasm/ui.cc
+  src/wasm/settings.cc
+  src/wasm/metrics.cc
+  src/wasm/file_settings.cc
   src/wasm/wasm_host.cc
   proto/modlock/camera.pb.cc
   proto/modlock/chat.pb.cc
@@ -573,6 +576,14 @@ if(BUILD_TESTING)
   target_include_directories(wasm_ui_test PRIVATE src)
   target_link_libraries(wasm_ui_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME wasm_ui_test COMMAND wasm_ui_test)
+  add_executable(wasm_settings_test tests/wasm_settings_test.cc src/wasm/settings.cc)
+  target_include_directories(wasm_settings_test PRIVATE src)
+  target_link_libraries(wasm_settings_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME wasm_settings_test COMMAND wasm_settings_test)
+  add_executable(wasm_metrics_test tests/wasm_metrics_test.cc src/wasm/metrics.cc)
+  target_include_directories(wasm_metrics_test PRIVATE src)
+  target_link_libraries(wasm_metrics_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME wasm_metrics_test COMMAND wasm_metrics_test)
   add_executable(wasm_hero_restore_test tests/wasm_hero_restore_test.cc src/wasm/hero_restore.cc)
   target_include_directories(wasm_hero_restore_test PRIVATE src)
   target_link_libraries(wasm_hero_restore_test PRIVATE modlock::sdk gtest_main)
