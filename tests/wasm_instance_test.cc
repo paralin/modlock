@@ -37,9 +37,10 @@ std::vector<uint8_t> ReadFile(const char* path) {
 // a Luau or Python mod's sources. It leaves the checksums zero, which the
 // runtime does not read.
 std::string Zip(const std::vector<std::pair<std::string, std::string>>& files) {
-  // Little appends value as size little-endian bytes.
+  // Little appends value as size little-endian bytes; bytes past the fourth
+  // are zero.
   const auto little = [](std::string& out, uint32_t value, int size) {
-    for (int i = 0; i < size; ++i) out += static_cast<char>(value >> (8 * i));
+    for (int i = 0; i < size; ++i) out += static_cast<char>(i < 4 ? value >> (8 * i) : 0);
   };
 
   // Write each file after its local header, and its central directory entry.
