@@ -119,7 +119,7 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
   auto typed = event_->typed<uint32_t, uint64_t>(store_.context());
   if (!typed) return std::unexpected(Fail("modlock_event must take i32 and return i64"));
   call.SerializeToString(&pending_);
-  SetBudget(limits_.event_budget);
+  SetBudget(call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
   busy_ = true;
   auto called = typed.ok_ref().call(store_.context(), static_cast<uint32_t>(pending_.size()));
   busy_ = false;

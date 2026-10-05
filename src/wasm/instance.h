@@ -20,7 +20,8 @@ namespace modlock::wasm {
 struct Limits {
   // memory_bytes caps each linear memory the mod creates or grows.
   int64_t memory_bytes = int64_t{256} << 20;
-  // start_budget bounds module initialization, which runs package setup.
+  // start_budget bounds module initialization, which runs package setup,
+  // and the Start event, where a script mod evaluates its whole script.
   std::chrono::milliseconds start_budget{5000};
   // event_budget bounds the mod's own work in one event. Time inside host
   // calls does not count; the host bounds its own work, which may include a
@@ -56,8 +57,10 @@ class Instance {
   [[nodiscard]] static std::expected<std::unique_ptr<Instance>, std::string> Load(
       Runtime& runtime, std::span<const uint8_t> module, const Limits& limits, HostCall host_call);
 
-  // Deliver hands call to the mod and returns its reply. A nested delivery
-  // from inside a host call is refused without failing the instance.
+  // Deliver hands call to the mod and returns its reply, within
+  // limits.start_budget for the Start event and limits.event_budget for any
+  // other. A nested delivery from inside a host call is refused without
+  // failing the instance.
   [[nodiscard]] std::expected<Reply, std::string> Deliver(const Call& call);
 
   // Failure returns the reason the instance stopped, or nullopt while it runs.

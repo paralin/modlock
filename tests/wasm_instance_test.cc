@@ -291,6 +291,28 @@ TEST(WasmInstance, BudgetStopsARunawayLoop) {
   EXPECT_TRUE((*instance)->Failure());
 }
 
+// A script mod evaluates its whole script in Start, which takes longer than
+// one event may.
+TEST(WasmInstance, StartGetsTheStartBudget) {
+  Runtime runtime;
+  Recorder recorder;
+  Limits limits;
+  limits.event_budget = std::chrono::milliseconds{1};
+  auto instance = Instance::Load(runtime, Wat(R"((module
+    (memory (export "memory") 1)
+    (func (export "modlock_event") (param i32) (result i64) (local $i i32)
+      (loop
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br_if 0 (i32.lt_u (local.get $i) (i32.const 100000000))))
+      i64.const 0)))"),
+                                 limits, recorder.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+
+  auto started = (*instance)->Deliver(Event("Start", StartEvent{}));
+  EXPECT_TRUE(started) << started.error();
+  EXPECT_FALSE((*instance)->Deliver(Event("Frame", FrameEvent{})));
+}
+
 TEST(WasmInstance, BudgetExcludesHostCalls) {
   Runtime runtime;
   Limits limits;
