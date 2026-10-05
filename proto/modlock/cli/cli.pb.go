@@ -26,6 +26,7 @@ type Event struct {
 	//	*Event_Built
 	//	*Event_Host
 	//	*Event_Published
+	//	*Event_Sandbox
 	Body isEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -77,6 +78,13 @@ func (x *Event) GetPublished() *Published {
 	return nil
 }
 
+func (x *Event) GetSandbox() *Sandbox {
+	if x, ok := x.GetBody().(*Event_Sandbox); ok {
+		return x.Sandbox
+	}
+	return nil
+}
+
 type isEvent_Body interface {
 	isEvent_Body()
 }
@@ -106,6 +114,12 @@ type Event_Published struct {
 	Published *Published `protobuf:"bytes,5,opt,name=published,proto3,oneof"`
 }
 
+type Event_Sandbox struct {
+	// Sandbox reports that the session runs the mods in the sandbox, without
+	// the game, and why.
+	Sandbox *Sandbox `protobuf:"bytes,6,opt,name=sandbox,proto3,oneof"`
+}
+
 func (*Event_Note) isEvent_Body() {}
 
 func (*Event_Building) isEvent_Body() {}
@@ -115,6 +129,8 @@ func (*Event_Built) isEvent_Body() {}
 func (*Event_Host) isEvent_Body() {}
 
 func (*Event_Published) isEvent_Body() {}
+
+func (*Event_Sandbox) isEvent_Body() {}
 
 // Building identifies the project a build started for.
 type Building struct {
@@ -250,6 +266,123 @@ func (x *Diagnostic) GetCode() string {
 	return ""
 }
 
+// Sandbox reports a session in the sandbox: the mods run without the game,
+// with a stand-in player who has no hero, and standard input carries the
+// player's input.
+type Sandbox struct {
+	unknownFields []byte
+	// Reason explains why the session runs in the sandbox, such as a missing
+	// game.
+	Reason string `protobuf:"bytes,1,opt,name=reason,proto3" json:"reason,omitempty"`
+}
+
+func (x *Sandbox) Reset() {
+	*x = Sandbox{}
+}
+
+func (*Sandbox) ProtoMessage() {}
+
+func (x *Sandbox) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// Input is one thing the stand-in player does in the sandbox.
+type Input struct {
+	unknownFields []byte
+	// Body selects the input.
+	//
+	// Types that are assignable to Body:
+	//	*Input_Command
+	//	*Input_Press
+	Body isInput_Body `protobuf_oneof:"body"`
+}
+
+func (x *Input) Reset() {
+	*x = Input{}
+}
+
+func (*Input) ProtoMessage() {}
+
+func (m *Input) GetBody() isInput_Body {
+	if m != nil {
+		return m.Body
+	}
+	return nil
+}
+
+func (x *Input) GetCommand() string {
+	if x, ok := x.GetBody().(*Input_Command); ok {
+		return x.Command
+	}
+	return ""
+}
+
+func (x *Input) GetPress() *Press {
+	if x, ok := x.GetBody().(*Input_Press); ok {
+		return x.Press
+	}
+	return nil
+}
+
+type isInput_Body interface {
+	isInput_Body()
+}
+
+type Input_Command struct {
+	// Command is a line the player types in chat, such as "/hello".
+	Command string `protobuf:"bytes,1,opt,name=command,proto3,oneof"`
+}
+
+type Input_Press struct {
+	// Press presses a button in a mod's interface.
+	Press *Press `protobuf:"bytes,2,opt,name=press,proto3,oneof"`
+}
+
+func (*Input_Command) isInput_Body() {}
+
+func (*Input_Press) isInput_Body() {}
+
+// Press identifies a button in the interface a mod shows a player.
+type Press struct {
+	unknownFields []byte
+	// Mod is the mod's name.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Slot identifies the player.
+	Slot int32 `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
+	// Node is the button's id in the mod's tree.
+	Node string `protobuf:"bytes,3,opt,name=node,proto3" json:"node,omitempty"`
+}
+
+func (x *Press) Reset() {
+	*x = Press{}
+}
+
+func (*Press) ProtoMessage() {}
+
+func (x *Press) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *Press) GetSlot() int32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *Press) GetNode() string {
+	if x != nil {
+		return x.Node
+	}
+	return ""
+}
+
 // Published reports a release.
 type Published struct {
 	unknownFields []byte
@@ -371,6 +504,19 @@ func (m *Event_Published) CloneOneofVT() isEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *Event_Sandbox) CloneVT() *Event_Sandbox {
+	if m == nil {
+		return (*Event_Sandbox)(nil)
+	}
+	r := new(Event_Sandbox)
+	r.Sandbox = protobuf_go_lite.CloneVTValue(m.Sandbox)
+	return r
+}
+
+func (m *Event_Sandbox) CloneOneofVT() isEvent_Body {
+	return m.CloneVT()
+}
+
 func (m *Building) CloneVT() *Building {
 	if m == nil {
 		return (*Building)(nil)
@@ -424,6 +570,84 @@ func (m *Diagnostic) CloneVT() *Diagnostic {
 }
 
 func (m *Diagnostic) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Sandbox) CloneVT() *Sandbox {
+	if m == nil {
+		return (*Sandbox)(nil)
+	}
+	r := new(Sandbox)
+	r.Reason = m.Reason
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Sandbox) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Input) CloneVT() *Input {
+	if m == nil {
+		return (*Input)(nil)
+	}
+	r := new(Input)
+	if m.Body != nil {
+		r.Body = m.Body.(interface{ CloneOneofVT() isInput_Body }).CloneOneofVT()
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Input) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Input_Command) CloneVT() *Input_Command {
+	if m == nil {
+		return (*Input_Command)(nil)
+	}
+	r := new(Input_Command)
+	r.Command = m.Command
+	return r
+}
+
+func (m *Input_Command) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
+func (m *Input_Press) CloneVT() *Input_Press {
+	if m == nil {
+		return (*Input_Press)(nil)
+	}
+	r := new(Input_Press)
+	r.Press = protobuf_go_lite.CloneVTValue(m.Press)
+	return r
+}
+
+func (m *Input_Press) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
+func (m *Press) CloneVT() *Press {
+	if m == nil {
+		return (*Press)(nil)
+	}
+	r := new(Press)
+	r.Mod = m.Mod
+	r.Slot = m.Slot
+	r.Node = m.Node
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Press) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -557,6 +781,23 @@ func (this *Event_Published) EqualVT(thatIface isEvent_Body) bool {
 	return true
 }
 
+func (this *Event_Sandbox) EqualVT(thatIface isEvent_Body) bool {
+	that, ok := thatIface.(*Event_Sandbox)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Sandbox, that.Sandbox, func() *Sandbox { return &Sandbox{} }) {
+		return false
+	}
+	return true
+}
+
 func (this *Building) EqualVT(that *Building) bool {
 	if this == that {
 		return true
@@ -641,6 +882,113 @@ func (this *Diagnostic) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *Sandbox) EqualVT(that *Sandbox) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Reason != that.Reason {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Sandbox) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Sandbox)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Input) EqualVT(that *Input) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Body == nil && that.Body != nil {
+		return false
+	} else if this.Body != nil {
+		if that.Body == nil {
+			return false
+		}
+		if !this.Body.(interface{ EqualVT(isInput_Body) bool }).EqualVT(that.Body) {
+			return false
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Input) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Input)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Input_Command) EqualVT(thatIface isInput_Body) bool {
+	that, ok := thatIface.(*Input_Command)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Command != that.Command {
+		return false
+	}
+	return true
+}
+
+func (this *Input_Press) EqualVT(thatIface isInput_Body) bool {
+	that, ok := thatIface.(*Input_Press)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Press, that.Press, func() *Press { return &Press{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Press) EqualVT(that *Press) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if this.Slot != that.Slot {
+		return false
+	}
+	if this.Node != that.Node {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Press) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Press)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *Published) EqualVT(that *Published) bool {
 	if this == that {
 		return true
@@ -697,6 +1045,10 @@ func (x *Event) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("published")
 			ov.Published.MarshalProtoJSON(s.WithField("published"))
+		case *Event_Sandbox:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("sandbox")
+			ov.Sandbox.MarshalProtoJSON(s.WithField("sandbox"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -757,6 +1109,15 @@ func (x *Event) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Published = &Published{}
 			ov.Published.UnmarshalProtoJSON(s.WithField("published", true))
+		case "sandbox":
+			ov := &Event_Sandbox{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Sandbox = nil
+				return
+			}
+			ov.Sandbox = &Sandbox{}
+			ov.Sandbox.UnmarshalProtoJSON(s.WithField("sandbox", true))
 		}
 	})
 }
@@ -977,6 +1338,166 @@ func (x *Diagnostic) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Sandbox message to JSON.
+func (x *Sandbox) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Reason != "" || s.HasField("reason") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("reason")
+		s.WriteString(x.Reason)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Sandbox to JSON.
+func (x *Sandbox) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Sandbox message from JSON.
+func (x *Sandbox) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "reason":
+			s.AddField("reason")
+			x.Reason = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Sandbox from JSON.
+func (x *Sandbox) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Input message to JSON.
+func (x *Input) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Body != nil {
+		switch ov := x.Body.(type) {
+		case *Input_Command:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("command")
+			s.WriteString(ov.Command)
+		case *Input_Press:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("press")
+			ov.Press.MarshalProtoJSON(s.WithField("press"))
+		}
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Input to JSON.
+func (x *Input) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Input message from JSON.
+func (x *Input) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "command":
+			s.AddField("command")
+			ov := &Input_Command{}
+			x.Body = ov
+			ov.Command = s.ReadString()
+		case "press":
+			ov := &Input_Press{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Press = nil
+				return
+			}
+			ov.Press = &Press{}
+			ov.Press.UnmarshalProtoJSON(s.WithField("press", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Input from JSON.
+func (x *Input) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Press message to JSON.
+func (x *Press) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Slot != 0 || s.HasField("slot") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("slot")
+		s.WriteInt32(x.Slot)
+	}
+	if x.Node != "" || s.HasField("node") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("node")
+		s.WriteString(x.Node)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Press to JSON.
+func (x *Press) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Press message from JSON.
+func (x *Press) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "slot":
+			s.AddField("slot")
+			x.Slot = s.ReadInt32()
+		case "node":
+			s.AddField("node")
+			x.Node = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Press from JSON.
+func (x *Press) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Published message to JSON.
 func (x *Published) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -1189,6 +1710,30 @@ func (m *Event_Published) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Event_Sandbox) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Event_Sandbox) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Sandbox != nil {
+		size, err := m.Sandbox.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x32
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Building) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1347,6 +1892,168 @@ func (m *Diagnostic) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Sandbox) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Sandbox) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Sandbox) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Reason) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Reason)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Input) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Input) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Input) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if vtmsg, ok := m.Body.(interface {
+		MarshalToSizedBufferVT([]byte) (int, error)
+	}); ok {
+		size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Input_Command) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Input_Command) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeString(dAtA, i, m.Command)
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *Input_Press) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Input_Press) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Press != nil {
+		size, err := m.Press.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Press) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Press) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Press) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Node) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Slot != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Slot))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Published) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1482,6 +2189,21 @@ func (m *Event_Published) SizeVT() (n int) {
 	return n
 }
 
+func (m *Event_Sandbox) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Sandbox != nil {
+		l = m.Sandbox.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *Building) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -1522,6 +2244,68 @@ func (m *Diagnostic) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Message)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Source)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Code)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Sandbox) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Reason)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Input) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if vtmsg, ok := m.Body.(interface{ SizeVT() int }); ok {
+		n += vtmsg.SizeVT()
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Input_Command) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringValue(1, m.Command)
+	return n
+}
+
+func (m *Input_Press) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Press != nil {
+		l = m.Press.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *Press) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Slot)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1576,6 +2360,13 @@ func (x *Event) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Published{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Published)
+		}
+	case *Event_Sandbox:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sandbox")
+		if body.Sandbox == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Sandbox{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Sandbox)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -1664,6 +2455,64 @@ func (x *Diagnostic) MarshalProtoText() string {
 }
 
 func (x *Diagnostic) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Sandbox) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Sandbox")
+	if x.Reason != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reason")
+		protobuf_go_lite.TextWriteString(&sb, x.Reason)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Sandbox) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Input) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Input")
+	switch body := x.Body.(type) {
+	case *Input_Command:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "command")
+		protobuf_go_lite.TextWriteString(&sb, body.Command)
+	case *Input_Press:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "press")
+		if body.Press == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Press{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Press)
+		}
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Input) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Press) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Press")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Slot != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slot")
+		protobuf_go_lite.TextWriteInt(&sb, x.Slot)
+	}
+	if x.Node != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
+		protobuf_go_lite.TextWriteString(&sb, x.Node)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Press) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -1797,6 +2646,26 @@ func (m *Event) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &Event_Published{Published: v}
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sandbox", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*Event_Sandbox); ok {
+				if err := oneof.Sandbox.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Sandbox{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &Event_Sandbox{Sandbox: v}
 			}
 			iNdEx = postIndex
 		default:
@@ -2039,6 +2908,204 @@ func (m *Diagnostic) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Code = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Sandbox) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Sandbox: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Sandbox: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Reason = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Input) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Input: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Input: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Command", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Body = &Input_Command{Command: v}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Press", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*Input_Press); ok {
+				if err := oneof.Press.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Press{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &Input_Press{Press: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Press) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Press: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Press: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Slot", wireType)
+			}
+			m.Slot = 0
+			m.Slot, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Node = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

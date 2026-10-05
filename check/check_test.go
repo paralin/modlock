@@ -55,6 +55,7 @@ func TestScript(t *testing.T) {
 
 // build compiles the test mod in testdata/name to WebAssembly.
 func build(t *testing.T, name string) []byte {
+	// Build the mod for WebAssembly and read the module.
 	t.Helper()
 	output := filepath.Join(t.TempDir(), "mod.wasm")
 	cmd := exec.Command("go", "build", "-buildmode=c-shared", "-o", output, "./testdata/"+name)

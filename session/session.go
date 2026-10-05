@@ -2,10 +2,10 @@ package session
 
 import (
 	"context"
-	"io"
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"sync/atomic"
 
@@ -24,32 +24,6 @@ const DefaultInterfacePort = 4320
 // through.
 const DefaultRelay = "https://hyperline.gg"
 
-// Config describes a play session.
-type Config struct {
-	// Version is the command line's release, whose host the session runs
-	// unless MODLOCK_HOST names one.
-	Version string
-	// Mods lists the built mods to load.
-	Mods []string
-	// Port is the server's UDP port.
-	Port uint16
-	// Map is the map the server starts, or empty for the default.
-	Map string
-	// Args are passed to each mod's start handlers.
-	Args []string
-	// Launch starts the Deadlock client once the server is ready.
-	Launch bool
-	// HostOutput receives the host's console output.
-	HostOutput io.Writer
-	// Interface is the loopback address the player's game reads the mods'
-	// interfaces from, or empty to serve none.
-	Interface string
-	// Relay is the origin of the https page the game reads them through.
-	Relay string
-	// Events receives each host event, on one goroutine.
-	Events func(*control.HostEvent)
-}
-
 // Session is a running play session: the host with the mods and, once the
 // server is ready, the Deadlock client joined to it.
 type Session struct {
@@ -63,19 +37,25 @@ type Session struct {
 	controlled chan struct{}
 }
 
-// Start starts the host with the mods and serves its control link.
+// Start starts the host with the mods and serves its control link. It
+// returns an error marked ErrNoGame when this computer cannot run the game.
 func Start(ctx context.Context, config Config) (*Session, error) {
-	// Find Steam, the game and the host.
+	// Find a system that runs the host, Steam and the game.
+	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
+		return nil, noGame(errors.New("Deadlock servers run on Windows, or on Linux through Proton"))
+	}
 	steam, err := FindSteam()
 	if err != nil {
-		return nil, err
+		return nil, noGame(err)
 	}
 	gameDir := os.Getenv("DEADLOCK_DIR")
 	if gameDir == "" {
 		if gameDir, err = steam.Deadlock(); err != nil {
-			return nil, err
+			return nil, noGame(err)
 		}
 	}
+
+	// Find the host.
 	executable, err := FindHost(ctx, config.Version)
 	if err != nil {
 		return nil, err
@@ -145,6 +125,7 @@ func (s *Session) Reload(ctx context.Context, path string) error {
 
 // Wait waits for the host to exit and its last events to arrive.
 func (s *Session) Wait() error {
+	// Wait for the host, then close the link and the interfaces it fed.
 	err := s.host.Wait()
 	_ = s.control.Close()
 	if s.screens != nil {

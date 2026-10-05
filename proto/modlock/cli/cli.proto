@@ -8,7 +8,8 @@ import "github.com/paralin/modlock/proto/modlock/control/control.proto";
 import "github.com/paralin/modlock/proto/modlock/publish/publish.proto";
 
 // With --json, the modlock command line writes one Event per line on standard
-// output as protobuf JSON, and stops when its standard input closes. Tool
+// output as protobuf JSON, and stops when its standard input closes. In the
+// sandbox, each line of standard input is an Input as protobuf JSON. Tool
 // output for people, such as compiler errors, still goes to standard error.
 
 // Event is one thing the command line did or saw.
@@ -29,6 +30,10 @@ message Event {
 
     // Published reports a release the provider recorded.
     Published published = 5;
+
+    // Sandbox reports that the session runs the mods in the sandbox, without
+    // the game, and why.
+    Sandbox sandbox = 6;
   }
 }
 
@@ -74,6 +79,39 @@ message Diagnostic {
 
   // Code is the tool's code for the problem, such as TS2322, if it has one.
   string code = 6;
+}
+
+// Sandbox reports a session in the sandbox: the mods run without the game,
+// with a stand-in player who has no hero, and standard input carries the
+// player's input.
+message Sandbox {
+  // Reason explains why the session runs in the sandbox, such as a missing
+  // game.
+  string reason = 1;
+}
+
+// Input is one thing the stand-in player does in the sandbox.
+message Input {
+  // Body selects the input.
+  oneof body {
+    // Command is a line the player types in chat, such as "/hello".
+    string command = 1;
+
+    // Press presses a button in a mod's interface.
+    Press press = 2;
+  }
+}
+
+// Press identifies a button in the interface a mod shows a player.
+message Press {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Slot identifies the player.
+  int32 slot = 2;
+
+  // Node is the button's id in the mod's tree.
+  string node = 3;
 }
 
 // Published reports a release.

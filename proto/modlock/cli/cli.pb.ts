@@ -176,6 +176,32 @@ export const Published: MessageType<Published> = /* @__PURE__ */ createMessageTy
 });
 
 /**
+ * Sandbox reports a session in the sandbox: the mods run without the game,
+ * with a stand-in player who has no hero, and standard input carries the
+ * player's input.
+ *
+ * @generated from message modlock.cli.Sandbox
+ */
+export interface Sandbox {
+  /**
+   * Reason explains why the session runs in the sandbox, such as a missing
+   * game.
+   *
+   * @generated from field: string reason = 1;
+   */
+  reason?: string;
+
+};
+
+export const Sandbox: MessageType<Sandbox> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.cli.Sandbox",
+    fields: [
+        { no: 1, name: "reason", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * Event is one thing the command line did or saw.
  *
  * @generated from message modlock.cli.Event
@@ -230,6 +256,15 @@ export interface Event {
      */
     value: Published;
     case: "published";
+  } | {
+    /**
+     * Sandbox reports that the session runs the mods in the sandbox, without
+     * the game, and why.
+     *
+     * @generated from field: modlock.cli.Sandbox sandbox = 6;
+     */
+    value: Sandbox;
+    case: "sandbox";
   };
 
 };
@@ -242,6 +277,88 @@ export const Event: MessageType<Event> = /* @__PURE__ */ createMessageType({
         { no: 3, name: "built", kind: "message", T: () => Built, oneof: "body" },
         { no: 4, name: "host", kind: "message", T: () => HostEvent, oneof: "body" },
         { no: 5, name: "published", kind: "message", T: () => Published, oneof: "body" },
+        { no: 6, name: "sandbox", kind: "message", T: () => Sandbox, oneof: "body" },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Press identifies a button in the interface a mod shows a player.
+ *
+ * @generated from message modlock.cli.Press
+ */
+export interface Press {
+  /**
+   * Mod is the mod's name.
+   *
+   * @generated from field: string mod = 1;
+   */
+  mod?: string;
+  /**
+   * Slot identifies the player.
+   *
+   * @generated from field: int32 slot = 2;
+   */
+  slot?: number;
+  /**
+   * Node is the button's id in the mod's tree.
+   *
+   * @generated from field: string node = 3;
+   */
+  node?: string;
+
+};
+
+export const Press: MessageType<Press> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.cli.Press",
+    fields: [
+        { no: 1, name: "mod", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "slot", kind: "scalar", T: ScalarType.INT32 },
+        { no: 3, name: "node", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Input is one thing the stand-in player does in the sandbox.
+ *
+ * @generated from message modlock.cli.Input
+ */
+export interface Input {
+
+  /**
+   * Body selects the input.
+   *
+   * @generated from oneof modlock.cli.Input.body
+   */
+  body?: {
+    value?: undefined,
+    case: undefined
+  } | {
+    /**
+     * Command is a line the player types in chat, such as "/hello".
+     *
+     * @generated from field: string command = 1;
+     */
+    value: string;
+    case: "command";
+  } | {
+    /**
+     * Press presses a button in a mod's interface.
+     *
+     * @generated from field: modlock.cli.Press press = 2;
+     */
+    value: Press;
+    case: "press";
+  };
+
+};
+
+export const Input: MessageType<Input> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.cli.Input",
+    fields: [
+        { no: 1, name: "command", kind: "scalar", T: ScalarType.STRING, oneof: "body" },
+        { no: 2, name: "press", kind: "message", T: () => Press, oneof: "body" },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

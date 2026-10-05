@@ -74,6 +74,16 @@ func (p *printer) published(provider string, release *publish.Release, location 
 	}
 }
 
+// sandbox reports that the session runs in the sandbox, and why.
+func (p *printer) sandbox(reason string) {
+	if p.json {
+		p.emit(&cli.Event{Body: &cli.Event_Sandbox{Sandbox: &cli.Sandbox{Reason: reason}}})
+		return
+	}
+	p.note(reason + "; running the mods in the sandbox, without the game, with a stand-in player")
+	p.note("type a command, such as /hello, and press Enter to send it as the player")
+}
+
 // host reports one event from the server.
 func (p *printer) host(event *control.HostEvent) {
 	// Send every event, interface changes included, to a program.
@@ -84,6 +94,8 @@ func (p *printer) host(event *control.HostEvent) {
 
 	// Describe the events a person follows.
 	switch {
+	case event.GetReady() != nil && event.GetReady().GetMap() == "":
+		p.note("ready")
 	case event.GetReady() != nil:
 		p.note("server ready on", event.GetReady().GetMap())
 	case event.GetJoined() != nil:
@@ -94,10 +106,24 @@ func (p *printer) host(event *control.HostEvent) {
 		p.note(event.GetStarted().GetMod(), "started")
 	case event.GetLog() != nil:
 		p.note("[" + event.GetLog().GetMod() + "] " + event.GetLog().GetText())
+	case event.GetMessage() != nil:
+		p.note("[" + event.GetMessage().GetMod() + "] " + shown(event.GetMessage()))
 	case event.GetFailed() != nil && event.GetFailed().GetMod() == "":
 		fmt.Fprintln(os.Stderr, event.GetFailed().GetError())
 	case event.GetFailed() != nil:
 		fmt.Fprintf(os.Stderr, "%s: %s\n", event.GetFailed().GetMod(), event.GetFailed().GetError())
+	}
+}
+
+// shown describes a message as the player sees it.
+func shown(message *control.PlayerMessage) string {
+	switch message.GetKind() {
+	case control.MessageKind_MESSAGE_KIND_CENTER:
+		return "the player sees mid-screen: " + message.GetText()
+	case control.MessageKind_MESSAGE_KIND_ANNOUNCEMENT:
+		return "the player sees an announcement: " + message.GetTitle() + ": " + message.GetText()
+	default:
+		return "the player sees in chat: " + message.GetText()
 	}
 }
 

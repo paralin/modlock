@@ -66,18 +66,29 @@ previous one running and prints the errors. The mod's log lines, reloads and
 player joins appear in the terminal, and the server console goes to
 `build/server.log`.
 
+Without the game, as on macOS or a computer without Deadlock, `modlock dev`
+runs the mod in the sandbox instead: the same WebAssembly runtime and limits,
+with a stand-in player who has no hero. Type a command such as `/hello` and
+press Enter to send it as the player. The mod's log lines, the messages it
+shows the player and its reloads appear in the terminal; calls that need the
+game, such as a hero's position, answer empty. `--sandbox` runs there even
+where the game runs. With `--json`, a program such as an editor sends each
+line of input as a `modlock.cli.Input`, a command or a button press, and
+draws the interface from the events.
+
 | Command | Effect |
 | --- | --- |
 | `modlock new DIR` | Create a mod project named after `DIR`, in Go, or with `--language` in `typescript`, `javascript`, `luau` or `python`. |
 | `modlock build` | Check the mod and write the built mod to `build/`. |
-| `modlock dev` | Run the mod in a local server, join it, and reload it on each save. |
-| `modlock play [MOD...]` | Run built mods in a local server and join it. |
+| `modlock dev` | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox. |
+| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game. |
 | `modlock publish` | Build and check the mod, then publish it. |
 
 `--no-game` runs only the server, `--port` changes its UDP port, and each
 `--arg VALUE` passes an argument to the mods' start handlers. Set
 `DEADLOCK_DIR` when Deadlock is outside the Steam libraries, `MODLOCK_HOST` to
-use a `modlock-host.exe` you built, and `MODLOCK_PROTON` to choose a Proton
+use a `modlock-host.exe` you built (the sandbox reads the interpreters beside
+it), and `MODLOCK_PROTON` to choose a Proton
 installation.
 
 A project is a directory with `mod.json`:

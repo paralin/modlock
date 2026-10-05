@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/aperturerobotics/cli"
-	"github.com/paralin/modlock/session"
 	"github.com/pkg/errors"
 )
 
@@ -12,7 +11,7 @@ import (
 func devCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:      "dev",
-		Usage:     "run the mod in a local server, join it, and reload the mod on each save",
+		Usage:     "run the mod in a local server, or in the sandbox without the game, and reload it on each save",
 		ArgsUsage: "[DIRECTORY]",
 		Flags:     sessionFlags,
 		Action: func(c *cli.Context) error {
@@ -25,7 +24,7 @@ func devCommand(out *printer) *cli.Command {
 			// Build now and after each save. The first good build starts the
 			// server and each later one reloads the mod; a failed build keeps
 			// the running one. Watch calls rebuild on one goroutine.
-			var running *session.Session
+			var running server
 			started := make(chan error, 1)
 			rebuild := func() {
 				// Keep the running mod when the build fails.

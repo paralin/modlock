@@ -54,6 +54,10 @@ message HostEvent {
 
     // Left reports a player who left the server.
     PlayerLeft left = 7;
+
+    // Message carries a message a mod showed a player: a chat line, center
+    // text or an announcement.
+    PlayerMessage message = 8;
   }
 }
 
@@ -102,6 +106,36 @@ message PlayerJoined {
 message PlayerLeft {
   // Slot is the player's former slot.
   int32 slot = 1;
+}
+
+// PlayerMessage is a message a mod showed one player.
+message PlayerMessage {
+  // Mod is the name of the mod that showed it.
+  string mod = 1;
+
+  // Slot identifies the player.
+  int32 slot = 2;
+
+  // Kind is where the message shows.
+  MessageKind kind = 3;
+
+  // Title heads an announcement.
+  string title = 4;
+
+  // Text is the message; empty center text clears it.
+  string text = 5;
+}
+
+// MessageKind is where a message shows on the player's screen.
+enum MessageKind {
+  // MESSAGE_KIND_CHAT is a line in chat.
+  MESSAGE_KIND_CHAT = 0;
+
+  // MESSAGE_KIND_CENTER is the text in the center of the screen.
+  MESSAGE_KIND_CENTER = 1;
+
+  // MESSAGE_KIND_ANNOUNCEMENT is a game announcement with a title.
+  MESSAGE_KIND_ANNOUNCEMENT = 2;
 }
 
 // ServerReady reports the loaded map.

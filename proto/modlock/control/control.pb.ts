@@ -2,6 +2,7 @@
 // @generated from file github.com/paralin/modlock/proto/modlock/control/control.proto (package modlock.control, syntax proto3)
 /* eslint-disable */
 
+import { createEnumType } from "@aptre/protobuf-es-lite/enum";
 import type { MessageType } from "@aptre/protobuf-es-lite/message";
 import { createMessageType } from "@aptre/protobuf-es-lite/message";
 import { ScalarType } from "@aptre/protobuf-es-lite/scalar";
@@ -9,6 +10,40 @@ import type { PartialFieldInfo } from "@aptre/protobuf-es-lite/field";
 import { Change } from "../ui.pb.js";
 
 export const protobufPackage = "modlock.control";
+
+/**
+ * MessageKind is where a message shows on the player's screen.
+ *
+ * @generated from enum modlock.control.MessageKind
+ */
+export enum MessageKind {
+  /**
+   * MESSAGE_KIND_CHAT is a line in chat.
+   *
+   * @generated from enum value: MESSAGE_KIND_CHAT = 0;
+   */
+  CHAT = 0,
+
+  /**
+   * MESSAGE_KIND_CENTER is the text in the center of the screen.
+   *
+   * @generated from enum value: MESSAGE_KIND_CENTER = 1;
+   */
+  CENTER = 1,
+
+  /**
+   * MESSAGE_KIND_ANNOUNCEMENT is a game announcement with a title.
+   *
+   * @generated from enum value: MESSAGE_KIND_ANNOUNCEMENT = 2;
+   */
+  ANNOUNCEMENT = 2,
+}
+
+export const MessageKind_Enum = /* @__PURE__ */ createEnumType("modlock.control.MessageKind", [
+  [0, "MESSAGE_KIND_CHAT"],
+  [1, "MESSAGE_KIND_CENTER"],
+  [2, "MESSAGE_KIND_ANNOUNCEMENT"],
+]);
 
 /**
  * ReloadRequest replaces one mod in place. The mod keeps its place among the
@@ -283,6 +318,57 @@ export const PlayerLeft: MessageType<PlayerLeft> = /* @__PURE__ */ createMessage
 });
 
 /**
+ * PlayerMessage is a message a mod showed one player.
+ *
+ * @generated from message modlock.control.PlayerMessage
+ */
+export interface PlayerMessage {
+  /**
+   * Mod is the name of the mod that showed it.
+   *
+   * @generated from field: string mod = 1;
+   */
+  mod?: string;
+  /**
+   * Slot identifies the player.
+   *
+   * @generated from field: int32 slot = 2;
+   */
+  slot?: number;
+  /**
+   * Kind is where the message shows.
+   *
+   * @generated from field: modlock.control.MessageKind kind = 3;
+   */
+  kind?: MessageKind;
+  /**
+   * Title heads an announcement.
+   *
+   * @generated from field: string title = 4;
+   */
+  title?: string;
+  /**
+   * Text is the message; empty center text clears it.
+   *
+   * @generated from field: string text = 5;
+   */
+  text?: string;
+
+};
+
+export const PlayerMessage: MessageType<PlayerMessage> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.control.PlayerMessage",
+    fields: [
+        { no: 1, name: "mod", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "slot", kind: "scalar", T: ScalarType.INT32 },
+        { no: 3, name: "kind", kind: "enum", T: MessageKind_Enum },
+        { no: 4, name: "title", kind: "scalar", T: ScalarType.STRING },
+        { no: 5, name: "text", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * HostEvent is one thing that happened in the host.
  *
  * @generated from message modlock.control.HostEvent
@@ -354,6 +440,15 @@ export interface HostEvent {
      */
     value: PlayerLeft;
     case: "left";
+  } | {
+    /**
+     * Message carries a message a mod showed a player: a chat line, center
+     * text or an announcement.
+     *
+     * @generated from field: modlock.control.PlayerMessage message = 8;
+     */
+    value: PlayerMessage;
+    case: "message";
   };
 
 };
@@ -368,6 +463,7 @@ export const HostEvent: MessageType<HostEvent> = /* @__PURE__ */ createMessageTy
         { no: 5, name: "ready", kind: "message", T: () => ServerReady, oneof: "body" },
         { no: 6, name: "ui", kind: "message", T: () => UiChanged, oneof: "body" },
         { no: 7, name: "left", kind: "message", T: () => PlayerLeft, oneof: "body" },
+        { no: 8, name: "message", kind: "message", T: () => PlayerMessage, oneof: "body" },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

@@ -8,11 +8,52 @@ import (
 	fmt "fmt"
 	io "io"
 	slices "slices"
+	strconv "strconv"
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	ui "github.com/paralin/modlock/proto/modlock/ui"
 )
+
+// MessageKind is where a message shows on the player's screen.
+type MessageKind int32
+
+const (
+	// MESSAGE_KIND_CHAT is a line in chat.
+	MessageKind_MESSAGE_KIND_CHAT MessageKind = 0
+	// MESSAGE_KIND_CENTER is the text in the center of the screen.
+	MessageKind_MESSAGE_KIND_CENTER MessageKind = 1
+	// MESSAGE_KIND_ANNOUNCEMENT is a game announcement with a title.
+	MessageKind_MESSAGE_KIND_ANNOUNCEMENT MessageKind = 2
+)
+
+// Enum value maps for MessageKind.
+var (
+	MessageKind_name = map[int32]string{
+		0: "MESSAGE_KIND_CHAT",
+		1: "MESSAGE_KIND_CENTER",
+		2: "MESSAGE_KIND_ANNOUNCEMENT",
+	}
+	MessageKind_value = map[string]int32{
+		"MESSAGE_KIND_CHAT":         0,
+		"MESSAGE_KIND_CENTER":       1,
+		"MESSAGE_KIND_ANNOUNCEMENT": 2,
+	}
+)
+
+func (x MessageKind) Enum() *MessageKind {
+	p := new(MessageKind)
+	*p = x
+	return p
+}
+
+func (x MessageKind) String() string {
+	name, valid := MessageKind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
 
 // ControlRequest is one request from the controller.
 type ControlRequest struct {
@@ -90,6 +131,7 @@ type HostEvent struct {
 	//	*HostEvent_Ready
 	//	*HostEvent_Ui
 	//	*HostEvent_Left
+	//	*HostEvent_Message
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -155,6 +197,13 @@ func (x *HostEvent) GetLeft() *PlayerLeft {
 	return nil
 }
 
+func (x *HostEvent) GetMessage() *PlayerMessage {
+	if x, ok := x.GetBody().(*HostEvent_Message); ok {
+		return x.Message
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -195,6 +244,12 @@ type HostEvent_Left struct {
 	Left *PlayerLeft `protobuf:"bytes,7,opt,name=left,proto3,oneof"`
 }
 
+type HostEvent_Message struct {
+	// Message carries a message a mod showed a player: a chat line, center
+	// text or an announcement.
+	Message *PlayerMessage `protobuf:"bytes,8,opt,name=message,proto3,oneof"`
+}
+
 func (*HostEvent_Started) isHostEvent_Body() {}
 
 func (*HostEvent_Log) isHostEvent_Body() {}
@@ -208,6 +263,8 @@ func (*HostEvent_Ready) isHostEvent_Body() {}
 func (*HostEvent_Ui) isHostEvent_Body() {}
 
 func (*HostEvent_Left) isHostEvent_Body() {}
+
+func (*HostEvent_Message) isHostEvent_Body() {}
 
 // ModStarted identifies a mod that started.
 type ModStarted struct {
@@ -354,6 +411,62 @@ func (x *PlayerLeft) GetSlot() int32 {
 		return x.Slot
 	}
 	return 0
+}
+
+// PlayerMessage is a message a mod showed one player.
+type PlayerMessage struct {
+	unknownFields []byte
+	// Mod is the name of the mod that showed it.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Slot identifies the player.
+	Slot int32 `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
+	// Kind is where the message shows.
+	Kind MessageKind `protobuf:"varint,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Title heads an announcement.
+	Title string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	// Text is the message; empty center text clears it.
+	Text string `protobuf:"bytes,5,opt,name=text,proto3" json:"text,omitempty"`
+}
+
+func (x *PlayerMessage) Reset() {
+	*x = PlayerMessage{}
+}
+
+func (*PlayerMessage) ProtoMessage() {}
+
+func (x *PlayerMessage) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *PlayerMessage) GetSlot() int32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *PlayerMessage) GetKind() MessageKind {
+	if x != nil {
+		return x.Kind
+	}
+	return MessageKind_MESSAGE_KIND_CHAT
+}
+
+func (x *PlayerMessage) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PlayerMessage) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
 }
 
 // ServerReady reports the loaded map.
@@ -570,6 +683,19 @@ func (m *HostEvent_Left) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *HostEvent_Message) CloneVT() *HostEvent_Message {
+	if m == nil {
+		return (*HostEvent_Message)(nil)
+	}
+	r := new(HostEvent_Message)
+	r.Message = protobuf_go_lite.CloneVTValue(m.Message)
+	return r
+}
+
+func (m *HostEvent_Message) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
 func (m *ModStarted) CloneVT() *ModStarted {
 	if m == nil {
 		return (*ModStarted)(nil)
@@ -652,6 +778,26 @@ func (m *PlayerLeft) CloneVT() *PlayerLeft {
 }
 
 func (m *PlayerLeft) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *PlayerMessage) CloneVT() *PlayerMessage {
+	if m == nil {
+		return (*PlayerMessage)(nil)
+	}
+	r := new(PlayerMessage)
+	r.Mod = m.Mod
+	r.Slot = m.Slot
+	r.Kind = m.Kind
+	r.Title = m.Title
+	r.Text = m.Text
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PlayerMessage) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -901,6 +1047,23 @@ func (this *HostEvent_Left) EqualVT(thatIface isHostEvent_Body) bool {
 	return true
 }
 
+func (this *HostEvent_Message) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_Message)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Message, that.Message, func() *PlayerMessage { return &PlayerMessage{} }) {
+		return false
+	}
+	return true
+}
+
 func (this *ModStarted) EqualVT(that *ModStarted) bool {
 	if this == that {
 		return true
@@ -1016,6 +1179,38 @@ func (this *PlayerLeft) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *PlayerMessage) EqualVT(that *PlayerMessage) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if this.Slot != that.Slot {
+		return false
+	}
+	if this.Kind != that.Kind {
+		return false
+	}
+	if this.Title != that.Title {
+		return false
+	}
+	if this.Text != that.Text {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PlayerMessage) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PlayerMessage)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *ServerReady) EqualVT(that *ServerReady) bool {
 	if this == that {
 		return true
@@ -1060,6 +1255,46 @@ func (this *UiChanged) EqualMessageVT(thatMsg any) bool {
 		return false
 	}
 	return this.EqualVT(that)
+}
+
+// MarshalProtoJSON marshals the MessageKind to JSON.
+func (x MessageKind) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), MessageKind_name)
+}
+
+// MarshalText marshals the MessageKind to text.
+func (x MessageKind) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), MessageKind_name)), nil
+}
+
+// MarshalJSON marshals the MessageKind to JSON.
+func (x MessageKind) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MessageKind from JSON.
+func (x *MessageKind) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(MessageKind_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read MessageKind enum: %v", err)
+		return
+	}
+	*x = MessageKind(v)
+}
+
+// UnmarshalText unmarshals the MessageKind from text.
+func (x *MessageKind) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), MessageKind_value)
+	if err != nil {
+		return err
+	}
+	*x = MessageKind(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the MessageKind from JSON.
+func (x *MessageKind) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
 // MarshalProtoJSON marshals the ControlRequest message to JSON.
@@ -1193,6 +1428,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("left")
 			ov.Left.MarshalProtoJSON(s.WithField("left"))
+		case *HostEvent_Message:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("message")
+			ov.Message.MarshalProtoJSON(s.WithField("message"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -1275,6 +1514,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Left = &PlayerLeft{}
 			ov.Left.UnmarshalProtoJSON(s.WithField("left", true))
+		case "message":
+			ov := &HostEvent_Message{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Message = nil
+				return
+			}
+			ov.Message = &PlayerMessage{}
+			ov.Message.UnmarshalProtoJSON(s.WithField("message", true))
 		}
 	})
 }
@@ -1531,6 +1779,80 @@ func (x *PlayerLeft) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the PlayerLeft from JSON.
 func (x *PlayerLeft) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the PlayerMessage message to JSON.
+func (x *PlayerMessage) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Slot != 0 || s.HasField("slot") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("slot")
+		s.WriteInt32(x.Slot)
+	}
+	if x.Kind != 0 || s.HasField("kind") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kind")
+		x.Kind.MarshalProtoJSON(s)
+	}
+	if x.Title != "" || s.HasField("title") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("title")
+		s.WriteString(x.Title)
+	}
+	if x.Text != "" || s.HasField("text") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("text")
+		s.WriteString(x.Text)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PlayerMessage to JSON.
+func (x *PlayerMessage) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PlayerMessage message from JSON.
+func (x *PlayerMessage) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "slot":
+			s.AddField("slot")
+			x.Slot = s.ReadInt32()
+		case "kind":
+			s.AddField("kind")
+			x.Kind.UnmarshalProtoJSON(s)
+		case "title":
+			s.AddField("title")
+			x.Title = s.ReadString()
+		case "text":
+			s.AddField("text")
+			x.Text = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PlayerMessage from JSON.
+func (x *PlayerMessage) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1949,6 +2271,30 @@ func (m *HostEvent_Left) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HostEvent_Message) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_Message) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Message != nil {
+		size, err := m.Message.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x42
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x42
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ModStarted) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2155,6 +2501,63 @@ func (m *PlayerLeft) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Slot))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlayerMessage) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlayerMessage) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PlayerMessage) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Text) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Text)
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Title) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Title)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Kind != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Kind))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Slot != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Slot))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -2405,6 +2808,21 @@ func (m *HostEvent_Left) SizeVT() (n int) {
 	return n
 }
 
+func (m *HostEvent_Message) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Message != nil {
+		l = m.Message.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *ModStarted) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2465,6 +2883,21 @@ func (m *PlayerLeft) SizeVT() (n int) {
 	return n
 }
 
+func (m *PlayerMessage) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Slot)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Kind)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Title)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Text)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *ServerReady) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2490,6 +2923,10 @@ func (m *UiChanged) SizeVT() (n int) {
 	}
 	n += len(m.unknownFields)
 	return n
+}
+
+func (x MessageKind) MarshalProtoText() string {
+	return x.String()
 }
 
 func (x *ControlRequest) MarshalProtoText() string {
@@ -2577,6 +3014,13 @@ func (x *HostEvent) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &PlayerLeft{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Left)
+		}
+	case *HostEvent_Message:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "message")
+		if body.Message == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &PlayerMessage{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Message)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -2673,6 +3117,36 @@ func (x *PlayerLeft) MarshalProtoText() string {
 }
 
 func (x *PlayerLeft) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *PlayerMessage) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PlayerMessage")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Slot != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slot")
+		protobuf_go_lite.TextWriteInt(&sb, x.Slot)
+	}
+	if x.Kind != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kind")
+		protobuf_go_lite.TextWriteStringer(&sb, MessageKind(x.Kind))
+	}
+	if x.Title != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "title")
+		protobuf_go_lite.TextWriteString(&sb, x.Title)
+	}
+	if x.Text != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
+		protobuf_go_lite.TextWriteString(&sb, x.Text)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PlayerMessage) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -2986,6 +3460,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &HostEvent_Left{Left: v}
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Message", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_Message); ok {
+				if err := oneof.Message.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &PlayerMessage{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_Message{Message: v}
 			}
 			iNdEx = postIndex
 		default:
@@ -3302,6 +3796,99 @@ func (m *PlayerLeft) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *PlayerMessage) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlayerMessage: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlayerMessage: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Slot", wireType)
+			}
+			m.Slot = 0
+			m.Slot, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kind", wireType)
+			}
+			m.Kind = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Kind = MessageKind(_v)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Title = v
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Text = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

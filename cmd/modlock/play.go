@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"context"
-	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/aperturerobotics/cli"
 	"github.com/paralin/modlock/project"
+	modcli "github.com/paralin/modlock/proto/modlock/cli"
+	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/session"
 	"github.com/pkg/errors"
 )
@@ -17,6 +20,10 @@ import (
 var sessionFlags = []cli.Flag{
 	&cli.UintFlag{Name: "port", Value: session.DefaultPort, Usage: "the server's UDP port"},
 	&cli.BoolFlag{Name: "no-game", Usage: "run only the server; join it yourself"},
+	&cli.BoolFlag{
+		Name:  "sandbox",
+		Usage: "run the mods without the game, with a stand-in player, even where the game runs",
+	},
 	&cli.StringSliceFlag{Name: "arg", Usage: "pass an argument to the mods' start handlers; repeat for several"},
 	&cli.UintFlag{
 		Name:  "ui-port",
@@ -34,7 +41,7 @@ var sessionFlags = []cli.Flag{
 func playCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:      "play",
-		Usage:     "run built mods in a local server and join it",
+		Usage:     "run built mods in a local server and join it, or in the sandbox without the game",
 		ArgsUsage: "[MOD...]",
 		Flags:     sessionFlags,
 		Action: func(c *cli.Context) error {
@@ -73,9 +80,20 @@ func playCommand(out *printer) *cli.Command {
 	}
 }
 
-// startSession starts a session with mods on the first map a mod names,
-// writing the server's console to logPath.
-func startSession(c *cli.Context, out *printer, mods []string, logPath string) (*session.Session, error) {
+// server is a running session: a local Deadlock server, or the sandbox.
+type server interface {
+	// Reload replaces the running mod with the build at path.
+	Reload(ctx context.Context, path string) error
+	// Wait waits for the session to end.
+	Wait() error
+	// Stop ends the session.
+	Stop()
+}
+
+// startSession starts mods on the first map a mod names: in a local server
+// that writes its console to logPath, or in the sandbox when this computer
+// cannot run the game or --sandbox asks for it.
+func startSession(c *cli.Context, out *printer, mods []string, logPath string) (server, error) {
 	// Load the first map a mod names.
 	var mapName string
 	for _, mod := range mods {
@@ -88,6 +106,37 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 		}
 	}
 
+	// Start a server unless the game cannot run here.
+	reason := "--sandbox asked for it"
+	if !c.Bool("sandbox") {
+		running, err := startServer(c, out, mods, mapName, logPath)
+		if err == nil {
+			return running, nil
+		}
+		if !errors.Is(err, session.ErrNoGame) {
+			return nil, err
+		}
+		reason = err.Error()
+	}
+
+	// Run the mods in the sandbox, with the interpreters from the host's
+	// package.
+	out.sandbox(reason)
+	return sandbox.Start(c.Context, sandbox.Config{
+		Mods: mods,
+		Map:  mapName,
+		Args: c.StringSlice("arg"),
+		Interpreters: func(ctx context.Context) (string, error) {
+			host, err := session.FindHost(ctx, Version)
+			return filepath.Dir(host), err
+		},
+		Events: out.host,
+	}), nil
+}
+
+// startServer starts a local server with mods on mapName, writing its console
+// to logPath.
+func startServer(c *cli.Context, out *printer, mods []string, mapName, logPath string) (*session.Session, error) {
 	// Keep the server's console in a file; the mods' own lines arrive as
 	// events.
 	if err := os.MkdirAll(filepath.Dir(logPath), 0o755); err != nil {
@@ -99,19 +148,13 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 	}
 	context.AfterFunc(c.Context, func() { _ = log.Close() })
 
-	// Start the server, which launches the client once it is ready. Steam
-	// cannot connect a game that is already running, so name the console
-	// line that joins.
-	out.note("starting the server; its console is in", logPath)
-	out.note("to join from a running game, enter in its console: connect 127.0.0.1:" + strconv.Itoa(int(c.Uint("port"))))
-
-	// Serve the mods' interfaces unless they are off, and report the
-	// server's events.
+	// Start the server, which launches the client once it is ready, serving
+	// the mods' interfaces unless they are off.
 	var ui string
 	if port := c.Uint("ui-port"); port != 0 {
 		ui = "127.0.0.1:" + strconv.Itoa(int(port))
 	}
-	return session.Start(c.Context, session.Config{
+	running, err := session.Start(c.Context, session.Config{
 		Version:    Version,
 		Mods:       mods,
 		Port:       uint16(c.Uint("port")),
@@ -123,19 +166,37 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 		Relay:      c.String("ui-relay"),
 		Events:     out.host,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Steam cannot connect a game that is already running, so name the
+	// console line that joins.
+	out.note("starting the server; its console is in", logPath)
+	out.note("to join from a running game, enter in its console: connect 127.0.0.1:" + strconv.Itoa(int(c.Uint("port"))))
+	return running, nil
 }
 
-// waitSession waits for the server to stop, or stops it on Ctrl-C. With
-// --json it also stops the server when standard input closes, because a
-// program cannot send Ctrl-C to a Windows process.
-func waitSession(c *cli.Context, out *printer, running *session.Session) error {
-	// Stop on Ctrl-C, or on closed input for a program.
+// waitSession waits for the session to end, or ends it on Ctrl-C. In the
+// sandbox each line of standard input is the player's input: a command, or
+// with --json a cli.Input. With --json the session also ends when standard
+// input closes, because a program cannot send Ctrl-C to a Windows process.
+func waitSession(c *cli.Context, out *printer, running server) error {
+	// Read the player's input, and stop on closed input for a program.
 	ctx, cancel := context.WithCancel(c.Context)
 	defer cancel()
-	if out.json {
+	box, sandboxed := running.(*sandbox.Sandbox)
+	if out.json || sandboxed {
 		go func() {
-			_, _ = io.Copy(io.Discard, os.Stdin)
-			cancel()
+			lines := bufio.NewScanner(os.Stdin)
+			for lines.Scan() {
+				if sandboxed {
+					input(ctx, out, box, lines.Text())
+				}
+			}
+			if out.json {
+				cancel()
+			}
 		}()
 	}
 
@@ -147,4 +208,33 @@ func waitSession(c *cli.Context, out *printer, running *session.Session) error {
 		return nil
 	}
 	return errors.Wrap(err, "the server stopped")
+}
+
+// input passes one line of the player's input to the sandbox's mods and
+// notes input no mod received. A person types commands; a program sends a
+// cli.Input as JSON.
+func input(ctx context.Context, out *printer, box *sandbox.Sandbox, line string) {
+	// Read a program's input; a person's line is a command.
+	in := &modcli.Input{Body: &modcli.Input_Command{Command: line}}
+	if out.json {
+		in = &modcli.Input{}
+		if err := in.UnmarshalJSON([]byte(line)); err != nil {
+			out.note("the input is not a cli.Input:", err)
+			return
+		}
+	}
+
+	// Press the button, or send the command.
+	if press := in.GetPress(); press != nil {
+		pressed, err := box.Press(ctx, press.GetMod(), press.GetSlot(), press.GetNode())
+		if err == nil && !pressed {
+			out.note(press.GetMod(), "is not running to receive the press")
+		}
+		return
+	}
+	command := strings.TrimSpace(in.GetCommand())
+	handled, err := box.Command(ctx, command)
+	if err == nil && !handled && command != "" {
+		out.note("no mod handled", command)
+	}
 }
