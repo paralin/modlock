@@ -402,6 +402,7 @@ When the mode plays well, [publish it](#publishing).
 | [`drill`](examples/drill)                                                    | An aim drill: target bots, headshots, a length setting, best score. |
 | [`dropper`](examples/dropper)                                                | Building a spot of solid objects while playing.                     |
 | [`bounty`](examples/bounty)                                                  | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
+| [`race`](examples/race)                                                      | A Go checkpoint race: a marked course, laps, resets, unit tests.    |
 | [`hello-luau`](examples/hello-luau), [`hello-python`](examples/hello-python) | The smallest mod in Luau and in Python.                             |
 | [`hello`](examples/hello)                                                    | A native C++ plugin.                                                |
 
@@ -686,6 +687,31 @@ session's totals as it ends. Bots keep no totals.
 
 The `mod.json` that `modlock build` writes to `build/` adds the `runtime` that
 runs the mod and its `entry` file. `modlock-host --plugin build` loads it.
+
+## Writing a mod in Go
+
+A Go mod is a `main` package that imports
+[`github.com/paralin/modlock/mod`](mod) and registers its handlers in `init`:
+
+```go
+package main
+
+import "github.com/paralin/modlock/mod"
+
+func init() {
+	mod.Command("hello", func(p mod.Player, args string) {
+		_ = p.Chat("Hello from Go!")
+	})
+}
+
+func main() {}
+```
+
+`modlock build` runs `go vet` and compiles the package for `wasip1` into
+`build/mod.wasm`. Each call into the game returns an error, which a mod may
+ignore to keep playing. Calls fail outside the game, so code that makes none,
+such as the race rules in the [`race`](examples/race) example, tests with
+plain `go test` on your machine. Go mods do not yet build interfaces.
 
 ## Writing a mod in Luau
 

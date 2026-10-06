@@ -1,0 +1,42 @@
+{
+  "slug": "race",
+  "name": "Checkpoint Race",
+  "version": "0.1.0",
+  "language": "LANGUAGE_GO",
+  "settings": [
+    {
+      "key": "laps",
+      "label": "Laps in a race you start",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "1", "label": "1 lap" },
+        { "value": "2", "label": "2 laps" },
+        { "value": "3", "label": "3 laps" }
+      ],
+      "default": "1"
+    },
+    {
+      "key": "reset",
+      "label": "Return to the last checkpoint",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "reload", "label": "Reload" },
+        { "value": "use", "label": "Use" },
+        { "value": "off", "label": "Off" }
+      ],
+      "default": "reload"
+    },
+    {
+      "key": "splits",
+      "label": "Show each checkpoint's time in chat",
+      "kind": "KIND_SWITCH",
+      "default": "true"
+    }
+  ],
+  "metrics": [
+    { "name": "race.finished", "kind": "KIND_COUNT" },
+    { "name": "race.won", "kind": "KIND_COUNT" },
+    { "name": "race.checkpoints", "kind": "KIND_COUNT" },
+    { "name": "race.seconds", "kind": "KIND_SUM" }
+  ]
+}
