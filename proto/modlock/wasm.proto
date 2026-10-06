@@ -290,6 +290,21 @@ service Host {
   // service defines the payload's encoding.
   rpc CallService(ServiceCall) returns (ServiceReply);
 
+  // CreateEntity creates any entity the server knows by its designer name,
+  // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+  // written before it spawns. The world removes it when the world ends;
+  // stopping the mod removes it too.
+  rpc CreateEntity(EntityOptions) returns (EntityResponse);
+
+  // FireInput sends an input to a live entity, as a map's output would, such
+  // as Skin with the integer 1. The value must have the type the input reads.
+  // It reports false once the entity is gone.
+  rpc FireInput(FireInputRequest) returns (AliveResponse);
+
+  // RemoveEntity takes an entity the mod created out of the world without
+  // rewards. It reports false when the entity was already gone.
+  rpc RemoveEntity(EntityRequest) returns (AliveResponse);
+
   // SpawnNpc adds a unit that is not a player, such as a trooper. It thinks
   // from the next frame. The world removes it when the world ends; stopping
   // the mod removes it too.
@@ -1722,6 +1737,70 @@ message UiRequest {
   modlock.ui.Change change = 2;
 }
 
+// EntityOptions describes an entity to create.
+message EntityOptions {
+  // DesignerName is the entity's designer name, such as npc_trooper_boss.
+  string designer_name = 1;
+
+  // Subclass names the entity's game data entry, such as npc_boss_tier1 for
+  // the lane Guardian, for an entity that reads one while spawning. An NPC
+  // needs one.
+  string subclass = 2;
+
+  // Team is the entity's team number; 4 is neutral.
+  int32 team = 3;
+
+  // Position is the entity's origin.
+  modlock.Vec3 position = 4;
+
+  // Facing is where the entity faces.
+  optional modlock.EulerAngles facing = 5;
+
+  // KeyValues are the entity's spawn key values, as a map sets them, such as
+  // model or rendercolor.
+  repeated KeyValue key_values = 6;
+
+  // Fields are schema fields the host writes after it creates the entity and
+  // before the entity spawns. A write that fails cancels the creation.
+  repeated FieldWrite fields = 7;
+}
+
+// KeyValue is one spawn key value.
+message KeyValue {
+  // Key is the key value's name, such as skin.
+  string key = 1;
+
+  // Value is the key value's value.
+  EntityValue value = 2;
+}
+
+// EntityValue is a value a map gives an entity: a spawn key value or an
+// input's parameter. An input reads its parameter as the type it takes, such
+// as an integer for Skin or a color, as 0xRRGGBBAA, for Color, and does not
+// convert text.
+message EntityValue {
+  oneof value {
+    bool boolean = 1;
+    int32 integer = 2;
+    float number = 3;
+    string text = 4;
+    modlock.Vec3 vector = 5;
+    fixed32 color = 6;
+  }
+}
+
+// FireInputRequest sends one input to an entity.
+message FireInputRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // Input is the input's name, such as Skin or Kill.
+  string input = 2;
+
+  // Value is the input's parameter, absent for an input that takes none.
+  optional EntityValue value = 3;
+}
+
 // NpcOptions describes a unit that is not a player, such as a trooper.
 message NpcOptions {
   // ClassName is the unit's entity class, such as npc_trooper or
@@ -1949,7 +2028,7 @@ message RestoreNpcsRequest {
 // it.
 message NpcTarget {
   // ClassName is the unit's entity class: npc_trooper, npc_trooper_neutral,
-  // npc_boss_tier1 to npc_boss_tier3, npc_barrack_boss,
+  // npc_boss_tier2, npc_boss_tier3, npc_barrack_boss,
   // npc_base_defense_sentry, npc_super_neutral or
   // npc_neutral_sinners_sacrifice.
   string class_name = 1;

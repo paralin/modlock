@@ -247,6 +247,48 @@ std::expected<gameinterop::HeroDefinition, std::string> FindHero(
   return heroes.Find(request.hero_name());
 }
 
+// Value converts an entity value to the world's form, or nothing when it has
+// none. The result borrows value's text.
+std::optional<gameinterop::EntityValue> Value(const EntityValue& value) {
+  switch (value.value_case()) {
+    case EntityValue::kBoolean:
+      return value.boolean();
+    case EntityValue::kInteger:
+      return value.integer();
+    case EntityValue::kNumber:
+      return value.number();
+    case EntityValue::kText:
+      return std::string_view(value.text());
+    case EntityValue::kVector: {
+      const auto [x, y, z] = Floats(value.vector());
+      return gameinterop::KeyValueVector{x, y, z};
+    }
+    case EntityValue::kColor: {
+      const uint32_t color = value.color();
+      return gameinterop::KeyValueColor{
+          static_cast<uint8_t>(color >> 24), static_cast<uint8_t>(color >> 16),
+          static_cast<uint8_t>(color >> 8), static_cast<uint8_t>(color)};
+    }
+    case EntityValue::VALUE_NOT_SET:
+      break;
+  }
+  return std::nullopt;
+}
+
+// KeyValues converts spawn key values to the world's form. The result borrows
+// the text of pairs.
+std::expected<std::vector<gameinterop::EntityKeyValue>, std::string> KeyValues(
+    const google::protobuf::RepeatedPtrField<KeyValue>& pairs) {
+  std::vector<gameinterop::EntityKeyValue> result;
+  result.reserve(pairs.size());
+  for (const auto& pair : pairs) {
+    auto value = Value(pair.value());
+    if (!value) return std::unexpected("key value " + pair.key() + " has no value");
+    result.push_back({.key = pair.key(), .value = *value});
+  }
+  return result;
+}
+
 // Alive answers whether the entity a call acted on is still there.
 std::expected<AliveResponse, std::string> Alive(std::expected<bool, std::string> alive) {
   if (!alive) return std::unexpected(alive.error());
@@ -939,9 +981,9 @@ void Game::RemoveWorld() {
     fog_.reset();
   }
   if (world_) {
-    for (const auto entity : npcs_) static_cast<void>(world_->RemoveNpc(entity));
+    for (const auto entity : created_) static_cast<void>(world_->RemoveEntity(entity));
   }
-  npcs_.clear();
+  created_.clear();
 
   // Only the engine's kick removes a bot's connection.
   if (auto server = services_.Server()) {
@@ -1604,6 +1646,61 @@ std::expected<void, std::string> Game::RemapInput(const RemapInputRequest& reque
   return {};
 }
 
+gameinterop::WorldEntities::Prepare Game::WriteBeforeSpawn(
+    const google::protobuf::RepeatedPtrField<FieldWrite>& fields) {
+  // The entity is not networked yet, so its fields need no change notice.
+  return [this, &fields](void* created) -> std::expected<void, std::string> {
+    for (const auto& write : fields) {
+      auto stored =
+          StoreField(created, write.class_name(), write.field(), write.type(), write.value());
+      if (!stored) return stored;
+    }
+    return {};
+  };
+}
+
+std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOptions& request) {
+  auto world = World();
+  if (!world) return std::unexpected(world.error());
+  auto key_values = KeyValues(request.key_values());
+  if (!key_values) return std::unexpected(key_values.error());
+  const auto subclass =
+      request.subclass().empty() ? 0 : gameinterop::WorldEntities::SubclassId(request.subclass());
+  gameinterop::WorldEntities::Target target{
+      .designer_name = request.designer_name(),
+      .subclass_id = subclass,
+      .team = request.team(),
+      .position = Floats(request.position()),
+      .facing = Floats(request.facing()),
+      .velocity = {},
+      .health = 0,
+      .max_health = 0,
+      .lane = std::nullopt,
+  };
+  auto entity = (*world)->CreateEntity(target, *key_values, WriteBeforeSpawn(request.fields()));
+  if (!entity) return std::unexpected(entity.error());
+  created_.insert(*entity);
+  EntityResponse response;
+  response.set_entity(*entity);
+  return response;
+}
+
+std::expected<AliveResponse, std::string> Game::FireInput(const FireInputRequest& request) {
+  auto world = World();
+  if (!world) return std::unexpected(world.error());
+  return Alive((*world)->FireInput(request.entity(), request.input(), Value(request.value())));
+}
+
+std::expected<AliveResponse, std::string> Game::RemoveEntity(const EntityRequest& request) {
+  auto world = World();
+  if (!world) return std::unexpected(world.error());
+  // Only the mod's own entities are removed, so a stale or mistaken handle
+  // cannot take a player or the map's entities out of the world.
+  if (!created_.erase(request.entity()))
+    return std::unexpected("the mod did not create the entity");
+  return Alive((*world)->RemoveEntity(request.entity()));
+}
+
 std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
@@ -1619,18 +1716,9 @@ std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request
       .max_health = max_health,
       .lane = request.has_lane() ? std::optional(request.lane()) : std::nullopt,
   };
-  // The unit is not networked yet, so its fields need no change notice.
-  auto prepare = [&](void* created) -> std::expected<void, std::string> {
-    for (const auto& write : request.fields()) {
-      auto stored =
-          StoreField(created, write.class_name(), write.field(), write.type(), write.value());
-      if (!stored) return stored;
-    }
-    return {};
-  };
-  auto entity = (*world)->Spawn(target, prepare);
+  auto entity = (*world)->Spawn(target, WriteBeforeSpawn(request.fields()));
   if (!entity) return std::unexpected(entity.error());
-  npcs_.insert(*entity);
+  created_.insert(*entity);
   spawned_ = true;
   NpcResponse response;
   response.set_npc(*entity);
@@ -1671,7 +1759,7 @@ std::expected<AliveResponse, std::string> Game::SetNpcHealth(const SetNpcHealthR
 std::expected<AliveResponse, std::string> Game::RemoveNpc(const NpcRequest& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
-  npcs_.erase(request.npc());
+  created_.erase(request.npc());
   return Alive((*world)->RemoveNpc(request.npc()));
 }
 
@@ -1683,7 +1771,7 @@ std::expected<PickupResponse, std::string> Game::CreatePickup(const CreatePickup
                         : gameinterop::WorldEntities::Pickup::kMovementBuff;
   auto entity = (*world)->CreatePickup(kind, Floats(request.position()));
   if (!entity) return std::unexpected(entity.error());
-  npcs_.insert(*entity);
+  created_.insert(*entity);
   PickupResponse response;
   response.set_pickup(*entity);
   return response;
@@ -1700,7 +1788,7 @@ std::expected<AliveResponse, std::string> Game::PickupPresent(const PickupReques
 std::expected<AliveResponse, std::string> Game::RemovePickup(const PickupRequest& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
-  npcs_.erase(request.pickup());
+  created_.erase(request.pickup());
   return Alive((*world)->RemoveNpc(request.pickup()));
 }
 

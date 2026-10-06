@@ -412,6 +412,28 @@ class HostService {
     return std::unexpected("this host does not support CallService");
   }
 
+  // CreateEntity creates any entity the server knows by its designer name,
+  // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+  // written before it spawns. The world removes it when the world ends;
+  // stopping the mod removes it too.
+  virtual std::expected<EntityResponse, std::string> CreateEntity(
+      const EntityOptions& /*request*/) {
+    return std::unexpected("this host does not support CreateEntity");
+  }
+
+  // FireInput sends an input to a live entity, as a map's output would, such
+  // as Skin with the integer 1. The value must have the type the input reads.
+  // It reports false once the entity is gone.
+  virtual std::expected<AliveResponse, std::string> FireInput(const FireInputRequest& /*request*/) {
+    return std::unexpected("this host does not support FireInput");
+  }
+
+  // RemoveEntity takes an entity the mod created out of the world without
+  // rewards. It reports false when the entity was already gone.
+  virtual std::expected<AliveResponse, std::string> RemoveEntity(const EntityRequest& /*request*/) {
+    return std::unexpected("this host does not support RemoveEntity");
+  }
+
   // SpawnNpc adds a unit that is not a player, such as a trooper. It thinks
   // from the next frame. The world removes it when the world ends; stopping
   // the mod removes it too.
@@ -1013,6 +1035,30 @@ class HostService {
              return detail::Fail("the CallService request is malformed");
            }
            return detail::Answer(host.CallService(request));
+         }},
+        {"CreateEntity",
+         [](HostService& host, const std::string& bytes) {
+           EntityOptions request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the CreateEntity request is malformed");
+           }
+           return detail::Answer(host.CreateEntity(request));
+         }},
+        {"FireInput",
+         [](HostService& host, const std::string& bytes) {
+           FireInputRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the FireInput request is malformed");
+           }
+           return detail::Answer(host.FireInput(request));
+         }},
+        {"RemoveEntity",
+         [](HostService& host, const std::string& bytes) {
+           EntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the RemoveEntity request is malformed");
+           }
+           return detail::Answer(host.RemoveEntity(request));
          }},
         {"SpawnNpc",
          [](HostService& host, const std::string& bytes) {

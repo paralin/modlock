@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <type_traits>
+#include <variant>
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/native_damage.h"
@@ -49,7 +51,6 @@ bool IsRoundObjective(std::string_view name) {
 
 const char* LaneClass(std::string_view name) {
   if (name == "npc_trooper") return "CNPC_Trooper";
-  if (name == "npc_boss_tier1") return "CNPC_Boss_Tier1";
   if (name == "npc_boss_tier2") return "CNPC_Boss_Tier2";
   if (name == "npc_boss_tier3") return "CNPC_Boss_Tier3";
   if (name == "npc_barrack_boss") return "CNPC_BarrackBoss";
@@ -98,6 +99,7 @@ std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleIma
       {"entity-system.execute-queued-creation", reinterpret_cast<void**>(&world.calls_.execute)},
       {"entity.remove", reinterpret_cast<void**>(&world.calls_.remove)},
       {"vdata.lookup-by-hash", reinterpret_cast<void**>(&world.calls_.definition)},
+      {"entity-instance.accept-input", reinterpret_cast<void**>(&world.calls_.accept_input)},
   };
   for (const auto& entry : entries) {
     auto address = ResolveSignature(server, entry.id);
@@ -172,6 +174,7 @@ std::expected<void, std::string> WorldEntities::Apply(void* entity, const Target
 }
 
 std::expected<void*, std::string> WorldEntities::Create(const Target& target,
+                                                        std::span<const EntityKeyValue> key_values,
                                                         const Prepare& prepare) {
   auto system = calls_.entity_system();
   if (!system) return std::unexpected(system.error());
@@ -179,7 +182,7 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
   if (target.subclass_id && !definition)
     return std::unexpected("entity subclass is absent from this game build");
   void* entity = calls_.create(nullptr, target.designer_name.c_str(), -1);
-  if (!entity) return std::unexpected("native NPC creation failed: " + target.designer_name);
+  if (!entity) return std::unexpected("the server cannot create " + target.designer_name);
   // Native CBaseEntity::CreateByDesignerName installs this subclass pair before
   // Spawn. The VData pointer follows the four-byte schema token without padding.
   if (target.subclass_id) {
@@ -212,16 +215,16 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
     calls_.remove(entity);
     return std::unexpected("created NPC has no native identity");
   }
-  auto key_values = BuildEntityKeyValues(calls_.key_values, {});
-  if (!key_values) {
+  auto built = BuildEntityKeyValues(calls_.key_values, key_values);
+  if (!built) {
     calls_.remove(entity);
-    return std::unexpected("NPC spawn properties: " + key_values.error());
+    return std::unexpected(target.designer_name + " key values: " + built.error());
   }
   // Queued creation retains and consumes a native object even without properties.
-  calls_.queue(*system, IdentityOf(entity), *key_values);
+  calls_.queue(*system, IdentityOf(entity), *built);
   calls_.execute(*system);
   entity = EntityInstance(*system, *handle);
-  if (!entity) return std::unexpected("NPC did not survive native spawn");
+  if (!entity) return std::unexpected(target.designer_name + " did not survive its spawn");
   return entity;
 }
 
@@ -327,7 +330,7 @@ std::expected<void, std::string> WorldEntities::ClearAuthored(const NativeDamage
   std::vector<uint32_t> actors;
   for (void* entity : EntityInstances(*system)) {
     const auto name = DesignerName(entity);
-    if (name != "npc_trooper_boss" && name != "npc_boss_tier1" && name != "npc_boss_tier2" &&
+    if (name != "npc_trooper_boss" && name != "npc_boss_tier2" &&
         !(IsRestoredNpc(name) && !IsStructure(name)) && !IsRoundObjective(name))
       continue;
     if (const auto handle = ReferenceHandleOf(entity)) actors.push_back(*handle);
@@ -372,7 +375,7 @@ std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target,
   for (const auto& vector : {target.position, target.facing, target.velocity})
     for (float value : vector)
       if (!std::isfinite(value)) return std::unexpected("NPC spawn motion is nonfinite");
-  auto created = Create(target, prepare);
+  auto created = Create(target, {}, prepare);
   if (!created) return std::unexpected(created.error());
   // A spawn that fails after creation is removed, so no untracked NPC remains.
   auto applied = Apply(*created, target);
@@ -387,6 +390,72 @@ std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target,
   }
   spawned_.push_back({*handle, target});
   return *handle;
+}
+
+std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
+    const Target& target, std::span<const EntityKeyValue> key_values, const Prepare& prepare) {
+  if (target.designer_name.empty()) return std::unexpected("an entity needs a designer name");
+  for (const auto& vector : {target.position, target.facing})
+    for (float value : vector)
+      if (!std::isfinite(value)) return std::unexpected("entity placement is nonfinite");
+  auto created = Create(target, key_values, prepare);
+  if (!created) return std::unexpected(created.error());
+  const auto handle = ReferenceHandleOf(*created);
+  if (!handle) {
+    calls_.remove(*created);
+    return std::unexpected("created entity identity is absent");
+  }
+  return *handle;
+}
+
+std::expected<bool, std::string> WorldEntities::FireInput(uint32_t handle, const std::string& input,
+                                                          const std::optional<EntityValue>& value) {
+  auto system = ResolveLiveEntitySystem();
+  if (!system) return std::unexpected(system.error());
+  void* entity = EntityInstance(*system, handle);
+  if (!entity) return false;
+
+  // The variant borrows a vector from value and text from a terminated copy.
+  Variant variant;
+  std::string text;
+  if (value) {
+    std::visit(
+        [&]<typename T>(const T& held) {
+          if constexpr (std::is_same_v<T, bool>) {
+            variant.boolean = held;
+            variant.type = VariantType::kBoolean;
+          } else if constexpr (std::is_same_v<T, int>) {
+            variant.int32 = held;
+            variant.type = VariantType::kInt32;
+          } else if constexpr (std::is_same_v<T, float>) {
+            variant.float32 = held;
+            variant.type = VariantType::kFloat32;
+          } else if constexpr (std::is_same_v<T, std::string_view>) {
+            text = held;
+            variant.pointer = text.c_str();
+            variant.type = VariantType::kCString;
+          } else if constexpr (std::is_same_v<T, KeyValueColor>) {
+            variant.color = held;
+            variant.type = VariantType::kColor32;
+          } else {
+            variant.pointer = &held;
+            variant.type = VariantType::kVector;
+          }
+        },
+        *value);
+  }
+  if (!calls_.accept_input(entity, input.c_str(), nullptr, nullptr, &variant, 0, nullptr))
+    return std::unexpected(DesignerName(entity) + " has no input " + input);
+  return true;
+}
+
+std::expected<bool, std::string> WorldEntities::RemoveEntity(uint32_t handle) {
+  auto system = ResolveLiveEntitySystem();
+  if (!system) return std::unexpected(system.error());
+  void* entity = EntityInstance(*system, handle);
+  if (!entity) return false;
+  calls_.remove(entity);
+  return true;
 }
 
 void WorldEntities::FinishSpawns() {

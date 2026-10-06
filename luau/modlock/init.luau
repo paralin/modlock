@@ -708,6 +708,42 @@ export type BotOptions = {
 	position: Vector?,
 }
 
+-- EntityOptions describes an entity to create.
+export type EntityOptions = {
+	-- designerName is the entity's designer name, such as npc_trooper_boss.
+	designerName: string,
+	-- subclass names the entity's game data entry, such as npc_boss_tier1 for
+	-- the lane Guardian, for an entity that reads one while spawning. An NPC
+	-- needs one.
+	subclass: string,
+	-- team is the entity's team number; 4 is neutral.
+	team: number,
+	-- position is the entity's origin.
+	position: Vector,
+	-- facing is where the entity faces.
+	facing: Angles?,
+	-- keyValues are the entity's spawn key values, as a map sets them, such as
+	-- model or rendercolor.
+	keyValues: { KeyValue }?,
+	-- fields are schema fields the host writes after it creates the entity and
+	-- before the entity spawns. A write that fails cancels the creation.
+	fields: { FieldWrite }?,
+}
+
+-- KeyValue is one spawn key value.
+export type KeyValue = {
+	-- key is the key value's name, such as skin.
+	key: string,
+	-- value is the key value's value.
+	value: EntityValue,
+}
+
+-- EntityValue is a value a map gives an entity: a spawn key value or an
+-- input's parameter. An input reads its parameter as the type it takes, such
+-- as an integer for Skin or a color, as 0xRRGGBBAA, for Color, and does not
+-- convert text.
+export type EntityValue = { boolean: boolean } | { integer: number } | { number: number } | { text: string } | { vector: Vector } | { color: number }
+
 -- NpcOptions describes a unit that is not a player, such as a trooper.
 export type NpcOptions = {
 	-- className is the unit's entity class, such as npc_trooper or
@@ -812,7 +848,7 @@ export type TraceHit = {
 -- it.
 export type NpcTarget = {
 	-- className is the unit's entity class: npc_trooper, npc_trooper_neutral,
-	-- npc_boss_tier1 to npc_boss_tier3, npc_barrack_boss,
+	-- npc_boss_tier2, npc_boss_tier3, npc_barrack_boss,
 	-- npc_base_defense_sentry, npc_super_neutral or
 	-- npc_neutral_sinners_sacrifice.
 	className: string,
@@ -1898,6 +1934,32 @@ schema.RemapInputRequest = {
 	{ number = 2, name = "to", kind = "uint64" },
 	{ number = 3, name = "repeat", kind = "bool", optional = true },
 }
+schema.EntityOptions = {
+	{ number = 1, name = "designerName", kind = "string" },
+	{ number = 2, name = "subclass", kind = "string" },
+	{ number = 3, name = "team", kind = "int32" },
+	{ number = 4, name = "position", kind = "message", message = "Vec3" },
+	{ number = 5, name = "facing", kind = "message", optional = true, message = "EulerAngles" },
+	{ number = 6, name = "keyValues", kind = "message", repeated = true, message = "KeyValue" },
+	{ number = 7, name = "fields", kind = "message", repeated = true, message = "FieldWrite" },
+}
+schema.KeyValue = {
+	{ number = 1, name = "key", kind = "string" },
+	{ number = 2, name = "value", kind = "message", message = "EntityValue" },
+}
+schema.EntityValue = {
+	{ number = 1, name = "boolean", kind = "bool", optional = true },
+	{ number = 2, name = "integer", kind = "int32", optional = true },
+	{ number = 3, name = "number", kind = "float", optional = true },
+	{ number = 4, name = "text", kind = "string", optional = true },
+	{ number = 5, name = "vector", kind = "message", optional = true, message = "Vec3" },
+	{ number = 6, name = "color", kind = "fixed32", optional = true },
+}
+schema.FireInputRequest = {
+	{ number = 1, name = "entity", kind = "uint32" },
+	{ number = 2, name = "input", kind = "string" },
+	{ number = 3, name = "value", kind = "message", optional = true, message = "EntityValue" },
+}
 schema.NpcOptions = {
 	{ number = 1, name = "className", kind = "string" },
 	{ number = 2, name = "unit", kind = "string" },
@@ -2177,6 +2239,39 @@ function modlock.callService(service: string, method: string, payload: string): 
 		return nil
 	end
 	return response.payload
+end
+
+-- createEntity creates any entity the server knows by its designer name,
+-- such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+-- written before it spawns. The world removes it when the world ends;
+-- stopping the mod removes it too.
+function modlock.createEntity(options: EntityOptions): number?
+	local response = call("CreateEntity", "EntityOptions", options, "EntityResponse")
+	if response == nil then
+		return nil
+	end
+	return response.entity
+end
+
+-- fireInput sends an input to a live entity, as a map's output would, such
+-- as Skin with the integer 1. The value must have the type the input reads.
+-- It reports false once the entity is gone.
+function modlock.fireInput(entity: number, input: string, value: EntityValue?): boolean
+	local response = call("FireInput", "FireInputRequest", { entity = entity, input = input, value = value }, "AliveResponse")
+	if response == nil then
+		return false
+	end
+	return response.alive
+end
+
+-- removeEntity takes an entity the mod created out of the world without
+-- rewards. It reports false when the entity was already gone.
+function modlock.removeEntity(entity: number): boolean
+	local response = call("RemoveEntity", "EntityRequest", { entity = entity }, "AliveResponse")
+	if response == nil then
+		return false
+	end
+	return response.alive
 end
 
 -- spawnNpc adds a unit that is not a player, such as a trooper. It thinks

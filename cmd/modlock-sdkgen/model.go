@@ -58,6 +58,11 @@ type oneof struct {
 	name   string
 	doc    string
 	fields []*field
+	// keyed marks the oneof of a union two of whose cases share a
+	// JavaScript typeof, such as an int32 and a float. TypeScript, Luau and
+	// Python cannot tell those cases apart by value, so a mod passes a record
+	// holding one case by its name; Go still takes any of its cases' types.
+	keyed bool
 }
 
 // enum is one protobuf enum.
@@ -140,6 +145,9 @@ func readSchema(set *descriptorpb.FileDescriptorSet, file string) (*schema, erro
 				msg.fields = append(msg.fields, fl)
 			}
 			msg.oneofs = realOneofs(msg.oneofs)
+			if msg.isUnion() {
+				msg.oneofs[0].keyed = msg.oneofs[0].sharesTypeOf()
+			}
 			s.messages[msg.full] = msg
 			s.messageOrder = append(s.messageOrder, msg)
 			for j, nested := range m.GetNestedType() {
@@ -245,6 +253,25 @@ func (m *message) isEmpty() bool {
 // represents as a union of its cases' types.
 func (m *message) isUnion() bool {
 	return len(m.oneofs) == 1 && len(m.oneofs[0].fields) == len(m.fields)
+}
+
+// isBareUnion reports whether m is a union a mod passes as its case's bare
+// value.
+func (m *message) isBareUnion() bool {
+	return m.isUnion() && !m.oneofs[0].keyed
+}
+
+// sharesTypeOf reports whether two of o's cases share a JavaScript typeof.
+func (o *oneof) sharesTypeOf() bool {
+	seen := map[string]bool{}
+	for _, f := range o.fields {
+		kind := typeOf(f)
+		if seen[kind] {
+			return true
+		}
+		seen[kind] = true
+	}
+	return false
 }
 
 // class is a kind of thing a mod addresses by a number the host gives it.

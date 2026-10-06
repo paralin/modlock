@@ -832,6 +832,56 @@ class BotOptions:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class EntityOptions:
+    """EntityOptions describes an entity to create."""
+
+    # designer_name is the entity's designer name, such as npc_trooper_boss.
+    designer_name: str = ""
+    # subclass names the entity's game data entry, such as npc_boss_tier1 for
+    # the lane Guardian, for an entity that reads one while spawning. An NPC
+    # needs one.
+    subclass: str = ""
+    # team is the entity's team number; 4 is neutral.
+    team: int = 0
+    # position is the entity's origin.
+    position: Vector
+    # facing is where the entity faces.
+    facing: Angles | None = None
+    # key_values are the entity's spawn key values, as a map sets them, such as
+    # model or rendercolor.
+    key_values: list[KeyValue] = dataclasses.field(default_factory=lambda: list[KeyValue]())
+    # fields are schema fields the host writes after it creates the entity and
+    # before the entity spawns. A write that fails cancels the creation.
+    fields: list[FieldWrite] = dataclasses.field(default_factory=lambda: list[FieldWrite]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class KeyValue:
+    """KeyValue is one spawn key value."""
+
+    # key is the key value's name, such as skin.
+    key: str = ""
+    # value is the key value's value.
+    value: EntityValue
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class EntityValue:
+    """EntityValue is a value a map gives an entity: a spawn key value or an
+    input's parameter. An input reads its parameter as the type it takes, such
+    as an integer for Skin or a color, as 0xRRGGBBAA, for Color, and does not
+    convert text.
+    """
+
+    boolean: bool | None = None
+    integer: int | None = None
+    number: float | None = None
+    text: str | None = None
+    vector: Vector | None = None
+    color: int | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class NpcOptions:
     """NpcOptions describes a unit that is not a player, such as a trooper."""
 
@@ -951,7 +1001,7 @@ class NpcTarget:
     """
 
     # class_name is the unit's entity class: npc_trooper, npc_trooper_neutral,
-    # npc_boss_tier1 to npc_boss_tier3, npc_barrack_boss,
+    # npc_boss_tier2, npc_boss_tier3, npc_barrack_boss,
     # npc_base_defense_sentry, npc_super_neutral or
     # npc_neutral_sinners_sacrifice.
     class_name: str = ""
@@ -2134,6 +2184,44 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "repeat", "bool", optional=True),
         ],
     ),
+    "EntityOptions": (
+        EntityOptions,
+        [
+            wire.Field(1, "designer_name", "string"),
+            wire.Field(2, "subclass", "string"),
+            wire.Field(3, "team", "int32"),
+            wire.Field(4, "position", "message", message="Vec3"),
+            wire.Field(5, "facing", "message", optional=True, message="EulerAngles"),
+            wire.Field(6, "key_values", "message", repeated=True, message="KeyValue"),
+            wire.Field(7, "fields", "message", repeated=True, message="FieldWrite"),
+        ],
+    ),
+    "KeyValue": (
+        KeyValue,
+        [
+            wire.Field(1, "key", "string"),
+            wire.Field(2, "value", "message", message="EntityValue"),
+        ],
+    ),
+    "EntityValue": (
+        EntityValue,
+        [
+            wire.Field(1, "boolean", "bool", optional=True),
+            wire.Field(2, "integer", "int32", optional=True),
+            wire.Field(3, "number", "float", optional=True),
+            wire.Field(4, "text", "string", optional=True),
+            wire.Field(5, "vector", "message", optional=True, message="Vec3"),
+            wire.Field(6, "color", "fixed32", optional=True),
+        ],
+    ),
+    "FireInputRequest": (
+        None,
+        [
+            wire.Field(1, "entity", "uint32"),
+            wire.Field(2, "input", "string"),
+            wire.Field(3, "value", "message", optional=True, message="EntityValue"),
+        ],
+    ),
     "NpcOptions": (
         NpcOptions,
         [
@@ -2498,6 +2586,39 @@ def call_service(service: str, method: str, payload: bytes) -> bytes | None:
     if response is None:
         return None
     return response["payload"]
+
+
+def create_entity(options: EntityOptions) -> int | None:
+    """create_entity creates any entity the server knows by its designer name,
+    such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+    written before it spawns. The world removes it when the world ends;
+    stopping the mod removes it too.
+    """
+    response = _call("CreateEntity", "EntityOptions", options, "EntityResponse")
+    if response is None:
+        return None
+    return response["entity"]
+
+
+def fire_input(entity: int, input: str, value: EntityValue | None = None) -> bool:
+    """fire_input sends an input to a live entity, as a map's output would, such
+    as Skin with the integer 1. The value must have the type the input reads.
+    It reports false once the entity is gone.
+    """
+    response = _call("FireInput", "FireInputRequest", {"entity": entity, "input": input, "value": value}, "AliveResponse")
+    if response is None:
+        return False
+    return response["alive"]
+
+
+def remove_entity(entity: int) -> bool:
+    """remove_entity takes an entity the mod created out of the world without
+    rewards. It reports false when the entity was already gone.
+    """
+    response = _call("RemoveEntity", "EntityRequest", {"entity": entity}, "AliveResponse")
+    if response is None:
+        return False
+    return response["alive"]
 
 
 def spawn_npc(options: NpcOptions) -> Npc | None:

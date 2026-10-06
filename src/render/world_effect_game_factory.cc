@@ -35,15 +35,6 @@ bool IsShippedEffect(std::string_view effect_name) {
   return false;
 }
 
-struct alignas(8) StringVariant {
-  const char* value;
-  void* citadel_pad[2]{};
-  std::uint8_t type = 30;
-  std::uint8_t alignment = 0;
-  std::uint16_t flags = 0;
-};
-static_assert(sizeof(StringVariant) == 32);
-
 // Teleport places an effect entity at origin with angles and no motion.
 void Teleport(void* entity, const modlock::Vec3& origin, const std::array<float, 3>& angles) {
   gameinterop::TeleportEntity(entity,
@@ -216,7 +207,7 @@ class GameWorldEffect final : public WorldParticle {
   std::expected<void, std::string> Input(const char* name, void* activator = nullptr,
                                          const char* value = "") {
     if (!entity_) return std::unexpected("particle is no longer live");
-    StringVariant variant{.value = value};
+    gameinterop::Variant variant{.pointer = value, .type = gameinterop::VariantType::kCString};
     if (!factory_.calls_.accept_input(entity_, name, activator, nullptr, &variant, 0, nullptr))
       return std::unexpected(std::string("info_particle_system rejected ") + name);
     return {};

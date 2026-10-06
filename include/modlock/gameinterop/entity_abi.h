@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "modlock/export.h"
+#include "modlock/gameinterop/keyvalues.h"
 #include "modlock/gameinterop/native_memory.h"
 
 namespace modlock::gameinterop {
@@ -83,6 +84,39 @@ MODLOCK_API void TeleportEntity(void* entity, const float* position, const float
                                 const float* velocity);
 // SetEntityVelocity changes native velocity without moving or turning the entity.
 MODLOCK_API void SetEntityVelocity(void* entity, const std::array<float, 3>& velocity);
+
+// VariantType is the datamap field type a Variant holds, numbered as the
+// game's fieldtype_t enum.
+enum class VariantType : std::uint8_t {
+  kVoid = 0,
+  kFloat32 = 1,
+  kVector = 3,
+  kInt32 = 5,
+  kBoolean = 6,
+  kColor32 = 9,
+  kCString = 30,
+};
+
+// Variant is Source 2's variant_t, the value AcceptInput passes to an input:
+// an eight-byte value, an 8-bit field type, one byte of alignment, and 16-bit
+// flags. An int32, float32, bool or color sits in the value; a string or
+// vector is a pointer to storage the caller keeps. Zero flags tell the game it
+// does not own that storage, and borrowing is safe because AcceptInput
+// consumes the variant synchronously. Inputs read the value as its type says
+// and do not convert text.
+struct alignas(8) Variant {
+  union {
+    const void* pointer = nullptr;
+    std::int32_t int32;
+    float float32;
+    bool boolean;
+    KeyValueColor color;
+  };
+  VariantType type = VariantType::kVoid;
+  std::uint8_t alignment = 0;
+  std::uint16_t flags = 0;
+};
+static_assert(sizeof(Variant) == 16);
 
 // IdentityOf reads the entity-identity pointer QueueSpawnEntity consumes.
 [[nodiscard]] MODLOCK_API void* IdentityOf(void* entity);

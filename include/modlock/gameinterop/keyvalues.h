@@ -100,11 +100,15 @@ struct KeyValueVector {
   float z;
 };
 
-// EntityKeyValue is one typed key/value pair for BuildEntityKeyValues. The
-// alternatives cover the kinds used by native entity construction.
+// EntityValue is a value a map gives an entity: a spawn key value or an
+// input's parameter. The alternatives cover the kinds native entity
+// construction and inputs read.
+using EntityValue = std::variant<bool, int, float, std::string_view, KeyValueColor, KeyValueVector>;
+
+// EntityKeyValue is one typed key/value pair for BuildEntityKeyValues.
 struct EntityKeyValue {
   std::string_view key;
-  std::variant<bool, int, float, std::string_view, KeyValueColor, KeyValueVector> value;
+  EntityValue value;
 };
 
 // BuildEntityKeyValues creates a real CEntityKeyValues through calls and

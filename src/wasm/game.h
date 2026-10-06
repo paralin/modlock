@@ -354,6 +354,9 @@ class Game : public HostService {
   std::expected<void, std::string> Press(const PlayerInputRequest& request) override;
   std::expected<void, std::string> WatchInput(const InputRequest& request) override;
   std::expected<void, std::string> RemapInput(const RemapInputRequest& request) override;
+  std::expected<EntityResponse, std::string> CreateEntity(const EntityOptions& request) override;
+  std::expected<AliveResponse, std::string> FireInput(const FireInputRequest& request) override;
+  std::expected<AliveResponse, std::string> RemoveEntity(const EntityRequest& request) override;
   std::expected<NpcResponse, std::string> SpawnNpc(const NpcOptions& request) override;
   std::expected<NpcStateResponse, std::string> ReadNpc(const NpcRequest& request) override;
   std::expected<AliveResponse, std::string> MoveNpc(const MoveNpcRequest& request) override;
@@ -394,6 +397,12 @@ class Game : public HostService {
   std::expected<void, std::string> StoreField(void* entity, const std::string& class_name,
                                               const std::string& field, FieldType type,
                                               const FieldValue& value);
+
+  // WriteBeforeSpawn returns the preparation that stores fields on an entity
+  // the world creates, before it spawns and is networked. fields must outlive
+  // the creation.
+  gameinterop::WorldEntities::Prepare WriteBeforeSpawn(
+      const google::protobuf::RepeatedPtrField<FieldWrite>& fields);
 
   // ScreenOwner returns the entity index a screen effect for slot belongs to.
   std::expected<int32_t, std::string> ScreenOwner(int32_t slot);
@@ -492,11 +501,11 @@ class Game : public HostService {
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;
   uint32_t next_object_ = 1;
-  // world_ spawns and steers units in the loaded world; npcs_ are the units
-  // and pickups the mod created, and spawned_ is true until the units'
-  // placement finishes.
+  // world_ creates and steers entities in the loaded world; created_ are the
+  // entities, units and pickups the mod created, and spawned_ is true until
+  // the units' placement finishes.
   std::optional<gameinterop::WorldEntities> world_;
-  std::set<uint32_t> npcs_;
+  std::set<uint32_t> created_;
   bool spawned_ = false;
   // bots_ maps each bot's slot to its name, which the console kicks by.
   std::map<int32_t, std::string> bots_;

@@ -27,19 +27,6 @@ void PlaceEntity(void* entity, const modlock::Vec3& origin, const modlock::Euler
 
 using CreateEntityByNameFn = void* (*)(void*, const char*, int);
 
-// Source 2's Citadel variant_t is a pointer-sized value, two pointer-sized
-// Citadel pads, an 8-bit field type, one byte of alignment, and 16-bit flags.
-// FIELD_CSTRING is 30 in the current sourcesdk datamap enum. Borrowing the
-// string is safe because AcceptInput consumes the variant synchronously.
-struct alignas(8) StringVariant {
-  const char* value;
-  void* citadel_pad[2]{};
-  std::uint8_t type = 30;
-  std::uint8_t alignment = 0;
-  std::uint16_t flags = 0;
-};
-static_assert(sizeof(StringVariant) == 32);
-
 bool WriteWorldTextMessage(void* entity, const char* message) {
   if (entity == nullptr || message == nullptr) {
     return false;
@@ -199,7 +186,7 @@ class GameWorldTextEntity final : public WorldTextEntity {
     if (!factory_.calls_.write_message(entity_, message_.c_str())) {
       return std::unexpected("point_worldtext message field was not writable after spawn");
     }
-    StringVariant empty{.value = ""};
+    gameinterop::Variant empty{.pointer = "", .type = gameinterop::VariantType::kCString};
     if (!factory_.calls_.accept_input(entity_, "Enable", nullptr, nullptr, &empty, 0, nullptr)) {
       return std::unexpected("point_worldtext rejected Enable after spawn");
     }

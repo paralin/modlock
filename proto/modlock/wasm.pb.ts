@@ -4263,6 +4263,105 @@ export const UiRequest: MessageType<UiRequest> = /* @__PURE__ */ createMessageTy
 });
 
 /**
+ * EntityValue is a value a map gives an entity: a spawn key value or an
+ * input's parameter. An input reads its parameter as the type it takes, such
+ * as an integer for Skin or a color, as 0xRRGGBBAA, for Color, and does not
+ * convert text.
+ *
+ * @generated from message modlock.wasm.EntityValue
+ */
+export interface EntityValue {
+
+  /**
+   * @generated from oneof modlock.wasm.EntityValue.value
+   */
+  value?: {
+    value?: undefined,
+    case: undefined
+  } | {
+    /**
+     * @generated from field: bool boolean = 1;
+     */
+    value: boolean;
+    case: "boolean";
+  } | {
+    /**
+     * @generated from field: int32 integer = 2;
+     */
+    value: number;
+    case: "integer";
+  } | {
+    /**
+     * @generated from field: float number = 3;
+     */
+    value: number;
+    case: "number";
+  } | {
+    /**
+     * @generated from field: string text = 4;
+     */
+    value: string;
+    case: "text";
+  } | {
+    /**
+     * @generated from field: modlock.Vec3 vector = 5;
+     */
+    value: Vec3;
+    case: "vector";
+  } | {
+    /**
+     * @generated from field: fixed32 color = 6;
+     */
+    value: number;
+    case: "color";
+  };
+
+};
+
+export const EntityValue: MessageType<EntityValue> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntityValue",
+    fields: [
+        { no: 1, name: "boolean", kind: "scalar", T: ScalarType.BOOL, oneof: "value" },
+        { no: 2, name: "integer", kind: "scalar", T: ScalarType.INT32, oneof: "value" },
+        { no: 3, name: "number", kind: "scalar", T: ScalarType.FLOAT, oneof: "value" },
+        { no: 4, name: "text", kind: "scalar", T: ScalarType.STRING, oneof: "value" },
+        { no: 5, name: "vector", kind: "message", T: () => Vec3, oneof: "value" },
+        { no: 6, name: "color", kind: "scalar", T: ScalarType.FIXED32, oneof: "value" },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * KeyValue is one spawn key value.
+ *
+ * @generated from message modlock.wasm.KeyValue
+ */
+export interface KeyValue {
+  /**
+   * Key is the key value's name, such as skin.
+   *
+   * @generated from field: string key = 1;
+   */
+  key?: string;
+  /**
+   * Value is the key value's value.
+   *
+   * @generated from field: modlock.wasm.EntityValue value = 2;
+   */
+  value?: EntityValue;
+
+};
+
+export const KeyValue: MessageType<KeyValue> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.KeyValue",
+    fields: [
+        { no: 1, name: "key", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "value", kind: "message", T: () => EntityValue },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * FieldWrite writes one schema field of an entity the host creates.
  *
  * @generated from message modlock.wasm.FieldWrite
@@ -4302,6 +4401,112 @@ export const FieldWrite: MessageType<FieldWrite> = /* @__PURE__ */ createMessage
         { no: 2, name: "field", kind: "scalar", T: ScalarType.STRING },
         { no: 3, name: "type", kind: "enum", T: FieldType_Enum },
         { no: 4, name: "value", kind: "message", T: () => FieldValue },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * EntityOptions describes an entity to create.
+ *
+ * @generated from message modlock.wasm.EntityOptions
+ */
+export interface EntityOptions {
+  /**
+   * DesignerName is the entity's designer name, such as npc_trooper_boss.
+   *
+   * @generated from field: string designer_name = 1;
+   */
+  designerName?: string;
+  /**
+   * Subclass names the entity's game data entry, such as npc_boss_tier1 for
+   * the lane Guardian, for an entity that reads one while spawning. An NPC
+   * needs one.
+   *
+   * @generated from field: string subclass = 2;
+   */
+  subclass?: string;
+  /**
+   * Team is the entity's team number; 4 is neutral.
+   *
+   * @generated from field: int32 team = 3;
+   */
+  team?: number;
+  /**
+   * Position is the entity's origin.
+   *
+   * @generated from field: modlock.Vec3 position = 4;
+   */
+  position?: Vec3;
+  /**
+   * Facing is where the entity faces.
+   *
+   * @generated from field: optional modlock.EulerAngles facing = 5;
+   */
+  facing?: EulerAngles;
+  /**
+   * KeyValues are the entity's spawn key values, as a map sets them, such as
+   * model or rendercolor.
+   *
+   * @generated from field: repeated modlock.wasm.KeyValue key_values = 6;
+   */
+  keyValues?: KeyValue[];
+  /**
+   * Fields are schema fields the host writes after it creates the entity and
+   * before the entity spawns. A write that fails cancels the creation.
+   *
+   * @generated from field: repeated modlock.wasm.FieldWrite fields = 7;
+   */
+  fields?: FieldWrite[];
+
+};
+
+export const EntityOptions: MessageType<EntityOptions> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntityOptions",
+    fields: [
+        { no: 1, name: "designer_name", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "subclass", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "team", kind: "scalar", T: ScalarType.INT32 },
+        { no: 4, name: "position", kind: "message", T: () => Vec3 },
+        { no: 5, name: "facing", kind: "message", T: () => EulerAngles, opt: true },
+        { no: 6, name: "key_values", kind: "message", T: () => KeyValue, repeated: true },
+        { no: 7, name: "fields", kind: "message", T: () => FieldWrite, repeated: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * FireInputRequest sends one input to an entity.
+ *
+ * @generated from message modlock.wasm.FireInputRequest
+ */
+export interface FireInputRequest {
+  /**
+   * Entity is the entity's handle.
+   *
+   * @generated from field: uint32 entity = 1;
+   */
+  entity?: number;
+  /**
+   * Input is the input's name, such as Skin or Kill.
+   *
+   * @generated from field: string input = 2;
+   */
+  input?: string;
+  /**
+   * Value is the input's parameter, absent for an input that takes none.
+   *
+   * @generated from field: optional modlock.wasm.EntityValue value = 3;
+   */
+  value?: EntityValue;
+
+};
+
+export const FireInputRequest: MessageType<FireInputRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.FireInputRequest",
+    fields: [
+        { no: 1, name: "entity", kind: "scalar", T: ScalarType.UINT32 },
+        { no: 2, name: "input", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "value", kind: "message", T: () => EntityValue, opt: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });
@@ -4910,7 +5115,7 @@ export const TraceResponse: MessageType<TraceResponse> = /* @__PURE__ */ createM
 export interface NpcTarget {
   /**
    * ClassName is the unit's entity class: npc_trooper, npc_trooper_neutral,
-   * npc_boss_tier1 to npc_boss_tier3, npc_barrack_boss,
+   * npc_boss_tier2, npc_boss_tier3, npc_barrack_boss,
    * npc_base_defense_sentry, npc_super_neutral or
    * npc_neutral_sinners_sacrifice.
    *

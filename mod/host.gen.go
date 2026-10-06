@@ -227,6 +227,12 @@ type BotOptionsHeroName = wasm.BotOptions_HeroName
 // BotOptionsHeroId sets BotOptions.Hero to HeroId.
 type BotOptionsHeroId = wasm.BotOptions_HeroId
 
+// EntityOptions describes an entity to create.
+type EntityOptions = wasm.EntityOptions
+
+// KeyValue is one spawn key value.
+type KeyValue = wasm.KeyValue
+
 // NpcOptions describes a unit that is not a player, such as a trooper.
 type NpcOptions = wasm.NpcOptions
 
@@ -287,6 +293,25 @@ func fromFieldValue(message *wasm.FieldValue) any {
 		return value.Vector
 	}
 	return nil
+}
+
+// toEntityValue encodes value as a EntityValue.
+func toEntityValue(value any) (*wasm.EntityValue, error) {
+	switch value := value.(type) {
+	case bool:
+		return &wasm.EntityValue{Value: &wasm.EntityValue_Boolean{Boolean: value}}, nil
+	case int32:
+		return &wasm.EntityValue{Value: &wasm.EntityValue_Integer{Integer: value}}, nil
+	case float32:
+		return &wasm.EntityValue{Value: &wasm.EntityValue_Number{Number: value}}, nil
+	case string:
+		return &wasm.EntityValue{Value: &wasm.EntityValue_Text{Text: value}}, nil
+	case *Vector:
+		return &wasm.EntityValue{Value: &wasm.EntityValue_Vector{Vector: value}}, nil
+	case uint32:
+		return &wasm.EntityValue{Value: &wasm.EntityValue_Color{Color: value}}, nil
+	}
+	return nil, fmt.Errorf("a EntityValue is a bool, int32, float32, string, *Vector or uint32, not %T", value)
 }
 
 // Player addresses one connected player by their server slot.
@@ -742,6 +767,48 @@ func CallService(service, method string, payload []byte) ([]byte, error) {
 		return nil, err
 	}
 	return response.GetPayload(), nil
+}
+
+// CreateEntity creates any entity the server knows by its designer name,
+// such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+// written before it spawns. The world removes it when the world ends;
+// stopping the mod removes it too.
+func CreateEntity(options *EntityOptions) (uint32, error) {
+	response := &wasm.EntityResponse{}
+	if err := invoke("CreateEntity", options, response); err != nil {
+		return 0, err
+	}
+	return response.GetEntity(), nil
+}
+
+// FireInput sends an input to a live entity, as a map's output would, such
+// as Skin with the integer 1. The value must have the type the input reads.
+// It reports false once the entity is gone.
+func FireInput(entity uint32, input string, value any) (bool, error) {
+	request := &wasm.FireInputRequest{Entity: entity, Input: input}
+	if value != nil {
+		encoded, err := toEntityValue(value)
+		if err != nil {
+			return false, err
+		}
+		request.Value = encoded
+	}
+	response := &wasm.AliveResponse{}
+	if err := invoke("FireInput", request, response); err != nil {
+		return false, err
+	}
+	return response.GetAlive(), nil
+}
+
+// RemoveEntity takes an entity the mod created out of the world without
+// rewards. It reports false when the entity was already gone.
+func RemoveEntity(entity uint32) (bool, error) {
+	request := &wasm.EntityRequest{Entity: entity}
+	response := &wasm.AliveResponse{}
+	if err := invoke("RemoveEntity", request, response); err != nil {
+		return false, err
+	}
+	return response.GetAlive(), nil
 }
 
 // SpawnNpc adds a unit that is not a player, such as a trooper. It thinks

@@ -558,6 +558,36 @@ A bundle keeps only the classes it uses. The game dump in
 [`data/dump`](data/dump) lists every class, its base and its fields in
 `schemas.json`; the `server` module holds the entity classes.
 
+### Entities and inputs
+
+`createEntity` creates any entity the server knows by its designer name, with
+the spawn key values a map would give it and fields written before it spawns.
+`fireInput` sends an entity an input, as a map's output would, and
+`removeEntity` removes one the mod created. The world removes a mod's entities
+when it ends, and so does stopping the mod.
+
+```ts
+import { createEntity, fireInput, removeEntity } from 'modlock'
+
+const guardian = createEntity({
+  designerName: 'npc_trooper_boss',
+  subclass: 'npc_boss_tier1',
+  team: 3,
+  position,
+  keyValues: [{ key: 'rendercolor', value: { text: '255 0 0' } }],
+})
+fireInput(guardian, 'Alpha', { integer: 128 })
+fireInput(guardian, 'Color', { color: 0x00ff00ff })
+fireInput(guardian, 'DisableShadow')
+removeEntity(guardian)
+```
+
+An NPC needs its subclass, the game data entry it reads while it spawns. An
+input reads its value as the type it takes and does not convert text: `Alpha`
+takes an integer, `Color` a color as `0xRRGGBBAA`. `entities.json` in the game
+dump lists each input and the type of its value. A designer name the server
+lacks, or an input the entity lacks, fails that call alone.
+
 ### Interfaces
 
 | Call                                    | Effect                                                   |

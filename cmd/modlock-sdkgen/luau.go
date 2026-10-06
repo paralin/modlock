@@ -87,7 +87,7 @@ func writeLuau(s *schema) ([]byte, error) {
 	}
 	w := &luauWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}}
 	for _, c := range calls {
-		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isUnion() {
+		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
 			w.absent[f] = true
 		}
 	}
@@ -132,8 +132,16 @@ func (w *luauWriter) writeTypes() error {
 			continue
 		}
 		writeComment(&w.out, "", "--", m.doc)
-		if m.isUnion() {
+		if m.isBareUnion() {
 			fmt.Fprintf(&w.out, "export type %s = %s\n\n", m.name, w.oneofType(m.oneofs[0]))
+			continue
+		}
+		if m.isUnion() {
+			var cases []string
+			for _, f := range m.fields {
+				cases = append(cases, fmt.Sprintf("{ %s: %s }", luauKey(lowerCamel(f.name)), luauType(f)))
+			}
+			fmt.Fprintf(&w.out, "export type %s = %s\n\n", m.name, strings.Join(cases, " | "))
 			continue
 		}
 		outputOnly := w.outputs[m] && !w.inputs[m]
@@ -354,15 +362,15 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 	switch {
 	case f.repeated:
 		members = append(members, "repeated = true")
-	case f.optional || w.absent[f]:
+	case f.optional || w.absent[f] || f.oneof != nil && f.oneof.keyed:
 		members = append(members, "optional = true")
 	}
-	if f.oneof != nil {
+	if f.oneof != nil && !f.oneof.keyed {
 		members = append(members, fmt.Sprintf("oneof = %q", lowerCamel(f.oneof.name)))
 	}
 	if f.message != nil {
 		members = append(members, fmt.Sprintf("message = %q", f.message.name))
-		if f.message.isUnion() {
+		if f.message.isBareUnion() {
 			members = append(members, fmt.Sprintf("union = %q", lowerCamel(f.message.oneofs[0].name)))
 		}
 	}

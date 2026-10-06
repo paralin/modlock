@@ -1106,6 +1106,87 @@ function toBotOptions(value: BotOptions): pb.BotOptions {
   }
 }
 
+/** EntityOptions describes an entity to create. */
+export interface EntityOptions {
+  /** designerName is the entity's designer name, such as npc_trooper_boss. */
+  designerName: string
+  /**
+   * subclass names the entity's game data entry, such as npc_boss_tier1 for
+   * the lane Guardian, for an entity that reads one while spawning. An NPC
+   * needs one.
+   */
+  subclass: string
+  /** team is the entity's team number; 4 is neutral. */
+  team: number
+  /** position is the entity's origin. */
+  position: Vector
+  /** facing is where the entity faces. */
+  facing?: Angles
+  /**
+   * keyValues are the entity's spawn key values, as a map sets them, such as
+   * model or rendercolor.
+   */
+  keyValues?: readonly KeyValue[]
+  /**
+   * fields are schema fields the host writes after it creates the entity and
+   * before the entity spawns. A write that fails cancels the creation.
+   */
+  fields?: readonly FieldWrite[]
+}
+
+/** toEntityOptions encodes an EntityOptions. */
+function toEntityOptions(value: EntityOptions): pb.EntityOptions {
+  return {
+    designerName: value.designerName,
+    subclass: value.subclass,
+    team: value.team,
+    position: value.position,
+    facing: value.facing,
+    keyValues: value.keyValues?.map((v) => toKeyValue(v)),
+    fields: value.fields?.map((v) => toFieldWrite(v)),
+  }
+}
+
+/** KeyValue is one spawn key value. */
+export interface KeyValue {
+  /** key is the key value's name, such as skin. */
+  key: string
+  /** value is the key value's value. */
+  value: EntityValue
+}
+
+/** toKeyValue encodes a KeyValue. */
+function toKeyValue(value: KeyValue): pb.KeyValue {
+  return {
+    key: value.key,
+    value: toEntityValue(value.value),
+  }
+}
+
+/**
+ * EntityValue is a value a map gives an entity: a spawn key value or an
+ * input's parameter. An input reads its parameter as the type it takes, such
+ * as an integer for Skin or a color, as 0xRRGGBBAA, for Color, and does not
+ * convert text.
+ */
+export type EntityValue =
+  | { readonly boolean: boolean }
+  | { readonly integer: number }
+  | { readonly number: number }
+  | { readonly text: string }
+  | { readonly vector: Vector }
+  | { readonly color: number }
+
+/** toEntityValue encodes an EntityValue. */
+function toEntityValue(value: EntityValue): pb.EntityValue {
+  if ('boolean' in value) return { value: { case: 'boolean', value: value.boolean } }
+  if ('integer' in value) return { value: { case: 'integer', value: value.integer } }
+  if ('number' in value) return { value: { case: 'number', value: value.number } }
+  if ('text' in value) return { value: { case: 'text', value: value.text } }
+  if ('vector' in value) return { value: { case: 'vector', value: value.vector } }
+  return { value: { case: 'color', value: value.color } }
+}
+
 /** NpcOptions describes a unit that is not a player, such as a trooper. */
 export interface NpcOptions {
   /**
@@ -1284,7 +1365,7 @@ function fromTraceHit(message: pb.TraceHit): TraceHit {
 export interface NpcTarget {
   /**
    * className is the unit's entity class: npc_trooper, npc_trooper_neutral,
-   * npc_boss_tier1 to npc_boss_tier3, npc_barrack_boss,
+   * npc_boss_tier2, npc_boss_tier3, npc_barrack_boss,
    * npc_base_defense_sentry, npc_super_neutral or
    * npc_neutral_sinners_sacrifice.
    */
@@ -1929,6 +2010,42 @@ export function callService(service: string, method: string, payload: Uint8Array
   if (reply === undefined) return undefined
   const response = pb.ServiceReply.fromBinary(reply)
   return response.payload ?? new Uint8Array()
+}
+
+/**
+ * createEntity creates any entity the server knows by its designer name,
+ * such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
+ * written before it spawns. The world removes it when the world ends;
+ * stopping the mod removes it too.
+ */
+export function createEntity(options: EntityOptions): number | undefined {
+  const reply = call('CreateEntity', pb.EntityOptions.toBinary(toEntityOptions(options)))
+  if (reply === undefined) return undefined
+  const response = pb.EntityResponse.fromBinary(reply)
+  return response.entity ?? 0
+}
+
+/**
+ * fireInput sends an input to a live entity, as a map's output would, such
+ * as Skin with the integer 1. The value must have the type the input reads.
+ * It reports false once the entity is gone.
+ */
+export function fireInput(entity: number, input: string, value?: EntityValue): boolean {
+  const reply = call('FireInput', pb.FireInputRequest.toBinary({ entity, input, value: value === undefined ? undefined : toEntityValue(value) }))
+  if (reply === undefined) return false
+  const response = pb.AliveResponse.fromBinary(reply)
+  return response.alive ?? false
+}
+
+/**
+ * removeEntity takes an entity the mod created out of the world without
+ * rewards. It reports false when the entity was already gone.
+ */
+export function removeEntity(entity: number): boolean {
+  const reply = call('RemoveEntity', pb.EntityRequest.toBinary({ entity }))
+  if (reply === undefined) return false
+  const response = pb.AliveResponse.fromBinary(reply)
+  return response.alive ?? false
 }
 
 /**

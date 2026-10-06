@@ -18,8 +18,9 @@ namespace modlock::gameinterop {
 
 class NativeDamage;
 
-// WorldEntities reconciles NPC instances through the native entity system.
-// Resolve and all operations run on the engine thread after world initialization.
+// WorldEntities creates, reconciles and removes entities through the native
+// entity system. Resolve and all operations run on the engine thread after
+// world initialization.
 class MODLOCK_API WorldEntities {
  public:
   // Calls binds the native entity lifecycle and resolved schema offsets. Native
@@ -33,6 +34,8 @@ class MODLOCK_API WorldEntities {
     void (*execute)(void*) = nullptr;
     void (*remove)(void*) = nullptr;
     void* (*definition)(int32_t, uint32_t) = nullptr;
+    bool (*accept_input)(void* entity, const char* input, void* activator, void* caller,
+                         void* value, int output_id, void* unknown) = nullptr;
     std::array<size_t, 7> offsets{};
   };
   explicit WorldEntities(Calls calls) : calls_(std::move(calls)) {}
@@ -87,6 +90,23 @@ class MODLOCK_API WorldEntities {
   using Prepare = std::function<std::expected<void, std::string>(void* entity)>;
   std::expected<uint32_t, std::string> Spawn(const Target& target, const Prepare& prepare = {});
   void FinishSpawns();
+  // CreateEntity creates any designer name the server knows, applies
+  // key_values as its spawn key values, and returns its handle. The target's
+  // subclass, team and placement apply as for Spawn; its health and velocity
+  // are ignored. Prepare runs as for Spawn.
+  std::expected<uint32_t, std::string> CreateEntity(const Target& target,
+                                                    std::span<const EntityKeyValue> key_values,
+                                                    const Prepare& prepare = {});
+  // FireInput sends input to one live entity, as a map's output would, with
+  // value as its parameter, absent for an input that takes none. The value
+  // must have the type the input reads; the game does not convert it. It
+  // returns false when the entity is gone and an error when the entity
+  // refuses the input.
+  std::expected<bool, std::string> FireInput(uint32_t handle, const std::string& input,
+                                             const std::optional<EntityValue>& value);
+  // RemoveEntity deletes one live entity through UTIL_Remove without rewards.
+  // It returns false when the handle no longer names one.
+  std::expected<bool, std::string> RemoveEntity(uint32_t handle);
   // ReadNpc samples one live NPC by handle; nullopt once it is gone or dead.
   std::expected<std::optional<Sample>, std::string> ReadNpc(uint32_t handle) const;
   // RemoveNpc deletes one NPC or pickup through UTIL_Remove without rewards.
@@ -105,7 +125,9 @@ class MODLOCK_API WorldEntities {
 
  private:
   std::expected<Sample, std::string> ReadEntity(void* entity, std::string name) const;
-  std::expected<void*, std::string> Create(const Target& target, const Prepare& prepare = {});
+  std::expected<void*, std::string> Create(const Target& target,
+                                           std::span<const EntityKeyValue> key_values = {},
+                                           const Prepare& prepare = {});
   std::expected<void, std::string> Apply(void* entity, const Target& target) const;
   Calls calls_;
   std::vector<Sample> pending_;

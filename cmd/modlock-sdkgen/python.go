@@ -94,7 +94,7 @@ func writePython(s *schema) ([]byte, error) {
 	}
 	w := &pythonWriter{directions: s.directions(calls), s: s, calls: calls, absent: map[*field]bool{}}
 	for _, c := range calls {
-		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isUnion() {
+		if f := c.result; f != nil && f.message != nil && !f.repeated && !f.message.isBareUnion() {
 			w.absent[f] = true
 		}
 	}
@@ -120,7 +120,7 @@ func writePython(s *schema) ([]byte, error) {
 // hasClass reports whether m is a dataclass of the library. The messages
 // only the library itself encodes or decodes are dicts.
 func (w *pythonWriter) hasClass(m *message) bool {
-	return mapped(m) == "" && !m.isUnion() && (w.inputs[m] || w.outputs[m])
+	return mapped(m) == "" && !m.isBareUnion() && (w.inputs[m] || w.outputs[m])
 }
 
 // writeTypes writes the enums, with their tables, and the message types in
@@ -148,7 +148,7 @@ func (w *pythonWriter) writeTypes() {
 		if mapped(m) != "" || (!w.inputs[m] && !w.outputs[m]) {
 			continue
 		}
-		if m.isUnion() {
+		if m.isBareUnion() {
 			writeComment(&w.out, "", "#", m.doc)
 			fmt.Fprintf(&w.out, "type %s = %s\n\n\n", m.name, w.oneofType(m.oneofs[0]))
 			continue
@@ -165,7 +165,7 @@ func (w *pythonWriter) writeTypes() {
 			if f == w.omitted[m] {
 				continue
 			}
-			if o := f.oneof; o != nil {
+			if o := f.oneof; o != nil && !o.keyed {
 				if o.fields[0] == f {
 					writeComment(&w.out, "    ", "#", pythonFieldDoc(m, rename(o.doc, camel(o.name), o.name)))
 					fmt.Fprintf(&w.out, "    %s: %s | None = None\n", pythonName(o.name), w.oneofType(o))
@@ -186,7 +186,7 @@ func (w *pythonWriter) member(m *message, f *field) string {
 	switch {
 	case f.repeated:
 		return t + " = dataclasses.field(default_factory=lambda: " + t + "())"
-	case f.optional, f.enum != nil && w.outputs[m], f.message != nil && f.message.isUnion():
+	case f.optional, f.oneof != nil, f.enum != nil && w.outputs[m], f.message != nil && f.message.isBareUnion():
 		return t + " | None = None"
 	case f.message != nil, f.enum != nil, classOf(f) != nil:
 		return t
@@ -360,15 +360,15 @@ func (w *pythonWriter) descriptor(f *field) (string, error) {
 	switch {
 	case f.repeated:
 		args = append(args, "repeated=True")
-	case f.optional || w.absent[f]:
+	case f.optional || w.absent[f] || f.oneof != nil && f.oneof.keyed:
 		args = append(args, "optional=True")
 	}
-	if f.oneof != nil {
+	if f.oneof != nil && !f.oneof.keyed {
 		args = append(args, fmt.Sprintf("oneof=%q", pythonName(f.oneof.name)))
 	}
 	if f.message != nil {
 		args = append(args, fmt.Sprintf("message=%q", f.message.name))
-		if f.message.isUnion() {
+		if f.message.isBareUnion() {
 			args = append(args, fmt.Sprintf("union=%q", pythonName(f.message.oneofs[0].name)))
 		}
 	}

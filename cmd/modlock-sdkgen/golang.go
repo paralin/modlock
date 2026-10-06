@@ -220,8 +220,13 @@ func (w *goWriter) writeCall(c *call) error {
 			case p.oneof != nil:
 				later = append(later, w.oneofCases(m, p.oneof, arg, fail))
 			case p.field.message != nil && p.field.message.isUnion():
-				later = append(later, fmt.Sprintf("\tencoded, err := to%s(%s)\n\tif err != nil {\n\t\t%s\n\t}\n\trequest.%s = encoded\n",
-					p.field.message.name, arg, fail, camel(p.field.name)))
+				// A nil value leaves an optional union out.
+				encode := fmt.Sprintf("encoded, err := to%s(%s)\nif err != nil {\n\t%s\n}\nrequest.%s = encoded\n",
+					p.field.message.name, arg, fail, camel(p.field.name))
+				if p.field.optional {
+					encode = fmt.Sprintf("if %s != nil {\n%s}\n", arg, indent(encode))
+				}
+				later = append(later, indent(encode))
 			default:
 				members = append(members, fmt.Sprintf("%s: %s", camel(p.field.name), arg))
 			}
@@ -406,4 +411,15 @@ func (w *goWriter) writeMod() {
 		fmt.Fprintf(&w.out, "\t\treturn answer(handlers.%s(%s))\n", m.name, event)
 	}
 	w.out.WriteString("\t}\n\treturn &wasm.Reply{Error: \"the mod has no method \" + call.GetMethod()}\n}\n")
+}
+
+// indent prefixes each line of code with a tab.
+func indent(code string) string {
+	lines := strings.SplitAfter(code, "\n")
+	for i, line := range lines {
+		if line != "" {
+			lines[i] = "\t" + line
+		}
+	}
+	return strings.Join(lines, "")
 }

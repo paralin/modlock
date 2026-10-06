@@ -142,6 +142,10 @@ func (w *tsWriter) writeEnum(e *enum) {
 // its conversions.
 func (w *tsWriter) writeUnion(m *message) error {
 	o := m.oneofs[0]
+	if o.keyed {
+		w.writeKeyedUnion(m)
+		return nil
+	}
 	writeDoc(&w.out, "", m.doc)
 	fmt.Fprintf(&w.out, "export type %s = %s\n\n", m.name, w.oneofType(o))
 	if w.inputs[m] {
@@ -169,6 +173,43 @@ func (w *tsWriter) writeUnion(m *message) error {
 		w.out.WriteString("  return value.value\n}\n\n")
 	}
 	return nil
+}
+
+// writeKeyedUnion writes a keyed union as a union of objects that each hold
+// one case by its name, with its conversions.
+func (w *tsWriter) writeKeyedUnion(m *message) {
+	o := m.oneofs[0]
+	writeDoc(&w.out, "", m.doc)
+	fmt.Fprintf(&w.out, "export type %s =\n", m.name)
+	for _, f := range o.fields {
+		fmt.Fprintf(&w.out, "  | { readonly %s: %s }\n", lowerCamel(f.name), w.tsBase(f))
+	}
+	w.out.WriteString("\n")
+	if w.inputs[m] {
+		fmt.Fprintf(&w.out, "/** to%s encodes %s. */\n", m.name, article(m.name))
+		fmt.Fprintf(&w.out, "function to%s(value: %s): pb.%s {\n", m.name, m.name, m.name)
+		last := o.fields[len(o.fields)-1]
+		for _, f := range o.fields {
+			name := lowerCamel(f.name)
+			encoded := fmt.Sprintf("{ %s: { case: '%s', value: %s } }", lowerCamel(o.name), name, w.toValue(f, "value."+name))
+			if f == last {
+				fmt.Fprintf(&w.out, "  return %s\n", encoded)
+				continue
+			}
+			fmt.Fprintf(&w.out, "  if ('%s' in value) return %s\n", name, encoded)
+		}
+		w.out.WriteString("}\n\n")
+	}
+	if w.outputs[m] {
+		fmt.Fprintf(&w.out, "/** from%s decodes %s, or undefined when it holds none. */\n", m.name, article(m.name))
+		fmt.Fprintf(&w.out, "function from%s(message: pb.%s | undefined): %s | undefined {\n", m.name, m.name, m.name)
+		fmt.Fprintf(&w.out, "  const value = message?.%s\n  switch (value?.case) {\n", lowerCamel(o.name))
+		for _, f := range o.fields {
+			name := lowerCamel(f.name)
+			fmt.Fprintf(&w.out, "    case '%s':\n      return { %s: %s }\n", name, name, w.fromValue(f, "value.value"))
+		}
+		w.out.WriteString("  }\n  return undefined\n}\n\n")
+	}
 }
 
 // writeInterface writes a message as an interface, with the conversions its
