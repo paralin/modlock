@@ -1,0 +1,30 @@
+{
+  "slug": "bounty",
+  "name": "Bounty",
+  "version": "0.1.0",
+  "language": "LANGUAGE_LUAU",
+  "settings": [
+    {
+      "key": "callouts",
+      "label": "Call out each new bounty in chat",
+      "kind": "KIND_SWITCH",
+      "default": "true"
+    },
+    {
+      "key": "flare",
+      "label": "Flare key",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "reload", "label": "Reload" },
+        { "value": "use", "label": "Use" },
+        { "value": "off", "label": "Off" }
+      ]
+    }
+  ],
+  "metrics": [
+    { "name": "bounty.taken", "kind": "KIND_COUNT" },
+    { "name": "bounty.seconds", "kind": "KIND_SUM" },
+    { "name": "bounty.won", "kind": "KIND_COUNT" },
+    { "name": "bounty.best", "kind": "KIND_MAX" }
+  ]
+}

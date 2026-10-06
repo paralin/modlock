@@ -1,0 +1,6 @@
+{
+  "languageMode": "strict",
+  "aliases": {
+    "modlock": "./.modlock/modlock"
+  }
+}

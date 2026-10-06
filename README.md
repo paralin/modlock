@@ -401,6 +401,7 @@ When the mode plays well, [publish it](#publishing).
 | [`hill`](examples/hill)                                                      | King of the hill: a ring of world text, team scores, progress bars. |
 | [`drill`](examples/drill)                                                    | An aim drill: target bots, headshots, a length setting, best score. |
 | [`dropper`](examples/dropper)                                                | Building a spot of solid objects while playing.                     |
+| [`bounty`](examples/bounty)                                                  | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
 | [`hello-luau`](examples/hello-luau), [`hello-python`](examples/hello-python) | The smallest mod in Luau and in Python.                             |
 | [`hello`](examples/hello)                                                    | A native C++ plugin.                                                |
 
@@ -703,9 +704,10 @@ end)
 strict mode with `luau-analyze`, which it downloads the first time, and zips
 the sources into `build/mod.zip`. `.luaurc` declares the library's alias, so
 editors with the Luau language server resolve it too. A module requires
-another by its relative path, such as `require("./round")`. The server runs
-the sources on Luau compiled to WebAssembly, in the same sandbox and limits
-as every other mod.
+another by its relative path, such as `require("./round")`, as the
+[`bounty`](examples/bounty) example does. The server runs the sources on
+Luau compiled to WebAssembly, in the same sandbox and limits as every other
+mod.
 
 The library offers the calls of the TypeScript one under the same names, with
 methods called as `player:chat(text)`. A 64-bit id, such as a Steam ID, is a
