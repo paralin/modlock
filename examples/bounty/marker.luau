@@ -32,12 +32,14 @@ end
 -- follow moves the marker over the holder's hero and shows label. A holder
 -- without a live hero hides it until they respawn.
 function marker.follow(holder: Player, label: string)
+	-- Hide the marker while the holder has no living hero.
 	local pawn = holder:pawn()
 	if pawn == nil or pawn.health <= 0 then
 		marker.remove()
 		return
 	end
 
+	-- Raise a new marker over the hero when none is showing.
 	local position = vector.above(pawn.position, 130)
 	local current = text
 	if current == nil then
@@ -53,6 +55,7 @@ function marker.follow(holder: Player, label: string)
 		return
 	end
 
+	-- Carry the marker with the hero, changing its words only when they change.
 	current:move(position)
 	if label ~= words then
 		current:setText(label)

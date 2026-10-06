@@ -25,8 +25,14 @@ local lifetime = 4
 local cooldown = 2
 
 -- Sign is one flare in the world and the game time it goes out.
-type Sign = { text: WorldObject, expires: number }
+type Sign = {
+	-- text is the sign's floating text.
+	text: WorldObject,
+	-- expires is the game time the sign is removed.
+	expires: number,
+}
 
+-- signs holds the flares in the world, oldest first.
 local signs: { Sign } = {}
 
 -- ready maps each slot to the game time its next flare is allowed.
@@ -44,10 +50,13 @@ end
 -- fire lights a flare where player aims, when they pressed their flare key
 -- and their cooldown has passed. now is the game clock in seconds.
 function flare.fire(player: Player, pressed: number, now: number)
+	-- Answer only the player's own flare key, once their cooldown has passed.
 	local key = keys[player:setting("flare") or "reload"]
 	if key == nil or not modlock.has(pressed, key) or now < (ready[player.slot] or 0) then
 		return
 	end
+
+	-- Only a living hero can aim a flare.
 	local pawn = player:pawn()
 	if pawn == nil or pawn.health <= 0 then
 		return
@@ -75,6 +84,8 @@ function flare.fire(player: Player, pressed: number, now: number)
 	if text == nil then
 		return
 	end
+
+	-- Expire the sign later and start the player's cooldown.
 	table.insert(signs, { text = text, expires = now + lifetime })
 	ready[player.slot] = now + cooldown
 	player:sound("Damage.Send.Crit")

@@ -60,10 +60,13 @@ end
 
 -- finish ends the round with winner and starts the next.
 local function finish(winner: Player)
+	-- Tell everyone who won.
 	local name = roster.name(winner)
 	roster.each(function(player)
 		player:announce(`{name} wins`, `{name} held the bounty for {round.target} seconds.`)
 	end)
+
+	-- Pay the winner and start the next round.
 	winner:adjustSouls(purse)
 	winner:addMetric("bounty.won", 1)
 	marker.remove()
@@ -71,12 +74,15 @@ local function finish(winner: Player)
 end
 
 modlock.onStart(function(args)
+	-- Play to the target the server's first argument gives, when it is valid.
 	local target = if args[1] then parseTarget(args[1]) else nil
 	if target then
 		round.target = target
 	elseif args[1] then
 		modlock.log(`ignoring target {args[1]}: give whole seconds from 10 to 600`)
 	end
+
+	-- Watch the flare keys for the whole game.
 	flare.watch()
 	modlock.log(`bounty started; first to {round.target} seconds wins`)
 end)
@@ -91,16 +97,20 @@ modlock.onWorld(function(map)
 end)
 
 modlock.onFrame(function(frame)
+	-- Measure this frame on the game clock and put out the old flares.
 	local now = frame.timeSeconds
 	local dt = if lastTime then math.clamp(now - lastTime, 0, 0.5) else 0
 	lastTime = now
 	flare.expire(now)
 
+	-- Score the holder and end the round when they reach the target.
 	local changed, winner = round.advance(dt)
 	if winner then
 		finish(winner)
 		return
 	end
+
+	-- Keep the marker over the holder, or announce that the holder left.
 	local holder = round.holding()
 	if holder then
 		marker.follow(holder, label(holder))
@@ -124,6 +134,7 @@ end)
 -- A kill of the holder passes the bounty to the killer; while nobody holds
 -- it, any kill claims it.
 modlock.onDamaged(function(hit)
+	-- Find who died and who killed them; a suicide credits no one.
 	if hit.healthBefore <= 0 or hit.healthLost < hit.healthBefore then
 		return
 	end
@@ -133,6 +144,7 @@ modlock.onDamaged(function(hit)
 		killer = nil
 	end
 
+	-- Pass the bounty on, or free it when the holder died to no player.
 	local holder = round.holding()
 	if holder and victim and victim.slot == holder.slot then
 		marker.remove()

@@ -8,8 +8,11 @@ type Player = modlock.Player
 
 -- Standing is one player's place in the round.
 export type Standing = {
+	-- player is the player in this place.
 	player: Player,
+	-- name is the player's name.
 	name: string,
+	-- seconds is the whole seconds they held the bounty this round.
 	seconds: number,
 }
 
@@ -55,10 +58,13 @@ end
 -- holder's whole seconds changed, and the holder once they reach the target.
 -- A holder who left drops the bounty.
 function round.advance(dt: number): (boolean, Player?)
+	-- Score nobody while the bounty is free.
 	local player = holder
 	if player == nil then
 		return false, nil
 	end
+
+	-- Drop the bounty when its holder left or another player took the slot.
 	local connection = roster.connection(player.slot)
 	if connection == nil or connection.generation ~= holderGeneration then
 		holder = nil
@@ -78,6 +84,7 @@ end
 
 -- standings lists the players still on the server, most seconds first.
 function round.standings(): { Standing }
+	-- Read each connected player's score.
 	local list: { Standing } = {}
 	for _, connection in modlock.players() do
 		local slot = connection.player.slot
@@ -87,6 +94,8 @@ function round.standings(): { Standing }
 			seconds = math.floor(scores[slot] or 0),
 		})
 	end
+
+	-- Rank the most seconds first.
 	table.sort(list, function(a: Standing, b: Standing): boolean
 		return a.seconds > b.seconds
 	end)
