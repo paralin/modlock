@@ -1,0 +1,22 @@
+{
+  "slug": "arena",
+  "name": "Arena",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "settings": [
+    {
+      "key": "scoreboard",
+      "label": "Scoreboard",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "all", "label": "Every player" },
+        { "value": "top", "label": "Top three" }
+      ]
+    }
+  ],
+  "metrics": [
+    { "name": "arena.kills", "kind": "KIND_COUNT" },
+    { "name": "arena.streak", "kind": "KIND_MAX" },
+    { "name": "arena.wins", "kind": "KIND_COUNT" }
+  ]
+}

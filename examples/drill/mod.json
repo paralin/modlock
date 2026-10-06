@@ -1,0 +1,21 @@
+{
+  "slug": "drill",
+  "name": "Target Drill",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "settings": [
+    {
+      "key": "length",
+      "label": "Drill length",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "30", "label": "30 seconds" },
+        { "value": "60", "label": "60 seconds" }
+      ]
+    }
+  ],
+  "metrics": [
+    { "name": "drill.score", "kind": "KIND_MAX" },
+    { "name": "drill.headshots", "kind": "KIND_SUM" }
+  ]
+}

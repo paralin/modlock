@@ -1,0 +1,7 @@
+{
+  "slug": "hill",
+  "name": "King of the Hill",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "metrics": [{ "name": "hill.seconds", "kind": "KIND_SUM" }]
+}
