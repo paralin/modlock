@@ -921,8 +921,8 @@ export const FrameEvent: MessageType<FrameEvent> = /* @__PURE__ */ createMessage
 
 /**
  * CommandEvent carries one command line from a player: a chat line that
- * starts with a slash, without the slash, or a console command the server
- * received.
+ * starts with a slash (or ".", "+" or "-"), without that prefix, or a console
+ * command the server received.
  *
  * @generated from message modlock.wasm.CommandEvent
  */

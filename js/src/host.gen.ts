@@ -312,8 +312,8 @@ function fromMovementCommand(message: pb.MovementCommand): MovementCommand {
 
 /**
  * CommandEvent carries one command line from a player: a chat line that
- * starts with a slash, without the slash, or a console command the server
- * received.
+ * starts with a slash (or ".", "+" or "-"), without that prefix, or a console
+ * command the server received.
  */
 export interface CommandEvent {
   /** player is the player who typed the command. */
