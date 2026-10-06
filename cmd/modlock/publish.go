@@ -25,6 +25,7 @@ func publishCommand(out *printer) *cli.Command {
 			&cli.StringFlag{Name: "to", Value: "hyperline", Usage: "where to publish: hyperline, archive or github"},
 			&cli.StringFlag{Name: "origin", Value: modpublish.DefaultOrigin, Usage: "the Hyperline service to publish to"},
 			&cli.StringFlag{Name: "out", Value: ".", Usage: "the directory archive writes the zip to"},
+			&cli.StringFlag{Name: "notes", Usage: "what the release changed, for hyperline and github"},
 		},
 		Action: func(c *cli.Context) error {
 			// Build and check the mod.
@@ -39,7 +40,7 @@ func publishCommand(out *printer) *cli.Command {
 			if err != nil {
 				return errors.Wrap(err, "check the built mod")
 			}
-			mod := &modpublish.Mod{Dir: opened.Output(), Manifest: manifest}
+			mod := &modpublish.Mod{Dir: opened.Output(), Manifest: manifest, Notes: c.String("notes")}
 			name := manifest.GetSlug() + " " + manifest.GetVersion()
 
 			// Publish to the chosen place.
@@ -61,7 +62,7 @@ func publishCommand(out *printer) *cli.Command {
 				}
 				defer os.Remove(archive)
 				tag := manifest.GetSlug() + "-v" + manifest.GetVersion()
-				if err := modpublish.GitHub(c.Context, opened.Dir, tag, archive, os.Stderr); err != nil {
+				if err := modpublish.GitHub(c.Context, opened.Dir, tag, archive, mod.Notes, os.Stderr); err != nil {
 					return err
 				}
 				out.published("github", nil, tag)

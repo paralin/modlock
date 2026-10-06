@@ -414,6 +414,8 @@ service with the same API. The `github` destination uses the
 
 A release carries the built `mod.json` and its entry. Hyperline publishes each
 version once, so raise `version` in `mod.json` before publishing again.
+`--notes` says what the release changed: hyperline.gg shows the notes on the
+game's page, and the `github` destination uses them for a new release.
 
 ## The TypeScript library
 

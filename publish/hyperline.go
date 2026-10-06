@@ -50,9 +50,10 @@ type Hyperline struct {
 	Output io.Writer
 }
 
-// Publish uploads mod and returns the release the service recorded. It signs
-// in through the browser when no saved session is valid.
+// Publish uploads mod with its notes and returns the release the service
+// recorded. It signs in through the browser when no saved session is valid.
 func (h *Hyperline) Publish(ctx context.Context, mod *Mod) (*publish.Release, error) {
+	// Pack the build for a service that can take it.
 	if err := checkOrigin(h.Origin); err != nil {
 		return nil, err
 	}
@@ -69,12 +70,13 @@ func (h *Hyperline) Publish(ctx context.Context, mod *Mod) (*publish.Release, er
 	if err != nil {
 		return nil, err
 	}
-	release, err := h.upload(ctx, token, body)
+	path := releasesPath + "?" + url.Values{"notes": {mod.Notes}}.Encode()
+	release, err := h.upload(ctx, path, token, body)
 	if errors.Is(err, errSignIn) {
 		if token, err = h.token(ctx, true); err != nil {
 			return nil, err
 		}
-		release, err = h.upload(ctx, token, body)
+		release, err = h.upload(ctx, path, token, body)
 	}
 	return release, err
 }
@@ -82,15 +84,16 @@ func (h *Hyperline) Publish(ctx context.Context, mod *Mod) (*publish.Release, er
 // errSignIn reports that the service refused the session.
 var errSignIn = errors.New("sign in again")
 
-// upload sends one release.
-func (h *Hyperline) upload(ctx context.Context, token string, body []byte) (*publish.Release, error) {
+// upload sends one release to path.
+func (h *Hyperline) upload(ctx context.Context, path, token string, body []byte) (*publish.Release, error) {
 	release := &publish.Release{}
-	err := h.send(ctx, releasesPath, token, body, release)
+	err := h.send(ctx, path, token, body, release)
 	return release, err
 }
 
 // send posts body to path on the service and decodes the answer into out.
 func (h *Hyperline) send(ctx context.Context, path, token string, body []byte, out interface{ UnmarshalVT([]byte) error }) error {
+	// Address the request to the service with the session, if any.
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, h.Origin+path, bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -131,6 +134,7 @@ func (h *Hyperline) send(ctx context.Context, path, token string, body []byte, o
 // token returns the saved session's credential, signing in when it is
 // missing, expired, from another origin, or refused.
 func (h *Hyperline) token(ctx context.Context, refused bool) (string, error) {
+	// Reuse the saved session while the service still takes it.
 	saved := &publish.Session{}
 	if data, err := os.ReadFile(h.SessionFile); err == nil && !refused && saved.UnmarshalJSON(data) == nil &&
 		saved.GetOrigin() == h.Origin && saved.GetToken() != "" && saved.GetExpiresAt() > time.Now().UnixMilli() {
@@ -140,6 +144,8 @@ func (h *Hyperline) token(ctx context.Context, refused bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	// Save the new session for the next publish.
 	data, err := session.MarshalJSON()
 	if err != nil {
 		return "", err
@@ -158,6 +164,7 @@ func (h *Hyperline) token(ctx context.Context, refused bool) (string, error) {
 // binds the callback to this attempt, and the verifier proves it to the
 // service.
 func (h *Hyperline) signIn(ctx context.Context) (*publish.Session, error) {
+	// Listen on loopback for the callback with fresh secrets for this attempt.
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
@@ -257,6 +264,7 @@ func openURL(page string) error {
 
 // packTar returns mod's files as a gzip-compressed tar.
 func packTar(mod *Mod) ([]byte, error) {
+	// Write each file into the tar inside the gzip stream.
 	var buf bytes.Buffer
 	compressed := gzip.NewWriter(&buf)
 	archive := tar.NewWriter(compressed)
@@ -273,6 +281,8 @@ func packTar(mod *Mod) ([]byte, error) {
 			return nil, err
 		}
 	}
+
+	// Close both writers so the stream ends cleanly.
 	if err := archive.Close(); err != nil {
 		return nil, err
 	}
