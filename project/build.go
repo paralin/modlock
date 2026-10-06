@@ -96,20 +96,14 @@ func (p *Project) buildGo(ctx context.Context, output io.Writer) error {
 	return p.writeBuiltManifest(wasm.Manifest_RUNTIME_WASM, Entry)
 }
 
-// writeBuiltManifest writes the built mod's mod.json, which names the
-// runtime and entry in place of the language.
+// writeBuiltManifest writes the built mod's mod.json: the project's manifest,
+// naming the runtime and entry in place of the language.
 func (p *Project) writeBuiltManifest(runtime wasm.Manifest_Runtime, entry string) error {
-	return WriteManifest(filepath.Join(p.Output(), ManifestFile), &wasm.Manifest{
-		Slug:      p.Manifest.GetSlug(),
-		Name:      p.Manifest.GetName(),
-		Version:   p.Manifest.GetVersion(),
-		Runtime:   runtime,
-		Entry:     entry,
-		Map:       p.Manifest.GetMap(),
-		Movement:  p.Manifest.GetMovement(),
-		Abilities: p.Manifest.GetAbilities(),
-		Settings:  p.Manifest.GetSettings(),
-	})
+	built := p.Manifest.CloneVT()
+	built.Language = wasm.Manifest_LANGUAGE_UNKNOWN
+	built.Runtime = runtime
+	built.Entry = entry
+	return WriteManifest(filepath.Join(p.Output(), ManifestFile), built)
 }
 
 // shipMap copies the map files the manifest names from the project's maps
