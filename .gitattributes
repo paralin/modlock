@@ -1,0 +1,14 @@
+# Generated sources stay out of handwritten line counts and review diffs.
+*.pb.go linguist-generated
+*.pb.ts linguist-generated
+*.pb.cc linguist-generated
+*.pb.h linguist-generated
+*.gen.go linguist-generated
+*.gen.ts linguist-generated
+*.gen.h linguist-generated
+js/src/entities.ts linguist-generated
+mod/entity/entity.go linguist-generated
+luau/modlock/init.luau linguist-generated
+python/modlock/__init__.py linguist-generated
+
+third_party/** linguist-vendored
