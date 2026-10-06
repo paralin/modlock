@@ -103,7 +103,7 @@ std::expected<std::unique_ptr<const Table>, std::string> Parse(std::string_view 
       load.skipped.push_back(std::move(signature.error()));
       continue;
     }
-    if (std::ranges::contains(table->entries, signature->id, &GameSignature::id)) {
+    if (std::ranges::find(table->entries, signature->id, &GameSignature::id) != table->entries.end()) {
       load.skipped.push_back("signature '" + entry.id() + "' is recorded twice");
       continue;
     }
