@@ -14,6 +14,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
       - name: Build the Windows host
         run: |
           scripts/proton-build.sh
