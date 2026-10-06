@@ -6,11 +6,6 @@ on:
 jobs:
   sdk:
     runs-on: [self-hosted, linux, x64]
-    # Zig's libc++ has the C++23 library the SDK needs, which the runner's
-    # system compiler may predate.
-    env:
-      CC: zig cc
-      CXX: zig c++
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,9 +13,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - uses: mlugg/setup-zig@v2
-        with:
-          version: 0.16.0
       - name: Resolve dependencies
         run: go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp github.com/aperturerobotics/starpc
       - name: Build and test SDK
