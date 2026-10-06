@@ -1,32 +1,26 @@
 # Modlock
 
 **Modlock** is the best tool for hand-writing the logic of [Deadlock] custom
-game modes. You write a mod in a high-level language, Modlock compiles it to
-WebAssembly, and the game server runs it in a secure sandbox. Every mod speaks
-to the game through one common protobuf schema, so each language sees the same
-events and calls. Mods deploy to [hyperline.gg], the default backend and
+game modes. You write a mod in TypeScript, Luau or Python; Modlock builds it
+for WebAssembly, and the game server runs it in a secure sandbox. Every mod
+speaks to the game through one common protobuf schema, so each language sees
+the same events and calls. Mods deploy to [hyperline.gg], the default backend and
 marketplace for custom games.
 
 [Deadlock]: https://store.steampowered.com/app/1422450/Deadlock/
 [hyperline.gg]: https://hyperline.gg
 
-```go
-package main
+```ts
+import { command } from 'modlock'
 
-import "github.com/paralin/modlock/mod"
-
-func init() {
-	mod.Command("hello", func(p mod.Player, args string) {
-		p.Chat("Hello from Go!")
-	})
-}
-
-func main() {}
+command('hello', (player) => {
+  player.chat('Hello from TypeScript!')
+})
 ```
 
-> **Early development.** APIs change without notice. Go mods and the `modlock`
-> command line work today, as do TypeScript, JavaScript, Luau and Python mods
-> and `modlock publish`.
+> **Early development.** APIs change without notice. TypeScript, JavaScript,
+> Luau and Python mods, the `modlock` command line and `modlock publish` work
+> today.
 
 ## Why WebAssembly
 
@@ -49,12 +43,10 @@ func main() {}
 Download `modlock` for your system from the
 [releases](https://github.com/paralin/modlock/releases). It runs the Windows
 server on Windows, or through Steam's Proton on Linux, and fetches the server
-that matches its release the first time. Go mods need Go 1.25 or newer;
-TypeScript, JavaScript, Luau and Python mods need nothing else.
+that matches its release the first time. Mods need nothing else installed.
 
 ```sh
-modlock new my-mod    # a typed Go project in my-mod
-                      # or: modlock new --language typescript my-mod
+modlock new --language typescript my-mod
 cd my-mod
 modlock dev           # build, start a server, join it, reload on each save
 ```
@@ -76,13 +68,13 @@ where the game runs. With `--json`, a program such as an editor sends each
 line of input as a `modlock.cli.Input`, a command or a button press, and
 draws the interface from the events.
 
-| Command                 | Effect                                                                                                                 |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `modlock new DIR`       | Create a mod project named after `DIR`, in Go, or with `--language` in `typescript`, `javascript`, `luau` or `python`. |
-| `modlock build`         | Check the mod and write the built mod to `build/`.                                                                     |
-| `modlock dev`           | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox.           |
-| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game.                                      |
-| `modlock publish`       | Build and check the mod, then publish it.                                                                              |
+| Command                 | Effect                                                                                                            |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `modlock new DIR`       | Create a mod project named after `DIR` in the `--language` given: `typescript`, `javascript`, `luau` or `python`. |
+| `modlock build`         | Check the mod and write the built mod to `build/`.                                                                |
+| `modlock dev`           | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox.      |
+| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game.                                 |
+| `modlock publish`       | Build and check the mod, then publish it.                                                                         |
 
 `--no-game` runs only the server, `--port` changes its UDP port, and each
 `--arg VALUE` passes an argument to the mods' start handlers. Set
@@ -98,7 +90,7 @@ A project is a directory with `mod.json`:
   "slug": "my-mod",
   "name": "My Mod",
   "version": "0.1.0",
-  "language": "LANGUAGE_GO"
+  "language": "LANGUAGE_TYPESCRIPT"
 }
 ```
 
@@ -127,8 +119,7 @@ mod, such as a HUD layout. Each entry has a `key`, a `label` and a `kind`:
 a player starts with; without one a player starts at the first choice, off,
 or `min`. The mod reads a player's value with the player's `setting` method,
 changes it with `setSetting`, and reads a switch or a number with types through
-`SettingOn` and `SettingNumber` in Go, or `settingOn` and `settingNumber` in
-JavaScript. It hears of changes made elsewhere, such as on
+`settingOn` and `settingNumber`. It hears of changes made elsewhere, such as on
 a profile page, through its setting-changed handler. Bots read the defaults.
 `modlock build` refuses a declaration players could not choose from.
 
@@ -161,69 +152,11 @@ that passes then goes where `--to` names:
 A release carries the built `mod.json` and its entry. Hyperline publishes
 each version once, so raise `version` in `mod.json` before publishing again.
 
-## Writing a mod in Go
-
-A Go mod registers its handlers in `init`. [`examples/hello-go`](examples/hello-go)
-answers `/hello` in chat and logs the first server frame. `modlock build`
-compiles a Go mod with:
-
-```sh
-GOOS=wasip1 GOARCH=wasm go build -buildmode=c-shared -o mod.wasm .
-```
-
-The [`mod`](mod) package offers:
-
-| Call                                                                                                   | Effect                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| `mod.Command(name, handler)`                                                                           | Run `handler` when a player types `/name` in chat.                                                                            |
-| `mod.OnFrame(handler)`                                                                                 | Run `handler` once per server frame.                                                                                          |
-| `mod.OnStart(handler)`                                                                                 | Run `handler` when the server starts the mod, with the arguments after `--`.                                                  |
-| `mod.OnWorld(handler)`                                                                                 | Run `handler` with the map's name each time a world has loaded.                                                               |
-| `mod.Log(...)`                                                                                         | Write a line to the server log under the mod's name.                                                                          |
-| `mod.ServerCommand(line)`                                                                              | Run a line at the server console.                                                                                             |
-| `mod.Players()`                                                                                        | List the connected players and bots.                                                                                          |
-| `player.Chat(text)`, `player.CenterText(text)`, `player.Announce(title, text)`                         | Show text to one player.                                                                                                      |
-| `player.Pawn()`                                                                                        | Read the player's hero: health, team, position, aim and stamina.                                                              |
-| `player.SelectHero`, `Respawn`, `ClearItems`, `Freeze`, `RestoreStamina`, `RefreshAbility`, `Teleport` | Control the player's hero.                                                                                                    |
-| `mod.BlockInput(buttons)`, `player.BlockInput(buttons)`, `player.Press(buttons)`                       | Withhold buttons from every hero or one, or press them for one.                                                               |
-| `mod.RemapInput(from, to, repeat)`                                                                     | Make one button act as another for every hero.                                                                                |
-| `mod.CreateModel`, `mod.CreateText`                                                                    | Place a model or floating text; move, retext or remove it later.                                                              |
-| `mod.LoadSpot(spot)`, `mod.EncodeSpot`, `mod.DecodeSpot`                                               | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document.       |
-| `mod.AddBot`, `mod.RemoveBot`                                                                          | Add or remove a bot player.                                                                                                   |
-| `mod.Precache(options)`                                                                                | Load heroes and resources with the next world.                                                                                |
-| `player.Abilities()`, `SetAbility`                                                                     | Read the hero's abilities, or set one's upgrades and charges.                                                                 |
-| `player.GiveItem`, `ReplaceAbility`, `HoldModifier`                                                    | Give the hero an item, swap an ability slot, or keep an ability's modifier on the hero.                                       |
-| `mod.ModifierState(entity, state)`, `mod.HoldModifierState(entity, state, active)`                     | Report whether an entity has a modifier state, or hold one on it.                                                             |
-| `mod.ReadField(entity, class, field, type)`                                                            | Read any schema field of a live entity by name.                                                                               |
-| `mod.MoveEntity`, `mod.EmitSound`                                                                      | Move an entity and set its velocity, or play a sound on it.                                                                   |
-| `player.Kill()`, `SetVelocity`, `Buttons()`                                                            | Kill the hero, set its velocity, or read the buttons it holds.                                                                |
-| `player.WatchMovement(true)`                                                                           | Add the hero's movement state and the game's movement facts, such as landings and wall jumps, to each new tick's frame event. |
-| `mod.WatchProjectiles(options)`, `mod.OnLaunch`, `mod.OnImpact`                                        | Watch projectiles by name: see each one's first frame and decide its impact.                                                  |
-| `mod.OnLanded(handler)`                                                                                | Run `handler` when a hero lands under the manifest's movement model.                                                          |
-| `mod.CallService(service, method, payload)`, `mod.Serve(service, handler)`                             | Call a service the host provides, or answer the host's calls to one the mod serves.                                           |
-
-The [`mod/entity`](mod/entity) package has a typed class for each server
-entity class, such as `entity.NewCCitadelPlayerPawn(pawn.Entity).IHealth()`.
-
-The calls above, and every other one, are generated from the
-`Host` service in [`proto/modlock/wasm.proto`](proto/modlock/wasm.proto),
-which documents each. A call that fails returns its error and logs it to the
-server log; it never stops the mod. Everything a mod places leaves with the world, and stopping or
-reloading the mod also removes it and releases frozen heroes, held modifier
-states and input.
-
 ## Writing a mod in TypeScript or JavaScript
 
 A TypeScript or JavaScript mod imports `modlock` and registers its handlers
-when it loads. `main.ts`, or `main.js`, is the entry:
-
-```ts
-import { command } from 'modlock'
-
-command('hello', (player) => {
-  player.chat('Hello from TypeScript!')
-})
-```
+when it loads, as in the example at the top. `main.ts`, or `main.js`, is the
+entry.
 
 `modlock build` installs the `modlock` library into `node_modules/`, checks
 the types with the TypeScript native compiler, which it downloads the first
@@ -266,8 +199,14 @@ one.
 
 `modlock/entities` has a typed class for each server entity class, such as
 `new CCitadelPlayerPawn(pawn.entity).m_iHealth`; a mod's bundle keeps only
-the classes it uses. A call that fails logs the failure and returns `false`
-or `undefined`; it never stops the mod.
+the classes it uses.
+
+The calls above, and every other one, are generated from the `Host` service in
+[`proto/modlock/wasm.proto`](proto/modlock/wasm.proto), which documents each.
+A call that fails logs the failure and returns `false` or `undefined`; it never
+stops the mod. Everything a mod places leaves with the world, and stopping or
+reloading the mod also removes it and releases frozen heroes, held modifier
+states and input.
 
 A spot is a base map and the solid objects players placed on it; nothing is
 compiled. [`examples/dropper`](examples/dropper) builds one on Midtown:
