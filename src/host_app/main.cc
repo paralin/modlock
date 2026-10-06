@@ -9,8 +9,10 @@
 #include <vector>
 
 #include "host_app/control_link.h"
+#include "host_app/game_dump.h"
 #include "modlock/build.h"
 #include "modlock/engine_host.h"
+#include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/game_symbols.h"
 #include "modlock/host.h"
 #include "modlock/host_app/stdio_guard.h"
@@ -21,7 +23,8 @@ namespace {
 
 void Help() {
   std::cout << "Modlock hosts Deadlock mods: sandboxed WebAssembly modules and native plugins.\n\n"
-               "Usage: modlock-host --plugin PATH [options] [-- plugin arguments]\n\n"
+               "Usage: modlock-host --plugin PATH [options] [-- plugin arguments]\n"
+               "       modlock-host --dump DIRECTORY [options]\n\n"
                "  --plugin PATH       Load a built mod (a directory with mod.json or a .wasm\n"
                "                      file) or a plugin library; may be repeated\n"
                "  --game-dir PATH     Deadlock installation (or DEADLOCK_DIR)\n"
@@ -32,6 +35,8 @@ void Help() {
                "  --settings PATH     Keep players' mod settings in the JSON file PATH\n"
                "  --control ADDRESS   Report to and take reloads from the controller at\n"
                "                      ADDRESS, a host and port\n"
+               "  --dump DIRECTORY    Start the server, write its schemas, entity classes and\n"
+               "                      console to DIRECTORY as JSON, and quit\n"
                "  --check-plugin      Check library compatibility and lifecycle without a game\n"
                "  --version           Print the framework source revision\n"
                "  --help              Show this help\n";
@@ -85,6 +90,7 @@ int main(int argc, char** argv) {
   std::filesystem::path game_dir;
   std::string_view control;
   std::filesystem::path settings_file;
+  std::filesystem::path dump_directory;
   modlock::net::LaunchConfig launch;
   bool check_only = false;
   int plugin_argc = 0;
@@ -119,7 +125,7 @@ int main(int argc, char** argv) {
     }
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
         argument != "--map" && argument != "--connect" && argument != "--engine-args" &&
-        argument != "--control" && argument != "--settings") {
+        argument != "--control" && argument != "--settings" && argument != "--dump") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
       return 2;
     }
@@ -132,6 +138,7 @@ int main(int argc, char** argv) {
     if (argument == "--engine-args") launch.engine_arguments = value;
     if (argument == "--control") control = value;
     if (argument == "--settings") settings_file = value;
+    if (argument == "--dump") dump_directory = value;
     if (argument == "--connect") {
       if (value.empty() ||
           value.find_first_not_of(
@@ -162,7 +169,7 @@ int main(int argc, char** argv) {
       launch.host_port = *port;
     }
   }
-  if (libraries.empty()) {
+  if (libraries.empty() && dump_directory.empty()) {
     std::cerr << "Select a plugin with --plugin PATH. Use --help for usage.\n";
     return 2;
   }
@@ -241,6 +248,29 @@ int main(int argc, char** argv) {
     std::cout << "Plugin compatibility and lifecycle check passed. No game was started.\n";
     return 0;
   }
+  // A dump runs once the world is ready, when every module has registered its
+  // schema, entity classes and console entries, then quits the server.
+  std::optional<modlock::host_app::GameDumpCounts> dumped;
+  std::string dump_error;
+  modlock::Subscription dump_world;
+  if (!dump_directory.empty()) {
+    auto subscribed = engine.OnWorld({}, [&](std::string_view) {
+      if (dumped || !dump_error.empty()) return;
+      auto written = modlock::host_app::WriteGameDump(engine.Paths(),
+                                                      std::filesystem::absolute(dump_directory));
+      if (written)
+        dumped = *written;
+      else
+        dump_error = written.error();
+      auto server = modlock::gameinterop::EngineServer::Resolve();
+      if (server) static_cast<void>(server->ServerCommand("quit\n"));
+    });
+    if (!subscribed) {
+      std::cerr << subscribed.error() << '\n';
+      return 1;
+    }
+    dump_world = std::move(*subscribed);
+  }
   auto frames = engine.OnFrame([&plugins, &mods, &link] {
     if (link) link->RunRequests(mods);
     plugins.TickAll();
@@ -251,10 +281,24 @@ int main(int argc, char** argv) {
   }
   auto result = engine.Run(launch);
   frames->Reset();
+  dump_world.Reset();
   plugins.StopAll();
   if (!result) {
     std::cerr << result.error() << '\n';
     return 1;
+  }
+  if (!dump_directory.empty()) {
+    if (!dumped) {
+      std::cerr << "dump: " << (dump_error.empty() ? "the world never became ready" : dump_error)
+                << '\n';
+      return 1;
+    }
+    std::cout << "Dumped " << dumped->classes << " schema classes, " << dumped->enums << " enums, "
+              << dumped->designer_names << " designer names, " << dumped->data_maps
+              << " data maps, " << dumped->inputs << " inputs, " << dumped->outputs << " outputs, "
+              << dumped->variables << " console variables and " << dumped->commands
+              << " commands to " << dump_directory.string() << ".\n";
+    return 0;
   }
   return plugins.ExitCode(*result);
 }

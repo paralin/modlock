@@ -12,9 +12,12 @@ using modlock::gameinterop::ConsoleVariables;
 
 struct Fixture {
   // Recorded x64 CCvar storage offsets, with sparse live entries 2 -> 0.
-  // Slot 1 is not linked and must never be examined.
-  std::array<unsigned char, 0x60> registry{};
+  // Slot 1 is not linked and must never be examined. The command registry
+  // holds one inline entry.
+  std::array<unsigned char, 0x118> registry{};
   std::array<unsigned char, 48> entries{};
+  std::array<unsigned char, 0x38> commands{};
+  float default_value = 0.25f;
   std::array<unsigned char, 0x60> data{};
   std::array<unsigned char, 0x60> unrelated{};
 
@@ -41,6 +44,19 @@ struct Fixture {
     std::memcpy(registry.data() + 0x50, &base, sizeof(base));
     Link(2, unrelated.data(), 0xffff, 0);
     Link(0, data.data(), 2, 0xffff);
+
+    const char* command = "changelevel";
+    const char* help = "Change the map.";
+    const uint64_t command_flags = 1ull << 1;
+    std::memcpy(commands.data(), &command, sizeof(command));
+    std::memcpy(commands.data() + 8, &help, sizeof(help));
+    std::memcpy(commands.data() + 0x10, &command_flags, sizeof(command_flags));
+    const uint16_t none = 0xffff;
+    std::memcpy(commands.data() + 0x30, &none, sizeof(none));
+    std::memcpy(commands.data() + 0x32, &none, sizeof(none));
+    registry[0x102] = 1;
+    auto* command_base = commands.data();
+    std::memcpy(registry.data() + 0x108, &command_base, sizeof(command_base));
   }
 };
 
@@ -137,6 +153,34 @@ TEST(ConsoleVariables, TypedWritesRefuseOtherTypes) {
   EXPECT_FALSE(variables->ReadFloat("citadel_trooper_spawn_enabled"));
   EXPECT_FALSE(variables->ReadFloat("missing"));
   EXPECT_EQ(fixture.unrelated, untouched);
+}
+
+TEST(ConsoleVariables, ListingIncludesDevelopmentEntriesWithFormattedValues) {
+  Fixture fixture;
+  auto variables = ConsoleVariables::Bind(fixture.registry.data());
+  ASSERT_TRUE(variables);
+  const int16_t float_type = 7;
+  std::memcpy(fixture.data.data() + 0x28, &float_type, sizeof(float_type));
+  const auto* default_value = &fixture.default_value;
+  std::memcpy(fixture.data.data() + 0x08, &default_value, sizeof(default_value));
+
+  auto listed = variables->Variables();
+  ASSERT_TRUE(listed);
+  ASSERT_EQ(listed->size(), 2u);
+  EXPECT_EQ((*listed)[0].name, "other");
+  const auto& variable = (*listed)[1];
+  EXPECT_EQ(variable.name, "citadel_trooper_spawn_enabled");
+  EXPECT_EQ(variable.type, 7);
+  EXPECT_EQ(variable.flags, 0x100004012u);
+  EXPECT_EQ(variable.default_value, "0.25");
+  EXPECT_EQ(variable.min, "");
+
+  auto commands = variables->Commands();
+  ASSERT_TRUE(commands);
+  ASSERT_EQ(commands->size(), 1u);
+  EXPECT_EQ((*commands)[0].name, "changelevel");
+  EXPECT_EQ((*commands)[0].help, "Change the map.");
+  EXPECT_EQ((*commands)[0].flags, 1ull << 1);
 }
 
 }  // namespace

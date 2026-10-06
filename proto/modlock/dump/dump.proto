@@ -1,0 +1,361 @@
+syntax = "proto3";
+
+package modlock.dump;
+
+option go_package = "github.com/paralin/modlock/proto/modlock/dump;dump";
+
+// A game dump describes one Deadlock build's server as the running game
+// describes it to itself: its schema classes and enums, its entity classes
+// with their key values, inputs and outputs, and its console variables and
+// commands. modlock-host --dump writes each document as JSON, sorted by name,
+// so two builds' dumps diff cleanly.
+
+// Schemas lists the schema classes and enums of every loaded game module.
+message Schemas {
+  // Build is the game's ClientVersion from steam.inf.
+  string build = 1;
+  // Classes are sorted by module, then name.
+  repeated SchemaClass classes = 2;
+  // Enums are sorted by module, then name.
+  repeated SchemaEnum enums = 3;
+}
+
+// SchemaClass is one declared class.
+message SchemaClass {
+  // Name is the class's schema name, such as CCitadelPlayerPawn.
+  string name = 1;
+  // Module is the declaring project, such as server.
+  string module = 2;
+  // Size is the native allocation size in bytes.
+  uint32 size = 3;
+  // Alignment is the native alignment in bytes.
+  uint32 alignment = 4;
+  // Bases are the direct base classes in declaration order.
+  repeated SchemaBase bases = 5;
+  // Fields are the class's own fields in declaration order.
+  repeated SchemaField fields = 6;
+  // Metadata names the class's metadata entries, such as MNetworkVarNames.
+  repeated string metadata = 7;
+  // Flags names the class's set flags, such as abstract.
+  repeated string flags = 8;
+}
+
+// SchemaBase is one base class of a schema class.
+message SchemaBase {
+  // Name is the base class's schema name.
+  string name = 1;
+  // Module is the base class's declaring project.
+  string module = 2;
+  // Offset is where the base's fields start in the derived class.
+  uint32 offset = 3;
+}
+
+// SchemaField is one field a schema class declares.
+message SchemaField {
+  // Name is the field's name, such as m_iHealth.
+  string name = 1;
+  // Type is the field's C++ type as the schema spells it, such as int32.
+  string type = 2;
+  // Offset is the field's byte offset in its class.
+  uint32 offset = 3;
+  // Metadata names the field's metadata entries, such as MNetworkEnable.
+  repeated string metadata = 4;
+}
+
+// SchemaEnum is one declared enum.
+message SchemaEnum {
+  // Name is the enum's schema name.
+  string name = 1;
+  // Module is the declaring project.
+  string module = 2;
+  // Size is the enum's storage size in bytes.
+  uint32 size = 3;
+  // Enumerators are in declaration order.
+  repeated SchemaEnumerator enumerators = 4;
+  // Metadata names the enum's metadata entries.
+  repeated string metadata = 5;
+}
+
+// SchemaEnumerator is one named value of an enum.
+message SchemaEnumerator {
+  // Name is the enumerator's name.
+  string name = 1;
+  // Value is the enumerator's value.
+  int64 value = 2;
+}
+
+// Entities lists the server's entity classes, the data descriptions that
+// define their key values, and the inputs and outputs the server binds to
+// Pulse.
+message Entities {
+  // Build is the game's ClientVersion from steam.inf.
+  string build = 1;
+  // Classes are sorted by designer name.
+  repeated EntityClass classes = 2;
+  // DataMaps are sorted by name and include every base and embedded map the
+  // classes reach.
+  repeated DataMap data_maps = 3;
+  // Inputs are sorted by entity, then name.
+  repeated Input inputs = 4;
+  // Outputs are sorted by entity, then name.
+  repeated Output outputs = 5;
+}
+
+// EntityClass is one designer name the server can create.
+message EntityClass {
+  // DesignerName is the name a map or CreateEntity uses, such as
+  // npc_trooper_boss.
+  string designer_name = 1;
+  // ClassName is the schema class that implements it.
+  string class_name = 2;
+  // Description is the class's own description, when it has one.
+  string description = 3;
+  // DataMap names the class's data description in data_maps.
+  string data_map = 4;
+  // Base is the designer name of the nearest entity class this one derives
+  // from. A class also has its base's key values, inputs and outputs.
+  string base = 5;
+}
+
+// DataMap is one class's data description. A class's complete set is its own
+// map followed by each base map.
+message DataMap {
+  // Name is the data description's class name.
+  string name = 1;
+  // Base names the base class's data map, if any.
+  string base = 2;
+  // KeyValues are the spawn key values this map adds.
+  repeated KeyValue key_values = 3;
+  // Embedded are the fields whose own data maps add key values.
+  repeated EmbeddedMap embedded = 4;
+}
+
+// KeyValue is one spawn key value and the field it sets.
+message KeyValue {
+  // Name is the key, such as targetname.
+  string name = 1;
+  // Field is the class field the key sets, such as m_iszName.
+  string field = 2;
+  // Type is the value's type.
+  KeyType type = 3;
+  // Count is the number of array elements, or 1.
+  uint32 count = 4;
+}
+
+// Input is one input an entity accepts.
+message Input {
+  // Entity is the designer name of the entity class that accepts the input,
+  // and the classes derived from it accept it too. Empty means every entity.
+  string entity = 1;
+  // Name is the input's name, such as Kill.
+  string name = 2;
+  // Description is the input's help text, when it has one.
+  string description = 3;
+  // Parameters are the values the input takes, sorted by name. An input
+  // with more than one parameter can be called only from Pulse.
+  repeated Parameter parameters = 4;
+  // Returns are the values the input returns to Pulse, sorted by name.
+  repeated Parameter returns = 5;
+}
+
+// Output is one output an entity fires.
+message Output {
+  // Entity is the designer name of the entity class that fires the output,
+  // and the classes derived from it fire it too. Empty means every entity.
+  string entity = 1;
+  // Name is the output's name, such as OnDeath.
+  string name = 2;
+  // Description is the output's help text, when it has one.
+  string description = 3;
+  // Parameters are the values the output passes, sorted by name.
+  repeated Parameter parameters = 4;
+}
+
+// Parameter is one value an input or output passes.
+message Parameter {
+  // Name is the parameter's name.
+  string name = 1;
+  // Type is the parameter's Pulse type, such as PVAL_FLOAT32 or
+  // PVAL_EHANDLE:npc_trooper.
+  string type = 2;
+}
+
+// EmbeddedMap is a field whose own data map contributes key values.
+message EmbeddedMap {
+  // Field is the embedding field's name.
+  string field = 1;
+  // DataMap names the field's data map in data_maps.
+  string data_map = 2;
+}
+
+// KeyType is a data description field's type. Each known value is the game's
+// own field type plus one.
+enum KeyType {
+  // KEY_TYPE_UNKNOWN is a value the dump does not know.
+  KEY_TYPE_UNKNOWN = 0;
+  // KEY_TYPE_VOID carries no value.
+  KEY_TYPE_VOID = 1;
+  // KEY_TYPE_FLOAT32 is a 32-bit float.
+  KEY_TYPE_FLOAT32 = 2;
+  // KEY_TYPE_STRING is a symbol string.
+  KEY_TYPE_STRING = 3;
+  // KEY_TYPE_VECTOR is a three-float vector.
+  KEY_TYPE_VECTOR = 4;
+  // KEY_TYPE_QUATERNION is a four-float quaternion.
+  KEY_TYPE_QUATERNION = 5;
+  // KEY_TYPE_INT32 is a 32-bit signed integer.
+  KEY_TYPE_INT32 = 6;
+  // KEY_TYPE_BOOLEAN is a Boolean.
+  KEY_TYPE_BOOLEAN = 7;
+  // KEY_TYPE_INT16 is a 16-bit signed integer.
+  KEY_TYPE_INT16 = 8;
+  // KEY_TYPE_CHARACTER is a single byte character.
+  KEY_TYPE_CHARACTER = 9;
+  // KEY_TYPE_COLOR32 is an RGBA color of four bytes.
+  KEY_TYPE_COLOR32 = 10;
+  // KEY_TYPE_EMBEDDED is a field with its own data map.
+  KEY_TYPE_EMBEDDED = 11;
+  // KEY_TYPE_EHANDLE is an entity handle.
+  KEY_TYPE_EHANDLE = 12;
+  // KEY_TYPE_POSITION_VECTOR is a world position.
+  KEY_TYPE_POSITION_VECTOR = 13;
+  // KEY_TYPE_TIME is a game time in seconds.
+  KEY_TYPE_TIME = 14;
+  // KEY_TYPE_TICK is a game tick.
+  KEY_TYPE_TICK = 15;
+  // KEY_TYPE_SOUNDNAME is a sound event name.
+  KEY_TYPE_SOUNDNAME = 16;
+  // KEY_TYPE_VECTOR2D is a two-float vector.
+  KEY_TYPE_VECTOR2D = 17;
+  // KEY_TYPE_INT64 is a 64-bit signed integer.
+  KEY_TYPE_INT64 = 18;
+  // KEY_TYPE_VECTOR4D is a four-float vector.
+  KEY_TYPE_VECTOR4D = 19;
+  // KEY_TYPE_UINT64 is a 64-bit unsigned integer.
+  KEY_TYPE_UINT64 = 20;
+  // KEY_TYPE_UINT32 is a 32-bit unsigned integer.
+  KEY_TYPE_UINT32 = 21;
+  // KEY_TYPE_UTLSTRINGTOKEN is a hashed string token.
+  KEY_TYPE_UTLSTRINGTOKEN = 22;
+  // KEY_TYPE_QANGLE is a pitch, yaw and roll angle.
+  KEY_TYPE_QANGLE = 23;
+  // KEY_TYPE_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR is a position networked as a cell and an offset.
+  KEY_TYPE_NETWORK_ORIGIN_CELL_QUANTIZED_VECTOR = 24;
+  // KEY_TYPE_HMATERIAL is a material resource handle.
+  KEY_TYPE_HMATERIAL = 25;
+  // KEY_TYPE_HMODEL is a model resource handle.
+  KEY_TYPE_HMODEL = 26;
+  // KEY_TYPE_NETWORK_QUANTIZED_VECTOR is a vector networked in quantized form.
+  KEY_TYPE_NETWORK_QUANTIZED_VECTOR = 27;
+  // KEY_TYPE_NETWORK_QUANTIZED_FLOAT is a float networked in quantized form.
+  KEY_TYPE_NETWORK_QUANTIZED_FLOAT = 28;
+  // KEY_TYPE_DIRECTION_VECTOR_WORLDSPACE is a direction in world space.
+  KEY_TYPE_DIRECTION_VECTOR_WORLDSPACE = 29;
+  // KEY_TYPE_QANGLE_WORLDSPACE is an angle in world space.
+  KEY_TYPE_QANGLE_WORLDSPACE = 30;
+  // KEY_TYPE_QUATERNION_WORLDSPACE is a quaternion in world space.
+  KEY_TYPE_QUATERNION_WORLDSPACE = 31;
+  // KEY_TYPE_UTLSTRING is an owned string.
+  KEY_TYPE_UTLSTRING = 32;
+  // KEY_TYPE_HRENDERTEXTURE is a render texture resource handle.
+  KEY_TYPE_HRENDERTEXTURE = 33;
+  // KEY_TYPE_HPARTICLESYSTEMDEFINITION is a particle system resource handle.
+  KEY_TYPE_HPARTICLESYSTEMDEFINITION = 34;
+  // KEY_TYPE_UINT8 is an 8-bit unsigned integer.
+  KEY_TYPE_UINT8 = 35;
+  // KEY_TYPE_UINT16 is a 16-bit unsigned integer.
+  KEY_TYPE_UINT16 = 36;
+  // KEY_TYPE_HPOSTPROCESSING is a post-processing resource handle.
+  KEY_TYPE_HPOSTPROCESSING = 37;
+  // KEY_TYPE_AMMO_INDEX is an ammunition type index.
+  KEY_TYPE_AMMO_INDEX = 38;
+  // KEY_TYPE_MODIFIER_HANDLE is a modifier handle.
+  KEY_TYPE_MODIFIER_HANDLE = 39;
+  // KEY_TYPE_HVDATA is a VData record handle.
+  KEY_TYPE_HVDATA = 40;
+  // KEY_TYPE_GLOBALSYMBOL is a global symbol string.
+  KEY_TYPE_GLOBALSYMBOL = 41;
+  // KEY_TYPE_NETWORK_QUANTIZED_VECTORWS is a world space vector networked in quantized form.
+  KEY_TYPE_NETWORK_QUANTIZED_VECTORWS = 42;
+  // KEY_TYPE_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS is a world space position networked as a cell and an offset.
+  KEY_TYPE_NETWORK_ORIGIN_CELL_QUANTIZED_VECTORWS = 43;
+}
+
+// Console lists the server's console variables and commands.
+message Console {
+  // Build is the game's ClientVersion from steam.inf.
+  string build = 1;
+  // Variables are sorted by name.
+  repeated ConsoleVariable variables = 2;
+  // Commands are sorted by name.
+  repeated ConsoleCommand commands = 3;
+}
+
+// ConsoleVariable is one registered console variable.
+message ConsoleVariable {
+  // Name is the variable's name, such as sv_cheats.
+  string name = 1;
+  // Type is the value's type.
+  ConsoleVariableType type = 2;
+  // DefaultValue is the default as the console prints it, such as 800 or
+  // [0, 0, 0].
+  string default_value = 3;
+  // Min is the lower bound, when the variable has one.
+  string min = 4;
+  // Max is the upper bound, when the variable has one.
+  string max = 5;
+  // Help is the variable's help text.
+  string help = 6;
+  // Flags names the set flags, such as cheat and replicated. A bit without a
+  // known name appears as flag_<bit>.
+  repeated string flags = 7;
+}
+
+// ConsoleCommand is one registered console command.
+message ConsoleCommand {
+  // Name is the command's name, such as changelevel.
+  string name = 1;
+  // Help is the command's help text.
+  string help = 2;
+  // Flags names the set flags, as for ConsoleVariable.
+  repeated string flags = 3;
+}
+
+// ConsoleVariableType is a console variable's value type. Each known value is
+// the game's own type plus one.
+enum ConsoleVariableType {
+  // CONSOLE_VARIABLE_TYPE_UNKNOWN is a value the dump does not know.
+  CONSOLE_VARIABLE_TYPE_UNKNOWN = 0;
+  // CONSOLE_VARIABLE_TYPE_BOOL is a Boolean.
+  CONSOLE_VARIABLE_TYPE_BOOL = 1;
+  // CONSOLE_VARIABLE_TYPE_INT16 is a 16-bit signed integer.
+  CONSOLE_VARIABLE_TYPE_INT16 = 2;
+  // CONSOLE_VARIABLE_TYPE_UINT16 is a 16-bit unsigned integer.
+  CONSOLE_VARIABLE_TYPE_UINT16 = 3;
+  // CONSOLE_VARIABLE_TYPE_INT32 is a 32-bit signed integer.
+  CONSOLE_VARIABLE_TYPE_INT32 = 4;
+  // CONSOLE_VARIABLE_TYPE_UINT32 is a 32-bit unsigned integer.
+  CONSOLE_VARIABLE_TYPE_UINT32 = 5;
+  // CONSOLE_VARIABLE_TYPE_INT64 is a 64-bit signed integer.
+  CONSOLE_VARIABLE_TYPE_INT64 = 6;
+  // CONSOLE_VARIABLE_TYPE_UINT64 is a 64-bit unsigned integer.
+  CONSOLE_VARIABLE_TYPE_UINT64 = 7;
+  // CONSOLE_VARIABLE_TYPE_FLOAT32 is a 32-bit float.
+  CONSOLE_VARIABLE_TYPE_FLOAT32 = 8;
+  // CONSOLE_VARIABLE_TYPE_FLOAT64 is a 64-bit float.
+  CONSOLE_VARIABLE_TYPE_FLOAT64 = 9;
+  // CONSOLE_VARIABLE_TYPE_STRING is a string.
+  CONSOLE_VARIABLE_TYPE_STRING = 10;
+  // CONSOLE_VARIABLE_TYPE_COLOR is an RGBA color of four bytes.
+  CONSOLE_VARIABLE_TYPE_COLOR = 11;
+  // CONSOLE_VARIABLE_TYPE_VECTOR2 is a two-float vector.
+  CONSOLE_VARIABLE_TYPE_VECTOR2 = 12;
+  // CONSOLE_VARIABLE_TYPE_VECTOR3 is a three-float vector.
+  CONSOLE_VARIABLE_TYPE_VECTOR3 = 13;
+  // CONSOLE_VARIABLE_TYPE_VECTOR4 is a four-float vector.
+  CONSOLE_VARIABLE_TYPE_VECTOR4 = 14;
+  // CONSOLE_VARIABLE_TYPE_QANGLE is a pitch, yaw and roll angle.
+  CONSOLE_VARIABLE_TYPE_QANGLE = 15;
+  // CONSOLE_VARIABLE_TYPE_VECTOR_WS is a three-float vector in world space.
+  CONSOLE_VARIABLE_TYPE_VECTOR_WS = 16;
+}

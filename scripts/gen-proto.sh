@@ -37,6 +37,10 @@ GOFLAGS=-mod=mod go run -mod=mod -tags=purego github.com/aperturerobotics/common
   --targets './proto/modlock/publish/*.proto' --targets './proto/modlock/cli/*.proto' \
   --targets './proto/modlock/spot/*.proto'
 
+# The game dump serves the host that writes it and the generators that read it.
+GOFLAGS=-mod=mod go run -mod=mod -tags=purego github.com/aperturerobotics/common/cmd/aptre generate \
+  --language cpp --language go --rpc none --targets './proto/modlock/dump/*.proto'
+
 python3 scripts/restore-proto-exports.py
 
 # Each language's mod library and the host's dispatch follow wasm.proto.

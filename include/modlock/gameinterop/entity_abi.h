@@ -38,9 +38,16 @@ inline constexpr size_t kResourceServiceEntitySystemOffset = 0x58;
 inline constexpr char kGameResourceServiceServerVersion[] = "GameResourceServiceServerV001";
 
 // ISchemaSystem appends FindTypeScopeForModule after IAppSystem's eleven
-// slots. ISchemaSystemTypeScope declares FindDeclaredClass third.
+// slots. ISchemaSystemTypeScope declares FindDeclaredClass third and
+// FindDeclaredEnum fourth.
 inline constexpr size_t kSchemaSystemFindTypeScopeSlot = 13;
 inline constexpr size_t kTypeScopeFindDeclaredClassSlot = 2;
+inline constexpr size_t kTypeScopeFindDeclaredEnumSlot = 3;
+
+// FindTypeScopeOf returns the type scope of a loaded module, such as
+// "server.dll", or an error when the module declares no schema.
+[[nodiscard]] MODLOCK_API std::expected<void*, std::string> FindTypeScopeOf(
+    void* schema_system, const char* module_name);
 
 // FindDeclaredClassOf invokes the type scope's FindDeclaredClass with the
 // MSVC x64 hidden-return ABI the live binary proves: the returned handle
@@ -53,6 +60,10 @@ inline constexpr size_t kTypeScopeFindDeclaredClassSlot = 2;
 // RDX argument, which a name-in-RDX call aims at read-only .rdata.
 [[nodiscard]] MODLOCK_API std::expected<void*, std::string> FindDeclaredClassOf(
     void* type_scope, const char* class_name);
+
+// FindDeclaredEnumOf returns a type scope's enum info with the same ABI.
+[[nodiscard]] MODLOCK_API std::expected<void*, std::string> FindDeclaredEnumOf(
+    void* type_scope, const char* enum_name);
 
 // InteropTraceEnabled reports whether MODLOCK_INTEROP_TRACE=1 asks native
 // interop to log its walk stages. It reads the environment on every call, so

@@ -3,27 +3,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <span>
 
 #include "modlock/gameinterop/mapped_module_image.h"
+#include "schema_layout.h"
 
 namespace modlock::gameinterop {
 namespace {
-
-// Class-info field offsets follow sourcesdk public/schemasystem/schematypes.h
-// (SchemaClassInfoData_t, SchemaClassFieldData_t, SchemaMetadataEntryData_t).
-// Game build 6711 added m_pszCPPName after m_pszProjectName.
-constexpr size_t kClassInfoName = 0x08;
-constexpr size_t kClassInfoSize = 0x20;
-constexpr size_t kClassInfoFieldCount = 0x24;
-constexpr size_t kClassInfoBaseClassCount = 0x29;
-constexpr size_t kClassInfoFields = 0x30;
-constexpr size_t kClassInfoBaseClasses = 0x38;
-constexpr size_t kFieldName = 0x0;
-constexpr size_t kFieldOffset = 0x10;
-constexpr size_t kFieldMetadataCount = 0x14;
-constexpr size_t kFieldMetadata = 0x18;
-constexpr size_t kFieldStride = 32;
-constexpr size_t kMetadataStride = 16;
 
 // An entity reaches its schema class through CEntityIdentity::m_pClass,
 // CEntityClass::m_pClassInfo and CEntityClassInfo::m_pSchemaBinding
@@ -80,82 +66,54 @@ const void* ReadLink(const void* base, size_t offset, const BoundedReader& read)
 }
 
 // SchemaClassInfoOf borrows the declared class from the module's type scope.
-std::expected<void*, std::string> SchemaClassInfoOf(void* schema_system, const char* module_name,
-                                                    const char* class_name) {
-  if (!schema_system) return std::unexpected("the schema system instance is not resolved yet");
-  using FindTypeScope = void* (*)(void*, const char*, const char**);
-  auto* scope = VtableCall<FindTypeScope>(schema_system, kSchemaSystemFindTypeScopeSlot)(
-      schema_system, module_name, nullptr);
-  if (!scope)
-    return std::unexpected("schema type scope '" + std::string(module_name) + "' is not open");
-  return FindDeclaredClassOf(scope, class_name);
+std::expected<const schema::ClassInfo*, std::string> SchemaClassInfoOf(void* schema_system,
+                                                                       const char* module_name,
+                                                                       const char* class_name) {
+  auto scope = FindTypeScopeOf(schema_system, module_name);
+  if (!scope) return std::unexpected(scope.error());
+  auto info = FindDeclaredClassOf(*scope, class_name);
+  if (!info) return std::unexpected(info.error());
+  return static_cast<const schema::ClassInfo*>(*info);
 }
 
 // IsFieldNetworked reports whether the field may be networked. Game build
 // 6711 no longer ships MNetworkEnable metadata in the server schema, so a
 // field counts as networked unless it carries MNetworkDisable; notifying an
 // unnetworked field is harmless.
-bool IsFieldNetworked(const uint8_t* field) {
-  int count = 0;
-  std::memcpy(&count, field + kFieldMetadataCount, sizeof(count));
-  auto* metadata = static_cast<const uint8_t*>(ReadPointer(field, kFieldMetadata));
-  for (int i = 0; i < count; ++i) {
-    const char* name = static_cast<const char*>(ReadPointer(metadata + i * kMetadataStride, 0));
-    if (name != nullptr && std::strcmp(name, "MNetworkDisable") == 0) {
-      return false;
-    }
+bool IsFieldNetworked(const schema::Field& field) {
+  for (int32_t i = 0; i < field.metadata_count; ++i) {
+    const char* name = field.metadata[i].name;
+    if (name != nullptr && std::strcmp(name, "MNetworkDisable") == 0) return false;
   }
   return true;
 }
 
 // FirstBaseOf returns the first base class of a class info, or null for a
 // root class. A first base shares the derived class's field offsets.
-const void* FirstBaseOf(const void* class_info) {
-  uint8_t base_count = 0;
-  std::memcpy(&base_count, static_cast<const uint8_t*>(class_info) + kClassInfoBaseClassCount,
-              sizeof(base_count));
-  if (base_count == 0) return nullptr;
-  // SchemaBaseClasses[i] = { unsigned offset; CSchemaClassInfo* class; }.
-  auto* bases = static_cast<const uint8_t*>(ReadPointer(class_info, kClassInfoBaseClasses));
-  return ReadPointer(bases, sizeof(void*));
+const schema::ClassInfo* FirstBaseOf(const schema::ClassInfo* info) {
+  return info->base_count == 0 ? nullptr : info->bases[0].info;
 }
 
 // FieldInClassInfo searches one class info's own fields, then its first base
-// class (single inheritance).
-std::expected<SchemaField, std::string> FieldInClassInfo(const void* class_info,
+// class (single inheritance). A field's storage runs to the next field or the
+// end of its class.
+std::expected<SchemaField, std::string> FieldInClassInfo(const schema::ClassInfo* info,
                                                          const char* field_name) {
-  if (class_info == nullptr) {
-    return std::unexpected("schema class is not declared in this module");
-  }
-  uint16_t field_count = 0;
-  std::memcpy(&field_count, static_cast<const uint8_t*>(class_info) + kClassInfoFieldCount,
-              sizeof(field_count));
-  auto* fields = static_cast<const uint8_t*>(ReadPointer(class_info, kClassInfoFields));
-  for (uint16_t i = 0; i < field_count; ++i) {
-    const uint8_t* field = fields + i * kFieldStride;
-    const char* name = static_cast<const char*>(ReadPointer(field, kFieldName));
-    if (name != nullptr && std::strcmp(name, field_name) == 0) {
-      int offset = 0;
-      int class_size = 0;
-      std::memcpy(&offset, field + kFieldOffset, sizeof(offset));
-      std::memcpy(&class_size, static_cast<const uint8_t*>(class_info) + kClassInfoSize,
-                  sizeof(class_size));
-      int boundary = class_size;
-      for (uint16_t next = 0; next < field_count; ++next) {
-        int next_offset = 0;
-        std::memcpy(&next_offset, fields + next * kFieldStride + kFieldOffset, sizeof(next_offset));
-        if (next_offset > offset && (boundary <= offset || next_offset < boundary)) {
-          boundary = next_offset;
-        }
+  for (; info != nullptr; info = FirstBaseOf(info)) {
+    const std::span fields(info->fields, info->field_count);
+    for (const auto& field : fields) {
+      if (field.name == nullptr || std::strcmp(field.name, field_name) != 0) continue;
+      int32_t boundary = info->size;
+      for (const auto& next : fields) {
+        if (next.offset > field.offset && (boundary <= field.offset || next.offset < boundary))
+          boundary = next.offset;
       }
-      if (offset < 0 || boundary <= offset) {
+      if (field.offset < 0 || boundary <= field.offset)
         return std::unexpected("schema field storage span is invalid");
-      }
-      return SchemaField{static_cast<size_t>(offset), static_cast<size_t>(boundary - offset),
-                         IsFieldNetworked(field)};
+      return SchemaField{static_cast<size_t>(field.offset),
+                         static_cast<size_t>(boundary - field.offset), IsFieldNetworked(field)};
     }
   }
-  if (const void* base = FirstBaseOf(class_info)) return FieldInClassInfo(base, field_name);
   return std::unexpected("schema field '" + std::string(field_name) +
                          "' is not declared on the class chain");
 }
@@ -212,7 +170,7 @@ std::optional<uint32_t> ReferenceHandleOf(void* entity) {
 }
 
 std::expected<const void*, std::string> SchemaClassOfEntity(void* entity,
-                                                             const BoundedReader& read) {
+                                                            const BoundedReader& read) {
   const void* identity = ReadLink(entity, kIdentityOffset, read);
   if (identity == nullptr || ReadLink(identity, 0, read) != entity)
     return std::unexpected("the entity has no live identity");
@@ -225,13 +183,14 @@ std::expected<const void*, std::string> SchemaClassOfEntity(void* entity,
 }
 
 std::string_view SchemaClassNameOf(const void* class_info) {
-  const auto* name = static_cast<const char*>(ReadPointer(class_info, kClassInfoName));
+  const char* name = static_cast<const schema::ClassInfo*>(class_info)->name;
   return name == nullptr ? std::string_view() : std::string_view(name);
 }
 
 bool SchemaClassDerivesFrom(const void* class_info, std::string_view class_name) {
-  for (; class_info != nullptr; class_info = FirstBaseOf(class_info)) {
-    if (SchemaClassNameOf(class_info) == class_name) return true;
+  for (auto* info = static_cast<const schema::ClassInfo*>(class_info); info != nullptr;
+       info = FirstBaseOf(info)) {
+    if (SchemaClassNameOf(info) == class_name) return true;
   }
   return false;
 }
@@ -305,19 +264,42 @@ std::expected<void*, std::string> ResolveSchemaSystem() {
   return ResolveEngineInterface(L"schemasystem.dll", "SchemaSystem_001");
 }
 
-std::expected<void*, std::string> FindDeclaredClassOf(void* type_scope, const char* class_name) {
+std::expected<void*, std::string> FindTypeScopeOf(void* schema_system, const char* module_name) {
+  if (!schema_system) return std::unexpected("the schema system instance is not resolved yet");
+  using FindTypeScope = void* (*)(void*, const char*, const char**);
+  auto* scope = VtableCall<FindTypeScope>(schema_system, kSchemaSystemFindTypeScopeSlot)(
+      schema_system, module_name, nullptr);
+  if (!scope)
+    return std::unexpected("schema type scope '" + std::string(module_name) + "' is not open");
+  return scope;
+}
+
+namespace {
+
+// FindDeclared calls a type scope lookup with the hidden-return ABI described
+// at FindDeclaredClassOf in the header.
+std::expected<void*, std::string> FindDeclared(void* type_scope, size_t slot, const char* kind,
+                                               const char* name) {
   if (type_scope == nullptr) {
     return std::unexpected("the schema type scope instance is not resolved yet");
   }
-  // Hidden-return ABI: see FindDeclaredClassOf in the header.
-  using FindDeclaredClassFn = void (*)(void* type_scope, void* out_handle, const char* class_name);
-  void* class_info = nullptr;
-  VtableCall<FindDeclaredClassFn>(type_scope, kTypeScopeFindDeclaredClassSlot)(
-      type_scope, &class_info, class_name);
-  if (class_info == nullptr) {
-    return std::unexpected("schema class '" + std::string(class_name) + "' is not declared");
+  using FindFn = void (*)(void* type_scope, void* out_handle, const char* name);
+  void* info = nullptr;
+  VtableCall<FindFn>(type_scope, slot)(type_scope, &info, name);
+  if (info == nullptr) {
+    return std::unexpected(std::string("schema ") + kind + " '" + name + "' is not declared");
   }
-  return class_info;
+  return info;
+}
+
+}  // namespace
+
+std::expected<void*, std::string> FindDeclaredClassOf(void* type_scope, const char* class_name) {
+  return FindDeclared(type_scope, kTypeScopeFindDeclaredClassSlot, "class", class_name);
+}
+
+std::expected<void*, std::string> FindDeclaredEnumOf(void* type_scope, const char* enum_name) {
+  return FindDeclared(type_scope, kTypeScopeFindDeclaredEnumSlot, "enum", enum_name);
 }
 
 std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const char* module_name,
@@ -332,38 +314,20 @@ std::expected<size_t, std::string> SchemaClassSizeOf(void* schema_system, const 
                                                      const char* class_name) {
   auto info = SchemaClassInfoOf(schema_system, module_name, class_name);
   if (!info) return std::unexpected(info.error());
-  int32_t size = 0;
-  std::memcpy(&size, static_cast<const uint8_t*>(*info) + kClassInfoSize, sizeof(size));
-  if (size <= 0) return std::unexpected("schema class allocation size is invalid");
-  return static_cast<size_t>(size);
+  if ((*info)->size <= 0) return std::unexpected("schema class allocation size is invalid");
+  return static_cast<size_t>((*info)->size);
 }
 
 std::expected<int64_t, std::string> SchemaEnumValueOf(void* schema_system, const char* module_name,
                                                       const char* enum_name,
                                                       const char* value_name) {
-  if (!schema_system) return std::unexpected("the schema system instance is not resolved yet");
-  using FindTypeScope = void* (*)(void*, const char*, const char**);
-  auto* scope = VtableCall<FindTypeScope>(schema_system, kSchemaSystemFindTypeScopeSlot)(
-      schema_system, module_name, nullptr);
-  if (!scope)
-    return std::unexpected("schema type scope '" + std::string(module_name) + "' is not open");
-  // FindDeclaredEnum follows FindDeclaredClass and uses the same hidden return.
-  using FindEnum = void (*)(void*, void*, const char*);
-  const uint8_t* info = nullptr;
-  VtableCall<FindEnum>(scope, 3)(scope, &info, enum_name);
-  if (!info) return std::unexpected("schema enum '" + std::string(enum_name) + "' is not declared");
-  // SchemaEnumInfoData_t: count +28, enumerators +32. Each enumerator is
-  // {name, int64 value, metadata count, metadata pointer}, with stride 32.
-  uint16_t count = 0;
-  std::memcpy(&count, info + 28, sizeof(count));
-  const auto* entries = static_cast<const uint8_t*>(ReadPointer(info, 32));
-  for (uint16_t i = 0; i < count; ++i) {
-    const auto* entry = entries + static_cast<size_t>(i) * 32;
-    const auto* name = static_cast<const char*>(ReadPointer(entry, 0));
-    if (std::strcmp(name, value_name) != 0) continue;
-    int64_t value = 0;
-    std::memcpy(&value, entry + 8, sizeof(value));
-    return value;
+  auto scope = FindTypeScopeOf(schema_system, module_name);
+  if (!scope) return std::unexpected(scope.error());
+  auto found = FindDeclaredEnumOf(*scope, enum_name);
+  if (!found) return std::unexpected(found.error());
+  const auto* info = static_cast<const schema::EnumInfo*>(*found);
+  for (const auto& enumerator : std::span(info->enumerators, info->enumerator_count)) {
+    if (std::strcmp(enumerator.name, value_name) == 0) return enumerator.value;
   }
   return std::unexpected("schema enum value '" + std::string(enum_name) + "." + value_name +
                          "' is not declared");
