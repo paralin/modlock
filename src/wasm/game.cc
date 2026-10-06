@@ -586,6 +586,14 @@ std::expected<gameinterop::SchemaField, std::string> GameServices::Field(
   return *resolved;
 }
 
+bool GameServices::Derives(const void* class_info, const std::string& class_name) {
+  auto key = std::pair{class_info, class_name};
+  if (auto found = derives_.find(key); found != derives_.end()) return found->second;
+  const bool derives = gameinterop::SchemaClassDerivesFrom(class_info, class_name);
+  derives_.emplace(std::move(key), derives);
+  return derives;
+}
+
 std::expected<GameServices::ModifierLayout, std::string> GameServices::Modifiers() {
   if (modifiers_) return *modifiers_;
   auto property = Field("CBaseEntity", "m_pModifierProp");
@@ -1026,6 +1034,14 @@ std::expected<std::pair<void*, unsigned char*>, std::string> Game::FieldAddress(
   }
   auto entity = Entity(handle);
   if (!entity) return std::unexpected(entity.error());
+
+  // The offset belongs to class_name, so the entity must be one.
+  auto actual = gameinterop::SchemaClassOfEntity(*entity, gameinterop::ReadNative);
+  if (!actual) return std::unexpected(actual.error());
+  if (!services_.Derives(*actual, class_name)) {
+    return std::unexpected("the entity is a " + std::string(gameinterop::SchemaClassNameOf(*actual)) +
+                           ", not a " + class_name);
+  }
   return std::pair{*entity, static_cast<unsigned char*>(*entity) + found->offset};
 }
 
@@ -1060,6 +1076,18 @@ std::expected<void, std::string> Game::WriteField(const WriteFieldRequest& reque
     return std::unexpected("cannot replicate " + request.class_name() + "." + request.field());
   }
   return {};
+}
+
+std::expected<EntityClassResponse, std::string> Game::EntityClass(const EntityRequest& request) {
+  auto entity = Entity(request.entity());
+  if (!entity) return std::unexpected(entity.error());
+  auto schema = gameinterop::SchemaClassOfEntity(*entity, gameinterop::ReadNative);
+  if (!schema) return std::unexpected(schema.error());
+  EntityClassResponse response;
+  auto* name = response.mutable_name();
+  name->set_class_name(std::string(gameinterop::SchemaClassNameOf(*schema)));
+  name->set_designer_name(std::string(DesignerName(*entity)));
+  return response;
 }
 
 std::expected<ActiveResponse, std::string> Game::ModifierState(

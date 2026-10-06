@@ -215,6 +215,9 @@ type ParticlePoint = wasm.ParticlePoint
 // FogOptions describes an oriented box of tinted fog.
 type FogOptions = wasm.FogOptions
 
+// EntityClassName names one entity's class two ways.
+type EntityClassName = wasm.EntityClassName
+
 // BotOptions describes a bot player.
 type BotOptions = wasm.BotOptions
 
@@ -559,7 +562,8 @@ func (p Player) ClearScreenEffect(effect ScreenEffect) error {
 
 // ReadField reads one schema field of a live entity, such as the int32
 // m_iHealth of CBaseEntity. The host finds the field by name, so it
-// survives game updates that move it.
+// survives game updates that move it, and refuses an entity that is not of
+// the named class or a subclass.
 func ReadField(entity uint32, className, field string, kind FieldType) (any, error) {
 	request := &wasm.ReadFieldRequest{Entity: entity, ClassName: className, Field: field, Type: kind}
 	response := &wasm.FieldResponse{}
@@ -580,6 +584,17 @@ func WriteField(entity uint32, className, field string, kind FieldType, value an
 	}
 	request.Value = encoded
 	return invoke("WriteField", request, nil)
+}
+
+// EntityClass returns a live entity's schema class, such as
+// CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
+func EntityClass(entity uint32) (*EntityClassName, error) {
+	request := &wasm.EntityRequest{Entity: entity}
+	response := &wasm.EntityClassResponse{}
+	if err := invoke("EntityClass", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetName(), nil
 }
 
 // ModifierState reports whether an entity has a modifier state, such as

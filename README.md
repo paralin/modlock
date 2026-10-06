@@ -494,20 +494,51 @@ states and input.
 
 ### The world
 
-| Call                                                     | Effect                                                             |
-| -------------------------------------------------------- | ------------------------------------------------------------------ |
-| `createText`, `createModel`, `createParticle`            | Place text, a model or an effect; move, change or remove it later. |
-| `precache({ heroes, resources })`                        | Load heroes and resources with the next world.                     |
-| `serverCommand(line)`                                    | Run a line at the server console.                                  |
-| `moveEntity`, `emitSound`                                | Move an entity and set its velocity, or play a sound on it.        |
-| `modifierState(entity, state)`, `holdModifierState(...)` | Test a modifier state on an entity, or hold one on it.             |
-| `readField(entity, class, field, type)`                  | Read any schema field of a live entity.                            |
-| `loadSpot(spot)`, `encodeSpot`, `decodeSpot`             | Place a [spot](#spots) on the running map, or save it.             |
-| `new Dropper(catalog, spot)`                             | Let players build a spot while they play.                          |
+| Call                                                     | Effect                                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------------- |
+| `createText`, `createModel`, `createParticle`            | Place text, a model or an effect; move, change or remove it later.  |
+| `precache({ heroes, resources })`                        | Load heroes and resources with the next world.                      |
+| `serverCommand(line)`                                    | Run a line at the server console.                                   |
+| `moveEntity`, `emitSound`                                | Move an entity and set its velocity, or play a sound on it.         |
+| `modifierState(entity, state)`, `holdModifierState(...)` | Test a modifier state on an entity, or hold one on it.              |
+| `readField`, `writeField`, `entityClass`                 | Read or write any schema field of a live entity, or name its class. |
+| `loadSpot(spot)`, `encodeSpot`, `decodeSpot`             | Place a [spot](#spots) on the running map, or save it.              |
+| `new Dropper(catalog, spot)`                             | Let players build a spot while they play.                           |
 
-`modlock/entities` has a typed class for each server entity class, such as
-`new CCitadelPlayerPawn(pawn.entity).m_iHealth`. A bundle keeps only the
-classes it uses.
+### Entity fields
+
+A mod reads and writes any schema field of a live entity by its class and
+field names, the way the game declares them:
+
+```ts
+import { readField, writeField } from 'modlock'
+
+const health = readField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32')
+writeField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32', 500)
+```
+
+A write changes the field on the server and sends it to the players. The
+host checks that the entity is of the named class or one derived from it, and
+refuses one that is not, such as a trooper named as a `CCitadelPlayerPawn`,
+with a message naming both classes and the entity unchanged.
+`entityClass(entity)` returns an entity's class, such as `CCitadelPlayerPawn`,
+and its designer name, such as `player`.
+
+`modlock/entities` has a typed class for each server entity class, with a
+getter and, for each field but a string, a setter:
+
+```ts
+import { CCitadelPlayerPawn } from 'modlock/entities'
+
+const hero = new CCitadelPlayerPawn(pawn.entity)
+hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
+```
+
+A bundle keeps only the classes it uses. The
+[DumpSource2](https://github.com/ValveResourceFormat/DumpSource2) dump in
+[GameTracking-Deadlock](https://github.com/SteamDatabase/GameTracking-Deadlock/tree/master/DumpSource2/schemas)
+lists every class, its base and its fields; the `server` module holds the
+entity classes.
 
 ### Interfaces
 
@@ -720,6 +751,11 @@ ignore to keep playing. Calls fail outside the game, so code that makes none,
 such as the race rules in the [`race`](examples/race) example, tests with
 plain `go test` on your machine. Go mods do not yet build interfaces.
 
+[`mod/entity`](mod/entity) has the typed entity classes. Each field is a
+method whose value gets and sets it:
+`entity.NewCCitadelPlayerPawn(pawn.GetEntity()).IHealth().Set(500)` writes
+`m_iHealth`.
+
 ## Writing a mod in Luau
 
 A [Luau](https://luau.org) mod requires `@modlock` and registers its handlers
@@ -746,7 +782,21 @@ The library offers the calls of the TypeScript one under the same names, with
 methods called as `player:chat(text)`. A 64-bit id, such as a Steam ID, is a
 decimal string, because a Luau number holds integers exactly only up to
 2^53. `modlock.has(bits, modlock.Buttons.attack)` tests a button or layer bit.
-Luau mods do not yet build interfaces or use typed entity classes.
+Luau mods do not yet build interfaces.
+
+`@modlock/entities` has the typed entity classes; an entity reads a field by
+indexing and writes one by assigning. Name the type where you keep the entity,
+because a constructor returns `any`:
+
+```luau
+local entities = require("@modlock/entities")
+
+local hero: entities.CCitadelPlayerPawn = entities.CCitadelPlayerPawn(pawn.entity)
+hero.m_iHealth = (hero.m_iHealth or 0) + 50
+```
+
+A mod that requires the classes carries them in its build; one that does not
+leaves them out.
 
 ## Writing a mod in Python
 

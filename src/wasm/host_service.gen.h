@@ -273,7 +273,8 @@ class HostService {
 
   // ReadField reads one schema field of a live entity, such as the int32
   // m_iHealth of CBaseEntity. The host finds the field by name, so it
-  // survives game updates that move it.
+  // survives game updates that move it, and refuses an entity that is not of
+  // the named class or a subclass.
   virtual std::expected<FieldResponse, std::string> ReadField(const ReadFieldRequest& /*request*/) {
     return std::unexpected("this host does not support ReadField");
   }
@@ -283,6 +284,13 @@ class HostService {
   // text fields cannot be written.
   virtual std::expected<void, std::string> WriteField(const WriteFieldRequest& /*request*/) {
     return std::unexpected("this host does not support WriteField");
+  }
+
+  // EntityClass returns a live entity's schema class, such as
+  // CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
+  virtual std::expected<EntityClassResponse, std::string> EntityClass(
+      const EntityRequest& /*request*/) {
+    return std::unexpected("this host does not support EntityClass");
   }
 
   // ModifierState reports whether an entity has a modifier state, such as
@@ -845,6 +853,14 @@ class HostService {
              return detail::Fail("the WriteField request is malformed");
            }
            return detail::Answer(host.WriteField(request));
+         }},
+        {"EntityClass",
+         [](HostService& host, const std::string& bytes) {
+           EntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the EntityClass request is malformed");
+           }
+           return detail::Answer(host.EntityClass(request));
          }},
         {"ModifierState",
          [](HostService& host, const std::string& bytes) {

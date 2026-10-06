@@ -15,6 +15,7 @@
 namespace {
 
 using modlock::wasm::Call;
+using modlock::wasm::FieldResponse;
 using modlock::wasm::ChatRequest;
 using modlock::wasm::CommandEvent;
 using modlock::wasm::CommandResult;
@@ -22,10 +23,12 @@ using modlock::wasm::FrameEvent;
 using modlock::wasm::Instance;
 using modlock::wasm::Limits;
 using modlock::wasm::LogRequest;
+using modlock::wasm::ReadFieldRequest;
 using modlock::wasm::Reply;
 using modlock::wasm::Runtime;
 using modlock::wasm::StartEvent;
 using modlock::wasm::StartResult;
+using modlock::wasm::WriteFieldRequest;
 
 // ReadFile returns the bytes of a built module.
 std::vector<uint8_t> ReadFile(const char* path) {
@@ -211,6 +214,64 @@ TEST(WasmInstance, LuauModAnswersEvents) {
   ASSERT_EQ(recorder.calls.size(), 2);
   EXPECT_EQ(recorder.calls[1].method(), "Log");
   EXPECT_EQ(Parse<LogRequest>(recorder.calls[1].request()).message(), "first frame at tick 7");
+}
+
+TEST(WasmInstance, LuauEntityClassesReadAndWriteThroughTheDeclaringClass) {
+  // The host answers every read with 250 health.
+  Runtime runtime;
+  std::vector<Call> calls;
+  const auto answer = [&calls](const Call& call) {
+    calls.push_back(call);
+    Reply reply;
+    if (call.method() == "ReadField") {
+      FieldResponse response;
+      response.mutable_value()->set_integer(250);
+      reply.set_response(response.SerializeAsString());
+    }
+    return reply;
+  };
+  auto instance = Instance::Load(runtime, ReadFile(LUAU_WASM), Limits{}, answer);
+  ASSERT_TRUE(instance) << instance.error();
+
+  // The mod heals the pawn it names by 50 through its typed class.
+  const std::string library = LUAU_LIBRARY;
+  StartEvent start;
+  start.set_source(Zip({
+      {"main.luau", R"(
+local modlock = require("@modlock")
+local entities = require("@modlock/entities")
+
+modlock.command("heal", function(_player, args)
+	local pawn: entities.CCitadelPlayerPawn = entities.CCitadelPlayerPawn(tonumber(args) :: number)
+	pawn.m_iHealth = (pawn.m_iHealth :: number) + 50
+end)
+)"},
+      {"@modlock/init.luau", Text(library + "/init.luau")},
+      {"@modlock/wire.luau", Text(library + "/wire.luau")},
+      {"@modlock/entities.luau", Text(library + "/entities.luau")},
+  }));
+  auto started = (*instance)->Deliver(Event("Start", start));
+  ASSERT_TRUE(started) << started.error();
+  ASSERT_EQ(started->error(), "");
+
+  // Both calls name CBaseEntity, which declares m_iHealth.
+  auto heal = (*instance)->Deliver(Command(3, "heal 7"));
+  ASSERT_TRUE(heal) << heal.error();
+  ASSERT_EQ(heal->error(), "");
+  ASSERT_EQ(calls.size(), 2);
+  EXPECT_EQ(calls[0].method(), "ReadField");
+  const auto read = Parse<ReadFieldRequest>(calls[0].request());
+  EXPECT_EQ(read.entity(), 7);
+  EXPECT_EQ(read.class_name(), "CBaseEntity");
+  EXPECT_EQ(read.field(), "m_iHealth");
+  EXPECT_EQ(calls[1].method(), "WriteField");
+  const auto write = Parse<WriteFieldRequest>(calls[1].request());
+  EXPECT_EQ(write.entity(), 7);
+  EXPECT_EQ(write.class_name(), "CBaseEntity");
+  EXPECT_EQ(write.field(), "m_iHealth");
+  EXPECT_EQ(write.type(), modlock::wasm::FIELD_TYPE_INT32);
+  const auto& value = write.value();
+  EXPECT_EQ(value.has_integer() ? static_cast<double>(value.integer()) : value.number(), 300);
 }
 
 TEST(WasmInstance, PythonModAnswersEvents) {

@@ -27,9 +27,8 @@ func NewCEntityInstance(handle uint32) CEntityInstance {
 }
 `
 
-// goTypes maps each wire field type to the type its getter returns.
-var goTypes = map[string]string{
-	"bool":    "bool",
+// goNumbers maps each numeric wire field type to its Go type.
+var goNumbers = map[string]string{
 	"int8":    "int8",
 	"int16":   "int16",
 	"int32":   "int32",
@@ -40,26 +39,25 @@ var goTypes = map[string]string{
 	"uint64":  "uint64",
 	"float32": "float32",
 	"float64": "float64",
-	"vector":  "*mod.Vector",
 	"handle":  "uint32",
-	"string":  "string",
 }
 
-// goNumbers lists the wire field types the host sends as a float64 number.
-var goNumbers = map[string]bool{
-	"int8": true, "int16": true, "int32": true,
-	"uint8": true, "uint16": true, "uint32": true,
-	"float32": true, "float64": true, "handle": true,
+// goFields maps each other wire field type to its field type in package
+// entity.
+var goFields = map[string]string{
+	"bool":   "Bool",
+	"string": "Text",
+	"vector": "Vector",
 }
-
-// goIntegers lists the wire field types the host sends as an int64 integer.
-var goIntegers = map[string]bool{"int64": true, "uint64": true}
 
 // writeGo writes the entity classes as one Go source file of package entity.
+// Each field is one method returning a value that gets and sets the field, so
+// a setter adds no method to every class that inherits it.
 func writeGo(s *schema, classes []*class) []byte {
 	var out bytes.Buffer
 	out.WriteString(goPreamble)
 	for _, c := range classes[1:] {
+		// Write the class and its constructor.
 		fmt.Fprintf(&out, "\n// %s is the server's %s entity class.\n", c.name, c.name)
 		fmt.Fprintf(&out, "type %s struct {\n\t%s\n}\n", c.name, c.base)
 		fmt.Fprintf(&out, "\n// New%s addresses the %s named by handle.\n", c.name, c.name)
@@ -75,10 +73,13 @@ func writeGo(s *schema, classes []*class) []byte {
 				continue
 			}
 			taken[method] = true
-			fmt.Fprintf(&out, "\n// %s reads %s.\n", method, f.name)
-			fmt.Fprintf(&out, "func (e %s) %s() (%s, error) {\n%s}\n", c.name, method, goType(f.kind), goRead(c.name, f))
+			typ, value := goField(c.name, f)
+			fmt.Fprintf(&out, "\n// %s is %s.\n", method, f.name)
+			fmt.Fprintf(&out, "func (e %s) %s() %s {\n\treturn %s\n}\n", c.name, method, typ, value)
 		}
 	}
+
+	// Format the source, which the generator writes only in valid Go.
 	formatted, err := format.Source(out.Bytes())
 	if err != nil {
 		panic(fmt.Sprintf("generated Go does not parse: %v", err))
@@ -86,8 +87,8 @@ func writeGo(s *schema, classes []*class) []byte {
 	return formatted
 }
 
-// goMethod returns the getter name for a schema field name: the name without
-// its m_ prefix, capitalized, so m_iHealth reads through IHealth.
+// goMethod returns the method name for a schema field name: the name without
+// its m_ prefix, capitalized, so m_iHealth is IHealth.
 func goMethod(field string) string {
 	name := []rune(strings.TrimPrefix(field, "m_"))
 	name[0] = unicode.ToUpper(name[0])
@@ -97,30 +98,21 @@ func goMethod(field string) string {
 	return string(name)
 }
 
-// goType returns the type a getter for a field of kind k returns.
-func goType(k kind) string {
-	switch {
-	case k.angles:
-		return "*mod.Angles"
-	case k.target != "":
-		return k.target
-	}
-	return goTypes[k.wire]
-}
-
-// goRead returns the body of the getter that reads field f of className.
-func goRead(className string, f readable) string {
-	args := fmt.Sprintf("e.Handle, %q, %q", className, f.name)
+// goField returns the type of field f of className and the expression that
+// addresses it on entity e.
+func goField(className string, f readable) (typ, value string) {
 	constant := "mod.FieldType" + strings.ToUpper(f.wire[:1]) + f.wire[1:]
+	field := fmt.Sprintf("Field{e.Handle, %q, %q, %s}", className, f.name, constant)
 	switch {
 	case f.angles:
-		return fmt.Sprintf("\treturn angles(%s)\n", args)
+		typ = "Angles"
 	case f.target != "":
-		return fmt.Sprintf("\thandle, err := number[uint32](%s, %s)\n\treturn New%s(handle), err\n", args, constant, f.target)
-	case goNumbers[f.wire]:
-		return fmt.Sprintf("\treturn number[%s](%s, %s)\n", goTypes[f.wire], args, constant)
-	case goIntegers[f.wire]:
-		return fmt.Sprintf("\treturn integer[%s](%s, %s)\n", goTypes[f.wire], args, constant)
+		typ = "Handle[" + f.target + "]"
+		return typ, fmt.Sprintf("%s{%s, New%s}", typ, field, f.target)
+	case goFields[f.wire] != "":
+		typ = goFields[f.wire]
+	default:
+		typ = "Number[" + goNumbers[f.wire] + "]"
 	}
-	return fmt.Sprintf("\treturn read[%s](%s, %s)\n", goTypes[f.wire], args, constant)
+	return typ, fmt.Sprintf("%s{%s}", typ, field)
 }

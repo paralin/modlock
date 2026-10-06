@@ -115,6 +115,9 @@ class GameServices {
   std::expected<gameinterop::KothRules*, std::string> Rift();
   std::expected<gameinterop::SchemaField, std::string> Field(const std::string& class_name,
                                                              const std::string& field);
+  // Derives reports whether the schema class class_info is class_name or
+  // derives from it, caching each answer.
+  bool Derives(const void* class_info, const std::string& class_name);
   std::expected<ModifierLayout, std::string> Modifiers();
   std::expected<int64_t, std::string> ModifierState(const std::string& name);
 
@@ -168,6 +171,7 @@ class GameServices {
   std::optional<gameinterop::MatchClock> clock_;
   std::optional<gameinterop::KothRules> rift_;
   std::map<FieldKey, gameinterop::SchemaField> fields_;
+  std::map<std::pair<const void*, std::string>, bool> derives_;
   std::optional<ModifierLayout> modifiers_;
   std::map<std::string, int64_t, std::less<>> modifier_states_;
   // games are the live mods' surfaces, which the input hook consults.
@@ -328,6 +332,7 @@ class Game : public HostService {
       const ClearScreenEffectRequest& request) override;
   std::expected<FieldResponse, std::string> ReadField(const ReadFieldRequest& request) override;
   std::expected<void, std::string> WriteField(const WriteFieldRequest& request) override;
+  std::expected<EntityClassResponse, std::string> EntityClass(const EntityRequest& request) override;
   std::expected<ActiveResponse, std::string> ModifierState(
       const ModifierStateRequest& request) override;
   std::expected<void, std::string> HoldModifierState(

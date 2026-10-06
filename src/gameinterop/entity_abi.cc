@@ -12,6 +12,7 @@ namespace {
 // Class-info field offsets follow sourcesdk public/schemasystem/schematypes.h
 // (SchemaClassInfoData_t, SchemaClassFieldData_t, SchemaMetadataEntryData_t).
 // Game build 6711 added m_pszCPPName after m_pszProjectName.
+constexpr size_t kClassInfoName = 0x08;
 constexpr size_t kClassInfoSize = 0x20;
 constexpr size_t kClassInfoFieldCount = 0x24;
 constexpr size_t kClassInfoBaseClassCount = 0x29;
@@ -23,6 +24,13 @@ constexpr size_t kFieldMetadataCount = 0x14;
 constexpr size_t kFieldMetadata = 0x18;
 constexpr size_t kFieldStride = 32;
 constexpr size_t kMetadataStride = 16;
+
+// An entity reaches its schema class through CEntityIdentity::m_pClass,
+// CEntityClass::m_pClassInfo and CEntityClassInfo::m_pSchemaBinding
+// (sourcesdk public/entity2/entityidentity.h and entityclass.h).
+constexpr size_t kIdentityClass = 0x08;
+constexpr size_t kEntityClassInfo = 0x58;
+constexpr size_t kClassInfoSchemaBinding = 0x28;
 
 // CEntityInstance::NetworkStateChanged follows RequiredEdictIndex in the
 // current Windows ABI. Slot 27 writes an entity index to its hidden result;
@@ -62,6 +70,15 @@ Fn VtableCall(void* instance, size_t slot) {
   return reinterpret_cast<Fn>(static_cast<void**>(vtable)[slot]);
 }
 
+// ReadLink copies the pointer at base + offset through read, or returns null
+// when read fails or base is null.
+const void* ReadLink(const void* base, size_t offset, const BoundedReader& read) {
+  const void* value = nullptr;
+  if (base == nullptr || !read(static_cast<const uint8_t*>(base) + offset, &value, sizeof(value)))
+    return nullptr;
+  return value;
+}
+
 // SchemaClassInfoOf borrows the declared class from the module's type scope.
 std::expected<void*, std::string> SchemaClassInfoOf(void* schema_system, const char* module_name,
                                                     const char* class_name) {
@@ -89,6 +106,18 @@ bool IsFieldNetworked(const uint8_t* field) {
     }
   }
   return true;
+}
+
+// FirstBaseOf returns the first base class of a class info, or null for a
+// root class. A first base shares the derived class's field offsets.
+const void* FirstBaseOf(const void* class_info) {
+  uint8_t base_count = 0;
+  std::memcpy(&base_count, static_cast<const uint8_t*>(class_info) + kClassInfoBaseClassCount,
+              sizeof(base_count));
+  if (base_count == 0) return nullptr;
+  // SchemaBaseClasses[i] = { unsigned offset; CSchemaClassInfo* class; }.
+  auto* bases = static_cast<const uint8_t*>(ReadPointer(class_info, kClassInfoBaseClasses));
+  return ReadPointer(bases, sizeof(void*));
 }
 
 // FieldInClassInfo searches one class info's own fields, then its first base
@@ -126,14 +155,7 @@ std::expected<SchemaField, std::string> FieldInClassInfo(const void* class_info,
                          IsFieldNetworked(field)};
     }
   }
-  uint8_t base_count = 0;
-  std::memcpy(&base_count, static_cast<const uint8_t*>(class_info) + kClassInfoBaseClassCount,
-              sizeof(base_count));
-  if (base_count > 0) {
-    // SchemaBaseClasses[i] = { unsigned offset; CSchemaClassInfo* class; }.
-    auto* bases = static_cast<const uint8_t*>(ReadPointer(class_info, kClassInfoBaseClasses));
-    return FieldInClassInfo(ReadPointer(bases, sizeof(void*) /* skip offset */), field_name);
-  }
+  if (const void* base = FirstBaseOf(class_info)) return FieldInClassInfo(base, field_name);
   return std::unexpected("schema field '" + std::string(field_name) +
                          "' is not declared on the class chain");
 }
@@ -187,6 +209,31 @@ std::optional<uint32_t> ReferenceHandleOf(void* entity) {
   constexpr uint32_t kInvalidHandleFlag = 0x1;
   const uint32_t serial = ((stored >> kSerialShift) - (flags & kInvalidHandleFlag)) & kSerialMask;
   return (stored & kIndexMask) | (serial << kSerialShift);
+}
+
+std::expected<const void*, std::string> SchemaClassOfEntity(void* entity,
+                                                             const BoundedReader& read) {
+  const void* identity = ReadLink(entity, kIdentityOffset, read);
+  if (identity == nullptr || ReadLink(identity, 0, read) != entity)
+    return std::unexpected("the entity has no live identity");
+  const void* binding =
+      ReadLink(ReadLink(ReadLink(identity, kIdentityClass, read), kEntityClassInfo, read),
+               kClassInfoSchemaBinding, read);
+  if (binding == nullptr || ReadLink(binding, 0, read) != binding)
+    return std::unexpected("the entity's schema class is unreadable");
+  return binding;
+}
+
+std::string_view SchemaClassNameOf(const void* class_info) {
+  const auto* name = static_cast<const char*>(ReadPointer(class_info, kClassInfoName));
+  return name == nullptr ? std::string_view() : std::string_view(name);
+}
+
+bool SchemaClassDerivesFrom(const void* class_info, std::string_view class_name) {
+  for (; class_info != nullptr; class_info = FirstBaseOf(class_info)) {
+    if (SchemaClassNameOf(class_info) == class_name) return true;
+  }
+  return false;
 }
 
 std::expected<void*, std::string> EntitySystemFromResourceService(void* resource_service) {

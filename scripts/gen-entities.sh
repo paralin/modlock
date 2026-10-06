@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate the typed entity classes of the TypeScript and Go mod libraries
+# Generate the typed entity classes of the TypeScript, Go and Luau mod libraries
 # from a DumpSource2 schemas directory, such as the one GameTracking-Deadlock
 # publishes.
 set -euo pipefail
@@ -10,4 +10,5 @@ fi
 schemas="$(cd "$1" && pwd)"
 cd "$(dirname "$0")/.."
 
-go run ./cmd/modlock-entitygen -schemas "$schemas" -ts js/src/entities.ts -go mod/entity/entity.go
+go run ./cmd/modlock-entitygen -schemas "$schemas" -ts js/src/entities.ts -go mod/entity/entity.go \
+  -luau luau/modlock/entities.luau

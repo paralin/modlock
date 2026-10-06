@@ -198,6 +198,18 @@ class Empty;
 struct EmptyDefaultTypeInternal;
 MODLOCK_API extern EmptyDefaultTypeInternal _Empty_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Empty_class_data_;
+class EntityClassName;
+struct EntityClassNameDefaultTypeInternal;
+MODLOCK_API extern EntityClassNameDefaultTypeInternal _EntityClassName_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityClassName_class_data_;
+class EntityClassResponse;
+struct EntityClassResponseDefaultTypeInternal;
+MODLOCK_API extern EntityClassResponseDefaultTypeInternal _EntityClassResponse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityClassResponse_class_data_;
+class EntityRequest;
+struct EntityRequestDefaultTypeInternal;
+MODLOCK_API extern EntityRequestDefaultTypeInternal _EntityRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityRequest_class_data_;
 class EntityResponse;
 struct EntityResponseDefaultTypeInternal;
 MODLOCK_API extern EntityResponseDefaultTypeInternal _EntityResponse_default_instance_;
@@ -1926,7 +1938,7 @@ class MODLOCK_API StoredSetting final : public ::google::protobuf::Message
     return *reinterpret_cast<const StoredSetting*>(
         &_StoredSetting_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 126;
+  static constexpr int kIndexInFileMessages = 129;
   friend void swap(StoredSetting& a, StoredSetting& b) { a.Swap(&b); }
   inline void Swap(StoredSetting* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3216,7 +3228,7 @@ class MODLOCK_API SettingChoice final : public ::google::protobuf::Message
     return *reinterpret_cast<const SettingChoice*>(
         &_SettingChoice_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 121;
+  static constexpr int kIndexInFileMessages = 124;
   friend void swap(SettingChoice& a, SettingChoice& b) { a.Swap(&b); }
   inline void Swap(SettingChoice* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3652,7 +3664,7 @@ class MODLOCK_API SetTextRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetTextRequest*>(
         &_SetTextRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 87;
+  static constexpr int kIndexInFileMessages = 90;
   friend void swap(SetTextRequest& a, SetTextRequest& b) { a.Swap(&b); }
   inline void Swap(SetTextRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4083,7 +4095,7 @@ class MODLOCK_API SetNpcHealthRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetNpcHealthRequest*>(
         &_SetNpcHealthRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 100;
+  static constexpr int kIndexInFileMessages = 103;
   friend void swap(SetNpcHealthRequest& a, SetNpcHealthRequest& b) { a.Swap(&b); }
   inline void Swap(SetNpcHealthRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5396,7 +5408,7 @@ class MODLOCK_API RiftState final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftState*>(
         &_RiftState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 117;
+  static constexpr int kIndexInFileMessages = 120;
   friend void swap(RiftState& a, RiftState& b) { a.Swap(&b); }
   inline void Swap(RiftState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6284,7 +6296,7 @@ class MODLOCK_API RemoveEntitiesRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const RemoveEntitiesRequest*>(
         &_RemoveEntitiesRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 105;
+  static constexpr int kIndexInFileMessages = 108;
   friend void swap(RemoveEntitiesRequest& a, RemoveEntitiesRequest& b) { a.Swap(&b); }
   inline void Swap(RemoveEntitiesRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6479,7 +6491,7 @@ class MODLOCK_API RemapInputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RemapInputRequest*>(
         &_RemapInputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 92;
+  static constexpr int kIndexInFileMessages = 95;
   friend void swap(RemapInputRequest& a, RemapInputRequest& b) { a.Swap(&b); }
   inline void Swap(RemapInputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7975,7 +7987,7 @@ class MODLOCK_API PlayerInputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerInputRequest*>(
         &_PlayerInputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 91;
+  static constexpr int kIndexInFileMessages = 94;
   friend void swap(PlayerInputRequest& a, PlayerInputRequest& b) { a.Swap(&b); }
   inline void Swap(PlayerInputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8177,7 +8189,7 @@ class MODLOCK_API PickupResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const PickupResponse*>(
         &_PickupResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 103;
+  static constexpr int kIndexInFileMessages = 106;
   friend void swap(PickupResponse& a, PickupResponse& b) { a.Swap(&b); }
   inline void Swap(PickupResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8367,7 +8379,7 @@ class MODLOCK_API PickupRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PickupRequest*>(
         &_PickupRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 104;
+  static constexpr int kIndexInFileMessages = 107;
   friend void swap(PickupRequest& a, PickupRequest& b) { a.Swap(&b); }
   inline void Swap(PickupRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8557,7 +8569,7 @@ class MODLOCK_API PauseRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PauseRequest*>(
         &_PauseRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 113;
+  static constexpr int kIndexInFileMessages = 116;
   friend void swap(PauseRequest& a, PauseRequest& b) { a.Swap(&b); }
   inline void Swap(PauseRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8937,7 +8949,7 @@ class MODLOCK_API ObjectRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ObjectRequest*>(
         &_ObjectRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 85;
+  static constexpr int kIndexInFileMessages = 88;
   friend void swap(ObjectRequest& a, ObjectRequest& b) { a.Swap(&b); }
   inline void Swap(ObjectRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9322,7 +9334,7 @@ class MODLOCK_API NpcResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcResponse*>(
         &_NpcResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 95;
+  static constexpr int kIndexInFileMessages = 98;
   friend void swap(NpcResponse& a, NpcResponse& b) { a.Swap(&b); }
   inline void Swap(NpcResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9512,7 +9524,7 @@ class MODLOCK_API NpcRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcRequest*>(
         &_NpcRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 96;
+  static constexpr int kIndexInFileMessages = 99;
   friend void swap(NpcRequest& a, NpcRequest& b) { a.Swap(&b); }
   inline void Swap(NpcRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -9964,7 +9976,7 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
     return *reinterpret_cast<const Movement*>(
         &_Movement_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 127;
+  static constexpr int kIndexInFileMessages = 130;
   friend void swap(Movement& a, Movement& b) { a.Swap(&b); }
   inline void Swap(Movement* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10405,7 +10417,7 @@ class MODLOCK_API MetricTotal final : public ::google::protobuf::Message
     return *reinterpret_cast<const MetricTotal*>(
         &_MetricTotal_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 123;
+  static constexpr int kIndexInFileMessages = 126;
   friend void swap(MetricTotal& a, MetricTotal& b) { a.Swap(&b); }
   inline void Swap(MetricTotal* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10629,7 +10641,7 @@ class MODLOCK_API Metric final : public ::google::protobuf::Message
     return *reinterpret_cast<const Metric*>(
         &_Metric_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 122;
+  static constexpr int kIndexInFileMessages = 125;
   friend void swap(Metric& a, Metric& b) { a.Swap(&b); }
   inline void Swap(Metric* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -10882,7 +10894,7 @@ class MODLOCK_API MatchClockResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const MatchClockResponse*>(
         &_MatchClockResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 114;
+  static constexpr int kIndexInFileMessages = 117;
   friend void swap(MatchClockResponse& a, MatchClockResponse& b) { a.Swap(&b); }
   inline void Swap(MatchClockResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -11481,7 +11493,7 @@ class MODLOCK_API InputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const InputRequest*>(
         &_InputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 90;
+  static constexpr int kIndexInFileMessages = 93;
   friend void swap(InputRequest& a, InputRequest& b) { a.Swap(&b); }
   inline void Swap(InputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12325,7 +12337,7 @@ class MODLOCK_API HoldMatchClockRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const HoldMatchClockRequest*>(
         &_HoldMatchClockRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 115;
+  static constexpr int kIndexInFileMessages = 118;
   friend void swap(HoldMatchClockRequest& a, HoldMatchClockRequest& b) { a.Swap(&b); }
   inline void Swap(HoldMatchClockRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -12516,7 +12528,7 @@ class MODLOCK_API HitOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const HitOptions*>(
         &_HitOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 107;
+  static constexpr int kIndexInFileMessages = 110;
   friend void swap(HitOptions& a, HitOptions& b) { a.Swap(&b); }
   inline void Swap(HitOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -14006,7 +14018,7 @@ class MODLOCK_API EntityResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityResponse*>(
         &_EntityResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 84;
+  static constexpr int kIndexInFileMessages = 87;
   friend void swap(EntityResponse& a, EntityResponse& b) { a.Swap(&b); }
   inline void Swap(EntityResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -14139,6 +14151,408 @@ class MODLOCK_API EntityResponse final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityResponse_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API EntityRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.EntityRequest) */ {
+ public:
+  inline EntityRequest() : EntityRequest(nullptr) {}
+  ~EntityRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(EntityRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(EntityRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR EntityRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline EntityRequest(const EntityRequest& from) : EntityRequest(nullptr, from) {}
+  inline EntityRequest(EntityRequest&& from) noexcept
+      : EntityRequest(nullptr, ::std::move(from)) {}
+  inline EntityRequest& operator=(const EntityRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline EntityRequest& operator=(EntityRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const EntityRequest& default_instance() {
+    return *reinterpret_cast<const EntityRequest*>(
+        &_EntityRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 84;
+  friend void swap(EntityRequest& a, EntityRequest& b) { a.Swap(&b); }
+  inline void Swap(EntityRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(EntityRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  EntityRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<EntityRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const EntityRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const EntityRequest& from) { EntityRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(EntityRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.EntityRequest"; }
+
+  explicit EntityRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  EntityRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const EntityRequest& from);
+  EntityRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, EntityRequest&& from) noexcept
+      : EntityRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kEntityFieldNumber = 1,
+  };
+  // uint32 entity = 1;
+  void clear_entity() ;
+  ::uint32_t entity() const;
+  void set_entity(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_entity() const;
+  void _internal_set_entity(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.EntityRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const EntityRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t entity_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API EntityClassName final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.EntityClassName) */ {
+ public:
+  inline EntityClassName() : EntityClassName(nullptr) {}
+  ~EntityClassName() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(EntityClassName* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(EntityClassName));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR EntityClassName(::google::protobuf::internal::ConstantInitialized);
+
+  inline EntityClassName(const EntityClassName& from) : EntityClassName(nullptr, from) {}
+  inline EntityClassName(EntityClassName&& from) noexcept
+      : EntityClassName(nullptr, ::std::move(from)) {}
+  inline EntityClassName& operator=(const EntityClassName& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline EntityClassName& operator=(EntityClassName&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const EntityClassName& default_instance() {
+    return *reinterpret_cast<const EntityClassName*>(
+        &_EntityClassName_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 86;
+  friend void swap(EntityClassName& a, EntityClassName& b) { a.Swap(&b); }
+  inline void Swap(EntityClassName* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(EntityClassName* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  EntityClassName* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<EntityClassName>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const EntityClassName& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const EntityClassName& from) { EntityClassName::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(EntityClassName* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.EntityClassName"; }
+
+  explicit EntityClassName(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  EntityClassName(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const EntityClassName& from);
+  EntityClassName(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, EntityClassName&& from) noexcept
+      : EntityClassName(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kClassNameFieldNumber = 1,
+    kDesignerNameFieldNumber = 2,
+  };
+  // string class_name = 1;
+  void clear_class_name() ;
+  const ::std::string& class_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_class_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_class_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_class_name();
+  void set_allocated_class_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_class_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_class_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_class_name();
+
+  public:
+  // string designer_name = 2;
+  void clear_designer_name() ;
+  const ::std::string& designer_name() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_designer_name(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_designer_name();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_designer_name();
+  void set_allocated_designer_name(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_designer_name() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_designer_name(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_designer_name();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.EntityClassName)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 60,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const EntityClassName& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr class_name_;
+    ::google::protobuf::internal::ArenaStringPtr designer_name_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityClassName_class_data_;
 // -------------------------------------------------------------------
 
 class Empty final : public ::google::protobuf::internal::ZeroFieldsBase
@@ -15253,7 +15667,7 @@ class MODLOCK_API CountResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const CountResponse*>(
         &_CountResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 106;
+  static constexpr int kIndexInFileMessages = 109;
   friend void swap(CountResponse& a, CountResponse& b) { a.Swap(&b); }
   inline void Swap(CountResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -17113,7 +17527,7 @@ class MODLOCK_API BotResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const BotResponse*>(
         &_BotResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 89;
+  static constexpr int kIndexInFileMessages = 92;
   friend void swap(BotResponse& a, BotResponse& b) { a.Swap(&b); }
   inline void Swap(BotResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -17527,7 +17941,7 @@ class MODLOCK_API AliveResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const AliveResponse*>(
         &_AliveResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 101;
+  static constexpr int kIndexInFileMessages = 104;
   friend void swap(AliveResponse& a, AliveResponse& b) { a.Swap(&b); }
   inline void Swap(AliveResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -19050,7 +19464,7 @@ class MODLOCK_API TraceOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceOptions*>(
         &_TraceOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 108;
+  static constexpr int kIndexInFileMessages = 111;
   friend void swap(TraceOptions& a, TraceOptions& b) { a.Swap(&b); }
   inline void Swap(TraceOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -19309,7 +19723,7 @@ class MODLOCK_API TraceHit final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceHit*>(
         &_TraceHit_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 110;
+  static constexpr int kIndexInFileMessages = 113;
   friend void swap(TraceHit& a, TraceHit& b) { a.Swap(&b); }
   inline void Swap(TraceHit* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -20067,7 +20481,7 @@ class MODLOCK_API StoredSettings final : public ::google::protobuf::Message
     return *reinterpret_cast<const StoredSettings*>(
         &_StoredSettings_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 125;
+  static constexpr int kIndexInFileMessages = 128;
   friend void swap(StoredSettings& a, StoredSettings& b) { a.Swap(&b); }
   inline void Swap(StoredSettings* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -20522,7 +20936,7 @@ class MODLOCK_API StartRiftRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const StartRiftRequest*>(
         &_StartRiftRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 118;
+  static constexpr int kIndexInFileMessages = 121;
   friend void swap(StartRiftRequest& a, StartRiftRequest& b) { a.Swap(&b); }
   inline void Swap(StartRiftRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -20717,7 +21131,7 @@ class MODLOCK_API Setting final : public ::google::protobuf::Message
     return *reinterpret_cast<const Setting*>(
         &_Setting_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 120;
+  static constexpr int kIndexInFileMessages = 123;
   friend void swap(Setting& a, Setting& b) { a.Swap(&b); }
   inline void Swap(Setting* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -21461,7 +21875,7 @@ class MODLOCK_API RiftResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftResponse*>(
         &_RiftResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 116;
+  static constexpr int kIndexInFileMessages = 119;
   friend void swap(RiftResponse& a, RiftResponse& b) { a.Swap(&b); }
   inline void Swap(RiftResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -22446,7 +22860,7 @@ class MODLOCK_API NpcTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcTarget*>(
         &_NpcTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 112;
+  static constexpr int kIndexInFileMessages = 115;
   friend void swap(NpcTarget& a, NpcTarget& b) { a.Swap(&b); }
   inline void Swap(NpcTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -22753,7 +23167,7 @@ class MODLOCK_API NpcState final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcState*>(
         &_NpcState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 98;
+  static constexpr int kIndexInFileMessages = 101;
   friend void swap(NpcState& a, NpcState& b) { a.Swap(&b); }
   inline void Swap(NpcState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -23001,7 +23415,7 @@ class MODLOCK_API NpcOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcOptions*>(
         &_NpcOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 94;
+  static constexpr int kIndexInFileMessages = 97;
   friend void swap(NpcOptions& a, NpcOptions& b) { a.Swap(&b); }
   inline void Swap(NpcOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -24019,7 +24433,7 @@ class MODLOCK_API MoveObjectRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const MoveObjectRequest*>(
         &_MoveObjectRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 86;
+  static constexpr int kIndexInFileMessages = 89;
   friend void swap(MoveObjectRequest& a, MoveObjectRequest& b) { a.Swap(&b); }
   inline void Swap(MoveObjectRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -24243,7 +24657,7 @@ class MODLOCK_API MoveNpcRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const MoveNpcRequest*>(
         &_MoveNpcRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 99;
+  static constexpr int kIndexInFileMessages = 102;
   friend void swap(MoveNpcRequest& a, MoveNpcRequest& b) { a.Swap(&b); }
   inline void Swap(MoveNpcRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -25006,7 +25420,7 @@ class MODLOCK_API MetricTotals final : public ::google::protobuf::Message
     return *reinterpret_cast<const MetricTotals*>(
         &_MetricTotals_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 124;
+  static constexpr int kIndexInFileMessages = 127;
   friend void swap(MetricTotals& a, MetricTotals& b) { a.Swap(&b); }
   inline void Swap(MetricTotals* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -26591,6 +27005,201 @@ class MODLOCK_API FieldValue final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull FieldValue_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API EntityClassResponse final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.EntityClassResponse) */ {
+ public:
+  inline EntityClassResponse() : EntityClassResponse(nullptr) {}
+  ~EntityClassResponse() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(EntityClassResponse* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(EntityClassResponse));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR EntityClassResponse(::google::protobuf::internal::ConstantInitialized);
+
+  inline EntityClassResponse(const EntityClassResponse& from) : EntityClassResponse(nullptr, from) {}
+  inline EntityClassResponse(EntityClassResponse&& from) noexcept
+      : EntityClassResponse(nullptr, ::std::move(from)) {}
+  inline EntityClassResponse& operator=(const EntityClassResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline EntityClassResponse& operator=(EntityClassResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const EntityClassResponse& default_instance() {
+    return *reinterpret_cast<const EntityClassResponse*>(
+        &_EntityClassResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 85;
+  friend void swap(EntityClassResponse& a, EntityClassResponse& b) { a.Swap(&b); }
+  inline void Swap(EntityClassResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(EntityClassResponse* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  EntityClassResponse* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<EntityClassResponse>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const EntityClassResponse& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const EntityClassResponse& from) { EntityClassResponse::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(EntityClassResponse* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.EntityClassResponse"; }
+
+  explicit EntityClassResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  EntityClassResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const EntityClassResponse& from);
+  EntityClassResponse(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, EntityClassResponse&& from) noexcept
+      : EntityClassResponse(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNameFieldNumber = 1,
+  };
+  // .modlock.wasm.EntityClassName name = 1;
+  bool has_name() const;
+  void clear_name() ;
+  const ::modlock::wasm::EntityClassName& name() const;
+  [[nodiscard]] ::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE release_name();
+  ::modlock::wasm::EntityClassName* PROTOBUF_NONNULL mutable_name();
+  void set_allocated_name(::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_name(::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE unsafe_arena_release_name();
+
+  private:
+  const ::modlock::wasm::EntityClassName& _internal_name() const;
+  ::modlock::wasm::EntityClassName* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.EntityClassResponse)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const EntityClassResponse& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE name_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EntityClassResponse_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API CreatePickupRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.CreatePickupRequest) */ {
  public:
@@ -26646,7 +27255,7 @@ class MODLOCK_API CreatePickupRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const CreatePickupRequest*>(
         &_CreatePickupRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 102;
+  static constexpr int kIndexInFileMessages = 105;
   friend void swap(CreatePickupRequest& a, CreatePickupRequest& b) { a.Swap(&b); }
   inline void Swap(CreatePickupRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -26858,7 +27467,7 @@ class MODLOCK_API BotOptions final : public ::google::protobuf::Message
     kHeroId = 4,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 88;
+  static constexpr int kIndexInFileMessages = 91;
   friend void swap(BotOptions& a, BotOptions& b) { a.Swap(&b); }
   inline void Swap(BotOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -27124,7 +27733,7 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
     return *reinterpret_cast<const AbilityTuning*>(
         &_AbilityTuning_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 131;
+  static constexpr int kIndexInFileMessages = 134;
   friend void swap(AbilityTuning& a, AbilityTuning& b) { a.Swap(&b); }
   inline void Swap(AbilityTuning* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -27829,7 +28438,7 @@ class MODLOCK_API TraceResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const TraceResponse*>(
         &_TraceResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 109;
+  static constexpr int kIndexInFileMessages = 112;
   friend void swap(TraceResponse& a, TraceResponse& b) { a.Swap(&b); }
   inline void Swap(TraceResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -28231,7 +28840,7 @@ class MODLOCK_API RestoreNpcsRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RestoreNpcsRequest*>(
         &_RestoreNpcsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 111;
+  static constexpr int kIndexInFileMessages = 114;
   friend void swap(RestoreNpcsRequest& a, RestoreNpcsRequest& b) { a.Swap(&b); }
   inline void Swap(RestoreNpcsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -29115,7 +29724,7 @@ class MODLOCK_API NpcStateResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const NpcStateResponse*>(
         &_NpcStateResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 97;
+  static constexpr int kIndexInFileMessages = 100;
   friend void swap(NpcStateResponse& a, NpcStateResponse& b) { a.Swap(&b); }
   inline void Swap(NpcStateResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -29310,7 +29919,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     return *reinterpret_cast<const Manifest*>(
         &_Manifest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 119;
+  static constexpr int kIndexInFileMessages = 122;
   friend void swap(Manifest& a, Manifest& b) { a.Swap(&b); }
   inline void Swap(Manifest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -30134,7 +30743,7 @@ class MODLOCK_API UiRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiRequest*>(
         &_UiRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 93;
+  static constexpr int kIndexInFileMessages = 96;
   friend void swap(UiRequest& a, UiRequest& b) { a.Swap(&b); }
   inline void Swap(UiRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -44119,6 +44728,272 @@ inline ::uint32_t ObjectResponse::_internal_object() const {
 inline void ObjectResponse::_internal_set_object(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.object_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// EntityRequest
+
+// uint32 entity = 1;
+inline void EntityRequest::clear_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::uint32_t EntityRequest::entity() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.EntityRequest.entity)
+  return _internal_entity();
+}
+inline void EntityRequest::set_entity(::uint32_t value) {
+  _internal_set_entity(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.EntityRequest.entity)
+}
+inline ::uint32_t EntityRequest::_internal_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.entity_;
+}
+inline void EntityRequest::_internal_set_entity(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// EntityClassResponse
+
+// .modlock.wasm.EntityClassName name = 1;
+inline bool EntityClassResponse::has_name() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  PROTOBUF_ASSUME(!value || _impl_.name_ != nullptr);
+  return value;
+}
+inline void EntityClassResponse::clear_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.name_ != nullptr) _impl_.name_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::modlock::wasm::EntityClassName& EntityClassResponse::_internal_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::EntityClassName* p = _impl_.name_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::EntityClassName&>(::modlock::wasm::_EntityClassName_default_instance_);
+}
+inline const ::modlock::wasm::EntityClassName& EntityClassResponse::name() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.EntityClassResponse.name)
+  return _internal_name();
+}
+inline void EntityClassResponse::unsafe_arena_set_allocated_name(
+    ::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.name_);
+  }
+  _impl_.name_ = reinterpret_cast<::modlock::wasm::EntityClassName*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.EntityClassResponse.name)
+}
+inline ::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE EntityClassResponse::release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::EntityClassName* released = _impl_.name_;
+  _impl_.name_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE EntityClassResponse::unsafe_arena_release_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.EntityClassResponse.name)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::EntityClassName* temp = _impl_.name_;
+  _impl_.name_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::EntityClassName* PROTOBUF_NONNULL EntityClassResponse::_internal_mutable_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.name_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::EntityClassName>(GetArena());
+    _impl_.name_ = reinterpret_cast<::modlock::wasm::EntityClassName*>(p);
+  }
+  return _impl_.name_;
+}
+inline ::modlock::wasm::EntityClassName* PROTOBUF_NONNULL EntityClassResponse::mutable_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::EntityClassName* _msg = _internal_mutable_name();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.EntityClassResponse.name)
+  return _msg;
+}
+inline void EntityClassResponse::set_allocated_name(::modlock::wasm::EntityClassName* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.name_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+
+  _impl_.name_ = reinterpret_cast<::modlock::wasm::EntityClassName*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.EntityClassResponse.name)
+}
+
+// -------------------------------------------------------------------
+
+// EntityClassName
+
+// string class_name = 1;
+inline void EntityClassName::clear_class_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.class_name_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& EntityClassName::class_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.EntityClassName.class_name)
+  return _internal_class_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void EntityClassName::set_class_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.class_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.EntityClassName.class_name)
+}
+inline ::std::string* PROTOBUF_NONNULL EntityClassName::mutable_class_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_class_name();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.EntityClassName.class_name)
+  return _s;
+}
+inline const ::std::string& EntityClassName::_internal_class_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.class_name_.Get();
+}
+inline void EntityClassName::_internal_set_class_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.class_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL EntityClassName::_internal_mutable_class_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.class_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE EntityClassName::release_class_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.EntityClassName.class_name)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.class_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.class_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void EntityClassName::set_allocated_class_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.class_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.class_name_.IsDefault()) {
+    _impl_.class_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.EntityClassName.class_name)
+}
+
+// string designer_name = 2;
+inline void EntityClassName::clear_designer_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.designer_name_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& EntityClassName::designer_name() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.EntityClassName.designer_name)
+  return _internal_designer_name();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void EntityClassName::set_designer_name(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.designer_name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.EntityClassName.designer_name)
+}
+inline ::std::string* PROTOBUF_NONNULL EntityClassName::mutable_designer_name()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_designer_name();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.EntityClassName.designer_name)
+  return _s;
+}
+inline const ::std::string& EntityClassName::_internal_designer_name() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.designer_name_.Get();
+}
+inline void EntityClassName::_internal_set_designer_name(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.designer_name_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL EntityClassName::_internal_mutable_designer_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.designer_name_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE EntityClassName::release_designer_name() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.EntityClassName.designer_name)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.designer_name_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.designer_name_.Set("", GetArena());
+  }
+  return released;
+}
+inline void EntityClassName::set_allocated_designer_name(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.designer_name_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.designer_name_.IsDefault()) {
+    _impl_.designer_name_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.EntityClassName.designer_name)
 }
 
 // -------------------------------------------------------------------

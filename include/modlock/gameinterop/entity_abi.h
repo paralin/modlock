@@ -6,9 +6,11 @@
 #include <expected>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "modlock/export.h"
+#include "modlock/gameinterop/native_memory.h"
 
 namespace modlock::gameinterop {
 
@@ -125,6 +127,25 @@ struct SchemaField {
 // belongs to an ancestor. schema_system is the live ISchemaSystem instance.
 [[nodiscard]] MODLOCK_API std::expected<SchemaField, std::string> SchemaFieldOf(
     void* schema_system, const char* module_name, const char* class_name, const char* field_name);
+
+// SchemaClassOfEntity returns the schema class info (SchemaClassInfoData_t)
+// the engine binds to a live entity: CEntityIdentity::m_pClass,
+// CEntityClass::m_pClassInfo and CEntityClassInfo::m_pSchemaBinding, at the
+// offsets sourcesdk public/entity2 declares. Each link is copied through
+// read, and the class info must point to itself as its own schema binding,
+// so a layout a game update moved reports an error instead of faulting.
+[[nodiscard]] MODLOCK_API std::expected<const void*, std::string> SchemaClassOfEntity(
+    void* entity, const BoundedReader& read);
+
+// SchemaClassNameOf returns the name of a schema class info, such as
+// CCitadelPlayerPawn.
+[[nodiscard]] MODLOCK_API std::string_view SchemaClassNameOf(const void* class_info);
+
+// SchemaClassDerivesFrom reports whether class_info is the class named
+// class_name or derives from it through first bases, the chain whose fields
+// share the derived class's offsets.
+[[nodiscard]] MODLOCK_API bool SchemaClassDerivesFrom(const void* class_info,
+                                                      std::string_view class_name);
 
 // SchemaClassSizeOf returns the native allocation size declared by this module.
 [[nodiscard]] MODLOCK_API std::expected<size_t, std::string> SchemaClassSizeOf(

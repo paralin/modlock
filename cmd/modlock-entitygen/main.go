@@ -1,16 +1,17 @@
 // Command modlock-entitygen generates the typed entity classes of the
-// TypeScript and Go mod libraries from the server schema headers that the
-// DumpSource2 tool writes, one directory per module under its schemas
+// TypeScript, Go and Luau mod libraries from the server schema headers that
+// the DumpSource2 tool writes, one directory per module under its schemas
 // directory:
 //
-//	modlock-entitygen -schemas DumpSource2/schemas \
-//		-ts js/src/entities.ts -go mod/entity/entity.go
+//	modlock-entitygen -schemas DumpSource2/schemas -ts js/src/entities.ts \
+//		-go mod/entity/entity.go -luau luau/modlock/entities.luau
 //
 // Every server class that derives from CEntityInstance becomes a class with
-// one getter per field the host can read: scalars, vectors, angles, entity
-// handles and strings. A getter reads its field by name, so a game update
-// that moves a field needs no new build of a mod; one that renames or drops a
-// field needs regenerated classes.
+// an accessor per field the host can read: scalars, vectors, angles, entity
+// handles and strings. Each field but a string can also be written. An
+// accessor finds its field by name, so a game update that moves a field needs
+// no new build of a mod; one that renames or drops a field needs regenerated
+// classes.
 package main
 
 import (
@@ -21,22 +22,27 @@ import (
 )
 
 func main() {
+	// Read the flags; the schema and at least one output are required.
 	schemas := flag.String("schemas", "", "DumpSource2 schemas directory")
 	ts := flag.String("ts", "", "TypeScript module to write")
 	golang := flag.String("go", "", "Go source file to write")
+	luau := flag.String("luau", "", "Luau module to write")
 	flag.Parse()
-	if *schemas == "" || (*ts == "" && *golang == "") {
+	if *schemas == "" || (*ts == "" && *golang == "" && *luau == "") {
 		flag.Usage()
 		os.Exit(2)
 	}
-	if err := run(*schemas, *ts, *golang); err != nil {
+
+	// Generate, reporting a failure.
+	if err := run(*schemas, *ts, *golang, *luau); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 // run reads the schema and writes each requested output.
-func run(schemas, ts, golang string) error {
+func run(schemas, ts, golang, luau string) error {
+	// Read the schema's entity classes.
 	s, err := readSchema(schemas)
 	if err != nil {
 		return err
@@ -45,13 +51,17 @@ func run(schemas, ts, golang string) error {
 	if len(classes) == 0 {
 		return fmt.Errorf("%s holds no entity classes", schemas)
 	}
-	if ts != "" {
-		if err := os.WriteFile(ts, writeTypeScript(s, classes), 0o644); err != nil {
-			return err
+
+	// Write each requested output.
+	outputs := []struct {
+		path  string
+		write func(*schema, []*class) []byte
+	}{{ts, writeTypeScript}, {golang, writeGo}, {luau, writeLuau}}
+	for _, output := range outputs {
+		if output.path == "" {
+			continue
 		}
-	}
-	if golang != "" {
-		if err := os.WriteFile(golang, writeGo(s, classes), 0o644); err != nil {
+		if err := os.WriteFile(output.path, output.write(s, classes), 0o644); err != nil {
 			return err
 		}
 	}
@@ -86,6 +96,8 @@ func (s *schema) entityClasses() []*class {
 		if c.module != serverModule {
 			c = &class{name: c.name, base: c.base, module: c.module}
 		}
+
+		// Visit the class, then its children in name order.
 		ordered = append(ordered, c)
 		names := children[name]
 		slices.Sort(names)
@@ -97,7 +109,7 @@ func (s *schema) entityClasses() []*class {
 	return ordered
 }
 
-// readable is one field a generated getter reads.
+// readable is one field a generated accessor reads.
 type readable struct {
 	field
 	kind

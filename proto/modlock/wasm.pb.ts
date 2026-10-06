@@ -3882,6 +3882,80 @@ export const ObjectResponse: MessageType<ObjectResponse> = /* @__PURE__ */ creat
 });
 
 /**
+ * EntityRequest addresses one live entity.
+ *
+ * @generated from message modlock.wasm.EntityRequest
+ */
+export interface EntityRequest {
+  /**
+   * Entity is the entity's handle.
+   *
+   * @generated from field: uint32 entity = 1;
+   */
+  entity?: number;
+
+};
+
+export const EntityRequest: MessageType<EntityRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntityRequest",
+    fields: [
+        { no: 1, name: "entity", kind: "scalar", T: ScalarType.UINT32 },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * EntityClassName names one entity's class two ways.
+ *
+ * @generated from message modlock.wasm.EntityClassName
+ */
+export interface EntityClassName {
+  /**
+   * ClassName is the server schema class, such as CCitadelPlayerPawn.
+   *
+   * @generated from field: string class_name = 1;
+   */
+  className?: string;
+  /**
+   * DesignerName is the name maps and spawns use, such as npc_trooper.
+   *
+   * @generated from field: string designer_name = 2;
+   */
+  designerName?: string;
+
+};
+
+export const EntityClassName: MessageType<EntityClassName> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntityClassName",
+    fields: [
+        { no: 1, name: "class_name", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "designer_name", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * EntityClassResponse names a live entity's class.
+ *
+ * @generated from message modlock.wasm.EntityClassResponse
+ */
+export interface EntityClassResponse {
+  /**
+   * @generated from field: modlock.wasm.EntityClassName name = 1;
+   */
+  name?: EntityClassName;
+
+};
+
+export const EntityClassResponse: MessageType<EntityClassResponse> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntityClassResponse",
+    fields: [
+        { no: 1, name: "name", kind: "message", T: () => EntityClassName },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * EntityResponse holds one entity handle.
  *
  * @generated from message modlock.wasm.EntityResponse

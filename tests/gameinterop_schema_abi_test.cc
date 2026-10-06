@@ -393,4 +393,79 @@ TEST(SchemaFieldOfPaths, ZeroSizedStorageSpanIsAnError) {
   EXPECT_NE(field.error().find("storage span"), std::string::npos) << field.error();
 }
 
+// SchemaClass is an independently encoded SchemaClassInfoData_t holding its
+// self binding, name and first base, the parts the class check reads.
+struct SchemaClass {
+  std::array<unsigned char, 0x40> info{};
+  std::array<void*, 2> bases{};
+
+  SchemaClass(const char* name, SchemaClass* base) {
+    void* self = info.data();
+    std::memcpy(info.data(), &self, sizeof(self));
+    std::memcpy(info.data() + 0x08, &name, sizeof(name));
+    if (base == nullptr) return;
+    info[0x29] = 1;
+    bases[1] = base->info.data();
+    void* table = bases.data();
+    std::memcpy(info.data() + 0x38, &table, sizeof(table));
+  }
+};
+
+// ClassedEntity lays out an entity whose identity reaches a schema class
+// through CEntityIdentity::m_pClass, CEntityClass::m_pClassInfo and
+// CEntityClassInfo::m_pSchemaBinding.
+struct ClassedEntity {
+  std::array<void*, 4> entity{};
+  std::array<void*, 2> identity{};
+  std::array<void*, 12> entity_class{};
+  std::array<void*, 6> class_info{};
+
+  explicit ClassedEntity(SchemaClass& schema) {
+    entity[2] = identity.data();
+    identity[0] = entity.data();
+    identity[1] = entity_class.data();
+    entity_class[11] = class_info.data();
+    class_info[5] = schema.info.data();
+  }
+};
+
+// CopyMemory reads test memory in place of the operating system's copy.
+bool CopyMemory(const void* source, void* out, size_t size) {
+  std::memcpy(out, source, size);
+  return true;
+}
+
+TEST(SchemaClassOfEntity, ReadsTheBoundClassAndItsFirstBaseChain) {
+  SchemaClass base("CBaseEntity", nullptr);
+  SchemaClass pawn("CCitadelPlayerPawn", &base);
+  SchemaClass trooper("CNPC_Trooper", &base);
+  ClassedEntity entity(pawn);
+
+  auto schema = modlock::gameinterop::SchemaClassOfEntity(entity.entity.data(), CopyMemory);
+  ASSERT_TRUE(schema) << schema.error();
+  EXPECT_EQ(modlock::gameinterop::SchemaClassNameOf(*schema), "CCitadelPlayerPawn");
+  EXPECT_TRUE(modlock::gameinterop::SchemaClassDerivesFrom(*schema, "CCitadelPlayerPawn"));
+  EXPECT_TRUE(modlock::gameinterop::SchemaClassDerivesFrom(*schema, "CBaseEntity"));
+  EXPECT_FALSE(modlock::gameinterop::SchemaClassDerivesFrom(*schema, "CNPC_Trooper"));
+  EXPECT_FALSE(
+      modlock::gameinterop::SchemaClassDerivesFrom(trooper.info.data(), "CCitadelPlayerPawn"));
+}
+
+TEST(SchemaClassOfEntity, RefusesALinkThatIsNotAClassBinding) {
+  SchemaClass pawn("CCitadelPlayerPawn", nullptr);
+  ClassedEntity entity(pawn);
+
+  // A moved CEntityClass layout lands on memory that does not bind itself.
+  void* elsewhere = nullptr;
+  std::memcpy(pawn.info.data(), &elsewhere, sizeof(elsewhere));
+  auto schema = modlock::gameinterop::SchemaClassOfEntity(entity.entity.data(), CopyMemory);
+  ASSERT_FALSE(schema);
+  EXPECT_NE(schema.error().find("unreadable"), std::string::npos) << schema.error();
+
+  // A failed copy reports the same instead of faulting.
+  auto refused = modlock::gameinterop::SchemaClassOfEntity(
+      entity.entity.data(), [](const void*, void*, size_t) { return false; });
+  EXPECT_FALSE(refused);
+}
+
 }  // namespace

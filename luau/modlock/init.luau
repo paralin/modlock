@@ -687,6 +687,14 @@ export type FogOptions = {
 	color: number,
 }
 
+-- EntityClassName names one entity's class two ways.
+export type EntityClassName = {
+	-- className is the server schema class, such as CCitadelPlayerPawn.
+	className: string,
+	-- designerName is the name maps and spawns use, such as npc_trooper.
+	designerName: string,
+}
+
 -- BotOptions describes a bot player.
 export type BotOptions = {
 	-- name is the bot's player name.
@@ -1827,6 +1835,16 @@ schema.FogOptions = {
 schema.ObjectResponse = {
 	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
 }
+schema.EntityRequest = {
+	{ number = 1, name = "entity", kind = "uint32" },
+}
+schema.EntityClassResponse = {
+	{ number = 1, name = "name", kind = "message", optional = true, message = "EntityClassName" },
+}
+schema.EntityClassName = {
+	{ number = 1, name = "className", kind = "string" },
+	{ number = 2, name = "designerName", kind = "string" },
+}
 schema.EntityResponse = {
 	{ number = 1, name = "entity", kind = "uint32" },
 }
@@ -2011,7 +2029,8 @@ end
 
 -- readField reads one schema field of a live entity, such as the int32
 -- m_iHealth of CBaseEntity. The host finds the field by name, so it
--- survives game updates that move it.
+-- survives game updates that move it, and refuses an entity that is not of
+-- the named class or a subclass.
 function modlock.readField(entity: number, className: string, field: string, type: FieldType): FieldValue?
 	local response = call("ReadField", "ReadFieldRequest", { entity = entity, className = className, field = field, type = type }, "FieldResponse")
 	if response == nil then
@@ -2025,6 +2044,16 @@ end
 -- text fields cannot be written.
 function modlock.writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean
 	return call("WriteField", "WriteFieldRequest", { entity = entity, className = className, field = field, type = type, value = value }) ~= nil
+end
+
+-- entityClass returns a live entity's schema class, such as
+-- CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
+function modlock.entityClass(entity: number): EntityClassName?
+	local response = call("EntityClass", "EntityRequest", { entity = entity }, "EntityClassResponse")
+	if response == nil then
+		return nil
+	end
+	return response.name
 end
 
 -- modifierState reports whether an entity has a modifier state, such as

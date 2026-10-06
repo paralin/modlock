@@ -4111,6 +4111,74 @@ func (x *ObjectResponse) GetObject() uint32 {
 	return 0
 }
 
+// EntityRequest addresses one live entity.
+type EntityRequest struct {
+	unknownFields []byte
+	// Entity is the entity's handle.
+	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+}
+
+func (x *EntityRequest) Reset() {
+	*x = EntityRequest{}
+}
+
+func (*EntityRequest) ProtoMessage() {}
+
+func (x *EntityRequest) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
+	}
+	return 0
+}
+
+// EntityClassResponse names a live entity's class.
+type EntityClassResponse struct {
+	unknownFields []byte
+	Name          *EntityClassName `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *EntityClassResponse) Reset() {
+	*x = EntityClassResponse{}
+}
+
+func (*EntityClassResponse) ProtoMessage() {}
+
+func (x *EntityClassResponse) GetName() *EntityClassName {
+	if x != nil {
+		return x.Name
+	}
+	return nil
+}
+
+// EntityClassName names one entity's class two ways.
+type EntityClassName struct {
+	unknownFields []byte
+	// ClassName is the server schema class, such as CCitadelPlayerPawn.
+	ClassName string `protobuf:"bytes,1,opt,name=class_name,json=className,proto3" json:"className,omitempty"`
+	// DesignerName is the name maps and spawns use, such as npc_trooper.
+	DesignerName string `protobuf:"bytes,2,opt,name=designer_name,json=designerName,proto3" json:"designerName,omitempty"`
+}
+
+func (x *EntityClassName) Reset() {
+	*x = EntityClassName{}
+}
+
+func (*EntityClassName) ProtoMessage() {}
+
+func (x *EntityClassName) GetClassName() string {
+	if x != nil {
+		return x.ClassName
+	}
+	return ""
+}
+
+func (x *EntityClassName) GetDesignerName() string {
+	if x != nil {
+		return x.DesignerName
+	}
+	return ""
+}
+
 // EntityResponse holds one entity handle.
 type EntityResponse struct {
 	unknownFields []byte
@@ -7504,6 +7572,55 @@ func (m *ObjectResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *EntityRequest) CloneVT() *EntityRequest {
+	if m == nil {
+		return (*EntityRequest)(nil)
+	}
+	r := new(EntityRequest)
+	r.Entity = m.Entity
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *EntityRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *EntityClassResponse) CloneVT() *EntityClassResponse {
+	if m == nil {
+		return (*EntityClassResponse)(nil)
+	}
+	r := new(EntityClassResponse)
+	r.Name = protobuf_go_lite.CloneVTValue(m.Name)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *EntityClassResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *EntityClassName) CloneVT() *EntityClassName {
+	if m == nil {
+		return (*EntityClassName)(nil)
+	}
+	r := new(EntityClassName)
+	r.ClassName = m.ClassName
+	r.DesignerName = m.DesignerName
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *EntityClassName) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *EntityResponse) CloneVT() *EntityResponse {
 	if m == nil {
 		return (*EntityResponse)(nil)
@@ -10672,6 +10789,66 @@ func (this *ObjectResponse) EqualVT(that *ObjectResponse) bool {
 
 func (this *ObjectResponse) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ObjectResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *EntityRequest) EqualVT(that *EntityRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Entity != that.Entity {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *EntityRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*EntityRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *EntityClassResponse) EqualVT(that *EntityClassResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Name, that.Name) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *EntityClassResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*EntityClassResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *EntityClassName) EqualVT(that *EntityClassName) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.ClassName != that.ClassName {
+		return false
+	}
+	if this.DesignerName != that.DesignerName {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *EntityClassName) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*EntityClassName)
 	if !ok {
 		return false
 	}
@@ -17757,6 +17934,144 @@ func (x *ObjectResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ObjectResponse from JSON.
 func (x *ObjectResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the EntityRequest message to JSON.
+func (x *EntityRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Entity != 0 || s.HasField("entity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entity")
+		s.WriteUint32(x.Entity)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the EntityRequest to JSON.
+func (x *EntityRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the EntityRequest message from JSON.
+func (x *EntityRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "entity":
+			s.AddField("entity")
+			x.Entity = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the EntityRequest from JSON.
+func (x *EntityRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the EntityClassResponse message to JSON.
+func (x *EntityClassResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != nil || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		x.Name.MarshalProtoJSON(s.WithField("name"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the EntityClassResponse to JSON.
+func (x *EntityClassResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the EntityClassResponse message from JSON.
+func (x *EntityClassResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			if s.ReadNil() {
+				x.Name = nil
+				return
+			}
+			x.Name = &EntityClassName{}
+			x.Name.UnmarshalProtoJSON(s.WithField("name", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the EntityClassResponse from JSON.
+func (x *EntityClassResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the EntityClassName message to JSON.
+func (x *EntityClassName) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.ClassName != "" || s.HasField("className") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("className")
+		s.WriteString(x.ClassName)
+	}
+	if x.DesignerName != "" || s.HasField("designerName") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("designerName")
+		s.WriteString(x.DesignerName)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the EntityClassName to JSON.
+func (x *EntityClassName) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the EntityClassName message from JSON.
+func (x *EntityClassName) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "class_name", "className":
+			s.AddField("class_name")
+			x.ClassName = s.ReadString()
+		case "designer_name", "designerName":
+			s.AddField("designer_name")
+			x.DesignerName = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the EntityClassName from JSON.
+func (x *EntityClassName) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -25572,6 +25887,127 @@ func (m *ObjectResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *EntityRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EntityRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *EntityRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Entity != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EntityClassResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EntityClassResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *EntityClassResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Name != nil {
+		size, err := m.Name.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EntityClassName) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EntityClassName) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *EntityClassName) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.DesignerName) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.DesignerName)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ClassName) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.ClassName)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *EntityResponse) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -29241,6 +29677,43 @@ func (m *ObjectResponse) SizeVT() (n int) {
 	return n
 }
 
+func (m *EntityRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *EntityClassResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Name != nil {
+		l = m.Name.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *EntityClassName) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ClassName)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.DesignerName)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *EntityResponse) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -31961,6 +32434,49 @@ func (x *ObjectResponse) MarshalProtoText() string {
 }
 
 func (x *ObjectResponse) String() string {
+	return x.MarshalProtoText()
+}
+func (x *EntityRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityRequest")
+	if x.Entity != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entity")
+		protobuf_go_lite.TextWriteUint(&sb, x.Entity)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *EntityRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *EntityClassResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityClassResponse")
+	if x.Name != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Name)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *EntityClassResponse) String() string {
+	return x.MarshalProtoText()
+}
+func (x *EntityClassName) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityClassName")
+	if x.ClassName != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "class_name")
+		protobuf_go_lite.TextWriteString(&sb, x.ClassName)
+	}
+	if x.DesignerName != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "designer_name")
+		protobuf_go_lite.TextWriteString(&sb, x.DesignerName)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *EntityClassName) String() string {
 	return x.MarshalProtoText()
 }
 func (x *EntityResponse) MarshalProtoText() string {
@@ -39805,6 +40321,176 @@ func (m *ObjectResponse) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EntityRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EntityRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EntityRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Entity", wireType)
+			}
+			m.Entity = 0
+			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EntityClassResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EntityClassResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EntityClassResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Name == nil {
+				m.Name = &EntityClassName{}
+			}
+			if err := m.Name.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EntityClassName) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EntityClassName: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EntityClassName: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClassName", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.ClassName = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DesignerName", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.DesignerName = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

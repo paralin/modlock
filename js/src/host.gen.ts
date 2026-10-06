@@ -1065,6 +1065,22 @@ export interface FogOptions {
   color: number
 }
 
+/** EntityClassName names one entity's class two ways. */
+export interface EntityClassName {
+  /** className is the server schema class, such as CCitadelPlayerPawn. */
+  readonly className: string
+  /** designerName is the name maps and spawns use, such as npc_trooper. */
+  readonly designerName: string
+}
+
+/** fromEntityClassName decodes an EntityClassName. */
+function fromEntityClassName(message: pb.EntityClassName): EntityClassName {
+  return {
+    className: message.className ?? '',
+    designerName: message.designerName ?? '',
+  }
+}
+
 /** BotOptions describes a bot player. */
 export interface BotOptions {
   /** name is the bot's player name. */
@@ -1729,7 +1745,8 @@ export function players(): Connection[] {
 /**
  * readField reads one schema field of a live entity, such as the int32
  * m_iHealth of CBaseEntity. The host finds the field by name, so it
- * survives game updates that move it.
+ * survives game updates that move it, and refuses an entity that is not of
+ * the named class or a subclass.
  */
 export function readField(entity: number, className: string, field: string, type: FieldType): FieldValue | undefined {
   const reply = call('ReadField', pb.ReadFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type] }))
@@ -1745,6 +1762,17 @@ export function readField(entity: number, className: string, field: string, type
  */
 export function writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean {
   return call('WriteField', pb.WriteFieldRequest.toBinary({ entity, className, field, type: fieldTypeValues[type], value: toFieldValue(value) })) !== undefined
+}
+
+/**
+ * entityClass returns a live entity's schema class, such as
+ * CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
+ */
+export function entityClass(entity: number): EntityClassName | undefined {
+  const reply = call('EntityClass', pb.EntityRequest.toBinary({ entity }))
+  if (reply === undefined) return undefined
+  const response = pb.EntityClassResponse.fromBinary(reply)
+  return response.name === undefined ? undefined : fromEntityClassName(response.name)
 }
 
 /**

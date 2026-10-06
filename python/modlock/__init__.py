@@ -807,6 +807,16 @@ class FogOptions:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class EntityClassName:
+    """EntityClassName names one entity's class two ways."""
+
+    # class_name is the server schema class, such as CCitadelPlayerPawn.
+    class_name: str = ""
+    # designer_name is the name maps and spawns use, such as npc_trooper.
+    designer_name: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class BotOptions:
     """BotOptions describes a bot player."""
 
@@ -2023,6 +2033,25 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "object", "uint32", cls=WorldObject, key="id"),
         ],
     ),
+    "EntityRequest": (
+        None,
+        [
+            wire.Field(1, "entity", "uint32"),
+        ],
+    ),
+    "EntityClassResponse": (
+        None,
+        [
+            wire.Field(1, "name", "message", optional=True, message="EntityClassName"),
+        ],
+    ),
+    "EntityClassName": (
+        EntityClassName,
+        [
+            wire.Field(1, "class_name", "string"),
+            wire.Field(2, "designer_name", "string"),
+        ],
+    ),
     "EntityResponse": (
         None,
         [
@@ -2313,7 +2342,8 @@ def players() -> list[Connection]:
 def read_field(entity: int, class_name: str, field: str, type: FieldType) -> FieldValue | None:
     """read_field reads one schema field of a live entity, such as the int32
     m_iHealth of CBaseEntity. The host finds the field by name, so it
-    survives game updates that move it.
+    survives game updates that move it, and refuses an entity that is not of
+    the named class or a subclass.
     """
     response = _call("ReadField", "ReadFieldRequest", {"entity": entity, "class_name": class_name, "field": field, "type": type}, "FieldResponse")
     if response is None:
@@ -2327,6 +2357,16 @@ def write_field(entity: int, class_name: str, field: str, type: FieldType, value
     text fields cannot be written.
     """
     return _call("WriteField", "WriteFieldRequest", {"entity": entity, "class_name": class_name, "field": field, "type": type, "value": value}) is not None
+
+
+def entity_class(entity: int) -> EntityClassName | None:
+    """entity_class returns a live entity's schema class, such as
+    CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
+    """
+    response = _call("EntityClass", "EntityRequest", {"entity": entity}, "EntityClassResponse")
+    if response is None:
+        return None
+    return response["name"]
 
 
 def modifier_state(entity: int, state: str) -> bool:

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 
 	"github.com/paralin/modlock/luau"
@@ -21,6 +23,10 @@ const luauConfig = `{
   }
 }
 `
+
+// luauEntities is the module of the generated entity classes, which only
+// the mods that require it carry.
+const luauEntities = "@modlock/entities"
 
 // buildLuau type checks a Luau project and zips its sources with the
 // library for the Luau runtime.
@@ -54,8 +60,21 @@ func (p *Project) buildLuau(ctx context.Context, output io.Writer) error {
 		}
 	}
 
-	// Zip the sources with the library under @modlock.
+	// Zip the sources with the library under @modlock, leaving out the
+	// entity classes unless a source requires them. A require names its
+	// module literally, so finding the name finds every use.
+	entities := false
+	for _, name := range sources {
+		data, err := os.ReadFile(filepath.Join(p.Dir, filepath.FromSlash(name)))
+		if err != nil {
+			return errors.Wrap(err, "read the sources")
+		}
+		entities = entities || bytes.Contains(data, []byte(luauEntities))
+	}
 	return p.writeSources(wasm.Manifest_RUNTIME_LUAU, sources, luau.Library, func(name string) string {
+		if name == "modlock/entities.luau" && !entities {
+			return ""
+		}
 		return "@" + name
 	})
 }
