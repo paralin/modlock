@@ -814,6 +814,9 @@ export type Player = {
 	-- hero's identifier as Pawn.hero reports it. The hero appears on a later
 	-- frame.
 	selectHero: (self: Player, hero: (string | number), team: number) -> number?,
+	-- spectate moves the player to the spectators, without a hero. The player
+	-- watches until a hero selection seats them again.
+	spectate: (self: Player) -> boolean,
 	-- respawn revives the player's dead hero.
 	respawn: (self: Player) -> boolean,
 	-- clearItems removes every item the player's hero owns.
@@ -962,6 +965,12 @@ function Player.selectHero(self: Player, hero: (string | number), team: number):
 		return nil
 	end
 	return response.hero
+end
+
+-- spectate moves the player to the spectators, without a hero. The player
+-- watches until a hero selection seats them again.
+function Player.spectate(self: Player): boolean
+	return call("Spectate", "PlayerRequest", { player = self }) ~= nil
 end
 
 -- respawn revives the player's dead hero.

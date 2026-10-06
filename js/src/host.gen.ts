@@ -1290,6 +1290,14 @@ export class Player {
     return response.hero ?? 0
   }
 
+  /**
+   * spectate moves the player to the spectators, without a hero. The player
+   * watches until a hero selection seats them again.
+   */
+  spectate(): boolean {
+    return call('Spectate', pb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
+  }
+
   /** respawn revives the player's dead hero. */
   respawn(): boolean {
     return call('Respawn', pb.PlayerRequest.toBinary({ player: this.slot })) !== undefined

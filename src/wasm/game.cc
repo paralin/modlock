@@ -1040,6 +1040,15 @@ std::expected<HeroResponse, std::string> Game::SelectHero(const SelectHeroReques
   return response;
 }
 
+std::expected<void, std::string> Game::Spectate(const PlayerRequest& request) {
+  auto selection = services_.Selection();
+  if (!selection) return std::unexpected(selection.error());
+  const auto state = gameinterop::ConnectionTracker::StateForSlot(request.player());
+  if (!state.occupied) return std::unexpected("no player is in that slot");
+  return observer_.SelectPlayer(request.player(), state.xuid, state.generation, 1, nullptr,
+                                **selection);
+}
+
 std::expected<void, std::string> Game::Respawn(const PlayerRequest& request) {
   auto respawn = services_.Respawn();
   if (!respawn) return std::unexpected(respawn.error());

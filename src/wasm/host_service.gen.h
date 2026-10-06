@@ -126,6 +126,12 @@ class HostService {
     return std::unexpected("this host does not support SelectHero");
   }
 
+  // Spectate moves the player to the spectators, without a hero. The player
+  // watches until a hero selection seats them again.
+  virtual std::expected<void, std::string> Spectate(const PlayerRequest& /*request*/) {
+    return std::unexpected("this host does not support Spectate");
+  }
+
   // Respawn revives the player's dead hero.
   virtual std::expected<void, std::string> Respawn(const PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Respawn");
@@ -631,6 +637,14 @@ class HostService {
              return detail::Fail("the SelectHero request is malformed");
            }
            return detail::Answer(host.SelectHero(request));
+         }},
+        {"Spectate",
+         [](HostService& host, const std::string& bytes) {
+           PlayerRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Spectate request is malformed");
+           }
+           return detail::Answer(host.Spectate(request));
          }},
         {"Respawn",
          [](HostService& host, const std::string& bytes) {

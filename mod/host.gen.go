@@ -397,6 +397,12 @@ func (p Player) SelectHero(hero any, team int32) (uint32, error) {
 	return response.GetHero(), nil
 }
 
+// Spectate moves the player to the spectators, without a hero. The player
+// watches until a hero selection seats them again.
+func (p Player) Spectate() error {
+	return invoke("Spectate", &wasm.PlayerRequest{Player: p.Slot}, nil)
+}
+
 // Respawn revives the player's dead hero.
 func (p Player) Respawn() error {
 	return invoke("Respawn", &wasm.PlayerRequest{Player: p.Slot}, nil)

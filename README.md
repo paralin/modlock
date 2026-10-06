@@ -455,6 +455,7 @@ states and input.
 | `player.pawn()`                                                                        | Read the hero: health, team, position, aim and stamina.         |
 | `player.chat`, `centerText`, `announce`                                                | Show text to one player.                                        |
 | `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`            | Move the hero through the match.                                |
+| `player.spectate()`                                                                    | Move the player to the spectators, without a hero.              |
 | `player.clearItems`, `giveItem`, `restoreStamina`, `refreshAbility`                    | Change what the hero carries.                                   |
 | `player.abilities()`, `setAbility`, `replaceAbility`, `holdModifier`                   | Read or change the hero's abilities and modifiers.              |
 | `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)` | Read or change the player's settings.                           |

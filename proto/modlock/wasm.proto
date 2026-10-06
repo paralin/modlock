@@ -101,6 +101,10 @@ service Host {
   // frame.
   rpc SelectHero(SelectHeroRequest) returns (HeroResponse);
 
+  // Spectate moves the player to the spectators, without a hero. The player
+  // watches until a hero selection seats them again.
+  rpc Spectate(PlayerRequest) returns (Empty);
+
   // Respawn revives the player's dead hero.
   rpc Respawn(PlayerRequest) returns (Empty);
 

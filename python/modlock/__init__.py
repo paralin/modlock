@@ -981,6 +981,12 @@ class Player:
             return None
         return response["hero"]
 
+    def spectate(self) -> bool:
+        """spectate moves the player to the spectators, without a hero. The player
+        watches until a hero selection seats them again.
+        """
+        return _call("Spectate", "PlayerRequest", {"player": self}) is not None
+
     def respawn(self) -> bool:
         """respawn revives the player's dead hero."""
         return _call("Respawn", "PlayerRequest", {"player": self}) is not None
