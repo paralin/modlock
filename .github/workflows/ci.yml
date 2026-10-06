@@ -13,11 +13,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      # Zig compiles the QuickJS runtime to WebAssembly; the SDK itself
-      # builds with the runner's GCC.
-      - uses: mlugg/setup-zig@v2
-        with:
-          version: 0.16.0
       - name: Resolve dependencies
         run: go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp github.com/aperturerobotics/starpc
       - name: Build and test SDK

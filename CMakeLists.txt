@@ -245,38 +245,6 @@ else()
   install(FILES ${MODLOCK_WASMTIME_LIBRARY} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-# TypeScript and JavaScript mods run on QuickJS, itself a WebAssembly module
-# that Zig compiles for WASI. modlock-host loads it from beside the executable,
-# where the build and the install both put it.
-find_program(MODLOCK_ZIG_EXECUTABLE zig)
-if(MODLOCK_ZIG_EXECUTABLE)
-  include(FetchContent)
-  FetchContent_Declare(quickjs_ng
-    URL https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.17.0.tar.gz
-    URL_HASH SHA256=559bc4c420475e55c7ab4510adbc562f55d7524d75e8e89d79ce4bb02f5687d9
-    SOURCE_SUBDIR none)
-  FetchContent_MakeAvailable(quickjs_ng)
-  set(quickjs_sources
-    ${quickjs_ng_SOURCE_DIR}/dtoa.c
-    ${quickjs_ng_SOURCE_DIR}/libregexp.c
-    ${quickjs_ng_SOURCE_DIR}/libunicode.c
-    ${quickjs_ng_SOURCE_DIR}/quickjs.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/quickjs/runtime.c)
-  set(quickjs_wasm ${CMAKE_CURRENT_BINARY_DIR}/quickjs.wasm)
-  add_custom_command(OUTPUT ${quickjs_wasm}
-    COMMAND ${MODLOCK_ZIG_EXECUTABLE} cc -target wasm32-wasi -Oz -s -mexec-model=reactor
-      -D_GNU_SOURCE -I${quickjs_ng_SOURCE_DIR} -Wl,-z,stack-size=2097152
-      -o ${quickjs_wasm} ${quickjs_sources}
-    DEPENDS ${quickjs_sources} ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/boundary.h
-    COMMENT "Compiling the QuickJS runtime")
-  add_custom_target(quickjs_runtime ALL DEPENDS ${quickjs_wasm})
-  install(FILES ${quickjs_wasm} DESTINATION ${CMAKE_INSTALL_BINDIR})
-  install(FILES ${quickjs_ng_SOURCE_DIR}/LICENSE DESTINATION ${CMAKE_INSTALL_BINDIR}
-    RENAME quickjs-LICENSE)
-else()
-  message(WARNING "Zig is missing, so this build cannot run TypeScript or JavaScript mods.")
-endif()
-
 # Luau mods run on Luau, compiled for WASI by wasi-sdk because Luau raises its
 # errors as C++ exceptions, which need the WebAssembly exception handling
 # proposal and its unwinder.
@@ -336,6 +304,32 @@ add_custom_target(luau_runtime ALL DEPENDS ${luau_wasm})
 install(FILES ${luau_wasm} DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES ${luau_SOURCE_DIR}/LICENSE.txt DESTINATION ${CMAKE_INSTALL_BINDIR}
   RENAME luau-LICENSE)
+
+# TypeScript and JavaScript mods run on QuickJS, compiled for WASI by the same
+# wasi-sdk. modlock-host loads it from beside the executable, where the build
+# and the install both put it.
+FetchContent_Declare(quickjs_ng
+  URL https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.17.0.tar.gz
+  URL_HASH SHA256=559bc4c420475e55c7ab4510adbc562f55d7524d75e8e89d79ce4bb02f5687d9
+  SOURCE_SUBDIR none)
+FetchContent_MakeAvailable(quickjs_ng)
+set(quickjs_sources
+  ${quickjs_ng_SOURCE_DIR}/dtoa.c
+  ${quickjs_ng_SOURCE_DIR}/libregexp.c
+  ${quickjs_ng_SOURCE_DIR}/libunicode.c
+  ${quickjs_ng_SOURCE_DIR}/quickjs.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/quickjs/runtime.c)
+set(quickjs_wasm ${CMAKE_CURRENT_BINARY_DIR}/quickjs.wasm)
+add_custom_command(OUTPUT ${quickjs_wasm}
+  COMMAND ${wasi_sdk_SOURCE_DIR}/bin/clang --target=wasm32-wasip1 -Oz -s -mexec-model=reactor
+    -D_GNU_SOURCE -I${quickjs_ng_SOURCE_DIR} -Wl,-z,stack-size=2097152
+    -o ${quickjs_wasm} ${quickjs_sources}
+  DEPENDS ${quickjs_sources} ${CMAKE_CURRENT_SOURCE_DIR}/runtimes/boundary.h
+  COMMENT "Compiling the QuickJS runtime")
+add_custom_target(quickjs_runtime ALL DEPENDS ${quickjs_wasm})
+install(FILES ${quickjs_wasm} DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES ${quickjs_ng_SOURCE_DIR}/LICENSE DESTINATION ${CMAKE_INSTALL_BINDIR}
+  RENAME quickjs-LICENSE)
 
 # Python mods run on CPython for WASI, linked from its published WASI build
 # and snapshotted by Wizer after the interpreter starts, so an instance begins
