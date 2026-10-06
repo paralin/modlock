@@ -7,7 +7,8 @@ local wire = require("@self/wire")
 -- host is the bridge the runtime hands the library.
 local host = ...
 
-local M = {}
+-- modlock is the module's table, which every call and type joins.
+local modlock = {}
 
 -- schema describes every message the library encodes or decodes.
 local schema: wire.Schema = {}
@@ -1150,7 +1151,7 @@ function Player.watchMovement(self: Player, watch: boolean): boolean
 	return call("WatchMovement", "WatchMovementRequest", { player = self, watch = watch }) ~= nil
 end
 
-M.Player = Player
+modlock.Player = Player
 
 -- WorldObject is one object the mod placed in the world.
 export type WorldObject = {
@@ -1197,7 +1198,7 @@ function WorldObject.entity(self: WorldObject): number?
 	return response.entity
 end
 
-M.WorldObject = WorldObject
+modlock.WorldObject = WorldObject
 
 -- Npc is one unit the mod spawned.
 export type Npc = {
@@ -1262,7 +1263,7 @@ function Npc.remove(self: Npc): boolean
 	return response.alive
 end
 
-M.Npc = Npc
+modlock.Npc = Npc
 
 -- Pickup is one pickup the mod placed.
 export type Pickup = {
@@ -1303,7 +1304,7 @@ function Pickup.remove(self: Pickup): boolean
 	return response.alive
 end
 
-M.Pickup = Pickup
+modlock.Pickup = Pickup
 
 schema.Vec3 = {
 	{ number = 1, name = "x", kind = "double" },
@@ -1909,25 +1910,25 @@ schema.StartRiftRequest = {
 }
 
 -- log writes one line to the server log under the mod's name.
-function M.log(message: string): boolean
+function modlock.log(message: string): boolean
 	return call("Log", "LogRequest", { message = message }) ~= nil
 end
 
 -- serverCommand runs one line at the server console, as if typed there. A
 -- line that sets a variable may set a development-only or cheat-protected
 -- one.
-function M.serverCommand(command: string): boolean
+function modlock.serverCommand(command: string): boolean
 	return call("ServerCommand", "ServerCommandRequest", { command = command }) ~= nil
 end
 
 -- precache loads heroes and resources with the next world. Call it during
 -- start, before the first world loads.
-function M.precache(options: PrecacheOptions): boolean
+function modlock.precache(options: PrecacheOptions): boolean
 	return call("Precache", "PrecacheOptions", options) ~= nil
 end
 
 -- players lists the occupied player slots in slot order.
-function M.players(): { Connection }
+function modlock.players(): { Connection }
 	local response = call("Players", "Empty", {}, "PlayersResponse")
 	if response == nil then
 		return {}
@@ -1938,7 +1939,7 @@ end
 -- readField reads one schema field of a live entity, such as the int32
 -- m_iHealth of CBaseEntity. The host finds the field by name, so it
 -- survives game updates that move it.
-function M.readField(entity: number, className: string, field: string, type: FieldType): FieldValue?
+function modlock.readField(entity: number, className: string, field: string, type: FieldType): FieldValue?
 	local response = call("ReadField", "ReadFieldRequest", { entity = entity, className = className, field = field, type = type }, "FieldResponse")
 	if response == nil then
 		return nil
@@ -1949,13 +1950,13 @@ end
 -- writeField writes one schema field of a live entity and sends the change
 -- to the players. The value takes the form ReadField returns for the type;
 -- text fields cannot be written.
-function M.writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean
+function modlock.writeField(entity: number, className: string, field: string, type: FieldType, value: FieldValue): boolean
 	return call("WriteField", "WriteFieldRequest", { entity = entity, className = className, field = field, type = type, value = value }) ~= nil
 end
 
 -- modifierState reports whether an entity has a modifier state, such as
 -- MODIFIER_STATE_PARRY_ACTIVE.
-function M.modifierState(entity: number, state: string): boolean
+function modlock.modifierState(entity: number, state: string): boolean
 	local response = call("ModifierState", "ModifierStateRequest", { entity = entity, state = state }, "ActiveResponse")
 	if response == nil then
 		return false
@@ -1966,14 +1967,14 @@ end
 -- holdModifierState holds a modifier state, such as
 -- MODIFIER_STATE_FRIENDLY_FIRE_ENABLED, on an entity while the mod runs, or
 -- releases the hold. The hold ends with the entity.
-function M.holdModifierState(entity: number, state: string, active: boolean?): boolean
+function modlock.holdModifierState(entity: number, state: string, active: boolean?): boolean
 	return call("HoldModifierState", "HoldModifierStateRequest", { entity = entity, state = state, active = active }) ~= nil
 end
 
 -- createModel places a model in the world, solid when the options ask.
 -- The world removes it when the world ends; stopping the mod removes it
 -- too.
-function M.createModel(options: ModelOptions): WorldObject?
+function modlock.createModel(options: ModelOptions): WorldObject?
 	local response = call("CreateModel", "ModelOptions", options, "ObjectResponse")
 	if response == nil then
 		return nil
@@ -1982,7 +1983,7 @@ function M.createModel(options: ModelOptions): WorldObject?
 end
 
 -- createText places text that floats in the world.
-function M.createText(options: TextOptions): WorldObject?
+function modlock.createText(options: TextOptions): WorldObject?
 	local response = call("CreateText", "TextOptions", options, "ObjectResponse")
 	if response == nil then
 		return nil
@@ -1992,7 +1993,7 @@ end
 
 -- createParticle starts a particle effect. Removing the object stops it;
 -- moving it moves the effect.
-function M.createParticle(options: ParticleOptions): WorldObject?
+function modlock.createParticle(options: ParticleOptions): WorldObject?
 	local response = call("CreateParticle", "ParticleOptions", options, "ObjectResponse")
 	if response == nil then
 		return nil
@@ -2002,7 +2003,7 @@ end
 
 -- createFog fills a box with tinted fog whose density fades across the
 -- box's boundary. Removing the object clears it; moving it moves the box.
-function M.createFog(options: FogOptions): WorldObject?
+function modlock.createFog(options: FogOptions): WorldObject?
 	local response = call("CreateFog", "FogOptions", options, "ObjectResponse")
 	if response == nil then
 		return nil
@@ -2012,7 +2013,7 @@ end
 
 -- addBot adds a bot player and returns it. The bot leaves when the world
 -- ends or the mod stops.
-function M.addBot(options: BotOptions): Player?
+function modlock.addBot(options: BotOptions): Player?
 	local response = call("AddBot", "BotOptions", options, "BotResponse")
 	if response == nil then
 		return nil
@@ -2022,14 +2023,14 @@ end
 
 -- blockInput withholds buttons from every player's hero until called
 -- again. Stopping the mod releases them.
-function M.blockInput(buttons: number): boolean
+function modlock.blockInput(buttons: number): boolean
 	return call("BlockInput", "InputRequest", { buttons = buttons }) ~= nil
 end
 
 -- watchInput replaces the buttons whose presses and releases arrive as
 -- Input events. Watching does not withhold a press; block it with
 -- BlockInput.
-function M.watchInput(buttons: number): boolean
+function modlock.watchInput(buttons: number): boolean
 	return call("WatchInput", "InputRequest", { buttons = buttons }) ~= nil
 end
 
@@ -2038,14 +2039,14 @@ end
 -- from button uses the to ability again as soon as it is ready. A zero from
 -- stops remapping, and stopping the mod does too. BlockInput applies after
 -- the remap.
-function M.remapInput(from: number, to: number, repeat_: boolean?): boolean
+function modlock.remapInput(from: number, to: number, repeat_: boolean?): boolean
 	return call("RemapInput", "RemapInputRequest", { from = from, to = to, ["repeat"] = repeat_ }) ~= nil
 end
 
 -- callService calls method of a service the host provides outside Modlock,
 -- such as a game mode's match, and returns the service's answer. The
 -- service defines the payload's encoding.
-function M.callService(service: string, method: string, payload: string): string?
+function modlock.callService(service: string, method: string, payload: string): string?
 	local response = call("CallService", "ServiceCall", { service = service, method = method, payload = payload }, "ServiceReply")
 	if response == nil then
 		return nil
@@ -2056,7 +2057,7 @@ end
 -- spawnNpc adds a unit that is not a player, such as a trooper. It thinks
 -- from the next frame. The world removes it when the world ends; stopping
 -- the mod removes it too.
-function M.spawnNpc(options: NpcOptions): Npc?
+function modlock.spawnNpc(options: NpcOptions): Npc?
 	local response = call("SpawnNpc", "NpcOptions", options, "NpcResponse")
 	if response == nil then
 		return nil
@@ -2066,7 +2067,7 @@ end
 
 -- createPickup places an urn, which a hero carries once collected, or a
 -- movement buff. Stopping the mod removes it.
-function M.createPickup(kind: PickupKind, position: Vector): Pickup?
+function modlock.createPickup(kind: PickupKind, position: Vector): Pickup?
 	local response = call("CreatePickup", "CreatePickupRequest", { kind = kind, position = position }, "PickupResponse")
 	if response == nil then
 		return nil
@@ -2076,7 +2077,7 @@ end
 
 -- removeEntities removes every entity of a class, such as npc_trooper,
 -- without rewards, and returns how many it removed.
-function M.removeEntities(className: string): number?
+function modlock.removeEntities(className: string): number?
 	local response = call("RemoveEntities", "RemoveEntitiesRequest", { className = className }, "CountResponse")
 	if response == nil then
 		return nil
@@ -2086,19 +2087,19 @@ end
 
 -- clearMap removes the map's own units and objectives, such as troopers,
 -- guardians and walkers, so a mode can use the map as an arena.
-function M.clearMap(): boolean
+function modlock.clearMap(): boolean
 	return call("ClearMap", "Empty", {}) ~= nil
 end
 
 -- damage deals a hit as the game would. The mod's Damage events do not
 -- include its own hits.
-function M.damage(options: HitOptions): boolean
+function modlock.damage(options: HitOptions): boolean
 	return call("Damage", "HitOptions", options) ~= nil
 end
 
 -- trace returns where a line first hits something, or nothing when it hits
 -- nothing or the world's collision is not ready.
-function M.trace(options: TraceOptions): TraceHit?
+function modlock.trace(options: TraceOptions): TraceHit?
 	local response = call("Trace", "TraceOptions", options, "TraceResponse")
 	if response == nil then
 		return nil
@@ -2111,18 +2112,18 @@ end
 -- removed, structures that match are kept, and moving units are spawned
 -- again in place. An NpcsRestored event reports when every target stands
 -- as its own unit, or why not. A new call replaces the running one.
-function M.restoreNpcs(npcs: { NpcTarget }?): boolean
+function modlock.restoreNpcs(npcs: { NpcTarget }?): boolean
 	return call("RestoreNpcs", "RestoreNpcsRequest", { npcs = npcs }) ~= nil
 end
 
 -- pause stops or resumes the game clock, as the pause command would.
 -- Stopping the mod resumes it.
-function M.pause(paused: boolean): boolean
+function modlock.pause(paused: boolean): boolean
 	return call("Pause", "PauseRequest", { paused = paused }) ~= nil
 end
 
 -- matchClock returns the match time in seconds that the scoreboard shows.
-function M.matchClock(): number?
+function modlock.matchClock(): number?
 	local response = call("MatchClock", "Empty", {}, "MatchClockResponse")
 	if response == nil then
 		return nil
@@ -2132,12 +2133,12 @@ end
 
 -- holdMatchClock keeps the match time at seconds every frame until called
 -- again; omitted seconds let it run.
-function M.holdMatchClock(seconds: number?): boolean
+function modlock.holdMatchClock(seconds: number?): boolean
 	return call("HoldMatchClock", "HoldMatchClockRequest", { seconds = seconds }) ~= nil
 end
 
 -- rift reads the Rift objective's state.
-function M.rift(): RiftState?
+function modlock.rift(): RiftState?
 	local response = call("Rift", "Empty", {}, "RiftResponse")
 	if response == nil then
 		return nil
@@ -2146,25 +2147,25 @@ function M.rift(): RiftState?
 end
 
 -- startRift opens the Rift objective at position now.
-function M.startRift(position: Vector): boolean
+function modlock.startRift(position: Vector): boolean
 	return call("StartRift", "StartRiftRequest", { position = position }) ~= nil
 end
 
 -- moveEntity places any entity, such as a projectile, and replaces its
 -- facing and motion when given.
-function M.moveEntity(entity: number, position: Vector, facing: Angles?, velocity: Vector?): boolean
+function modlock.moveEntity(entity: number, position: Vector, facing: Angles?, velocity: Vector?): boolean
 	return call("MoveEntity", "MoveEntityRequest", { entity = entity, position = position, facing = facing, velocity = velocity }) ~= nil
 end
 
 -- emitSound plays one game sound on any entity, such as a projectile.
-function M.emitSound(entity: number, sound: string): boolean
+function modlock.emitSound(entity: number, sound: string): boolean
 	return call("EmitSound", "EmitSoundRequest", { entity = entity, sound = sound }) ~= nil
 end
 
 -- watchProjectiles reports the projectiles with these designer names, such
 -- as rocket_launcher_rocket_projectile, in Launch and Impact events. A new
 -- call replaces the list; an empty list stops watching.
-function M.watchProjectiles(options: ProjectileOptions): boolean
+function modlock.watchProjectiles(options: ProjectileOptions): boolean
 	return call("WatchProjectiles", "ProjectileOptions", options) ~= nil
 end
 
@@ -2270,7 +2271,7 @@ end
 -- to the server log.
 
 -- Buttons names input bits for blockInput, watchInput and Player.press.
-M.Buttons = {
+modlock.Buttons = {
 	-- attack is the primary fire button.
 	attack = 1,
 	-- use is the interact key.
@@ -2288,7 +2289,7 @@ M.Buttons = {
 }
 
 -- Layers names collision layers for trace, as bits.
-M.Layers = {
+modlock.Layers = {
 	-- solid is the world and solid objects.
 	solid = 1,
 	-- hitbox is the hit boxes of heroes and units.
@@ -2311,7 +2312,7 @@ M.Layers = {
 
 -- has reports whether bits, a sum of Buttons or Layers bits, holds bit.
 -- bit32 reaches only the low 32 bits, and these bits go up to 2^42.
-function M.has(bits: number, bit: number): boolean
+function modlock.has(bits: number, bit: number): boolean
 	return bits // bit % 2 == 1
 end
 
@@ -2326,7 +2327,8 @@ local commands: { [string]: (player: Player, args: string) -> () } = {}
 -- services maps each service the mod serves to its handler.
 local services: { [string]: Service } = {}
 
--- Each list runs in registration order.
+-- starts to settingChanges hold each event's handlers, which run in
+-- registration order.
 local starts: { (args: { string }) -> () } = {}
 local frames: { (frame: FrameEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
@@ -2342,7 +2344,7 @@ local settingChanges: { (player: Player, key: string, value: string) -> () } = {
 
 -- serve answers the host's calls to service with handler, replacing its
 -- earlier handler.
-function M.serve(service: string, handler: Service)
+function modlock.serve(service: string, handler: Service)
 	services[service] = handler
 end
 
@@ -2350,80 +2352,80 @@ end
 -- sends the console command name to the server. The handler receives the
 -- text after the name, trimmed of surrounding spaces. Registering a name
 -- again replaces its handler.
-function M.command(name: string, handler: (player: Player, args: string) -> ())
+function modlock.command(name: string, handler: (player: Player, args: string) -> ())
 	commands[name] = handler
 end
 
 -- onStart calls handler once when the server starts the mod, with the
 -- arguments that follow -- on the modlock-host command line.
-function M.onStart(handler: (args: { string }) -> ())
+function modlock.onStart(handler: (args: { string }) -> ())
 	table.insert(starts, handler)
 end
 
 -- onFrame calls handler once per server frame.
-function M.onFrame(handler: (frame: FrameEvent) -> ())
+function modlock.onFrame(handler: (frame: FrameEvent) -> ())
 	table.insert(frames, handler)
 end
 
 -- onWorld calls handler with the map's name each time a world loads, and at
 -- start when one already has. Objects and bots from an earlier world are
 -- gone by then.
-function M.onWorld(handler: (map: string) -> ())
+function modlock.onWorld(handler: (map: string) -> ())
 	table.insert(worlds, handler)
 end
 
 -- onInput calls handler with the watched buttons a player pressed and
 -- released, as Buttons bits, before the next frame. A button is held from
 -- its press until its release.
-function M.onInput(handler: (player: Player, pressed: number, released: number) -> ())
+function modlock.onInput(handler: (player: Player, pressed: number, released: number) -> ())
 	table.insert(inputs, handler)
 end
 
 -- onRestored calls handler when a player's Player.restoreHero ends: error is
 -- nil once the target held for a second, or says why it did not.
-function M.onRestored(handler: (player: Player, error: string?) -> ())
+function modlock.onRestored(handler: (player: Player, error: string?) -> ())
 	table.insert(restoreds, handler)
 end
 
 -- onNpcsRestored calls handler when restoreNpcs ends: error is nil once the
 -- map holds every target, or says why it does not.
-function M.onNpcsRestored(handler: (error: string?) -> ())
+function modlock.onNpcsRestored(handler: (error: string?) -> ())
 	table.insert(npcsRestoreds, handler)
 end
 
 -- onDamage calls handler before each hit lands, so it can block the hit or
 -- change its damage. Later handlers see the earlier ones' amount.
-function M.onDamage(handler: (hit: DamageEvent) -> DamageResult?)
+function modlock.onDamage(handler: (hit: DamageEvent) -> DamageResult?)
 	table.insert(damages, handler)
 end
 
 -- onDamaged calls handler on the frame after each hit lands.
-function M.onDamaged(handler: (hit: DamagedEvent) -> ())
+function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
 end
 
 -- onLaunch calls handler with each watched projectile's first frame, before
 -- the next frame. watchProjectiles names the projectiles.
-function M.onLaunch(handler: (projectile: LaunchEvent) -> ())
+function modlock.onLaunch(handler: (projectile: LaunchEvent) -> ())
 	table.insert(launches, handler)
 end
 
 -- onImpact calls handler when a watched projectile strikes something, inside
 -- the game's impact: its calls apply before the game continues.
-function M.onImpact(handler: (impact: ImpactEvent) -> ())
+function modlock.onImpact(handler: (impact: ImpactEvent) -> ())
 	table.insert(impacts, handler)
 end
 
 -- onLanded calls handler when a hero lands under the manifest's QuakeWorld
 -- movement, before the next frame.
-function M.onLanded(handler: (landing: LandedEvent) -> ())
+function modlock.onLanded(handler: (landing: LandedEvent) -> ())
 	table.insert(landeds, handler)
 end
 
 -- onSettingChanged calls handler when a player's setting changes outside the
 -- mod, such as on the player's profile. The mod's own player:setSetting calls
 -- do not reach it.
-function M.onSettingChanged(handler: (player: Player, key: string, value: string) -> ())
+function modlock.onSettingChanged(handler: (player: Player, key: string, value: string) -> ())
 	table.insert(settingChanges, handler)
 end
 
@@ -2467,12 +2469,14 @@ local handlers: ModHandlers = {
 	serve = function(event)
 		local handler = services[event.service]
 		if handler == nil then
-			error("the mod serves no service " .. event.service, 0)
+			error(`the mod serves no service {event.service}`, 0)
 		end
 		return { payload = handler(event.method, event.payload) }
 	end,
 
 	damage = function(event)
+		-- Offer the hit to each handler in turn, with the amount the earlier
+		-- ones set; a block ends the offer.
 		local amount = event.amount
 		for _, handler in damages do
 			local hit = table.clone(event)
@@ -2483,6 +2487,8 @@ local handlers: ModHandlers = {
 			end
 			amount = if change and change.amount then change.amount else amount
 		end
+
+		-- Answer nothing when no handler changed the hit.
 		return if amount == event.amount then {} else { amount = amount }
 	end,
 
@@ -2535,8 +2541,9 @@ local handlers: ModHandlers = {
 	end,
 }
 
+-- Answer each of the host's events with the handlers above.
 host.handle(function(call: string): string
 	return serveMod(handlers, call)
 end)
 
-return M
+return modlock

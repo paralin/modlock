@@ -24,7 +24,8 @@ local wire = require("@self/wire")
 -- host is the bridge the runtime hands the library.
 local host = ...
 
-local M = {}
+-- modlock is the module's table, which every call and type joins.
+local modlock = {}
 
 -- schema describes every message the library encodes or decodes.
 local schema: wire.Schema = {}
@@ -201,7 +202,7 @@ func (w *luauWriter) writeClass(c *class) {
 			w.writeCall(call)
 		}
 	}
-	fmt.Fprintf(&w.out, "M.%s = %s\n\n", c.name, c.name)
+	fmt.Fprintf(&w.out, "modlock.%s = %s\n\n", c.name, c.name)
 }
 
 // params returns the declared parameters of c, without its receiver.
@@ -245,7 +246,7 @@ func (w *luauWriter) resultType(c *call) (string, string) {
 // of the module.
 func (w *luauWriter) writeCall(c *call) {
 	params := w.params(c)
-	owner := "M"
+	owner := "modlock"
 	if c.class != nil {
 		owner = c.class.name
 		params = append([]string{"self: " + c.class.name}, params...)

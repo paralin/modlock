@@ -1,3 +1,6 @@
+--!strict
+--!nolint BuiltinGlobalWrite
+--!nolint FunctionUnused
 -- The prelude defines require over the mod's sources and runs the main
 -- module. It receives the host bridge, which only modules of the modlock
 -- library receive in turn.
@@ -5,10 +8,14 @@
 -- require follows the Luau resolution rules: a module is its path without the
 -- extension, and an init file stands for its directory. "./x" names a sibling,
 -- "../x" a sibling of the parent, "@self/x" a child, and "@modlock" the
--- library.
+-- library. It replaces the global require, which the sandbox lacks, and
+-- reads the calling module's name with debug.info, which mod code must not
+-- use.
 
+-- host is the bridge the runtime hands the prelude.
 local host = ...
 
+-- suffixes are the endings a module's file may have, in the order tried.
 local suffixes = { ".luau", ".lua", "/init.luau", "/init.lua" }
 
 -- loaded caches each module's result by file; loading marks the files whose
@@ -58,11 +65,13 @@ end
 -- use runs the module and returns its result, once per file.
 local function use(module: string, spec: string): any
 	for _, suffix in suffixes do
+		-- Return a module that already ran, and skip a file the mod lacks.
 		local file = module .. suffix
 		if loaded[file] ~= nil then
 			return loaded[file]
 		end
 		if host.source(file) then
+			-- Refuse a cycle and load the file's chunk.
 			if loading[file] then
 				error(string.format("require(%q) is a cycle back to %s", spec, file), 3)
 			end
@@ -70,8 +79,10 @@ local function use(module: string, spec: string): any
 			if not chunk then
 				error(why, 0)
 			end
+
+			-- Run the module once, handing the host only to the library's own
+			-- modules, and cache its result.
 			loading[file] = true
-			-- Only the library's own modules reach the host.
 			local result = if string.sub(file, 1, 9) == "@modlock/" then chunk(host) else chunk()
 			loading[file] = nil
 			loaded[file] = if result == nil then true else result
@@ -87,4 +98,5 @@ function require(spec: string): any
 	return use(resolve(identity(debug.info(2, "s")), spec), spec)
 end
 
+-- Run the mod's main module.
 use("main", "main")

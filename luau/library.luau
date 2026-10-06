@@ -17,7 +17,7 @@
 -- to the server log.
 
 -- Buttons names input bits for blockInput, watchInput and Player.press.
-M.Buttons = {
+modlock.Buttons = {
 	-- attack is the primary fire button.
 	attack = 1,
 	-- use is the interact key.
@@ -35,7 +35,7 @@ M.Buttons = {
 }
 
 -- Layers names collision layers for trace, as bits.
-M.Layers = {
+modlock.Layers = {
 	-- solid is the world and solid objects.
 	solid = 1,
 	-- hitbox is the hit boxes of heroes and units.
@@ -58,7 +58,7 @@ M.Layers = {
 
 -- has reports whether bits, a sum of Buttons or Layers bits, holds bit.
 -- bit32 reaches only the low 32 bits, and these bits go up to 2^42.
-function M.has(bits: number, bit: number): boolean
+function modlock.has(bits: number, bit: number): boolean
 	return bits // bit % 2 == 1
 end
 
@@ -73,7 +73,8 @@ local commands: { [string]: (player: Player, args: string) -> () } = {}
 -- services maps each service the mod serves to its handler.
 local services: { [string]: Service } = {}
 
--- Each list runs in registration order.
+-- starts to settingChanges hold each event's handlers, which run in
+-- registration order.
 local starts: { (args: { string }) -> () } = {}
 local frames: { (frame: FrameEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
@@ -89,7 +90,7 @@ local settingChanges: { (player: Player, key: string, value: string) -> () } = {
 
 -- serve answers the host's calls to service with handler, replacing its
 -- earlier handler.
-function M.serve(service: string, handler: Service)
+function modlock.serve(service: string, handler: Service)
 	services[service] = handler
 end
 
@@ -97,80 +98,80 @@ end
 -- sends the console command name to the server. The handler receives the
 -- text after the name, trimmed of surrounding spaces. Registering a name
 -- again replaces its handler.
-function M.command(name: string, handler: (player: Player, args: string) -> ())
+function modlock.command(name: string, handler: (player: Player, args: string) -> ())
 	commands[name] = handler
 end
 
 -- onStart calls handler once when the server starts the mod, with the
 -- arguments that follow -- on the modlock-host command line.
-function M.onStart(handler: (args: { string }) -> ())
+function modlock.onStart(handler: (args: { string }) -> ())
 	table.insert(starts, handler)
 end
 
 -- onFrame calls handler once per server frame.
-function M.onFrame(handler: (frame: FrameEvent) -> ())
+function modlock.onFrame(handler: (frame: FrameEvent) -> ())
 	table.insert(frames, handler)
 end
 
 -- onWorld calls handler with the map's name each time a world loads, and at
 -- start when one already has. Objects and bots from an earlier world are
 -- gone by then.
-function M.onWorld(handler: (map: string) -> ())
+function modlock.onWorld(handler: (map: string) -> ())
 	table.insert(worlds, handler)
 end
 
 -- onInput calls handler with the watched buttons a player pressed and
 -- released, as Buttons bits, before the next frame. A button is held from
 -- its press until its release.
-function M.onInput(handler: (player: Player, pressed: number, released: number) -> ())
+function modlock.onInput(handler: (player: Player, pressed: number, released: number) -> ())
 	table.insert(inputs, handler)
 end
 
 -- onRestored calls handler when a player's Player.restoreHero ends: error is
 -- nil once the target held for a second, or says why it did not.
-function M.onRestored(handler: (player: Player, error: string?) -> ())
+function modlock.onRestored(handler: (player: Player, error: string?) -> ())
 	table.insert(restoreds, handler)
 end
 
 -- onNpcsRestored calls handler when restoreNpcs ends: error is nil once the
 -- map holds every target, or says why it does not.
-function M.onNpcsRestored(handler: (error: string?) -> ())
+function modlock.onNpcsRestored(handler: (error: string?) -> ())
 	table.insert(npcsRestoreds, handler)
 end
 
 -- onDamage calls handler before each hit lands, so it can block the hit or
 -- change its damage. Later handlers see the earlier ones' amount.
-function M.onDamage(handler: (hit: DamageEvent) -> DamageResult?)
+function modlock.onDamage(handler: (hit: DamageEvent) -> DamageResult?)
 	table.insert(damages, handler)
 end
 
 -- onDamaged calls handler on the frame after each hit lands.
-function M.onDamaged(handler: (hit: DamagedEvent) -> ())
+function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
 end
 
 -- onLaunch calls handler with each watched projectile's first frame, before
 -- the next frame. watchProjectiles names the projectiles.
-function M.onLaunch(handler: (projectile: LaunchEvent) -> ())
+function modlock.onLaunch(handler: (projectile: LaunchEvent) -> ())
 	table.insert(launches, handler)
 end
 
 -- onImpact calls handler when a watched projectile strikes something, inside
 -- the game's impact: its calls apply before the game continues.
-function M.onImpact(handler: (impact: ImpactEvent) -> ())
+function modlock.onImpact(handler: (impact: ImpactEvent) -> ())
 	table.insert(impacts, handler)
 end
 
 -- onLanded calls handler when a hero lands under the manifest's QuakeWorld
 -- movement, before the next frame.
-function M.onLanded(handler: (landing: LandedEvent) -> ())
+function modlock.onLanded(handler: (landing: LandedEvent) -> ())
 	table.insert(landeds, handler)
 end
 
 -- onSettingChanged calls handler when a player's setting changes outside the
 -- mod, such as on the player's profile. The mod's own player:setSetting calls
 -- do not reach it.
-function M.onSettingChanged(handler: (player: Player, key: string, value: string) -> ())
+function modlock.onSettingChanged(handler: (player: Player, key: string, value: string) -> ())
 	table.insert(settingChanges, handler)
 end
 
@@ -214,12 +215,14 @@ local handlers: ModHandlers = {
 	serve = function(event)
 		local handler = services[event.service]
 		if handler == nil then
-			error("the mod serves no service " .. event.service, 0)
+			error(`the mod serves no service {event.service}`, 0)
 		end
 		return { payload = handler(event.method, event.payload) }
 	end,
 
 	damage = function(event)
+		-- Offer the hit to each handler in turn, with the amount the earlier
+		-- ones set; a block ends the offer.
 		local amount = event.amount
 		for _, handler in damages do
 			local hit = table.clone(event)
@@ -230,6 +233,8 @@ local handlers: ModHandlers = {
 			end
 			amount = if change and change.amount then change.amount else amount
 		end
+
+		-- Answer nothing when no handler changed the hit.
 		return if amount == event.amount then {} else { amount = amount }
 	end,
 
@@ -282,8 +287,9 @@ local handlers: ModHandlers = {
 	end,
 }
 
+-- Answer each of the host's events with the handlers above.
 host.handle(function(call: string): string
 	return serveMod(handlers, call)
 end)
 
-return M
+return modlock

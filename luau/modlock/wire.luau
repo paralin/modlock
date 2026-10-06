@@ -17,7 +17,10 @@ export type Field = {
 	name: string,
 	-- kind is the field's protobuf type, such as "uint32" or "message".
 	kind: string,
+	-- repeated marks a list of values.
 	repeated: boolean?,
+	-- optional marks a field whose presence the receiver sees, so the encoder
+	-- sends even its zero value.
 	optional: boolean?,
 	-- oneof names the oneof the field is a case of; the message holds the
 	-- case's value under that name.
@@ -71,11 +74,14 @@ end
 local function readVarint(s: string, i: number): (number, number, number)
 	local lo, hi, shift = 0, 0, 0
 	while true do
+		-- Read the next byte; the number must end before the message does.
 		local b = string.byte(s, i)
 		if b == nil then
 			error("a message ends inside a number", 0)
 		end
 		i += 1
+
+		-- Add its seven bits to the low word, the high word or both.
 		local bits = bit32.band(b, 0x7f)
 		if shift < 32 then
 			lo += bit32.lshift(bits, shift)
@@ -85,6 +91,8 @@ local function readVarint(s: string, i: number): (number, number, number)
 		elseif shift < 64 then
 			hi += bit32.lshift(bits, shift - 32)
 		end
+
+		-- A byte without its top bit ends the number.
 		shift += 7
 		if b < 0x80 then
 			return lo, hi, i
@@ -198,11 +206,13 @@ local function index(fields: { Field }): { [number]: Field }
 	return found
 end
 
+-- decode is declared ahead of read, which calls it for a nested message.
 local decode: (schema: Schema, name: string, s: string) -> any
 
 -- read returns the value of field at i in s, whose wire type is kind, and
 -- the position after it.
 local function read(schema: Schema, field: Field, s: string, i: number, kind: number): (any, number)
+	-- Read a varint as a bool, an id, an enum's name, a class or a number.
 	if kind == 0 then
 		local lo, hi, after = readVarint(s, i)
 		local value: any
@@ -219,7 +229,10 @@ local function read(schema: Schema, field: Field, s: string, i: number, kind: nu
 			end
 		end
 		return value, after
-	elseif kind == 5 then
+	end
+
+	-- Read the fixed-width kinds.
+	if kind == 5 then
 		local value: any, after: any = string.unpack(if field.kind == "float" then "<f" else "<I4", s, i)
 		if field.class then
 			value = field.class.new(value)
@@ -228,12 +241,16 @@ local function read(schema: Schema, field: Field, s: string, i: number, kind: nu
 	elseif kind == 1 then
 		return string.unpack("<d", s, i)
 	end
+
+	-- Read a length-delimited value, which must end inside the message.
 	local size, _, start = readVarint(s, i)
 	local after = start + size
 	if after > #s + 1 then
 		error("a message ends inside a field", 0)
 	end
 	local bytes = string.sub(s, start, after - 1)
+
+	-- Return strings and bytes as they are, and decode a nested message.
 	if field.kind ~= "message" then
 		return bytes, after
 	end
@@ -267,9 +284,10 @@ end
 -- decode returns the message name encoded in s. A repeated enum leaves out
 -- values the library has no name for.
 function decode(schema: Schema, name: string, s: string): any
+	-- Read each field in turn, skipping the ones the schema does not know.
 	local fields = schema[name]
 	local byNumber = index(fields)
-	local out = {}
+	local out: { [string]: any } = {}
 	local i = 1
 	while i <= #s do
 		local key, _, after = readVarint(s, i)
@@ -305,6 +323,8 @@ function decode(schema: Schema, name: string, s: string): any
 			out[field.oneof or field.name] = value
 		end
 	end
+
+	-- Fill each field the message left out with its default.
 	for _, field in fields do
 		if field.oneof == nil and out[field.name] == nil then
 			out[field.name] = default(schema, field)
@@ -313,6 +333,7 @@ function decode(schema: Schema, name: string, s: string): any
 	return out
 end
 
+-- encode is declared ahead of bytes, which calls it for a nested message.
 local encode: (schema: Schema, name: string, value: any) -> string
 
 -- bytes returns the encoded value of field, without its tag.
@@ -360,6 +381,7 @@ function encode(schema: Schema, name: string, value: any): string
 	local parts = {}
 	local cases: { [string]: boolean } = {}
 	for _, field in schema[name] do
+		-- Encode the first case of a oneof whose type matches its value.
 		local kind = wireTypes[field.kind] or 0
 		if field.oneof then
 			local case = value[field.oneof]
@@ -369,6 +391,9 @@ function encode(schema: Schema, name: string, value: any): string
 			end
 			continue
 		end
+
+		-- Encode a list packed when its kind allows, else one record per item,
+		-- and a single value unless the receiver assumes it.
 		local v = value[field.name]
 		if v == nil then
 			continue
