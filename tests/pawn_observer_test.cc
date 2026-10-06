@@ -623,9 +623,9 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   uint32_t handles[] = {0xFFFFFFFF, ability_handle, ability_handle};
   const int32_t count = 2;
   const uint32_t capacity = 3;
-  std::memcpy(pawn.data() + 0x68, &count, sizeof(count));
-  WritePointer(pawn.data() + 0x70, handles);
-  std::memcpy(pawn.data() + 0x78, &capacity, sizeof(capacity));
+  std::memcpy(pawn.data() + 0xc0, &count, sizeof(count));
+  WritePointer(pawn.data() + 0xc8, handles);
+  std::memcpy(pawn.data() + 0xd0, &capacity, sizeof(capacity));
   std::memcpy(ability.data() + 0x30, &pawn_handle, sizeof(pawn_handle));
   const uint32_t subclass = 0xf1234567;
   const uint16_t slot = 12;
@@ -644,7 +644,7 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   std::memcpy(ability.data() + 0x44, &cooldown, sizeof(cooldown));
   auto seams = SeamsFor(fixture);
   seams.ability_layout = []() -> std::expected<modlock::gameinterop::AbilityLayout, std::string> {
-    return modlock::gameinterop::AbilityLayout{.handles = 0x68,
+    return modlock::gameinterop::AbilityLayout{.handles = 0xc0,
                                                .owner = 0x30,
                                                .subclass = 0x34,
                                                .slot = 0x38,
@@ -748,7 +748,7 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   std::memcpy(ability.data() + 0x30, &pawn_handle, sizeof(pawn_handle));
   const int32_t duplicate_count = 3;
-  std::memcpy(pawn.data() + 0x68, &duplicate_count, sizeof(duplicate_count));
+  std::memcpy(pawn.data() + 0xc0, &duplicate_count, sizeof(duplicate_count));
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   Instance second_ability = ability;
   fixture.image.SetIdentity(4, second_ability.data(), 10, 0);
@@ -759,10 +759,10 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   EXPECT_FALSE(ambiguous->movement->jump_ability_handle);
   EXPECT_FALSE(ambiguous->movement->consecutive_wall_jumps);
   const int32_t oversized_count = 257;
-  std::memcpy(pawn.data() + 0x68, &oversized_count, sizeof(oversized_count));
+  std::memcpy(pawn.data() + 0xc0, &oversized_count, sizeof(oversized_count));
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   const int32_t empty_count = 0;
-  std::memcpy(pawn.data() + 0x68, &empty_count, sizeof(empty_count));
+  std::memcpy(pawn.data() + 0xc0, &empty_count, sizeof(empty_count));
   actual = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(actual);
   EXPECT_TRUE(actual->empty());
@@ -797,12 +797,12 @@ struct ItemFixture {
     handles[0] = HandleOf(3, 9);
     handles[1] = HandleOf(4, 10);
     SetCount(2);
-    WritePointer(pawn.data() + 0x70, handles.data());
+    WritePointer(pawn.data() + 0xc8, handles.data());
     const int32_t capacity = 4;
-    std::memcpy(pawn.data() + 0x78, &capacity, sizeof(capacity));
+    std::memcpy(pawn.data() + 0xd0, &capacity, sizeof(capacity));
   }
   ~ItemFixture() { current = nullptr; }
-  void SetCount(int32_t count) { std::memcpy(pawn.data() + 0x68, &count, sizeof(count)); }
+  void SetCount(int32_t count) { std::memcpy(pawn.data() + 0xc0, &count, sizeof(count)); }
   void InitAbility(Instance& entity, uint32_t id, uint16_t slot) {
     const uint32_t owner = HandleOf(2, 7), packed = 1;
     std::memcpy(entity.data() + 0x30, &owner, 4);
@@ -814,7 +814,7 @@ struct ItemFixture {
     auto seams = SeamsFor(connection);
     seams.ability_layout = []() -> std::expected<modlock::gameinterop::AbilityLayout, std::string> {
       return modlock::gameinterop::AbilityLayout{.component = 0x48,
-                                                 .handles = 0x68,
+                                                 .handles = 0xc0,
                                                  .owner = 0x30,
                                                  .subclass = 0x34,
                                                  .slot = 0x38,
