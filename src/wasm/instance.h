@@ -25,8 +25,10 @@ struct Limits {
   std::chrono::milliseconds start_budget{5000};
   // event_budget bounds the mod's own work in one event. Time inside host
   // calls does not count; the host bounds its own work, which may include a
-  // one-time setup such as installing a hook.
-  std::chrono::milliseconds event_budget{100};
+  // one-time setup such as installing a hook. The budget is wall time, so a
+  // busy machine's preemption and the interpreter's garbage collection count
+  // against it; it stops a runaway loop, not a slow frame.
+  std::chrono::milliseconds event_budget{1000};
 };
 
 // Instance runs one WebAssembly mod in its own Wasmtime store. The mod sees
