@@ -11,8 +11,9 @@ namespace {
 using modlock::gameinterop::MakeMemberName;
 using modlock::gameinterop::WorldEntities;
 
-// PickupWorld keeps the native identity and subclass layouts consumed by CreatePickup.
-class PickupWorld : public testing::Test {
+// NativeWorld keeps the native identity and subclass layouts consumed by
+// CreatePickup and Spawn.
+class NativeWorld : public testing::Test {
  protected:
   static inline std::array<std::byte, 0x400> entity;
   static inline std::array<std::byte, 0x70> identity;
@@ -23,10 +24,13 @@ class PickupWorld : public testing::Test {
   static inline bool has_definition;
   static inline int created;
   static inline int spawned;
+  static inline int removed;
+  static inline uint32_t prepared;
   static inline std::string designer;
   static inline std::array<float, 3> position;
   static constexpr size_t kSubclassOffset = 0x314;
   static constexpr uint32_t kHandle = 0x18000;
+  static constexpr size_t kPreparedOffset = 0x200;
 
   template <typename T>
   static void Write(std::byte* at, const T& value) {
@@ -38,7 +42,8 @@ class PickupWorld : public testing::Test {
     identity.fill({});
     system.fill(nullptr);
     vtable.fill(nullptr);
-    created = spawned = 0;
+    created = spawned = removed = 0;
+    prepared = 0;
     has_definition = true;
     subclass = 0;
     designer.clear();
@@ -85,13 +90,15 @@ class PickupWorld : public testing::Test {
       EXPECT_NE(token, 0u);
       EXPECT_EQ(token, subclass);
       EXPECT_EQ(vdata, definition.data());
+      std::memcpy(&prepared, entity.data() + kPreparedOffset, sizeof(prepared));
       ++spawned;
     };
+    calls.remove = [](void*) { ++removed; };
     return WorldEntities(calls);
   }
 };
 
-TEST_F(PickupWorld, UrnInstallsItsSubclassBeforeNativeSpawn) {
+TEST_F(NativeWorld, UrnInstallsItsSubclassBeforeNativeSpawn) {
   auto world = World();
   const auto pickup = world.CreatePickup(WorldEntities::Pickup::kUrn, {-6579, 0, 144});
   ASSERT_TRUE(pickup) << pickup.error();
@@ -103,7 +110,7 @@ TEST_F(PickupWorld, UrnInstallsItsSubclassBeforeNativeSpawn) {
   EXPECT_EQ(spawned, 1);
 }
 
-TEST_F(PickupWorld, MissingUrnDefinitionNeverReachesNativeSpawn) {
+TEST_F(NativeWorld, MissingUrnDefinitionNeverReachesNativeSpawn) {
   has_definition = false;
   auto world = World();
   const auto pickup = world.CreatePickup(WorldEntities::Pickup::kUrn, {0, 0, 24});
@@ -113,13 +120,42 @@ TEST_F(PickupWorld, MissingUrnDefinitionNeverReachesNativeSpawn) {
   EXPECT_EQ(spawned, 0);
 }
 
-TEST_F(PickupWorld, MovementBuffKeepsItsOwnSubclass) {
+TEST_F(NativeWorld, MovementBuffKeepsItsOwnSubclass) {
   auto world = World();
   const auto pickup = world.CreatePickup(WorldEntities::Pickup::kMovementBuff, {0, 0, 16});
   ASSERT_TRUE(pickup) << pickup.error();
   EXPECT_EQ(designer, "citadel_item_pickup");
   EXPECT_EQ(subclass, MakeMemberName("movement_powerup_pickup").hash);
   EXPECT_EQ(spawned, 1);
+}
+
+TEST_F(NativeWorld, SpawnPreparesTheUnitBeforeNativeSpawn) {
+  auto world = World();
+  WorldEntities::Target target{.designer_name = "npc_trooper",
+                               .subclass_id = WorldEntities::SubclassId("trooper_melee"),
+                               .team = 2};
+  const auto npc = world.Spawn(target, [](void* unit) -> std::expected<void, std::string> {
+    Write(static_cast<std::byte*>(unit) + kPreparedOffset, uint32_t{3});
+    return {};
+  });
+  ASSERT_TRUE(npc) << npc.error();
+  EXPECT_EQ(prepared, 3u);
+  EXPECT_EQ(spawned, 1);
+}
+
+TEST_F(NativeWorld, FailedPreparationRemovesTheUnitUnspawned) {
+  auto world = World();
+  WorldEntities::Target target{.designer_name = "npc_trooper",
+                               .subclass_id = WorldEntities::SubclassId("trooper_melee"),
+                               .team = 2};
+  const auto npc = world.Spawn(target, [](void*) -> std::expected<void, std::string> {
+    return std::unexpected("the entity is a CNPC_Trooper, not a CCitadelPlayerPawn");
+  });
+  ASSERT_FALSE(npc);
+  EXPECT_EQ(npc.error(), "the entity is a CNPC_Trooper, not a CCitadelPlayerPawn");
+  EXPECT_EQ(created, 1);
+  EXPECT_EQ(removed, 1);
+  EXPECT_EQ(spawned, 0);
 }
 
 }  // namespace

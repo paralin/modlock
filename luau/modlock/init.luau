@@ -727,6 +727,22 @@ export type NpcOptions = {
 	maxHealth: number?,
 	-- lane is the lane a trooper walks.
 	lane: number?,
+	-- fields are schema fields the host writes after it creates the unit and
+	-- before the unit spawns, such as m_iInitialTeamNum, which the game reads
+	-- only while spawning. A write that fails cancels the spawn.
+	fields: { FieldWrite }?,
+}
+
+-- FieldWrite writes one schema field of an entity the host creates.
+export type FieldWrite = {
+	-- className is the server class that declares the field, or a subclass.
+	className: string,
+	-- field is the field's schema name, such as m_iLane.
+	field: string,
+	-- type is how to write the field.
+	type: FieldType,
+	-- value is the field's value.
+	value: FieldValue,
 }
 
 -- NpcState is a unit's state this frame.
@@ -1891,6 +1907,13 @@ schema.NpcOptions = {
 	{ number = 6, name = "health", kind = "int32", optional = true },
 	{ number = 7, name = "maxHealth", kind = "int32", optional = true },
 	{ number = 8, name = "lane", kind = "uint32", optional = true },
+	{ number = 9, name = "fields", kind = "message", repeated = true, message = "FieldWrite" },
+}
+schema.FieldWrite = {
+	{ number = 1, name = "className", kind = "string" },
+	{ number = 2, name = "field", kind = "string" },
+	{ number = 3, name = "type", kind = "enum", enum = FieldType },
+	{ number = 4, name = "value", kind = "message", message = "FieldValue", union = "value" },
 }
 schema.NpcResponse = {
 	{ number = 1, name = "npc", kind = "uint32", class = Npc, key = "entity" },

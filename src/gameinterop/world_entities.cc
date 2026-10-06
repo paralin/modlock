@@ -171,7 +171,8 @@ std::expected<void, std::string> WorldEntities::Apply(void* entity, const Target
   return {};
 }
 
-std::expected<void*, std::string> WorldEntities::Create(const Target& target) {
+std::expected<void*, std::string> WorldEntities::Create(const Target& target,
+                                                        const Prepare& prepare) {
   auto system = calls_.entity_system();
   if (!system) return std::unexpected(system.error());
   void* definition = target.subclass_id ? calls_.definition(-1, target.subclass_id) : nullptr;
@@ -198,6 +199,12 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target) {
       return std::unexpected("trooper lane unavailable");
     }
     WriteAt(entity, lane->offset, *target.lane);
+  }
+  if (prepare) {
+    if (auto prepared = prepare(entity); !prepared) {
+      calls_.remove(entity);
+      return std::unexpected(prepared.error());
+    }
   }
   TeleportEntity(entity, target.position, target.facing, target.velocity);
   const auto handle = ReferenceHandleOf(entity);
@@ -357,14 +364,15 @@ uint32_t WorldEntities::SubclassId(std::string_view vdata_name) {
   return MakeMemberName(vdata_name).hash;
 }
 
-std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target) {
+std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target,
+                                                          const Prepare& prepare) {
   if (!IsSpawnableNpc(target.designer_name) || !target.subclass_id || target.team < 0 ||
       target.team > 4 || target.health < 0 || target.max_health < target.health)
     return std::unexpected("unsupported NPC spawn: " + target.designer_name);
   for (const auto& vector : {target.position, target.facing, target.velocity})
     for (float value : vector)
       if (!std::isfinite(value)) return std::unexpected("NPC spawn motion is nonfinite");
-  auto created = Create(target);
+  auto created = Create(target, prepare);
   if (!created) return std::unexpected(created.error());
   // A spawn that fails after creation is removed, so no untracked NPC remains.
   auto applied = Apply(*created, target);

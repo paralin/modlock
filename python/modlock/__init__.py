@@ -852,6 +852,24 @@ class NpcOptions:
     max_health: int | None = None
     # lane is the lane a trooper walks.
     lane: int | None = None
+    # fields are schema fields the host writes after it creates the unit and
+    # before the unit spawns, such as m_iInitialTeamNum, which the game reads
+    # only while spawning. A write that fails cancels the spawn.
+    fields: list[FieldWrite] = dataclasses.field(default_factory=lambda: list[FieldWrite]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class FieldWrite:
+    """FieldWrite writes one schema field of an entity the host creates."""
+
+    # class_name is the server class that declares the field, or a subclass.
+    class_name: str = ""
+    # field is the field's schema name, such as m_iLane.
+    field: str = ""
+    # type is how to write the field.
+    type: FieldType
+    # value is the field's value.
+    value: FieldValue | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2127,6 +2145,16 @@ _SCHEMA: wire.Schema = {
             wire.Field(6, "health", "int32", optional=True),
             wire.Field(7, "max_health", "int32", optional=True),
             wire.Field(8, "lane", "uint32", optional=True),
+            wire.Field(9, "fields", "message", repeated=True, message="FieldWrite"),
+        ],
+    ),
+    "FieldWrite": (
+        FieldWrite,
+        [
+            wire.Field(1, "class_name", "string"),
+            wire.Field(2, "field", "string"),
+            wire.Field(3, "type", "enum", enum=_FieldType),
+            wire.Field(4, "value", "message", message="FieldValue", union="value"),
         ],
     ),
     "NpcResponse": (

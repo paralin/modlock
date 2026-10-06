@@ -1023,8 +1023,10 @@ std::expected<PawnResponse, std::string> Game::Pawn(const PlayerRequest& request
   return response;
 }
 
-std::expected<std::pair<void*, unsigned char*>, std::string> Game::FieldAddress(
-    uint32_t handle, const std::string& class_name, const std::string& field, FieldType type) {
+std::expected<unsigned char*, std::string> Game::FieldAddress(void* entity,
+                                                              const std::string& class_name,
+                                                              const std::string& field,
+                                                              FieldType type) {
   const auto size = Size(type);
   if (size == 0) return std::unexpected("the field type is unknown");
   auto found = services_.Field(class_name, field);
@@ -1032,28 +1034,41 @@ std::expected<std::pair<void*, unsigned char*>, std::string> Game::FieldAddress(
   if (found->size < size) {
     return std::unexpected(class_name + "." + field + " is smaller than its requested type");
   }
-  auto entity = Entity(handle);
-  if (!entity) return std::unexpected(entity.error());
 
   // The offset belongs to class_name, so the entity must be one.
-  auto actual = gameinterop::SchemaClassOfEntity(*entity, gameinterop::ReadNative);
+  auto actual = gameinterop::SchemaClassOfEntity(entity, gameinterop::ReadNative);
   if (!actual) return std::unexpected(actual.error());
   if (!services_.Derives(*actual, class_name)) {
-    return std::unexpected("the entity is a " + std::string(gameinterop::SchemaClassNameOf(*actual)) +
-                           ", not a " + class_name);
+    return std::unexpected("the entity is a " +
+                           std::string(gameinterop::SchemaClassNameOf(*actual)) + ", not a " +
+                           class_name);
   }
-  return std::pair{*entity, static_cast<unsigned char*>(*entity) + found->offset};
+  return static_cast<unsigned char*>(entity) + found->offset;
+}
+
+std::expected<void, std::string> Game::StoreField(void* entity, const std::string& class_name,
+                                                  const std::string& field, FieldType type,
+                                                  const FieldValue& value) {
+  auto bytes = Encode(type, value);
+  if (!bytes) return std::unexpected(bytes.error());
+  auto address = FieldAddress(entity, class_name, field, type);
+  if (!address) return std::unexpected(address.error());
+  if (!gameinterop::WriteNative(*address, bytes->data(), Size(type))) {
+    return std::unexpected("cannot write " + class_name + "." + field);
+  }
+  return {};
 }
 
 std::expected<FieldResponse, std::string> Game::ReadField(const ReadFieldRequest& request) {
-  auto address =
-      FieldAddress(request.entity(), request.class_name(), request.field(), request.type());
+  auto entity = Entity(request.entity());
+  if (!entity) return std::unexpected(entity.error());
+  auto address = FieldAddress(*entity, request.class_name(), request.field(), request.type());
   if (!address) return std::unexpected(address.error());
 
   // Copy through the operating system, so a field the entity lacks fails
   // instead of faulting the server.
   std::array<unsigned char, 12> bytes{};
-  if (!gameinterop::ReadNative(address->second, bytes.data(), Size(request.type()))) {
+  if (!gameinterop::ReadNative(*address, bytes.data(), Size(request.type()))) {
     return std::unexpected("cannot read " + request.class_name() + "." + request.field());
   }
   auto value = Decode(request.type(), bytes.data());
@@ -1064,15 +1079,12 @@ std::expected<FieldResponse, std::string> Game::ReadField(const ReadFieldRequest
 }
 
 std::expected<void, std::string> Game::WriteField(const WriteFieldRequest& request) {
-  auto bytes = Encode(request.type(), request.value());
-  if (!bytes) return std::unexpected(bytes.error());
-  auto address =
-      FieldAddress(request.entity(), request.class_name(), request.field(), request.type());
-  if (!address) return std::unexpected(address.error());
-  if (!gameinterop::WriteNative(address->second, bytes->data(), Size(request.type()))) {
-    return std::unexpected("cannot write " + request.class_name() + "." + request.field());
-  }
-  if (!gameinterop::NotifyEntityStateChanged(address->first)) {
+  auto entity = Entity(request.entity());
+  if (!entity) return std::unexpected(entity.error());
+  auto stored =
+      StoreField(*entity, request.class_name(), request.field(), request.type(), request.value());
+  if (!stored) return stored;
+  if (!gameinterop::NotifyEntityStateChanged(*entity)) {
     return std::unexpected("cannot replicate " + request.class_name() + "." + request.field());
   }
   return {};
@@ -1607,7 +1619,16 @@ std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request
       .max_health = max_health,
       .lane = request.has_lane() ? std::optional(request.lane()) : std::nullopt,
   };
-  auto entity = (*world)->Spawn(target);
+  // The unit is not networked yet, so its fields need no change notice.
+  auto prepare = [&](void* created) -> std::expected<void, std::string> {
+    for (const auto& write : request.fields()) {
+      auto stored =
+          StoreField(created, write.class_name(), write.field(), write.type(), write.value());
+      if (!stored) return stored;
+    }
+    return {};
+  };
+  auto entity = (*world)->Spawn(target, prepare);
   if (!entity) return std::unexpected(entity.error());
   npcs_.insert(*entity);
   spawned_ = true;

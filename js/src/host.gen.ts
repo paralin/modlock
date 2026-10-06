@@ -1127,6 +1127,49 @@ export interface NpcOptions {
   maxHealth?: number
   /** lane is the lane a trooper walks. */
   lane?: number
+  /**
+   * fields are schema fields the host writes after it creates the unit and
+   * before the unit spawns, such as m_iInitialTeamNum, which the game reads
+   * only while spawning. A write that fails cancels the spawn.
+   */
+  fields?: readonly FieldWrite[]
+}
+
+/** toNpcOptions encodes a NpcOptions. */
+function toNpcOptions(value: NpcOptions): pb.NpcOptions {
+  return {
+    className: value.className,
+    unit: value.unit,
+    team: value.team,
+    position: value.position,
+    facing: value.facing,
+    health: value.health,
+    maxHealth: value.maxHealth,
+    lane: value.lane,
+    fields: value.fields?.map((v) => toFieldWrite(v)),
+  }
+}
+
+/** FieldWrite writes one schema field of an entity the host creates. */
+export interface FieldWrite {
+  /** className is the server class that declares the field, or a subclass. */
+  className: string
+  /** field is the field's schema name, such as m_iLane. */
+  field: string
+  /** type is how to write the field. */
+  type: FieldType
+  /** value is the field's value. */
+  value: FieldValue
+}
+
+/** toFieldWrite encodes a FieldWrite. */
+function toFieldWrite(value: FieldWrite): pb.FieldWrite {
+  return {
+    className: value.className,
+    field: value.field,
+    type: fieldTypeValues[value.type],
+    value: toFieldValue(value.value),
+  }
 }
 
 /** NpcState is a unit's state this frame. */
@@ -1894,7 +1937,7 @@ export function callService(service: string, method: string, payload: Uint8Array
  * the mod removes it too.
  */
 export function spawnNpc(options: NpcOptions): Npc | undefined {
-  const reply = call('SpawnNpc', pb.NpcOptions.toBinary(options))
+  const reply = call('SpawnNpc', pb.NpcOptions.toBinary(toNpcOptions(options)))
   if (reply === undefined) return undefined
   const response = pb.NpcResponse.fromBinary(reply)
   return new Npc(response.npc ?? 0)

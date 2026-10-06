@@ -4263,6 +4263,50 @@ export const UiRequest: MessageType<UiRequest> = /* @__PURE__ */ createMessageTy
 });
 
 /**
+ * FieldWrite writes one schema field of an entity the host creates.
+ *
+ * @generated from message modlock.wasm.FieldWrite
+ */
+export interface FieldWrite {
+  /**
+   * ClassName is the server class that declares the field, or a subclass.
+   *
+   * @generated from field: string class_name = 1;
+   */
+  className?: string;
+  /**
+   * Field is the field's schema name, such as m_iLane.
+   *
+   * @generated from field: string field = 2;
+   */
+  field?: string;
+  /**
+   * Type is how to write the field.
+   *
+   * @generated from field: modlock.wasm.FieldType type = 3;
+   */
+  type?: FieldType;
+  /**
+   * Value is the field's value.
+   *
+   * @generated from field: modlock.wasm.FieldValue value = 4;
+   */
+  value?: FieldValue;
+
+};
+
+export const FieldWrite: MessageType<FieldWrite> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.FieldWrite",
+    fields: [
+        { no: 1, name: "class_name", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "field", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "type", kind: "enum", T: FieldType_Enum },
+        { no: 4, name: "value", kind: "message", T: () => FieldValue },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * NpcOptions describes a unit that is not a player, such as a trooper.
  *
  * @generated from message modlock.wasm.NpcOptions
@@ -4317,6 +4361,14 @@ export interface NpcOptions {
    * @generated from field: optional uint32 lane = 8;
    */
   lane?: number;
+  /**
+   * Fields are schema fields the host writes after it creates the unit and
+   * before the unit spawns, such as m_iInitialTeamNum, which the game reads
+   * only while spawning. A write that fails cancels the spawn.
+   *
+   * @generated from field: repeated modlock.wasm.FieldWrite fields = 9;
+   */
+  fields?: FieldWrite[];
 
 };
 
@@ -4331,6 +4383,7 @@ export const NpcOptions: MessageType<NpcOptions> = /* @__PURE__ */ createMessage
         { no: 6, name: "health", kind: "scalar", T: ScalarType.INT32, opt: true },
         { no: 7, name: "max_health", kind: "scalar", T: ScalarType.INT32, opt: true },
         { no: 8, name: "lane", kind: "scalar", T: ScalarType.UINT32, opt: true },
+        { no: 9, name: "fields", kind: "message", T: () => FieldWrite, repeated: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

@@ -524,6 +524,26 @@ with a message naming both classes and the entity unchanged.
 `entityClass(entity)` returns an entity's class, such as `CCitadelPlayerPawn`,
 and its designer name, such as `player`.
 
+Some fields matter only while an entity spawns, such as a unit's
+`m_iInitialTeamNum`. `spawnNpc` writes those before the unit spawns:
+
+```ts
+spawnNpc({
+  className: 'npc_trooper_boss',
+  unit: 'npc_boss_tier1',
+  team: 2,
+  position,
+  fields: [
+    {
+      className: 'CBaseEntity',
+      field: 'm_iInitialTeamNum',
+      type: 'int32',
+      value: 2,
+    },
+  ],
+})
+```
+
 `modlock/entities` has a typed class for each server entity class, with a
 getter and, for each field but a string, a setter:
 

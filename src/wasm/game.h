@@ -332,7 +332,8 @@ class Game : public HostService {
       const ClearScreenEffectRequest& request) override;
   std::expected<FieldResponse, std::string> ReadField(const ReadFieldRequest& request) override;
   std::expected<void, std::string> WriteField(const WriteFieldRequest& request) override;
-  std::expected<EntityClassResponse, std::string> EntityClass(const EntityRequest& request) override;
+  std::expected<EntityClassResponse, std::string> EntityClass(
+      const EntityRequest& request) override;
   std::expected<ActiveResponse, std::string> ModifierState(
       const ModifierStateRequest& request) override;
   std::expected<void, std::string> HoldModifierState(
@@ -382,10 +383,17 @@ class Game : public HostService {
   std::expected<void, std::string> WatchMovement(const WatchMovementRequest& request) override;
   std::expected<void, std::string> WatchProjectiles(const ProjectileOptions& request) override;
 
-  // FieldAddress resolves a schema field of a live entity that holds a value
-  // of type, returning the entity and the field's address in it.
-  std::expected<std::pair<void*, unsigned char*>, std::string> FieldAddress(
-      uint32_t handle, const std::string& class_name, const std::string& field, FieldType type);
+  // FieldAddress resolves a schema field of entity that holds a value of
+  // type, refusing an entity that is not of class_name.
+  std::expected<unsigned char*, std::string> FieldAddress(void* entity,
+                                                          const std::string& class_name,
+                                                          const std::string& field, FieldType type);
+
+  // StoreField writes a schema field of entity without telling the network
+  // it changed.
+  std::expected<void, std::string> StoreField(void* entity, const std::string& class_name,
+                                              const std::string& field, FieldType type,
+                                              const FieldValue& value);
 
   // ScreenOwner returns the entity index a screen effect for slot belongs to.
   std::expected<int32_t, std::string> ScreenOwner(int32_t slot);

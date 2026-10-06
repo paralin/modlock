@@ -230,6 +230,9 @@ type BotOptionsHeroId = wasm.BotOptions_HeroId
 // NpcOptions describes a unit that is not a player, such as a trooper.
 type NpcOptions = wasm.NpcOptions
 
+// FieldWrite writes one schema field of an entity the host creates.
+type FieldWrite = wasm.FieldWrite
+
 // NpcState is a unit's state this frame.
 type NpcState = wasm.NpcState
 

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <expected>
+#include <functional>
 #include <optional>
 #include <span>
 #include <string>
@@ -81,7 +82,10 @@ class MODLOCK_API WorldEntities {
   // accepts the restorable classes plus npc_trooper_boss (the lane Guardian).
   // A health of zero keeps the subclass default. Call FinishSpawns on the next
   // engine frame; it reapplies placement to spawns that are still alive.
-  std::expected<uint32_t, std::string> Spawn(const Target& target);
+  // Prepare, when set, runs on the created entity before it spawns, for
+  // fields the game reads only while spawning; its failure cancels the spawn.
+  using Prepare = std::function<std::expected<void, std::string>(void* entity)>;
+  std::expected<uint32_t, std::string> Spawn(const Target& target, const Prepare& prepare = {});
   void FinishSpawns();
   // ReadNpc samples one live NPC by handle; nullopt once it is gone or dead.
   std::expected<std::optional<Sample>, std::string> ReadNpc(uint32_t handle) const;
@@ -101,7 +105,7 @@ class MODLOCK_API WorldEntities {
 
  private:
   std::expected<Sample, std::string> ReadEntity(void* entity, std::string name) const;
-  std::expected<void*, std::string> Create(const Target& target);
+  std::expected<void*, std::string> Create(const Target& target, const Prepare& prepare = {});
   std::expected<void, std::string> Apply(void* entity, const Target& target) const;
   Calls calls_;
   std::vector<Sample> pending_;

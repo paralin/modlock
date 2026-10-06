@@ -1748,6 +1748,26 @@ message NpcOptions {
 
   // Lane is the lane a trooper walks.
   optional uint32 lane = 8;
+
+  // Fields are schema fields the host writes after it creates the unit and
+  // before the unit spawns, such as m_iInitialTeamNum, which the game reads
+  // only while spawning. A write that fails cancels the spawn.
+  repeated FieldWrite fields = 9;
+}
+
+// FieldWrite writes one schema field of an entity the host creates.
+message FieldWrite {
+  // ClassName is the server class that declares the field, or a subclass.
+  string class_name = 1;
+
+  // Field is the field's schema name, such as m_iLane.
+  string field = 2;
+
+  // Type is how to write the field.
+  FieldType type = 3;
+
+  // Value is the field's value.
+  FieldValue value = 4;
 }
 
 // NpcResponse holds the unit SpawnNpc added.
