@@ -70,7 +70,7 @@ signatures {
 signatures {
   id: "ability.think"
   modules: GAME_MODULE_SERVER
-  pattern: "48 89 4C 24 ?? 55 53 57 41 54 41 55 41 56 48 8D AC 24"
+  pattern: "48 89 4C 24 ?? 55 53 57 41 ?? 41 ?? 41 ?? 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 C7 45 D8 ?? ?? 00 00 48 89 45 D0"
   shape: "CCitadelBaseAbility::AbilityThink"
 }
 
@@ -257,7 +257,7 @@ signatures {
 signatures {
   id: "game-rules.manifest-builder"
   modules: GAME_MODULE_SERVER
-  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02 48 8D 0D ?? ?? ?? ?? 4C 8B F2"
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02"
   shape: "CCitadelGameRules::BuildGameSessionManifest"
 }
 
@@ -265,8 +265,8 @@ signatures {
 signatures {
   id: "game-rules.precache-call"
   modules: GAME_MODULE_SERVER
-  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02 48 8D 0D ?? ?? ?? ?? 4C 8B F2"
-  call_at: 0x342
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02"
+  call_at: 0x394
   shape: "hero precache helper called by the manifest builder"
 }
 
@@ -274,8 +274,8 @@ signatures {
 signatures {
   id: "game-rules.precache-global"
   modules: GAME_MODULE_SERVER
-  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02 48 8D 0D ?? ?? ?? ?? 4C 8B F2"
-  rip_relative_at: 0x33b
+  pattern: "48 89 54 24 ?? 48 89 4C 24 ?? 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 4C 8B 02"
+  rip_relative_at: 0x389
   shape: "hero precache context loaded by the manifest builder"
 }
 
