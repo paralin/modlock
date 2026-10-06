@@ -3,10 +3,9 @@
 package npm
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -69,32 +68,13 @@ func Tsgo(ctx context.Context) (string, error) {
 // extract unpacks the regular files under package/ in the npm archive at
 // archive into dir, keeping their paths and modes.
 func extract(archive, dir string) error {
-	file, err := os.Open(archive)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	compressed, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	reader := tar.NewReader(compressed)
-	for {
-		header, err := reader.Next()
-		if err == io.EOF {
+	return fetch.WalkTar(archive, func(name string, mode fs.FileMode, body io.Reader) error {
+		name, ok := strings.CutPrefix(name, "package/")
+		if !ok || !filepath.IsLocal(name) {
 			return nil
 		}
-		if err != nil {
-			return err
-		}
-		name, ok := strings.CutPrefix(path.Clean(header.Name), "package/")
-		if !ok || header.Typeflag != tar.TypeReg || !filepath.IsLocal(name) {
-			continue
-		}
-		if err := write(filepath.Join(dir, filepath.FromSlash(name)), reader, header.FileInfo().Mode().Perm()|0o644); err != nil {
-			return err
-		}
-	}
+		return write(filepath.Join(dir, filepath.FromSlash(name)), body, mode|0o644)
+	})
 }
 
 // write copies source into a new file at target.

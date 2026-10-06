@@ -19,7 +19,6 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
@@ -313,36 +312,16 @@ func Pack(ctx context.Context, source, archive string) error {
 
 // unpack writes the files of the library archive at archive into dir.
 func unpack(archive, dir string) error {
-	file, err := os.Open(archive)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	compressed, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	reader := tar.NewReader(compressed)
-	for {
-		header, err := reader.Next()
-		if err == io.EOF {
+	return fetch.WalkTar(archive, func(name string, _ fs.FileMode, body io.Reader) error {
+		if strings.Contains(name, "/") || !filepath.IsLocal(name) {
 			return nil
 		}
+		data, err := io.ReadAll(body)
 		if err != nil {
 			return err
 		}
-		name := path.Clean(header.Name)
-		if header.Typeflag != tar.TypeReg || strings.Contains(name, "/") || !filepath.IsLocal(name) {
-			continue
-		}
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return err
-		}
-		if err := write(filepath.Join(dir, name), data); err != nil {
-			return err
-		}
-	}
+		return write(filepath.Join(dir, name), data)
+	})
 }
 
 // copyTree copies the files under from into to.
