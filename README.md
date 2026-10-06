@@ -18,9 +18,11 @@ command('hello', (player) => {
 })
 ```
 
-> **Early development.** APIs change without notice. TypeScript, JavaScript,
-> Luau, Python and Go mods, the `modlock` command line and `modlock publish`
-> work today.
+> **Early development.** APIs change without notice.
+> [TypeScript, JavaScript](#the-typescript-library),
+> [Luau](#writing-a-mod-in-luau), [Python](#writing-a-mod-in-python) and
+> [Go](#writing-a-mod-in-go) mods, the `modlock` command line and
+> `modlock publish` work today.
 
 ## Why WebAssembly
 
@@ -71,6 +73,9 @@ modlock dev
 | `tsconfig.json` | The compiler options your editor uses to check the code as you type. |
 
 Pass `--language javascript`, `luau`, `python` or `go` for another language.
+Complete game modes to start from include
+[`arena`](examples/arena) in TypeScript, [`bounty`](examples/bounty) in Luau
+and [`race`](examples/race) in Go.
 
 `modlock dev` builds the mod, starts a local server with it, and launches
 Deadlock through Steam to join. Each time you save, it rebuilds the mod and
@@ -394,17 +399,19 @@ When the mode plays well, [publish it](#publishing).
 
 ## Examples
 
-| Example                                                                      | Shows                                                               |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [`hello-ts`](examples/hello-ts)                                              | Commands, a JSX menu with buttons, moving text, a setting, metrics. |
-| [`arena`](examples/arena)                                                    | A free-for-all: ready-up, countdown, kills, bots, a self-test.      |
-| [`hill`](examples/hill)                                                      | King of the hill: a ring of world text, team scores, progress bars. |
-| [`drill`](examples/drill)                                                    | An aim drill: target bots, headshots, a length setting, best score. |
-| [`dropper`](examples/dropper)                                                | Building a spot of solid objects while playing.                     |
-| [`bounty`](examples/bounty)                                                  | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
-| [`race`](examples/race)                                                      | A Go checkpoint race: a marked course, laps, resets, unit tests.    |
-| [`hello-luau`](examples/hello-luau), [`hello-python`](examples/hello-python) | The smallest mod in Luau and in Python.                             |
-| [`hello`](examples/hello)                                                    | A native C++ plugin.                                                |
+| Example                                 | Shows                                                               |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| [`hello-ts`](examples/hello-ts)         | Commands, a JSX menu with buttons, moving text, a setting, metrics. |
+| [`arena`](examples/arena)               | A free-for-all: ready-up, countdown, kills, bots, a self-test.      |
+| [`hill`](examples/hill)                 | King of the hill: a ring of world text, team scores, progress bars. |
+| [`drill`](examples/drill)               | An aim drill: target bots, headshots, a length setting, best score. |
+| [`dropper`](examples/dropper)           | Building a spot of solid objects while playing.                     |
+| [`bounty`](examples/bounty)             | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
+| [`race`](examples/race)                 | A Go checkpoint race: a marked course, laps, resets, unit tests.    |
+| [`hello-luau`](examples/hello-luau)     | The smallest mod in Luau.                                           |
+| [`hello-python`](examples/hello-python) | The smallest mod in Python.                                         |
+| [`hello-go`](examples/hello-go)         | The smallest mod in Go.                                             |
+| [`hello`](examples/hello)               | A native C++ plugin.                                                |
 
 ## Publishing
 
