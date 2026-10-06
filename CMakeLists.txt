@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# scripts/lint-cc.ts reads the compile database.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(APPLE)
   set(CMAKE_INSTALL_RPATH "@loader_path;@loader_path/../lib")
 elseif(UNIX)

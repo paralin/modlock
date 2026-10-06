@@ -1,6 +1,5 @@
 #include "wasm/npc_restore.h"
 
-#include <cmath>
 #include <format>
 #include <limits>
 #include <map>

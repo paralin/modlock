@@ -7,6 +7,7 @@
     "typecheck": "tsgo --noEmit -p js/tsconfig.json && tsgo --noEmit -p panorama/tsconfig.json && tsgo --noEmit -p scripts/tsconfig.json",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
+    "lint:cc": "bun scripts/lint-cc.ts",
     "format": "oxfmt",
     "test": "bun test --timeout 30000 ./panorama/"
   },

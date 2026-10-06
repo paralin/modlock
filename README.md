@@ -951,7 +951,10 @@ scripts/gen-entities.sh path/to/DumpSource2/schemas
 with oxfmt and restages them. It then checks the staged TypeScript for commented
 code paragraphs with `scripts/tsstyle.ts` and lints it with type-aware oxlint.
 `bun run typecheck`, `bun run lint`, `bun run format` and `bun run test` run the
-same tools across the repository. Lint the example mods after
+same tools across the repository. `bun run lint:cc` reports the includes a C++
+source does not use, and `bun run lint:cc --fix` removes them; it reads the
+compile databases of `build` and `scripts/proton-build.sh`, so build both
+first. Lint the example mods after
 `go run ./cmd/modlock build examples/<mod>` installs their typings.
 
 ## Native plugins

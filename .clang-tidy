@@ -1,0 +1,8 @@
+# misc-include-cleaner reports includes a file does not use. Run it with
+# bun run lint:cc, which checks both the native and the Windows build. The
+# Windows SDK's umbrella headers are the supported way to reach the
+# declarations they include, so the check leaves them alone.
+Checks: '-*,misc-include-cleaner'
+CheckOptions:
+  misc-include-cleaner.MissingIncludes: false
+  misc-include-cleaner.IgnoreHeaders: 'windows\.h;winsock2\.h;ws2tcpip\.h'

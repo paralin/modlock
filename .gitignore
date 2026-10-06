@@ -3,6 +3,7 @@
 /.tools/
 /Testing/
 /.tmp/
+/.cache/
 /node_modules/
 /.protoc-manifest.json
 /js/dist/

@@ -1,7 +1,6 @@
 // Contract tests for the signature scanner: pattern parsing, exact match
 // offsets, zero-hit scans, and boundary-spanning candidates, all against a
 // committed synthetic .text fixture. No process access anywhere.
-#include <array>
 #include <cstdint>
 #include <span>
 #include <string>

@@ -1,6 +1,5 @@
 #include "modlock/gameinterop/hero_initialization.h"
 
-#include <algorithm>
 #include <cstdint>
 #include <utility>
 

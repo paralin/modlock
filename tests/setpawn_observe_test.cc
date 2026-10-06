@@ -9,7 +9,6 @@
 #include <string>
 
 #include "gameinterop_module_image_test.h"
-#include "modlock/gameinterop/game_symbols.h"
 
 namespace {
 

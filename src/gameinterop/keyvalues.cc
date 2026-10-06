@@ -2,7 +2,6 @@
 
 #include <cctype>
 #include <cstring>
-#include <limits>
 
 #if defined(_WIN32)
 #include <windows.h>
