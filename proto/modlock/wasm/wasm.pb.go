@@ -2032,6 +2032,9 @@ type Pawn struct {
 	EyePosition *modlock.Vec3 `protobuf:"bytes,13,opt,name=eye_position,json=eyePosition,proto3" json:"eyePosition,omitempty"`
 	// Velocity is the hero's motion in units per second.
 	Velocity *modlock.Vec3 `protobuf:"bytes,14,opt,name=velocity,proto3" json:"velocity,omitempty"`
+	// CarryingUrn is whether the hero carries the soul urn, absent when the
+	// game's modifier states cannot be read.
+	CarryingUrn *bool `protobuf:"varint,15,opt,name=carrying_urn,json=carryingUrn,proto3,oneof" json:"carryingUrn,omitempty"`
 }
 
 func (x *Pawn) Reset() {
@@ -2138,6 +2141,13 @@ func (x *Pawn) GetVelocity() *modlock.Vec3 {
 	return nil
 }
 
+func (x *Pawn) GetCarryingUrn() bool {
+	if x != nil && x.CarryingUrn != nil {
+		return *x.CarryingUrn
+	}
+	return false
+}
+
 // SelectHeroRequest gives a player a hero.
 type SelectHeroRequest struct {
 	unknownFields []byte
@@ -2146,7 +2156,6 @@ type SelectHeroRequest struct {
 	// Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
-	//
 	//	*SelectHeroRequest_HeroName
 	//	*SelectHeroRequest_HeroId
 	Hero isSelectHeroRequest_Hero `protobuf_oneof:"hero"`
@@ -3532,7 +3541,6 @@ func (x *FieldResponse) GetValue() *FieldValue {
 type FieldValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
-	//
 	//	*FieldValue_Boolean
 	//	*FieldValue_Number
 	//	*FieldValue_Integer
@@ -4218,7 +4226,6 @@ type BotOptions struct {
 	// as Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
-	//
 	//	*BotOptions_HeroName
 	//	*BotOptions_HeroId
 	Hero isBotOptions_Hero `protobuf_oneof:"hero"`
@@ -6562,6 +6569,7 @@ func (m *Pawn) CloneVT() *Pawn {
 	r.MaxStamina = protobuf_go_lite.ClonePtr(m.MaxStamina)
 	r.EyePosition = protobuf_go_lite.CloneVTValue(m.EyePosition)
 	r.Velocity = protobuf_go_lite.CloneVTValue(m.Velocity)
+	r.CarryingUrn = protobuf_go_lite.ClonePtr(m.CarryingUrn)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -9343,6 +9351,9 @@ func (this *Pawn) EqualVT(that *Pawn) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Velocity, that.Velocity) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.CarryingUrn, that.CarryingUrn) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -14439,6 +14450,11 @@ func (x *Pawn) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("velocity")
 		x.Velocity.MarshalProtoJSON(s.WithField("velocity"))
 	}
+	if x.CarryingUrn != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("carryingUrn")
+		s.WriteBool(*x.CarryingUrn)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -14528,6 +14544,14 @@ func (x *Pawn) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Velocity = &modlock.Vec3{}
 			x.Velocity.UnmarshalProtoJSON(s.WithField("velocity", true))
+		case "carrying_urn", "carryingUrn":
+			s.AddField("carrying_urn")
+			if s.ReadNil() {
+				x.CarryingUrn = nil
+				return
+			}
+			t := s.ReadBool()
+			x.CarryingUrn = &t
 		}
 	})
 }
@@ -22943,6 +22967,11 @@ func (m *Pawn) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.CarryingUrn != nil {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, *m.CarryingUrn)
+		i--
+		dAtA[i] = 0x78
+	}
 	if m.Velocity != nil {
 		size, err := m.Velocity.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -28422,6 +28451,7 @@ func (m *Pawn) SizeVT() (n int) {
 		l = m.Velocity.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += protobuf_go_lite.SizeBoolPtr(1, m.CarryingUrn)
 	n += len(m.unknownFields)
 	return n
 }
@@ -30848,6 +30878,10 @@ func (x *Pawn) MarshalProtoText() string {
 	if x.Velocity != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "velocity")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Velocity)
+	}
+	if x.CarryingUrn != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "carrying_urn")
+		protobuf_go_lite.TextWriteBool(&sb, *x.CarryingUrn)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -36057,6 +36091,17 @@ func (m *Pawn) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 15:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CarryingUrn", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.CarryingUrn = &b
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

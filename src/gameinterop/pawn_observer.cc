@@ -166,8 +166,6 @@ std::optional<PawnObserver::Sample::MovementState> ReadMovementState(const Entit
       // EModifierState::GroundDashing and AirDashing are native action states.
       state.dashing = enabled(0x25) || enabled(0x29);
       state.climbing = enabled(0xbc);
-      // EModifierState::HoldingIdol is the game's native carried-urn state.
-      state.carrying_urn = enabled(0x94);
     }
   }
   return state;

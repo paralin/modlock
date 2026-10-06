@@ -21954,6 +21954,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     kMaxStaminaFieldNumber = 10,
     kGenerationFieldNumber = 11,
     kSoulsFieldNumber = 12,
+    kCarryingUrnFieldNumber = 15,
   };
   // .modlock.Vec3 position = 6;
   bool has_position() const;
@@ -22122,11 +22123,22 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
   void _internal_set_souls(::int32_t value);
 
   public:
+  // optional bool carrying_urn = 15;
+  bool has_carrying_urn() const;
+  void clear_carrying_urn() ;
+  bool carrying_urn() const;
+  void set_carrying_urn(bool value);
+
+  private:
+  bool _internal_carrying_urn() const;
+  void _internal_set_carrying_urn(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.Pawn)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 14,
+  static const ::google::protobuf::internal::TcParseTable<4, 15,
                                    5, 0,
                                    2>
       _table_;
@@ -22162,6 +22174,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     float max_stamina_;
     ::uint32_t generation_;
     ::int32_t souls_;
+    bool carrying_urn_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -36430,6 +36443,35 @@ inline void Pawn::set_allocated_velocity(::modlock::Vec3* PROTOBUF_NULLABLE valu
 
   _impl_.velocity_ = reinterpret_cast<::modlock::Vec3*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.Pawn.velocity)
+}
+
+// optional bool carrying_urn = 15;
+inline bool Pawn::has_carrying_urn() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00004000U);
+  return value;
+}
+inline void Pawn::clear_carrying_urn() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.carrying_urn_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00004000U);
+}
+inline bool Pawn::carrying_urn() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.Pawn.carrying_urn)
+  return _internal_carrying_urn();
+}
+inline void Pawn::set_carrying_urn(bool value) {
+  _internal_set_carrying_urn(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.Pawn.carrying_urn)
+}
+inline bool Pawn::_internal_carrying_urn() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.carrying_urn_;
+}
+inline void Pawn::_internal_set_carrying_urn(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.carrying_urn_ = value;
 }
 
 // -------------------------------------------------------------------

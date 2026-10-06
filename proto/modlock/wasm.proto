@@ -966,6 +966,10 @@ message Pawn {
 
   // Velocity is the hero's motion in units per second.
   modlock.Vec3 velocity = 14;
+
+  // CarryingUrn is whether the hero carries the soul urn, absent when the
+  // game's modifier states cannot be read.
+  optional bool carrying_urn = 15;
 }
 
 // SelectHeroRequest gives a player a hero.

@@ -34,8 +34,6 @@ struct PawnSample {
   std::optional<StaminaEvidence> stamina;
   // hero_id identifies the native hero observed for this frame.
   uint32_t hero_id = 0;
-  // carrying_urn is absent when the native holding state is unavailable.
-  std::optional<bool> carrying_urn;
   // pawn_handle identifies the current native pawn, including its serial number.
   uint32_t pawn_handle = 0;
 };

@@ -551,6 +551,9 @@ class Pawn:
     eye_position: Vector
     # velocity is the hero's motion in units per second.
     velocity: Vector
+    # carrying_urn is whether the hero carries the soul urn, absent when the
+    # game's modifier states cannot be read.
+    carrying_urn: bool | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1635,6 +1638,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(12, "souls", "int32"),
             wire.Field(13, "eye_position", "message", message="Vec3"),
             wire.Field(14, "velocity", "message", message="Vec3"),
+            wire.Field(15, "carrying_urn", "bool", optional=True),
         ],
     ),
     "SelectHeroRequest": (

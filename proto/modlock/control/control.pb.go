@@ -61,7 +61,6 @@ type ControlRequest struct {
 	// Body selects the request.
 	//
 	// Types that are assignable to Body:
-	//
 	//	*ControlRequest_Reload
 	Body isControlRequest_Body `protobuf_oneof:"body"`
 }
@@ -125,7 +124,6 @@ type HostEvent struct {
 	// Body selects the event.
 	//
 	// Types that are assignable to Body:
-	//
 	//	*HostEvent_Started
 	//	*HostEvent_Log
 	//	*HostEvent_Failed

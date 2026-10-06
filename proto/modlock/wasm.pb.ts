@@ -2033,6 +2033,13 @@ export interface Pawn {
    * @generated from field: modlock.Vec3 velocity = 14;
    */
   velocity?: Vec3;
+  /**
+   * CarryingUrn is whether the hero carries the soul urn, absent when the
+   * game's modifier states cannot be read.
+   *
+   * @generated from field: optional bool carrying_urn = 15;
+   */
+  carryingUrn?: boolean;
 
 };
 
@@ -2053,6 +2060,7 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType({
         { no: 12, name: "souls", kind: "scalar", T: ScalarType.INT32 },
         { no: 13, name: "eye_position", kind: "message", T: () => Vec3 },
         { no: 14, name: "velocity", kind: "message", T: () => Vec3 },
+        { no: 15, name: "carrying_urn", kind: "scalar", T: ScalarType.BOOL, opt: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

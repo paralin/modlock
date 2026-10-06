@@ -1539,13 +1539,8 @@ TEST(PawnObserver, DirectMovementFieldsAreFiniteAndGroundProvenanceIsExplicit) {
     ASSERT_TRUE(moving && moving->movement);
     EXPECT_EQ(moving->movement->dashing, flag != 0x23u);
   }
-  EXPECT_EQ(observer.Observe()->movement->carrying_urn, false);
-  const uint32_t urn_mask = uint32_t{1} << (0x94 % 32);
-  std::memcpy(modifiers.data() + (0x94 / 32) * 4, &urn_mask, sizeof(urn_mask));
-  EXPECT_EQ(observer.Observe()->movement->carrying_urn, true);
   WritePointer(pawn.data() + 0xa0, nullptr);
   EXPECT_FALSE(observer.Observe()->movement->dashing);
-  EXPECT_FALSE(observer.Observe()->movement->carrying_urn.has_value());
 
   // The default observer path does not touch optional movement fields.
   auto disabled_seams = SeamsFor(fixture);

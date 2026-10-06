@@ -21,7 +21,6 @@ type Event struct {
 	// Body selects the event.
 	//
 	// Types that are assignable to Body:
-	//
 	//	*Event_Note
 	//	*Event_Building
 	//	*Event_Built
@@ -296,7 +295,6 @@ type Input struct {
 	// Body selects the input.
 	//
 	// Types that are assignable to Body:
-	//
 	//	*Input_Command
 	//	*Input_Press
 	Body isInput_Body `protobuf_oneof:"body"`

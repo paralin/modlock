@@ -2764,7 +2764,8 @@ inline constexpr Pawn::Impl_::Impl_(
         stamina_{0},
         max_stamina_{0},
         generation_{0u},
-        souls_{0} {}
+        souls_{0},
+        carrying_urn_{false} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Pawn::Pawn(::_pbi::ConstantInitialized)
@@ -4101,7 +4102,7 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_._has_bits_),
-        17, // hasbit index offset
+        18, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.entity_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.hero_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.team_),
@@ -4116,6 +4117,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.souls_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.eye_position_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.velocity_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Pawn, _impl_.carrying_urn_),
         5,
         6,
         7,
@@ -4130,6 +4132,7 @@ const ::uint32_t
         13,
         3,
         4,
+        14,
         0x085, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::SelectHeroRequest, _impl_._has_bits_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::SelectHeroRequest, _impl_._oneof_case_[0]),
@@ -5033,99 +5036,99 @@ static const ::_pbi::MigrationSchema
         {334, sizeof(::modlock::wasm::Connection)},
         {349, sizeof(::modlock::wasm::PawnResponse)},
         {354, sizeof(::modlock::wasm::Pawn)},
-        {385, sizeof(::modlock::wasm::SelectHeroRequest)},
-        {398, sizeof(::modlock::wasm::HeroResponse)},
-        {403, sizeof(::modlock::wasm::FreezeRequest)},
-        {410, sizeof(::modlock::wasm::RefreshAbilityRequest)},
-        {417, sizeof(::modlock::wasm::AbilitiesResponse)},
-        {422, sizeof(::modlock::wasm::Ability)},
-        {447, sizeof(::modlock::wasm::AbilityOptions)},
-        {462, sizeof(::modlock::wasm::GiveItemRequest)},
-        {469, sizeof(::modlock::wasm::ReplaceAbilityRequest)},
-        {478, sizeof(::modlock::wasm::HoldModifierRequest)},
-        {487, sizeof(::modlock::wasm::GiveModifierRequest)},
-        {496, sizeof(::modlock::wasm::TeleportRequest)},
-        {507, sizeof(::modlock::wasm::MovePlayerRequest)},
-        {518, sizeof(::modlock::wasm::SteerRequest)},
-        {525, sizeof(::modlock::wasm::Steering)},
-        {538, sizeof(::modlock::wasm::AdjustSoulsRequest)},
-        {547, sizeof(::modlock::wasm::StartingSoulsRequest)},
-        {554, sizeof(::modlock::wasm::HealRequest)},
-        {561, sizeof(::modlock::wasm::SoundRequest)},
-        {568, sizeof(::modlock::wasm::MoveEntityRequest)},
-        {579, sizeof(::modlock::wasm::EmitSoundRequest)},
-        {586, sizeof(::modlock::wasm::SetVelocityRequest)},
-        {593, sizeof(::modlock::wasm::WatchMovementRequest)},
-        {600, sizeof(::modlock::wasm::ButtonsResponse)},
-        {605, sizeof(::modlock::wasm::ProjectileOptions)},
-        {612, sizeof(::modlock::wasm::RestoreHeroRequest)},
-        {619, sizeof(::modlock::wasm::HeroTarget)},
-        {644, sizeof(::modlock::wasm::EquipmentTarget)},
-        {653, sizeof(::modlock::wasm::TimerTarget)},
-        {668, sizeof(::modlock::wasm::ScreenEffectRequest)},
-        {677, sizeof(::modlock::wasm::ScreenTiming)},
-        {688, sizeof(::modlock::wasm::ClearScreenEffectRequest)},
-        {695, sizeof(::modlock::wasm::ReadFieldRequest)},
-        {706, sizeof(::modlock::wasm::FieldResponse)},
-        {711, sizeof(::modlock::wasm::FieldValue)},
-        {719, sizeof(::modlock::wasm::WriteFieldRequest)},
-        {732, sizeof(::modlock::wasm::ModifierStateRequest)},
-        {739, sizeof(::modlock::wasm::ActiveResponse)},
-        {744, sizeof(::modlock::wasm::HoldModifierStateRequest)},
-        {753, sizeof(::modlock::wasm::ModelOptions)},
-        {770, sizeof(::modlock::wasm::TextOptions)},
-        {787, sizeof(::modlock::wasm::ParticleOptions)},
-        {804, sizeof(::modlock::wasm::ParticlePoint)},
-        {811, sizeof(::modlock::wasm::FogOptions)},
-        {826, sizeof(::modlock::wasm::ObjectResponse)},
-        {831, sizeof(::modlock::wasm::EntityResponse)},
-        {836, sizeof(::modlock::wasm::ObjectRequest)},
-        {841, sizeof(::modlock::wasm::MoveObjectRequest)},
-        {850, sizeof(::modlock::wasm::SetTextRequest)},
-        {857, sizeof(::modlock::wasm::BotOptions)},
-        {872, sizeof(::modlock::wasm::BotResponse)},
-        {877, sizeof(::modlock::wasm::InputRequest)},
-        {882, sizeof(::modlock::wasm::PlayerInputRequest)},
-        {889, sizeof(::modlock::wasm::RemapInputRequest)},
-        {898, sizeof(::modlock::wasm::UiRequest)},
-        {905, sizeof(::modlock::wasm::NpcOptions)},
-        {924, sizeof(::modlock::wasm::NpcResponse)},
-        {929, sizeof(::modlock::wasm::NpcRequest)},
-        {934, sizeof(::modlock::wasm::NpcStateResponse)},
-        {939, sizeof(::modlock::wasm::NpcState)},
-        {952, sizeof(::modlock::wasm::MoveNpcRequest)},
-        {963, sizeof(::modlock::wasm::SetNpcHealthRequest)},
-        {972, sizeof(::modlock::wasm::AliveResponse)},
-        {977, sizeof(::modlock::wasm::CreatePickupRequest)},
-        {984, sizeof(::modlock::wasm::PickupResponse)},
-        {989, sizeof(::modlock::wasm::PickupRequest)},
-        {994, sizeof(::modlock::wasm::RemoveEntitiesRequest)},
-        {999, sizeof(::modlock::wasm::CountResponse)},
-        {1004, sizeof(::modlock::wasm::HitOptions)},
-        {1019, sizeof(::modlock::wasm::TraceOptions)},
-        {1032, sizeof(::modlock::wasm::TraceResponse)},
-        {1037, sizeof(::modlock::wasm::TraceHit)},
-        {1048, sizeof(::modlock::wasm::RestoreNpcsRequest)},
-        {1053, sizeof(::modlock::wasm::NpcTarget)},
-        {1074, sizeof(::modlock::wasm::PauseRequest)},
-        {1079, sizeof(::modlock::wasm::MatchClockResponse)},
-        {1084, sizeof(::modlock::wasm::HoldMatchClockRequest)},
-        {1089, sizeof(::modlock::wasm::RiftResponse)},
-        {1094, sizeof(::modlock::wasm::RiftState)},
-        {1109, sizeof(::modlock::wasm::StartRiftRequest)},
-        {1114, sizeof(::modlock::wasm::Manifest)},
-        {1139, sizeof(::modlock::wasm::Setting)},
-        {1158, sizeof(::modlock::wasm::SettingChoice)},
-        {1165, sizeof(::modlock::wasm::Metric)},
-        {1174, sizeof(::modlock::wasm::MetricTotal)},
-        {1183, sizeof(::modlock::wasm::MetricTotals)},
-        {1188, sizeof(::modlock::wasm::StoredSettings)},
-        {1193, sizeof(::modlock::wasm::StoredSetting)},
-        {1204, sizeof(::modlock::wasm::Movement)},
-        {1213, sizeof(::modlock::wasm::AbilityTuning_PropertiesEntry_DoNotUse)},
-        {1220, sizeof(::modlock::wasm::AbilityTuning_FieldsEntry_DoNotUse)},
-        {1227, sizeof(::modlock::wasm::AbilityTuning_CopyFieldsEntry_DoNotUse)},
-        {1234, sizeof(::modlock::wasm::AbilityTuning)},
+        {387, sizeof(::modlock::wasm::SelectHeroRequest)},
+        {400, sizeof(::modlock::wasm::HeroResponse)},
+        {405, sizeof(::modlock::wasm::FreezeRequest)},
+        {412, sizeof(::modlock::wasm::RefreshAbilityRequest)},
+        {419, sizeof(::modlock::wasm::AbilitiesResponse)},
+        {424, sizeof(::modlock::wasm::Ability)},
+        {449, sizeof(::modlock::wasm::AbilityOptions)},
+        {464, sizeof(::modlock::wasm::GiveItemRequest)},
+        {471, sizeof(::modlock::wasm::ReplaceAbilityRequest)},
+        {480, sizeof(::modlock::wasm::HoldModifierRequest)},
+        {489, sizeof(::modlock::wasm::GiveModifierRequest)},
+        {498, sizeof(::modlock::wasm::TeleportRequest)},
+        {509, sizeof(::modlock::wasm::MovePlayerRequest)},
+        {520, sizeof(::modlock::wasm::SteerRequest)},
+        {527, sizeof(::modlock::wasm::Steering)},
+        {540, sizeof(::modlock::wasm::AdjustSoulsRequest)},
+        {549, sizeof(::modlock::wasm::StartingSoulsRequest)},
+        {556, sizeof(::modlock::wasm::HealRequest)},
+        {563, sizeof(::modlock::wasm::SoundRequest)},
+        {570, sizeof(::modlock::wasm::MoveEntityRequest)},
+        {581, sizeof(::modlock::wasm::EmitSoundRequest)},
+        {588, sizeof(::modlock::wasm::SetVelocityRequest)},
+        {595, sizeof(::modlock::wasm::WatchMovementRequest)},
+        {602, sizeof(::modlock::wasm::ButtonsResponse)},
+        {607, sizeof(::modlock::wasm::ProjectileOptions)},
+        {614, sizeof(::modlock::wasm::RestoreHeroRequest)},
+        {621, sizeof(::modlock::wasm::HeroTarget)},
+        {646, sizeof(::modlock::wasm::EquipmentTarget)},
+        {655, sizeof(::modlock::wasm::TimerTarget)},
+        {670, sizeof(::modlock::wasm::ScreenEffectRequest)},
+        {679, sizeof(::modlock::wasm::ScreenTiming)},
+        {690, sizeof(::modlock::wasm::ClearScreenEffectRequest)},
+        {697, sizeof(::modlock::wasm::ReadFieldRequest)},
+        {708, sizeof(::modlock::wasm::FieldResponse)},
+        {713, sizeof(::modlock::wasm::FieldValue)},
+        {721, sizeof(::modlock::wasm::WriteFieldRequest)},
+        {734, sizeof(::modlock::wasm::ModifierStateRequest)},
+        {741, sizeof(::modlock::wasm::ActiveResponse)},
+        {746, sizeof(::modlock::wasm::HoldModifierStateRequest)},
+        {755, sizeof(::modlock::wasm::ModelOptions)},
+        {772, sizeof(::modlock::wasm::TextOptions)},
+        {789, sizeof(::modlock::wasm::ParticleOptions)},
+        {806, sizeof(::modlock::wasm::ParticlePoint)},
+        {813, sizeof(::modlock::wasm::FogOptions)},
+        {828, sizeof(::modlock::wasm::ObjectResponse)},
+        {833, sizeof(::modlock::wasm::EntityResponse)},
+        {838, sizeof(::modlock::wasm::ObjectRequest)},
+        {843, sizeof(::modlock::wasm::MoveObjectRequest)},
+        {852, sizeof(::modlock::wasm::SetTextRequest)},
+        {859, sizeof(::modlock::wasm::BotOptions)},
+        {874, sizeof(::modlock::wasm::BotResponse)},
+        {879, sizeof(::modlock::wasm::InputRequest)},
+        {884, sizeof(::modlock::wasm::PlayerInputRequest)},
+        {891, sizeof(::modlock::wasm::RemapInputRequest)},
+        {900, sizeof(::modlock::wasm::UiRequest)},
+        {907, sizeof(::modlock::wasm::NpcOptions)},
+        {926, sizeof(::modlock::wasm::NpcResponse)},
+        {931, sizeof(::modlock::wasm::NpcRequest)},
+        {936, sizeof(::modlock::wasm::NpcStateResponse)},
+        {941, sizeof(::modlock::wasm::NpcState)},
+        {954, sizeof(::modlock::wasm::MoveNpcRequest)},
+        {965, sizeof(::modlock::wasm::SetNpcHealthRequest)},
+        {974, sizeof(::modlock::wasm::AliveResponse)},
+        {979, sizeof(::modlock::wasm::CreatePickupRequest)},
+        {986, sizeof(::modlock::wasm::PickupResponse)},
+        {991, sizeof(::modlock::wasm::PickupRequest)},
+        {996, sizeof(::modlock::wasm::RemoveEntitiesRequest)},
+        {1001, sizeof(::modlock::wasm::CountResponse)},
+        {1006, sizeof(::modlock::wasm::HitOptions)},
+        {1021, sizeof(::modlock::wasm::TraceOptions)},
+        {1034, sizeof(::modlock::wasm::TraceResponse)},
+        {1039, sizeof(::modlock::wasm::TraceHit)},
+        {1050, sizeof(::modlock::wasm::RestoreNpcsRequest)},
+        {1055, sizeof(::modlock::wasm::NpcTarget)},
+        {1076, sizeof(::modlock::wasm::PauseRequest)},
+        {1081, sizeof(::modlock::wasm::MatchClockResponse)},
+        {1086, sizeof(::modlock::wasm::HoldMatchClockRequest)},
+        {1091, sizeof(::modlock::wasm::RiftResponse)},
+        {1096, sizeof(::modlock::wasm::RiftState)},
+        {1111, sizeof(::modlock::wasm::StartRiftRequest)},
+        {1116, sizeof(::modlock::wasm::Manifest)},
+        {1141, sizeof(::modlock::wasm::Setting)},
+        {1160, sizeof(::modlock::wasm::SettingChoice)},
+        {1167, sizeof(::modlock::wasm::Metric)},
+        {1176, sizeof(::modlock::wasm::MetricTotal)},
+        {1185, sizeof(::modlock::wasm::MetricTotals)},
+        {1190, sizeof(::modlock::wasm::StoredSettings)},
+        {1195, sizeof(::modlock::wasm::StoredSetting)},
+        {1206, sizeof(::modlock::wasm::Movement)},
+        {1215, sizeof(::modlock::wasm::AbilityTuning_PropertiesEntry_DoNotUse)},
+        {1222, sizeof(::modlock::wasm::AbilityTuning_FieldsEntry_DoNotUse)},
+        {1229, sizeof(::modlock::wasm::AbilityTuning_CopyFieldsEntry_DoNotUse)},
+        {1236, sizeof(::modlock::wasm::AbilityTuning)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Call_default_instance_._instance,
@@ -5342,7 +5345,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fproto_2f
     "\n\010steam_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003bot\030\004 "
     "\001(\010\022\r\n\005ready\030\005 \001(\010\022\022\n\ngeneration\030\006 \001(\r\"0"
     "\n\014PawnResponse\022 \n\004pawn\030\001 \001(\0132\022.modlock.w"
-    "asm.Pawn\"\203\003\n\004Pawn\022\016\n\006entity\030\001 \001(\r\022\014\n\004her"
+    "asm.Pawn\"\257\003\n\004Pawn\022\016\n\006entity\030\001 \001(\r\022\014\n\004her"
     "o\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030\004 \001(\005\022\022\n"
     "\nmax_health\030\005 \001(\005\022\037\n\010position\030\006 \001(\0132\r.mo"
     "dlock.Vec3\022(\n\neye_angles\030\007 \001(\0132\024.modlock"
@@ -5351,443 +5354,444 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fproto_2f
     "\030\n\013max_stamina\030\n \001(\002H\001\210\001\001\022\022\n\ngeneration\030"
     "\013 \001(\r\022\r\n\005souls\030\014 \001(\005\022#\n\014eye_position\030\r \001"
     "(\0132\r.modlock.Vec3\022\037\n\010velocity\030\016 \001(\0132\r.mo"
-    "dlock.Vec3B\n\n\010_staminaB\016\n\014_max_stamina\"a"
-    "\n\021SelectHeroRequest\022\016\n\006player\030\001 \001(\005\022\023\n\th"
-    "ero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001(\rH\000\022\014\n\004t"
-    "eam\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroResponse\022\014\n\004her"
-    "o\030\001 \001(\r\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005"
-    "\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"8\n\025Refr"
-    "eshAbilityRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007abi"
-    "lity\030\002 \001(\t\"=\n\021AbilitiesResponse\022(\n\tabili"
-    "ties\030\001 \003(\0132\025.modlock.wasm.Ability\"\317\001\n\007Ab"
-    "ility\022\014\n\004name\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\022\016\n\006ent"
-    "ity\030\003 \001(\r\022\020\n\010upgrades\030\004 \001(\r\022\017\n\007charges\030\005"
-    " \001(\005\022\024\n\014cooldown_end\030\006 \001(\002\022\n\n\002id\030\007 \001(\r\022\r"
-    "\n\005state\030\010 \001(\r\022\026\n\016cooldown_start\030\t \001(\002\022\026\n"
-    "\016recharge_start\030\n \001(\002\022\024\n\014recharge_end\030\013 "
-    "\001(\002\"\317\001\n\016AbilityOptions\022\016\n\006player\030\001 \001(\005\022\017"
-    "\n\007ability\030\002 \001(\t\022\025\n\010upgrades\030\003 \001(\rH\000\210\001\001\022\024"
-    "\n\007charges\030\004 \001(\005H\001\210\001\001\022\031\n\014cooldown_end\030\005 \001"
-    "(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\013\n\t_u"
-    "pgradesB\n\n\010_chargesB\017\n\r_cooldown_endB\017\n\r"
-    "_recharge_end\"/\n\017GiveItemRequest\022\016\n\006play"
-    "er\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\"G\n\025ReplaceAbility"
-    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022\017"
-    "\n\007ability\030\003 \001(\t\"W\n\023HoldModifierRequest\022\016"
-    "\n\006player\030\001 \001(\005\022\020\n\010modifier\030\002 \001(\t\022\023\n\006acti"
-    "ve\030\003 \001(\010H\000\210\001\001B\t\n\007_active\"H\n\023GiveModifier"
-    "Request\022\016\n\006player\030\001 \001(\005\022\020\n\010modifier\030\002 \001("
-    "\t\022\017\n\007seconds\030\003 \001(\002\"\233\001\n\017TeleportRequest\022\016"
-    "\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\0132\r.modlo"
-    "ck.Vec3\022$\n\006facing\030\003 \001(\0132\024.modlock.EulerA"
-    "ngles\022$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\000"
-    "\210\001\001B\013\n\t_velocity\"\235\001\n\021MovePlayerRequest\022\016"
-    "\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\0132\r.modlo"
-    "ck.Vec3\022$\n\006facing\030\003 \001(\0132\024.modlock.EulerA"
-    "ngles\022$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\000"
-    "\210\001\001B\013\n\t_velocity\"Z\n\014SteerRequest\022\016\n\006play"
-    "er\030\001 \001(\005\022-\n\010steering\030\002 \001(\0132\026.modlock.was"
-    "m.SteeringH\000\210\001\001B\013\n\t_steering\"\264\001\n\010Steerin"
-    "g\022.\n\007command\030\001 \001(\0132\035.modlock.wasm.Moveme"
-    "ntCommand\022\037\n\010position\030\002 \001(\0132\r.modlock.Ve"
-    "c3\022\037\n\010velocity\030\003 \001(\0132\r.modlock.Vec3\022\020\n\010g"
-    "rounded\030\004 \001(\010\022$\n\006facing\030\005 \001(\0132\024.modlock."
-    "EulerAngles\"S\n\022AdjustSoulsRequest\022\016\n\006pla"
-    "yer\030\001 \001(\005\022\r\n\005delta\030\002 \001(\005\022\023\n\006silent\030\003 \001(\010"
-    "H\000\210\001\001B\t\n\007_silent\"5\n\024StartingSoulsRequest"
-    "\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"-"
-    "\n\014SoundRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005sound\030"
-    "\002 \001(\t\"\255\001\n\021MoveEntityRequest\022\016\n\006entity\030\001 "
-    "\001(\r\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\022)\n\006"
-    "facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022"
-    "$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\001\210\001\001B\t\n"
-    "\007_facingB\013\n\t_velocity\"1\n\020EmitSoundReques"
-    "t\022\016\n\006entity\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\"E\n\022SetV"
-    "elocityRequest\022\016\n\006player\030\001 \001(\005\022\037\n\010veloci"
-    "ty\030\002 \001(\0132\r.modlock.Vec3\"5\n\024WatchMovement"
-    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005watch\030\002 \001(\010\"\""
-    "\n\017ButtonsResponse\022\017\n\007buttons\030\001 \001(\004\"P\n\021Pr"
-    "ojectileOptions\022\r\n\005names\030\001 \003(\t\022\032\n\rkeep_m"
-    "omentum\030\002 \001(\010H\000\210\001\001B\020\n\016_keep_momentum\"N\n\022"
-    "RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\022(\n\006ta"
-    "rget\030\002 \001(\0132\030.modlock.wasm.HeroTarget\"\251\003\n"
-    "\nHeroTarget\022\037\n\010position\030\001 \001(\0132\r.modlock."
-    "Vec3\022$\n\006facing\030\002 \001(\0132\024.modlock.EulerAngl"
-    "es\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210"
-    "\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 "
-    "\001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses\030\007 \003(\002\0220\n\tabi"
-    "lities\030\010 \003(\0132\035.modlock.wasm.EquipmentTar"
-    "get\022,\n\005items\030\t \003(\0132\035.modlock.wasm.Equipm"
-    "entTarget\022\032\n\rreplace_items\030\n \001(\010H\004\210\001\001\022)\n"
-    "\006timers\030\013 \003(\0132\031.modlock.wasm.TimerTarget"
-    "B\010\n\006_freshB\010\n\006_levelB\t\n\007_healthB\r\n\013_max_"
-    "healthB\020\n\016_replace_items\"H\n\017EquipmentTar"
-    "get\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 \001(\005H\000\210\001\001\022\r\n\005st"
-    "ate\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013TimerTarget\022\n\n\002id"
-    "\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n\016cooldown_star"
-    "t\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_end\030\004 \001(\002H\001\210\001\001\022"
-    "\033\n\016recharge_start\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge"
-    "_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldown_startB\017\n\r_c"
-    "ooldown_endB\021\n\017_recharge_startB\017\n\r_recha"
-    "rge_end\"\215\001\n\023ScreenEffectRequest\022\016\n\006playe"
-    "r\030\001 \001(\005\022*\n\006effect\030\002 \001(\0162\032.modlock.wasm.S"
-    "creenEffect\022/\n\006timing\030\003 \001(\0132\032.modlock.wa"
-    "sm.ScreenTimingH\000\210\001\001B\t\n\007_timing\"\216\001\n\014Scre"
-    "enTiming\022\022\n\005delay\030\001 \001(\002H\000\210\001\001\022\024\n\007fade_in\030"
-    "\002 \001(\002H\001\210\001\001\022\021\n\004hold\030\003 \001(\002H\002\210\001\001\022\025\n\010fade_ou"
-    "t\030\004 \001(\002H\003\210\001\001B\010\n\006_delayB\n\n\010_fade_inB\007\n\005_h"
-    "oldB\013\n\t_fade_out\"V\n\030ClearScreenEffectReq"
-    "uest\022\016\n\006player\030\001 \001(\005\022*\n\006effect\030\002 \001(\0162\032.m"
-    "odlock.wasm.ScreenEffect\"l\n\020ReadFieldReq"
-    "uest\022\016\n\006entity\030\001 \001(\r\022\022\n\nclass_name\030\002 \001(\t"
-    "\022\r\n\005field\030\003 \001(\t\022%\n\004type\030\004 \001(\0162\027.modlock."
-    "wasm.FieldType\"8\n\rFieldResponse\022\'\n\005value"
-    "\030\001 \001(\0132\030.modlock.wasm.FieldValue\"~\n\nFiel"
-    "dValue\022\021\n\007boolean\030\001 \001(\010H\000\022\020\n\006number\030\002 \001("
-    "\001H\000\022\021\n\007integer\030\003 \001(\003H\000\022\016\n\004text\030\004 \001(\tH\000\022\037"
-    "\n\006vector\030\005 \001(\0132\r.modlock.Vec3H\000B\007\n\005value"
-    "\"\226\001\n\021WriteFieldRequest\022\016\n\006entity\030\001 \001(\r\022\022"
-    "\n\nclass_name\030\002 \001(\t\022\r\n\005field\030\003 \001(\t\022%\n\004typ"
-    "e\030\004 \001(\0162\027.modlock.wasm.FieldType\022\'\n\005valu"
-    "e\030\005 \001(\0132\030.modlock.wasm.FieldValue\"5\n\024Mod"
-    "ifierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n\005sta"
-    "te\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active\030\001 \001"
-    "(\010\"Y\n\030HoldModifierStateRequest\022\016\n\006entity"
-    "\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210"
-    "\001\001B\t\n\007_active\"\355\001\n\014ModelOptions\022\020\n\010resour"
-    "ce\030\001 \001(\t\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec"
-    "3\022)\n\006facing\030\003 \001(\0132\024.modlock.EulerAnglesH"
-    "\000\210\001\001\022\022\n\005scale\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 \001(\007H"
-    "\002\210\001\001\022\021\n\004glow\030\006 \001(\010H\003\210\001\001\022\022\n\005solid\030\007 \001(\010H\004"
-    "\210\001\001B\t\n\007_facingB\010\n\006_scaleB\010\n\006_colorB\007\n\005_g"
-    "lowB\010\n\006_solid\"\376\001\n\013TextOptions\022\014\n\004text\030\001 "
-    "\001(\t\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\022)\n\006"
-    "facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022"
-    "\026\n\tfont_size\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 \001(\007H\002"
-    "\210\001\001\022\030\n\013face_camera\030\006 \001(\010H\003\210\001\001\022\022\n\005scale\030\007"
-    " \001(\002H\004\210\001\001B\t\n\007_facingB\014\n\n_font_sizeB\010\n\006_c"
-    "olorB\016\n\014_face_cameraB\010\n\006_scale\"\233\002\n\017Parti"
-    "cleOptions\022\020\n\010resource\030\001 \001(\t\022\037\n\010position"
-    "\030\002 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\003 \001(\0132\024."
-    "modlock.EulerAnglesH\000\210\001\001\022\022\n\005color\030\004 \001(\007H"
-    "\001\210\001\001\022\027\n\ntint_point\030\005 \001(\005H\002\210\001\001\022/\n\005point\030\006"
-    " \001(\0132\033.modlock.wasm.ParticlePointH\003\210\001\001\022\023"
-    "\n\006parent\030\007 \001(\rH\004\210\001\001B\t\n\007_facingB\010\n\006_color"
-    "B\r\n\013_tint_pointB\010\n\006_pointB\t\n\007_parent\"\?\n\r"
-    "ParticlePoint\022\r\n\005index\030\001 \001(\005\022\037\n\010position"
-    "\030\002 \001(\0132\r.modlock.Vec3\"\276\001\n\nFogOptions\022\037\n\010"
-    "position\030\001 \001(\0132\r.modlock.Vec3\022)\n\006facing\030"
-    "\002 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\033\n\004mins"
-    "\030\003 \001(\0132\r.modlock.Vec3\022\033\n\004maxs\030\004 \001(\0132\r.mo"
-    "dlock.Vec3\022\020\n\010strength\030\005 \001(\002\022\r\n\005color\030\006 "
-    "\001(\007B\t\n\007_facing\" \n\016ObjectResponse\022\016\n\006obje"
-    "ct\030\001 \001(\r\" \n\016EntityResponse\022\016\n\006entity\030\001 \001"
-    "(\r\"\037\n\rObjectRequest\022\016\n\006object\030\001 \001(\r\"z\n\021M"
-    "oveObjectRequest\022\016\n\006object\030\001 \001(\r\022\037\n\010posi"
+    "dlock.Vec3\022\031\n\014carrying_urn\030\017 \001(\010H\002\210\001\001B\n\n"
+    "\010_staminaB\016\n\014_max_staminaB\017\n\r_carrying_u"
+    "rn\"a\n\021SelectHeroRequest\022\016\n\006player\030\001 \001(\005\022"
+    "\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001(\rH\000\022"
+    "\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroResponse\022\014\n"
+    "\004hero\030\001 \001(\r\"\?\n\rFreezeRequest\022\016\n\006player\030\001"
+    " \001(\005\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"8\n\025"
+    "RefreshAbilityRequest\022\016\n\006player\030\001 \001(\005\022\017\n"
+    "\007ability\030\002 \001(\t\"=\n\021AbilitiesResponse\022(\n\ta"
+    "bilities\030\001 \003(\0132\025.modlock.wasm.Ability\"\317\001"
+    "\n\007Ability\022\014\n\004name\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\022\016\n"
+    "\006entity\030\003 \001(\r\022\020\n\010upgrades\030\004 \001(\r\022\017\n\007charg"
+    "es\030\005 \001(\005\022\024\n\014cooldown_end\030\006 \001(\002\022\n\n\002id\030\007 \001"
+    "(\r\022\r\n\005state\030\010 \001(\r\022\026\n\016cooldown_start\030\t \001("
+    "\002\022\026\n\016recharge_start\030\n \001(\002\022\024\n\014recharge_en"
+    "d\030\013 \001(\002\"\317\001\n\016AbilityOptions\022\016\n\006player\030\001 \001"
+    "(\005\022\017\n\007ability\030\002 \001(\t\022\025\n\010upgrades\030\003 \001(\rH\000\210"
+    "\001\001\022\024\n\007charges\030\004 \001(\005H\001\210\001\001\022\031\n\014cooldown_end"
+    "\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\013"
+    "\n\t_upgradesB\n\n\010_chargesB\017\n\r_cooldown_end"
+    "B\017\n\r_recharge_end\"/\n\017GiveItemRequest\022\016\n\006"
+    "player\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\"G\n\025ReplaceAbi"
+    "lityRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005index\030\002 \001"
+    "(\r\022\017\n\007ability\030\003 \001(\t\"W\n\023HoldModifierReque"
+    "st\022\016\n\006player\030\001 \001(\005\022\020\n\010modifier\030\002 \001(\t\022\023\n\006"
+    "active\030\003 \001(\010H\000\210\001\001B\t\n\007_active\"H\n\023GiveModi"
+    "fierRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010modifier\030"
+    "\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\"\233\001\n\017TeleportReque"
+    "st\022\016\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\0132\r.m"
+    "odlock.Vec3\022$\n\006facing\030\003 \001(\0132\024.modlock.Eu"
+    "lerAngles\022$\n\010velocity\030\004 \001(\0132\r.modlock.Ve"
+    "c3H\000\210\001\001B\013\n\t_velocity\"\235\001\n\021MovePlayerReque"
+    "st\022\016\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\0132\r.m"
+    "odlock.Vec3\022$\n\006facing\030\003 \001(\0132\024.modlock.Eu"
+    "lerAngles\022$\n\010velocity\030\004 \001(\0132\r.modlock.Ve"
+    "c3H\000\210\001\001B\013\n\t_velocity\"Z\n\014SteerRequest\022\016\n\006"
+    "player\030\001 \001(\005\022-\n\010steering\030\002 \001(\0132\026.modlock"
+    ".wasm.SteeringH\000\210\001\001B\013\n\t_steering\"\264\001\n\010Ste"
+    "ering\022.\n\007command\030\001 \001(\0132\035.modlock.wasm.Mo"
+    "vementCommand\022\037\n\010position\030\002 \001(\0132\r.modloc"
+    "k.Vec3\022\037\n\010velocity\030\003 \001(\0132\r.modlock.Vec3\022"
+    "\020\n\010grounded\030\004 \001(\010\022$\n\006facing\030\005 \001(\0132\024.modl"
+    "ock.EulerAngles\"S\n\022AdjustSoulsRequest\022\016\n"
+    "\006player\030\001 \001(\005\022\r\n\005delta\030\002 \001(\005\022\023\n\006silent\030\003"
+    " \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024StartingSoulsReq"
+    "uest\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013H"
+    "ealRequest\022\016\n\006player\030\001 \001(\005\022\016\n\006amount\030\002 \001"
+    "(\005\"-\n\014SoundRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005so"
+    "und\030\002 \001(\t\"\255\001\n\021MoveEntityRequest\022\016\n\006entit"
+    "y\030\001 \001(\r\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3"
+    "\022)\n\006facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000"
+    "\210\001\001\022$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\001\210\001"
+    "\001B\t\n\007_facingB\013\n\t_velocity\"1\n\020EmitSoundRe"
+    "quest\022\016\n\006entity\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\"E\n\022"
+    "SetVelocityRequest\022\016\n\006player\030\001 \001(\005\022\037\n\010ve"
+    "locity\030\002 \001(\0132\r.modlock.Vec3\"5\n\024WatchMove"
+    "mentRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005watch\030\002 \001"
+    "(\010\"\"\n\017ButtonsResponse\022\017\n\007buttons\030\001 \001(\004\"P"
+    "\n\021ProjectileOptions\022\r\n\005names\030\001 \003(\t\022\032\n\rke"
+    "ep_momentum\030\002 \001(\010H\000\210\001\001B\020\n\016_keep_momentum"
+    "\"N\n\022RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\022("
+    "\n\006target\030\002 \001(\0132\030.modlock.wasm.HeroTarget"
+    "\"\251\003\n\nHeroTarget\022\037\n\010position\030\001 \001(\0132\r.modl"
+    "ock.Vec3\022$\n\006facing\030\002 \001(\0132\024.modlock.Euler"
+    "Angles\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001("
+    "\005H\001\210\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_healt"
+    "h\030\006 \001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses\030\007 \003(\002\0220\n"
+    "\tabilities\030\010 \003(\0132\035.modlock.wasm.Equipmen"
+    "tTarget\022,\n\005items\030\t \003(\0132\035.modlock.wasm.Eq"
+    "uipmentTarget\022\032\n\rreplace_items\030\n \001(\010H\004\210\001"
+    "\001\022)\n\006timers\030\013 \003(\0132\031.modlock.wasm.TimerTa"
+    "rgetB\010\n\006_freshB\010\n\006_levelB\t\n\007_healthB\r\n\013_"
+    "max_healthB\020\n\016_replace_items\"H\n\017Equipmen"
+    "tTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 \001(\005H\000\210\001\001\022\r"
+    "\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013TimerTarget\022\n"
+    "\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n\016cooldown_"
+    "start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_end\030\004 \001(\002H\001"
+    "\210\001\001\022\033\n\016recharge_start\030\005 \001(\002H\002\210\001\001\022\031\n\014rech"
+    "arge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldown_startB\017"
+    "\n\r_cooldown_endB\021\n\017_recharge_startB\017\n\r_r"
+    "echarge_end\"\215\001\n\023ScreenEffectRequest\022\016\n\006p"
+    "layer\030\001 \001(\005\022*\n\006effect\030\002 \001(\0162\032.modlock.wa"
+    "sm.ScreenEffect\022/\n\006timing\030\003 \001(\0132\032.modloc"
+    "k.wasm.ScreenTimingH\000\210\001\001B\t\n\007_timing\"\216\001\n\014"
+    "ScreenTiming\022\022\n\005delay\030\001 \001(\002H\000\210\001\001\022\024\n\007fade"
+    "_in\030\002 \001(\002H\001\210\001\001\022\021\n\004hold\030\003 \001(\002H\002\210\001\001\022\025\n\010fad"
+    "e_out\030\004 \001(\002H\003\210\001\001B\010\n\006_delayB\n\n\010_fade_inB\007"
+    "\n\005_holdB\013\n\t_fade_out\"V\n\030ClearScreenEffec"
+    "tRequest\022\016\n\006player\030\001 \001(\005\022*\n\006effect\030\002 \001(\016"
+    "2\032.modlock.wasm.ScreenEffect\"l\n\020ReadFiel"
+    "dRequest\022\016\n\006entity\030\001 \001(\r\022\022\n\nclass_name\030\002"
+    " \001(\t\022\r\n\005field\030\003 \001(\t\022%\n\004type\030\004 \001(\0162\027.modl"
+    "ock.wasm.FieldType\"8\n\rFieldResponse\022\'\n\005v"
+    "alue\030\001 \001(\0132\030.modlock.wasm.FieldValue\"~\n\n"
+    "FieldValue\022\021\n\007boolean\030\001 \001(\010H\000\022\020\n\006number\030"
+    "\002 \001(\001H\000\022\021\n\007integer\030\003 \001(\003H\000\022\016\n\004text\030\004 \001(\t"
+    "H\000\022\037\n\006vector\030\005 \001(\0132\r.modlock.Vec3H\000B\007\n\005v"
+    "alue\"\226\001\n\021WriteFieldRequest\022\016\n\006entity\030\001 \001"
+    "(\r\022\022\n\nclass_name\030\002 \001(\t\022\r\n\005field\030\003 \001(\t\022%\n"
+    "\004type\030\004 \001(\0162\027.modlock.wasm.FieldType\022\'\n\005"
+    "value\030\005 \001(\0132\030.modlock.wasm.FieldValue\"5\n"
+    "\024ModifierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n"
+    "\005state\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active"
+    "\030\001 \001(\010\"Y\n\030HoldModifierStateRequest\022\016\n\006en"
+    "tity\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001("
+    "\010H\000\210\001\001B\t\n\007_active\"\355\001\n\014ModelOptions\022\020\n\010re"
+    "source\030\001 \001(\t\022\037\n\010position\030\002 \001(\0132\r.modlock"
+    ".Vec3\022)\n\006facing\030\003 \001(\0132\024.modlock.EulerAng"
+    "lesH\000\210\001\001\022\022\n\005scale\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 "
+    "\001(\007H\002\210\001\001\022\021\n\004glow\030\006 \001(\010H\003\210\001\001\022\022\n\005solid\030\007 \001"
+    "(\010H\004\210\001\001B\t\n\007_facingB\010\n\006_scaleB\010\n\006_colorB\007"
+    "\n\005_glowB\010\n\006_solid\"\376\001\n\013TextOptions\022\014\n\004tex"
+    "t\030\001 \001(\t\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3"
+    "\022)\n\006facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000"
+    "\210\001\001\022\026\n\tfont_size\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 \001"
+    "(\007H\002\210\001\001\022\030\n\013face_camera\030\006 \001(\010H\003\210\001\001\022\022\n\005sca"
+    "le\030\007 \001(\002H\004\210\001\001B\t\n\007_facingB\014\n\n_font_sizeB\010"
+    "\n\006_colorB\016\n\014_face_cameraB\010\n\006_scale\"\233\002\n\017P"
+    "articleOptions\022\020\n\010resource\030\001 \001(\t\022\037\n\010posi"
     "tion\030\002 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\003 \001("
-    "\0132\024.modlock.EulerAnglesH\000\210\001\001B\t\n\007_facing\""
-    ".\n\016SetTextRequest\022\016\n\006object\030\001 \001(\r\022\014\n\004tex"
-    "t\030\002 \001(\t\"\213\001\n\nBotOptions\022\014\n\004name\030\001 \001(\t\022\014\n\004"
-    "team\030\002 \001(\005\022\023\n\thero_name\030\003 \001(\tH\000\022\021\n\007hero_"
-    "id\030\004 \001(\rH\000\022$\n\010position\030\005 \001(\0132\r.modlock.V"
-    "ec3H\001\210\001\001B\006\n\004heroB\013\n\t_position\"\035\n\013BotResp"
-    "onse\022\016\n\006player\030\001 \001(\005\"\037\n\014InputRequest\022\017\n\007"
-    "buttons\030\001 \001(\004\"5\n\022PlayerInputRequest\022\016\n\006p"
-    "layer\030\001 \001(\005\022\017\n\007buttons\030\002 \001(\004\"M\n\021RemapInp"
-    "utRequest\022\014\n\004from\030\001 \001(\004\022\n\n\002to\030\002 \001(\004\022\023\n\006r"
-    "epeat\030\003 \001(\010H\000\210\001\001B\t\n\007_repeat\"\?\n\tUiRequest"
-    "\022\016\n\006player\030\001 \001(\005\022\"\n\006change\030\002 \001(\0132\022.modlo"
-    "ck.ui.Change\"\367\001\n\nNpcOptions\022\022\n\nclass_nam"
-    "e\030\001 \001(\t\022\014\n\004unit\030\002 \001(\t\022\014\n\004team\030\003 \001(\005\022\037\n\010p"
-    "osition\030\004 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\005"
-    " \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\023\n\006healt"
-    "h\030\006 \001(\005H\001\210\001\001\022\027\n\nmax_health\030\007 \001(\005H\002\210\001\001\022\021\n"
-    "\004lane\030\010 \001(\rH\003\210\001\001B\t\n\007_facingB\t\n\007_healthB\r"
-    "\n\013_max_healthB\007\n\005_lane\"\032\n\013NpcResponse\022\013\n"
-    "\003npc\030\001 \001(\r\"\031\n\nNpcRequest\022\013\n\003npc\030\001 \001(\r\"9\n"
-    "\020NpcStateResponse\022%\n\005state\030\001 \001(\0132\026.modlo"
-    "ck.wasm.NpcState\"\203\001\n\010NpcState\022\037\n\010positio"
-    "n\030\001 \001(\0132\r.modlock.Vec3\022$\n\006facing\030\002 \001(\0132\024"
-    ".modlock.EulerAngles\022\016\n\006health\030\003 \001(\005\022\022\n\n"
-    "max_health\030\004 \001(\005\022\014\n\004team\030\005 \001(\005\"\247\001\n\016MoveN"
-    "pcRequest\022\013\n\003npc\030\001 \001(\r\022\037\n\010position\030\002 \001(\013"
-    "2\r.modlock.Vec3\022)\n\006facing\030\003 \001(\0132\024.modloc"
-    "k.EulerAnglesH\000\210\001\001\022$\n\010velocity\030\004 \001(\0132\r.m"
-    "odlock.Vec3H\001\210\001\001B\t\n\007_facingB\013\n\t_velocity"
-    "\"Z\n\023SetNpcHealthRequest\022\013\n\003npc\030\001 \001(\r\022\016\n\006"
-    "health\030\002 \001(\005\022\027\n\nmax_health\030\003 \001(\005H\000\210\001\001B\r\n"
-    "\013_max_health\"\036\n\rAliveResponse\022\r\n\005alive\030\001"
-    " \001(\010\"^\n\023CreatePickupRequest\022&\n\004kind\030\001 \001("
-    "\0162\030.modlock.wasm.PickupKind\022\037\n\010position\030"
-    "\002 \001(\0132\r.modlock.Vec3\" \n\016PickupResponse\022\016"
-    "\n\006pickup\030\001 \001(\r\"\037\n\rPickupRequest\022\016\n\006picku"
-    "p\030\001 \001(\r\"+\n\025RemoveEntitiesRequest\022\022\n\nclas"
-    "s_name\030\001 \001(\t\"\036\n\rCountResponse\022\r\n\005count\030\001"
-    " \001(\005\"\276\001\n\nHitOptions\022\016\n\006victim\030\001 \001(\r\022\025\n\010a"
-    "ttacker\030\002 \001(\rH\000\210\001\001\022\026\n\tinflictor\030\003 \001(\rH\001\210"
-    "\001\001\022\016\n\006amount\030\004 \001(\002\022\026\n\thit_group\030\005 \001(\005H\002\210"
-    "\001\001\022\024\n\007ability\030\006 \001(\rH\003\210\001\001B\013\n\t_attackerB\014\n"
-    "\n_inflictorB\014\n\n_hit_groupB\n\n\010_ability\"\232\001"
-    "\n\014TraceOptions\022\034\n\005start\030\001 \001(\0132\r.modlock."
-    "Vec3\022\032\n\003end\030\002 \001(\0132\r.modlock.Vec3\022\023\n\006laye"
-    "rs\030\003 \001(\004H\000\210\001\001\022\024\n\007exclude\030\004 \001(\004H\001\210\001\001\022\016\n\006i"
-    "gnore\030\005 \003(\rB\t\n\007_layersB\n\n\010_exclude\"4\n\rTr"
-    "aceResponse\022#\n\003hit\030\001 \001(\0132\026.modlock.wasm."
-    "TraceHit\"o\n\010TraceHit\022\037\n\010position\030\001 \001(\0132\r"
-    ".modlock.Vec3\022\035\n\006normal\030\002 \001(\0132\r.modlock."
-    "Vec3\022\023\n\013start_solid\030\003 \001(\010\022\016\n\006entity\030\004 \001("
-    "\r\";\n\022RestoreNpcsRequest\022%\n\004npcs\030\001 \003(\0132\027."
-    "modlock.wasm.NpcTarget\"\363\001\n\tNpcTarget\022\022\n\n"
-    "class_name\030\001 \001(\t\022\n\n\002id\030\002 \001(\r\022\014\n\004team\030\003 \001"
-    "(\005\022\037\n\010position\030\004 \001(\0132\r.modlock.Vec3\022$\n\006f"
-    "acing\030\005 \001(\0132\024.modlock.EulerAngles\022$\n\010vel"
-    "ocity\030\006 \001(\0132\r.modlock.Vec3H\000\210\001\001\022\016\n\006healt"
-    "h\030\007 \001(\005\022\022\n\nmax_health\030\010 \001(\005\022\021\n\004lane\030\t \001("
-    "\rH\001\210\001\001B\013\n\t_velocityB\007\n\005_lane\"\036\n\014PauseReq"
-    "uest\022\016\n\006paused\030\001 \001(\010\"%\n\022MatchClockRespon"
-    "se\022\017\n\007seconds\030\001 \001(\002\"9\n\025HoldMatchClockReq"
-    "uest\022\024\n\007seconds\030\001 \001(\002H\000\210\001\001B\n\n\010_seconds\"6"
-    "\n\014RiftResponse\022&\n\005state\030\001 \001(\0132\027.modlock."
-    "wasm.RiftState\"\220\001\n\tRiftState\022\024\n\014scoring_"
-    "team\030\001 \001(\005\022\024\n\014scoring_time\030\002 \001(\002\022\027\n\017cash"
-    "_in_started\030\003 \001(\002\022\024\n\014give_up_time\030\004 \001(\002\022"
-    "\022\n\nnext_spawn\030\005 \001(\002\022\024\n\014spawn_window\030\006 \001("
-    "\002\"3\n\020StartRiftRequest\022\037\n\010position\030\001 \001(\0132"
-    "\r.modlock.Vec3\"\334\004\n\010Manifest\022\014\n\004slug\030\001 \001("
-    "\t\022\014\n\004name\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\0221\n\010lang"
-    "uage\030\004 \001(\0162\037.modlock.wasm.Manifest.Langu"
-    "age\022/\n\007runtime\030\005 \001(\0162\036.modlock.wasm.Mani"
-    "fest.Runtime\022\r\n\005entry\030\006 \001(\t\022\013\n\003map\030\007 \001(\t"
-    "\022(\n\010movement\030\010 \001(\0132\026.modlock.wasm.Moveme"
-    "nt\022.\n\tabilities\030\t \003(\0132\033.modlock.wasm.Abi"
-    "lityTuning\022\'\n\010settings\030\n \003(\0132\025.modlock.w"
-    "asm.Setting\022%\n\007metrics\030\013 \003(\0132\024.modlock.w"
-    "asm.Metric\"k\n\007Runtime\022\023\n\017RUNTIME_UNKNOWN"
-    "\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RUNTIME_QUICKJS\020"
-    "\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUNTIME_PYTHON\020\004\""
-    "\213\001\n\010Language\022\024\n\020LANGUAGE_UNKNOWN\020\000\022\017\n\013LA"
-    "NGUAGE_GO\020\001\022\027\n\023LANGUAGE_TYPESCRIPT\020\002\022\027\n\023"
-    "LANGUAGE_JAVASCRIPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004"
-    "\022\023\n\017LANGUAGE_PYTHON\020\005\"\222\002\n\007Setting\022\013\n\003key"
-    "\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022(\n\004kind\030\003 \001(\0162\032.mo"
-    "dlock.wasm.Setting.Kind\022,\n\007choices\030\004 \003(\013"
-    "2\033.modlock.wasm.SettingChoice\022\013\n\003min\030\005 \001"
-    "(\001\022\013\n\003max\030\006 \001(\001\022\014\n\004step\030\007 \001(\001\022\036\n\rdefault"
-    "_value\030\010 \001(\tR\007default\"K\n\004Kind\022\020\n\014KIND_UN"
-    "KNOWN\020\000\022\017\n\013KIND_CHOICE\020\001\022\017\n\013KIND_SWITCH\020"
-    "\002\022\017\n\013KIND_NUMBER\020\003\"-\n\rSettingChoice\022\r\n\005v"
-    "alue\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\"\225\001\n\006Metric\022\014\n\004"
-    "name\030\001 \001(\t\022\'\n\004kind\030\002 \001(\0162\031.modlock.wasm."
-    "Metric.Kind\022\016\n\006labels\030\003 \003(\t\"D\n\004Kind\022\020\n\014K"
-    "IND_UNKNOWN\020\000\022\016\n\nKIND_COUNT\020\001\022\014\n\010KIND_SU"
-    "M\020\002\022\014\n\010KIND_MAX\020\003\"9\n\013MetricTotal\022\014\n\004name"
-    "\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022\r\n\005value\030\003 \001(\001\"9\n\014"
-    "MetricTotals\022)\n\006totals\030\001 \003(\0132\031.modlock.w"
-    "asm.MetricTotal\"=\n\016StoredSettings\022+\n\006val"
-    "ues\030\001 \003(\0132\033.modlock.wasm.StoredSetting\"J"
-    "\n\rStoredSetting\022\013\n\003mod\030\001 \001(\t\022\020\n\010steam_id"
-    "\030\002 \001(\004\022\013\n\003key\030\003 \001(\t\022\r\n\005value\030\004 \001(\t\"\224\001\n\010M"
-    "ovement\022+\n\005model\030\001 \001(\0162\034.modlock.wasm.Mo"
-    "vement.Model\022\r\n\005scale\030\002 \001(\002\022\033\n\023unpredict"
-    "ed_buttons\030\003 \001(\004\"/\n\005Model\022\020\n\014MODEL_NATIV"
-    "E\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001\"\361\002\n\rAbilityTun"
-    "ing\022\017\n\007ability\030\001 \001(\t\022\?\n\nproperties\030\002 \003(\013"
-    "2+.modlock.wasm.AbilityTuning.Properties"
-    "Entry\0227\n\006fields\030\003 \003(\0132\'.modlock.wasm.Abi"
-    "lityTuning.FieldsEntry\022@\n\013copy_fields\030\004 "
-    "\003(\0132+.modlock.wasm.AbilityTuning.CopyFie"
-    "ldsEntry\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t"
-    "\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003ke"
-    "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFields"
-    "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001*\216\003"
-    "\n\016MovementAction\022\033\n\027MOVEMENT_ACTION_UNKN"
-    "OWN\020\000\022\032\n\026MOVEMENT_ACTION_LANDED\020\001\022$\n MOV"
-    "EMENT_ACTION_ZIPLINE_ATTACHED\020\002\022\037\n\033MOVEM"
-    "ENT_ACTION_GROUND_DASH\020\003\022\031\n\025MOVEMENT_ACT"
-    "ION_SLIDE\020\004\022\036\n\032MOVEMENT_ACTION_BOUNCE_PA"
-    "D\020\005\022\035\n\031MOVEMENT_ACTION_DASH_JUMP\020\006\022\034\n\030MO"
-    "VEMENT_ACTION_AIR_JUMP\020\007\022\035\n\031MOVEMENT_ACT"
-    "ION_WALL_JUMP\020\010\022\034\n\030MOVEMENT_ACTION_AIR_D"
-    "ASH\020\t\022!\n\035MOVEMENT_ACTION_MELEE_STARTED\020\n"
-    "\022$\n MOVEMENT_ACTION_ABILITY_EXECUTED\020\013*\227"
-    "\001\n\014ScreenEffect\022\030\n\024SCREEN_EFFECT_KILLED\020"
-    "\000\022\027\n\023SCREEN_EFFECT_BLACK\020\001\022\031\n\025SCREEN_EFF"
-    "ECT_BLINDED\020\002\022\032\n\026SCREEN_EFFECT_DARKNESS\020"
-    "\003\022\035\n\031SCREEN_EFFECT_MATCH_INTRO\020\004*\337\002\n\tFie"
-    "ldType\022\026\n\022FIELD_TYPE_UNKNOWN\020\000\022\023\n\017FIELD_"
-    "TYPE_BOOL\020\001\022\023\n\017FIELD_TYPE_INT8\020\002\022\024\n\020FIEL"
-    "D_TYPE_INT16\020\003\022\024\n\020FIELD_TYPE_INT32\020\004\022\024\n\020"
-    "FIELD_TYPE_UINT8\020\005\022\025\n\021FIELD_TYPE_UINT16\020"
-    "\006\022\025\n\021FIELD_TYPE_UINT32\020\007\022\024\n\020FIELD_TYPE_I"
-    "NT64\020\010\022\025\n\021FIELD_TYPE_UINT64\020\t\022\026\n\022FIELD_T"
-    "YPE_FLOAT32\020\n\022\026\n\022FIELD_TYPE_FLOAT64\020\013\022\025\n"
-    "\021FIELD_TYPE_VECTOR\020\014\022\025\n\021FIELD_TYPE_HANDL"
-    "E\020\r\022\025\n\021FIELD_TYPE_STRING\020\016*@\n\nPickupKind"
-    "\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PICKUP_KIND_MOV"
-    "EMENT_BUFF\020\0012\345*\n\004Host\0224\n\003Log\022\030.modlock.w"
-    "asm.LogRequest\032\023.modlock.wasm.Empty\022H\n\rS"
-    "erverCommand\022\".modlock.wasm.ServerComman"
-    "dRequest\032\023.modlock.wasm.Empty\0226\n\004Chat\022\031."
-    "modlock.wasm.ChatRequest\032\023.modlock.wasm."
-    "Empty\022B\n\nCenterText\022\037.modlock.wasm.Cente"
-    "rTextRequest\032\023.modlock.wasm.Empty\022>\n\010Ann"
-    "ounce\022\035.modlock.wasm.AnnounceRequest\032\023.m"
-    "odlock.wasm.Empty\022>\n\010Precache\022\035.modlock."
-    "wasm.PrecacheOptions\032\023.modlock.wasm.Empt"
-    "y\022=\n\007Players\022\023.modlock.wasm.Empty\032\035.modl"
-    "ock.wasm.PlayersResponse\022\?\n\004Pawn\022\033.modlo"
-    "ck.wasm.PlayerRequest\032\032.modlock.wasm.Paw"
-    "nResponse\022R\n\rPlayerSetting\022\".modlock.was"
-    "m.PlayerSettingRequest\032\035.modlock.wasm.Se"
-    "ttingResponse\022N\n\020SetPlayerSetting\022%.modl"
-    "ock.wasm.SetPlayerSettingRequest\032\023.modlo"
-    "ck.wasm.Empty\022@\n\tAddMetric\022\036.modlock.was"
-    "m.AddMetricRequest\032\023.modlock.wasm.Empty\022"
-    "I\n\nSelectHero\022\037.modlock.wasm.SelectHeroR"
-    "equest\032\032.modlock.wasm.HeroResponse\022<\n\010Sp"
-    "ectate\022\033.modlock.wasm.PlayerRequest\032\023.mo"
-    "dlock.wasm.Empty\022;\n\007Respawn\022\033.modlock.wa"
-    "sm.PlayerRequest\032\023.modlock.wasm.Empty\022>\n"
-    "\nClearItems\022\033.modlock.wasm.PlayerRequest"
-    "\032\023.modlock.wasm.Empty\022:\n\006Freeze\022\033.modloc"
-    "k.wasm.FreezeRequest\032\023.modlock.wasm.Empt"
-    "y\022B\n\016RestoreStamina\022\033.modlock.wasm.Playe"
-    "rRequest\032\023.modlock.wasm.Empty\022J\n\016Refresh"
-    "Ability\022#.modlock.wasm.RefreshAbilityReq"
-    "uest\032\023.modlock.wasm.Empty\022I\n\tAbilities\022\033"
-    ".modlock.wasm.PlayerRequest\032\037.modlock.wa"
-    "sm.AbilitiesResponse\022\?\n\nSetAbility\022\034.mod"
-    "lock.wasm.AbilityOptions\032\023.modlock.wasm."
-    "Empty\022>\n\010GiveItem\022\035.modlock.wasm.GiveIte"
-    "mRequest\032\023.modlock.wasm.Empty\022J\n\016Replace"
-    "Ability\022#.modlock.wasm.ReplaceAbilityReq"
-    "uest\032\023.modlock.wasm.Empty\022F\n\014HoldModifie"
-    "r\022!.modlock.wasm.HoldModifierRequest\032\023.m"
-    "odlock.wasm.Empty\022F\n\014GiveModifier\022!.modl"
-    "ock.wasm.GiveModifierRequest\032\023.modlock.w"
-    "asm.Empty\022>\n\010Teleport\022\035.modlock.wasm.Tel"
-    "eportRequest\032\023.modlock.wasm.Empty\022B\n\nMov"
-    "ePlayer\022\037.modlock.wasm.MovePlayerRequest"
-    "\032\023.modlock.wasm.Empty\0228\n\005Steer\022\032.modlock"
-    ".wasm.SteerRequest\032\023.modlock.wasm.Empty\022"
-    "D\n\013AdjustSouls\022 .modlock.wasm.AdjustSoul"
-    "sRequest\032\023.modlock.wasm.Empty\022H\n\rStartin"
-    "gSouls\022\".modlock.wasm.StartingSoulsReque"
-    "st\032\023.modlock.wasm.Empty\0226\n\004Heal\022\031.modloc"
-    "k.wasm.HealRequest\032\023.modlock.wasm.Empty\022"
-    "8\n\005Sound\022\032.modlock.wasm.SoundRequest\032\023.m"
-    "odlock.wasm.Empty\022D\n\013RestoreHero\022 .modlo"
-    "ck.wasm.RestoreHeroRequest\032\023.modlock.was"
-    "m.Empty\022F\n\014ScreenEffect\022!.modlock.wasm.S"
-    "creenEffectRequest\032\023.modlock.wasm.Empty\022"
-    "P\n\021ClearScreenEffect\022&.modlock.wasm.Clea"
-    "rScreenEffectRequest\032\023.modlock.wasm.Empt"
-    "y\022H\n\tReadField\022\036.modlock.wasm.ReadFieldR"
-    "equest\032\033.modlock.wasm.FieldResponse\022B\n\nW"
-    "riteField\022\037.modlock.wasm.WriteFieldReque"
-    "st\032\023.modlock.wasm.Empty\022Q\n\rModifierState"
-    "\022\".modlock.wasm.ModifierStateRequest\032\034.m"
-    "odlock.wasm.ActiveResponse\022P\n\021HoldModifi"
-    "erState\022&.modlock.wasm.HoldModifierState"
-    "Request\032\023.modlock.wasm.Empty\022G\n\013CreateMo"
-    "del\022\032.modlock.wasm.ModelOptions\032\034.modloc"
-    "k.wasm.ObjectResponse\022E\n\nCreateText\022\031.mo"
-    "dlock.wasm.TextOptions\032\034.modlock.wasm.Ob"
-    "jectResponse\022M\n\016CreateParticle\022\035.modlock"
-    ".wasm.ParticleOptions\032\034.modlock.wasm.Obj"
-    "ectResponse\022C\n\tCreateFog\022\030.modlock.wasm."
-    "FogOptions\032\034.modlock.wasm.ObjectResponse"
-    "\022B\n\nMoveObject\022\037.modlock.wasm.MoveObject"
-    "Request\032\023.modlock.wasm.Empty\022<\n\007SetText\022"
-    "\034.modlock.wasm.SetTextRequest\032\023.modlock."
-    "wasm.Empty\022@\n\014RemoveObject\022\033.modlock.was"
-    "m.ObjectRequest\032\023.modlock.wasm.Empty\022I\n\014"
-    "ObjectEntity\022\033.modlock.wasm.ObjectReques"
-    "t\032\034.modlock.wasm.EntityResponse\022=\n\006AddBo"
-    "t\022\030.modlock.wasm.BotOptions\032\031.modlock.wa"
-    "sm.BotResponse\022=\n\tRemoveBot\022\033.modlock.wa"
-    "sm.PlayerRequest\032\023.modlock.wasm.Empty\022=\n"
-    "\nBlockInput\022\032.modlock.wasm.InputRequest\032"
-    "\023.modlock.wasm.Empty\022I\n\020BlockPlayerInput"
-    "\022 .modlock.wasm.PlayerInputRequest\032\023.mod"
-    "lock.wasm.Empty\022>\n\005Press\022 .modlock.wasm."
-    "PlayerInputRequest\032\023.modlock.wasm.Empty\022"
-    "=\n\nWatchInput\022\032.modlock.wasm.InputReques"
-    "t\032\023.modlock.wasm.Empty\022B\n\nRemapInput\022\037.m"
-    "odlock.wasm.RemapInputRequest\032\023.modlock."
-    "wasm.Empty\0222\n\002Ui\022\027.modlock.wasm.UiReques"
-    "t\032\023.modlock.wasm.Empty\022D\n\013CallService\022\031."
-    "modlock.wasm.ServiceCall\032\032.modlock.wasm."
-    "ServiceReply\022\?\n\010SpawnNpc\022\030.modlock.wasm."
-    "NpcOptions\032\031.modlock.wasm.NpcResponse\022C\n"
-    "\007ReadNpc\022\030.modlock.wasm.NpcRequest\032\036.mod"
-    "lock.wasm.NpcStateResponse\022D\n\007MoveNpc\022\034."
-    "modlock.wasm.MoveNpcRequest\032\033.modlock.wa"
-    "sm.AliveResponse\022N\n\014SetNpcHealth\022!.modlo"
-    "ck.wasm.SetNpcHealthRequest\032\033.modlock.wa"
-    "sm.AliveResponse\022B\n\tRemoveNpc\022\030.modlock."
-    "wasm.NpcRequest\032\033.modlock.wasm.AliveResp"
-    "onse\022O\n\014CreatePickup\022!.modlock.wasm.Crea"
-    "tePickupRequest\032\034.modlock.wasm.PickupRes"
-    "ponse\022I\n\rPickupPresent\022\033.modlock.wasm.Pi"
-    "ckupRequest\032\033.modlock.wasm.AliveResponse"
-    "\022H\n\014RemovePickup\022\033.modlock.wasm.PickupRe"
-    "quest\032\033.modlock.wasm.AliveResponse\022R\n\016Re"
-    "moveEntities\022#.modlock.wasm.RemoveEntiti"
-    "esRequest\032\033.modlock.wasm.CountResponse\0224"
-    "\n\010ClearMap\022\023.modlock.wasm.Empty\032\023.modloc"
-    "k.wasm.Empty\0227\n\006Damage\022\030.modlock.wasm.Hi"
-    "tOptions\032\023.modlock.wasm.Empty\022@\n\005Trace\022\032"
-    ".modlock.wasm.TraceOptions\032\033.modlock.was"
-    "m.TraceResponse\022D\n\013RestoreNpcs\022 .modlock"
-    ".wasm.RestoreNpcsRequest\032\023.modlock.wasm."
-    "Empty\0228\n\005Pause\022\032.modlock.wasm.PauseReque"
-    "st\032\023.modlock.wasm.Empty\022C\n\nMatchClock\022\023."
-    "modlock.wasm.Empty\032 .modlock.wasm.MatchC"
-    "lockResponse\022J\n\016HoldMatchClock\022#.modlock"
-    ".wasm.HoldMatchClockRequest\032\023.modlock.wa"
-    "sm.Empty\0227\n\004Rift\022\023.modlock.wasm.Empty\032\032."
-    "modlock.wasm.RiftResponse\022@\n\tStartRift\022\036"
-    ".modlock.wasm.StartRiftRequest\032\023.modlock"
-    ".wasm.Empty\022B\n\nMoveEntity\022\037.modlock.wasm"
-    ".MoveEntityRequest\032\023.modlock.wasm.Empty\022"
-    "@\n\tEmitSound\022\036.modlock.wasm.EmitSoundReq"
-    "uest\032\023.modlock.wasm.Empty\0228\n\004Kill\022\033.modl"
-    "ock.wasm.PlayerRequest\032\023.modlock.wasm.Em"
-    "pty\022D\n\013SetVelocity\022 .modlock.wasm.SetVel"
-    "ocityRequest\032\023.modlock.wasm.Empty\022E\n\007But"
-    "tons\022\033.modlock.wasm.PlayerRequest\032\035.modl"
-    "ock.wasm.ButtonsResponse\022H\n\rWatchMovemen"
-    "t\022\".modlock.wasm.WatchMovementRequest\032\023."
-    "modlock.wasm.Empty\022H\n\020WatchProjectiles\022\037"
-    ".modlock.wasm.ProjectileOptions\032\023.modloc"
-    "k.wasm.Empty2\244\007\n\003Mod\022<\n\005Start\022\030.modlock."
-    "wasm.StartEvent\032\031.modlock.wasm.StartResu"
-    "lt\0226\n\005Frame\022\030.modlock.wasm.FrameEvent\032\023."
-    "modlock.wasm.Empty\022B\n\007Command\022\032.modlock."
-    "wasm.CommandEvent\032\033.modlock.wasm.Command"
-    "Result\0226\n\005World\022\030.modlock.wasm.WorldEven"
-    "t\032\023.modlock.wasm.Empty\022:\n\007UiPress\022\032.modl"
-    "ock.wasm.UiPressEvent\032\023.modlock.wasm.Emp"
-    "ty\022>\n\005Serve\022\031.modlock.wasm.ServiceCall\032\032"
-    ".modlock.wasm.ServiceReply\022\?\n\006Damage\022\031.m"
-    "odlock.wasm.DamageEvent\032\032.modlock.wasm.D"
-    "amageResult\022:\n\007Damaged\022\032.modlock.wasm.Da"
-    "magedEvent\032\023.modlock.wasm.Empty\0226\n\005Input"
-    "\022\030.modlock.wasm.InputEvent\032\023.modlock.was"
-    "m.Empty\022<\n\010Restored\022\033.modlock.wasm.Resto"
-    "redEvent\032\023.modlock.wasm.Empty\022D\n\014NpcsRes"
-    "tored\022\037.modlock.wasm.NpcsRestoredEvent\032\023"
-    ".modlock.wasm.Empty\0228\n\006Launch\022\031.modlock."
-    "wasm.LaunchEvent\032\023.modlock.wasm.Empty\0228\n"
-    "\006Impact\022\031.modlock.wasm.ImpactEvent\032\023.mod"
-    "lock.wasm.Empty\0228\n\006Landed\022\031.modlock.wasm"
-    ".LandedEvent\032\023.modlock.wasm.Empty\022H\n\016Set"
-    "tingChanged\022!.modlock.wasm.SettingChange"
-    "dEvent\032\023.modlock.wasm.EmptyB4Z2github.co"
-    "m/paralin/modlock/proto/modlock/wasm;was"
-    "mb\006proto3"
+    "\0132\024.modlock.EulerAnglesH\000\210\001\001\022\022\n\005color\030\004 "
+    "\001(\007H\001\210\001\001\022\027\n\ntint_point\030\005 \001(\005H\002\210\001\001\022/\n\005poi"
+    "nt\030\006 \001(\0132\033.modlock.wasm.ParticlePointH\003\210"
+    "\001\001\022\023\n\006parent\030\007 \001(\rH\004\210\001\001B\t\n\007_facingB\010\n\006_c"
+    "olorB\r\n\013_tint_pointB\010\n\006_pointB\t\n\007_parent"
+    "\"\?\n\rParticlePoint\022\r\n\005index\030\001 \001(\005\022\037\n\010posi"
+    "tion\030\002 \001(\0132\r.modlock.Vec3\"\276\001\n\nFogOptions"
+    "\022\037\n\010position\030\001 \001(\0132\r.modlock.Vec3\022)\n\006fac"
+    "ing\030\002 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\033\n\004"
+    "mins\030\003 \001(\0132\r.modlock.Vec3\022\033\n\004maxs\030\004 \001(\0132"
+    "\r.modlock.Vec3\022\020\n\010strength\030\005 \001(\002\022\r\n\005colo"
+    "r\030\006 \001(\007B\t\n\007_facing\" \n\016ObjectResponse\022\016\n\006"
+    "object\030\001 \001(\r\" \n\016EntityResponse\022\016\n\006entity"
+    "\030\001 \001(\r\"\037\n\rObjectRequest\022\016\n\006object\030\001 \001(\r\""
+    "z\n\021MoveObjectRequest\022\016\n\006object\030\001 \001(\r\022\037\n\010"
+    "position\030\002 \001(\0132\r.modlock.Vec3\022)\n\006facing\030"
+    "\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001B\t\n\007_fac"
+    "ing\".\n\016SetTextRequest\022\016\n\006object\030\001 \001(\r\022\014\n"
+    "\004text\030\002 \001(\t\"\213\001\n\nBotOptions\022\014\n\004name\030\001 \001(\t"
+    "\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name\030\003 \001(\tH\000\022\021\n\007h"
+    "ero_id\030\004 \001(\rH\000\022$\n\010position\030\005 \001(\0132\r.modlo"
+    "ck.Vec3H\001\210\001\001B\006\n\004heroB\013\n\t_position\"\035\n\013Bot"
+    "Response\022\016\n\006player\030\001 \001(\005\"\037\n\014InputRequest"
+    "\022\017\n\007buttons\030\001 \001(\004\"5\n\022PlayerInputRequest\022"
+    "\016\n\006player\030\001 \001(\005\022\017\n\007buttons\030\002 \001(\004\"M\n\021Rema"
+    "pInputRequest\022\014\n\004from\030\001 \001(\004\022\n\n\002to\030\002 \001(\004\022"
+    "\023\n\006repeat\030\003 \001(\010H\000\210\001\001B\t\n\007_repeat\"\?\n\tUiReq"
+    "uest\022\016\n\006player\030\001 \001(\005\022\"\n\006change\030\002 \001(\0132\022.m"
+    "odlock.ui.Change\"\367\001\n\nNpcOptions\022\022\n\nclass"
+    "_name\030\001 \001(\t\022\014\n\004unit\030\002 \001(\t\022\014\n\004team\030\003 \001(\005\022"
+    "\037\n\010position\030\004 \001(\0132\r.modlock.Vec3\022)\n\006faci"
+    "ng\030\005 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\023\n\006h"
+    "ealth\030\006 \001(\005H\001\210\001\001\022\027\n\nmax_health\030\007 \001(\005H\002\210\001"
+    "\001\022\021\n\004lane\030\010 \001(\rH\003\210\001\001B\t\n\007_facingB\t\n\007_heal"
+    "thB\r\n\013_max_healthB\007\n\005_lane\"\032\n\013NpcRespons"
+    "e\022\013\n\003npc\030\001 \001(\r\"\031\n\nNpcRequest\022\013\n\003npc\030\001 \001("
+    "\r\"9\n\020NpcStateResponse\022%\n\005state\030\001 \001(\0132\026.m"
+    "odlock.wasm.NpcState\"\203\001\n\010NpcState\022\037\n\010pos"
+    "ition\030\001 \001(\0132\r.modlock.Vec3\022$\n\006facing\030\002 \001"
+    "(\0132\024.modlock.EulerAngles\022\016\n\006health\030\003 \001(\005"
+    "\022\022\n\nmax_health\030\004 \001(\005\022\014\n\004team\030\005 \001(\005\"\247\001\n\016M"
+    "oveNpcRequest\022\013\n\003npc\030\001 \001(\r\022\037\n\010position\030\002"
+    " \001(\0132\r.modlock.Vec3\022)\n\006facing\030\003 \001(\0132\024.mo"
+    "dlock.EulerAnglesH\000\210\001\001\022$\n\010velocity\030\004 \001(\013"
+    "2\r.modlock.Vec3H\001\210\001\001B\t\n\007_facingB\013\n\t_velo"
+    "city\"Z\n\023SetNpcHealthRequest\022\013\n\003npc\030\001 \001(\r"
+    "\022\016\n\006health\030\002 \001(\005\022\027\n\nmax_health\030\003 \001(\005H\000\210\001"
+    "\001B\r\n\013_max_health\"\036\n\rAliveResponse\022\r\n\005ali"
+    "ve\030\001 \001(\010\"^\n\023CreatePickupRequest\022&\n\004kind\030"
+    "\001 \001(\0162\030.modlock.wasm.PickupKind\022\037\n\010posit"
+    "ion\030\002 \001(\0132\r.modlock.Vec3\" \n\016PickupRespon"
+    "se\022\016\n\006pickup\030\001 \001(\r\"\037\n\rPickupRequest\022\016\n\006p"
+    "ickup\030\001 \001(\r\"+\n\025RemoveEntitiesRequest\022\022\n\n"
+    "class_name\030\001 \001(\t\"\036\n\rCountResponse\022\r\n\005cou"
+    "nt\030\001 \001(\005\"\276\001\n\nHitOptions\022\016\n\006victim\030\001 \001(\r\022"
+    "\025\n\010attacker\030\002 \001(\rH\000\210\001\001\022\026\n\tinflictor\030\003 \001("
+    "\rH\001\210\001\001\022\016\n\006amount\030\004 \001(\002\022\026\n\thit_group\030\005 \001("
+    "\005H\002\210\001\001\022\024\n\007ability\030\006 \001(\rH\003\210\001\001B\013\n\t_attacke"
+    "rB\014\n\n_inflictorB\014\n\n_hit_groupB\n\n\010_abilit"
+    "y\"\232\001\n\014TraceOptions\022\034\n\005start\030\001 \001(\0132\r.modl"
+    "ock.Vec3\022\032\n\003end\030\002 \001(\0132\r.modlock.Vec3\022\023\n\006"
+    "layers\030\003 \001(\004H\000\210\001\001\022\024\n\007exclude\030\004 \001(\004H\001\210\001\001\022"
+    "\016\n\006ignore\030\005 \003(\rB\t\n\007_layersB\n\n\010_exclude\"4"
+    "\n\rTraceResponse\022#\n\003hit\030\001 \001(\0132\026.modlock.w"
+    "asm.TraceHit\"o\n\010TraceHit\022\037\n\010position\030\001 \001"
+    "(\0132\r.modlock.Vec3\022\035\n\006normal\030\002 \001(\0132\r.modl"
+    "ock.Vec3\022\023\n\013start_solid\030\003 \001(\010\022\016\n\006entity\030"
+    "\004 \001(\r\";\n\022RestoreNpcsRequest\022%\n\004npcs\030\001 \003("
+    "\0132\027.modlock.wasm.NpcTarget\"\363\001\n\tNpcTarget"
+    "\022\022\n\nclass_name\030\001 \001(\t\022\n\n\002id\030\002 \001(\r\022\014\n\004team"
+    "\030\003 \001(\005\022\037\n\010position\030\004 \001(\0132\r.modlock.Vec3\022"
+    "$\n\006facing\030\005 \001(\0132\024.modlock.EulerAngles\022$\n"
+    "\010velocity\030\006 \001(\0132\r.modlock.Vec3H\000\210\001\001\022\016\n\006h"
+    "ealth\030\007 \001(\005\022\022\n\nmax_health\030\010 \001(\005\022\021\n\004lane\030"
+    "\t \001(\rH\001\210\001\001B\013\n\t_velocityB\007\n\005_lane\"\036\n\014Paus"
+    "eRequest\022\016\n\006paused\030\001 \001(\010\"%\n\022MatchClockRe"
+    "sponse\022\017\n\007seconds\030\001 \001(\002\"9\n\025HoldMatchCloc"
+    "kRequest\022\024\n\007seconds\030\001 \001(\002H\000\210\001\001B\n\n\010_secon"
+    "ds\"6\n\014RiftResponse\022&\n\005state\030\001 \001(\0132\027.modl"
+    "ock.wasm.RiftState\"\220\001\n\tRiftState\022\024\n\014scor"
+    "ing_team\030\001 \001(\005\022\024\n\014scoring_time\030\002 \001(\002\022\027\n\017"
+    "cash_in_started\030\003 \001(\002\022\024\n\014give_up_time\030\004 "
+    "\001(\002\022\022\n\nnext_spawn\030\005 \001(\002\022\024\n\014spawn_window\030"
+    "\006 \001(\002\"3\n\020StartRiftRequest\022\037\n\010position\030\001 "
+    "\001(\0132\r.modlock.Vec3\"\334\004\n\010Manifest\022\014\n\004slug\030"
+    "\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\0221\n\010"
+    "language\030\004 \001(\0162\037.modlock.wasm.Manifest.L"
+    "anguage\022/\n\007runtime\030\005 \001(\0162\036.modlock.wasm."
+    "Manifest.Runtime\022\r\n\005entry\030\006 \001(\t\022\013\n\003map\030\007"
+    " \001(\t\022(\n\010movement\030\010 \001(\0132\026.modlock.wasm.Mo"
+    "vement\022.\n\tabilities\030\t \003(\0132\033.modlock.wasm"
+    ".AbilityTuning\022\'\n\010settings\030\n \003(\0132\025.modlo"
+    "ck.wasm.Setting\022%\n\007metrics\030\013 \003(\0132\024.modlo"
+    "ck.wasm.Metric\"k\n\007Runtime\022\023\n\017RUNTIME_UNK"
+    "NOWN\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RUNTIME_QUIC"
+    "KJS\020\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUNTIME_PYTHO"
+    "N\020\004\"\213\001\n\010Language\022\024\n\020LANGUAGE_UNKNOWN\020\000\022\017"
+    "\n\013LANGUAGE_GO\020\001\022\027\n\023LANGUAGE_TYPESCRIPT\020\002"
+    "\022\027\n\023LANGUAGE_JAVASCRIPT\020\003\022\021\n\rLANGUAGE_LU"
+    "AU\020\004\022\023\n\017LANGUAGE_PYTHON\020\005\"\222\002\n\007Setting\022\013\n"
+    "\003key\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022(\n\004kind\030\003 \001(\0162"
+    "\032.modlock.wasm.Setting.Kind\022,\n\007choices\030\004"
+    " \003(\0132\033.modlock.wasm.SettingChoice\022\013\n\003min"
+    "\030\005 \001(\001\022\013\n\003max\030\006 \001(\001\022\014\n\004step\030\007 \001(\001\022\036\n\rdef"
+    "ault_value\030\010 \001(\tR\007default\"K\n\004Kind\022\020\n\014KIN"
+    "D_UNKNOWN\020\000\022\017\n\013KIND_CHOICE\020\001\022\017\n\013KIND_SWI"
+    "TCH\020\002\022\017\n\013KIND_NUMBER\020\003\"-\n\rSettingChoice\022"
+    "\r\n\005value\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\"\225\001\n\006Metric"
+    "\022\014\n\004name\030\001 \001(\t\022\'\n\004kind\030\002 \001(\0162\031.modlock.w"
+    "asm.Metric.Kind\022\016\n\006labels\030\003 \003(\t\"D\n\004Kind\022"
+    "\020\n\014KIND_UNKNOWN\020\000\022\016\n\nKIND_COUNT\020\001\022\014\n\010KIN"
+    "D_SUM\020\002\022\014\n\010KIND_MAX\020\003\"9\n\013MetricTotal\022\014\n\004"
+    "name\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022\r\n\005value\030\003 \001(\001"
+    "\"9\n\014MetricTotals\022)\n\006totals\030\001 \003(\0132\031.modlo"
+    "ck.wasm.MetricTotal\"=\n\016StoredSettings\022+\n"
+    "\006values\030\001 \003(\0132\033.modlock.wasm.StoredSetti"
+    "ng\"J\n\rStoredSetting\022\013\n\003mod\030\001 \001(\t\022\020\n\010stea"
+    "m_id\030\002 \001(\004\022\013\n\003key\030\003 \001(\t\022\r\n\005value\030\004 \001(\t\"\224"
+    "\001\n\010Movement\022+\n\005model\030\001 \001(\0162\034.modlock.was"
+    "m.Movement.Model\022\r\n\005scale\030\002 \001(\002\022\033\n\023unpre"
+    "dicted_buttons\030\003 \001(\004\"/\n\005Model\022\020\n\014MODEL_N"
+    "ATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001\"\361\002\n\rAbilit"
+    "yTuning\022\017\n\007ability\030\001 \001(\t\022\?\n\nproperties\030\002"
+    " \003(\0132+.modlock.wasm.AbilityTuning.Proper"
+    "tiesEntry\0227\n\006fields\030\003 \003(\0132\'.modlock.wasm"
+    ".AbilityTuning.FieldsEntry\022@\n\013copy_field"
+    "s\030\004 \003(\0132+.modlock.wasm.AbilityTuning.Cop"
+    "yFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003key\030\001"
+    " \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013"
+    "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFi"
+    "eldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028"
+    "\001*\216\003\n\016MovementAction\022\033\n\027MOVEMENT_ACTION_"
+    "UNKNOWN\020\000\022\032\n\026MOVEMENT_ACTION_LANDED\020\001\022$\n"
+    " MOVEMENT_ACTION_ZIPLINE_ATTACHED\020\002\022\037\n\033M"
+    "OVEMENT_ACTION_GROUND_DASH\020\003\022\031\n\025MOVEMENT"
+    "_ACTION_SLIDE\020\004\022\036\n\032MOVEMENT_ACTION_BOUNC"
+    "E_PAD\020\005\022\035\n\031MOVEMENT_ACTION_DASH_JUMP\020\006\022\034"
+    "\n\030MOVEMENT_ACTION_AIR_JUMP\020\007\022\035\n\031MOVEMENT"
+    "_ACTION_WALL_JUMP\020\010\022\034\n\030MOVEMENT_ACTION_A"
+    "IR_DASH\020\t\022!\n\035MOVEMENT_ACTION_MELEE_START"
+    "ED\020\n\022$\n MOVEMENT_ACTION_ABILITY_EXECUTED"
+    "\020\013*\227\001\n\014ScreenEffect\022\030\n\024SCREEN_EFFECT_KIL"
+    "LED\020\000\022\027\n\023SCREEN_EFFECT_BLACK\020\001\022\031\n\025SCREEN"
+    "_EFFECT_BLINDED\020\002\022\032\n\026SCREEN_EFFECT_DARKN"
+    "ESS\020\003\022\035\n\031SCREEN_EFFECT_MATCH_INTRO\020\004*\337\002\n"
+    "\tFieldType\022\026\n\022FIELD_TYPE_UNKNOWN\020\000\022\023\n\017FI"
+    "ELD_TYPE_BOOL\020\001\022\023\n\017FIELD_TYPE_INT8\020\002\022\024\n\020"
+    "FIELD_TYPE_INT16\020\003\022\024\n\020FIELD_TYPE_INT32\020\004"
+    "\022\024\n\020FIELD_TYPE_UINT8\020\005\022\025\n\021FIELD_TYPE_UIN"
+    "T16\020\006\022\025\n\021FIELD_TYPE_UINT32\020\007\022\024\n\020FIELD_TY"
+    "PE_INT64\020\010\022\025\n\021FIELD_TYPE_UINT64\020\t\022\026\n\022FIE"
+    "LD_TYPE_FLOAT32\020\n\022\026\n\022FIELD_TYPE_FLOAT64\020"
+    "\013\022\025\n\021FIELD_TYPE_VECTOR\020\014\022\025\n\021FIELD_TYPE_H"
+    "ANDLE\020\r\022\025\n\021FIELD_TYPE_STRING\020\016*@\n\nPickup"
+    "Kind\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PICKUP_KIND"
+    "_MOVEMENT_BUFF\020\0012\345*\n\004Host\0224\n\003Log\022\030.modlo"
+    "ck.wasm.LogRequest\032\023.modlock.wasm.Empty\022"
+    "H\n\rServerCommand\022\".modlock.wasm.ServerCo"
+    "mmandRequest\032\023.modlock.wasm.Empty\0226\n\004Cha"
+    "t\022\031.modlock.wasm.ChatRequest\032\023.modlock.w"
+    "asm.Empty\022B\n\nCenterText\022\037.modlock.wasm.C"
+    "enterTextRequest\032\023.modlock.wasm.Empty\022>\n"
+    "\010Announce\022\035.modlock.wasm.AnnounceRequest"
+    "\032\023.modlock.wasm.Empty\022>\n\010Precache\022\035.modl"
+    "ock.wasm.PrecacheOptions\032\023.modlock.wasm."
+    "Empty\022=\n\007Players\022\023.modlock.wasm.Empty\032\035."
+    "modlock.wasm.PlayersResponse\022\?\n\004Pawn\022\033.m"
+    "odlock.wasm.PlayerRequest\032\032.modlock.wasm"
+    ".PawnResponse\022R\n\rPlayerSetting\022\".modlock"
+    ".wasm.PlayerSettingRequest\032\035.modlock.was"
+    "m.SettingResponse\022N\n\020SetPlayerSetting\022%."
+    "modlock.wasm.SetPlayerSettingRequest\032\023.m"
+    "odlock.wasm.Empty\022@\n\tAddMetric\022\036.modlock"
+    ".wasm.AddMetricRequest\032\023.modlock.wasm.Em"
+    "pty\022I\n\nSelectHero\022\037.modlock.wasm.SelectH"
+    "eroRequest\032\032.modlock.wasm.HeroResponse\022<"
+    "\n\010Spectate\022\033.modlock.wasm.PlayerRequest\032"
+    "\023.modlock.wasm.Empty\022;\n\007Respawn\022\033.modloc"
+    "k.wasm.PlayerRequest\032\023.modlock.wasm.Empt"
+    "y\022>\n\nClearItems\022\033.modlock.wasm.PlayerReq"
+    "uest\032\023.modlock.wasm.Empty\022:\n\006Freeze\022\033.mo"
+    "dlock.wasm.FreezeRequest\032\023.modlock.wasm."
+    "Empty\022B\n\016RestoreStamina\022\033.modlock.wasm.P"
+    "layerRequest\032\023.modlock.wasm.Empty\022J\n\016Ref"
+    "reshAbility\022#.modlock.wasm.RefreshAbilit"
+    "yRequest\032\023.modlock.wasm.Empty\022I\n\tAbiliti"
+    "es\022\033.modlock.wasm.PlayerRequest\032\037.modloc"
+    "k.wasm.AbilitiesResponse\022\?\n\nSetAbility\022\034"
+    ".modlock.wasm.AbilityOptions\032\023.modlock.w"
+    "asm.Empty\022>\n\010GiveItem\022\035.modlock.wasm.Giv"
+    "eItemRequest\032\023.modlock.wasm.Empty\022J\n\016Rep"
+    "laceAbility\022#.modlock.wasm.ReplaceAbilit"
+    "yRequest\032\023.modlock.wasm.Empty\022F\n\014HoldMod"
+    "ifier\022!.modlock.wasm.HoldModifierRequest"
+    "\032\023.modlock.wasm.Empty\022F\n\014GiveModifier\022!."
+    "modlock.wasm.GiveModifierRequest\032\023.modlo"
+    "ck.wasm.Empty\022>\n\010Teleport\022\035.modlock.wasm"
+    ".TeleportRequest\032\023.modlock.wasm.Empty\022B\n"
+    "\nMovePlayer\022\037.modlock.wasm.MovePlayerReq"
+    "uest\032\023.modlock.wasm.Empty\0228\n\005Steer\022\032.mod"
+    "lock.wasm.SteerRequest\032\023.modlock.wasm.Em"
+    "pty\022D\n\013AdjustSouls\022 .modlock.wasm.Adjust"
+    "SoulsRequest\032\023.modlock.wasm.Empty\022H\n\rSta"
+    "rtingSouls\022\".modlock.wasm.StartingSoulsR"
+    "equest\032\023.modlock.wasm.Empty\0226\n\004Heal\022\031.mo"
+    "dlock.wasm.HealRequest\032\023.modlock.wasm.Em"
+    "pty\0228\n\005Sound\022\032.modlock.wasm.SoundRequest"
+    "\032\023.modlock.wasm.Empty\022D\n\013RestoreHero\022 .m"
+    "odlock.wasm.RestoreHeroRequest\032\023.modlock"
+    ".wasm.Empty\022F\n\014ScreenEffect\022!.modlock.wa"
+    "sm.ScreenEffectRequest\032\023.modlock.wasm.Em"
+    "pty\022P\n\021ClearScreenEffect\022&.modlock.wasm."
+    "ClearScreenEffectRequest\032\023.modlock.wasm."
+    "Empty\022H\n\tReadField\022\036.modlock.wasm.ReadFi"
+    "eldRequest\032\033.modlock.wasm.FieldResponse\022"
+    "B\n\nWriteField\022\037.modlock.wasm.WriteFieldR"
+    "equest\032\023.modlock.wasm.Empty\022Q\n\rModifierS"
+    "tate\022\".modlock.wasm.ModifierStateRequest"
+    "\032\034.modlock.wasm.ActiveResponse\022P\n\021HoldMo"
+    "difierState\022&.modlock.wasm.HoldModifierS"
+    "tateRequest\032\023.modlock.wasm.Empty\022G\n\013Crea"
+    "teModel\022\032.modlock.wasm.ModelOptions\032\034.mo"
+    "dlock.wasm.ObjectResponse\022E\n\nCreateText\022"
+    "\031.modlock.wasm.TextOptions\032\034.modlock.was"
+    "m.ObjectResponse\022M\n\016CreateParticle\022\035.mod"
+    "lock.wasm.ParticleOptions\032\034.modlock.wasm"
+    ".ObjectResponse\022C\n\tCreateFog\022\030.modlock.w"
+    "asm.FogOptions\032\034.modlock.wasm.ObjectResp"
+    "onse\022B\n\nMoveObject\022\037.modlock.wasm.MoveOb"
+    "jectRequest\032\023.modlock.wasm.Empty\022<\n\007SetT"
+    "ext\022\034.modlock.wasm.SetTextRequest\032\023.modl"
+    "ock.wasm.Empty\022@\n\014RemoveObject\022\033.modlock"
+    ".wasm.ObjectRequest\032\023.modlock.wasm.Empty"
+    "\022I\n\014ObjectEntity\022\033.modlock.wasm.ObjectRe"
+    "quest\032\034.modlock.wasm.EntityResponse\022=\n\006A"
+    "ddBot\022\030.modlock.wasm.BotOptions\032\031.modloc"
+    "k.wasm.BotResponse\022=\n\tRemoveBot\022\033.modloc"
+    "k.wasm.PlayerRequest\032\023.modlock.wasm.Empt"
+    "y\022=\n\nBlockInput\022\032.modlock.wasm.InputRequ"
+    "est\032\023.modlock.wasm.Empty\022I\n\020BlockPlayerI"
+    "nput\022 .modlock.wasm.PlayerInputRequest\032\023"
+    ".modlock.wasm.Empty\022>\n\005Press\022 .modlock.w"
+    "asm.PlayerInputRequest\032\023.modlock.wasm.Em"
+    "pty\022=\n\nWatchInput\022\032.modlock.wasm.InputRe"
+    "quest\032\023.modlock.wasm.Empty\022B\n\nRemapInput"
+    "\022\037.modlock.wasm.RemapInputRequest\032\023.modl"
+    "ock.wasm.Empty\0222\n\002Ui\022\027.modlock.wasm.UiRe"
+    "quest\032\023.modlock.wasm.Empty\022D\n\013CallServic"
+    "e\022\031.modlock.wasm.ServiceCall\032\032.modlock.w"
+    "asm.ServiceReply\022\?\n\010SpawnNpc\022\030.modlock.w"
+    "asm.NpcOptions\032\031.modlock.wasm.NpcRespons"
+    "e\022C\n\007ReadNpc\022\030.modlock.wasm.NpcRequest\032\036"
+    ".modlock.wasm.NpcStateResponse\022D\n\007MoveNp"
+    "c\022\034.modlock.wasm.MoveNpcRequest\032\033.modloc"
+    "k.wasm.AliveResponse\022N\n\014SetNpcHealth\022!.m"
+    "odlock.wasm.SetNpcHealthRequest\032\033.modloc"
+    "k.wasm.AliveResponse\022B\n\tRemoveNpc\022\030.modl"
+    "ock.wasm.NpcRequest\032\033.modlock.wasm.Alive"
+    "Response\022O\n\014CreatePickup\022!.modlock.wasm."
+    "CreatePickupRequest\032\034.modlock.wasm.Picku"
+    "pResponse\022I\n\rPickupPresent\022\033.modlock.was"
+    "m.PickupRequest\032\033.modlock.wasm.AliveResp"
+    "onse\022H\n\014RemovePickup\022\033.modlock.wasm.Pick"
+    "upRequest\032\033.modlock.wasm.AliveResponse\022R"
+    "\n\016RemoveEntities\022#.modlock.wasm.RemoveEn"
+    "titiesRequest\032\033.modlock.wasm.CountRespon"
+    "se\0224\n\010ClearMap\022\023.modlock.wasm.Empty\032\023.mo"
+    "dlock.wasm.Empty\0227\n\006Damage\022\030.modlock.was"
+    "m.HitOptions\032\023.modlock.wasm.Empty\022@\n\005Tra"
+    "ce\022\032.modlock.wasm.TraceOptions\032\033.modlock"
+    ".wasm.TraceResponse\022D\n\013RestoreNpcs\022 .mod"
+    "lock.wasm.RestoreNpcsRequest\032\023.modlock.w"
+    "asm.Empty\0228\n\005Pause\022\032.modlock.wasm.PauseR"
+    "equest\032\023.modlock.wasm.Empty\022C\n\nMatchCloc"
+    "k\022\023.modlock.wasm.Empty\032 .modlock.wasm.Ma"
+    "tchClockResponse\022J\n\016HoldMatchClock\022#.mod"
+    "lock.wasm.HoldMatchClockRequest\032\023.modloc"
+    "k.wasm.Empty\0227\n\004Rift\022\023.modlock.wasm.Empt"
+    "y\032\032.modlock.wasm.RiftResponse\022@\n\tStartRi"
+    "ft\022\036.modlock.wasm.StartRiftRequest\032\023.mod"
+    "lock.wasm.Empty\022B\n\nMoveEntity\022\037.modlock."
+    "wasm.MoveEntityRequest\032\023.modlock.wasm.Em"
+    "pty\022@\n\tEmitSound\022\036.modlock.wasm.EmitSoun"
+    "dRequest\032\023.modlock.wasm.Empty\0228\n\004Kill\022\033."
+    "modlock.wasm.PlayerRequest\032\023.modlock.was"
+    "m.Empty\022D\n\013SetVelocity\022 .modlock.wasm.Se"
+    "tVelocityRequest\032\023.modlock.wasm.Empty\022E\n"
+    "\007Buttons\022\033.modlock.wasm.PlayerRequest\032\035."
+    "modlock.wasm.ButtonsResponse\022H\n\rWatchMov"
+    "ement\022\".modlock.wasm.WatchMovementReques"
+    "t\032\023.modlock.wasm.Empty\022H\n\020WatchProjectil"
+    "es\022\037.modlock.wasm.ProjectileOptions\032\023.mo"
+    "dlock.wasm.Empty2\244\007\n\003Mod\022<\n\005Start\022\030.modl"
+    "ock.wasm.StartEvent\032\031.modlock.wasm.Start"
+    "Result\0226\n\005Frame\022\030.modlock.wasm.FrameEven"
+    "t\032\023.modlock.wasm.Empty\022B\n\007Command\022\032.modl"
+    "ock.wasm.CommandEvent\032\033.modlock.wasm.Com"
+    "mandResult\0226\n\005World\022\030.modlock.wasm.World"
+    "Event\032\023.modlock.wasm.Empty\022:\n\007UiPress\022\032."
+    "modlock.wasm.UiPressEvent\032\023.modlock.wasm"
+    ".Empty\022>\n\005Serve\022\031.modlock.wasm.ServiceCa"
+    "ll\032\032.modlock.wasm.ServiceReply\022\?\n\006Damage"
+    "\022\031.modlock.wasm.DamageEvent\032\032.modlock.wa"
+    "sm.DamageResult\022:\n\007Damaged\022\032.modlock.was"
+    "m.DamagedEvent\032\023.modlock.wasm.Empty\0226\n\005I"
+    "nput\022\030.modlock.wasm.InputEvent\032\023.modlock"
+    ".wasm.Empty\022<\n\010Restored\022\033.modlock.wasm.R"
+    "estoredEvent\032\023.modlock.wasm.Empty\022D\n\014Npc"
+    "sRestored\022\037.modlock.wasm.NpcsRestoredEve"
+    "nt\032\023.modlock.wasm.Empty\0228\n\006Launch\022\031.modl"
+    "ock.wasm.LaunchEvent\032\023.modlock.wasm.Empt"
+    "y\0228\n\006Impact\022\031.modlock.wasm.ImpactEvent\032\023"
+    ".modlock.wasm.Empty\0228\n\006Landed\022\031.modlock."
+    "wasm.LandedEvent\032\023.modlock.wasm.Empty\022H\n"
+    "\016SettingChanged\022!.modlock.wasm.SettingCh"
+    "angedEvent\032\023.modlock.wasm.EmptyB4Z2githu"
+    "b.com/paralin/modlock/proto/modlock/wasm"
+    ";wasmb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto_deps[2] = {
@@ -5798,7 +5802,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fpro
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto = {
     false,
     false,
-    20969,
+    21013,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto,
     "github.com/paralin/modlock/proto/modlock/wasm.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto_once,
@@ -18936,9 +18940,9 @@ Pawn::Pawn(
                offsetof(Impl_, entity_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, entity_),
-           offsetof(Impl_, souls_) -
+           offsetof(Impl_, carrying_urn_) -
                offsetof(Impl_, entity_) +
-               sizeof(Impl_::souls_));
+               sizeof(Impl_::carrying_urn_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.Pawn)
 }
@@ -18952,9 +18956,9 @@ inline void Pawn::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, position_),
            0,
-           offsetof(Impl_, souls_) -
+           offsetof(Impl_, carrying_urn_) -
                offsetof(Impl_, position_) +
-               sizeof(Impl_::souls_));
+               sizeof(Impl_::carrying_urn_));
 }
 Pawn::~Pawn() {
   // @@protoc_insertion_point(destructor:modlock.wasm.Pawn)
@@ -19018,16 +19022,16 @@ Pawn::GetClassData() const {
   return Pawn_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 14, 5, 0, 2>
+const ::_pbi::TcParseTable<4, 15, 5, 0, 2>
 Pawn::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Pawn, _impl_._has_bits_),
     0, // no _extensions_
-    14, 120,  // max_field_number, fast_idx_mask
+    15, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294950912,  // skipmap
+    4294934528,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    14,  // num_field_entries
+    15,  // num_field_entries
     5,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Pawn_class_data_.base(),
@@ -19094,7 +19098,10 @@ Pawn::_table_ = {
     {::_pbi::TcParser::FastMtS1,
      {114, 4, 4,
       PROTOBUF_FIELD_OFFSET(Pawn, _impl_.velocity_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional bool carrying_urn = 15;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Pawn, _impl_.carrying_urn_), 14>(),
+     {120, 14, 0,
+      PROTOBUF_FIELD_OFFSET(Pawn, _impl_.carrying_urn_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -19126,6 +19133,8 @@ Pawn::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Pawn, _impl_.eye_position_), _Internal::kHasBitsOffset + 3, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.Vec3 velocity = 14;
     {PROTOBUF_FIELD_OFFSET(Pawn, _impl_.velocity_), _Internal::kHasBitsOffset + 4, 4, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // optional bool carrying_urn = 15;
+    {PROTOBUF_FIELD_OFFSET(Pawn, _impl_.carrying_urn_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
@@ -19172,10 +19181,10 @@ PROTOBUF_NOINLINE void Pawn::Clear() {
         reinterpret_cast<char*>(&_impl_.team_) -
         reinterpret_cast<char*>(&_impl_.entity_)) + sizeof(_impl_.team_));
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00003f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
     ::memset(&_impl_.health_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.souls_) -
-        reinterpret_cast<char*>(&_impl_.health_)) + sizeof(_impl_.souls_));
+        reinterpret_cast<char*>(&_impl_.carrying_urn_) -
+        reinterpret_cast<char*>(&_impl_.health_)) + sizeof(_impl_.carrying_urn_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -19312,6 +19321,13 @@ PROTOBUF_NOINLINE void Pawn::Clear() {
         stream);
   }
 
+  // optional bool carrying_urn = 15;
+  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(
+        15, this_._internal_carrying_urn(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -19338,6 +19354,7 @@ PROTOBUF_NOINLINE void Pawn::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   total_size += ::absl::popcount(0x00000c00U & cached_has_bits) * 5;
+  total_size += static_cast<bool>(0x00004000U & cached_has_bits) * 2;
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     // .modlock.Vec3 position = 6;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
@@ -19492,7 +19509,7 @@ void Pawn::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00003f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (from._internal_health() != 0) {
         _this->_impl_.health_ = from._impl_.health_;
@@ -19519,6 +19536,9 @@ void Pawn::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.souls_ = from._impl_.souls_;
       }
     }
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+      _this->_impl_.carrying_urn_ = from._impl_.carrying_urn_;
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -19538,8 +19558,8 @@ void Pawn::InternalSwap(Pawn* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Pawn, _impl_.souls_)
-      + sizeof(Pawn::_impl_.souls_)
+      PROTOBUF_FIELD_OFFSET(Pawn, _impl_.carrying_urn_)
+      + sizeof(Pawn::_impl_.carrying_urn_)
       - PROTOBUF_FIELD_OFFSET(Pawn, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

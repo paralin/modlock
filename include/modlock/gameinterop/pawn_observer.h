@@ -272,8 +272,6 @@ class MODLOCK_API PawnObserver {
       bool mantling = false;
       bool climbing = false;
       bool dashing = false;
-      // carrying_urn preserves unavailable modifier-state evidence as absence.
-      std::optional<bool> carrying_urn;
       std::optional<uint32_t> mantle_ability_handle;
       std::optional<float> mantle_start_time;
       // The owned innate jump ability and its game-authored sequence counter.

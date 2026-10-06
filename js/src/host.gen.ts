@@ -711,6 +711,11 @@ export interface Pawn {
   readonly eyePosition: Vector
   /** velocity is the hero's motion in units per second. */
   readonly velocity: Vector
+  /**
+   * carryingUrn is whether the hero carries the soul urn, absent when the
+   * game's modifier states cannot be read.
+   */
+  readonly carryingUrn?: boolean
 }
 
 /** fromPawn decodes a Pawn. */
@@ -730,6 +735,7 @@ function fromPawn(message: pb.Pawn): Pawn {
     souls: message.souls ?? 0,
     eyePosition: vector(message.eyePosition),
     velocity: vector(message.velocity),
+    carryingUrn: message.carryingUrn,
   }
 }
 

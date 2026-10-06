@@ -461,6 +461,9 @@ export type Pawn = {
 	eyePosition: Vector,
 	-- velocity is the hero's motion in units per second.
 	velocity: Vector,
+	-- carryingUrn is whether the hero carries the soul urn, absent when the
+	-- game's modifier states cannot be read.
+	carryingUrn: boolean?,
 }
 
 -- Ability is one ability a hero owns.
@@ -1575,6 +1578,7 @@ schema.Pawn = {
 	{ number = 12, name = "souls", kind = "int32" },
 	{ number = 13, name = "eyePosition", kind = "message", message = "Vec3" },
 	{ number = 14, name = "velocity", kind = "message", message = "Vec3" },
+	{ number = 15, name = "carryingUrn", kind = "bool", optional = true },
 }
 schema.SelectHeroRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
