@@ -330,7 +330,9 @@ class WasmPlugin final : public Plugin {
   void Stop() override;
 
  private:
-  void Begin(bool reloaded);
+  // Begin starts the mod and learns which events it consumes, reporting
+  // whether it started.
+  std::expected<void, std::string> Begin(bool reloaded);
   void Halt();
   void World();
   // SteamId returns the account of the player in slot, or zero for a bot or
@@ -483,28 +485,30 @@ std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instanti
 }
 
 bool WasmPlugin::Start() {
+  // The mod starts before it hears of any world: a world that is already
+  // ready reaches it while it subscribes. Send has logged a failed start.
+  if (!Begin(false)) return false;
+  if (check_only_) return true;
+
   // Player commands need the network system, which loads with the first world.
-  if (!check_only_) {
-    auto world = engine_->OnWorld([this](std::string_view) { host_.game.WorldStarting(); },
-                                  [this](std::string_view map) {
-                                    map_ = std::string(map);
-                                    host_.game.WorldReady();
-                                    ListenToPlayers();
-                                    ListenToCombat();
-                                    World();
-                                  });
-    if (world) {
-      world_.Add(std::move(*world));
-    } else {
-      Log(std::string("player commands are unavailable: ") + world.error());
-    }
-    if (auto ending = engine_->OnWorldEnding([this] { game_.WorldEnding(); })) {
-      world_.Add(std::move(*ending));
-    } else {
-      Log(std::string("world objects may outlive their world: ") + ending.error());
-    }
+  auto world = engine_->OnWorld([this](std::string_view) { host_.game.WorldStarting(); },
+                                [this](std::string_view map) {
+                                  map_ = std::string(map);
+                                  host_.game.WorldReady();
+                                  ListenToPlayers();
+                                  ListenToCombat();
+                                  World();
+                                });
+  if (world) {
+    world_.Add(std::move(*world));
+  } else {
+    Log(std::string("player commands are unavailable: ") + world.error());
   }
-  Begin(false);
+  if (auto ending = engine_->OnWorldEnding([this] { game_.WorldEnding(); })) {
+    world_.Add(std::move(*ending));
+  } else {
+    Log(std::string("world objects may outlive their world: ") + ending.error());
+  }
   return true;
 }
 
@@ -516,8 +520,7 @@ std::expected<void, std::string> WasmPlugin::Reload(Build build) {
   // Stop the old build and start the new one in its place.
   Halt();
   Attach(std::move(*instance), std::move(build));
-  Begin(true);
-  return {};
+  return Begin(true);
 }
 
 std::expected<void, std::string> WasmPlugin::Press(int32_t slot, std::string_view node) {
@@ -538,14 +541,14 @@ std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCal
   return std::move(*reply->mutable_payload());
 }
 
-void WasmPlugin::Begin(bool reloaded) {
+std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   // Start the mod and learn which events it consumes.
   wasm::StartEvent event;
   for (const auto& arg : args_) event.add_args(arg);
   event.set_check_only(check_only_);
   event.set_source(source_.data(), source_.size());
   auto started = mod_.Start(event);
-  if (!started) return;
+  if (!started) return std::unexpected(started.error());
   wants_ = std::move(*started);
   host_.Notify([&](WasmHostObserver& observer) { observer.Started(name_, reloaded); });
   if (map_) {
@@ -553,6 +556,7 @@ void WasmPlugin::Begin(bool reloaded) {
     ListenToCombat();
     World();
   }
+  return {};
 }
 
 void WasmPlugin::Halt() {
@@ -995,12 +999,12 @@ uint64_t WasmPlugin::SteamId(int32_t slot) {
 }
 
 void WasmPlugin::Log(std::string_view text) {
-  std::cerr << name_ << ": " << text << '\n';
+  std::cerr << '[' << name_ << "] " << text << '\n';
   host_.Notify([&](WasmHostObserver& observer) { observer.Logged(name_, text); });
 }
 
 void WasmPlugin::Failed(std::string_view error) {
-  std::cerr << name_ << ": " << error << '\n';
+  std::cerr << '[' << name_ << "] " << error << '\n';
   host_.Notify([&](WasmHostObserver& observer) { observer.Failed(name_, error); });
 }
 

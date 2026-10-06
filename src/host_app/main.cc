@@ -46,15 +46,20 @@ std::optional<uint16_t> Port(std::string_view value) {
   return static_cast<uint16_t>(port);
 }
 
-// LoadSignatures reads the game data file and logs every entry it skips, so a
-// broken entry disables only the features that resolve it.
+// LoadSignatures reads the game data file and logs how many entries it loaded
+// and every entry it skips, so a broken entry disables only the features that
+// resolve it.
 void LoadSignatures(const std::filesystem::path& path) {
   const auto load = modlock::gameinterop::LoadGameSignatures(path);
   if (!load) {
-    std::cerr << load.error() << "; using the built-in signatures\n";
+    std::cerr << "[modlock] " << load.error() << "; using the built-in signatures\n";
     return;
   }
-  for (const auto& skipped : load->skipped) std::cerr << "game signatures: " << skipped << '\n';
+  std::cerr << "[modlock] game signatures: " << load->loaded << " loaded, " << load->skipped.size()
+            << " skipped\n";
+  for (const auto& skipped : load->skipped) {
+    std::cerr << "[modlock] game signature skipped: " << skipped << '\n';
+  }
 }
 
 // FailureRecorder keeps the first error of a mod that stopped, which fails
