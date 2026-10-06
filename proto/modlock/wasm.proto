@@ -161,6 +161,13 @@ service Host {
   // model drawn when repeated every tick, and leaves the camera alone.
   rpc MovePlayer(MovePlayerRequest) returns (Empty);
 
+  // Steer replays a recorded movement command on the player's hero, usually a
+  // bot: the game runs the command's buttons and axes, so the hero crouches,
+  // slides, jumps and mantles with its own animation, and the step then ends
+  // on the recorded pose. The steering stays until the next Steer replaces
+  // it, its presses counting once; a Steer without one releases the hero.
+  rpc Steer(SteerRequest) returns (Empty);
+
   // AdjustSouls gives the player delta souls, or takes them when delta is
   // negative. A spend larger than the player's souls fails and spends
   // nothing. Silent skips the pickup's sound and number.
@@ -549,6 +556,31 @@ message MovementSample {
   // MOVEMENT_ACTION_ABILITY_EXECUTED, by entity handle as Ability.entity
   // reports it; Abilities names each one's slot.
   repeated uint32 casts = 21;
+
+  // Command is the movement the hero's player commanded since the last
+  // sample, absent before the game ran any of it.
+  optional MovementCommand command = 22;
+}
+
+// MovementCommand is the movement a player commanded over one tick. The
+// server runs a player's commands as they arrive, so a tick may run several
+// or none: every press among them is kept once, and a tick that ran none
+// holds the last buttons without pressing them again.
+message MovementCommand {
+  // Held, Changed and Scroll are the game's InButtonState masks as Buttons
+  // bits: the buttons down, the buttons that went down or up, and the
+  // presses of scroll-wheel buttons.
+  uint64 held = 1;
+  uint64 changed = 2;
+  uint64 scroll = 3;
+
+  // Forward, Left and Up are the movement axes, from -1 to 1.
+  float forward = 4;
+  float left = 5;
+  float up = 6;
+
+  // Grounded is true when the hero stood on something as the tick began.
+  bool grounded = 7;
 }
 
 // CommandEvent carries one command line from a player: a chat line that
@@ -1107,6 +1139,26 @@ message MovePlayerRequest {
 
   // Velocity is the hero's motion, which drives its run animation.
   optional modlock.Vec3 velocity = 4;
+}
+
+// SteerRequest replays one movement command on a player's hero, or releases
+// the hero without one.
+message SteerRequest {
+  int32 player = 1;
+  optional Steering steering = 2;
+}
+
+// Steering is one recorded movement command and the pose its step ends on.
+message Steering {
+  MovementCommand command = 1;
+
+  // Position, Velocity and Grounded are the pose the step ends on.
+  modlock.Vec3 position = 2;
+  modlock.Vec3 velocity = 3;
+  bool grounded = 4;
+
+  // Facing is where the command looks, which aims the hero and its animation.
+  modlock.EulerAngles facing = 5;
 }
 
 // AdjustSoulsRequest changes one player's souls.

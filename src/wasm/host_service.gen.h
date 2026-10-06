@@ -217,6 +217,15 @@ class HostService {
     return std::unexpected("this host does not support MovePlayer");
   }
 
+  // Steer replays a recorded movement command on the player's hero, usually a
+  // bot: the game runs the command's buttons and axes, so the hero crouches,
+  // slides, jumps and mantles with its own animation, and the step then ends
+  // on the recorded pose. The steering stays until the next Steer replaces
+  // it, its presses counting once; a Steer without one releases the hero.
+  virtual std::expected<void, std::string> Steer(const SteerRequest& /*request*/) {
+    return std::unexpected("this host does not support Steer");
+  }
+
   // AdjustSouls gives the player delta souls, or takes them when delta is
   // negative. A spend larger than the player's souls fails and spends
   // nothing. Silent skips the pickup's sound and number.
@@ -756,6 +765,14 @@ class HostService {
              return detail::Fail("the MovePlayer request is malformed");
            }
            return detail::Answer(host.MovePlayer(request));
+         }},
+        {"Steer",
+         [](HostService& host, const std::string& bytes) {
+           SteerRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Steer request is malformed");
+           }
+           return detail::Answer(host.Steer(request));
          }},
         {"AdjustSouls",
          [](HostService& host, const std::string& bytes) {

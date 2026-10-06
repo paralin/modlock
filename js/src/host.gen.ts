@@ -240,6 +240,11 @@ export interface MovementSample {
    * reports it; Abilities names each one's slot.
    */
   readonly casts: number[]
+  /**
+   * command is the movement the hero's player commanded since the last
+   * sample, absent before the game ran any of it.
+   */
+  readonly command?: MovementCommand
 }
 
 /** fromMovementSample decodes a MovementSample. */
@@ -265,6 +270,43 @@ function fromMovementSample(message: pb.MovementSample): MovementSample {
     ziplineTime: message.ziplineTime,
     actions: (message.actions ?? []).flatMap((v) => movementActionNames[v] ?? []),
     casts: message.casts ?? [],
+    command: message.command === undefined ? undefined : fromMovementCommand(message.command),
+  }
+}
+
+/**
+ * MovementCommand is the movement a player commanded over one tick. The
+ * server runs a player's commands as they arrive, so a tick may run several
+ * or none: every press among them is kept once, and a tick that ran none
+ * holds the last buttons without pressing them again.
+ */
+export interface MovementCommand {
+  /**
+   * held, changed and scroll are the game's InButtonState masks as Buttons
+   * bits: the buttons down, the buttons that went down or up, and the
+   * presses of scroll-wheel buttons.
+   */
+  held: bigint
+  changed: bigint
+  scroll: bigint
+  /** forward, left and up are the movement axes, from -1 to 1. */
+  forward: number
+  left: number
+  up: number
+  /** grounded is true when the hero stood on something as the tick began. */
+  grounded: boolean
+}
+
+/** fromMovementCommand decodes a MovementCommand. */
+function fromMovementCommand(message: pb.MovementCommand): MovementCommand {
+  return {
+    held: message.held ?? 0n,
+    changed: message.changed ?? 0n,
+    scroll: message.scroll ?? 0n,
+    forward: message.forward ?? 0,
+    left: message.left ?? 0,
+    up: message.up ?? 0,
+    grounded: message.grounded ?? false,
   }
 }
 
@@ -769,6 +811,19 @@ function toAbilityOptions(value: AbilityOptions): pb.AbilityOptions {
     cooldownEnd: value.cooldownEnd,
     rechargeEnd: value.rechargeEnd,
   }
+}
+
+/** Steering is one recorded movement command and the pose its step ends on. */
+export interface Steering {
+  command: MovementCommand
+  /** position, velocity and grounded are the pose the step ends on. */
+  position: Vector
+  velocity: Vector
+  grounded: boolean
+  /**
+   * facing is where the command looks, which aims the hero and its animation.
+   */
+  facing: Angles
 }
 
 /** ProjectileOptions selects the projectiles a mod watches. */
@@ -1401,6 +1456,17 @@ export class Player {
    */
   move(position: Vector, facing: Angles, velocity?: Vector): boolean {
     return call('MovePlayer', pb.MovePlayerRequest.toBinary({ player: this.slot, position, facing, velocity })) !== undefined
+  }
+
+  /**
+   * steer replays a recorded movement command on the player's hero, usually a
+   * bot: the game runs the command's buttons and axes, so the hero crouches,
+   * slides, jumps and mantles with its own animation, and the step then ends
+   * on the recorded pose. The steering stays until the next Steer replaces
+   * it, its presses counting once; a Steer without one releases the hero.
+   */
+  steer(steering?: Steering): boolean {
+    return call('Steer', pb.SteerRequest.toBinary({ player: this.slot, steering })) !== undefined
   }
 
   /**

@@ -104,6 +104,12 @@ type FrameEvent = wasm.FrameEvent
 // no sample; another field the game did not provide is absent or zero.
 type MovementSample = wasm.MovementSample
 
+// MovementCommand is the movement a player commanded over one tick. The
+// server runs a player's commands as they arrive, so a tick may run several
+// or none: every press among them is kept once, and a tick that ran none
+// holds the last buttons without pressing them again.
+type MovementCommand = wasm.MovementCommand
+
 // CommandEvent carries one command line from a player: a chat line that
 // starts with a slash, without the slash, or a console command the server
 // received.
@@ -172,6 +178,9 @@ type Ability = wasm.Ability
 
 // AbilityOptions changes one ability of a player's hero.
 type AbilityOptions = wasm.AbilityOptions
+
+// Steering is one recorded movement command and the pose its step ends on.
+type Steering = wasm.Steering
 
 // ProjectileOptions selects the projectiles a mod watches.
 type ProjectileOptions = wasm.ProjectileOptions
@@ -493,6 +502,15 @@ func (p Player) Teleport(position *Vector, facing *Angles, velocity *Vector) err
 // model drawn when repeated every tick, and leaves the camera alone.
 func (p Player) Move(position *Vector, facing *Angles, velocity *Vector) error {
 	return invoke("MovePlayer", &wasm.MovePlayerRequest{Player: p.Slot, Position: position, Facing: facing, Velocity: velocity}, nil)
+}
+
+// Steer replays a recorded movement command on the player's hero, usually a
+// bot: the game runs the command's buttons and axes, so the hero crouches,
+// slides, jumps and mantles with its own animation, and the step then ends
+// on the recorded pose. The steering stays until the next Steer replaces
+// it, its presses counting once; a Steer without one releases the hero.
+func (p Player) Steer(steering *Steering) error {
+	return invoke("Steer", &wasm.SteerRequest{Player: p.Slot, Steering: steering}, nil)
 }
 
 // AdjustSouls gives the player delta souls, or takes them when delta is

@@ -206,6 +206,28 @@ export type MovementSample = {
 	-- MOVEMENT_ACTION_ABILITY_EXECUTED, by entity handle as Ability.entity
 	-- reports it; Abilities names each one's slot.
 	casts: { number },
+	-- command is the movement the hero's player commanded since the last
+	-- sample, absent before the game ran any of it.
+	command: MovementCommand?,
+}
+
+-- MovementCommand is the movement a player commanded over one tick. The
+-- server runs a player's commands as they arrive, so a tick may run several
+-- or none: every press among them is kept once, and a tick that ran none
+-- holds the last buttons without pressing them again.
+export type MovementCommand = {
+	-- held, changed and scroll are the game's InButtonState masks as Buttons
+	-- bits: the buttons down, the buttons that went down or up, and the
+	-- presses of scroll-wheel buttons.
+	held: number,
+	changed: number,
+	scroll: number,
+	-- forward, left and up are the movement axes, from -1 to 1.
+	forward: number,
+	left: number,
+	up: number,
+	-- grounded is true when the hero stood on something as the tick began.
+	grounded: boolean,
 }
 
 -- CommandEvent carries one command line from a player: a chat line that
@@ -483,6 +505,17 @@ export type AbilityOptions = {
 	cooldownEnd: number?,
 	-- rechargeEnd replaces the game time its next charge returns.
 	rechargeEnd: number?,
+}
+
+-- Steering is one recorded movement command and the pose its step ends on.
+export type Steering = {
+	command: MovementCommand,
+	-- position, velocity and grounded are the pose the step ends on.
+	position: Vector,
+	velocity: Vector,
+	grounded: boolean,
+	-- facing is where the command looks, which aims the hero and its animation.
+	facing: Angles,
 }
 
 -- ProjectileOptions selects the projectiles a mod watches.
@@ -861,6 +894,12 @@ export type Player = {
 	-- as a recording plays back. Unlike Teleport it keeps the hero's animated
 	-- model drawn when repeated every tick, and leaves the camera alone.
 	move: (self: Player, position: Vector, facing: Angles, velocity: Vector?) -> boolean,
+	-- steer replays a recorded movement command on the player's hero, usually a
+	-- bot: the game runs the command's buttons and axes, so the hero crouches,
+	-- slides, jumps and mantles with its own animation, and the step then ends
+	-- on the recorded pose. The steering stays until the next Steer replaces
+	-- it, its presses counting once; a Steer without one releases the hero.
+	steer: (self: Player, steering: Steering?) -> boolean,
 	-- adjustSouls gives the player delta souls, or takes them when delta is
 	-- negative. A spend larger than the player's souls fails and spends
 	-- nothing. Silent skips the pickup's sound and number.
@@ -1062,6 +1101,15 @@ end
 -- model drawn when repeated every tick, and leaves the camera alone.
 function Player.move(self: Player, position: Vector, facing: Angles, velocity: Vector?): boolean
 	return call("MovePlayer", "MovePlayerRequest", { player = self, position = position, facing = facing, velocity = velocity }) ~= nil
+end
+
+-- steer replays a recorded movement command on the player's hero, usually a
+-- bot: the game runs the command's buttons and axes, so the hero crouches,
+-- slides, jumps and mantles with its own animation, and the step then ends
+-- on the recorded pose. The steering stays until the next Steer replaces
+-- it, its presses counting once; a Steer without one releases the hero.
+function Player.steer(self: Player, steering: Steering?): boolean
+	return call("Steer", "SteerRequest", { player = self, steering = steering }) ~= nil
 end
 
 -- adjustSouls gives the player delta souls, or takes them when delta is
@@ -1361,6 +1409,16 @@ schema.MovementSample = {
 	{ number = 19, name = "ziplineTime", kind = "float", optional = true },
 	{ number = 20, name = "actions", kind = "enum", repeated = true, enum = MovementAction },
 	{ number = 21, name = "casts", kind = "uint32", repeated = true },
+	{ number = 22, name = "command", kind = "message", optional = true, message = "MovementCommand" },
+}
+schema.MovementCommand = {
+	{ number = 1, name = "held", kind = "uint64" },
+	{ number = 2, name = "changed", kind = "uint64" },
+	{ number = 3, name = "scroll", kind = "uint64" },
+	{ number = 4, name = "forward", kind = "float" },
+	{ number = 5, name = "left", kind = "float" },
+	{ number = 6, name = "up", kind = "float" },
+	{ number = 7, name = "grounded", kind = "bool" },
 }
 schema.CommandEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -1589,6 +1647,17 @@ schema.MovePlayerRequest = {
 	{ number = 2, name = "position", kind = "message", message = "Vec3" },
 	{ number = 3, name = "facing", kind = "message", message = "EulerAngles" },
 	{ number = 4, name = "velocity", kind = "message", optional = true, message = "Vec3" },
+}
+schema.SteerRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "steering", kind = "message", optional = true, message = "Steering" },
+}
+schema.Steering = {
+	{ number = 1, name = "command", kind = "message", message = "MovementCommand" },
+	{ number = 2, name = "position", kind = "message", message = "Vec3" },
+	{ number = 3, name = "velocity", kind = "message", message = "Vec3" },
+	{ number = 4, name = "grounded", kind = "bool" },
+	{ number = 5, name = "facing", kind = "message", message = "EulerAngles" },
 }
 schema.AdjustSoulsRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

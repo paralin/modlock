@@ -1165,6 +1165,37 @@ struct NpcRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NpcRequestDefaultTypeInternal _NpcRequest_default_instance_;
 
+inline constexpr MovementCommand::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        held_{::uint64_t{0u}},
+        changed_{::uint64_t{0u}},
+        scroll_{::uint64_t{0u}},
+        forward_{0},
+        left_{0},
+        up_{0},
+        grounded_{false} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR MovementCommand::MovementCommand(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(MovementCommand_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct MovementCommandDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MovementCommandDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~MovementCommandDefaultTypeInternal() {}
+  union {
+    MovementCommand _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MovementCommandDefaultTypeInternal _MovementCommand_default_instance_;
+
 inline constexpr Movement::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -2522,6 +2553,35 @@ struct StoredSettingsDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 StoredSettingsDefaultTypeInternal _StoredSettings_default_instance_;
 
+inline constexpr Steering::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        command_{nullptr},
+        position_{nullptr},
+        velocity_{nullptr},
+        facing_{nullptr},
+        grounded_{false} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Steering::Steering(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(Steering_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SteeringDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SteeringDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SteeringDefaultTypeInternal() {}
+  union {
+    Steering _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SteeringDefaultTypeInternal _Steering_default_instance_;
+
 inline constexpr StartRiftRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -2864,6 +2924,7 @@ inline constexpr MovementSample::Impl_::Impl_(
         wall_contact_{nullptr},
         wall_normal_{nullptr},
         wall_jump_normal_{nullptr},
+        command_{nullptr},
         player_{0},
         pawn_{0u},
         grounded_{false},
@@ -3393,6 +3454,32 @@ struct TraceResponseDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 TraceResponseDefaultTypeInternal _TraceResponse_default_instance_;
 
+inline constexpr SteerRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        steering_{nullptr},
+        player_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR SteerRequest::SteerRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(SteerRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct SteerRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SteerRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SteerRequestDefaultTypeInternal() {}
+  union {
+    SteerRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SteerRequestDefaultTypeInternal _SteerRequest_default_instance_;
+
 inline constexpr RestoreNpcsRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -3702,7 +3789,7 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_._has_bits_),
-        23, // hasbit index offset
+        24, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.pawn_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.position_),
@@ -3723,11 +3810,11 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.zipline_time_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.actions_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.casts_),
-        7,
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementSample, _impl_.command_),
         8,
+        9,
         2,
         3,
-        9,
         10,
         11,
         12,
@@ -3736,13 +3823,32 @@ const ::uint32_t
         15,
         16,
         17,
+        18,
         4,
         5,
         6,
-        18,
         19,
+        20,
         0,
         1,
+        7,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_._has_bits_),
+        10, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.held_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.changed_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.scroll_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.forward_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.left_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.up_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::MovementCommand, _impl_.grounded_),
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::CommandEvent, _impl_._has_bits_),
         5, // hasbit index offset
@@ -4157,6 +4263,26 @@ const ::uint32_t
         0,
         1,
         2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::SteerRequest, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::SteerRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::SteerRequest, _impl_.steering_),
+        1,
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Steering, _impl_._has_bits_),
+        8, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Steering, _impl_.command_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Steering, _impl_.position_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Steering, _impl_.velocity_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Steering, _impl_.grounded_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::Steering, _impl_.facing_),
+        0,
+        1,
+        2,
+        4,
+        3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::AdjustSoulsRequest, _impl_._has_bits_),
         6, // hasbit index offset
@@ -4875,128 +5001,131 @@ static const ::_pbi::MigrationSchema
         {24, sizeof(::modlock::wasm::StartResult)},
         {33, sizeof(::modlock::wasm::FrameEvent)},
         {42, sizeof(::modlock::wasm::MovementSample)},
-        {85, sizeof(::modlock::wasm::CommandEvent)},
-        {92, sizeof(::modlock::wasm::CommandResult)},
-        {97, sizeof(::modlock::wasm::WorldEvent)},
-        {102, sizeof(::modlock::wasm::UiPressEvent)},
-        {109, sizeof(::modlock::wasm::ServiceCall)},
-        {118, sizeof(::modlock::wasm::ServiceReply)},
-        {123, sizeof(::modlock::wasm::DamageEvent)},
-        {140, sizeof(::modlock::wasm::DamageResult)},
-        {147, sizeof(::modlock::wasm::DamagedEvent)},
-        {162, sizeof(::modlock::wasm::InputEvent)},
-        {171, sizeof(::modlock::wasm::RestoredEvent)},
-        {178, sizeof(::modlock::wasm::NpcsRestoredEvent)},
-        {183, sizeof(::modlock::wasm::LaunchEvent)},
-        {196, sizeof(::modlock::wasm::ImpactEvent)},
-        {215, sizeof(::modlock::wasm::LandedEvent)},
-        {224, sizeof(::modlock::wasm::SettingChangedEvent)},
-        {233, sizeof(::modlock::wasm::LogRequest)},
-        {238, sizeof(::modlock::wasm::ServerCommandRequest)},
-        {243, sizeof(::modlock::wasm::PlayerRequest)},
-        {248, sizeof(::modlock::wasm::PlayerSettingRequest)},
-        {255, sizeof(::modlock::wasm::SettingResponse)},
-        {260, sizeof(::modlock::wasm::AddMetricRequest)},
-        {271, sizeof(::modlock::wasm::SetPlayerSettingRequest)},
-        {280, sizeof(::modlock::wasm::ChatRequest)},
-        {287, sizeof(::modlock::wasm::CenterTextRequest)},
-        {294, sizeof(::modlock::wasm::AnnounceRequest)},
-        {303, sizeof(::modlock::wasm::PrecacheOptions)},
-        {310, sizeof(::modlock::wasm::PlayersResponse)},
-        {315, sizeof(::modlock::wasm::Connection)},
-        {330, sizeof(::modlock::wasm::PawnResponse)},
-        {335, sizeof(::modlock::wasm::Pawn)},
-        {366, sizeof(::modlock::wasm::SelectHeroRequest)},
-        {379, sizeof(::modlock::wasm::HeroResponse)},
-        {384, sizeof(::modlock::wasm::FreezeRequest)},
-        {391, sizeof(::modlock::wasm::RefreshAbilityRequest)},
-        {398, sizeof(::modlock::wasm::AbilitiesResponse)},
-        {403, sizeof(::modlock::wasm::Ability)},
-        {428, sizeof(::modlock::wasm::AbilityOptions)},
-        {443, sizeof(::modlock::wasm::GiveItemRequest)},
-        {450, sizeof(::modlock::wasm::ReplaceAbilityRequest)},
-        {459, sizeof(::modlock::wasm::HoldModifierRequest)},
-        {468, sizeof(::modlock::wasm::GiveModifierRequest)},
-        {477, sizeof(::modlock::wasm::TeleportRequest)},
-        {488, sizeof(::modlock::wasm::MovePlayerRequest)},
-        {499, sizeof(::modlock::wasm::AdjustSoulsRequest)},
-        {508, sizeof(::modlock::wasm::StartingSoulsRequest)},
-        {515, sizeof(::modlock::wasm::HealRequest)},
-        {522, sizeof(::modlock::wasm::SoundRequest)},
-        {529, sizeof(::modlock::wasm::MoveEntityRequest)},
-        {540, sizeof(::modlock::wasm::EmitSoundRequest)},
-        {547, sizeof(::modlock::wasm::SetVelocityRequest)},
-        {554, sizeof(::modlock::wasm::WatchMovementRequest)},
-        {561, sizeof(::modlock::wasm::ButtonsResponse)},
-        {566, sizeof(::modlock::wasm::ProjectileOptions)},
-        {573, sizeof(::modlock::wasm::RestoreHeroRequest)},
-        {580, sizeof(::modlock::wasm::HeroTarget)},
-        {605, sizeof(::modlock::wasm::EquipmentTarget)},
-        {614, sizeof(::modlock::wasm::TimerTarget)},
-        {629, sizeof(::modlock::wasm::ScreenEffectRequest)},
-        {638, sizeof(::modlock::wasm::ScreenTiming)},
-        {649, sizeof(::modlock::wasm::ClearScreenEffectRequest)},
-        {656, sizeof(::modlock::wasm::ReadFieldRequest)},
-        {667, sizeof(::modlock::wasm::FieldResponse)},
-        {672, sizeof(::modlock::wasm::FieldValue)},
-        {680, sizeof(::modlock::wasm::WriteFieldRequest)},
-        {693, sizeof(::modlock::wasm::ModifierStateRequest)},
-        {700, sizeof(::modlock::wasm::ActiveResponse)},
-        {705, sizeof(::modlock::wasm::HoldModifierStateRequest)},
-        {714, sizeof(::modlock::wasm::ModelOptions)},
-        {731, sizeof(::modlock::wasm::TextOptions)},
-        {748, sizeof(::modlock::wasm::ParticleOptions)},
-        {765, sizeof(::modlock::wasm::ParticlePoint)},
-        {772, sizeof(::modlock::wasm::FogOptions)},
-        {787, sizeof(::modlock::wasm::ObjectResponse)},
-        {792, sizeof(::modlock::wasm::EntityResponse)},
-        {797, sizeof(::modlock::wasm::ObjectRequest)},
-        {802, sizeof(::modlock::wasm::MoveObjectRequest)},
-        {811, sizeof(::modlock::wasm::SetTextRequest)},
-        {818, sizeof(::modlock::wasm::BotOptions)},
-        {833, sizeof(::modlock::wasm::BotResponse)},
-        {838, sizeof(::modlock::wasm::InputRequest)},
-        {843, sizeof(::modlock::wasm::PlayerInputRequest)},
-        {850, sizeof(::modlock::wasm::RemapInputRequest)},
-        {859, sizeof(::modlock::wasm::UiRequest)},
-        {866, sizeof(::modlock::wasm::NpcOptions)},
-        {885, sizeof(::modlock::wasm::NpcResponse)},
-        {890, sizeof(::modlock::wasm::NpcRequest)},
-        {895, sizeof(::modlock::wasm::NpcStateResponse)},
-        {900, sizeof(::modlock::wasm::NpcState)},
-        {913, sizeof(::modlock::wasm::MoveNpcRequest)},
-        {924, sizeof(::modlock::wasm::SetNpcHealthRequest)},
-        {933, sizeof(::modlock::wasm::AliveResponse)},
-        {938, sizeof(::modlock::wasm::CreatePickupRequest)},
-        {945, sizeof(::modlock::wasm::PickupResponse)},
-        {950, sizeof(::modlock::wasm::PickupRequest)},
-        {955, sizeof(::modlock::wasm::RemoveEntitiesRequest)},
-        {960, sizeof(::modlock::wasm::CountResponse)},
-        {965, sizeof(::modlock::wasm::HitOptions)},
-        {980, sizeof(::modlock::wasm::TraceOptions)},
-        {993, sizeof(::modlock::wasm::TraceResponse)},
-        {998, sizeof(::modlock::wasm::TraceHit)},
-        {1009, sizeof(::modlock::wasm::RestoreNpcsRequest)},
-        {1014, sizeof(::modlock::wasm::NpcTarget)},
-        {1035, sizeof(::modlock::wasm::PauseRequest)},
-        {1040, sizeof(::modlock::wasm::MatchClockResponse)},
-        {1045, sizeof(::modlock::wasm::HoldMatchClockRequest)},
-        {1050, sizeof(::modlock::wasm::RiftResponse)},
-        {1055, sizeof(::modlock::wasm::RiftState)},
-        {1070, sizeof(::modlock::wasm::StartRiftRequest)},
-        {1075, sizeof(::modlock::wasm::Manifest)},
-        {1100, sizeof(::modlock::wasm::Setting)},
-        {1119, sizeof(::modlock::wasm::SettingChoice)},
-        {1126, sizeof(::modlock::wasm::Metric)},
-        {1135, sizeof(::modlock::wasm::MetricTotal)},
-        {1144, sizeof(::modlock::wasm::MetricTotals)},
-        {1149, sizeof(::modlock::wasm::StoredSettings)},
-        {1154, sizeof(::modlock::wasm::StoredSetting)},
-        {1165, sizeof(::modlock::wasm::Movement)},
-        {1174, sizeof(::modlock::wasm::AbilityTuning_PropertiesEntry_DoNotUse)},
-        {1181, sizeof(::modlock::wasm::AbilityTuning_FieldsEntry_DoNotUse)},
-        {1188, sizeof(::modlock::wasm::AbilityTuning_CopyFieldsEntry_DoNotUse)},
-        {1195, sizeof(::modlock::wasm::AbilityTuning)},
+        {87, sizeof(::modlock::wasm::MovementCommand)},
+        {104, sizeof(::modlock::wasm::CommandEvent)},
+        {111, sizeof(::modlock::wasm::CommandResult)},
+        {116, sizeof(::modlock::wasm::WorldEvent)},
+        {121, sizeof(::modlock::wasm::UiPressEvent)},
+        {128, sizeof(::modlock::wasm::ServiceCall)},
+        {137, sizeof(::modlock::wasm::ServiceReply)},
+        {142, sizeof(::modlock::wasm::DamageEvent)},
+        {159, sizeof(::modlock::wasm::DamageResult)},
+        {166, sizeof(::modlock::wasm::DamagedEvent)},
+        {181, sizeof(::modlock::wasm::InputEvent)},
+        {190, sizeof(::modlock::wasm::RestoredEvent)},
+        {197, sizeof(::modlock::wasm::NpcsRestoredEvent)},
+        {202, sizeof(::modlock::wasm::LaunchEvent)},
+        {215, sizeof(::modlock::wasm::ImpactEvent)},
+        {234, sizeof(::modlock::wasm::LandedEvent)},
+        {243, sizeof(::modlock::wasm::SettingChangedEvent)},
+        {252, sizeof(::modlock::wasm::LogRequest)},
+        {257, sizeof(::modlock::wasm::ServerCommandRequest)},
+        {262, sizeof(::modlock::wasm::PlayerRequest)},
+        {267, sizeof(::modlock::wasm::PlayerSettingRequest)},
+        {274, sizeof(::modlock::wasm::SettingResponse)},
+        {279, sizeof(::modlock::wasm::AddMetricRequest)},
+        {290, sizeof(::modlock::wasm::SetPlayerSettingRequest)},
+        {299, sizeof(::modlock::wasm::ChatRequest)},
+        {306, sizeof(::modlock::wasm::CenterTextRequest)},
+        {313, sizeof(::modlock::wasm::AnnounceRequest)},
+        {322, sizeof(::modlock::wasm::PrecacheOptions)},
+        {329, sizeof(::modlock::wasm::PlayersResponse)},
+        {334, sizeof(::modlock::wasm::Connection)},
+        {349, sizeof(::modlock::wasm::PawnResponse)},
+        {354, sizeof(::modlock::wasm::Pawn)},
+        {385, sizeof(::modlock::wasm::SelectHeroRequest)},
+        {398, sizeof(::modlock::wasm::HeroResponse)},
+        {403, sizeof(::modlock::wasm::FreezeRequest)},
+        {410, sizeof(::modlock::wasm::RefreshAbilityRequest)},
+        {417, sizeof(::modlock::wasm::AbilitiesResponse)},
+        {422, sizeof(::modlock::wasm::Ability)},
+        {447, sizeof(::modlock::wasm::AbilityOptions)},
+        {462, sizeof(::modlock::wasm::GiveItemRequest)},
+        {469, sizeof(::modlock::wasm::ReplaceAbilityRequest)},
+        {478, sizeof(::modlock::wasm::HoldModifierRequest)},
+        {487, sizeof(::modlock::wasm::GiveModifierRequest)},
+        {496, sizeof(::modlock::wasm::TeleportRequest)},
+        {507, sizeof(::modlock::wasm::MovePlayerRequest)},
+        {518, sizeof(::modlock::wasm::SteerRequest)},
+        {525, sizeof(::modlock::wasm::Steering)},
+        {538, sizeof(::modlock::wasm::AdjustSoulsRequest)},
+        {547, sizeof(::modlock::wasm::StartingSoulsRequest)},
+        {554, sizeof(::modlock::wasm::HealRequest)},
+        {561, sizeof(::modlock::wasm::SoundRequest)},
+        {568, sizeof(::modlock::wasm::MoveEntityRequest)},
+        {579, sizeof(::modlock::wasm::EmitSoundRequest)},
+        {586, sizeof(::modlock::wasm::SetVelocityRequest)},
+        {593, sizeof(::modlock::wasm::WatchMovementRequest)},
+        {600, sizeof(::modlock::wasm::ButtonsResponse)},
+        {605, sizeof(::modlock::wasm::ProjectileOptions)},
+        {612, sizeof(::modlock::wasm::RestoreHeroRequest)},
+        {619, sizeof(::modlock::wasm::HeroTarget)},
+        {644, sizeof(::modlock::wasm::EquipmentTarget)},
+        {653, sizeof(::modlock::wasm::TimerTarget)},
+        {668, sizeof(::modlock::wasm::ScreenEffectRequest)},
+        {677, sizeof(::modlock::wasm::ScreenTiming)},
+        {688, sizeof(::modlock::wasm::ClearScreenEffectRequest)},
+        {695, sizeof(::modlock::wasm::ReadFieldRequest)},
+        {706, sizeof(::modlock::wasm::FieldResponse)},
+        {711, sizeof(::modlock::wasm::FieldValue)},
+        {719, sizeof(::modlock::wasm::WriteFieldRequest)},
+        {732, sizeof(::modlock::wasm::ModifierStateRequest)},
+        {739, sizeof(::modlock::wasm::ActiveResponse)},
+        {744, sizeof(::modlock::wasm::HoldModifierStateRequest)},
+        {753, sizeof(::modlock::wasm::ModelOptions)},
+        {770, sizeof(::modlock::wasm::TextOptions)},
+        {787, sizeof(::modlock::wasm::ParticleOptions)},
+        {804, sizeof(::modlock::wasm::ParticlePoint)},
+        {811, sizeof(::modlock::wasm::FogOptions)},
+        {826, sizeof(::modlock::wasm::ObjectResponse)},
+        {831, sizeof(::modlock::wasm::EntityResponse)},
+        {836, sizeof(::modlock::wasm::ObjectRequest)},
+        {841, sizeof(::modlock::wasm::MoveObjectRequest)},
+        {850, sizeof(::modlock::wasm::SetTextRequest)},
+        {857, sizeof(::modlock::wasm::BotOptions)},
+        {872, sizeof(::modlock::wasm::BotResponse)},
+        {877, sizeof(::modlock::wasm::InputRequest)},
+        {882, sizeof(::modlock::wasm::PlayerInputRequest)},
+        {889, sizeof(::modlock::wasm::RemapInputRequest)},
+        {898, sizeof(::modlock::wasm::UiRequest)},
+        {905, sizeof(::modlock::wasm::NpcOptions)},
+        {924, sizeof(::modlock::wasm::NpcResponse)},
+        {929, sizeof(::modlock::wasm::NpcRequest)},
+        {934, sizeof(::modlock::wasm::NpcStateResponse)},
+        {939, sizeof(::modlock::wasm::NpcState)},
+        {952, sizeof(::modlock::wasm::MoveNpcRequest)},
+        {963, sizeof(::modlock::wasm::SetNpcHealthRequest)},
+        {972, sizeof(::modlock::wasm::AliveResponse)},
+        {977, sizeof(::modlock::wasm::CreatePickupRequest)},
+        {984, sizeof(::modlock::wasm::PickupResponse)},
+        {989, sizeof(::modlock::wasm::PickupRequest)},
+        {994, sizeof(::modlock::wasm::RemoveEntitiesRequest)},
+        {999, sizeof(::modlock::wasm::CountResponse)},
+        {1004, sizeof(::modlock::wasm::HitOptions)},
+        {1019, sizeof(::modlock::wasm::TraceOptions)},
+        {1032, sizeof(::modlock::wasm::TraceResponse)},
+        {1037, sizeof(::modlock::wasm::TraceHit)},
+        {1048, sizeof(::modlock::wasm::RestoreNpcsRequest)},
+        {1053, sizeof(::modlock::wasm::NpcTarget)},
+        {1074, sizeof(::modlock::wasm::PauseRequest)},
+        {1079, sizeof(::modlock::wasm::MatchClockResponse)},
+        {1084, sizeof(::modlock::wasm::HoldMatchClockRequest)},
+        {1089, sizeof(::modlock::wasm::RiftResponse)},
+        {1094, sizeof(::modlock::wasm::RiftState)},
+        {1109, sizeof(::modlock::wasm::StartRiftRequest)},
+        {1114, sizeof(::modlock::wasm::Manifest)},
+        {1139, sizeof(::modlock::wasm::Setting)},
+        {1158, sizeof(::modlock::wasm::SettingChoice)},
+        {1165, sizeof(::modlock::wasm::Metric)},
+        {1174, sizeof(::modlock::wasm::MetricTotal)},
+        {1183, sizeof(::modlock::wasm::MetricTotals)},
+        {1188, sizeof(::modlock::wasm::StoredSettings)},
+        {1193, sizeof(::modlock::wasm::StoredSetting)},
+        {1204, sizeof(::modlock::wasm::Movement)},
+        {1213, sizeof(::modlock::wasm::AbilityTuning_PropertiesEntry_DoNotUse)},
+        {1220, sizeof(::modlock::wasm::AbilityTuning_FieldsEntry_DoNotUse)},
+        {1227, sizeof(::modlock::wasm::AbilityTuning_CopyFieldsEntry_DoNotUse)},
+        {1234, sizeof(::modlock::wasm::AbilityTuning)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_Call_default_instance_._instance,
@@ -5006,6 +5135,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_StartResult_default_instance_._instance,
     &::modlock::wasm::_FrameEvent_default_instance_._instance,
     &::modlock::wasm::_MovementSample_default_instance_._instance,
+    &::modlock::wasm::_MovementCommand_default_instance_._instance,
     &::modlock::wasm::_CommandEvent_default_instance_._instance,
     &::modlock::wasm::_CommandResult_default_instance_._instance,
     &::modlock::wasm::_WorldEvent_default_instance_._instance,
@@ -5050,6 +5180,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::_GiveModifierRequest_default_instance_._instance,
     &::modlock::wasm::_TeleportRequest_default_instance_._instance,
     &::modlock::wasm::_MovePlayerRequest_default_instance_._instance,
+    &::modlock::wasm::_SteerRequest_default_instance_._instance,
+    &::modlock::wasm::_Steering_default_instance_._instance,
     &::modlock::wasm::_AdjustSoulsRequest_default_instance_._instance,
     &::modlock::wasm::_StartingSoulsRequest_default_instance_._instance,
     &::modlock::wasm::_HealRequest_default_instance_._instance,
@@ -5143,7 +5275,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fproto_2f
     "\016\n\006damage\030\002 \001(\010\022\017\n\007damaged\030\003 \001(\010\"`\n\nFram"
     "eEvent\022\014\n\004tick\030\001 \001(\004\022\024\n\014time_seconds\030\002 \001"
     "(\001\022.\n\010movement\030\003 \003(\0132\034.modlock.wasm.Move"
-    "mentSample\"\226\004\n\016MovementSample\022\016\n\006player\030"
+    "mentSample\"\327\004\n\016MovementSample\022\016\n\006player\030"
     "\001 \001(\005\022\014\n\004pawn\030\002 \001(\r\022\037\n\010position\030\003 \001(\0132\r."
     "modlock.Vec3\022\037\n\010velocity\030\004 \001(\0132\r.modlock"
     ".Vec3\022\020\n\010grounded\030\006 \001(\010\022\017\n\007sliding\030\007 \001(\010"
@@ -5156,493 +5288,506 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fproto_2f
     "2\r.modlock.Vec3\022\030\n\020wall_jump_facing\030\022 \001("
     "\r\022\031\n\014zipline_time\030\023 \001(\002H\000\210\001\001\022-\n\007actions\030"
     "\024 \003(\0162\034.modlock.wasm.MovementAction\022\r\n\005c"
-    "asts\030\025 \003(\rB\017\n\r_zipline_time\",\n\014CommandEv"
-    "ent\022\016\n\006player\030\001 \001(\005\022\014\n\004line\030\002 \001(\t\" \n\rCom"
-    "mandResult\022\017\n\007claimed\030\001 \001(\010\"\031\n\nWorldEven"
-    "t\022\013\n\003map\030\001 \001(\t\",\n\014UiPressEvent\022\016\n\006player"
-    "\030\001 \001(\005\022\014\n\004node\030\002 \001(\t\"\?\n\013ServiceCall\022\017\n\007s"
-    "ervice\030\001 \001(\t\022\016\n\006method\030\002 \001(\t\022\017\n\007payload\030"
-    "\003 \001(\014\"\037\n\014ServiceReply\022\017\n\007payload\030\001 \001(\014\"\205"
-    "\001\n\013DamageEvent\022\016\n\006victim\030\001 \001(\r\022\020\n\010attack"
-    "er\030\002 \001(\r\022\021\n\tinflictor\030\003 \001(\r\022\017\n\007ability\030\004"
-    " \001(\r\022\r\n\005flags\030\005 \001(\004\022\021\n\thit_group\030\006 \001(\005\022\016"
-    "\n\006amount\030\007 \001(\002\"L\n\014DamageResult\022\022\n\005block\030"
-    "\001 \001(\010H\000\210\001\001\022\023\n\006amount\030\002 \001(\002H\001\210\001\001B\010\n\006_bloc"
-    "kB\t\n\007_amount\"|\n\014DamagedEvent\022\016\n\006victim\030\001"
-    " \001(\r\022\020\n\010attacker\030\002 \001(\r\022\017\n\007ability\030\003 \001(\r\022"
-    "\023\n\013health_lost\030\004 \001(\005\022\025\n\rhealth_before\030\005 "
-    "\001(\005\022\r\n\005dealt\030\006 \001(\005\"\?\n\nInputEvent\022\016\n\006play"
-    "er\030\001 \001(\005\022\017\n\007pressed\030\002 \001(\004\022\020\n\010released\030\003 "
-    "\001(\004\".\n\rRestoredEvent\022\016\n\006player\030\001 \001(\005\022\r\n\005"
-    "error\030\002 \001(\t\"\"\n\021NpcsRestoredEvent\022\r\n\005erro"
-    "r\030\001 \001(\t\"k\n\013LaunchEvent\022\016\n\006entity\030\001 \001(\r\022\014"
-    "\n\004name\030\002 \001(\t\022\r\n\005owner\030\003 \001(\r\022\016\n\006player\030\004 "
-    "\001(\005\022\037\n\010position\030\005 \001(\0132\r.modlock.Vec3\"\262\001\n"
-    "\013ImpactEvent\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002 \001"
-    "(\t\022\r\n\005owner\030\003 \001(\r\022\016\n\006player\030\004 \001(\005\022\034\n\005sta"
-    "rt\030\005 \001(\0132\r.modlock.Vec3\022\032\n\003end\030\006 \001(\0132\r.m"
-    "odlock.Vec3\022\037\n\010position\030\007 \001(\0132\r.modlock."
-    "Vec3\022\013\n\003hit\030\010 \001(\r\"8\n\013LandedEvent\022\016\n\006play"
-    "er\030\001 \001(\005\022\n\n\002on\030\002 \001(\005\022\r\n\005speed\030\003 \001(\002\"A\n\023S"
-    "ettingChangedEvent\022\016\n\006player\030\001 \001(\005\022\013\n\003ke"
-    "y\030\002 \001(\t\022\r\n\005value\030\003 \001(\t\"\035\n\nLogRequest\022\017\n\007"
-    "message\030\001 \001(\t\"\'\n\024ServerCommandRequest\022\017\n"
-    "\007command\030\001 \001(\t\"\037\n\rPlayerRequest\022\016\n\006playe"
-    "r\030\001 \001(\005\"3\n\024PlayerSettingRequest\022\016\n\006playe"
-    "r\030\001 \001(\005\022\013\n\003key\030\002 \001(\t\" \n\017SettingResponse\022"
-    "\r\n\005value\030\001 \001(\t\"]\n\020AddMetricRequest\022\016\n\006pl"
-    "ayer\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\r\n\005value\030\003 \001(\001\022"
-    "\022\n\005label\030\004 \001(\tH\000\210\001\001B\010\n\006_label\"E\n\027SetPlay"
-    "erSettingRequest\022\016\n\006player\030\001 \001(\005\022\013\n\003key\030"
-    "\002 \001(\t\022\r\n\005value\030\003 \001(\t\"+\n\013ChatRequest\022\016\n\006p"
-    "layer\030\001 \001(\005\022\014\n\004text\030\002 \001(\t\"1\n\021CenterTextR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\014\n\004text\030\002 \001(\t\">\n\017"
-    "AnnounceRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005title"
-    "\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"4\n\017PrecacheOptions\022"
-    "\016\n\006heroes\030\001 \003(\t\022\021\n\tresources\030\002 \003(\t\"<\n\017Pl"
-    "ayersResponse\022)\n\007players\030\001 \003(\0132\030.modlock"
-    ".wasm.Connection\"l\n\nConnection\022\016\n\006player"
-    "\030\001 \001(\005\022\020\n\010steam_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013"
-    "\n\003bot\030\004 \001(\010\022\r\n\005ready\030\005 \001(\010\022\022\n\ngeneration"
-    "\030\006 \001(\r\"0\n\014PawnResponse\022 \n\004pawn\030\001 \001(\0132\022.m"
-    "odlock.wasm.Pawn\"\203\003\n\004Pawn\022\016\n\006entity\030\001 \001("
-    "\r\022\014\n\004hero\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030"
-    "\004 \001(\005\022\022\n\nmax_health\030\005 \001(\005\022\037\n\010position\030\006 "
-    "\001(\0132\r.modlock.Vec3\022(\n\neye_angles\030\007 \001(\0132\024"
-    ".modlock.EulerAngles\022+\n\rcamera_angles\030\010 "
-    "\001(\0132\024.modlock.EulerAngles\022\024\n\007stamina\030\t \001"
-    "(\002H\000\210\001\001\022\030\n\013max_stamina\030\n \001(\002H\001\210\001\001\022\022\n\ngen"
-    "eration\030\013 \001(\r\022\r\n\005souls\030\014 \001(\005\022#\n\014eye_posi"
-    "tion\030\r \001(\0132\r.modlock.Vec3\022\037\n\010velocity\030\016 "
-    "\001(\0132\r.modlock.Vec3B\n\n\010_staminaB\016\n\014_max_s"
-    "tamina\"a\n\021SelectHeroRequest\022\016\n\006player\030\001 "
-    "\001(\005\022\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001("
-    "\rH\000\022\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroRespons"
-    "e\022\014\n\004hero\030\001 \001(\r\"\?\n\rFreezeRequest\022\016\n\006play"
-    "er\030\001 \001(\005\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen"
-    "\"8\n\025RefreshAbilityRequest\022\016\n\006player\030\001 \001("
-    "\005\022\017\n\007ability\030\002 \001(\t\"=\n\021AbilitiesResponse\022"
-    "(\n\tabilities\030\001 \003(\0132\025.modlock.wasm.Abilit"
-    "y\"\317\001\n\007Ability\022\014\n\004name\030\001 \001(\t\022\014\n\004slot\030\002 \001("
-    "\005\022\016\n\006entity\030\003 \001(\r\022\020\n\010upgrades\030\004 \001(\r\022\017\n\007c"
-    "harges\030\005 \001(\005\022\024\n\014cooldown_end\030\006 \001(\002\022\n\n\002id"
-    "\030\007 \001(\r\022\r\n\005state\030\010 \001(\r\022\026\n\016cooldown_start\030"
-    "\t \001(\002\022\026\n\016recharge_start\030\n \001(\002\022\024\n\014recharg"
-    "e_end\030\013 \001(\002\"\317\001\n\016AbilityOptions\022\016\n\006player"
-    "\030\001 \001(\005\022\017\n\007ability\030\002 \001(\t\022\025\n\010upgrades\030\003 \001("
-    "\rH\000\210\001\001\022\024\n\007charges\030\004 \001(\005H\001\210\001\001\022\031\n\014cooldown"
-    "_end\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210"
-    "\001\001B\013\n\t_upgradesB\n\n\010_chargesB\017\n\r_cooldown"
-    "_endB\017\n\r_recharge_end\"/\n\017GiveItemRequest"
-    "\022\016\n\006player\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\"G\n\025Replac"
-    "eAbilityRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005index"
-    "\030\002 \001(\r\022\017\n\007ability\030\003 \001(\t\"W\n\023HoldModifierR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\020\n\010modifier\030\002 \001(\t"
-    "\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_active\"H\n\023Give"
-    "ModifierRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010modif"
-    "ier\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\"\233\001\n\017TeleportR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\013"
-    "2\r.modlock.Vec3\022$\n\006facing\030\003 \001(\0132\024.modloc"
-    "k.EulerAngles\022$\n\010velocity\030\004 \001(\0132\r.modloc"
-    "k.Vec3H\000\210\001\001B\013\n\t_velocity\"\235\001\n\021MovePlayerR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\013"
-    "2\r.modlock.Vec3\022$\n\006facing\030\003 \001(\0132\024.modloc"
-    "k.EulerAngles\022$\n\010velocity\030\004 \001(\0132\r.modloc"
-    "k.Vec3H\000\210\001\001B\013\n\t_velocity\"S\n\022AdjustSoulsR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\r\n\005delta\030\002 \001(\005\022\023\n"
-    "\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024Startin"
-    "gSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002"
-    " \001(\005\"-\n\013HealRequest\022\016\n\006player\030\001 \001(\005\022\016\n\006a"
-    "mount\030\002 \001(\005\"-\n\014SoundRequest\022\016\n\006player\030\001 "
-    "\001(\005\022\r\n\005sound\030\002 \001(\t\"\255\001\n\021MoveEntityRequest"
-    "\022\016\n\006entity\030\001 \001(\r\022\037\n\010position\030\002 \001(\0132\r.mod"
-    "lock.Vec3\022)\n\006facing\030\003 \001(\0132\024.modlock.Eule"
-    "rAnglesH\000\210\001\001\022$\n\010velocity\030\004 \001(\0132\r.modlock"
-    ".Vec3H\001\210\001\001B\t\n\007_facingB\013\n\t_velocity\"1\n\020Em"
-    "itSoundRequest\022\016\n\006entity\030\001 \001(\r\022\r\n\005sound\030"
-    "\002 \001(\t\"E\n\022SetVelocityRequest\022\016\n\006player\030\001 "
-    "\001(\005\022\037\n\010velocity\030\002 \001(\0132\r.modlock.Vec3\"5\n\024"
-    "WatchMovementRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005"
-    "watch\030\002 \001(\010\"\"\n\017ButtonsResponse\022\017\n\007button"
-    "s\030\001 \001(\004\"P\n\021ProjectileOptions\022\r\n\005names\030\001 "
-    "\003(\t\022\032\n\rkeep_momentum\030\002 \001(\010H\000\210\001\001B\020\n\016_keep"
-    "_momentum\"N\n\022RestoreHeroRequest\022\016\n\006playe"
-    "r\030\001 \001(\005\022(\n\006target\030\002 \001(\0132\030.modlock.wasm.H"
-    "eroTarget\"\251\003\n\nHeroTarget\022\037\n\010position\030\001 \001"
-    "(\0132\r.modlock.Vec3\022$\n\006facing\030\002 \001(\0132\024.modl"
-    "ock.EulerAngles\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005l"
-    "evel\030\004 \001(\005H\001\210\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\n"
-    "max_health\030\006 \001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses"
-    "\030\007 \003(\002\0220\n\tabilities\030\010 \003(\0132\035.modlock.wasm"
-    ".EquipmentTarget\022,\n\005items\030\t \003(\0132\035.modloc"
-    "k.wasm.EquipmentTarget\022\032\n\rreplace_items\030"
-    "\n \001(\010H\004\210\001\001\022)\n\006timers\030\013 \003(\0132\031.modlock.was"
-    "m.TimerTargetB\010\n\006_freshB\010\n\006_levelB\t\n\007_he"
-    "althB\r\n\013_max_healthB\020\n\016_replace_items\"H\n"
-    "\017EquipmentTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 \001"
-    "(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013Time"
-    "rTarget\022\n\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n\016"
-    "cooldown_start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_en"
-    "d\030\004 \001(\002H\001\210\001\001\022\033\n\016recharge_start\030\005 \001(\002H\002\210\001"
-    "\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldow"
-    "n_startB\017\n\r_cooldown_endB\021\n\017_recharge_st"
-    "artB\017\n\r_recharge_end\"\215\001\n\023ScreenEffectReq"
+    "asts\030\025 \003(\r\0223\n\007command\030\026 \001(\0132\035.modlock.wa"
+    "sm.MovementCommandH\001\210\001\001B\017\n\r_zipline_time"
+    "B\n\n\010_command\"}\n\017MovementCommand\022\014\n\004held\030"
+    "\001 \001(\004\022\017\n\007changed\030\002 \001(\004\022\016\n\006scroll\030\003 \001(\004\022\017"
+    "\n\007forward\030\004 \001(\002\022\014\n\004left\030\005 \001(\002\022\n\n\002up\030\006 \001("
+    "\002\022\020\n\010grounded\030\007 \001(\010\",\n\014CommandEvent\022\016\n\006p"
+    "layer\030\001 \001(\005\022\014\n\004line\030\002 \001(\t\" \n\rCommandResu"
+    "lt\022\017\n\007claimed\030\001 \001(\010\"\031\n\nWorldEvent\022\013\n\003map"
+    "\030\001 \001(\t\",\n\014UiPressEvent\022\016\n\006player\030\001 \001(\005\022\014"
+    "\n\004node\030\002 \001(\t\"\?\n\013ServiceCall\022\017\n\007service\030\001"
+    " \001(\t\022\016\n\006method\030\002 \001(\t\022\017\n\007payload\030\003 \001(\014\"\037\n"
+    "\014ServiceReply\022\017\n\007payload\030\001 \001(\014\"\205\001\n\013Damag"
+    "eEvent\022\016\n\006victim\030\001 \001(\r\022\020\n\010attacker\030\002 \001(\r"
+    "\022\021\n\tinflictor\030\003 \001(\r\022\017\n\007ability\030\004 \001(\r\022\r\n\005"
+    "flags\030\005 \001(\004\022\021\n\thit_group\030\006 \001(\005\022\016\n\006amount"
+    "\030\007 \001(\002\"L\n\014DamageResult\022\022\n\005block\030\001 \001(\010H\000\210"
+    "\001\001\022\023\n\006amount\030\002 \001(\002H\001\210\001\001B\010\n\006_blockB\t\n\007_am"
+    "ount\"|\n\014DamagedEvent\022\016\n\006victim\030\001 \001(\r\022\020\n\010"
+    "attacker\030\002 \001(\r\022\017\n\007ability\030\003 \001(\r\022\023\n\013healt"
+    "h_lost\030\004 \001(\005\022\025\n\rhealth_before\030\005 \001(\005\022\r\n\005d"
+    "ealt\030\006 \001(\005\"\?\n\nInputEvent\022\016\n\006player\030\001 \001(\005"
+    "\022\017\n\007pressed\030\002 \001(\004\022\020\n\010released\030\003 \001(\004\".\n\rR"
+    "estoredEvent\022\016\n\006player\030\001 \001(\005\022\r\n\005error\030\002 "
+    "\001(\t\"\"\n\021NpcsRestoredEvent\022\r\n\005error\030\001 \001(\t\""
+    "k\n\013LaunchEvent\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002"
+    " \001(\t\022\r\n\005owner\030\003 \001(\r\022\016\n\006player\030\004 \001(\005\022\037\n\010p"
+    "osition\030\005 \001(\0132\r.modlock.Vec3\"\262\001\n\013ImpactE"
+    "vent\022\016\n\006entity\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\r\n\005ow"
+    "ner\030\003 \001(\r\022\016\n\006player\030\004 \001(\005\022\034\n\005start\030\005 \001(\013"
+    "2\r.modlock.Vec3\022\032\n\003end\030\006 \001(\0132\r.modlock.V"
+    "ec3\022\037\n\010position\030\007 \001(\0132\r.modlock.Vec3\022\013\n\003"
+    "hit\030\010 \001(\r\"8\n\013LandedEvent\022\016\n\006player\030\001 \001(\005"
+    "\022\n\n\002on\030\002 \001(\005\022\r\n\005speed\030\003 \001(\002\"A\n\023SettingCh"
+    "angedEvent\022\016\n\006player\030\001 \001(\005\022\013\n\003key\030\002 \001(\t\022"
+    "\r\n\005value\030\003 \001(\t\"\035\n\nLogRequest\022\017\n\007message\030"
+    "\001 \001(\t\"\'\n\024ServerCommandRequest\022\017\n\007command"
+    "\030\001 \001(\t\"\037\n\rPlayerRequest\022\016\n\006player\030\001 \001(\005\""
+    "3\n\024PlayerSettingRequest\022\016\n\006player\030\001 \001(\005\022"
+    "\013\n\003key\030\002 \001(\t\" \n\017SettingResponse\022\r\n\005value"
+    "\030\001 \001(\t\"]\n\020AddMetricRequest\022\016\n\006player\030\001 \001"
+    "(\005\022\014\n\004name\030\002 \001(\t\022\r\n\005value\030\003 \001(\001\022\022\n\005label"
+    "\030\004 \001(\tH\000\210\001\001B\010\n\006_label\"E\n\027SetPlayerSettin"
+    "gRequest\022\016\n\006player\030\001 \001(\005\022\013\n\003key\030\002 \001(\t\022\r\n"
+    "\005value\030\003 \001(\t\"+\n\013ChatRequest\022\016\n\006player\030\001 "
+    "\001(\005\022\014\n\004text\030\002 \001(\t\"1\n\021CenterTextRequest\022\016"
+    "\n\006player\030\001 \001(\005\022\014\n\004text\030\002 \001(\t\">\n\017Announce"
+    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005title\030\002 \001(\t\022\014"
+    "\n\004text\030\003 \001(\t\"4\n\017PrecacheOptions\022\016\n\006heroe"
+    "s\030\001 \003(\t\022\021\n\tresources\030\002 \003(\t\"<\n\017PlayersRes"
+    "ponse\022)\n\007players\030\001 \003(\0132\030.modlock.wasm.Co"
+    "nnection\"l\n\nConnection\022\016\n\006player\030\001 \001(\005\022\020"
+    "\n\010steam_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003bot\030\004 "
+    "\001(\010\022\r\n\005ready\030\005 \001(\010\022\022\n\ngeneration\030\006 \001(\r\"0"
+    "\n\014PawnResponse\022 \n\004pawn\030\001 \001(\0132\022.modlock.w"
+    "asm.Pawn\"\203\003\n\004Pawn\022\016\n\006entity\030\001 \001(\r\022\014\n\004her"
+    "o\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030\004 \001(\005\022\022\n"
+    "\nmax_health\030\005 \001(\005\022\037\n\010position\030\006 \001(\0132\r.mo"
+    "dlock.Vec3\022(\n\neye_angles\030\007 \001(\0132\024.modlock"
+    ".EulerAngles\022+\n\rcamera_angles\030\010 \001(\0132\024.mo"
+    "dlock.EulerAngles\022\024\n\007stamina\030\t \001(\002H\000\210\001\001\022"
+    "\030\n\013max_stamina\030\n \001(\002H\001\210\001\001\022\022\n\ngeneration\030"
+    "\013 \001(\r\022\r\n\005souls\030\014 \001(\005\022#\n\014eye_position\030\r \001"
+    "(\0132\r.modlock.Vec3\022\037\n\010velocity\030\016 \001(\0132\r.mo"
+    "dlock.Vec3B\n\n\010_staminaB\016\n\014_max_stamina\"a"
+    "\n\021SelectHeroRequest\022\016\n\006player\030\001 \001(\005\022\023\n\th"
+    "ero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001(\rH\000\022\014\n\004t"
+    "eam\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroResponse\022\014\n\004her"
+    "o\030\001 \001(\r\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005"
+    "\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"8\n\025Refr"
+    "eshAbilityRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007abi"
+    "lity\030\002 \001(\t\"=\n\021AbilitiesResponse\022(\n\tabili"
+    "ties\030\001 \003(\0132\025.modlock.wasm.Ability\"\317\001\n\007Ab"
+    "ility\022\014\n\004name\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\022\016\n\006ent"
+    "ity\030\003 \001(\r\022\020\n\010upgrades\030\004 \001(\r\022\017\n\007charges\030\005"
+    " \001(\005\022\024\n\014cooldown_end\030\006 \001(\002\022\n\n\002id\030\007 \001(\r\022\r"
+    "\n\005state\030\010 \001(\r\022\026\n\016cooldown_start\030\t \001(\002\022\026\n"
+    "\016recharge_start\030\n \001(\002\022\024\n\014recharge_end\030\013 "
+    "\001(\002\"\317\001\n\016AbilityOptions\022\016\n\006player\030\001 \001(\005\022\017"
+    "\n\007ability\030\002 \001(\t\022\025\n\010upgrades\030\003 \001(\rH\000\210\001\001\022\024"
+    "\n\007charges\030\004 \001(\005H\001\210\001\001\022\031\n\014cooldown_end\030\005 \001"
+    "(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\013\n\t_u"
+    "pgradesB\n\n\010_chargesB\017\n\r_cooldown_endB\017\n\r"
+    "_recharge_end\"/\n\017GiveItemRequest\022\016\n\006play"
+    "er\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\"G\n\025ReplaceAbility"
+    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022\017"
+    "\n\007ability\030\003 \001(\t\"W\n\023HoldModifierRequest\022\016"
+    "\n\006player\030\001 \001(\005\022\020\n\010modifier\030\002 \001(\t\022\023\n\006acti"
+    "ve\030\003 \001(\010H\000\210\001\001B\t\n\007_active\"H\n\023GiveModifier"
+    "Request\022\016\n\006player\030\001 \001(\005\022\020\n\010modifier\030\002 \001("
+    "\t\022\017\n\007seconds\030\003 \001(\002\"\233\001\n\017TeleportRequest\022\016"
+    "\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\0132\r.modlo"
+    "ck.Vec3\022$\n\006facing\030\003 \001(\0132\024.modlock.EulerA"
+    "ngles\022$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\000"
+    "\210\001\001B\013\n\t_velocity\"\235\001\n\021MovePlayerRequest\022\016"
+    "\n\006player\030\001 \001(\005\022\037\n\010position\030\002 \001(\0132\r.modlo"
+    "ck.Vec3\022$\n\006facing\030\003 \001(\0132\024.modlock.EulerA"
+    "ngles\022$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\000"
+    "\210\001\001B\013\n\t_velocity\"Z\n\014SteerRequest\022\016\n\006play"
+    "er\030\001 \001(\005\022-\n\010steering\030\002 \001(\0132\026.modlock.was"
+    "m.SteeringH\000\210\001\001B\013\n\t_steering\"\264\001\n\010Steerin"
+    "g\022.\n\007command\030\001 \001(\0132\035.modlock.wasm.Moveme"
+    "ntCommand\022\037\n\010position\030\002 \001(\0132\r.modlock.Ve"
+    "c3\022\037\n\010velocity\030\003 \001(\0132\r.modlock.Vec3\022\020\n\010g"
+    "rounded\030\004 \001(\010\022$\n\006facing\030\005 \001(\0132\024.modlock."
+    "EulerAngles\"S\n\022AdjustSoulsRequest\022\016\n\006pla"
+    "yer\030\001 \001(\005\022\r\n\005delta\030\002 \001(\005\022\023\n\006silent\030\003 \001(\010"
+    "H\000\210\001\001B\t\n\007_silent\"5\n\024StartingSoulsRequest"
+    "\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealR"
+    "equest\022\016\n\006player\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"-"
+    "\n\014SoundRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005sound\030"
+    "\002 \001(\t\"\255\001\n\021MoveEntityRequest\022\016\n\006entity\030\001 "
+    "\001(\r\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\022)\n\006"
+    "facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022"
+    "$\n\010velocity\030\004 \001(\0132\r.modlock.Vec3H\001\210\001\001B\t\n"
+    "\007_facingB\013\n\t_velocity\"1\n\020EmitSoundReques"
+    "t\022\016\n\006entity\030\001 \001(\r\022\r\n\005sound\030\002 \001(\t\"E\n\022SetV"
+    "elocityRequest\022\016\n\006player\030\001 \001(\005\022\037\n\010veloci"
+    "ty\030\002 \001(\0132\r.modlock.Vec3\"5\n\024WatchMovement"
+    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005watch\030\002 \001(\010\"\""
+    "\n\017ButtonsResponse\022\017\n\007buttons\030\001 \001(\004\"P\n\021Pr"
+    "ojectileOptions\022\r\n\005names\030\001 \003(\t\022\032\n\rkeep_m"
+    "omentum\030\002 \001(\010H\000\210\001\001B\020\n\016_keep_momentum\"N\n\022"
+    "RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\022(\n\006ta"
+    "rget\030\002 \001(\0132\030.modlock.wasm.HeroTarget\"\251\003\n"
+    "\nHeroTarget\022\037\n\010position\030\001 \001(\0132\r.modlock."
+    "Vec3\022$\n\006facing\030\002 \001(\0132\024.modlock.EulerAngl"
+    "es\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210"
+    "\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 "
+    "\001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses\030\007 \003(\002\0220\n\tabi"
+    "lities\030\010 \003(\0132\035.modlock.wasm.EquipmentTar"
+    "get\022,\n\005items\030\t \003(\0132\035.modlock.wasm.Equipm"
+    "entTarget\022\032\n\rreplace_items\030\n \001(\010H\004\210\001\001\022)\n"
+    "\006timers\030\013 \003(\0132\031.modlock.wasm.TimerTarget"
+    "B\010\n\006_freshB\010\n\006_levelB\t\n\007_healthB\r\n\013_max_"
+    "healthB\020\n\016_replace_items\"H\n\017EquipmentTar"
+    "get\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 \001(\005H\000\210\001\001\022\r\n\005st"
+    "ate\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013TimerTarget\022\n\n\002id"
+    "\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n\016cooldown_star"
+    "t\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_end\030\004 \001(\002H\001\210\001\001\022"
+    "\033\n\016recharge_start\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge"
+    "_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldown_startB\017\n\r_c"
+    "ooldown_endB\021\n\017_recharge_startB\017\n\r_recha"
+    "rge_end\"\215\001\n\023ScreenEffectRequest\022\016\n\006playe"
+    "r\030\001 \001(\005\022*\n\006effect\030\002 \001(\0162\032.modlock.wasm.S"
+    "creenEffect\022/\n\006timing\030\003 \001(\0132\032.modlock.wa"
+    "sm.ScreenTimingH\000\210\001\001B\t\n\007_timing\"\216\001\n\014Scre"
+    "enTiming\022\022\n\005delay\030\001 \001(\002H\000\210\001\001\022\024\n\007fade_in\030"
+    "\002 \001(\002H\001\210\001\001\022\021\n\004hold\030\003 \001(\002H\002\210\001\001\022\025\n\010fade_ou"
+    "t\030\004 \001(\002H\003\210\001\001B\010\n\006_delayB\n\n\010_fade_inB\007\n\005_h"
+    "oldB\013\n\t_fade_out\"V\n\030ClearScreenEffectReq"
     "uest\022\016\n\006player\030\001 \001(\005\022*\n\006effect\030\002 \001(\0162\032.m"
-    "odlock.wasm.ScreenEffect\022/\n\006timing\030\003 \001(\013"
-    "2\032.modlock.wasm.ScreenTimingH\000\210\001\001B\t\n\007_ti"
-    "ming\"\216\001\n\014ScreenTiming\022\022\n\005delay\030\001 \001(\002H\000\210\001"
-    "\001\022\024\n\007fade_in\030\002 \001(\002H\001\210\001\001\022\021\n\004hold\030\003 \001(\002H\002\210"
-    "\001\001\022\025\n\010fade_out\030\004 \001(\002H\003\210\001\001B\010\n\006_delayB\n\n\010_"
-    "fade_inB\007\n\005_holdB\013\n\t_fade_out\"V\n\030ClearSc"
-    "reenEffectRequest\022\016\n\006player\030\001 \001(\005\022*\n\006eff"
-    "ect\030\002 \001(\0162\032.modlock.wasm.ScreenEffect\"l\n"
-    "\020ReadFieldRequest\022\016\n\006entity\030\001 \001(\r\022\022\n\ncla"
-    "ss_name\030\002 \001(\t\022\r\n\005field\030\003 \001(\t\022%\n\004type\030\004 \001"
-    "(\0162\027.modlock.wasm.FieldType\"8\n\rFieldResp"
-    "onse\022\'\n\005value\030\001 \001(\0132\030.modlock.wasm.Field"
-    "Value\"~\n\nFieldValue\022\021\n\007boolean\030\001 \001(\010H\000\022\020"
-    "\n\006number\030\002 \001(\001H\000\022\021\n\007integer\030\003 \001(\003H\000\022\016\n\004t"
-    "ext\030\004 \001(\tH\000\022\037\n\006vector\030\005 \001(\0132\r.modlock.Ve"
-    "c3H\000B\007\n\005value\"\226\001\n\021WriteFieldRequest\022\016\n\006e"
-    "ntity\030\001 \001(\r\022\022\n\nclass_name\030\002 \001(\t\022\r\n\005field"
-    "\030\003 \001(\t\022%\n\004type\030\004 \001(\0162\027.modlock.wasm.Fiel"
-    "dType\022\'\n\005value\030\005 \001(\0132\030.modlock.wasm.Fiel"
-    "dValue\"5\n\024ModifierStateRequest\022\016\n\006entity"
-    "\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\" \n\016ActiveResponse\022"
-    "\016\n\006active\030\001 \001(\010\"Y\n\030HoldModifierStateRequ"
-    "est\022\016\n\006entity\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006ac"
-    "tive\030\003 \001(\010H\000\210\001\001B\t\n\007_active\"\355\001\n\014ModelOpti"
-    "ons\022\020\n\010resource\030\001 \001(\t\022\037\n\010position\030\002 \001(\0132"
-    "\r.modlock.Vec3\022)\n\006facing\030\003 \001(\0132\024.modlock"
-    ".EulerAnglesH\000\210\001\001\022\022\n\005scale\030\004 \001(\002H\001\210\001\001\022\022\n"
-    "\005color\030\005 \001(\007H\002\210\001\001\022\021\n\004glow\030\006 \001(\010H\003\210\001\001\022\022\n\005"
-    "solid\030\007 \001(\010H\004\210\001\001B\t\n\007_facingB\010\n\006_scaleB\010\n"
-    "\006_colorB\007\n\005_glowB\010\n\006_solid\"\376\001\n\013TextOptio"
-    "ns\022\014\n\004text\030\001 \001(\t\022\037\n\010position\030\002 \001(\0132\r.mod"
-    "lock.Vec3\022)\n\006facing\030\003 \001(\0132\024.modlock.Eule"
-    "rAnglesH\000\210\001\001\022\026\n\tfont_size\030\004 \001(\002H\001\210\001\001\022\022\n\005"
-    "color\030\005 \001(\007H\002\210\001\001\022\030\n\013face_camera\030\006 \001(\010H\003\210"
-    "\001\001\022\022\n\005scale\030\007 \001(\002H\004\210\001\001B\t\n\007_facingB\014\n\n_fo"
-    "nt_sizeB\010\n\006_colorB\016\n\014_face_cameraB\010\n\006_sc"
-    "ale\"\233\002\n\017ParticleOptions\022\020\n\010resource\030\001 \001("
-    "\t\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\022)\n\006fa"
-    "cing\030\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\022\n"
-    "\005color\030\004 \001(\007H\001\210\001\001\022\027\n\ntint_point\030\005 \001(\005H\002\210"
-    "\001\001\022/\n\005point\030\006 \001(\0132\033.modlock.wasm.Particl"
-    "ePointH\003\210\001\001\022\023\n\006parent\030\007 \001(\rH\004\210\001\001B\t\n\007_fac"
-    "ingB\010\n\006_colorB\r\n\013_tint_pointB\010\n\006_pointB\t"
-    "\n\007_parent\"\?\n\rParticlePoint\022\r\n\005index\030\001 \001("
-    "\005\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\"\276\001\n\nF"
-    "ogOptions\022\037\n\010position\030\001 \001(\0132\r.modlock.Ve"
-    "c3\022)\n\006facing\030\002 \001(\0132\024.modlock.EulerAngles"
-    "H\000\210\001\001\022\033\n\004mins\030\003 \001(\0132\r.modlock.Vec3\022\033\n\004ma"
-    "xs\030\004 \001(\0132\r.modlock.Vec3\022\020\n\010strength\030\005 \001("
-    "\002\022\r\n\005color\030\006 \001(\007B\t\n\007_facing\" \n\016ObjectRes"
-    "ponse\022\016\n\006object\030\001 \001(\r\" \n\016EntityResponse\022"
-    "\016\n\006entity\030\001 \001(\r\"\037\n\rObjectRequest\022\016\n\006obje"
-    "ct\030\001 \001(\r\"z\n\021MoveObjectRequest\022\016\n\006object\030"
-    "\001 \001(\r\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\022)"
-    "\n\006facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001"
-    "\001B\t\n\007_facing\".\n\016SetTextRequest\022\016\n\006object"
-    "\030\001 \001(\r\022\014\n\004text\030\002 \001(\t\"\213\001\n\nBotOptions\022\014\n\004n"
-    "ame\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name\030\003 \001"
-    "(\tH\000\022\021\n\007hero_id\030\004 \001(\rH\000\022$\n\010position\030\005 \001("
-    "\0132\r.modlock.Vec3H\001\210\001\001B\006\n\004heroB\013\n\t_positi"
-    "on\"\035\n\013BotResponse\022\016\n\006player\030\001 \001(\005\"\037\n\014Inp"
-    "utRequest\022\017\n\007buttons\030\001 \001(\004\"5\n\022PlayerInpu"
-    "tRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007buttons\030\002 \001("
-    "\004\"M\n\021RemapInputRequest\022\014\n\004from\030\001 \001(\004\022\n\n\002"
-    "to\030\002 \001(\004\022\023\n\006repeat\030\003 \001(\010H\000\210\001\001B\t\n\007_repeat"
-    "\"\?\n\tUiRequest\022\016\n\006player\030\001 \001(\005\022\"\n\006change\030"
-    "\002 \001(\0132\022.modlock.ui.Change\"\367\001\n\nNpcOptions"
-    "\022\022\n\nclass_name\030\001 \001(\t\022\014\n\004unit\030\002 \001(\t\022\014\n\004te"
-    "am\030\003 \001(\005\022\037\n\010position\030\004 \001(\0132\r.modlock.Vec"
-    "3\022)\n\006facing\030\005 \001(\0132\024.modlock.EulerAnglesH"
-    "\000\210\001\001\022\023\n\006health\030\006 \001(\005H\001\210\001\001\022\027\n\nmax_health\030"
-    "\007 \001(\005H\002\210\001\001\022\021\n\004lane\030\010 \001(\rH\003\210\001\001B\t\n\007_facing"
-    "B\t\n\007_healthB\r\n\013_max_healthB\007\n\005_lane\"\032\n\013N"
-    "pcResponse\022\013\n\003npc\030\001 \001(\r\"\031\n\nNpcRequest\022\013\n"
-    "\003npc\030\001 \001(\r\"9\n\020NpcStateResponse\022%\n\005state\030"
-    "\001 \001(\0132\026.modlock.wasm.NpcState\"\203\001\n\010NpcSta"
-    "te\022\037\n\010position\030\001 \001(\0132\r.modlock.Vec3\022$\n\006f"
-    "acing\030\002 \001(\0132\024.modlock.EulerAngles\022\016\n\006hea"
-    "lth\030\003 \001(\005\022\022\n\nmax_health\030\004 \001(\005\022\014\n\004team\030\005 "
-    "\001(\005\"\247\001\n\016MoveNpcRequest\022\013\n\003npc\030\001 \001(\r\022\037\n\010p"
-    "osition\030\002 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\003"
-    " \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022$\n\010veloc"
-    "ity\030\004 \001(\0132\r.modlock.Vec3H\001\210\001\001B\t\n\007_facing"
-    "B\013\n\t_velocity\"Z\n\023SetNpcHealthRequest\022\013\n\003"
-    "npc\030\001 \001(\r\022\016\n\006health\030\002 \001(\005\022\027\n\nmax_health\030"
-    "\003 \001(\005H\000\210\001\001B\r\n\013_max_health\"\036\n\rAliveRespon"
-    "se\022\r\n\005alive\030\001 \001(\010\"^\n\023CreatePickupRequest"
-    "\022&\n\004kind\030\001 \001(\0162\030.modlock.wasm.PickupKind"
-    "\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\" \n\016Pic"
-    "kupResponse\022\016\n\006pickup\030\001 \001(\r\"\037\n\rPickupReq"
-    "uest\022\016\n\006pickup\030\001 \001(\r\"+\n\025RemoveEntitiesRe"
-    "quest\022\022\n\nclass_name\030\001 \001(\t\"\036\n\rCountRespon"
-    "se\022\r\n\005count\030\001 \001(\005\"\276\001\n\nHitOptions\022\016\n\006vict"
-    "im\030\001 \001(\r\022\025\n\010attacker\030\002 \001(\rH\000\210\001\001\022\026\n\tinfli"
-    "ctor\030\003 \001(\rH\001\210\001\001\022\016\n\006amount\030\004 \001(\002\022\026\n\thit_g"
-    "roup\030\005 \001(\005H\002\210\001\001\022\024\n\007ability\030\006 \001(\rH\003\210\001\001B\013\n"
-    "\t_attackerB\014\n\n_inflictorB\014\n\n_hit_groupB\n"
-    "\n\010_ability\"\232\001\n\014TraceOptions\022\034\n\005start\030\001 \001"
-    "(\0132\r.modlock.Vec3\022\032\n\003end\030\002 \001(\0132\r.modlock"
-    ".Vec3\022\023\n\006layers\030\003 \001(\004H\000\210\001\001\022\024\n\007exclude\030\004 "
-    "\001(\004H\001\210\001\001\022\016\n\006ignore\030\005 \003(\rB\t\n\007_layersB\n\n\010_"
-    "exclude\"4\n\rTraceResponse\022#\n\003hit\030\001 \001(\0132\026."
-    "modlock.wasm.TraceHit\"o\n\010TraceHit\022\037\n\010pos"
-    "ition\030\001 \001(\0132\r.modlock.Vec3\022\035\n\006normal\030\002 \001"
-    "(\0132\r.modlock.Vec3\022\023\n\013start_solid\030\003 \001(\010\022\016"
-    "\n\006entity\030\004 \001(\r\";\n\022RestoreNpcsRequest\022%\n\004"
-    "npcs\030\001 \003(\0132\027.modlock.wasm.NpcTarget\"\363\001\n\t"
-    "NpcTarget\022\022\n\nclass_name\030\001 \001(\t\022\n\n\002id\030\002 \001("
-    "\r\022\014\n\004team\030\003 \001(\005\022\037\n\010position\030\004 \001(\0132\r.modl"
-    "ock.Vec3\022$\n\006facing\030\005 \001(\0132\024.modlock.Euler"
-    "Angles\022$\n\010velocity\030\006 \001(\0132\r.modlock.Vec3H"
-    "\000\210\001\001\022\016\n\006health\030\007 \001(\005\022\022\n\nmax_health\030\010 \001(\005"
-    "\022\021\n\004lane\030\t \001(\rH\001\210\001\001B\013\n\t_velocityB\007\n\005_lan"
-    "e\"\036\n\014PauseRequest\022\016\n\006paused\030\001 \001(\010\"%\n\022Mat"
-    "chClockResponse\022\017\n\007seconds\030\001 \001(\002\"9\n\025Hold"
-    "MatchClockRequest\022\024\n\007seconds\030\001 \001(\002H\000\210\001\001B"
-    "\n\n\010_seconds\"6\n\014RiftResponse\022&\n\005state\030\001 \001"
-    "(\0132\027.modlock.wasm.RiftState\"\220\001\n\tRiftStat"
-    "e\022\024\n\014scoring_team\030\001 \001(\005\022\024\n\014scoring_time\030"
-    "\002 \001(\002\022\027\n\017cash_in_started\030\003 \001(\002\022\024\n\014give_u"
-    "p_time\030\004 \001(\002\022\022\n\nnext_spawn\030\005 \001(\002\022\024\n\014spaw"
-    "n_window\030\006 \001(\002\"3\n\020StartRiftRequest\022\037\n\010po"
-    "sition\030\001 \001(\0132\r.modlock.Vec3\"\334\004\n\010Manifest"
-    "\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\017\n\007version\030"
-    "\003 \001(\t\0221\n\010language\030\004 \001(\0162\037.modlock.wasm.M"
-    "anifest.Language\022/\n\007runtime\030\005 \001(\0162\036.modl"
-    "ock.wasm.Manifest.Runtime\022\r\n\005entry\030\006 \001(\t"
-    "\022\013\n\003map\030\007 \001(\t\022(\n\010movement\030\010 \001(\0132\026.modloc"
-    "k.wasm.Movement\022.\n\tabilities\030\t \003(\0132\033.mod"
-    "lock.wasm.AbilityTuning\022\'\n\010settings\030\n \003("
-    "\0132\025.modlock.wasm.Setting\022%\n\007metrics\030\013 \003("
-    "\0132\024.modlock.wasm.Metric\"k\n\007Runtime\022\023\n\017RU"
-    "NTIME_UNKNOWN\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RUN"
-    "TIME_QUICKJS\020\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUNT"
-    "IME_PYTHON\020\004\"\213\001\n\010Language\022\024\n\020LANGUAGE_UN"
-    "KNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023LANGUAGE_TYP"
-    "ESCRIPT\020\002\022\027\n\023LANGUAGE_JAVASCRIPT\020\003\022\021\n\rLA"
-    "NGUAGE_LUAU\020\004\022\023\n\017LANGUAGE_PYTHON\020\005\"\222\002\n\007S"
-    "etting\022\013\n\003key\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022(\n\004ki"
-    "nd\030\003 \001(\0162\032.modlock.wasm.Setting.Kind\022,\n\007"
-    "choices\030\004 \003(\0132\033.modlock.wasm.SettingChoi"
-    "ce\022\013\n\003min\030\005 \001(\001\022\013\n\003max\030\006 \001(\001\022\014\n\004step\030\007 \001"
-    "(\001\022\036\n\rdefault_value\030\010 \001(\tR\007default\"K\n\004Ki"
-    "nd\022\020\n\014KIND_UNKNOWN\020\000\022\017\n\013KIND_CHOICE\020\001\022\017\n"
-    "\013KIND_SWITCH\020\002\022\017\n\013KIND_NUMBER\020\003\"-\n\rSetti"
-    "ngChoice\022\r\n\005value\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\"\225"
-    "\001\n\006Metric\022\014\n\004name\030\001 \001(\t\022\'\n\004kind\030\002 \001(\0162\031."
-    "modlock.wasm.Metric.Kind\022\016\n\006labels\030\003 \003(\t"
-    "\"D\n\004Kind\022\020\n\014KIND_UNKNOWN\020\000\022\016\n\nKIND_COUNT"
-    "\020\001\022\014\n\010KIND_SUM\020\002\022\014\n\010KIND_MAX\020\003\"9\n\013Metric"
-    "Total\022\014\n\004name\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022\r\n\005va"
-    "lue\030\003 \001(\001\"9\n\014MetricTotals\022)\n\006totals\030\001 \003("
-    "\0132\031.modlock.wasm.MetricTotal\"=\n\016StoredSe"
-    "ttings\022+\n\006values\030\001 \003(\0132\033.modlock.wasm.St"
-    "oredSetting\"J\n\rStoredSetting\022\013\n\003mod\030\001 \001("
-    "\t\022\020\n\010steam_id\030\002 \001(\004\022\013\n\003key\030\003 \001(\t\022\r\n\005valu"
-    "e\030\004 \001(\t\"\224\001\n\010Movement\022+\n\005model\030\001 \001(\0162\034.mo"
-    "dlock.wasm.Movement.Model\022\r\n\005scale\030\002 \001(\002"
-    "\022\033\n\023unpredicted_buttons\030\003 \001(\004\"/\n\005Model\022\020"
-    "\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001\"\361"
-    "\002\n\rAbilityTuning\022\017\n\007ability\030\001 \001(\t\022\?\n\npro"
-    "perties\030\002 \003(\0132+.modlock.wasm.AbilityTuni"
-    "ng.PropertiesEntry\0227\n\006fields\030\003 \003(\0132\'.mod"
-    "lock.wasm.AbilityTuning.FieldsEntry\022@\n\013c"
-    "opy_fields\030\004 \003(\0132+.modlock.wasm.AbilityT"
-    "uning.CopyFieldsEntry\0321\n\017PropertiesEntry"
-    "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013Fiel"
-    "dsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032"
-    "1\n\017CopyFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
-    "\030\002 \001(\t:\0028\001*\216\003\n\016MovementAction\022\033\n\027MOVEMEN"
-    "T_ACTION_UNKNOWN\020\000\022\032\n\026MOVEMENT_ACTION_LA"
-    "NDED\020\001\022$\n MOVEMENT_ACTION_ZIPLINE_ATTACH"
-    "ED\020\002\022\037\n\033MOVEMENT_ACTION_GROUND_DASH\020\003\022\031\n"
-    "\025MOVEMENT_ACTION_SLIDE\020\004\022\036\n\032MOVEMENT_ACT"
-    "ION_BOUNCE_PAD\020\005\022\035\n\031MOVEMENT_ACTION_DASH"
-    "_JUMP\020\006\022\034\n\030MOVEMENT_ACTION_AIR_JUMP\020\007\022\035\n"
-    "\031MOVEMENT_ACTION_WALL_JUMP\020\010\022\034\n\030MOVEMENT"
-    "_ACTION_AIR_DASH\020\t\022!\n\035MOVEMENT_ACTION_ME"
-    "LEE_STARTED\020\n\022$\n MOVEMENT_ACTION_ABILITY"
-    "_EXECUTED\020\013*\227\001\n\014ScreenEffect\022\030\n\024SCREEN_E"
-    "FFECT_KILLED\020\000\022\027\n\023SCREEN_EFFECT_BLACK\020\001\022"
-    "\031\n\025SCREEN_EFFECT_BLINDED\020\002\022\032\n\026SCREEN_EFF"
-    "ECT_DARKNESS\020\003\022\035\n\031SCREEN_EFFECT_MATCH_IN"
-    "TRO\020\004*\337\002\n\tFieldType\022\026\n\022FIELD_TYPE_UNKNOW"
-    "N\020\000\022\023\n\017FIELD_TYPE_BOOL\020\001\022\023\n\017FIELD_TYPE_I"
-    "NT8\020\002\022\024\n\020FIELD_TYPE_INT16\020\003\022\024\n\020FIELD_TYP"
-    "E_INT32\020\004\022\024\n\020FIELD_TYPE_UINT8\020\005\022\025\n\021FIELD"
-    "_TYPE_UINT16\020\006\022\025\n\021FIELD_TYPE_UINT32\020\007\022\024\n"
-    "\020FIELD_TYPE_INT64\020\010\022\025\n\021FIELD_TYPE_UINT64"
-    "\020\t\022\026\n\022FIELD_TYPE_FLOAT32\020\n\022\026\n\022FIELD_TYPE"
-    "_FLOAT64\020\013\022\025\n\021FIELD_TYPE_VECTOR\020\014\022\025\n\021FIE"
-    "LD_TYPE_HANDLE\020\r\022\025\n\021FIELD_TYPE_STRING\020\016*"
-    "@\n\nPickupKind\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PI"
-    "CKUP_KIND_MOVEMENT_BUFF\020\0012\253*\n\004Host\0224\n\003Lo"
-    "g\022\030.modlock.wasm.LogRequest\032\023.modlock.wa"
-    "sm.Empty\022H\n\rServerCommand\022\".modlock.wasm"
-    ".ServerCommandRequest\032\023.modlock.wasm.Emp"
-    "ty\0226\n\004Chat\022\031.modlock.wasm.ChatRequest\032\023."
-    "modlock.wasm.Empty\022B\n\nCenterText\022\037.modlo"
-    "ck.wasm.CenterTextRequest\032\023.modlock.wasm"
-    ".Empty\022>\n\010Announce\022\035.modlock.wasm.Announ"
-    "ceRequest\032\023.modlock.wasm.Empty\022>\n\010Precac"
-    "he\022\035.modlock.wasm.PrecacheOptions\032\023.modl"
-    "ock.wasm.Empty\022=\n\007Players\022\023.modlock.wasm"
-    ".Empty\032\035.modlock.wasm.PlayersResponse\022\?\n"
-    "\004Pawn\022\033.modlock.wasm.PlayerRequest\032\032.mod"
-    "lock.wasm.PawnResponse\022R\n\rPlayerSetting\022"
-    "\".modlock.wasm.PlayerSettingRequest\032\035.mo"
-    "dlock.wasm.SettingResponse\022N\n\020SetPlayerS"
-    "etting\022%.modlock.wasm.SetPlayerSettingRe"
-    "quest\032\023.modlock.wasm.Empty\022@\n\tAddMetric\022"
-    "\036.modlock.wasm.AddMetricRequest\032\023.modloc"
-    "k.wasm.Empty\022I\n\nSelectHero\022\037.modlock.was"
-    "m.SelectHeroRequest\032\032.modlock.wasm.HeroR"
-    "esponse\022<\n\010Spectate\022\033.modlock.wasm.Playe"
-    "rRequest\032\023.modlock.wasm.Empty\022;\n\007Respawn"
-    "\022\033.modlock.wasm.PlayerRequest\032\023.modlock."
-    "wasm.Empty\022>\n\nClearItems\022\033.modlock.wasm."
-    "PlayerRequest\032\023.modlock.wasm.Empty\022:\n\006Fr"
-    "eeze\022\033.modlock.wasm.FreezeRequest\032\023.modl"
-    "ock.wasm.Empty\022B\n\016RestoreStamina\022\033.modlo"
-    "ck.wasm.PlayerRequest\032\023.modlock.wasm.Emp"
-    "ty\022J\n\016RefreshAbility\022#.modlock.wasm.Refr"
-    "eshAbilityRequest\032\023.modlock.wasm.Empty\022I"
-    "\n\tAbilities\022\033.modlock.wasm.PlayerRequest"
-    "\032\037.modlock.wasm.AbilitiesResponse\022\?\n\nSet"
-    "Ability\022\034.modlock.wasm.AbilityOptions\032\023."
-    "modlock.wasm.Empty\022>\n\010GiveItem\022\035.modlock"
-    ".wasm.GiveItemRequest\032\023.modlock.wasm.Emp"
-    "ty\022J\n\016ReplaceAbility\022#.modlock.wasm.Repl"
-    "aceAbilityRequest\032\023.modlock.wasm.Empty\022F"
-    "\n\014HoldModifier\022!.modlock.wasm.HoldModifi"
-    "erRequest\032\023.modlock.wasm.Empty\022F\n\014GiveMo"
-    "difier\022!.modlock.wasm.GiveModifierReques"
-    "t\032\023.modlock.wasm.Empty\022>\n\010Teleport\022\035.mod"
-    "lock.wasm.TeleportRequest\032\023.modlock.wasm"
-    ".Empty\022B\n\nMovePlayer\022\037.modlock.wasm.Move"
-    "PlayerRequest\032\023.modlock.wasm.Empty\022D\n\013Ad"
-    "justSouls\022 .modlock.wasm.AdjustSoulsRequ"
-    "est\032\023.modlock.wasm.Empty\022H\n\rStartingSoul"
-    "s\022\".modlock.wasm.StartingSoulsRequest\032\023."
-    "modlock.wasm.Empty\0226\n\004Heal\022\031.modlock.was"
-    "m.HealRequest\032\023.modlock.wasm.Empty\0228\n\005So"
-    "und\022\032.modlock.wasm.SoundRequest\032\023.modloc"
-    "k.wasm.Empty\022D\n\013RestoreHero\022 .modlock.wa"
-    "sm.RestoreHeroRequest\032\023.modlock.wasm.Emp"
-    "ty\022F\n\014ScreenEffect\022!.modlock.wasm.Screen"
-    "EffectRequest\032\023.modlock.wasm.Empty\022P\n\021Cl"
-    "earScreenEffect\022&.modlock.wasm.ClearScre"
-    "enEffectRequest\032\023.modlock.wasm.Empty\022H\n\t"
-    "ReadField\022\036.modlock.wasm.ReadFieldReques"
-    "t\032\033.modlock.wasm.FieldResponse\022B\n\nWriteF"
-    "ield\022\037.modlock.wasm.WriteFieldRequest\032\023."
-    "modlock.wasm.Empty\022Q\n\rModifierState\022\".mo"
-    "dlock.wasm.ModifierStateRequest\032\034.modloc"
-    "k.wasm.ActiveResponse\022P\n\021HoldModifierSta"
-    "te\022&.modlock.wasm.HoldModifierStateReque"
-    "st\032\023.modlock.wasm.Empty\022G\n\013CreateModel\022\032"
-    ".modlock.wasm.ModelOptions\032\034.modlock.was"
-    "m.ObjectResponse\022E\n\nCreateText\022\031.modlock"
-    ".wasm.TextOptions\032\034.modlock.wasm.ObjectR"
-    "esponse\022M\n\016CreateParticle\022\035.modlock.wasm"
-    ".ParticleOptions\032\034.modlock.wasm.ObjectRe"
-    "sponse\022C\n\tCreateFog\022\030.modlock.wasm.FogOp"
-    "tions\032\034.modlock.wasm.ObjectResponse\022B\n\nM"
-    "oveObject\022\037.modlock.wasm.MoveObjectReque"
-    "st\032\023.modlock.wasm.Empty\022<\n\007SetText\022\034.mod"
-    "lock.wasm.SetTextRequest\032\023.modlock.wasm."
-    "Empty\022@\n\014RemoveObject\022\033.modlock.wasm.Obj"
-    "ectRequest\032\023.modlock.wasm.Empty\022I\n\014Objec"
-    "tEntity\022\033.modlock.wasm.ObjectRequest\032\034.m"
-    "odlock.wasm.EntityResponse\022=\n\006AddBot\022\030.m"
-    "odlock.wasm.BotOptions\032\031.modlock.wasm.Bo"
-    "tResponse\022=\n\tRemoveBot\022\033.modlock.wasm.Pl"
-    "ayerRequest\032\023.modlock.wasm.Empty\022=\n\nBloc"
-    "kInput\022\032.modlock.wasm.InputRequest\032\023.mod"
-    "lock.wasm.Empty\022I\n\020BlockPlayerInput\022 .mo"
-    "dlock.wasm.PlayerInputRequest\032\023.modlock."
-    "wasm.Empty\022>\n\005Press\022 .modlock.wasm.Playe"
-    "rInputRequest\032\023.modlock.wasm.Empty\022=\n\nWa"
-    "tchInput\022\032.modlock.wasm.InputRequest\032\023.m"
-    "odlock.wasm.Empty\022B\n\nRemapInput\022\037.modloc"
-    "k.wasm.RemapInputRequest\032\023.modlock.wasm."
-    "Empty\0222\n\002Ui\022\027.modlock.wasm.UiRequest\032\023.m"
-    "odlock.wasm.Empty\022D\n\013CallService\022\031.modlo"
-    "ck.wasm.ServiceCall\032\032.modlock.wasm.Servi"
-    "ceReply\022\?\n\010SpawnNpc\022\030.modlock.wasm.NpcOp"
-    "tions\032\031.modlock.wasm.NpcResponse\022C\n\007Read"
-    "Npc\022\030.modlock.wasm.NpcRequest\032\036.modlock."
-    "wasm.NpcStateResponse\022D\n\007MoveNpc\022\034.modlo"
-    "ck.wasm.MoveNpcRequest\032\033.modlock.wasm.Al"
-    "iveResponse\022N\n\014SetNpcHealth\022!.modlock.wa"
-    "sm.SetNpcHealthRequest\032\033.modlock.wasm.Al"
-    "iveResponse\022B\n\tRemoveNpc\022\030.modlock.wasm."
-    "NpcRequest\032\033.modlock.wasm.AliveResponse\022"
-    "O\n\014CreatePickup\022!.modlock.wasm.CreatePic"
-    "kupRequest\032\034.modlock.wasm.PickupResponse"
-    "\022I\n\rPickupPresent\022\033.modlock.wasm.PickupR"
-    "equest\032\033.modlock.wasm.AliveResponse\022H\n\014R"
-    "emovePickup\022\033.modlock.wasm.PickupRequest"
-    "\032\033.modlock.wasm.AliveResponse\022R\n\016RemoveE"
-    "ntities\022#.modlock.wasm.RemoveEntitiesReq"
-    "uest\032\033.modlock.wasm.CountResponse\0224\n\010Cle"
-    "arMap\022\023.modlock.wasm.Empty\032\023.modlock.was"
-    "m.Empty\0227\n\006Damage\022\030.modlock.wasm.HitOpti"
-    "ons\032\023.modlock.wasm.Empty\022@\n\005Trace\022\032.modl"
-    "ock.wasm.TraceOptions\032\033.modlock.wasm.Tra"
-    "ceResponse\022D\n\013RestoreNpcs\022 .modlock.wasm"
-    ".RestoreNpcsRequest\032\023.modlock.wasm.Empty"
-    "\0228\n\005Pause\022\032.modlock.wasm.PauseRequest\032\023."
-    "modlock.wasm.Empty\022C\n\nMatchClock\022\023.modlo"
-    "ck.wasm.Empty\032 .modlock.wasm.MatchClockR"
-    "esponse\022J\n\016HoldMatchClock\022#.modlock.wasm"
-    ".HoldMatchClockRequest\032\023.modlock.wasm.Em"
-    "pty\0227\n\004Rift\022\023.modlock.wasm.Empty\032\032.modlo"
-    "ck.wasm.RiftResponse\022@\n\tStartRift\022\036.modl"
-    "ock.wasm.StartRiftRequest\032\023.modlock.wasm"
-    ".Empty\022B\n\nMoveEntity\022\037.modlock.wasm.Move"
-    "EntityRequest\032\023.modlock.wasm.Empty\022@\n\tEm"
-    "itSound\022\036.modlock.wasm.EmitSoundRequest\032"
-    "\023.modlock.wasm.Empty\0228\n\004Kill\022\033.modlock.w"
-    "asm.PlayerRequest\032\023.modlock.wasm.Empty\022D"
-    "\n\013SetVelocity\022 .modlock.wasm.SetVelocity"
-    "Request\032\023.modlock.wasm.Empty\022E\n\007Buttons\022"
-    "\033.modlock.wasm.PlayerRequest\032\035.modlock.w"
-    "asm.ButtonsResponse\022H\n\rWatchMovement\022\".m"
-    "odlock.wasm.WatchMovementRequest\032\023.modlo"
-    "ck.wasm.Empty\022H\n\020WatchProjectiles\022\037.modl"
-    "ock.wasm.ProjectileOptions\032\023.modlock.was"
-    "m.Empty2\244\007\n\003Mod\022<\n\005Start\022\030.modlock.wasm."
-    "StartEvent\032\031.modlock.wasm.StartResult\0226\n"
-    "\005Frame\022\030.modlock.wasm.FrameEvent\032\023.modlo"
-    "ck.wasm.Empty\022B\n\007Command\022\032.modlock.wasm."
-    "CommandEvent\032\033.modlock.wasm.CommandResul"
-    "t\0226\n\005World\022\030.modlock.wasm.WorldEvent\032\023.m"
-    "odlock.wasm.Empty\022:\n\007UiPress\022\032.modlock.w"
-    "asm.UiPressEvent\032\023.modlock.wasm.Empty\022>\n"
-    "\005Serve\022\031.modlock.wasm.ServiceCall\032\032.modl"
-    "ock.wasm.ServiceReply\022\?\n\006Damage\022\031.modloc"
-    "k.wasm.DamageEvent\032\032.modlock.wasm.Damage"
-    "Result\022:\n\007Damaged\022\032.modlock.wasm.Damaged"
-    "Event\032\023.modlock.wasm.Empty\0226\n\005Input\022\030.mo"
-    "dlock.wasm.InputEvent\032\023.modlock.wasm.Emp"
-    "ty\022<\n\010Restored\022\033.modlock.wasm.RestoredEv"
-    "ent\032\023.modlock.wasm.Empty\022D\n\014NpcsRestored"
-    "\022\037.modlock.wasm.NpcsRestoredEvent\032\023.modl"
-    "ock.wasm.Empty\0228\n\006Launch\022\031.modlock.wasm."
-    "LaunchEvent\032\023.modlock.wasm.Empty\0228\n\006Impa"
-    "ct\022\031.modlock.wasm.ImpactEvent\032\023.modlock."
-    "wasm.Empty\0228\n\006Landed\022\031.modlock.wasm.Land"
-    "edEvent\032\023.modlock.wasm.Empty\022H\n\016SettingC"
-    "hanged\022!.modlock.wasm.SettingChangedEven"
-    "t\032\023.modlock.wasm.EmptyB4Z2github.com/par"
-    "alin/modlock/proto/modlock/wasm;wasmb\006pr"
-    "oto3"
+    "odlock.wasm.ScreenEffect\"l\n\020ReadFieldReq"
+    "uest\022\016\n\006entity\030\001 \001(\r\022\022\n\nclass_name\030\002 \001(\t"
+    "\022\r\n\005field\030\003 \001(\t\022%\n\004type\030\004 \001(\0162\027.modlock."
+    "wasm.FieldType\"8\n\rFieldResponse\022\'\n\005value"
+    "\030\001 \001(\0132\030.modlock.wasm.FieldValue\"~\n\nFiel"
+    "dValue\022\021\n\007boolean\030\001 \001(\010H\000\022\020\n\006number\030\002 \001("
+    "\001H\000\022\021\n\007integer\030\003 \001(\003H\000\022\016\n\004text\030\004 \001(\tH\000\022\037"
+    "\n\006vector\030\005 \001(\0132\r.modlock.Vec3H\000B\007\n\005value"
+    "\"\226\001\n\021WriteFieldRequest\022\016\n\006entity\030\001 \001(\r\022\022"
+    "\n\nclass_name\030\002 \001(\t\022\r\n\005field\030\003 \001(\t\022%\n\004typ"
+    "e\030\004 \001(\0162\027.modlock.wasm.FieldType\022\'\n\005valu"
+    "e\030\005 \001(\0132\030.modlock.wasm.FieldValue\"5\n\024Mod"
+    "ifierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n\005sta"
+    "te\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active\030\001 \001"
+    "(\010\"Y\n\030HoldModifierStateRequest\022\016\n\006entity"
+    "\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210"
+    "\001\001B\t\n\007_active\"\355\001\n\014ModelOptions\022\020\n\010resour"
+    "ce\030\001 \001(\t\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec"
+    "3\022)\n\006facing\030\003 \001(\0132\024.modlock.EulerAnglesH"
+    "\000\210\001\001\022\022\n\005scale\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 \001(\007H"
+    "\002\210\001\001\022\021\n\004glow\030\006 \001(\010H\003\210\001\001\022\022\n\005solid\030\007 \001(\010H\004"
+    "\210\001\001B\t\n\007_facingB\010\n\006_scaleB\010\n\006_colorB\007\n\005_g"
+    "lowB\010\n\006_solid\"\376\001\n\013TextOptions\022\014\n\004text\030\001 "
+    "\001(\t\022\037\n\010position\030\002 \001(\0132\r.modlock.Vec3\022)\n\006"
+    "facing\030\003 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022"
+    "\026\n\tfont_size\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 \001(\007H\002"
+    "\210\001\001\022\030\n\013face_camera\030\006 \001(\010H\003\210\001\001\022\022\n\005scale\030\007"
+    " \001(\002H\004\210\001\001B\t\n\007_facingB\014\n\n_font_sizeB\010\n\006_c"
+    "olorB\016\n\014_face_cameraB\010\n\006_scale\"\233\002\n\017Parti"
+    "cleOptions\022\020\n\010resource\030\001 \001(\t\022\037\n\010position"
+    "\030\002 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\003 \001(\0132\024."
+    "modlock.EulerAnglesH\000\210\001\001\022\022\n\005color\030\004 \001(\007H"
+    "\001\210\001\001\022\027\n\ntint_point\030\005 \001(\005H\002\210\001\001\022/\n\005point\030\006"
+    " \001(\0132\033.modlock.wasm.ParticlePointH\003\210\001\001\022\023"
+    "\n\006parent\030\007 \001(\rH\004\210\001\001B\t\n\007_facingB\010\n\006_color"
+    "B\r\n\013_tint_pointB\010\n\006_pointB\t\n\007_parent\"\?\n\r"
+    "ParticlePoint\022\r\n\005index\030\001 \001(\005\022\037\n\010position"
+    "\030\002 \001(\0132\r.modlock.Vec3\"\276\001\n\nFogOptions\022\037\n\010"
+    "position\030\001 \001(\0132\r.modlock.Vec3\022)\n\006facing\030"
+    "\002 \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\033\n\004mins"
+    "\030\003 \001(\0132\r.modlock.Vec3\022\033\n\004maxs\030\004 \001(\0132\r.mo"
+    "dlock.Vec3\022\020\n\010strength\030\005 \001(\002\022\r\n\005color\030\006 "
+    "\001(\007B\t\n\007_facing\" \n\016ObjectResponse\022\016\n\006obje"
+    "ct\030\001 \001(\r\" \n\016EntityResponse\022\016\n\006entity\030\001 \001"
+    "(\r\"\037\n\rObjectRequest\022\016\n\006object\030\001 \001(\r\"z\n\021M"
+    "oveObjectRequest\022\016\n\006object\030\001 \001(\r\022\037\n\010posi"
+    "tion\030\002 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\003 \001("
+    "\0132\024.modlock.EulerAnglesH\000\210\001\001B\t\n\007_facing\""
+    ".\n\016SetTextRequest\022\016\n\006object\030\001 \001(\r\022\014\n\004tex"
+    "t\030\002 \001(\t\"\213\001\n\nBotOptions\022\014\n\004name\030\001 \001(\t\022\014\n\004"
+    "team\030\002 \001(\005\022\023\n\thero_name\030\003 \001(\tH\000\022\021\n\007hero_"
+    "id\030\004 \001(\rH\000\022$\n\010position\030\005 \001(\0132\r.modlock.V"
+    "ec3H\001\210\001\001B\006\n\004heroB\013\n\t_position\"\035\n\013BotResp"
+    "onse\022\016\n\006player\030\001 \001(\005\"\037\n\014InputRequest\022\017\n\007"
+    "buttons\030\001 \001(\004\"5\n\022PlayerInputRequest\022\016\n\006p"
+    "layer\030\001 \001(\005\022\017\n\007buttons\030\002 \001(\004\"M\n\021RemapInp"
+    "utRequest\022\014\n\004from\030\001 \001(\004\022\n\n\002to\030\002 \001(\004\022\023\n\006r"
+    "epeat\030\003 \001(\010H\000\210\001\001B\t\n\007_repeat\"\?\n\tUiRequest"
+    "\022\016\n\006player\030\001 \001(\005\022\"\n\006change\030\002 \001(\0132\022.modlo"
+    "ck.ui.Change\"\367\001\n\nNpcOptions\022\022\n\nclass_nam"
+    "e\030\001 \001(\t\022\014\n\004unit\030\002 \001(\t\022\014\n\004team\030\003 \001(\005\022\037\n\010p"
+    "osition\030\004 \001(\0132\r.modlock.Vec3\022)\n\006facing\030\005"
+    " \001(\0132\024.modlock.EulerAnglesH\000\210\001\001\022\023\n\006healt"
+    "h\030\006 \001(\005H\001\210\001\001\022\027\n\nmax_health\030\007 \001(\005H\002\210\001\001\022\021\n"
+    "\004lane\030\010 \001(\rH\003\210\001\001B\t\n\007_facingB\t\n\007_healthB\r"
+    "\n\013_max_healthB\007\n\005_lane\"\032\n\013NpcResponse\022\013\n"
+    "\003npc\030\001 \001(\r\"\031\n\nNpcRequest\022\013\n\003npc\030\001 \001(\r\"9\n"
+    "\020NpcStateResponse\022%\n\005state\030\001 \001(\0132\026.modlo"
+    "ck.wasm.NpcState\"\203\001\n\010NpcState\022\037\n\010positio"
+    "n\030\001 \001(\0132\r.modlock.Vec3\022$\n\006facing\030\002 \001(\0132\024"
+    ".modlock.EulerAngles\022\016\n\006health\030\003 \001(\005\022\022\n\n"
+    "max_health\030\004 \001(\005\022\014\n\004team\030\005 \001(\005\"\247\001\n\016MoveN"
+    "pcRequest\022\013\n\003npc\030\001 \001(\r\022\037\n\010position\030\002 \001(\013"
+    "2\r.modlock.Vec3\022)\n\006facing\030\003 \001(\0132\024.modloc"
+    "k.EulerAnglesH\000\210\001\001\022$\n\010velocity\030\004 \001(\0132\r.m"
+    "odlock.Vec3H\001\210\001\001B\t\n\007_facingB\013\n\t_velocity"
+    "\"Z\n\023SetNpcHealthRequest\022\013\n\003npc\030\001 \001(\r\022\016\n\006"
+    "health\030\002 \001(\005\022\027\n\nmax_health\030\003 \001(\005H\000\210\001\001B\r\n"
+    "\013_max_health\"\036\n\rAliveResponse\022\r\n\005alive\030\001"
+    " \001(\010\"^\n\023CreatePickupRequest\022&\n\004kind\030\001 \001("
+    "\0162\030.modlock.wasm.PickupKind\022\037\n\010position\030"
+    "\002 \001(\0132\r.modlock.Vec3\" \n\016PickupResponse\022\016"
+    "\n\006pickup\030\001 \001(\r\"\037\n\rPickupRequest\022\016\n\006picku"
+    "p\030\001 \001(\r\"+\n\025RemoveEntitiesRequest\022\022\n\nclas"
+    "s_name\030\001 \001(\t\"\036\n\rCountResponse\022\r\n\005count\030\001"
+    " \001(\005\"\276\001\n\nHitOptions\022\016\n\006victim\030\001 \001(\r\022\025\n\010a"
+    "ttacker\030\002 \001(\rH\000\210\001\001\022\026\n\tinflictor\030\003 \001(\rH\001\210"
+    "\001\001\022\016\n\006amount\030\004 \001(\002\022\026\n\thit_group\030\005 \001(\005H\002\210"
+    "\001\001\022\024\n\007ability\030\006 \001(\rH\003\210\001\001B\013\n\t_attackerB\014\n"
+    "\n_inflictorB\014\n\n_hit_groupB\n\n\010_ability\"\232\001"
+    "\n\014TraceOptions\022\034\n\005start\030\001 \001(\0132\r.modlock."
+    "Vec3\022\032\n\003end\030\002 \001(\0132\r.modlock.Vec3\022\023\n\006laye"
+    "rs\030\003 \001(\004H\000\210\001\001\022\024\n\007exclude\030\004 \001(\004H\001\210\001\001\022\016\n\006i"
+    "gnore\030\005 \003(\rB\t\n\007_layersB\n\n\010_exclude\"4\n\rTr"
+    "aceResponse\022#\n\003hit\030\001 \001(\0132\026.modlock.wasm."
+    "TraceHit\"o\n\010TraceHit\022\037\n\010position\030\001 \001(\0132\r"
+    ".modlock.Vec3\022\035\n\006normal\030\002 \001(\0132\r.modlock."
+    "Vec3\022\023\n\013start_solid\030\003 \001(\010\022\016\n\006entity\030\004 \001("
+    "\r\";\n\022RestoreNpcsRequest\022%\n\004npcs\030\001 \003(\0132\027."
+    "modlock.wasm.NpcTarget\"\363\001\n\tNpcTarget\022\022\n\n"
+    "class_name\030\001 \001(\t\022\n\n\002id\030\002 \001(\r\022\014\n\004team\030\003 \001"
+    "(\005\022\037\n\010position\030\004 \001(\0132\r.modlock.Vec3\022$\n\006f"
+    "acing\030\005 \001(\0132\024.modlock.EulerAngles\022$\n\010vel"
+    "ocity\030\006 \001(\0132\r.modlock.Vec3H\000\210\001\001\022\016\n\006healt"
+    "h\030\007 \001(\005\022\022\n\nmax_health\030\010 \001(\005\022\021\n\004lane\030\t \001("
+    "\rH\001\210\001\001B\013\n\t_velocityB\007\n\005_lane\"\036\n\014PauseReq"
+    "uest\022\016\n\006paused\030\001 \001(\010\"%\n\022MatchClockRespon"
+    "se\022\017\n\007seconds\030\001 \001(\002\"9\n\025HoldMatchClockReq"
+    "uest\022\024\n\007seconds\030\001 \001(\002H\000\210\001\001B\n\n\010_seconds\"6"
+    "\n\014RiftResponse\022&\n\005state\030\001 \001(\0132\027.modlock."
+    "wasm.RiftState\"\220\001\n\tRiftState\022\024\n\014scoring_"
+    "team\030\001 \001(\005\022\024\n\014scoring_time\030\002 \001(\002\022\027\n\017cash"
+    "_in_started\030\003 \001(\002\022\024\n\014give_up_time\030\004 \001(\002\022"
+    "\022\n\nnext_spawn\030\005 \001(\002\022\024\n\014spawn_window\030\006 \001("
+    "\002\"3\n\020StartRiftRequest\022\037\n\010position\030\001 \001(\0132"
+    "\r.modlock.Vec3\"\334\004\n\010Manifest\022\014\n\004slug\030\001 \001("
+    "\t\022\014\n\004name\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\0221\n\010lang"
+    "uage\030\004 \001(\0162\037.modlock.wasm.Manifest.Langu"
+    "age\022/\n\007runtime\030\005 \001(\0162\036.modlock.wasm.Mani"
+    "fest.Runtime\022\r\n\005entry\030\006 \001(\t\022\013\n\003map\030\007 \001(\t"
+    "\022(\n\010movement\030\010 \001(\0132\026.modlock.wasm.Moveme"
+    "nt\022.\n\tabilities\030\t \003(\0132\033.modlock.wasm.Abi"
+    "lityTuning\022\'\n\010settings\030\n \003(\0132\025.modlock.w"
+    "asm.Setting\022%\n\007metrics\030\013 \003(\0132\024.modlock.w"
+    "asm.Metric\"k\n\007Runtime\022\023\n\017RUNTIME_UNKNOWN"
+    "\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RUNTIME_QUICKJS\020"
+    "\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUNTIME_PYTHON\020\004\""
+    "\213\001\n\010Language\022\024\n\020LANGUAGE_UNKNOWN\020\000\022\017\n\013LA"
+    "NGUAGE_GO\020\001\022\027\n\023LANGUAGE_TYPESCRIPT\020\002\022\027\n\023"
+    "LANGUAGE_JAVASCRIPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004"
+    "\022\023\n\017LANGUAGE_PYTHON\020\005\"\222\002\n\007Setting\022\013\n\003key"
+    "\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022(\n\004kind\030\003 \001(\0162\032.mo"
+    "dlock.wasm.Setting.Kind\022,\n\007choices\030\004 \003(\013"
+    "2\033.modlock.wasm.SettingChoice\022\013\n\003min\030\005 \001"
+    "(\001\022\013\n\003max\030\006 \001(\001\022\014\n\004step\030\007 \001(\001\022\036\n\rdefault"
+    "_value\030\010 \001(\tR\007default\"K\n\004Kind\022\020\n\014KIND_UN"
+    "KNOWN\020\000\022\017\n\013KIND_CHOICE\020\001\022\017\n\013KIND_SWITCH\020"
+    "\002\022\017\n\013KIND_NUMBER\020\003\"-\n\rSettingChoice\022\r\n\005v"
+    "alue\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\"\225\001\n\006Metric\022\014\n\004"
+    "name\030\001 \001(\t\022\'\n\004kind\030\002 \001(\0162\031.modlock.wasm."
+    "Metric.Kind\022\016\n\006labels\030\003 \003(\t\"D\n\004Kind\022\020\n\014K"
+    "IND_UNKNOWN\020\000\022\016\n\nKIND_COUNT\020\001\022\014\n\010KIND_SU"
+    "M\020\002\022\014\n\010KIND_MAX\020\003\"9\n\013MetricTotal\022\014\n\004name"
+    "\030\001 \001(\t\022\r\n\005label\030\002 \001(\t\022\r\n\005value\030\003 \001(\001\"9\n\014"
+    "MetricTotals\022)\n\006totals\030\001 \003(\0132\031.modlock.w"
+    "asm.MetricTotal\"=\n\016StoredSettings\022+\n\006val"
+    "ues\030\001 \003(\0132\033.modlock.wasm.StoredSetting\"J"
+    "\n\rStoredSetting\022\013\n\003mod\030\001 \001(\t\022\020\n\010steam_id"
+    "\030\002 \001(\004\022\013\n\003key\030\003 \001(\t\022\r\n\005value\030\004 \001(\t\"\224\001\n\010M"
+    "ovement\022+\n\005model\030\001 \001(\0162\034.modlock.wasm.Mo"
+    "vement.Model\022\r\n\005scale\030\002 \001(\002\022\033\n\023unpredict"
+    "ed_buttons\030\003 \001(\004\"/\n\005Model\022\020\n\014MODEL_NATIV"
+    "E\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001\"\361\002\n\rAbilityTun"
+    "ing\022\017\n\007ability\030\001 \001(\t\022\?\n\nproperties\030\002 \003(\013"
+    "2+.modlock.wasm.AbilityTuning.Properties"
+    "Entry\0227\n\006fields\030\003 \003(\0132\'.modlock.wasm.Abi"
+    "lityTuning.FieldsEntry\022@\n\013copy_fields\030\004 "
+    "\003(\0132+.modlock.wasm.AbilityTuning.CopyFie"
+    "ldsEntry\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t"
+    "\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003ke"
+    "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFields"
+    "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001*\216\003"
+    "\n\016MovementAction\022\033\n\027MOVEMENT_ACTION_UNKN"
+    "OWN\020\000\022\032\n\026MOVEMENT_ACTION_LANDED\020\001\022$\n MOV"
+    "EMENT_ACTION_ZIPLINE_ATTACHED\020\002\022\037\n\033MOVEM"
+    "ENT_ACTION_GROUND_DASH\020\003\022\031\n\025MOVEMENT_ACT"
+    "ION_SLIDE\020\004\022\036\n\032MOVEMENT_ACTION_BOUNCE_PA"
+    "D\020\005\022\035\n\031MOVEMENT_ACTION_DASH_JUMP\020\006\022\034\n\030MO"
+    "VEMENT_ACTION_AIR_JUMP\020\007\022\035\n\031MOVEMENT_ACT"
+    "ION_WALL_JUMP\020\010\022\034\n\030MOVEMENT_ACTION_AIR_D"
+    "ASH\020\t\022!\n\035MOVEMENT_ACTION_MELEE_STARTED\020\n"
+    "\022$\n MOVEMENT_ACTION_ABILITY_EXECUTED\020\013*\227"
+    "\001\n\014ScreenEffect\022\030\n\024SCREEN_EFFECT_KILLED\020"
+    "\000\022\027\n\023SCREEN_EFFECT_BLACK\020\001\022\031\n\025SCREEN_EFF"
+    "ECT_BLINDED\020\002\022\032\n\026SCREEN_EFFECT_DARKNESS\020"
+    "\003\022\035\n\031SCREEN_EFFECT_MATCH_INTRO\020\004*\337\002\n\tFie"
+    "ldType\022\026\n\022FIELD_TYPE_UNKNOWN\020\000\022\023\n\017FIELD_"
+    "TYPE_BOOL\020\001\022\023\n\017FIELD_TYPE_INT8\020\002\022\024\n\020FIEL"
+    "D_TYPE_INT16\020\003\022\024\n\020FIELD_TYPE_INT32\020\004\022\024\n\020"
+    "FIELD_TYPE_UINT8\020\005\022\025\n\021FIELD_TYPE_UINT16\020"
+    "\006\022\025\n\021FIELD_TYPE_UINT32\020\007\022\024\n\020FIELD_TYPE_I"
+    "NT64\020\010\022\025\n\021FIELD_TYPE_UINT64\020\t\022\026\n\022FIELD_T"
+    "YPE_FLOAT32\020\n\022\026\n\022FIELD_TYPE_FLOAT64\020\013\022\025\n"
+    "\021FIELD_TYPE_VECTOR\020\014\022\025\n\021FIELD_TYPE_HANDL"
+    "E\020\r\022\025\n\021FIELD_TYPE_STRING\020\016*@\n\nPickupKind"
+    "\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PICKUP_KIND_MOV"
+    "EMENT_BUFF\020\0012\345*\n\004Host\0224\n\003Log\022\030.modlock.w"
+    "asm.LogRequest\032\023.modlock.wasm.Empty\022H\n\rS"
+    "erverCommand\022\".modlock.wasm.ServerComman"
+    "dRequest\032\023.modlock.wasm.Empty\0226\n\004Chat\022\031."
+    "modlock.wasm.ChatRequest\032\023.modlock.wasm."
+    "Empty\022B\n\nCenterText\022\037.modlock.wasm.Cente"
+    "rTextRequest\032\023.modlock.wasm.Empty\022>\n\010Ann"
+    "ounce\022\035.modlock.wasm.AnnounceRequest\032\023.m"
+    "odlock.wasm.Empty\022>\n\010Precache\022\035.modlock."
+    "wasm.PrecacheOptions\032\023.modlock.wasm.Empt"
+    "y\022=\n\007Players\022\023.modlock.wasm.Empty\032\035.modl"
+    "ock.wasm.PlayersResponse\022\?\n\004Pawn\022\033.modlo"
+    "ck.wasm.PlayerRequest\032\032.modlock.wasm.Paw"
+    "nResponse\022R\n\rPlayerSetting\022\".modlock.was"
+    "m.PlayerSettingRequest\032\035.modlock.wasm.Se"
+    "ttingResponse\022N\n\020SetPlayerSetting\022%.modl"
+    "ock.wasm.SetPlayerSettingRequest\032\023.modlo"
+    "ck.wasm.Empty\022@\n\tAddMetric\022\036.modlock.was"
+    "m.AddMetricRequest\032\023.modlock.wasm.Empty\022"
+    "I\n\nSelectHero\022\037.modlock.wasm.SelectHeroR"
+    "equest\032\032.modlock.wasm.HeroResponse\022<\n\010Sp"
+    "ectate\022\033.modlock.wasm.PlayerRequest\032\023.mo"
+    "dlock.wasm.Empty\022;\n\007Respawn\022\033.modlock.wa"
+    "sm.PlayerRequest\032\023.modlock.wasm.Empty\022>\n"
+    "\nClearItems\022\033.modlock.wasm.PlayerRequest"
+    "\032\023.modlock.wasm.Empty\022:\n\006Freeze\022\033.modloc"
+    "k.wasm.FreezeRequest\032\023.modlock.wasm.Empt"
+    "y\022B\n\016RestoreStamina\022\033.modlock.wasm.Playe"
+    "rRequest\032\023.modlock.wasm.Empty\022J\n\016Refresh"
+    "Ability\022#.modlock.wasm.RefreshAbilityReq"
+    "uest\032\023.modlock.wasm.Empty\022I\n\tAbilities\022\033"
+    ".modlock.wasm.PlayerRequest\032\037.modlock.wa"
+    "sm.AbilitiesResponse\022\?\n\nSetAbility\022\034.mod"
+    "lock.wasm.AbilityOptions\032\023.modlock.wasm."
+    "Empty\022>\n\010GiveItem\022\035.modlock.wasm.GiveIte"
+    "mRequest\032\023.modlock.wasm.Empty\022J\n\016Replace"
+    "Ability\022#.modlock.wasm.ReplaceAbilityReq"
+    "uest\032\023.modlock.wasm.Empty\022F\n\014HoldModifie"
+    "r\022!.modlock.wasm.HoldModifierRequest\032\023.m"
+    "odlock.wasm.Empty\022F\n\014GiveModifier\022!.modl"
+    "ock.wasm.GiveModifierRequest\032\023.modlock.w"
+    "asm.Empty\022>\n\010Teleport\022\035.modlock.wasm.Tel"
+    "eportRequest\032\023.modlock.wasm.Empty\022B\n\nMov"
+    "ePlayer\022\037.modlock.wasm.MovePlayerRequest"
+    "\032\023.modlock.wasm.Empty\0228\n\005Steer\022\032.modlock"
+    ".wasm.SteerRequest\032\023.modlock.wasm.Empty\022"
+    "D\n\013AdjustSouls\022 .modlock.wasm.AdjustSoul"
+    "sRequest\032\023.modlock.wasm.Empty\022H\n\rStartin"
+    "gSouls\022\".modlock.wasm.StartingSoulsReque"
+    "st\032\023.modlock.wasm.Empty\0226\n\004Heal\022\031.modloc"
+    "k.wasm.HealRequest\032\023.modlock.wasm.Empty\022"
+    "8\n\005Sound\022\032.modlock.wasm.SoundRequest\032\023.m"
+    "odlock.wasm.Empty\022D\n\013RestoreHero\022 .modlo"
+    "ck.wasm.RestoreHeroRequest\032\023.modlock.was"
+    "m.Empty\022F\n\014ScreenEffect\022!.modlock.wasm.S"
+    "creenEffectRequest\032\023.modlock.wasm.Empty\022"
+    "P\n\021ClearScreenEffect\022&.modlock.wasm.Clea"
+    "rScreenEffectRequest\032\023.modlock.wasm.Empt"
+    "y\022H\n\tReadField\022\036.modlock.wasm.ReadFieldR"
+    "equest\032\033.modlock.wasm.FieldResponse\022B\n\nW"
+    "riteField\022\037.modlock.wasm.WriteFieldReque"
+    "st\032\023.modlock.wasm.Empty\022Q\n\rModifierState"
+    "\022\".modlock.wasm.ModifierStateRequest\032\034.m"
+    "odlock.wasm.ActiveResponse\022P\n\021HoldModifi"
+    "erState\022&.modlock.wasm.HoldModifierState"
+    "Request\032\023.modlock.wasm.Empty\022G\n\013CreateMo"
+    "del\022\032.modlock.wasm.ModelOptions\032\034.modloc"
+    "k.wasm.ObjectResponse\022E\n\nCreateText\022\031.mo"
+    "dlock.wasm.TextOptions\032\034.modlock.wasm.Ob"
+    "jectResponse\022M\n\016CreateParticle\022\035.modlock"
+    ".wasm.ParticleOptions\032\034.modlock.wasm.Obj"
+    "ectResponse\022C\n\tCreateFog\022\030.modlock.wasm."
+    "FogOptions\032\034.modlock.wasm.ObjectResponse"
+    "\022B\n\nMoveObject\022\037.modlock.wasm.MoveObject"
+    "Request\032\023.modlock.wasm.Empty\022<\n\007SetText\022"
+    "\034.modlock.wasm.SetTextRequest\032\023.modlock."
+    "wasm.Empty\022@\n\014RemoveObject\022\033.modlock.was"
+    "m.ObjectRequest\032\023.modlock.wasm.Empty\022I\n\014"
+    "ObjectEntity\022\033.modlock.wasm.ObjectReques"
+    "t\032\034.modlock.wasm.EntityResponse\022=\n\006AddBo"
+    "t\022\030.modlock.wasm.BotOptions\032\031.modlock.wa"
+    "sm.BotResponse\022=\n\tRemoveBot\022\033.modlock.wa"
+    "sm.PlayerRequest\032\023.modlock.wasm.Empty\022=\n"
+    "\nBlockInput\022\032.modlock.wasm.InputRequest\032"
+    "\023.modlock.wasm.Empty\022I\n\020BlockPlayerInput"
+    "\022 .modlock.wasm.PlayerInputRequest\032\023.mod"
+    "lock.wasm.Empty\022>\n\005Press\022 .modlock.wasm."
+    "PlayerInputRequest\032\023.modlock.wasm.Empty\022"
+    "=\n\nWatchInput\022\032.modlock.wasm.InputReques"
+    "t\032\023.modlock.wasm.Empty\022B\n\nRemapInput\022\037.m"
+    "odlock.wasm.RemapInputRequest\032\023.modlock."
+    "wasm.Empty\0222\n\002Ui\022\027.modlock.wasm.UiReques"
+    "t\032\023.modlock.wasm.Empty\022D\n\013CallService\022\031."
+    "modlock.wasm.ServiceCall\032\032.modlock.wasm."
+    "ServiceReply\022\?\n\010SpawnNpc\022\030.modlock.wasm."
+    "NpcOptions\032\031.modlock.wasm.NpcResponse\022C\n"
+    "\007ReadNpc\022\030.modlock.wasm.NpcRequest\032\036.mod"
+    "lock.wasm.NpcStateResponse\022D\n\007MoveNpc\022\034."
+    "modlock.wasm.MoveNpcRequest\032\033.modlock.wa"
+    "sm.AliveResponse\022N\n\014SetNpcHealth\022!.modlo"
+    "ck.wasm.SetNpcHealthRequest\032\033.modlock.wa"
+    "sm.AliveResponse\022B\n\tRemoveNpc\022\030.modlock."
+    "wasm.NpcRequest\032\033.modlock.wasm.AliveResp"
+    "onse\022O\n\014CreatePickup\022!.modlock.wasm.Crea"
+    "tePickupRequest\032\034.modlock.wasm.PickupRes"
+    "ponse\022I\n\rPickupPresent\022\033.modlock.wasm.Pi"
+    "ckupRequest\032\033.modlock.wasm.AliveResponse"
+    "\022H\n\014RemovePickup\022\033.modlock.wasm.PickupRe"
+    "quest\032\033.modlock.wasm.AliveResponse\022R\n\016Re"
+    "moveEntities\022#.modlock.wasm.RemoveEntiti"
+    "esRequest\032\033.modlock.wasm.CountResponse\0224"
+    "\n\010ClearMap\022\023.modlock.wasm.Empty\032\023.modloc"
+    "k.wasm.Empty\0227\n\006Damage\022\030.modlock.wasm.Hi"
+    "tOptions\032\023.modlock.wasm.Empty\022@\n\005Trace\022\032"
+    ".modlock.wasm.TraceOptions\032\033.modlock.was"
+    "m.TraceResponse\022D\n\013RestoreNpcs\022 .modlock"
+    ".wasm.RestoreNpcsRequest\032\023.modlock.wasm."
+    "Empty\0228\n\005Pause\022\032.modlock.wasm.PauseReque"
+    "st\032\023.modlock.wasm.Empty\022C\n\nMatchClock\022\023."
+    "modlock.wasm.Empty\032 .modlock.wasm.MatchC"
+    "lockResponse\022J\n\016HoldMatchClock\022#.modlock"
+    ".wasm.HoldMatchClockRequest\032\023.modlock.wa"
+    "sm.Empty\0227\n\004Rift\022\023.modlock.wasm.Empty\032\032."
+    "modlock.wasm.RiftResponse\022@\n\tStartRift\022\036"
+    ".modlock.wasm.StartRiftRequest\032\023.modlock"
+    ".wasm.Empty\022B\n\nMoveEntity\022\037.modlock.wasm"
+    ".MoveEntityRequest\032\023.modlock.wasm.Empty\022"
+    "@\n\tEmitSound\022\036.modlock.wasm.EmitSoundReq"
+    "uest\032\023.modlock.wasm.Empty\0228\n\004Kill\022\033.modl"
+    "ock.wasm.PlayerRequest\032\023.modlock.wasm.Em"
+    "pty\022D\n\013SetVelocity\022 .modlock.wasm.SetVel"
+    "ocityRequest\032\023.modlock.wasm.Empty\022E\n\007But"
+    "tons\022\033.modlock.wasm.PlayerRequest\032\035.modl"
+    "ock.wasm.ButtonsResponse\022H\n\rWatchMovemen"
+    "t\022\".modlock.wasm.WatchMovementRequest\032\023."
+    "modlock.wasm.Empty\022H\n\020WatchProjectiles\022\037"
+    ".modlock.wasm.ProjectileOptions\032\023.modloc"
+    "k.wasm.Empty2\244\007\n\003Mod\022<\n\005Start\022\030.modlock."
+    "wasm.StartEvent\032\031.modlock.wasm.StartResu"
+    "lt\0226\n\005Frame\022\030.modlock.wasm.FrameEvent\032\023."
+    "modlock.wasm.Empty\022B\n\007Command\022\032.modlock."
+    "wasm.CommandEvent\032\033.modlock.wasm.Command"
+    "Result\0226\n\005World\022\030.modlock.wasm.WorldEven"
+    "t\032\023.modlock.wasm.Empty\022:\n\007UiPress\022\032.modl"
+    "ock.wasm.UiPressEvent\032\023.modlock.wasm.Emp"
+    "ty\022>\n\005Serve\022\031.modlock.wasm.ServiceCall\032\032"
+    ".modlock.wasm.ServiceReply\022\?\n\006Damage\022\031.m"
+    "odlock.wasm.DamageEvent\032\032.modlock.wasm.D"
+    "amageResult\022:\n\007Damaged\022\032.modlock.wasm.Da"
+    "magedEvent\032\023.modlock.wasm.Empty\0226\n\005Input"
+    "\022\030.modlock.wasm.InputEvent\032\023.modlock.was"
+    "m.Empty\022<\n\010Restored\022\033.modlock.wasm.Resto"
+    "redEvent\032\023.modlock.wasm.Empty\022D\n\014NpcsRes"
+    "tored\022\037.modlock.wasm.NpcsRestoredEvent\032\023"
+    ".modlock.wasm.Empty\0228\n\006Launch\022\031.modlock."
+    "wasm.LaunchEvent\032\023.modlock.wasm.Empty\0228\n"
+    "\006Impact\022\031.modlock.wasm.ImpactEvent\032\023.mod"
+    "lock.wasm.Empty\0228\n\006Landed\022\031.modlock.wasm"
+    ".LandedEvent\032\023.modlock.wasm.Empty\022H\n\016Set"
+    "tingChanged\022!.modlock.wasm.SettingChange"
+    "dEvent\032\023.modlock.wasm.EmptyB4Z2github.co"
+    "m/paralin/modlock/proto/modlock/wasm;was"
+    "mb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto_deps[2] = {
@@ -5653,13 +5798,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fpro
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto = {
     false,
     false,
-    20444,
+    20969,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto,
     "github.com/paralin/modlock/proto/modlock/wasm.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto_deps,
     2,
-    129,
+    132,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto::offsets,
@@ -7591,6 +7736,9 @@ MovementSample::MovementSample(
   _impl_.wall_jump_normal_ = (CheckHasBit(cached_has_bits, 0x00000040U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_jump_normal_)
                 : nullptr;
+  _impl_.command_ = (CheckHasBit(cached_has_bits, 0x00000080U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.command_)
+                : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, player_),
            reinterpret_cast<const char*>(&from._impl_) +
@@ -7635,6 +7783,7 @@ inline void MovementSample::SharedDtor(MessageLite& self) {
   delete this_._impl_.wall_contact_;
   delete this_._impl_.wall_normal_;
   delete this_._impl_.wall_jump_normal_;
+  delete this_._impl_.command_;
   this_._impl_.~Impl_();
 }
 
@@ -7697,17 +7846,17 @@ MovementSample::GetClassData() const {
   return MovementSample_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<5, 20, 5, 0, 2>
+const ::_pbi::TcParseTable<5, 21, 6, 0, 2>
 MovementSample::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(MovementSample, _impl_._has_bits_),
     0, // no _extensions_
-    21, 248,  // max_field_number, fast_idx_mask
+    22, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4292870160,  // skipmap
+    4290773008,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    20,  // num_field_entries
-    5,  // num_aux_entries
+    21,  // num_field_entries
+    6,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     MovementSample_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -7718,12 +7867,12 @@ MovementSample::_table_ = {
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // int32 player = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.player_), 7>(),
-     {8, 7, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.player_), 8>(),
+     {8, 8, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.player_)}},
     // uint32 pawn = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.pawn_), 8>(),
-     {16, 8, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.pawn_), 9>(),
+     {16, 9, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.pawn_)}},
     // .modlock.Vec3 position = 3;
     {::_pbi::TcParser::FastMtS1,
@@ -7735,40 +7884,40 @@ MovementSample::_table_ = {
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.velocity_)}},
     {::_pbi::TcParser::MiniParse, {}},
     // bool grounded = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.grounded_), 9>(),
-     {48, 9, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.grounded_), 10>(),
+     {48, 10, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.grounded_)}},
     // bool sliding = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.sliding_), 10>(),
-     {56, 10, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.sliding_), 11>(),
+     {56, 11, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.sliding_)}},
     // bool mantling = 8;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.mantling_), 11>(),
-     {64, 11, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.mantling_), 12>(),
+     {64, 12, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantling_)}},
     // bool climbing = 9;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.climbing_), 12>(),
-     {72, 12, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.climbing_), 13>(),
+     {72, 13, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.climbing_)}},
     // bool dashing = 10;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.dashing_), 13>(),
-     {80, 13, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.dashing_), 14>(),
+     {80, 14, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.dashing_)}},
     // uint32 jump_ability = 11;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.jump_ability_), 14>(),
-     {88, 14, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.jump_ability_), 15>(),
+     {88, 15, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.jump_ability_)}},
     // int32 wall_jumps = 12;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.wall_jumps_), 15>(),
-     {96, 15, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.wall_jumps_), 16>(),
+     {96, 16, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jumps_)}},
     // uint32 mantle_ability = 13;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.mantle_ability_), 16>(),
-     {104, 16, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.mantle_ability_), 17>(),
+     {104, 17, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_ability_)}},
     // float mantle_start = 14;
     {::_pbi::TcParser::FastF32S1,
-     {117, 17, 0,
+     {117, 18, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_start_)}},
     // .modlock.Vec3 wall_contact = 15;
     {::_pbi::TcParser::FastMtS1,
@@ -7784,11 +7933,11 @@ MovementSample::_table_ = {
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_normal_)}},
     // uint32 wall_jump_facing = 18;
     {::_pbi::TcParser::FastV32S2,
-     {400, 18, 0,
+     {400, 19, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_facing_)}},
     // optional float zipline_time = 19;
     {::_pbi::TcParser::FastF32S2,
-     {413, 19, 0,
+     {413, 20, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_)}},
     // repeated .modlock.wasm.MovementAction actions = 20;
     {::_pbi::TcParser::FastV32P2,
@@ -7798,7 +7947,10 @@ MovementSample::_table_ = {
     {::_pbi::TcParser::FastV32P2,
      {426, 1, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.casts_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional .modlock.wasm.MovementCommand command = 22;
+    {::_pbi::TcParser::FastMtS2,
+     {434, 7, 5,
+      PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.command_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
@@ -7812,31 +7964,31 @@ MovementSample::_table_ = {
     65535, 65535
   }}, {{
     // int32 player = 1;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.player_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.player_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // uint32 pawn = 2;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.pawn_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.pawn_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // .modlock.Vec3 position = 3;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.position_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.Vec3 velocity = 4;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.velocity_), _Internal::kHasBitsOffset + 3, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // bool grounded = 6;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.grounded_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.grounded_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool sliding = 7;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.sliding_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.sliding_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool mantling = 8;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantling_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantling_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool climbing = 9;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.climbing_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.climbing_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool dashing = 10;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.dashing_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.dashing_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // uint32 jump_ability = 11;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.jump_ability_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.jump_ability_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // int32 wall_jumps = 12;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jumps_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jumps_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // uint32 mantle_ability = 13;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_ability_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_ability_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // float mantle_start = 14;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_start_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_start_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // .modlock.Vec3 wall_contact = 15;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_contact_), _Internal::kHasBitsOffset + 4, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.Vec3 wall_normal = 16;
@@ -7844,13 +7996,15 @@ MovementSample::_table_ = {
     // .modlock.Vec3 wall_jump_normal = 17;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_normal_), _Internal::kHasBitsOffset + 6, 4, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // uint32 wall_jump_facing = 18;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_facing_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_facing_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // optional float zipline_time = 19;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_), _Internal::kHasBitsOffset + 20, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // repeated .modlock.wasm.MovementAction actions = 20;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.actions_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
     // repeated uint32 casts = 21;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.casts_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedUInt32)},
+    // optional .modlock.wasm.MovementCommand command = 22;
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.command_), _Internal::kHasBitsOffset + 7, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
@@ -7858,6 +8012,7 @@ MovementSample::_table_ = {
       {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
       {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
       {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
+      {::_pbi::TcParser::GetTable<::modlock::wasm::MovementCommand>()},
   }},
   {{
   }},
@@ -7870,7 +8025,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _impl_.actions_.Clear();
     }
@@ -7897,17 +8052,20 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
       ABSL_DCHECK(_impl_.wall_jump_normal_ != nullptr);
       _impl_.wall_jump_normal_->Clear();
     }
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      ABSL_DCHECK(_impl_.command_ != nullptr);
+      _impl_.command_->Clear();
+    }
   }
-  _impl_.player_ = 0;
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
-    ::memset(&_impl_.pawn_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.wall_jumps_) -
-        reinterpret_cast<char*>(&_impl_.pawn_)) + sizeof(_impl_.wall_jumps_));
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.jump_ability_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.jump_ability_));
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x000f0000U)) {
-    ::memset(&_impl_.mantle_ability_, 0, static_cast<::size_t>(
+  if (BatchCheckHasBit(cached_has_bits, 0x001f0000U)) {
+    ::memset(&_impl_.wall_jumps_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.zipline_time_) -
-        reinterpret_cast<char*>(&_impl_.mantle_ability_)) + sizeof(_impl_.zipline_time_));
+        reinterpret_cast<char*>(&_impl_.wall_jumps_)) + sizeof(_impl_.zipline_time_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -7933,7 +8091,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 player = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     if (this_._internal_player() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -7942,7 +8100,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 pawn = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     if (this_._internal_pawn() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -7965,7 +8123,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool grounded = 6;
-  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
     if (this_._internal_grounded() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -7974,7 +8132,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool sliding = 7;
-  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
     if (this_._internal_sliding() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -7983,7 +8141,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool mantling = 8;
-  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
     if (this_._internal_mantling() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -7992,7 +8150,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool climbing = 9;
-  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
     if (this_._internal_climbing() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -8001,7 +8159,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool dashing = 10;
-  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
     if (this_._internal_dashing() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -8010,7 +8168,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 jump_ability = 11;
-  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
     if (this_._internal_jump_ability() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -8019,7 +8177,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // int32 wall_jumps = 12;
-  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
     if (this_._internal_wall_jumps() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<12>(
@@ -8028,7 +8186,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 mantle_ability = 13;
-  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
     if (this_._internal_mantle_ability() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -8037,7 +8195,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // float mantle_start = 14;
-  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00040000U)) {
     if (::absl::bit_cast<::uint32_t>(this_._internal_mantle_start()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteFloatToArray(
@@ -8067,7 +8225,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 wall_jump_facing = 18;
-  if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00080000U)) {
     if (this_._internal_wall_jump_facing() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -8076,7 +8234,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // optional float zipline_time = 19;
-  if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00100000U)) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteFloatToArray(
         19, this_._internal_zipline_time(), target);
@@ -8104,6 +8262,13 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
     }
   }
 
+  // optional .modlock.wasm.MovementCommand command = 22;
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        22, *this_._impl_.command_, this_._impl_.command_->GetCachedSize(), target,
+        stream);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -8129,7 +8294,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  total_size += static_cast<bool>(0x00080000U & cached_has_bits) * 6;
+  total_size += static_cast<bool>(0x00100000U & cached_has_bits) * 6;
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     // repeated .modlock.wasm.MovementAction actions = 20;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
@@ -8168,83 +8333,88 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.wall_jump_normal_);
     }
-    // int32 player = 1;
+    // optional .modlock.wasm.MovementCommand command = 22;
     if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      total_size += 2 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.command_);
+    }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (this_._internal_player() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_player());
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     // uint32 pawn = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (this_._internal_pawn() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_pawn());
       }
     }
     // bool grounded = 6;
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (this_._internal_grounded() != 0) {
         total_size += 2;
       }
     }
     // bool sliding = 7;
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (this_._internal_sliding() != 0) {
         total_size += 2;
       }
     }
     // bool mantling = 8;
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (this_._internal_mantling() != 0) {
         total_size += 2;
       }
     }
     // bool climbing = 9;
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (this_._internal_climbing() != 0) {
         total_size += 2;
       }
     }
     // bool dashing = 10;
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (this_._internal_dashing() != 0) {
         total_size += 2;
       }
     }
     // uint32 jump_ability = 11;
-    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       if (this_._internal_jump_ability() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_jump_ability());
       }
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x000f0000U)) {
     // int32 wall_jumps = 12;
-    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
       if (this_._internal_wall_jumps() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_wall_jumps());
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00070000U)) {
     // uint32 mantle_ability = 13;
-    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
       if (this_._internal_mantle_ability() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_mantle_ability());
       }
     }
     // float mantle_start = 14;
-    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
       if (::absl::bit_cast<::uint32_t>(this_._internal_mantle_start()) != 0) {
         total_size += 5;
       }
     }
     // uint32 wall_jump_facing = 18;
-    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
       if (this_._internal_wall_jump_facing() != 0) {
         total_size += 2 + ::_pbi::WireFormatLite::UInt32Size(
                                         this_._internal_wall_jump_facing());
@@ -8318,70 +8488,78 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000080U)) {
-      if (from._internal_player() != 0) {
-        _this->_impl_.player_ = from._impl_.player_;
+      ABSL_DCHECK(from._impl_.command_ != nullptr);
+      if (_this->_impl_.command_ == nullptr) {
+        _this->_impl_.command_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.command_);
+      } else {
+        _this->_impl_.command_->MergeFrom(*from._impl_.command_);
       }
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (from._internal_pawn() != 0) {
         _this->_impl_.pawn_ = from._impl_.pawn_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (from._internal_grounded() != 0) {
         _this->_impl_.grounded_ = from._impl_.grounded_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (from._internal_sliding() != 0) {
         _this->_impl_.sliding_ = from._impl_.sliding_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (from._internal_mantling() != 0) {
         _this->_impl_.mantling_ = from._impl_.mantling_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (from._internal_climbing() != 0) {
         _this->_impl_.climbing_ = from._impl_.climbing_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (from._internal_dashing() != 0) {
         _this->_impl_.dashing_ = from._impl_.dashing_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       if (from._internal_jump_ability() != 0) {
         _this->_impl_.jump_ability_ = from._impl_.jump_ability_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x001f0000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
       if (from._internal_wall_jumps() != 0) {
         _this->_impl_.wall_jumps_ = from._impl_.wall_jumps_;
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x000f0000U)) {
-    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
       if (from._internal_mantle_ability() != 0) {
         _this->_impl_.mantle_ability_ = from._impl_.mantle_ability_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
       if (::absl::bit_cast<::uint32_t>(from._internal_mantle_start()) != 0) {
         _this->_impl_.mantle_start_ = from._impl_.mantle_start_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
       if (from._internal_wall_jump_facing() != 0) {
         _this->_impl_.wall_jump_facing_ = from._impl_.wall_jump_facing_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
       _this->_impl_.zipline_time_ = from._impl_.zipline_time_;
     }
   }
@@ -8413,6 +8591,431 @@ void MovementSample::InternalSwap(MovementSample* PROTOBUF_RESTRICT PROTOBUF_NON
 }
 
 ::google::protobuf::Metadata MovementSample::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class MovementCommand::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<MovementCommand>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_._has_bits_);
+};
+
+MovementCommand::MovementCommand(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, MovementCommand_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.MovementCommand)
+}
+MovementCommand::MovementCommand(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const MovementCommand& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, MovementCommand_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE MovementCommand::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void MovementCommand::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, held_),
+           0,
+           offsetof(Impl_, grounded_) -
+               offsetof(Impl_, held_) +
+               sizeof(Impl_::grounded_));
+}
+MovementCommand::~MovementCommand() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.MovementCommand)
+  SharedDtor(*this);
+}
+inline void MovementCommand::SharedDtor(MessageLite& self) {
+  MovementCommand& this_ = static_cast<MovementCommand&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL MovementCommand::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) MovementCommand(arena);
+}
+constexpr auto MovementCommand::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(MovementCommand),
+                                            alignof(MovementCommand));
+}
+constexpr auto MovementCommand::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_MovementCommand_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &MovementCommand::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<MovementCommand>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &MovementCommand::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<MovementCommand>(), &MovementCommand::ByteSizeLong,
+              &MovementCommand::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_._cached_size_),
+          false,
+      },
+      &MovementCommand::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull MovementCommand_class_data_ =
+        MovementCommand::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+MovementCommand::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&MovementCommand_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(MovementCommand_class_data_.tc_table);
+  return MovementCommand_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 7, 0, 0, 2>
+MovementCommand::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_._has_bits_),
+    0, // no _extensions_
+    7, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967168,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    7,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    MovementCommand_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::MovementCommand>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint64 held = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(MovementCommand, _impl_.held_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.held_)}},
+    // uint64 changed = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(MovementCommand, _impl_.changed_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.changed_)}},
+    // uint64 scroll = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(MovementCommand, _impl_.scroll_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.scroll_)}},
+    // float forward = 4;
+    {::_pbi::TcParser::FastF32S1,
+     {37, 3, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.forward_)}},
+    // float left = 5;
+    {::_pbi::TcParser::FastF32S1,
+     {45, 4, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.left_)}},
+    // float up = 6;
+    {::_pbi::TcParser::FastF32S1,
+     {53, 5, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.up_)}},
+    // bool grounded = 7;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementCommand, _impl_.grounded_), 6>(),
+     {56, 6, 0,
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.grounded_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint64 held = 1;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.held_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // uint64 changed = 2;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.changed_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // uint64 scroll = 3;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.scroll_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // float forward = 4;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.forward_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // float left = 5;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.left_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // float up = 6;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.up_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // bool grounded = 7;
+    {PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.grounded_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void MovementCommand::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.MovementCommand)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    ::memset(&_impl_.held_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.grounded_) -
+        reinterpret_cast<char*>(&_impl_.held_)) + sizeof(_impl_.grounded_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL MovementCommand::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const MovementCommand& this_ = static_cast<const MovementCommand&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL MovementCommand::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const MovementCommand& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.MovementCommand)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint64 held = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_held() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          1, this_._internal_held(), target);
+    }
+  }
+
+  // uint64 changed = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_changed() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          2, this_._internal_changed(), target);
+    }
+  }
+
+  // uint64 scroll = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_scroll() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          3, this_._internal_scroll(), target);
+    }
+  }
+
+  // float forward = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (::absl::bit_cast<::uint32_t>(this_._internal_forward()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteFloatToArray(
+          4, this_._internal_forward(), target);
+    }
+  }
+
+  // float left = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (::absl::bit_cast<::uint32_t>(this_._internal_left()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteFloatToArray(
+          5, this_._internal_left(), target);
+    }
+  }
+
+  // float up = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (::absl::bit_cast<::uint32_t>(this_._internal_up()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteFloatToArray(
+          6, this_._internal_up(), target);
+    }
+  }
+
+  // bool grounded = 7;
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (this_._internal_grounded() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          7, this_._internal_grounded(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.MovementCommand)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t MovementCommand::ByteSizeLong(const MessageLite& base) {
+  const MovementCommand& this_ = static_cast<const MovementCommand&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t MovementCommand::ByteSizeLong() const {
+  const MovementCommand& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.MovementCommand)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    // uint64 held = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_held() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_held());
+      }
+    }
+    // uint64 changed = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_changed() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_changed());
+      }
+    }
+    // uint64 scroll = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_scroll() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_scroll());
+      }
+    }
+    // float forward = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_forward()) != 0) {
+        total_size += 5;
+      }
+    }
+    // float left = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_left()) != 0) {
+        total_size += 5;
+      }
+    }
+    // float up = 6;
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (::absl::bit_cast<::uint32_t>(this_._internal_up()) != 0) {
+        total_size += 5;
+      }
+    }
+    // bool grounded = 7;
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+      if (this_._internal_grounded() != 0) {
+        total_size += 2;
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void MovementCommand::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<MovementCommand*>(&to_msg);
+  auto& from = static_cast<const MovementCommand&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.MovementCommand)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_held() != 0) {
+        _this->_impl_.held_ = from._impl_.held_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_changed() != 0) {
+        _this->_impl_.changed_ = from._impl_.changed_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_scroll() != 0) {
+        _this->_impl_.scroll_ = from._impl_.scroll_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (::absl::bit_cast<::uint32_t>(from._internal_forward()) != 0) {
+        _this->_impl_.forward_ = from._impl_.forward_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (::absl::bit_cast<::uint32_t>(from._internal_left()) != 0) {
+        _this->_impl_.left_ = from._impl_.left_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      if (::absl::bit_cast<::uint32_t>(from._internal_up()) != 0) {
+        _this->_impl_.up_ = from._impl_.up_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+      if (from._internal_grounded() != 0) {
+        _this->_impl_.grounded_ = from._impl_.grounded_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void MovementCommand::CopyFrom(const MovementCommand& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.MovementCommand)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void MovementCommand::InternalSwap(MovementCommand* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.grounded_)
+      + sizeof(MovementCommand::_impl_.grounded_)
+      - PROTOBUF_FIELD_OFFSET(MovementCommand, _impl_.held_)>(
+          reinterpret_cast<char*>(&_impl_.held_),
+          reinterpret_cast<char*>(&other->_impl_.held_));
+}
+
+::google::protobuf::Metadata MovementCommand::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
@@ -23653,6 +24256,759 @@ void MovePlayerRequest::InternalSwap(MovePlayerRequest* PROTOBUF_RESTRICT PROTOB
 }
 
 ::google::protobuf::Metadata MovePlayerRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class SteerRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<SteerRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_._has_bits_);
+};
+
+SteerRequest::SteerRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SteerRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.SteerRequest)
+}
+PROTOBUF_NDEBUG_INLINE SteerRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::SteerRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+SteerRequest::SteerRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const SteerRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, SteerRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SteerRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.steering_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.steering_)
+                : nullptr;
+  _impl_.player_ = from._impl_.player_;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.SteerRequest)
+}
+PROTOBUF_NDEBUG_INLINE SteerRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void SteerRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, steering_),
+           0,
+           offsetof(Impl_, player_) -
+               offsetof(Impl_, steering_) +
+               sizeof(Impl_::player_));
+}
+SteerRequest::~SteerRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.SteerRequest)
+  SharedDtor(*this);
+}
+inline void SteerRequest::SharedDtor(MessageLite& self) {
+  SteerRequest& this_ = static_cast<SteerRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.steering_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL SteerRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) SteerRequest(arena);
+}
+constexpr auto SteerRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(SteerRequest),
+                                            alignof(SteerRequest));
+}
+constexpr auto SteerRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_SteerRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &SteerRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<SteerRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &SteerRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<SteerRequest>(), &SteerRequest::ByteSizeLong,
+              &SteerRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_._cached_size_),
+          false,
+      },
+      &SteerRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull SteerRequest_class_data_ =
+        SteerRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+SteerRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&SteerRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(SteerRequest_class_data_.tc_table);
+  return SteerRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 1, 0, 2>
+SteerRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    SteerRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::SteerRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // optional .modlock.wasm.Steering steering = 2;
+    {::_pbi::TcParser::FastMtS1,
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_.steering_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SteerRequest, _impl_.player_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_.player_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // optional .modlock.wasm.Steering steering = 2;
+    {PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_.steering_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::Steering>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void SteerRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.SteerRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    ABSL_DCHECK(_impl_.steering_ != nullptr);
+    _impl_.steering_->Clear();
+  }
+  _impl_.player_ = 0;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL SteerRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const SteerRequest& this_ = static_cast<const SteerRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL SteerRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const SteerRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.SteerRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // optional .modlock.wasm.Steering steering = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        2, *this_._impl_.steering_, this_._impl_.steering_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.SteerRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t SteerRequest::ByteSizeLong(const MessageLite& base) {
+  const SteerRequest& this_ = static_cast<const SteerRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t SteerRequest::ByteSizeLong() const {
+  const SteerRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.SteerRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // optional .modlock.wasm.Steering steering = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.steering_);
+    }
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void SteerRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<SteerRequest*>(&to_msg);
+  auto& from = static_cast<const SteerRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.SteerRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      ABSL_DCHECK(from._impl_.steering_ != nullptr);
+      if (_this->_impl_.steering_ == nullptr) {
+        _this->_impl_.steering_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.steering_);
+      } else {
+        _this->_impl_.steering_->MergeFrom(*from._impl_.steering_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void SteerRequest::CopyFrom(const SteerRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.SteerRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void SteerRequest::InternalSwap(SteerRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_.player_)
+      + sizeof(SteerRequest::_impl_.player_)
+      - PROTOBUF_FIELD_OFFSET(SteerRequest, _impl_.steering_)>(
+          reinterpret_cast<char*>(&_impl_.steering_),
+          reinterpret_cast<char*>(&other->_impl_.steering_));
+}
+
+::google::protobuf::Metadata SteerRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class Steering::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<Steering>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(Steering, _impl_._has_bits_);
+};
+
+void Steering::clear_position() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.position_ != nullptr) _impl_.position_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+void Steering::clear_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.velocity_ != nullptr) _impl_.velocity_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+void Steering::clear_facing() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.facing_ != nullptr) _impl_.facing_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+Steering::Steering(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Steering_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.Steering)
+}
+PROTOBUF_NDEBUG_INLINE Steering::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::Steering& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+Steering::Steering(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const Steering& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Steering_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  Steering* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.command_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.command_)
+                : nullptr;
+  _impl_.position_ = (CheckHasBit(cached_has_bits, 0x00000002U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_)
+                : nullptr;
+  _impl_.velocity_ = (CheckHasBit(cached_has_bits, 0x00000004U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.velocity_)
+                : nullptr;
+  _impl_.facing_ = (CheckHasBit(cached_has_bits, 0x00000008U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.facing_)
+                : nullptr;
+  _impl_.grounded_ = from._impl_.grounded_;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.Steering)
+}
+PROTOBUF_NDEBUG_INLINE Steering::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void Steering::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, command_),
+           0,
+           offsetof(Impl_, grounded_) -
+               offsetof(Impl_, command_) +
+               sizeof(Impl_::grounded_));
+}
+Steering::~Steering() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.Steering)
+  SharedDtor(*this);
+}
+inline void Steering::SharedDtor(MessageLite& self) {
+  Steering& this_ = static_cast<Steering&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.command_;
+  delete this_._impl_.position_;
+  delete this_._impl_.velocity_;
+  delete this_._impl_.facing_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL Steering::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) Steering(arena);
+}
+constexpr auto Steering::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(Steering),
+                                            alignof(Steering));
+}
+constexpr auto Steering::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_Steering_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &Steering::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Steering>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &Steering::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<Steering>(), &Steering::ByteSizeLong,
+              &Steering::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(Steering, _impl_._cached_size_),
+          false,
+      },
+      &Steering::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fproto_2fmodlock_2fwasm_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull Steering_class_data_ =
+        Steering::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+Steering::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Steering_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Steering_class_data_.tc_table);
+  return Steering_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 5, 4, 0, 2>
+Steering::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Steering, _impl_._has_bits_),
+    0, // no _extensions_
+    5, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967264,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    5,  // num_field_entries
+    4,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    Steering_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::Steering>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // .modlock.wasm.MovementCommand command = 1;
+    {::_pbi::TcParser::FastMtS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Steering, _impl_.command_)}},
+    // .modlock.Vec3 position = 2;
+    {::_pbi::TcParser::FastMtS1,
+     {18, 1, 1,
+      PROTOBUF_FIELD_OFFSET(Steering, _impl_.position_)}},
+    // .modlock.Vec3 velocity = 3;
+    {::_pbi::TcParser::FastMtS1,
+     {26, 2, 2,
+      PROTOBUF_FIELD_OFFSET(Steering, _impl_.velocity_)}},
+    // bool grounded = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Steering, _impl_.grounded_), 4>(),
+     {32, 4, 0,
+      PROTOBUF_FIELD_OFFSET(Steering, _impl_.grounded_)}},
+    // .modlock.EulerAngles facing = 5;
+    {::_pbi::TcParser::FastMtS1,
+     {42, 3, 3,
+      PROTOBUF_FIELD_OFFSET(Steering, _impl_.facing_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .modlock.wasm.MovementCommand command = 1;
+    {PROTOBUF_FIELD_OFFSET(Steering, _impl_.command_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .modlock.Vec3 position = 2;
+    {PROTOBUF_FIELD_OFFSET(Steering, _impl_.position_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .modlock.Vec3 velocity = 3;
+    {PROTOBUF_FIELD_OFFSET(Steering, _impl_.velocity_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // bool grounded = 4;
+    {PROTOBUF_FIELD_OFFSET(Steering, _impl_.grounded_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // .modlock.EulerAngles facing = 5;
+    {PROTOBUF_FIELD_OFFSET(Steering, _impl_.facing_), _Internal::kHasBitsOffset + 3, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::MovementCommand>()},
+      {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
+      {::_pbi::TcParser::GetTable<::modlock::Vec3>()},
+      {::_pbi::TcParser::GetTable<::modlock::EulerAngles>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void Steering::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.Steering)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      ABSL_DCHECK(_impl_.command_ != nullptr);
+      _impl_.command_->Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(_impl_.position_ != nullptr);
+      _impl_.position_->Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      ABSL_DCHECK(_impl_.velocity_ != nullptr);
+      _impl_.velocity_->Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      ABSL_DCHECK(_impl_.facing_ != nullptr);
+      _impl_.facing_->Clear();
+    }
+  }
+  _impl_.grounded_ = false;
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL Steering::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const Steering& this_ = static_cast<const Steering&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL Steering::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const Steering& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.Steering)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .modlock.wasm.MovementCommand command = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        1, *this_._impl_.command_, this_._impl_.command_->GetCachedSize(), target,
+        stream);
+  }
+
+  // .modlock.Vec3 position = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        2, *this_._impl_.position_, this_._impl_.position_->GetCachedSize(), target,
+        stream);
+  }
+
+  // .modlock.Vec3 velocity = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        3, *this_._impl_.velocity_, this_._impl_.velocity_->GetCachedSize(), target,
+        stream);
+  }
+
+  // bool grounded = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_grounded() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          4, this_._internal_grounded(), target);
+    }
+  }
+
+  // .modlock.EulerAngles facing = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        5, *this_._impl_.facing_, this_._impl_.facing_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.Steering)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t Steering::ByteSizeLong(const MessageLite& base) {
+  const Steering& this_ = static_cast<const Steering&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t Steering::ByteSizeLong() const {
+  const Steering& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.Steering)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    // .modlock.wasm.MovementCommand command = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.command_);
+    }
+    // .modlock.Vec3 position = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.position_);
+    }
+    // .modlock.Vec3 velocity = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.velocity_);
+    }
+    // .modlock.EulerAngles facing = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.facing_);
+    }
+    // bool grounded = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_grounded() != 0) {
+        total_size += 2;
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void Steering::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<Steering*>(&to_msg);
+  auto& from = static_cast<const Steering&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.Steering)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      ABSL_DCHECK(from._impl_.command_ != nullptr);
+      if (_this->_impl_.command_ == nullptr) {
+        _this->_impl_.command_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.command_);
+      } else {
+        _this->_impl_.command_->MergeFrom(*from._impl_.command_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(from._impl_.position_ != nullptr);
+      if (_this->_impl_.position_ == nullptr) {
+        _this->_impl_.position_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_);
+      } else {
+        _this->_impl_.position_->MergeFrom(*from._impl_.position_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      ABSL_DCHECK(from._impl_.velocity_ != nullptr);
+      if (_this->_impl_.velocity_ == nullptr) {
+        _this->_impl_.velocity_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.velocity_);
+      } else {
+        _this->_impl_.velocity_->MergeFrom(*from._impl_.velocity_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      ABSL_DCHECK(from._impl_.facing_ != nullptr);
+      if (_this->_impl_.facing_ == nullptr) {
+        _this->_impl_.facing_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.facing_);
+      } else {
+        _this->_impl_.facing_->MergeFrom(*from._impl_.facing_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_grounded() != 0) {
+        _this->_impl_.grounded_ = from._impl_.grounded_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void Steering::CopyFrom(const Steering& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.Steering)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void Steering::InternalSwap(Steering* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Steering, _impl_.grounded_)
+      + sizeof(Steering::_impl_.grounded_)
+      - PROTOBUF_FIELD_OFFSET(Steering, _impl_.command_)>(
+          reinterpret_cast<char*>(&_impl_.command_),
+          reinterpret_cast<char*>(&other->_impl_.command_));
+}
+
+::google::protobuf::Metadata Steering::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

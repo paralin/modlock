@@ -707,6 +707,9 @@ type MovementSample struct {
 	// MOVEMENT_ACTION_ABILITY_EXECUTED, by entity handle as Ability.entity
 	// reports it; Abilities names each one's slot.
 	Casts []uint32 `protobuf:"varint,21,rep,packed,name=casts,proto3" json:"casts,omitempty"`
+	// Command is the movement the hero's player commanded since the last
+	// sample, absent before the game ran any of it.
+	Command *MovementCommand `protobuf:"bytes,22,opt,name=command,proto3,oneof" json:"command,omitempty"`
 }
 
 func (x *MovementSample) Reset() {
@@ -853,6 +856,88 @@ func (x *MovementSample) GetCasts() []uint32 {
 		return x.Casts
 	}
 	return nil
+}
+
+func (x *MovementSample) GetCommand() *MovementCommand {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
+// MovementCommand is the movement a player commanded over one tick. The
+// server runs a player's commands as they arrive, so a tick may run several
+// or none: every press among them is kept once, and a tick that ran none
+// holds the last buttons without pressing them again.
+type MovementCommand struct {
+	unknownFields []byte
+	// Held, Changed and Scroll are the game's InButtonState masks as Buttons
+	// bits: the buttons down, the buttons that went down or up, and the
+	// presses of scroll-wheel buttons.
+	Held    uint64 `protobuf:"varint,1,opt,name=held,proto3" json:"held,omitempty"`
+	Changed uint64 `protobuf:"varint,2,opt,name=changed,proto3" json:"changed,omitempty"`
+	Scroll  uint64 `protobuf:"varint,3,opt,name=scroll,proto3" json:"scroll,omitempty"`
+	// Forward, Left and Up are the movement axes, from -1 to 1.
+	Forward float32 `protobuf:"fixed32,4,opt,name=forward,proto3" json:"forward,omitempty"`
+	Left    float32 `protobuf:"fixed32,5,opt,name=left,proto3" json:"left,omitempty"`
+	Up      float32 `protobuf:"fixed32,6,opt,name=up,proto3" json:"up,omitempty"`
+	// Grounded is true when the hero stood on something as the tick began.
+	Grounded bool `protobuf:"varint,7,opt,name=grounded,proto3" json:"grounded,omitempty"`
+}
+
+func (x *MovementCommand) Reset() {
+	*x = MovementCommand{}
+}
+
+func (*MovementCommand) ProtoMessage() {}
+
+func (x *MovementCommand) GetHeld() uint64 {
+	if x != nil {
+		return x.Held
+	}
+	return 0
+}
+
+func (x *MovementCommand) GetChanged() uint64 {
+	if x != nil {
+		return x.Changed
+	}
+	return 0
+}
+
+func (x *MovementCommand) GetScroll() uint64 {
+	if x != nil {
+		return x.Scroll
+	}
+	return 0
+}
+
+func (x *MovementCommand) GetForward() float32 {
+	if x != nil {
+		return x.Forward
+	}
+	return 0
+}
+
+func (x *MovementCommand) GetLeft() float32 {
+	if x != nil {
+		return x.Left
+	}
+	return 0
+}
+
+func (x *MovementCommand) GetUp() float32 {
+	if x != nil {
+		return x.Up
+	}
+	return 0
+}
+
+func (x *MovementCommand) GetGrounded() bool {
+	if x != nil {
+		return x.Grounded
+	}
+	return false
 }
 
 // CommandEvent carries one command line from a player: a chat line that
@@ -2628,6 +2713,87 @@ func (x *MovePlayerRequest) GetFacing() *modlock.EulerAngles {
 func (x *MovePlayerRequest) GetVelocity() *modlock.Vec3 {
 	if x != nil {
 		return x.Velocity
+	}
+	return nil
+}
+
+// SteerRequest replays one movement command on a player's hero, or releases
+// the hero without one.
+type SteerRequest struct {
+	unknownFields []byte
+	Player        int32     `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	Steering      *Steering `protobuf:"bytes,2,opt,name=steering,proto3,oneof" json:"steering,omitempty"`
+}
+
+func (x *SteerRequest) Reset() {
+	*x = SteerRequest{}
+}
+
+func (*SteerRequest) ProtoMessage() {}
+
+func (x *SteerRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SteerRequest) GetSteering() *Steering {
+	if x != nil {
+		return x.Steering
+	}
+	return nil
+}
+
+// Steering is one recorded movement command and the pose its step ends on.
+type Steering struct {
+	unknownFields []byte
+	Command       *MovementCommand `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
+	// Position, Velocity and Grounded are the pose the step ends on.
+	Position *modlock.Vec3 `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	Velocity *modlock.Vec3 `protobuf:"bytes,3,opt,name=velocity,proto3" json:"velocity,omitempty"`
+	Grounded bool          `protobuf:"varint,4,opt,name=grounded,proto3" json:"grounded,omitempty"`
+	// Facing is where the command looks, which aims the hero and its animation.
+	Facing *modlock.EulerAngles `protobuf:"bytes,5,opt,name=facing,proto3" json:"facing,omitempty"`
+}
+
+func (x *Steering) Reset() {
+	*x = Steering{}
+}
+
+func (*Steering) ProtoMessage() {}
+
+func (x *Steering) GetCommand() *MovementCommand {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
+func (x *Steering) GetPosition() *modlock.Vec3 {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *Steering) GetVelocity() *modlock.Vec3 {
+	if x != nil {
+		return x.Velocity
+	}
+	return nil
+}
+
+func (x *Steering) GetGrounded() bool {
+	if x != nil {
+		return x.Grounded
+	}
+	return false
+}
+
+func (x *Steering) GetFacing() *modlock.EulerAngles {
+	if x != nil {
+		return x.Facing
 	}
 	return nil
 }
@@ -5814,6 +5980,7 @@ func (m *MovementSample) CloneVT() *MovementSample {
 	r.ZiplineTime = protobuf_go_lite.ClonePtr(m.ZiplineTime)
 	r.Actions = protobuf_go_lite.CloneSlice(m.Actions)
 	r.Casts = protobuf_go_lite.CloneSlice(m.Casts)
+	r.Command = protobuf_go_lite.CloneVTValue(m.Command)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -5821,6 +5988,28 @@ func (m *MovementSample) CloneVT() *MovementSample {
 }
 
 func (m *MovementSample) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *MovementCommand) CloneVT() *MovementCommand {
+	if m == nil {
+		return (*MovementCommand)(nil)
+	}
+	r := new(MovementCommand)
+	r.Held = m.Held
+	r.Changed = m.Changed
+	r.Scroll = m.Scroll
+	r.Forward = m.Forward
+	r.Left = m.Left
+	r.Up = m.Up
+	r.Grounded = m.Grounded
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *MovementCommand) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -6650,6 +6839,43 @@ func (m *MovePlayerRequest) CloneVT() *MovePlayerRequest {
 }
 
 func (m *MovePlayerRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SteerRequest) CloneVT() *SteerRequest {
+	if m == nil {
+		return (*SteerRequest)(nil)
+	}
+	r := new(SteerRequest)
+	r.Player = m.Player
+	r.Steering = protobuf_go_lite.CloneVTValue(m.Steering)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SteerRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Steering) CloneVT() *Steering {
+	if m == nil {
+		return (*Steering)(nil)
+	}
+	r := new(Steering)
+	r.Grounded = m.Grounded
+	r.Command = protobuf_go_lite.CloneVTValue(m.Command)
+	r.Position = protobuf_go_lite.CloneVTValue(m.Position)
+	r.Velocity = protobuf_go_lite.CloneVTValue(m.Velocity)
+	r.Facing = protobuf_go_lite.CloneVTValue(m.Facing)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Steering) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -8301,11 +8527,51 @@ func (this *MovementSample) EqualVT(that *MovementSample) bool {
 	if !protobuf_go_lite.EqualSlice(this.Casts, that.Casts) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Command, that.Command) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *MovementSample) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*MovementSample)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *MovementCommand) EqualVT(that *MovementCommand) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Held != that.Held {
+		return false
+	}
+	if this.Changed != that.Changed {
+		return false
+	}
+	if this.Scroll != that.Scroll {
+		return false
+	}
+	if this.Forward != that.Forward {
+		return false
+	}
+	if this.Left != that.Left {
+		return false
+	}
+	if this.Up != that.Up {
+		return false
+	}
+	if this.Grounded != that.Grounded {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *MovementCommand) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*MovementCommand)
 	if !ok {
 		return false
 	}
@@ -9470,6 +9736,59 @@ func (this *MovePlayerRequest) EqualVT(that *MovePlayerRequest) bool {
 
 func (this *MovePlayerRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*MovePlayerRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SteerRequest) EqualVT(that *SteerRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Steering, that.Steering) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SteerRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SteerRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Steering) EqualVT(that *Steering) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Command, that.Command) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Position, that.Position) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Velocity, that.Velocity) {
+		return false
+	}
+	if this.Grounded != that.Grounded {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Facing, that.Facing) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Steering) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Steering)
 	if !ok {
 		return false
 	}
@@ -12093,6 +12412,11 @@ func (x *MovementSample) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("casts")
 		s.WriteUint32Array(x.Casts)
 	}
+	if x.Command != nil || s.HasField("command") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("command")
+		x.Command.MarshalProtoJSON(s.WithField("command"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -12207,12 +12531,109 @@ func (x *MovementSample) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				return
 			}
 			x.Casts = s.ReadUint32Array()
+		case "command":
+			if s.ReadNil() {
+				x.Command = nil
+				return
+			}
+			x.Command = &MovementCommand{}
+			x.Command.UnmarshalProtoJSON(s.WithField("command", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the MovementSample from JSON.
 func (x *MovementSample) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the MovementCommand message to JSON.
+func (x *MovementCommand) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Held != 0 || s.HasField("held") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("held")
+		s.WriteUint64(x.Held)
+	}
+	if x.Changed != 0 || s.HasField("changed") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("changed")
+		s.WriteUint64(x.Changed)
+	}
+	if x.Scroll != 0 || s.HasField("scroll") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("scroll")
+		s.WriteUint64(x.Scroll)
+	}
+	if x.Forward != 0 || s.HasField("forward") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("forward")
+		s.WriteFloat32(x.Forward)
+	}
+	if x.Left != 0 || s.HasField("left") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("left")
+		s.WriteFloat32(x.Left)
+	}
+	if x.Up != 0 || s.HasField("up") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("up")
+		s.WriteFloat32(x.Up)
+	}
+	if x.Grounded || s.HasField("grounded") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("grounded")
+		s.WriteBool(x.Grounded)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the MovementCommand to JSON.
+func (x *MovementCommand) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MovementCommand message from JSON.
+func (x *MovementCommand) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "held":
+			s.AddField("held")
+			x.Held = s.ReadUint64()
+		case "changed":
+			s.AddField("changed")
+			x.Changed = s.ReadUint64()
+		case "scroll":
+			s.AddField("scroll")
+			x.Scroll = s.ReadUint64()
+		case "forward":
+			s.AddField("forward")
+			x.Forward = s.ReadFloat32()
+		case "left":
+			s.AddField("left")
+			x.Left = s.ReadFloat32()
+		case "up":
+			s.AddField("up")
+			x.Up = s.ReadFloat32()
+		case "grounded":
+			s.AddField("grounded")
+			x.Grounded = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the MovementCommand from JSON.
+func (x *MovementCommand) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -15004,6 +15425,150 @@ func (x *MovePlayerRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the MovePlayerRequest from JSON.
 func (x *MovePlayerRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SteerRequest message to JSON.
+func (x *SteerRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Steering != nil || s.HasField("steering") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steering")
+		x.Steering.MarshalProtoJSON(s.WithField("steering"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SteerRequest to JSON.
+func (x *SteerRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SteerRequest message from JSON.
+func (x *SteerRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "steering":
+			if s.ReadNil() {
+				x.Steering = nil
+				return
+			}
+			x.Steering = &Steering{}
+			x.Steering.UnmarshalProtoJSON(s.WithField("steering", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SteerRequest from JSON.
+func (x *SteerRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Steering message to JSON.
+func (x *Steering) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Command != nil || s.HasField("command") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("command")
+		x.Command.MarshalProtoJSON(s.WithField("command"))
+	}
+	if x.Position != nil || s.HasField("position") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("position")
+		x.Position.MarshalProtoJSON(s.WithField("position"))
+	}
+	if x.Velocity != nil || s.HasField("velocity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("velocity")
+		x.Velocity.MarshalProtoJSON(s.WithField("velocity"))
+	}
+	if x.Grounded || s.HasField("grounded") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("grounded")
+		s.WriteBool(x.Grounded)
+	}
+	if x.Facing != nil || s.HasField("facing") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("facing")
+		x.Facing.MarshalProtoJSON(s.WithField("facing"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Steering to JSON.
+func (x *Steering) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Steering message from JSON.
+func (x *Steering) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "command":
+			if s.ReadNil() {
+				x.Command = nil
+				return
+			}
+			x.Command = &MovementCommand{}
+			x.Command.UnmarshalProtoJSON(s.WithField("command", true))
+		case "position":
+			if s.ReadNil() {
+				x.Position = nil
+				return
+			}
+			x.Position = &modlock.Vec3{}
+			x.Position.UnmarshalProtoJSON(s.WithField("position", true))
+		case "velocity":
+			if s.ReadNil() {
+				x.Velocity = nil
+				return
+			}
+			x.Velocity = &modlock.Vec3{}
+			x.Velocity.UnmarshalProtoJSON(s.WithField("velocity", true))
+		case "grounded":
+			s.AddField("grounded")
+			x.Grounded = s.ReadBool()
+		case "facing":
+			if s.ReadNil() {
+				x.Facing = nil
+				return
+			}
+			x.Facing = &modlock.EulerAngles{}
+			x.Facing.UnmarshalProtoJSON(s.WithField("facing", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Steering from JSON.
+func (x *Steering) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -20734,6 +21299,18 @@ func (m *MovementSample) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Command != nil {
+		size, err := m.Command.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb2
+	}
 	if len(m.Casts) > 0 {
 		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Casts)
 		i--
@@ -20868,6 +21445,73 @@ func (m *MovementSample) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Player != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MovementCommand) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MovementCommand) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *MovementCommand) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Grounded {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Grounded)
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.Up != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Up))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if m.Left != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Left))))
+		i--
+		dAtA[i] = 0x2d
+	}
+	if m.Forward != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Forward))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Scroll != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Scroll))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Changed != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Changed))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Held != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Held))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -23099,6 +23743,130 @@ func (m *MovePlayerRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SteerRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SteerRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SteerRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Steering != nil {
+		size, err := m.Steering.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Steering) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Steering) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Steering) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Facing != nil {
+		size, err := m.Facing.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.Grounded {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Grounded)
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Velocity != nil {
+		size, err := m.Velocity.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Position != nil {
+		size, err := m.Position.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Command != nil {
+		size, err := m.Command.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -27196,6 +27964,27 @@ func (m *MovementSample) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32Ptr(2, m.ZiplineTime)
 	n += protobuf_go_lite.SizeVarintPacked(2, m.Actions)
 	n += protobuf_go_lite.SizeVarintPacked(2, m.Casts)
+	if m.Command != nil {
+		l = m.Command.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *MovementCommand) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Held)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Changed)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Scroll)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Forward)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Left)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Up)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Grounded)
 	n += len(m.unknownFields)
 	return n
 }
@@ -27847,6 +28636,48 @@ func (m *MovePlayerRequest) SizeVT() (n int) {
 	}
 	if m.Velocity != nil {
 		l = m.Velocity.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *SteerRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	if m.Steering != nil {
+		l = m.Steering.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Steering) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Command != nil {
+		l = m.Command.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Position != nil {
+		l = m.Position.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Velocity != nil {
+		l = m.Velocity.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Grounded)
+	if m.Facing != nil {
+		l = m.Facing.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += len(m.unknownFields)
@@ -29306,10 +30137,51 @@ func (x *MovementSample) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if x.Command != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "command")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Command)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *MovementSample) String() string {
+	return x.MarshalProtoText()
+}
+func (x *MovementCommand) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MovementCommand")
+	if x.Held != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "held")
+		protobuf_go_lite.TextWriteUint(&sb, x.Held)
+	}
+	if x.Changed != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "changed")
+		protobuf_go_lite.TextWriteUint(&sb, x.Changed)
+	}
+	if x.Scroll != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "scroll")
+		protobuf_go_lite.TextWriteUint(&sb, x.Scroll)
+	}
+	if x.Forward != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "forward")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Forward)
+	}
+	if x.Left != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "left")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Left)
+	}
+	if x.Up != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "up")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Up)
+	}
+	if x.Grounded != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "grounded")
+		protobuf_go_lite.TextWriteBool(&sb, x.Grounded)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *MovementCommand) String() string {
 	return x.MarshalProtoText()
 }
 func (x *CommandEvent) MarshalProtoText() string {
@@ -30290,6 +31162,52 @@ func (x *MovePlayerRequest) MarshalProtoText() string {
 }
 
 func (x *MovePlayerRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *SteerRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SteerRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Steering != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steering")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Steering)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SteerRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *Steering) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Steering")
+	if x.Command != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "command")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Command)
+	}
+	if x.Position != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "position")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Position)
+	}
+	if x.Velocity != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "velocity")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Velocity)
+	}
+	if x.Grounded != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "grounded")
+		protobuf_go_lite.TextWriteBool(&sb, x.Grounded)
+	}
+	if x.Facing != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "facing")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Facing)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Steering) String() string {
 	return x.MarshalProtoText()
 }
 func (x *AdjustSoulsRequest) MarshalProtoText() string {
@@ -32747,6 +33665,136 @@ func (m *MovementSample) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field Casts", wireType)
 			}
+		case 22:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Command", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Command == nil {
+				m.Command = &MovementCommand{}
+			}
+			if err := m.Command.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MovementCommand) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MovementCommand: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MovementCommand: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Held", wireType)
+			}
+			m.Held = 0
+			m.Held, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Changed", wireType)
+			}
+			m.Changed = 0
+			m.Changed, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Scroll", wireType)
+			}
+			m.Scroll = 0
+			m.Scroll, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Forward", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Forward = float32(math.Float32frombits(v))
+		case 5:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Left", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Left = float32(math.Float32frombits(v))
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Up", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Up = float32(math.Float32frombits(v))
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Grounded", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Grounded = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -36044,6 +37092,184 @@ func (m *MovePlayerRequest) UnmarshalVT(dAtA []byte) error {
 				m.Velocity = &modlock.Vec3{}
 			}
 			if err := m.Velocity.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SteerRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SteerRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SteerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Steering", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Steering == nil {
+				m.Steering = &Steering{}
+			}
+			if err := m.Steering.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Steering) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Steering: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Steering: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Command", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Command == nil {
+				m.Command = &MovementCommand{}
+			}
+			if err := m.Command.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Position", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Position == nil {
+				m.Position = &modlock.Vec3{}
+			}
+			if err := m.Position.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Velocity", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Velocity == nil {
+				m.Velocity = &modlock.Vec3{}
+			}
+			if err := m.Velocity.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Grounded", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Grounded = bool(v)
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Facing", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Facing == nil {
+				m.Facing = &modlock.EulerAngles{}
+			}
+			if err := m.Facing.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

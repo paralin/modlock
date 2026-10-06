@@ -252,6 +252,31 @@ class MovementSample:
     # MOVEMENT_ACTION_ABILITY_EXECUTED, by entity handle as Ability.entity
     # reports it; Abilities names each one's slot.
     casts: list[int] = dataclasses.field(default_factory=lambda: list[int]())
+    # command is the movement the hero's player commanded since the last
+    # sample, absent before the game ran any of it.
+    command: MovementCommand | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class MovementCommand:
+    """MovementCommand is the movement a player commanded over one tick. The
+    server runs a player's commands as they arrive, so a tick may run several
+    or none: every press among them is kept once, and a tick that ran none
+    holds the last buttons without pressing them again.
+    """
+
+    # held, changed and scroll are the game's InButtonState masks as Buttons
+    # bits: the buttons down, the buttons that went down or up, and the
+    # presses of scroll-wheel buttons.
+    held: int = 0
+    changed: int = 0
+    scroll: int = 0
+    # forward, left and up are the movement axes, from -1 to 1.
+    forward: float = 0.0
+    left: float = 0.0
+    up: float = 0.0
+    # grounded is true when the hero stood on something as the tick began.
+    grounded: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -574,6 +599,19 @@ class AbilityOptions:
     cooldown_end: float | None = None
     # recharge_end replaces the game time its next charge returns.
     recharge_end: float | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Steering:
+    """Steering is one recorded movement command and the pose its step ends on."""
+
+    command: MovementCommand
+    # position, velocity and grounded are the pose the step ends on.
+    position: Vector
+    velocity: Vector
+    grounded: bool = False
+    # facing is where the command looks, which aims the hero and its animation.
+    facing: Angles
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1069,6 +1107,15 @@ class Player:
         """
         return _call("MovePlayer", "MovePlayerRequest", {"player": self, "position": position, "facing": facing, "velocity": velocity}) is not None
 
+    def steer(self, steering: Steering | None = None) -> bool:
+        """steer replays a recorded movement command on the player's hero, usually a
+        bot: the game runs the command's buttons and axes, so the hero crouches,
+        slides, jumps and mantles with its own animation, and the step then ends
+        on the recorded pose. The steering stays until the next Steer replaces
+        it, its presses counting once; a Steer without one releases the hero.
+        """
+        return _call("Steer", "SteerRequest", {"player": self, "steering": steering}) is not None
+
     def adjust_souls(self, delta: int, silent: bool | None = None) -> bool:
         """adjust_souls gives the player delta souls, or takes them when delta is
         negative. A spend larger than the player's souls fails and spends
@@ -1326,6 +1373,19 @@ _SCHEMA: wire.Schema = {
             wire.Field(19, "zipline_time", "float", optional=True),
             wire.Field(20, "actions", "enum", repeated=True, enum=_MovementAction),
             wire.Field(21, "casts", "uint32", repeated=True),
+            wire.Field(22, "command", "message", optional=True, message="MovementCommand"),
+        ],
+    ),
+    "MovementCommand": (
+        MovementCommand,
+        [
+            wire.Field(1, "held", "uint64"),
+            wire.Field(2, "changed", "uint64"),
+            wire.Field(3, "scroll", "uint64"),
+            wire.Field(4, "forward", "float"),
+            wire.Field(5, "left", "float"),
+            wire.Field(6, "up", "float"),
+            wire.Field(7, "grounded", "bool"),
         ],
     ),
     "CommandEvent": (
@@ -1686,6 +1746,23 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "position", "message", message="Vec3"),
             wire.Field(3, "facing", "message", message="EulerAngles"),
             wire.Field(4, "velocity", "message", optional=True, message="Vec3"),
+        ],
+    ),
+    "SteerRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "steering", "message", optional=True, message="Steering"),
+        ],
+    ),
+    "Steering": (
+        Steering,
+        [
+            wire.Field(1, "command", "message", message="MovementCommand"),
+            wire.Field(2, "position", "message", message="Vec3"),
+            wire.Field(3, "velocity", "message", message="Vec3"),
+            wire.Field(4, "grounded", "bool"),
+            wire.Field(5, "facing", "message", message="EulerAngles"),
         ],
     ),
     "AdjustSoulsRequest": (

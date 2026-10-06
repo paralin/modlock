@@ -707,6 +707,97 @@ void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
   }
 }
 
+std::expected<void, std::string> GameServices::StepWith(gameinterop::MovementHook::Handler step) {
+  if (step && step_) return std::unexpected("another mod's movement runs");
+  step_ = std::move(step);
+  auto steps = Steps();
+  if (!steps) step_ = nullptr;
+  return steps;
+}
+
+std::expected<void, std::string> GameServices::Steps() {
+  const bool needed = step_ || std::ranges::any_of(games_, [](const Game* game) {
+                        return game->Moving() || !game->steers_.empty();
+                      });
+  if (!needed) {
+    steps_.reset();
+    commands_.clear();
+    return {};
+  }
+  if (steps_) return {};
+  auto hook = gameinterop::MovementHook::Install(
+      gameinterop::MovementHook::Module::kServer,
+      [this](gameinterop::MovementCall& call) { return Step(call); });
+  if (!hook) return std::unexpected(hook.error());
+  steps_ = std::move(*hook);
+  return {};
+}
+
+bool GameServices::Step(gameinterop::MovementCall& call) {
+  using gameinterop::MovementHook;
+  if (call.ground_entity != MovementHook::kNoGround) ground_ = call.ground_entity;
+  if (call.pawn) {
+    // The tick's first command fixes its starting ground; later commands add
+    // their presses and leave the last buttons and axes.
+    auto& [command, stepped] = commands_[call.pawn];
+    if (!std::exchange(stepped, true)) {
+      command.set_grounded(call.ground_entity != MovementHook::kNoGround);
+    }
+    command.set_held(call.buttons[0]);
+    command.set_changed(command.changed() | call.buttons[1]);
+    command.set_scroll(command.scroll() | call.buttons[2]);
+    command.set_forward(call.forward);
+    command.set_left(call.left);
+    command.set_up(call.up);
+  }
+
+  for (auto* game : games_) {
+    for (auto& [slot, steered] : game->steers_) {
+      if (steered.pawn != call.pawn) continue;
+
+      // The recorded command drives the game's own movement, abilities and
+      // animation for this step.
+      auto& steering = steered.steering;
+      auto& command = *steering.mutable_command();
+      call.buttons = {command.held(), command.changed(), command.scroll()};
+      call.forward = command.forward();
+      call.left = command.left();
+      call.up = command.up();
+      call.angles = Floats(steering.facing());
+      // A press counts once, though the command stays for the ticks after.
+      command.set_changed(0);
+      command.set_scroll(0);
+
+      // The step then ends exactly on the recorded pose, on the ground the
+      // heroes stand on when its own step left it in the air.
+      call.origin = Floats(steering.position());
+      call.velocity = Floats(steering.velocity());
+      const auto ground = call.ground_entity;
+      if (!steering.grounded()) {
+        call.ground_entity = MovementHook::kNoGround;
+      } else if (ground == MovementHook::kNoGround) {
+        call.ground_entity = ground_;
+      }
+      if (call.ground_entity != ground) {
+        static_cast<void>(gameinterop::NotifyEntityStateChanged(call.pawn));
+      }
+      return true;
+    }
+  }
+  return step_ && step_(call);
+}
+
+std::optional<MovementCommand> GameServices::Command(const void* pawn) {
+  const auto found = commands_.find(pawn);
+  if (found == commands_.end()) return std::nullopt;
+  auto& [command, stepped] = found->second;
+  auto taken = command;
+  command.set_changed(0);
+  command.set_scroll(0);
+  stepped = false;
+  return taken;
+}
+
 Game::Game(GameServices& services, EngineHost* engine)
     : services_(services),
       engine_(engine),
@@ -714,7 +805,11 @@ Game::Game(GameServices& services, EngineHost* engine)
   services_.games_.insert(this);
 }
 
-Game::~Game() { services_.games_.erase(this); }
+Game::~Game() {
+  services_.games_.erase(this);
+  if (auto steps = services_.Steps(); !steps)
+    std::cerr << "mod movement: " << steps.error() << '\n';
+}
 
 void Game::Frame() {
   ApplyHolds();
@@ -771,6 +866,7 @@ void Game::WorldEnding() {
   world_.reset();
   spawned_ = false;
   frozen_.clear();
+  steers_.clear();
   held_.clear();
   ReleaseModifiers();
   presses_.clear();
@@ -784,6 +880,7 @@ void Game::WorldEnding() {
 void Game::Leave(int32_t slot) {
   frozen_.erase(slot);
   movers_.erase(slot);
+  steers_.erase(slot);
   restores_.erase(slot);
   slot_blocked_.erase(slot);
   presses_.erase(slot);
@@ -801,6 +898,9 @@ void Game::Clear() {
   }
   frozen_.clear();
   movers_.clear();
+  steers_.clear();
+  // Releasing the movement hook cannot fail.
+  static_cast<void>(services_.Steps());
   for (const auto& [entity, state] : held_) {
     static_cast<void>(SetModifierState(entity, state, false));
   }
@@ -1297,6 +1397,20 @@ std::expected<void, std::string> Game::MovePlayer(const MovePlayerRequest& reque
   (*motion)->set_velocity(pawn, velocity.data());
   (*motion)->set_origin(pawn, position.data());
   return {};
+}
+
+std::expected<void, std::string> Game::Steer(const SteerRequest& request) {
+  const auto slot = request.player();
+  if (!request.has_steering()) {
+    steers_.erase(slot);
+    return services_.Steps();
+  }
+  if (auto sample = Live(slot); !sample) return std::unexpected(sample.error());
+  steers_.insert_or_assign(
+      slot, Steered{.pawn = observer_.PawnForSlot(slot), .steering = request.steering()});
+  auto steps = services_.Steps();
+  if (!steps) steers_.erase(slot);
+  return steps;
 }
 
 std::expected<ObjectResponse, std::string> Game::CreateModel(const ModelOptions& request) {
@@ -1953,6 +2067,9 @@ std::expected<void, std::string> Game::WatchMovement(const WatchMovementRequest&
   } else {
     movers_.erase(request.player());
   }
+  // A sample without its command still serves, so a missing hook is logged.
+  if (auto steps = services_.Steps(); !steps)
+    std::cerr << "mod movement: " << steps.error() << '\n';
   return {};
 }
 
@@ -1988,6 +2105,9 @@ std::vector<MovementSample> Game::Movement(std::span<const MovementFact> facts) 
       SetVector(out.mutable_wall_jump_normal(), *movement.wall_jump_normal_used);
     }
     out.set_wall_jump_facing(movement.wall_jump_facing.value_or(0));
+    if (auto command = services_.Command(observer_.PawnForSlot(slot))) {
+      *out.mutable_command() = std::move(*command);
+    }
     if (movement.last_time_on_zipline) out.set_zipline_time(*movement.last_time_on_zipline);
     for (const auto& fact : facts) {
       if (fact.pawn != sample->pawn_handle) continue;

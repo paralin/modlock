@@ -21,6 +21,10 @@ fi
 GOFLAGS=-mod=mod go mod vendor
 trap 'rm -rf vendor' EXIT
 
+# The generator formats TypeScript with any oxfmt on PATH, and bun run puts
+# node_modules/.bin there, but generated messages stay as protoc writes them.
+PATH=$(tr ':' '\n' <<<"$PATH" | grep -v '/node_modules/\.bin$' | paste -sd:)
+
 GOFLAGS=-mod=mod go run -mod=mod -tags=purego github.com/aperturerobotics/common/cmd/aptre generate \
   --language cpp --language go --language ts \
   --rpc none --targets './proto/modlock/*.proto' --targets './proto/modlock/control/*.proto' "$@"

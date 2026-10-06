@@ -385,11 +385,10 @@ class WasmPlugin final : public Plugin {
   wasm::Manifest manifest_;
   std::vector<uint8_t> collision_;
   bool tuned_ = false;
-  // movement_hook_ runs movement_ for every hero while a world is loaded;
-  // the hook goes first. hero_slots_ maps this frame's heroes to their slots,
-  // and floor_known_ is true once the world entity under the heroes is.
+  // movement_ steps every hero while a world is loaded. hero_slots_ maps
+  // this frame's heroes to their slots, and floor_known_ is true once the
+  // world entity under the heroes is.
   std::optional<quake::PlayerMovement> movement_;
-  std::optional<gameinterop::MovementHook> movement_hook_;
   std::map<uint32_t, int32_t> hero_slots_;
   bool floor_known_ = false;
   // mod_ delivers events to the running instance.
@@ -560,7 +559,7 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
 }
 
 void WasmPlugin::Halt() {
-  movement_hook_.reset();
+  if (movement_) static_cast<void>(host_.game.StepWith(nullptr));
   movement_.reset();
   hero_slots_.clear();
   Unsubscribe();
@@ -611,8 +610,7 @@ void WasmPlugin::Stop() {
 }
 
 void WasmPlugin::Move() {
-  if (movement_hook_ || !instance_ ||
-      manifest_.movement().model() != wasm::Movement::MODEL_QUAKEWORLD) {
+  if (movement_ || !instance_ || manifest_.movement().model() != wasm::Movement::MODEL_QUAKEWORLD) {
     return;
   }
   auto movement = quake::PlayerMovement::Create(quake::PlayerMovement::Side::kServer, collision_,
@@ -622,23 +620,20 @@ void WasmPlugin::Move() {
     return;
   }
   movement_ = std::move(*movement);
-  auto hook = gameinterop::MovementHook::Install(
-      gameinterop::MovementHook::Module::kServer, [this](gameinterop::MovementCall& call) {
-        const auto ground = call.ground_entity;
-        if (!movement_->Step(call)) return false;
-        // The hook does not replicate the step, so a changed ground goes out
-        // here.
-        if (call.ground_entity != ground) {
-          static_cast<void>(gameinterop::NotifyEntityStateChanged(call.pawn));
-        }
-        return true;
-      });
-  if (!hook) {
-    Log("movement is unavailable: " + hook.error());
+  auto stepping = host_.game.StepWith([this](gameinterop::MovementCall& call) {
+    const auto ground = call.ground_entity;
+    if (!movement_->Step(call)) return false;
+    // The hook does not replicate the step, so a changed ground goes out
+    // here.
+    if (call.ground_entity != ground) {
+      static_cast<void>(gameinterop::NotifyEntityStateChanged(call.pawn));
+    }
+    return true;
+  });
+  if (!stepping) {
+    Log("movement is unavailable: " + stepping.error());
     movement_.reset();
-    return;
   }
-  movement_hook_ = std::move(*hook);
 }
 
 void WasmPlugin::Steer() {

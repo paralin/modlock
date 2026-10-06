@@ -659,6 +659,68 @@ export const StartResult: MessageType<StartResult> = /* @__PURE__ */ createMessa
 });
 
 /**
+ * MovementCommand is the movement a player commanded over one tick. The
+ * server runs a player's commands as they arrive, so a tick may run several
+ * or none: every press among them is kept once, and a tick that ran none
+ * holds the last buttons without pressing them again.
+ *
+ * @generated from message modlock.wasm.MovementCommand
+ */
+export interface MovementCommand {
+  /**
+   * Held, Changed and Scroll are the game's InButtonState masks as Buttons
+   * bits: the buttons down, the buttons that went down or up, and the
+   * presses of scroll-wheel buttons.
+   *
+   * @generated from field: uint64 held = 1;
+   */
+  held?: bigint;
+  /**
+   * @generated from field: uint64 changed = 2;
+   */
+  changed?: bigint;
+  /**
+   * @generated from field: uint64 scroll = 3;
+   */
+  scroll?: bigint;
+  /**
+   * Forward, Left and Up are the movement axes, from -1 to 1.
+   *
+   * @generated from field: float forward = 4;
+   */
+  forward?: number;
+  /**
+   * @generated from field: float left = 5;
+   */
+  left?: number;
+  /**
+   * @generated from field: float up = 6;
+   */
+  up?: number;
+  /**
+   * Grounded is true when the hero stood on something as the tick began.
+   *
+   * @generated from field: bool grounded = 7;
+   */
+  grounded?: boolean;
+
+};
+
+export const MovementCommand: MessageType<MovementCommand> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.MovementCommand",
+    fields: [
+        { no: 1, name: "held", kind: "scalar", T: ScalarType.UINT64 },
+        { no: 2, name: "changed", kind: "scalar", T: ScalarType.UINT64 },
+        { no: 3, name: "scroll", kind: "scalar", T: ScalarType.UINT64 },
+        { no: 4, name: "forward", kind: "scalar", T: ScalarType.FLOAT },
+        { no: 5, name: "left", kind: "scalar", T: ScalarType.FLOAT },
+        { no: 6, name: "up", kind: "scalar", T: ScalarType.FLOAT },
+        { no: 7, name: "grounded", kind: "scalar", T: ScalarType.BOOL },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * MovementSample is one watched hero's movement on one tick, as the game keeps
  * it. A hero whose position, velocity or ground the game does not provide has
  * no sample; another field the game did not provide is absent or zero.
@@ -781,6 +843,13 @@ export interface MovementSample {
    * @generated from field: repeated uint32 casts = 21;
    */
   casts?: number[];
+  /**
+   * Command is the movement the hero's player commanded since the last
+   * sample, absent before the game ran any of it.
+   *
+   * @generated from field: optional modlock.wasm.MovementCommand command = 22;
+   */
+  command?: MovementCommand;
 
 };
 
@@ -807,6 +876,7 @@ export const MovementSample: MessageType<MovementSample> = /* @__PURE__ */ creat
         { no: 19, name: "zipline_time", kind: "scalar", T: ScalarType.FLOAT, opt: true },
         { no: 20, name: "actions", kind: "enum", T: MovementAction_Enum, repeated: true },
         { no: 21, name: "casts", kind: "scalar", T: ScalarType.UINT32, repeated: true },
+        { no: 22, name: "command", kind: "message", T: () => MovementCommand, opt: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });
@@ -2528,6 +2598,78 @@ export const MovePlayerRequest: MessageType<MovePlayerRequest> = /* @__PURE__ */
         { no: 2, name: "position", kind: "message", T: () => Vec3 },
         { no: 3, name: "facing", kind: "message", T: () => EulerAngles },
         { no: 4, name: "velocity", kind: "message", T: () => Vec3, opt: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Steering is one recorded movement command and the pose its step ends on.
+ *
+ * @generated from message modlock.wasm.Steering
+ */
+export interface Steering {
+  /**
+   * @generated from field: modlock.wasm.MovementCommand command = 1;
+   */
+  command?: MovementCommand;
+  /**
+   * Position, Velocity and Grounded are the pose the step ends on.
+   *
+   * @generated from field: modlock.Vec3 position = 2;
+   */
+  position?: Vec3;
+  /**
+   * @generated from field: modlock.Vec3 velocity = 3;
+   */
+  velocity?: Vec3;
+  /**
+   * @generated from field: bool grounded = 4;
+   */
+  grounded?: boolean;
+  /**
+   * Facing is where the command looks, which aims the hero and its animation.
+   *
+   * @generated from field: modlock.EulerAngles facing = 5;
+   */
+  facing?: EulerAngles;
+
+};
+
+export const Steering: MessageType<Steering> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.Steering",
+    fields: [
+        { no: 1, name: "command", kind: "message", T: () => MovementCommand },
+        { no: 2, name: "position", kind: "message", T: () => Vec3 },
+        { no: 3, name: "velocity", kind: "message", T: () => Vec3 },
+        { no: 4, name: "grounded", kind: "scalar", T: ScalarType.BOOL },
+        { no: 5, name: "facing", kind: "message", T: () => EulerAngles },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * SteerRequest replays one movement command on a player's hero, or releases
+ * the hero without one.
+ *
+ * @generated from message modlock.wasm.SteerRequest
+ */
+export interface SteerRequest {
+  /**
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * @generated from field: optional modlock.wasm.Steering steering = 2;
+   */
+  steering?: Steering;
+
+};
+
+export const SteerRequest: MessageType<SteerRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SteerRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "steering", kind: "message", T: () => Steering, opt: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

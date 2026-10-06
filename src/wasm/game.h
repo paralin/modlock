@@ -26,6 +26,7 @@
 #include "modlock/gameinterop/hero_definitions.h"
 #include "modlock/gameinterop/mapped_module_image.h"
 #include "modlock/gameinterop/match_clock.h"
+#include "modlock/gameinterop/movement_hook.h"
 #include "modlock/gameinterop/native_damage.h"
 #include "modlock/gameinterop/native_sound.h"
 #include "modlock/gameinterop/native_user_messages.h"
@@ -72,6 +73,11 @@ class GameServices {
   // first world loaded, and runs the waiting console commands when the mods
   // loaded after the world started.
   void WorldReady();
+
+  // StepWith runs step for every hero's server movement that no Steer
+  // replays, as a mod's own movement model does; an empty step stops it. One
+  // mod's step may run at a time.
+  std::expected<void, std::string> StepWith(gameinterop::MovementHook::Handler step);
 
  private:
   friend class Game;
@@ -129,6 +135,17 @@ class GameServices {
   void Impact(void* entity, const gameinterop::TraceResult& contact,
               const gameinterop::ProjectileImpactHook::NativeImpact& native);
 
+  // Steps installs or removes the server movement hook to match what the
+  // mods need of it.
+  std::expected<void, std::string> Steps();
+
+  // Step records the hero's command, replays a mod's steer over it, and runs
+  // step_ otherwise; it reports whether it replaced the step's motion.
+  bool Step(gameinterop::MovementCall& call);
+
+  // Command takes the commands pawn ran since the previous call, folded.
+  std::optional<MovementCommand> Command(const void* pawn);
+
   std::optional<gameinterop::MappedModuleImage> image_;
   std::optional<gameinterop::EngineServer> server_;
   std::optional<gameinterop::NativeUserMessages> messages_;
@@ -159,6 +176,17 @@ class GameServices {
   bool input_wanted_ = false;
   std::optional<gameinterop::ProjectileImpactHook> impacts_;
   bool impacts_wanted_ = false;
+  // steps_ is the server movement hook, held while step_ runs or a mod
+  // watches or steers a hero. commands_ folds each pawn's commands since its
+  // last sample, and ground_ is the last entity any hero stood on.
+  std::optional<gameinterop::MovementHook> steps_;
+  gameinterop::MovementHook::Handler step_;
+  struct Folded {
+    MovementCommand command;
+    bool stepped = false;
+  };
+  std::map<const void*, Folded> commands_;
+  uint32_t ground_ = gameinterop::MovementHook::kNoGround;
   bool world_ready_ = false;
   // pending_commands_ wait for the engine's first world; started_ marks it.
   std::vector<std::string> pending_commands_;
@@ -289,6 +317,7 @@ class Game : public HostService {
   std::expected<void, std::string> GiveModifier(const GiveModifierRequest& request) override;
   std::expected<void, std::string> Teleport(const TeleportRequest& request) override;
   std::expected<void, std::string> MovePlayer(const MovePlayerRequest& request) override;
+  std::expected<void, std::string> Steer(const SteerRequest& request) override;
   std::expected<void, std::string> AdjustSouls(const AdjustSoulsRequest& request) override;
   std::expected<void, std::string> StartingSouls(const StartingSoulsRequest& request) override;
   std::expected<void, std::string> Heal(const HealRequest& request) override;
@@ -461,6 +490,13 @@ class Game : public HostService {
   std::set<int32_t> frozen_;
   // movers_ is the players whose movement the mod watches.
   std::set<int32_t> movers_;
+  // Steered is one hero's replayed command, with its pawn.
+  struct Steered {
+    void* pawn = nullptr;
+    Steering steering;
+  };
+  // steers_ maps each steered player to the command its hero replays.
+  std::map<int32_t, Steered> steers_;
   // held_ is the modifier states the mod holds, by entity handle and name;
   // ApplyHolds sets them again.
   std::set<std::pair<uint32_t, std::string>> held_;
