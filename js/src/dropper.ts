@@ -24,7 +24,13 @@ import {
   type Vector,
   type WorldObject,
 } from './host.gen.js'
-import { type LoadedSpot, type Placed, type Spot, type SpotObject, triggers } from './spot.js'
+import {
+  type LoadedSpot,
+  type Placed,
+  type Spot,
+  type SpotObject,
+  triggers,
+} from './spot.js'
 import { hide, jsx, show, toast, type UiElement } from './ui.js'
 
 /** CatalogEntry is one object builders can drop. */
@@ -47,7 +53,13 @@ export interface CatalogEntry {
  * turns, the first two abilities page the catalog and the third undoes.
  */
 export const dropperButtons =
-  Buttons.attack | Buttons.melee | Buttons.parry | Buttons.reload | Buttons.ability1 | Buttons.ability2 | Buttons.ability3
+  Buttons.attack |
+  Buttons.melee |
+  Buttons.parry |
+  Buttons.reload |
+  Buttons.ability1 |
+  Buttons.ability2 |
+  Buttons.ability3
 
 /** reach is how far a builder places objects, in game units. */
 const reach = 1500
@@ -108,7 +120,9 @@ export class Dropper {
     }
 
     // Require a connected player and a nonempty catalog.
-    const connection = players().find((connection) => connection.player.slot === player.slot)
+    const connection = players().find(
+      (connection) => connection.player.slot === player.slot,
+    )
     if (!connection || this.catalog.length === 0) {
       return
     }
@@ -165,7 +179,7 @@ export class Dropper {
    */
   frame(movement: readonly MovementSample[]): void {
     const live = new Set(players().map((connection) => connection.player.slot))
-    for (const builder of [...this.builders.values()]) {
+    for (const builder of this.builders.values()) {
       if (live.has(builder.player.slot)) {
         this.aim(builder)
       } else {
@@ -250,7 +264,11 @@ export class Dropper {
       bounce: entry.bounce ?? 0,
       placedBy: builder.steamId,
     }
-    return { ...base, position: builder.aim.position, facing: builder.aim.facing }
+    return {
+      ...base,
+      position: builder.aim.position,
+      facing: builder.aim.facing,
+    }
   }
 
   /** aim places the builder's preview where they look. */
@@ -273,15 +291,28 @@ export class Dropper {
       y: eye.y + Math.cos(pitch) * Math.sin(yaw) * reach,
       z: eye.z - Math.sin(pitch) * reach,
     }
-    const hit = trace({ start: eye, end, exclude: triggers, ignore: [pawn.entity] })
+    const hit = trace({
+      start: eye,
+      end,
+      exclude: triggers,
+      ignore: [pawn.entity],
+    })
 
     // Aim at the hit surface: snapped on a floor, facing out of a wall.
     if (hit && !hit.startSolid) {
       builder.target = this.spot.at(hit.entity)
       const floor = hit.normal.z >= floorNormal
-      const position = floor ? { x: snap(hit.position.x), y: snap(hit.position.y), z: hit.position.z } : hit.position
+      const position = floor
+        ? {
+            x: snap(hit.position.x),
+            y: snap(hit.position.y),
+            z: hit.position.z,
+          }
+        : hit.position
       // On a wall the object faces out of it.
-      const facingYaw = floor ? builder.yaw : (Math.atan2(hit.normal.y, hit.normal.x) * 180) / Math.PI
+      const facingYaw = floor
+        ? builder.yaw
+        : (Math.atan2(hit.normal.y, hit.normal.x) * 180) / Math.PI
       builder.aim = { position, facing: { pitch: 0, yaw: facingYaw, roll: 0 } }
     }
 
@@ -333,7 +364,10 @@ export class Dropper {
 
     // Refuse a new object when the spot is full.
     if (!builder.held && this.spot.objects().length >= this.capacity) {
-      toast(builder.player, 'The spot is full. Delete an object to drop another.')
+      toast(
+        builder.player,
+        'The spot is full. Delete an object to drop another.',
+      )
       return
     }
 
@@ -402,14 +436,27 @@ export class Dropper {
         index,
       ),
     )
-    const held = builder.held ? `Moving ${builder.held.model.split('/').pop()}` : ''
+    const held = builder.held
+      ? `Moving ${builder.held.model.split('/').pop()}`
+      : ''
     show(
       builder.player,
       jsx('panel', {
-        style: { flow: 'down', horizontalAlign: 'right', verticalAlign: 'center', margin: [0, 24, 0, 0] },
+        style: {
+          flow: 'down',
+          horizontalAlign: 'right',
+          verticalAlign: 'center',
+          margin: [0, 24, 0, 0],
+        },
         children: [
-          jsx('label', { style: { fontSize: 22, bold: true, color: '#ffffff' }, children: 'Object Dropper' }),
-          jsx('label', { style: { fontSize: 14, color: '#dddddd' }, children: held }),
+          jsx('label', {
+            style: { fontSize: 22, bold: true, color: '#ffffff' },
+            children: 'Object Dropper',
+          }),
+          jsx('label', {
+            style: { fontSize: 14, color: '#dddddd' },
+            children: held,
+          }),
           ...windowOf(rows, builder.entry),
           jsx('label', {
             style: { fontSize: 14, color: '#dddddd', margin: [8, 0, 0, 0] },
@@ -427,7 +474,10 @@ const windowShown = 12
 
 /** windowOf returns the rows around selected, so long catalogs stay on screen. */
 function windowOf<T>(rows: readonly T[], selected: number): T[] {
-  const start = Math.max(0, Math.min(selected - windowShown / 2, rows.length - windowShown))
+  const start = Math.max(
+    0,
+    Math.min(selected - windowShown / 2, rows.length - windowShown),
+  )
   return rows.slice(start, start + windowShown)
 }
 

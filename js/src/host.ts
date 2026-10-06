@@ -12,13 +12,19 @@ interface ModlockHost {
 }
 
 /** host is the runtime's bridge for the bundle's lifetime. */
-export const host = (globalThis as unknown as { __modlock: ModlockHost }).__modlock
+export const host = (globalThis as unknown as { __modlock: ModlockHost })
+  .__modlock
 
 /**
  * call calls one Host method with its encoded request and returns the
  * encoded response, or undefined when the call failed; the host logs why.
  */
-export function call(method: string, request: Uint8Array): Uint8Array | undefined {
-  const reply = Reply.fromBinary(host.hostCall(Call.toBinary({ method, request })))
+export function call(
+  method: string,
+  request: Uint8Array,
+): Uint8Array | undefined {
+  const reply = Reply.fromBinary(
+    host.hostCall(Call.toBinary({ method, request })),
+  )
   return reply.error ? undefined : (reply.response ?? new Uint8Array())
 }

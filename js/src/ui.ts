@@ -42,7 +42,10 @@ export type Length = number | `${number}%` | 'fit' | 'fill'
  * Edges are distances in pixels: one for every side, [vertical, horizontal],
  * or [top, right, bottom, left].
  */
-export type Edges = number | readonly [number, number] | readonly [number, number, number, number]
+export type Edges =
+  | number
+  | readonly [number, number]
+  | readonly [number, number, number, number]
 
 /** Style lays out and paints an element. Colors are '#rrggbb' or '#rrggbbaa'. */
 export interface Style {
@@ -65,7 +68,14 @@ export interface Style {
 }
 
 /** Child is anything an element may hold. Text becomes a label. */
-export type Child = UiElement | string | number | boolean | null | undefined | readonly Child[]
+export type Child =
+  | UiElement
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly Child[]
 
 /** Component returns the elements that stand for its props. */
 export type Component<P> = (props: P) => Child
@@ -126,7 +136,11 @@ export declare namespace JSX {
 }
 
 /** jsx builds one element; the TypeScript compiler calls it for JSX. */
-export function jsx(type: string | Component<never>, props: Record<string, unknown>, key?: string | number): UiElement {
+export function jsx(
+  type: string | Component<never>,
+  props: Record<string, unknown>,
+  key?: string | number,
+): UiElement {
   return { type, props, key: key === undefined ? undefined : String(key) }
 }
 
@@ -161,7 +175,10 @@ export function hide(player: Player): boolean {
 export function toast(player: Player, text: string, seconds = 4): boolean {
   const current = view(player)
   const notice = { id: nextNotice++, text, until: now + seconds }
-  views.set(player.slot, { ...current, notices: [...current.notices, notice].slice(-maxNotices) })
+  views.set(player.slot, {
+    ...current,
+    notices: [...current.notices, notice].slice(-maxNotices),
+  })
   return draw(player)
 }
 
@@ -220,7 +237,10 @@ function view(player: Player): View {
 function draw(player: Player): boolean {
   // Render the player's view and any notices against the last screen sent.
   const current = view(player)
-  const root = [current.root, current.notices.length !== 0 && notices(current.notices)]
+  const root = [
+    current.root,
+    current.notices.length !== 0 && notices(current.notices),
+  ]
   const previous = screens.get(player.slot)
   const next = render(previous, root)
   const change = diff(previous, next)
@@ -268,7 +288,9 @@ function notices(stack: readonly Notice[]): Child {
           fontSize: 16,
           borderRadius: 4,
           // Step the fade by tenths so it sends a handful of changes.
-          opacity: Math.ceil(Math.min(1, (notice.until - now) / fadeSeconds) * 10) / 10,
+          opacity:
+            Math.ceil(Math.min(1, (notice.until - now) / fadeSeconds) * 10) /
+            10,
         },
         children: notice.text,
       },
@@ -300,7 +322,12 @@ const screens = new Map<number, Screen>()
 /** render lays root out as nodes, keeping the ids of elements that stayed in place. */
 function render(previous: Screen | undefined, root: Child): Screen {
   // Start a screen that continues the previous screen's id counter.
-  const screen: Screen = { nodes: new Map(), ids: new Map(), presses: new Map(), next: previous?.next ?? 0 }
+  const screen: Screen = {
+    nodes: new Map(),
+    ids: new Map(),
+    presses: new Map(),
+    next: previous?.next ?? 0,
+  }
 
   // id returns the node id for the element at place.
   const id = (place: string): string => {
@@ -323,10 +350,13 @@ function render(previous: Screen | undefined, root: Child): Screen {
     if (child === null || child === undefined || typeof child === 'boolean') {
       return []
     }
-    if (Array.isArray(child)) {
-      return (child as readonly Child[]).flatMap((item, index) => {
+    if (isList(child)) {
+      return child.flatMap((item, index) => {
         const key = isElement(item) ? item.key : undefined
-        return place(item, key === undefined ? `${at},${index}` : `${at},=${key}`)
+        return place(
+          item,
+          key === undefined ? `${at},${index}` : `${at},=${key}`,
+        )
       })
     }
     if (!isElement(child)) {
@@ -340,7 +370,10 @@ function render(previous: Screen | undefined, root: Child): Screen {
 
     // Draw an intrinsic element.
     const props = child.props
-    const node: Node = { id: id(at), style: wireStyle(props.style as Style | undefined) }
+    const node: Node = {
+      id: id(at),
+      style: wireStyle(props.style as Style | undefined),
+    }
     switch (child.type) {
       case 'label':
         node.kind = Kind.LABEL
@@ -348,12 +381,15 @@ function render(previous: Screen | undefined, root: Child): Screen {
         break
       case 'image':
         node.kind = Kind.IMAGE
-        node.image = String(props.src ?? '')
+        node.image = typeof props.src === 'string' ? props.src : ''
         break
       case 'button':
         node.kind = Kind.BUTTON
         if (typeof props.onPress === 'function') {
-          screen.presses.set(node.id!, props.onPress as (player: Player) => void)
+          screen.presses.set(
+            node.id!,
+            props.onPress as (player: Player) => void,
+          )
         }
         node.children = place(props.children as Child, `${at}/`)
         break
@@ -373,9 +409,13 @@ function render(previous: Screen | undefined, root: Child): Screen {
 /** diff returns the change from previous to next, or undefined when nothing changed. */
 function diff(previous: Screen | undefined, next: Screen): Change | undefined {
   const set = [...next.nodes.values()]
-    .filter(({ node, encoded }) => previous?.nodes.get(node.id!)?.encoded !== encoded)
+    .filter(
+      ({ node, encoded }) => previous?.nodes.get(node.id!)?.encoded !== encoded,
+    )
     .map(({ node }) => node)
-  const removed = [...(previous?.nodes.keys() ?? [])].filter((id) => !next.nodes.has(id))
+  const removed = [...(previous?.nodes.keys() ?? [])].filter(
+    (id) => !next.nodes.has(id),
+  )
   if (previous && set.length === 0 && removed.length === 0) {
     return undefined
   }
@@ -392,13 +432,25 @@ function isElement(child: Child): child is UiElement {
   return typeof child === 'object' && child !== null && !Array.isArray(child)
 }
 
+/**
+ * isList reports whether a child is a list of children. Array.isArray does not
+ * narrow a readonly array type, so the list case needs its own guard.
+ */
+function isList(child: Child): child is readonly Child[] {
+  return Array.isArray(child)
+}
+
 /** text joins a label's text children. */
 function text(children: Child): string {
-  if (children === null || children === undefined || typeof children === 'boolean') {
+  if (
+    children === null ||
+    children === undefined ||
+    typeof children === 'boolean'
+  ) {
     return ''
   }
-  if (Array.isArray(children)) {
-    return (children as readonly Child[]).map(text).join('')
+  if (isList(children)) {
+    return children.map(text).join('')
   }
   return isElement(children) ? '' : String(children)
 }
@@ -420,7 +472,12 @@ function wireStyle(style: Style | undefined): WireStyle | undefined {
   return {
     width: length(style.width),
     height: length(style.height),
-    flow: style.flow === 'down' ? Flow.DOWN : style.flow === 'right' ? Flow.RIGHT : undefined,
+    flow:
+      style.flow === 'down'
+        ? Flow.DOWN
+        : style.flow === 'right'
+          ? Flow.RIGHT
+          : undefined,
     horizontalAlign: style.horizontalAlign && aligns[style.horizontalAlign],
     verticalAlign: style.verticalAlign && aligns[style.verticalAlign],
     margin: edges(style.margin),

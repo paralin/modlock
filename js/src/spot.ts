@@ -60,7 +60,12 @@ export function encodeSpot(spot: Spot): Uint8Array {
     bounce: object.bounce,
     builder: object.placedBy === 0n ? 0 : builders.index(object.placedBy) + 1,
   }))
-  return pb.Spot.toBinary({ map: spot.map, models: models.values, builders: builders.values, objects })
+  return pb.Spot.toBinary({
+    map: spot.map,
+    models: models.values,
+    builders: builders.values,
+    objects,
+  })
 }
 
 /** decodeSpot reads a spot document. */
@@ -73,7 +78,11 @@ export function decodeSpot(bytes: Uint8Array): Spot {
     objects: (spot.objects ?? []).map((object) => ({
       model: models[object.model ?? 0] ?? '',
       position: { x: object.x ?? 0, y: object.y ?? 0, z: object.z ?? 0 },
-      facing: { pitch: object.pitch ?? 0, yaw: object.yaw ?? 0, roll: object.roll ?? 0 },
+      facing: {
+        pitch: object.pitch ?? 0,
+        yaw: object.yaw ?? 0,
+        roll: object.roll ?? 0,
+      },
       scale: object.scale || 1,
       bounce: object.bounce ?? 0,
       placedBy: builders[(object.builder ?? 0) - 1] ?? 0n,
@@ -207,7 +216,10 @@ export class LoadedSpot {
 
   /** spot returns the spot as it stands. */
   spot(): Spot {
-    return { map: this.map, objects: this.placed.map((placed) => placed.object) }
+    return {
+      map: this.map,
+      objects: this.placed.map((placed) => placed.object),
+    }
   }
 
   /**
@@ -230,9 +242,15 @@ export class LoadedSpot {
         exclude: triggers,
         ignore: [sample.pawn],
       })
-      const bounce = hit ? (this.entities.get(hit.entity)?.object.bounce ?? 0) : 0
+      const bounce = hit
+        ? (this.entities.get(hit.entity)?.object.bounce ?? 0)
+        : 0
       if (bounce > 0) {
-        sample.player.setVelocity({ x: sample.velocity.x, y: sample.velocity.y, z: bounce })
+        sample.player.setVelocity({
+          x: sample.velocity.x,
+          y: sample.velocity.y,
+          z: bounce,
+        })
       }
     }
   }

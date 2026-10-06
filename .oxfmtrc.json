@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "build*",
+    "third_party",
+    "vendor",
+    "node_modules",
+    ".tools",
+    ".tmp",
+    "**/*.pb.ts",
+    "**/*.pb.js",
+    "**/*.gen.ts",
+    ".protoc-manifest.json",
+    "js/src/entities.ts"
+  ]
+}

@@ -25,7 +25,11 @@ declare const $: {
   Msg(...values: unknown[]): void
   GetContextPanel(): Panel
   CreatePanel(type: string, parent: Panel, id: string): Panel
-  RegisterEventHandler(event: string, panel: Panel, handler: (...args: never[]) => boolean | void): void
+  RegisterEventHandler(
+    event: string,
+    panel: Panel,
+    handler: (...args: never[]) => boolean | void,
+  ): void
   Schedule(seconds: number, callback: () => void): number
   CancelScheduled(handle: number): void
   DispatchEvent(event: string, ...args: string[]): void

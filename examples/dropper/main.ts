@@ -30,14 +30,47 @@ import {
 // The game deletes a solid model that carries physics prop data, so the
 // catalog holds only models it keeps.
 const catalog: CatalogEntry[] = [
-  { name: 'Crate', category: 'Crates', model: 'models/props_industrial/wood_crate_64.vmdl' },
-  { name: 'Big crate', category: 'Crates', model: 'models/props_industrial/wood_crate_64.vmdl', scale: 2 },
-  { name: 'Pallet', category: 'Ground', model: 'models/props_city/wood_pallet_01a.vmdl' },
-  { name: 'Barrier', category: 'Ground', model: 'models/props_city/concrete_barrier_01a.vmdl' },
-  { name: 'Bench', category: 'Ground', model: 'models/props_city/bench01a.vmdl' },
-  { name: 'Ramp', category: 'Catwalks', model: 'models/props_catwalks/catwalk_ramp_256_128_01.vmdl' },
-  { name: 'Walkway', category: 'Catwalks', model: 'models/props_catwalks/catwalk_straight_256_01.vmdl' },
-  { name: 'Corner', category: 'Catwalks', model: 'models/props_catwalks/catwalk_curve_90_01.vmdl' },
+  {
+    name: 'Crate',
+    category: 'Crates',
+    model: 'models/props_industrial/wood_crate_64.vmdl',
+  },
+  {
+    name: 'Big crate',
+    category: 'Crates',
+    model: 'models/props_industrial/wood_crate_64.vmdl',
+    scale: 2,
+  },
+  {
+    name: 'Pallet',
+    category: 'Ground',
+    model: 'models/props_city/wood_pallet_01a.vmdl',
+  },
+  {
+    name: 'Barrier',
+    category: 'Ground',
+    model: 'models/props_city/concrete_barrier_01a.vmdl',
+  },
+  {
+    name: 'Bench',
+    category: 'Ground',
+    model: 'models/props_city/bench01a.vmdl',
+  },
+  {
+    name: 'Ramp',
+    category: 'Catwalks',
+    model: 'models/props_catwalks/catwalk_ramp_256_128_01.vmdl',
+  },
+  {
+    name: 'Walkway',
+    category: 'Catwalks',
+    model: 'models/props_catwalks/catwalk_straight_256_01.vmdl',
+  },
+  {
+    name: 'Corner',
+    category: 'Catwalks',
+    model: 'models/props_catwalks/catwalk_curve_90_01.vmdl',
+  },
   {
     name: 'Bounce pad',
     category: 'Fun',
@@ -47,8 +80,12 @@ const catalog: CatalogEntry[] = [
   },
 ]
 
-const dropper = new Dropper(catalog, loadSpot({ map: 'dl_midtown', objects: [] }))
-dropper.changed = (spot) => log(`spot: ${spot.objects.length} objects, ${encodeSpot(spot).length} bytes`)
+const dropper = new Dropper(
+  catalog,
+  loadSpot({ map: 'dl_midtown', objects: [] }),
+)
+dropper.changed = (spot) =>
+  log(`spot: ${spot.objects.length} objects, ${encodeSpot(spot).length} bytes`)
 
 let headless: Headless | undefined
 
@@ -76,18 +113,34 @@ command('build', (player) => dropper.toggle(player))
 
 command('probe', (player, args) => {
   const failures = probe(player, Number(args) || 100)
-  log(`probe: ${failures.length === 0 ? 'every check held' : failures.join('; ')}`)
+  log(
+    `probe: ${failures.length === 0 ? 'every check held' : failures.join('; ')}`,
+  )
 })
 
 /** crate is a probe object of model and scale at position. */
-function crate(position: Vector, scale: number, model = catalog[0]!.model): SpotObject {
-  return { model, position, facing: { pitch: 0, yaw: 0, roll: 0 }, scale, bounce: 0, placedBy: 0n }
+function crate(
+  position: Vector,
+  scale: number,
+  model = catalog[0].model,
+): SpotObject {
+  return {
+    model,
+    position,
+    facing: { pitch: 0, yaw: 0, roll: 0 },
+    scale,
+    bounce: 0,
+    placedBy: 0n,
+  }
 }
 
 /** lost places each catalog model once at position and returns those the game deleted. */
 function lost(position: Vector): string[] {
   return [...new Set(catalog.map((entry) => entry.model))].filter((model) => {
-    const spot = loadSpot({ map: 'dl_midtown', objects: [crate(position, 1, model)] })
+    const spot = loadSpot({
+      map: 'dl_midtown',
+      objects: [crate(position, 1, model)],
+    })
     const kept = spot.objects().length === 1
     spot.clear()
     return !kept
@@ -119,13 +172,22 @@ function top(spot: LoadedSpot, index: number): number | undefined {
   // Trace down from just above the probe box, which stands 64 tall, so a low
   // ceiling over the spawn does not catch the trace.
   const { x, y, z } = placed.object.position
-  const hit = trace({ start: { x, y, z: z + 96 * placed.object.scale }, end: { x, y, z }, exclude: triggers })
+  const hit = trace({
+    start: { x, y, z: z + 96 * placed.object.scale },
+    end: { x, y, z },
+    exclude: triggers,
+  })
   return hit?.entity === placed.entity ? hit.position.z : undefined
 }
 
 /** grounded reports whether a trace finds the floor under position. */
 function grounded(position: Vector): boolean {
-  return trace({ start: { ...position, z: position.z + 64 }, end: { ...position, z: position.z - 64 } }) !== undefined
+  return (
+    trace({
+      start: { ...position, z: position.z + 64 },
+      end: { ...position, z: position.z - 64 },
+    }) !== undefined
+  )
 }
 
 /**
@@ -147,14 +209,19 @@ function probe(player: Player, count: number): string[] {
   }
 
   // Place a small and a large crate and check that both exist.
-  const spot = loadSpot({ map: 'dl_midtown', objects: [crate(small, 1), crate(large, 2)] })
+  const spot = loadSpot({
+    map: 'dl_midtown',
+    objects: [crate(small, 1), crate(large, 2)],
+  })
   log(`probe: placed ${spot.objects().length} of 2`)
   if (spot.objects().length !== 2) {
     failures.push('a crate was not placed')
   }
 
   // Check that the large crate's top stands at twice the small crate's height.
-  const heights = [top(spot, 0), top(spot, 1)].map((z, i) => (z === undefined ? undefined : z - [small, large][i]!.z))
+  const heights = [top(spot, 0), top(spot, 1)].map((z, i) =>
+    z === undefined ? undefined : z - [small, large][i].z,
+  )
   log(`probe: crate tops at ${heights.join(' and ')}`)
   if (heights.some((height) => height === undefined)) {
     failures.push('a trace missed a crate')
@@ -165,10 +232,17 @@ function probe(player: Player, count: number): string[] {
   // Move the small crate up and check that it collides where it moved.
   const first = spot.objects()[0]
   if (first) {
-    spot.move(first, { ...first.object.position, z: first.object.position.z + 64 }, { pitch: 0, yaw: 45, roll: 0 })
+    spot.move(
+      first,
+      { ...first.object.position, z: first.object.position.z + 64 },
+      { pitch: 0, yaw: 45, roll: 0 },
+    )
     const moved = top(spot, 0)
     log(`probe: moved crate top at ${moved}`)
-    if (moved === undefined || Math.abs(moved - small.z - heights[0]! - 64) > 2) {
+    if (
+      moved === undefined ||
+      Math.abs(moved - small.z - heights[0]! - 64) > 2
+    ) {
       failures.push('the moved crate does not collide where it moved')
     }
   }
@@ -177,7 +251,10 @@ function probe(player: Player, count: number): string[] {
   const encoded = encodeSpot(spot.spot())
   const again = encodeSpot(spot.spot())
   log(`probe: encoding ${encoded.length} bytes`)
-  if (encoded.length !== again.length || encoded.some((byte, i) => byte !== again[i])) {
+  if (
+    encoded.length !== again.length ||
+    encoded.some((byte, i) => byte !== again[i])
+  ) {
     failures.push('the encoding is not deterministic')
   }
   spot.clear()
@@ -185,13 +262,24 @@ function probe(player: Player, count: number): string[] {
   // Place count crates in rows of 20 and time the load.
   const origin = ahead(player, 400)!
   const objects = Array.from({ length: count }, (_, i) =>
-    crate({ x: origin.x + (i % 20) * 72 - 720, y: origin.y, z: origin.z + Math.floor(i / 20) * 64 }, 1),
+    crate(
+      {
+        x: origin.x + (i % 20) * 72 - 720,
+        y: origin.y,
+        z: origin.z + Math.floor(i / 20) * 64,
+      },
+      1,
+    ),
   )
   const start = Date.now()
   const many = loadSpot({ map: 'dl_midtown', objects })
-  log(`probe: placed ${many.objects().length} of ${count} in ${Date.now() - start} ms`)
+  log(
+    `probe: placed ${many.objects().length} of ${count} in ${Date.now() - start} ms`,
+  )
   if (many.objects().length !== count) {
-    failures.push(`${count - many.objects().length} of ${count} crates were not placed`)
+    failures.push(
+      `${count - many.objects().length} of ${count} crates were not placed`,
+    )
   }
 
   // Clear the crates and return the failed checks.
@@ -263,7 +351,11 @@ class Headless {
           return
         }
         this.landing = { spot, top: height }
-        this.bot!.teleport({ ...under, z: height + 200 }, { pitch: 0, yaw: 0, roll: 0 }, { x: 0, y: 0, z: 0 })
+        this.bot!.teleport(
+          { ...under, z: height + 200 },
+          { pitch: 0, yaw: 0, roll: 0 },
+          { x: 0, y: 0, z: 0 },
+        )
         this.since = time
         this.step = 'land'
         return

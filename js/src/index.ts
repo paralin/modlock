@@ -35,7 +35,16 @@ import { press, tick } from './ui.js'
 export { Buttons, Layers } from './bits.js'
 export * from './host.gen.js'
 export { type CatalogEntry, Dropper, dropperButtons } from './dropper.js'
-export { decodeSpot, encodeSpot, LoadedSpot, loadSpot, type Placed, type Spot, type SpotObject, triggers } from './spot.js'
+export {
+  decodeSpot,
+  encodeSpot,
+  LoadedSpot,
+  loadSpot,
+  type Placed,
+  type Spot,
+  type SpotObject,
+  triggers,
+} from './spot.js'
 export {
   type ButtonProps,
   type Child,
@@ -79,7 +88,10 @@ export function serve(service: string, handler: Service): void {
  * text after the name, trimmed of surrounding spaces. Registering a name
  * again replaces its handler.
  */
-export function command(name: string, handler: (player: Player, args: string) => void): void {
+export function command(
+  name: string,
+  handler: (player: Player, args: string) => void,
+): void {
   commands.set(name, handler)
 }
 
@@ -110,7 +122,9 @@ export function onWorld(handler: (map: string) => void): void {
  * released, as Buttons bits, before the next frame. A button is held from its
  * press until its release.
  */
-export function onInput(handler: (player: Player, pressed: bigint, released: bigint) => void): void {
+export function onInput(
+  handler: (player: Player, pressed: bigint, released: bigint) => void,
+): void {
   inputs.push(handler)
 }
 
@@ -118,7 +132,9 @@ export function onInput(handler: (player: Player, pressed: bigint, released: big
  * onRestored calls handler when a player's Player.restoreHero ends: error is
  * undefined once the target held for a second, or says why it did not.
  */
-export function onRestored(handler: (player: Player, error: string | undefined) => void): void {
+export function onRestored(
+  handler: (player: Player, error: string | undefined) => void,
+): void {
   restoreds.push(handler)
 }
 
@@ -126,7 +142,9 @@ export function onRestored(handler: (player: Player, error: string | undefined) 
  * onNpcsRestored calls handler when restoreNpcs ends: error is undefined once
  * the map holds every target, or says why it does not.
  */
-export function onNpcsRestored(handler: (error: string | undefined) => void): void {
+export function onNpcsRestored(
+  handler: (error: string | undefined) => void,
+): void {
   npcsRestoreds.push(handler)
 }
 
@@ -134,7 +152,9 @@ export function onNpcsRestored(handler: (error: string | undefined) => void): vo
  * onDamage calls handler before each hit lands, so it can block the hit or
  * change its damage. Later handlers see the earlier ones' amount.
  */
-export function onDamage(handler: (hit: DamageEvent) => DamageResult | void): void {
+export function onDamage(
+  handler: (hit: DamageEvent) => DamageResult | void,
+): void {
   damages.push(handler)
 }
 
@@ -206,7 +226,8 @@ const services = new Map<string, Service>()
 const starts: ((args: readonly string[]) => void)[] = []
 const frames: ((frame: FrameEvent) => void)[] = []
 const worlds: ((map: string) => void)[] = []
-const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] = []
+const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] =
+  []
 const restoreds: ((player: Player, error: string | undefined) => void)[] = []
 const npcsRestoreds: ((error: string | undefined) => void)[] = []
 const damages: ((hit: DamageEvent) => DamageResult | void)[] = []
@@ -214,7 +235,8 @@ const damageds: ((hit: DamagedEvent) => void)[] = []
 const launches: ((projectile: LaunchEvent) => void)[] = []
 const impacts: ((impact: ImpactEvent) => void)[] = []
 const landeds: ((landing: LandedEvent) => void)[] = []
-const settingChanges: ((player: Player, key: string, value: string) => void)[] = []
+const settingChanges: ((player: Player, key: string, value: string) => void)[] =
+  []
 
 /** handlers delivers each event to the handlers the mod registered. */
 const handlers: ModHandlers = {
@@ -223,7 +245,11 @@ const handlers: ModHandlers = {
       handler(event.args)
     }
     // Frames also fade the notices toast shows, so the library always takes them.
-    return { frames: true, damage: damages.length !== 0, damaged: damageds.length !== 0 }
+    return {
+      frames: true,
+      damage: damages.length !== 0,
+      damaged: damageds.length !== 0,
+    }
   },
 
   frame(event) {

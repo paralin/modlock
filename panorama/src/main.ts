@@ -24,7 +24,11 @@ const root = $.CreatePanel('Panel', hud(context), 'ModlockUi')
 root.hittest = false
 root.style.width = '100%'
 root.style.height = '100%'
-const drawing = new Drawing($, root, (mod, node) => $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)))
-new Bridge(context.FindChildTraverse('ModlockUiState')!, `${relay}/app/relay/bridge.html`, (screen) =>
-  drawing.draw(screen),
+const drawing = new Drawing($, root, (mod, node) =>
+  $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
+)
+new Bridge(
+  context.FindChildTraverse('ModlockUiState')!,
+  `${relay}/app/relay/bridge.html`,
+  (screen) => drawing.draw(screen),
 )

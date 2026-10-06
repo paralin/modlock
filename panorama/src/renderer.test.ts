@@ -1,3 +1,4 @@
+import type { JsonObject } from '@aptre/protobuf-es-lite'
 import { beforeEach, expect, test } from 'bun:test'
 
 import { Screen } from '../../proto/modlock/ui.pb.js'
@@ -60,7 +61,10 @@ class FakePanel {
 }
 
 /** handlers holds each panel's event handlers, as $.RegisterEventHandler keeps them. */
-const handlers = new Map<FakePanel, Map<string, (...args: unknown[]) => unknown>>()
+const handlers = new Map<
+  FakePanel,
+  Map<string, (...args: unknown[]) => unknown>
+>()
 
 /** scheduled holds the callbacks $.Schedule holds. */
 const scheduled = new Map<number, () => void>()
@@ -78,8 +82,18 @@ beforeEach(() => {
         parent.children.push(panel)
         return panel
       },
-      RegisterEventHandler(event: string, panel: FakePanel, handler: (...args: unknown[]) => unknown) {
-        handlers.set(panel, (handlers.get(panel) ?? new Map()).set(event, handler))
+      RegisterEventHandler(
+        event: string,
+        panel: FakePanel,
+        handler: (...args: unknown[]) => unknown,
+      ) {
+        handlers.set(
+          panel,
+          (
+            handlers.get(panel) ??
+            new Map<string, (...args: unknown[]) => unknown>()
+          ).set(event, handler),
+        )
       },
       Schedule(_: number, callback: () => void) {
         scheduled.set(++handles, callback)
@@ -93,7 +107,7 @@ beforeEach(() => {
 })
 
 /** screen builds a screen with one mod's tree. */
-function screen(...nodes: object[]): Screen {
+function screen(...nodes: JsonObject[]): Screen {
   return Screen.fromJson({ trees: [{ mod: 'arena', nodes }] })
 }
 
@@ -101,14 +115,26 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
   // Draw onto a fake root panel and record each press.
   const root = new FakePanel('Panel', 'ModlockUi')
   const presses: string[] = []
-  const drawing = new Drawing($, root as unknown as Panel, (mod, node) => presses.push(`${mod}:${node}`))
+  const drawing = new Drawing($, root, (mod, node) =>
+    presses.push(`${mod}:${node}`),
+  )
 
   // Draw a label and a button that holds a label.
   drawing.draw(
     screen(
       { id: '', children: ['a', 'b'] },
-      { id: 'a', kind: 'KIND_LABEL', text: 'Round 1', style: { fontSize: 32, color: 0xff0000ff } },
-      { id: 'b', kind: 'KIND_BUTTON', children: ['c'], style: { width: { percent: 150 }, margin: { top: 80 } } },
+      {
+        id: 'a',
+        kind: 'KIND_LABEL',
+        text: 'Round 1',
+        style: { fontSize: 32, color: 0xff0000ff },
+      },
+      {
+        id: 'b',
+        kind: 'KIND_BUTTON',
+        children: ['c'],
+        style: { width: { percent: 150 }, margin: { top: 80 } },
+      },
       { id: 'c', kind: 'KIND_LABEL', text: 'Ready' },
     ),
   )
@@ -137,8 +163,17 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
   drawing.draw(
     screen(
       { id: '', children: ['b', 'a'] },
-      { id: 'a', kind: 'KIND_LABEL', text: 'Round 2', style: { fontSize: 40, color: 0xff0000ff } },
-      { id: 'b', kind: 'KIND_BUTTON', style: { width: { percent: 50 }, margin: { top: 80 } } },
+      {
+        id: 'a',
+        kind: 'KIND_LABEL',
+        text: 'Round 2',
+        style: { fontSize: 40, color: 0xff0000ff },
+      },
+      {
+        id: 'b',
+        kind: 'KIND_BUTTON',
+        style: { width: { percent: 50 }, margin: { top: 80 } },
+      },
     ),
   )
   expect(tree.children).toEqual([button!, label!])
@@ -149,13 +184,20 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
 
   // Panorama cannot unset some properties, so a node that drops one gets a
   // new panel.
-  drawing.draw(screen({ id: '', children: ['a'] }, { id: 'a', kind: 'KIND_LABEL', text: 'Round 3' }))
+  drawing.draw(
+    screen(
+      { id: '', children: ['a'] },
+      { id: 'a', kind: 'KIND_LABEL', text: 'Round 3' },
+    ),
+  )
   expect(label!.valid).toBe(false)
   expect(tree.children.length).toBe(1)
   expect(tree.children[0]!.style).toEqual({})
 
   // A cycle draws each node once, and an empty screen removes the tree.
-  drawing.draw(screen({ id: '', children: ['a'] }, { id: 'a', children: ['a', ''] }))
+  drawing.draw(
+    screen({ id: '', children: ['a'] }, { id: 'a', children: ['a', ''] }),
+  )
   expect(tree.children.length).toBe(1)
   expect(tree.children[0]!.children).toEqual([])
   drawing.draw(null)
@@ -166,13 +208,16 @@ test('reads screens in acknowledged parts', () => {
   // Start a bridge on a fake state panel, which loads the bridge page.
   const state = new FakePanel('HTML', 'ModlockUiState')
   const shown: (Screen | null)[] = []
-  new Bridge(state as unknown as Panel, 'https://relay/bridge.html', (screen) => shown.push(screen))
+  new Bridge(state, 'https://relay/bridge.html', (screen) => shown.push(screen))
   expect(state.url).toBe('https://relay/bridge.html')
   expect(scheduled.size).toBe(1)
-  const title = (text: string) => handlers.get(state)!.get('HTMLTitle')!(state.id, text)
+  const title = (text: string) =>
+    handlers.get(state)!.get('HTMLTitle')!(state.id, text)
 
   // A screen in two parts shows once both arrive, each acknowledged.
-  const source = encodeURIComponent(JSON.stringify({ trees: [{ mod: 'arena', nodes: [{ id: '' }] }] }))
+  const source = encodeURIComponent(
+    JSON.stringify({ trees: [{ mod: 'arena', nodes: [{ id: '' }] }] }),
+  )
   const half = Math.floor(source.length / 2)
   const part = (offset: number, chunk: string) =>
     `modlock:snapshot:${JSON.stringify({ id: 7, offset, total: source.length, chunk })}`
@@ -183,13 +228,16 @@ test('reads screens in acknowledged parts', () => {
 
   // The first part is acknowledged but not shown.
   title(part(0, source.slice(0, half)))
-  expect(JSON.parse(decodeURIComponent(state.url.split('#')[1]!))).toEqual({ frameAck: 7, offset: half })
+  expect(JSON.parse(decodeURIComponent(state.url.split('#')[1]!))).toEqual({
+    frameAck: 7,
+    offset: half,
+  })
   expect(shown).toEqual([])
 
   // The second part shows the screen.
   title(part(half, source.slice(half)))
   expect(shown.length).toBe(1)
-  expect(shown[0]!.trees[0]!.mod).toBe('arena')
+  expect(shown[0]?.trees?.[0]?.mod).toBe('arena')
 
   // A part out of order is dropped, and a closed stream clears the screen.
   title(part(half, source.slice(half)).replace('"id":7', '"id":8'))

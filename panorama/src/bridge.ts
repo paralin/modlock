@@ -27,7 +27,9 @@ export class Bridge {
   ) {
     // Registering the navigation event lets the panel navigate.
     $.RegisterEventHandler('HTMLStartRequest', statePanel, () => false)
-    $.RegisterEventHandler('HTMLTitle', statePanel, (_: never, title: string) => this.read(title))
+    $.RegisterEventHandler('HTMLTitle', statePanel, (_: never, title: string) =>
+      this.read(title),
+    )
     this.load()
   }
 
@@ -68,7 +70,12 @@ export class Bridge {
     // Join the part to the screen it belongs to, and acknowledge it.
     let screen: Screen
     try {
-      const part = JSON.parse(title.slice(titlePrefix.length)) as { id: number; offset: number; total: number; chunk: string }
+      const part = JSON.parse(title.slice(titlePrefix.length)) as {
+        id: number
+        offset: number
+        total: number
+        chunk: string
+      }
       if (part.offset === 0) {
         this.parts = { id: part.id, total: part.total, text: '' }
       }
@@ -77,7 +84,9 @@ export class Bridge {
         throw new Error('a part of the screen is missing')
       }
       parts.text += part.chunk
-      const reply = encodeURIComponent(JSON.stringify({ frameAck: part.id, offset: parts.text.length }))
+      const reply = encodeURIComponent(
+        JSON.stringify({ frameAck: part.id, offset: parts.text.length }),
+      )
       this.statePanel.SetURL(`${this.stateURL}#${reply}`)
       if (parts.text.length < parts.total) {
         return false

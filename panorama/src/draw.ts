@@ -4,7 +4,16 @@
 // Panorama it is given, so a host's own interface script may draw the screens
 // it receives another way.
 
-import { Align, type Edges, Flow, Kind, type Length, type Node, type Screen, type Style } from '../../proto/modlock/ui.pb.js'
+import {
+  Align,
+  type Edges,
+  Flow,
+  Kind,
+  type Length,
+  type Node,
+  type Screen,
+  type Style,
+} from '../../proto/modlock/ui.pb.js'
 
 /** Panel is the part of a game panel the drawing uses. */
 export interface Panel {
@@ -67,7 +76,9 @@ export class Drawing {
 
   /** draw makes the panels match screen, keeping each panel whose node stays. */
   draw(screen: Screen | null): void {
-    const trees = new Map((screen?.trees ?? []).map((tree) => [tree.mod ?? '', tree.nodes ?? []]))
+    const trees = new Map(
+      (screen?.trees ?? []).map((tree) => [tree.mod ?? '', tree.nodes ?? []]),
+    )
     for (const [mod, drawn] of this.mods) {
       if (!trees.has(mod)) {
         drawn.get('')?.panel.DeleteAsync(0)
@@ -105,11 +116,10 @@ export class Drawing {
     drawn: Map<string, Drawn>,
     nodes: Map<string, Node>,
   ): Panel {
-
     // Resolve the node's id, panel type, and style.
     const id = node.id ?? ''
     const kind = node.kind ?? Kind.PANEL
-    const type = id === '' ? 'Panel' : panelTypes[kind] ?? 'Panel'
+    const type = id === '' ? 'Panel' : (panelTypes[kind] ?? 'Panel')
     const style = styleOf(node.style, id === '')
 
     // Reuse the node's panel when its type and parent stay and its style
@@ -118,12 +128,19 @@ export class Drawing {
     const old = previous.get(id)
     let panel = old?.panel
     let written = old?.style ?? {}
-    const kept = old && old.parent === parent && Object.keys(written).every((name) => name in style)
+    const kept =
+      old &&
+      old.parent === parent &&
+      Object.keys(written).every((name) => name in style)
     if (!panel || !kept || !panel.IsValid() || panel.paneltype !== type) {
       if (panel?.IsValid()) {
         panel.DeleteAsync(0)
       }
-      panel = this.panorama.CreatePanel(type, parent, id === '' ? `ModlockUi_${mod.replace(/\W/g, '_')}` : 'ModlockUiNode')
+      panel = this.panorama.CreatePanel(
+        type,
+        parent,
+        id === '' ? `ModlockUi_${mod.replace(/\W/g, '_')}` : 'ModlockUiNode',
+      )
       written = {}
       if (kind === Kind.BUTTON && id !== '') {
         panel.SetPanelEvent('onactivate', () => this.press(mod, id))
@@ -151,7 +168,14 @@ export class Drawing {
       if (!childNode || drawn.has(child) || child === '') {
         continue
       }
-      const childPanel = this.drawNode(mod, childNode, panel, previous, drawn, nodes)
+      const childPanel = this.drawNode(
+        mod,
+        childNode,
+        panel,
+        previous,
+        drawn,
+        nodes,
+      )
       if (last) {
         panel.MoveChildAfter(childPanel, last)
       } else if (panel.GetChild(0) && panel.GetChild(0) !== childPanel) {
@@ -169,7 +193,9 @@ export class Drawing {
     } catch (error) {
       if (!refused.has(name)) {
         refused.add(name)
-        this.panorama.Msg(`[Modlock] the game refused the style ${name}: ${String(error)}`)
+        this.panorama.Msg(
+          `[Modlock] the game refused the style ${name}: ${String(error)}`,
+        )
       }
     }
   }
@@ -183,12 +209,22 @@ const aligns: Record<Align, [string, string]> = {
 }
 
 /** styleOf returns the style properties to write; a root fills the screen by default. */
-function styleOf(style: Style | undefined, root: boolean): Record<string, string> {
+function styleOf(
+  style: Style | undefined,
+  root: boolean,
+): Record<string, string> {
   const css: Record<string, string | null> = {
     width: length(style?.width) ?? (root ? '100%' : null),
     height: length(style?.height) ?? (root ? '100%' : null),
-    flowChildren: style?.flow === Flow.DOWN ? 'down' : style?.flow === Flow.RIGHT ? 'right' : null,
-    horizontalAlign: style?.horizontalAlign ? aligns[style.horizontalAlign][0] : null,
+    flowChildren:
+      style?.flow === Flow.DOWN
+        ? 'down'
+        : style?.flow === Flow.RIGHT
+          ? 'right'
+          : null,
+    horizontalAlign: style?.horizontalAlign
+      ? aligns[style.horizontalAlign][0]
+      : null,
     verticalAlign: style?.verticalAlign ? aligns[style.verticalAlign][1] : null,
     margin: edges(style?.margin),
     padding: edges(style?.padding),
@@ -197,10 +233,17 @@ function styleOf(style: Style | undefined, root: boolean): Record<string, string
     fontSize: style?.fontSize ? `${finite(style.fontSize)}px` : null,
     fontWeight: style?.bold ? 'bold' : null,
     textAlign: style?.textAlign ? aligns[style.textAlign][0] : null,
-    borderRadius: style?.borderRadius ? `${finite(style.borderRadius)}px` : null,
-    opacity: style?.opacity === undefined ? null : String(clamp(style.opacity, 0, 1)),
+    borderRadius: style?.borderRadius
+      ? `${finite(style.borderRadius)}px`
+      : null,
+    opacity:
+      style?.opacity === undefined ? null : String(clamp(style.opacity, 0, 1)),
   }
-  return Object.fromEntries(Object.entries(css).filter((entry): entry is [string, string] => entry[1] !== null))
+  return Object.fromEntries(
+    Object.entries(css).filter(
+      (entry): entry is [string, string] => entry[1] !== null,
+    ),
+  )
 }
 
 /** refused holds the style properties the game refused, each logged once. */

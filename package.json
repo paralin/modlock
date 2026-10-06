@@ -2,10 +2,23 @@
   "name": "modlock",
   "private": true,
   "scripts": {
-    "gen": "./scripts/gen-proto.sh --language ts"
+    "gen": "./scripts/gen-proto.sh --language ts",
+    "prepare": "sh scripts/install-hooks.sh",
+    "typecheck": "tsgo --noEmit -p js/tsconfig.json && tsgo --noEmit -p panorama/tsconfig.json && tsgo --noEmit -p scripts/tsconfig.json",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt",
+    "test": "bun test --timeout 30000 ./panorama/"
   },
   "devDependencies": {
     "@aptre/protobuf-es-lite": "1.1.1",
-    "@typescript/native-preview": "7.0.0-dev.20260707.2"
-  }
+    "@babel/parser": "7.29.8",
+    "@babel/types": "7.29.8",
+    "@types/bun": "1.3.14",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
+    "oxlint-tsgolint": "7.0.2001"
+  },
+  "type": "module"
 }

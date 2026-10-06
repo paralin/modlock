@@ -3,9 +3,7 @@
     "target": "es2023",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": [
-      "es2023"
-    ],
+    "lib": ["es2023"],
     "types": [],
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -14,9 +12,7 @@
     "outDir": "../.tmp/js-types",
     "rootDir": "..",
     "paths": {
-      "modlock": [
-        "./src/index.ts"
-      ]
+      "modlock": ["./src/index.ts"]
     }
   },
   "files": [

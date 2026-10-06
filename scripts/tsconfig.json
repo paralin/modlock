@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2023",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": ["es2020"],
+    "lib": ["es2023"],
     "types": ["bun"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["*.ts", "../oxlint.config.ts"]
 }

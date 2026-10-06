@@ -76,13 +76,13 @@ where the game runs. With `--json`, a program such as an editor sends each
 line of input as a `modlock.cli.Input`, a command or a button press, and
 draws the interface from the events.
 
-| Command | Effect |
-| --- | --- |
-| `modlock new DIR` | Create a mod project named after `DIR`, in Go, or with `--language` in `typescript`, `javascript`, `luau` or `python`. |
-| `modlock build` | Check the mod and write the built mod to `build/`. |
-| `modlock dev` | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox. |
-| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game. |
-| `modlock publish` | Build and check the mod, then publish it. |
+| Command                 | Effect                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `modlock new DIR`       | Create a mod project named after `DIR`, in Go, or with `--language` in `typescript`, `javascript`, `luau` or `python`. |
+| `modlock build`         | Check the mod and write the built mod to `build/`.                                                                     |
+| `modlock dev`           | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox.           |
+| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game.                                      |
+| `modlock publish`       | Build and check the mod, then publish it.                                                                              |
 
 `--no-game` runs only the server, `--port` changes its UDP port, and each
 `--arg VALUE` passes an argument to the mods' start handlers. Set
@@ -152,11 +152,11 @@ loads a mod: the module may import only the Modlock and WASI functions, and it
 must start and answer its first event within the time and memory limits. A mod
 that passes then goes where `--to` names:
 
-| `--to` | Effect |
-| --- | --- |
+| `--to`      | Effect                                                                                                                                                                                                                             |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `hyperline` | Upload the mod to [hyperline.gg](https://hyperline.gg), the default. The first publish opens the browser to sign in; the session is saved in the user configuration directory. `--origin` names another service with the same API. |
-| `archive` | Write `SLUG-VERSION.zip` to `--out`: the mod, `modlock.exe` and `Play.cmd`, which players unpack and run on Windows. |
-| `github` | Attach that zip to the GitHub release `SLUG-vVERSION` of the project's repository, creating the release if needed. It uses the [`gh`](https://cli.github.com) command line and its sign-in. |
+| `archive`   | Write `SLUG-VERSION.zip` to `--out`: the mod, `modlock.exe` and `Play.cmd`, which players unpack and run on Windows.                                                                                                               |
+| `github`    | Attach that zip to the GitHub release `SLUG-vVERSION` of the project's repository, creating the release if needed. It uses the [`gh`](https://cli.github.com) command line and its sign-in.                                        |
 
 A release carries the built `mod.json` and its entry. Hyperline publishes
 each version once, so raise `version` in `mod.json` before publishing again.
@@ -173,34 +173,34 @@ GOOS=wasip1 GOARCH=wasm go build -buildmode=c-shared -o mod.wasm .
 
 The [`mod`](mod) package offers:
 
-| Call | Effect |
-| --- | --- |
-| `mod.Command(name, handler)` | Run `handler` when a player types `/name` in chat. |
-| `mod.OnFrame(handler)` | Run `handler` once per server frame. |
-| `mod.OnStart(handler)` | Run `handler` when the server starts the mod, with the arguments after `--`. |
-| `mod.OnWorld(handler)` | Run `handler` with the map's name each time a world has loaded. |
-| `mod.Log(...)` | Write a line to the server log under the mod's name. |
-| `mod.ServerCommand(line)` | Run a line at the server console. |
-| `mod.Players()` | List the connected players and bots. |
-| `player.Chat(text)`, `player.CenterText(text)`, `player.Announce(title, text)` | Show text to one player. |
-| `player.Pawn()` | Read the player's hero: health, team, position, aim and stamina. |
-| `player.SelectHero`, `Respawn`, `ClearItems`, `Freeze`, `RestoreStamina`, `RefreshAbility`, `Teleport` | Control the player's hero. |
-| `mod.BlockInput(buttons)`, `player.BlockInput(buttons)`, `player.Press(buttons)` | Withhold buttons from every hero or one, or press them for one. |
-| `mod.RemapInput(from, to, repeat)` | Make one button act as another for every hero. |
-| `mod.CreateModel`, `mod.CreateText` | Place a model or floating text; move, retext or remove it later. |
-| `mod.LoadSpot(spot)`, `mod.EncodeSpot`, `mod.DecodeSpot` | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document. |
-| `mod.AddBot`, `mod.RemoveBot` | Add or remove a bot player. |
-| `mod.Precache(options)` | Load heroes and resources with the next world. |
-| `player.Abilities()`, `SetAbility` | Read the hero's abilities, or set one's upgrades and charges. |
-| `player.GiveItem`, `ReplaceAbility`, `HoldModifier` | Give the hero an item, swap an ability slot, or keep an ability's modifier on the hero. |
-| `mod.ModifierState(entity, state)`, `mod.HoldModifierState(entity, state, active)` | Report whether an entity has a modifier state, or hold one on it. |
-| `mod.ReadField(entity, class, field, type)` | Read any schema field of a live entity by name. |
-| `mod.MoveEntity`, `mod.EmitSound` | Move an entity and set its velocity, or play a sound on it. |
-| `player.Kill()`, `SetVelocity`, `Buttons()` | Kill the hero, set its velocity, or read the buttons it holds. |
-| `player.WatchMovement(true)` | Add the hero's movement state and the game's movement facts, such as landings and wall jumps, to each new tick's frame event. |
-| `mod.WatchProjectiles(options)`, `mod.OnLaunch`, `mod.OnImpact` | Watch projectiles by name: see each one's first frame and decide its impact. |
-| `mod.OnLanded(handler)` | Run `handler` when a hero lands under the manifest's movement model. |
-| `mod.CallService(service, method, payload)`, `mod.Serve(service, handler)` | Call a service the host provides, or answer the host's calls to one the mod serves. |
+| Call                                                                                                   | Effect                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `mod.Command(name, handler)`                                                                           | Run `handler` when a player types `/name` in chat.                                                                            |
+| `mod.OnFrame(handler)`                                                                                 | Run `handler` once per server frame.                                                                                          |
+| `mod.OnStart(handler)`                                                                                 | Run `handler` when the server starts the mod, with the arguments after `--`.                                                  |
+| `mod.OnWorld(handler)`                                                                                 | Run `handler` with the map's name each time a world has loaded.                                                               |
+| `mod.Log(...)`                                                                                         | Write a line to the server log under the mod's name.                                                                          |
+| `mod.ServerCommand(line)`                                                                              | Run a line at the server console.                                                                                             |
+| `mod.Players()`                                                                                        | List the connected players and bots.                                                                                          |
+| `player.Chat(text)`, `player.CenterText(text)`, `player.Announce(title, text)`                         | Show text to one player.                                                                                                      |
+| `player.Pawn()`                                                                                        | Read the player's hero: health, team, position, aim and stamina.                                                              |
+| `player.SelectHero`, `Respawn`, `ClearItems`, `Freeze`, `RestoreStamina`, `RefreshAbility`, `Teleport` | Control the player's hero.                                                                                                    |
+| `mod.BlockInput(buttons)`, `player.BlockInput(buttons)`, `player.Press(buttons)`                       | Withhold buttons from every hero or one, or press them for one.                                                               |
+| `mod.RemapInput(from, to, repeat)`                                                                     | Make one button act as another for every hero.                                                                                |
+| `mod.CreateModel`, `mod.CreateText`                                                                    | Place a model or floating text; move, retext or remove it later.                                                              |
+| `mod.LoadSpot(spot)`, `mod.EncodeSpot`, `mod.DecodeSpot`                                               | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document.       |
+| `mod.AddBot`, `mod.RemoveBot`                                                                          | Add or remove a bot player.                                                                                                   |
+| `mod.Precache(options)`                                                                                | Load heroes and resources with the next world.                                                                                |
+| `player.Abilities()`, `SetAbility`                                                                     | Read the hero's abilities, or set one's upgrades and charges.                                                                 |
+| `player.GiveItem`, `ReplaceAbility`, `HoldModifier`                                                    | Give the hero an item, swap an ability slot, or keep an ability's modifier on the hero.                                       |
+| `mod.ModifierState(entity, state)`, `mod.HoldModifierState(entity, state, active)`                     | Report whether an entity has a modifier state, or hold one on it.                                                             |
+| `mod.ReadField(entity, class, field, type)`                                                            | Read any schema field of a live entity by name.                                                                               |
+| `mod.MoveEntity`, `mod.EmitSound`                                                                      | Move an entity and set its velocity, or play a sound on it.                                                                   |
+| `player.Kill()`, `SetVelocity`, `Buttons()`                                                            | Kill the hero, set its velocity, or read the buttons it holds.                                                                |
+| `player.WatchMovement(true)`                                                                           | Add the hero's movement state and the game's movement facts, such as landings and wall jumps, to each new tick's frame event. |
+| `mod.WatchProjectiles(options)`, `mod.OnLaunch`, `mod.OnImpact`                                        | Watch projectiles by name: see each one's first frame and decide its impact.                                                  |
+| `mod.OnLanded(handler)`                                                                                | Run `handler` when a hero lands under the manifest's movement model.                                                          |
+| `mod.CallService(service, method, payload)`, `mod.Serve(service, handler)`                             | Call a service the host provides, or answer the host's calls to one the mod serves.                                           |
 
 The [`mod/entity`](mod/entity) package has a typed class for each server
 entity class, such as `entity.NewCCitadelPlayerPawn(pawn.Entity).IHealth()`.
@@ -233,36 +233,36 @@ from its JSDoc. No Node.js or npm is needed. The server runs the bundle on
 WebAssembly, so a script mod has the same sandbox and limits as a compiled
 one.
 
-| Call | Effect |
-| --- | --- |
-| `command(name, handler)` | Run `handler` when a player types `/name` in chat. |
-| `onFrame(handler)` | Run `handler` once per server frame. |
-| `onStart(handler)` | Run `handler` when the server starts the mod, with the arguments after `--`. |
-| `onWorld(handler)` | Run `handler` with the map's name each time a world has loaded. |
-| `log(...)` and `console.log(...)` | Write a line to the server log under the mod's name. |
-| `serverCommand(line)` | Run a line at the server console. |
-| `players()` | List the connected players and bots. |
-| `player.chat(text)`, `player.centerText(text)`, `player.announce(title, text)` | Show text to one player. |
-| `player.pawn()` | Read the player's hero: health, team, position, aim and stamina. |
-| `player.selectHero`, `respawn`, `clearItems`, `freeze`, `restoreStamina`, `refreshAbility`, `teleport` | Control the player's hero. |
-| `blockInput(buttons)`, `player.blockInput(buttons)`, `player.press(buttons)` | Withhold buttons from every hero or one, or press them for one. |
-| `remapInput(from, to, repeat)` | Make one button act as another for every hero. |
-| `createModel`, `createText` | Place a model or floating text; move, retext or remove it later. |
-| `loadSpot(spot)`, `encodeSpot`, `decodeSpot` | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document. |
-| `new Dropper(catalog, spot)` | Let players build a spot while they play: pick an object, aim a preview, drop, move, delete and undo. |
-| `addBot`, `removeBot` | Add or remove a bot player. |
-| `precache({heroes, resources})` | Load heroes and resources with the next world. |
-| `player.abilities()`, `setAbility` | Read the hero's abilities, or set one's upgrades and charges. |
-| `player.giveItem`, `replaceAbility`, `holdModifier` | Give the hero an item, swap an ability slot, or keep an ability's modifier on the hero. |
-| `modifierState(entity, state)`, `holdModifierState(entity, state, active)` | Report whether an entity has a modifier state, or hold one on it. |
-| `readField(entity, class, field, type)` | Read any schema field of a live entity by name. |
-| `moveEntity`, `emitSound` | Move an entity and set its velocity, or play a sound on it. |
-| `player.kill()`, `setVelocity`, `buttons()` | Kill the hero, set its velocity, or read the buttons it holds. |
-| `player.watchMovement(true)` | Add the hero's movement state and the game's movement facts, such as landings and wall jumps, to each new tick's frame event. |
-| `watchProjectiles(options)`, `onLaunch`, `onImpact` | Watch projectiles by name: see each one's first frame and decide its impact. |
-| `onLanded(handler)` | Run `handler` when a hero lands under the manifest's movement model. |
-| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it. |
-| `callService(service, method, payload)`, `serve(service, handler)` | Call a service the host provides, or answer the host's calls to one the mod serves. |
+| Call                                                                                                   | Effect                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `command(name, handler)`                                                                               | Run `handler` when a player types `/name` in chat.                                                                            |
+| `onFrame(handler)`                                                                                     | Run `handler` once per server frame.                                                                                          |
+| `onStart(handler)`                                                                                     | Run `handler` when the server starts the mod, with the arguments after `--`.                                                  |
+| `onWorld(handler)`                                                                                     | Run `handler` with the map's name each time a world has loaded.                                                               |
+| `log(...)` and `console.log(...)`                                                                      | Write a line to the server log under the mod's name.                                                                          |
+| `serverCommand(line)`                                                                                  | Run a line at the server console.                                                                                             |
+| `players()`                                                                                            | List the connected players and bots.                                                                                          |
+| `player.chat(text)`, `player.centerText(text)`, `player.announce(title, text)`                         | Show text to one player.                                                                                                      |
+| `player.pawn()`                                                                                        | Read the player's hero: health, team, position, aim and stamina.                                                              |
+| `player.selectHero`, `respawn`, `clearItems`, `freeze`, `restoreStamina`, `refreshAbility`, `teleport` | Control the player's hero.                                                                                                    |
+| `blockInput(buttons)`, `player.blockInput(buttons)`, `player.press(buttons)`                           | Withhold buttons from every hero or one, or press them for one.                                                               |
+| `remapInput(from, to, repeat)`                                                                         | Make one button act as another for every hero.                                                                                |
+| `createModel`, `createText`                                                                            | Place a model or floating text; move, retext or remove it later.                                                              |
+| `loadSpot(spot)`, `encodeSpot`, `decodeSpot`                                                           | Place a spot's solid objects on the running map, launch heroes from its bounce pads, and save it as a compact document.       |
+| `new Dropper(catalog, spot)`                                                                           | Let players build a spot while they play: pick an object, aim a preview, drop, move, delete and undo.                         |
+| `addBot`, `removeBot`                                                                                  | Add or remove a bot player.                                                                                                   |
+| `precache({heroes, resources})`                                                                        | Load heroes and resources with the next world.                                                                                |
+| `player.abilities()`, `setAbility`                                                                     | Read the hero's abilities, or set one's upgrades and charges.                                                                 |
+| `player.giveItem`, `replaceAbility`, `holdModifier`                                                    | Give the hero an item, swap an ability slot, or keep an ability's modifier on the hero.                                       |
+| `modifierState(entity, state)`, `holdModifierState(entity, state, active)`                             | Report whether an entity has a modifier state, or hold one on it.                                                             |
+| `readField(entity, class, field, type)`                                                                | Read any schema field of a live entity by name.                                                                               |
+| `moveEntity`, `emitSound`                                                                              | Move an entity and set its velocity, or play a sound on it.                                                                   |
+| `player.kill()`, `setVelocity`, `buttons()`                                                            | Kill the hero, set its velocity, or read the buttons it holds.                                                                |
+| `player.watchMovement(true)`                                                                           | Add the hero's movement state and the game's movement facts, such as landings and wall jumps, to each new tick's frame event. |
+| `watchProjectiles(options)`, `onLaunch`, `onImpact`                                                    | Watch projectiles by name: see each one's first frame and decide its impact.                                                  |
+| `onLanded(handler)`                                                                                    | Run `handler` when a hero lands under the manifest's movement model.                                                          |
+| `show(player, element)`, `hide(player)`                                                                | Show a player an interface written in JSX, or remove it.                                                                      |
+| `callService(service, method, payload)`, `serve(service, handler)`                                     | Call a service the host provides, or answer the host's calls to one the mod serves.                                           |
 
 `modlock/entities` has a typed class for each server entity class, such as
 `new CCitadelPlayerPawn(pawn.entity).m_iHealth`; a mod's bundle keeps only
@@ -281,12 +281,13 @@ An interface is JSX in a `.tsx` file, built from four elements: `panel`,
 properties:
 
 ```tsx
-show(player, (
+show(
+  player,
   <panel style={{ flow: 'down', horizontalAlign: 'center', margin: [80, 0] }}>
     <label style={{ fontSize: 32, bold: true }}>Round {round}</label>
     <button onPress={(player) => ready(player)}>Ready</button>
-  </panel>
-))
+  </panel>,
+)
 ```
 
 `show` sends only what changed since the last call, so a mod may call it on
@@ -378,11 +379,11 @@ build interfaces or use typed entity classes.
 A mod is a WASI preview 1 reactor module. It imports two functions and exports
 one:
 
-| Name | Direction | Meaning |
-| --- | --- | --- |
-| `modlock.host_call(ptr, len) -> len` | mod to host | Hand the host an encoded `Call`; returns the length of the encoded `Reply`. |
-| `modlock.host_read(ptr, len)` | mod to host | Copy the host's pending message, a `Call` or a `Reply`, into mod memory. |
-| `modlock_event(len) -> i64` | host to mod | Deliver a `Call` of `len` bytes, which the mod copies with `host_read`. Returns the address and length of the encoded `Reply`, packed as `address << 32 \| length`, or zero for an empty reply. |
+| Name                                 | Direction   | Meaning                                                                                                                                                                                         |
+| ------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modlock.host_call(ptr, len) -> len` | mod to host | Hand the host an encoded `Call`; returns the length of the encoded `Reply`.                                                                                                                     |
+| `modlock.host_read(ptr, len)`        | mod to host | Copy the host's pending message, a `Call` or a `Reply`, into mod memory.                                                                                                                        |
+| `modlock_event(len) -> i64`          | host to mod | Deliver a `Call` of `len` bytes, which the mod copies with `host_read`. Returns the address and length of the encoded `Reply`, packed as `address << 32 \| length`, or zero for an empty reply. |
 
 The calls are in [`proto/modlock/wasm.proto`](proto/modlock/wasm.proto). A
 `Call` names one method of the `Host` service, when a mod calls the game, or
@@ -469,6 +470,13 @@ writes, such as the `DumpSource2/schemas` directory of
 scripts/gen-entities.sh path/to/DumpSource2/schemas
 ```
 
+`bun install` installs a pre-commit hook. The hook formats the staged files
+with oxfmt and restages them. It then checks the staged TypeScript for commented
+code paragraphs with `scripts/tsstyle.ts` and lints it with type-aware oxlint.
+`bun run typecheck`, `bun run lint`, `bun run format` and `bun run test` run the
+same tools across the repository. Lint the example mods after
+`go run ./cmd/modlock build examples/<mod>` installs their typings.
+
 ## Native plugins
 
 Native C++ plugins extend the host itself: new engine hooks, new host calls for
@@ -531,18 +539,18 @@ modlock-host --check-plugin --plugin <hello library>
 modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 ```
 
-| Option | Effect |
-| --- | --- |
-| `--plugin PATH` | Load a built mod (a directory with `mod.json`, or a `.wasm` file) or a plugin library; repeat for several. |
-| `--control ADDRESS` | Report mod starts, logs, failures and player joins to the controller at `ADDRESS`, and take reloads from it. The `modlock` command line uses it. |
-| `--settings PATH` | Keep players' mod settings in the JSON file at `PATH`; without it they last for the run. A native plugin may keep them instead. |
-| `--check-plugin` | Load, start, and stop the plugins without opening game modules. |
-| `--game-dir DIR` | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`). |
-| `--map NAME` | Start on `NAME` (default `dl_midtown`). |
-| `--hostport PORT` | Serve on UDP `PORT` (default 27067). |
-| `--connect ADDRESS` | Run a client that joins `ADDRESS`, with the plugin loaded in the client. |
-| `--engine-args ARGS` | Append engine command-line arguments in either role. |
-| `-- ARGS` | Pass the remaining arguments to the plugin. |
+| Option               | Effect                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--plugin PATH`      | Load a built mod (a directory with `mod.json`, or a `.wasm` file) or a plugin library; repeat for several.                                       |
+| `--control ADDRESS`  | Report mod starts, logs, failures and player joins to the controller at `ADDRESS`, and take reloads from it. The `modlock` command line uses it. |
+| `--settings PATH`    | Keep players' mod settings in the JSON file at `PATH`; without it they last for the run. A native plugin may keep them instead.                  |
+| `--check-plugin`     | Load, start, and stop the plugins without opening game modules.                                                                                  |
+| `--game-dir DIR`     | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`).                                                                 |
+| `--map NAME`         | Start on `NAME` (default `dl_midtown`).                                                                                                          |
+| `--hostport PORT`    | Serve on UDP `PORT` (default 27067).                                                                                                             |
+| `--connect ADDRESS`  | Run a client that joins `ADDRESS`, with the plugin loaded in the client.                                                                         |
+| `--engine-args ARGS` | Append engine command-line arguments in either role.                                                                                             |
+| `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
 
 Clients run with `-insecure` and cannot join VAC-secured servers. See
 `modlock-host --help` for every option.
