@@ -94,6 +94,7 @@ type GameSignature struct {
 	// entry resolves to the first matched byte, usually a function entry.
 	//
 	// Types that are assignable to Target:
+	//
 	//	*GameSignature_CallAt
 	//	*GameSignature_RipRelativeAt
 	Target isGameSignature_Target `protobuf_oneof:"target"`

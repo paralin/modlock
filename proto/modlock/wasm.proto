@@ -156,6 +156,11 @@ service Host {
   // follows the hero.
   rpc Teleport(TeleportRequest) returns (Empty);
 
+  // MovePlayer carries the player's hero to a position as continuous motion,
+  // as a recording plays back. Unlike Teleport it keeps the hero's animated
+  // model drawn when repeated every tick, and leaves the camera alone.
+  rpc MovePlayer(MovePlayerRequest) returns (Empty);
+
   // AdjustSouls gives the player delta souls, or takes them when delta is
   // negative. A spend larger than the player's souls fails and spends
   // nothing. Silent skips the pickup's sound and number.
@@ -1087,6 +1092,20 @@ message TeleportRequest {
   modlock.EulerAngles facing = 3;
 
   // Velocity replaces the hero's motion when present.
+  optional modlock.Vec3 velocity = 4;
+}
+
+// MovePlayerRequest moves one player's hero a step.
+message MovePlayerRequest {
+  int32 player = 1;
+
+  // Position is the hero's new origin.
+  modlock.Vec3 position = 2;
+
+  // Facing is where the hero aims; the body turns only by its yaw.
+  modlock.EulerAngles facing = 3;
+
+  // Velocity is the hero's motion, which drives its run animation.
   optional modlock.Vec3 velocity = 4;
 }
 

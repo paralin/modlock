@@ -447,6 +447,17 @@ std::expected<gameinterop::TeleportClientCamera, std::string> GameServices::Tele
   return teleport_;
 }
 
+std::expected<const gameinterop::PawnMotion*, std::string> GameServices::Motion() {
+  if (!motion_) {
+    auto image = Image();
+    if (!image) return std::unexpected(image.error());
+    auto motion = gameinterop::ResolvePawnMotion(**image);
+    if (!motion) return std::unexpected(motion.error());
+    motion_ = *motion;
+  }
+  return &*motion_;
+}
+
 std::expected<const gameinterop::BotCreation*, std::string> GameServices::Bots() {
   if (!bots_) {
     auto image = Image();
@@ -1265,6 +1276,26 @@ std::expected<void, std::string> Game::Teleport(const TeleportRequest& request) 
 
   // A teleport recomputes the hero's modifier states, dropping held ones.
   ApplyHolds();
+  return {};
+}
+
+std::expected<void, std::string> Game::MovePlayer(const MovePlayerRequest& request) {
+  auto motion = services_.Motion();
+  if (!motion) return std::unexpected(motion.error());
+  const auto slot = request.player();
+  if (auto sample = Live(slot); !sample) return std::unexpected(sample.error());
+  const auto position = Floats(request.position());
+  const auto facing = Floats(request.facing());
+  const auto velocity = Floats(request.velocity());
+
+  // The aim takes the whole facing; tilting the body by pitch would lean the
+  // whole hero.
+  if (auto aimed = observer_.SetEyeAngles(slot, facing); !aimed) return aimed;
+  auto* pawn = observer_.PawnForSlot(slot);
+  const std::array<float, 3> body{0, facing[1], 0};
+  (*motion)->set_angles(pawn, body.data());
+  (*motion)->set_velocity(pawn, velocity.data());
+  (*motion)->set_origin(pawn, position.data());
   return {};
 }
 

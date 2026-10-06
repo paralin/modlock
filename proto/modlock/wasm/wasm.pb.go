@@ -2061,6 +2061,7 @@ type SelectHeroRequest struct {
 	// Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
+	//
 	//	*SelectHeroRequest_HeroName
 	//	*SelectHeroRequest_HeroId
 	Hero isSelectHeroRequest_Hero `protobuf_oneof:"hero"`
@@ -2579,6 +2580,52 @@ func (x *TeleportRequest) GetFacing() *modlock.EulerAngles {
 }
 
 func (x *TeleportRequest) GetVelocity() *modlock.Vec3 {
+	if x != nil {
+		return x.Velocity
+	}
+	return nil
+}
+
+// MovePlayerRequest moves one player's hero a step.
+type MovePlayerRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Position is the hero's new origin.
+	Position *modlock.Vec3 `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// Facing is where the hero aims; the body turns only by its yaw.
+	Facing *modlock.EulerAngles `protobuf:"bytes,3,opt,name=facing,proto3" json:"facing,omitempty"`
+	// Velocity is the hero's motion, which drives its run animation.
+	Velocity *modlock.Vec3 `protobuf:"bytes,4,opt,name=velocity,proto3,oneof" json:"velocity,omitempty"`
+}
+
+func (x *MovePlayerRequest) Reset() {
+	*x = MovePlayerRequest{}
+}
+
+func (*MovePlayerRequest) ProtoMessage() {}
+
+func (x *MovePlayerRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *MovePlayerRequest) GetPosition() *modlock.Vec3 {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *MovePlayerRequest) GetFacing() *modlock.EulerAngles {
+	if x != nil {
+		return x.Facing
+	}
+	return nil
+}
+
+func (x *MovePlayerRequest) GetVelocity() *modlock.Vec3 {
 	if x != nil {
 		return x.Velocity
 	}
@@ -3319,6 +3366,7 @@ func (x *FieldResponse) GetValue() *FieldValue {
 type FieldValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
+	//
 	//	*FieldValue_Boolean
 	//	*FieldValue_Number
 	//	*FieldValue_Integer
@@ -4004,6 +4052,7 @@ type BotOptions struct {
 	// as Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
+	//
 	//	*BotOptions_HeroName
 	//	*BotOptions_HeroId
 	Hero isBotOptions_Hero `protobuf_oneof:"hero"`
@@ -6582,6 +6631,25 @@ func (m *TeleportRequest) CloneVT() *TeleportRequest {
 }
 
 func (m *TeleportRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *MovePlayerRequest) CloneVT() *MovePlayerRequest {
+	if m == nil {
+		return (*MovePlayerRequest)(nil)
+	}
+	r := new(MovePlayerRequest)
+	r.Player = m.Player
+	r.Position = protobuf_go_lite.CloneVTValue(m.Position)
+	r.Facing = protobuf_go_lite.CloneVTValue(m.Facing)
+	r.Velocity = protobuf_go_lite.CloneVTValue(m.Velocity)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *MovePlayerRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -9374,6 +9442,34 @@ func (this *TeleportRequest) EqualVT(that *TeleportRequest) bool {
 
 func (this *TeleportRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*TeleportRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *MovePlayerRequest) EqualVT(that *MovePlayerRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Position, that.Position) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Facing, that.Facing) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Velocity, that.Velocity) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *MovePlayerRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*MovePlayerRequest)
 	if !ok {
 		return false
 	}
@@ -14830,6 +14926,84 @@ func (x *TeleportRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the TeleportRequest from JSON.
 func (x *TeleportRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the MovePlayerRequest message to JSON.
+func (x *MovePlayerRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Position != nil || s.HasField("position") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("position")
+		x.Position.MarshalProtoJSON(s.WithField("position"))
+	}
+	if x.Facing != nil || s.HasField("facing") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("facing")
+		x.Facing.MarshalProtoJSON(s.WithField("facing"))
+	}
+	if x.Velocity != nil || s.HasField("velocity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("velocity")
+		x.Velocity.MarshalProtoJSON(s.WithField("velocity"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the MovePlayerRequest to JSON.
+func (x *MovePlayerRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the MovePlayerRequest message from JSON.
+func (x *MovePlayerRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "position":
+			if s.ReadNil() {
+				x.Position = nil
+				return
+			}
+			x.Position = &modlock.Vec3{}
+			x.Position.UnmarshalProtoJSON(s.WithField("position", true))
+		case "facing":
+			if s.ReadNil() {
+				x.Facing = nil
+				return
+			}
+			x.Facing = &modlock.EulerAngles{}
+			x.Facing.UnmarshalProtoJSON(s.WithField("facing", true))
+		case "velocity":
+			if s.ReadNil() {
+				x.Velocity = nil
+				return
+			}
+			x.Velocity = &modlock.Vec3{}
+			x.Velocity.UnmarshalProtoJSON(s.WithField("velocity", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the MovePlayerRequest from JSON.
+func (x *MovePlayerRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -22862,6 +23036,73 @@ func (m *TeleportRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MovePlayerRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MovePlayerRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *MovePlayerRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Velocity != nil {
+		size, err := m.Velocity.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Facing != nil {
+		size, err := m.Facing.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Position != nil {
+		size, err := m.Position.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *AdjustSoulsRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -27589,6 +27830,29 @@ func (m *TeleportRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *MovePlayerRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	if m.Position != nil {
+		l = m.Position.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Facing != nil {
+		l = m.Facing.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Velocity != nil {
+		l = m.Velocity.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *AdjustSoulsRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -30001,6 +30265,31 @@ func (x *TeleportRequest) MarshalProtoText() string {
 }
 
 func (x *TeleportRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *MovePlayerRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MovePlayerRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Position != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "position")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Position)
+	}
+	if x.Facing != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "facing")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Facing)
+	}
+	if x.Velocity != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "velocity")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Velocity)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *MovePlayerRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *AdjustSoulsRequest) MarshalProtoText() string {
@@ -35606,6 +35895,102 @@ func (m *TeleportRequest) UnmarshalVT(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: TeleportRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Position", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Position == nil {
+				m.Position = &modlock.Vec3{}
+			}
+			if err := m.Position.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Facing", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Facing == nil {
+				m.Facing = &modlock.EulerAngles{}
+			}
+			if err := m.Facing.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Velocity", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Velocity == nil {
+				m.Velocity = &modlock.Vec3{}
+			}
+			if err := m.Velocity.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MovePlayerRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MovePlayerRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MovePlayerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

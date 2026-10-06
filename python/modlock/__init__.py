@@ -1062,6 +1062,13 @@ class Player:
         """
         return _call("Teleport", "TeleportRequest", {"player": self, "position": position, "facing": facing, "velocity": velocity}) is not None
 
+    def move(self, position: Vector, facing: Angles, velocity: Vector | None = None) -> bool:
+        """move carries the player's hero to a position as continuous motion,
+        as a recording plays back. Unlike Teleport it keeps the hero's animated
+        model drawn when repeated every tick, and leaves the camera alone.
+        """
+        return _call("MovePlayer", "MovePlayerRequest", {"player": self, "position": position, "facing": facing, "velocity": velocity}) is not None
+
     def adjust_souls(self, delta: int, silent: bool | None = None) -> bool:
         """adjust_souls gives the player delta souls, or takes them when delta is
         negative. A spend larger than the player's souls fails and spends
@@ -1664,6 +1671,15 @@ _SCHEMA: wire.Schema = {
         ],
     ),
     "TeleportRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "position", "message", message="Vec3"),
+            wire.Field(3, "facing", "message", message="EulerAngles"),
+            wire.Field(4, "velocity", "message", optional=True, message="Vec3"),
+        ],
+    ),
+    "MovePlayerRequest": (
         None,
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),

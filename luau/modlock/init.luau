@@ -856,6 +856,10 @@ export type Player = {
 	-- velocity it also sets the hero's motion, as a launch, and the camera
 	-- follows the hero.
 	teleport: (self: Player, position: Vector, facing: Angles, velocity: Vector?) -> boolean,
+	-- move carries the player's hero to a position as continuous motion,
+	-- as a recording plays back. Unlike Teleport it keeps the hero's animated
+	-- model drawn when repeated every tick, and leaves the camera alone.
+	move: (self: Player, position: Vector, facing: Angles, velocity: Vector?) -> boolean,
 	-- adjustSouls gives the player delta souls, or takes them when delta is
 	-- negative. A spend larger than the player's souls fails and spends
 	-- nothing. Silent skips the pickup's sound and number.
@@ -1050,6 +1054,13 @@ end
 -- follows the hero.
 function Player.teleport(self: Player, position: Vector, facing: Angles, velocity: Vector?): boolean
 	return call("Teleport", "TeleportRequest", { player = self, position = position, facing = facing, velocity = velocity }) ~= nil
+end
+
+-- move carries the player's hero to a position as continuous motion,
+-- as a recording plays back. Unlike Teleport it keeps the hero's animated
+-- model drawn when repeated every tick, and leaves the camera alone.
+function Player.move(self: Player, position: Vector, facing: Angles, velocity: Vector?): boolean
+	return call("MovePlayer", "MovePlayerRequest", { player = self, position = position, facing = facing, velocity = velocity }) ~= nil
 end
 
 -- adjustSouls gives the player delta souls, or takes them when delta is
@@ -1567,6 +1578,12 @@ schema.GiveModifierRequest = {
 	{ number = 3, name = "seconds", kind = "float" },
 }
 schema.TeleportRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "position", kind = "message", message = "Vec3" },
+	{ number = 3, name = "facing", kind = "message", message = "EulerAngles" },
+	{ number = 4, name = "velocity", kind = "message", optional = true, message = "Vec3" },
+}
+schema.MovePlayerRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "position", kind = "message", message = "Vec3" },
 	{ number = 3, name = "facing", kind = "message", message = "EulerAngles" },

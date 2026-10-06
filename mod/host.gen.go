@@ -488,6 +488,13 @@ func (p Player) Teleport(position *Vector, facing *Angles, velocity *Vector) err
 	return invoke("Teleport", &wasm.TeleportRequest{Player: p.Slot, Position: position, Facing: facing, Velocity: velocity}, nil)
 }
 
+// Move carries the player's hero to a position as continuous motion,
+// as a recording plays back. Unlike Teleport it keeps the hero's animated
+// model drawn when repeated every tick, and leaves the camera alone.
+func (p Player) Move(position *Vector, facing *Angles, velocity *Vector) error {
+	return invoke("MovePlayer", &wasm.MovePlayerRequest{Player: p.Slot, Position: position, Facing: facing, Velocity: velocity}, nil)
+}
+
 // AdjustSouls gives the player delta souls, or takes them when delta is
 // negative. A spend larger than the player's souls fails and spends
 // nothing. Silent skips the pickup's sound and number.
