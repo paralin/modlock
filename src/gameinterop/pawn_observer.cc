@@ -8,7 +8,6 @@
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/mapped_module_image.h"
-#include "modlock/gameinterop/modifier_states.h"
 #include "modlock/gameinterop/native_damage.h"
 
 #if defined(_WIN32)
@@ -1104,48 +1103,6 @@ std::expected<void, std::string> PawnObserver::SetPreparationFrozen(int32_t slot
 #endif
 }
 
-// SetGhostVisible toggles EModifierState::DoNotDrawModel inside the pawn's
-// CModifierProperty::m_bvEnabledStateMask. Game updates renumber the states,
-// so the bit is read by name from server.dll's schema; the property pointer
-// and mask are schema-resolved, and every other state bit is preserved.
-std::expected<void, std::string> PawnObserver::SetGhostVisible(int32_t slot, bool visible) {
-#if defined(_WIN32)
-  const auto sample = Observe(slot);
-  auto* pawn = static_cast<unsigned char*>(PawnForSlot(slot));
-  if (!sample || !pawn) return std::unexpected("ghost pawn unavailable for visibility");
-  auto schema = ResolveSchemaSystem();
-  if (!schema) return std::unexpected(schema.error());
-  auto property = SchemaFieldOf(*schema, "server.dll", "CBaseEntity", "m_pModifierProp");
-  auto mask = SchemaFieldOf(*schema, "server.dll", "CModifierProperty", "m_bvEnabledStateMask");
-  if (!property || property->size != sizeof(void*) || !mask || mask->size < 24)
-    return std::unexpected("ghost modifier schema unavailable");
-  auto server = MappedModuleImage::ForModule(L"server.dll");
-  if (!server) return std::unexpected(server.error());
-  auto hidden = ModifierStateIndex(*server, "MODIFIER_STATE_DO_NOT_DRAW_MODEL");
-  if (!hidden) return std::unexpected(hidden.error());
-  const uint32_t kDoNotDrawModelState = *hidden;
-  const size_t mask_offset = mask->offset + (kDoNotDrawModelState / 32) * sizeof(uint32_t);
-  if (mask_offset + sizeof(uint32_t) > mask->offset + mask->size)
-    return std::unexpected("ghost modifier state exceeds the native state mask.");
-  unsigned char* modifier_property = nullptr;
-  std::memcpy(&modifier_property, pawn + property->offset, sizeof(modifier_property));
-  if (!modifier_property) return std::unexpected("ghost modifier property unavailable");
-  uint32_t state = 0;
-  std::memcpy(&state, modifier_property + mask_offset, sizeof(state));
-  const uint32_t desired = visible ? state & ~(uint32_t{1} << (kDoNotDrawModelState % 32))
-                                   : state | (uint32_t{1} << (kDoNotDrawModelState % 32));
-  if (state == desired) return {};
-  std::memcpy(modifier_property + mask_offset, &desired, sizeof(desired));
-  if (!NotifyEntityStateChanged(pawn))
-    return std::unexpected("ghost visibility replication unavailable");
-  return {};
-#else
-  (void)slot;
-  (void)visible;
-  return std::unexpected("ghost visibility control requires Windows");
-#endif
-}
-
 std::optional<std::array<float, 3>> PawnObserver::CurrentOriginForSlot(int32_t slot) const {
   if (frame_slot_ != slot || frame_pawn_ == nullptr || !offsets_ok_) {
     return std::nullopt;
@@ -1563,6 +1520,21 @@ std::expected<TeleportClientCamera, std::string> ResolveTeleportClientCamera(
   return reinterpret_cast<TeleportClientCamera>(*address);
 }
 
+std::expected<PawnMotion, std::string> ResolvePawnMotion(const ModuleImage& server) {
+  PawnMotion motion{};
+  const std::pair<const char*, void (**)(void*, const float*)> setters[] = {
+      {"entity.set-abs-origin", &motion.set_origin},
+      {"entity.set-abs-angles", &motion.set_angles},
+      {"entity.set-abs-velocity", &motion.set_velocity},
+  };
+  for (const auto& [id, setter] : setters) {
+    auto address = ResolveSignature(server, id);
+    if (!address) return std::unexpected(address.error());
+    *setter = reinterpret_cast<void (*)(void*, const float*)>(*address);
+  }
+  return motion;
+}
+
 std::expected<ItemFunctions, std::string> ItemFunctions::Resolve(const ModuleImage& server) {
   auto add = ResolveSignature(server, "pawn.add-item");
   if (!add) return std::unexpected(add.error());
@@ -1692,8 +1664,8 @@ std::expected<void, std::string> PawnObserver::ReconcileItems(int32_t slot,
       // rather than that pointer, determines whether the grant took effect.
       // The upgrade value's low word holds the initial upgrade bits and its
       // high dword the packed low word of m_nUpgradeInfo.
-      const uint64_t upgrade = (uint64_t{targets[i].upgrade_info & 0xffffu} << 32) |
-                               (targets[i].upgrade_info >> 16);
+      const uint64_t upgrade =
+          (uint64_t{targets[i].upgrade_info & 0xffffu} << 32) | (targets[i].upgrade_info >> 16);
       functions.add(frame_pawn_, names[i].c_str(), upgrade, nullptr);
       items = read_items();
       if (!items) return std::unexpected(items.error());

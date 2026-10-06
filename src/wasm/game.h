@@ -97,6 +97,7 @@ class GameServices {
   std::expected<gameinterop::CreateAbility, std::string> CreateAbility();
   std::expected<gameinterop::RespawnPawn, std::string> Respawn();
   std::expected<gameinterop::TeleportClientCamera, std::string> Teleport();
+  std::expected<const gameinterop::PawnMotion*, std::string> Motion();
   std::expected<const gameinterop::BotCreation*, std::string> Bots();
   std::expected<render::WorldTextGameFactory*, std::string> Text();
   std::expected<render::WorldEffectGameFactory*, std::string> Effects();
@@ -139,6 +140,7 @@ class GameServices {
   gameinterop::CreateAbility create_ability_ = nullptr;
   gameinterop::RespawnPawn respawn_ = nullptr;
   gameinterop::TeleportClientCamera teleport_ = nullptr;
+  std::optional<gameinterop::PawnMotion> motion_;
   std::optional<gameinterop::BotCreation> bots_;
   std::unique_ptr<render::WorldTextGameFactory> text_;
   std::unique_ptr<render::WorldEffectGameFactory> effects_;
@@ -286,6 +288,7 @@ class Game : public HostService {
   std::expected<void, std::string> HoldModifier(const HoldModifierRequest& request) override;
   std::expected<void, std::string> GiveModifier(const GiveModifierRequest& request) override;
   std::expected<void, std::string> Teleport(const TeleportRequest& request) override;
+  std::expected<void, std::string> MovePlayer(const MovePlayerRequest& request) override;
   std::expected<void, std::string> AdjustSouls(const AdjustSoulsRequest& request) override;
   std::expected<void, std::string> StartingSouls(const StartingSoulsRequest& request) override;
   std::expected<void, std::string> Heal(const HealRequest& request) override;

@@ -46,6 +46,17 @@ using TeleportClientCamera = void (*)(void*, void*, const float*, const float*);
 [[nodiscard]] MODLOCK_API std::expected<TeleportClientCamera, std::string>
 ResolveTeleportClientCamera(const ModuleImage& server);
 
+// PawnMotion holds the absolute-state setters the inner Teleport calls.
+// Calling them directly moves an entity continuously: a Teleport every frame
+// hides an animated hero model.
+struct PawnMotion {
+  void (*set_origin)(void*, const float*);
+  void (*set_angles)(void*, const float*);
+  void (*set_velocity)(void*, const float*);
+};
+[[nodiscard]] MODLOCK_API std::expected<PawnMotion, std::string> ResolvePawnMotion(
+    const ModuleImage& server);
+
 // RestorePawnHealth restores the network health fields and requests replication.
 // The calculated maximum remains owned by engine progression and modifiers.
 // A zero network maximum is valid for pawns with a calculated maximum.
@@ -386,11 +397,6 @@ class MODLOCK_API PawnObserver {
   // SetPreparationFrozen holds input, native movement, and damage on the current
   // pawn. Release restores the acquired pawn's movement mode and damage setting.
   std::expected<void, std::string> SetPreparationFrozen(int32_t slot, bool frozen);
-
-  // SetGhostVisible toggles the DoNotDrawModel modifier state bit on this
-  // connection's current pawn, preserving every other modifier state. Fails
-  // closed: an unresolvable modifier schema is an error, never a guessed write.
-  std::expected<void, std::string> SetGhostVisible(int32_t slot, bool visible);
 
   // AdjustSouls adds delta souls to the slot's wallet, or spends -delta. A
   // spend larger than the balance fails without changing it. A visible grant

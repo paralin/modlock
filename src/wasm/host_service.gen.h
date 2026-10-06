@@ -210,6 +210,13 @@ class HostService {
     return std::unexpected("this host does not support Teleport");
   }
 
+  // MovePlayer carries the player's hero to a position as continuous motion,
+  // as a recording plays back. Unlike Teleport it keeps the hero's animated
+  // model drawn when repeated every tick, and leaves the camera alone.
+  virtual std::expected<void, std::string> MovePlayer(const MovePlayerRequest& /*request*/) {
+    return std::unexpected("this host does not support MovePlayer");
+  }
+
   // AdjustSouls gives the player delta souls, or takes them when delta is
   // negative. A spend larger than the player's souls fails and spends
   // nothing. Silent skips the pickup's sound and number.
@@ -741,6 +748,14 @@ class HostService {
              return detail::Fail("the Teleport request is malformed");
            }
            return detail::Answer(host.Teleport(request));
+         }},
+        {"MovePlayer",
+         [](HostService& host, const std::string& bytes) {
+           MovePlayerRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the MovePlayer request is malformed");
+           }
+           return detail::Answer(host.MovePlayer(request));
          }},
         {"AdjustSouls",
          [](HostService& host, const std::string& bytes) {

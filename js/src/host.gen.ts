@@ -1395,6 +1395,15 @@ export class Player {
   }
 
   /**
+   * move carries the player's hero to a position as continuous motion,
+   * as a recording plays back. Unlike Teleport it keeps the hero's animated
+   * model drawn when repeated every tick, and leaves the camera alone.
+   */
+  move(position: Vector, facing: Angles, velocity?: Vector): boolean {
+    return call('MovePlayer', pb.MovePlayerRequest.toBinary({ player: this.slot, position, facing, velocity })) !== undefined
+  }
+
+  /**
    * adjustSouls gives the player delta souls, or takes them when delta is
    * negative. A spend larger than the player's souls fails and spends
    * nothing. Silent skips the pickup's sound and number.

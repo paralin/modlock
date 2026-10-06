@@ -2491,6 +2491,48 @@ export const TeleportRequest: MessageType<TeleportRequest> = /* @__PURE__ */ cre
 });
 
 /**
+ * MovePlayerRequest moves one player's hero a step.
+ *
+ * @generated from message modlock.wasm.MovePlayerRequest
+ */
+export interface MovePlayerRequest {
+  /**
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Position is the hero's new origin.
+   *
+   * @generated from field: modlock.Vec3 position = 2;
+   */
+  position?: Vec3;
+  /**
+   * Facing is where the hero aims; the body turns only by its yaw.
+   *
+   * @generated from field: modlock.EulerAngles facing = 3;
+   */
+  facing?: EulerAngles;
+  /**
+   * Velocity is the hero's motion, which drives its run animation.
+   *
+   * @generated from field: optional modlock.Vec3 velocity = 4;
+   */
+  velocity?: Vec3;
+
+};
+
+export const MovePlayerRequest: MessageType<MovePlayerRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.MovePlayerRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "position", kind: "message", T: () => Vec3 },
+        { no: 3, name: "facing", kind: "message", T: () => EulerAngles },
+        { no: 4, name: "velocity", kind: "message", T: () => Vec3, opt: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * AdjustSoulsRequest changes one player's souls.
  *
  * @generated from message modlock.wasm.AdjustSoulsRequest
