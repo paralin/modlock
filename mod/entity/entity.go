@@ -405,6 +405,11 @@ func (e CAI_GoalEntity) FStartActive() Bool {
 	return Bool{Field{e.Handle, "CAI_GoalEntity", "m_fStartActive", mod.FieldTypeBool}}
 }
 
+// SearchType is m_SearchType.
+func (e CAI_GoalEntity) SearchType() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CAI_GoalEntity", "m_SearchType", mod.FieldTypeUint32}}
+}
+
 // IszConceptModifiers is m_iszConceptModifiers.
 func (e CAI_GoalEntity) IszConceptModifiers() Text {
 	return Text{Field{e.Handle, "CAI_GoalEntity", "m_iszConceptModifiers", mod.FieldTypeString}}
@@ -3470,6 +3475,11 @@ func (e CPhysicsProp) BMuteImpactEffects() Bool {
 	return Bool{Field{e.Handle, "CPhysicsProp", "m_bMuteImpactEffects", mod.FieldTypeBool}}
 }
 
+// NNavObstacleType is m_nNavObstacleType.
+func (e CPhysicsProp) NNavObstacleType() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CPhysicsProp", "m_nNavObstacleType", mod.FieldTypeUint32}}
+}
+
 // BUpdateNavWhenMoving is m_bUpdateNavWhenMoving.
 func (e CPhysicsProp) BUpdateNavWhenMoving() Bool {
 	return Bool{Field{e.Handle, "CPhysicsProp", "m_bUpdateNavWhenMoving", mod.FieldTypeBool}}
@@ -3488,6 +3498,11 @@ func (e CPhysicsProp) BAcceptDamageFromHeldObjects() Bool {
 // BEnableUseOutput is m_bEnableUseOutput.
 func (e CPhysicsProp) BEnableUseOutput() Bool {
 	return Bool{Field{e.Handle, "CPhysicsProp", "m_bEnableUseOutput", mod.FieldTypeBool}}
+}
+
+// CrateType is m_CrateType.
+func (e CPhysicsProp) CrateType() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CPhysicsProp", "m_CrateType", mod.FieldTypeUint32}}
 }
 
 // BRemovableForAmmoBalancing is m_bRemovableForAmmoBalancing.
@@ -5313,6 +5328,11 @@ func (e CRagdollProp) AllAsleep() Bool {
 // BFirstCollisionAfterLaunch is m_bFirstCollisionAfterLaunch.
 func (e CRagdollProp) BFirstCollisionAfterLaunch() Bool {
 	return Bool{Field{e.Handle, "CRagdollProp", "m_bFirstCollisionAfterLaunch", mod.FieldTypeBool}}
+}
+
+// NNavObstacleType is m_nNavObstacleType.
+func (e CRagdollProp) NNavObstacleType() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CRagdollProp", "m_nNavObstacleType", mod.FieldTypeUint32}}
 }
 
 // BUpdateNavWhenMoving is m_bUpdateNavWhenMoving.
@@ -9320,6 +9340,21 @@ func NewCCitadel_Projectile_BookwormGun(handle uint32) CCitadel_Projectile_Bookw
 	return CCitadel_Projectile_BookwormGun{NewCCitadelProjectile(handle)}
 }
 
+// CCitadel_Projectile_BubblingBrew is the server's CCitadel_Projectile_BubblingBrew entity class.
+type CCitadel_Projectile_BubblingBrew struct {
+	CCitadelProjectile
+}
+
+// NewCCitadel_Projectile_BubblingBrew addresses the CCitadel_Projectile_BubblingBrew named by handle.
+func NewCCitadel_Projectile_BubblingBrew(handle uint32) CCitadel_Projectile_BubblingBrew {
+	return CCitadel_Projectile_BubblingBrew{NewCCitadelProjectile(handle)}
+}
+
+// BIsReturningProjectile is m_bIsReturningProjectile.
+func (e CCitadel_Projectile_BubblingBrew) BIsReturningProjectile() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Projectile_BubblingBrew", "m_bIsReturningProjectile", mod.FieldTypeBool}}
+}
+
 // CCitadel_Projectile_Cyclone is the server's CCitadel_Projectile_Cyclone entity class.
 type CCitadel_Projectile_Cyclone struct {
 	CCitadelProjectile
@@ -10520,6 +10555,11 @@ func (e CFuncMover) BIgnoreEndNode() Bool {
 	return Bool{Field{e.Handle, "CFuncMover", "m_bIgnoreEndNode", mod.FieldTypeBool}}
 }
 
+// EMoveType is m_eMoveType.
+func (e CFuncMover) EMoveType() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_eMoveType", mod.FieldTypeUint32}}
+}
+
 // BIsReversing is m_bIsReversing.
 func (e CFuncMover) BIsReversing() Bool {
 	return Bool{Field{e.Handle, "CFuncMover", "m_bIsReversing", mod.FieldTypeBool}}
@@ -10655,6 +10695,11 @@ func (e CFuncMover) FlStartFollowingClosestMoverWhenOutsideDistance() Number[flo
 	return Number[float32]{Field{e.Handle, "CFuncMover", "m_flStartFollowingClosestMoverWhenOutsideDistance", mod.FieldTypeFloat32}}
 }
 
+// EOrientationUpdate is m_eOrientationUpdate.
+func (e CFuncMover) EOrientationUpdate() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_eOrientationUpdate", mod.FieldTypeUint32}}
+}
+
 // FlTimeStartOrientationChange is m_flTimeStartOrientationChange.
 func (e CFuncMover) FlTimeStartOrientationChange() Number[float32] {
 	return Number[float32]{Field{e.Handle, "CFuncMover", "m_flTimeStartOrientationChange", mod.FieldTypeFloat32}}
@@ -10745,6 +10790,11 @@ func (e CFuncMover) BIsPaused() Bool {
 	return Bool{Field{e.Handle, "CFuncMover", "m_bIsPaused", mod.FieldTypeBool}}
 }
 
+// ETransitionedToPathNodeAction is m_eTransitionedToPathNodeAction.
+func (e CFuncMover) ETransitionedToPathNodeAction() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_eTransitionedToPathNodeAction", mod.FieldTypeUint32}}
+}
+
 // NDelayedTeleportToNode is m_nDelayedTeleportToNode.
 func (e CFuncMover) NDelayedTeleportToNode() Number[int32] {
 	return Number[int32]{Field{e.Handle, "CFuncMover", "m_nDelayedTeleportToNode", mod.FieldTypeInt32}}
@@ -10810,6 +10860,11 @@ func (e CFuncMover) BStartedMoving() Bool {
 	return Bool{Field{e.Handle, "CFuncMover", "m_bStartedMoving", mod.FieldTypeBool}}
 }
 
+// EFollowEntityDirection is m_eFollowEntityDirection.
+func (e CFuncMover) EFollowEntityDirection() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_eFollowEntityDirection", mod.FieldTypeUint32}}
+}
+
 // HFollowMover is m_hFollowMover.
 func (e CFuncMover) HFollowMover() Handle[CFuncMover] {
 	return Handle[CFuncMover]{Field{e.Handle, "CFuncMover", "m_hFollowMover", mod.FieldTypeHandle}, NewCFuncMover}
@@ -10853,6 +10908,11 @@ func (e CFuncMover) NFollowMoverConstraintPriority() Number[int32] {
 // BFollowConstraintsInitialized is m_bFollowConstraintsInitialized.
 func (e CFuncMover) BFollowConstraintsInitialized() Bool {
 	return Bool{Field{e.Handle, "CFuncMover", "m_bFollowConstraintsInitialized", mod.FieldTypeBool}}
+}
+
+// EFollowConstraint is m_eFollowConstraint.
+func (e CFuncMover) EFollowConstraint() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_eFollowConstraint", mod.FieldTypeUint32}}
 }
 
 // FlFollowMoverSpeed is m_flFollowMoverSpeed.
@@ -10903,6 +10963,16 @@ func (e CFuncMover) BQueueStopMoving() Bool {
 // BQueueSetupPathMover is m_bQueueSetupPathMover.
 func (e CFuncMover) BQueueSetupPathMover() Bool {
 	return Bool{Field{e.Handle, "CFuncMover", "m_bQueueSetupPathMover", mod.FieldTypeBool}}
+}
+
+// EPathRebuildStrategy is m_ePathRebuildStrategy.
+func (e CFuncMover) EPathRebuildStrategy() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_ePathRebuildStrategy", mod.FieldTypeUint32}}
+}
+
+// EFindFollowMoverStrategy is m_eFindFollowMoverStrategy.
+func (e CFuncMover) EFindFollowMoverStrategy() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncMover", "m_eFindFollowMoverStrategy", mod.FieldTypeUint32}}
 }
 
 // BDisableDecelerationToStop is m_bDisableDecelerationToStop.
@@ -11065,6 +11135,11 @@ func NewCFuncRotator(handle uint32) CFuncRotator {
 	return CFuncRotator{NewCBaseModelEntity(handle)}
 }
 
+// ERotateType is m_eRotateType.
+func (e CFuncRotator) ERotateType() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncRotator", "m_eRotateType", mod.FieldTypeUint32}}
+}
+
 // BIsRotating is m_bIsRotating.
 func (e CFuncRotator) BIsRotating() Bool {
 	return Bool{Field{e.Handle, "CFuncRotator", "m_bIsRotating", mod.FieldTypeBool}}
@@ -11168,6 +11243,11 @@ func (e CFuncRotator) FlTargetAngle() Number[float32] {
 // FlCurrentAngle is m_flCurrentAngle.
 func (e CFuncRotator) FlCurrentAngle() Number[float32] {
 	return Number[float32]{Field{e.Handle, "CFuncRotator", "m_flCurrentAngle", mod.FieldTypeFloat32}}
+}
+
+// ERotationAxis is m_eRotationAxis.
+func (e CFuncRotator) ERotationAxis() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CFuncRotator", "m_eRotationAxis", mod.FieldTypeUint32}}
 }
 
 // FlSpeedDriftFromOverRotate is m_flSpeedDriftFromOverRotate.
@@ -12910,6 +12990,16 @@ func (e CBaseNPCMaker) NCurrentBatchCount() Number[int32] {
 	return Number[int32]{Field{e.Handle, "CBaseNPCMaker", "m_nCurrentBatchCount", mod.FieldTypeInt32}}
 }
 
+// CriterionVisibility is m_CriterionVisibility.
+func (e CBaseNPCMaker) CriterionVisibility() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CBaseNPCMaker", "m_CriterionVisibility", mod.FieldTypeUint32}}
+}
+
+// CriterionDistance is m_CriterionDistance.
+func (e CBaseNPCMaker) CriterionDistance() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CBaseNPCMaker", "m_CriterionDistance", mod.FieldTypeUint32}}
+}
+
 // CNPCMaker is the server's CNPCMaker entity class.
 type CNPCMaker struct {
 	CBaseNPCMaker
@@ -14440,6 +14530,16 @@ func NewCCitadelBaseTieredLockonAbility(handle uint32) CCitadelBaseTieredLockonA
 	return CCitadelBaseTieredLockonAbility{NewCCitadelBaseLockonAbility(handle)}
 }
 
+// CCitadel_Ability_Baba_Ultimate2 is the server's CCitadel_Ability_Baba_Ultimate2 entity class.
+type CCitadel_Ability_Baba_Ultimate2 struct {
+	CCitadelBaseTieredLockonAbility
+}
+
+// NewCCitadel_Ability_Baba_Ultimate2 addresses the CCitadel_Ability_Baba_Ultimate2 named by handle.
+func NewCCitadel_Ability_Baba_Ultimate2(handle uint32) CCitadel_Ability_Baba_Ultimate2 {
+	return CCitadel_Ability_Baba_Ultimate2{NewCCitadelBaseTieredLockonAbility(handle)}
+}
+
 // CCitadel_Ability_Lash_Ultimate is the server's CCitadel_Ability_Lash_Ultimate entity class.
 type CCitadel_Ability_Lash_Ultimate struct {
 	CCitadelBaseLockonAbility
@@ -14678,6 +14778,16 @@ type CCitadel_Ability_AbilityName struct {
 // NewCCitadel_Ability_AbilityName addresses the CCitadel_Ability_AbilityName named by handle.
 func NewCCitadel_Ability_AbilityName(handle uint32) CCitadel_Ability_AbilityName {
 	return CCitadel_Ability_AbilityName{NewCCitadelBaseTriggerAbility(handle)}
+}
+
+// CCitadel_Ability_Baba_HexingBrew_Throw is the server's CCitadel_Ability_Baba_HexingBrew_Throw entity class.
+type CCitadel_Ability_Baba_HexingBrew_Throw struct {
+	CCitadelBaseTriggerAbility
+}
+
+// NewCCitadel_Ability_Baba_HexingBrew_Throw addresses the CCitadel_Ability_Baba_HexingBrew_Throw named by handle.
+func NewCCitadel_Ability_Baba_HexingBrew_Throw(handle uint32) CCitadel_Ability_Baba_HexingBrew_Throw {
+	return CCitadel_Ability_Baba_HexingBrew_Throw{NewCCitadelBaseTriggerAbility(handle)}
 }
 
 // CCitadel_Ability_Necro_KillSummonTrigger is the server's CCitadel_Ability_Necro_KillSummonTrigger entity class.
@@ -14958,6 +15068,186 @@ type CCitadel_Ability_Afterburn struct {
 // NewCCitadel_Ability_Afterburn addresses the CCitadel_Ability_Afterburn named by handle.
 func NewCCitadel_Ability_Afterburn(handle uint32) CCitadel_Ability_Afterburn {
 	return CCitadel_Ability_Afterburn{NewCCitadelBaseAbility(handle)}
+}
+
+// CCitadel_Ability_Baba_BenchMelee is the server's CCitadel_Ability_Baba_BenchMelee entity class.
+type CCitadel_Ability_Baba_BenchMelee struct {
+	CCitadelBaseAbility
+}
+
+// NewCCitadel_Ability_Baba_BenchMelee addresses the CCitadel_Ability_Baba_BenchMelee named by handle.
+func NewCCitadel_Ability_Baba_BenchMelee(handle uint32) CCitadel_Ability_Baba_BenchMelee {
+	return CCitadel_Ability_Baba_BenchMelee{NewCCitadelBaseAbility(handle)}
+}
+
+// EState is m_eState.
+func (e CCitadel_Ability_Baba_BenchMelee) EState() Number[uint8] {
+	return Number[uint8]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_eState", mod.FieldTypeUint8}}
+}
+
+// EAttackType is m_eAttackType.
+func (e CCitadel_Ability_Baba_BenchMelee) EAttackType() Number[uint8] {
+	return Number[uint8]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_eAttackType", mod.FieldTypeUint8}}
+}
+
+// FlStateStartTime is m_flStateStartTime.
+func (e CCitadel_Ability_Baba_BenchMelee) FlStateStartTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_flStateStartTime", mod.FieldTypeFloat32}}
+}
+
+// FlCommitTime is m_flCommitTime.
+func (e CCitadel_Ability_Baba_BenchMelee) FlCommitTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_flCommitTime", mod.FieldTypeFloat32}}
+}
+
+// FlAttackTriggeredTime is m_flAttackTriggeredTime.
+func (e CCitadel_Ability_Baba_BenchMelee) FlAttackTriggeredTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_flAttackTriggeredTime", mod.FieldTypeFloat32}}
+}
+
+// FlNextLightAttackAllowedTime is m_flNextLightAttackAllowedTime.
+func (e CCitadel_Ability_Baba_BenchMelee) FlNextLightAttackAllowedTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_flNextLightAttackAllowedTime", mod.FieldTypeFloat32}}
+}
+
+// FlNextHeavyAttackAllowedTime is m_flNextHeavyAttackAllowedTime.
+func (e CCitadel_Ability_Baba_BenchMelee) FlNextHeavyAttackAllowedTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_flNextHeavyAttackAllowedTime", mod.FieldTypeFloat32}}
+}
+
+// VDashDir is m_vDashDir.
+func (e CCitadel_Ability_Baba_BenchMelee) VDashDir() Vector {
+	return Vector{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_vDashDir", mod.FieldTypeVector}}
+}
+
+// BDiveApplied is m_bDiveApplied.
+func (e CCitadel_Ability_Baba_BenchMelee) BDiveApplied() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_bDiveApplied", mod.FieldTypeBool}}
+}
+
+// VDashStartVelocity is m_vDashStartVelocity.
+func (e CCitadel_Ability_Baba_BenchMelee) VDashStartVelocity() Vector {
+	return Vector{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_vDashStartVelocity", mod.FieldTypeVector}}
+}
+
+// BAttackImpulseApplied is m_bAttackImpulseApplied.
+func (e CCitadel_Ability_Baba_BenchMelee) BAttackImpulseApplied() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_bAttackImpulseApplied", mod.FieldTypeBool}}
+}
+
+// AngForced is m_angForced.
+func (e CCitadel_Ability_Baba_BenchMelee) AngForced() Angles {
+	return Angles{Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", "m_angForced", mod.FieldTypeVector}}
+}
+
+// CCitadel_Ability_Baba_BenchRun is the server's CCitadel_Ability_Baba_BenchRun entity class.
+type CCitadel_Ability_Baba_BenchRun struct {
+	CCitadelBaseAbility
+}
+
+// NewCCitadel_Ability_Baba_BenchRun addresses the CCitadel_Ability_Baba_BenchRun named by handle.
+func NewCCitadel_Ability_Baba_BenchRun(handle uint32) CCitadel_Ability_Baba_BenchRun {
+	return CCitadel_Ability_Baba_BenchRun{NewCCitadelBaseAbility(handle)}
+}
+
+// BHoldingJump is m_bHoldingJump.
+func (e CCitadel_Ability_Baba_BenchRun) BHoldingJump() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bHoldingJump", mod.FieldTypeBool}}
+}
+
+// BHeldJumpAborted is m_bHeldJumpAborted.
+func (e CCitadel_Ability_Baba_BenchRun) BHeldJumpAborted() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bHeldJumpAborted", mod.FieldTypeBool}}
+}
+
+// FlHoldJumpStartTime is m_flHoldJumpStartTime.
+func (e CCitadel_Ability_Baba_BenchRun) FlHoldJumpStartTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_flHoldJumpStartTime", mod.FieldTypeFloat32}}
+}
+
+// FlRideStartTime is m_flRideStartTime.
+func (e CCitadel_Ability_Baba_BenchRun) FlRideStartTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_flRideStartTime", mod.FieldTypeFloat32}}
+}
+
+// FlRideEndTime is m_flRideEndTime.
+func (e CCitadel_Ability_Baba_BenchRun) FlRideEndTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_flRideEndTime", mod.FieldTypeFloat32}}
+}
+
+// FlEndLaunchTime is m_flEndLaunchTime.
+func (e CCitadel_Ability_Baba_BenchRun) FlEndLaunchTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_flEndLaunchTime", mod.FieldTypeFloat32}}
+}
+
+// FlLastChargeJumpFraction is m_flLastChargeJumpFraction.
+func (e CCitadel_Ability_Baba_BenchRun) FlLastChargeJumpFraction() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_flLastChargeJumpFraction", mod.FieldTypeFloat32}}
+}
+
+// BInMelee is m_bInMelee.
+func (e CCitadel_Ability_Baba_BenchRun) BInMelee() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bInMelee", mod.FieldTypeBool}}
+}
+
+// BMeleeIsHeavy is m_bMeleeIsHeavy.
+func (e CCitadel_Ability_Baba_BenchRun) BMeleeIsHeavy() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bMeleeIsHeavy", mod.FieldTypeBool}}
+}
+
+// CCitadel_Ability_Baba_BubblingBrew is the server's CCitadel_Ability_Baba_BubblingBrew entity class.
+type CCitadel_Ability_Baba_BubblingBrew struct {
+	CCitadelBaseAbility
+}
+
+// NewCCitadel_Ability_Baba_BubblingBrew addresses the CCitadel_Ability_Baba_BubblingBrew named by handle.
+func NewCCitadel_Ability_Baba_BubblingBrew(handle uint32) CCitadel_Ability_Baba_BubblingBrew {
+	return CCitadel_Ability_Baba_BubblingBrew{NewCCitadelBaseAbility(handle)}
+}
+
+// EState is m_eState.
+func (e CCitadel_Ability_Baba_BubblingBrew) EState() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CCitadel_Ability_Baba_BubblingBrew", "m_eState", mod.FieldTypeUint32}}
+}
+
+// CurrentStacks is m_CurrentStacks.
+func (e CCitadel_Ability_Baba_BubblingBrew) CurrentStacks() Number[int32] {
+	return Number[int32]{Field{e.Handle, "CCitadel_Ability_Baba_BubblingBrew", "m_CurrentStacks", mod.FieldTypeInt32}}
+}
+
+// TStackExpiryTime is m_tStackExpiryTime.
+func (e CCitadel_Ability_Baba_BubblingBrew) TStackExpiryTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_BubblingBrew", "m_tStackExpiryTime", mod.FieldTypeFloat32}}
+}
+
+// CCitadel_Ability_Baba_HexingBrew is the server's CCitadel_Ability_Baba_HexingBrew entity class.
+type CCitadel_Ability_Baba_HexingBrew struct {
+	CCitadelBaseAbility
+}
+
+// NewCCitadel_Ability_Baba_HexingBrew addresses the CCitadel_Ability_Baba_HexingBrew named by handle.
+func NewCCitadel_Ability_Baba_HexingBrew(handle uint32) CCitadel_Ability_Baba_HexingBrew {
+	return CCitadel_Ability_Baba_HexingBrew{NewCCitadelBaseAbility(handle)}
+}
+
+// EBrewEffect is m_eBrewEffect.
+func (e CCitadel_Ability_Baba_HexingBrew) EBrewEffect() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CCitadel_Ability_Baba_HexingBrew", "m_eBrewEffect", mod.FieldTypeUint32}}
+}
+
+// BBrewLocked is m_bBrewLocked.
+func (e CCitadel_Ability_Baba_HexingBrew) BBrewLocked() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_HexingBrew", "m_bBrewLocked", mod.FieldTypeBool}}
+}
+
+// FlBrewLockTime is m_flBrewLockTime.
+func (e CCitadel_Ability_Baba_HexingBrew) FlBrewLockTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_HexingBrew", "m_flBrewLockTime", mod.FieldTypeFloat32}}
+}
+
+// FlBrewPausedTime is m_flBrewPausedTime.
+func (e CCitadel_Ability_Baba_HexingBrew) FlBrewPausedTime() Number[float32] {
+	return Number[float32]{Field{e.Handle, "CCitadel_Ability_Baba_HexingBrew", "m_flBrewPausedTime", mod.FieldTypeFloat32}}
 }
 
 // CCitadel_Ability_BaseHeldItem is the server's CCitadel_Ability_BaseHeldItem entity class.
@@ -29575,6 +29865,11 @@ func NewCLogicBranchList(handle uint32) CLogicBranchList {
 	return CLogicBranchList{NewCLogicalEntity(handle)}
 }
 
+// ELastState is m_eLastState.
+func (e CLogicBranchList) ELastState() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CLogicBranchList", "m_eLastState", mod.FieldTypeUint32}}
+}
+
 // CLogicCase is the server's CLogicCase entity class.
 type CLogicCase struct {
 	CLogicalEntity
@@ -30163,6 +30458,11 @@ type CPathMoverEntitySpawner struct {
 // NewCPathMoverEntitySpawner addresses the CPathMoverEntitySpawner named by handle.
 func NewCPathMoverEntitySpawner(handle uint32) CPathMoverEntitySpawner {
 	return CPathMoverEntitySpawner{NewCLogicalEntity(handle)}
+}
+
+// ETemplateChoiceStrategy is m_eTemplateChoiceStrategy.
+func (e CPathMoverEntitySpawner) ETemplateChoiceStrategy() Number[uint32] {
+	return Number[uint32]{Field{e.Handle, "CPathMoverEntitySpawner", "m_eTemplateChoiceStrategy", mod.FieldTypeUint32}}
 }
 
 // NSpawnIndex is m_nSpawnIndex.

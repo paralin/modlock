@@ -554,11 +554,9 @@ const hero = new CCitadelPlayerPawn(pawn.entity)
 hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
 ```
 
-A bundle keeps only the classes it uses. The
-[DumpSource2](https://github.com/ValveResourceFormat/DumpSource2) dump in
-[GameTracking-Deadlock](https://github.com/SteamDatabase/GameTracking-Deadlock/tree/master/DumpSource2/schemas)
-lists every class, its base and its fields; the `server` module holds the
-entity classes.
+A bundle keeps only the classes it uses. The game dump in
+[`data/dump`](data/dump) lists every class, its base and its fields in
+`schemas.json`; the `server` module holds the entity classes.
 
 ### Interfaces
 
@@ -938,13 +936,16 @@ build offline. Install puts the Wasmtime library next to `modlock-host`.
 To build from a source archive without `.git`, pass its commit with
 `-DMODLOCK_REVISION=<40-character SHA>`.
 
-After a game update renames entity fields, regenerate the entity classes from
-the schema that [DumpSource2](https://github.com/ValveResourceFormat/DumpSource2)
-writes, such as the `DumpSource2/schemas` directory of
-[GameTracking-Deadlock](https://github.com/SteamDatabase/GameTracking-Deadlock):
+`modlock-host --dump DIRECTORY` starts the dedicated server, writes the game
+as it describes itself to `schemas.json` (schema classes and enums),
+`entities.json` (designer names, key values, inputs and outputs) and
+`console.json` (console variables and commands), and quits. The documents
+follow [`proto/modlock/dump/dump.proto`](proto/modlock/dump/dump.proto) and are
+sorted by name, so two builds' dumps diff cleanly. After a game update, replace
+[`data/dump`](data/dump) with a new dump and regenerate the entity classes:
 
 ```sh
-scripts/gen-entities.sh path/to/DumpSource2/schemas
+scripts/gen-entities.sh
 ```
 
 `bun install` installs a pre-commit hook. The hook formats the staged files

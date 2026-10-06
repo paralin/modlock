@@ -1,19 +1,20 @@
 package main
 
 import (
-	"bufio"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
+	"github.com/paralin/modlock/proto/modlock/dump"
 	"github.com/pkg/errors"
 )
 
 // serverModule is the schema module that holds the server's entity classes.
 const serverModule = "server"
 
-// class is one class a schema header declares.
+// class is one class the schema declares.
 type class struct {
 	// name is the class name.
 	name string
@@ -35,7 +36,7 @@ type field struct {
 	typ string
 }
 
-// schema is every class and enum in a DumpSource2 schema tree.
+// schema is every class and enum of one game dump.
 type schema struct {
 	// classes maps each class name to its declaration, preferring the
 	// server module's when several modules declare one name.
@@ -44,79 +45,47 @@ type schema struct {
 	enums map[string]string
 }
 
-var (
-	classLine = regexp.MustCompile(`^class (\w+)(?: : public (\w+))?`)
-	enumLine  = regexp.MustCompile(`^enum (\w+) : (\w+)`)
-	fieldLine = regexp.MustCompile(`^\t([^/\t].*?) (\w+);`)
-)
+// enumTypes maps an enum's storage size to its underlying integer type.
+var enumTypes = map[uint32]string{1: "uint8", 2: "uint16", 4: "uint32", 8: "uint64"}
 
-// readSchema reads the headers DumpSource2 writes under root, one directory
-// per module and one header per class or enum.
-func readSchema(root string) (*schema, error) {
-	s := &schema{classes: map[string]*class{}, enums: map[string]string{}}
-	modules, err := os.ReadDir(root)
+// readSchema reads schemas.json from a game dump directory.
+func readSchema(dir string) (*schema, error) {
+	// Decode the dump.
+	data, err := os.ReadFile(filepath.Join(dir, "schemas.json"))
 	if err != nil {
-		return nil, errors.Wrap(err, "read the schema directory")
+		return nil, err
 	}
-	for _, module := range modules {
-		if !module.IsDir() {
+	var dumped dump.Schemas
+	if err := dumped.UnmarshalJSON(data); err != nil {
+		return nil, errors.Wrap(err, "decode schemas.json")
+	}
+
+	// Index the enums and classes, the server's declaration winning a name
+	// several modules declare.
+	s := &schema{classes: map[string]*class{}, enums: map[string]string{}}
+	for _, e := range dumped.GetEnums() {
+		s.enums[e.GetName()] = enumTypes[e.GetSize()]
+	}
+	for _, dc := range dumped.GetClasses() {
+		if existing, ok := s.classes[dc.GetName()]; ok && existing.module == serverModule {
 			continue
 		}
-		headers, err := filepath.Glob(filepath.Join(root, module.Name(), "*.h"))
-		if err != nil {
-			return nil, err
+		c := &class{
+			name:   dc.GetName(),
+			module: dc.GetModule(),
+			boxed: slices.ContainsFunc(dc.GetMetadata(), func(m string) bool {
+				return strings.HasPrefix(m, "MIsBoxed")
+			}),
 		}
-		for _, header := range headers {
-			if err := s.readHeader(module.Name(), header); err != nil {
-				return nil, errors.Wrap(err, header)
-			}
+		if bases := dc.GetBases(); len(bases) != 0 {
+			c.base = bases[0].GetName()
 		}
+		for _, f := range dc.GetFields() {
+			c.fields = append(c.fields, field{name: f.GetName(), typ: f.GetType()})
+		}
+		s.classes[c.name] = c
 	}
 	return s, nil
-}
-
-// readHeader adds the class or enum one header declares.
-func (s *schema) readHeader(module, path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	var declared *class
-	boxed := false
-	lines := bufio.NewScanner(file)
-	for lines.Scan() {
-		line := lines.Text()
-
-		// Metadata comments precede the declaration they describe.
-		if strings.HasPrefix(line, "// MIsBoxed") {
-			boxed = true
-			continue
-		}
-		if m := enumLine.FindStringSubmatch(line); m != nil {
-			s.enums[m[1]] = m[2]
-			return nil
-		}
-		if m := classLine.FindStringSubmatch(line); m != nil {
-			declared = &class{name: m[1], base: m[2], module: module, boxed: boxed}
-			continue
-		}
-		if m := fieldLine.FindStringSubmatch(line); declared != nil && m != nil {
-			declared.fields = append(declared.fields, field{name: m[2], typ: m[1]})
-		}
-	}
-	if err := lines.Err(); err != nil {
-		return err
-	}
-	if declared == nil {
-		return nil
-	}
-	if existing, ok := s.classes[declared.name]; ok && existing.module == serverModule {
-		return nil
-	}
-	s.classes[declared.name] = declared
-	return nil
 }
 
 // entityRoot is the class every entity derives from.
@@ -174,6 +143,7 @@ var handleType = regexp.MustCompile(`^CHandle< (\w+) >$`)
 // kindOf resolves a field's declared type to how the host reads it, and
 // reports false for a type the host cannot read, such as a container.
 func (s *schema) kindOf(typ string) (kind, bool) {
+	// A scalar, angle or handle reads directly.
 	if wire, ok := scalars[typ]; ok {
 		return kind{wire: wire}, true
 	}
@@ -188,9 +158,9 @@ func (s *schema) kindOf(typ string) (kind, bool) {
 		return k, true
 	}
 
-	// An enum reads as its underlying integer, such as uint8 for uint8_t.
+	// An enum reads as the unsigned integer of its size.
 	if underlying, ok := s.enums[typ]; ok {
-		wire, ok := scalars[strings.TrimSuffix(underlying, "_t")]
+		wire, ok := scalars[underlying]
 		return kind{wire: wire}, ok
 	}
 

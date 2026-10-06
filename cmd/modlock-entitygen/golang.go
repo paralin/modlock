@@ -54,6 +54,7 @@ var goFields = map[string]string{
 // Each field is one method returning a value that gets and sets the field, so
 // a setter adds no method to every class that inherits it.
 func writeGo(s *schema, classes []*class) []byte {
+	// Write each class after the root, which the preamble declares.
 	var out bytes.Buffer
 	out.WriteString(goPreamble)
 	for _, c := range classes[1:] {

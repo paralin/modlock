@@ -273,6 +273,7 @@ export type CAI_GoalEntity = CBaseEntity & {
 	m_iszActor: string?,
 	m_iszGoal: string?,
 	m_fStartActive: boolean?,
+	m_SearchType: number?,
 	m_iszConceptModifiers: string?,
 	m_hGoalEntity: CBaseEntity?,
 	m_flags: number?,
@@ -281,6 +282,7 @@ describe("CAI_GoalEntity", "CBaseEntity", {
 	m_iszActor = { type = "string" },
 	m_iszGoal = { type = "string" },
 	m_fStartActive = { type = "bool" },
+	m_SearchType = { type = "uint32" },
 	m_iszConceptModifiers = { type = "string" },
 	m_hGoalEntity = { type = "handle", target = "CBaseEntity" },
 	m_flags = { type = "uint32" },
@@ -1737,10 +1739,12 @@ export type CPhysicsProp = CBreakableProp & {
 	m_nGlowRangeMin: number?,
 	m_bShouldAutoConvertBackFromDebris: boolean?,
 	m_bMuteImpactEffects: boolean?,
+	m_nNavObstacleType: number?,
 	m_bUpdateNavWhenMoving: boolean?,
 	m_bForceNavObstacleCut: boolean?,
 	m_bAcceptDamageFromHeldObjects: boolean?,
 	m_bEnableUseOutput: boolean?,
+	m_CrateType: number?,
 	m_bRemovableForAmmoBalancing: boolean?,
 	m_bAwake: boolean?,
 	m_bAttachedToReferenceFrame: boolean?,
@@ -1767,10 +1771,12 @@ describe("CPhysicsProp", "CBreakableProp", {
 	m_nGlowRangeMin = { type = "int32" },
 	m_bShouldAutoConvertBackFromDebris = { type = "bool" },
 	m_bMuteImpactEffects = { type = "bool" },
+	m_nNavObstacleType = { type = "uint32" },
 	m_bUpdateNavWhenMoving = { type = "bool" },
 	m_bForceNavObstacleCut = { type = "bool" },
 	m_bAcceptDamageFromHeldObjects = { type = "bool" },
 	m_bEnableUseOutput = { type = "bool" },
+	m_CrateType = { type = "uint32" },
 	m_bRemovableForAmmoBalancing = { type = "bool" },
 	m_bAwake = { type = "bool" },
 	m_bAttachedToReferenceFrame = { type = "bool" },
@@ -2786,6 +2792,7 @@ export type CRagdollProp = CBaseAnimGraph & {
 	m_lastUpdateTickCount: number?,
 	m_allAsleep: boolean?,
 	m_bFirstCollisionAfterLaunch: boolean?,
+	m_nNavObstacleType: number?,
 	m_bUpdateNavWhenMoving: boolean?,
 	m_bForceNavObstacleCut: boolean?,
 	m_bAttachedToReferenceFrame: boolean?,
@@ -2813,6 +2820,7 @@ describe("CRagdollProp", "CBaseAnimGraph", {
 	m_lastUpdateTickCount = { type = "uint32" },
 	m_allAsleep = { type = "bool" },
 	m_bFirstCollisionAfterLaunch = { type = "bool" },
+	m_nNavObstacleType = { type = "uint32" },
 	m_bUpdateNavWhenMoving = { type = "bool" },
 	m_bForceNavObstacleCut = { type = "bool" },
 	m_bAttachedToReferenceFrame = { type = "bool" },
@@ -4989,6 +4997,17 @@ function entities.CCitadel_Projectile_BookwormGun(handle: number): any
 	return new("CCitadel_Projectile_BookwormGun", handle)
 end
 
+-- CCitadel_Projectile_BubblingBrew is the server's CCitadel_Projectile_BubblingBrew entity class.
+export type CCitadel_Projectile_BubblingBrew = CCitadelProjectile & {
+	m_bIsReturningProjectile: boolean?,
+}
+describe("CCitadel_Projectile_BubblingBrew", "CCitadelProjectile", {
+	m_bIsReturningProjectile = { type = "bool" },
+})
+function entities.CCitadel_Projectile_BubblingBrew(handle: number): any
+	return new("CCitadel_Projectile_BubblingBrew", handle)
+end
+
 -- CCitadel_Projectile_Cyclone is the server's CCitadel_Projectile_Cyclone entity class.
 export type CCitadel_Projectile_Cyclone = CCitadelProjectile & {
 	m_CycloneAbility: CCitadel_Ability_Thumper_4?,
@@ -5669,6 +5688,7 @@ export type CFuncMover = CBaseModelEntity & {
 	m_iszPathNodeStart: string?,
 	m_iszPathNodeEnd: string?,
 	m_bIgnoreEndNode: boolean?,
+	m_eMoveType: number?,
 	m_bIsReversing: boolean?,
 	m_flStartSpeed: number?,
 	m_flPathLocation: number?,
@@ -5696,6 +5716,7 @@ export type CFuncMover = CBaseModelEntity & {
 	m_bStartFollowingClosestMover: boolean?,
 	m_flStartFollowingClosestMoverWhenWithinDistance: number?,
 	m_flStartFollowingClosestMoverWhenOutsideDistance: number?,
+	m_eOrientationUpdate: number?,
 	m_flTimeStartOrientationChange: number?,
 	m_flTimeToBlendToNewOrientation: number?,
 	m_flDurationBlendToNewOrientationRan: number?,
@@ -5714,6 +5735,7 @@ export type CFuncMover = CBaseModelEntity & {
 	m_iszTransitionSourcePathNodeStart: string?,
 	m_bStoppedDuringTransition: boolean?,
 	m_bIsPaused: boolean?,
+	m_eTransitionedToPathNodeAction: number?,
 	m_nDelayedTeleportToNode: number?,
 	m_bIsImGuiLogging: boolean?,
 	m_bIsImGuiEntTextLogging: boolean?,
@@ -5727,6 +5749,7 @@ export type CFuncMover = CBaseModelEntity & {
 	m_hOrientationFaceEntity: CBaseEntity?,
 	m_bNextNodeReturnsCurrent: boolean?,
 	m_bStartedMoving: boolean?,
+	m_eFollowEntityDirection: number?,
 	m_hFollowMover: CFuncMover?,
 	m_iszFollowEntityName: string?,
 	m_iszFollowMoverEntityName: string?,
@@ -5736,6 +5759,7 @@ export type CFuncMover = CBaseModelEntity & {
 	m_flFollowMoverSpringStrength: number?,
 	m_nFollowMoverConstraintPriority: number?,
 	m_bFollowConstraintsInitialized: boolean?,
+	m_eFollowConstraint: number?,
 	m_flFollowMoverSpeed: number?,
 	m_flFollowMoverVelocity: number?,
 	m_nTickMovementRan: number?,
@@ -5746,6 +5770,8 @@ export type CFuncMover = CBaseModelEntity & {
 	m_bQueueStop: boolean?,
 	m_bQueueStopMoving: boolean?,
 	m_bQueueSetupPathMover: boolean?,
+	m_ePathRebuildStrategy: number?,
+	m_eFindFollowMoverStrategy: number?,
 	m_bDisableDecelerationToStop: boolean?,
 	m_vOffsetFromPath: modlock.Vector?,
 	m_hPathMoverEntitySpawner: CPathMoverEntitySpawner?,
@@ -5757,6 +5783,7 @@ describe("CFuncMover", "CBaseModelEntity", {
 	m_iszPathNodeStart = { type = "string" },
 	m_iszPathNodeEnd = { type = "string" },
 	m_bIgnoreEndNode = { type = "bool" },
+	m_eMoveType = { type = "uint32" },
 	m_bIsReversing = { type = "bool" },
 	m_flStartSpeed = { type = "float32" },
 	m_flPathLocation = { type = "float32" },
@@ -5784,6 +5811,7 @@ describe("CFuncMover", "CBaseModelEntity", {
 	m_bStartFollowingClosestMover = { type = "bool" },
 	m_flStartFollowingClosestMoverWhenWithinDistance = { type = "float32" },
 	m_flStartFollowingClosestMoverWhenOutsideDistance = { type = "float32" },
+	m_eOrientationUpdate = { type = "uint32" },
 	m_flTimeStartOrientationChange = { type = "float32" },
 	m_flTimeToBlendToNewOrientation = { type = "float32" },
 	m_flDurationBlendToNewOrientationRan = { type = "float32" },
@@ -5802,6 +5830,7 @@ describe("CFuncMover", "CBaseModelEntity", {
 	m_iszTransitionSourcePathNodeStart = { type = "string" },
 	m_bStoppedDuringTransition = { type = "bool" },
 	m_bIsPaused = { type = "bool" },
+	m_eTransitionedToPathNodeAction = { type = "uint32" },
 	m_nDelayedTeleportToNode = { type = "int32" },
 	m_bIsImGuiLogging = { type = "bool" },
 	m_bIsImGuiEntTextLogging = { type = "bool" },
@@ -5815,6 +5844,7 @@ describe("CFuncMover", "CBaseModelEntity", {
 	m_hOrientationFaceEntity = { type = "handle", target = "CBaseEntity" },
 	m_bNextNodeReturnsCurrent = { type = "bool" },
 	m_bStartedMoving = { type = "bool" },
+	m_eFollowEntityDirection = { type = "uint32" },
 	m_hFollowMover = { type = "handle", target = "CFuncMover" },
 	m_iszFollowEntityName = { type = "string" },
 	m_iszFollowMoverEntityName = { type = "string" },
@@ -5824,6 +5854,7 @@ describe("CFuncMover", "CBaseModelEntity", {
 	m_flFollowMoverSpringStrength = { type = "float32" },
 	m_nFollowMoverConstraintPriority = { type = "int32" },
 	m_bFollowConstraintsInitialized = { type = "bool" },
+	m_eFollowConstraint = { type = "uint32" },
 	m_flFollowMoverSpeed = { type = "float32" },
 	m_flFollowMoverVelocity = { type = "float32" },
 	m_nTickMovementRan = { type = "int32" },
@@ -5834,6 +5865,8 @@ describe("CFuncMover", "CBaseModelEntity", {
 	m_bQueueStop = { type = "bool" },
 	m_bQueueStopMoving = { type = "bool" },
 	m_bQueueSetupPathMover = { type = "bool" },
+	m_ePathRebuildStrategy = { type = "uint32" },
+	m_eFindFollowMoverStrategy = { type = "uint32" },
 	m_bDisableDecelerationToStop = { type = "bool" },
 	m_vOffsetFromPath = { type = "vector" },
 	m_hPathMoverEntitySpawner = { type = "handle", target = "CPathMoverEntitySpawner" },
@@ -5918,6 +5951,7 @@ end
 
 -- CFuncRotator is the server's CFuncRotator entity class.
 export type CFuncRotator = CBaseModelEntity & {
+	m_eRotateType: number?,
 	m_bIsRotating: boolean?,
 	m_eSolidType: number?,
 	m_flSpeed: number?,
@@ -5939,10 +5973,12 @@ export type CFuncRotator = CBaseModelEntity & {
 	m_bOscillationFromStart: boolean?,
 	m_flTargetAngle: number?,
 	m_flCurrentAngle: number?,
+	m_eRotationAxis: number?,
 	m_flSpeedDriftFromOverRotate: number?,
 	m_bQueueStop: boolean?,
 }
 describe("CFuncRotator", "CBaseModelEntity", {
+	m_eRotateType = { type = "uint32" },
 	m_bIsRotating = { type = "bool" },
 	m_eSolidType = { type = "uint8" },
 	m_flSpeed = { type = "float32" },
@@ -5964,6 +6000,7 @@ describe("CFuncRotator", "CBaseModelEntity", {
 	m_bOscillationFromStart = { type = "bool" },
 	m_flTargetAngle = { type = "float32" },
 	m_flCurrentAngle = { type = "float32" },
+	m_eRotationAxis = { type = "uint32" },
 	m_flSpeedDriftFromOverRotate = { type = "float32" },
 	m_bQueueStop = { type = "bool" },
 })
@@ -6870,6 +6907,8 @@ export type CBaseNPCMaker = CBaseEntity & {
 	m_hSpawnEntity: CNPCSpawnDestination?,
 	m_hSpawnedNPC: CAI_BaseNPC?,
 	m_nCurrentBatchCount: number?,
+	m_CriterionVisibility: number?,
+	m_CriterionDistance: number?,
 }
 describe("CBaseNPCMaker", "CBaseEntity", {
 	m_nMaxNumNPCs = { type = "int32" },
@@ -6891,6 +6930,8 @@ describe("CBaseNPCMaker", "CBaseEntity", {
 	m_hSpawnEntity = { type = "handle", target = "CNPCSpawnDestination" },
 	m_hSpawnedNPC = { type = "handle", target = "CAI_BaseNPC" },
 	m_nCurrentBatchCount = { type = "int32" },
+	m_CriterionVisibility = { type = "uint32" },
+	m_CriterionDistance = { type = "uint32" },
 })
 function entities.CBaseNPCMaker(handle: number): any
 	return new("CBaseNPCMaker", handle)
@@ -7751,6 +7792,13 @@ function entities.CCitadelBaseTieredLockonAbility(handle: number): any
 	return new("CCitadelBaseTieredLockonAbility", handle)
 end
 
+-- CCitadel_Ability_Baba_Ultimate2 is the server's CCitadel_Ability_Baba_Ultimate2 entity class.
+export type CCitadel_Ability_Baba_Ultimate2 = CCitadelBaseTieredLockonAbility
+describe("CCitadel_Ability_Baba_Ultimate2", "CCitadelBaseTieredLockonAbility", {})
+function entities.CCitadel_Ability_Baba_Ultimate2(handle: number): any
+	return new("CCitadel_Ability_Baba_Ultimate2", handle)
+end
+
 -- CCitadel_Ability_Lash_Ultimate is the server's CCitadel_Ability_Lash_Ultimate entity class.
 export type CCitadel_Ability_Lash_Ultimate = CCitadelBaseLockonAbility & {
 	m_EGrappleState: number?,
@@ -7885,6 +7933,13 @@ export type CCitadel_Ability_AbilityName = CCitadelBaseTriggerAbility
 describe("CCitadel_Ability_AbilityName", "CCitadelBaseTriggerAbility", {})
 function entities.CCitadel_Ability_AbilityName(handle: number): any
 	return new("CCitadel_Ability_AbilityName", handle)
+end
+
+-- CCitadel_Ability_Baba_HexingBrew_Throw is the server's CCitadel_Ability_Baba_HexingBrew_Throw entity class.
+export type CCitadel_Ability_Baba_HexingBrew_Throw = CCitadelBaseTriggerAbility
+describe("CCitadel_Ability_Baba_HexingBrew_Throw", "CCitadelBaseTriggerAbility", {})
+function entities.CCitadel_Ability_Baba_HexingBrew_Throw(handle: number): any
+	return new("CCitadel_Ability_Baba_HexingBrew_Throw", handle)
 end
 
 -- CCitadel_Ability_Necro_KillSummonTrigger is the server's CCitadel_Ability_Necro_KillSummonTrigger entity class.
@@ -8044,6 +8099,98 @@ export type CCitadel_Ability_Afterburn = CCitadelBaseAbility
 describe("CCitadel_Ability_Afterburn", "CCitadelBaseAbility", {})
 function entities.CCitadel_Ability_Afterburn(handle: number): any
 	return new("CCitadel_Ability_Afterburn", handle)
+end
+
+-- CCitadel_Ability_Baba_BenchMelee is the server's CCitadel_Ability_Baba_BenchMelee entity class.
+export type CCitadel_Ability_Baba_BenchMelee = CCitadelBaseAbility & {
+	m_eState: number?,
+	m_eAttackType: number?,
+	m_flStateStartTime: number?,
+	m_flCommitTime: number?,
+	m_flAttackTriggeredTime: number?,
+	m_flNextLightAttackAllowedTime: number?,
+	m_flNextHeavyAttackAllowedTime: number?,
+	m_vDashDir: modlock.Vector?,
+	m_bDiveApplied: boolean?,
+	m_vDashStartVelocity: modlock.Vector?,
+	m_bAttackImpulseApplied: boolean?,
+	m_angForced: modlock.Angles?,
+}
+describe("CCitadel_Ability_Baba_BenchMelee", "CCitadelBaseAbility", {
+	m_eState = { type = "uint8" },
+	m_eAttackType = { type = "uint8" },
+	m_flStateStartTime = { type = "float32" },
+	m_flCommitTime = { type = "float32" },
+	m_flAttackTriggeredTime = { type = "float32" },
+	m_flNextLightAttackAllowedTime = { type = "float32" },
+	m_flNextHeavyAttackAllowedTime = { type = "float32" },
+	m_vDashDir = { type = "vector" },
+	m_bDiveApplied = { type = "bool" },
+	m_vDashStartVelocity = { type = "vector" },
+	m_bAttackImpulseApplied = { type = "bool" },
+	m_angForced = { type = "vector", angles = true },
+})
+function entities.CCitadel_Ability_Baba_BenchMelee(handle: number): any
+	return new("CCitadel_Ability_Baba_BenchMelee", handle)
+end
+
+-- CCitadel_Ability_Baba_BenchRun is the server's CCitadel_Ability_Baba_BenchRun entity class.
+export type CCitadel_Ability_Baba_BenchRun = CCitadelBaseAbility & {
+	m_bHoldingJump: boolean?,
+	m_bHeldJumpAborted: boolean?,
+	m_flHoldJumpStartTime: number?,
+	m_flRideStartTime: number?,
+	m_flRideEndTime: number?,
+	m_flEndLaunchTime: number?,
+	m_flLastChargeJumpFraction: number?,
+	m_bInMelee: boolean?,
+	m_bMeleeIsHeavy: boolean?,
+}
+describe("CCitadel_Ability_Baba_BenchRun", "CCitadelBaseAbility", {
+	m_bHoldingJump = { type = "bool" },
+	m_bHeldJumpAborted = { type = "bool" },
+	m_flHoldJumpStartTime = { type = "float32" },
+	m_flRideStartTime = { type = "float32" },
+	m_flRideEndTime = { type = "float32" },
+	m_flEndLaunchTime = { type = "float32" },
+	m_flLastChargeJumpFraction = { type = "float32" },
+	m_bInMelee = { type = "bool" },
+	m_bMeleeIsHeavy = { type = "bool" },
+})
+function entities.CCitadel_Ability_Baba_BenchRun(handle: number): any
+	return new("CCitadel_Ability_Baba_BenchRun", handle)
+end
+
+-- CCitadel_Ability_Baba_BubblingBrew is the server's CCitadel_Ability_Baba_BubblingBrew entity class.
+export type CCitadel_Ability_Baba_BubblingBrew = CCitadelBaseAbility & {
+	m_eState: number?,
+	m_CurrentStacks: number?,
+	m_tStackExpiryTime: number?,
+}
+describe("CCitadel_Ability_Baba_BubblingBrew", "CCitadelBaseAbility", {
+	m_eState = { type = "uint32" },
+	m_CurrentStacks = { type = "int32" },
+	m_tStackExpiryTime = { type = "float32" },
+})
+function entities.CCitadel_Ability_Baba_BubblingBrew(handle: number): any
+	return new("CCitadel_Ability_Baba_BubblingBrew", handle)
+end
+
+-- CCitadel_Ability_Baba_HexingBrew is the server's CCitadel_Ability_Baba_HexingBrew entity class.
+export type CCitadel_Ability_Baba_HexingBrew = CCitadelBaseAbility & {
+	m_eBrewEffect: number?,
+	m_bBrewLocked: boolean?,
+	m_flBrewLockTime: number?,
+	m_flBrewPausedTime: number?,
+}
+describe("CCitadel_Ability_Baba_HexingBrew", "CCitadelBaseAbility", {
+	m_eBrewEffect = { type = "uint32" },
+	m_bBrewLocked = { type = "bool" },
+	m_flBrewLockTime = { type = "float32" },
+	m_flBrewPausedTime = { type = "float32" },
+})
+function entities.CCitadel_Ability_Baba_HexingBrew(handle: number): any
+	return new("CCitadel_Ability_Baba_HexingBrew", handle)
 end
 
 -- CCitadel_Ability_BaseHeldItem is the server's CCitadel_Ability_BaseHeldItem entity class.
@@ -16470,8 +16617,12 @@ function entities.CLogicBranch(handle: number): any
 end
 
 -- CLogicBranchList is the server's CLogicBranchList entity class.
-export type CLogicBranchList = CLogicalEntity
-describe("CLogicBranchList", "CLogicalEntity", {})
+export type CLogicBranchList = CLogicalEntity & {
+	m_eLastState: number?,
+}
+describe("CLogicBranchList", "CLogicalEntity", {
+	m_eLastState = { type = "uint32" },
+})
 function entities.CLogicBranchList(handle: number): any
 	return new("CLogicBranchList", handle)
 end
@@ -16808,6 +16959,7 @@ end
 
 -- CPathMoverEntitySpawner is the server's CPathMoverEntitySpawner entity class.
 export type CPathMoverEntitySpawner = CLogicalEntity & {
+	m_eTemplateChoiceStrategy: number?,
 	m_nSpawnIndex: number?,
 	m_hPathMover: CPathMover?,
 	m_flSpawnFrequencySeconds: number?,
@@ -16825,6 +16977,7 @@ export type CPathMoverEntitySpawner = CLogicalEntity & {
 	m_bRunningDebugThink: boolean?,
 }
 describe("CPathMoverEntitySpawner", "CLogicalEntity", {
+	m_eTemplateChoiceStrategy = { type = "uint32" },
 	m_nSpawnIndex = { type = "int32" },
 	m_hPathMover = { type = "handle", target = "CPathMover" },
 	m_flSpawnFrequencySeconds = { type = "float32" },

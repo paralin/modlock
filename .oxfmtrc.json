@@ -16,6 +16,7 @@
     "**/*.pb.js",
     "**/*.gen.ts",
     ".protoc-manifest.json",
-    "js/src/entities.ts"
+    "js/src/entities.ts",
+    "data/dump"
   ]
 }

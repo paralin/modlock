@@ -590,6 +590,14 @@ export class CAI_GoalEntity extends CBaseEntity {
     writeField(this.handle, 'CAI_GoalEntity', 'm_fStartActive', 'bool', value)
   }
 
+  get m_SearchType(): number | undefined {
+    return read<number>(this.handle, 'CAI_GoalEntity', 'm_SearchType', 'uint32')
+  }
+
+  set m_SearchType(value: number) {
+    writeField(this.handle, 'CAI_GoalEntity', 'm_SearchType', 'uint32', value)
+  }
+
   get m_iszConceptModifiers(): string | undefined {
     return read<string>(this.handle, 'CAI_GoalEntity', 'm_iszConceptModifiers', 'string')
   }
@@ -4592,6 +4600,14 @@ export class CPhysicsProp extends CBreakableProp {
     writeField(this.handle, 'CPhysicsProp', 'm_bMuteImpactEffects', 'bool', value)
   }
 
+  get m_nNavObstacleType(): number | undefined {
+    return read<number>(this.handle, 'CPhysicsProp', 'm_nNavObstacleType', 'uint32')
+  }
+
+  set m_nNavObstacleType(value: number) {
+    writeField(this.handle, 'CPhysicsProp', 'm_nNavObstacleType', 'uint32', value)
+  }
+
   get m_bUpdateNavWhenMoving(): boolean | undefined {
     return read<boolean>(this.handle, 'CPhysicsProp', 'm_bUpdateNavWhenMoving', 'bool')
   }
@@ -4622,6 +4638,14 @@ export class CPhysicsProp extends CBreakableProp {
 
   set m_bEnableUseOutput(value: boolean) {
     writeField(this.handle, 'CPhysicsProp', 'm_bEnableUseOutput', 'bool', value)
+  }
+
+  get m_CrateType(): number | undefined {
+    return read<number>(this.handle, 'CPhysicsProp', 'm_CrateType', 'uint32')
+  }
+
+  set m_CrateType(value: number) {
+    writeField(this.handle, 'CPhysicsProp', 'm_CrateType', 'uint32', value)
   }
 
   get m_bRemovableForAmmoBalancing(): boolean | undefined {
@@ -6548,6 +6572,14 @@ export class CRagdollProp extends CBaseAnimGraph {
 
   set m_bFirstCollisionAfterLaunch(value: boolean) {
     writeField(this.handle, 'CRagdollProp', 'm_bFirstCollisionAfterLaunch', 'bool', value)
+  }
+
+  get m_nNavObstacleType(): number | undefined {
+    return read<number>(this.handle, 'CRagdollProp', 'm_nNavObstacleType', 'uint32')
+  }
+
+  set m_nNavObstacleType(value: number) {
+    writeField(this.handle, 'CRagdollProp', 'm_nNavObstacleType', 'uint32', value)
   }
 
   get m_bUpdateNavWhenMoving(): boolean | undefined {
@@ -10907,6 +10939,17 @@ export class CCitadel_Projectile_BloodBomb extends CCitadelProjectile {
 /** CCitadel_Projectile_BookwormGun is the server's CCitadel_Projectile_BookwormGun entity class. */
 export class CCitadel_Projectile_BookwormGun extends CCitadelProjectile {}
 
+/** CCitadel_Projectile_BubblingBrew is the server's CCitadel_Projectile_BubblingBrew entity class. */
+export class CCitadel_Projectile_BubblingBrew extends CCitadelProjectile {
+  get m_bIsReturningProjectile(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Projectile_BubblingBrew', 'm_bIsReturningProjectile', 'bool')
+  }
+
+  set m_bIsReturningProjectile(value: boolean) {
+    writeField(this.handle, 'CCitadel_Projectile_BubblingBrew', 'm_bIsReturningProjectile', 'bool', value)
+  }
+}
+
 /** CCitadel_Projectile_Cyclone is the server's CCitadel_Projectile_Cyclone entity class. */
 export class CCitadel_Projectile_Cyclone extends CCitadelProjectile {
   get m_CycloneAbility(): CCitadel_Ability_Thumper_4 | undefined {
@@ -12057,6 +12100,14 @@ export class CFuncMover extends CBaseModelEntity {
     writeField(this.handle, 'CFuncMover', 'm_bIgnoreEndNode', 'bool', value)
   }
 
+  get m_eMoveType(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_eMoveType', 'uint32')
+  }
+
+  set m_eMoveType(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_eMoveType', 'uint32', value)
+  }
+
   get m_bIsReversing(): boolean | undefined {
     return read<boolean>(this.handle, 'CFuncMover', 'm_bIsReversing', 'bool')
   }
@@ -12273,6 +12324,14 @@ export class CFuncMover extends CBaseModelEntity {
     writeField(this.handle, 'CFuncMover', 'm_flStartFollowingClosestMoverWhenOutsideDistance', 'float32', value)
   }
 
+  get m_eOrientationUpdate(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_eOrientationUpdate', 'uint32')
+  }
+
+  set m_eOrientationUpdate(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_eOrientationUpdate', 'uint32', value)
+  }
+
   get m_flTimeStartOrientationChange(): number | undefined {
     return read<number>(this.handle, 'CFuncMover', 'm_flTimeStartOrientationChange', 'float32')
   }
@@ -12409,6 +12468,14 @@ export class CFuncMover extends CBaseModelEntity {
     writeField(this.handle, 'CFuncMover', 'm_bIsPaused', 'bool', value)
   }
 
+  get m_eTransitionedToPathNodeAction(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_eTransitionedToPathNodeAction', 'uint32')
+  }
+
+  set m_eTransitionedToPathNodeAction(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_eTransitionedToPathNodeAction', 'uint32', value)
+  }
+
   get m_nDelayedTeleportToNode(): number | undefined {
     return read<number>(this.handle, 'CFuncMover', 'm_nDelayedTeleportToNode', 'int32')
   }
@@ -12509,6 +12576,14 @@ export class CFuncMover extends CBaseModelEntity {
     writeField(this.handle, 'CFuncMover', 'm_bStartedMoving', 'bool', value)
   }
 
+  get m_eFollowEntityDirection(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_eFollowEntityDirection', 'uint32')
+  }
+
+  set m_eFollowEntityDirection(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_eFollowEntityDirection', 'uint32', value)
+  }
+
   get m_hFollowMover(): CFuncMover | undefined {
     return entity(CFuncMover, this.handle, 'CFuncMover', 'm_hFollowMover')
   }
@@ -12571,6 +12646,14 @@ export class CFuncMover extends CBaseModelEntity {
 
   set m_bFollowConstraintsInitialized(value: boolean) {
     writeField(this.handle, 'CFuncMover', 'm_bFollowConstraintsInitialized', 'bool', value)
+  }
+
+  get m_eFollowConstraint(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_eFollowConstraint', 'uint32')
+  }
+
+  set m_eFollowConstraint(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_eFollowConstraint', 'uint32', value)
   }
 
   get m_flFollowMoverSpeed(): number | undefined {
@@ -12651,6 +12734,22 @@ export class CFuncMover extends CBaseModelEntity {
 
   set m_bQueueSetupPathMover(value: boolean) {
     writeField(this.handle, 'CFuncMover', 'm_bQueueSetupPathMover', 'bool', value)
+  }
+
+  get m_ePathRebuildStrategy(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_ePathRebuildStrategy', 'uint32')
+  }
+
+  set m_ePathRebuildStrategy(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_ePathRebuildStrategy', 'uint32', value)
+  }
+
+  get m_eFindFollowMoverStrategy(): number | undefined {
+    return read<number>(this.handle, 'CFuncMover', 'm_eFindFollowMoverStrategy', 'uint32')
+  }
+
+  set m_eFindFollowMoverStrategy(value: number) {
+    writeField(this.handle, 'CFuncMover', 'm_eFindFollowMoverStrategy', 'uint32', value)
   }
 
   get m_bDisableDecelerationToStop(): boolean | undefined {
@@ -12844,6 +12943,14 @@ export class CFuncRotating extends CBaseModelEntity {
 
 /** CFuncRotator is the server's CFuncRotator entity class. */
 export class CFuncRotator extends CBaseModelEntity {
+  get m_eRotateType(): number | undefined {
+    return read<number>(this.handle, 'CFuncRotator', 'm_eRotateType', 'uint32')
+  }
+
+  set m_eRotateType(value: number) {
+    writeField(this.handle, 'CFuncRotator', 'm_eRotateType', 'uint32', value)
+  }
+
   get m_bIsRotating(): boolean | undefined {
     return read<boolean>(this.handle, 'CFuncRotator', 'm_bIsRotating', 'bool')
   }
@@ -13006,6 +13113,14 @@ export class CFuncRotator extends CBaseModelEntity {
 
   set m_flCurrentAngle(value: number) {
     writeField(this.handle, 'CFuncRotator', 'm_flCurrentAngle', 'float32', value)
+  }
+
+  get m_eRotationAxis(): number | undefined {
+    return read<number>(this.handle, 'CFuncRotator', 'm_eRotationAxis', 'uint32')
+  }
+
+  set m_eRotationAxis(value: number) {
+    writeField(this.handle, 'CFuncRotator', 'm_eRotationAxis', 'uint32', value)
   }
 
   get m_flSpeedDriftFromOverRotate(): number | undefined {
@@ -14976,6 +15091,22 @@ export class CBaseNPCMaker extends CBaseEntity {
   set m_nCurrentBatchCount(value: number) {
     writeField(this.handle, 'CBaseNPCMaker', 'm_nCurrentBatchCount', 'int32', value)
   }
+
+  get m_CriterionVisibility(): number | undefined {
+    return read<number>(this.handle, 'CBaseNPCMaker', 'm_CriterionVisibility', 'uint32')
+  }
+
+  set m_CriterionVisibility(value: number) {
+    writeField(this.handle, 'CBaseNPCMaker', 'm_CriterionVisibility', 'uint32', value)
+  }
+
+  get m_CriterionDistance(): number | undefined {
+    return read<number>(this.handle, 'CBaseNPCMaker', 'm_CriterionDistance', 'uint32')
+  }
+
+  set m_CriterionDistance(value: number) {
+    writeField(this.handle, 'CBaseNPCMaker', 'm_CriterionDistance', 'uint32', value)
+  }
 }
 
 /** CNPCMaker is the server's CNPCMaker entity class. */
@@ -16597,6 +16728,9 @@ export class CCitadelBaseLockonAbility extends CCitadelBaseAbility {
 /** CCitadelBaseTieredLockonAbility is the server's CCitadelBaseTieredLockonAbility entity class. */
 export class CCitadelBaseTieredLockonAbility extends CCitadelBaseLockonAbility {}
 
+/** CCitadel_Ability_Baba_Ultimate2 is the server's CCitadel_Ability_Baba_Ultimate2 entity class. */
+export class CCitadel_Ability_Baba_Ultimate2 extends CCitadelBaseTieredLockonAbility {}
+
 /** CCitadel_Ability_Lash_Ultimate is the server's CCitadel_Ability_Lash_Ultimate entity class. */
 export class CCitadel_Ability_Lash_Ultimate extends CCitadelBaseLockonAbility {
   get m_EGrappleState(): number | undefined {
@@ -16850,6 +16984,9 @@ export class CAbility_Synth_PlasmaFlux_Trigger extends CCitadelBaseTriggerAbilit
 
 /** CCitadel_Ability_AbilityName is the server's CCitadel_Ability_AbilityName entity class. */
 export class CCitadel_Ability_AbilityName extends CCitadelBaseTriggerAbility {}
+
+/** CCitadel_Ability_Baba_HexingBrew_Throw is the server's CCitadel_Ability_Baba_HexingBrew_Throw entity class. */
+export class CCitadel_Ability_Baba_HexingBrew_Throw extends CCitadelBaseTriggerAbility {}
 
 /** CCitadel_Ability_Necro_KillSummonTrigger is the server's CCitadel_Ability_Necro_KillSummonTrigger entity class. */
 export class CCitadel_Ability_Necro_KillSummonTrigger extends CCitadelBaseTriggerAbility {
@@ -17155,6 +17292,242 @@ export class CCitadel_Ability_PowerSlash extends CCitadelBaseYamatoAbility {
 
 /** CCitadel_Ability_Afterburn is the server's CCitadel_Ability_Afterburn entity class. */
 export class CCitadel_Ability_Afterburn extends CCitadelBaseAbility {}
+
+/** CCitadel_Ability_Baba_BenchMelee is the server's CCitadel_Ability_Baba_BenchMelee entity class. */
+export class CCitadel_Ability_Baba_BenchMelee extends CCitadelBaseAbility {
+  get m_eState(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_eState', 'uint8')
+  }
+
+  set m_eState(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_eState', 'uint8', value)
+  }
+
+  get m_eAttackType(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_eAttackType', 'uint8')
+  }
+
+  set m_eAttackType(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_eAttackType', 'uint8', value)
+  }
+
+  get m_flStateStartTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flStateStartTime', 'float32')
+  }
+
+  set m_flStateStartTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flStateStartTime', 'float32', value)
+  }
+
+  get m_flCommitTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flCommitTime', 'float32')
+  }
+
+  set m_flCommitTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flCommitTime', 'float32', value)
+  }
+
+  get m_flAttackTriggeredTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flAttackTriggeredTime', 'float32')
+  }
+
+  set m_flAttackTriggeredTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flAttackTriggeredTime', 'float32', value)
+  }
+
+  get m_flNextLightAttackAllowedTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flNextLightAttackAllowedTime', 'float32')
+  }
+
+  set m_flNextLightAttackAllowedTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flNextLightAttackAllowedTime', 'float32', value)
+  }
+
+  get m_flNextHeavyAttackAllowedTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flNextHeavyAttackAllowedTime', 'float32')
+  }
+
+  set m_flNextHeavyAttackAllowedTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_flNextHeavyAttackAllowedTime', 'float32', value)
+  }
+
+  get m_vDashDir(): Vector | undefined {
+    return read<Vector>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_vDashDir', 'vector')
+  }
+
+  set m_vDashDir(value: Vector) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_vDashDir', 'vector', value)
+  }
+
+  get m_bDiveApplied(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_bDiveApplied', 'bool')
+  }
+
+  set m_bDiveApplied(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_bDiveApplied', 'bool', value)
+  }
+
+  get m_vDashStartVelocity(): Vector | undefined {
+    return read<Vector>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_vDashStartVelocity', 'vector')
+  }
+
+  set m_vDashStartVelocity(value: Vector) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_vDashStartVelocity', 'vector', value)
+  }
+
+  get m_bAttackImpulseApplied(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_bAttackImpulseApplied', 'bool')
+  }
+
+  set m_bAttackImpulseApplied(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_bAttackImpulseApplied', 'bool', value)
+  }
+
+  get m_angForced(): Angles | undefined {
+    return angles(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_angForced')
+  }
+
+  set m_angForced(value: Angles) {
+    writeAngles(this.handle, 'CCitadel_Ability_Baba_BenchMelee', 'm_angForced', value)
+  }
+}
+
+/** CCitadel_Ability_Baba_BenchRun is the server's CCitadel_Ability_Baba_BenchRun entity class. */
+export class CCitadel_Ability_Baba_BenchRun extends CCitadelBaseAbility {
+  get m_bHoldingJump(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bHoldingJump', 'bool')
+  }
+
+  set m_bHoldingJump(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bHoldingJump', 'bool', value)
+  }
+
+  get m_bHeldJumpAborted(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bHeldJumpAborted', 'bool')
+  }
+
+  set m_bHeldJumpAborted(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bHeldJumpAborted', 'bool', value)
+  }
+
+  get m_flHoldJumpStartTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flHoldJumpStartTime', 'float32')
+  }
+
+  set m_flHoldJumpStartTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flHoldJumpStartTime', 'float32', value)
+  }
+
+  get m_flRideStartTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flRideStartTime', 'float32')
+  }
+
+  set m_flRideStartTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flRideStartTime', 'float32', value)
+  }
+
+  get m_flRideEndTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flRideEndTime', 'float32')
+  }
+
+  set m_flRideEndTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flRideEndTime', 'float32', value)
+  }
+
+  get m_flEndLaunchTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flEndLaunchTime', 'float32')
+  }
+
+  set m_flEndLaunchTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flEndLaunchTime', 'float32', value)
+  }
+
+  get m_flLastChargeJumpFraction(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flLastChargeJumpFraction', 'float32')
+  }
+
+  set m_flLastChargeJumpFraction(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_flLastChargeJumpFraction', 'float32', value)
+  }
+
+  get m_bInMelee(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bInMelee', 'bool')
+  }
+
+  set m_bInMelee(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bInMelee', 'bool', value)
+  }
+
+  get m_bMeleeIsHeavy(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bMeleeIsHeavy', 'bool')
+  }
+
+  set m_bMeleeIsHeavy(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bMeleeIsHeavy', 'bool', value)
+  }
+}
+
+/** CCitadel_Ability_Baba_BubblingBrew is the server's CCitadel_Ability_Baba_BubblingBrew entity class. */
+export class CCitadel_Ability_Baba_BubblingBrew extends CCitadelBaseAbility {
+  get m_eState(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BubblingBrew', 'm_eState', 'uint32')
+  }
+
+  set m_eState(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BubblingBrew', 'm_eState', 'uint32', value)
+  }
+
+  get m_CurrentStacks(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BubblingBrew', 'm_CurrentStacks', 'int32')
+  }
+
+  set m_CurrentStacks(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BubblingBrew', 'm_CurrentStacks', 'int32', value)
+  }
+
+  get m_tStackExpiryTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_BubblingBrew', 'm_tStackExpiryTime', 'float32')
+  }
+
+  set m_tStackExpiryTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BubblingBrew', 'm_tStackExpiryTime', 'float32', value)
+  }
+}
+
+/** CCitadel_Ability_Baba_HexingBrew is the server's CCitadel_Ability_Baba_HexingBrew entity class. */
+export class CCitadel_Ability_Baba_HexingBrew extends CCitadelBaseAbility {
+  get m_eBrewEffect(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_eBrewEffect', 'uint32')
+  }
+
+  set m_eBrewEffect(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_eBrewEffect', 'uint32', value)
+  }
+
+  get m_bBrewLocked(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_bBrewLocked', 'bool')
+  }
+
+  set m_bBrewLocked(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_bBrewLocked', 'bool', value)
+  }
+
+  get m_flBrewLockTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_flBrewLockTime', 'float32')
+  }
+
+  set m_flBrewLockTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_flBrewLockTime', 'float32', value)
+  }
+
+  get m_flBrewPausedTime(): number | undefined {
+    return read<number>(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_flBrewPausedTime', 'float32')
+  }
+
+  set m_flBrewPausedTime(value: number) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_HexingBrew', 'm_flBrewPausedTime', 'float32', value)
+  }
+}
 
 /** CCitadel_Ability_BaseHeldItem is the server's CCitadel_Ability_BaseHeldItem entity class. */
 export class CCitadel_Ability_BaseHeldItem extends CCitadelBaseAbility {
@@ -31620,7 +31993,15 @@ export class CLogicBranch extends CLogicalEntity {
 }
 
 /** CLogicBranchList is the server's CLogicBranchList entity class. */
-export class CLogicBranchList extends CLogicalEntity {}
+export class CLogicBranchList extends CLogicalEntity {
+  get m_eLastState(): number | undefined {
+    return read<number>(this.handle, 'CLogicBranchList', 'm_eLastState', 'uint32')
+  }
+
+  set m_eLastState(value: number) {
+    writeField(this.handle, 'CLogicBranchList', 'm_eLastState', 'uint32', value)
+  }
+}
 
 /** CLogicCase is the server's CLogicCase entity class. */
 export class CLogicCase extends CLogicalEntity {
@@ -32224,6 +32605,14 @@ export class CPathKeyFrame extends CLogicalEntity {
 
 /** CPathMoverEntitySpawner is the server's CPathMoverEntitySpawner entity class. */
 export class CPathMoverEntitySpawner extends CLogicalEntity {
+  get m_eTemplateChoiceStrategy(): number | undefined {
+    return read<number>(this.handle, 'CPathMoverEntitySpawner', 'm_eTemplateChoiceStrategy', 'uint32')
+  }
+
+  set m_eTemplateChoiceStrategy(value: number) {
+    writeField(this.handle, 'CPathMoverEntitySpawner', 'm_eTemplateChoiceStrategy', 'uint32', value)
+  }
+
   get m_nSpawnIndex(): number | undefined {
     return read<number>(this.handle, 'CPathMoverEntitySpawner', 'm_nSpawnIndex', 'int32')
   }

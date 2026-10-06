@@ -1,9 +1,8 @@
 // Command modlock-entitygen generates the typed entity classes of the
-// TypeScript, Go and Luau mod libraries from the server schema headers that
-// the DumpSource2 tool writes, one directory per module under its schemas
-// directory:
+// TypeScript, Go and Luau mod libraries from the schemas of a game dump, the
+// directory modlock-host --dump writes:
 //
-//	modlock-entitygen -schemas DumpSource2/schemas -ts js/src/entities.ts \
+//	modlock-entitygen -dump data/dump -ts js/src/entities.ts \
 //		-go mod/entity/entity.go -luau luau/modlock/entities.luau
 //
 // Every server class that derives from CEntityInstance becomes a class with
@@ -22,34 +21,34 @@ import (
 )
 
 func main() {
-	// Read the flags; the schema and at least one output are required.
-	schemas := flag.String("schemas", "", "DumpSource2 schemas directory")
+	// Read the flags; the dump and at least one output are required.
+	dir := flag.String("dump", "", "game dump directory")
 	ts := flag.String("ts", "", "TypeScript module to write")
 	golang := flag.String("go", "", "Go source file to write")
 	luau := flag.String("luau", "", "Luau module to write")
 	flag.Parse()
-	if *schemas == "" || (*ts == "" && *golang == "" && *luau == "") {
+	if *dir == "" || (*ts == "" && *golang == "" && *luau == "") {
 		flag.Usage()
 		os.Exit(2)
 	}
 
 	// Generate, reporting a failure.
-	if err := run(*schemas, *ts, *golang, *luau); err != nil {
+	if err := run(*dir, *ts, *golang, *luau); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 // run reads the schema and writes each requested output.
-func run(schemas, ts, golang, luau string) error {
+func run(dir, ts, golang, luau string) error {
 	// Read the schema's entity classes.
-	s, err := readSchema(schemas)
+	s, err := readSchema(dir)
 	if err != nil {
 		return err
 	}
 	classes := s.entityClasses()
 	if len(classes) == 0 {
-		return fmt.Errorf("%s holds no entity classes", schemas)
+		return fmt.Errorf("%s holds no entity classes", dir)
 	}
 
 	// Write each requested output.
@@ -92,6 +91,7 @@ func (s *schema) entityClasses() []*class {
 	var ordered []*class
 	var walk func(name string)
 	walk = func(name string) {
+		// Strip the fields of a base from another module.
 		c := s.classes[name]
 		if c.module != serverModule {
 			c = &class{name: c.name, base: c.base, module: c.module}
