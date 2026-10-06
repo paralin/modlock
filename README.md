@@ -46,10 +46,14 @@ server on Windows, or through Steam's Proton on Linux, and fetches the server
 that matches its release the first time. Mods need nothing else installed.
 
 ```sh
-modlock new --language typescript my-mod
+modlock new my-mod
 cd my-mod
-modlock dev           # build, start a server, join it, reload on each save
+modlock dev
 ```
+
+`modlock new` writes a TypeScript project: `mod.json` names the mod, `main.ts`
+answers `/hello`, and `tsconfig.json` lets your editor check the code as you
+type. `--language` picks `javascript`, `luau` or `python` instead.
 
 `modlock dev` builds the mod, starts a local server with it, and launches
 Deadlock through Steam to join. Each time you save, it checks and rebuilds the
@@ -61,80 +65,133 @@ player joins appear in the terminal, and the server console goes to
 Without the game, as on macOS or a computer without Deadlock, `modlock dev`
 runs the mod in the sandbox instead: the same WebAssembly runtime and limits,
 with a stand-in player who has no hero. Type a command such as `/hello` and
-press Enter to send it as the player. The mod's log lines, the messages it
-shows the player and its reloads appear in the terminal; calls that need the
-game, such as a hero's position, answer empty. `--sandbox` runs there even
+press Enter to send it as the player. The mod's log lines, the chat and
+announcements it sends the player, and its reloads appear in the terminal;
+calls that need the game, such as a hero's position, answer empty. `--sandbox` runs there even
 where the game runs. With `--json`, a program such as an editor sends each
 line of input as a `modlock.cli.Input`, a command or a button press, and
 draws the interface from the events.
 
-| Command                 | Effect                                                                                                            |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `modlock new DIR`       | Create a mod project named after `DIR` in the `--language` given: `typescript`, `javascript`, `luau` or `python`. |
-| `modlock build`         | Check the mod and write the built mod to `build/`.                                                                |
-| `modlock dev`           | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox.      |
-| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game.                                 |
-| `modlock publish`       | Build and check the mod, then publish it.                                                                         |
+| Command                 | Effect                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `modlock new DIR`       | Create a mod project named after `DIR`, in TypeScript unless `--language` names another.                     |
+| `modlock build`         | Check the mod and write the built mod to `build/`.                                                           |
+| `modlock dev`           | Run the mod in a local server, join it, and reload it on each save; without the game, run it in the sandbox. |
+| `modlock play [MOD...]` | Run built mods in a local server and join it, or in the sandbox without the game.                            |
+| `modlock publish`       | Build and check the mod, then publish it.                                                                    |
 
 `--no-game` runs only the server, `--port` changes its UDP port, and each
 `--arg VALUE` passes an argument to the mods' start handlers. Set
 `DEADLOCK_DIR` when Deadlock is outside the Steam libraries, `MODLOCK_HOST` to
 use a `modlock-host.exe` you built (the sandbox reads the interpreters beside
-it), and `MODLOCK_PROTON` to choose a Proton
-installation.
+it), and `MODLOCK_PROTON` to choose a Proton installation.
 
-A project is a directory with `mod.json`:
+## Making a game mode
 
-```json
-{
-  "slug": "my-mod",
-  "name": "My Mod",
-  "version": "0.1.0",
-  "language": "LANGUAGE_TYPESCRIPT"
+The project `modlock new` writes answers one command. A game mode grows from
+there in the same few steps each time. [`examples/hello-ts`](examples/hello-ts)
+is a small mod you can run that shows most of them: commands, a JSX menu
+with buttons, floating text it moves each frame, a setting and a metric.
+[The TypeScript library](#the-typescript-library) lists every call.
+
+### Wire the events, keep the state in one place
+
+A mod is a set of handlers the server calls. Keep `main.ts` a short list of
+that wiring, and keep the game's state in one object the handlers call into:
+
+```ts
+import { command, onDamage, onFrame, onStart, onWorld } from 'modlock'
+
+import { Match } from './match'
+
+const match = new Match()
+
+onStart((args) => match.start(args))
+onWorld(() => match.world())
+onFrame((frame) => match.frame(frame))
+onDamage((hit) => match.damage(hit))
+command('ready', (player) => match.ready(player))
+```
+
+Split a large mode into modules by concern, such as the match rules, the arena
+it draws and the HUD it shows. `modlock build` bundles every module `main.ts`
+imports and checks their types together.
+
+### Run the match on the frame
+
+The server calls `onFrame` once per frame. Hold the match in a phase, such as
+waiting, countdown, live and between rounds, and move between phases by the
+game clock in `frame.timeSeconds`. Store when each phase ends and compare it
+with the clock; the frame rate varies, so do not count frames.
+
+```ts
+frame(frame: FrameEvent): void {
+  this.now = frame.timeSeconds
+  if (this.phase === 'countdown' && this.now >= this.liveAt) {
+    this.phase = 'live'
+    for (const player of this.players) {
+      player.freeze(false)
+    }
+  }
 }
 ```
 
-An optional `"map"` names the map the mod plays on, such as `"hl_parry_ball"`;
-`modlock dev` and `modlock play` start the first map a loaded mod names, and
-the default map otherwise. The map must be installed in the game's
-`citadel/maps` directory.
+Each event runs within a time budget, and a mod that overruns it stops for the
+rest of the match. Keep each frame's work small.
 
-An optional `"movement"` replaces the heroes' movement. With
-`{"model": "MODEL_QUAKEWORLD", "scale": 1.25}` every hero moves by
-QuakeWorld's rules against the Quake collision in `maps/<map>.bsp`, scaled by
-game units per Quake unit, and each landing calls the mod's landing handler.
-The player's game predicts the same movement; `"unpredictedButtons"` names
-buttons the mod remaps or blocks on the server, which the prediction leaves
-out.
+### Find the players and their heroes
 
-An optional `"abilities"` list retunes stock abilities in both the server and
-each player's game: each entry names an ability, then sets its `properties`,
-such as `AbilityCooldown`, its float schema `fields` by
-`Class.m_field/Class.m_field` path, and its `copyFields`.
+`players()` lists who is connected now, bots included; call it when you need
+it rather than keeping your own list. A connection's `generation` changes when
+someone new takes the slot, so key per-player state by slot and generation.
+`player.pawn()` reads the hero this frame: it is `undefined` until the hero
+spawns, and a hero with no health left is dead. `selectHero`, `teleport`,
+`freeze` and `respawn` move heroes through the match. Call `precache` from
+`onStart` with the heroes and models the mode uses, so they load with the
+world.
 
-An optional `"settings"` list declares choices each player makes about the
-mod, such as a HUD layout. Each entry has a `key`, a `label` and a `kind`:
-`KIND_CHOICE` with `choices` of `{"value", "label"}`, `KIND_SWITCH`, or
-`KIND_NUMBER` with `min`, `max` and `step`. An optional `default` is the value
-a player starts with; without one a player starts at the first choice, off,
-or `min`. The mod reads a player's value with the player's `setting` method,
-changes it with `setSetting`, and reads a switch or a number with types through
-`settingOn` and `settingNumber`. It hears of changes made elsewhere, such as on
-a profile page, through its setting-changed handler. Bots read the defaults.
-`modlock build` refuses a declaration players could not choose from.
+### Start over with each world
 
-An optional `"metrics"` list declares measures the mod keeps for each player,
-such as how often a HUD panel opens. Each entry has a `name` of letters, digits,
-underscores and dots, a `kind` (`KIND_COUNT` counts calls, `KIND_SUM` adds
-values, `KIND_MAX` keeps the largest) and optional `labels`, such as one per
-HUD layout. The mod adds to a player's total with the player's `addMetric`
-method, naming one of the labels when the metric has them. The host keeps the
-totals in memory and hands them on once, when the player leaves or the mod
-stops; without a host service that takes them, the mod logs them, so
-`modlock dev` shows a session's totals as it ends. Bots keep no totals.
+`onWorld` runs each time a map loads, and at start when one already has.
+Objects and bots from the earlier world are gone by then, so forget them in
+`onWorld` and place the new world's objects there.
 
-The built mod in `build/` has its own `mod.json` naming the runtime and the
-entry; `modlock-host --plugin build` loads it.
+### Decide the fights
+
+`onDamage` sees each hit before it lands. Return `{ block: true }` to stop it,
+for spawn protection or between rounds, or `{ amount }` to change it.
+`onDamaged` reports each hit that landed, for scores and effects that follow
+a hit.
+
+### Tell players what is happening
+
+| Call                                          | Use it for                                          |
+| --------------------------------------------- | --------------------------------------------------- |
+| `toast(player, text)`                         | Answering a command, or saying why it was refused.  |
+| `player.announce(title, text)`                | Round starts and results, announced to each player. |
+| `show(player, <panel>…</panel>)`              | A HUD that stays on screen, written in JSX.         |
+| `createText`, `createModel`, `createParticle` | Signs, props and effects in the world.              |
+
+`show` sends only what changed, so redraw a player's HUD from the match state
+on every frame instead of tracking what to update.
+
+### Let players choose
+
+Commands are the simplest controls: `command('vote', (player, args) => …)`
+receives the text after `/vote`. Buttons in a HUD call back into the mod the
+same way. A choice a player keeps between matches, such as a HUD layout,
+belongs in a setting: [the manifest](#the-manifest) declares it, and
+`player.setting(key)` reads the player's value.
+
+### Test it
+
+The sandbox runs commands and interfaces in seconds; use it while you write
+the rules. For a whole round, let the mod test itself: started with an
+argument such as `modlock play --arg probe`, it seats bots with `addBot`,
+plays the round, checks the outcome, logs PASS or FAIL and quits the server
+with `serverCommand('quit')`. [`examples/dropper`](examples/dropper) does this.
+
+When the mode plays well, [publish it](#publishing).
 
 ## Publishing
 
@@ -152,11 +209,10 @@ that passes then goes where `--to` names:
 A release carries the built `mod.json` and its entry. Hyperline publishes
 each version once, so raise `version` in `mod.json` before publishing again.
 
-## Writing a mod in TypeScript or JavaScript
+## The TypeScript library
 
 A TypeScript or JavaScript mod imports `modlock` and registers its handlers
-when it loads, as in the example at the top. `main.ts`, or `main.js`, is the
-entry.
+when it loads. `main.ts`, or `main.js`, is the entry.
 
 `modlock build` installs the `modlock` library into `node_modules/`, checks
 the types with the TypeScript native compiler, which it downloads the first
@@ -194,6 +250,8 @@ one.
 | `player.watchMovement(true)`                                                                           | Add the hero's movement state and the game's movement facts, such as landings and wall jumps, to each new tick's frame event. |
 | `watchProjectiles(options)`, `onLaunch`, `onImpact`                                                    | Watch projectiles by name: see each one's first frame and decide its impact.                                                  |
 | `onLanded(handler)`                                                                                    | Run `handler` when a hero lands under the manifest's movement model.                                                          |
+| `onDamage(handler)`, `onDamaged(handler)`                                                              | Block or change each hit before it lands, or hear of each hit after.                                                          |
+| `toast(player, text)`                                                                                  | Show a player a short notice that fades.                                                                                      |
 | `show(player, element)`, `hide(player)`                                                                | Show a player an interface written in JSX, or remove it.                                                                      |
 | `callService(service, method, payload)`, `serve(service, handler)`                                     | Call a service the host provides, or answer the host's calls to one the mod serves.                                           |
 
@@ -253,6 +311,62 @@ game, which `pressCommand` in `panorama/src/draw.ts` builds, so a host that
 draws interfaces with its own script presses the same way. The server presses
 the node for the player who sent it, and only when that player's interface
 shows it as a button.
+
+## The manifest
+
+A project is a directory with `mod.json`, which names the mod and its source
+language:
+
+```json
+{
+  "slug": "my-mod",
+  "name": "My Mod",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT"
+}
+```
+
+An optional `"map"` names the map the mod plays on, such as `"hl_parry_ball"`;
+`modlock dev` and `modlock play` start the first map a loaded mod names, and
+the default map otherwise. The map must be installed in the game's
+`citadel/maps` directory.
+
+An optional `"movement"` replaces the heroes' movement. With
+`{"model": "MODEL_QUAKEWORLD", "scale": 1.25}` every hero moves by
+QuakeWorld's rules against the Quake collision in `maps/<map>.bsp`, scaled by
+game units per Quake unit, and each landing calls the mod's landing handler.
+The player's game predicts the same movement; `"unpredictedButtons"` names
+buttons the mod remaps or blocks on the server, which the prediction leaves
+out.
+
+An optional `"abilities"` list retunes stock abilities in both the server and
+each player's game: each entry names an ability, then sets its `properties`,
+such as `AbilityCooldown`, its float schema `fields` by
+`Class.m_field/Class.m_field` path, and its `copyFields`.
+
+An optional `"settings"` list declares choices each player makes about the
+mod, such as a HUD layout. Each entry has a `key`, a `label` and a `kind`:
+`KIND_CHOICE` with `choices` of `{"value", "label"}`, `KIND_SWITCH`, or
+`KIND_NUMBER` with `min`, `max` and `step`. An optional `default` is the value
+a player starts with; without one a player starts at the first choice, off,
+or `min`. The mod reads a player's value with the player's `setting` method,
+changes it with `setSetting`, and reads a switch or a number with types through
+`settingOn` and `settingNumber`. It hears of changes made elsewhere, such as on
+a profile page, through its setting-changed handler. Bots read the defaults.
+`modlock build` refuses a declaration players could not choose from.
+
+An optional `"metrics"` list declares measures the mod keeps for each player,
+such as how often a HUD panel opens. Each entry has a `name` of letters, digits,
+underscores and dots, a `kind` (`KIND_COUNT` counts calls, `KIND_SUM` adds
+values, `KIND_MAX` keeps the largest) and optional `labels`, such as one per
+HUD layout. The mod adds to a player's total with the player's `addMetric`
+method, naming one of the labels when the metric has them. The host keeps the
+totals in memory and hands them on once, when the player leaves or the mod
+stops; without a host service that takes them, the mod logs them, so
+`modlock dev` shows a session's totals as it ends. Bots keep no totals.
+
+The built mod in `build/` has its own `mod.json` naming the runtime and the
+entry; `modlock-host --plugin build` loads it.
 
 ## Writing a mod in Luau
 

@@ -1,0 +1,32 @@
+{
+  "slug": "hello-ts",
+  "name": "Hello",
+  "version": "0.1.0",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "settings": [
+    {
+      "key": "greeting",
+      "label": "Greeting",
+      "kind": "KIND_CHOICE",
+      "choices": [
+        { "value": "hello", "label": "Hello" },
+        { "value": "howdy", "label": "Howdy" },
+        { "value": "gday", "label": "G'day" }
+      ]
+    },
+    {
+      "key": "bob",
+      "label": "Bob signs up and down",
+      "kind": "KIND_SWITCH",
+      "default": "true"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "hello.said",
+      "kind": "KIND_COUNT",
+      "labels": ["hello", "howdy", "gday"]
+    },
+    { "name": "signs.placed", "kind": "KIND_COUNT" }
+  ]
+}

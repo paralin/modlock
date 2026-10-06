@@ -11,11 +11,11 @@ import (
 
 // languages maps each --language name to the manifest's language.
 var languages = map[string]wasm.Manifest_Language{
-	"go":         wasm.Manifest_LANGUAGE_GO,
 	"typescript": wasm.Manifest_LANGUAGE_TYPESCRIPT,
 	"javascript": wasm.Manifest_LANGUAGE_JAVASCRIPT,
 	"luau":       wasm.Manifest_LANGUAGE_LUAU,
 	"python":     wasm.Manifest_LANGUAGE_PYTHON,
+	"go":         wasm.Manifest_LANGUAGE_GO,
 }
 
 // newCommand creates a mod project.
@@ -26,7 +26,7 @@ func newCommand(out *printer) *cli.Command {
 		ArgsUsage: "DIRECTORY",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: "name", Usage: "the mod's display name (default: the directory name)"},
-			&cli.StringFlag{Name: "language", Value: "go", Usage: "the source language: go, typescript, javascript, luau or python"},
+			&cli.StringFlag{Name: "language", Value: "typescript", Usage: "the source language: typescript, javascript, luau, python or go"},
 		},
 		Action: func(c *cli.Context) error {
 			// Read the arguments.
