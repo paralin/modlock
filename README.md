@@ -19,8 +19,8 @@ command('hello', (player) => {
 ```
 
 > **Early development.** APIs change without notice. TypeScript, JavaScript,
-> Luau and Python mods, the `modlock` command line and `modlock publish` work
-> today.
+> Luau, Python and Go mods, the `modlock` command line and `modlock publish`
+> work today.
 
 ## Why WebAssembly
 
@@ -41,10 +41,20 @@ command('hello', (player) => {
 ## Getting started
 
 Download `modlock` for your system from the
-[releases](https://github.com/paralin/modlock/releases). On Windows it runs the
-game server directly; on Linux it runs it through Steam's Proton. It fetches
-the server that matches its release the first time. Mods need nothing else
-installed.
+[releases](https://github.com/paralin/modlock/releases). On macOS and Linux,
+install it on your `PATH` as `modlock`, using the name of your download:
+
+```sh
+sudo install -m 755 modlock-darwin-arm64 /usr/local/bin/modlock
+```
+
+macOS refuses to open an unsigned program that a browser downloaded, so on a
+Mac clear the download's quarantine first with `xattr -c modlock-darwin-arm64`.
+
+On Windows it runs the game server directly; on Linux it runs it through
+Steam's Proton. It fetches the server that matches its release the first time.
+Script mods need nothing else installed; a Go mod needs
+[Go](https://go.dev/dl/).
 
 ```sh
 modlock new my-mod
@@ -60,7 +70,7 @@ modlock dev
 | `main.ts`       | The mod. It answers `/hello` in chat.                                |
 | `tsconfig.json` | The compiler options your editor uses to check the code as you type. |
 
-Pass `--language javascript`, `luau` or `python` for another language.
+Pass `--language javascript`, `luau`, `python` or `go` for another language.
 
 `modlock dev` builds the mod, starts a local server with it, and launches
 Deadlock through Steam to join. Each time you save, it rebuilds the mod and
