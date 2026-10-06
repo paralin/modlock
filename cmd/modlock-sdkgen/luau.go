@@ -117,7 +117,7 @@ func (w *luauWriter) writeTypes() error {
 		if !w.enumsIn[e] && !w.enumsOut[e] {
 			continue
 		}
-		writeLuauDoc(&w.out, "", e.doc)
+		writeComment(&w.out, "", "--", e.doc)
 		var names, entries []string
 		for _, v := range e.named() {
 			names = append(names, fmt.Sprintf("%q", e.valueName(v)))
@@ -130,7 +130,7 @@ func (w *luauWriter) writeTypes() error {
 		if mapped(m) != "" || (!w.inputs[m] && !w.outputs[m]) {
 			continue
 		}
-		writeLuauDoc(&w.out, "", m.doc)
+		writeComment(&w.out, "", "--", m.doc)
 		if m.isUnion() {
 			fmt.Fprintf(&w.out, "export type %s = %s\n\n", m.name, w.oneofType(m.oneofs[0]))
 			continue
@@ -143,7 +143,7 @@ func (w *luauWriter) writeTypes() error {
 			}
 			if o := f.oneof; o != nil {
 				if o.fields[0] == f {
-					writeLuauDoc(&w.out, "\t", fieldDoc(m, rename(o.doc, camel(o.name), lowerCamel(o.name))))
+					writeComment(&w.out, "\t", "--", fieldDoc(m, rename(o.doc, camel(o.name), lowerCamel(o.name))))
 					fmt.Fprintf(&w.out, "\t%s: (%s)?,\n", luauKey(lowerCamel(o.name)), w.oneofType(o))
 				}
 				continue
@@ -152,7 +152,7 @@ func (w *luauWriter) writeTypes() error {
 			if f.optional || (f.repeated && !outputOnly) || (f.enum != nil && !f.repeated && w.outputs[m]) {
 				mark = "?"
 			}
-			writeLuauDoc(&w.out, "\t", fieldDoc(m, f.doc))
+			writeComment(&w.out, "\t", "--", fieldDoc(m, f.doc))
 			fmt.Fprintf(&w.out, "\t%s: %s%s,\n", luauKey(lowerCamel(f.name)), luauType(f), mark)
 		}
 		w.out.WriteString("}\n\n")
@@ -179,13 +179,13 @@ func (w *luauWriter) oneofType(o *oneof) string {
 // writeClass writes one class: its type, which lists its methods, its
 // constructor and its calls as methods.
 func (w *luauWriter) writeClass(c *class) {
-	writeLuauDoc(&w.out, "", c.doc)
+	writeComment(&w.out, "", "--", c.doc)
 	fmt.Fprintf(&w.out, "export type %s = {\n", c.name)
-	writeLuauDoc(&w.out, "\t", c.keyDoc)
+	writeComment(&w.out, "\t", "--", c.keyDoc)
 	fmt.Fprintf(&w.out, "\t%s: number,\n", c.key)
 	for _, call := range w.calls {
 		if call.class == c {
-			writeLuauDoc(&w.out, "\t", rename(call.method.doc, call.method.name, call.name))
+			writeComment(&w.out, "\t", "--", rename(call.method.doc, call.method.name, call.name))
 			params := append([]string{"self: " + c.name}, w.params(call)...)
 			result, _ := w.resultType(call)
 			fmt.Fprintf(&w.out, "\t%s: (%s) -> %s,\n", call.name, strings.Join(params, ", "), result)
@@ -251,7 +251,7 @@ func (w *luauWriter) writeCall(c *call) {
 		params = append([]string{"self: " + c.class.name}, params...)
 	}
 	result, failure := w.resultType(c)
-	writeLuauDoc(&w.out, "", rename(c.method.doc, c.method.name, c.name))
+	writeComment(&w.out, "", "--", rename(c.method.doc, c.method.name, c.name))
 	fmt.Fprintf(&w.out, "function %s.%s(%s): %s\n", owner, c.name, strings.Join(params, ", "), result)
 
 	// Build the request.
@@ -380,10 +380,10 @@ func (w *luauWriter) descriptor(f *field) (string, error) {
 // writeMod writes the type of the mod's event handlers and the dispatch that
 // runs them.
 func (w *luauWriter) writeMod() {
-	writeLuauDoc(&w.out, "", "ModHandlers handles the events the game delivers to the mod.")
+	writeComment(&w.out, "", "--", "ModHandlers handles the events the game delivers to the mod.")
 	w.out.WriteString("export type ModHandlers = {\n")
 	for _, m := range w.s.mod.methods {
-		writeLuauDoc(&w.out, "\t", rename(m.doc, m.name, lowerCamel(m.name)))
+		writeComment(&w.out, "\t", "--", rename(m.doc, m.name, lowerCamel(m.name)))
 		param := ""
 		if !m.request.isEmpty() {
 			param = "event: " + m.request.name
@@ -489,18 +489,4 @@ func luauLocal(name string) string {
 // decimal string because a number cannot hold every id exactly.
 func isID(f *field) bool {
 	return is64(f) && strings.HasSuffix(f.name, "_id")
-}
-
-// writeLuauDoc writes text as a comment at indent.
-func writeLuauDoc(out *bytes.Buffer, indent, text string) {
-	if text == "" {
-		return
-	}
-	for _, line := range strings.Split(text, "\n") {
-		if line == "" {
-			fmt.Fprintf(out, "%s--\n", indent)
-			continue
-		}
-		fmt.Fprintf(out, "%s-- %s\n", indent, line)
-	}
 }

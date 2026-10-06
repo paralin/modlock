@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/aperturerobotics/protobuf-go-lite/types/descriptorpb"
@@ -427,8 +428,8 @@ func (w *tsWriter) oneofType(o *oneof) string {
 func (w *tsWriter) oneofValue(o *oneof, value string) (string, error) {
 	seen := map[string]bool{}
 	expr := ""
-	for i := len(o.fields) - 1; i >= 0; i-- {
-		f := o.fields[i]
+	for _, f := range slices.Backward(o.fields) {
+
 		kind := typeOf(f)
 		if seen[kind] {
 			return "", fmt.Errorf("oneof %s has two cases of typeof %s", o.name, kind)
@@ -643,19 +644,12 @@ func writeDoc(out *bytes.Buffer, indent, text string) {
 	if text == "" {
 		return
 	}
-	lines := strings.Split(text, "\n")
-	if len(lines) == 1 && len(indent)+len(text) <= 72 {
+	if !strings.Contains(text, "\n") && len(indent)+len(text) <= 72 {
 		fmt.Fprintf(out, "%s/** %s */\n", indent, text)
 		return
 	}
 	fmt.Fprintf(out, "%s/**\n", indent)
-	for _, line := range lines {
-		if line == "" {
-			fmt.Fprintf(out, "%s *\n", indent)
-			continue
-		}
-		fmt.Fprintf(out, "%s * %s\n", indent, line)
-	}
+	writeComment(out, indent, " *", text)
 	fmt.Fprintf(out, "%s */\n", indent)
 }
 

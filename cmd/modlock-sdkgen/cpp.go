@@ -58,12 +58,12 @@ func writeCpp(s *schema) ([]byte, error) {
 	out.WriteString(cppPreamble)
 
 	// Declare the host's service.
-	writeGoDoc(&out, "", s.host.doc)
+	writeComment(&out, "", "//", s.host.doc)
 	out.WriteString("//\n// HostService declares one virtual method per call. Each returns that the\n")
 	out.WriteString("// host does not support the call until a subclass overrides it.\nclass HostService {\n public:\n")
 	out.WriteString("  virtual ~HostService() = default;\n\n")
 	for _, m := range s.host.methods {
-		writeGoDoc(&out, "  ", m.doc)
+		writeComment(&out, "  ", "//", m.doc)
 		fmt.Fprintf(&out, "  virtual %s %s(%s) {\n", cppResult(m), m.name, cppParam(m, "/*request*/"))
 		fmt.Fprintf(&out, "    return std::unexpected(%q);\n  }\n\n", "this host does not support "+m.name)
 	}
@@ -89,13 +89,13 @@ func writeCpp(s *schema) ([]byte, error) {
 	out.WriteString("    return handler->second(*this, call.request());\n  }\n};\n\n")
 
 	// Declare the client that delivers events to a mod.
-	writeGoDoc(&out, "", s.mod.doc)
+	writeComment(&out, "", "//", s.mod.doc)
 	out.WriteString("//\n// ModClient sends each event to the mod through a transport that delivers\n")
 	out.WriteString("// one call and returns the mod's reply.\nclass ModClient {\n public:\n")
 	out.WriteString("  using Transport = std::function<std::expected<Reply, std::string>(const Call&)>;\n\n")
 	out.WriteString("  explicit ModClient(Transport transport) : transport_(std::move(transport)) {}\n\n")
 	for _, m := range s.mod.methods {
-		writeGoDoc(&out, "  ", m.doc)
+		writeComment(&out, "  ", "//", m.doc)
 		response, request := "void", "Empty{}"
 		if !m.response.isEmpty() {
 			response = cppType(m.response)

@@ -81,7 +81,7 @@ type Angles = modlock.EulerAngles
 		case m.isUnion():
 			w.unionsIn[m], w.unionsOut[m] = set(in.messages)[m], set(out.messages)[m]
 		default:
-			writeGoDoc(&w.out, "", m.doc)
+			writeComment(&w.out, "", "//", m.doc)
 			fmt.Fprintf(&w.out, "type %s = wasm.%s\n\n", m.name, m.name)
 			for _, o := range m.oneofs {
 				for _, f := range o.fields {
@@ -99,9 +99,9 @@ type Angles = modlock.EulerAngles
 
 	// Write the classes and calls.
 	for _, c := range classes {
-		writeGoDoc(&w.out, "", c.doc)
+		writeComment(&w.out, "", "//", c.doc)
 		fmt.Fprintf(&w.out, "type %s struct {\n", c.name)
-		writeGoDoc(&w.out, "\t", rename(c.keyDoc, c.key, c.goKey))
+		writeComment(&w.out, "\t", "//", rename(c.keyDoc, c.key, c.goKey))
 		fmt.Fprintf(&w.out, "\t%s %s\n}\n\n", c.goKey, c.goType)
 	}
 	for _, c := range calls {
@@ -120,12 +120,12 @@ type Angles = modlock.EulerAngles
 
 // writeEnum aliases an enum and names its values.
 func (w *goWriter) writeEnum(e *enum) {
-	writeGoDoc(&w.out, "", e.doc)
+	writeComment(&w.out, "", "//", e.doc)
 	fmt.Fprintf(&w.out, "type %s = wasm.%s\n\n", e.name, e.name)
 	fmt.Fprintf(&w.out, "// The values of %s.\nconst (\n", e.name)
 	for _, v := range e.named() {
 		name := e.name + camel(e.valueName(v))
-		writeGoDoc(&w.out, "\t", rename(v.doc, v.name, name))
+		writeComment(&w.out, "\t", "//", rename(v.doc, v.name, name))
 		fmt.Fprintf(&w.out, "\t%s = wasm.%s_%s\n", name, e.name, v.name)
 	}
 	w.out.WriteString(")\n\n")
@@ -191,7 +191,7 @@ func (w *goWriter) writeCall(c *call) error {
 	if c.class != nil {
 		receiver = fmt.Sprintf("(%s %s) ", receiverName(c.class), c.class.name)
 	}
-	writeGoDoc(&w.out, "", rename(c.method.doc, c.method.name, name))
+	writeComment(&w.out, "", "//", rename(c.method.doc, c.method.name, name))
 	fmt.Fprintf(&w.out, "func %s%s(%s) %s {\n", receiver, name, strings.Join(params, ", "), result)
 	fail := "return err"
 	if failure != "" {
@@ -377,7 +377,7 @@ func receiverName(c *class) string {
 func (w *goWriter) writeMod() {
 	w.out.WriteString("// modHandlers handles the events the game delivers to the mod.\ntype modHandlers interface {\n")
 	for _, m := range w.s.mod.methods {
-		writeGoDoc(&w.out, "\t", m.doc)
+		writeComment(&w.out, "\t", "//", m.doc)
 		param := ""
 		if !m.request.isEmpty() {
 			param = "event *" + m.request.name
@@ -406,18 +406,4 @@ func (w *goWriter) writeMod() {
 		fmt.Fprintf(&w.out, "\t\treturn answer(handlers.%s(%s))\n", m.name, event)
 	}
 	w.out.WriteString("\t}\n\treturn &wasm.Reply{Error: \"the mod has no method \" + call.GetMethod()}\n}\n")
-}
-
-// writeGoDoc writes text as a line comment at indent.
-func writeGoDoc(out *bytes.Buffer, indent, text string) {
-	if text == "" {
-		return
-	}
-	for _, line := range strings.Split(text, "\n") {
-		if line == "" {
-			fmt.Fprintf(out, "%s//\n", indent)
-			continue
-		}
-		fmt.Fprintf(out, "%s// %s\n", indent, line)
-	}
 }

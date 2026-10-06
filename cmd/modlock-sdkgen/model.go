@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"unicode"
@@ -563,4 +564,22 @@ func set[T comparable](items []T) map[T]bool {
 		s[item] = true
 	}
 	return s
+}
+
+// writeComment writes each line of text at indent behind the language's line
+// comment marker.
+func writeComment(out *bytes.Buffer, indent, marker, text string) {
+	// An empty text writes nothing.
+	if text == "" {
+		return
+	}
+
+	// Mark each line, keeping blank lines free of trailing spaces.
+	for line := range strings.SplitSeq(text, "\n") {
+		if line == "" {
+			fmt.Fprintf(out, "%s%s\n", indent, marker)
+			continue
+		}
+		fmt.Fprintf(out, "%s%s %s\n", indent, marker, line)
+	}
 }

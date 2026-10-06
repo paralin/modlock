@@ -130,7 +130,7 @@ func (w *pythonWriter) writeTypes() {
 		if !w.enumsIn[e] && !w.enumsOut[e] {
 			continue
 		}
-		writePythonComment(&w.out, "", e.doc)
+		writeComment(&w.out, "", "#", e.doc)
 		var names, entries []string
 		for _, v := range e.named() {
 			name := pythonValue(e, v)
@@ -149,7 +149,7 @@ func (w *pythonWriter) writeTypes() {
 			continue
 		}
 		if m.isUnion() {
-			writePythonComment(&w.out, "", m.doc)
+			writeComment(&w.out, "", "#", m.doc)
 			fmt.Fprintf(&w.out, "type %s = %s\n\n\n", m.name, w.oneofType(m.oneofs[0]))
 			continue
 		}
@@ -167,12 +167,12 @@ func (w *pythonWriter) writeTypes() {
 			}
 			if o := f.oneof; o != nil {
 				if o.fields[0] == f {
-					writePythonComment(&w.out, "    ", pythonFieldDoc(m, rename(o.doc, camel(o.name), o.name)))
+					writeComment(&w.out, "    ", "#", pythonFieldDoc(m, rename(o.doc, camel(o.name), o.name)))
 					fmt.Fprintf(&w.out, "    %s: %s | None = None\n", pythonName(o.name), w.oneofType(o))
 				}
 				continue
 			}
-			writePythonComment(&w.out, "    ", pythonFieldDoc(m, f.doc))
+			writeComment(&w.out, "    ", "#", pythonFieldDoc(m, f.doc))
 			fmt.Fprintf(&w.out, "    %s: %s\n", pythonName(f.name), w.member(m, f))
 		}
 		w.out.WriteString("\n\n")
@@ -217,7 +217,7 @@ func (w *pythonWriter) writeClass(c *class) {
 	if c.doc != "" {
 		w.out.WriteString("\n")
 	}
-	writePythonComment(&w.out, "    ", c.keyDoc)
+	writeComment(&w.out, "    ", "#", c.keyDoc)
 	fmt.Fprintf(&w.out, "    %s: int\n", c.key)
 	for _, call := range w.calls {
 		if call.class == c {
@@ -499,20 +499,6 @@ func pythonFieldDoc(m *message, doc string) string {
 		doc = regexp.MustCompile(`\b`+camel(f.name)+`\b`).ReplaceAllString(doc, f.name)
 	}
 	return doc
-}
-
-// writePythonComment writes text as a comment at indent.
-func writePythonComment(out *bytes.Buffer, indent, text string) {
-	if text == "" {
-		return
-	}
-	for _, line := range strings.Split(text, "\n") {
-		if line == "" {
-			fmt.Fprintf(out, "%s#\n", indent)
-			continue
-		}
-		fmt.Fprintf(out, "%s# %s\n", indent, line)
-	}
 }
 
 // writePythonDocstring writes text as a docstring at indent.
