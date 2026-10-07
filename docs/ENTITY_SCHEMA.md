@@ -70,10 +70,10 @@ crash or hang from the next name.
 
 | Result                | Names | Meaning                                                                                                        |
 | --------------------- | ----: | -------------------------------------------------------------------------------------------------------------- |
-| Lived                 |   578 | 542 alone, 36 only with their game data subclass                                                               |
+| Lived                 |   577 | 542 alone, 35 only with their game data subclass                                                               |
 | Refused as an ability |   520 | Abilities, items and weapons, which only a hero holds                                                          |
 | Failed                |    58 | Abstract bases the server cannot create, entities that removed themselves during spawn, nodes with no identity |
-| Crashed the server    |    24 | Player pawns, bot brains, path nodes, capture points and a few others                                          |
+| Crashed the server    |    25 | Player pawns, bot brains, path nodes, capture points, the bounce pad on touch and a few others                 |
 | Vanished              |     3 | Created, then gone by the next frame                                                                           |
 
 The survey tries each name twice. The first pass gives the subclass the game's

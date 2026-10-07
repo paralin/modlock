@@ -20403,7 +20403,6 @@ local designers = {
 	citadel_base_prop_midboss_indicator = { "CCitadel_Prop_MidBossIndicator", "CPointEntity" },
 	citadel_base_prop_stairs = { "CCitadel_BaseProp_MidStairs", "CCitadel_BaseProp_MidStairs" },
 	citadel_bot_test_node = { "CCitadelBotTestNode", "CCitadelBotTestNode" },
-	citadel_bounce_pad = { "CCitadel_Bounce_Pad", "CBaseAnimGraph", "citadel_bounce_pad" },
 	citadel_breakable_prop = { "CCitadel_BreakableProp", "CCitadel_BreakableProp", "citadel_breakable_prop_vase" },
 	citadel_capture_point_escort = { "CCitadelTriggerCapturePoint_Escort", "CCitadelTriggerCapturePoint", "capture_point_escort" },
 	citadel_cat_animating = { "CCitadel_CatAnimating", "CBaseAnimGraph", "citadel_cat_animating" },

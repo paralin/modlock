@@ -36,7 +36,6 @@ var CitadelBaseHero = Designer[CCitadelHeroLoader, CCitadelHeroLoaderKeys]{"cita
 var CitadelBasePropMidbossIndicator = Designer[CCitadel_Prop_MidBossIndicator, CPointEntityKeys]{"citadel_base_prop_midboss_indicator", ""}
 var CitadelBasePropStairs = Designer[CCitadel_BaseProp_MidStairs, CCitadel_BaseProp_MidStairsKeys]{"citadel_base_prop_stairs", ""}
 var CitadelBotTestNode = Designer[CCitadelBotTestNode, CCitadelBotTestNodeKeys]{"citadel_bot_test_node", ""}
-var CitadelBouncePad = Designer[CCitadel_Bounce_Pad, CBaseAnimGraphKeys]{"citadel_bounce_pad", "citadel_bounce_pad"}
 var CitadelBreakableProp = Designer[CCitadel_BreakableProp, CCitadel_BreakablePropKeys]{"citadel_breakable_prop", "citadel_breakable_prop_vase"}
 var CitadelCapturePointEscort = Designer[CCitadelTriggerCapturePoint_Escort, CCitadelTriggerCapturePointKeys]{"citadel_capture_point_escort", "capture_point_escort"}
 var CitadelCatAnimating = Designer[CCitadel_CatAnimating, CBaseAnimGraphKeys]{"citadel_cat_animating", "citadel_cat_animating"}

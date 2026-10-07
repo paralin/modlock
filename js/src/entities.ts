@@ -15369,7 +15369,6 @@ const designers = {
   citadel_base_prop_midboss_indicator: [CCitadel_Prop_MidBossIndicator, keysCPointEntity],
   citadel_base_prop_stairs: [CCitadel_BaseProp_MidStairs, keysCCitadel_BaseProp_MidStairs],
   citadel_bot_test_node: [CCitadelBotTestNode, keysCCitadelBotTestNode],
-  citadel_bounce_pad: [CCitadel_Bounce_Pad, keysCBaseAnimGraph, 'citadel_bounce_pad'],
   citadel_breakable_prop: [CCitadel_BreakableProp, keysCCitadel_BreakableProp, 'citadel_breakable_prop_vase'],
   citadel_capture_point_escort: [CCitadelTriggerCapturePoint_Escort, keysCCitadelTriggerCapturePoint, 'capture_point_escort'],
   citadel_cat_animating: [CCitadel_CatAnimating, keysCBaseAnimGraph, 'citadel_cat_animating'],

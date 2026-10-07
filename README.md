@@ -614,7 +614,7 @@ guardian?.inputDisableShadow()
 ```
 
 `create` knows only the designer names that survived their spawn on a
-dedicated server, 578 of the game's 1,183, and gives each name that needs a
+dedicated server, 577 of the game's 1,183, and gives each name that needs a
 subclass the one it lived with, so `create('npc_trooper_boss', ...)` makes a
 Guardian without naming `npc_boss_tier1`. A name that never lived, such as an
 abstract base or one that crashes the server, has no constructor, and the type

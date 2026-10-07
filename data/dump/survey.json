@@ -2252,7 +2252,8 @@
   {
    "designer_name": "citadel_bounce_pad",
    "subclass": "citadel_bounce_pad",
-   "status": "CONSTRUCTION_STATUS_ALIVE"
+   "status": "CONSTRUCTION_STATUS_CRASHED",
+   "error": "lived, then crashed the server when a hero crossed it: it needs the ability that owns it"
   },
   {
    "designer_name": "citadel_breakable_prop",
