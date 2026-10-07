@@ -1,9 +1,14 @@
 #include "modlock/gameinterop/signature.h"
 
 #include <array>
+#include <bit>
 #include <cctype>
 #include <cstring>
 #include <optional>
+
+#if defined(__SSE2__)
+#include <emmintrin.h>
+#endif
 
 namespace modlock::gameinterop {
 namespace {
@@ -31,6 +36,27 @@ std::optional<size_t> RarestByte(std::span<const uint8_t> data, const Signature&
     if (!rarest || counts[sig.bytes[k]] < counts[sig.bytes[*rarest]]) rarest = k;
   }
   return rarest;
+}
+
+// FindByte returns the first byte equal to value in [p, end), or end. It
+// compares 16 bytes at a time where SSE2 allows rather than calling memchr,
+// which Wine implements one byte at a time.
+const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
+#if defined(__SSE2__)
+  const __m128i needle = _mm_set1_epi8(static_cast<char>(value));
+  for (; end - p >= 16; p += 16) {
+    const __m128i block = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
+    const auto mask = static_cast<unsigned>(_mm_movemask_epi8(_mm_cmpeq_epi8(block, needle)));
+    if (mask != 0) return p + std::countr_zero(mask);
+  }
+  for (; p < end; p++) {
+    if (*p == value) return p;
+  }
+  return end;
+#else
+  const auto* found = static_cast<const uint8_t*>(std::memchr(p, value, end - p));
+  return found != nullptr ? found : end;
+#endif
 }
 
 // Matches reports whether sig matches data at start, which leaves room for it.
@@ -90,13 +116,11 @@ std::vector<size_t> SignatureScan(std::span<const uint8_t> data, const Signature
     return hits;
   }
 
-  // memchr finds each place the pattern's rarest byte occurs far faster than
-  // a byte-by-byte scan; the whole pattern is checked only there.
+  // Only the places the pattern's rarest byte occurs can match.
   const uint8_t* first = data.data() + *pivot;
   const uint8_t* end = first + last_start + 1;
-  for (const uint8_t* p = first; p < end; p++) {
-    p = static_cast<const uint8_t*>(std::memchr(p, sig.bytes[*pivot], end - p));
-    if (p == nullptr) break;
+  for (const uint8_t* p = FindByte(first, end, sig.bytes[*pivot]); p != end;
+       p = FindByte(p + 1, end, sig.bytes[*pivot])) {
     const auto start = static_cast<size_t>(p - first);
     if (Matches(data, start, sig)) hits.push_back(start);
   }
