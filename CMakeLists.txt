@@ -114,6 +114,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/engine_server.cc
   src/gameinterop/entity_abi.cc
   src/gameinterop/frame_hook.cc
+  src/gameinterop/frame_timing.cc
   src/gameinterop/game_rules.cc
   src/gameinterop/game_signatures.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/gameinterop/game_signatures_data.cc
@@ -479,6 +480,9 @@ if(BUILD_TESTING)
   add_executable(gameinterop_frame_hook_test tests/gameinterop_frame_hook_test.cc)
   target_link_libraries(gameinterop_frame_hook_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME gameinterop_frame_hook_test COMMAND gameinterop_frame_hook_test)
+  add_executable(gameinterop_frame_timing_test tests/gameinterop_frame_timing_test.cc)
+  target_link_libraries(gameinterop_frame_timing_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME gameinterop_frame_timing_test COMMAND gameinterop_frame_timing_test)
   add_executable(gameinterop_hero_definitions_test tests/gameinterop_hero_definitions_test.cc)
   target_link_libraries(gameinterop_hero_definitions_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME gameinterop_hero_definitions_test COMMAND gameinterop_hero_definitions_test)
