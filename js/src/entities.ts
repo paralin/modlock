@@ -17458,12 +17458,12 @@ export class CCitadel_Ability_Baba_BenchRun extends CCitadelBaseAbility {
     writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bInMelee', 'bool', value)
   }
 
-  get m_bMeleeIsHeavy(): boolean | undefined {
-    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bMeleeIsHeavy', 'bool')
+  get m_bRideCut(): boolean | undefined {
+    return read<boolean>(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bRideCut', 'bool')
   }
 
-  set m_bMeleeIsHeavy(value: boolean) {
-    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bMeleeIsHeavy', 'bool', value)
+  set m_bRideCut(value: boolean) {
+    writeField(this.handle, 'CCitadel_Ability_Baba_BenchRun', 'm_bRideCut', 'bool', value)
   }
 }
 

@@ -8144,7 +8144,7 @@ export type CCitadel_Ability_Baba_BenchRun = CCitadelBaseAbility & {
 	m_flEndLaunchTime: number?,
 	m_flLastChargeJumpFraction: number?,
 	m_bInMelee: boolean?,
-	m_bMeleeIsHeavy: boolean?,
+	m_bRideCut: boolean?,
 }
 describe("CCitadel_Ability_Baba_BenchRun", "CCitadelBaseAbility", {
 	m_bHoldingJump = { type = "bool" },
@@ -8155,7 +8155,7 @@ describe("CCitadel_Ability_Baba_BenchRun", "CCitadelBaseAbility", {
 	m_flEndLaunchTime = { type = "float32" },
 	m_flLastChargeJumpFraction = { type = "float32" },
 	m_bInMelee = { type = "bool" },
-	m_bMeleeIsHeavy = { type = "bool" },
+	m_bRideCut = { type = "bool" },
 })
 function entities.CCitadel_Ability_Baba_BenchRun(handle: number): any
 	return new("CCitadel_Ability_Baba_BenchRun", handle)

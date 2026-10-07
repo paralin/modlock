@@ -1,5 +1,5 @@
 {
- "build": "6757",
+ "build": "6759",
  "classes": [
   {
    "name": "AnimationDecodeDebugDumpElement_t",
@@ -105503,7 +105503,7 @@
   {
    "name": "CCitadel_Ability_Baba_BenchRun",
    "module": "server",
-   "size": 7584,
+   "size": 7408,
    "alignment": 8,
    "bases": [
     {
@@ -105553,7 +105553,7 @@
      "offset": 7208
     },
     {
-     "name": "m_bMeleeIsHeavy",
+     "name": "m_bRideCut",
      "type": "bool",
      "offset": 7209
     }

@@ -15190,9 +15190,9 @@ func (e CCitadel_Ability_Baba_BenchRun) BInMelee() Bool {
 	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bInMelee", mod.FieldTypeBool}}
 }
 
-// BMeleeIsHeavy is m_bMeleeIsHeavy.
-func (e CCitadel_Ability_Baba_BenchRun) BMeleeIsHeavy() Bool {
-	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bMeleeIsHeavy", mod.FieldTypeBool}}
+// BRideCut is m_bRideCut.
+func (e CCitadel_Ability_Baba_BenchRun) BRideCut() Bool {
+	return Bool{Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", "m_bRideCut", mod.FieldTypeBool}}
 }
 
 // CCitadel_Ability_Baba_BubblingBrew is the server's CCitadel_Ability_Baba_BubblingBrew entity class.
