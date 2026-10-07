@@ -11,7 +11,8 @@ namespace {
 // user-config persistence for the shared game installation. Commands use the
 // authenticated loopback ingress instead of an engine RCON listener.
 constexpr std::string_view kReferenceStaging =
-    "-dedicated -console -dev -insecure -allow_no_lobby_connect -playtest"
+    "-dedicated -nodedicatedconsole -novconsole -dev -insecure"
+    " -allow_no_lobby_connect -playtest"
     " +tv_citadel_auto_record 0 +spec_replay_enable 0 +tv_enable 0"
     " +citadel_upload_replay_enabled 0";
 

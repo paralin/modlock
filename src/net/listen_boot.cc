@@ -1,5 +1,7 @@
 #include "modlock/net/listen_boot.h"
 
+#include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <string_view>
 
@@ -9,15 +11,52 @@
 
 namespace modlock::net {
 
+namespace {
+
 // Dedicated-server flags allow local joins without VAC or a Steam lobby.
 // Replay and TV capture paths are disabled so idle console activation cannot
 // touch an unwritable replay sink.
 // -playtest disables engine user-config reads and writes. The dedicated host
 // shares the game installation with the player and must not overwrite it.
+// -nodedicatedconsole drops the engine's text console, which polls console
+// input and redraws a status line every frame; EngineLog carries the engine's
+// messages to stdout instead. -novconsole keeps -insecure from opening the
+// unauthenticated VConsole listener on every interface.
 constexpr std::string_view kDedicatedFlags =
-    "-dedicated -console -dev -insecure -allow_no_lobby_connect -playtest"
+    "-dedicated -nodedicatedconsole -novconsole -dev -insecure"
+    " -allow_no_lobby_connect -playtest"
     " +tv_citadel_auto_record 0 +spec_replay_enable 0 +tv_enable 0"
     " +citadel_upload_replay_enabled 0";
+
+#if defined(_WIN32)
+// EngineLog is a tier0 logging listener (tier0/logging.h ILoggingListener)
+// that writes each engine message to stdout as it arrives. The slots after
+// Log keep the interface's empty defaults.
+class EngineLog {
+ public:
+  virtual void Log(const void* /*context*/, const char* message) {
+    std::fwrite(message, 1, std::strlen(message), stdout);
+    std::fflush(stdout);
+  }
+  virtual void OnFlush() {}
+  virtual void OnChannelRegistered(int /*channel*/) {}
+  virtual void OnChannelVerbosityChanged(int /*channel*/) {}
+  virtual void OnChannelFlagsChanged(int /*channel*/) {}
+};
+
+// ListenEngineLog registers the process-lifetime EngineLog with tier0. Without
+// tier0's export the engine runs with its messages unlogged.
+void ListenEngineLog() {
+  static EngineLog log;
+  HMODULE tier0 = ::GetModuleHandleW(L"tier0.dll");
+  if (tier0 == nullptr) return;
+  const auto listen = reinterpret_cast<void (*)(EngineLog*)>(
+      reinterpret_cast<void*>(::GetProcAddress(tier0, "LoggingSystem_RegisterLoggingListener")));
+  if (listen != nullptr) listen(&log);
+}
+#endif
+
+}  // namespace
 
 std::string BuildDedicatedCommandLine(const LaunchConfig& config) {
   std::string line(kDedicatedFlags);
@@ -65,8 +104,10 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
     return std::unexpected("stage base-dir: directory does not exist: " + game_dir.string());
   }
   // Stage 5: handoff. Blocking by design: Source2Main runs the server or
-  // client frame loop until shutdown. A client owns a visible game window.
+  // client frame loop until shutdown. A client owns a visible game window; a
+  // dedicated server has no console, so its messages reach stdout.
   const bool client = !config.connect.empty();
+  if (!client) ListenEngineLog();
   const int code =
       source2_main(client ? ::GetModuleHandleW(nullptr) : nullptr, nullptr, command_line.c_str(),
                    client ? SW_SHOWDEFAULT : 0, game_dir.string().c_str(), "citadel");
