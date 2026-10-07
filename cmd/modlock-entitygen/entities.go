@@ -107,6 +107,9 @@ type designer struct {
 	class string
 	// keys is its data description.
 	keys *keyMap
+	// subclass is the game data entry an entity of the name needs to survive
+	// its spawn, or empty when it needs none.
+	subclass string
 }
 
 // input is one input a typed method sends.
@@ -136,10 +139,11 @@ type entities struct {
 // everyEntity is the class that accepts the inputs every entity accepts.
 const everyEntity = "CBaseEntity"
 
-// readEntities reads entities.json from a game dump directory and keeps the
-// designer names whose class is one of classes.
+// readEntities reads entities.json and survey.json from a game dump directory
+// and keeps the designer names whose class is one of classes and that the
+// survey saw survive their spawn.
 func readEntities(dir string, classes []*class) (*entities, error) {
-	// Decode the dump.
+	// Decode the dump and learn which names live.
 	data, err := os.ReadFile(filepath.Join(dir, "entities.json"))
 	if err != nil {
 		return nil, err
@@ -147,6 +151,10 @@ func readEntities(dir string, classes []*class) (*entities, error) {
 	var dumped dump.Entities
 	if err := dumped.UnmarshalJSON(data); err != nil {
 		return nil, errors.Wrap(err, "decode entities.json")
+	}
+	lived, err := readSurvey(dir)
+	if err != nil {
+		return nil, err
 	}
 
 	// Index the dump.
@@ -197,18 +205,20 @@ func readEntities(dir string, classes []*class) (*entities, error) {
 		return m
 	}
 
-	// Keep each designer name whose class the libraries have and that has a
-	// data description, which leaves out the root.
+	// Keep each designer name that lived, whose class the libraries have and
+	// that has a data description, which leaves out the root.
 	for _, c := range dumped.GetClasses() {
 		classOf[c.GetDesignerName()] = c.GetClassName()
-		if known[c.GetClassName()] == nil || c.GetDataMap() == "" ||
+		subclass, ok := lived[c.GetDesignerName()]
+		if !ok || known[c.GetClassName()] == nil || c.GetDataMap() == "" ||
 			!identifier.MatchString(c.GetDesignerName()) {
 			continue
 		}
 		e.designers = append(e.designers, designer{
-			name:  c.GetDesignerName(),
-			class: c.GetClassName(),
-			keys:  resolve(c.GetDataMap()),
+			name:     c.GetDesignerName(),
+			class:    c.GetClassName(),
+			keys:     resolve(c.GetDataMap()),
+			subclass: subclass,
 		})
 	}
 
@@ -236,6 +246,31 @@ func readEntities(dir string, classes []*class) (*entities, error) {
 		}
 	}
 	return e, nil
+}
+
+// readSurvey reads survey.json from a game dump directory and maps each
+// designer name an entity of survived to the subclass it needs, empty when
+// the name lived without one.
+func readSurvey(dir string) (map[string]string, error) {
+	data, err := os.ReadFile(filepath.Join(dir, "survey.json"))
+	if err != nil {
+		return nil, err
+	}
+	var survey dump.Survey
+	if err := survey.UnmarshalJSON(data); err != nil {
+		return nil, errors.Wrap(err, "decode survey.json")
+	}
+
+	// A name's construction without a subclass sorts first, so a name that
+	// lives alone needs no subclass.
+	lived := map[string]string{}
+	for _, c := range survey.GetConstructions() {
+		_, seen := lived[c.GetDesignerName()]
+		if !seen && c.GetStatus() == dump.ConstructionStatus_CONSTRUCTION_STATUS_ALIVE {
+			lived[c.GetDesignerName()] = c.GetSubclass()
+		}
+	}
+	return lived, nil
 }
 
 // sentence returns text, such as an input's description, as a sentence

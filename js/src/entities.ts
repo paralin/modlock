@@ -215,7 +215,7 @@ export function create<D extends DesignerName>(
   designerName: D,
   options: Spawn<DesignerKeys<D>>,
 ): DesignerClass<D> | undefined {
-  const [make, map] = designers[designerName] as readonly [Class, KeyMap]
+  const [make, map, subclass] = designers[designerName] as readonly [Class, KeyMap, string?]
   const keyValues = [...(options.keyValues ?? [])]
   for (const [key, value] of Object.entries(options.keys ?? {})) {
     const encoded = value === undefined ? undefined : keyValue(map, key, value)
@@ -226,7 +226,7 @@ export function create<D extends DesignerName>(
   const handle = createEntity({
     ...options,
     designerName,
-    subclass: options.subclass ?? '',
+    subclass: options.subclass ?? subclass ?? '',
     team: options.team ?? 0,
     keyValues,
   })
@@ -11696,9 +11696,6 @@ const tableCBaseEntity = {
 export interface CBaseEntityKeys extends Typed<typeof tableCBaseEntity> {}
 const keysCBaseEntity: KeyMap<CBaseEntityKeys> = [undefined, tableCBaseEntity]
 
-export interface CCitadelBaseAbilityKeys extends CBaseEntityKeys {}
-const keysCCitadelBaseAbility: KeyMap<CCitadelBaseAbilityKeys> = [keysCBaseEntity, {}]
-
 const tableCAI_ChangeHintGroup = {
   SearchType: 'integer',
   SearchName: 'text',
@@ -11767,16 +11764,6 @@ const tableCNpcFootSweep = {
 export interface CNpcFootSweepKeys extends CBaseTriggerKeys, Typed<typeof tableCNpcFootSweep> {}
 const keysCNpcFootSweep: KeyMap<CNpcFootSweepKeys> = [keysCBaseTrigger, tableCNpcFootSweep]
 
-const tableCAI_GoalEntity = {
-  Actor: 'text',
-  Goal: 'text',
-  StartActive: 'boolean',
-  BaseConceptModifiers: 'text',
-  SearchType: 'integer',
-} as const
-export interface CAI_GoalEntityKeys extends CBaseEntityKeys, Typed<typeof tableCAI_GoalEntity> {}
-const keysCAI_GoalEntity: KeyMap<CAI_GoalEntityKeys> = [keysCBaseEntity, tableCAI_GoalEntity]
-
 const tableCAI_Hint = {
   nodeFOV: 'number',
   animgraph_entry_action: 'text',
@@ -11805,15 +11792,6 @@ const keysCAI_Hint: KeyMap<CAI_HintKeys> = [keysCBaseEntity, tableCAI_Hint]
 export interface CPointEntityKeys extends CBaseEntityKeys {}
 const keysCPointEntity: KeyMap<CPointEntityKeys> = [keysCBaseEntity, {}]
 
-const tableCAI_LookTarget = {
-  StartDisabled: 'boolean',
-  context: 'integer',
-  priority: 'integer',
-  maxdist: 'number',
-} as const
-export interface CAI_LookTargetKeys extends CPointEntityKeys, Typed<typeof tableCAI_LookTarget> {}
-const keysCAI_LookTarget: KeyMap<CAI_LookTargetKeys> = [keysCPointEntity, tableCAI_LookTarget]
-
 const tableCNavLinkAreaEntity = {
   width: 'number',
   locatoroffset: 'vector',
@@ -11829,21 +11807,6 @@ const tableCNavLinkAreaEntity = {
 } as const
 export interface CNavLinkAreaEntityKeys extends CPointEntityKeys, Typed<typeof tableCNavLinkAreaEntity> {}
 const keysCNavLinkAreaEntity: KeyMap<CNavLinkAreaEntityKeys> = [keysCPointEntity, tableCNavLinkAreaEntity]
-
-const tableCAI_Relationship = {
-  subject: 'text',
-  subjectclass: 'text',
-  subjectclassify: 'integer',
-  targetclass: 'text',
-  targetclassify: 'integer',
-  disposition: 'integer',
-  rank: 'integer',
-  StartActive: 'boolean',
-  radius: 'number',
-  reciprocal: 'boolean',
-} as const
-export interface CAI_RelationshipKeys extends CBaseEntityKeys, Typed<typeof tableCAI_Relationship> {}
-const keysCAI_Relationship: KeyMap<CAI_RelationshipKeys> = [keysCBaseEntity, tableCAI_Relationship]
 
 const tableCAI_ScriptConditions = {
   StartDisabled: 'boolean',
@@ -11907,67 +11870,34 @@ const tableCAI_VolumetricEventSensor = {
 export interface CAI_VolumetricEventSensorKeys extends CPointEntityKeys, Typed<typeof tableCAI_VolumetricEventSensor> {}
 const keysCAI_VolumetricEventSensor: KeyMap<CAI_VolumetricEventSensorKeys> = [keysCPointEntity, tableCAI_VolumetricEventSensor]
 
-const tableCAmbientGeneric = {
-  message: 'text',
-  radius: 'number',
-  SourceEntityName: 'text',
-  preset: 'integer',
-  pitch: 'integer',
-  pitchstart: 'integer',
-  spinup: 'integer',
-  spindown: 'integer',
-  volstart: 'integer',
-  lfotype: 'integer',
-  lfomodpitch: 'integer',
-  lfomodvol: 'integer',
-  cspinup: 'integer',
-} as const
-export interface CAmbientGenericKeys extends CPointEntityKeys, Typed<typeof tableCAmbientGeneric> {}
-const keysCAmbientGeneric: KeyMap<CAmbientGenericKeys> = [keysCPointEntity, tableCAmbientGeneric]
-
-const tableCBaseClientUIEntity = {
-  enabled: 'boolean',
-  dialog_layout_name: 'text',
-  panel_class_name: 'text',
-  panel_id: 'text',
-} as const
-export interface CBaseClientUIEntityKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseClientUIEntity> {}
-const keysCBaseClientUIEntity: KeyMap<CBaseClientUIEntityKeys> = [keysCBaseModelEntity, tableCBaseClientUIEntity]
-
 const tableCBaseAnimGraph = {
   initially_populate_interp_history: 'boolean',
 } as const
 export interface CBaseAnimGraphKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseAnimGraph> {}
 const keysCBaseAnimGraph: KeyMap<CBaseAnimGraphKeys> = [keysCBaseModelEntity, tableCBaseAnimGraph]
 
-const tableCBaseCombatCharacter = {
-  Relationship: 'text',
-  physdamagescale: 'number',
-} as const
-export interface CBaseCombatCharacterKeys extends CBaseAnimGraphKeys, Typed<typeof tableCBaseCombatCharacter> {}
-const keysCBaseCombatCharacter: KeyMap<CBaseCombatCharacterKeys> = [keysCBaseAnimGraph, tableCBaseCombatCharacter]
-
-const tableCAI_BaseNPC = {
-  NavRestrictionVolume: 'text',
-  forcedynamichull: 'boolean',
-  ai_lod: 'integer',
-} as const
-export interface CAI_BaseNPCKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCAI_BaseNPC> {}
-const keysCAI_BaseNPC: KeyMap<CAI_BaseNPCKeys> = [keysCBaseCombatCharacter, tableCAI_BaseNPC]
-
-const tableCBasePlatTrain = {
-  noise1: 'text',
-  noise2: 'text',
-  volume: 'number',
-} as const
-export interface CBasePlatTrainKeys extends CBaseToggleKeys, Typed<typeof tableCBasePlatTrain> {}
-const keysCBasePlatTrain: KeyMap<CBasePlatTrainKeys> = [keysCBaseToggle, tableCBasePlatTrain]
-
-export interface CBasePlayerWeaponKeys extends CBaseAnimGraphKeys {}
-const keysCBasePlayerWeapon: KeyMap<CBasePlayerWeaponKeys> = [keysCBaseAnimGraph, {}]
-
 export interface CBasePropKeys extends CBaseAnimGraphKeys {}
 const keysCBaseProp: KeyMap<CBasePropKeys> = [keysCBaseAnimGraph, {}]
+
+const tableCBeam = {
+  HDRColorScale: 'number',
+  damage: 'number',
+  dissolvetype: 'integer',
+  ScrollSpeed: 'number',
+} as const
+export interface CBeamKeys extends CBaseModelEntityKeys, Typed<typeof tableCBeam> {}
+const keysCBeam: KeyMap<CBeamKeys> = [keysCBaseModelEntity, tableCBeam]
+
+const tableCCitadelBulletTimeWarp = {
+  bullet_time_scale: 'number',
+  projectile_time_scale: 'number',
+  expiretime: 'number',
+  stopDuration: 'number',
+  bullet_time_scale_friendly: 'number',
+  bonus_bullet_base_damage_friendly: 'number',
+} as const
+export interface CCitadelBulletTimeWarpKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelBulletTimeWarp> {}
+const keysCCitadelBulletTimeWarp: KeyMap<CCitadelBulletTimeWarpKeys> = [keysCBaseModelEntity, tableCCitadelBulletTimeWarp]
 
 const tableCBreakableProp = {
   ExplodeDamage: 'number',
@@ -12004,67 +11934,12 @@ const tableCDynamicProp = {
 export interface CDynamicPropKeys extends CBreakablePropKeys, Typed<typeof tableCDynamicProp> {}
 const keysCDynamicProp: KeyMap<CDynamicPropKeys> = [keysCBreakableProp, tableCDynamicProp]
 
-const tableCBasePropDoor = {
-  hardware: 'integer',
-  returndelay: 'number',
-  speed: 'number',
-  soundmoveoverride: 'text',
-  soundopenoverride: 'text',
-  soundcloseoverride: 'text',
-  soundjiggleoverride: 'text',
-  soundsetlockedoverride: 'text',
-  soundsetunlockedoverride: 'text',
-  soundlatchoverride: 'text',
-  slavename: 'text',
-  forceclosed: 'boolean',
-  locked_sound: 'text',
-  unlocked_sound: 'text',
+const tableCBaseCombatCharacter = {
+  Relationship: 'text',
+  physdamagescale: 'number',
 } as const
-export interface CBasePropDoorKeys extends CDynamicPropKeys, Typed<typeof tableCBasePropDoor> {}
-const keysCBasePropDoor: KeyMap<CBasePropDoorKeys> = [keysCDynamicProp, tableCBasePropDoor]
-
-const tableCBasePlayerPawn = {
-  scale: 'integer',
-  clip_3D_skybox_near_to_world_far: 'boolean',
-  clip_3D_skybox_near_to_world_far_offset: 'number',
-  fogdir: 'vector',
-  fogcolor: 'color',
-  fogcolor2: 'color',
-  fogstart: 'number',
-  fogend: 'number',
-  farz: 'number',
-  fogmaxdensity: 'number',
-  fogexponent: 'number',
-  HDRColorScale: 'number',
-  foglerptime: 'number',
-  fogenable: 'boolean',
-  fogblend: 'boolean',
-  blendtobackground: 'number',
-  scattering: 'number',
-  locallightscale: 'number',
-} as const
-export interface CBasePlayerPawnKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCBasePlayerPawn> {}
-const keysCBasePlayerPawn: KeyMap<CBasePlayerPawnKeys> = [keysCBaseCombatCharacter, tableCBasePlayerPawn]
-
-const tableCBeam = {
-  HDRColorScale: 'number',
-  damage: 'number',
-  dissolvetype: 'integer',
-  ScrollSpeed: 'number',
-} as const
-export interface CBeamKeys extends CBaseModelEntityKeys, Typed<typeof tableCBeam> {}
-const keysCBeam: KeyMap<CBeamKeys> = [keysCBaseModelEntity, tableCBeam]
-
-const tableCCitadelBulletTimeWarp = {
-  bullet_time_scale: 'number',
-  projectile_time_scale: 'number',
-  expiretime: 'number',
-  stopDuration: 'number',
-  bullet_time_scale_friendly: 'number',
-  bonus_bullet_base_damage_friendly: 'number',
-} as const
-export interface CCitadelBulletTimeWarpKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelBulletTimeWarp> {}
-const keysCCitadelBulletTimeWarp: KeyMap<CCitadelBulletTimeWarpKeys> = [keysCBaseModelEntity, tableCCitadelBulletTimeWarp]
+export interface CBaseCombatCharacterKeys extends CBaseAnimGraphKeys, Typed<typeof tableCBaseCombatCharacter> {}
+const keysCBaseCombatCharacter: KeyMap<CBaseCombatCharacterKeys> = [keysCBaseAnimGraph, tableCBaseCombatCharacter]
 
 const tableCCitadelHeroLoader = {
   hero: 'text',
@@ -12117,9 +11992,6 @@ const tableCCitadelControlPointTrigger = {
 export interface CCitadelControlPointTriggerKeys extends CTriggerMultipleKeys, Typed<typeof tableCCitadelControlPointTrigger> {}
 const keysCCitadelControlPointTrigger: KeyMap<CCitadelControlPointTriggerKeys> = [keysCTriggerMultiple, tableCCitadelControlPointTrigger]
 
-export interface CCitadel_DeployablePreviewKeys extends CBaseAnimGraphKeys {}
-const keysCCitadel_DeployablePreview: KeyMap<CCitadel_DeployablePreviewKeys> = [keysCBaseAnimGraph, {}]
-
 const tableCCitadelDevTrigger = {
   DevTriggerType: 'integer',
 } as const
@@ -12141,13 +12013,6 @@ const keysCCitadelDruidHealingTree: KeyMap<CCitadelDruidHealingTreeKeys> = [keys
 export interface CCitadelDruidHealingFruitKeys extends CBaseAnimGraphKeys {}
 const keysCCitadelDruidHealingFruit: KeyMap<CCitadelDruidHealingFruitKeys> = [keysCBaseAnimGraph, {}]
 
-const tableCCitadelEconItemContainer = {
-  host_name: 'text',
-  clear_previous_loadout: 'boolean',
-} as const
-export interface CCitadelEconItemContainerKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelEconItemContainer> {}
-const keysCCitadelEconItemContainer: KeyMap<CCitadelEconItemContainerKeys> = [keysCBaseEntity, tableCCitadelEconItemContainer]
-
 const tableCCitadelEnergyTower = {
   StartEnabled: 'boolean',
   Damage: 'number',
@@ -12161,13 +12026,6 @@ const tableCCitadelGaffer = {
 } as const
 export interface CCitadelGafferKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelGaffer> {}
 const keysCCitadelGaffer: KeyMap<CCitadelGafferKeys> = [keysCBaseEntity, tableCCitadelGaffer]
-
-const tableCCitadel_GraveStone_Blocker = {
-  lifetime: 'number',
-  gravestonestate: 'integer',
-} as const
-export interface CCitadel_GraveStone_BlockerKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_GraveStone_Blocker> {}
-const keysCCitadel_GraveStone_Blocker: KeyMap<CCitadel_GraveStone_BlockerKeys> = [keysCBaseAnimGraph, tableCCitadel_GraveStone_Blocker]
 
 const tableCCitadelHideoutInteractableProp = {
   interact_loc_string: 'text',
@@ -12186,9 +12044,6 @@ const tableCCitadelHideoutInteractableTrigger = {
 } as const
 export interface CCitadelHideoutInteractableTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelHideoutInteractableTrigger> {}
 const keysCCitadelHideoutInteractableTrigger: KeyMap<CCitadelHideoutInteractableTriggerKeys> = [keysCBaseTrigger, tableCCitadelHideoutInteractableTrigger]
-
-export interface CCitadelHideoutPropBaseKeys extends CBaseAnimGraphKeys {}
-const keysCCitadelHideoutPropBase: KeyMap<CCitadelHideoutPropBaseKeys> = [keysCBaseAnimGraph, {}]
 
 const tableCCitadelHideoutPropSlot = {
   slot_id: 'integer',
@@ -12240,18 +12095,6 @@ const tableCCitadel_KothCashIn = {
 export interface CCitadel_KothCashInKeys extends CCitadelTriggerMultiCapturePointKeys, Typed<typeof tableCCitadel_KothCashIn> {}
 const keysCCitadel_KothCashIn: KeyMap<CCitadel_KothCashInKeys> = [keysCCitadelTriggerMultiCapturePoint, tableCCitadel_KothCashIn]
 
-export interface CCitadel_MagicianTurretKeys extends CBaseAnimGraphKeys {}
-const keysCCitadel_MagicianTurret: KeyMap<CCitadel_MagicianTurretKeys> = [keysCBaseAnimGraph, {}]
-
-export interface CCitadel_MobileResupplyKeys extends CBaseAnimGraphKeys {}
-const keysCCitadel_MobileResupply: KeyMap<CCitadel_MobileResupplyKeys> = [keysCBaseAnimGraph, {}]
-
-const tableCCitadel_Nano_Predatory_Statue = {
-  lifetime: 'number',
-} as const
-export interface CCitadel_Nano_Predatory_StatueKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_Nano_Predatory_Statue> {}
-const keysCCitadel_Nano_Predatory_Statue: KeyMap<CCitadel_Nano_Predatory_StatueKeys> = [keysCBaseAnimGraph, tableCCitadel_Nano_Predatory_Statue]
-
 const tableCCitadel_NewYears_Fireworks = {
   ShowDurationSeconds: 'integer',
   ShowDelaySeconds: 'integer',
@@ -12270,9 +12113,6 @@ const tableCCitadel_NewYears_Fireworks = {
 } as const
 export interface CCitadel_NewYears_FireworksKeys extends CDynamicPropKeys, Typed<typeof tableCCitadel_NewYears_Fireworks> {}
 const keysCCitadel_NewYears_Fireworks: KeyMap<CCitadel_NewYears_FireworksKeys> = [keysCDynamicProp, tableCCitadel_NewYears_Fireworks]
-
-export interface CAI_CitadelNPCKeys extends CAI_BaseNPCKeys {}
-const keysCAI_CitadelNPC: KeyMap<CAI_CitadelNPCKeys> = [keysCAI_BaseNPC, {}]
 
 const tableCTriggerObscuredVolume = {
   modifier_name: 'text',
@@ -12376,13 +12216,6 @@ const tableCCitadelSoundOpvarSetOBB = {
 } as const
 export interface CCitadelSoundOpvarSetOBBKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelSoundOpvarSetOBB> {}
 const keysCCitadelSoundOpvarSetOBB: KeyMap<CCitadelSoundOpvarSetOBBKeys> = [keysCBaseEntity, tableCCitadelSoundOpvarSetOBB]
-
-const tableCCitadel_Soldier_Entity = {
-  lifetime: 'number',
-  soldier_state: 'integer',
-} as const
-export interface CCitadel_Soldier_EntityKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_Soldier_Entity> {}
-const keysCCitadel_Soldier_Entity: KeyMap<CCitadel_Soldier_EntityKeys> = [keysCBaseAnimGraph, tableCCitadel_Soldier_Entity]
 
 export interface CTeamKeys extends CBaseEntityKeys {}
 const keysCTeam: KeyMap<CTeamKeys> = [keysCBaseEntity, {}]
@@ -12707,16 +12540,6 @@ const tableCEnvEntityIgniter = {
 export interface CEnvEntityIgniterKeys extends CBaseEntityKeys, Typed<typeof tableCEnvEntityIgniter> {}
 const keysCEnvEntityIgniter: KeyMap<CEnvEntityIgniterKeys> = [keysCBaseEntity, tableCEnvEntityIgniter]
 
-const tableCEnvEntityMaker = {
-  EntityTemplate: 'text',
-  PostSpawnDirection: 'angles',
-  PostSpawnDirectionVariance: 'number',
-  PostSpawnSpeed: 'number',
-  PostSpawnInheritAngles: 'boolean',
-} as const
-export interface CEnvEntityMakerKeys extends CPointEntityKeys, Typed<typeof tableCEnvEntityMaker> {}
-const keysCEnvEntityMaker: KeyMap<CEnvEntityMakerKeys> = [keysCPointEntity, tableCEnvEntityMaker]
-
 const tableCEnvExplosion = {
   iMagnitude: 'integer',
   iRadiusOverride: 'integer',
@@ -12758,14 +12581,6 @@ const tableCFogController = {
 } as const
 export interface CFogControllerKeys extends CBaseEntityKeys, Typed<typeof tableCFogController> {}
 const keysCFogController: KeyMap<CFogControllerKeys> = [keysCBaseEntity, tableCFogController]
-
-const tableCEnvGlobal = {
-  globalstate: 'text',
-  initialstate: 'integer',
-  counter: 'integer',
-} as const
-export interface CEnvGlobalKeys extends CBaseEntityKeys, Typed<typeof tableCEnvGlobal> {}
-const keysCEnvGlobal: KeyMap<CEnvGlobalKeys> = [keysCBaseEntity, tableCEnvGlobal]
 
 const tableCSprite = {
   scale: 'number',
@@ -12839,14 +12654,6 @@ const tableCEnvInstructorVRHint = {
 } as const
 export interface CEnvInstructorVRHintKeys extends CPointEntityKeys, Typed<typeof tableCEnvInstructorVRHint> {}
 const keysCEnvInstructorVRHint: KeyMap<CEnvInstructorVRHintKeys> = [keysCPointEntity, tableCEnvInstructorVRHint]
-
-const tableCEnvLaser = {
-  LaserTarget: 'text',
-  EndSprite: 'text',
-  framestart: 'number',
-} as const
-export interface CEnvLaserKeys extends CBeamKeys, Typed<typeof tableCEnvLaser> {}
-const keysCEnvLaser: KeyMap<CEnvLaserKeys> = [keysCBeam, tableCEnvLaser]
 
 const tableCEnvLightProbeVolume = {
   lightprobetexture: 'text',
@@ -13098,6 +12905,29 @@ const tableCEnvWind = {
 } as const
 export interface CEnvWindKeys extends CBaseEntityKeys, Typed<typeof tableCEnvWind> {}
 const keysCEnvWind: KeyMap<CEnvWindKeys> = [keysCBaseEntity, tableCEnvWind]
+
+const tableCBasePlayerPawn = {
+  scale: 'integer',
+  clip_3D_skybox_near_to_world_far: 'boolean',
+  clip_3D_skybox_near_to_world_far_offset: 'number',
+  fogdir: 'vector',
+  fogcolor: 'color',
+  fogcolor2: 'color',
+  fogstart: 'number',
+  fogend: 'number',
+  farz: 'number',
+  fogmaxdensity: 'number',
+  fogexponent: 'number',
+  HDRColorScale: 'number',
+  foglerptime: 'number',
+  fogenable: 'boolean',
+  fogblend: 'boolean',
+  blendtobackground: 'number',
+  scattering: 'number',
+  locallightscale: 'number',
+} as const
+export interface CBasePlayerPawnKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCBasePlayerPawn> {}
+const keysCBasePlayerPawn: KeyMap<CBasePlayerPawnKeys> = [keysCBaseCombatCharacter, tableCBasePlayerPawn]
 
 export interface CCitadelPlayerPawnKeys extends CBasePlayerPawnKeys {}
 const keysCCitadelPlayerPawn: KeyMap<CCitadelPlayerPawnKeys> = [keysCBasePlayerPawn, {}]
@@ -13459,14 +13289,19 @@ const tableCPhysBox = {
 export interface CPhysBoxKeys extends CBreakableKeys, Typed<typeof tableCPhysBox> {}
 const keysCPhysBox: KeyMap<CPhysBoxKeys> = [keysCBreakable, tableCPhysBox]
 
+const tableCBasePlatTrain = {
+  noise1: 'text',
+  noise2: 'text',
+  volume: 'number',
+} as const
+export interface CBasePlatTrainKeys extends CBaseToggleKeys, Typed<typeof tableCBasePlatTrain> {}
+const keysCBasePlatTrain: KeyMap<CBasePlatTrainKeys> = [keysCBaseToggle, tableCBasePlatTrain]
+
 const tableCFuncPlat = {
   speed: 'number',
 } as const
 export interface CFuncPlatKeys extends CBasePlatTrainKeys, Typed<typeof tableCFuncPlat> {}
 const keysCFuncPlat: KeyMap<CFuncPlatKeys> = [keysCBasePlatTrain, tableCFuncPlat]
-
-export interface CPrecipitationKeys extends CBaseTriggerKeys {}
-const keysCPrecipitation: KeyMap<CPrecipitationKeys> = [keysCBaseTrigger, {}]
 
 const tableCFuncRotating = {
   maxspeed: 'number',
@@ -13627,6 +13462,15 @@ const tableCTextureBasedAnimatable = {
 export interface CTextureBasedAnimatableKeys extends CBaseModelEntityKeys, Typed<typeof tableCTextureBasedAnimatable> {}
 const keysCTextureBasedAnimatable: KeyMap<CTextureBasedAnimatableKeys> = [keysCBaseModelEntity, tableCTextureBasedAnimatable]
 
+const tableCBaseClientUIEntity = {
+  enabled: 'boolean',
+  dialog_layout_name: 'text',
+  panel_class_name: 'text',
+  panel_id: 'text',
+} as const
+export interface CBaseClientUIEntityKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseClientUIEntity> {}
+const keysCBaseClientUIEntity: KeyMap<CBaseClientUIEntityKeys> = [keysCBaseModelEntity, tableCBaseClientUIEntity]
+
 const tableCPointClientUIWorldPanel = {
   ignore_input: 'boolean',
   follow_player_across_teleport: 'boolean',
@@ -13712,31 +13556,6 @@ const tableCInfoHeroTestingPoint = {
 export interface CInfoHeroTestingPointKeys extends CPointEntityKeys, Typed<typeof tableCInfoHeroTestingPoint> {}
 const keysCInfoHeroTestingPoint: KeyMap<CInfoHeroTestingPointKeys> = [keysCPointEntity, tableCInfoHeroTestingPoint]
 
-const tableCNodeEnt = {
-  ai_node_dont_drop: 'boolean',
-  hinttype: 'integer',
-  Group: 'text',
-  StartHintDisabled: 'integer',
-  generictype: 'text',
-  IgnoreFacing: 'integer',
-  MinimumState: 'integer',
-  MaximumState: 'integer',
-  priority: 'integer',
-  radius: 'integer',
-  aihull_human: 'boolean',
-  aihull_small_centered: 'boolean',
-  aihull_wide_human: 'boolean',
-  HullDesc_tiny: 'boolean',
-  aihull_medium: 'boolean',
-  HullDesc_tiny_centered: 'boolean',
-  aihull_large: 'boolean',
-  aihull_large_centered: 'boolean',
-  aihull_medium_tall: 'boolean',
-  aihull_small: 'boolean',
-} as const
-export interface CNodeEntKeys extends CBaseEntityKeys, Typed<typeof tableCNodeEnt> {}
-const keysCNodeEnt: KeyMap<CNodeEntKeys> = [keysCBaseEntity, tableCNodeEnt]
-
 const tableCMiniMapMarker = {
   MarkerType: 'integer',
 } as const
@@ -13791,16 +13610,6 @@ const tableCInfoPlayerStart = {
 } as const
 export interface CInfoPlayerStartKeys extends CPointEntityKeys, Typed<typeof tableCInfoPlayerStart> {}
 const keysCInfoPlayerStart: KeyMap<CInfoPlayerStartKeys> = [keysCPointEntity, tableCInfoPlayerStart]
-
-const tableCInfoSpawnGroupLoadUnload = {
-  mapname: 'text',
-  entityfiltername: 'text',
-  landmark: 'text',
-  timeoutInterval: 'number',
-  autoactivate: 'boolean',
-} as const
-export interface CInfoSpawnGroupLoadUnloadKeys extends CBaseEntityKeys, Typed<typeof tableCInfoSpawnGroupLoadUnload> {}
-const keysCInfoSpawnGroupLoadUnload: KeyMap<CInfoSpawnGroupLoadUnloadKeys> = [keysCBaseEntity, tableCInfoSpawnGroupLoadUnload]
 
 const tableCInfoTrooperBossSpawn = {
   BossName: 'text',
@@ -13896,12 +13705,6 @@ const tableCInstancedSceneEntity = {
 export interface CInstancedSceneEntityKeys extends CSceneEntityKeys, Typed<typeof tableCInstancedSceneEntity> {}
 const keysCInstancedSceneEntity: KeyMap<CInstancedSceneEntityKeys> = [keysCSceneEntity, tableCInstancedSceneEntity]
 
-const tableCItem = {
-  phys_start_asleep: 'boolean',
-} as const
-export interface CItemKeys extends CBaseAnimGraphKeys, Typed<typeof tableCItem> {}
-const keysCItem: KeyMap<CItemKeys> = [keysCBaseAnimGraph, tableCItem]
-
 const tableCPhysicsProp = {
   massscale: 'number',
   buoyancyscale: 'number',
@@ -13941,6 +13744,12 @@ const tableCItemCrateSpawn = {
 } as const
 export interface CItemCrateSpawnKeys extends CBaseEntityKeys, Typed<typeof tableCItemCrateSpawn> {}
 const keysCItemCrateSpawn: KeyMap<CItemCrateSpawnKeys> = [keysCBaseEntity, tableCItemCrateSpawn]
+
+const tableCItem = {
+  phys_start_asleep: 'boolean',
+} as const
+export interface CItemKeys extends CBaseAnimGraphKeys, Typed<typeof tableCItem> {}
+const keysCItem: KeyMap<CItemKeys> = [keysCBaseAnimGraph, tableCItem]
 
 const tableCItemGeneric = {
   spawn_particles: 'text',
@@ -14360,6 +14169,17 @@ const tableCMultiSource = {
 export interface CMultiSourceKeys extends CBaseEntityKeys, Typed<typeof tableCMultiSource> {}
 const keysCMultiSource: KeyMap<CMultiSourceKeys> = [keysCBaseEntity, tableCMultiSource]
 
+const tableCAI_BaseNPC = {
+  NavRestrictionVolume: 'text',
+  forcedynamichull: 'boolean',
+  ai_lod: 'integer',
+} as const
+export interface CAI_BaseNPCKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCAI_BaseNPC> {}
+const keysCAI_BaseNPC: KeyMap<CAI_BaseNPCKeys> = [keysCBaseCombatCharacter, tableCAI_BaseNPC]
+
+export interface CAI_CitadelNPCKeys extends CAI_BaseNPCKeys {}
+const keysCAI_CitadelNPC: KeyMap<CAI_CitadelNPCKeys> = [keysCAI_BaseNPC, {}]
+
 const tableCNPC_BarrackBoss = {
   LaneSide: 'integer',
   LaneNum: 'integer',
@@ -14388,12 +14208,6 @@ const tableCNPC_Boss_Tier3 = {
 } as const
 export interface CNPC_Boss_Tier3Keys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_Boss_Tier3> {}
 const keysCNPC_Boss_Tier3: KeyMap<CNPC_Boss_Tier3Keys> = [keysCAI_CitadelNPC, tableCNPC_Boss_Tier3]
-
-const tableCNPC_FamiliarHelper = {
-  helper_idx: 'integer',
-} as const
-export interface CNPC_FamiliarHelperKeys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_FamiliarHelper> {}
-const keysCNPC_FamiliarHelper: KeyMap<CNPC_FamiliarHelperKeys> = [keysCAI_CitadelNPC, tableCNPC_FamiliarHelper]
 
 const tableCBaseNPCMaker = {
   CriterionVisibility: 'integer',
@@ -14448,16 +14262,6 @@ const tableCNPC_Ratking_Rat = {
 } as const
 export interface CNPC_Ratking_RatKeys extends CBaseAnimGraphKeys, Typed<typeof tableCNPC_Ratking_Rat> {}
 const keysCNPC_Ratking_Rat: KeyMap<CNPC_Ratking_RatKeys> = [keysCBaseAnimGraph, tableCNPC_Ratking_Rat]
-
-const tableCNPC_ShieldedSentry = {
-  attack_cone: 'number',
-  lifetime: 'number',
-  tracking_speed: 'number',
-  deploy_time: 'number',
-  attack_delay: 'number',
-} as const
-export interface CNPC_ShieldedSentryKeys extends CNPC_SimpleAnimatingAIKeys, Typed<typeof tableCNPC_ShieldedSentry> {}
-const keysCNPC_ShieldedSentry: KeyMap<CNPC_ShieldedSentryKeys> = [keysCNPC_SimpleAnimatingAI, tableCNPC_ShieldedSentry]
 
 const tableCTemplateNPCMaker = {
   worldName: 'text',
@@ -14538,18 +14342,6 @@ const tableCPathMoverEntitySpawner = {
 export interface CPathMoverEntitySpawnerKeys extends CBaseEntityKeys, Typed<typeof tableCPathMoverEntitySpawner> {}
 const keysCPathMoverEntitySpawner: KeyMap<CPathMoverEntitySpawnerKeys> = [keysCBaseEntity, tableCPathMoverEntitySpawner]
 
-const tableCPathNode = {
-  in_tangent_local: 'vector',
-  out_tangent_local: 'vector',
-  path_uniqueid: 'text',
-  path_parameter_string: 'text',
-} as const
-export interface CPathNodeKeys extends CPointEntityKeys, Typed<typeof tableCPathNode> {}
-const keysCPathNode: KeyMap<CPathNodeKeys> = [keysCPointEntity, tableCPathNode]
-
-export interface CMoverPathNodeKeys extends CPathNodeKeys {}
-const keysCMoverPathNode: KeyMap<CMoverPathNodeKeys> = [keysCPathNode, {}]
-
 const tableCPathTrack = {
   radius: 'number',
   altpath: 'text',
@@ -14558,134 +14350,6 @@ const tableCPathTrack = {
 } as const
 export interface CPathTrackKeys extends CPointEntityKeys, Typed<typeof tableCPathTrack> {}
 const keysCPathTrack: KeyMap<CPathTrackKeys> = [keysCPointEntity, tableCPathTrack]
-
-const tableCPhysConstraint = {
-  attach1: 'text',
-  attach2: 'text',
-  attachment1: 'text',
-  attachment2: 'text',
-  breaksound: 'text',
-  forcelimit: 'number',
-  torquelimit: 'number',
-  teleportfollowdistance: 'number',
-  snapobjectpositions: 'boolean',
-  treat_entity1_as_infinite_mass: 'boolean',
-} as const
-export interface CPhysConstraintKeys extends CBaseEntityKeys, Typed<typeof tableCPhysConstraint> {}
-const keysCPhysConstraint: KeyMap<CPhysConstraintKeys> = [keysCBaseEntity, tableCPhysConstraint]
-
-const tableCPhysBallSocket = {
-  joint_friction: 'number',
-  enable_swing_limit: 'boolean',
-  swing_limit: 'number',
-  enable_twist_limit: 'boolean',
-  min_twist_angle: 'number',
-  max_twist_angle: 'number',
-} as const
-export interface CPhysBallSocketKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysBallSocket> {}
-const keysCPhysBallSocket: KeyMap<CPhysBallSocketKeys> = [keysCPhysConstraint, tableCPhysBallSocket]
-
-const tableCPhysFixed = {
-  linearfrequency: 'number',
-  lineardampingratio: 'number',
-  angularfrequency: 'number',
-  angulardampingratio: 'number',
-  enablelinearconstraint: 'boolean',
-  enableangularconstraint: 'boolean',
-  bonename1: 'text',
-  bonename2: 'text',
-} as const
-export interface CPhysFixedKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysFixed> {}
-const keysCPhysFixed: KeyMap<CPhysFixedKeys> = [keysCPhysConstraint, tableCPhysFixed]
-
-const tableCPhysForce = {
-  attach1: 'text',
-  force: 'number',
-  forcetime: 'number',
-} as const
-export interface CPhysForceKeys extends CPointEntityKeys, Typed<typeof tableCPhysForce> {}
-const keysCPhysForce: KeyMap<CPhysForceKeys> = [keysCPointEntity, tableCPhysForce]
-
-const tableCGenericConstraint = {
-  place_anchors_at_constraint_transform: 'boolean',
-  linear_motion_x: 'integer',
-  linear_motion_y: 'integer',
-  linear_motion_z: 'integer',
-  linear_frequency_x: 'number',
-  linear_frequency_y: 'number',
-  linear_frequency_z: 'number',
-  linear_damping_ratio_x: 'number',
-  linear_damping_ratio_y: 'number',
-  linear_damping_ratio_z: 'number',
-  forcelimit_x: 'number',
-  forcelimit_y: 'number',
-  forcelimit_z: 'number',
-  notifyforce_x: 'number',
-  notifyforce_y: 'number',
-  notifyforce_z: 'number',
-  breakaftertime_x: 'number',
-  breakaftertime_y: 'number',
-  breakaftertime_z: 'number',
-  breakaftertimethreshold_x: 'number',
-  breakaftertimethreshold_y: 'number',
-  breakaftertimethreshold_z: 'number',
-  notifyforcemintime_x: 'number',
-  notifyforcemintime_y: 'number',
-  notifyforcemintime_z: 'number',
-  angular_motion_x: 'integer',
-  angular_motion_y: 'integer',
-  angular_motion_z: 'integer',
-  angular_frequency_x: 'number',
-  angular_frequency_y: 'number',
-  angular_frequency_z: 'number',
-  angular_damping_ratio_x: 'number',
-  angular_damping_ratio_y: 'number',
-  angular_damping_ratio_z: 'number',
-  torquelimit_x: 'number',
-  torquelimit_y: 'number',
-  torquelimit_z: 'number',
-} as const
-export interface CGenericConstraintKeys extends CPhysConstraintKeys, Typed<typeof tableCGenericConstraint> {}
-const keysCGenericConstraint: KeyMap<CGenericConstraintKeys> = [keysCPhysConstraint, tableCGenericConstraint]
-
-const tableCPhysHinge = {
-  hingefriction: 'number',
-  min_rotation: 'number',
-  max_rotation: 'number',
-  initial_rotation: 'number',
-  systemloadscale: 'number',
-  motorfrequency: 'number',
-  motordampingratio: 'number',
-  AngleSpeedThreshold: 'number',
-  slidesoundfwd: 'text',
-  slidesoundback: 'text',
-  reversalsoundSmall: 'text',
-  reversalsoundMedium: 'text',
-  reversalsoundLarge: 'text',
-  minSoundThreshold: 'number',
-  maxSoundThreshold: 'number',
-  reversalsoundthresholdSmall: 'number',
-  reversalsoundthresholdMedium: 'number',
-  reversalsoundthresholdLarge: 'number',
-} as const
-export interface CPhysHingeKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysHinge> {}
-const keysCPhysHinge: KeyMap<CPhysHingeKeys> = [keysCPhysConstraint, tableCPhysHinge]
-
-const tableCKeepUpright = {
-  attach1: 'text',
-  angularLimit: 'number',
-  dampAllRotation: 'boolean',
-} as const
-export interface CKeepUprightKeys extends CPointEntityKeys, Typed<typeof tableCKeepUpright> {}
-const keysCKeepUpright: KeyMap<CKeepUprightKeys> = [keysCPointEntity, tableCKeepUpright]
-
-const tableCPhysLength = {
-  addlength: 'number',
-  minlength: 'number',
-  attachpoint: 'vector',
-} as const
-export interface CPhysLengthKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysLength> {}
-const keysCPhysLength: KeyMap<CPhysLengthKeys> = [keysCPhysConstraint, tableCPhysLength]
 
 const tableCPhysMagnet = {
   massScale: 'number',
@@ -14709,28 +14373,6 @@ const tableCPhysMotor = {
 export interface CPhysMotorKeys extends CBaseEntityKeys, Typed<typeof tableCPhysMotor> {}
 const keysCPhysMotor: KeyMap<CPhysMotorKeys> = [keysCBaseEntity, tableCPhysMotor]
 
-const tableCPhysPulley = {
-  position2: 'vector',
-  addlength: 'number',
-  gearratio: 'number',
-} as const
-export interface CPhysPulleyKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysPulley> {}
-const keysCPhysPulley: KeyMap<CPhysPulleyKeys> = [keysCPhysConstraint, tableCPhysPulley]
-
-const tableCRagdollConstraint = {
-  xmin: 'number',
-  xmax: 'number',
-  ymin: 'number',
-  ymax: 'number',
-  zmin: 'number',
-  zmax: 'number',
-  xfriction: 'number',
-  yfriction: 'number',
-  zfriction: 'number',
-} as const
-export interface CRagdollConstraintKeys extends CPhysConstraintKeys, Typed<typeof tableCRagdollConstraint> {}
-const keysCRagdollConstraint: KeyMap<CRagdollConstraintKeys> = [keysCPhysConstraint, tableCRagdollConstraint]
-
 const tableCRagdollMagnet = {
   radius: 'number',
   force: 'number',
@@ -14740,54 +14382,13 @@ const tableCRagdollMagnet = {
 export interface CRagdollMagnetKeys extends CPointEntityKeys, Typed<typeof tableCRagdollMagnet> {}
 const keysCRagdollMagnet: KeyMap<CRagdollMagnetKeys> = [keysCPointEntity, tableCRagdollMagnet]
 
-const tableCPhysSlideConstraint = {
-  slideaxis: 'vector',
-  slidefriction: 'number',
-  systemloadscale: 'number',
-  initialoffset: 'number',
-  enablelinearconstraint: 'boolean',
-  enableangularconstraint: 'boolean',
-  motorfrequency: 'number',
-  motordampingratio: 'number',
-  useEntityPivot: 'boolean',
-  slidesoundfwd: 'text',
-  slidesoundback: 'text',
-  reversalsoundSmall: 'text',
-  reversalsoundMedium: 'text',
-  reversalsoundLarge: 'text',
-  minSoundThreshold: 'number',
-  maxSoundThreshold: 'number',
-  reversalsoundthresholdSmall: 'number',
-  reversalsoundthresholdMedium: 'number',
-  reversalsoundthresholdLarge: 'number',
-} as const
-export interface CPhysSlideConstraintKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysSlideConstraint> {}
-const keysCPhysSlideConstraint: KeyMap<CPhysSlideConstraintKeys> = [keysCPhysConstraint, tableCPhysSlideConstraint]
-
-const tableCSplineConstraint = {
-  enablelateralconstraint: 'boolean',
-  enableverticalconstraint: 'boolean',
-  enableangularconstraint: 'boolean',
-  enablelimit: 'boolean',
-  jointfriction: 'number',
-  linearfrequency: 'number',
-  lineardampingratio: 'number',
-  transitiontime: 'number',
-  fireeventsonpath: 'boolean',
-} as const
-export interface CSplineConstraintKeys extends CPhysConstraintKeys, Typed<typeof tableCSplineConstraint> {}
-const keysCSplineConstraint: KeyMap<CSplineConstraintKeys> = [keysCPhysConstraint, tableCSplineConstraint]
-
-const tableCPhysicsSpring = {
-  frequency: 'number',
-  damping: 'number',
-  length: 'number',
+const tableCPhysForce = {
   attach1: 'text',
-  attach2: 'text',
-  springaxis: 'vector',
+  force: 'number',
+  forcetime: 'number',
 } as const
-export interface CPhysicsSpringKeys extends CBaseEntityKeys, Typed<typeof tableCPhysicsSpring> {}
-const keysCPhysicsSpring: KeyMap<CPhysicsSpringKeys> = [keysCBaseEntity, tableCPhysicsSpring]
+export interface CPhysForceKeys extends CPointEntityKeys, Typed<typeof tableCPhysForce> {}
+const keysCPhysForce: KeyMap<CPhysForceKeys> = [keysCPointEntity, tableCPhysForce]
 
 const tableCPhysTorque = {
   axis: 'vector',
@@ -14795,34 +14396,11 @@ const tableCPhysTorque = {
 export interface CPhysTorqueKeys extends CPhysForceKeys, Typed<typeof tableCPhysTorque> {}
 const keysCPhysTorque: KeyMap<CPhysTorqueKeys> = [keysCPhysForce, tableCPhysTorque]
 
-const tableCPhysWheelConstraint = {
-  suspension_frequency: 'number',
-  suspension_damping_ratio: 'number',
-  suspension_height_offset: 'number',
-  enable_suspension_limit: 'boolean',
-  min_suspension_offset: 'number',
-  max_suspension_offset: 'number',
-  enable_steering_limit: 'boolean',
-  min_steering_angle: 'number',
-  max_steering_angle: 'number',
-  steering_axis_friction: 'number',
-  spin_axis_friction: 'number',
-} as const
-export interface CPhysWheelConstraintKeys extends CPhysConstraintKeys, Typed<typeof tableCPhysWheelConstraint> {}
-const keysCPhysWheelConstraint: KeyMap<CPhysWheelConstraintKeys> = [keysCPhysConstraint, tableCPhysWheelConstraint]
-
 const tableCPhysicsEntitySolver = {
   duration: 'number',
 } as const
 export interface CPhysicsEntitySolverKeys extends CBaseEntityKeys, Typed<typeof tableCPhysicsEntitySolver> {}
 const keysCPhysicsEntitySolver: KeyMap<CPhysicsEntitySolverKeys> = [keysCBaseEntity, tableCPhysicsEntitySolver]
-
-const tableCPhysicsNPCSolver = {
-  duration: 'number',
-  disable_collisions: 'boolean',
-} as const
-export interface CPhysicsNPCSolverKeys extends CBaseEntityKeys, Typed<typeof tableCPhysicsNPCSolver> {}
-const keysCPhysicsNPCSolver: KeyMap<CPhysicsNPCSolverKeys> = [keysCBaseEntity, tableCPhysicsNPCSolver]
 
 const tableCRagdollProp = {
   StartDisabled: 'boolean',
@@ -14982,16 +14560,6 @@ const tableCPointOrient = {
 export interface CPointOrientKeys extends CBaseEntityKeys, Typed<typeof tableCPointOrient> {}
 const keysCPointOrient: KeyMap<CPointOrientKeys> = [keysCBaseEntity, tableCPointOrient]
 
-const tableCPointPrefab = {
-  targetMapName: 'text',
-  forceWorldGroupID: 'text',
-  fixupNames: 'boolean',
-  prefab_load_dynamic: 'boolean',
-  prefab_associated_relay: 'text',
-} as const
-export interface CPointPrefabKeys extends CBaseEntityKeys, Typed<typeof tableCPointPrefab> {}
-const keysCPointPrefab: KeyMap<CPointPrefabKeys> = [keysCBaseEntity, tableCPointPrefab]
-
 const tableCPointProximitySensor = {
   StartDisabled: 'boolean',
 } as const
@@ -15110,6 +14678,25 @@ const keysCCitadelProjectileTouchVolume: KeyMap<CCitadelProjectileTouchVolumeKey
 export interface CPropAnimatingBreakableKeys extends CBaseAnimGraphKeys {}
 const keysCPropAnimatingBreakable: KeyMap<CPropAnimatingBreakableKeys> = [keysCBaseAnimGraph, {}]
 
+const tableCBasePropDoor = {
+  hardware: 'integer',
+  returndelay: 'number',
+  speed: 'number',
+  soundmoveoverride: 'text',
+  soundopenoverride: 'text',
+  soundcloseoverride: 'text',
+  soundjiggleoverride: 'text',
+  soundsetlockedoverride: 'text',
+  soundsetunlockedoverride: 'text',
+  soundlatchoverride: 'text',
+  slavename: 'text',
+  forceclosed: 'boolean',
+  locked_sound: 'text',
+  unlocked_sound: 'text',
+} as const
+export interface CBasePropDoorKeys extends CDynamicPropKeys, Typed<typeof tableCBasePropDoor> {}
+const keysCBasePropDoor: KeyMap<CBasePropDoorKeys> = [keysCDynamicProp, tableCBasePropDoor]
+
 const tableCPropDoorRotating = {
   spawnpos: 'integer',
   opendir: 'integer',
@@ -15120,9 +14707,6 @@ const tableCPropDoorRotating = {
 } as const
 export interface CPropDoorRotatingKeys extends CBasePropDoorKeys, Typed<typeof tableCPropDoorRotating> {}
 const keysCPropDoorRotating: KeyMap<CPropDoorRotatingKeys> = [keysCBasePropDoor, tableCPropDoorRotating]
-
-export interface CPropDoorRotatingBreakableKeys extends CPropDoorRotatingKeys {}
-const keysCPropDoorRotatingBreakable: KeyMap<CPropDoorRotatingBreakableKeys> = [keysCPropDoorRotating, {}]
 
 const tableCOrnamentProp = {
   InitialOwner: 'text',
@@ -15141,17 +14725,6 @@ const tableCPulseGameBlackboard = {
 } as const
 export interface CPulseGameBlackboardKeys extends CBaseEntityKeys, Typed<typeof tableCPulseGameBlackboard> {}
 const keysCPulseGameBlackboard: KeyMap<CPulseGameBlackboardKeys> = [keysCBaseEntity, tableCPulseGameBlackboard]
-
-const tableCRenderPortal = {
-  fade_start_dist: 'number',
-  fade_end_dist: 'number',
-  fade_start_angle: 'number',
-  fade_end_angle: 'number',
-  remote_view_forward_offset: 'number',
-  fade_to_color: 'color',
-} as const
-export interface CRenderPortalKeys extends CBaseModelEntityKeys, Typed<typeof tableCRenderPortal> {}
-const keysCRenderPortal: KeyMap<CRenderPortalKeys> = [keysCBaseModelEntity, tableCRenderPortal]
 
 const tableCScriptNavBlocker = {
   extent: 'vector',
@@ -15521,15 +15094,6 @@ const tableCTriggerAddModifier = {
 export interface CTriggerAddModifierKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerAddModifier> {}
 const keysCTriggerAddModifier: KeyMap<CTriggerAddModifierKeys> = [keysCBaseTrigger, tableCTriggerAddModifier]
 
-const tableCTriggerSave = {
-  NewLevelUnit: 'boolean',
-  MinimumHitPoints: 'integer',
-  DangerousTimer: 'number',
-  RetriggerDelay: 'number',
-} as const
-export interface CTriggerSaveKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerSave> {}
-const keysCTriggerSave: KeyMap<CTriggerSaveKeys> = [keysCBaseTrigger, tableCTriggerSave]
-
 const tableCTriggerBrush = {
   InputFilter: 'integer',
   DontMessageParent: 'integer',
@@ -15747,9 +15311,6 @@ const tableCTriggerTrooperDetector = {
 export interface CTriggerTrooperDetectorKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerTrooperDetector> {}
 const keysCTriggerTrooperDetector: KeyMap<CTriggerTrooperDetectorKeys> = [keysCBaseTrigger, tableCTriggerTrooperDetector]
 
-export interface CWaterBulletKeys extends CBaseAnimGraphKeys {}
-const keysCWaterBullet: KeyMap<CWaterBulletKeys> = [keysCBaseAnimGraph, {}]
-
 const tableCCitadelZipLineNode = {
   lane_number: 'integer',
   node_index: 'integer',
@@ -15769,252 +15330,28 @@ const tableCCitadelZipLineNode = {
 export interface CCitadelZipLineNodeKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelZipLineNode> {}
 const keysCCitadelZipLineNode: KeyMap<CCitadelZipLineNodeKeys> = [keysCBaseModelEntity, tableCCitadelZipLineNode]
 
-/** designers maps each designer name to its class and key value table. */
+/**
+ * designers maps each designer name to its class, its key value table and the
+ * subclass it needs, if any.
+ */
 const designers = {
-  abiilty_boho_channeltether: [CCitadel_Ability_Boho_ChannelTether, keysCCitadelBaseAbility],
-  abiilty_boho_doublehit: [CCitadel_Ability_Boho_DoubleHit, keysCCitadelBaseAbility],
-  ability_afterburn: [CCitadel_Ability_Afterburn, keysCCitadelBaseAbility],
-  ability_baba_bench_melee: [CCitadel_Ability_Baba_BenchMelee, keysCCitadelBaseAbility],
-  ability_baba_bench_run: [CCitadel_Ability_Baba_BenchRun, keysCCitadelBaseAbility],
-  ability_baba_bubbling_brew: [CCitadel_Ability_Baba_BubblingBrew, keysCCitadelBaseAbility],
-  ability_baba_hexing_brew: [CCitadel_Ability_Baba_HexingBrew, keysCCitadelBaseAbility],
-  ability_baba_hexing_brew_throw: [CCitadel_Ability_Baba_HexingBrew_Throw, keysCCitadelBaseAbility],
-  ability_baba_ultimate_2: [CCitadel_Ability_Baba_Ultimate2, keysCCitadelBaseAbility],
-  ability_bebop_stickybomb2: [CCitadel_Ability_Bebop_StickyBomb2, keysCCitadelBaseAbility],
-  ability_blood_bomb: [CCitadel_Ability_BloodBomb, keysCCitadelBaseAbility],
-  ability_blood_shards: [CCitadel_Ability_Ghost_BloodShards, keysCCitadelBaseAbility],
-  ability_boho_ability01: [CCitadel_Ability_Boho_Ability01, keysCCitadelBaseAbility],
-  ability_boho_ability02: [CCitadel_Ability_Boho_Ability02, keysCCitadelBaseAbility],
-  ability_boho_bouncyprojectile: [CCitadel_Ability_Boho_BouncyProjectile, keysCCitadelBaseAbility],
-  ability_boho_damageshare: [CCitadel_Ability_Boho_DamageShare, keysCCitadelBaseAbility],
-  ability_boho_skipgrenade: [CCitadel_Ability_Boho_SkipGrenade, keysCCitadelBaseAbility],
-  ability_bomber_ability02: [CCitadel_Ability_Bomber_Ability02, keysCCitadelBaseAbility],
-  ability_bomber_ability03: [CCitadel_Ability_Bomber_Ability03, keysCCitadelBaseAbility],
-  ability_bomber_ult: [CCitadel_Ability_Bomber_ULT, keysCCitadelBaseAbility],
-  ability_bookworm_aoemagic: [CCitadel_Ability_Bookworm_AOEMagic, keysCCitadelBaseAbility],
-  ability_bookworm_dragonfire: [CCitadel_Ability_Bookworm_DragonFire, keysCCitadelBaseAbility],
-  ability_bookworm_knightbarrier: [CCitadel_Ability_Bookworm_KnightBarrier, keysCCitadelBaseAbility],
-  ability_bounce_pad: [CCitadel_Ability_Bounce_Pad, keysCCitadelBaseAbility],
-  ability_bullet_flurry: [CCitadel_Ability_BulletFlurry, keysCCitadelBaseAbility],
-  ability_burrow: [CCitadel_Ability_Burrow, keysCCitadelBaseAbility],
-  ability_charged_bomb: [CCitadel_Ability_Charged_Bomb, keysCCitadelBaseAbility],
-  ability_charged_shot: [CCitadel_Ability_ChargedShot, keysCCitadelBaseAbility],
-  ability_crackshot: [CCitadel_Ability_Crackshot, keysCCitadelBaseAbility],
-  ability_death_tax: [CCitadel_Ability_DeathTax, keysCCitadelBaseAbility],
-  ability_demonmark: [CCitadel_Gunslinger_DemonMark, keysCCitadelBaseAbility],
-  ability_digger_entertunnel: [CCitadel_Ability_Digger_EnterTunnel, keysCCitadelBaseAbility],
-  ability_doorman_bomb: [CCitadel_Ability_Doorman_Bomb, keysCCitadelBaseAbility],
-  ability_doorman_doorway: [CCitadel_Ability_Doorman_Doorway, keysCCitadelBaseAbility],
-  ability_doorman_doorway_trigger: [CCitadel_Ability_AbilityName, keysCCitadelBaseAbility],
-  ability_doorman_hotel: [CCitadel_Ability_Doorman_Hotel, keysCCitadelBaseAbility],
-  ability_doorman_luggage_cart: [CCitadel_Ability_Doorman_Cart, keysCCitadelBaseAbility],
-  ability_drifter_hunger: [CCitadel_Ability_Drifter_Hunger, keysCCitadelBaseAbility],
-  ability_druid_base_plant: [CCitadelAbilityDruidBasePlant, keysCCitadelBaseAbility],
-  ability_druid_helicopter_seeds: [CCitadelAbilityDruidHelicopterSeeds, keysCCitadelBaseAbility],
-  ability_druid_leech_seed: [CCitadelAbilityDruidLeechSeed, keysCCitadelBaseAbility],
-  ability_druid_plant_branch_wall: [CCitadelAbilityDruidPlantBranchWall, keysCCitadelBaseAbility],
-  ability_druid_plant_healing_tree: [CCitadelAbilityDruidPlantHealingTree, keysCCitadelBaseAbility],
-  ability_druid_plant_invis_bush: [CCitadelAbilityDruidPlantInvisBush, keysCCitadelBaseAbility],
-  ability_druid_plant_something: [CCitadelAbilityDruidPlantSomething, keysCCitadelBaseAbility],
-  ability_druid_sprout: [CCitadelAbilityDruidSprout, keysCCitadelBaseAbility],
-  ability_druid_ult: [CCitadelAbilityDruidAbility04, keysCCitadelBaseAbility],
-  ability_empower_bullet: [CCitadel_Ability_EmpowerBullet, keysCCitadelBaseAbility],
-  ability_explosive_barrel: [CCitadel_Ability_ExplosiveBarrel, keysCCitadelBaseAbility],
-  ability_familiar_ability01: [CCitadel_Ability_Familiar_Ability01, keysCCitadelBaseAbility],
-  ability_familiar_ability02: [CCitadel_Ability_Familiar_Ability02, keysCCitadelBaseAbility],
-  ability_familiar_alt_weapon: [CCitadel_Ability_Familiar_AltWeapon, keysCCitadelBaseAbility],
-  ability_familiar_attach: [CCitadel_Ability_Familiar_Attach, keysCCitadelBaseAbility],
-  ability_familiar_attach_trigger: [CCitadel_Ability_Familiar_Attach_Trigger, keysCCitadelBaseAbility],
-  ability_familiar_clone: [CCitadel_Ability_Familiar_Clone, keysCCitadelBaseAbility],
-  ability_familiar_clone_end: [CCitadel_Ability_Familiar_Clone_End, keysCCitadelBaseAbility],
-  ability_familiar_clonesingle: [CCitadel_Ability_Familiar_CloneSingle, keysCCitadelBaseAbility],
-  ability_familiar_clonesingle_trigger: [CCitadel_Ability_Familiar_CloneSingle_Trigger, keysCCitadelBaseAbility],
-  ability_familiar_healhost: [CCitadel_Ability_Familiar_HealHost, keysCCitadelBaseAbility],
-  ability_familiar_helpinghands: [CCitadel_Ability_Familiar_HelpingHands, keysCCitadelBaseAbility],
-  ability_familiar_primary_weapon_bubblegun: [CCitadel_Ability_Familiar_PrimaryWeapon, keysCCitadelBaseAbility],
-  ability_familiar_spotlight: [CCitadel_Ability_Familiar_Spotlight, keysCCitadelBaseAbility],
-  ability_fencer_lunge: [CAbility_Fencer_Lunge, keysCCitadelBaseAbility],
-  ability_fencer_riposte: [CCitadel_Ability_Fencer_Riposte, keysCCitadelBaseAbility],
-  ability_fencer_riposte_target_select: [CCitadel_Ability_RiposteTargetSelect, keysCCitadelBaseAbility],
-  ability_fencer_throwblade: [CCitadel_Ability_Fencer_ThrowBlade, keysCCitadelBaseAbility],
-  ability_fencer_ultimate: [CAbility_Fencer_Ultimate, keysCCitadelBaseAbility],
-  ability_fire_bomb: [CCitadel_Ability_FireBomb, keysCCitadelBaseAbility],
-  ability_flame_dash: [CCitadel_Ability_FlameDash, keysCCitadelBaseAbility],
-  ability_fortuna_ability01: [CCitadel_Ability_Fortuna_Ability01, keysCCitadelBaseAbility],
-  ability_fortuna_ability02: [CCitadel_Ability_Fortuna_Ability02, keysCCitadelBaseAbility],
-  ability_fortuna_ability03: [CCitadel_Ability_Fortuna_Ability03, keysCCitadelBaseAbility],
-  ability_fortuna_ult: [CCitadel_Ability_Fortuna_Ability04, keysCCitadelBaseAbility],
-  ability_frank_painaura: [CCitadel_Ability_Frank_PainAura, keysCCitadelBaseAbility],
-  ability_frank_primaryweapon: [CCitadel_Ability_Frank_PrimaryWeapon, keysCCitadelBaseAbility],
-  ability_frank_revive: [CCitadel_Ability_Frank_Revive, keysCCitadelBaseAbility],
-  ability_frank_selfzap: [CCitadel_Ability_Frank_SelfZap, keysCCitadelBaseAbility],
-  ability_frank_shocktarget2: [CCitadel_Ability_Frank_ShockTarget2, keysCCitadelBaseAbility],
-  ability_golden_idol: [CCitadel_Ability_GoldenIdol, keysCCitadelBaseAbility],
-  ability_graf_ability01: [CCitadel_Ability_Graf_Ability01, keysCCitadelBaseAbility],
-  ability_graf_ability02: [CCitadel_Ability_Graf_Ability02, keysCCitadelBaseAbility],
-  ability_graf_ability03: [CCitadel_Ability_Graf_Ability03, keysCCitadelBaseAbility],
-  ability_graf_ult: [CCitadel_Ability_Graf_Ability04, keysCCitadelBaseAbility],
-  ability_gravity_lasso: [CCitadel_Ability_Gravity_Lasso, keysCCitadelBaseAbility],
-  ability_guided_arrow: [CCitadel_Ability_GuidedArrow, keysCCitadelBaseAbility],
-  ability_gunslinger_knockbackblast: [CCitadel_Ability_Gunslinger_KnockbackBlast, keysCCitadelBaseAbility],
-  ability_gunslinger_spreadingfire: [CCitadel_Ability_Gunslinger_SpreadingFire, keysCCitadelBaseAbility],
-  ability_health_swap: [CCitadel_Ability_HealthSwap, keysCCitadelBaseAbility],
-  ability_ice_dome: [CCitadel_Ability_IceDome, keysCCitadelBaseAbility],
-  ability_ice_grenade: [CCitadel_Ability_IceGrenade, keysCCitadelBaseAbility],
-  ability_icebeam: [CCitadel_Ability_IceBeam, keysCCitadelBaseAbility],
-  ability_icepath: [CCitadel_Ability_IcePath, keysCCitadelBaseAbility],
-  ability_immobilize_trap: [CCitadel_Ability_ImmobilizeTrap, keysCCitadelBaseAbility],
-  ability_incendiary_projectile: [CCitadel_Ability_IncendiaryProjectile, keysCCitadelBaseAbility],
-  ability_infinity_slash: [CCitadel_Ability_InfinitySlash, keysCCitadelBaseAbility],
-  ability_intimidate: [CCitadel_Ability_Intimidate, keysCCitadelBaseAbility],
-  ability_kali_dust_storm: [CCitadel_Ability_Dust_Storm, keysCCitadelBaseAbility],
-  ability_kali_trappers_bolo: [CCitadel_Ability_Trappers_Bolo, keysCCitadelBaseAbility],
-  ability_lash_flog: [CCitadel_Ability_Lash_Flog, keysCCitadelBaseAbility],
-  ability_life_drain: [CCitadel_Ability_LifeDrain, keysCCitadelBaseAbility],
-  ability_magician_animalcurse: [CCitadel_Ability_Magician_AnimalCurse, keysCCitadelBaseAbility],
-  ability_magician_animalhexarea: [CCitadel_Ability_Magician_AnimalHexArea, keysCCitadelBaseAbility],
-  ability_magician_bigbolt: [CCitadel_Ability_Magician_BigBolt, keysCCitadelBaseAbility],
-  ability_magician_cloneturret_trigger: [CCitadel_Ability_TurretClone_Trigger, keysCCitadelBaseAbility],
-  ability_magician_copyult: [CCitadel_Ability_Magician_CopyUlt, keysCCitadelBaseAbility],
-  ability_magician_escape: [CCitadel_Ability_Magician_Escape, keysCCitadelBaseAbility],
-  ability_magician_magicbolt: [CCitadel_Ability_Magician_MagicBolt, keysCCitadelBaseAbility],
-  ability_magician_shadowclone: [CCitadel_Ability_Magician_ShadowClone, keysCCitadelBaseAbility],
-  ability_medic_trooper_heal: [CCitadel_Ability_MedicHeal, keysCCitadelBaseAbility],
-  ability_nano_catform: [CCitadel_Ability_Nano_CatForm, keysCCitadelBaseAbility],
-  ability_nano_catform_pounce: [CCitadel_Ability_Nano_CatFormPounce, keysCCitadelBaseAbility],
-  ability_nano_pounce: [CCitadel_Ability_Nano_Pounce, keysCCitadelBaseAbility],
-  ability_nano_pounce_instant: [CCitadel_Ability_Nano_Pounce_Instant, keysCCitadelBaseAbility],
-  ability_nano_proximity_ritual: [CCitadel_Ability_ProximityRitual, keysCCitadelBaseAbility],
-  ability_nano_shadow_step: [CCitadel_Ability_Nano_Shadow, keysCCitadelBaseAbility],
-  ability_necro_fear: [CCitadel_Ability_Necro_Fear, keysCCitadelBaseAbility],
-  ability_necro_hauntingskull: [CCitadel_Ability_Necro_HauntingSkull, keysCCitadelBaseAbility],
-  ability_necro_hauntingspirits: [CCitadel_Ability_Necro_HauntingSpirits, keysCCitadelBaseAbility],
-  ability_necro_killsummon: [CCitadel_Ability_Necro_KillSummon, keysCCitadelBaseAbility],
-  ability_necro_killsummon_trigger: [CCitadel_Ability_Necro_KillSummonTrigger, keysCCitadelBaseAbility],
-  ability_necro_nukemap: [CCitadel_Ability_Necro_NukeMap, keysCCitadelBaseAbility],
-  ability_necro_zombiewall: [CCitadel_Ability_Necro_ZombieWall, keysCCitadelBaseAbility],
-  ability_npc_shield: [CCitadel_NPCAbility_Shield, keysCCitadelBaseAbility],
-  ability_opera_ability01: [CCitadel_Ability_Opera_Ability01, keysCCitadelBaseAbility],
-  ability_opera_ability02: [CCitadel_Ability_Opera_Ability02, keysCCitadelBaseAbility],
-  ability_opera_ability03: [CCitadel_Ability_Opera_Ability03, keysCCitadelBaseAbility],
-  ability_opera_ult: [CCitadel_Ability_Opera_Ability04, keysCCitadelBaseAbility],
-  ability_perched_predator: [CCitadel_Ability_Perched_Predator, keysCCitadelBaseAbility],
-  ability_power_jump: [CCitadel_Ability_PowerJump, keysCCitadelBaseAbility],
-  ability_power_surge: [CCitadel_Ability_PowerSurge, keysCCitadelBaseAbility],
-  ability_priest_antispiritvest: [CCitadel_Ability_Priest_AntiSpiritVest, keysCCitadelBaseAbility],
-  ability_priest_crossbowweapon: [CCitadel_Ability_Priest_CrossbowWeapon, keysCCitadelBaseAbility],
-  ability_priest_knockback: [CCitadel_Ability_Priest_Knockback, keysCCitadelBaseAbility],
-  ability_priest_selfheal: [CCitadel_Ability_Priest_SelfHeal, keysCCitadelBaseAbility],
-  ability_priest_smokegrenade: [CCitadel_Ability_Priest_SmokeGrenade, keysCCitadelBaseAbility],
-  ability_priest_stackingdefense: [CCitadel_Ability_Priest_StackingDefense, keysCCitadelBaseAbility],
-  ability_priest_weaponswap: [CCitadel_Ability_Priest_WeaponSwap, keysCCitadelBaseAbility],
-  ability_punkgoat_blasted: [CCitadel_Ability_PunkGoat_Blasted, keysCCitadelBaseAbility],
-  ability_punkgoat_goatflip: [CCitadel_Ability_PunkGoat_GoatFlip, keysCCitadelBaseAbility],
-  ability_punkgoat_tether: [CCitadel_Ability_PunkGoat_Tether, keysCCitadelBaseAbility],
-  ability_punkgoat_ult: [CCitadel_Ability_PunkGoat_Ult, keysCCitadelBaseAbility],
-  ability_ratking_entertunnel: [CCitadel_Ability_Ratking_EnterTunnel, keysCCitadelBaseAbility],
-  ability_ratking_ratarmor: [CCitadel_Ability_RatArmor, keysCCitadelBaseAbility],
-  ability_ratking_ratnibble: [CCitadel_Ability_RatKing_RatNibble, keysCCitadelBaseAbility],
-  ability_ratking_scrap_grenade: [CCitadel_Ability_Ratking_ScrapGrenade, keysCCitadelBaseAbility],
-  ability_ratking_standard_bearer: [CCitadel_Ability_Ratking_StandardBearer, keysCCitadelBaseAbility],
-  ability_rolling_fireball: [CCitadel_Ability_Rolling_FireBall, keysCCitadelBaseAbility],
-  ability_scrap_blast: [CCitadel_Ability_WreckerScrapBlast, keysCCitadelBaseAbility],
-  ability_shieldguy_ability01: [CCitadel_Ability_ShieldGuy_Ability01, keysCCitadelBaseAbility],
-  ability_shieldguy_ability02: [CCitadel_Ability_ShieldGuy_Ability02, keysCCitadelBaseAbility],
-  ability_shieldguy_ability03: [CCitadel_Ability_ShieldGuy_Ability03, keysCCitadelBaseAbility],
-  ability_shieldguy_ult: [CCitadel_Ability_ShieldGuy_Ability04, keysCCitadelBaseAbility],
-  ability_skyrunner_flakshot: [CCitadel_Ability_SkyRunner_FlakShot, keysCCitadelBaseAbility],
-  ability_skyrunner_swingline: [CCitadel_Ability_SkyRunner_SwingLine, keysCCitadelBaseAbility],
-  ability_skyrunner_ult: [CCitadel_Ability_SkyRunner_Ability04, keysCCitadelBaseAbility],
-  ability_sleep_dagger: [CCitadel_Ability_SleepDagger, keysCCitadelBaseAbility],
-  ability_smoke_bomb: [CCitadel_Ability_SmokeBomb, keysCCitadelBaseAbility],
-  ability_snake_dash: [CCitadel_Ability_SnakeDash, keysCCitadelBaseAbility],
-  ability_stacking_damage: [CCitadel_Ability_Haze_StackingDamage, keysCCitadelBaseAbility],
-  ability_swan_acrobat: [CCitadel_Ability_Swan_Acrobat, keysCCitadelBaseAbility],
-  ability_swan_featherboomerang: [CCitadel_Ability_Swan_FeatherBoomerang, keysCCitadelBaseAbility],
-  ability_swan_leap: [CCitadel_Ability_Swan_Leap, keysCCitadelBaseAbility],
-  ability_swan_ult: [CCitadel_Ability_Swan_Ability04, keysCCitadelBaseAbility],
-  ability_testhero_feartarget: [CCitadel_Ability_TestHero_FearTarget, keysCCitadelBaseAbility],
-  ability_testhero_spooky_hide: [CAbility_TestHero_SpookyHide, keysCCitadelBaseAbility],
-  ability_testhero_stance_bow: [CCitadel_Ability_TestHero_Stance_Bow, keysCCitadelBaseAbility],
-  ability_testhero_stance_spaceman: [CCitadel_Ability_TestHero_Stance_Spaceman, keysCCitadelBaseAbility],
-  ability_testhero_stanceswitch: [CCitadel_Ability_TestHero_StanceSwitch, keysCCitadelBaseAbility],
-  ability_testhero_summoncannon: [CCitadel_Ability_TestHero_SummonCannon, keysCCitadelBaseAbility],
-  ability_testhero_summonsoldier: [CCitadel_Ability_TestHero_SummonSoldier, keysCCitadelBaseAbility],
-  ability_testhero_ult: [CCitadel_Ability_TestHero_Ability04, keysCCitadelBaseAbility],
-  ability_testhero_wallcling: [CCitadel_Ability_TestHero_WallCling, keysCCitadelBaseAbility],
-  ability_throw_sand: [CCitadel_Ability_ThrowSand, keysCCitadelBaseAbility],
-  ability_trapper_fear: [CCitadel_Ability_Trapper_Fear, keysCCitadelBaseAbility],
-  ability_trapper_spiderjar: [CCitadel_Ability_Trapper_SpiderJar, keysCCitadelBaseAbility],
-  ability_trapper_spidershield: [CCitadel_Ability_SpiderShield, keysCCitadelBaseAbility],
-  ability_trapper_webwall: [CCitadel_Ability_Trapper_WebWall, keysCCitadelBaseAbility],
-  ability_ult_combo: [CCitadel_Ability_UltCombo, keysCCitadelBaseAbility],
-  ability_unicorn_dazzlingorb: [CCitadel_Ability_Unicorn_DazzlingOrb, keysCCitadelBaseAbility],
-  ability_unicorn_luminousstrike: [CCitadel_Ability_Unicorn_LuminousStrike, keysCCitadelBaseAbility],
-  ability_unicorn_prismaticguard: [CCitadel_Ability_Unicorn_PrismaticGuard, keysCCitadelBaseAbility],
-  ability_unicorn_radiantblast: [CCitadel_Ability_Unicorn_RadiantBlast, keysCCitadelBaseAbility],
-  ability_vampirebat_batblink: [CCitadel_Ability_VampireBat_BatBlink, keysCCitadelBaseAbility],
-  ability_vampirebat_batcloud: [CCitadel_Ability_VampireBat_BatCloud, keysCCitadelBaseAbility],
-  ability_vampirebat_batswarm: [CCitadel_Ability_VampireBat_BatSwarm, keysCCitadelBaseAbility],
-  ability_vampirebat_doubledagger: [CCitadel_Ability_VampireBat_DoubleDagger, keysCCitadelBaseAbility],
-  ability_vampirebat_lovebites: [CCitadel_Ability_VampireBat_LoveBites, keysCCitadelBaseAbility],
-  ability_vampirebat_steallife: [CCitadel_Ability_VampireBat_StealLife, keysCCitadelBaseAbility],
-  ability_vandal_ability03: [CCitadel_Ability_Vandal_Ability03, keysCCitadelBaseAbility],
-  ability_vandal_pillar: [CCitadel_Ability_Vandal_Pillar, keysCCitadelBaseAbility],
-  ability_viper_debuffdagger: [CCitadel_Ability_Viper_DebuffDagger, keysCCitadelBaseAbility],
-  ability_viper_hookblade: [CCitadel_Ability_ViperHookblade, keysCCitadelBaseAbility],
-  ability_viper_petrifybola: [CCitadel_Ability_Viper_PetrifyBola, keysCCitadelBaseAbility],
-  ability_viper_ult: [CCitadel_Ability_Viper_Ability04, keysCCitadelBaseAbility],
-  ability_viper_venom: [CCitadel_Ability_ViperVenom, keysCCitadelBaseAbility],
-  ability_warden_crowd_control: [CCitadel_Ability_CrowdControl, keysCCitadelBaseAbility],
-  ability_warden_high_alert: [CCitadel_Ability_HighAlert, keysCCitadelBaseAbility],
-  ability_warden_lock_down: [CCitadel_Ability_LockDown, keysCCitadelBaseAbility],
-  ability_warden_riot_protocol: [CCitadel_Ability_RiotProtocol, keysCCitadelBaseAbility],
-  ability_werewolf_cripplingslash: [CCitadel_Werewolf_CripplingSlash, keysCCitadelBaseAbility],
-  ability_werewolf_hunt: [CCitadel_Werewolf_Hunt, keysCCitadelBaseAbility],
-  ability_werewolf_kickflip: [CCitadel_Ability_Werewolf_KickFlip, keysCCitadelBaseAbility],
-  ability_werewolf_leap: [CCitadel_Ability_Werewolf_Leap, keysCCitadelBaseAbility],
-  ability_werewolf_maulingleap: [CCitadel_Ability_Werewolf_MaulingLeap, keysCCitadelBaseAbility],
-  ability_werewolf_netshot: [CCitadel_Ability_Werewolf_NetShot, keysCCitadelBaseAbility],
-  ability_werewolf_trackingbomb: [CCitadel_Ability_Werewolf_TrackingBomb, keysCCitadelBaseAbility],
-  ability_werewolf_transformation: [CCitadel_Werewolf_Transformation, keysCCitadelBaseAbility],
-  ability_werewolf_unload_gun: [CCitadel_Werewolf_UnloadGun, keysCCitadelBaseAbility],
-  ability_werewolf_unload_gun2: [CCitadel_Werewolf_UnloadGun2, keysCCitadelBaseAbility],
-  ability_wrecker_salvage: [CCitadel_Ability_Wrecker_Salvage, keysCCitadelBaseAbility],
-  ability_wrecker_teleport: [CCitadel_Ability_WreckerTeleport, keysCCitadelBaseAbility],
-  ability_wrecker_ultimate: [CCitadel_Ability_Wrecker_Ultimate, keysCCitadelBaseAbility],
-  ability_wrecking_ball: [CCitadel_Ability_WreckingBall, keysCCitadelBaseAbility],
-  ability_wrecking_ball_throw: [CCitadel_Ability_WreckingBallThrow, keysCCitadelBaseAbility],
   ai_changehintgroup: [CAI_ChangeHintGroup, keysCAI_ChangeHintGroup],
   ai_foot_sweep: [CNpcFootSweep, keysCNpcFootSweep],
-  ai_goal_entity: [CAI_GoalEntity, keysCAI_GoalEntity],
   ai_hint: [CAI_Hint, keysCAI_Hint],
-  ai_look_target: [CAI_LookTarget, keysCAI_LookTarget],
   ai_nav_link_area: [CNavLinkAreaEntity, keysCNavLinkAreaEntity],
   ai_network: [CAI_NetworkManager, keysCPointEntity],
-  ai_relationship: [CAI_Relationship, keysCAI_Relationship],
   ai_script_conditions: [CAI_ScriptConditions, keysCAI_ScriptConditions],
   ai_sound: [CAI_VolumetricEventEntityAlias_ai_sound, keysCAI_VolumetricEventEntity],
   ai_speechfilter: [CAI_SpeechFilter, keysCAI_SpeechFilter],
   ai_test_path: [CAITestPath, keysCAITestPath],
   ai_volumetric_event: [CAI_VolumetricEventEntity, keysCAI_VolumetricEventEntity],
   ai_volumetric_event_sensor: [CAI_VolumetricEventSensor, keysCAI_VolumetricEventSensor],
-  ambient_generic: [CAmbientGeneric, keysCAmbientGeneric],
   archer_charged_shot_projectile: [CCitadel_Projectile_Archer_ChargedShot, keysCBaseModelEntity],
   baba_bubblingbrew_projectile: [CCitadel_Projectile_BubblingBrew, keysCBaseModelEntity],
-  base_clientui_entity: [CBaseClientUIEntity, keysCBaseClientUIEntity],
-  base_combat_character: [CBaseCombatCharacter, keysCBaseCombatCharacter],
-  base_npc: [CAI_BaseNPC, keysCAI_BaseNPC],
-  base_plat_train: [CBasePlatTrain, keysCBasePlatTrain],
-  base_player_weapon: [CBasePlayerWeapon, keysCBasePlayerWeapon],
   base_prop: [CBaseProp, keysCBaseProp],
-  base_prop_door: [CBasePropDoor, keysCBasePropDoor],
-  base_toggle: [CBaseToggle, keysCBaseToggle],
-  base_upgrade_projectile_aoe_modifier: [CCitadel_Item_BaseProjectileAOEModifier, keysCCitadelBaseAbility],
   baseanimating: [CBaseAnimGraphAlias_baseanimating, keysCBaseAnimGraph],
   baseanimgraph: [CBaseAnimGraph, keysCBaseAnimGraph],
   basemodelentity: [CBaseModelEntity, keysCBaseModelEntity],
-  baseplayerpawn: [CBasePlayerPawn, keysCBasePlayerPawn],
   batswarm_extra_projectile: [CCitadel_Projectile_BatSwarmExtraProjectile, keysCBaseModelEntity],
   batswarm_projectile: [CCitadel_Projectile_BatSwarmProjectile, keysCBaseModelEntity],
   beam: [CBeam, keysCBeam],
@@ -16023,186 +15360,53 @@ const designers = {
   boho_bouncyprojectile: [CProjectile_Boho_BouncyProjectile, keysCBaseModelEntity],
   bookwormdragon_projectile: [CProjectile_BookwormDragon_Projectile, keysCBaseModelEntity],
   bookwormgun_projectile: [CCitadel_Projectile_BookwormGun, keysCBaseModelEntity],
-  breakable_prop: [CBreakableProp, keysCBreakableProp],
   bullet_redirect_volume: [CCitadelBulletRedirectVolume, keysCBaseModelEntity],
   bullet_time_warp: [CCitadelBulletTimeWarp, keysCCitadelBulletTimeWarp],
   cable_dynamic: [CDynamicPropAlias_cable_dynamic, keysCDynamicProp],
-  cadence_ability_anthem: [CCitadel_Ability_Cadence_Anthem, keysCCitadelBaseAbility],
-  cadence_ability_crescendo: [CCitadel_Ability_Cadence_Crescendo, keysCCitadelBaseAbility],
-  cadence_ability_grandfinale: [CCitadel_Ability_Cadence_GrandFinale, keysCCitadelBaseAbility],
-  cadence_ability_lullaby: [CCitadel_Ability_Cadence_Lullaby, keysCCitadelBaseAbility],
-  cadence_ability_silencecontraptions: [CCitadel_Ability_Cadence_SilenceContraptions, keysCCitadelBaseAbility],
-  citadel_ability_bebop_laser_beam: [CCitadel_Ability_Bebop_LaserBeam, keysCCitadelBaseAbility],
-  citadel_ability_boho_primaryweapon: [CCitadel_Ability_Boho_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_boho_ridebroom: [CCitadel_Ability_Boho_RideBroom, keysCCitadelBaseAbility],
-  citadel_ability_bookworm_knightcharge: [CCitadel_Ability_Bookworm_KnightCharge, keysCCitadelBaseAbility],
-  citadel_ability_bookworm_primaryweapon: [CCitadel_Ability_BookWorm_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_bull_charge: [CCitadel_Ability_Bull_Charge, keysCCitadelBaseAbility],
-  citadel_ability_bull_heal: [CCitadel_Ability_Bull_Heal, keysCCitadelBaseAbility],
-  citadel_ability_bull_leap: [CCitadel_Ability_Bull_Leap, keysCCitadelBaseAbility],
-  citadel_ability_card_toss: [CCitadel_Ability_CardToss, keysCCitadelBaseAbility],
-  citadel_ability_charged_tackle: [CCitadel_Ability_ChargedTackle, keysCCitadelBaseAbility],
-  citadel_ability_chrono_kinetic_carbine: [CCitadel_Ability_Chrono_KineticCarbine, keysCCitadelBaseAbility],
-  citadel_ability_chrono_pulse_grenade: [CCitadel_Ability_Chrono_PulseGrenade, keysCCitadelBaseAbility],
-  citadel_ability_chrono_swap: [CCitadel_Ability_ChronoSwap, keysCCitadelBaseAbility],
-  citadel_ability_chrono_time_wall: [CCitadel_Ability_Chrono_TimeWall, keysCCitadelBaseAbility],
-  citadel_ability_climb_rope: [CCitadel_Ability_Climb_Rope, keysCCitadelBaseAbility],
-  citadel_ability_dash: [CCitadel_Ability_Dash, keysCCitadelBaseAbility],
-  citadel_ability_drifter_primaryweapon: [CCitadel_Ability_Drifter_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_empty: [CCitadel_Ability_Empty, keysCCitadelBaseAbility],
-  citadel_ability_fencer_primaryweapon: [CCitadel_Ability_Fencer_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_fissure_wall: [CCitadel_Ability_FissureWall, keysCCitadelBaseAbility],
-  citadel_ability_flying_strike: [CCitadel_Ability_FlyingStrike, keysCCitadelBaseAbility],
-  citadel_ability_fortuna_primaryweapon: [CCitadel_Ability_Fortuna_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_gunslinger_demon_carbine: [CCitadel_Ability_Gunslinger_DemonCarbine, keysCCitadelBaseAbility],
-  citadel_ability_healing_slash: [CCitadel_Ability_HealingSlash, keysCCitadelBaseAbility],
-  citadel_ability_hold_melee: [CCitadel_Ability_HoldMelee, keysCCitadelBaseAbility],
-  citadel_ability_hook: [CCitadel_Ability_Hook, keysCCitadelBaseAbility],
-  citadel_ability_hornet_chain: [CCitadel_Ability_Hornet_Chain, keysCCitadelBaseAbility],
-  citadel_ability_hornet_leap: [CCitadel_Ability_HornetLeap, keysCCitadelBaseAbility],
-  citadel_ability_hornet_snipe: [CCitadel_Ability_Hornet_Snipe, keysCCitadelBaseAbility],
-  citadel_ability_hornet_sting: [CCitadel_Ability_HornetSting, keysCCitadelBaseAbility],
-  citadel_ability_jump: [CCitadel_Ability_Jump, keysCCitadelBaseAbility],
-  citadel_ability_kali_disruptive_charge: [CCitadel_Ability_Disruptive_Charge, keysCCitadelBaseAbility],
-  citadel_ability_kali_spinning_blade: [CCitadel_Ability_Spinning_Blade, keysCCitadelBaseAbility],
-  citadel_ability_lash: [CCitadel_Ability_Lash, keysCCitadelBaseAbility],
-  citadel_ability_lash_down_strike: [CCitadel_Ability_LashDownStrike, keysCCitadelBaseAbility],
-  citadel_ability_lash_ultimate: [CCitadel_Ability_Lash_Ultimate, keysCCitadelBaseAbility],
-  citadel_ability_lightning_ball: [CCitadel_Ability_LightningBall, keysCCitadelBaseAbility],
-  citadel_ability_magewalk: [CCitadel_Ability_MageWalk, keysCCitadelBaseAbility],
-  citadel_ability_mantle: [CCitadel_Ability_Mantle, keysCCitadelBaseAbility],
-  citadel_ability_melee_parry: [CCitadel_Ability_MeleeParry, keysCCitadelBaseAbility],
-  citadel_ability_mobile_resupply: [CCitadel_Ability_MobileResupply, keysCCitadelBaseAbility],
-  citadel_ability_nano_clustergrenade: [CCitadel_Ability_Nano_ClusterGrenade, keysCCitadelBaseAbility],
-  citadel_ability_nano_dash: [CCitadel_Ability_NanoDash, keysCCitadelBaseAbility],
-  citadel_ability_nano_primaryweapon: [CCitadel_Ability_Nano_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_necro_coffin: [CCitadel_Ability_Necro_Coffin, keysCCitadelBaseAbility],
-  citadel_ability_necro_gravestone: [CCitadel_Ability_Necro_GraveStone, keysCCitadelBaseAbility],
-  citadel_ability_necro_primaryweapon: [CCitadel_Ability_Necro_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_nikuman: [CCitadel_Ability_Nikuman, keysCCitadelBaseAbility],
-  citadel_ability_passive_beefy: [CCitadel_Ability_PassiveBeefy, keysCCitadelBaseAbility],
-  citadel_ability_power_slash: [CCitadel_Ability_PowerSlash, keysCCitadelBaseAbility],
-  citadel_ability_priest_silencebomb: [CCitadel_Ability_Priest_SilenceBomb, keysCCitadelBaseAbility],
-  citadel_ability_primary_weapon: [CCitadel_Ability_PrimaryWeapon_Empty, keysCCitadelBaseAbility],
-  citadel_ability_primary_weapon_bebop: [CCitadel_Ability_PrimaryWeapon_Bebop, keysCCitadelBaseAbility],
-  citadel_ability_primary_weapon_cadence: [CCitadel_Ability_PrimaryWeapon_Cadence, keysCCitadelBaseAbility],
-  citadel_ability_primary_weapon_scaling_altfire: [CCitadel_Ability_PrimaryWeapon_ScalingAltFire, keysCCitadelBaseAbility],
-  citadel_ability_projectmind: [CCitadel_Ability_ProjectMind, keysCCitadelBaseAbility],
-  citadel_ability_psychic_lift: [CCitadel_Ability_PsychicLift, keysCCitadelBaseAbility],
-  citadel_ability_punkgoat_primaryweapon: [CCitadel_Ability_Punkgoat_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_ratking_primaryweapon: [CCitadel_Ability_Ratking_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_rocket_barrage: [CCitadel_Ability_RocketBarrage, keysCCitadelBaseAbility],
-  citadel_ability_self_vacuum: [CCitadel_Ability_SelfVacuum, keysCCitadelBaseAbility],
-  citadel_ability_shieldedsentry: [CCitadel_Ability_ShieldedSentry, keysCCitadelBaseAbility],
-  citadel_ability_shiv_dagger: [CCitadel_Ability_ShivDagger, keysCCitadelBaseAbility],
-  citadel_ability_shiv_dash: [CCitadel_Ability_ShivDash, keysCCitadelBaseAbility],
-  citadel_ability_shiv_defer_damage: [CCitadel_Ability_Shiv_Defer_Damage, keysCCitadelBaseAbility],
-  citadel_ability_shiv_killing_blow: [CCitadel_Ability_Shiv_KillingBlow, keysCCitadelBaseAbility],
-  citadel_ability_skyrunner_magicbeam: [CCitadel_Ability_Skyrunner_MagicBeam, keysCCitadelBaseAbility],
-  citadel_ability_skyrunner_primaryweapon: [CCitadel_Ability_SkyRunner_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_slide: [CCitadel_Ability_Slide, keysCCitadelBaseAbility],
-  citadel_ability_sprint: [CCitadel_Ability_Sprint, keysCCitadelBaseAbility],
-  citadel_ability_static_charge: [CCitadel_Ability_StaticCharge, keysCCitadelBaseAbility],
-  citadel_ability_static_charge_v2: [CCitadel_Ability_StaticCharge_V2, keysCCitadelBaseAbility],
-  citadel_ability_sticky_bomb: [CCitadel_Ability_StickyBomb, keysCCitadelBaseAbility],
-  citadel_ability_stomp: [CCitadel_Ability_Stomp, keysCCitadelBaseAbility],
-  citadel_ability_storm_cloud: [CCitadel_Ability_StormCloud, keysCCitadelBaseAbility],
-  citadel_ability_tangotether: [CCitadel_Ability_TangoTether, keysCCitadelBaseAbility],
-  citadel_ability_tangotether_trigger: [CCitadel_Ability_TangoTether_Trigger, keysCCitadelBaseAbility],
-  citadel_ability_teleport: [CCitadel_Ability_Teleport, keysCCitadelBaseAbility],
-  citadel_ability_tengu_airlift: [CCitadel_Ability_Tengu_AirLift, keysCCitadelBaseAbility],
-  citadel_ability_tengu_stone_form: [CCitadel_Ability_Tengu_StoneForm, keysCCitadelBaseAbility],
-  citadel_ability_tengu_urn: [CCitadel_Ability_Tengu_Urn, keysCCitadelBaseAbility],
-  citadel_ability_tier2boss_aoe_wave: [CCitadel_Ability_Tier2Boss_AoEWave, keysCCitadelBaseAbility],
-  citadel_ability_tier2boss_laser_beam: [CCitadel_Ability_Tier2Boss_LaserBeam, keysCCitadelBaseAbility],
-  citadel_ability_tier2boss_rocket_barrage: [CCitadel_Ability_Tier2Boss_RocketBarrage, keysCCitadelBaseAbility],
-  citadel_ability_tier2boss_stomp: [CCitadel_Ability_Tier2Boss_Stomp, keysCCitadelBaseAbility],
-  citadel_ability_tier3boss_aoe_wave: [CCitadel_Ability_Tier3Boss_AoEWave, keysCCitadelBaseAbility],
-  citadel_ability_tier3boss_drop_bombs: [CCitadel_Ability_Tier3Boss_DropBombs, keysCCitadelBaseAbility],
-  citadel_ability_tier3boss_laser_beam: [CCitadel_Ability_Tier3Boss_LaserBeam, keysCCitadelBaseAbility],
-  citadel_ability_tier3boss_rocket_barrage: [CCitadel_Ability_Tier3Boss_RocketBarrage, keysCCitadelBaseAbility],
-  citadel_ability_tower_regen: [CCitadel_Ability_TriggerTower, keysCCitadelBaseAbility],
-  citadel_ability_trapper_poisonjar: [CCitadel_Ability_Trapper_PoisonJar, keysCCitadelBaseAbility],
-  citadel_ability_trooper_zip_line: [CCitadel_Ability_TrooperZipLine, keysCCitadelBaseAbility],
-  citadel_ability_turretclone: [CCitadel_Ability_TurretClone, keysCCitadelBaseAbility],
-  citadel_ability_unicorn_primaryweapon: [CCitadel_Ability_Unicorn_PrimaryWeapon, keysCCitadelBaseAbility],
-  citadel_ability_uppercut: [CCitadel_Ability_Uppercut, keysCCitadelBaseAbility],
-  citadel_ability_vandal_overflow: [CCitadel_Ability_VandalOverflow, keysCCitadelBaseAbility],
-  citadel_ability_vandal_surge: [CCitadel_Ability_VandalSurge, keysCCitadelBaseAbility],
-  citadel_ability_void_sphere: [CCitadel_Ability_VoidSphere, keysCCitadelBaseAbility],
-  citadel_ability_werewolf_clawweapon: [CCitadel_Ability_Werewolf_ClawWeapon, keysCCitadelBaseAbility],
-  citadel_ability_werewolf_frenzy: [CAbility_Werewolf_Frenzy, keysCCitadelBaseAbility],
-  citadel_ability_werewolf_onthehunt: [CCitadel_Ability_Werewolf_OnTheHunt, keysCCitadelBaseAbility],
-  citadel_ability_werewolf_rifle: [CCitadel_Ability_Werewolf_Rifle, keysCCitadelBaseAbility],
-  citadel_ability_wraith_rapidfire: [CCitadel_Ability_Wraith_RapidFire, keysCCitadelBaseAbility],
-  citadel_ability_wrecker_bouldergrenade: [CCitadel_Ability_Wrecker_BoulderGrenade, keysCCitadelBaseAbility],
-  citadel_ability_wrecker_garbage_suck: [CCitadel_Ability_WreckerGarbageSuck, keysCCitadelBaseAbility],
-  citadel_ability_zip_line: [CCitadel_Ability_ZipLine, keysCCitadelBaseAbility],
-  citadel_ability_zipline_boost: [CCitadel_Ability_ZipLine_Boost, keysCCitadelBaseAbility],
   citadel_animating_model_entity: [CCitadelAnimatingModelEntity, keysCBaseAnimGraph],
   citadel_announcer: [CCitadel_Announcer, keysCBaseCombatCharacter],
-  citadel_base_ability: [CCitadelBaseAbility, keysCCitadelBaseAbility],
   citadel_base_hero: [CCitadelHeroLoader, keysCCitadelHeroLoader],
-  citadel_base_lockon_ability: [CCitadelBaseLockonAbility, keysCCitadelBaseAbility],
   citadel_base_prop_midboss_indicator: [CCitadel_Prop_MidBossIndicator, keysCPointEntity],
   citadel_base_prop_stairs: [CCitadel_BaseProp_MidStairs, keysCCitadel_BaseProp_MidStairs],
-  citadel_base_tiered_lockon_ability: [CCitadelBaseTieredLockonAbility, keysCCitadelBaseAbility],
-  citadel_base_trigger_ability: [CCitadelBaseTriggerAbility, keysCCitadelBaseAbility],
   citadel_bot_test_node: [CCitadelBotTestNode, keysCCitadelBotTestNode],
-  citadel_bounce_pad: [CCitadel_Bounce_Pad, keysCBaseAnimGraph],
-  citadel_breakable_prop: [CCitadel_BreakableProp, keysCCitadel_BreakableProp],
-  citadel_capture_point: [CCitadelTriggerCapturePoint, keysCCitadelTriggerCapturePoint],
-  citadel_capture_point_escort: [CCitadelTriggerCapturePoint_Escort, keysCCitadelTriggerCapturePoint],
-  citadel_cat_animating: [CCitadel_CatAnimating, keysCBaseAnimGraph],
+  citadel_bounce_pad: [CCitadel_Bounce_Pad, keysCBaseAnimGraph, 'citadel_bounce_pad'],
+  citadel_breakable_prop: [CCitadel_BreakableProp, keysCCitadel_BreakableProp, 'citadel_breakable_prop_vase'],
+  citadel_capture_point_escort: [CCitadelTriggerCapturePoint_Escort, keysCCitadelTriggerCapturePoint, 'capture_point_escort'],
+  citadel_cat_animating: [CCitadel_CatAnimating, keysCBaseAnimGraph, 'citadel_cat_animating'],
   citadel_configurable_tracked_projectile: [CCitadelConfigurableTrackedProjectile, keysCBaseModelEntity],
   citadel_control_point: [CCitadelControlPointTrigger, keysCCitadelControlPointTrigger],
-  citadel_dash_cast_ability: [CCitadelBaseDashCastAbility, keysCCitadelBaseAbility],
-  citadel_deployable_preview: [CCitadel_DeployablePreview, keysCCitadel_DeployablePreview],
   citadel_dev_trigger: [CCitadelDevTrigger, keysCCitadelDevTrigger],
   citadel_doorway_portal: [CCitadel_DoorwayPortal, keysCCitadel_DoorwayPortal],
   citadel_druid_healing_tree: [CCitadelDruidHealingTree, keysCCitadelDruidHealingTree],
   citadel_druid_healing_tree_fruit: [CCitadelDruidHealingFruit, keysCCitadelDruidHealingFruit],
   citadel_druid_invis_bush: [CCitadelDruidInvisBush, keysCBaseAnimGraph],
   citadel_druid_plant_shield: [CCitadelDruidPlantShield, keysCBaseAnimGraph],
-  citadel_econ_item_container: [CCitadelEconItemContainer, keysCCitadelEconItemContainer],
   citadel_energy_tower: [CCitadelEnergyTower, keysCCitadelEnergyTower],
-  citadel_fissure_wall: [CCitadel_FissureWall, keysCBaseAnimGraph],
+  citadel_fissure_wall: [CCitadel_FissureWall, keysCBaseAnimGraph, 'citadel_fissure_wall'],
   citadel_gaffer: [CCitadelGaffer, keysCCitadelGaffer],
   citadel_gamerules: [CCitadelGameRulesProxy, keysCBaseEntity],
   citadel_grandfinale_stage: [CCitadel_GrandFinaleStage, keysCBaseAnimGraph],
-  citadel_gravestone_blocker: [CCitadel_GraveStone_Blocker, keysCCitadel_GraveStone_Blocker],
-  citadel_hero_release_vote_terminal: [CCitadelHeroReleaseVoteTerminal, keysCDynamicProp],
-  citadel_herotest_orbspawner: [CCitadel_HeroTestOrbSpawner, keysCBaseAnimGraph],
-  citadel_hideout_ball: [CCitadel_Hideout_Ball, keysCBaseModelEntity],
+  citadel_hideout_ball: [CCitadel_Hideout_Ball, keysCBaseModelEntity, 'citadel_hideout_ball'],
   citadel_hideout_button: [CCitadelHideoutInteractableProp, keysCCitadelHideoutInteractableProp],
-  citadel_hideout_clock: [CCitadel_Hideout_Clock, keysCBaseAnimGraph],
+  citadel_hideout_clock: [CCitadel_Hideout_Clock, keysCBaseAnimGraph, 'citadel_hideout_clock'],
   citadel_hideout_interactable_trigger: [CCitadelHideoutInteractableTrigger, keysCCitadelHideoutInteractableTrigger],
-  citadel_hideout_prop_base: [CCitadelHideoutPropBase, keysCCitadelHideoutPropBase],
   citadel_hideout_prop_slot: [CCitadelHideoutPropSlot, keysCCitadelHideoutPropSlot],
-  citadel_hideout_shootable_target_spawner: [CCitadel_HideOutTargetSpawner, keysCBaseAnimGraph],
   citadel_ice_dome_blocker: [CCitadel_Ice_Dome_Blocker, keysCBaseAnimGraph],
   citadel_invis_volume: [CTriggerInvisVolume, keysCBaseTrigger],
-  citadel_item: [CCitadel_Item_Empty, keysCCitadelBaseAbility],
-  citadel_item_aura_base: [CCitadel_Item_Aura_Base, keysCCitadelBaseAbility],
-  citadel_item_koth_spawner: [CCitadelItemKothSpawner, keysCCitadelItemKothSpawner],
-  citadel_item_pickup: [CCitadelItemPickup, keysCCitadelItemPickup],
-  citadel_item_pickup_idol: [CCitadelItemPickupIdol, keysCCitadelItemPickupIdol],
-  citadel_item_pickup_rejuv: [CCitadelItemPickupRejuv, keysCCitadelItemPickup],
-  citadel_item_pickup_rejuv_herotest: [CCitadelItemPickupRejuvHeroTest, keysCCitadelItemPickup],
+  citadel_item_koth_spawner: [CCitadelItemKothSpawner, keysCCitadelItemKothSpawner, 'citadel_item_koth_spawner'],
+  citadel_item_pickup: [CCitadelItemPickup, keysCCitadelItemPickup, 'citadel_item_pickup'],
+  citadel_item_pickup_idol: [CCitadelItemPickupIdol, keysCCitadelItemPickupIdol, 'citadel_item_pickup_idol'],
+  citadel_item_pickup_rejuv: [CCitadelItemPickupRejuv, keysCCitadelItemPickup, 'citadel_item_pickup_rejuv'],
+  citadel_item_pickup_rejuv_herotest: [CCitadelItemPickupRejuvHeroTest, keysCCitadelItemPickup, 'citadel_item_pickup_rejuv_herotest'],
   citadel_item_pickup_rejuv_herotest_infospawn: [CCitadelItemPickupRejuvHeroTestInfoSpawn, keysCPointEntity],
-  citadel_item_powerup_spawner: [CCitadel_PickupItemSpawner, keysCCitadel_PickupItemSpawner],
-  citadel_item_punchable_gold: [CCitadelItemPunchableNeutralGold, keysCCitadelItemPunchableNeutralGold],
-  citadel_koth_cashin: [CCitadel_KothCashIn, keysCCitadel_KothCashIn],
+  citadel_item_powerup_spawner: [CCitadel_PickupItemSpawner, keysCCitadel_PickupItemSpawner, 'citadel_item_powerup_spawner_bounty_runes'],
+  citadel_item_punchable_gold: [CCitadelItemPunchableNeutralGold, keysCCitadelItemPunchableNeutralGold, 'citadel_item_punchable_gold'],
+  citadel_koth_cashin: [CCitadel_KothCashIn, keysCCitadel_KothCashIn, 'citadel_koth_cashin'],
   citadel_local_player_ranked_badge_prop: [CCitadelLocalPlayerRankedBadgeProp, keysCBaseEntity],
   citadel_magic_beam_blocker: [CCitadel_Magic_Beam_Blocker, keysCBaseAnimGraph],
-  citadel_magician_turret_object: [CCitadel_MagicianTurret, keysCCitadel_MagicianTurret],
   citadel_minimap_boundary: [CCitadelMinimapBoundary, keysCBaseEntity],
-  citadel_mobile_resupply_object: [CCitadel_MobileResupply, keysCCitadel_MobileResupply],
   citadel_model_entity: [CCitadelModelEntity, keysCBaseModelEntity],
-  citadel_multi_capture_point: [CCitadelTriggerMultiCapturePoint, keysCCitadelTriggerMultiCapturePoint],
-  citadel_nano_predatory_statue: [CCitadel_Nano_Predatory_Statue, keysCCitadel_Nano_Predatory_Statue],
   citadel_new_years_fireworks: [CCitadel_NewYears_Fireworks, keysCCitadel_NewYears_Fireworks],
-  citadel_npc: [CAI_CitadelNPC, keysCAI_CitadelNPC],
   citadel_obscured_volume: [CTriggerObscuredVolume, keysCTriggerObscuredVolume],
   citadel_passthrough_fake_wall: [CCitadelPassthroughFakeWall, keysCCitadelPassthroughFakeWall],
   citadel_pickup: [CCitadel_Pickup, keysCBaseAnimGraph],
@@ -16214,12 +15418,10 @@ const designers = {
   citadel_pickup_item: [CCitadel_Pickup_Item, keysCBaseAnimGraph],
   citadel_pickup_modifier: [CCitadel_Pickup_Modifier, keysCBaseAnimGraph],
   citadel_pickup_necro_death: [CCitadel_Pickup_NecroDeath, keysCBaseAnimGraph],
-  citadel_pickup_spawner: [CCitadel_PickupSpawner, keysCCitadel_PickupSpawner],
+  citadel_pickup_spawner: [CCitadel_PickupSpawner, keysCCitadel_PickupSpawner, 'citadel_pickup_floating_apple'],
   citadel_player_controller: [CCitadelPlayerController, keysCBasePlayerController],
   citadel_point_talker: [CCitadel_PointTalker, keysCCitadel_PointTalker_Base],
-  citadel_point_talker_base: [CCitadel_PointTalker_Base, keysCCitadel_PointTalker_Base],
   citadel_point_talker_idol: [CCitadel_PointTalker_Idol, keysCCitadel_PointTalker_Base],
-  citadel_pregame_hero_draft_button: [CCitadelPregameHeroDraftButton, keysCDynamicProp],
   citadel_priest_slidetrap: [CCitadel_Priest_SlideTrap, keysCBaseModelEntity],
   citadel_projectile: [CCitadelProjectile, keysCBaseModelEntity],
   citadel_prop_dynamic: [CCitadel_DynamicProp, keysCCitadel_DynamicProp],
@@ -16234,12 +15436,10 @@ const designers = {
   citadel_snd_obb: [CCitadelSoundEntityOBB, keysCCitadelSoundEntityOBB],
   citadel_snd_opvar_set_obb: [CCitadelSoundOpvarSetOBB, keysCCitadelSoundOpvarSetOBB],
   citadel_snd_stack_field_obb: [CCitadelSoundStackFieldOBB, keysCCitadelSoundStackFieldOBB],
-  citadel_soldier_entity: [CCitadel_Soldier_Entity, keysCCitadel_Soldier_Entity],
-  citadel_spider_animating: [CCitadel_SpiderAnimating, keysCBaseAnimGraph],
+  citadel_spider_animating: [CCitadel_SpiderAnimating, keysCBaseAnimGraph, 'citadel_spider_animating'],
   citadel_team_manager: [CCitadelTeam, keysCTeam],
   citadel_tracked_projectile: [CCitadelTrackedProjectile, keysCBaseModelEntity],
   citadel_trigger_bonk: [CCitadelTriggerBonk, keysCCitadelTriggerBonk],
-  citadel_trigger_capture_zipline: [CCitadelZiplineCaptureTrigger, keysCBaseTrigger],
   citadel_trigger_climb_rope: [CCitadelClimbRopeTrigger, keysCCitadelClimbRopeTrigger],
   citadel_trigger_corrupted_item_shop: [CCitadelTriggerCorruptedItemShop, keysCCitadelTriggerCorruptedItemShop],
   citadel_trigger_hideout: [CCitadelTriggerHideout, keysCBaseTrigger],
@@ -16260,25 +15460,15 @@ const designers = {
   citadel_tunnel_node: [CCitadelTunnelNode, keysCCitadelTunnelNode],
   citadel_tunnel_trigger: [CCitadelTunnelTrigger, keysCCitadelTunnelTrigger],
   citadel_tutorial_controller: [CInfoTutorialController, keysCDynamicProp],
-  citadel_viscous_ball: [CCitadelViscousBall, keysCCitadelViscousBall],
-  citadel_weapon_bosstier2_set: [CCitadel_Ability_Weapon_BossTier2, keysCCitadelBaseAbility],
-  citadel_weapon_bosstier3_set: [CCitadel_Ability_Weapon_BossTier3, keysCCitadelBaseAbility],
-  citadel_weapon_shiv: [CCitadel_Ability_ShivWeapon, keysCCitadelBaseAbility],
+  citadel_viscous_ball: [CCitadelViscousBall, keysCCitadelViscousBall, 'citadel_viscous_ball'],
   citadel_zap_trigger: [CCitadelZapTrigger, keysCCitadelZapTrigger],
   citadel_zipline_path: [CCitadelZiplinePath, keysCCitadelZiplinePath],
   citadel_zipline_path_node: [CCitadelZipLinePathNode, keysCCitadelZipLinePathNode],
   color_correction: [CColorCorrection, keysCColorCorrection],
   color_correction_volume: [CColorCorrectionVolume, keysCColorCorrectionVolume],
   commentary_auto: [CCommentaryAuto, keysCCommentaryAuto],
-  cosmetic_emote: [CCitadel_CosmeticAbility_Emote, keysCCitadelBaseAbility],
-  cosmetic_snowball: [CCitadel_CosmeticAbility_Snowball, keysCCitadelBaseAbility],
-  cosmetic_voting_poster: [CCitadel_CosmeticAbility_VotingPoster, keysCCitadelBaseAbility],
-  destroyable_building: [CCitadel_Destroyable_Building, keysCCitadel_Destroyable_Building],
+  destroyable_building: [CCitadel_Destroyable_Building, keysCCitadel_Destroyable_Building, 'destroyable_building'],
   doorman_bomb_projectile: [CDoormanBombProjectile, keysCBaseModelEntity],
-  drifter_blood_blast: [CAbility_Drifter_BloodBlast, keysCCitadelBaseAbility],
-  drifter_darkness: [CAbility_Drifter_Darkness, keysCCitadelBaseAbility],
-  drifter_shadow_mark: [CAbility_Drifter_ShadowMark, keysCCitadelBaseAbility],
-  drifter_shadow_mark_teleport: [CAbility_Drifter_StalkersMark_Teleport, keysCCitadelBaseAbility],
   dynamic_prop: [CDynamicPropAlias_dynamic_prop, keysCDynamicProp],
   entity_blocker: [CEntityBlocker, keysCBaseModelEntity],
   entityflame: [CEntityFlame, keysCBaseEntity],
@@ -16288,21 +15478,17 @@ const designers = {
   env_credits: [CCredits, keysCCredits],
   env_cubemap: [CEnvCubemap, keysCEnvCubemap],
   env_cubemap_fog: [CEnvCubemapFog, keysCEnvCubemapFog],
-  env_debughistory: [CDebugHistory, keysCBaseEntity],
   env_decal: [CEnvDecal, keysCEnvDecal],
   env_detail_controller: [CEnvDetailController, keysCEnvDetailController],
   env_entity_dissolver: [CEntityDissolve, keysCEntityDissolve],
   env_entity_igniter: [CEnvEntityIgniter, keysCEnvEntityIgniter],
-  env_entity_maker: [CEnvEntityMaker, keysCEnvEntityMaker],
   env_explosion: [CEnvExplosion, keysCEnvExplosion],
   env_fade: [CEnvFade, keysCEnvFade],
   env_fog_controller: [CFogController, keysCFogController],
-  env_global: [CEnvGlobal, keysCEnvGlobal],
   env_glow: [CSpriteAlias_env_glow, keysCSprite],
   env_gradient_fog: [CGradientFog, keysCGradientFog],
   env_instructor_hint: [CEnvInstructorHint, keysCEnvInstructorHint],
   env_instructor_vr_hint: [CEnvInstructorVRHint, keysCEnvInstructorVRHint],
-  env_laser: [CEnvLaser, keysCEnvLaser],
   env_light_probe_volume: [CEnvLightProbeVolume, keysCEnvLightProbeVolume],
   env_message: [CMessage, keysCMessage],
   env_muzzleflash: [CEnvMuzzleFlash, keysCEnvMuzzleFlash],
@@ -16329,10 +15515,6 @@ const designers = {
   env_wind: [CEnvWind, keysCEnvWind],
   familiar_clone: [CCitadelFamiliarClonePlayerPawn, keysCCitadelFamiliarClonePlayerPawn],
   familiar_projectile_movingtoattach: [CProjectile_Familiar_MovingToAttach, keysCBaseModelEntity],
-  fathom_breach: [CCitadel_Ability_Fathom_Breach, keysCCitadelBaseAbility],
-  fathom_lurkers_ambush: [CAbility_Fathom_LurkersAmbush, keysCCitadelBaseAbility],
-  fathom_reefdweller_harpoon: [CAbility_Fathom_ReefdwellerHarpoon, keysCCitadelBaseAbility],
-  fathom_scalding_spray: [CCitadel_Ability_Fathom_ScaldingSpray, keysCCitadelBaseAbility],
   featherboomerang_projectile: [CCitadel_Projectile_FeatherBoomerang, keysCBaseModelEntity],
   filter_activator_attribute_int: [CFilterAttributeInt, keysCFilterAttributeInt],
   filter_activator_class: [CFilterClass, keysCFilterClass],
@@ -16381,7 +15563,6 @@ const designers = {
   func_physical_button: [CPhysicalButton, keysCBaseButton],
   func_plat: [CFuncPlat, keysCFuncPlat],
   func_platrot: [CFuncPlatRot, keysCFuncPlat],
-  func_precipitation: [CPrecipitation, keysCPrecipitation],
   func_precipitation_blocker: [CPrecipitationBlocker, keysCBaseModelEntity],
   func_proprrespawnzone: [CFuncPropRespawnZone, keysCBaseEntity],
   func_pushable: [CPushable, keysCBreakable],
@@ -16407,16 +15588,7 @@ const designers = {
   game_ragdoll_manager: [CRagdollManager, keysCRagdollManager],
   game_text: [CGameText, keysCGameText],
   game_zone_player: [CGamePlayerZone, keysCGamePlayerZone],
-  genericperson_ability_1: [CCitadel_Ability_GenericPerson_1, keysCCitadelBaseAbility],
-  genericperson_ability_2: [CCitadel_Ability_GenericPerson_2, keysCCitadelBaseAbility],
-  genericperson_ability_3: [CCitadel_Ability_GenericPerson_3, keysCCitadelBaseAbility],
-  genericperson_ability_4: [CCitadel_Ability_GenericPerson_4, keysCCitadelBaseAbility],
   guided_arrow_projectile: [CCitadel_Projectile_Guided_Arrow, keysCBaseModelEntity],
-  gunslinger_rapid_fire: [CCitadel_Ability_RapidFire, keysCCitadelBaseAbility],
-  gunslinger_rocket_launcher: [CCitadel_Ability_RocketLauncher, keysCCitadelBaseAbility],
-  gunslinger_salvo: [CCitadel_Ability_Gunslinger_Salvo, keysCCitadelBaseAbility],
-  gunslinger_sleep_bomb: [CCitadel_Ability_SleepBomb, keysCCitadelBaseAbility],
-  gunslinger_tenacity: [CCitadel_Ability_Tenacity, keysCCitadelBaseAbility],
   handle_dummy: [CHandleDummy, keysCBaseEntity],
   handle_test: [CHandleTest, keysCBaseEntity],
   hero_preview: [C_HeroPreview, keysCBaseEntity],
@@ -16438,7 +15610,6 @@ const designers = {
   info_dynamic_shadow_hint_box: [CInfoDynamicShadowHintBox, keysCInfoDynamicShadowHintBox],
   info_game_event_proxy: [CInfoGameEventProxy, keysCInfoGameEventProxy],
   info_hero_testing_point: [CInfoHeroTestingPoint, keysCInfoHeroTestingPoint],
-  info_hint: [CNodeEnt_InfoHint, keysCNodeEnt],
   info_koth_spawn_location: [CInfoKOTHSpawnLocation, keysCPointEntity],
   info_ladder_dismount: [CInfoLadderDismount, keysCBaseEntity],
   info_landmark: [CInfoLandmark, keysCPointEntity],
@@ -16447,12 +15618,7 @@ const designers = {
   info_nav_space: [CNavSpaceInfo, keysCPointEntity],
   info_neutral_trooper_camp: [CInfoTrooperNeutralCamp, keysCInfoTrooperNeutralCamp],
   info_neutral_trooper_spawn: [CInfoTrooperNeutralSpawn, keysCInfoTrooperNeutralSpawn],
-  info_node: [CNodeEnt, keysCNodeEnt],
-  info_node_air: [CNodeEnt_InfoNodeAir, keysCNodeEnt],
-  info_node_air_hint: [CNodeEnt_InfoNodeAirHint, keysCNodeEnt],
-  info_node_hint: [CNodeEnt_InfoNodeHint, keysCNodeEnt],
   info_npc_spawn_destination: [CNPCSpawnDestination, keysCNPCSpawnDestination],
-  info_null: [CNullEntity, keysCBaseEntity],
   info_offscreen_panorama_texture: [CInfoOffscreenPanoramaTexture, keysCInfoOffscreenPanoramaTexture],
   info_particle_system: [CParticleSystem, keysCParticleSystem],
   info_particle_target: [CInfoParticleTarget, keysCPointEntity],
@@ -16460,7 +15626,6 @@ const designers = {
   info_player_start: [CInfoPlayerStart, keysCInfoPlayerStart],
   info_portal_link: [CInfoPortalLink, keysCPointEntity],
   info_spawngroup_landmark: [CInfoSpawnGroupLandmark, keysCPointEntity],
-  info_spawngroup_load_unload: [CInfoSpawnGroupLoadUnload, keysCInfoSpawnGroupLoadUnload],
   info_super_trooper_spawn: [CInfoTrooperBossSpawn, keysCInfoTrooperBossSpawn],
   info_target: [CInfoTarget, keysCPointEntity],
   info_target_choreo: [CChoreoInfoTarget, keysCPointEntity],
@@ -16476,19 +15641,13 @@ const designers = {
   info_visibility_box: [CInfoVisibilityBox, keysCInfoVisibilityBox],
   info_world_layer: [CInfoWorldLayer, keysCInfoWorldLayer],
   instanced_scripted_scene: [CInstancedSceneEntity, keysCInstancedSceneEntity],
-  item: [CItem, keysCItem],
   item_crate: [CItemCrate, keysCItemCrate],
   item_crate_spawn: [CItemCrateSpawn, keysCItemCrateSpawn],
   item_explosive_barrel: [CItemExplosiveBarrel, keysCBaseModelEntity],
   item_generic: [CItemGeneric, keysCItemGeneric],
   item_generic_trigger_helper: [CItemGenericTriggerHelper, keysCBaseModelEntity],
-  item_projectile_test_01: [CCitadel_Item_ProjectileTest, keysCCitadelBaseAbility],
-  item_projectile_test_02: [CCitadel_Item_ProjectileTest02, keysCCitadelBaseAbility],
-  item_projectile_test_04: [CCitadel_Item_ProjectileTest04, keysCCitadelBaseAbility],
-  item_projectile_test_05: [CCitadel_Item_ProjectileTest05, keysCCitadelBaseAbility],
-  item_projectile_test_06: [CCitadel_Item_ProjectileTest06, keysCCitadelBaseAbility],
   item_sodacan: [CItemSoda, keysCBaseAnimGraph],
-  item_xp: [CItemXP, keysCBaseModelEntity],
+  item_xp: [CItemXP, keysCBaseModelEntity, 'xp_orb'],
   kali_boomerang_projectile: [CCitadelBoomerangProjectile, keysCBaseModelEntity],
   keyframe_rope: [CRopeKeyframe, keysCRopeKeyframe],
   keyframe_track: [CPathKeyFrame, keysCPathKeyFrame],
@@ -16529,7 +15688,6 @@ const designers = {
   logic_npc_counter_obb: [CLogicNPCCounterOBB, keysCLogicNPCCounterAABB],
   logic_npc_counter_radius: [CLogicNPCCounter, keysCLogicNPCCounter],
   logic_playerproxy: [CGenericLogicPlayerProxy, keysCLogicPlayerProxyBase],
-  logic_playerproxy_base: [CLogicPlayerProxyBase, keysCLogicPlayerProxyBase],
   logic_proximity: [CLogicProximity, keysCPointEntity],
   logic_relay: [CLogicRelay, keysCLogicRelay],
   logic_scene_list_manager: [CSceneListManager, keysCSceneListManager],
@@ -16539,86 +15697,54 @@ const designers = {
   map_shared_environment: [CMapSharedEnvironment, keysCMapSharedEnvironment],
   markup_volume: [CMarkupVolume, keysCMarkupVolume],
   markup_volume_tagged: [CSimpleMarkupVolumeTagged, keysCMarkupVolumeTagged],
-  markup_volume_tagged_base: [CMarkupVolumeTagged, keysCMarkupVolumeTagged],
   markup_volume_with_ref: [CMarkupVolumeWithRef, keysCMarkupVolumeWithRef],
   match_tracked_stats: [CMatchTrackedStatsEntity, keysCBaseEntity],
   math_colorblend: [CMathColorBlend, keysCMathColorBlend],
   math_counter: [CMathCounter, keysCMathCounter],
   math_remap: [CMathRemap, keysCMathRemap],
-  mirage_fire_beetles: [CCitadel_Ability_Mirage_FireBeetles, keysCCitadelBaseAbility],
-  mirage_sand_phantom: [CAbility_Mirage_SandPhantom, keysCCitadelBaseAbility],
-  mirage_teleport: [CCitadel_Ability_Mirage_Teleport, keysCCitadelBaseAbility],
-  mirage_tornado: [CAbility_Mirage_Tornado, keysCCitadelBaseAbility],
   momentary_door: [CFuncMoveLinearAlias_momentary_door, keysCFuncMoveLinear],
   momentary_rot_button: [CMomentaryRotButton, keysCMomentaryRotButton],
   move_rope: [CRopeKeyframeAlias_move_rope, keysCRopeKeyframe],
   multisource: [CMultiSource, keysCMultiSource],
   necro_haunt_projectile: [CProjectile_Necro_HauntProjectile, keysCBaseModelEntity],
-  npc_barrack_boss: [CNPC_BarrackBoss, keysCNPC_BarrackBoss],
-  npc_base_defense_sentry: [CNPC_BaseDefenseSentry, keysCNPC_BaseDefenseSentry],
-  npc_boss_tier2: [CNPC_Boss_Tier2, keysCNPC_Boss_Tier2],
-  npc_boss_tier3: [CNPC_Boss_Tier3, keysCNPC_Boss_Tier3],
+  npc_barrack_boss: [CNPC_BarrackBoss, keysCNPC_BarrackBoss, 'npc_barrack_boss'],
+  npc_base_defense_sentry: [CNPC_BaseDefenseSentry, keysCNPC_BaseDefenseSentry, 'npc_base_defense_sentry'],
+  npc_boss_tier2: [CNPC_Boss_Tier2, keysCNPC_Boss_Tier2, 'npc_boss_tier2'],
+  npc_boss_tier3: [CNPC_Boss_Tier3, keysCNPC_Boss_Tier3, 'npc_boss_tier3'],
   npc_boss_tier3core: [CNPC_Boss_Tier3Core, keysCBaseAnimGraph],
-  npc_escort: [CNPC_Escort, keysCAI_CitadelNPC],
-  npc_familiar_helper: [CNPC_FamiliarHelper, keysCNPC_FamiliarHelper],
+  npc_escort: [CNPC_Escort, keysCAI_CitadelNPC, 'shield_escort'],
   npc_maker: [CNPCMaker, keysCNPCMaker],
-  npc_maker_base: [CBaseNPCMaker, keysCBaseNPCMaker],
   npc_necro_hauntingskull: [CNecro_HauntingSkullEntity, keysCNecro_HauntingSkullEntity],
-  npc_necro_skele: [CNPC_NecroSkele, keysCNPC_NecroSkele],
-  npc_neutral_bug: [CNPC_Neutral_Bug, keysCBaseAnimGraph],
-  npc_neutral_flying_pigeon: [CNPC_Neutral_Flying_Pigeon, keysCBaseAnimGraph],
-  npc_neutral_hideout_cat: [CNPC_Neutral_Hideout_Cat, keysCBaseAnimGraph],
-  npc_neutral_hideout_rabbit: [CNPC_Neutral_Hideout_Rabbit, keysCBaseAnimGraph],
-  npc_neutral_sinners_sacrifice: [CNPC_Neutral_SinnersSacrifice, keysCAI_CitadelNPC],
-  npc_neutral_sinners_sacrifice_hideout: [CNPC_Neutral_SinnersSacrifice_Hideout, keysCAI_CitadelNPC],
-  npc_player_bot_brain: [CCitadelPlayerBotNPCBrain, keysCAI_CitadelNPC],
-  npc_ratking_rat: [CNPC_Ratking_Rat, keysCNPC_Ratking_Rat],
-  npc_shielded_sentry: [CNPC_ShieldedSentry, keysCNPC_ShieldedSentry],
-  npc_super_neutral: [CNPC_MidBoss, keysCAI_CitadelNPC],
+  npc_necro_skele: [CNPC_NecroSkele, keysCNPC_NecroSkele, 'npc_necro_skele'],
+  npc_neutral_bug: [CNPC_Neutral_Bug, keysCBaseAnimGraph, 'npc_neutral_bug'],
+  npc_neutral_flying_pigeon: [CNPC_Neutral_Flying_Pigeon, keysCBaseAnimGraph, 'npc_neutral_flying_pigeon'],
+  npc_neutral_sinners_sacrifice: [CNPC_Neutral_SinnersSacrifice, keysCAI_CitadelNPC, 'neutral_sinners_sacrifice'],
+  npc_neutral_sinners_sacrifice_hideout: [CNPC_Neutral_SinnersSacrifice_Hideout, keysCAI_CitadelNPC, 'npc_neutral_sinners_sacrifice_hideout'],
+  npc_ratking_rat: [CNPC_Ratking_Rat, keysCNPC_Ratking_Rat, 'npc_ratking_rat'],
+  npc_super_neutral: [CNPC_MidBoss, keysCAI_CitadelNPC, 'npc_super_neutral'],
   npc_template_maker: [CTemplateNPCMaker, keysCTemplateNPCMaker],
-  npc_trooper: [CNPC_Trooper, keysCNPC_Trooper],
-  npc_trooper_boss: [CNPC_TrooperBoss, keysCNPC_TrooperBoss],
-  npc_trooper_neutral: [CNPC_TrooperNeutral, keysCAI_CitadelNPC],
-  npc_yakuza_gangster: [CNPC_YakuzaGangster, keysCAI_CitadelNPC],
+  npc_trooper: [CNPC_Trooper, keysCNPC_Trooper, 'trooper_normal'],
+  npc_trooper_boss: [CNPC_TrooperBoss, keysCNPC_TrooperBoss, 'npc_boss_tier1'],
+  npc_trooper_neutral: [CNPC_TrooperNeutral, keysCAI_CitadelNPC, 'neutral_trooper_weak'],
+  npc_yakuza_gangster: [CNPC_YakuzaGangster, keysCAI_CitadelNPC, 'npc_yakuza_gangster'],
   observer: [CCitadelObserverPawn, keysCCitadelObserverPawn],
-  operative_blindside: [CCitadel_Ability_Operative_Blindside, keysCCitadelBaseAbility],
-  operative_revelation: [CAbility_Operative_Revelation, keysCCitadelBaseAbility],
-  operative_umbrella_maneuver: [CAbility_Operative_UmbrellaManeuver, keysCCitadelBaseAbility],
   orb_spawner: [COrbSpawner, keysCBaseEntity],
   path_accompany: [CPathAccompany, keysCPathAccompany],
   path_corner: [CPathCorner, keysCPathCorner],
   path_corner_crash: [CPathCornerCrash, keysCPathCorner],
   path_mover: [CPathMover, keysCPathMover],
   path_mover_entity_spawner: [CPathMoverEntitySpawner, keysCPathMoverEntitySpawner],
-  path_node: [CPathNode, keysCPathNode],
-  path_node_mover: [CMoverPathNode, keysCMoverPathNode],
   path_particle_rope: [CPathParticleRope, keysCPathParticleRope],
   path_particle_rope_clientside: [CPathParticleRopeAlias_path_particle_rope_clientside, keysCPathParticleRope],
   path_simple: [CPathSimple, keysCPathSimple],
   path_track: [CPathTrack, keysCPathTrack],
   path_with_dynamic_nodes: [CPathWithDynamicNodes, keysCPathWithDynamicNodes],
-  phys_ballsocket: [CPhysBallSocket, keysCPhysBallSocket],
-  phys_constraint: [CPhysFixed, keysCPhysFixed],
-  phys_constraint_base: [CPhysConstraint, keysCPhysConstraint],
-  phys_force: [CPhysForce, keysCPhysForce],
-  phys_genericconstraint: [CGenericConstraint, keysCGenericConstraint],
-  phys_hinge: [CPhysHinge, keysCPhysHinge],
-  phys_hinge_local: [CPhysHingeAlias_phys_hinge_local, keysCPhysHinge],
-  phys_keepupright: [CKeepUpright, keysCKeepUpright],
-  phys_lengthconstraint: [CPhysLength, keysCPhysLength],
   phys_magnet: [CPhysMagnet, keysCPhysMagnet],
   phys_motor: [CPhysMotor, keysCPhysMotor],
-  phys_pulleyconstraint: [CPhysPulley, keysCPhysPulley],
-  phys_ragdollconstraint: [CRagdollConstraint, keysCRagdollConstraint],
   phys_ragdollmagnet: [CRagdollMagnet, keysCRagdollMagnet],
-  phys_slideconstraint: [CPhysSlideConstraint, keysCPhysSlideConstraint],
-  phys_splineconstraint: [CSplineConstraint, keysCSplineConstraint],
-  phys_spring: [CPhysicsSpring, keysCPhysicsSpring],
   phys_thruster: [CPhysThruster, keysCPhysForce],
   phys_torque: [CPhysTorque, keysCPhysTorque],
-  phys_wheelconstraint: [CPhysWheelConstraint, keysCPhysWheelConstraint],
   physics_entity_solver: [CPhysicsEntitySolver, keysCPhysicsEntitySolver],
-  physics_npc_solver: [CPhysicsNPCSolver, keysCPhysicsNPCSolver],
   physics_prop_ragdoll: [CRagdollPropAlias_physics_prop_ragdoll, keysCRagdollProp],
   plat_trigger: [CPlatTrigger, keysCBaseModelEntity],
   player: [CCitadelPlayerPawn, keysCCitadelPlayerPawn],
@@ -16647,7 +15773,6 @@ const designers = {
   point_modifier_thinker: [CPointModifierThinker, keysCPointModifierThinker],
   point_nav_walkable: [CNavWalkable, keysCPointEntity],
   point_orient: [CPointOrient, keysCPointOrient],
-  point_prefab: [CPointPrefab, keysCPointPrefab],
   point_proximity_sensor: [CPointProximitySensor, keysCPointProximitySensor],
   point_pulse: [CPointPulse, keysCBaseEntity],
   point_push: [CPointPush, keysCPointPush],
@@ -16659,8 +15784,6 @@ const designers = {
   point_velocitysensor: [CPointVelocitySensor, keysCPointVelocitySensor],
   point_worldtext: [CPointWorldText, keysCPointWorldText],
   post_processing_volume: [CPostProcessingVolume, keysCPostProcessingVolume],
-  priest_beartrap: [CCitadel_Ability_Priest_BearTrap, keysCCitadelBaseAbility],
-  priest_flashbang: [CCitadel_Ability_Priest_Flashbang, keysCCitadelBaseAbility],
   projectile_boho_skipgrenade: [CProjectile_Boho_SkipGrenade, keysCBaseModelEntity],
   projectile_cyclone: [CCitadel_Projectile_Cyclone, keysCBaseModelEntity],
   projectile_doorman_cart_projectile: [CProjectile_Doorman_Cart_Projectile, keysCBaseModelEntity],
@@ -16673,11 +15796,9 @@ const designers = {
   projectile_touch_volume: [CCitadelProjectileTouchVolume, keysCCitadelProjectileTouchVolume],
   prop_animating_breakable: [CPropAnimatingBreakable, keysCPropAnimatingBreakable],
   prop_door_rotating: [CPropDoorRotating, keysCPropDoorRotating],
-  prop_door_rotating_breakable: [CPropDoorRotatingBreakable, keysCPropDoorRotatingBreakable],
   prop_dynamic: [CDynamicProp, keysCDynamicProp],
   prop_dynamic_ornament: [COrnamentProp, keysCOrnamentProp],
   prop_dynamic_override: [CDynamicPropAlias_prop_dynamic_override, keysCDynamicProp],
-  prop_physics: [CPhysicsProp, keysCPhysicsProp],
   prop_physics_override: [CPhysicsPropOverride, keysCPhysicsProp],
   prop_physics_respawnable: [CPhysicsPropRespawnable, keysCPhysicsPropRespawnable],
   prop_ragdoll: [CRagdollProp, keysCRagdollProp],
@@ -16685,16 +15806,8 @@ const designers = {
   pulse_game_blackboard: [CPulseGameBlackboard, keysCPulseGameBlackboard],
   punkgoat_tether_projectile: [CProjectile_PunkgoatTether, keysCBaseModelEntity],
   ratking_scrap_grenade_projectile: [CScrapGrenadeProjectile, keysCBaseModelEntity],
-  rejuv_tracking_projectile: [CCitadel_Item_RejuvTrackingProjectile, keysCCitadelBaseAbility],
-  render_portal: [CRenderPortal, keysCRenderPortal],
   rocket_launcher_rocket_projectile: [CCitadel_Projectile_RocketLauncher_Rocket, keysCBaseModelEntity],
   rotator_target: [CRotatorTarget, keysCPointEntity],
-  rule_entity: [CRuleEntity, keysCRuleEntity],
-  rule_point_entity: [CRulePointEntity, keysCRulePointEntity],
-  rutger_cheat_death: [CAbility_Rutger_CheatDeath, keysCCitadelBaseAbility],
-  rutger_force_field: [CAbility_Rutger_ForceField, keysCCitadelBaseAbility],
-  rutger_pulse: [CCitadel_Ability_Rutger_Pulse, keysCCitadelBaseAbility],
-  rutger_rocket: [CAbility_Rutger_RocketLauncher, keysCCitadelBaseAbility],
   rutger_rocket_projectile: [CProjectile_Rutger_Rocket, keysCBaseModelEntity],
   script_nav_blocker: [CScriptNavBlocker, keysCScriptNavBlocker],
   script_trigger_hurt: [CScriptTriggerHurt, keysCScriptTriggerHurt],
@@ -16705,15 +15818,12 @@ const designers = {
   scripted_scene: [CSceneEntity, keysCSceneEntity],
   scripted_sequence: [CScriptedSequence, keysCScriptedSequence],
   setting_sun_projectile: [CCitadel_Projectile_SettingSun, keysCBaseModelEntity],
-  shadow_pulse: [CCitadel_Ability_ShadowPulse, keysCCitadelBaseAbility],
   shatterglass_shard: [CShatterGlassShardPhysics, keysCBaseModelEntity],
-  simple_animating_ai: [CNPC_SimpleAnimatingAI, keysCNPC_SimpleAnimatingAI],
   sky_camera: [CSkyCamera, keysCSkyCamera],
   skybox_reference: [CSkyboxReference, keysCSkyboxReference],
   snd_event_alignedbox: [CSoundEventAABBEntity, keysCSoundEventAABBEntity],
   snd_event_box_helper: [CSoundEventBoxHelper, keysCSoundEventBoxHelper],
   snd_event_cone: [CSoundEventConeEntity, keysCSoundEventConeEntity],
-  snd_event_multipoint: [CSoundEventMultiPointEntity, keysCSoundEventMultiPointEntity],
   snd_event_oriented_boxes: [CSoundEventBoxEntity, keysCSoundEventBoxEntity],
   snd_event_orientedbox: [CSoundEventOBBEntity, keysCSoundEventOBBEntity],
   snd_event_param: [CSoundEventParameter, keysCSoundEventParameter],
@@ -16723,7 +15833,6 @@ const designers = {
   snd_opvar_set: [CSoundOpvarSetEntity, keysCSoundOpvarSetEntity],
   snd_opvar_set_aabb: [CSoundOpvarSetAABBEntity, keysCSoundOpvarSetBoxEntity],
   snd_opvar_set_auto_room: [CSoundOpvarSetAutoRoomEntity, keysCSoundOpvarSetAutoRoomEntity],
-  snd_opvar_set_box_base: [CSoundOpvarSetBoxEntity, keysCSoundOpvarSetBoxEntity],
   snd_opvar_set_dome: [CSoundOpvarSetDomeEntity, keysCSoundOpvarSetDomeEntity],
   snd_opvar_set_obb: [CSoundOpvarSetOBBEntity, keysCSoundOpvarSetBoxEntity],
   snd_opvar_set_path_corner: [CSoundOpvarSetPathCornerEntity, keysCSoundOpvarSetPathCornerEntity],
@@ -16732,45 +15841,26 @@ const designers = {
   snd_opvar_set_precipitation: [CSoundOpvarSetPrecipitationEntity, keysCSoundOpvarSetPrecipitationEntity],
   snd_opvar_set_precipitation_obb: [CSoundOpvarSetPrecipitationOBBEntity, keysCSoundOpvarSetPrecipitationEntity],
   snd_opvar_set_wind_obb: [CSoundOpvarSetOBBWindEntity, keysCSoundOpvarSetOBBWindEntity],
-  snd_sound_area_base: [CSoundAreaEntityBase, keysCSoundAreaEntityBase],
   snd_sound_area_obb: [CSoundAreaEntityOrientedBox, keysCSoundAreaEntityOrientedBox],
   snd_sound_area_sphere: [CSoundAreaEntitySphere, keysCSoundAreaEntitySphere],
   snd_soundscape: [CEnvSoundscapeAlias_snd_soundscape, keysCEnvSoundscape],
   snd_soundscape_proxy: [CEnvSoundscapeProxyAlias_snd_soundscape_proxy, keysCEnvSoundscapeProxy],
   snd_soundscape_triggerable: [CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable, keysCEnvSoundscape],
   snd_stack_save: [CSoundStackSave, keysCSoundStackSave],
-  spark_shower: [CShower, keysCBaseModelEntity],
   spider_projectile: [CCitadel_Projectile_SpiderProjectile, keysCBaseModelEntity],
   spotlight_end: [CSpotlightEnd, keysCBaseModelEntity],
-  super_neutral_charge: [CCitadel_Ability_SuperNeutralCharge, keysCCitadelBaseAbility],
-  super_neutral_incendiary: [CCitadel_Ability_SuperNeutralIncendiary, keysCCitadelBaseAbility],
-  super_neutral_shield: [CCitadel_Ability_SuperNeutralShield, keysCCitadelBaseAbility],
-  synth_affliction: [CAbility_Synth_Affliction, keysCCitadelBaseAbility],
-  synth_barrage: [CAbility_Synth_Barrage, keysCCitadelBaseAbility],
   synth_barrage_projectile: [CProjectile_Synth_Barrage, keysCBaseModelEntity],
-  synth_plasma_flux: [CAbility_Synth_PlasmaFlux, keysCCitadelBaseAbility],
   synth_plasma_flux_projectile: [CProjectile_Synth_PlasmaFlux, keysCBaseModelEntity],
-  synth_plasma_flux_trigger: [CAbility_Synth_PlasmaFlux_Trigger, keysCCitadelBaseAbility],
-  synth_pulse: [CAbility_Synth_Pulse, keysCCitadelBaseAbility],
   tanktrain_ai: [CTankTrainAI, keysCTankTrainAI],
   tanktrain_aitarget: [CTankTargetChange, keysCTankTargetChange],
-  targetdummy_ability_1: [CCitadel_Ability_Targetdummy_1, keysCCitadelBaseAbility],
-  targetdummy_ability_2: [CCitadel_Ability_Targetdummy_2, keysCCitadelBaseAbility],
-  targetdummy_ability_3: [CCitadel_Ability_Targetdummy_3, keysCCitadelBaseAbility],
-  targetdummy_ability_4: [CCitadel_Ability_Targetdummy_4, keysCCitadelBaseAbility],
   team_manager: [CTeam, keysCTeam],
   team_tracked_stats: [CTeamTrackedStatsEntity, keysCBaseEntity],
   test_effect: [CTestEffect, keysCBaseEntity],
   test_io_combinations: [CTestPulseIO, keysCTestPulseIO],
-  thumper_ability_1: [CCitadel_Ability_Thumper_1, keysCCitadelBaseAbility],
-  thumper_ability_2: [CCitadel_Ability_Thumper_2, keysCCitadelBaseAbility],
-  thumper_ability_3: [CCitadel_Ability_Thumper_3, keysCCitadelBaseAbility],
-  thumper_ability_4: [CCitadel_Ability_Thumper_4, keysCCitadelBaseAbility],
   trigger: [CBaseTrigger, keysCBaseTrigger],
   trigger_Ice_Path_Volume: [CTriggerIcePathVolume, keysCBaseTrigger],
   trigger_active_weapon_detect: [CTriggerActiveWeaponDetect, keysCTriggerActiveWeaponDetect],
   trigger_add_modifier: [CTriggerAddModifier, keysCTriggerAddModifier],
-  trigger_autosave: [CTriggerSave, keysCTriggerSave],
   trigger_brush: [CTriggerBrush, keysCTriggerBrush],
   trigger_burrow_underground: [CTriggerBurrowUnderground, keysCBaseTrigger],
   trigger_callback: [CTriggerCallback, keysCBaseTrigger],
@@ -16814,143 +15904,13 @@ const designers = {
   trigger_trooper_damage_reduction_detector: [CTriggerTrooperDamageReductionDetector, keysCTriggerTrooperDamageReductionDetector],
   trigger_trooper_detector: [CTriggerTrooperDetector, keysCTriggerTrooperDetector],
   trooper_approach_horizon: [CTrooperApproachHorizon, keysCBaseEntity],
-  trooper_boss_grenade: [CCitadel_Ability_TrooperBossGrenade, keysCCitadelBaseAbility],
-  trooper_grenade: [CCitadel_Ability_TrooperGrenade, keysCCitadelBaseAbility],
-  upgrade_ability_power_shard: [CCitadel_Item_PowerShard, keysCCitadelBaseAbility],
-  upgrade_ability_refresher: [CCitadel_Item_Refresher, keysCCitadelBaseAbility],
-  upgrade_ability_vampire: [CCitadel_ArmorUpgrade_AbilityLifeSteal, keysCCitadelBaseAbility],
-  upgrade_ablative_coat: [CCitadel_ArmorUpgrade_AblativeCoat, keysCCitadelBaseAbility],
-  upgrade_active_bullet_shield: [CCitadel_ArmorUpgrade_ActiveBulletShield, keysCCitadelBaseAbility],
-  upgrade_active_reload: [CCitadel_Item_ActiveReload, keysCCitadelBaseAbility],
-  upgrade_aerial_assault: [CCitadel_Upgrade_AerialAssault, keysCCitadelBaseAbility],
-  upgrade_ammo_scavenger: [CCitadel_Upgrade_AmmoScavenger, keysCCitadelBaseAbility],
-  upgrade_aoe_root: [CCitadel_Item_AOERoot, keysCCitadelBaseAbility],
-  upgrade_aoe_smoke_bomb: [CCitadel_UtilityUpgrade_AOESmokeBomb, keysCCitadelBaseAbility],
-  upgrade_aoe_tech_shield: [CCitadel_Item_AOE_Tech_Shield, keysCCitadelBaseAbility],
-  upgrade_apex_combat: [CCitadel_WeaponUpgrade_ApexCombat, keysCCitadelBaseAbility],
-  upgrade_arctic_blast: [CCitadel_Item_ArcticBlast, keysCCitadelBaseAbility],
-  upgrade_auto_cleanse: [CCitadel_ArmorUpgrade_AutoCleanse, keysCCitadelBaseAbility],
-  upgrade_blood_tribute: [CCitadel_WeaponUpgrade_BloodTribute, keysCCitadelBaseAbility],
-  upgrade_bullet_armor_reduction_aura: [CCitadel_ArmorUpgrade_BulletArmorReductionAura, keysCCitadelBaseAbility],
-  upgrade_bullet_shield: [CCitadel_Ability_Shield, keysCCitadelBaseAbility],
-  upgrade_burst_fire: [CCitadel_WeaponUpgrade_BurstFire, keysCCitadelBaseAbility],
-  upgrade_camouflage: [CCitadel_Item_Camouflage, keysCCitadelBaseAbility],
-  upgrade_capacitor: [CItemCapacitor, keysCCitadelBaseAbility],
-  upgrade_celestial_guidance: [CCitadel_Item_CelestialGuidance, keysCCitadelBaseAbility],
-  upgrade_charge_mastery: [CCitadel_Item_Charge_Mastery, keysCCitadelBaseAbility],
-  upgrade_cheat_death: [CCitadel_Item_CheatDeath, keysCCitadelBaseAbility],
-  upgrade_cloaking_device: [CCitadel_ArmorUpgrade_CloakingDevice, keysCCitadelBaseAbility],
-  upgrade_cloaking_device_active: [CCitadel_ArmorUpgrade_CloakingDeviceActive, keysCCitadelBaseAbility],
-  upgrade_cold_front: [CCitadel_Item_ColdFront, keysCCitadelBaseAbility],
-  upgrade_colossus: [CCitadel_ArmorUpgrade_Colossus, keysCCitadelBaseAbility],
-  upgrade_combo_breaker: [CCitadel_Item_ComboBreaker, keysCCitadelBaseAbility],
-  upgrade_containment: [CCitadel_Item_Containment, keysCCitadelBaseAbility],
-  upgrade_cooldown_on_miss: [CCitadel_WeaponUpgrade_CooldownOnMiss, keysCCitadelBaseAbility],
-  upgrade_corpse_explosion: [CCitadel_TechUpgrade_CorpseExplosion, keysCCitadelBaseAbility],
-  upgrade_damage_recycler: [CCitadel_ArmorUpgrade_DamageRecycler, keysCCitadelBaseAbility],
-  upgrade_debuff_absorb: [CCitadel_UtilityUpgrade_DebuffImmunity, keysCCitadelBaseAbility],
-  upgrade_disarm: [CCitadel_Item_Disarm, keysCCitadelBaseAbility],
-  upgrade_divine_barrier: [CCitadel_Item_DivineBarrier, keysCCitadelBaseAbility],
-  upgrade_diviners_kevlar: [CCitadel_Item_DivinersKevlar, keysCCitadelBaseAbility],
-  upgrade_double_jump: [CCitadel_ArmorUpgrade_DoubleJump, keysCCitadelBaseAbility],
-  upgrade_dps_aura: [CCitadel_Item_DPS_Aura, keysCCitadelBaseAbility],
-  upgrade_electric_slippers: [CCitadel_Item_Electric_Slippers, keysCCitadelBaseAbility],
-  upgrade_express_shot: [CCitadel_WeaponUpgrade_ExpressShot, keysCCitadelBaseAbility],
-  upgrade_fire_rate_aura: [CCitadel_WeaponUpgrade_FireRateAura, keysCCitadelBaseAbility],
-  upgrade_fleetfoot_boots: [CItem_FleetfootBoots, keysCCitadelBaseAbility],
-  upgrade_focus_lens: [CCitadel_Item_FocusLens, keysCCitadelBaseAbility],
-  upgrade_frenzy: [CCitadel_ArmorUpgrade_Frenzy, keysCCitadelBaseAbility],
-  upgrade_fury_trance: [CCitadel_WeaponUpgrade_FuryTrance, keysCCitadelBaseAbility],
-  upgrade_glass_cannon: [CCitadel_WeaponUpgrade_GlassCannon, keysCCitadelBaseAbility],
-  upgrade_goose_egg: [CCitadel_Item_GooseEgg, keysCCitadelBaseAbility],
-  upgrade_greater_withering_whip: [CItem_GreaterWitheringWhip, keysCCitadelBaseAbility],
-  upgrade_grit: [CCitadel_ArmorUpgrade_Grit, keysCCitadelBaseAbility],
-  upgrade_guardian_ward: [CCitadel_Item_GuardianWard, keysCCitadelBaseAbility],
-  upgrade_haunting_scream: [CItemHauntingScream, keysCCitadelBaseAbility],
-  upgrade_headshot_damage: [CCitadel_WeaponUpgrade_HeadshotDamage, keysCCitadelBaseAbility],
-  upgrade_healonlevel: [CCitadel_ArmorUpgrade_HealOnLevel, keysCCitadelBaseAbility],
-  upgrade_health_nova: [CCitadel_UtilityUpgrade_HealthNova, keysCCitadelBaseAbility],
-  upgrade_health_regen_aura: [CCitadel_Item_HealthRegenAura, keysCCitadelBaseAbility],
-  upgrade_health_stimpak: [CCitadel_ArmorUpgrade_Stimpak, keysCCitadelBaseAbility],
-  upgrade_high_impact_armor: [CCitadel_ArmorUpgrade_HighImpactArmor, keysCCitadelBaseAbility],
-  upgrade_infinitemagazine: [CCitadel_WeaponUpgrade_InfiniteMagazine, keysCCitadelBaseAbility],
-  upgrade_infuser: [CCitadel_TechUpgrade_Infuser, keysCCitadelBaseAbility],
-  upgrade_intensifying_clip: [CCitadel_Item_Intensifying_Clip, keysCCitadelBaseAbility],
-  upgrade_magic_carpet: [CCitadel_Upgrade_MagicCarpet, keysCCitadelBaseAbility],
-  upgrade_metal_skin: [CCitadel_ArmorUpgrade_MetalSkin, keysCCitadelBaseAbility],
-  upgrade_mod_disruptor: [CCitadel_Item_ModDisruptor, keysCCitadelBaseAbility],
-  upgrade_mystic_regeneration: [CCitadel_Item_Mystic_Regeneration, keysCCitadelBaseAbility],
-  upgrade_mystic_reverb: [CItemMysticReverb, keysCCitadelBaseAbility],
-  upgrade_non_player_bonus_sacrifice: [CCitadel_WeaponUpgrade_CultistSacrifice, keysCCitadelBaseAbility],
-  upgrade_nullification_aura: [CCitadel_Item_NullificationAura, keysCCitadelBaseAbility],
-  upgrade_omnicharge_pendant: [CCitadel_Omnicharge_Pendant, keysCCitadelBaseAbility],
-  upgrade_personal_rejuvenator: [CCitadel_ArmorUpgrade_PersonalRejuvenator, keysCCitadelBaseAbility],
-  upgrade_phantom_strike: [CCitadel_Item_PhantomStrike, keysCCitadelBaseAbility],
-  upgrade_prism_blast: [CCitadel_Item_PrismBlast, keysCCitadelBaseAbility],
-  upgrade_recharging_bullets: [CCitadel_WeaponUpgrade_RechargingBullets, keysCCitadelBaseAbility],
-  upgrade_reduce_debuff_duration: [CCitadel_ArmorUpgrade_DebuffReducer, keysCCitadelBaseAbility],
-  upgrade_regenerating_bullet_shield: [CCitadel_ArmorUpgrade_RegeneratingBulletShield, keysCCitadelBaseAbility],
-  upgrade_regenerative_armor: [CCitadel_ArmorUpgrade_RegenerativeArmor, keysCCitadelBaseAbility],
-  upgrade_rescue_beam: [CCitadel_Item_RescueBeam, keysCCitadelBaseAbility],
-  upgrade_resonant_healing: [CItem_ResonantHealing, keysCCitadelBaseAbility],
-  upgrade_restorative_locket: [CItem_RestorativeLocket, keysCCitadelBaseAbility],
-  upgrade_return_fire: [CCitadel_ArmorUpgrade_ReturnFire, keysCCitadelBaseAbility],
-  upgrade_ricochet: [CCitadel_WeaponUpgrade_Ricochet, keysCCitadelBaseAbility],
-  upgrade_rocket_booster: [CCitadel_UtilityUpgrade_RocketBooster, keysCCitadelBaseAbility],
-  upgrade_rocket_boots: [CCitadel_UtilityUpgrade_RocketBoots, keysCCitadelBaseAbility],
-  upgrade_self_bubble: [CCitadel_Item_Bubble, keysCCitadelBaseAbility],
-  upgrade_self_buff_modifier: [CCitadel_Item_SelfBuffModifier, keysCCitadelBaseAbility],
-  upgrade_shadow_step: [CCitadel_Item_ShadowStep, keysCCitadelBaseAbility],
-  upgrade_shadow_strike: [CCitadel_Item_ShadowStrike, keysCCitadelBaseAbility],
-  upgrade_shrink_ray: [CCitadel_ArmorUpgrade_Shrink_Ray, keysCCitadelBaseAbility],
-  upgrade_silence_glyph: [CItemSilenceGlyph, keysCCitadelBaseAbility],
-  upgrade_slow_immunity: [CCitadel_ArmorUpgrade_SlowImmunity, keysCCitadelBaseAbility],
-  upgrade_spellshield: [CCitadel_ArmorUpgrade_SpellShield, keysCCitadelBaseAbility],
-  upgrade_spellslinger_headshots: [CCitadel_WeaponUpgrade_SpellslingerHeadshots, keysCCitadelBaseAbility],
-  upgrade_spirit_bubble: [CCitadel_ArmorUpgrade_SpiritBubble, keysCCitadelBaseAbility],
-  upgrade_spirit_sap: [CCitadel_Item_SpiritSap, keysCCitadelBaseAbility],
-  upgrade_split_shot: [CCitadel_WeaponUpgrade_SplitShot, keysCCitadelBaseAbility],
-  upgrade_stasis_bomb: [CCitadel_Item_Stasis_Bomb, keysCCitadelBaseAbility],
-  upgrade_superacolytegloves: [CCitadel_TechUpgrade_SuperAcolyteGloves, keysCCitadelBaseAbility],
-  upgrade_surging_power: [CCitadel_WeaponUpgrade_SurgingPower, keysCCitadelBaseAbility],
-  upgrade_target_stun: [CCitadel_Item_SingleTargetStun, keysCCitadelBaseAbility],
-  upgrade_tech_cleave: [CCitadel_Item_TechCleave, keysCCitadelBaseAbility],
-  upgrade_tech_damage_pulse: [CCitadel_Item_TechDamagePulse, keysCCitadelBaseAbility],
-  upgrade_tracking_projectile_apply_modifier: [CCitadel_Item_TrackingProjectileApplyModifier, keysCCitadelBaseAbility],
-  upgrade_trophy_collector: [CCitadel_Item_TrophyCollector, keysCCitadelBaseAbility],
-  upgrade_vex_barrier: [CCitadel_ArmorUpgrade_VexBarrier, keysCCitadelBaseAbility],
-  upgrade_warp_stone: [CCitadel_Item_WarpStone, keysCCitadelBaseAbility],
-  upgrade_weapon_eater: [CCitadel_WeaponUpgrade_WeaponEater, keysCCitadelBaseAbility],
-  upgrade_weapon_instant_reload: [CCitadel_WeaponUpgrade_InstantReload, keysCCitadelBaseAbility],
-  upgrade_weapon_overdrive_clip: [CCitadel_Upgrade_OverdriveClip, keysCCitadelBaseAbility],
-  upgrade_weapon_power_and_health_drain: [CCitadel_Upgrade_WeaponPowerForHealth, keysCCitadelBaseAbility],
-  upgrade_weapon_shielding: [CCitadel_ArmorUpgrade_WeaponShielding, keysCCitadelBaseAbility],
-  upgrade_weapon_siphon_bullets: [CCitadel_WeaponUpgrade_SiphonBullets, keysCCitadelBaseAbility],
-  upgrade_withering_whip: [CItem_WitheringWhip, keysCCitadelBaseAbility],
   vandal_pillar_projectile: [CCitadel_Projectile_Pillar, keysCBaseModelEntity],
-  vanguard_aoe_buff: [CCitadel_NPCAbility_Vanguard_AOEBuff, keysCCitadelBaseAbility],
   viper_hookblade_projectile: [CCitadel_Projectile_HookBlade, keysCBaseModelEntity],
   viper_petrify_projectile: [CCitadel_Projectile_Petrify, keysCBaseModelEntity],
-  viscous_goo_bowling_ball: [CCitadel_Ability_GooBowlingBall, keysCCitadelBaseAbility],
-  viscous_goo_grenade: [CCitadel_Ability_GooGrenade, keysCCitadelBaseAbility],
   viscous_goo_grenade_projectile: [CCitadel_Projectile_Viscous_GooGrenade, keysCBaseModelEntity],
-  viscous_restorative_goo: [CCitadel_Ability_RestorativeGoo, keysCCitadelBaseAbility],
-  viscous_telepunch: [CCitadel_Ability_Viscous_Telepunch, keysCCitadelBaseAbility],
-  waterbullet: [CWaterBullet, keysCWaterBullet],
   wearable_item: [CEconWearable, keysCBaseAnimGraph],
   webwall_projectile: [CCitadel_Projectile_WebWall, keysCBaseModelEntity],
-  worldent: [CWorld, keysCBaseModelEntity],
   wrecker_teleport_projectile: [CCitadel_Projectile_Wrecker_Teleport, keysCBaseModelEntity],
   wrecking_ball_projectile: [CCitadel_Projectile_WreckingBall, keysCBaseModelEntity],
-  yakuza_fealty: [CCitadel_Ability_Fealty, keysCCitadelBaseAbility],
-  yakuza_gang_activity: [CCitadel_Ability_GangActivity, keysCCitadelBaseAbility],
-  yakuza_gang_activity_cancel: [CCitadel_Ability_GangActivity_Cancel, keysCCitadelBaseAbility],
-  yakuza_kobun: [CCitadel_Ability_Kobun, keysCCitadelBaseAbility],
-  yakuza_protection_racket: [CCitadel_Ability_Protection_Racket, keysCCitadelBaseAbility],
-  yakuza_setting_sun: [CCitadel_Ability_SettingSun, keysCCitadelBaseAbility],
-  yakuza_shakedown: [CCitadel_Ability_Yakuza_Shakedown, keysCCitadelBaseAbility],
-  yakuza_shakedown_target: [CCitadel_Ability_Shakedown_Target, keysCCitadelBaseAbility],
-  yakuza_summon_gangster: [CCitadel_Ability_SummonGangster, keysCCitadelBaseAbility],
-  yakuza_teleport_to_gangster: [CCitadel_Ability_TeleportToGangster, keysCCitadelBaseAbility],
   zip_line_node: [CCitadelZipLineNode, keysCCitadelZipLineNode],
 } as const

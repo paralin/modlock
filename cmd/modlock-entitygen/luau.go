@@ -236,7 +236,8 @@ export type DesignerName = keyof<typeof(designers)>
 -- create creates an entity of designerName from options and addresses it as
 -- the class that implements it, or returns nil when the host refuses.
 function entities.create(designerName: DesignerName, options: Spawn<any>): any
-	local className, map = designers[designerName][1], designers[designerName][2]
+	local entry = designers[designerName]
+	local className, map, subclass = entry[1], entry[2], entry[3]
 	local keyValues = table.clone(options.keyValues or {})
 	for key, value in (options.keys or {}) :: { [string]: any } do
 		local encoded = keyValue(map, key, value)
@@ -246,7 +247,7 @@ function entities.create(designerName: DesignerName, options: Spawn<any>): any
 	end
 	local handle = modlock.createEntity({
 		designerName = designerName,
-		subclass = options.subclass or "",
+		subclass = options.subclass or subclass or "",
 		team = options.team or 0,
 		position = options.position,
 		facing = options.facing,
@@ -377,9 +378,13 @@ func writeLuau(s *schema, classes []*class, e *entities, c *console) map[string]
 		names[i] = c.name
 	}
 	out.WriteString(luauUnion("ClassName", names))
-	out.WriteString("\n-- designers maps each designer name to the class that implements it and its\n-- data description.\nlocal designers = {\n")
+	out.WriteString("\n-- designers maps each designer name to the class that implements it, its\n-- data description and the subclass it needs, if any.\nlocal designers = {\n")
 	for _, d := range e.designers {
-		fmt.Fprintf(&out, "\t%s = { %q, %q },\n", d.name, d.class, d.keys.name)
+		if d.subclass == "" {
+			fmt.Fprintf(&out, "\t%s = { %q, %q },\n", d.name, d.class, d.keys.name)
+		} else {
+			fmt.Fprintf(&out, "\t%s = { %q, %q, %q },\n", d.name, d.class, d.keys.name, d.subclass)
+		}
 	}
 	out.WriteString("}\n")
 	out.WriteString(luauCreate)

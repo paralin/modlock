@@ -13,15 +13,22 @@ import (
 type Designer[E Class, K any] struct {
 	// Name is the designer name, such as npc_trooper_boss.
 	Name string
+	// Subclass is the game data entry Create gives an entity whose options
+	// name none, or empty when the entity needs none to survive its spawn.
+	Subclass string
 }
 
 // Create creates an entity of the designer name from options, adding the key
 // values keys sets, whose nil fields leave their keys unset. A nil keys sets
 // none.
 func (d Designer[E, K]) Create(options *mod.EntityOptions, keys *K) (E, error) {
+	subclass := options.GetSubclass()
+	if subclass == "" {
+		subclass = d.Subclass
+	}
 	handle, err := mod.CreateEntity(&mod.EntityOptions{
 		DesignerName: d.Name,
-		Subclass:     options.GetSubclass(),
+		Subclass:     subclass,
 		Team:         options.GetTeam(),
 		Position:     options.GetPosition(),
 		Facing:       options.GetFacing(),

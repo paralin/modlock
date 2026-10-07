@@ -171,7 +171,7 @@ func writeGo(s *schema, classes []*class, e *entities, c *console) map[string][]
 		if s.classes[name] != nil {
 			continue
 		}
-		fmt.Fprintf(&out, "var %s = Designer[%s, %sKeys]{%q}\n", name, d.class, d.keys.name, d.name)
+		fmt.Fprintf(&out, "var %s = Designer[%s, %sKeys]{%q, %q}\n", name, d.class, d.keys.name, d.name, d.subclass)
 	}
 	files["entity/designers.go"] = goSource("entity", out.Bytes(), false)
 

@@ -374,6 +374,57 @@ export const KeyType_Enum = /* @__PURE__ */ createEnumType("modlock.dump.KeyType
 ]);
 
 /**
+ * ConstructionStatus is what creating an entity did.
+ *
+ * @generated from enum modlock.dump.ConstructionStatus
+ */
+export enum ConstructionStatus {
+  /**
+   * CONSTRUCTION_STATUS_UNSPECIFIED is not surveyed.
+   *
+   * @generated from enum value: CONSTRUCTION_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * CONSTRUCTION_STATUS_ALIVE spawned an entity that lived two frames later.
+   *
+   * @generated from enum value: CONSTRUCTION_STATUS_ALIVE = 1;
+   */
+  ALIVE = 1,
+
+  /**
+   * CONSTRUCTION_STATUS_VANISHED spawned an entity that was gone two frames
+   * later.
+   *
+   * @generated from enum value: CONSTRUCTION_STATUS_VANISHED = 2;
+   */
+  VANISHED = 2,
+
+  /**
+   * CONSTRUCTION_STATUS_FAILED was refused with an error.
+   *
+   * @generated from enum value: CONSTRUCTION_STATUS_FAILED = 3;
+   */
+  FAILED = 3,
+
+  /**
+   * CONSTRUCTION_STATUS_CRASHED crashed the server.
+   *
+   * @generated from enum value: CONSTRUCTION_STATUS_CRASHED = 4;
+   */
+  CRASHED = 4,
+}
+
+export const ConstructionStatus_Enum = /* @__PURE__ */ createEnumType("modlock.dump.ConstructionStatus", [
+  [0, "CONSTRUCTION_STATUS_UNSPECIFIED"],
+  [1, "CONSTRUCTION_STATUS_ALIVE"],
+  [2, "CONSTRUCTION_STATUS_VANISHED"],
+  [3, "CONSTRUCTION_STATUS_FAILED"],
+  [4, "CONSTRUCTION_STATUS_CRASHED"],
+]);
+
+/**
  * ConsoleVariableType is a console variable's value type. Each known value is
  * the game's own type plus one.
  *
@@ -1142,6 +1193,83 @@ export const Entities: MessageType<Entities> = /* @__PURE__ */ createMessageType
         { no: 3, name: "data_maps", kind: "message", T: () => DataMap, repeated: true },
         { no: 4, name: "inputs", kind: "message", T: () => Input, repeated: true },
         { no: 5, name: "outputs", kind: "message", T: () => Output, repeated: true },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Construction is what creating one designer name, with one subclass or none,
+ * did.
+ *
+ * @generated from message modlock.dump.Construction
+ */
+export interface Construction {
+  /**
+   * DesignerName is the designer name created.
+   *
+   * @generated from field: string designer_name = 1;
+   */
+  designerName?: string;
+  /**
+   * Subclass names the game data entry the creation gave it, if any.
+   *
+   * @generated from field: string subclass = 2;
+   */
+  subclass?: string;
+  /**
+   * Status is what the creation did.
+   *
+   * @generated from field: modlock.dump.ConstructionStatus status = 3;
+   */
+  status?: ConstructionStatus;
+  /**
+   * Error is why the server refused the creation, when it did.
+   *
+   * @generated from field: string error = 4;
+   */
+  error?: string;
+
+};
+
+export const Construction: MessageType<Construction> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.dump.Construction",
+    fields: [
+        { no: 1, name: "designer_name", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "subclass", kind: "scalar", T: ScalarType.STRING },
+        { no: 3, name: "status", kind: "enum", T: ConstructionStatus_Enum },
+        { no: 4, name: "error", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * Survey records what creating each designer name at a position, with no key
+ * values, did on a running server: alone, and again with a game data subclass
+ * when the game's data has one for it.
+ *
+ * @generated from message modlock.dump.Survey
+ */
+export interface Survey {
+  /**
+   * Build is the game's ClientVersion from steam.inf.
+   *
+   * @generated from field: string build = 1;
+   */
+  build?: string;
+  /**
+   * Constructions are sorted by designer name, then subclass.
+   *
+   * @generated from field: repeated modlock.dump.Construction constructions = 2;
+   */
+  constructions?: Construction[];
+
+};
+
+export const Survey: MessageType<Survey> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.dump.Survey",
+    fields: [
+        { no: 1, name: "build", kind: "scalar", T: ScalarType.STRING },
+        { no: 2, name: "constructions", kind: "message", T: () => Construction, repeated: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

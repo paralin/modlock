@@ -227,7 +227,7 @@ export function create<D extends DesignerName>(
   designerName: D,
   options: Spawn<DesignerKeys<D>>,
 ): DesignerClass<D> | undefined {
-  const [make, map] = designers[designerName] as readonly [Class, KeyMap]
+  const [make, map, subclass] = designers[designerName] as readonly [Class, KeyMap, string?]
   const keyValues = [...(options.keyValues ?? [])]
   for (const [key, value] of Object.entries(options.keys ?? {})) {
     const encoded = value === undefined ? undefined : keyValue(map, key, value)
@@ -238,7 +238,7 @@ export function create<D extends DesignerName>(
   const handle = createEntity({
     ...options,
     designerName,
-    subclass: options.subclass ?? '',
+    subclass: options.subclass ?? subclass ?? '',
     team: options.team ?? 0,
     keyValues,
   })
@@ -360,9 +360,13 @@ func writeTypeScript(s *schema, classes []*class, e *entities, c *console) map[s
 	}
 
 	// Write the designer names, each with its class and key value table.
-	out.WriteString("\n/** designers maps each designer name to its class and key value table. */\nconst designers = {\n")
+	out.WriteString("\n/**\n * designers maps each designer name to its class, its key value table and the\n * subclass it needs, if any.\n */\nconst designers = {\n")
 	for _, d := range e.designers {
-		fmt.Fprintf(&out, "  %s: [%s, keys%s],\n", d.name, d.class, d.keys.name)
+		if d.subclass == "" {
+			fmt.Fprintf(&out, "  %s: [%s, keys%s],\n", d.name, d.class, d.keys.name)
+		} else {
+			fmt.Fprintf(&out, "  %s: [%s, keys%s, '%s'],\n", d.name, d.class, d.keys.name, d.subclass)
+		}
 	}
 	out.WriteString("} as const\n")
 	return map[string][]byte{"entities.ts": out.Bytes(), "console.ts": typeScriptConsole(c)}

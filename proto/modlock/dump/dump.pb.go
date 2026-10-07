@@ -219,6 +219,55 @@ func (x KeyType) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// ConstructionStatus is what creating an entity did.
+type ConstructionStatus int32
+
+const (
+	// CONSTRUCTION_STATUS_UNSPECIFIED is not surveyed.
+	ConstructionStatus_CONSTRUCTION_STATUS_UNSPECIFIED ConstructionStatus = 0
+	// CONSTRUCTION_STATUS_ALIVE spawned an entity that lived two frames later.
+	ConstructionStatus_CONSTRUCTION_STATUS_ALIVE ConstructionStatus = 1
+	// CONSTRUCTION_STATUS_VANISHED spawned an entity that was gone two frames
+	// later.
+	ConstructionStatus_CONSTRUCTION_STATUS_VANISHED ConstructionStatus = 2
+	// CONSTRUCTION_STATUS_FAILED was refused with an error.
+	ConstructionStatus_CONSTRUCTION_STATUS_FAILED ConstructionStatus = 3
+	// CONSTRUCTION_STATUS_CRASHED crashed the server.
+	ConstructionStatus_CONSTRUCTION_STATUS_CRASHED ConstructionStatus = 4
+)
+
+// Enum value maps for ConstructionStatus.
+var (
+	ConstructionStatus_name = map[int32]string{
+		0: "CONSTRUCTION_STATUS_UNSPECIFIED",
+		1: "CONSTRUCTION_STATUS_ALIVE",
+		2: "CONSTRUCTION_STATUS_VANISHED",
+		3: "CONSTRUCTION_STATUS_FAILED",
+		4: "CONSTRUCTION_STATUS_CRASHED",
+	}
+	ConstructionStatus_value = map[string]int32{
+		"CONSTRUCTION_STATUS_UNSPECIFIED": 0,
+		"CONSTRUCTION_STATUS_ALIVE":       1,
+		"CONSTRUCTION_STATUS_VANISHED":    2,
+		"CONSTRUCTION_STATUS_FAILED":      3,
+		"CONSTRUCTION_STATUS_CRASHED":     4,
+	}
+)
+
+func (x ConstructionStatus) Enum() *ConstructionStatus {
+	p := new(ConstructionStatus)
+	*p = x
+	return p
+}
+
+func (x ConstructionStatus) String() string {
+	name, valid := ConstructionStatus_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // ConsoleVariableType is a console variable's value type. Each known value is
 // the game's own type plus one.
 type ConsoleVariableType int32
@@ -984,6 +1033,85 @@ func (x *EmbeddedMap) GetDataMap() string {
 	return ""
 }
 
+// Survey records what creating each designer name at a position, with no key
+// values, did on a running server: alone, and again with a game data subclass
+// when the game's data has one for it.
+type Survey struct {
+	unknownFields []byte
+	// Build is the game's ClientVersion from steam.inf.
+	Build string `protobuf:"bytes,1,opt,name=build,proto3" json:"build,omitempty"`
+	// Constructions are sorted by designer name, then subclass.
+	Constructions []*Construction `protobuf:"bytes,2,rep,name=constructions,proto3" json:"constructions,omitempty"`
+}
+
+func (x *Survey) Reset() {
+	*x = Survey{}
+}
+
+func (*Survey) ProtoMessage() {}
+
+func (x *Survey) GetBuild() string {
+	if x != nil {
+		return x.Build
+	}
+	return ""
+}
+
+func (x *Survey) GetConstructions() []*Construction {
+	if x != nil {
+		return x.Constructions
+	}
+	return nil
+}
+
+// Construction is what creating one designer name, with one subclass or none,
+// did.
+type Construction struct {
+	unknownFields []byte
+	// DesignerName is the designer name created.
+	DesignerName string `protobuf:"bytes,1,opt,name=designer_name,json=designerName,proto3" json:"designerName,omitempty"`
+	// Subclass names the game data entry the creation gave it, if any.
+	Subclass string `protobuf:"bytes,2,opt,name=subclass,proto3" json:"subclass,omitempty"`
+	// Status is what the creation did.
+	Status ConstructionStatus `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`
+	// Error is why the server refused the creation, when it did.
+	Error string `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (x *Construction) Reset() {
+	*x = Construction{}
+}
+
+func (*Construction) ProtoMessage() {}
+
+func (x *Construction) GetDesignerName() string {
+	if x != nil {
+		return x.DesignerName
+	}
+	return ""
+}
+
+func (x *Construction) GetSubclass() string {
+	if x != nil {
+		return x.Subclass
+	}
+	return ""
+}
+
+func (x *Construction) GetStatus() ConstructionStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ConstructionStatus_CONSTRUCTION_STATUS_UNSPECIFIED
+}
+
+func (x *Construction) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 // Console lists the server's console variables and commands.
 type Console struct {
 	unknownFields []byte
@@ -1399,6 +1527,42 @@ func (m *EmbeddedMap) CloneVT() *EmbeddedMap {
 }
 
 func (m *EmbeddedMap) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Survey) CloneVT() *Survey {
+	if m == nil {
+		return (*Survey)(nil)
+	}
+	r := new(Survey)
+	r.Build = m.Build
+	r.Constructions = protobuf_go_lite.CloneVTSlice(m.Constructions)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Survey) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Construction) CloneVT() *Construction {
+	if m == nil {
+		return (*Construction)(nil)
+	}
+	r := new(Construction)
+	r.DesignerName = m.DesignerName
+	r.Subclass = m.Subclass
+	r.Status = m.Status
+	r.Error = m.Error
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Construction) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1866,6 +2030,58 @@ func (this *EmbeddedMap) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *Survey) EqualVT(that *Survey) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Build != that.Build {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Constructions, that.Constructions, func() *Construction { return &Construction{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Survey) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Survey)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Construction) EqualVT(that *Construction) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.DesignerName != that.DesignerName {
+		return false
+	}
+	if this.Subclass != that.Subclass {
+		return false
+	}
+	if this.Status != that.Status {
+		return false
+	}
+	if this.Error != that.Error {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Construction) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Construction)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *Console) EqualVT(that *Console) bool {
 	if this == that {
 		return true
@@ -1993,6 +2209,46 @@ func (x *KeyType) UnmarshalText(b []byte) error {
 
 // UnmarshalJSON unmarshals the KeyType from JSON.
 func (x *KeyType) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ConstructionStatus to JSON.
+func (x ConstructionStatus) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), ConstructionStatus_name)
+}
+
+// MarshalText marshals the ConstructionStatus to text.
+func (x ConstructionStatus) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), ConstructionStatus_name)), nil
+}
+
+// MarshalJSON marshals the ConstructionStatus to JSON.
+func (x ConstructionStatus) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ConstructionStatus from JSON.
+func (x *ConstructionStatus) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(ConstructionStatus_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read ConstructionStatus enum: %v", err)
+		return
+	}
+	*x = ConstructionStatus(v)
+}
+
+// UnmarshalText unmarshals the ConstructionStatus from text.
+func (x *ConstructionStatus) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), ConstructionStatus_value)
+	if err != nil {
+		return err
+	}
+	*x = ConstructionStatus(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the ConstructionStatus from JSON.
+func (x *ConstructionStatus) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3270,6 +3526,143 @@ func (x *EmbeddedMap) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Survey message to JSON.
+func (x *Survey) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Build != "" || s.HasField("build") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("build")
+		s.WriteString(x.Build)
+	}
+	if len(x.Constructions) > 0 || s.HasField("constructions") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("constructions")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Constructions {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("constructions"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Survey to JSON.
+func (x *Survey) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Survey message from JSON.
+func (x *Survey) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "build":
+			s.AddField("build")
+			x.Build = s.ReadString()
+		case "constructions":
+			s.AddField("constructions")
+			if s.ReadNil() {
+				x.Constructions = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Constructions = append(x.Constructions, nil)
+					return
+				}
+				v := &Construction{}
+				v.UnmarshalProtoJSON(s.WithField("constructions", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Constructions = append(x.Constructions, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Survey from JSON.
+func (x *Survey) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Construction message to JSON.
+func (x *Construction) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.DesignerName != "" || s.HasField("designerName") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("designerName")
+		s.WriteString(x.DesignerName)
+	}
+	if x.Subclass != "" || s.HasField("subclass") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("subclass")
+		s.WriteString(x.Subclass)
+	}
+	if x.Status != 0 || s.HasField("status") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("status")
+		x.Status.MarshalProtoJSON(s)
+	}
+	if x.Error != "" || s.HasField("error") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("error")
+		s.WriteString(x.Error)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Construction to JSON.
+func (x *Construction) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Construction message from JSON.
+func (x *Construction) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "designer_name", "designerName":
+			s.AddField("designer_name")
+			x.DesignerName = s.ReadString()
+		case "subclass":
+			s.AddField("subclass")
+			x.Subclass = s.ReadString()
+		case "status":
+			s.AddField("status")
+			x.Status.UnmarshalProtoJSON(s)
+		case "error":
+			s.AddField("error")
+			x.Error = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Construction from JSON.
+func (x *Construction) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Console message to JSON.
 func (x *Console) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -4360,6 +4753,107 @@ func (m *EmbeddedMap) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Survey) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Survey) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Survey) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Constructions) > 0 {
+		for iNdEx := len(m.Constructions) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Constructions[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Build) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Build)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Construction) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Construction) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Construction) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Error) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Error)
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Status != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Subclass) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Subclass)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.DesignerName) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.DesignerName)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Console) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -4777,6 +5271,35 @@ func (m *EmbeddedMap) SizeVT() (n int) {
 	return n
 }
 
+func (m *Survey) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Build)
+	for _, e := range m.Constructions {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Construction) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.DesignerName)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Subclass)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Status)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Error)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *Console) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -4827,6 +5350,10 @@ func (m *ConsoleCommand) SizeVT() (n int) {
 }
 
 func (x KeyType) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x ConstructionStatus) MarshalProtoText() string {
 	return x.String()
 }
 
@@ -5323,6 +5850,58 @@ func (x *EmbeddedMap) MarshalProtoText() string {
 }
 
 func (x *EmbeddedMap) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Survey) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Survey")
+	if x.Build != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "build")
+		protobuf_go_lite.TextWriteString(&sb, x.Build)
+	}
+	if len(x.Constructions) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "constructions")
+		for i, v := range x.Constructions {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Construction{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Survey) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Construction) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Construction")
+	if x.DesignerName != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "designer_name")
+		protobuf_go_lite.TextWriteString(&sb, x.DesignerName)
+	}
+	if x.Subclass != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "subclass")
+		protobuf_go_lite.TextWriteString(&sb, x.Subclass)
+	}
+	if x.Status != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "status")
+		protobuf_go_lite.TextWriteStringer(&sb, ConstructionStatus(x.Status))
+	}
+	if x.Error != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "error")
+		protobuf_go_lite.TextWriteString(&sb, x.Error)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Construction) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -6607,6 +7186,156 @@ func (m *EmbeddedMap) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.DataMap = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Survey) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Survey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Survey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Build", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Build = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Constructions", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Constructions = append(m.Constructions, &Construction{})
+			if err := m.Constructions[len(m.Constructions)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Construction) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Construction: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Construction: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DesignerName", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.DesignerName = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Subclass", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Subclass = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Status = ConstructionStatus(_v)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Error", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Error = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

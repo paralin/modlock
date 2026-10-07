@@ -1030,9 +1030,13 @@ as it describes itself to `schemas.json` (schema classes and enums),
 `entities.json` (designer names, key values, inputs and outputs) and
 `console.json` (console variables and commands), and quits. The documents
 follow [`proto/modlock/dump/dump.proto`](proto/modlock/dump/dump.proto) and are
-sorted by name, so two builds' dumps diff cleanly. After a game update, replace
-[`data/dump`](data/dump) with a new dump and regenerate the entity classes and
-console:
+sorted by name, so two builds' dumps diff cleanly. Beside them, `survey.json`
+records what creating each designer name on a dedicated server did: whether
+the entity lived, vanished, was refused or crashed the server, alone and with
+the subclass its game data suggests. The libraries type only the names that
+lived, and `create` gives a name that needs a subclass the one it lived with.
+After a game update, replace [`data/dump`](data/dump) with a new dump and
+survey, and regenerate the entity classes and console:
 
 ```sh
 scripts/gen-entities.sh
