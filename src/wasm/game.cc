@@ -729,6 +729,30 @@ void GameServices::Projectiles() {
   impacts_ = std::move(*hook);
 }
 
+std::expected<void, std::string> GameServices::Transmit() {
+  if (transmit_) return {};
+  auto hook =
+      gameinterop::TransmitHook::Install([this](gameinterop::TransmitSet& set) { Withhold(set); });
+  if (!hook) return std::unexpected(hook.error());
+  transmit_ = std::move(*hook);
+  return {};
+}
+
+void GameServices::Withhold(gameinterop::TransmitSet& set) {
+  // A text object's entity changes with its words, so each update reads the
+  // current handles.
+  for (auto* game : games_) {
+    auto hidden = game->hidden_.find(set.Slot());
+    if (hidden == game->hidden_.end()) continue;
+    for (const auto id : hidden->second) {
+      auto found = game->objects_.find(id);
+      if (found == game->objects_.end()) continue;
+      auto handle = std::visit([](const auto& object) { return object->Handle(); }, found->second);
+      if (handle) set.Withhold(*handle);
+    }
+  }
+}
+
 void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
                           const gameinterop::ProjectileImpactHook::NativeImpact& native) {
   std::vector<std::pair<Game*, ImpactEvent>> watching;
@@ -934,6 +958,7 @@ void Game::Leave(int32_t slot) {
   restores_.erase(slot);
   slot_blocked_.erase(slot);
   presses_.erase(slot);
+  hidden_.erase(slot);
   std::vector<std::string> keys;
   for (const auto& [held, key] : held_modifiers_) {
     if (held == slot) keys.push_back(key);
@@ -976,6 +1001,7 @@ void Game::RemoveWorld() {
     std::visit([](auto& handle) { handle->Remove(); }, object);
   }
   objects_.clear();
+  hidden_.clear();
   if (fog_) {
     fog_->Remove();
     fog_.reset();
@@ -1557,11 +1583,31 @@ std::expected<void, std::string> Game::SetText(const SetTextRequest& request) {
   return {};
 }
 
+std::expected<void, std::string> Game::SetObjectHidden(const SetObjectHiddenRequest& request) {
+  if (!objects_.contains(request.object())) {
+    return std::unexpected("no object has that identifier");
+  }
+  if (!request.hidden()) {
+    auto hidden = hidden_.find(request.player());
+    if (hidden == hidden_.end()) return {};
+    hidden->second.erase(request.object());
+    if (hidden->second.empty()) hidden_.erase(hidden);
+    return {};
+  }
+
+  // The engine sends only what its transmit pass allows, so hiding needs the
+  // shared transmit hook.
+  if (auto transmit = services_.Transmit(); !transmit) return transmit;
+  hidden_[request.player()].insert(request.object());
+  return {};
+}
+
 std::expected<void, std::string> Game::RemoveObject(const ObjectRequest& request) {
   auto found = objects_.find(request.object());
   if (found == objects_.end()) return std::unexpected("no object has that identifier");
   std::visit([](auto& handle) { handle->Remove(); }, found->second);
   objects_.erase(found);
+  for (auto& [slot, objects] : hidden_) objects.erase(request.object());
   return {};
 }
 

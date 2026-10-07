@@ -1745,6 +1745,15 @@ export class WorldObject {
     return call('SetText', pb.SetTextRequest.toBinary({ object: this.id, text })) !== undefined
   }
 
+  /**
+   * setHidden hides the object from one player or shows it again.
+   * Other players still see it. A player who leaves sees every object when
+   * they return.
+   */
+  setHidden(player: Player, hidden: boolean): boolean {
+    return call('SetObjectHidden', pb.SetObjectHiddenRequest.toBinary({ object: this.id, player: player.slot, hidden })) !== undefined
+  }
+
   /** remove takes the object out of the world. */
   remove(): boolean {
     return call('RemoveObject', pb.ObjectRequest.toBinary({ object: this.id })) !== undefined

@@ -127,6 +127,10 @@ class GameWorldTextEntity final : public WorldTextEntity {
     angles_ = angles;
   }
 
+  std::optional<std::uint32_t> Handle() const override {
+    return gameinterop::ReferenceHandleOf(entity_);
+  }
+
   void Remove() override {
     if (entity_ == nullptr) {
       return;

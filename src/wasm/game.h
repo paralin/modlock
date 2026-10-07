@@ -32,6 +32,7 @@
 #include "modlock/gameinterop/native_user_messages.h"
 #include "modlock/gameinterop/pawn_observer.h"
 #include "modlock/gameinterop/projectile_impact_hook.h"
+#include "modlock/gameinterop/transmit_hook.h"
 #include "modlock/gameinterop/world_entities.h"
 #include "modlock/render/world_effect_game_factory.h"
 #include "modlock/render/world_text_game_factory.h"
@@ -138,6 +139,12 @@ class GameServices {
   void Impact(void* entity, const gameinterop::TraceResult& contact,
               const gameinterop::ProjectileImpactHook::NativeImpact& native);
 
+  // Transmit installs the shared transmit hook on first use.
+  std::expected<void, std::string> Transmit();
+
+  // Withhold keeps from one player every object a mod hid from them.
+  void Withhold(gameinterop::TransmitSet& set);
+
   // Steps installs or removes the server movement hook to match what the
   // mods need of it.
   std::expected<void, std::string> Steps();
@@ -180,6 +187,9 @@ class GameServices {
   bool input_wanted_ = false;
   std::optional<gameinterop::ProjectileImpactHook> impacts_;
   bool impacts_wanted_ = false;
+  // transmit_ filters what each player's client receives once a mod hides
+  // an object from someone.
+  std::optional<gameinterop::TransmitHook> transmit_;
   // steps_ is the server movement hook, held while step_ runs or a mod
   // watches or steers a hero. commands_ folds each pawn's commands since its
   // last sample, and ground_ is the last entity any hero stood on.
@@ -345,6 +355,7 @@ class Game : public HostService {
   std::expected<ObjectResponse, std::string> CreateFog(const FogOptions& request) override;
   std::expected<void, std::string> MoveObject(const MoveObjectRequest& request) override;
   std::expected<void, std::string> SetText(const SetTextRequest& request) override;
+  std::expected<void, std::string> SetObjectHidden(const SetObjectHiddenRequest& request) override;
   std::expected<void, std::string> RemoveObject(const ObjectRequest& request) override;
   std::expected<EntityResponse, std::string> ObjectEntity(const ObjectRequest& request) override;
   std::expected<BotResponse, std::string> AddBot(const BotOptions& request) override;
@@ -497,6 +508,8 @@ class Game : public HostService {
   EngineHost* engine_;
   gameinterop::PawnObserver observer_;
   std::map<uint32_t, Object> objects_;
+  // hidden_ maps each player's slot to the objects hidden from them.
+  std::map<int32_t, std::set<uint32_t>> hidden_;
   // fog_ is the world's fog controller, which the fog objects need; it is
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;

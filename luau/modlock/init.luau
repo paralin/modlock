@@ -1274,6 +1274,10 @@ export type WorldObject = {
 	move: (self: WorldObject, position: Vector, facing: Angles?) -> boolean,
 	-- setText replaces a text object's words.
 	setText: (self: WorldObject, text: string) -> boolean,
+	-- setHidden hides the object from one player or shows it again.
+	-- Other players still see it. A player who leaves sees every object when
+	-- they return.
+	setHidden: (self: WorldObject, player: Player, hidden: boolean) -> boolean,
 	-- remove takes the object out of the world.
 	remove: (self: WorldObject) -> boolean,
 	-- entity returns the entity handle of a model, as traces report it.
@@ -1295,6 +1299,13 @@ end
 -- setText replaces a text object's words.
 function WorldObject.setText(self: WorldObject, text: string): boolean
 	return call("SetText", "SetTextRequest", { object = self, text = text }) ~= nil
+end
+
+-- setHidden hides the object from one player or shows it again.
+-- Other players still see it. A player who leaves sees every object when
+-- they return.
+function WorldObject.setHidden(self: WorldObject, player: Player, hidden: boolean): boolean
+	return call("SetObjectHidden", "SetObjectHiddenRequest", { object = self, player = player, hidden = hidden }) ~= nil
 end
 
 -- remove takes the object out of the world.
@@ -1913,6 +1924,11 @@ schema.MoveObjectRequest = {
 schema.SetTextRequest = {
 	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
 	{ number = 2, name = "text", kind = "string" },
+}
+schema.SetObjectHiddenRequest = {
+	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
+	{ number = 2, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 3, name = "hidden", kind = "bool" },
 }
 schema.BotOptions = {
 	{ number = 1, name = "name", kind = "string" },

@@ -227,6 +227,8 @@ func (w *goWriter) writeCall(c *call) error {
 					encode = fmt.Sprintf("if %s != nil {\n%s}\n", arg, indent(encode))
 				}
 				later = append(later, indent(encode))
+			case classOf(p.field) != nil:
+				members = append(members, fmt.Sprintf("%s: %s.%s", camel(p.field.name), arg, classOf(p.field).goKey))
 			default:
 				members = append(members, fmt.Sprintf("%s: %s", camel(p.field.name), arg))
 			}

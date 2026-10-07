@@ -693,6 +693,13 @@ func (w WorldObject) SetText(text string) error {
 	return invoke("SetText", &wasm.SetTextRequest{Object: w.ID, Text: text}, nil)
 }
 
+// SetHidden hides the object from one player or shows it again.
+// Other players still see it. A player who leaves sees every object when
+// they return.
+func (w WorldObject) SetHidden(player Player, hidden bool) error {
+	return invoke("SetObjectHidden", &wasm.SetObjectHiddenRequest{Object: w.ID, Player: player.Slot, Hidden: hidden}, nil)
+}
+
 // Remove takes the object out of the world.
 func (w WorldObject) Remove() error {
 	return invoke("RemoveObject", &wasm.ObjectRequest{Object: w.ID}, nil)

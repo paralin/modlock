@@ -244,6 +244,11 @@ service Host {
   // SetText replaces a text object's words.
   rpc SetText(SetTextRequest) returns (Empty);
 
+  // SetObjectHidden hides the object from one player or shows it again.
+  // Other players still see it. A player who leaves sees every object when
+  // they return.
+  rpc SetObjectHidden(SetObjectHiddenRequest) returns (Empty);
+
   // RemoveObject takes the object out of the world.
   rpc RemoveObject(ObjectRequest) returns (Empty);
 
@@ -1678,6 +1683,17 @@ message SetTextRequest {
 
   // Text is the new words.
   string text = 2;
+}
+
+// SetObjectHiddenRequest hides one object from one player or shows it again.
+message SetObjectHiddenRequest {
+  uint32 object = 1;
+
+  // Player is the server slot of the player who stops or resumes seeing it.
+  int32 player = 2;
+
+  // Hidden is true to hide the object and false to show it.
+  bool hidden = 3;
 }
 
 // BotOptions describes a bot player.

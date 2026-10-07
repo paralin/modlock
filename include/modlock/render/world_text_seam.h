@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <expected>
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include "modlock/export.h"
@@ -36,6 +37,10 @@ class MODLOCK_API WorldTextEntity {
   // SetOrigin moves the entity to world-space position with Euler degrees in
   // the game's pitch/yaw/roll order.
   virtual void SetOrigin(const modlock::Vec3& position, const modlock::EulerAngles& angles) = 0;
+
+  // Handle returns the entity's packed handle while it is live. SetMessage
+  // may replace the entity, so callers read it again after each change.
+  virtual std::optional<std::uint32_t> Handle() const = 0;
 
   // Remove schedules destruction of the backing entity; the handle must not
   // be used afterwards.

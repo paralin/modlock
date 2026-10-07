@@ -2156,6 +2156,7 @@ type SelectHeroRequest struct {
 	// Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
+	//
 	//	*SelectHeroRequest_HeroName
 	//	*SelectHeroRequest_HeroId
 	Hero isSelectHeroRequest_Hero `protobuf_oneof:"hero"`
@@ -3541,6 +3542,7 @@ func (x *FieldResponse) GetValue() *FieldValue {
 type FieldValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
+	//
 	//	*FieldValue_Boolean
 	//	*FieldValue_Number
 	//	*FieldValue_Integer
@@ -4283,6 +4285,43 @@ func (x *SetTextRequest) GetText() string {
 	return ""
 }
 
+// SetObjectHiddenRequest hides one object from one player or shows it again.
+type SetObjectHiddenRequest struct {
+	unknownFields []byte
+	Object        uint32 `protobuf:"varint,1,opt,name=object,proto3" json:"object,omitempty"`
+	// Player is the server slot of the player who stops or resumes seeing it.
+	Player int32 `protobuf:"varint,2,opt,name=player,proto3" json:"player,omitempty"`
+	// Hidden is true to hide the object and false to show it.
+	Hidden bool `protobuf:"varint,3,opt,name=hidden,proto3" json:"hidden,omitempty"`
+}
+
+func (x *SetObjectHiddenRequest) Reset() {
+	*x = SetObjectHiddenRequest{}
+}
+
+func (*SetObjectHiddenRequest) ProtoMessage() {}
+
+func (x *SetObjectHiddenRequest) GetObject() uint32 {
+	if x != nil {
+		return x.Object
+	}
+	return 0
+}
+
+func (x *SetObjectHiddenRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SetObjectHiddenRequest) GetHidden() bool {
+	if x != nil {
+		return x.Hidden
+	}
+	return false
+}
+
 // BotOptions describes a bot player.
 type BotOptions struct {
 	unknownFields []byte
@@ -4294,6 +4333,7 @@ type BotOptions struct {
 	// as Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
+	//
 	//	*BotOptions_HeroName
 	//	*BotOptions_HeroId
 	Hero isBotOptions_Hero `protobuf_oneof:"hero"`
@@ -4613,6 +4653,7 @@ func (x *KeyValue) GetValue() *EntityValue {
 type EntityValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
+	//
 	//	*EntityValue_Boolean
 	//	*EntityValue_Integer
 	//	*EntityValue_Number
@@ -8001,6 +8042,24 @@ func (m *SetTextRequest) CloneVT() *SetTextRequest {
 }
 
 func (m *SetTextRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SetObjectHiddenRequest) CloneVT() *SetObjectHiddenRequest {
+	if m == nil {
+		return (*SetObjectHiddenRequest)(nil)
+	}
+	r := new(SetObjectHiddenRequest)
+	r.Object = m.Object
+	r.Player = m.Player
+	r.Hidden = m.Hidden
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SetObjectHiddenRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -11423,6 +11482,31 @@ func (this *SetTextRequest) EqualVT(that *SetTextRequest) bool {
 
 func (this *SetTextRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*SetTextRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SetObjectHiddenRequest) EqualVT(that *SetObjectHiddenRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Object != that.Object {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Hidden != that.Hidden {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SetObjectHiddenRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SetObjectHiddenRequest)
 	if !ok {
 		return false
 	}
@@ -19006,6 +19090,64 @@ func (x *SetTextRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the SetTextRequest from JSON.
 func (x *SetTextRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SetObjectHiddenRequest message to JSON.
+func (x *SetObjectHiddenRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Object != 0 || s.HasField("object") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("object")
+		s.WriteUint32(x.Object)
+	}
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Hidden || s.HasField("hidden") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hidden")
+		s.WriteBool(x.Hidden)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SetObjectHiddenRequest to JSON.
+func (x *SetObjectHiddenRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SetObjectHiddenRequest message from JSON.
+func (x *SetObjectHiddenRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "object":
+			s.AddField("object")
+			x.Object = s.ReadUint32()
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "hidden":
+			s.AddField("hidden")
+			x.Hidden = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SetObjectHiddenRequest from JSON.
+func (x *SetObjectHiddenRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -27366,6 +27508,53 @@ func (m *SetTextRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SetObjectHiddenRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetObjectHiddenRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SetObjectHiddenRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Hidden {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Hidden)
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Object != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Object))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *BotOptions) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -31335,6 +31524,19 @@ func (m *SetTextRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *SetObjectHiddenRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Object)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Hidden)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *BotOptions) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -34262,6 +34464,27 @@ func (x *SetTextRequest) MarshalProtoText() string {
 }
 
 func (x *SetTextRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *SetObjectHiddenRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SetObjectHiddenRequest")
+	if x.Object != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "object")
+		protobuf_go_lite.TextWriteUint(&sb, x.Object)
+	}
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Hidden != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hidden")
+		protobuf_go_lite.TextWriteBool(&sb, x.Hidden)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SetObjectHiddenRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *BotOptions) MarshalProtoText() string {
@@ -42617,6 +42840,76 @@ func (m *SetTextRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Text = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetObjectHiddenRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetObjectHiddenRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetObjectHiddenRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Object", wireType)
+			}
+			m.Object = 0
+			m.Object, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hidden", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Hidden = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

@@ -1296,6 +1296,13 @@ class WorldObject:
         """set_text replaces a text object's words."""
         return _call("SetText", "SetTextRequest", {"object": self, "text": text}) is not None
 
+    def set_hidden(self, player: Player, hidden: bool) -> bool:
+        """set_hidden hides the object from one player or shows it again.
+        Other players still see it. A player who leaves sees every object when
+        they return.
+        """
+        return _call("SetObjectHidden", "SetObjectHiddenRequest", {"object": self, "player": player, "hidden": hidden}) is not None
+
     def remove(self) -> bool:
         """remove takes the object out of the world."""
         return _call("RemoveObject", "ObjectRequest", {"object": self}) is not None
@@ -2147,6 +2154,14 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "object", "uint32", cls=WorldObject, key="id"),
             wire.Field(2, "text", "string"),
+        ],
+    ),
+    "SetObjectHiddenRequest": (
+        None,
+        [
+            wire.Field(1, "object", "uint32", cls=WorldObject, key="id"),
+            wire.Field(2, "player", "int32", cls=Player, key="slot"),
+            wire.Field(3, "hidden", "bool"),
         ],
     ),
     "BotOptions": (

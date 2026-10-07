@@ -4063,6 +4063,41 @@ export const SetTextRequest: MessageType<SetTextRequest> = /* @__PURE__ */ creat
 });
 
 /**
+ * SetObjectHiddenRequest hides one object from one player or shows it again.
+ *
+ * @generated from message modlock.wasm.SetObjectHiddenRequest
+ */
+export interface SetObjectHiddenRequest {
+  /**
+   * @generated from field: uint32 object = 1;
+   */
+  object?: number;
+  /**
+   * Player is the server slot of the player who stops or resumes seeing it.
+   *
+   * @generated from field: int32 player = 2;
+   */
+  player?: number;
+  /**
+   * Hidden is true to hide the object and false to show it.
+   *
+   * @generated from field: bool hidden = 3;
+   */
+  hidden?: boolean;
+
+};
+
+export const SetObjectHiddenRequest: MessageType<SetObjectHiddenRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SetObjectHiddenRequest",
+    fields: [
+        { no: 1, name: "object", kind: "scalar", T: ScalarType.UINT32 },
+        { no: 2, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 3, name: "hidden", kind: "scalar", T: ScalarType.BOOL },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * BotOptions describes a bot player.
  *
  * @generated from message modlock.wasm.BotOptions

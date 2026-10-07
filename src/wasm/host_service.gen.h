@@ -343,6 +343,14 @@ class HostService {
     return std::unexpected("this host does not support SetText");
   }
 
+  // SetObjectHidden hides the object from one player or shows it again.
+  // Other players still see it. A player who leaves sees every object when
+  // they return.
+  virtual std::expected<void, std::string> SetObjectHidden(
+      const SetObjectHiddenRequest& /*request*/) {
+    return std::unexpected("this host does not support SetObjectHidden");
+  }
+
   // RemoveObject takes the object out of the world.
   virtual std::expected<void, std::string> RemoveObject(const ObjectRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveObject");
@@ -949,6 +957,14 @@ class HostService {
              return detail::Fail("the SetText request is malformed");
            }
            return detail::Answer(host.SetText(request));
+         }},
+        {"SetObjectHidden",
+         [](HostService& host, const std::string& bytes) {
+           SetObjectHiddenRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SetObjectHidden request is malformed");
+           }
+           return detail::Answer(host.SetObjectHidden(request));
          }},
         {"RemoveObject",
          [](HostService& host, const std::string& bytes) {
