@@ -588,6 +588,14 @@ takes an integer, `Color` a color as `0xRRGGBBAA`. `entities.json` in the game
 dump lists each input and the type of its value. A designer name the server
 lacks, or an input the entity lacks, fails that call alone.
 
+The host resolves the designer name's class before it creates anything. An
+ability, item or weapon, which only a hero holds, is refused with a message
+pointing at `giveItem` and `replaceAbility`, because one created alone takes
+the server down once it thinks or is removed. `spawnNpc` and `createPickup`
+build on the same call, so `spawnNpc` takes any unit class the server has,
+such as `npc_yakuza_gangster`, and refuses a `lane` for a class that walks
+none.
+
 `create` in `modlock/entities` types the same call by designer name: it takes
 only that entity's spawn keys, each as the type the entity reads, and returns
 the entity as its class, with a method per input:
@@ -604,6 +612,15 @@ const guardian = create('npc_trooper_boss', {
 guardian?.inputAlpha(128)
 guardian?.inputDisableShadow()
 ```
+
+`create` knows only the designer names that survived their spawn on a
+dedicated server, 578 of the game's 1,183, and gives each name that needs a
+subclass the one it lived with, so `create('npc_trooper_boss', ...)` makes a
+Guardian without naming `npc_boss_tier1`. A name that never lived, such as an
+abstract base or one that crashes the server, has no constructor, and the type
+checker rejects it. [docs/ENTITY_SCHEMA.md](docs/ENTITY_SCHEMA.md) explores
+the whole entity system: the dump, the survey, the generated classes in each
+language and what the host checks.
 
 ### Console
 
