@@ -1,9 +1,9 @@
-// Command modlock-entitygen generates the typed entity classes of the
-// TypeScript, Go and Luau mod libraries from a game dump, the directory
-// modlock-host --dump writes:
+// Command modlock-entitygen generates the typed entity classes and console
+// of the TypeScript, Go and Luau mod libraries from a game dump, the directory
+// modlock-host --dump writes. Each output flag names a library's source
+// directory:
 //
-//	modlock-entitygen -dump data/dump -ts js/src/entities.ts \
-//		-go mod/entity -luau luau/modlock/entities.luau
+//	modlock-entitygen -dump data/dump -ts js/src -go mod -luau luau/modlock
 //
 // Every server class that derives from CEntityInstance becomes a class with
 // an accessor per field the host can read: scalars, vectors, angles, entity
@@ -15,6 +15,9 @@
 // Each class also has a method per input it accepts that takes one value of
 // a type FireInput sends, or none, and each designer name has a constructor
 // over CreateEntity whose options type its spawn key values.
+//
+// Each console variable of a scalar or string type has a typed setter, and
+// each console command a runner, both over ServerCommand.
 //
 // The output depends only on the dump, so regenerating after a game update
 // changes only what the update changed.
@@ -31,9 +34,9 @@ import (
 func main() {
 	// Read the flags; the dump and at least one output are required.
 	dir := flag.String("dump", "", "game dump directory")
-	ts := flag.String("ts", "", "TypeScript module to write")
-	golang := flag.String("go", "", "Go package directory to write")
-	luau := flag.String("luau", "", "Luau module to write")
+	ts := flag.String("ts", "", "TypeScript library source directory to write into")
+	golang := flag.String("go", "", "Go library directory to write into")
+	luau := flag.String("luau", "", "Luau library directory to write into")
 	flag.Parse()
 	if *dir == "" || (*ts == "" && *golang == "" && *luau == "") {
 		flag.Usage()
@@ -62,19 +65,27 @@ func run(dir, ts, golang, luau string) error {
 	if err != nil {
 		return err
 	}
+	c, err := readConsole(dir)
+	if err != nil {
+		return err
+	}
 
-	// Write each requested output. A writer returns its files by name in the
-	// output's directory, or the output itself by the empty name.
+	// Write each requested output. A writer returns its files by slash path
+	// in the library's directory.
 	outputs := []struct {
-		path  string
-		write func(*schema, []*class, *entities) map[string][]byte
+		dir   string
+		write func(*schema, []*class, *entities, *console) map[string][]byte
 	}{{ts, writeTypeScript}, {golang, writeGo}, {luau, writeLuau}}
 	for _, output := range outputs {
-		if output.path == "" {
+		if output.dir == "" {
 			continue
 		}
-		for name, data := range output.write(s, classes, e) {
-			if err := os.WriteFile(filepath.Join(output.path, name), data, 0o644); err != nil {
+		for name, data := range output.write(s, classes, e, c) {
+			path := filepath.Join(output.dir, filepath.FromSlash(name))
+			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+				return err
+			}
+			if err := os.WriteFile(path, data, 0o644); err != nil {
 				return err
 			}
 		}

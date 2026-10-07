@@ -605,6 +605,23 @@ guardian?.inputAlpha(128)
 guardian?.inputDisableShadow()
 ```
 
+### Console
+
+`modlock/console` sets the server's console variables and runs its console
+commands by name, each variable taking a value of the type the game declares:
+
+```ts
+import { run, set } from 'modlock/console'
+
+set('citadel_allow_purchasing_anywhere', true)
+set('citadel_trooper_gold_reward', 40)
+run('changelevel', 'street_test')
+```
+
+Each call runs one line through `serverCommand`, which may set a
+development-only or cheat-protected variable. A variable whose value is a
+vector or a color has no typed setter; set it with `serverCommand`.
+
 ### Interfaces
 
 | Call                                    | Effect                                                   |
@@ -825,6 +842,11 @@ writes `m_iHealth`. Each designer name is a `Designer`, such as
 `entity.NpcTrooperBoss`, whose `Create` takes its key value struct,
 `entity.CNPC_TrooperBossKeys`.
 
+[`mod/console`](mod/console) has a value per console variable and command,
+named in camel case: `console.CitadelTrooperGoldReward.Set(40)` sets a
+variable, typed as the game declares it, and
+`console.Changelevel.Run("street_test")` runs a command.
+
 ## Writing a mod in Luau
 
 A [Luau](https://luau.org) mod requires `@modlock` and registers its handlers
@@ -870,8 +892,18 @@ local keys: entities.CNPC_TrooperBossKeys = { LaneNum = 2 }
 local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", { position = position, keys = keys })
 ```
 
-A mod that requires the classes carries them in its build; one that does not
-leaves them out.
+`@modlock/console` sets console variables with a setter per value type,
+`setBoolean`, `setNumber` and `setString`, and runs commands with `run`:
+
+```luau
+local console = require("@modlock/console")
+
+console.setBoolean("citadel_allow_purchasing_anywhere", true)
+console.run("changelevel", "street_test")
+```
+
+A mod that requires the classes or the console carries them in its build; one
+that does not leaves them out.
 
 ## Writing a mod in Python
 
@@ -999,7 +1031,8 @@ as it describes itself to `schemas.json` (schema classes and enums),
 `console.json` (console variables and commands), and quits. The documents
 follow [`proto/modlock/dump/dump.proto`](proto/modlock/dump/dump.proto) and are
 sorted by name, so two builds' dumps diff cleanly. After a game update, replace
-[`data/dump`](data/dump) with a new dump and regenerate the entity classes:
+[`data/dump`](data/dump) with a new dump and regenerate the entity classes and
+console:
 
 ```sh
 scripts/gen-entities.sh

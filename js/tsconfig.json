@@ -21,6 +21,7 @@
     "src/ui.ts",
     "src/spot.ts",
     "src/dropper.ts",
-    "src/entities.ts"
+    "src/entities.ts",
+    "src/console.ts"
   ]
 }

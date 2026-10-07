@@ -24,9 +24,13 @@ const luauConfig = `{
 }
 `
 
-// luauEntities is the module of the generated entity classes, which only
-// the mods that require it carry.
-const luauEntities = "@modlock/entities"
+// luauOptional maps each generated library module, the entity classes and
+// the console, to its file in the library. Only the mods that require a
+// module carry it.
+var luauOptional = map[string]string{
+	"@modlock/entities": "modlock/entities.luau",
+	"@modlock/console":  "modlock/console.luau",
+}
 
 // buildLuau type checks a Luau project and zips its sources with the
 // library for the Luau runtime.
@@ -60,19 +64,26 @@ func (p *Project) buildLuau(ctx context.Context, output io.Writer) error {
 		}
 	}
 
-	// Zip the sources with the library under @modlock, leaving out the
-	// entity classes unless a source requires them. A require names its
+	// Zip the sources with the library under @modlock, leaving out each
+	// optional module unless a source requires it. A require names its
 	// module literally, so finding the name finds every use.
-	entities := false
+	unused := map[string]bool{}
+	for _, file := range luauOptional {
+		unused[file] = true
+	}
 	for _, name := range sources {
 		data, err := os.ReadFile(filepath.Join(p.Dir, filepath.FromSlash(name)))
 		if err != nil {
 			return errors.Wrap(err, "read the sources")
 		}
-		entities = entities || bytes.Contains(data, []byte(luauEntities))
+		for module, file := range luauOptional {
+			if bytes.Contains(data, []byte(module)) {
+				delete(unused, file)
+			}
+		}
 	}
 	return p.writeSources(wasm.Manifest_RUNTIME_LUAU, sources, luau.Library, func(name string) string {
-		if name == "modlock/entities.luau" && !entities {
+		if unused[name] {
 			return ""
 		}
 		return "@" + name

@@ -40,7 +40,7 @@ const Renderer = "ui.js"
 
 // Files are the built library's files, which modlock build installs into
 // each script project.
-var Files = []string{"index.js", "index.d.ts", "globals.d.ts", "host.gen.d.ts", "entities.js", "entities.d.ts", "ui.d.ts", "bits.d.ts", "spot.d.ts", "dropper.d.ts"}
+var Files = []string{"index.js", "index.d.ts", "globals.d.ts", "host.gen.d.ts", "entities.js", "entities.d.ts", "console.js", "console.d.ts", "ui.d.ts", "bits.d.ts", "spot.d.ts", "dropper.d.ts"}
 
 // modulePath is the Modlock module path.
 const modulePath = "github.com/paralin/modlock"
@@ -234,19 +234,20 @@ func Build(ctx context.Context, source, out string) error {
 		"globals.d.ts": globals,
 		"index.d.ts":   append([]byte("/// <reference path=\"./globals.d.ts\" />\n"), index...),
 	}
-	for _, name := range []string{"host.gen.d.ts", "entities.d.ts", "ui.d.ts", "bits.d.ts", "spot.d.ts", "dropper.d.ts"} {
+	for _, name := range []string{"host.gen.d.ts", "entities.d.ts", "console.d.ts", "ui.d.ts", "bits.d.ts", "spot.d.ts", "dropper.d.ts"} {
 		if files[name], err = os.ReadFile(filepath.Join(declared, name)); err != nil {
 			return err
 		}
 	}
 
-	// Bundle the library, the entity classes and the renderer.
+	// Bundle the library, the entity classes, the console and the renderer.
 	bundles := []struct {
 		name    string
 		options api.BuildOptions
 	}{
 		{"index.js", api.BuildOptions{EntryPoints: []string{"js/src/index.ts"}, Format: api.FormatESModule, Target: api.ES2023}},
 		{"entities.js", api.BuildOptions{EntryPoints: []string{"js/src/entities.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
+		{"console.js", api.BuildOptions{EntryPoints: []string{"js/src/console.ts"}, Format: api.FormatESModule, Target: api.ES2023, External: []string{"modlock"}}},
 		{Renderer, api.BuildOptions{EntryPoints: []string{"panorama/src/main.ts"}, Format: api.FormatIIFE, Target: api.ES2020, MinifyWhitespace: true, MinifyIdentifiers: true, MinifySyntax: true}},
 	}
 	for _, bundle := range bundles {

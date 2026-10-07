@@ -238,14 +238,14 @@ func readEntities(dir string, classes []*class) (*entities, error) {
 	return e, nil
 }
 
-// doc returns the input's description as a sentence, or empty when the game
-// gives none.
-func (in input) doc() string {
-	description := strings.TrimSuffix(strings.TrimSpace(in.description), ".")
-	if description == "" {
-		return ""
+// sentence returns text, such as an input's description, as a sentence
+// ending in one mark, a period unless it has one, or empty for blank text.
+func sentence(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" || strings.HasSuffix(text, "?") || strings.HasSuffix(text, "!") {
+		return text
 	}
-	return description + "."
+	return strings.TrimRight(text, ".") + "."
 }
 
 // wrap breaks text into lines of at most 80 columns, each starting with
