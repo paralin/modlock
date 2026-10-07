@@ -201,6 +201,8 @@ if(WIN32)
   target_sources(modlock_sdk PRIVATE
     src/gameinterop/windows/mapped_module_image.cc
     src/gameinterop/windows/native_memory.cc
+    src/host_app/windows/engine_log.cc
+    src/host_app/windows/import_patch.cc
     src/host_app/windows/vconsole_port.cc
     src/host_app/windows/windows_module_loader.cc
     third_party/safetyhook/safetyhook.cpp

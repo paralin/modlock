@@ -9,6 +9,8 @@
 #include <cstring>
 #include <iostream>
 
+#include "host_app/windows/import_patch.h"
+
 namespace modlock::host_app {
 namespace {
 
@@ -51,40 +53,6 @@ int WSAAPI SharedBind(SOCKET socket, const sockaddr* address, int length) {
   return retried;
 }
 
-// BindImportSlot returns the import address table entry through which module
-// calls ws2_32's bind, or nullptr when module does not import it.
-void** BindImportSlot(HMODULE module) {
-  const auto base = reinterpret_cast<const uint8_t*>(module);
-  const auto dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
-  const auto nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
-  const auto& directory = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-  if (!directory.VirtualAddress) return nullptr;
-
-  auto descriptor =
-      reinterpret_cast<const IMAGE_IMPORT_DESCRIPTOR*>(base + directory.VirtualAddress);
-  for (; descriptor->Name; ++descriptor) {
-    if (_stricmp(reinterpret_cast<const char*>(base + descriptor->Name), "ws2_32.dll") != 0) {
-      continue;
-    }
-    auto names = reinterpret_cast<const IMAGE_THUNK_DATA*>(base + descriptor->OriginalFirstThunk);
-    auto slots =
-        reinterpret_cast<IMAGE_THUNK_DATA*>(const_cast<uint8_t*>(base) + descriptor->FirstThunk);
-    for (; names->u1.AddressOfData; ++names, ++slots) {
-      if (IMAGE_SNAP_BY_ORDINAL(names->u1.Ordinal)) {
-        if (IMAGE_ORDINAL(names->u1.Ordinal) == kBindOrdinal) {
-          return reinterpret_cast<void**>(&slots->u1.Function);
-        }
-        continue;
-      }
-      auto import = reinterpret_cast<const IMAGE_IMPORT_BY_NAME*>(base + names->u1.AddressOfData);
-      if (std::strcmp(reinterpret_cast<const char*>(import->Name), "bind") == 0) {
-        return reinterpret_cast<void**>(&slots->u1.Function);
-      }
-    }
-  }
-  return nullptr;
-}
-
 }  // namespace
 
 std::expected<void, std::string> ShareVConsolePort(const std::filesystem::path& vconcomm_dll) {
@@ -95,17 +63,10 @@ std::expected<void, std::string> ShareVConsolePort(const std::filesystem::path& 
     return std::unexpected("VConsole port sharing: loading " + vconcomm_dll.string() +
                            " failed with error code " + std::to_string(GetLastError()));
   }
-  void** slot = BindImportSlot(module);
-  if (!slot) return std::unexpected("VConsole port sharing: vconcomm.dll does not import bind");
-
-  DWORD protection = 0;
-  if (!VirtualProtect(slot, sizeof(*slot), PAGE_READWRITE, &protection)) {
-    return std::unexpected("VConsole port sharing: VirtualProtect failed with error code " +
-                           std::to_string(GetLastError()));
-  }
-  original_bind = reinterpret_cast<BindFn>(*slot);
-  *slot = reinterpret_cast<void*>(&SharedBind);
-  VirtualProtect(slot, sizeof(*slot), protection, &protection);
+  auto original =
+      PatchImport(module, "ws2_32.dll", "bind", kBindOrdinal, reinterpret_cast<void*>(&SharedBind));
+  if (!original) return std::unexpected("VConsole port sharing: vconcomm.dll: " + original.error());
+  original_bind = reinterpret_cast<BindFn>(*original);
   return {};
 }
 
