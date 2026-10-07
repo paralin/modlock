@@ -588,6 +588,23 @@ takes an integer, `Color` a color as `0xRRGGBBAA`. `entities.json` in the game
 dump lists each input and the type of its value. A designer name the server
 lacks, or an input the entity lacks, fails that call alone.
 
+`create` in `modlock/entities` types the same call by designer name: it takes
+only that entity's spawn keys, each as the type the entity reads, and returns
+the entity as its class, with a method per input:
+
+```ts
+import { create } from 'modlock/entities'
+
+const guardian = create('npc_trooper_boss', {
+  subclass: 'npc_boss_tier1',
+  team: 3,
+  position,
+  keys: { rendercolor: 0xff0000ff },
+})
+guardian?.inputAlpha(128)
+guardian?.inputDisableShadow()
+```
+
 ### Interfaces
 
 | Call                                    | Effect                                                   |
@@ -800,9 +817,13 @@ such as the race rules in the [`race`](examples/race) example, tests with
 plain `go test` on your machine. Go mods do not yet build interfaces.
 
 [`mod/entity`](mod/entity) has the typed entity classes. Each field is a
-method whose value gets and sets it:
-`entity.NewCCitadelPlayerPawn(pawn.GetEntity()).IHealth().Set(500)` writes
-`m_iHealth`.
+method whose value gets and sets it, and each input a method that sends it. A
+class has the methods its own class declares; convert it to a base class to
+reach the base's, so
+`entity.CBaseEntity(entity.CCitadelPlayerPawn{Handle: pawn.GetEntity()}).IHealth().Set(500)`
+writes `m_iHealth`. Each designer name is a `Designer`, such as
+`entity.NpcTrooperBoss`, whose `Create` takes its key value struct,
+`entity.CNPC_TrooperBossKeys`.
 
 ## Writing a mod in Luau
 
@@ -833,14 +854,20 @@ decimal string, because a Luau number holds integers exactly only up to
 Luau mods do not yet build interfaces.
 
 `@modlock/entities` has the typed entity classes; an entity reads a field by
-indexing and writes one by assigning. Name the type where you keep the entity,
-because a constructor returns `any`:
+indexing and writes one by assigning, and sends an input by calling the method
+named after it. `entities.new` addresses an entity as a class, and
+`entities.create` creates one of a designer name, as `create` does in
+TypeScript. Both return `any`, so name the type where you keep the entity, and
+the type of its spawn keys, for the analyzer to check them:
 
 ```luau
 local entities = require("@modlock/entities")
 
-local hero: entities.CCitadelPlayerPawn = entities.CCitadelPlayerPawn(pawn.entity)
+local hero: entities.CCitadelPlayerPawn = entities.new("CCitadelPlayerPawn", pawn.entity)
 hero.m_iHealth = (hero.m_iHealth or 0) + 50
+
+local keys: entities.CNPC_TrooperBossKeys = { LaneNum = 2 }
+local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", { position = position, keys = keys })
 ```
 
 A mod that requires the classes carries them in its build; one that does not

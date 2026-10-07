@@ -1,11 +1,31 @@
-// Package entity reads and writes the fields of live entities through typed
-// classes, one per server entity class, generated from the game's schema by
-// modlock-entitygen. Address an entity by its handle, then get or set a field:
+// Package entity reads and writes the fields of live entities, sends them
+// inputs and creates them, through typed classes generated from the game's
+// schema and entity dump by modlock-entitygen.
+//
+// Each server entity class is a type over CEntityInstance, such as
+// CCitadelPlayerPawn. Address an entity by its handle, then get or set a field
+// through the method named after it without its m_ prefix:
 //
 //	pawn, _ := player.Pawn()
-//	hero := entity.NewCCitadelPlayerPawn(pawn.GetEntity())
-//	health, err := hero.IHealth().Get()
-//	err = hero.IHealth().Set(health + 100)
+//	hero := entity.CCitadelPlayerPawn{Handle: pawn.GetEntity()}
+//	level, err := hero.NLevel().Get()
+//
+// A class has the methods of the fields and inputs it declares. Convert it to
+// a base class to reach the base's, which costs nothing:
+//
+//	base := entity.CBaseEntity(hero)
+//	health, err := base.IHealth().Get()
+//	err = base.IHealth().Set(health + 100)
+//	_, err = base.InputKill()
+//
+// Each designer name is a Designer named in camel case, whose Create spawns
+// the entity with the spawn key values its key value struct sets:
+//
+//	lane := int32(2)
+//	boss, err := entity.NpcTrooperBoss.Create(
+//		&mod.EntityOptions{Position: &mod.Vector{Z: 128}},
+//		&entity.CNPC_TrooperBossKeys{LaneNum: &lane},
+//	)
 //
 // Each field finds itself by name, so a game update that moves the field
 // needs no new build of the mod. The host refuses a handle whose entity is
@@ -111,26 +131,21 @@ func (f Angles) Set(value *mod.Angles) error {
 	return f.write(&mod.Vector{X: value.GetPitch(), Y: value.GetYaw(), Z: value.GetRoll()})
 }
 
-// Class is an entity class, which every generated class satisfies through
-// CEntityInstance.
+// Class is an entity class: CEntityInstance or a class defined over it.
 type Class interface {
-	entity() uint32
+	~struct{ Handle uint32 }
 }
-
-// entity returns the handle of the entity.
-func (e CEntityInstance) entity() uint32 { return e.Handle }
 
 // Handle is a field that names another entity, of class T.
-type Handle[T Class] struct {
-	Field
-	new func(handle uint32) T
-}
+type Handle[T Class] struct{ Field }
 
 // Get reads the field and addresses the entity it names.
 func (f Handle[T]) Get() (T, error) {
 	value, err := read[float64](f.Field)
-	return f.new(uint32(value)), err
+	return T(CEntityInstance{Handle: uint32(value)}), err
 }
 
 // Set points the field at value.
-func (f Handle[T]) Set(value T) error { return f.write(float64(value.entity())) }
+func (f Handle[T]) Set(value T) error {
+	return f.write(float64(CEntityInstance(value).Handle))
+}

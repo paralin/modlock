@@ -4,5 +4,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-go run ./cmd/modlock-entitygen -dump data/dump -ts js/src/entities.ts -go mod/entity/entity.go \
+go run ./cmd/modlock-entitygen -dump data/dump -ts js/src/entities.ts -go mod/entity \
   -luau luau/modlock/entities.luau

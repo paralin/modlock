@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -16,19 +17,34 @@ const luauPreamble = `--!strict
 
 local modlock = require("@modlock")
 
--- entities is the module's table, which every class constructor joins. A
--- constructor returns any: the analyzer gives up on a module whose table
--- holds every class's type, so a mod names the type where it keeps one:
+-- entities is the module's table. entities.new addresses an entity as a
+-- class and entities.create creates one of a designer name. Both return any
+-- and create takes untyped spawn keys, because the analyzer gives up on a
+-- module whose table holds every class's type, so a mod names the type where
+-- it keeps an entity or its keys:
 --
---   local pawn: entities.CCitadelPlayerPawn = entities.CCitadelPlayerPawn(handle)
+--   local pawn: entities.CCitadelPlayerPawn = entities.new("CCitadelPlayerPawn", handle)
+--   local keys: entities.CNPC_TrooperBossKeys = { LaneNum = 2 }
+--   local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", {
+--   	position = { x = 0, y = 0, z = 0 },
+--   	keys = keys,
+--   })
 local entities = {}
 
 -- invalidHandle is the handle of no entity.
 local invalidHandle = 0xffffffff
 
--- Field is one field a class declares: its wire type, and for a handle, the
--- class of entity it names, or for a rotation, angles.
-type Field = { type: modlock.FieldType, target: string?, angles: boolean? }
+-- Field is one field or input a class declares. A field has its wire type,
+-- and for a handle, the class of entity it names, or for a rotation, angles.
+-- An input, which a method named after it sends, has its name and the case of
+-- EntityValue it takes, if any.
+type Field = {
+	type: modlock.FieldType?,
+	target: string?,
+	angles: boolean?,
+	input: string?,
+	value: string?,
+}
 
 -- Class is one class's base, the fields it declares and the metatable its
 -- instances share.
@@ -39,6 +55,24 @@ export type CEntityInstance = { handle: number }
 
 -- classes describes every class, filled in below.
 local classes: { [string]: Class } = {}
+
+-- fieldTypes are the FieldTypes a field's accessors read directly.
+local fieldTypes: { [string]: boolean } = {
+	bool = true,
+	float32 = true,
+	float64 = true,
+	handle = true,
+	int16 = true,
+	int32 = true,
+	int64 = true,
+	int8 = true,
+	string = true,
+	uint16 = true,
+	uint32 = true,
+	uint64 = true,
+	uint8 = true,
+	vector = true,
+}
 
 -- Hit is a field and the class in a chain that declares it.
 type Hit = { owner: string, field: Field }
@@ -84,17 +118,37 @@ local function new(className: string, handle: number): any
 	return setmetatable({ handle = handle }, classes[className].meta)
 end
 
--- describe adds one class. Its instances read a field by indexing and write
--- one by assigning; a field the class lacks reads as nil and ignores writes,
--- after a line in the server log.
-local function describe(className: string, base: string?, fields: { [string]: Field })
+-- describe adds one class. Each of its fields maps to its FieldType, angles,
+-- or the class of entity its handle names, and each input to the case of
+-- EntityValue it sends, or to the empty string for none. Its instances read a
+-- field by indexing and write one by assigning; a field the class lacks reads
+-- as nil and ignores writes, after a line in the server log.
+local function describe(className: string, base: string?, entries: { [string]: string }, inputs: { [string]: string }?)
+	local fields: { [string]: Field } = {}
+	for name, entry in entries do
+		local field: Field = if entry == "angles"
+			then { type = "vector", angles = true }
+			elseif fieldTypes[entry] then { type = entry :: modlock.FieldType }
+			else { type = "handle", target = entry }
+		fields[name] = field
+	end
+	for input, case in inputs or {} do
+		local field: Field = { input = input, value = if case == "" then nil else case }
+		fields["input" .. input] = field
+	end
 	local meta = {
 		__index = function(entity: any, name: string): any
 			local owner, field = resolve(className, name)
 			if owner == nil or field == nil then
 				return nil
 			end
-			local value = modlock.readField(entity.handle, owner, name, field.type)
+			local input, case = field.input, field.value
+			if input ~= nil then
+				return function(_: any, value: any): boolean
+					return modlock.fireInput(entity.handle, input, if case == nil then nil else { [case] = value } :: any)
+				end
+			end
+			local value = modlock.readField(entity.handle, owner, name, field.type :: modlock.FieldType)
 			if value == nil then
 				return nil
 			end
@@ -109,7 +163,7 @@ local function describe(className: string, base: string?, fields: { [string]: Fi
 		end,
 		__newindex = function(entity: any, name: string, value: any)
 			local owner, field = resolve(className, name)
-			if owner == nil or field == nil then
+			if owner == nil or field == nil or field.input ~= nil then
 				return
 			end
 			if field.angles then
@@ -117,14 +171,99 @@ local function describe(className: string, base: string?, fields: { [string]: Fi
 			elseif field.target ~= nil then
 				value = if value == nil then invalidHandle else value.handle
 			end
-			modlock.writeField(entity.handle, owner, name, field.type, value)
+			modlock.writeField(entity.handle, owner, name, field.type :: modlock.FieldType, value)
 		end,
 	}
 	classes[className] = { base = base, fields = fields, meta = meta }
 end
 
 describe("CEntityInstance", nil, {})
+
+-- Spawn describes an entity entities.create creates: the options of modlock.createEntity but the designer name, with typed spawn key
+-- values.
+export type Spawn<Keys> = {
+	-- subclass names the entity's game data entry, such as npc_boss_tier1 for
+	-- the lane Guardian. An NPC needs one.
+	subclass: string?,
+	-- team is the entity's team number; 4 is neutral.
+	team: number?,
+	-- position is the entity's origin.
+	position: modlock.Vector,
+	-- facing is where the entity faces.
+	facing: modlock.Angles?,
+	-- keys are the entity's spawn key values, each typed as the entity reads
+	-- it.
+	keys: Keys?,
+	-- keyValues are further key values, as modlock.createEntity takes them.
+	keyValues: { modlock.KeyValue }?,
+	-- fields are schema fields written before the entity spawns.
+	fields: { modlock.FieldWrite }?,
+}
+
+-- KeyMap is one data description: its base and how each key it adds
+-- travels, as a case of EntityValue or as angles.
+type KeyMap = { base: string?, keys: { [string]: string } }
+
+-- keyMaps describes every data description, filled in below.
+local keyMaps: { [string]: KeyMap } = {}
+
+-- keyValue encodes one typed key value, whose type map or a base gives.
+local function keyValue(map: string?, key: string, value: any): modlock.KeyValue?
+	while map ~= nil do
+		local case = keyMaps[map].keys[key]
+		if case == "angles" then
+			return { key = key, value = { vector = { x = value.pitch, y = value.yaw, z = value.roll } } }
+		elseif case ~= nil then
+			return { key = key, value = { [case] = value } :: any }
+		end
+		map = keyMaps[map].base
+	end
+	return nil
+end
+
+-- designers maps each designer name to the class that implements it and its
+-- data description, filled in below.
+local designers: { [string]: { string } } = {}
+
+-- new addresses the entity named by handle as an instance of className.
+function entities.new(className: ClassName, handle: number): any
+	return new(className, handle)
+end
+
+-- create creates an entity of designerName from options and addresses it as
+-- the class that implements it, or returns nil when the host refuses.
+function entities.create(designerName: DesignerName, options: Spawn<any>): any
+	local className, map = designers[designerName][1], designers[designerName][2]
+	local keyValues = table.clone(options.keyValues or {})
+	for key, value in (options.keys or {}) :: { [string]: any } do
+		local encoded = keyValue(map, key, value)
+		if encoded ~= nil then
+			table.insert(keyValues, encoded)
+		end
+	end
+	local handle = modlock.createEntity({
+		designerName = designerName,
+		subclass = options.subclass or "",
+		team = options.team or 0,
+		position = options.position,
+		facing = options.facing,
+		keyValues = keyValues,
+		fields = options.fields,
+	})
+	return if handle == nil then nil else new(className, handle)
+end
 `
+
+// luauValues maps each value to the type a key or input takes.
+var luauValues = map[value]string{
+	"boolean": "boolean",
+	"integer": "number",
+	"number":  "number",
+	"text":    "string",
+	"vector":  "modlock.Vector",
+	"color":   "number",
+	"angles":  "modlock.Angles",
+}
 
 // luauTypes maps each wire field type to the type its field holds.
 var luauTypes = map[string]string{
@@ -145,8 +284,10 @@ var luauTypes = map[string]string{
 }
 
 // writeLuau writes the entity classes as one Luau module: a type for each
-// class, its fields described for the shared accessors, and its constructor.
-func writeLuau(s *schema, classes []*class) []byte {
+// class and its fields and inputs described for the shared accessors; then
+// each data description's key value type; then the class and designer names
+// entities.new and entities.create take.
+func writeLuau(s *schema, classes []*class, e *entities) map[string][]byte {
 	// Open with the shared accessors.
 	var out bytes.Buffer
 	out.WriteString(luauPreamble)
@@ -163,8 +304,8 @@ func writeLuau(s *schema, classes []*class) []byte {
 		}
 		visible[c.name] = own
 
-		// Gather the fields the class adds, in declaration order.
-		var types, descriptions []string
+		// Gather the fields and inputs the class adds, in declaration order.
+		var types, fields, inputs []string
 		for _, f := range s.readableFields(c) {
 			typ := luauType(f.kind)
 			if inherited, ok := own[f.name]; ok && inherited != typ {
@@ -172,22 +313,76 @@ func writeLuau(s *schema, classes []*class) []byte {
 			}
 			own[f.name] = typ
 			types = append(types, fmt.Sprintf("\t%s: %s?,\n", f.name, typ))
-			descriptions = append(descriptions, fmt.Sprintf("\t%s = %s,\n", f.name, luauField(f)))
+			fields = append(fields, fmt.Sprintf("\t%s = %q,\n", f.name, luauEntry(f)))
+		}
+		for _, in := range e.inputs[c.name] {
+			method := "input" + in.name
+			if inherited, ok := own[method]; ok && inherited != string(in.value) {
+				continue
+			}
+			own[method] = string(in.value)
+			parameter := ""
+			if in.value != "" {
+				parameter = ", value: " + luauValues[in.value]
+			}
+			if doc := in.doc(); doc != "" {
+				types = append(types, wrap("\t-- ", doc))
+			}
+			types = append(types, fmt.Sprintf("\t%s: (self: any%s) -> boolean,\n", method, parameter))
+			inputs = append(inputs, fmt.Sprintf("\t%s = %q,\n", in.name, in.value))
 		}
 
-		// Write the type, the description and the constructor.
-		fmt.Fprintf(&out, "\n-- %s is the server's %s entity class.\n", c.name, c.name)
+		// Write the type and the description.
+		out.WriteString("\n")
 		if len(types) == 0 {
 			fmt.Fprintf(&out, "export type %s = %s\n", c.name, c.base)
-			fmt.Fprintf(&out, "describe(%q, %q, {})\n", c.name, c.base)
 		} else {
 			fmt.Fprintf(&out, "export type %s = %s & {\n%s}\n", c.name, c.base, strings.Join(types, ""))
-			fmt.Fprintf(&out, "describe(%q, %q, {\n%s})\n", c.name, c.base, strings.Join(descriptions, ""))
 		}
-		fmt.Fprintf(&out, "function entities.%s(handle: number): any\n\treturn new(%q, handle)\nend\n", c.name, c.name)
+		fmt.Fprintf(&out, "describe(%q, %q, %s", c.name, c.base, luauTable(fields))
+		if len(inputs) != 0 {
+			fmt.Fprintf(&out, ", %s", luauTable(inputs))
+		}
+		out.WriteString(")\n")
 	}
+
+	// Describe each data description's keys as a type and as the table create
+	// reads.
+	for _, m := range e.keyMaps {
+		var types, cases []string
+		for _, k := range m.keys {
+			types = append(types, fmt.Sprintf("\t%s: %s?,\n", k.name, luauValues[k.value]))
+			cases = append(cases, fmt.Sprintf("%s = %q", k.name, k.value))
+		}
+		base, own := "nil", "{\n"+strings.Join(types, "")+"}"
+		if m.base != nil {
+			base = fmt.Sprintf("%q", m.base.name)
+			own = m.base.name + "Keys & " + own
+			if len(types) == 0 {
+				own = m.base.name + "Keys"
+			}
+		}
+		out.WriteString("\n")
+		fmt.Fprintf(&out, "export type %sKeys = %s\n", m.name, own)
+		fmt.Fprintf(&out, "keyMaps.%s = { base = %s, keys = { %s } }\n", m.name, base, strings.Join(cases, ", "))
+	}
+
+	// Name every class and designer name, and map each designer name to its
+	// class and data description.
+	names := make([]string, len(classes))
+	for i, c := range classes {
+		names[i] = c.name
+	}
+	out.WriteString(luauUnion("ClassName", names))
+	names = names[:0]
+	out.WriteString("\n")
+	for _, d := range e.designers {
+		names = append(names, d.name)
+		fmt.Fprintf(&out, "designers.%s = { %q, %q }\n", d.name, d.class, d.keys.name)
+	}
+	out.WriteString(luauUnion("DesignerName", names))
 	out.WriteString("\nreturn entities\n")
-	return out.Bytes()
+	return map[string][]byte{"": out.Bytes()}
 }
 
 // luauType returns the type a field of kind k holds.
@@ -201,14 +396,43 @@ func luauType(k kind) string {
 	return luauTypes[k.wire]
 }
 
-// luauField returns the description of field f that the accessors read.
-func luauField(f readable) string {
-	parts := []string{fmt.Sprintf("type = %q", f.wire)}
-	if f.target != "" {
-		parts = append(parts, fmt.Sprintf("target = %q", f.target))
+// luauEntry returns field f's entry in its class's description: angles, the
+// class its handle names, or its FieldType.
+func luauEntry(f readable) string {
+	switch {
+	case f.angles:
+		return "angles"
+	case f.target != "":
+		return f.target
 	}
-	if f.angles {
-		parts = append(parts, "angles = true")
+	return f.wire
+}
+
+// luauTable returns a table constructor of entries, each a line.
+func luauTable(entries []string) string {
+	if len(entries) == 0 {
+		return "{}"
 	}
-	return "{ " + strings.Join(parts, ", ") + " }"
+	return "{\n" + strings.Join(entries, "") + "}"
+}
+
+// luauUnionLength is the most members one union type holds; the analyzer
+// refuses a longer type.
+const luauUnionLength = 400
+
+// luauUnion returns the exported type name, a union of the string singleton
+// types of members, joined from unions of at most luauUnionLength members.
+func luauUnion(name string, members []string) string {
+	var out strings.Builder
+	var parts []string
+	for chunk := range slices.Chunk(members, luauUnionLength) {
+		part := fmt.Sprintf("%s%d", name, len(parts))
+		parts = append(parts, part)
+		fmt.Fprintf(&out, "\ntype %s =\n", part)
+		for _, member := range chunk {
+			fmt.Fprintf(&out, "\t| %q\n", member)
+		}
+	}
+	fmt.Fprintf(&out, "\nexport type %s = %s\n", name, strings.Join(parts, " | "))
+	return out.String()
 }
