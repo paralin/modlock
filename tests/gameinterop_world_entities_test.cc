@@ -155,6 +155,16 @@ TEST_F(NativeWorld, AnAbilityIsRefusedBeforeItExists) {
   EXPECT_EQ(created, 0);
 }
 
+TEST_F(NativeWorld, AnEntityThatCrashesAloneIsRefusedBeforeItExists) {
+  auto world = World();
+  const auto sentry = world.CreateEntity({.designer_name = "npc_shielded_sentry"}, {});
+  ASSERT_FALSE(sentry);
+  EXPECT_EQ(sentry.error(),
+            "npc_shielded_sentry crashes the server when created alone: it needs the hero who "
+            "owns it");
+  EXPECT_EQ(created, 0);
+}
+
 TEST_F(NativeWorld, SpawnPreparesTheUnitBeforeNativeSpawn) {
   auto world = World();
   WorldEntities::Target target{.designer_name = "npc_trooper",

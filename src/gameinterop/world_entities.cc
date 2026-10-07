@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <iterator>
+#include <string_view>
 #include <type_traits>
 #include <variant>
 
@@ -48,6 +50,53 @@ bool IsPickup(std::string_view name) {
 
 bool IsRoundObjective(std::string_view name) {
   return IsPickup(name) || name == "citadel_koth_cashin" || name == "citadel_item_powerup_spawner";
+}
+
+// Unmade names entities the server cannot run when one is created alone: each
+// reads state that only a map, a game mode, an owner or the ability that makes
+// it provides, and crashes or hangs the server without it. Need says what is
+// missing.
+struct Unmade {
+  std::string_view name;
+  std::string_view need;
+};
+
+constexpr std::string_view kOwnerHero = "the hero who owns it";
+constexpr std::string_view kMakerAbility = "the hero ability that makes it";
+constexpr std::string_view kMapData = "game data that only its map provides";
+
+constexpr Unmade kUnmade[] = {
+    {"baseplayerpawn", "a player's controller: spawn a hero instead"},
+    {"citadel_capture_point", "a game mode's capture data"},
+    {"citadel_deployable_preview", kMakerAbility},
+    {"citadel_herotest_orbspawner", kMapData},
+    {"citadel_hideout_prop_base", kOwnerHero},
+    {"citadel_hideout_shootable_target_spawner", kMapData},
+    {"citadel_magician_turret_object", kMakerAbility},
+    {"citadel_mobile_resupply_object", kMakerAbility},
+    {"citadel_multi_capture_point", "a game mode's capture data"},
+    {"citadel_nano_predatory_statue", kMakerAbility},
+    {"citadel_trigger_capture_zipline", "the zipline that owns it"},
+    {"env_laser", "a target its map names"},
+    {"func_precipitation", "a brush model from its map"},
+    {"npc_familiar_helper", kOwnerHero},
+    {"npc_neutral_hideout_cat", "the hideout map"},
+    {"npc_neutral_hideout_rabbit", "the hideout map"},
+    {"npc_player_bot_brain", "a bot player: add a bot instead"},
+    {"npc_shielded_sentry", kOwnerHero},
+    {"path_node", "a path track from its map"},
+    {"path_node_mover", "a path track from its map"},
+    {"physics_npc_solver", "an NPC and a physics object to join"},
+    {"point_prefab", "a prefab map"},
+    {"simple_animating_ai", kMapData},
+    {"spark_shower", "a model"},
+};
+
+// UnmadeNeed returns what the entity name lacks when created alone, or an
+// empty view when the server can create it.
+std::string_view UnmadeNeed(std::string_view name) {
+  const auto* found = std::ranges::find(kUnmade, name, &Unmade::name);
+  return found == std::end(kUnmade) ? std::string_view{} : found->need;
 }
 
 std::string DesignerName(void* entity) {
@@ -358,6 +407,13 @@ std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
   for (const auto& vector : {target.position, target.facing})
     for (float value : vector)
       if (!std::isfinite(value)) return std::unexpected("entity placement is nonfinite");
+
+  // Some entities crash the server when created alone; they are refused
+  // before they exist.
+  if (const auto need = UnmadeNeed(target.designer_name); !need.empty()) {
+    return std::unexpected(target.designer_name +
+                           " crashes the server when created alone: it needs " + std::string(need));
+  }
 
   // A hero holds its abilities, items and weapons. One created alone crashes
   // the server once it is removed or thinks, so it is refused before it

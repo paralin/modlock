@@ -250,14 +250,26 @@ failures a mod can meet:
 | --------------------------------------------- | ------------------------------------------------------------ |
 | `the server has no entity NAME`               | The designer name is not one this build knows                |
 | `NAME is an ability, which only a hero holds` | An ability, item or weapon; give it to a hero instead        |
+| `NAME crashes the server when created alone`  | One of the 24 entities below; the message says what it needs |
 | `NAME walks no lane`                          | `spawnNpc` was given a lane for a class without `m_iLane`    |
 | `NAME has no native identity`                 | The entity was created without a handle the host can address |
 | `NAME has no input INPUT`                     | The input is not one the entity accepts                      |
 | A class mismatch naming both classes          | A field was named on a class the entity does not derive from |
 
-The 24 designer names that crashed the survey have no constructor, and a mod
-should not create them by hand. They include the player pawn, the bot brain,
-path nodes and capture points, which expect a match or a map to set them up.
+The 24 designer names that crashed the survey have no constructor, and
+`create` refuses them before they exist. Each reads state that a map, a game
+mode, an owning hero or the ability that makes it provides:
+
+| Needs                      | Designer names                                                                                                                    |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| The ability that makes it  | `citadel_deployable_preview`, `citadel_magician_turret_object`, `citadel_mobile_resupply_object`, `citadel_nano_predatory_statue` |
+| An owner                   | `citadel_hideout_prop_base`, `citadel_trigger_capture_zipline`, `npc_familiar_helper`, `npc_shielded_sentry`                      |
+| Its map's game data        | `citadel_herotest_orbspawner`, `citadel_hideout_shootable_target_spawner`, `simple_animating_ai`, `env_laser`, `point_prefab`     |
+| A model or path from a map | `func_precipitation`, `spark_shower`, `path_node`, `path_node_mover`                                                              |
+| The hideout map            | `npc_neutral_hideout_cat`, `npc_neutral_hideout_rabbit`                                                                           |
+| A game mode's capture data | `citadel_capture_point`, `citadel_multi_capture_point`                                                                            |
+| A player or bot            | `baseplayerpawn` (spawn a hero), `npc_player_bot_brain` (add a bot)                                                               |
+| Joined objects             | `physics_npc_solver`                                                                                                              |
 
 ## Updating for a new game build
 
