@@ -35,8 +35,8 @@ package entity
 
 import "github.com/paralin/modlock/mod"
 
-// Field names one schema field of one entity: the class that declares it,
-// its name, and how the host reads it.
+// Field names one schema field of one entity: the class that declares it
+// and its name. The type wrapping it says how the host reads it.
 type Field struct {
 	// Handle names the entity.
 	Handle uint32
@@ -44,20 +44,18 @@ type Field struct {
 	ClassName string
 	// Name is the field's schema name, such as m_iHealth.
 	Name string
-	// Type is how the host reads and writes the field.
-	Type mod.FieldType
 }
 
-// read reads the field as the type the host sends for it.
-func read[T bool | string | float64 | int64 | *mod.Vector](f Field) (T, error) {
-	value, err := mod.ReadField(f.Handle, f.ClassName, f.Name, f.Type)
+// read reads the field as typ and returns the value the host sends for it.
+func read[T bool | string | float64 | int64 | *mod.Vector](f Field, typ mod.FieldType) (T, error) {
+	value, err := mod.ReadField(f.Handle, f.ClassName, f.Name, typ)
 	typed, _ := value.(T)
 	return typed, err
 }
 
-// write writes the field.
-func (f Field) write(value any) error {
-	return mod.WriteField(f.Handle, f.ClassName, f.Name, f.Type, value)
+// write writes the field as typ.
+func (f Field) write(typ mod.FieldType, value any) error {
+	return mod.WriteField(f.Handle, f.ClassName, f.Name, typ, value)
 }
 
 // Numeric lists the Go types of numeric fields.
@@ -70,51 +68,77 @@ type Number[T Numeric] struct{ Field }
 
 // Get reads the field.
 func (f Number[T]) Get() (T, error) {
-	if f.wide() {
-		value, err := read[int64](f.Field)
+	typ, wide := numberType[T]()
+	if wide {
+		value, err := read[int64](f.Field, typ)
 		return T(value), err
 	}
-	value, err := read[float64](f.Field)
+	value, err := read[float64](f.Field, typ)
 	return T(value), err
 }
 
 // Set writes the field.
 func (f Number[T]) Set(value T) error {
-	if f.wide() {
-		return f.write(int64(value))
+	typ, wide := numberType[T]()
+	if wide {
+		return f.write(typ, int64(value))
 	}
-	return f.write(float64(value))
+	return f.write(typ, float64(value))
 }
 
-// wide reports whether the host sends the field as an int64 integer rather
-// than a float64 number, which holds a 64-bit integer inexactly.
-func (f Number[T]) wide() bool {
-	return f.Type == mod.FieldTypeInt64 || f.Type == mod.FieldTypeUint64
+// numberType returns the field type the host reads T as, and whether the
+// host sends it as an int64 integer rather than a float64 number, which
+// holds a 64-bit integer inexactly.
+func numberType[T Numeric]() (typ mod.FieldType, wide bool) {
+	switch any(T(0)).(type) {
+	case int8:
+		return mod.FieldTypeInt8, false
+	case int16:
+		return mod.FieldTypeInt16, false
+	case int32:
+		return mod.FieldTypeInt32, false
+	case uint8:
+		return mod.FieldTypeUint8, false
+	case uint16:
+		return mod.FieldTypeUint16, false
+	case uint32:
+		return mod.FieldTypeUint32, false
+	case int64:
+		return mod.FieldTypeInt64, true
+	case uint64:
+		return mod.FieldTypeUint64, true
+	case float32:
+		return mod.FieldTypeFloat32, false
+	default:
+		return mod.FieldTypeFloat64, false
+	}
 }
 
 // Bool is a boolean field.
 type Bool struct{ Field }
 
 // Get reads the field.
-func (f Bool) Get() (bool, error) { return read[bool](f.Field) }
+func (f Bool) Get() (bool, error) { return read[bool](f.Field, mod.FieldTypeBool) }
 
 // Set writes the field.
-func (f Bool) Set(value bool) error { return f.write(value) }
+func (f Bool) Set(value bool) error { return f.write(mod.FieldTypeBool, value) }
 
 // Text is a string field, which the host can read but not write.
 type Text struct{ Field }
 
 // Get reads the field.
-func (f Text) Get() (string, error) { return read[string](f.Field) }
+func (f Text) Get() (string, error) { return read[string](f.Field, mod.FieldTypeString) }
 
 // Vector is a position or direction field.
 type Vector struct{ Field }
 
 // Get reads the field.
-func (f Vector) Get() (*mod.Vector, error) { return read[*mod.Vector](f.Field) }
+func (f Vector) Get() (*mod.Vector, error) {
+	return read[*mod.Vector](f.Field, mod.FieldTypeVector)
+}
 
 // Set writes the field.
-func (f Vector) Set(value *mod.Vector) error { return f.write(value) }
+func (f Vector) Set(value *mod.Vector) error { return f.write(mod.FieldTypeVector, value) }
 
 // Angles is a rotation field, which the host reads as a vector of pitch, yaw
 // and roll.
@@ -122,13 +146,13 @@ type Angles struct{ Field }
 
 // Get reads the field.
 func (f Angles) Get() (*mod.Angles, error) {
-	value, err := read[*mod.Vector](f.Field)
+	value, err := read[*mod.Vector](f.Field, mod.FieldTypeVector)
 	return &mod.Angles{Pitch: value.GetX(), Yaw: value.GetY(), Roll: value.GetZ()}, err
 }
 
 // Set writes the field.
 func (f Angles) Set(value *mod.Angles) error {
-	return f.write(&mod.Vector{X: value.GetPitch(), Y: value.GetYaw(), Z: value.GetRoll()})
+	return f.write(mod.FieldTypeVector, &mod.Vector{X: value.GetPitch(), Y: value.GetYaw(), Z: value.GetRoll()})
 }
 
 // Class is an entity class: CEntityInstance or a class defined over it.
@@ -141,11 +165,11 @@ type Handle[T Class] struct{ Field }
 
 // Get reads the field and addresses the entity it names.
 func (f Handle[T]) Get() (T, error) {
-	value, err := read[float64](f.Field)
+	value, err := read[float64](f.Field, mod.FieldTypeHandle)
 	return T(CEntityInstance{Handle: uint32(value)}), err
 }
 
 // Set points the field at value.
 func (f Handle[T]) Set(value T) error {
-	return f.write(float64(CEntityInstance(value).Handle))
+	return f.write(mod.FieldTypeHandle, float64(CEntityInstance(value).Handle))
 }

@@ -221,14 +221,17 @@ local function keyValue(map: string?, key: string, value: any): modlock.KeyValue
 	return nil
 end
 
--- designers maps each designer name to the class that implements it and its
--- data description, filled in below.
-local designers: { [string]: { string } } = {}
-
 -- new addresses the entity named by handle as an instance of className.
 function entities.new(className: ClassName, handle: number): any
 	return new(className, handle)
 end
+`
+
+// luauCreate closes the module with entities.create, which reads the
+// designers table written before it.
+const luauCreate = `
+-- DesignerName is a designer name entities.create can create.
+export type DesignerName = keyof<typeof(designers)>
 
 -- create creates an entity of designerName from options and addresses it as
 -- the class that implements it, or returns nil when the host refuses.
@@ -367,20 +370,19 @@ func writeLuau(s *schema, classes []*class, e *entities) map[string][]byte {
 		fmt.Fprintf(&out, "keyMaps.%s = { base = %s, keys = { %s } }\n", m.name, base, strings.Join(cases, ", "))
 	}
 
-	// Name every class and designer name, and map each designer name to its
-	// class and data description.
+	// Name every class, and map each designer name to its class and data
+	// description, for entities.new and entities.create.
 	names := make([]string, len(classes))
 	for i, c := range classes {
 		names[i] = c.name
 	}
 	out.WriteString(luauUnion("ClassName", names))
-	names = names[:0]
-	out.WriteString("\n")
+	out.WriteString("\n-- designers maps each designer name to the class that implements it and its\n-- data description.\nlocal designers = {\n")
 	for _, d := range e.designers {
-		names = append(names, d.name)
-		fmt.Fprintf(&out, "designers.%s = { %q, %q }\n", d.name, d.class, d.keys.name)
+		fmt.Fprintf(&out, "\t%s = { %q, %q },\n", d.name, d.class, d.keys.name)
 	}
-	out.WriteString(luauUnion("DesignerName", names))
+	out.WriteString("}\n")
+	out.WriteString(luauCreate)
 	out.WriteString("\nreturn entities\n")
 	return map[string][]byte{"": out.Bytes()}
 }

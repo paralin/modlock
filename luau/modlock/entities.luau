@@ -207,36 +207,9 @@ local function keyValue(map: string?, key: string, value: any): modlock.KeyValue
 	return nil
 end
 
--- designers maps each designer name to the class that implements it and its
--- data description, filled in below.
-local designers: { [string]: { string } } = {}
-
 -- new addresses the entity named by handle as an instance of className.
 function entities.new(className: ClassName, handle: number): any
 	return new(className, handle)
-end
-
--- create creates an entity of designerName from options and addresses it as
--- the class that implements it, or returns nil when the host refuses.
-function entities.create(designerName: DesignerName, options: Spawn<any>): any
-	local className, map = designers[designerName][1], designers[designerName][2]
-	local keyValues = table.clone(options.keyValues or {})
-	for key, value in (options.keys or {}) :: { [string]: any } do
-		local encoded = keyValue(map, key, value)
-		if encoded ~= nil then
-			table.insert(keyValues, encoded)
-		end
-	end
-	local handle = modlock.createEntity({
-		designerName = designerName,
-		subclass = options.subclass or "",
-		team = options.team or 0,
-		position = options.position,
-		facing = options.facing,
-		keyValues = keyValues,
-		fields = options.fields,
-	})
-	return if handle == nil then nil else new(className, handle)
 end
 
 export type CBaseEntity = CEntityInstance & {
@@ -20799,2377 +20772,1217 @@ type ClassName3 =
 
 export type ClassName = ClassName0 | ClassName1 | ClassName2 | ClassName3
 
-designers.abiilty_boho_channeltether = { "CCitadel_Ability_Boho_ChannelTether", "CCitadelBaseAbility" }
-designers.abiilty_boho_doublehit = { "CCitadel_Ability_Boho_DoubleHit", "CCitadelBaseAbility" }
-designers.ability_afterburn = { "CCitadel_Ability_Afterburn", "CCitadelBaseAbility" }
-designers.ability_baba_bench_melee = { "CCitadel_Ability_Baba_BenchMelee", "CCitadelBaseAbility" }
-designers.ability_baba_bench_run = { "CCitadel_Ability_Baba_BenchRun", "CCitadelBaseAbility" }
-designers.ability_baba_bubbling_brew = { "CCitadel_Ability_Baba_BubblingBrew", "CCitadelBaseAbility" }
-designers.ability_baba_hexing_brew = { "CCitadel_Ability_Baba_HexingBrew", "CCitadelBaseAbility" }
-designers.ability_baba_hexing_brew_throw = { "CCitadel_Ability_Baba_HexingBrew_Throw", "CCitadelBaseAbility" }
-designers.ability_baba_ultimate_2 = { "CCitadel_Ability_Baba_Ultimate2", "CCitadelBaseAbility" }
-designers.ability_bebop_stickybomb2 = { "CCitadel_Ability_Bebop_StickyBomb2", "CCitadelBaseAbility" }
-designers.ability_blood_bomb = { "CCitadel_Ability_BloodBomb", "CCitadelBaseAbility" }
-designers.ability_blood_shards = { "CCitadel_Ability_Ghost_BloodShards", "CCitadelBaseAbility" }
-designers.ability_boho_ability01 = { "CCitadel_Ability_Boho_Ability01", "CCitadelBaseAbility" }
-designers.ability_boho_ability02 = { "CCitadel_Ability_Boho_Ability02", "CCitadelBaseAbility" }
-designers.ability_boho_bouncyprojectile = { "CCitadel_Ability_Boho_BouncyProjectile", "CCitadelBaseAbility" }
-designers.ability_boho_damageshare = { "CCitadel_Ability_Boho_DamageShare", "CCitadelBaseAbility" }
-designers.ability_boho_skipgrenade = { "CCitadel_Ability_Boho_SkipGrenade", "CCitadelBaseAbility" }
-designers.ability_bomber_ability02 = { "CCitadel_Ability_Bomber_Ability02", "CCitadelBaseAbility" }
-designers.ability_bomber_ability03 = { "CCitadel_Ability_Bomber_Ability03", "CCitadelBaseAbility" }
-designers.ability_bomber_ult = { "CCitadel_Ability_Bomber_ULT", "CCitadelBaseAbility" }
-designers.ability_bookworm_aoemagic = { "CCitadel_Ability_Bookworm_AOEMagic", "CCitadelBaseAbility" }
-designers.ability_bookworm_dragonfire = { "CCitadel_Ability_Bookworm_DragonFire", "CCitadelBaseAbility" }
-designers.ability_bookworm_knightbarrier = { "CCitadel_Ability_Bookworm_KnightBarrier", "CCitadelBaseAbility" }
-designers.ability_bounce_pad = { "CCitadel_Ability_Bounce_Pad", "CCitadelBaseAbility" }
-designers.ability_bullet_flurry = { "CCitadel_Ability_BulletFlurry", "CCitadelBaseAbility" }
-designers.ability_burrow = { "CCitadel_Ability_Burrow", "CCitadelBaseAbility" }
-designers.ability_charged_bomb = { "CCitadel_Ability_Charged_Bomb", "CCitadelBaseAbility" }
-designers.ability_charged_shot = { "CCitadel_Ability_ChargedShot", "CCitadelBaseAbility" }
-designers.ability_crackshot = { "CCitadel_Ability_Crackshot", "CCitadelBaseAbility" }
-designers.ability_death_tax = { "CCitadel_Ability_DeathTax", "CCitadelBaseAbility" }
-designers.ability_demonmark = { "CCitadel_Gunslinger_DemonMark", "CCitadelBaseAbility" }
-designers.ability_digger_entertunnel = { "CCitadel_Ability_Digger_EnterTunnel", "CCitadelBaseAbility" }
-designers.ability_doorman_bomb = { "CCitadel_Ability_Doorman_Bomb", "CCitadelBaseAbility" }
-designers.ability_doorman_doorway = { "CCitadel_Ability_Doorman_Doorway", "CCitadelBaseAbility" }
-designers.ability_doorman_doorway_trigger = { "CCitadel_Ability_AbilityName", "CCitadelBaseAbility" }
-designers.ability_doorman_hotel = { "CCitadel_Ability_Doorman_Hotel", "CCitadelBaseAbility" }
-designers.ability_doorman_luggage_cart = { "CCitadel_Ability_Doorman_Cart", "CCitadelBaseAbility" }
-designers.ability_drifter_hunger = { "CCitadel_Ability_Drifter_Hunger", "CCitadelBaseAbility" }
-designers.ability_druid_base_plant = { "CCitadelAbilityDruidBasePlant", "CCitadelBaseAbility" }
-designers.ability_druid_helicopter_seeds = { "CCitadelAbilityDruidHelicopterSeeds", "CCitadelBaseAbility" }
-designers.ability_druid_leech_seed = { "CCitadelAbilityDruidLeechSeed", "CCitadelBaseAbility" }
-designers.ability_druid_plant_branch_wall = { "CCitadelAbilityDruidPlantBranchWall", "CCitadelBaseAbility" }
-designers.ability_druid_plant_healing_tree = { "CCitadelAbilityDruidPlantHealingTree", "CCitadelBaseAbility" }
-designers.ability_druid_plant_invis_bush = { "CCitadelAbilityDruidPlantInvisBush", "CCitadelBaseAbility" }
-designers.ability_druid_plant_something = { "CCitadelAbilityDruidPlantSomething", "CCitadelBaseAbility" }
-designers.ability_druid_sprout = { "CCitadelAbilityDruidSprout", "CCitadelBaseAbility" }
-designers.ability_druid_ult = { "CCitadelAbilityDruidAbility04", "CCitadelBaseAbility" }
-designers.ability_empower_bullet = { "CCitadel_Ability_EmpowerBullet", "CCitadelBaseAbility" }
-designers.ability_explosive_barrel = { "CCitadel_Ability_ExplosiveBarrel", "CCitadelBaseAbility" }
-designers.ability_familiar_ability01 = { "CCitadel_Ability_Familiar_Ability01", "CCitadelBaseAbility" }
-designers.ability_familiar_ability02 = { "CCitadel_Ability_Familiar_Ability02", "CCitadelBaseAbility" }
-designers.ability_familiar_alt_weapon = { "CCitadel_Ability_Familiar_AltWeapon", "CCitadelBaseAbility" }
-designers.ability_familiar_attach = { "CCitadel_Ability_Familiar_Attach", "CCitadelBaseAbility" }
-designers.ability_familiar_attach_trigger = { "CCitadel_Ability_Familiar_Attach_Trigger", "CCitadelBaseAbility" }
-designers.ability_familiar_clone = { "CCitadel_Ability_Familiar_Clone", "CCitadelBaseAbility" }
-designers.ability_familiar_clone_end = { "CCitadel_Ability_Familiar_Clone_End", "CCitadelBaseAbility" }
-designers.ability_familiar_clonesingle = { "CCitadel_Ability_Familiar_CloneSingle", "CCitadelBaseAbility" }
-designers.ability_familiar_clonesingle_trigger = { "CCitadel_Ability_Familiar_CloneSingle_Trigger", "CCitadelBaseAbility" }
-designers.ability_familiar_healhost = { "CCitadel_Ability_Familiar_HealHost", "CCitadelBaseAbility" }
-designers.ability_familiar_helpinghands = { "CCitadel_Ability_Familiar_HelpingHands", "CCitadelBaseAbility" }
-designers.ability_familiar_primary_weapon_bubblegun = { "CCitadel_Ability_Familiar_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.ability_familiar_spotlight = { "CCitadel_Ability_Familiar_Spotlight", "CCitadelBaseAbility" }
-designers.ability_fencer_lunge = { "CAbility_Fencer_Lunge", "CCitadelBaseAbility" }
-designers.ability_fencer_riposte = { "CCitadel_Ability_Fencer_Riposte", "CCitadelBaseAbility" }
-designers.ability_fencer_riposte_target_select = { "CCitadel_Ability_RiposteTargetSelect", "CCitadelBaseAbility" }
-designers.ability_fencer_throwblade = { "CCitadel_Ability_Fencer_ThrowBlade", "CCitadelBaseAbility" }
-designers.ability_fencer_ultimate = { "CAbility_Fencer_Ultimate", "CCitadelBaseAbility" }
-designers.ability_fire_bomb = { "CCitadel_Ability_FireBomb", "CCitadelBaseAbility" }
-designers.ability_flame_dash = { "CCitadel_Ability_FlameDash", "CCitadelBaseAbility" }
-designers.ability_fortuna_ability01 = { "CCitadel_Ability_Fortuna_Ability01", "CCitadelBaseAbility" }
-designers.ability_fortuna_ability02 = { "CCitadel_Ability_Fortuna_Ability02", "CCitadelBaseAbility" }
-designers.ability_fortuna_ability03 = { "CCitadel_Ability_Fortuna_Ability03", "CCitadelBaseAbility" }
-designers.ability_fortuna_ult = { "CCitadel_Ability_Fortuna_Ability04", "CCitadelBaseAbility" }
-designers.ability_frank_painaura = { "CCitadel_Ability_Frank_PainAura", "CCitadelBaseAbility" }
-designers.ability_frank_primaryweapon = { "CCitadel_Ability_Frank_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.ability_frank_revive = { "CCitadel_Ability_Frank_Revive", "CCitadelBaseAbility" }
-designers.ability_frank_selfzap = { "CCitadel_Ability_Frank_SelfZap", "CCitadelBaseAbility" }
-designers.ability_frank_shocktarget2 = { "CCitadel_Ability_Frank_ShockTarget2", "CCitadelBaseAbility" }
-designers.ability_golden_idol = { "CCitadel_Ability_GoldenIdol", "CCitadelBaseAbility" }
-designers.ability_graf_ability01 = { "CCitadel_Ability_Graf_Ability01", "CCitadelBaseAbility" }
-designers.ability_graf_ability02 = { "CCitadel_Ability_Graf_Ability02", "CCitadelBaseAbility" }
-designers.ability_graf_ability03 = { "CCitadel_Ability_Graf_Ability03", "CCitadelBaseAbility" }
-designers.ability_graf_ult = { "CCitadel_Ability_Graf_Ability04", "CCitadelBaseAbility" }
-designers.ability_gravity_lasso = { "CCitadel_Ability_Gravity_Lasso", "CCitadelBaseAbility" }
-designers.ability_guided_arrow = { "CCitadel_Ability_GuidedArrow", "CCitadelBaseAbility" }
-designers.ability_gunslinger_knockbackblast = { "CCitadel_Ability_Gunslinger_KnockbackBlast", "CCitadelBaseAbility" }
-designers.ability_gunslinger_spreadingfire = { "CCitadel_Ability_Gunslinger_SpreadingFire", "CCitadelBaseAbility" }
-designers.ability_health_swap = { "CCitadel_Ability_HealthSwap", "CCitadelBaseAbility" }
-designers.ability_ice_dome = { "CCitadel_Ability_IceDome", "CCitadelBaseAbility" }
-designers.ability_ice_grenade = { "CCitadel_Ability_IceGrenade", "CCitadelBaseAbility" }
-designers.ability_icebeam = { "CCitadel_Ability_IceBeam", "CCitadelBaseAbility" }
-designers.ability_icepath = { "CCitadel_Ability_IcePath", "CCitadelBaseAbility" }
-designers.ability_immobilize_trap = { "CCitadel_Ability_ImmobilizeTrap", "CCitadelBaseAbility" }
-designers.ability_incendiary_projectile = { "CCitadel_Ability_IncendiaryProjectile", "CCitadelBaseAbility" }
-designers.ability_infinity_slash = { "CCitadel_Ability_InfinitySlash", "CCitadelBaseAbility" }
-designers.ability_intimidate = { "CCitadel_Ability_Intimidate", "CCitadelBaseAbility" }
-designers.ability_kali_dust_storm = { "CCitadel_Ability_Dust_Storm", "CCitadelBaseAbility" }
-designers.ability_kali_trappers_bolo = { "CCitadel_Ability_Trappers_Bolo", "CCitadelBaseAbility" }
-designers.ability_lash_flog = { "CCitadel_Ability_Lash_Flog", "CCitadelBaseAbility" }
-designers.ability_life_drain = { "CCitadel_Ability_LifeDrain", "CCitadelBaseAbility" }
-designers.ability_magician_animalcurse = { "CCitadel_Ability_Magician_AnimalCurse", "CCitadelBaseAbility" }
-designers.ability_magician_animalhexarea = { "CCitadel_Ability_Magician_AnimalHexArea", "CCitadelBaseAbility" }
-designers.ability_magician_bigbolt = { "CCitadel_Ability_Magician_BigBolt", "CCitadelBaseAbility" }
-designers.ability_magician_cloneturret_trigger = { "CCitadel_Ability_TurretClone_Trigger", "CCitadelBaseAbility" }
-designers.ability_magician_copyult = { "CCitadel_Ability_Magician_CopyUlt", "CCitadelBaseAbility" }
-designers.ability_magician_escape = { "CCitadel_Ability_Magician_Escape", "CCitadelBaseAbility" }
-designers.ability_magician_magicbolt = { "CCitadel_Ability_Magician_MagicBolt", "CCitadelBaseAbility" }
-designers.ability_magician_shadowclone = { "CCitadel_Ability_Magician_ShadowClone", "CCitadelBaseAbility" }
-designers.ability_medic_trooper_heal = { "CCitadel_Ability_MedicHeal", "CCitadelBaseAbility" }
-designers.ability_nano_catform = { "CCitadel_Ability_Nano_CatForm", "CCitadelBaseAbility" }
-designers.ability_nano_catform_pounce = { "CCitadel_Ability_Nano_CatFormPounce", "CCitadelBaseAbility" }
-designers.ability_nano_pounce = { "CCitadel_Ability_Nano_Pounce", "CCitadelBaseAbility" }
-designers.ability_nano_pounce_instant = { "CCitadel_Ability_Nano_Pounce_Instant", "CCitadelBaseAbility" }
-designers.ability_nano_proximity_ritual = { "CCitadel_Ability_ProximityRitual", "CCitadelBaseAbility" }
-designers.ability_nano_shadow_step = { "CCitadel_Ability_Nano_Shadow", "CCitadelBaseAbility" }
-designers.ability_necro_fear = { "CCitadel_Ability_Necro_Fear", "CCitadelBaseAbility" }
-designers.ability_necro_hauntingskull = { "CCitadel_Ability_Necro_HauntingSkull", "CCitadelBaseAbility" }
-designers.ability_necro_hauntingspirits = { "CCitadel_Ability_Necro_HauntingSpirits", "CCitadelBaseAbility" }
-designers.ability_necro_killsummon = { "CCitadel_Ability_Necro_KillSummon", "CCitadelBaseAbility" }
-designers.ability_necro_killsummon_trigger = { "CCitadel_Ability_Necro_KillSummonTrigger", "CCitadelBaseAbility" }
-designers.ability_necro_nukemap = { "CCitadel_Ability_Necro_NukeMap", "CCitadelBaseAbility" }
-designers.ability_necro_zombiewall = { "CCitadel_Ability_Necro_ZombieWall", "CCitadelBaseAbility" }
-designers.ability_npc_shield = { "CCitadel_NPCAbility_Shield", "CCitadelBaseAbility" }
-designers.ability_opera_ability01 = { "CCitadel_Ability_Opera_Ability01", "CCitadelBaseAbility" }
-designers.ability_opera_ability02 = { "CCitadel_Ability_Opera_Ability02", "CCitadelBaseAbility" }
-designers.ability_opera_ability03 = { "CCitadel_Ability_Opera_Ability03", "CCitadelBaseAbility" }
-designers.ability_opera_ult = { "CCitadel_Ability_Opera_Ability04", "CCitadelBaseAbility" }
-designers.ability_perched_predator = { "CCitadel_Ability_Perched_Predator", "CCitadelBaseAbility" }
-designers.ability_power_jump = { "CCitadel_Ability_PowerJump", "CCitadelBaseAbility" }
-designers.ability_power_surge = { "CCitadel_Ability_PowerSurge", "CCitadelBaseAbility" }
-designers.ability_priest_antispiritvest = { "CCitadel_Ability_Priest_AntiSpiritVest", "CCitadelBaseAbility" }
-designers.ability_priest_crossbowweapon = { "CCitadel_Ability_Priest_CrossbowWeapon", "CCitadelBaseAbility" }
-designers.ability_priest_knockback = { "CCitadel_Ability_Priest_Knockback", "CCitadelBaseAbility" }
-designers.ability_priest_selfheal = { "CCitadel_Ability_Priest_SelfHeal", "CCitadelBaseAbility" }
-designers.ability_priest_smokegrenade = { "CCitadel_Ability_Priest_SmokeGrenade", "CCitadelBaseAbility" }
-designers.ability_priest_stackingdefense = { "CCitadel_Ability_Priest_StackingDefense", "CCitadelBaseAbility" }
-designers.ability_priest_weaponswap = { "CCitadel_Ability_Priest_WeaponSwap", "CCitadelBaseAbility" }
-designers.ability_punkgoat_blasted = { "CCitadel_Ability_PunkGoat_Blasted", "CCitadelBaseAbility" }
-designers.ability_punkgoat_goatflip = { "CCitadel_Ability_PunkGoat_GoatFlip", "CCitadelBaseAbility" }
-designers.ability_punkgoat_tether = { "CCitadel_Ability_PunkGoat_Tether", "CCitadelBaseAbility" }
-designers.ability_punkgoat_ult = { "CCitadel_Ability_PunkGoat_Ult", "CCitadelBaseAbility" }
-designers.ability_ratking_entertunnel = { "CCitadel_Ability_Ratking_EnterTunnel", "CCitadelBaseAbility" }
-designers.ability_ratking_ratarmor = { "CCitadel_Ability_RatArmor", "CCitadelBaseAbility" }
-designers.ability_ratking_ratnibble = { "CCitadel_Ability_RatKing_RatNibble", "CCitadelBaseAbility" }
-designers.ability_ratking_scrap_grenade = { "CCitadel_Ability_Ratking_ScrapGrenade", "CCitadelBaseAbility" }
-designers.ability_ratking_standard_bearer = { "CCitadel_Ability_Ratking_StandardBearer", "CCitadelBaseAbility" }
-designers.ability_rolling_fireball = { "CCitadel_Ability_Rolling_FireBall", "CCitadelBaseAbility" }
-designers.ability_scrap_blast = { "CCitadel_Ability_WreckerScrapBlast", "CCitadelBaseAbility" }
-designers.ability_shieldguy_ability01 = { "CCitadel_Ability_ShieldGuy_Ability01", "CCitadelBaseAbility" }
-designers.ability_shieldguy_ability02 = { "CCitadel_Ability_ShieldGuy_Ability02", "CCitadelBaseAbility" }
-designers.ability_shieldguy_ability03 = { "CCitadel_Ability_ShieldGuy_Ability03", "CCitadelBaseAbility" }
-designers.ability_shieldguy_ult = { "CCitadel_Ability_ShieldGuy_Ability04", "CCitadelBaseAbility" }
-designers.ability_skyrunner_flakshot = { "CCitadel_Ability_SkyRunner_FlakShot", "CCitadelBaseAbility" }
-designers.ability_skyrunner_swingline = { "CCitadel_Ability_SkyRunner_SwingLine", "CCitadelBaseAbility" }
-designers.ability_skyrunner_ult = { "CCitadel_Ability_SkyRunner_Ability04", "CCitadelBaseAbility" }
-designers.ability_sleep_dagger = { "CCitadel_Ability_SleepDagger", "CCitadelBaseAbility" }
-designers.ability_smoke_bomb = { "CCitadel_Ability_SmokeBomb", "CCitadelBaseAbility" }
-designers.ability_snake_dash = { "CCitadel_Ability_SnakeDash", "CCitadelBaseAbility" }
-designers.ability_stacking_damage = { "CCitadel_Ability_Haze_StackingDamage", "CCitadelBaseAbility" }
-designers.ability_swan_acrobat = { "CCitadel_Ability_Swan_Acrobat", "CCitadelBaseAbility" }
-designers.ability_swan_featherboomerang = { "CCitadel_Ability_Swan_FeatherBoomerang", "CCitadelBaseAbility" }
-designers.ability_swan_leap = { "CCitadel_Ability_Swan_Leap", "CCitadelBaseAbility" }
-designers.ability_swan_ult = { "CCitadel_Ability_Swan_Ability04", "CCitadelBaseAbility" }
-designers.ability_testhero_feartarget = { "CCitadel_Ability_TestHero_FearTarget", "CCitadelBaseAbility" }
-designers.ability_testhero_spooky_hide = { "CAbility_TestHero_SpookyHide", "CCitadelBaseAbility" }
-designers.ability_testhero_stance_bow = { "CCitadel_Ability_TestHero_Stance_Bow", "CCitadelBaseAbility" }
-designers.ability_testhero_stance_spaceman = { "CCitadel_Ability_TestHero_Stance_Spaceman", "CCitadelBaseAbility" }
-designers.ability_testhero_stanceswitch = { "CCitadel_Ability_TestHero_StanceSwitch", "CCitadelBaseAbility" }
-designers.ability_testhero_summoncannon = { "CCitadel_Ability_TestHero_SummonCannon", "CCitadelBaseAbility" }
-designers.ability_testhero_summonsoldier = { "CCitadel_Ability_TestHero_SummonSoldier", "CCitadelBaseAbility" }
-designers.ability_testhero_ult = { "CCitadel_Ability_TestHero_Ability04", "CCitadelBaseAbility" }
-designers.ability_testhero_wallcling = { "CCitadel_Ability_TestHero_WallCling", "CCitadelBaseAbility" }
-designers.ability_throw_sand = { "CCitadel_Ability_ThrowSand", "CCitadelBaseAbility" }
-designers.ability_trapper_fear = { "CCitadel_Ability_Trapper_Fear", "CCitadelBaseAbility" }
-designers.ability_trapper_spiderjar = { "CCitadel_Ability_Trapper_SpiderJar", "CCitadelBaseAbility" }
-designers.ability_trapper_spidershield = { "CCitadel_Ability_SpiderShield", "CCitadelBaseAbility" }
-designers.ability_trapper_webwall = { "CCitadel_Ability_Trapper_WebWall", "CCitadelBaseAbility" }
-designers.ability_ult_combo = { "CCitadel_Ability_UltCombo", "CCitadelBaseAbility" }
-designers.ability_unicorn_dazzlingorb = { "CCitadel_Ability_Unicorn_DazzlingOrb", "CCitadelBaseAbility" }
-designers.ability_unicorn_luminousstrike = { "CCitadel_Ability_Unicorn_LuminousStrike", "CCitadelBaseAbility" }
-designers.ability_unicorn_prismaticguard = { "CCitadel_Ability_Unicorn_PrismaticGuard", "CCitadelBaseAbility" }
-designers.ability_unicorn_radiantblast = { "CCitadel_Ability_Unicorn_RadiantBlast", "CCitadelBaseAbility" }
-designers.ability_vampirebat_batblink = { "CCitadel_Ability_VampireBat_BatBlink", "CCitadelBaseAbility" }
-designers.ability_vampirebat_batcloud = { "CCitadel_Ability_VampireBat_BatCloud", "CCitadelBaseAbility" }
-designers.ability_vampirebat_batswarm = { "CCitadel_Ability_VampireBat_BatSwarm", "CCitadelBaseAbility" }
-designers.ability_vampirebat_doubledagger = { "CCitadel_Ability_VampireBat_DoubleDagger", "CCitadelBaseAbility" }
-designers.ability_vampirebat_lovebites = { "CCitadel_Ability_VampireBat_LoveBites", "CCitadelBaseAbility" }
-designers.ability_vampirebat_steallife = { "CCitadel_Ability_VampireBat_StealLife", "CCitadelBaseAbility" }
-designers.ability_vandal_ability03 = { "CCitadel_Ability_Vandal_Ability03", "CCitadelBaseAbility" }
-designers.ability_vandal_pillar = { "CCitadel_Ability_Vandal_Pillar", "CCitadelBaseAbility" }
-designers.ability_viper_debuffdagger = { "CCitadel_Ability_Viper_DebuffDagger", "CCitadelBaseAbility" }
-designers.ability_viper_hookblade = { "CCitadel_Ability_ViperHookblade", "CCitadelBaseAbility" }
-designers.ability_viper_petrifybola = { "CCitadel_Ability_Viper_PetrifyBola", "CCitadelBaseAbility" }
-designers.ability_viper_ult = { "CCitadel_Ability_Viper_Ability04", "CCitadelBaseAbility" }
-designers.ability_viper_venom = { "CCitadel_Ability_ViperVenom", "CCitadelBaseAbility" }
-designers.ability_warden_crowd_control = { "CCitadel_Ability_CrowdControl", "CCitadelBaseAbility" }
-designers.ability_warden_high_alert = { "CCitadel_Ability_HighAlert", "CCitadelBaseAbility" }
-designers.ability_warden_lock_down = { "CCitadel_Ability_LockDown", "CCitadelBaseAbility" }
-designers.ability_warden_riot_protocol = { "CCitadel_Ability_RiotProtocol", "CCitadelBaseAbility" }
-designers.ability_werewolf_cripplingslash = { "CCitadel_Werewolf_CripplingSlash", "CCitadelBaseAbility" }
-designers.ability_werewolf_hunt = { "CCitadel_Werewolf_Hunt", "CCitadelBaseAbility" }
-designers.ability_werewolf_kickflip = { "CCitadel_Ability_Werewolf_KickFlip", "CCitadelBaseAbility" }
-designers.ability_werewolf_leap = { "CCitadel_Ability_Werewolf_Leap", "CCitadelBaseAbility" }
-designers.ability_werewolf_maulingleap = { "CCitadel_Ability_Werewolf_MaulingLeap", "CCitadelBaseAbility" }
-designers.ability_werewolf_netshot = { "CCitadel_Ability_Werewolf_NetShot", "CCitadelBaseAbility" }
-designers.ability_werewolf_trackingbomb = { "CCitadel_Ability_Werewolf_TrackingBomb", "CCitadelBaseAbility" }
-designers.ability_werewolf_transformation = { "CCitadel_Werewolf_Transformation", "CCitadelBaseAbility" }
-designers.ability_werewolf_unload_gun = { "CCitadel_Werewolf_UnloadGun", "CCitadelBaseAbility" }
-designers.ability_werewolf_unload_gun2 = { "CCitadel_Werewolf_UnloadGun2", "CCitadelBaseAbility" }
-designers.ability_wrecker_salvage = { "CCitadel_Ability_Wrecker_Salvage", "CCitadelBaseAbility" }
-designers.ability_wrecker_teleport = { "CCitadel_Ability_WreckerTeleport", "CCitadelBaseAbility" }
-designers.ability_wrecker_ultimate = { "CCitadel_Ability_Wrecker_Ultimate", "CCitadelBaseAbility" }
-designers.ability_wrecking_ball = { "CCitadel_Ability_WreckingBall", "CCitadelBaseAbility" }
-designers.ability_wrecking_ball_throw = { "CCitadel_Ability_WreckingBallThrow", "CCitadelBaseAbility" }
-designers.ai_changehintgroup = { "CAI_ChangeHintGroup", "CAI_ChangeHintGroup" }
-designers.ai_foot_sweep = { "CNpcFootSweep", "CNpcFootSweep" }
-designers.ai_goal_entity = { "CAI_GoalEntity", "CAI_GoalEntity" }
-designers.ai_hint = { "CAI_Hint", "CAI_Hint" }
-designers.ai_look_target = { "CAI_LookTarget", "CAI_LookTarget" }
-designers.ai_nav_link_area = { "CNavLinkAreaEntity", "CNavLinkAreaEntity" }
-designers.ai_network = { "CAI_NetworkManager", "CPointEntity" }
-designers.ai_relationship = { "CAI_Relationship", "CAI_Relationship" }
-designers.ai_script_conditions = { "CAI_ScriptConditions", "CAI_ScriptConditions" }
-designers.ai_sound = { "CAI_VolumetricEventEntityAlias_ai_sound", "CAI_VolumetricEventEntity" }
-designers.ai_speechfilter = { "CAI_SpeechFilter", "CAI_SpeechFilter" }
-designers.ai_test_path = { "CAITestPath", "CAITestPath" }
-designers.ai_volumetric_event = { "CAI_VolumetricEventEntity", "CAI_VolumetricEventEntity" }
-designers.ai_volumetric_event_sensor = { "CAI_VolumetricEventSensor", "CAI_VolumetricEventSensor" }
-designers.ambient_generic = { "CAmbientGeneric", "CAmbientGeneric" }
-designers.archer_charged_shot_projectile = { "CCitadel_Projectile_Archer_ChargedShot", "CBaseModelEntity" }
-designers.baba_bubblingbrew_projectile = { "CCitadel_Projectile_BubblingBrew", "CBaseModelEntity" }
-designers.base_clientui_entity = { "CBaseClientUIEntity", "CBaseClientUIEntity" }
-designers.base_combat_character = { "CBaseCombatCharacter", "CBaseCombatCharacter" }
-designers.base_npc = { "CAI_BaseNPC", "CAI_BaseNPC" }
-designers.base_plat_train = { "CBasePlatTrain", "CBasePlatTrain" }
-designers.base_player_weapon = { "CBasePlayerWeapon", "CBasePlayerWeapon" }
-designers.base_prop = { "CBaseProp", "CBaseProp" }
-designers.base_prop_door = { "CBasePropDoor", "CBasePropDoor" }
-designers.base_toggle = { "CBaseToggle", "CBaseToggle" }
-designers.base_upgrade_projectile_aoe_modifier = { "CCitadel_Item_BaseProjectileAOEModifier", "CCitadelBaseAbility" }
-designers.baseanimating = { "CBaseAnimGraphAlias_baseanimating", "CBaseAnimGraph" }
-designers.baseanimgraph = { "CBaseAnimGraph", "CBaseAnimGraph" }
-designers.basemodelentity = { "CBaseModelEntity", "CBaseModelEntity" }
-designers.baseplayerpawn = { "CBasePlayerPawn", "CBasePlayerPawn" }
-designers.batswarm_extra_projectile = { "CCitadel_Projectile_BatSwarmExtraProjectile", "CBaseModelEntity" }
-designers.batswarm_projectile = { "CCitadel_Projectile_BatSwarmProjectile", "CBaseModelEntity" }
-designers.beam = { "CBeam", "CBeam" }
-designers.bebop_hook_projectile = { "CCitadel_Projectile_Bebop_Hook", "CBaseModelEntity" }
-designers.blood_bomb_projectile = { "CCitadel_Projectile_BloodBomb", "CBaseModelEntity" }
-designers.boho_bouncyprojectile = { "CProjectile_Boho_BouncyProjectile", "CBaseModelEntity" }
-designers.bookwormdragon_projectile = { "CProjectile_BookwormDragon_Projectile", "CBaseModelEntity" }
-designers.bookwormgun_projectile = { "CCitadel_Projectile_BookwormGun", "CBaseModelEntity" }
-designers.breakable_prop = { "CBreakableProp", "CBreakableProp" }
-designers.bullet_redirect_volume = { "CCitadelBulletRedirectVolume", "CBaseModelEntity" }
-designers.bullet_time_warp = { "CCitadelBulletTimeWarp", "CCitadelBulletTimeWarp" }
-designers.cable_dynamic = { "CDynamicPropAlias_cable_dynamic", "CDynamicProp" }
-designers.cadence_ability_anthem = { "CCitadel_Ability_Cadence_Anthem", "CCitadelBaseAbility" }
-designers.cadence_ability_crescendo = { "CCitadel_Ability_Cadence_Crescendo", "CCitadelBaseAbility" }
-designers.cadence_ability_grandfinale = { "CCitadel_Ability_Cadence_GrandFinale", "CCitadelBaseAbility" }
-designers.cadence_ability_lullaby = { "CCitadel_Ability_Cadence_Lullaby", "CCitadelBaseAbility" }
-designers.cadence_ability_silencecontraptions = { "CCitadel_Ability_Cadence_SilenceContraptions", "CCitadelBaseAbility" }
-designers.citadel_ability_bebop_laser_beam = { "CCitadel_Ability_Bebop_LaserBeam", "CCitadelBaseAbility" }
-designers.citadel_ability_boho_primaryweapon = { "CCitadel_Ability_Boho_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_boho_ridebroom = { "CCitadel_Ability_Boho_RideBroom", "CCitadelBaseAbility" }
-designers.citadel_ability_bookworm_knightcharge = { "CCitadel_Ability_Bookworm_KnightCharge", "CCitadelBaseAbility" }
-designers.citadel_ability_bookworm_primaryweapon = { "CCitadel_Ability_BookWorm_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_bull_charge = { "CCitadel_Ability_Bull_Charge", "CCitadelBaseAbility" }
-designers.citadel_ability_bull_heal = { "CCitadel_Ability_Bull_Heal", "CCitadelBaseAbility" }
-designers.citadel_ability_bull_leap = { "CCitadel_Ability_Bull_Leap", "CCitadelBaseAbility" }
-designers.citadel_ability_card_toss = { "CCitadel_Ability_CardToss", "CCitadelBaseAbility" }
-designers.citadel_ability_charged_tackle = { "CCitadel_Ability_ChargedTackle", "CCitadelBaseAbility" }
-designers.citadel_ability_chrono_kinetic_carbine = { "CCitadel_Ability_Chrono_KineticCarbine", "CCitadelBaseAbility" }
-designers.citadel_ability_chrono_pulse_grenade = { "CCitadel_Ability_Chrono_PulseGrenade", "CCitadelBaseAbility" }
-designers.citadel_ability_chrono_swap = { "CCitadel_Ability_ChronoSwap", "CCitadelBaseAbility" }
-designers.citadel_ability_chrono_time_wall = { "CCitadel_Ability_Chrono_TimeWall", "CCitadelBaseAbility" }
-designers.citadel_ability_climb_rope = { "CCitadel_Ability_Climb_Rope", "CCitadelBaseAbility" }
-designers.citadel_ability_dash = { "CCitadel_Ability_Dash", "CCitadelBaseAbility" }
-designers.citadel_ability_drifter_primaryweapon = { "CCitadel_Ability_Drifter_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_empty = { "CCitadel_Ability_Empty", "CCitadelBaseAbility" }
-designers.citadel_ability_fencer_primaryweapon = { "CCitadel_Ability_Fencer_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_fissure_wall = { "CCitadel_Ability_FissureWall", "CCitadelBaseAbility" }
-designers.citadel_ability_flying_strike = { "CCitadel_Ability_FlyingStrike", "CCitadelBaseAbility" }
-designers.citadel_ability_fortuna_primaryweapon = { "CCitadel_Ability_Fortuna_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_gunslinger_demon_carbine = { "CCitadel_Ability_Gunslinger_DemonCarbine", "CCitadelBaseAbility" }
-designers.citadel_ability_healing_slash = { "CCitadel_Ability_HealingSlash", "CCitadelBaseAbility" }
-designers.citadel_ability_hold_melee = { "CCitadel_Ability_HoldMelee", "CCitadelBaseAbility" }
-designers.citadel_ability_hook = { "CCitadel_Ability_Hook", "CCitadelBaseAbility" }
-designers.citadel_ability_hornet_chain = { "CCitadel_Ability_Hornet_Chain", "CCitadelBaseAbility" }
-designers.citadel_ability_hornet_leap = { "CCitadel_Ability_HornetLeap", "CCitadelBaseAbility" }
-designers.citadel_ability_hornet_snipe = { "CCitadel_Ability_Hornet_Snipe", "CCitadelBaseAbility" }
-designers.citadel_ability_hornet_sting = { "CCitadel_Ability_HornetSting", "CCitadelBaseAbility" }
-designers.citadel_ability_jump = { "CCitadel_Ability_Jump", "CCitadelBaseAbility" }
-designers.citadel_ability_kali_disruptive_charge = { "CCitadel_Ability_Disruptive_Charge", "CCitadelBaseAbility" }
-designers.citadel_ability_kali_spinning_blade = { "CCitadel_Ability_Spinning_Blade", "CCitadelBaseAbility" }
-designers.citadel_ability_lash = { "CCitadel_Ability_Lash", "CCitadelBaseAbility" }
-designers.citadel_ability_lash_down_strike = { "CCitadel_Ability_LashDownStrike", "CCitadelBaseAbility" }
-designers.citadel_ability_lash_ultimate = { "CCitadel_Ability_Lash_Ultimate", "CCitadelBaseAbility" }
-designers.citadel_ability_lightning_ball = { "CCitadel_Ability_LightningBall", "CCitadelBaseAbility" }
-designers.citadel_ability_magewalk = { "CCitadel_Ability_MageWalk", "CCitadelBaseAbility" }
-designers.citadel_ability_mantle = { "CCitadel_Ability_Mantle", "CCitadelBaseAbility" }
-designers.citadel_ability_melee_parry = { "CCitadel_Ability_MeleeParry", "CCitadelBaseAbility" }
-designers.citadel_ability_mobile_resupply = { "CCitadel_Ability_MobileResupply", "CCitadelBaseAbility" }
-designers.citadel_ability_nano_clustergrenade = { "CCitadel_Ability_Nano_ClusterGrenade", "CCitadelBaseAbility" }
-designers.citadel_ability_nano_dash = { "CCitadel_Ability_NanoDash", "CCitadelBaseAbility" }
-designers.citadel_ability_nano_primaryweapon = { "CCitadel_Ability_Nano_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_necro_coffin = { "CCitadel_Ability_Necro_Coffin", "CCitadelBaseAbility" }
-designers.citadel_ability_necro_gravestone = { "CCitadel_Ability_Necro_GraveStone", "CCitadelBaseAbility" }
-designers.citadel_ability_necro_primaryweapon = { "CCitadel_Ability_Necro_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_nikuman = { "CCitadel_Ability_Nikuman", "CCitadelBaseAbility" }
-designers.citadel_ability_passive_beefy = { "CCitadel_Ability_PassiveBeefy", "CCitadelBaseAbility" }
-designers.citadel_ability_power_slash = { "CCitadel_Ability_PowerSlash", "CCitadelBaseAbility" }
-designers.citadel_ability_priest_silencebomb = { "CCitadel_Ability_Priest_SilenceBomb", "CCitadelBaseAbility" }
-designers.citadel_ability_primary_weapon = { "CCitadel_Ability_PrimaryWeapon_Empty", "CCitadelBaseAbility" }
-designers.citadel_ability_primary_weapon_bebop = { "CCitadel_Ability_PrimaryWeapon_Bebop", "CCitadelBaseAbility" }
-designers.citadel_ability_primary_weapon_cadence = { "CCitadel_Ability_PrimaryWeapon_Cadence", "CCitadelBaseAbility" }
-designers.citadel_ability_primary_weapon_scaling_altfire = { "CCitadel_Ability_PrimaryWeapon_ScalingAltFire", "CCitadelBaseAbility" }
-designers.citadel_ability_projectmind = { "CCitadel_Ability_ProjectMind", "CCitadelBaseAbility" }
-designers.citadel_ability_psychic_lift = { "CCitadel_Ability_PsychicLift", "CCitadelBaseAbility" }
-designers.citadel_ability_punkgoat_primaryweapon = { "CCitadel_Ability_Punkgoat_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_ratking_primaryweapon = { "CCitadel_Ability_Ratking_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_rocket_barrage = { "CCitadel_Ability_RocketBarrage", "CCitadelBaseAbility" }
-designers.citadel_ability_self_vacuum = { "CCitadel_Ability_SelfVacuum", "CCitadelBaseAbility" }
-designers.citadel_ability_shieldedsentry = { "CCitadel_Ability_ShieldedSentry", "CCitadelBaseAbility" }
-designers.citadel_ability_shiv_dagger = { "CCitadel_Ability_ShivDagger", "CCitadelBaseAbility" }
-designers.citadel_ability_shiv_dash = { "CCitadel_Ability_ShivDash", "CCitadelBaseAbility" }
-designers.citadel_ability_shiv_defer_damage = { "CCitadel_Ability_Shiv_Defer_Damage", "CCitadelBaseAbility" }
-designers.citadel_ability_shiv_killing_blow = { "CCitadel_Ability_Shiv_KillingBlow", "CCitadelBaseAbility" }
-designers.citadel_ability_skyrunner_magicbeam = { "CCitadel_Ability_Skyrunner_MagicBeam", "CCitadelBaseAbility" }
-designers.citadel_ability_skyrunner_primaryweapon = { "CCitadel_Ability_SkyRunner_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_slide = { "CCitadel_Ability_Slide", "CCitadelBaseAbility" }
-designers.citadel_ability_sprint = { "CCitadel_Ability_Sprint", "CCitadelBaseAbility" }
-designers.citadel_ability_static_charge = { "CCitadel_Ability_StaticCharge", "CCitadelBaseAbility" }
-designers.citadel_ability_static_charge_v2 = { "CCitadel_Ability_StaticCharge_V2", "CCitadelBaseAbility" }
-designers.citadel_ability_sticky_bomb = { "CCitadel_Ability_StickyBomb", "CCitadelBaseAbility" }
-designers.citadel_ability_stomp = { "CCitadel_Ability_Stomp", "CCitadelBaseAbility" }
-designers.citadel_ability_storm_cloud = { "CCitadel_Ability_StormCloud", "CCitadelBaseAbility" }
-designers.citadel_ability_tangotether = { "CCitadel_Ability_TangoTether", "CCitadelBaseAbility" }
-designers.citadel_ability_tangotether_trigger = { "CCitadel_Ability_TangoTether_Trigger", "CCitadelBaseAbility" }
-designers.citadel_ability_teleport = { "CCitadel_Ability_Teleport", "CCitadelBaseAbility" }
-designers.citadel_ability_tengu_airlift = { "CCitadel_Ability_Tengu_AirLift", "CCitadelBaseAbility" }
-designers.citadel_ability_tengu_stone_form = { "CCitadel_Ability_Tengu_StoneForm", "CCitadelBaseAbility" }
-designers.citadel_ability_tengu_urn = { "CCitadel_Ability_Tengu_Urn", "CCitadelBaseAbility" }
-designers.citadel_ability_tier2boss_aoe_wave = { "CCitadel_Ability_Tier2Boss_AoEWave", "CCitadelBaseAbility" }
-designers.citadel_ability_tier2boss_laser_beam = { "CCitadel_Ability_Tier2Boss_LaserBeam", "CCitadelBaseAbility" }
-designers.citadel_ability_tier2boss_rocket_barrage = { "CCitadel_Ability_Tier2Boss_RocketBarrage", "CCitadelBaseAbility" }
-designers.citadel_ability_tier2boss_stomp = { "CCitadel_Ability_Tier2Boss_Stomp", "CCitadelBaseAbility" }
-designers.citadel_ability_tier3boss_aoe_wave = { "CCitadel_Ability_Tier3Boss_AoEWave", "CCitadelBaseAbility" }
-designers.citadel_ability_tier3boss_drop_bombs = { "CCitadel_Ability_Tier3Boss_DropBombs", "CCitadelBaseAbility" }
-designers.citadel_ability_tier3boss_laser_beam = { "CCitadel_Ability_Tier3Boss_LaserBeam", "CCitadelBaseAbility" }
-designers.citadel_ability_tier3boss_rocket_barrage = { "CCitadel_Ability_Tier3Boss_RocketBarrage", "CCitadelBaseAbility" }
-designers.citadel_ability_tower_regen = { "CCitadel_Ability_TriggerTower", "CCitadelBaseAbility" }
-designers.citadel_ability_trapper_poisonjar = { "CCitadel_Ability_Trapper_PoisonJar", "CCitadelBaseAbility" }
-designers.citadel_ability_trooper_zip_line = { "CCitadel_Ability_TrooperZipLine", "CCitadelBaseAbility" }
-designers.citadel_ability_turretclone = { "CCitadel_Ability_TurretClone", "CCitadelBaseAbility" }
-designers.citadel_ability_unicorn_primaryweapon = { "CCitadel_Ability_Unicorn_PrimaryWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_uppercut = { "CCitadel_Ability_Uppercut", "CCitadelBaseAbility" }
-designers.citadel_ability_vandal_overflow = { "CCitadel_Ability_VandalOverflow", "CCitadelBaseAbility" }
-designers.citadel_ability_vandal_surge = { "CCitadel_Ability_VandalSurge", "CCitadelBaseAbility" }
-designers.citadel_ability_void_sphere = { "CCitadel_Ability_VoidSphere", "CCitadelBaseAbility" }
-designers.citadel_ability_werewolf_clawweapon = { "CCitadel_Ability_Werewolf_ClawWeapon", "CCitadelBaseAbility" }
-designers.citadel_ability_werewolf_frenzy = { "CAbility_Werewolf_Frenzy", "CCitadelBaseAbility" }
-designers.citadel_ability_werewolf_onthehunt = { "CCitadel_Ability_Werewolf_OnTheHunt", "CCitadelBaseAbility" }
-designers.citadel_ability_werewolf_rifle = { "CCitadel_Ability_Werewolf_Rifle", "CCitadelBaseAbility" }
-designers.citadel_ability_wraith_rapidfire = { "CCitadel_Ability_Wraith_RapidFire", "CCitadelBaseAbility" }
-designers.citadel_ability_wrecker_bouldergrenade = { "CCitadel_Ability_Wrecker_BoulderGrenade", "CCitadelBaseAbility" }
-designers.citadel_ability_wrecker_garbage_suck = { "CCitadel_Ability_WreckerGarbageSuck", "CCitadelBaseAbility" }
-designers.citadel_ability_zip_line = { "CCitadel_Ability_ZipLine", "CCitadelBaseAbility" }
-designers.citadel_ability_zipline_boost = { "CCitadel_Ability_ZipLine_Boost", "CCitadelBaseAbility" }
-designers.citadel_animating_model_entity = { "CCitadelAnimatingModelEntity", "CBaseAnimGraph" }
-designers.citadel_announcer = { "CCitadel_Announcer", "CBaseCombatCharacter" }
-designers.citadel_base_ability = { "CCitadelBaseAbility", "CCitadelBaseAbility" }
-designers.citadel_base_hero = { "CCitadelHeroLoader", "CCitadelHeroLoader" }
-designers.citadel_base_lockon_ability = { "CCitadelBaseLockonAbility", "CCitadelBaseAbility" }
-designers.citadel_base_prop_midboss_indicator = { "CCitadel_Prop_MidBossIndicator", "CPointEntity" }
-designers.citadel_base_prop_stairs = { "CCitadel_BaseProp_MidStairs", "CCitadel_BaseProp_MidStairs" }
-designers.citadel_base_tiered_lockon_ability = { "CCitadelBaseTieredLockonAbility", "CCitadelBaseAbility" }
-designers.citadel_base_trigger_ability = { "CCitadelBaseTriggerAbility", "CCitadelBaseAbility" }
-designers.citadel_bot_test_node = { "CCitadelBotTestNode", "CCitadelBotTestNode" }
-designers.citadel_bounce_pad = { "CCitadel_Bounce_Pad", "CBaseAnimGraph" }
-designers.citadel_breakable_prop = { "CCitadel_BreakableProp", "CCitadel_BreakableProp" }
-designers.citadel_capture_point = { "CCitadelTriggerCapturePoint", "CCitadelTriggerCapturePoint" }
-designers.citadel_capture_point_escort = { "CCitadelTriggerCapturePoint_Escort", "CCitadelTriggerCapturePoint" }
-designers.citadel_cat_animating = { "CCitadel_CatAnimating", "CBaseAnimGraph" }
-designers.citadel_configurable_tracked_projectile = { "CCitadelConfigurableTrackedProjectile", "CBaseModelEntity" }
-designers.citadel_control_point = { "CCitadelControlPointTrigger", "CCitadelControlPointTrigger" }
-designers.citadel_dash_cast_ability = { "CCitadelBaseDashCastAbility", "CCitadelBaseAbility" }
-designers.citadel_deployable_preview = { "CCitadel_DeployablePreview", "CCitadel_DeployablePreview" }
-designers.citadel_dev_trigger = { "CCitadelDevTrigger", "CCitadelDevTrigger" }
-designers.citadel_doorway_portal = { "CCitadel_DoorwayPortal", "CCitadel_DoorwayPortal" }
-designers.citadel_druid_healing_tree = { "CCitadelDruidHealingTree", "CCitadelDruidHealingTree" }
-designers.citadel_druid_healing_tree_fruit = { "CCitadelDruidHealingFruit", "CCitadelDruidHealingFruit" }
-designers.citadel_druid_invis_bush = { "CCitadelDruidInvisBush", "CBaseAnimGraph" }
-designers.citadel_druid_plant_shield = { "CCitadelDruidPlantShield", "CBaseAnimGraph" }
-designers.citadel_econ_item_container = { "CCitadelEconItemContainer", "CCitadelEconItemContainer" }
-designers.citadel_energy_tower = { "CCitadelEnergyTower", "CCitadelEnergyTower" }
-designers.citadel_fissure_wall = { "CCitadel_FissureWall", "CBaseAnimGraph" }
-designers.citadel_gaffer = { "CCitadelGaffer", "CCitadelGaffer" }
-designers.citadel_gamerules = { "CCitadelGameRulesProxy", "CBaseEntity" }
-designers.citadel_grandfinale_stage = { "CCitadel_GrandFinaleStage", "CBaseAnimGraph" }
-designers.citadel_gravestone_blocker = { "CCitadel_GraveStone_Blocker", "CCitadel_GraveStone_Blocker" }
-designers.citadel_hero_release_vote_terminal = { "CCitadelHeroReleaseVoteTerminal", "CDynamicProp" }
-designers.citadel_herotest_orbspawner = { "CCitadel_HeroTestOrbSpawner", "CBaseAnimGraph" }
-designers.citadel_hideout_ball = { "CCitadel_Hideout_Ball", "CBaseModelEntity" }
-designers.citadel_hideout_button = { "CCitadelHideoutInteractableProp", "CCitadelHideoutInteractableProp" }
-designers.citadel_hideout_clock = { "CCitadel_Hideout_Clock", "CBaseAnimGraph" }
-designers.citadel_hideout_interactable_trigger = { "CCitadelHideoutInteractableTrigger", "CCitadelHideoutInteractableTrigger" }
-designers.citadel_hideout_prop_base = { "CCitadelHideoutPropBase", "CCitadelHideoutPropBase" }
-designers.citadel_hideout_prop_slot = { "CCitadelHideoutPropSlot", "CCitadelHideoutPropSlot" }
-designers.citadel_hideout_shootable_target_spawner = { "CCitadel_HideOutTargetSpawner", "CBaseAnimGraph" }
-designers.citadel_ice_dome_blocker = { "CCitadel_Ice_Dome_Blocker", "CBaseAnimGraph" }
-designers.citadel_invis_volume = { "CTriggerInvisVolume", "CBaseTrigger" }
-designers.citadel_item = { "CCitadel_Item_Empty", "CCitadelBaseAbility" }
-designers.citadel_item_aura_base = { "CCitadel_Item_Aura_Base", "CCitadelBaseAbility" }
-designers.citadel_item_koth_spawner = { "CCitadelItemKothSpawner", "CCitadelItemKothSpawner" }
-designers.citadel_item_pickup = { "CCitadelItemPickup", "CCitadelItemPickup" }
-designers.citadel_item_pickup_idol = { "CCitadelItemPickupIdol", "CCitadelItemPickupIdol" }
-designers.citadel_item_pickup_rejuv = { "CCitadelItemPickupRejuv", "CCitadelItemPickup" }
-designers.citadel_item_pickup_rejuv_herotest = { "CCitadelItemPickupRejuvHeroTest", "CCitadelItemPickup" }
-designers.citadel_item_pickup_rejuv_herotest_infospawn = { "CCitadelItemPickupRejuvHeroTestInfoSpawn", "CPointEntity" }
-designers.citadel_item_powerup_spawner = { "CCitadel_PickupItemSpawner", "CCitadel_PickupItemSpawner" }
-designers.citadel_item_punchable_gold = { "CCitadelItemPunchableNeutralGold", "CCitadelItemPunchableNeutralGold" }
-designers.citadel_koth_cashin = { "CCitadel_KothCashIn", "CCitadel_KothCashIn" }
-designers.citadel_local_player_ranked_badge_prop = { "CCitadelLocalPlayerRankedBadgeProp", "CBaseEntity" }
-designers.citadel_magic_beam_blocker = { "CCitadel_Magic_Beam_Blocker", "CBaseAnimGraph" }
-designers.citadel_magician_turret_object = { "CCitadel_MagicianTurret", "CCitadel_MagicianTurret" }
-designers.citadel_minimap_boundary = { "CCitadelMinimapBoundary", "CBaseEntity" }
-designers.citadel_mobile_resupply_object = { "CCitadel_MobileResupply", "CCitadel_MobileResupply" }
-designers.citadel_model_entity = { "CCitadelModelEntity", "CBaseModelEntity" }
-designers.citadel_multi_capture_point = { "CCitadelTriggerMultiCapturePoint", "CCitadelTriggerMultiCapturePoint" }
-designers.citadel_nano_predatory_statue = { "CCitadel_Nano_Predatory_Statue", "CCitadel_Nano_Predatory_Statue" }
-designers.citadel_new_years_fireworks = { "CCitadel_NewYears_Fireworks", "CCitadel_NewYears_Fireworks" }
-designers.citadel_npc = { "CAI_CitadelNPC", "CAI_CitadelNPC" }
-designers.citadel_obscured_volume = { "CTriggerObscuredVolume", "CTriggerObscuredVolume" }
-designers.citadel_passthrough_fake_wall = { "CCitadelPassthroughFakeWall", "CCitadelPassthroughFakeWall" }
-designers.citadel_pickup = { "CCitadel_Pickup", "CBaseAnimGraph" }
-designers.citadel_pickup_ability = { "CCitadel_Pickup_Ability", "CBaseAnimGraph" }
-designers.citadel_pickup_assigned_gold = { "CCitadel_Pickup_AssignedGold", "CBaseAnimGraph" }
-designers.citadel_pickup_currency = { "CCitadel_Pickup_Currency", "CBaseAnimGraph" }
-designers.citadel_pickup_gold = { "CCitadel_Pickup_Gold", "CBaseAnimGraph" }
-designers.citadel_pickup_health = { "CCitadel_Pickup_Health", "CBaseAnimGraph" }
-designers.citadel_pickup_item = { "CCitadel_Pickup_Item", "CBaseAnimGraph" }
-designers.citadel_pickup_modifier = { "CCitadel_Pickup_Modifier", "CBaseAnimGraph" }
-designers.citadel_pickup_necro_death = { "CCitadel_Pickup_NecroDeath", "CBaseAnimGraph" }
-designers.citadel_pickup_spawner = { "CCitadel_PickupSpawner", "CCitadel_PickupSpawner" }
-designers.citadel_player_controller = { "CCitadelPlayerController", "CBasePlayerController" }
-designers.citadel_point_talker = { "CCitadel_PointTalker", "CCitadel_PointTalker_Base" }
-designers.citadel_point_talker_base = { "CCitadel_PointTalker_Base", "CCitadel_PointTalker_Base" }
-designers.citadel_point_talker_idol = { "CCitadel_PointTalker_Idol", "CCitadel_PointTalker_Base" }
-designers.citadel_pregame_hero_draft_button = { "CCitadelPregameHeroDraftButton", "CDynamicProp" }
-designers.citadel_priest_slidetrap = { "CCitadel_Priest_SlideTrap", "CBaseModelEntity" }
-designers.citadel_projectile = { "CCitadelProjectile", "CBaseModelEntity" }
-designers.citadel_prop_dynamic = { "CCitadel_DynamicProp", "CCitadel_DynamicProp" }
-designers.citadel_ranked_badge_prop = { "CCitadelRankedBadgeProp", "CCitadelRankedBadgeProp" }
-designers.citadel_ratking_standard = { "CCitadel_Ratking_Standard", "CBaseAnimGraph" }
-designers.citadel_restorative_goo_cube = { "CCitadel_RestorativeGooCube", "CBaseAnimGraph" }
-designers.citadel_shield = { "CCitadel_Shield", "CBaseModelEntity" }
-designers.citadel_shop_prop_dynamic = { "CCitadel_ShopProp", "CCitadel_ShopProp" }
-designers.citadel_smokegrenade_blocker = { "CCitadel_SmokeGrenade_Blocker", "CBaseAnimGraph" }
-designers.citadel_snd_base_music_obb = { "CCitadelBaseMusicOBB", "CCitadelSoundStackFieldOBB" }
-designers.citadel_snd_dsp_obb = { "CCitadelAudioProcessingVolumeOBB", "CCitadelAudioProcessingVolumeOBB" }
-designers.citadel_snd_obb = { "CCitadelSoundEntityOBB", "CCitadelSoundEntityOBB" }
-designers.citadel_snd_opvar_set_obb = { "CCitadelSoundOpvarSetOBB", "CCitadelSoundOpvarSetOBB" }
-designers.citadel_snd_stack_field_obb = { "CCitadelSoundStackFieldOBB", "CCitadelSoundStackFieldOBB" }
-designers.citadel_soldier_entity = { "CCitadel_Soldier_Entity", "CCitadel_Soldier_Entity" }
-designers.citadel_spider_animating = { "CCitadel_SpiderAnimating", "CBaseAnimGraph" }
-designers.citadel_team_manager = { "CCitadelTeam", "CTeam" }
-designers.citadel_tracked_projectile = { "CCitadelTrackedProjectile", "CBaseModelEntity" }
-designers.citadel_trigger_bonk = { "CCitadelTriggerBonk", "CCitadelTriggerBonk" }
-designers.citadel_trigger_capture_zipline = { "CCitadelZiplineCaptureTrigger", "CBaseTrigger" }
-designers.citadel_trigger_climb_rope = { "CCitadelClimbRopeTrigger", "CCitadelClimbRopeTrigger" }
-designers.citadel_trigger_corrupted_item_shop = { "CCitadelTriggerCorruptedItemShop", "CCitadelTriggerCorruptedItemShop" }
-designers.citadel_trigger_hideout = { "CCitadelTriggerHideout", "CBaseTrigger" }
-designers.citadel_trigger_hideout_teleport = { "CCitadelHideoutTeleportTrigger", "CCitadelHideoutTeleportTrigger" }
-designers.citadel_trigger_hotel_exit = { "CCitadelHotelExitTrigger", "CCitadelHotelExitTrigger" }
-designers.citadel_trigger_idol_return = { "CCitadelIdolReturnTrigger", "CTriggerModifier" }
-designers.citadel_trigger_ignore_out_of_play_area = { "CCitadelIgnoreOutOfPlayArea", "CTriggerModifier" }
-designers.citadel_trigger_in_map_district = { "CCitadelMapDistrictTrigger", "CCitadelMapDistrictTrigger" }
-designers.citadel_trigger_interior = { "CCitadelInteriorTrigger", "CCitadelInteriorTrigger" }
-designers.citadel_trigger_no_portals = { "CCitadelTriggerNoPortals", "CBaseTrigger" }
-designers.citadel_trigger_push = { "CCitadelPushTrigger", "CCitadelPushTrigger" }
-designers.citadel_trigger_secure_souls = { "CCitadelTriggerSecureSouls", "CBaseTrigger" }
-designers.citadel_trigger_shop_tunnel = { "CCitadelShopTunnelTrigger", "CBaseTrigger" }
-designers.citadel_trigger_speed_boost = { "CCitadelSpeedBoostTrigger", "CCitadelSpeedBoostTrigger" }
-designers.citadel_trigger_suspend_modifier = { "CTriggerSuspendModifier", "CTriggerSuspendModifier" }
-designers.citadel_trigger_teleport = { "CCitadelTeleportTrigger", "CCitadelTeleportTrigger" }
-designers.citadel_trooper_minimap = { "CCitadelTrooperMinimap", "CBaseEntity" }
-designers.citadel_tunnel_node = { "CCitadelTunnelNode", "CCitadelTunnelNode" }
-designers.citadel_tunnel_trigger = { "CCitadelTunnelTrigger", "CCitadelTunnelTrigger" }
-designers.citadel_tutorial_controller = { "CInfoTutorialController", "CDynamicProp" }
-designers.citadel_viscous_ball = { "CCitadelViscousBall", "CCitadelViscousBall" }
-designers.citadel_weapon_bosstier2_set = { "CCitadel_Ability_Weapon_BossTier2", "CCitadelBaseAbility" }
-designers.citadel_weapon_bosstier3_set = { "CCitadel_Ability_Weapon_BossTier3", "CCitadelBaseAbility" }
-designers.citadel_weapon_shiv = { "CCitadel_Ability_ShivWeapon", "CCitadelBaseAbility" }
-designers.citadel_zap_trigger = { "CCitadelZapTrigger", "CCitadelZapTrigger" }
-designers.citadel_zipline_path = { "CCitadelZiplinePath", "CCitadelZiplinePath" }
-designers.citadel_zipline_path_node = { "CCitadelZipLinePathNode", "CCitadelZipLinePathNode" }
-designers.color_correction = { "CColorCorrection", "CColorCorrection" }
-designers.color_correction_volume = { "CColorCorrectionVolume", "CColorCorrectionVolume" }
-designers.commentary_auto = { "CCommentaryAuto", "CCommentaryAuto" }
-designers.cosmetic_emote = { "CCitadel_CosmeticAbility_Emote", "CCitadelBaseAbility" }
-designers.cosmetic_snowball = { "CCitadel_CosmeticAbility_Snowball", "CCitadelBaseAbility" }
-designers.cosmetic_voting_poster = { "CCitadel_CosmeticAbility_VotingPoster", "CCitadelBaseAbility" }
-designers.destroyable_building = { "CCitadel_Destroyable_Building", "CCitadel_Destroyable_Building" }
-designers.doorman_bomb_projectile = { "CDoormanBombProjectile", "CBaseModelEntity" }
-designers.drifter_blood_blast = { "CAbility_Drifter_BloodBlast", "CCitadelBaseAbility" }
-designers.drifter_darkness = { "CAbility_Drifter_Darkness", "CCitadelBaseAbility" }
-designers.drifter_shadow_mark = { "CAbility_Drifter_ShadowMark", "CCitadelBaseAbility" }
-designers.drifter_shadow_mark_teleport = { "CAbility_Drifter_StalkersMark_Teleport", "CCitadelBaseAbility" }
-designers.dynamic_prop = { "CDynamicPropAlias_dynamic_prop", "CDynamicProp" }
-designers.entity_blocker = { "CEntityBlocker", "CBaseModelEntity" }
-designers.entityflame = { "CEntityFlame", "CBaseEntity" }
-designers.env_beam = { "CEnvBeam", "CEnvBeam" }
-designers.env_beverage = { "CEnvBeverage", "CEnvBeverage" }
-designers.env_combined_light_probe_volume = { "CEnvCombinedLightProbeVolume", "CEnvCombinedLightProbeVolume" }
-designers.env_credits = { "CCredits", "CCredits" }
-designers.env_cubemap = { "CEnvCubemap", "CEnvCubemap" }
-designers.env_cubemap_fog = { "CEnvCubemapFog", "CEnvCubemapFog" }
-designers.env_debughistory = { "CDebugHistory", "CBaseEntity" }
-designers.env_decal = { "CEnvDecal", "CEnvDecal" }
-designers.env_detail_controller = { "CEnvDetailController", "CEnvDetailController" }
-designers.env_entity_dissolver = { "CEntityDissolve", "CEntityDissolve" }
-designers.env_entity_igniter = { "CEnvEntityIgniter", "CEnvEntityIgniter" }
-designers.env_entity_maker = { "CEnvEntityMaker", "CEnvEntityMaker" }
-designers.env_explosion = { "CEnvExplosion", "CEnvExplosion" }
-designers.env_fade = { "CEnvFade", "CEnvFade" }
-designers.env_fog_controller = { "CFogController", "CFogController" }
-designers.env_global = { "CEnvGlobal", "CEnvGlobal" }
-designers.env_glow = { "CSpriteAlias_env_glow", "CSprite" }
-designers.env_gradient_fog = { "CGradientFog", "CGradientFog" }
-designers.env_instructor_hint = { "CEnvInstructorHint", "CEnvInstructorHint" }
-designers.env_instructor_vr_hint = { "CEnvInstructorVRHint", "CEnvInstructorVRHint" }
-designers.env_laser = { "CEnvLaser", "CEnvLaser" }
-designers.env_light_probe_volume = { "CEnvLightProbeVolume", "CEnvLightProbeVolume" }
-designers.env_message = { "CMessage", "CMessage" }
-designers.env_muzzleflash = { "CEnvMuzzleFlash", "CEnvMuzzleFlash" }
-designers.env_particle_glow = { "CEnvParticleGlow", "CEnvParticleGlow" }
-designers.env_physexplosion = { "CPhysExplosion", "CPhysExplosion" }
-designers.env_physimpact = { "CPhysImpact", "CPhysImpact" }
-designers.env_physwire = { "CPhysicsWire", "CPhysicsWire" }
-designers.env_player_visibility = { "CPlayerVisibility", "CPlayerVisibility" }
-designers.env_shake = { "CEnvShake", "CEnvShake" }
-designers.env_sky = { "CEnvSky", "CEnvSky" }
-designers.env_soundscape = { "CEnvSoundscape", "CEnvSoundscape" }
-designers.env_soundscape_proxy = { "CEnvSoundscapeProxy", "CEnvSoundscapeProxy" }
-designers.env_soundscape_triggerable = { "CEnvSoundscapeTriggerable", "CEnvSoundscape" }
-designers.env_spark = { "CEnvSpark", "CEnvSpark" }
-designers.env_splash = { "CEnvSplash", "CEnvSplash" }
-designers.env_sprite = { "CSprite", "CSprite" }
-designers.env_sprite_oriented = { "CSpriteOriented", "CSprite" }
-designers.env_tilt = { "CEnvTilt", "CEnvTilt" }
-designers.env_tonemap_controller = { "CTonemapController2", "CTonemapController2" }
-designers.env_tonemap_controller2 = { "CTonemapController2Alias_env_tonemap_controller2", "CTonemapController2" }
-designers.env_viewpunch = { "CEnvViewPunch", "CEnvViewPunch" }
-designers.env_volumetric_fog_controller = { "CEnvVolumetricFogController", "CEnvVolumetricFogController" }
-designers.env_volumetric_fog_volume = { "CEnvVolumetricFogVolume", "CEnvVolumetricFogVolume" }
-designers.env_wind = { "CEnvWind", "CEnvWind" }
-designers.familiar_clone = { "CCitadelFamiliarClonePlayerPawn", "CCitadelFamiliarClonePlayerPawn" }
-designers.familiar_projectile_movingtoattach = { "CProjectile_Familiar_MovingToAttach", "CBaseModelEntity" }
-designers.fathom_breach = { "CCitadel_Ability_Fathom_Breach", "CCitadelBaseAbility" }
-designers.fathom_lurkers_ambush = { "CAbility_Fathom_LurkersAmbush", "CCitadelBaseAbility" }
-designers.fathom_reefdweller_harpoon = { "CAbility_Fathom_ReefdwellerHarpoon", "CCitadelBaseAbility" }
-designers.fathom_scalding_spray = { "CCitadel_Ability_Fathom_ScaldingSpray", "CCitadelBaseAbility" }
-designers.featherboomerang_projectile = { "CCitadel_Projectile_FeatherBoomerang", "CBaseModelEntity" }
-designers.filter_activator_attribute_int = { "CFilterAttributeInt", "CFilterAttributeInt" }
-designers.filter_activator_class = { "CFilterClass", "CFilterClass" }
-designers.filter_activator_context = { "CFilterContext", "CFilterContext" }
-designers.filter_activator_mass_greater = { "CFilterMassGreater", "CFilterMassGreater" }
-designers.filter_activator_model = { "CFilterModel", "CFilterModel" }
-designers.filter_activator_modifier = { "CCitadelFilterModifier", "CCitadelFilterModifier" }
-designers.filter_activator_name = { "CFilterName", "CFilterName" }
-designers.filter_activator_team = { "CFilterTeam", "CFilterTeam" }
-designers.filter_base = { "CBaseFilter", "CBaseFilter" }
-designers.filter_damage_type = { "FilterDamageType", "FilterDamageType" }
-designers.filter_enemy = { "CFilterEnemy", "CFilterEnemy" }
-designers.filter_health = { "FilterHealth", "FilterHealth" }
-designers.filter_los = { "CFilterLOS", "CBaseFilter" }
-designers.filter_modifier = { "CFilterModifier", "CFilterModifier" }
-designers.filter_multi = { "CFilterMultiple", "CFilterMultiple" }
-designers.filter_proximity = { "CFilterProximity", "CFilterProximity" }
-designers.fish = { "CFish", "CBaseAnimGraph" }
-designers.fog_volume = { "CFogVolume", "CFogVolume" }
-designers.fortuna_weapon_projectile = { "CCitadel_Projectile_FortunaWeapon", "CBaseModelEntity" }
-designers.func_breakable = { "CBreakable", "CBreakable" }
-designers.func_brush = { "CFuncBrush", "CFuncBrush" }
-designers.func_button = { "CBaseButton", "CBaseButton" }
-designers.func_clip_interaction_layer = { "CFuncInteractionLayerClip", "CFuncInteractionLayerClip" }
-designers.func_clip_vphysics = { "CFuncVPhysicsClip", "CFuncVPhysicsClip" }
-designers.func_combined_light_probe_volume = { "CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume", "CEnvCombinedLightProbeVolume" }
-designers.func_conditional_collidable = { "CConditionalCollidable", "CConditionalCollidable" }
-designers.func_door = { "CBaseDoor", "CBaseDoor" }
-designers.func_door_rotating = { "CRotDoor", "CRotDoor" }
-designers.func_electrified_volume = { "CFuncElectrifiedVolume", "CFuncElectrifiedVolume" }
-designers.func_fish_pool = { "CFishPool", "CFishPool" }
-designers.func_guntarget = { "CGunTarget", "CGunTarget" }
-designers.func_illusionary = { "CFuncIllusionary", "CBaseModelEntity" }
-designers.func_ladder = { "CFuncLadder", "CFuncLadder" }
-designers.func_monitor = { "CFuncMonitor", "CFuncMonitor" }
-designers.func_movelinear = { "CFuncMoveLinear", "CFuncMoveLinear" }
-designers.func_mover = { "CFuncMover", "CFuncMover" }
-designers.func_mover_router = { "CFuncMoverRouter", "CFuncMoverRouter" }
-designers.func_nav_avoidance_obstacle = { "CFuncNavObstruction", "CFuncNavObstruction" }
-designers.func_nav_blocker = { "CFuncNavBlocker", "CFuncNavBlocker" }
-designers.func_nav_dynamic_connections = { "CDynamicNavConnectionsVolume", "CDynamicNavConnectionsVolume" }
-designers.func_nav_markup = { "CMarkupVolumeTagged_Nav", "CMarkupVolumeTagged_Nav" }
-designers.func_nav_markup_citadel = { "CMarkupVolumeTagged_NavCitadel", "CMarkupVolumeWithRef" }
-designers.func_nav_markup_game = { "CMarkupVolumeTagged_NavGame", "CMarkupVolumeTagged_NavGame" }
-designers.func_physbox = { "CPhysBox", "CPhysBox" }
-designers.func_physical_button = { "CPhysicalButton", "CBaseButton" }
-designers.func_plat = { "CFuncPlat", "CFuncPlat" }
-designers.func_platrot = { "CFuncPlatRot", "CFuncPlat" }
-designers.func_precipitation = { "CPrecipitation", "CPrecipitation" }
-designers.func_precipitation_blocker = { "CPrecipitationBlocker", "CBaseModelEntity" }
-designers.func_proprrespawnzone = { "CFuncPropRespawnZone", "CBaseEntity" }
-designers.func_pushable = { "CPushable", "CBreakable" }
-designers.func_regenerate = { "CRegenerateZone", "CBaseTrigger" }
-designers.func_rot_button = { "CRotButton", "CBaseButton" }
-designers.func_rotating = { "CFuncRotating", "CFuncRotating" }
-designers.func_rotator = { "CFuncRotator", "CFuncRotator" }
-designers.func_shatterglass = { "CFuncShatterglass", "CFuncShatterglass" }
-designers.func_spawn_blocker = { "CCitadelSpawnBlocker", "CFuncBrush" }
-designers.func_tanktrain = { "CFuncTankTrain", "CFuncTankTrain" }
-designers.func_timescale = { "CFuncTimescale", "CFuncTimescale" }
-designers.func_trackautochange = { "CFuncTrackAuto", "CFuncTrackAuto" }
-designers.func_trackchange = { "CFuncTrackChange", "CFuncTrackChange" }
-designers.func_tracktrain = { "CFuncTrackTrain", "CFuncTrackTrain" }
-designers.func_train = { "CFuncTrain", "CFuncTrain" }
-designers.func_traincontrols = { "CFuncTrainControls", "CBaseModelEntity" }
-designers.func_useableladder = { "CFuncLadderAlias_func_useableladder", "CFuncLadder" }
-designers.func_vehicleclip = { "CFuncVehicleClip", "CFuncVehicleClip" }
-designers.func_wall = { "CFuncWall", "CBaseModelEntity" }
-designers.func_wall_toggle = { "CFuncWallToggle", "CFuncWallToggle" }
-designers.game_gib_manager = { "CGameGibManager", "CGameGibManager" }
-designers.game_player_equip = { "CGamePlayerEquip", "CGamePlayerEquip" }
-designers.game_ragdoll_manager = { "CRagdollManager", "CRagdollManager" }
-designers.game_text = { "CGameText", "CGameText" }
-designers.game_zone_player = { "CGamePlayerZone", "CGamePlayerZone" }
-designers.genericperson_ability_1 = { "CCitadel_Ability_GenericPerson_1", "CCitadelBaseAbility" }
-designers.genericperson_ability_2 = { "CCitadel_Ability_GenericPerson_2", "CCitadelBaseAbility" }
-designers.genericperson_ability_3 = { "CCitadel_Ability_GenericPerson_3", "CCitadelBaseAbility" }
-designers.genericperson_ability_4 = { "CCitadel_Ability_GenericPerson_4", "CCitadelBaseAbility" }
-designers.guided_arrow_projectile = { "CCitadel_Projectile_Guided_Arrow", "CBaseModelEntity" }
-designers.gunslinger_rapid_fire = { "CCitadel_Ability_RapidFire", "CCitadelBaseAbility" }
-designers.gunslinger_rocket_launcher = { "CCitadel_Ability_RocketLauncher", "CCitadelBaseAbility" }
-designers.gunslinger_salvo = { "CCitadel_Ability_Gunslinger_Salvo", "CCitadelBaseAbility" }
-designers.gunslinger_sleep_bomb = { "CCitadel_Ability_SleepBomb", "CCitadelBaseAbility" }
-designers.gunslinger_tenacity = { "CCitadel_Ability_Tenacity", "CCitadelBaseAbility" }
-designers.handle_dummy = { "CHandleDummy", "CBaseEntity" }
-designers.handle_test = { "CHandleTest", "CBaseEntity" }
-designers.hero_preview = { "C_HeroPreview", "CBaseEntity" }
-designers.hero_testing_controller = { "CInfoHeroTestingController", "CPointEntity" }
-designers.hl_vr_texture_based_animatable = { "CTextureBasedAnimatable", "CTextureBasedAnimatable" }
-designers.icepath_shard = { "CCitadel_Ice_Path_Shard_Physics", "CBaseModelEntity" }
-designers.immobilize_trap_projectile = { "CCitadelProjectile_ImmobilizeTrap", "CBaseModelEntity" }
-designers.in_world_key_bind_panel = { "CInWorldKeyBindPanel", "CPointClientUIWorldPanel" }
-designers.info_ability_test_bot = { "CInfoAbilityTestBot", "CPointEntity" }
-designers.info_assigned_lane_particle = { "CAssignedLaneParticle", "CAssignedLaneParticle" }
-designers.info_choreo_anchor = { "CInfoChoreoAnchor", "CPointEntity" }
-designers.info_citadel_familiar_helper = { "CInfoCitadelHelperLocation", "CBaseEntity" }
-designers.info_citadel_hideout = { "CInfoCitadelHideout", "CInfoCitadelHideout" }
-designers.info_citadel_hideout_interest_point = { "CCitadelHideoutInterestPoint", "CCitadelHideoutInterestPoint" }
-designers.info_citadel_matchmaking_status = { "CCitadelMatchmakingStatusInfo", "CCitadelMatchmakingStatusInfo" }
-designers.info_constraint_anchor = { "CConstraintAnchor", "CConstraintAnchor" }
-designers.info_data = { "CInfoData", "CBaseEntity" }
-designers.info_dynamic_shadow_hint = { "CInfoDynamicShadowHint", "CInfoDynamicShadowHint" }
-designers.info_dynamic_shadow_hint_box = { "CInfoDynamicShadowHintBox", "CInfoDynamicShadowHintBox" }
-designers.info_game_event_proxy = { "CInfoGameEventProxy", "CInfoGameEventProxy" }
-designers.info_hero_testing_point = { "CInfoHeroTestingPoint", "CInfoHeroTestingPoint" }
-designers.info_hint = { "CNodeEnt_InfoHint", "CNodeEnt" }
-designers.info_koth_spawn_location = { "CInfoKOTHSpawnLocation", "CPointEntity" }
-designers.info_ladder_dismount = { "CInfoLadderDismount", "CBaseEntity" }
-designers.info_landmark = { "CInfoLandmark", "CPointEntity" }
-designers.info_mid_boss_spawn = { "CInfoMidBossSpawn", "CBaseEntity" }
-designers.info_mini_map_marker = { "CMiniMapMarker", "CMiniMapMarker" }
-designers.info_nav_space = { "CNavSpaceInfo", "CPointEntity" }
-designers.info_neutral_trooper_camp = { "CInfoTrooperNeutralCamp", "CInfoTrooperNeutralCamp" }
-designers.info_neutral_trooper_spawn = { "CInfoTrooperNeutralSpawn", "CInfoTrooperNeutralSpawn" }
-designers.info_node = { "CNodeEnt", "CNodeEnt" }
-designers.info_node_air = { "CNodeEnt_InfoNodeAir", "CNodeEnt" }
-designers.info_node_air_hint = { "CNodeEnt_InfoNodeAirHint", "CNodeEnt" }
-designers.info_node_hint = { "CNodeEnt_InfoNodeHint", "CNodeEnt" }
-designers.info_npc_spawn_destination = { "CNPCSpawnDestination", "CNPCSpawnDestination" }
-designers.info_null = { "CNullEntity", "CBaseEntity" }
-designers.info_offscreen_panorama_texture = { "CInfoOffscreenPanoramaTexture", "CInfoOffscreenPanoramaTexture" }
-designers.info_particle_system = { "CParticleSystem", "CParticleSystem" }
-designers.info_particle_target = { "CInfoParticleTarget", "CPointEntity" }
-designers.info_player_deathmatch = { "CBaseDMStart", "CBaseDMStart" }
-designers.info_player_start = { "CInfoPlayerStart", "CInfoPlayerStart" }
-designers.info_portal_link = { "CInfoPortalLink", "CPointEntity" }
-designers.info_spawngroup_landmark = { "CInfoSpawnGroupLandmark", "CPointEntity" }
-designers.info_spawngroup_load_unload = { "CInfoSpawnGroupLoadUnload", "CInfoSpawnGroupLoadUnload" }
-designers.info_super_trooper_spawn = { "CInfoTrooperBossSpawn", "CInfoTrooperBossSpawn" }
-designers.info_target = { "CInfoTarget", "CPointEntity" }
-designers.info_target_choreo = { "CChoreoInfoTarget", "CPointEntity" }
-designers.info_target_instructor_hint = { "CInfoInstructorHintTarget", "CPointEntity" }
-designers.info_target_server_only = { "CInfoTargetServerOnly", "CBaseEntity" }
-designers.info_team_relative_particle_system = { "CTeamRelativeParticleSystem", "CTeamRelativeParticleSystem" }
-designers.info_team_spawn = { "CInfoTeamSpawn", "CInfoTeamSpawn" }
-designers.info_teleport_destination = { "CInfoTeleportDestination", "CPointEntity" }
-designers.info_teleport_location = { "CCitadelTeleportLocation", "CCitadelTeleportLocation" }
-designers.info_trigger_fan = { "CInfoFan", "CInfoFan" }
-designers.info_trooper_spawn = { "CInfoTrooperSpawn", "CInfoTrooperSpawn" }
-designers.info_tutorial_point = { "CInfoTutorialPoint", "CInfoTutorialPoint" }
-designers.info_visibility_box = { "CInfoVisibilityBox", "CInfoVisibilityBox" }
-designers.info_world_layer = { "CInfoWorldLayer", "CInfoWorldLayer" }
-designers.instanced_scripted_scene = { "CInstancedSceneEntity", "CInstancedSceneEntity" }
-designers.item = { "CItem", "CItem" }
-designers.item_crate = { "CItemCrate", "CItemCrate" }
-designers.item_crate_spawn = { "CItemCrateSpawn", "CItemCrateSpawn" }
-designers.item_explosive_barrel = { "CItemExplosiveBarrel", "CBaseModelEntity" }
-designers.item_generic = { "CItemGeneric", "CItemGeneric" }
-designers.item_generic_trigger_helper = { "CItemGenericTriggerHelper", "CBaseModelEntity" }
-designers.item_projectile_test_01 = { "CCitadel_Item_ProjectileTest", "CCitadelBaseAbility" }
-designers.item_projectile_test_02 = { "CCitadel_Item_ProjectileTest02", "CCitadelBaseAbility" }
-designers.item_projectile_test_04 = { "CCitadel_Item_ProjectileTest04", "CCitadelBaseAbility" }
-designers.item_projectile_test_05 = { "CCitadel_Item_ProjectileTest05", "CCitadelBaseAbility" }
-designers.item_projectile_test_06 = { "CCitadel_Item_ProjectileTest06", "CCitadelBaseAbility" }
-designers.item_sodacan = { "CItemSoda", "CBaseAnimGraph" }
-designers.item_xp = { "CItemXP", "CBaseModelEntity" }
-designers.kali_boomerang_projectile = { "CCitadelBoomerangProjectile", "CBaseModelEntity" }
-designers.keyframe_rope = { "CRopeKeyframe", "CRopeKeyframe" }
-designers.keyframe_track = { "CPathKeyFrame", "CPathKeyFrame" }
-designers.knightcharge_projectile = { "CProjectile_KnightCharge_Projectile", "CBaseModelEntity" }
-designers.knightchargeleading_projectile = { "CProjectile_KnightChargeLeading_Projectile", "CBaseModelEntity" }
-designers.lane_marker_path = { "CLaneMarkerPath", "CLaneMarkerPath" }
-designers.light_barn = { "CBarnLight", "CBarnLight" }
-designers.light_directional = { "CLightDirectionalEntity", "CLightEntity" }
-designers.light_dynamic = { "CDynamicLight", "CDynamicLight" }
-designers.light_environment = { "CEnvironmentLight", "CEnvironmentLight" }
-designers.light_omni = { "CLightEntity", "CLightEntity" }
-designers.light_omni2 = { "COmniLight", "COmniLight" }
-designers.light_ortho = { "CLightOrthoEntity", "CLightEntity" }
-designers.light_rect = { "CRectLight", "CRectLight" }
-designers.light_spot = { "CLightSpotEntity", "CLightEntity" }
-designers.logic_achievement = { "CLogicAchievement", "CLogicAchievement" }
-designers.logic_active_autosave = { "CLogicActiveAutosave", "CLogicActiveAutosave" }
-designers.logic_activityevent = { "CLogicActivityEvent", "CLogicActivityEvent" }
-designers.logic_auto = { "CLogicAuto", "CLogicAuto" }
-designers.logic_auto_citadel = { "CLogicAutoCitadel", "CLogicAutoCitadel" }
-designers.logic_autosave = { "CLogicAutosave", "CLogicAutosave" }
-designers.logic_branch = { "CLogicBranch", "CLogicBranch" }
-designers.logic_branch_listener = { "CLogicBranchList", "CLogicBranchList" }
-designers.logic_case = { "CLogicCase", "CLogicCase" }
-designers.logic_choreographed_scene = { "CSceneEntityAlias_logic_choreographed_scene", "CSceneEntity" }
-designers.logic_collision_pair = { "CLogicCollisionPair", "CLogicCollisionPair" }
-designers.logic_compare = { "CLogicCompare", "CLogicCompare" }
-designers.logic_distance_autosave = { "CLogicDistanceAutosave", "CLogicDistanceAutosave" }
-designers.logic_distance_check = { "CLogicDistanceCheck", "CLogicDistanceCheck" }
-designers.logic_game_event = { "CLogicGameEvent", "CLogicGameEvent" }
-designers.logic_gameevent_listener = { "CLogicGameEventListener", "CLogicGameEventListener" }
-designers.logic_gamestate_report = { "CLogicGameStateReport", "CLogicGameStateReport" }
-designers.logic_lineto = { "CLogicLineToEntity", "CLogicLineToEntity" }
-designers.logic_measure_movement = { "CLogicMeasureMovement", "CLogicMeasureMovement" }
-designers.logic_multilight_proxy = { "CMultiLightProxy", "CMultiLightProxy" }
-designers.logic_navigation = { "CLogicNavigation", "CLogicNavigation" }
-designers.logic_npc_counter_aabb = { "CLogicNPCCounterAABB", "CLogicNPCCounterAABB" }
-designers.logic_npc_counter_obb = { "CLogicNPCCounterOBB", "CLogicNPCCounterAABB" }
-designers.logic_npc_counter_radius = { "CLogicNPCCounter", "CLogicNPCCounter" }
-designers.logic_playerproxy = { "CGenericLogicPlayerProxy", "CLogicPlayerProxyBase" }
-designers.logic_playerproxy_base = { "CLogicPlayerProxyBase", "CLogicPlayerProxyBase" }
-designers.logic_proximity = { "CLogicProximity", "CPointEntity" }
-designers.logic_relay = { "CLogicRelay", "CLogicRelay" }
-designers.logic_scene_list_manager = { "CSceneListManager", "CSceneListManager" }
-designers.logic_script = { "CLogicScript", "CLogicScript" }
-designers.logic_timer = { "CTimerEntity", "CTimerEntity" }
-designers.magician_magicbolt_projectile = { "CCitadel_Projectile_MagicBolt", "CBaseModelEntity" }
-designers.map_shared_environment = { "CMapSharedEnvironment", "CMapSharedEnvironment" }
-designers.markup_volume = { "CMarkupVolume", "CMarkupVolume" }
-designers.markup_volume_tagged = { "CSimpleMarkupVolumeTagged", "CMarkupVolumeTagged" }
-designers.markup_volume_tagged_base = { "CMarkupVolumeTagged", "CMarkupVolumeTagged" }
-designers.markup_volume_with_ref = { "CMarkupVolumeWithRef", "CMarkupVolumeWithRef" }
-designers.match_tracked_stats = { "CMatchTrackedStatsEntity", "CBaseEntity" }
-designers.math_colorblend = { "CMathColorBlend", "CMathColorBlend" }
-designers.math_counter = { "CMathCounter", "CMathCounter" }
-designers.math_remap = { "CMathRemap", "CMathRemap" }
-designers.mirage_fire_beetles = { "CCitadel_Ability_Mirage_FireBeetles", "CCitadelBaseAbility" }
-designers.mirage_sand_phantom = { "CAbility_Mirage_SandPhantom", "CCitadelBaseAbility" }
-designers.mirage_teleport = { "CCitadel_Ability_Mirage_Teleport", "CCitadelBaseAbility" }
-designers.mirage_tornado = { "CAbility_Mirage_Tornado", "CCitadelBaseAbility" }
-designers.momentary_door = { "CFuncMoveLinearAlias_momentary_door", "CFuncMoveLinear" }
-designers.momentary_rot_button = { "CMomentaryRotButton", "CMomentaryRotButton" }
-designers.move_rope = { "CRopeKeyframeAlias_move_rope", "CRopeKeyframe" }
-designers.multisource = { "CMultiSource", "CMultiSource" }
-designers.necro_haunt_projectile = { "CProjectile_Necro_HauntProjectile", "CBaseModelEntity" }
-designers.npc_barrack_boss = { "CNPC_BarrackBoss", "CNPC_BarrackBoss" }
-designers.npc_base_defense_sentry = { "CNPC_BaseDefenseSentry", "CNPC_BaseDefenseSentry" }
-designers.npc_boss_tier2 = { "CNPC_Boss_Tier2", "CNPC_Boss_Tier2" }
-designers.npc_boss_tier3 = { "CNPC_Boss_Tier3", "CNPC_Boss_Tier3" }
-designers.npc_boss_tier3core = { "CNPC_Boss_Tier3Core", "CBaseAnimGraph" }
-designers.npc_escort = { "CNPC_Escort", "CAI_CitadelNPC" }
-designers.npc_familiar_helper = { "CNPC_FamiliarHelper", "CNPC_FamiliarHelper" }
-designers.npc_maker = { "CNPCMaker", "CNPCMaker" }
-designers.npc_maker_base = { "CBaseNPCMaker", "CBaseNPCMaker" }
-designers.npc_necro_hauntingskull = { "CNecro_HauntingSkullEntity", "CNecro_HauntingSkullEntity" }
-designers.npc_necro_skele = { "CNPC_NecroSkele", "CNPC_NecroSkele" }
-designers.npc_neutral_bug = { "CNPC_Neutral_Bug", "CBaseAnimGraph" }
-designers.npc_neutral_flying_pigeon = { "CNPC_Neutral_Flying_Pigeon", "CBaseAnimGraph" }
-designers.npc_neutral_hideout_cat = { "CNPC_Neutral_Hideout_Cat", "CBaseAnimGraph" }
-designers.npc_neutral_hideout_rabbit = { "CNPC_Neutral_Hideout_Rabbit", "CBaseAnimGraph" }
-designers.npc_neutral_sinners_sacrifice = { "CNPC_Neutral_SinnersSacrifice", "CAI_CitadelNPC" }
-designers.npc_neutral_sinners_sacrifice_hideout = { "CNPC_Neutral_SinnersSacrifice_Hideout", "CAI_CitadelNPC" }
-designers.npc_player_bot_brain = { "CCitadelPlayerBotNPCBrain", "CAI_CitadelNPC" }
-designers.npc_ratking_rat = { "CNPC_Ratking_Rat", "CNPC_Ratking_Rat" }
-designers.npc_shielded_sentry = { "CNPC_ShieldedSentry", "CNPC_ShieldedSentry" }
-designers.npc_super_neutral = { "CNPC_MidBoss", "CAI_CitadelNPC" }
-designers.npc_template_maker = { "CTemplateNPCMaker", "CTemplateNPCMaker" }
-designers.npc_trooper = { "CNPC_Trooper", "CNPC_Trooper" }
-designers.npc_trooper_boss = { "CNPC_TrooperBoss", "CNPC_TrooperBoss" }
-designers.npc_trooper_neutral = { "CNPC_TrooperNeutral", "CAI_CitadelNPC" }
-designers.npc_yakuza_gangster = { "CNPC_YakuzaGangster", "CAI_CitadelNPC" }
-designers.observer = { "CCitadelObserverPawn", "CCitadelObserverPawn" }
-designers.operative_blindside = { "CCitadel_Ability_Operative_Blindside", "CCitadelBaseAbility" }
-designers.operative_revelation = { "CAbility_Operative_Revelation", "CCitadelBaseAbility" }
-designers.operative_umbrella_maneuver = { "CAbility_Operative_UmbrellaManeuver", "CCitadelBaseAbility" }
-designers.orb_spawner = { "COrbSpawner", "CBaseEntity" }
-designers.path_accompany = { "CPathAccompany", "CPathAccompany" }
-designers.path_corner = { "CPathCorner", "CPathCorner" }
-designers.path_corner_crash = { "CPathCornerCrash", "CPathCorner" }
-designers.path_mover = { "CPathMover", "CPathMover" }
-designers.path_mover_entity_spawner = { "CPathMoverEntitySpawner", "CPathMoverEntitySpawner" }
-designers.path_node = { "CPathNode", "CPathNode" }
-designers.path_node_mover = { "CMoverPathNode", "CMoverPathNode" }
-designers.path_particle_rope = { "CPathParticleRope", "CPathParticleRope" }
-designers.path_particle_rope_clientside = { "CPathParticleRopeAlias_path_particle_rope_clientside", "CPathParticleRope" }
-designers.path_simple = { "CPathSimple", "CPathSimple" }
-designers.path_track = { "CPathTrack", "CPathTrack" }
-designers.path_with_dynamic_nodes = { "CPathWithDynamicNodes", "CPathWithDynamicNodes" }
-designers.phys_ballsocket = { "CPhysBallSocket", "CPhysBallSocket" }
-designers.phys_constraint = { "CPhysFixed", "CPhysFixed" }
-designers.phys_constraint_base = { "CPhysConstraint", "CPhysConstraint" }
-designers.phys_force = { "CPhysForce", "CPhysForce" }
-designers.phys_genericconstraint = { "CGenericConstraint", "CGenericConstraint" }
-designers.phys_hinge = { "CPhysHinge", "CPhysHinge" }
-designers.phys_hinge_local = { "CPhysHingeAlias_phys_hinge_local", "CPhysHinge" }
-designers.phys_keepupright = { "CKeepUpright", "CKeepUpright" }
-designers.phys_lengthconstraint = { "CPhysLength", "CPhysLength" }
-designers.phys_magnet = { "CPhysMagnet", "CPhysMagnet" }
-designers.phys_motor = { "CPhysMotor", "CPhysMotor" }
-designers.phys_pulleyconstraint = { "CPhysPulley", "CPhysPulley" }
-designers.phys_ragdollconstraint = { "CRagdollConstraint", "CRagdollConstraint" }
-designers.phys_ragdollmagnet = { "CRagdollMagnet", "CRagdollMagnet" }
-designers.phys_slideconstraint = { "CPhysSlideConstraint", "CPhysSlideConstraint" }
-designers.phys_splineconstraint = { "CSplineConstraint", "CSplineConstraint" }
-designers.phys_spring = { "CPhysicsSpring", "CPhysicsSpring" }
-designers.phys_thruster = { "CPhysThruster", "CPhysForce" }
-designers.phys_torque = { "CPhysTorque", "CPhysTorque" }
-designers.phys_wheelconstraint = { "CPhysWheelConstraint", "CPhysWheelConstraint" }
-designers.physics_entity_solver = { "CPhysicsEntitySolver", "CPhysicsEntitySolver" }
-designers.physics_npc_solver = { "CPhysicsNPCSolver", "CPhysicsNPCSolver" }
-designers.physics_prop_ragdoll = { "CRagdollPropAlias_physics_prop_ragdoll", "CRagdollProp" }
-designers.plat_trigger = { "CPlatTrigger", "CBaseModelEntity" }
-designers.player = { "CCitadelPlayerPawn", "CCitadelPlayerPawn" }
-designers.player_controller = { "CBasePlayerController", "CBasePlayerController" }
-designers.player_loadsaved = { "CRevertSaved", "CRevertSaved" }
-designers.player_spray_decal = { "CPlayerSprayDecal", "CPlayerSprayDecal" }
-designers.player_tracked_stats = { "CPlayerTrackedStatsEntity", "CBaseEntity" }
-designers.point_anglesensor = { "CPointAngleSensor", "CPointAngleSensor" }
-designers.point_angularvelocitysensor = { "CPointAngularVelocitySensor", "CPointAngularVelocitySensor" }
-designers.point_broadcastclientcommand = { "CPointBroadcastClientCommand", "CPointBroadcastClientCommand" }
-designers.point_camera = { "CPointCamera", "CPointCamera" }
-designers.point_camera_vertical_fov = { "CPointCameraVFOV", "CPointCameraVFOV" }
-designers.point_childmodifier = { "CPointChildModifier", "CPointChildModifier" }
-designers.point_clientcommand = { "CPointClientCommand", "CPointClientCommand" }
-designers.point_clientui_dialog = { "CPointClientUIDialog", "CPointClientUIDialog" }
-designers.point_clientui_world_panel = { "CPointClientUIWorldPanel", "CPointClientUIWorldPanel" }
-designers.point_clientui_world_text_panel = { "CPointClientUIWorldTextPanel", "CPointClientUIWorldTextPanel" }
-designers.point_commentary_node = { "CPointCommentaryNode", "CPointCommentaryNode" }
-designers.point_commentary_viewpoint = { "CCommentaryViewPosition", "CSprite" }
-designers.point_enable_motion_fixup = { "CEnableMotionFixup", "CBaseEntity" }
-designers.point_entity = { "CPointEntity", "CPointEntity" }
-designers.point_entity_finder = { "CPointEntityFinder", "CPointEntityFinder" }
-designers.point_hurt = { "CPointHurt", "CPointHurt" }
-designers.point_instructor_event = { "CInstructorEventEntity", "CInstructorEventEntity" }
-designers.point_message = { "CMessageEntity", "CMessageEntity" }
-designers.point_modifier_thinker = { "CPointModifierThinker", "CPointModifierThinker" }
-designers.point_nav_walkable = { "CNavWalkable", "CPointEntity" }
-designers.point_orient = { "CPointOrient", "CPointOrient" }
-designers.point_prefab = { "CPointPrefab", "CPointPrefab" }
-designers.point_proximity_sensor = { "CPointProximitySensor", "CPointProximitySensor" }
-designers.point_pulse = { "CPointPulse", "CBaseEntity" }
-designers.point_push = { "CPointPush", "CPointPush" }
-designers.point_servercommand = { "CPointServerCommand", "CPointServerCommand" }
-designers.point_soundevent = { "CSoundEventEntity", "CSoundEventEntity" }
-designers.point_teleport = { "CPointTeleport", "CPointTeleport" }
-designers.point_template = { "CPointTemplate", "CPointTemplate" }
-designers.point_value_remapper = { "CPointValueRemapper", "CPointValueRemapper" }
-designers.point_velocitysensor = { "CPointVelocitySensor", "CPointVelocitySensor" }
-designers.point_worldtext = { "CPointWorldText", "CPointWorldText" }
-designers.post_processing_volume = { "CPostProcessingVolume", "CPostProcessingVolume" }
-designers.priest_beartrap = { "CCitadel_Ability_Priest_BearTrap", "CCitadelBaseAbility" }
-designers.priest_flashbang = { "CCitadel_Ability_Priest_Flashbang", "CCitadelBaseAbility" }
-designers.projectile_boho_skipgrenade = { "CProjectile_Boho_SkipGrenade", "CBaseModelEntity" }
-designers.projectile_cyclone = { "CCitadel_Projectile_Cyclone", "CBaseModelEntity" }
-designers.projectile_doorman_cart_projectile = { "CProjectile_Doorman_Cart_Projectile", "CBaseModelEntity" }
-designers.projectile_dust_storm = { "CCitadel_Projectile_DustStorm", "CBaseModelEntity" }
-designers.projectile_gravestone_projectile = { "CProjectile_GraveStone_Projectile", "CBaseModelEntity" }
-designers.projectile_necro_zombiewall_projectile = { "CProjectile_Necro_ZombieWall_Projectile", "CBaseModelEntity" }
-designers.projectile_perched_predator = { "CProjectile_Perched_Predator", "CBaseModelEntity" }
-designers.projectile_rolling_fireball = { "CProjectile_Rolling_FireBall", "CBaseModelEntity" }
-designers.projectile_stomp_projectile = { "CProjectile_Stomp_Projectile", "CBaseModelEntity" }
-designers.projectile_touch_volume = { "CCitadelProjectileTouchVolume", "CCitadelProjectileTouchVolume" }
-designers.prop_animating_breakable = { "CPropAnimatingBreakable", "CPropAnimatingBreakable" }
-designers.prop_door_rotating = { "CPropDoorRotating", "CPropDoorRotating" }
-designers.prop_door_rotating_breakable = { "CPropDoorRotatingBreakable", "CPropDoorRotatingBreakable" }
-designers.prop_dynamic = { "CDynamicProp", "CDynamicProp" }
-designers.prop_dynamic_ornament = { "COrnamentProp", "COrnamentProp" }
-designers.prop_dynamic_override = { "CDynamicPropAlias_prop_dynamic_override", "CDynamicProp" }
-designers.prop_physics = { "CPhysicsProp", "CPhysicsProp" }
-designers.prop_physics_override = { "CPhysicsPropOverride", "CPhysicsProp" }
-designers.prop_physics_respawnable = { "CPhysicsPropRespawnable", "CPhysicsPropRespawnable" }
-designers.prop_ragdoll = { "CRagdollProp", "CRagdollProp" }
-designers.prop_ragdoll_attached = { "CRagdollPropAttached", "CRagdollProp" }
-designers.pulse_game_blackboard = { "CPulseGameBlackboard", "CPulseGameBlackboard" }
-designers.punkgoat_tether_projectile = { "CProjectile_PunkgoatTether", "CBaseModelEntity" }
-designers.ratking_scrap_grenade_projectile = { "CScrapGrenadeProjectile", "CBaseModelEntity" }
-designers.rejuv_tracking_projectile = { "CCitadel_Item_RejuvTrackingProjectile", "CCitadelBaseAbility" }
-designers.render_portal = { "CRenderPortal", "CRenderPortal" }
-designers.rocket_launcher_rocket_projectile = { "CCitadel_Projectile_RocketLauncher_Rocket", "CBaseModelEntity" }
-designers.rotator_target = { "CRotatorTarget", "CPointEntity" }
-designers.rule_entity = { "CRuleEntity", "CRuleEntity" }
-designers.rule_point_entity = { "CRulePointEntity", "CRulePointEntity" }
-designers.rutger_cheat_death = { "CAbility_Rutger_CheatDeath", "CCitadelBaseAbility" }
-designers.rutger_force_field = { "CAbility_Rutger_ForceField", "CCitadelBaseAbility" }
-designers.rutger_pulse = { "CCitadel_Ability_Rutger_Pulse", "CCitadelBaseAbility" }
-designers.rutger_rocket = { "CAbility_Rutger_RocketLauncher", "CCitadelBaseAbility" }
-designers.rutger_rocket_projectile = { "CProjectile_Rutger_Rocket", "CBaseModelEntity" }
-designers.script_nav_blocker = { "CScriptNavBlocker", "CScriptNavBlocker" }
-designers.script_trigger_hurt = { "CScriptTriggerHurt", "CScriptTriggerHurt" }
-designers.script_trigger_multiple = { "CScriptTriggerMultiple", "CScriptTriggerMultiple" }
-designers.script_trigger_once = { "CScriptTriggerOnce", "CScriptTriggerOnce" }
-designers.script_trigger_push = { "CScriptTriggerPush", "CScriptTriggerPush" }
-designers.scripted_item_drop = { "CScriptItem", "CItem" }
-designers.scripted_scene = { "CSceneEntity", "CSceneEntity" }
-designers.scripted_sequence = { "CScriptedSequence", "CScriptedSequence" }
-designers.setting_sun_projectile = { "CCitadel_Projectile_SettingSun", "CBaseModelEntity" }
-designers.shadow_pulse = { "CCitadel_Ability_ShadowPulse", "CCitadelBaseAbility" }
-designers.shatterglass_shard = { "CShatterGlassShardPhysics", "CBaseModelEntity" }
-designers.simple_animating_ai = { "CNPC_SimpleAnimatingAI", "CNPC_SimpleAnimatingAI" }
-designers.sky_camera = { "CSkyCamera", "CSkyCamera" }
-designers.skybox_reference = { "CSkyboxReference", "CSkyboxReference" }
-designers.snd_event_alignedbox = { "CSoundEventAABBEntity", "CSoundEventAABBEntity" }
-designers.snd_event_box_helper = { "CSoundEventBoxHelper", "CSoundEventBoxHelper" }
-designers.snd_event_cone = { "CSoundEventConeEntity", "CSoundEventConeEntity" }
-designers.snd_event_multipoint = { "CSoundEventMultiPointEntity", "CSoundEventMultiPointEntity" }
-designers.snd_event_oriented_boxes = { "CSoundEventBoxEntity", "CSoundEventBoxEntity" }
-designers.snd_event_orientedbox = { "CSoundEventOBBEntity", "CSoundEventOBBEntity" }
-designers.snd_event_param = { "CSoundEventParameter", "CSoundEventParameter" }
-designers.snd_event_path_corner = { "CSoundEventPathCornerEntity", "CSoundEventPathCornerEntity" }
-designers.snd_event_point = { "CSoundEventEntityAlias_snd_event_point", "CSoundEventEntity" }
-designers.snd_event_sphere = { "CSoundEventSphereEntity", "CSoundEventSphereEntity" }
-designers.snd_opvar_set = { "CSoundOpvarSetEntity", "CSoundOpvarSetEntity" }
-designers.snd_opvar_set_aabb = { "CSoundOpvarSetAABBEntity", "CSoundOpvarSetBoxEntity" }
-designers.snd_opvar_set_auto_room = { "CSoundOpvarSetAutoRoomEntity", "CSoundOpvarSetAutoRoomEntity" }
-designers.snd_opvar_set_box_base = { "CSoundOpvarSetBoxEntity", "CSoundOpvarSetBoxEntity" }
-designers.snd_opvar_set_dome = { "CSoundOpvarSetDomeEntity", "CSoundOpvarSetDomeEntity" }
-designers.snd_opvar_set_obb = { "CSoundOpvarSetOBBEntity", "CSoundOpvarSetBoxEntity" }
-designers.snd_opvar_set_path_corner = { "CSoundOpvarSetPathCornerEntity", "CSoundOpvarSetPathCornerEntity" }
-designers.snd_opvar_set_point = { "CSoundOpvarSetPointEntity", "CSoundOpvarSetPointEntity" }
-designers.snd_opvar_set_point_base = { "CSoundOpvarSetPointBase", "CSoundOpvarSetPointBase" }
-designers.snd_opvar_set_precipitation = { "CSoundOpvarSetPrecipitationEntity", "CSoundOpvarSetPrecipitationEntity" }
-designers.snd_opvar_set_precipitation_obb = { "CSoundOpvarSetPrecipitationOBBEntity", "CSoundOpvarSetPrecipitationEntity" }
-designers.snd_opvar_set_wind_obb = { "CSoundOpvarSetOBBWindEntity", "CSoundOpvarSetOBBWindEntity" }
-designers.snd_sound_area_base = { "CSoundAreaEntityBase", "CSoundAreaEntityBase" }
-designers.snd_sound_area_obb = { "CSoundAreaEntityOrientedBox", "CSoundAreaEntityOrientedBox" }
-designers.snd_sound_area_sphere = { "CSoundAreaEntitySphere", "CSoundAreaEntitySphere" }
-designers.snd_soundscape = { "CEnvSoundscapeAlias_snd_soundscape", "CEnvSoundscape" }
-designers.snd_soundscape_proxy = { "CEnvSoundscapeProxyAlias_snd_soundscape_proxy", "CEnvSoundscapeProxy" }
-designers.snd_soundscape_triggerable = { "CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable", "CEnvSoundscape" }
-designers.snd_stack_save = { "CSoundStackSave", "CSoundStackSave" }
-designers.spark_shower = { "CShower", "CBaseModelEntity" }
-designers.spider_projectile = { "CCitadel_Projectile_SpiderProjectile", "CBaseModelEntity" }
-designers.spotlight_end = { "CSpotlightEnd", "CBaseModelEntity" }
-designers.super_neutral_charge = { "CCitadel_Ability_SuperNeutralCharge", "CCitadelBaseAbility" }
-designers.super_neutral_incendiary = { "CCitadel_Ability_SuperNeutralIncendiary", "CCitadelBaseAbility" }
-designers.super_neutral_shield = { "CCitadel_Ability_SuperNeutralShield", "CCitadelBaseAbility" }
-designers.synth_affliction = { "CAbility_Synth_Affliction", "CCitadelBaseAbility" }
-designers.synth_barrage = { "CAbility_Synth_Barrage", "CCitadelBaseAbility" }
-designers.synth_barrage_projectile = { "CProjectile_Synth_Barrage", "CBaseModelEntity" }
-designers.synth_plasma_flux = { "CAbility_Synth_PlasmaFlux", "CCitadelBaseAbility" }
-designers.synth_plasma_flux_projectile = { "CProjectile_Synth_PlasmaFlux", "CBaseModelEntity" }
-designers.synth_plasma_flux_trigger = { "CAbility_Synth_PlasmaFlux_Trigger", "CCitadelBaseAbility" }
-designers.synth_pulse = { "CAbility_Synth_Pulse", "CCitadelBaseAbility" }
-designers.tanktrain_ai = { "CTankTrainAI", "CTankTrainAI" }
-designers.tanktrain_aitarget = { "CTankTargetChange", "CTankTargetChange" }
-designers.targetdummy_ability_1 = { "CCitadel_Ability_Targetdummy_1", "CCitadelBaseAbility" }
-designers.targetdummy_ability_2 = { "CCitadel_Ability_Targetdummy_2", "CCitadelBaseAbility" }
-designers.targetdummy_ability_3 = { "CCitadel_Ability_Targetdummy_3", "CCitadelBaseAbility" }
-designers.targetdummy_ability_4 = { "CCitadel_Ability_Targetdummy_4", "CCitadelBaseAbility" }
-designers.team_manager = { "CTeam", "CTeam" }
-designers.team_tracked_stats = { "CTeamTrackedStatsEntity", "CBaseEntity" }
-designers.test_effect = { "CTestEffect", "CBaseEntity" }
-designers.test_io_combinations = { "CTestPulseIO", "CTestPulseIO" }
-designers.thumper_ability_1 = { "CCitadel_Ability_Thumper_1", "CCitadelBaseAbility" }
-designers.thumper_ability_2 = { "CCitadel_Ability_Thumper_2", "CCitadelBaseAbility" }
-designers.thumper_ability_3 = { "CCitadel_Ability_Thumper_3", "CCitadelBaseAbility" }
-designers.thumper_ability_4 = { "CCitadel_Ability_Thumper_4", "CCitadelBaseAbility" }
-designers.trigger = { "CBaseTrigger", "CBaseTrigger" }
-designers.trigger_Ice_Path_Volume = { "CTriggerIcePathVolume", "CBaseTrigger" }
-designers.trigger_active_weapon_detect = { "CTriggerActiveWeaponDetect", "CTriggerActiveWeaponDetect" }
-designers.trigger_add_modifier = { "CTriggerAddModifier", "CTriggerAddModifier" }
-designers.trigger_autosave = { "CTriggerSave", "CTriggerSave" }
-designers.trigger_brush = { "CTriggerBrush", "CTriggerBrush" }
-designers.trigger_burrow_underground = { "CTriggerBurrowUnderground", "CBaseTrigger" }
-designers.trigger_callback = { "CTriggerCallback", "CBaseTrigger" }
-designers.trigger_catapult = { "CCitadelCatapultTrigger", "CCitadelCatapultTrigger" }
-designers.trigger_changelevel = { "CChangeLevel", "CChangeLevel" }
-designers.trigger_detect_bullet_fire = { "CTriggerDetectBulletFire", "CTriggerDetectBulletFire" }
-designers.trigger_detect_explosion = { "CTriggerDetectExplosion", "CTriggerDetectExplosion" }
-designers.trigger_fan = { "CTriggerFan", "CTriggerFan" }
-designers.trigger_fog = { "CFogTrigger", "CFogTrigger" }
-designers.trigger_game_event = { "CTriggerGameEvent", "CTriggerGameEvent" }
-designers.trigger_gravity = { "CTriggerGravity", "CBaseTrigger" }
-designers.trigger_hurt = { "CTriggerHurt", "CTriggerHurt" }
-designers.trigger_hurt_citadel = { "CCitadelTriggerHurt", "CTriggerHurt" }
-designers.trigger_impact = { "CTriggerImpact", "CTriggerImpact" }
-designers.trigger_item_shop = { "CTriggerItemShop", "CTriggerItemShop" }
-designers.trigger_item_shop_safe_zone = { "CTriggerItemShopSafeZone", "CTriggerItemShopSafeZone" }
-designers.trigger_lerp_object = { "CTriggerLerpObject", "CTriggerLerpObject" }
-designers.trigger_look = { "CTriggerLook", "CTriggerLook" }
-designers.trigger_midboss_shield = { "CTriggerMidBossShield", "CBaseTrigger" }
-designers.trigger_modifier = { "CTriggerModifier", "CTriggerModifier" }
-designers.trigger_multiple = { "CTriggerMultiple", "CTriggerMultiple" }
-designers.trigger_neutral_idles = { "CTriggerNeutralIdles", "CBaseTrigger" }
-designers.trigger_neutral_shield = { "CTriggerNeutralShield", "CBaseTrigger" }
-designers.trigger_once = { "CTriggerOnce", "CTriggerMultiple" }
-designers.trigger_passthrough_fake_wall = { "CTriggerPassthroughFakeWall", "CBaseTrigger" }
-designers.trigger_physics = { "CTriggerPhysics", "CTriggerPhysics" }
-designers.trigger_ping_location = { "CTriggerPingLocation", "CTriggerPingLocation" }
-designers.trigger_portal = { "CCitadelPortalTrigger", "CCitadelPortalTrigger" }
-designers.trigger_proximity = { "CTriggerProximity", "CTriggerProximity" }
-designers.trigger_push = { "CTriggerPush", "CTriggerPush" }
-designers.trigger_remove = { "CTriggerRemove", "CTriggerRemove" }
-designers.trigger_remove_modifier = { "CTriggerRemoveModifier", "CTriggerRemoveModifier" }
-designers.trigger_serverragdoll = { "CServerRagdollTrigger", "CBaseTrigger" }
-designers.trigger_snd_sos_opvar = { "CTriggerSndSosOpvar", "CTriggerSndSosOpvar" }
-designers.trigger_soundscape = { "CTriggerSoundscape", "CTriggerSoundscape" }
-designers.trigger_team_base = { "CTriggerTeamBase", "CBaseTrigger" }
-designers.trigger_teleport = { "CTriggerTeleport", "CTriggerTeleport" }
-designers.trigger_tier3phase2_shield = { "CTriggerTier3Phase2Shield", "CBaseTrigger" }
-designers.trigger_tonemap = { "CTonemapTrigger", "CTonemapTrigger" }
-designers.trigger_transition = { "CTriggerVolume", "CTriggerVolume" }
-designers.trigger_trooper_damage_reduction_detector = { "CTriggerTrooperDamageReductionDetector", "CTriggerTrooperDamageReductionDetector" }
-designers.trigger_trooper_detector = { "CTriggerTrooperDetector", "CTriggerTrooperDetector" }
-designers.trooper_approach_horizon = { "CTrooperApproachHorizon", "CBaseEntity" }
-designers.trooper_boss_grenade = { "CCitadel_Ability_TrooperBossGrenade", "CCitadelBaseAbility" }
-designers.trooper_grenade = { "CCitadel_Ability_TrooperGrenade", "CCitadelBaseAbility" }
-designers.upgrade_ability_power_shard = { "CCitadel_Item_PowerShard", "CCitadelBaseAbility" }
-designers.upgrade_ability_refresher = { "CCitadel_Item_Refresher", "CCitadelBaseAbility" }
-designers.upgrade_ability_vampire = { "CCitadel_ArmorUpgrade_AbilityLifeSteal", "CCitadelBaseAbility" }
-designers.upgrade_ablative_coat = { "CCitadel_ArmorUpgrade_AblativeCoat", "CCitadelBaseAbility" }
-designers.upgrade_active_bullet_shield = { "CCitadel_ArmorUpgrade_ActiveBulletShield", "CCitadelBaseAbility" }
-designers.upgrade_active_reload = { "CCitadel_Item_ActiveReload", "CCitadelBaseAbility" }
-designers.upgrade_aerial_assault = { "CCitadel_Upgrade_AerialAssault", "CCitadelBaseAbility" }
-designers.upgrade_ammo_scavenger = { "CCitadel_Upgrade_AmmoScavenger", "CCitadelBaseAbility" }
-designers.upgrade_aoe_root = { "CCitadel_Item_AOERoot", "CCitadelBaseAbility" }
-designers.upgrade_aoe_smoke_bomb = { "CCitadel_UtilityUpgrade_AOESmokeBomb", "CCitadelBaseAbility" }
-designers.upgrade_aoe_tech_shield = { "CCitadel_Item_AOE_Tech_Shield", "CCitadelBaseAbility" }
-designers.upgrade_apex_combat = { "CCitadel_WeaponUpgrade_ApexCombat", "CCitadelBaseAbility" }
-designers.upgrade_arctic_blast = { "CCitadel_Item_ArcticBlast", "CCitadelBaseAbility" }
-designers.upgrade_auto_cleanse = { "CCitadel_ArmorUpgrade_AutoCleanse", "CCitadelBaseAbility" }
-designers.upgrade_blood_tribute = { "CCitadel_WeaponUpgrade_BloodTribute", "CCitadelBaseAbility" }
-designers.upgrade_bullet_armor_reduction_aura = { "CCitadel_ArmorUpgrade_BulletArmorReductionAura", "CCitadelBaseAbility" }
-designers.upgrade_bullet_shield = { "CCitadel_Ability_Shield", "CCitadelBaseAbility" }
-designers.upgrade_burst_fire = { "CCitadel_WeaponUpgrade_BurstFire", "CCitadelBaseAbility" }
-designers.upgrade_camouflage = { "CCitadel_Item_Camouflage", "CCitadelBaseAbility" }
-designers.upgrade_capacitor = { "CItemCapacitor", "CCitadelBaseAbility" }
-designers.upgrade_celestial_guidance = { "CCitadel_Item_CelestialGuidance", "CCitadelBaseAbility" }
-designers.upgrade_charge_mastery = { "CCitadel_Item_Charge_Mastery", "CCitadelBaseAbility" }
-designers.upgrade_cheat_death = { "CCitadel_Item_CheatDeath", "CCitadelBaseAbility" }
-designers.upgrade_cloaking_device = { "CCitadel_ArmorUpgrade_CloakingDevice", "CCitadelBaseAbility" }
-designers.upgrade_cloaking_device_active = { "CCitadel_ArmorUpgrade_CloakingDeviceActive", "CCitadelBaseAbility" }
-designers.upgrade_cold_front = { "CCitadel_Item_ColdFront", "CCitadelBaseAbility" }
-designers.upgrade_colossus = { "CCitadel_ArmorUpgrade_Colossus", "CCitadelBaseAbility" }
-designers.upgrade_combo_breaker = { "CCitadel_Item_ComboBreaker", "CCitadelBaseAbility" }
-designers.upgrade_containment = { "CCitadel_Item_Containment", "CCitadelBaseAbility" }
-designers.upgrade_cooldown_on_miss = { "CCitadel_WeaponUpgrade_CooldownOnMiss", "CCitadelBaseAbility" }
-designers.upgrade_corpse_explosion = { "CCitadel_TechUpgrade_CorpseExplosion", "CCitadelBaseAbility" }
-designers.upgrade_damage_recycler = { "CCitadel_ArmorUpgrade_DamageRecycler", "CCitadelBaseAbility" }
-designers.upgrade_debuff_absorb = { "CCitadel_UtilityUpgrade_DebuffImmunity", "CCitadelBaseAbility" }
-designers.upgrade_disarm = { "CCitadel_Item_Disarm", "CCitadelBaseAbility" }
-designers.upgrade_divine_barrier = { "CCitadel_Item_DivineBarrier", "CCitadelBaseAbility" }
-designers.upgrade_diviners_kevlar = { "CCitadel_Item_DivinersKevlar", "CCitadelBaseAbility" }
-designers.upgrade_double_jump = { "CCitadel_ArmorUpgrade_DoubleJump", "CCitadelBaseAbility" }
-designers.upgrade_dps_aura = { "CCitadel_Item_DPS_Aura", "CCitadelBaseAbility" }
-designers.upgrade_electric_slippers = { "CCitadel_Item_Electric_Slippers", "CCitadelBaseAbility" }
-designers.upgrade_express_shot = { "CCitadel_WeaponUpgrade_ExpressShot", "CCitadelBaseAbility" }
-designers.upgrade_fire_rate_aura = { "CCitadel_WeaponUpgrade_FireRateAura", "CCitadelBaseAbility" }
-designers.upgrade_fleetfoot_boots = { "CItem_FleetfootBoots", "CCitadelBaseAbility" }
-designers.upgrade_focus_lens = { "CCitadel_Item_FocusLens", "CCitadelBaseAbility" }
-designers.upgrade_frenzy = { "CCitadel_ArmorUpgrade_Frenzy", "CCitadelBaseAbility" }
-designers.upgrade_fury_trance = { "CCitadel_WeaponUpgrade_FuryTrance", "CCitadelBaseAbility" }
-designers.upgrade_glass_cannon = { "CCitadel_WeaponUpgrade_GlassCannon", "CCitadelBaseAbility" }
-designers.upgrade_goose_egg = { "CCitadel_Item_GooseEgg", "CCitadelBaseAbility" }
-designers.upgrade_greater_withering_whip = { "CItem_GreaterWitheringWhip", "CCitadelBaseAbility" }
-designers.upgrade_grit = { "CCitadel_ArmorUpgrade_Grit", "CCitadelBaseAbility" }
-designers.upgrade_guardian_ward = { "CCitadel_Item_GuardianWard", "CCitadelBaseAbility" }
-designers.upgrade_haunting_scream = { "CItemHauntingScream", "CCitadelBaseAbility" }
-designers.upgrade_headshot_damage = { "CCitadel_WeaponUpgrade_HeadshotDamage", "CCitadelBaseAbility" }
-designers.upgrade_healonlevel = { "CCitadel_ArmorUpgrade_HealOnLevel", "CCitadelBaseAbility" }
-designers.upgrade_health_nova = { "CCitadel_UtilityUpgrade_HealthNova", "CCitadelBaseAbility" }
-designers.upgrade_health_regen_aura = { "CCitadel_Item_HealthRegenAura", "CCitadelBaseAbility" }
-designers.upgrade_health_stimpak = { "CCitadel_ArmorUpgrade_Stimpak", "CCitadelBaseAbility" }
-designers.upgrade_high_impact_armor = { "CCitadel_ArmorUpgrade_HighImpactArmor", "CCitadelBaseAbility" }
-designers.upgrade_infinitemagazine = { "CCitadel_WeaponUpgrade_InfiniteMagazine", "CCitadelBaseAbility" }
-designers.upgrade_infuser = { "CCitadel_TechUpgrade_Infuser", "CCitadelBaseAbility" }
-designers.upgrade_intensifying_clip = { "CCitadel_Item_Intensifying_Clip", "CCitadelBaseAbility" }
-designers.upgrade_magic_carpet = { "CCitadel_Upgrade_MagicCarpet", "CCitadelBaseAbility" }
-designers.upgrade_metal_skin = { "CCitadel_ArmorUpgrade_MetalSkin", "CCitadelBaseAbility" }
-designers.upgrade_mod_disruptor = { "CCitadel_Item_ModDisruptor", "CCitadelBaseAbility" }
-designers.upgrade_mystic_regeneration = { "CCitadel_Item_Mystic_Regeneration", "CCitadelBaseAbility" }
-designers.upgrade_mystic_reverb = { "CItemMysticReverb", "CCitadelBaseAbility" }
-designers.upgrade_non_player_bonus_sacrifice = { "CCitadel_WeaponUpgrade_CultistSacrifice", "CCitadelBaseAbility" }
-designers.upgrade_nullification_aura = { "CCitadel_Item_NullificationAura", "CCitadelBaseAbility" }
-designers.upgrade_omnicharge_pendant = { "CCitadel_Omnicharge_Pendant", "CCitadelBaseAbility" }
-designers.upgrade_personal_rejuvenator = { "CCitadel_ArmorUpgrade_PersonalRejuvenator", "CCitadelBaseAbility" }
-designers.upgrade_phantom_strike = { "CCitadel_Item_PhantomStrike", "CCitadelBaseAbility" }
-designers.upgrade_prism_blast = { "CCitadel_Item_PrismBlast", "CCitadelBaseAbility" }
-designers.upgrade_recharging_bullets = { "CCitadel_WeaponUpgrade_RechargingBullets", "CCitadelBaseAbility" }
-designers.upgrade_reduce_debuff_duration = { "CCitadel_ArmorUpgrade_DebuffReducer", "CCitadelBaseAbility" }
-designers.upgrade_regenerating_bullet_shield = { "CCitadel_ArmorUpgrade_RegeneratingBulletShield", "CCitadelBaseAbility" }
-designers.upgrade_regenerative_armor = { "CCitadel_ArmorUpgrade_RegenerativeArmor", "CCitadelBaseAbility" }
-designers.upgrade_rescue_beam = { "CCitadel_Item_RescueBeam", "CCitadelBaseAbility" }
-designers.upgrade_resonant_healing = { "CItem_ResonantHealing", "CCitadelBaseAbility" }
-designers.upgrade_restorative_locket = { "CItem_RestorativeLocket", "CCitadelBaseAbility" }
-designers.upgrade_return_fire = { "CCitadel_ArmorUpgrade_ReturnFire", "CCitadelBaseAbility" }
-designers.upgrade_ricochet = { "CCitadel_WeaponUpgrade_Ricochet", "CCitadelBaseAbility" }
-designers.upgrade_rocket_booster = { "CCitadel_UtilityUpgrade_RocketBooster", "CCitadelBaseAbility" }
-designers.upgrade_rocket_boots = { "CCitadel_UtilityUpgrade_RocketBoots", "CCitadelBaseAbility" }
-designers.upgrade_self_bubble = { "CCitadel_Item_Bubble", "CCitadelBaseAbility" }
-designers.upgrade_self_buff_modifier = { "CCitadel_Item_SelfBuffModifier", "CCitadelBaseAbility" }
-designers.upgrade_shadow_step = { "CCitadel_Item_ShadowStep", "CCitadelBaseAbility" }
-designers.upgrade_shadow_strike = { "CCitadel_Item_ShadowStrike", "CCitadelBaseAbility" }
-designers.upgrade_shrink_ray = { "CCitadel_ArmorUpgrade_Shrink_Ray", "CCitadelBaseAbility" }
-designers.upgrade_silence_glyph = { "CItemSilenceGlyph", "CCitadelBaseAbility" }
-designers.upgrade_slow_immunity = { "CCitadel_ArmorUpgrade_SlowImmunity", "CCitadelBaseAbility" }
-designers.upgrade_spellshield = { "CCitadel_ArmorUpgrade_SpellShield", "CCitadelBaseAbility" }
-designers.upgrade_spellslinger_headshots = { "CCitadel_WeaponUpgrade_SpellslingerHeadshots", "CCitadelBaseAbility" }
-designers.upgrade_spirit_bubble = { "CCitadel_ArmorUpgrade_SpiritBubble", "CCitadelBaseAbility" }
-designers.upgrade_spirit_sap = { "CCitadel_Item_SpiritSap", "CCitadelBaseAbility" }
-designers.upgrade_split_shot = { "CCitadel_WeaponUpgrade_SplitShot", "CCitadelBaseAbility" }
-designers.upgrade_stasis_bomb = { "CCitadel_Item_Stasis_Bomb", "CCitadelBaseAbility" }
-designers.upgrade_superacolytegloves = { "CCitadel_TechUpgrade_SuperAcolyteGloves", "CCitadelBaseAbility" }
-designers.upgrade_surging_power = { "CCitadel_WeaponUpgrade_SurgingPower", "CCitadelBaseAbility" }
-designers.upgrade_target_stun = { "CCitadel_Item_SingleTargetStun", "CCitadelBaseAbility" }
-designers.upgrade_tech_cleave = { "CCitadel_Item_TechCleave", "CCitadelBaseAbility" }
-designers.upgrade_tech_damage_pulse = { "CCitadel_Item_TechDamagePulse", "CCitadelBaseAbility" }
-designers.upgrade_tracking_projectile_apply_modifier = { "CCitadel_Item_TrackingProjectileApplyModifier", "CCitadelBaseAbility" }
-designers.upgrade_trophy_collector = { "CCitadel_Item_TrophyCollector", "CCitadelBaseAbility" }
-designers.upgrade_vex_barrier = { "CCitadel_ArmorUpgrade_VexBarrier", "CCitadelBaseAbility" }
-designers.upgrade_warp_stone = { "CCitadel_Item_WarpStone", "CCitadelBaseAbility" }
-designers.upgrade_weapon_eater = { "CCitadel_WeaponUpgrade_WeaponEater", "CCitadelBaseAbility" }
-designers.upgrade_weapon_instant_reload = { "CCitadel_WeaponUpgrade_InstantReload", "CCitadelBaseAbility" }
-designers.upgrade_weapon_overdrive_clip = { "CCitadel_Upgrade_OverdriveClip", "CCitadelBaseAbility" }
-designers.upgrade_weapon_power_and_health_drain = { "CCitadel_Upgrade_WeaponPowerForHealth", "CCitadelBaseAbility" }
-designers.upgrade_weapon_shielding = { "CCitadel_ArmorUpgrade_WeaponShielding", "CCitadelBaseAbility" }
-designers.upgrade_weapon_siphon_bullets = { "CCitadel_WeaponUpgrade_SiphonBullets", "CCitadelBaseAbility" }
-designers.upgrade_withering_whip = { "CItem_WitheringWhip", "CCitadelBaseAbility" }
-designers.vandal_pillar_projectile = { "CCitadel_Projectile_Pillar", "CBaseModelEntity" }
-designers.vanguard_aoe_buff = { "CCitadel_NPCAbility_Vanguard_AOEBuff", "CCitadelBaseAbility" }
-designers.viper_hookblade_projectile = { "CCitadel_Projectile_HookBlade", "CBaseModelEntity" }
-designers.viper_petrify_projectile = { "CCitadel_Projectile_Petrify", "CBaseModelEntity" }
-designers.viscous_goo_bowling_ball = { "CCitadel_Ability_GooBowlingBall", "CCitadelBaseAbility" }
-designers.viscous_goo_grenade = { "CCitadel_Ability_GooGrenade", "CCitadelBaseAbility" }
-designers.viscous_goo_grenade_projectile = { "CCitadel_Projectile_Viscous_GooGrenade", "CBaseModelEntity" }
-designers.viscous_restorative_goo = { "CCitadel_Ability_RestorativeGoo", "CCitadelBaseAbility" }
-designers.viscous_telepunch = { "CCitadel_Ability_Viscous_Telepunch", "CCitadelBaseAbility" }
-designers.waterbullet = { "CWaterBullet", "CWaterBullet" }
-designers.wearable_item = { "CEconWearable", "CBaseAnimGraph" }
-designers.webwall_projectile = { "CCitadel_Projectile_WebWall", "CBaseModelEntity" }
-designers.worldent = { "CWorld", "CBaseModelEntity" }
-designers.wrecker_teleport_projectile = { "CCitadel_Projectile_Wrecker_Teleport", "CBaseModelEntity" }
-designers.wrecking_ball_projectile = { "CCitadel_Projectile_WreckingBall", "CBaseModelEntity" }
-designers.yakuza_fealty = { "CCitadel_Ability_Fealty", "CCitadelBaseAbility" }
-designers.yakuza_gang_activity = { "CCitadel_Ability_GangActivity", "CCitadelBaseAbility" }
-designers.yakuza_gang_activity_cancel = { "CCitadel_Ability_GangActivity_Cancel", "CCitadelBaseAbility" }
-designers.yakuza_kobun = { "CCitadel_Ability_Kobun", "CCitadelBaseAbility" }
-designers.yakuza_protection_racket = { "CCitadel_Ability_Protection_Racket", "CCitadelBaseAbility" }
-designers.yakuza_setting_sun = { "CCitadel_Ability_SettingSun", "CCitadelBaseAbility" }
-designers.yakuza_shakedown = { "CCitadel_Ability_Yakuza_Shakedown", "CCitadelBaseAbility" }
-designers.yakuza_shakedown_target = { "CCitadel_Ability_Shakedown_Target", "CCitadelBaseAbility" }
-designers.yakuza_summon_gangster = { "CCitadel_Ability_SummonGangster", "CCitadelBaseAbility" }
-designers.yakuza_teleport_to_gangster = { "CCitadel_Ability_TeleportToGangster", "CCitadelBaseAbility" }
-designers.zip_line_node = { "CCitadelZipLineNode", "CCitadelZipLineNode" }
+-- designers maps each designer name to the class that implements it and its
+-- data description.
+local designers = {
+	abiilty_boho_channeltether = { "CCitadel_Ability_Boho_ChannelTether", "CCitadelBaseAbility" },
+	abiilty_boho_doublehit = { "CCitadel_Ability_Boho_DoubleHit", "CCitadelBaseAbility" },
+	ability_afterburn = { "CCitadel_Ability_Afterburn", "CCitadelBaseAbility" },
+	ability_baba_bench_melee = { "CCitadel_Ability_Baba_BenchMelee", "CCitadelBaseAbility" },
+	ability_baba_bench_run = { "CCitadel_Ability_Baba_BenchRun", "CCitadelBaseAbility" },
+	ability_baba_bubbling_brew = { "CCitadel_Ability_Baba_BubblingBrew", "CCitadelBaseAbility" },
+	ability_baba_hexing_brew = { "CCitadel_Ability_Baba_HexingBrew", "CCitadelBaseAbility" },
+	ability_baba_hexing_brew_throw = { "CCitadel_Ability_Baba_HexingBrew_Throw", "CCitadelBaseAbility" },
+	ability_baba_ultimate_2 = { "CCitadel_Ability_Baba_Ultimate2", "CCitadelBaseAbility" },
+	ability_bebop_stickybomb2 = { "CCitadel_Ability_Bebop_StickyBomb2", "CCitadelBaseAbility" },
+	ability_blood_bomb = { "CCitadel_Ability_BloodBomb", "CCitadelBaseAbility" },
+	ability_blood_shards = { "CCitadel_Ability_Ghost_BloodShards", "CCitadelBaseAbility" },
+	ability_boho_ability01 = { "CCitadel_Ability_Boho_Ability01", "CCitadelBaseAbility" },
+	ability_boho_ability02 = { "CCitadel_Ability_Boho_Ability02", "CCitadelBaseAbility" },
+	ability_boho_bouncyprojectile = { "CCitadel_Ability_Boho_BouncyProjectile", "CCitadelBaseAbility" },
+	ability_boho_damageshare = { "CCitadel_Ability_Boho_DamageShare", "CCitadelBaseAbility" },
+	ability_boho_skipgrenade = { "CCitadel_Ability_Boho_SkipGrenade", "CCitadelBaseAbility" },
+	ability_bomber_ability02 = { "CCitadel_Ability_Bomber_Ability02", "CCitadelBaseAbility" },
+	ability_bomber_ability03 = { "CCitadel_Ability_Bomber_Ability03", "CCitadelBaseAbility" },
+	ability_bomber_ult = { "CCitadel_Ability_Bomber_ULT", "CCitadelBaseAbility" },
+	ability_bookworm_aoemagic = { "CCitadel_Ability_Bookworm_AOEMagic", "CCitadelBaseAbility" },
+	ability_bookworm_dragonfire = { "CCitadel_Ability_Bookworm_DragonFire", "CCitadelBaseAbility" },
+	ability_bookworm_knightbarrier = { "CCitadel_Ability_Bookworm_KnightBarrier", "CCitadelBaseAbility" },
+	ability_bounce_pad = { "CCitadel_Ability_Bounce_Pad", "CCitadelBaseAbility" },
+	ability_bullet_flurry = { "CCitadel_Ability_BulletFlurry", "CCitadelBaseAbility" },
+	ability_burrow = { "CCitadel_Ability_Burrow", "CCitadelBaseAbility" },
+	ability_charged_bomb = { "CCitadel_Ability_Charged_Bomb", "CCitadelBaseAbility" },
+	ability_charged_shot = { "CCitadel_Ability_ChargedShot", "CCitadelBaseAbility" },
+	ability_crackshot = { "CCitadel_Ability_Crackshot", "CCitadelBaseAbility" },
+	ability_death_tax = { "CCitadel_Ability_DeathTax", "CCitadelBaseAbility" },
+	ability_demonmark = { "CCitadel_Gunslinger_DemonMark", "CCitadelBaseAbility" },
+	ability_digger_entertunnel = { "CCitadel_Ability_Digger_EnterTunnel", "CCitadelBaseAbility" },
+	ability_doorman_bomb = { "CCitadel_Ability_Doorman_Bomb", "CCitadelBaseAbility" },
+	ability_doorman_doorway = { "CCitadel_Ability_Doorman_Doorway", "CCitadelBaseAbility" },
+	ability_doorman_doorway_trigger = { "CCitadel_Ability_AbilityName", "CCitadelBaseAbility" },
+	ability_doorman_hotel = { "CCitadel_Ability_Doorman_Hotel", "CCitadelBaseAbility" },
+	ability_doorman_luggage_cart = { "CCitadel_Ability_Doorman_Cart", "CCitadelBaseAbility" },
+	ability_drifter_hunger = { "CCitadel_Ability_Drifter_Hunger", "CCitadelBaseAbility" },
+	ability_druid_base_plant = { "CCitadelAbilityDruidBasePlant", "CCitadelBaseAbility" },
+	ability_druid_helicopter_seeds = { "CCitadelAbilityDruidHelicopterSeeds", "CCitadelBaseAbility" },
+	ability_druid_leech_seed = { "CCitadelAbilityDruidLeechSeed", "CCitadelBaseAbility" },
+	ability_druid_plant_branch_wall = { "CCitadelAbilityDruidPlantBranchWall", "CCitadelBaseAbility" },
+	ability_druid_plant_healing_tree = { "CCitadelAbilityDruidPlantHealingTree", "CCitadelBaseAbility" },
+	ability_druid_plant_invis_bush = { "CCitadelAbilityDruidPlantInvisBush", "CCitadelBaseAbility" },
+	ability_druid_plant_something = { "CCitadelAbilityDruidPlantSomething", "CCitadelBaseAbility" },
+	ability_druid_sprout = { "CCitadelAbilityDruidSprout", "CCitadelBaseAbility" },
+	ability_druid_ult = { "CCitadelAbilityDruidAbility04", "CCitadelBaseAbility" },
+	ability_empower_bullet = { "CCitadel_Ability_EmpowerBullet", "CCitadelBaseAbility" },
+	ability_explosive_barrel = { "CCitadel_Ability_ExplosiveBarrel", "CCitadelBaseAbility" },
+	ability_familiar_ability01 = { "CCitadel_Ability_Familiar_Ability01", "CCitadelBaseAbility" },
+	ability_familiar_ability02 = { "CCitadel_Ability_Familiar_Ability02", "CCitadelBaseAbility" },
+	ability_familiar_alt_weapon = { "CCitadel_Ability_Familiar_AltWeapon", "CCitadelBaseAbility" },
+	ability_familiar_attach = { "CCitadel_Ability_Familiar_Attach", "CCitadelBaseAbility" },
+	ability_familiar_attach_trigger = { "CCitadel_Ability_Familiar_Attach_Trigger", "CCitadelBaseAbility" },
+	ability_familiar_clone = { "CCitadel_Ability_Familiar_Clone", "CCitadelBaseAbility" },
+	ability_familiar_clone_end = { "CCitadel_Ability_Familiar_Clone_End", "CCitadelBaseAbility" },
+	ability_familiar_clonesingle = { "CCitadel_Ability_Familiar_CloneSingle", "CCitadelBaseAbility" },
+	ability_familiar_clonesingle_trigger = { "CCitadel_Ability_Familiar_CloneSingle_Trigger", "CCitadelBaseAbility" },
+	ability_familiar_healhost = { "CCitadel_Ability_Familiar_HealHost", "CCitadelBaseAbility" },
+	ability_familiar_helpinghands = { "CCitadel_Ability_Familiar_HelpingHands", "CCitadelBaseAbility" },
+	ability_familiar_primary_weapon_bubblegun = { "CCitadel_Ability_Familiar_PrimaryWeapon", "CCitadelBaseAbility" },
+	ability_familiar_spotlight = { "CCitadel_Ability_Familiar_Spotlight", "CCitadelBaseAbility" },
+	ability_fencer_lunge = { "CAbility_Fencer_Lunge", "CCitadelBaseAbility" },
+	ability_fencer_riposte = { "CCitadel_Ability_Fencer_Riposte", "CCitadelBaseAbility" },
+	ability_fencer_riposte_target_select = { "CCitadel_Ability_RiposteTargetSelect", "CCitadelBaseAbility" },
+	ability_fencer_throwblade = { "CCitadel_Ability_Fencer_ThrowBlade", "CCitadelBaseAbility" },
+	ability_fencer_ultimate = { "CAbility_Fencer_Ultimate", "CCitadelBaseAbility" },
+	ability_fire_bomb = { "CCitadel_Ability_FireBomb", "CCitadelBaseAbility" },
+	ability_flame_dash = { "CCitadel_Ability_FlameDash", "CCitadelBaseAbility" },
+	ability_fortuna_ability01 = { "CCitadel_Ability_Fortuna_Ability01", "CCitadelBaseAbility" },
+	ability_fortuna_ability02 = { "CCitadel_Ability_Fortuna_Ability02", "CCitadelBaseAbility" },
+	ability_fortuna_ability03 = { "CCitadel_Ability_Fortuna_Ability03", "CCitadelBaseAbility" },
+	ability_fortuna_ult = { "CCitadel_Ability_Fortuna_Ability04", "CCitadelBaseAbility" },
+	ability_frank_painaura = { "CCitadel_Ability_Frank_PainAura", "CCitadelBaseAbility" },
+	ability_frank_primaryweapon = { "CCitadel_Ability_Frank_PrimaryWeapon", "CCitadelBaseAbility" },
+	ability_frank_revive = { "CCitadel_Ability_Frank_Revive", "CCitadelBaseAbility" },
+	ability_frank_selfzap = { "CCitadel_Ability_Frank_SelfZap", "CCitadelBaseAbility" },
+	ability_frank_shocktarget2 = { "CCitadel_Ability_Frank_ShockTarget2", "CCitadelBaseAbility" },
+	ability_golden_idol = { "CCitadel_Ability_GoldenIdol", "CCitadelBaseAbility" },
+	ability_graf_ability01 = { "CCitadel_Ability_Graf_Ability01", "CCitadelBaseAbility" },
+	ability_graf_ability02 = { "CCitadel_Ability_Graf_Ability02", "CCitadelBaseAbility" },
+	ability_graf_ability03 = { "CCitadel_Ability_Graf_Ability03", "CCitadelBaseAbility" },
+	ability_graf_ult = { "CCitadel_Ability_Graf_Ability04", "CCitadelBaseAbility" },
+	ability_gravity_lasso = { "CCitadel_Ability_Gravity_Lasso", "CCitadelBaseAbility" },
+	ability_guided_arrow = { "CCitadel_Ability_GuidedArrow", "CCitadelBaseAbility" },
+	ability_gunslinger_knockbackblast = { "CCitadel_Ability_Gunslinger_KnockbackBlast", "CCitadelBaseAbility" },
+	ability_gunslinger_spreadingfire = { "CCitadel_Ability_Gunslinger_SpreadingFire", "CCitadelBaseAbility" },
+	ability_health_swap = { "CCitadel_Ability_HealthSwap", "CCitadelBaseAbility" },
+	ability_ice_dome = { "CCitadel_Ability_IceDome", "CCitadelBaseAbility" },
+	ability_ice_grenade = { "CCitadel_Ability_IceGrenade", "CCitadelBaseAbility" },
+	ability_icebeam = { "CCitadel_Ability_IceBeam", "CCitadelBaseAbility" },
+	ability_icepath = { "CCitadel_Ability_IcePath", "CCitadelBaseAbility" },
+	ability_immobilize_trap = { "CCitadel_Ability_ImmobilizeTrap", "CCitadelBaseAbility" },
+	ability_incendiary_projectile = { "CCitadel_Ability_IncendiaryProjectile", "CCitadelBaseAbility" },
+	ability_infinity_slash = { "CCitadel_Ability_InfinitySlash", "CCitadelBaseAbility" },
+	ability_intimidate = { "CCitadel_Ability_Intimidate", "CCitadelBaseAbility" },
+	ability_kali_dust_storm = { "CCitadel_Ability_Dust_Storm", "CCitadelBaseAbility" },
+	ability_kali_trappers_bolo = { "CCitadel_Ability_Trappers_Bolo", "CCitadelBaseAbility" },
+	ability_lash_flog = { "CCitadel_Ability_Lash_Flog", "CCitadelBaseAbility" },
+	ability_life_drain = { "CCitadel_Ability_LifeDrain", "CCitadelBaseAbility" },
+	ability_magician_animalcurse = { "CCitadel_Ability_Magician_AnimalCurse", "CCitadelBaseAbility" },
+	ability_magician_animalhexarea = { "CCitadel_Ability_Magician_AnimalHexArea", "CCitadelBaseAbility" },
+	ability_magician_bigbolt = { "CCitadel_Ability_Magician_BigBolt", "CCitadelBaseAbility" },
+	ability_magician_cloneturret_trigger = { "CCitadel_Ability_TurretClone_Trigger", "CCitadelBaseAbility" },
+	ability_magician_copyult = { "CCitadel_Ability_Magician_CopyUlt", "CCitadelBaseAbility" },
+	ability_magician_escape = { "CCitadel_Ability_Magician_Escape", "CCitadelBaseAbility" },
+	ability_magician_magicbolt = { "CCitadel_Ability_Magician_MagicBolt", "CCitadelBaseAbility" },
+	ability_magician_shadowclone = { "CCitadel_Ability_Magician_ShadowClone", "CCitadelBaseAbility" },
+	ability_medic_trooper_heal = { "CCitadel_Ability_MedicHeal", "CCitadelBaseAbility" },
+	ability_nano_catform = { "CCitadel_Ability_Nano_CatForm", "CCitadelBaseAbility" },
+	ability_nano_catform_pounce = { "CCitadel_Ability_Nano_CatFormPounce", "CCitadelBaseAbility" },
+	ability_nano_pounce = { "CCitadel_Ability_Nano_Pounce", "CCitadelBaseAbility" },
+	ability_nano_pounce_instant = { "CCitadel_Ability_Nano_Pounce_Instant", "CCitadelBaseAbility" },
+	ability_nano_proximity_ritual = { "CCitadel_Ability_ProximityRitual", "CCitadelBaseAbility" },
+	ability_nano_shadow_step = { "CCitadel_Ability_Nano_Shadow", "CCitadelBaseAbility" },
+	ability_necro_fear = { "CCitadel_Ability_Necro_Fear", "CCitadelBaseAbility" },
+	ability_necro_hauntingskull = { "CCitadel_Ability_Necro_HauntingSkull", "CCitadelBaseAbility" },
+	ability_necro_hauntingspirits = { "CCitadel_Ability_Necro_HauntingSpirits", "CCitadelBaseAbility" },
+	ability_necro_killsummon = { "CCitadel_Ability_Necro_KillSummon", "CCitadelBaseAbility" },
+	ability_necro_killsummon_trigger = { "CCitadel_Ability_Necro_KillSummonTrigger", "CCitadelBaseAbility" },
+	ability_necro_nukemap = { "CCitadel_Ability_Necro_NukeMap", "CCitadelBaseAbility" },
+	ability_necro_zombiewall = { "CCitadel_Ability_Necro_ZombieWall", "CCitadelBaseAbility" },
+	ability_npc_shield = { "CCitadel_NPCAbility_Shield", "CCitadelBaseAbility" },
+	ability_opera_ability01 = { "CCitadel_Ability_Opera_Ability01", "CCitadelBaseAbility" },
+	ability_opera_ability02 = { "CCitadel_Ability_Opera_Ability02", "CCitadelBaseAbility" },
+	ability_opera_ability03 = { "CCitadel_Ability_Opera_Ability03", "CCitadelBaseAbility" },
+	ability_opera_ult = { "CCitadel_Ability_Opera_Ability04", "CCitadelBaseAbility" },
+	ability_perched_predator = { "CCitadel_Ability_Perched_Predator", "CCitadelBaseAbility" },
+	ability_power_jump = { "CCitadel_Ability_PowerJump", "CCitadelBaseAbility" },
+	ability_power_surge = { "CCitadel_Ability_PowerSurge", "CCitadelBaseAbility" },
+	ability_priest_antispiritvest = { "CCitadel_Ability_Priest_AntiSpiritVest", "CCitadelBaseAbility" },
+	ability_priest_crossbowweapon = { "CCitadel_Ability_Priest_CrossbowWeapon", "CCitadelBaseAbility" },
+	ability_priest_knockback = { "CCitadel_Ability_Priest_Knockback", "CCitadelBaseAbility" },
+	ability_priest_selfheal = { "CCitadel_Ability_Priest_SelfHeal", "CCitadelBaseAbility" },
+	ability_priest_smokegrenade = { "CCitadel_Ability_Priest_SmokeGrenade", "CCitadelBaseAbility" },
+	ability_priest_stackingdefense = { "CCitadel_Ability_Priest_StackingDefense", "CCitadelBaseAbility" },
+	ability_priest_weaponswap = { "CCitadel_Ability_Priest_WeaponSwap", "CCitadelBaseAbility" },
+	ability_punkgoat_blasted = { "CCitadel_Ability_PunkGoat_Blasted", "CCitadelBaseAbility" },
+	ability_punkgoat_goatflip = { "CCitadel_Ability_PunkGoat_GoatFlip", "CCitadelBaseAbility" },
+	ability_punkgoat_tether = { "CCitadel_Ability_PunkGoat_Tether", "CCitadelBaseAbility" },
+	ability_punkgoat_ult = { "CCitadel_Ability_PunkGoat_Ult", "CCitadelBaseAbility" },
+	ability_ratking_entertunnel = { "CCitadel_Ability_Ratking_EnterTunnel", "CCitadelBaseAbility" },
+	ability_ratking_ratarmor = { "CCitadel_Ability_RatArmor", "CCitadelBaseAbility" },
+	ability_ratking_ratnibble = { "CCitadel_Ability_RatKing_RatNibble", "CCitadelBaseAbility" },
+	ability_ratking_scrap_grenade = { "CCitadel_Ability_Ratking_ScrapGrenade", "CCitadelBaseAbility" },
+	ability_ratking_standard_bearer = { "CCitadel_Ability_Ratking_StandardBearer", "CCitadelBaseAbility" },
+	ability_rolling_fireball = { "CCitadel_Ability_Rolling_FireBall", "CCitadelBaseAbility" },
+	ability_scrap_blast = { "CCitadel_Ability_WreckerScrapBlast", "CCitadelBaseAbility" },
+	ability_shieldguy_ability01 = { "CCitadel_Ability_ShieldGuy_Ability01", "CCitadelBaseAbility" },
+	ability_shieldguy_ability02 = { "CCitadel_Ability_ShieldGuy_Ability02", "CCitadelBaseAbility" },
+	ability_shieldguy_ability03 = { "CCitadel_Ability_ShieldGuy_Ability03", "CCitadelBaseAbility" },
+	ability_shieldguy_ult = { "CCitadel_Ability_ShieldGuy_Ability04", "CCitadelBaseAbility" },
+	ability_skyrunner_flakshot = { "CCitadel_Ability_SkyRunner_FlakShot", "CCitadelBaseAbility" },
+	ability_skyrunner_swingline = { "CCitadel_Ability_SkyRunner_SwingLine", "CCitadelBaseAbility" },
+	ability_skyrunner_ult = { "CCitadel_Ability_SkyRunner_Ability04", "CCitadelBaseAbility" },
+	ability_sleep_dagger = { "CCitadel_Ability_SleepDagger", "CCitadelBaseAbility" },
+	ability_smoke_bomb = { "CCitadel_Ability_SmokeBomb", "CCitadelBaseAbility" },
+	ability_snake_dash = { "CCitadel_Ability_SnakeDash", "CCitadelBaseAbility" },
+	ability_stacking_damage = { "CCitadel_Ability_Haze_StackingDamage", "CCitadelBaseAbility" },
+	ability_swan_acrobat = { "CCitadel_Ability_Swan_Acrobat", "CCitadelBaseAbility" },
+	ability_swan_featherboomerang = { "CCitadel_Ability_Swan_FeatherBoomerang", "CCitadelBaseAbility" },
+	ability_swan_leap = { "CCitadel_Ability_Swan_Leap", "CCitadelBaseAbility" },
+	ability_swan_ult = { "CCitadel_Ability_Swan_Ability04", "CCitadelBaseAbility" },
+	ability_testhero_feartarget = { "CCitadel_Ability_TestHero_FearTarget", "CCitadelBaseAbility" },
+	ability_testhero_spooky_hide = { "CAbility_TestHero_SpookyHide", "CCitadelBaseAbility" },
+	ability_testhero_stance_bow = { "CCitadel_Ability_TestHero_Stance_Bow", "CCitadelBaseAbility" },
+	ability_testhero_stance_spaceman = { "CCitadel_Ability_TestHero_Stance_Spaceman", "CCitadelBaseAbility" },
+	ability_testhero_stanceswitch = { "CCitadel_Ability_TestHero_StanceSwitch", "CCitadelBaseAbility" },
+	ability_testhero_summoncannon = { "CCitadel_Ability_TestHero_SummonCannon", "CCitadelBaseAbility" },
+	ability_testhero_summonsoldier = { "CCitadel_Ability_TestHero_SummonSoldier", "CCitadelBaseAbility" },
+	ability_testhero_ult = { "CCitadel_Ability_TestHero_Ability04", "CCitadelBaseAbility" },
+	ability_testhero_wallcling = { "CCitadel_Ability_TestHero_WallCling", "CCitadelBaseAbility" },
+	ability_throw_sand = { "CCitadel_Ability_ThrowSand", "CCitadelBaseAbility" },
+	ability_trapper_fear = { "CCitadel_Ability_Trapper_Fear", "CCitadelBaseAbility" },
+	ability_trapper_spiderjar = { "CCitadel_Ability_Trapper_SpiderJar", "CCitadelBaseAbility" },
+	ability_trapper_spidershield = { "CCitadel_Ability_SpiderShield", "CCitadelBaseAbility" },
+	ability_trapper_webwall = { "CCitadel_Ability_Trapper_WebWall", "CCitadelBaseAbility" },
+	ability_ult_combo = { "CCitadel_Ability_UltCombo", "CCitadelBaseAbility" },
+	ability_unicorn_dazzlingorb = { "CCitadel_Ability_Unicorn_DazzlingOrb", "CCitadelBaseAbility" },
+	ability_unicorn_luminousstrike = { "CCitadel_Ability_Unicorn_LuminousStrike", "CCitadelBaseAbility" },
+	ability_unicorn_prismaticguard = { "CCitadel_Ability_Unicorn_PrismaticGuard", "CCitadelBaseAbility" },
+	ability_unicorn_radiantblast = { "CCitadel_Ability_Unicorn_RadiantBlast", "CCitadelBaseAbility" },
+	ability_vampirebat_batblink = { "CCitadel_Ability_VampireBat_BatBlink", "CCitadelBaseAbility" },
+	ability_vampirebat_batcloud = { "CCitadel_Ability_VampireBat_BatCloud", "CCitadelBaseAbility" },
+	ability_vampirebat_batswarm = { "CCitadel_Ability_VampireBat_BatSwarm", "CCitadelBaseAbility" },
+	ability_vampirebat_doubledagger = { "CCitadel_Ability_VampireBat_DoubleDagger", "CCitadelBaseAbility" },
+	ability_vampirebat_lovebites = { "CCitadel_Ability_VampireBat_LoveBites", "CCitadelBaseAbility" },
+	ability_vampirebat_steallife = { "CCitadel_Ability_VampireBat_StealLife", "CCitadelBaseAbility" },
+	ability_vandal_ability03 = { "CCitadel_Ability_Vandal_Ability03", "CCitadelBaseAbility" },
+	ability_vandal_pillar = { "CCitadel_Ability_Vandal_Pillar", "CCitadelBaseAbility" },
+	ability_viper_debuffdagger = { "CCitadel_Ability_Viper_DebuffDagger", "CCitadelBaseAbility" },
+	ability_viper_hookblade = { "CCitadel_Ability_ViperHookblade", "CCitadelBaseAbility" },
+	ability_viper_petrifybola = { "CCitadel_Ability_Viper_PetrifyBola", "CCitadelBaseAbility" },
+	ability_viper_ult = { "CCitadel_Ability_Viper_Ability04", "CCitadelBaseAbility" },
+	ability_viper_venom = { "CCitadel_Ability_ViperVenom", "CCitadelBaseAbility" },
+	ability_warden_crowd_control = { "CCitadel_Ability_CrowdControl", "CCitadelBaseAbility" },
+	ability_warden_high_alert = { "CCitadel_Ability_HighAlert", "CCitadelBaseAbility" },
+	ability_warden_lock_down = { "CCitadel_Ability_LockDown", "CCitadelBaseAbility" },
+	ability_warden_riot_protocol = { "CCitadel_Ability_RiotProtocol", "CCitadelBaseAbility" },
+	ability_werewolf_cripplingslash = { "CCitadel_Werewolf_CripplingSlash", "CCitadelBaseAbility" },
+	ability_werewolf_hunt = { "CCitadel_Werewolf_Hunt", "CCitadelBaseAbility" },
+	ability_werewolf_kickflip = { "CCitadel_Ability_Werewolf_KickFlip", "CCitadelBaseAbility" },
+	ability_werewolf_leap = { "CCitadel_Ability_Werewolf_Leap", "CCitadelBaseAbility" },
+	ability_werewolf_maulingleap = { "CCitadel_Ability_Werewolf_MaulingLeap", "CCitadelBaseAbility" },
+	ability_werewolf_netshot = { "CCitadel_Ability_Werewolf_NetShot", "CCitadelBaseAbility" },
+	ability_werewolf_trackingbomb = { "CCitadel_Ability_Werewolf_TrackingBomb", "CCitadelBaseAbility" },
+	ability_werewolf_transformation = { "CCitadel_Werewolf_Transformation", "CCitadelBaseAbility" },
+	ability_werewolf_unload_gun = { "CCitadel_Werewolf_UnloadGun", "CCitadelBaseAbility" },
+	ability_werewolf_unload_gun2 = { "CCitadel_Werewolf_UnloadGun2", "CCitadelBaseAbility" },
+	ability_wrecker_salvage = { "CCitadel_Ability_Wrecker_Salvage", "CCitadelBaseAbility" },
+	ability_wrecker_teleport = { "CCitadel_Ability_WreckerTeleport", "CCitadelBaseAbility" },
+	ability_wrecker_ultimate = { "CCitadel_Ability_Wrecker_Ultimate", "CCitadelBaseAbility" },
+	ability_wrecking_ball = { "CCitadel_Ability_WreckingBall", "CCitadelBaseAbility" },
+	ability_wrecking_ball_throw = { "CCitadel_Ability_WreckingBallThrow", "CCitadelBaseAbility" },
+	ai_changehintgroup = { "CAI_ChangeHintGroup", "CAI_ChangeHintGroup" },
+	ai_foot_sweep = { "CNpcFootSweep", "CNpcFootSweep" },
+	ai_goal_entity = { "CAI_GoalEntity", "CAI_GoalEntity" },
+	ai_hint = { "CAI_Hint", "CAI_Hint" },
+	ai_look_target = { "CAI_LookTarget", "CAI_LookTarget" },
+	ai_nav_link_area = { "CNavLinkAreaEntity", "CNavLinkAreaEntity" },
+	ai_network = { "CAI_NetworkManager", "CPointEntity" },
+	ai_relationship = { "CAI_Relationship", "CAI_Relationship" },
+	ai_script_conditions = { "CAI_ScriptConditions", "CAI_ScriptConditions" },
+	ai_sound = { "CAI_VolumetricEventEntityAlias_ai_sound", "CAI_VolumetricEventEntity" },
+	ai_speechfilter = { "CAI_SpeechFilter", "CAI_SpeechFilter" },
+	ai_test_path = { "CAITestPath", "CAITestPath" },
+	ai_volumetric_event = { "CAI_VolumetricEventEntity", "CAI_VolumetricEventEntity" },
+	ai_volumetric_event_sensor = { "CAI_VolumetricEventSensor", "CAI_VolumetricEventSensor" },
+	ambient_generic = { "CAmbientGeneric", "CAmbientGeneric" },
+	archer_charged_shot_projectile = { "CCitadel_Projectile_Archer_ChargedShot", "CBaseModelEntity" },
+	baba_bubblingbrew_projectile = { "CCitadel_Projectile_BubblingBrew", "CBaseModelEntity" },
+	base_clientui_entity = { "CBaseClientUIEntity", "CBaseClientUIEntity" },
+	base_combat_character = { "CBaseCombatCharacter", "CBaseCombatCharacter" },
+	base_npc = { "CAI_BaseNPC", "CAI_BaseNPC" },
+	base_plat_train = { "CBasePlatTrain", "CBasePlatTrain" },
+	base_player_weapon = { "CBasePlayerWeapon", "CBasePlayerWeapon" },
+	base_prop = { "CBaseProp", "CBaseProp" },
+	base_prop_door = { "CBasePropDoor", "CBasePropDoor" },
+	base_toggle = { "CBaseToggle", "CBaseToggle" },
+	base_upgrade_projectile_aoe_modifier = { "CCitadel_Item_BaseProjectileAOEModifier", "CCitadelBaseAbility" },
+	baseanimating = { "CBaseAnimGraphAlias_baseanimating", "CBaseAnimGraph" },
+	baseanimgraph = { "CBaseAnimGraph", "CBaseAnimGraph" },
+	basemodelentity = { "CBaseModelEntity", "CBaseModelEntity" },
+	baseplayerpawn = { "CBasePlayerPawn", "CBasePlayerPawn" },
+	batswarm_extra_projectile = { "CCitadel_Projectile_BatSwarmExtraProjectile", "CBaseModelEntity" },
+	batswarm_projectile = { "CCitadel_Projectile_BatSwarmProjectile", "CBaseModelEntity" },
+	beam = { "CBeam", "CBeam" },
+	bebop_hook_projectile = { "CCitadel_Projectile_Bebop_Hook", "CBaseModelEntity" },
+	blood_bomb_projectile = { "CCitadel_Projectile_BloodBomb", "CBaseModelEntity" },
+	boho_bouncyprojectile = { "CProjectile_Boho_BouncyProjectile", "CBaseModelEntity" },
+	bookwormdragon_projectile = { "CProjectile_BookwormDragon_Projectile", "CBaseModelEntity" },
+	bookwormgun_projectile = { "CCitadel_Projectile_BookwormGun", "CBaseModelEntity" },
+	breakable_prop = { "CBreakableProp", "CBreakableProp" },
+	bullet_redirect_volume = { "CCitadelBulletRedirectVolume", "CBaseModelEntity" },
+	bullet_time_warp = { "CCitadelBulletTimeWarp", "CCitadelBulletTimeWarp" },
+	cable_dynamic = { "CDynamicPropAlias_cable_dynamic", "CDynamicProp" },
+	cadence_ability_anthem = { "CCitadel_Ability_Cadence_Anthem", "CCitadelBaseAbility" },
+	cadence_ability_crescendo = { "CCitadel_Ability_Cadence_Crescendo", "CCitadelBaseAbility" },
+	cadence_ability_grandfinale = { "CCitadel_Ability_Cadence_GrandFinale", "CCitadelBaseAbility" },
+	cadence_ability_lullaby = { "CCitadel_Ability_Cadence_Lullaby", "CCitadelBaseAbility" },
+	cadence_ability_silencecontraptions = { "CCitadel_Ability_Cadence_SilenceContraptions", "CCitadelBaseAbility" },
+	citadel_ability_bebop_laser_beam = { "CCitadel_Ability_Bebop_LaserBeam", "CCitadelBaseAbility" },
+	citadel_ability_boho_primaryweapon = { "CCitadel_Ability_Boho_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_boho_ridebroom = { "CCitadel_Ability_Boho_RideBroom", "CCitadelBaseAbility" },
+	citadel_ability_bookworm_knightcharge = { "CCitadel_Ability_Bookworm_KnightCharge", "CCitadelBaseAbility" },
+	citadel_ability_bookworm_primaryweapon = { "CCitadel_Ability_BookWorm_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_bull_charge = { "CCitadel_Ability_Bull_Charge", "CCitadelBaseAbility" },
+	citadel_ability_bull_heal = { "CCitadel_Ability_Bull_Heal", "CCitadelBaseAbility" },
+	citadel_ability_bull_leap = { "CCitadel_Ability_Bull_Leap", "CCitadelBaseAbility" },
+	citadel_ability_card_toss = { "CCitadel_Ability_CardToss", "CCitadelBaseAbility" },
+	citadel_ability_charged_tackle = { "CCitadel_Ability_ChargedTackle", "CCitadelBaseAbility" },
+	citadel_ability_chrono_kinetic_carbine = { "CCitadel_Ability_Chrono_KineticCarbine", "CCitadelBaseAbility" },
+	citadel_ability_chrono_pulse_grenade = { "CCitadel_Ability_Chrono_PulseGrenade", "CCitadelBaseAbility" },
+	citadel_ability_chrono_swap = { "CCitadel_Ability_ChronoSwap", "CCitadelBaseAbility" },
+	citadel_ability_chrono_time_wall = { "CCitadel_Ability_Chrono_TimeWall", "CCitadelBaseAbility" },
+	citadel_ability_climb_rope = { "CCitadel_Ability_Climb_Rope", "CCitadelBaseAbility" },
+	citadel_ability_dash = { "CCitadel_Ability_Dash", "CCitadelBaseAbility" },
+	citadel_ability_drifter_primaryweapon = { "CCitadel_Ability_Drifter_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_empty = { "CCitadel_Ability_Empty", "CCitadelBaseAbility" },
+	citadel_ability_fencer_primaryweapon = { "CCitadel_Ability_Fencer_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_fissure_wall = { "CCitadel_Ability_FissureWall", "CCitadelBaseAbility" },
+	citadel_ability_flying_strike = { "CCitadel_Ability_FlyingStrike", "CCitadelBaseAbility" },
+	citadel_ability_fortuna_primaryweapon = { "CCitadel_Ability_Fortuna_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_gunslinger_demon_carbine = { "CCitadel_Ability_Gunslinger_DemonCarbine", "CCitadelBaseAbility" },
+	citadel_ability_healing_slash = { "CCitadel_Ability_HealingSlash", "CCitadelBaseAbility" },
+	citadel_ability_hold_melee = { "CCitadel_Ability_HoldMelee", "CCitadelBaseAbility" },
+	citadel_ability_hook = { "CCitadel_Ability_Hook", "CCitadelBaseAbility" },
+	citadel_ability_hornet_chain = { "CCitadel_Ability_Hornet_Chain", "CCitadelBaseAbility" },
+	citadel_ability_hornet_leap = { "CCitadel_Ability_HornetLeap", "CCitadelBaseAbility" },
+	citadel_ability_hornet_snipe = { "CCitadel_Ability_Hornet_Snipe", "CCitadelBaseAbility" },
+	citadel_ability_hornet_sting = { "CCitadel_Ability_HornetSting", "CCitadelBaseAbility" },
+	citadel_ability_jump = { "CCitadel_Ability_Jump", "CCitadelBaseAbility" },
+	citadel_ability_kali_disruptive_charge = { "CCitadel_Ability_Disruptive_Charge", "CCitadelBaseAbility" },
+	citadel_ability_kali_spinning_blade = { "CCitadel_Ability_Spinning_Blade", "CCitadelBaseAbility" },
+	citadel_ability_lash = { "CCitadel_Ability_Lash", "CCitadelBaseAbility" },
+	citadel_ability_lash_down_strike = { "CCitadel_Ability_LashDownStrike", "CCitadelBaseAbility" },
+	citadel_ability_lash_ultimate = { "CCitadel_Ability_Lash_Ultimate", "CCitadelBaseAbility" },
+	citadel_ability_lightning_ball = { "CCitadel_Ability_LightningBall", "CCitadelBaseAbility" },
+	citadel_ability_magewalk = { "CCitadel_Ability_MageWalk", "CCitadelBaseAbility" },
+	citadel_ability_mantle = { "CCitadel_Ability_Mantle", "CCitadelBaseAbility" },
+	citadel_ability_melee_parry = { "CCitadel_Ability_MeleeParry", "CCitadelBaseAbility" },
+	citadel_ability_mobile_resupply = { "CCitadel_Ability_MobileResupply", "CCitadelBaseAbility" },
+	citadel_ability_nano_clustergrenade = { "CCitadel_Ability_Nano_ClusterGrenade", "CCitadelBaseAbility" },
+	citadel_ability_nano_dash = { "CCitadel_Ability_NanoDash", "CCitadelBaseAbility" },
+	citadel_ability_nano_primaryweapon = { "CCitadel_Ability_Nano_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_necro_coffin = { "CCitadel_Ability_Necro_Coffin", "CCitadelBaseAbility" },
+	citadel_ability_necro_gravestone = { "CCitadel_Ability_Necro_GraveStone", "CCitadelBaseAbility" },
+	citadel_ability_necro_primaryweapon = { "CCitadel_Ability_Necro_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_nikuman = { "CCitadel_Ability_Nikuman", "CCitadelBaseAbility" },
+	citadel_ability_passive_beefy = { "CCitadel_Ability_PassiveBeefy", "CCitadelBaseAbility" },
+	citadel_ability_power_slash = { "CCitadel_Ability_PowerSlash", "CCitadelBaseAbility" },
+	citadel_ability_priest_silencebomb = { "CCitadel_Ability_Priest_SilenceBomb", "CCitadelBaseAbility" },
+	citadel_ability_primary_weapon = { "CCitadel_Ability_PrimaryWeapon_Empty", "CCitadelBaseAbility" },
+	citadel_ability_primary_weapon_bebop = { "CCitadel_Ability_PrimaryWeapon_Bebop", "CCitadelBaseAbility" },
+	citadel_ability_primary_weapon_cadence = { "CCitadel_Ability_PrimaryWeapon_Cadence", "CCitadelBaseAbility" },
+	citadel_ability_primary_weapon_scaling_altfire = { "CCitadel_Ability_PrimaryWeapon_ScalingAltFire", "CCitadelBaseAbility" },
+	citadel_ability_projectmind = { "CCitadel_Ability_ProjectMind", "CCitadelBaseAbility" },
+	citadel_ability_psychic_lift = { "CCitadel_Ability_PsychicLift", "CCitadelBaseAbility" },
+	citadel_ability_punkgoat_primaryweapon = { "CCitadel_Ability_Punkgoat_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_ratking_primaryweapon = { "CCitadel_Ability_Ratking_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_rocket_barrage = { "CCitadel_Ability_RocketBarrage", "CCitadelBaseAbility" },
+	citadel_ability_self_vacuum = { "CCitadel_Ability_SelfVacuum", "CCitadelBaseAbility" },
+	citadel_ability_shieldedsentry = { "CCitadel_Ability_ShieldedSentry", "CCitadelBaseAbility" },
+	citadel_ability_shiv_dagger = { "CCitadel_Ability_ShivDagger", "CCitadelBaseAbility" },
+	citadel_ability_shiv_dash = { "CCitadel_Ability_ShivDash", "CCitadelBaseAbility" },
+	citadel_ability_shiv_defer_damage = { "CCitadel_Ability_Shiv_Defer_Damage", "CCitadelBaseAbility" },
+	citadel_ability_shiv_killing_blow = { "CCitadel_Ability_Shiv_KillingBlow", "CCitadelBaseAbility" },
+	citadel_ability_skyrunner_magicbeam = { "CCitadel_Ability_Skyrunner_MagicBeam", "CCitadelBaseAbility" },
+	citadel_ability_skyrunner_primaryweapon = { "CCitadel_Ability_SkyRunner_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_slide = { "CCitadel_Ability_Slide", "CCitadelBaseAbility" },
+	citadel_ability_sprint = { "CCitadel_Ability_Sprint", "CCitadelBaseAbility" },
+	citadel_ability_static_charge = { "CCitadel_Ability_StaticCharge", "CCitadelBaseAbility" },
+	citadel_ability_static_charge_v2 = { "CCitadel_Ability_StaticCharge_V2", "CCitadelBaseAbility" },
+	citadel_ability_sticky_bomb = { "CCitadel_Ability_StickyBomb", "CCitadelBaseAbility" },
+	citadel_ability_stomp = { "CCitadel_Ability_Stomp", "CCitadelBaseAbility" },
+	citadel_ability_storm_cloud = { "CCitadel_Ability_StormCloud", "CCitadelBaseAbility" },
+	citadel_ability_tangotether = { "CCitadel_Ability_TangoTether", "CCitadelBaseAbility" },
+	citadel_ability_tangotether_trigger = { "CCitadel_Ability_TangoTether_Trigger", "CCitadelBaseAbility" },
+	citadel_ability_teleport = { "CCitadel_Ability_Teleport", "CCitadelBaseAbility" },
+	citadel_ability_tengu_airlift = { "CCitadel_Ability_Tengu_AirLift", "CCitadelBaseAbility" },
+	citadel_ability_tengu_stone_form = { "CCitadel_Ability_Tengu_StoneForm", "CCitadelBaseAbility" },
+	citadel_ability_tengu_urn = { "CCitadel_Ability_Tengu_Urn", "CCitadelBaseAbility" },
+	citadel_ability_tier2boss_aoe_wave = { "CCitadel_Ability_Tier2Boss_AoEWave", "CCitadelBaseAbility" },
+	citadel_ability_tier2boss_laser_beam = { "CCitadel_Ability_Tier2Boss_LaserBeam", "CCitadelBaseAbility" },
+	citadel_ability_tier2boss_rocket_barrage = { "CCitadel_Ability_Tier2Boss_RocketBarrage", "CCitadelBaseAbility" },
+	citadel_ability_tier2boss_stomp = { "CCitadel_Ability_Tier2Boss_Stomp", "CCitadelBaseAbility" },
+	citadel_ability_tier3boss_aoe_wave = { "CCitadel_Ability_Tier3Boss_AoEWave", "CCitadelBaseAbility" },
+	citadel_ability_tier3boss_drop_bombs = { "CCitadel_Ability_Tier3Boss_DropBombs", "CCitadelBaseAbility" },
+	citadel_ability_tier3boss_laser_beam = { "CCitadel_Ability_Tier3Boss_LaserBeam", "CCitadelBaseAbility" },
+	citadel_ability_tier3boss_rocket_barrage = { "CCitadel_Ability_Tier3Boss_RocketBarrage", "CCitadelBaseAbility" },
+	citadel_ability_tower_regen = { "CCitadel_Ability_TriggerTower", "CCitadelBaseAbility" },
+	citadel_ability_trapper_poisonjar = { "CCitadel_Ability_Trapper_PoisonJar", "CCitadelBaseAbility" },
+	citadel_ability_trooper_zip_line = { "CCitadel_Ability_TrooperZipLine", "CCitadelBaseAbility" },
+	citadel_ability_turretclone = { "CCitadel_Ability_TurretClone", "CCitadelBaseAbility" },
+	citadel_ability_unicorn_primaryweapon = { "CCitadel_Ability_Unicorn_PrimaryWeapon", "CCitadelBaseAbility" },
+	citadel_ability_uppercut = { "CCitadel_Ability_Uppercut", "CCitadelBaseAbility" },
+	citadel_ability_vandal_overflow = { "CCitadel_Ability_VandalOverflow", "CCitadelBaseAbility" },
+	citadel_ability_vandal_surge = { "CCitadel_Ability_VandalSurge", "CCitadelBaseAbility" },
+	citadel_ability_void_sphere = { "CCitadel_Ability_VoidSphere", "CCitadelBaseAbility" },
+	citadel_ability_werewolf_clawweapon = { "CCitadel_Ability_Werewolf_ClawWeapon", "CCitadelBaseAbility" },
+	citadel_ability_werewolf_frenzy = { "CAbility_Werewolf_Frenzy", "CCitadelBaseAbility" },
+	citadel_ability_werewolf_onthehunt = { "CCitadel_Ability_Werewolf_OnTheHunt", "CCitadelBaseAbility" },
+	citadel_ability_werewolf_rifle = { "CCitadel_Ability_Werewolf_Rifle", "CCitadelBaseAbility" },
+	citadel_ability_wraith_rapidfire = { "CCitadel_Ability_Wraith_RapidFire", "CCitadelBaseAbility" },
+	citadel_ability_wrecker_bouldergrenade = { "CCitadel_Ability_Wrecker_BoulderGrenade", "CCitadelBaseAbility" },
+	citadel_ability_wrecker_garbage_suck = { "CCitadel_Ability_WreckerGarbageSuck", "CCitadelBaseAbility" },
+	citadel_ability_zip_line = { "CCitadel_Ability_ZipLine", "CCitadelBaseAbility" },
+	citadel_ability_zipline_boost = { "CCitadel_Ability_ZipLine_Boost", "CCitadelBaseAbility" },
+	citadel_animating_model_entity = { "CCitadelAnimatingModelEntity", "CBaseAnimGraph" },
+	citadel_announcer = { "CCitadel_Announcer", "CBaseCombatCharacter" },
+	citadel_base_ability = { "CCitadelBaseAbility", "CCitadelBaseAbility" },
+	citadel_base_hero = { "CCitadelHeroLoader", "CCitadelHeroLoader" },
+	citadel_base_lockon_ability = { "CCitadelBaseLockonAbility", "CCitadelBaseAbility" },
+	citadel_base_prop_midboss_indicator = { "CCitadel_Prop_MidBossIndicator", "CPointEntity" },
+	citadel_base_prop_stairs = { "CCitadel_BaseProp_MidStairs", "CCitadel_BaseProp_MidStairs" },
+	citadel_base_tiered_lockon_ability = { "CCitadelBaseTieredLockonAbility", "CCitadelBaseAbility" },
+	citadel_base_trigger_ability = { "CCitadelBaseTriggerAbility", "CCitadelBaseAbility" },
+	citadel_bot_test_node = { "CCitadelBotTestNode", "CCitadelBotTestNode" },
+	citadel_bounce_pad = { "CCitadel_Bounce_Pad", "CBaseAnimGraph" },
+	citadel_breakable_prop = { "CCitadel_BreakableProp", "CCitadel_BreakableProp" },
+	citadel_capture_point = { "CCitadelTriggerCapturePoint", "CCitadelTriggerCapturePoint" },
+	citadel_capture_point_escort = { "CCitadelTriggerCapturePoint_Escort", "CCitadelTriggerCapturePoint" },
+	citadel_cat_animating = { "CCitadel_CatAnimating", "CBaseAnimGraph" },
+	citadel_configurable_tracked_projectile = { "CCitadelConfigurableTrackedProjectile", "CBaseModelEntity" },
+	citadel_control_point = { "CCitadelControlPointTrigger", "CCitadelControlPointTrigger" },
+	citadel_dash_cast_ability = { "CCitadelBaseDashCastAbility", "CCitadelBaseAbility" },
+	citadel_deployable_preview = { "CCitadel_DeployablePreview", "CCitadel_DeployablePreview" },
+	citadel_dev_trigger = { "CCitadelDevTrigger", "CCitadelDevTrigger" },
+	citadel_doorway_portal = { "CCitadel_DoorwayPortal", "CCitadel_DoorwayPortal" },
+	citadel_druid_healing_tree = { "CCitadelDruidHealingTree", "CCitadelDruidHealingTree" },
+	citadel_druid_healing_tree_fruit = { "CCitadelDruidHealingFruit", "CCitadelDruidHealingFruit" },
+	citadel_druid_invis_bush = { "CCitadelDruidInvisBush", "CBaseAnimGraph" },
+	citadel_druid_plant_shield = { "CCitadelDruidPlantShield", "CBaseAnimGraph" },
+	citadel_econ_item_container = { "CCitadelEconItemContainer", "CCitadelEconItemContainer" },
+	citadel_energy_tower = { "CCitadelEnergyTower", "CCitadelEnergyTower" },
+	citadel_fissure_wall = { "CCitadel_FissureWall", "CBaseAnimGraph" },
+	citadel_gaffer = { "CCitadelGaffer", "CCitadelGaffer" },
+	citadel_gamerules = { "CCitadelGameRulesProxy", "CBaseEntity" },
+	citadel_grandfinale_stage = { "CCitadel_GrandFinaleStage", "CBaseAnimGraph" },
+	citadel_gravestone_blocker = { "CCitadel_GraveStone_Blocker", "CCitadel_GraveStone_Blocker" },
+	citadel_hero_release_vote_terminal = { "CCitadelHeroReleaseVoteTerminal", "CDynamicProp" },
+	citadel_herotest_orbspawner = { "CCitadel_HeroTestOrbSpawner", "CBaseAnimGraph" },
+	citadel_hideout_ball = { "CCitadel_Hideout_Ball", "CBaseModelEntity" },
+	citadel_hideout_button = { "CCitadelHideoutInteractableProp", "CCitadelHideoutInteractableProp" },
+	citadel_hideout_clock = { "CCitadel_Hideout_Clock", "CBaseAnimGraph" },
+	citadel_hideout_interactable_trigger = { "CCitadelHideoutInteractableTrigger", "CCitadelHideoutInteractableTrigger" },
+	citadel_hideout_prop_base = { "CCitadelHideoutPropBase", "CCitadelHideoutPropBase" },
+	citadel_hideout_prop_slot = { "CCitadelHideoutPropSlot", "CCitadelHideoutPropSlot" },
+	citadel_hideout_shootable_target_spawner = { "CCitadel_HideOutTargetSpawner", "CBaseAnimGraph" },
+	citadel_ice_dome_blocker = { "CCitadel_Ice_Dome_Blocker", "CBaseAnimGraph" },
+	citadel_invis_volume = { "CTriggerInvisVolume", "CBaseTrigger" },
+	citadel_item = { "CCitadel_Item_Empty", "CCitadelBaseAbility" },
+	citadel_item_aura_base = { "CCitadel_Item_Aura_Base", "CCitadelBaseAbility" },
+	citadel_item_koth_spawner = { "CCitadelItemKothSpawner", "CCitadelItemKothSpawner" },
+	citadel_item_pickup = { "CCitadelItemPickup", "CCitadelItemPickup" },
+	citadel_item_pickup_idol = { "CCitadelItemPickupIdol", "CCitadelItemPickupIdol" },
+	citadel_item_pickup_rejuv = { "CCitadelItemPickupRejuv", "CCitadelItemPickup" },
+	citadel_item_pickup_rejuv_herotest = { "CCitadelItemPickupRejuvHeroTest", "CCitadelItemPickup" },
+	citadel_item_pickup_rejuv_herotest_infospawn = { "CCitadelItemPickupRejuvHeroTestInfoSpawn", "CPointEntity" },
+	citadel_item_powerup_spawner = { "CCitadel_PickupItemSpawner", "CCitadel_PickupItemSpawner" },
+	citadel_item_punchable_gold = { "CCitadelItemPunchableNeutralGold", "CCitadelItemPunchableNeutralGold" },
+	citadel_koth_cashin = { "CCitadel_KothCashIn", "CCitadel_KothCashIn" },
+	citadel_local_player_ranked_badge_prop = { "CCitadelLocalPlayerRankedBadgeProp", "CBaseEntity" },
+	citadel_magic_beam_blocker = { "CCitadel_Magic_Beam_Blocker", "CBaseAnimGraph" },
+	citadel_magician_turret_object = { "CCitadel_MagicianTurret", "CCitadel_MagicianTurret" },
+	citadel_minimap_boundary = { "CCitadelMinimapBoundary", "CBaseEntity" },
+	citadel_mobile_resupply_object = { "CCitadel_MobileResupply", "CCitadel_MobileResupply" },
+	citadel_model_entity = { "CCitadelModelEntity", "CBaseModelEntity" },
+	citadel_multi_capture_point = { "CCitadelTriggerMultiCapturePoint", "CCitadelTriggerMultiCapturePoint" },
+	citadel_nano_predatory_statue = { "CCitadel_Nano_Predatory_Statue", "CCitadel_Nano_Predatory_Statue" },
+	citadel_new_years_fireworks = { "CCitadel_NewYears_Fireworks", "CCitadel_NewYears_Fireworks" },
+	citadel_npc = { "CAI_CitadelNPC", "CAI_CitadelNPC" },
+	citadel_obscured_volume = { "CTriggerObscuredVolume", "CTriggerObscuredVolume" },
+	citadel_passthrough_fake_wall = { "CCitadelPassthroughFakeWall", "CCitadelPassthroughFakeWall" },
+	citadel_pickup = { "CCitadel_Pickup", "CBaseAnimGraph" },
+	citadel_pickup_ability = { "CCitadel_Pickup_Ability", "CBaseAnimGraph" },
+	citadel_pickup_assigned_gold = { "CCitadel_Pickup_AssignedGold", "CBaseAnimGraph" },
+	citadel_pickup_currency = { "CCitadel_Pickup_Currency", "CBaseAnimGraph" },
+	citadel_pickup_gold = { "CCitadel_Pickup_Gold", "CBaseAnimGraph" },
+	citadel_pickup_health = { "CCitadel_Pickup_Health", "CBaseAnimGraph" },
+	citadel_pickup_item = { "CCitadel_Pickup_Item", "CBaseAnimGraph" },
+	citadel_pickup_modifier = { "CCitadel_Pickup_Modifier", "CBaseAnimGraph" },
+	citadel_pickup_necro_death = { "CCitadel_Pickup_NecroDeath", "CBaseAnimGraph" },
+	citadel_pickup_spawner = { "CCitadel_PickupSpawner", "CCitadel_PickupSpawner" },
+	citadel_player_controller = { "CCitadelPlayerController", "CBasePlayerController" },
+	citadel_point_talker = { "CCitadel_PointTalker", "CCitadel_PointTalker_Base" },
+	citadel_point_talker_base = { "CCitadel_PointTalker_Base", "CCitadel_PointTalker_Base" },
+	citadel_point_talker_idol = { "CCitadel_PointTalker_Idol", "CCitadel_PointTalker_Base" },
+	citadel_pregame_hero_draft_button = { "CCitadelPregameHeroDraftButton", "CDynamicProp" },
+	citadel_priest_slidetrap = { "CCitadel_Priest_SlideTrap", "CBaseModelEntity" },
+	citadel_projectile = { "CCitadelProjectile", "CBaseModelEntity" },
+	citadel_prop_dynamic = { "CCitadel_DynamicProp", "CCitadel_DynamicProp" },
+	citadel_ranked_badge_prop = { "CCitadelRankedBadgeProp", "CCitadelRankedBadgeProp" },
+	citadel_ratking_standard = { "CCitadel_Ratking_Standard", "CBaseAnimGraph" },
+	citadel_restorative_goo_cube = { "CCitadel_RestorativeGooCube", "CBaseAnimGraph" },
+	citadel_shield = { "CCitadel_Shield", "CBaseModelEntity" },
+	citadel_shop_prop_dynamic = { "CCitadel_ShopProp", "CCitadel_ShopProp" },
+	citadel_smokegrenade_blocker = { "CCitadel_SmokeGrenade_Blocker", "CBaseAnimGraph" },
+	citadel_snd_base_music_obb = { "CCitadelBaseMusicOBB", "CCitadelSoundStackFieldOBB" },
+	citadel_snd_dsp_obb = { "CCitadelAudioProcessingVolumeOBB", "CCitadelAudioProcessingVolumeOBB" },
+	citadel_snd_obb = { "CCitadelSoundEntityOBB", "CCitadelSoundEntityOBB" },
+	citadel_snd_opvar_set_obb = { "CCitadelSoundOpvarSetOBB", "CCitadelSoundOpvarSetOBB" },
+	citadel_snd_stack_field_obb = { "CCitadelSoundStackFieldOBB", "CCitadelSoundStackFieldOBB" },
+	citadel_soldier_entity = { "CCitadel_Soldier_Entity", "CCitadel_Soldier_Entity" },
+	citadel_spider_animating = { "CCitadel_SpiderAnimating", "CBaseAnimGraph" },
+	citadel_team_manager = { "CCitadelTeam", "CTeam" },
+	citadel_tracked_projectile = { "CCitadelTrackedProjectile", "CBaseModelEntity" },
+	citadel_trigger_bonk = { "CCitadelTriggerBonk", "CCitadelTriggerBonk" },
+	citadel_trigger_capture_zipline = { "CCitadelZiplineCaptureTrigger", "CBaseTrigger" },
+	citadel_trigger_climb_rope = { "CCitadelClimbRopeTrigger", "CCitadelClimbRopeTrigger" },
+	citadel_trigger_corrupted_item_shop = { "CCitadelTriggerCorruptedItemShop", "CCitadelTriggerCorruptedItemShop" },
+	citadel_trigger_hideout = { "CCitadelTriggerHideout", "CBaseTrigger" },
+	citadel_trigger_hideout_teleport = { "CCitadelHideoutTeleportTrigger", "CCitadelHideoutTeleportTrigger" },
+	citadel_trigger_hotel_exit = { "CCitadelHotelExitTrigger", "CCitadelHotelExitTrigger" },
+	citadel_trigger_idol_return = { "CCitadelIdolReturnTrigger", "CTriggerModifier" },
+	citadel_trigger_ignore_out_of_play_area = { "CCitadelIgnoreOutOfPlayArea", "CTriggerModifier" },
+	citadel_trigger_in_map_district = { "CCitadelMapDistrictTrigger", "CCitadelMapDistrictTrigger" },
+	citadel_trigger_interior = { "CCitadelInteriorTrigger", "CCitadelInteriorTrigger" },
+	citadel_trigger_no_portals = { "CCitadelTriggerNoPortals", "CBaseTrigger" },
+	citadel_trigger_push = { "CCitadelPushTrigger", "CCitadelPushTrigger" },
+	citadel_trigger_secure_souls = { "CCitadelTriggerSecureSouls", "CBaseTrigger" },
+	citadel_trigger_shop_tunnel = { "CCitadelShopTunnelTrigger", "CBaseTrigger" },
+	citadel_trigger_speed_boost = { "CCitadelSpeedBoostTrigger", "CCitadelSpeedBoostTrigger" },
+	citadel_trigger_suspend_modifier = { "CTriggerSuspendModifier", "CTriggerSuspendModifier" },
+	citadel_trigger_teleport = { "CCitadelTeleportTrigger", "CCitadelTeleportTrigger" },
+	citadel_trooper_minimap = { "CCitadelTrooperMinimap", "CBaseEntity" },
+	citadel_tunnel_node = { "CCitadelTunnelNode", "CCitadelTunnelNode" },
+	citadel_tunnel_trigger = { "CCitadelTunnelTrigger", "CCitadelTunnelTrigger" },
+	citadel_tutorial_controller = { "CInfoTutorialController", "CDynamicProp" },
+	citadel_viscous_ball = { "CCitadelViscousBall", "CCitadelViscousBall" },
+	citadel_weapon_bosstier2_set = { "CCitadel_Ability_Weapon_BossTier2", "CCitadelBaseAbility" },
+	citadel_weapon_bosstier3_set = { "CCitadel_Ability_Weapon_BossTier3", "CCitadelBaseAbility" },
+	citadel_weapon_shiv = { "CCitadel_Ability_ShivWeapon", "CCitadelBaseAbility" },
+	citadel_zap_trigger = { "CCitadelZapTrigger", "CCitadelZapTrigger" },
+	citadel_zipline_path = { "CCitadelZiplinePath", "CCitadelZiplinePath" },
+	citadel_zipline_path_node = { "CCitadelZipLinePathNode", "CCitadelZipLinePathNode" },
+	color_correction = { "CColorCorrection", "CColorCorrection" },
+	color_correction_volume = { "CColorCorrectionVolume", "CColorCorrectionVolume" },
+	commentary_auto = { "CCommentaryAuto", "CCommentaryAuto" },
+	cosmetic_emote = { "CCitadel_CosmeticAbility_Emote", "CCitadelBaseAbility" },
+	cosmetic_snowball = { "CCitadel_CosmeticAbility_Snowball", "CCitadelBaseAbility" },
+	cosmetic_voting_poster = { "CCitadel_CosmeticAbility_VotingPoster", "CCitadelBaseAbility" },
+	destroyable_building = { "CCitadel_Destroyable_Building", "CCitadel_Destroyable_Building" },
+	doorman_bomb_projectile = { "CDoormanBombProjectile", "CBaseModelEntity" },
+	drifter_blood_blast = { "CAbility_Drifter_BloodBlast", "CCitadelBaseAbility" },
+	drifter_darkness = { "CAbility_Drifter_Darkness", "CCitadelBaseAbility" },
+	drifter_shadow_mark = { "CAbility_Drifter_ShadowMark", "CCitadelBaseAbility" },
+	drifter_shadow_mark_teleport = { "CAbility_Drifter_StalkersMark_Teleport", "CCitadelBaseAbility" },
+	dynamic_prop = { "CDynamicPropAlias_dynamic_prop", "CDynamicProp" },
+	entity_blocker = { "CEntityBlocker", "CBaseModelEntity" },
+	entityflame = { "CEntityFlame", "CBaseEntity" },
+	env_beam = { "CEnvBeam", "CEnvBeam" },
+	env_beverage = { "CEnvBeverage", "CEnvBeverage" },
+	env_combined_light_probe_volume = { "CEnvCombinedLightProbeVolume", "CEnvCombinedLightProbeVolume" },
+	env_credits = { "CCredits", "CCredits" },
+	env_cubemap = { "CEnvCubemap", "CEnvCubemap" },
+	env_cubemap_fog = { "CEnvCubemapFog", "CEnvCubemapFog" },
+	env_debughistory = { "CDebugHistory", "CBaseEntity" },
+	env_decal = { "CEnvDecal", "CEnvDecal" },
+	env_detail_controller = { "CEnvDetailController", "CEnvDetailController" },
+	env_entity_dissolver = { "CEntityDissolve", "CEntityDissolve" },
+	env_entity_igniter = { "CEnvEntityIgniter", "CEnvEntityIgniter" },
+	env_entity_maker = { "CEnvEntityMaker", "CEnvEntityMaker" },
+	env_explosion = { "CEnvExplosion", "CEnvExplosion" },
+	env_fade = { "CEnvFade", "CEnvFade" },
+	env_fog_controller = { "CFogController", "CFogController" },
+	env_global = { "CEnvGlobal", "CEnvGlobal" },
+	env_glow = { "CSpriteAlias_env_glow", "CSprite" },
+	env_gradient_fog = { "CGradientFog", "CGradientFog" },
+	env_instructor_hint = { "CEnvInstructorHint", "CEnvInstructorHint" },
+	env_instructor_vr_hint = { "CEnvInstructorVRHint", "CEnvInstructorVRHint" },
+	env_laser = { "CEnvLaser", "CEnvLaser" },
+	env_light_probe_volume = { "CEnvLightProbeVolume", "CEnvLightProbeVolume" },
+	env_message = { "CMessage", "CMessage" },
+	env_muzzleflash = { "CEnvMuzzleFlash", "CEnvMuzzleFlash" },
+	env_particle_glow = { "CEnvParticleGlow", "CEnvParticleGlow" },
+	env_physexplosion = { "CPhysExplosion", "CPhysExplosion" },
+	env_physimpact = { "CPhysImpact", "CPhysImpact" },
+	env_physwire = { "CPhysicsWire", "CPhysicsWire" },
+	env_player_visibility = { "CPlayerVisibility", "CPlayerVisibility" },
+	env_shake = { "CEnvShake", "CEnvShake" },
+	env_sky = { "CEnvSky", "CEnvSky" },
+	env_soundscape = { "CEnvSoundscape", "CEnvSoundscape" },
+	env_soundscape_proxy = { "CEnvSoundscapeProxy", "CEnvSoundscapeProxy" },
+	env_soundscape_triggerable = { "CEnvSoundscapeTriggerable", "CEnvSoundscape" },
+	env_spark = { "CEnvSpark", "CEnvSpark" },
+	env_splash = { "CEnvSplash", "CEnvSplash" },
+	env_sprite = { "CSprite", "CSprite" },
+	env_sprite_oriented = { "CSpriteOriented", "CSprite" },
+	env_tilt = { "CEnvTilt", "CEnvTilt" },
+	env_tonemap_controller = { "CTonemapController2", "CTonemapController2" },
+	env_tonemap_controller2 = { "CTonemapController2Alias_env_tonemap_controller2", "CTonemapController2" },
+	env_viewpunch = { "CEnvViewPunch", "CEnvViewPunch" },
+	env_volumetric_fog_controller = { "CEnvVolumetricFogController", "CEnvVolumetricFogController" },
+	env_volumetric_fog_volume = { "CEnvVolumetricFogVolume", "CEnvVolumetricFogVolume" },
+	env_wind = { "CEnvWind", "CEnvWind" },
+	familiar_clone = { "CCitadelFamiliarClonePlayerPawn", "CCitadelFamiliarClonePlayerPawn" },
+	familiar_projectile_movingtoattach = { "CProjectile_Familiar_MovingToAttach", "CBaseModelEntity" },
+	fathom_breach = { "CCitadel_Ability_Fathom_Breach", "CCitadelBaseAbility" },
+	fathom_lurkers_ambush = { "CAbility_Fathom_LurkersAmbush", "CCitadelBaseAbility" },
+	fathom_reefdweller_harpoon = { "CAbility_Fathom_ReefdwellerHarpoon", "CCitadelBaseAbility" },
+	fathom_scalding_spray = { "CCitadel_Ability_Fathom_ScaldingSpray", "CCitadelBaseAbility" },
+	featherboomerang_projectile = { "CCitadel_Projectile_FeatherBoomerang", "CBaseModelEntity" },
+	filter_activator_attribute_int = { "CFilterAttributeInt", "CFilterAttributeInt" },
+	filter_activator_class = { "CFilterClass", "CFilterClass" },
+	filter_activator_context = { "CFilterContext", "CFilterContext" },
+	filter_activator_mass_greater = { "CFilterMassGreater", "CFilterMassGreater" },
+	filter_activator_model = { "CFilterModel", "CFilterModel" },
+	filter_activator_modifier = { "CCitadelFilterModifier", "CCitadelFilterModifier" },
+	filter_activator_name = { "CFilterName", "CFilterName" },
+	filter_activator_team = { "CFilterTeam", "CFilterTeam" },
+	filter_base = { "CBaseFilter", "CBaseFilter" },
+	filter_damage_type = { "FilterDamageType", "FilterDamageType" },
+	filter_enemy = { "CFilterEnemy", "CFilterEnemy" },
+	filter_health = { "FilterHealth", "FilterHealth" },
+	filter_los = { "CFilterLOS", "CBaseFilter" },
+	filter_modifier = { "CFilterModifier", "CFilterModifier" },
+	filter_multi = { "CFilterMultiple", "CFilterMultiple" },
+	filter_proximity = { "CFilterProximity", "CFilterProximity" },
+	fish = { "CFish", "CBaseAnimGraph" },
+	fog_volume = { "CFogVolume", "CFogVolume" },
+	fortuna_weapon_projectile = { "CCitadel_Projectile_FortunaWeapon", "CBaseModelEntity" },
+	func_breakable = { "CBreakable", "CBreakable" },
+	func_brush = { "CFuncBrush", "CFuncBrush" },
+	func_button = { "CBaseButton", "CBaseButton" },
+	func_clip_interaction_layer = { "CFuncInteractionLayerClip", "CFuncInteractionLayerClip" },
+	func_clip_vphysics = { "CFuncVPhysicsClip", "CFuncVPhysicsClip" },
+	func_combined_light_probe_volume = { "CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume", "CEnvCombinedLightProbeVolume" },
+	func_conditional_collidable = { "CConditionalCollidable", "CConditionalCollidable" },
+	func_door = { "CBaseDoor", "CBaseDoor" },
+	func_door_rotating = { "CRotDoor", "CRotDoor" },
+	func_electrified_volume = { "CFuncElectrifiedVolume", "CFuncElectrifiedVolume" },
+	func_fish_pool = { "CFishPool", "CFishPool" },
+	func_guntarget = { "CGunTarget", "CGunTarget" },
+	func_illusionary = { "CFuncIllusionary", "CBaseModelEntity" },
+	func_ladder = { "CFuncLadder", "CFuncLadder" },
+	func_monitor = { "CFuncMonitor", "CFuncMonitor" },
+	func_movelinear = { "CFuncMoveLinear", "CFuncMoveLinear" },
+	func_mover = { "CFuncMover", "CFuncMover" },
+	func_mover_router = { "CFuncMoverRouter", "CFuncMoverRouter" },
+	func_nav_avoidance_obstacle = { "CFuncNavObstruction", "CFuncNavObstruction" },
+	func_nav_blocker = { "CFuncNavBlocker", "CFuncNavBlocker" },
+	func_nav_dynamic_connections = { "CDynamicNavConnectionsVolume", "CDynamicNavConnectionsVolume" },
+	func_nav_markup = { "CMarkupVolumeTagged_Nav", "CMarkupVolumeTagged_Nav" },
+	func_nav_markup_citadel = { "CMarkupVolumeTagged_NavCitadel", "CMarkupVolumeWithRef" },
+	func_nav_markup_game = { "CMarkupVolumeTagged_NavGame", "CMarkupVolumeTagged_NavGame" },
+	func_physbox = { "CPhysBox", "CPhysBox" },
+	func_physical_button = { "CPhysicalButton", "CBaseButton" },
+	func_plat = { "CFuncPlat", "CFuncPlat" },
+	func_platrot = { "CFuncPlatRot", "CFuncPlat" },
+	func_precipitation = { "CPrecipitation", "CPrecipitation" },
+	func_precipitation_blocker = { "CPrecipitationBlocker", "CBaseModelEntity" },
+	func_proprrespawnzone = { "CFuncPropRespawnZone", "CBaseEntity" },
+	func_pushable = { "CPushable", "CBreakable" },
+	func_regenerate = { "CRegenerateZone", "CBaseTrigger" },
+	func_rot_button = { "CRotButton", "CBaseButton" },
+	func_rotating = { "CFuncRotating", "CFuncRotating" },
+	func_rotator = { "CFuncRotator", "CFuncRotator" },
+	func_shatterglass = { "CFuncShatterglass", "CFuncShatterglass" },
+	func_spawn_blocker = { "CCitadelSpawnBlocker", "CFuncBrush" },
+	func_tanktrain = { "CFuncTankTrain", "CFuncTankTrain" },
+	func_timescale = { "CFuncTimescale", "CFuncTimescale" },
+	func_trackautochange = { "CFuncTrackAuto", "CFuncTrackAuto" },
+	func_trackchange = { "CFuncTrackChange", "CFuncTrackChange" },
+	func_tracktrain = { "CFuncTrackTrain", "CFuncTrackTrain" },
+	func_train = { "CFuncTrain", "CFuncTrain" },
+	func_traincontrols = { "CFuncTrainControls", "CBaseModelEntity" },
+	func_useableladder = { "CFuncLadderAlias_func_useableladder", "CFuncLadder" },
+	func_vehicleclip = { "CFuncVehicleClip", "CFuncVehicleClip" },
+	func_wall = { "CFuncWall", "CBaseModelEntity" },
+	func_wall_toggle = { "CFuncWallToggle", "CFuncWallToggle" },
+	game_gib_manager = { "CGameGibManager", "CGameGibManager" },
+	game_player_equip = { "CGamePlayerEquip", "CGamePlayerEquip" },
+	game_ragdoll_manager = { "CRagdollManager", "CRagdollManager" },
+	game_text = { "CGameText", "CGameText" },
+	game_zone_player = { "CGamePlayerZone", "CGamePlayerZone" },
+	genericperson_ability_1 = { "CCitadel_Ability_GenericPerson_1", "CCitadelBaseAbility" },
+	genericperson_ability_2 = { "CCitadel_Ability_GenericPerson_2", "CCitadelBaseAbility" },
+	genericperson_ability_3 = { "CCitadel_Ability_GenericPerson_3", "CCitadelBaseAbility" },
+	genericperson_ability_4 = { "CCitadel_Ability_GenericPerson_4", "CCitadelBaseAbility" },
+	guided_arrow_projectile = { "CCitadel_Projectile_Guided_Arrow", "CBaseModelEntity" },
+	gunslinger_rapid_fire = { "CCitadel_Ability_RapidFire", "CCitadelBaseAbility" },
+	gunslinger_rocket_launcher = { "CCitadel_Ability_RocketLauncher", "CCitadelBaseAbility" },
+	gunslinger_salvo = { "CCitadel_Ability_Gunslinger_Salvo", "CCitadelBaseAbility" },
+	gunslinger_sleep_bomb = { "CCitadel_Ability_SleepBomb", "CCitadelBaseAbility" },
+	gunslinger_tenacity = { "CCitadel_Ability_Tenacity", "CCitadelBaseAbility" },
+	handle_dummy = { "CHandleDummy", "CBaseEntity" },
+	handle_test = { "CHandleTest", "CBaseEntity" },
+	hero_preview = { "C_HeroPreview", "CBaseEntity" },
+	hero_testing_controller = { "CInfoHeroTestingController", "CPointEntity" },
+	hl_vr_texture_based_animatable = { "CTextureBasedAnimatable", "CTextureBasedAnimatable" },
+	icepath_shard = { "CCitadel_Ice_Path_Shard_Physics", "CBaseModelEntity" },
+	immobilize_trap_projectile = { "CCitadelProjectile_ImmobilizeTrap", "CBaseModelEntity" },
+	in_world_key_bind_panel = { "CInWorldKeyBindPanel", "CPointClientUIWorldPanel" },
+	info_ability_test_bot = { "CInfoAbilityTestBot", "CPointEntity" },
+	info_assigned_lane_particle = { "CAssignedLaneParticle", "CAssignedLaneParticle" },
+	info_choreo_anchor = { "CInfoChoreoAnchor", "CPointEntity" },
+	info_citadel_familiar_helper = { "CInfoCitadelHelperLocation", "CBaseEntity" },
+	info_citadel_hideout = { "CInfoCitadelHideout", "CInfoCitadelHideout" },
+	info_citadel_hideout_interest_point = { "CCitadelHideoutInterestPoint", "CCitadelHideoutInterestPoint" },
+	info_citadel_matchmaking_status = { "CCitadelMatchmakingStatusInfo", "CCitadelMatchmakingStatusInfo" },
+	info_constraint_anchor = { "CConstraintAnchor", "CConstraintAnchor" },
+	info_data = { "CInfoData", "CBaseEntity" },
+	info_dynamic_shadow_hint = { "CInfoDynamicShadowHint", "CInfoDynamicShadowHint" },
+	info_dynamic_shadow_hint_box = { "CInfoDynamicShadowHintBox", "CInfoDynamicShadowHintBox" },
+	info_game_event_proxy = { "CInfoGameEventProxy", "CInfoGameEventProxy" },
+	info_hero_testing_point = { "CInfoHeroTestingPoint", "CInfoHeroTestingPoint" },
+	info_hint = { "CNodeEnt_InfoHint", "CNodeEnt" },
+	info_koth_spawn_location = { "CInfoKOTHSpawnLocation", "CPointEntity" },
+	info_ladder_dismount = { "CInfoLadderDismount", "CBaseEntity" },
+	info_landmark = { "CInfoLandmark", "CPointEntity" },
+	info_mid_boss_spawn = { "CInfoMidBossSpawn", "CBaseEntity" },
+	info_mini_map_marker = { "CMiniMapMarker", "CMiniMapMarker" },
+	info_nav_space = { "CNavSpaceInfo", "CPointEntity" },
+	info_neutral_trooper_camp = { "CInfoTrooperNeutralCamp", "CInfoTrooperNeutralCamp" },
+	info_neutral_trooper_spawn = { "CInfoTrooperNeutralSpawn", "CInfoTrooperNeutralSpawn" },
+	info_node = { "CNodeEnt", "CNodeEnt" },
+	info_node_air = { "CNodeEnt_InfoNodeAir", "CNodeEnt" },
+	info_node_air_hint = { "CNodeEnt_InfoNodeAirHint", "CNodeEnt" },
+	info_node_hint = { "CNodeEnt_InfoNodeHint", "CNodeEnt" },
+	info_npc_spawn_destination = { "CNPCSpawnDestination", "CNPCSpawnDestination" },
+	info_null = { "CNullEntity", "CBaseEntity" },
+	info_offscreen_panorama_texture = { "CInfoOffscreenPanoramaTexture", "CInfoOffscreenPanoramaTexture" },
+	info_particle_system = { "CParticleSystem", "CParticleSystem" },
+	info_particle_target = { "CInfoParticleTarget", "CPointEntity" },
+	info_player_deathmatch = { "CBaseDMStart", "CBaseDMStart" },
+	info_player_start = { "CInfoPlayerStart", "CInfoPlayerStart" },
+	info_portal_link = { "CInfoPortalLink", "CPointEntity" },
+	info_spawngroup_landmark = { "CInfoSpawnGroupLandmark", "CPointEntity" },
+	info_spawngroup_load_unload = { "CInfoSpawnGroupLoadUnload", "CInfoSpawnGroupLoadUnload" },
+	info_super_trooper_spawn = { "CInfoTrooperBossSpawn", "CInfoTrooperBossSpawn" },
+	info_target = { "CInfoTarget", "CPointEntity" },
+	info_target_choreo = { "CChoreoInfoTarget", "CPointEntity" },
+	info_target_instructor_hint = { "CInfoInstructorHintTarget", "CPointEntity" },
+	info_target_server_only = { "CInfoTargetServerOnly", "CBaseEntity" },
+	info_team_relative_particle_system = { "CTeamRelativeParticleSystem", "CTeamRelativeParticleSystem" },
+	info_team_spawn = { "CInfoTeamSpawn", "CInfoTeamSpawn" },
+	info_teleport_destination = { "CInfoTeleportDestination", "CPointEntity" },
+	info_teleport_location = { "CCitadelTeleportLocation", "CCitadelTeleportLocation" },
+	info_trigger_fan = { "CInfoFan", "CInfoFan" },
+	info_trooper_spawn = { "CInfoTrooperSpawn", "CInfoTrooperSpawn" },
+	info_tutorial_point = { "CInfoTutorialPoint", "CInfoTutorialPoint" },
+	info_visibility_box = { "CInfoVisibilityBox", "CInfoVisibilityBox" },
+	info_world_layer = { "CInfoWorldLayer", "CInfoWorldLayer" },
+	instanced_scripted_scene = { "CInstancedSceneEntity", "CInstancedSceneEntity" },
+	item = { "CItem", "CItem" },
+	item_crate = { "CItemCrate", "CItemCrate" },
+	item_crate_spawn = { "CItemCrateSpawn", "CItemCrateSpawn" },
+	item_explosive_barrel = { "CItemExplosiveBarrel", "CBaseModelEntity" },
+	item_generic = { "CItemGeneric", "CItemGeneric" },
+	item_generic_trigger_helper = { "CItemGenericTriggerHelper", "CBaseModelEntity" },
+	item_projectile_test_01 = { "CCitadel_Item_ProjectileTest", "CCitadelBaseAbility" },
+	item_projectile_test_02 = { "CCitadel_Item_ProjectileTest02", "CCitadelBaseAbility" },
+	item_projectile_test_04 = { "CCitadel_Item_ProjectileTest04", "CCitadelBaseAbility" },
+	item_projectile_test_05 = { "CCitadel_Item_ProjectileTest05", "CCitadelBaseAbility" },
+	item_projectile_test_06 = { "CCitadel_Item_ProjectileTest06", "CCitadelBaseAbility" },
+	item_sodacan = { "CItemSoda", "CBaseAnimGraph" },
+	item_xp = { "CItemXP", "CBaseModelEntity" },
+	kali_boomerang_projectile = { "CCitadelBoomerangProjectile", "CBaseModelEntity" },
+	keyframe_rope = { "CRopeKeyframe", "CRopeKeyframe" },
+	keyframe_track = { "CPathKeyFrame", "CPathKeyFrame" },
+	knightcharge_projectile = { "CProjectile_KnightCharge_Projectile", "CBaseModelEntity" },
+	knightchargeleading_projectile = { "CProjectile_KnightChargeLeading_Projectile", "CBaseModelEntity" },
+	lane_marker_path = { "CLaneMarkerPath", "CLaneMarkerPath" },
+	light_barn = { "CBarnLight", "CBarnLight" },
+	light_directional = { "CLightDirectionalEntity", "CLightEntity" },
+	light_dynamic = { "CDynamicLight", "CDynamicLight" },
+	light_environment = { "CEnvironmentLight", "CEnvironmentLight" },
+	light_omni = { "CLightEntity", "CLightEntity" },
+	light_omni2 = { "COmniLight", "COmniLight" },
+	light_ortho = { "CLightOrthoEntity", "CLightEntity" },
+	light_rect = { "CRectLight", "CRectLight" },
+	light_spot = { "CLightSpotEntity", "CLightEntity" },
+	logic_achievement = { "CLogicAchievement", "CLogicAchievement" },
+	logic_active_autosave = { "CLogicActiveAutosave", "CLogicActiveAutosave" },
+	logic_activityevent = { "CLogicActivityEvent", "CLogicActivityEvent" },
+	logic_auto = { "CLogicAuto", "CLogicAuto" },
+	logic_auto_citadel = { "CLogicAutoCitadel", "CLogicAutoCitadel" },
+	logic_autosave = { "CLogicAutosave", "CLogicAutosave" },
+	logic_branch = { "CLogicBranch", "CLogicBranch" },
+	logic_branch_listener = { "CLogicBranchList", "CLogicBranchList" },
+	logic_case = { "CLogicCase", "CLogicCase" },
+	logic_choreographed_scene = { "CSceneEntityAlias_logic_choreographed_scene", "CSceneEntity" },
+	logic_collision_pair = { "CLogicCollisionPair", "CLogicCollisionPair" },
+	logic_compare = { "CLogicCompare", "CLogicCompare" },
+	logic_distance_autosave = { "CLogicDistanceAutosave", "CLogicDistanceAutosave" },
+	logic_distance_check = { "CLogicDistanceCheck", "CLogicDistanceCheck" },
+	logic_game_event = { "CLogicGameEvent", "CLogicGameEvent" },
+	logic_gameevent_listener = { "CLogicGameEventListener", "CLogicGameEventListener" },
+	logic_gamestate_report = { "CLogicGameStateReport", "CLogicGameStateReport" },
+	logic_lineto = { "CLogicLineToEntity", "CLogicLineToEntity" },
+	logic_measure_movement = { "CLogicMeasureMovement", "CLogicMeasureMovement" },
+	logic_multilight_proxy = { "CMultiLightProxy", "CMultiLightProxy" },
+	logic_navigation = { "CLogicNavigation", "CLogicNavigation" },
+	logic_npc_counter_aabb = { "CLogicNPCCounterAABB", "CLogicNPCCounterAABB" },
+	logic_npc_counter_obb = { "CLogicNPCCounterOBB", "CLogicNPCCounterAABB" },
+	logic_npc_counter_radius = { "CLogicNPCCounter", "CLogicNPCCounter" },
+	logic_playerproxy = { "CGenericLogicPlayerProxy", "CLogicPlayerProxyBase" },
+	logic_playerproxy_base = { "CLogicPlayerProxyBase", "CLogicPlayerProxyBase" },
+	logic_proximity = { "CLogicProximity", "CPointEntity" },
+	logic_relay = { "CLogicRelay", "CLogicRelay" },
+	logic_scene_list_manager = { "CSceneListManager", "CSceneListManager" },
+	logic_script = { "CLogicScript", "CLogicScript" },
+	logic_timer = { "CTimerEntity", "CTimerEntity" },
+	magician_magicbolt_projectile = { "CCitadel_Projectile_MagicBolt", "CBaseModelEntity" },
+	map_shared_environment = { "CMapSharedEnvironment", "CMapSharedEnvironment" },
+	markup_volume = { "CMarkupVolume", "CMarkupVolume" },
+	markup_volume_tagged = { "CSimpleMarkupVolumeTagged", "CMarkupVolumeTagged" },
+	markup_volume_tagged_base = { "CMarkupVolumeTagged", "CMarkupVolumeTagged" },
+	markup_volume_with_ref = { "CMarkupVolumeWithRef", "CMarkupVolumeWithRef" },
+	match_tracked_stats = { "CMatchTrackedStatsEntity", "CBaseEntity" },
+	math_colorblend = { "CMathColorBlend", "CMathColorBlend" },
+	math_counter = { "CMathCounter", "CMathCounter" },
+	math_remap = { "CMathRemap", "CMathRemap" },
+	mirage_fire_beetles = { "CCitadel_Ability_Mirage_FireBeetles", "CCitadelBaseAbility" },
+	mirage_sand_phantom = { "CAbility_Mirage_SandPhantom", "CCitadelBaseAbility" },
+	mirage_teleport = { "CCitadel_Ability_Mirage_Teleport", "CCitadelBaseAbility" },
+	mirage_tornado = { "CAbility_Mirage_Tornado", "CCitadelBaseAbility" },
+	momentary_door = { "CFuncMoveLinearAlias_momentary_door", "CFuncMoveLinear" },
+	momentary_rot_button = { "CMomentaryRotButton", "CMomentaryRotButton" },
+	move_rope = { "CRopeKeyframeAlias_move_rope", "CRopeKeyframe" },
+	multisource = { "CMultiSource", "CMultiSource" },
+	necro_haunt_projectile = { "CProjectile_Necro_HauntProjectile", "CBaseModelEntity" },
+	npc_barrack_boss = { "CNPC_BarrackBoss", "CNPC_BarrackBoss" },
+	npc_base_defense_sentry = { "CNPC_BaseDefenseSentry", "CNPC_BaseDefenseSentry" },
+	npc_boss_tier2 = { "CNPC_Boss_Tier2", "CNPC_Boss_Tier2" },
+	npc_boss_tier3 = { "CNPC_Boss_Tier3", "CNPC_Boss_Tier3" },
+	npc_boss_tier3core = { "CNPC_Boss_Tier3Core", "CBaseAnimGraph" },
+	npc_escort = { "CNPC_Escort", "CAI_CitadelNPC" },
+	npc_familiar_helper = { "CNPC_FamiliarHelper", "CNPC_FamiliarHelper" },
+	npc_maker = { "CNPCMaker", "CNPCMaker" },
+	npc_maker_base = { "CBaseNPCMaker", "CBaseNPCMaker" },
+	npc_necro_hauntingskull = { "CNecro_HauntingSkullEntity", "CNecro_HauntingSkullEntity" },
+	npc_necro_skele = { "CNPC_NecroSkele", "CNPC_NecroSkele" },
+	npc_neutral_bug = { "CNPC_Neutral_Bug", "CBaseAnimGraph" },
+	npc_neutral_flying_pigeon = { "CNPC_Neutral_Flying_Pigeon", "CBaseAnimGraph" },
+	npc_neutral_hideout_cat = { "CNPC_Neutral_Hideout_Cat", "CBaseAnimGraph" },
+	npc_neutral_hideout_rabbit = { "CNPC_Neutral_Hideout_Rabbit", "CBaseAnimGraph" },
+	npc_neutral_sinners_sacrifice = { "CNPC_Neutral_SinnersSacrifice", "CAI_CitadelNPC" },
+	npc_neutral_sinners_sacrifice_hideout = { "CNPC_Neutral_SinnersSacrifice_Hideout", "CAI_CitadelNPC" },
+	npc_player_bot_brain = { "CCitadelPlayerBotNPCBrain", "CAI_CitadelNPC" },
+	npc_ratking_rat = { "CNPC_Ratking_Rat", "CNPC_Ratking_Rat" },
+	npc_shielded_sentry = { "CNPC_ShieldedSentry", "CNPC_ShieldedSentry" },
+	npc_super_neutral = { "CNPC_MidBoss", "CAI_CitadelNPC" },
+	npc_template_maker = { "CTemplateNPCMaker", "CTemplateNPCMaker" },
+	npc_trooper = { "CNPC_Trooper", "CNPC_Trooper" },
+	npc_trooper_boss = { "CNPC_TrooperBoss", "CNPC_TrooperBoss" },
+	npc_trooper_neutral = { "CNPC_TrooperNeutral", "CAI_CitadelNPC" },
+	npc_yakuza_gangster = { "CNPC_YakuzaGangster", "CAI_CitadelNPC" },
+	observer = { "CCitadelObserverPawn", "CCitadelObserverPawn" },
+	operative_blindside = { "CCitadel_Ability_Operative_Blindside", "CCitadelBaseAbility" },
+	operative_revelation = { "CAbility_Operative_Revelation", "CCitadelBaseAbility" },
+	operative_umbrella_maneuver = { "CAbility_Operative_UmbrellaManeuver", "CCitadelBaseAbility" },
+	orb_spawner = { "COrbSpawner", "CBaseEntity" },
+	path_accompany = { "CPathAccompany", "CPathAccompany" },
+	path_corner = { "CPathCorner", "CPathCorner" },
+	path_corner_crash = { "CPathCornerCrash", "CPathCorner" },
+	path_mover = { "CPathMover", "CPathMover" },
+	path_mover_entity_spawner = { "CPathMoverEntitySpawner", "CPathMoverEntitySpawner" },
+	path_node = { "CPathNode", "CPathNode" },
+	path_node_mover = { "CMoverPathNode", "CMoverPathNode" },
+	path_particle_rope = { "CPathParticleRope", "CPathParticleRope" },
+	path_particle_rope_clientside = { "CPathParticleRopeAlias_path_particle_rope_clientside", "CPathParticleRope" },
+	path_simple = { "CPathSimple", "CPathSimple" },
+	path_track = { "CPathTrack", "CPathTrack" },
+	path_with_dynamic_nodes = { "CPathWithDynamicNodes", "CPathWithDynamicNodes" },
+	phys_ballsocket = { "CPhysBallSocket", "CPhysBallSocket" },
+	phys_constraint = { "CPhysFixed", "CPhysFixed" },
+	phys_constraint_base = { "CPhysConstraint", "CPhysConstraint" },
+	phys_force = { "CPhysForce", "CPhysForce" },
+	phys_genericconstraint = { "CGenericConstraint", "CGenericConstraint" },
+	phys_hinge = { "CPhysHinge", "CPhysHinge" },
+	phys_hinge_local = { "CPhysHingeAlias_phys_hinge_local", "CPhysHinge" },
+	phys_keepupright = { "CKeepUpright", "CKeepUpright" },
+	phys_lengthconstraint = { "CPhysLength", "CPhysLength" },
+	phys_magnet = { "CPhysMagnet", "CPhysMagnet" },
+	phys_motor = { "CPhysMotor", "CPhysMotor" },
+	phys_pulleyconstraint = { "CPhysPulley", "CPhysPulley" },
+	phys_ragdollconstraint = { "CRagdollConstraint", "CRagdollConstraint" },
+	phys_ragdollmagnet = { "CRagdollMagnet", "CRagdollMagnet" },
+	phys_slideconstraint = { "CPhysSlideConstraint", "CPhysSlideConstraint" },
+	phys_splineconstraint = { "CSplineConstraint", "CSplineConstraint" },
+	phys_spring = { "CPhysicsSpring", "CPhysicsSpring" },
+	phys_thruster = { "CPhysThruster", "CPhysForce" },
+	phys_torque = { "CPhysTorque", "CPhysTorque" },
+	phys_wheelconstraint = { "CPhysWheelConstraint", "CPhysWheelConstraint" },
+	physics_entity_solver = { "CPhysicsEntitySolver", "CPhysicsEntitySolver" },
+	physics_npc_solver = { "CPhysicsNPCSolver", "CPhysicsNPCSolver" },
+	physics_prop_ragdoll = { "CRagdollPropAlias_physics_prop_ragdoll", "CRagdollProp" },
+	plat_trigger = { "CPlatTrigger", "CBaseModelEntity" },
+	player = { "CCitadelPlayerPawn", "CCitadelPlayerPawn" },
+	player_controller = { "CBasePlayerController", "CBasePlayerController" },
+	player_loadsaved = { "CRevertSaved", "CRevertSaved" },
+	player_spray_decal = { "CPlayerSprayDecal", "CPlayerSprayDecal" },
+	player_tracked_stats = { "CPlayerTrackedStatsEntity", "CBaseEntity" },
+	point_anglesensor = { "CPointAngleSensor", "CPointAngleSensor" },
+	point_angularvelocitysensor = { "CPointAngularVelocitySensor", "CPointAngularVelocitySensor" },
+	point_broadcastclientcommand = { "CPointBroadcastClientCommand", "CPointBroadcastClientCommand" },
+	point_camera = { "CPointCamera", "CPointCamera" },
+	point_camera_vertical_fov = { "CPointCameraVFOV", "CPointCameraVFOV" },
+	point_childmodifier = { "CPointChildModifier", "CPointChildModifier" },
+	point_clientcommand = { "CPointClientCommand", "CPointClientCommand" },
+	point_clientui_dialog = { "CPointClientUIDialog", "CPointClientUIDialog" },
+	point_clientui_world_panel = { "CPointClientUIWorldPanel", "CPointClientUIWorldPanel" },
+	point_clientui_world_text_panel = { "CPointClientUIWorldTextPanel", "CPointClientUIWorldTextPanel" },
+	point_commentary_node = { "CPointCommentaryNode", "CPointCommentaryNode" },
+	point_commentary_viewpoint = { "CCommentaryViewPosition", "CSprite" },
+	point_enable_motion_fixup = { "CEnableMotionFixup", "CBaseEntity" },
+	point_entity = { "CPointEntity", "CPointEntity" },
+	point_entity_finder = { "CPointEntityFinder", "CPointEntityFinder" },
+	point_hurt = { "CPointHurt", "CPointHurt" },
+	point_instructor_event = { "CInstructorEventEntity", "CInstructorEventEntity" },
+	point_message = { "CMessageEntity", "CMessageEntity" },
+	point_modifier_thinker = { "CPointModifierThinker", "CPointModifierThinker" },
+	point_nav_walkable = { "CNavWalkable", "CPointEntity" },
+	point_orient = { "CPointOrient", "CPointOrient" },
+	point_prefab = { "CPointPrefab", "CPointPrefab" },
+	point_proximity_sensor = { "CPointProximitySensor", "CPointProximitySensor" },
+	point_pulse = { "CPointPulse", "CBaseEntity" },
+	point_push = { "CPointPush", "CPointPush" },
+	point_servercommand = { "CPointServerCommand", "CPointServerCommand" },
+	point_soundevent = { "CSoundEventEntity", "CSoundEventEntity" },
+	point_teleport = { "CPointTeleport", "CPointTeleport" },
+	point_template = { "CPointTemplate", "CPointTemplate" },
+	point_value_remapper = { "CPointValueRemapper", "CPointValueRemapper" },
+	point_velocitysensor = { "CPointVelocitySensor", "CPointVelocitySensor" },
+	point_worldtext = { "CPointWorldText", "CPointWorldText" },
+	post_processing_volume = { "CPostProcessingVolume", "CPostProcessingVolume" },
+	priest_beartrap = { "CCitadel_Ability_Priest_BearTrap", "CCitadelBaseAbility" },
+	priest_flashbang = { "CCitadel_Ability_Priest_Flashbang", "CCitadelBaseAbility" },
+	projectile_boho_skipgrenade = { "CProjectile_Boho_SkipGrenade", "CBaseModelEntity" },
+	projectile_cyclone = { "CCitadel_Projectile_Cyclone", "CBaseModelEntity" },
+	projectile_doorman_cart_projectile = { "CProjectile_Doorman_Cart_Projectile", "CBaseModelEntity" },
+	projectile_dust_storm = { "CCitadel_Projectile_DustStorm", "CBaseModelEntity" },
+	projectile_gravestone_projectile = { "CProjectile_GraveStone_Projectile", "CBaseModelEntity" },
+	projectile_necro_zombiewall_projectile = { "CProjectile_Necro_ZombieWall_Projectile", "CBaseModelEntity" },
+	projectile_perched_predator = { "CProjectile_Perched_Predator", "CBaseModelEntity" },
+	projectile_rolling_fireball = { "CProjectile_Rolling_FireBall", "CBaseModelEntity" },
+	projectile_stomp_projectile = { "CProjectile_Stomp_Projectile", "CBaseModelEntity" },
+	projectile_touch_volume = { "CCitadelProjectileTouchVolume", "CCitadelProjectileTouchVolume" },
+	prop_animating_breakable = { "CPropAnimatingBreakable", "CPropAnimatingBreakable" },
+	prop_door_rotating = { "CPropDoorRotating", "CPropDoorRotating" },
+	prop_door_rotating_breakable = { "CPropDoorRotatingBreakable", "CPropDoorRotatingBreakable" },
+	prop_dynamic = { "CDynamicProp", "CDynamicProp" },
+	prop_dynamic_ornament = { "COrnamentProp", "COrnamentProp" },
+	prop_dynamic_override = { "CDynamicPropAlias_prop_dynamic_override", "CDynamicProp" },
+	prop_physics = { "CPhysicsProp", "CPhysicsProp" },
+	prop_physics_override = { "CPhysicsPropOverride", "CPhysicsProp" },
+	prop_physics_respawnable = { "CPhysicsPropRespawnable", "CPhysicsPropRespawnable" },
+	prop_ragdoll = { "CRagdollProp", "CRagdollProp" },
+	prop_ragdoll_attached = { "CRagdollPropAttached", "CRagdollProp" },
+	pulse_game_blackboard = { "CPulseGameBlackboard", "CPulseGameBlackboard" },
+	punkgoat_tether_projectile = { "CProjectile_PunkgoatTether", "CBaseModelEntity" },
+	ratking_scrap_grenade_projectile = { "CScrapGrenadeProjectile", "CBaseModelEntity" },
+	rejuv_tracking_projectile = { "CCitadel_Item_RejuvTrackingProjectile", "CCitadelBaseAbility" },
+	render_portal = { "CRenderPortal", "CRenderPortal" },
+	rocket_launcher_rocket_projectile = { "CCitadel_Projectile_RocketLauncher_Rocket", "CBaseModelEntity" },
+	rotator_target = { "CRotatorTarget", "CPointEntity" },
+	rule_entity = { "CRuleEntity", "CRuleEntity" },
+	rule_point_entity = { "CRulePointEntity", "CRulePointEntity" },
+	rutger_cheat_death = { "CAbility_Rutger_CheatDeath", "CCitadelBaseAbility" },
+	rutger_force_field = { "CAbility_Rutger_ForceField", "CCitadelBaseAbility" },
+	rutger_pulse = { "CCitadel_Ability_Rutger_Pulse", "CCitadelBaseAbility" },
+	rutger_rocket = { "CAbility_Rutger_RocketLauncher", "CCitadelBaseAbility" },
+	rutger_rocket_projectile = { "CProjectile_Rutger_Rocket", "CBaseModelEntity" },
+	script_nav_blocker = { "CScriptNavBlocker", "CScriptNavBlocker" },
+	script_trigger_hurt = { "CScriptTriggerHurt", "CScriptTriggerHurt" },
+	script_trigger_multiple = { "CScriptTriggerMultiple", "CScriptTriggerMultiple" },
+	script_trigger_once = { "CScriptTriggerOnce", "CScriptTriggerOnce" },
+	script_trigger_push = { "CScriptTriggerPush", "CScriptTriggerPush" },
+	scripted_item_drop = { "CScriptItem", "CItem" },
+	scripted_scene = { "CSceneEntity", "CSceneEntity" },
+	scripted_sequence = { "CScriptedSequence", "CScriptedSequence" },
+	setting_sun_projectile = { "CCitadel_Projectile_SettingSun", "CBaseModelEntity" },
+	shadow_pulse = { "CCitadel_Ability_ShadowPulse", "CCitadelBaseAbility" },
+	shatterglass_shard = { "CShatterGlassShardPhysics", "CBaseModelEntity" },
+	simple_animating_ai = { "CNPC_SimpleAnimatingAI", "CNPC_SimpleAnimatingAI" },
+	sky_camera = { "CSkyCamera", "CSkyCamera" },
+	skybox_reference = { "CSkyboxReference", "CSkyboxReference" },
+	snd_event_alignedbox = { "CSoundEventAABBEntity", "CSoundEventAABBEntity" },
+	snd_event_box_helper = { "CSoundEventBoxHelper", "CSoundEventBoxHelper" },
+	snd_event_cone = { "CSoundEventConeEntity", "CSoundEventConeEntity" },
+	snd_event_multipoint = { "CSoundEventMultiPointEntity", "CSoundEventMultiPointEntity" },
+	snd_event_oriented_boxes = { "CSoundEventBoxEntity", "CSoundEventBoxEntity" },
+	snd_event_orientedbox = { "CSoundEventOBBEntity", "CSoundEventOBBEntity" },
+	snd_event_param = { "CSoundEventParameter", "CSoundEventParameter" },
+	snd_event_path_corner = { "CSoundEventPathCornerEntity", "CSoundEventPathCornerEntity" },
+	snd_event_point = { "CSoundEventEntityAlias_snd_event_point", "CSoundEventEntity" },
+	snd_event_sphere = { "CSoundEventSphereEntity", "CSoundEventSphereEntity" },
+	snd_opvar_set = { "CSoundOpvarSetEntity", "CSoundOpvarSetEntity" },
+	snd_opvar_set_aabb = { "CSoundOpvarSetAABBEntity", "CSoundOpvarSetBoxEntity" },
+	snd_opvar_set_auto_room = { "CSoundOpvarSetAutoRoomEntity", "CSoundOpvarSetAutoRoomEntity" },
+	snd_opvar_set_box_base = { "CSoundOpvarSetBoxEntity", "CSoundOpvarSetBoxEntity" },
+	snd_opvar_set_dome = { "CSoundOpvarSetDomeEntity", "CSoundOpvarSetDomeEntity" },
+	snd_opvar_set_obb = { "CSoundOpvarSetOBBEntity", "CSoundOpvarSetBoxEntity" },
+	snd_opvar_set_path_corner = { "CSoundOpvarSetPathCornerEntity", "CSoundOpvarSetPathCornerEntity" },
+	snd_opvar_set_point = { "CSoundOpvarSetPointEntity", "CSoundOpvarSetPointEntity" },
+	snd_opvar_set_point_base = { "CSoundOpvarSetPointBase", "CSoundOpvarSetPointBase" },
+	snd_opvar_set_precipitation = { "CSoundOpvarSetPrecipitationEntity", "CSoundOpvarSetPrecipitationEntity" },
+	snd_opvar_set_precipitation_obb = { "CSoundOpvarSetPrecipitationOBBEntity", "CSoundOpvarSetPrecipitationEntity" },
+	snd_opvar_set_wind_obb = { "CSoundOpvarSetOBBWindEntity", "CSoundOpvarSetOBBWindEntity" },
+	snd_sound_area_base = { "CSoundAreaEntityBase", "CSoundAreaEntityBase" },
+	snd_sound_area_obb = { "CSoundAreaEntityOrientedBox", "CSoundAreaEntityOrientedBox" },
+	snd_sound_area_sphere = { "CSoundAreaEntitySphere", "CSoundAreaEntitySphere" },
+	snd_soundscape = { "CEnvSoundscapeAlias_snd_soundscape", "CEnvSoundscape" },
+	snd_soundscape_proxy = { "CEnvSoundscapeProxyAlias_snd_soundscape_proxy", "CEnvSoundscapeProxy" },
+	snd_soundscape_triggerable = { "CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable", "CEnvSoundscape" },
+	snd_stack_save = { "CSoundStackSave", "CSoundStackSave" },
+	spark_shower = { "CShower", "CBaseModelEntity" },
+	spider_projectile = { "CCitadel_Projectile_SpiderProjectile", "CBaseModelEntity" },
+	spotlight_end = { "CSpotlightEnd", "CBaseModelEntity" },
+	super_neutral_charge = { "CCitadel_Ability_SuperNeutralCharge", "CCitadelBaseAbility" },
+	super_neutral_incendiary = { "CCitadel_Ability_SuperNeutralIncendiary", "CCitadelBaseAbility" },
+	super_neutral_shield = { "CCitadel_Ability_SuperNeutralShield", "CCitadelBaseAbility" },
+	synth_affliction = { "CAbility_Synth_Affliction", "CCitadelBaseAbility" },
+	synth_barrage = { "CAbility_Synth_Barrage", "CCitadelBaseAbility" },
+	synth_barrage_projectile = { "CProjectile_Synth_Barrage", "CBaseModelEntity" },
+	synth_plasma_flux = { "CAbility_Synth_PlasmaFlux", "CCitadelBaseAbility" },
+	synth_plasma_flux_projectile = { "CProjectile_Synth_PlasmaFlux", "CBaseModelEntity" },
+	synth_plasma_flux_trigger = { "CAbility_Synth_PlasmaFlux_Trigger", "CCitadelBaseAbility" },
+	synth_pulse = { "CAbility_Synth_Pulse", "CCitadelBaseAbility" },
+	tanktrain_ai = { "CTankTrainAI", "CTankTrainAI" },
+	tanktrain_aitarget = { "CTankTargetChange", "CTankTargetChange" },
+	targetdummy_ability_1 = { "CCitadel_Ability_Targetdummy_1", "CCitadelBaseAbility" },
+	targetdummy_ability_2 = { "CCitadel_Ability_Targetdummy_2", "CCitadelBaseAbility" },
+	targetdummy_ability_3 = { "CCitadel_Ability_Targetdummy_3", "CCitadelBaseAbility" },
+	targetdummy_ability_4 = { "CCitadel_Ability_Targetdummy_4", "CCitadelBaseAbility" },
+	team_manager = { "CTeam", "CTeam" },
+	team_tracked_stats = { "CTeamTrackedStatsEntity", "CBaseEntity" },
+	test_effect = { "CTestEffect", "CBaseEntity" },
+	test_io_combinations = { "CTestPulseIO", "CTestPulseIO" },
+	thumper_ability_1 = { "CCitadel_Ability_Thumper_1", "CCitadelBaseAbility" },
+	thumper_ability_2 = { "CCitadel_Ability_Thumper_2", "CCitadelBaseAbility" },
+	thumper_ability_3 = { "CCitadel_Ability_Thumper_3", "CCitadelBaseAbility" },
+	thumper_ability_4 = { "CCitadel_Ability_Thumper_4", "CCitadelBaseAbility" },
+	trigger = { "CBaseTrigger", "CBaseTrigger" },
+	trigger_Ice_Path_Volume = { "CTriggerIcePathVolume", "CBaseTrigger" },
+	trigger_active_weapon_detect = { "CTriggerActiveWeaponDetect", "CTriggerActiveWeaponDetect" },
+	trigger_add_modifier = { "CTriggerAddModifier", "CTriggerAddModifier" },
+	trigger_autosave = { "CTriggerSave", "CTriggerSave" },
+	trigger_brush = { "CTriggerBrush", "CTriggerBrush" },
+	trigger_burrow_underground = { "CTriggerBurrowUnderground", "CBaseTrigger" },
+	trigger_callback = { "CTriggerCallback", "CBaseTrigger" },
+	trigger_catapult = { "CCitadelCatapultTrigger", "CCitadelCatapultTrigger" },
+	trigger_changelevel = { "CChangeLevel", "CChangeLevel" },
+	trigger_detect_bullet_fire = { "CTriggerDetectBulletFire", "CTriggerDetectBulletFire" },
+	trigger_detect_explosion = { "CTriggerDetectExplosion", "CTriggerDetectExplosion" },
+	trigger_fan = { "CTriggerFan", "CTriggerFan" },
+	trigger_fog = { "CFogTrigger", "CFogTrigger" },
+	trigger_game_event = { "CTriggerGameEvent", "CTriggerGameEvent" },
+	trigger_gravity = { "CTriggerGravity", "CBaseTrigger" },
+	trigger_hurt = { "CTriggerHurt", "CTriggerHurt" },
+	trigger_hurt_citadel = { "CCitadelTriggerHurt", "CTriggerHurt" },
+	trigger_impact = { "CTriggerImpact", "CTriggerImpact" },
+	trigger_item_shop = { "CTriggerItemShop", "CTriggerItemShop" },
+	trigger_item_shop_safe_zone = { "CTriggerItemShopSafeZone", "CTriggerItemShopSafeZone" },
+	trigger_lerp_object = { "CTriggerLerpObject", "CTriggerLerpObject" },
+	trigger_look = { "CTriggerLook", "CTriggerLook" },
+	trigger_midboss_shield = { "CTriggerMidBossShield", "CBaseTrigger" },
+	trigger_modifier = { "CTriggerModifier", "CTriggerModifier" },
+	trigger_multiple = { "CTriggerMultiple", "CTriggerMultiple" },
+	trigger_neutral_idles = { "CTriggerNeutralIdles", "CBaseTrigger" },
+	trigger_neutral_shield = { "CTriggerNeutralShield", "CBaseTrigger" },
+	trigger_once = { "CTriggerOnce", "CTriggerMultiple" },
+	trigger_passthrough_fake_wall = { "CTriggerPassthroughFakeWall", "CBaseTrigger" },
+	trigger_physics = { "CTriggerPhysics", "CTriggerPhysics" },
+	trigger_ping_location = { "CTriggerPingLocation", "CTriggerPingLocation" },
+	trigger_portal = { "CCitadelPortalTrigger", "CCitadelPortalTrigger" },
+	trigger_proximity = { "CTriggerProximity", "CTriggerProximity" },
+	trigger_push = { "CTriggerPush", "CTriggerPush" },
+	trigger_remove = { "CTriggerRemove", "CTriggerRemove" },
+	trigger_remove_modifier = { "CTriggerRemoveModifier", "CTriggerRemoveModifier" },
+	trigger_serverragdoll = { "CServerRagdollTrigger", "CBaseTrigger" },
+	trigger_snd_sos_opvar = { "CTriggerSndSosOpvar", "CTriggerSndSosOpvar" },
+	trigger_soundscape = { "CTriggerSoundscape", "CTriggerSoundscape" },
+	trigger_team_base = { "CTriggerTeamBase", "CBaseTrigger" },
+	trigger_teleport = { "CTriggerTeleport", "CTriggerTeleport" },
+	trigger_tier3phase2_shield = { "CTriggerTier3Phase2Shield", "CBaseTrigger" },
+	trigger_tonemap = { "CTonemapTrigger", "CTonemapTrigger" },
+	trigger_transition = { "CTriggerVolume", "CTriggerVolume" },
+	trigger_trooper_damage_reduction_detector = { "CTriggerTrooperDamageReductionDetector", "CTriggerTrooperDamageReductionDetector" },
+	trigger_trooper_detector = { "CTriggerTrooperDetector", "CTriggerTrooperDetector" },
+	trooper_approach_horizon = { "CTrooperApproachHorizon", "CBaseEntity" },
+	trooper_boss_grenade = { "CCitadel_Ability_TrooperBossGrenade", "CCitadelBaseAbility" },
+	trooper_grenade = { "CCitadel_Ability_TrooperGrenade", "CCitadelBaseAbility" },
+	upgrade_ability_power_shard = { "CCitadel_Item_PowerShard", "CCitadelBaseAbility" },
+	upgrade_ability_refresher = { "CCitadel_Item_Refresher", "CCitadelBaseAbility" },
+	upgrade_ability_vampire = { "CCitadel_ArmorUpgrade_AbilityLifeSteal", "CCitadelBaseAbility" },
+	upgrade_ablative_coat = { "CCitadel_ArmorUpgrade_AblativeCoat", "CCitadelBaseAbility" },
+	upgrade_active_bullet_shield = { "CCitadel_ArmorUpgrade_ActiveBulletShield", "CCitadelBaseAbility" },
+	upgrade_active_reload = { "CCitadel_Item_ActiveReload", "CCitadelBaseAbility" },
+	upgrade_aerial_assault = { "CCitadel_Upgrade_AerialAssault", "CCitadelBaseAbility" },
+	upgrade_ammo_scavenger = { "CCitadel_Upgrade_AmmoScavenger", "CCitadelBaseAbility" },
+	upgrade_aoe_root = { "CCitadel_Item_AOERoot", "CCitadelBaseAbility" },
+	upgrade_aoe_smoke_bomb = { "CCitadel_UtilityUpgrade_AOESmokeBomb", "CCitadelBaseAbility" },
+	upgrade_aoe_tech_shield = { "CCitadel_Item_AOE_Tech_Shield", "CCitadelBaseAbility" },
+	upgrade_apex_combat = { "CCitadel_WeaponUpgrade_ApexCombat", "CCitadelBaseAbility" },
+	upgrade_arctic_blast = { "CCitadel_Item_ArcticBlast", "CCitadelBaseAbility" },
+	upgrade_auto_cleanse = { "CCitadel_ArmorUpgrade_AutoCleanse", "CCitadelBaseAbility" },
+	upgrade_blood_tribute = { "CCitadel_WeaponUpgrade_BloodTribute", "CCitadelBaseAbility" },
+	upgrade_bullet_armor_reduction_aura = { "CCitadel_ArmorUpgrade_BulletArmorReductionAura", "CCitadelBaseAbility" },
+	upgrade_bullet_shield = { "CCitadel_Ability_Shield", "CCitadelBaseAbility" },
+	upgrade_burst_fire = { "CCitadel_WeaponUpgrade_BurstFire", "CCitadelBaseAbility" },
+	upgrade_camouflage = { "CCitadel_Item_Camouflage", "CCitadelBaseAbility" },
+	upgrade_capacitor = { "CItemCapacitor", "CCitadelBaseAbility" },
+	upgrade_celestial_guidance = { "CCitadel_Item_CelestialGuidance", "CCitadelBaseAbility" },
+	upgrade_charge_mastery = { "CCitadel_Item_Charge_Mastery", "CCitadelBaseAbility" },
+	upgrade_cheat_death = { "CCitadel_Item_CheatDeath", "CCitadelBaseAbility" },
+	upgrade_cloaking_device = { "CCitadel_ArmorUpgrade_CloakingDevice", "CCitadelBaseAbility" },
+	upgrade_cloaking_device_active = { "CCitadel_ArmorUpgrade_CloakingDeviceActive", "CCitadelBaseAbility" },
+	upgrade_cold_front = { "CCitadel_Item_ColdFront", "CCitadelBaseAbility" },
+	upgrade_colossus = { "CCitadel_ArmorUpgrade_Colossus", "CCitadelBaseAbility" },
+	upgrade_combo_breaker = { "CCitadel_Item_ComboBreaker", "CCitadelBaseAbility" },
+	upgrade_containment = { "CCitadel_Item_Containment", "CCitadelBaseAbility" },
+	upgrade_cooldown_on_miss = { "CCitadel_WeaponUpgrade_CooldownOnMiss", "CCitadelBaseAbility" },
+	upgrade_corpse_explosion = { "CCitadel_TechUpgrade_CorpseExplosion", "CCitadelBaseAbility" },
+	upgrade_damage_recycler = { "CCitadel_ArmorUpgrade_DamageRecycler", "CCitadelBaseAbility" },
+	upgrade_debuff_absorb = { "CCitadel_UtilityUpgrade_DebuffImmunity", "CCitadelBaseAbility" },
+	upgrade_disarm = { "CCitadel_Item_Disarm", "CCitadelBaseAbility" },
+	upgrade_divine_barrier = { "CCitadel_Item_DivineBarrier", "CCitadelBaseAbility" },
+	upgrade_diviners_kevlar = { "CCitadel_Item_DivinersKevlar", "CCitadelBaseAbility" },
+	upgrade_double_jump = { "CCitadel_ArmorUpgrade_DoubleJump", "CCitadelBaseAbility" },
+	upgrade_dps_aura = { "CCitadel_Item_DPS_Aura", "CCitadelBaseAbility" },
+	upgrade_electric_slippers = { "CCitadel_Item_Electric_Slippers", "CCitadelBaseAbility" },
+	upgrade_express_shot = { "CCitadel_WeaponUpgrade_ExpressShot", "CCitadelBaseAbility" },
+	upgrade_fire_rate_aura = { "CCitadel_WeaponUpgrade_FireRateAura", "CCitadelBaseAbility" },
+	upgrade_fleetfoot_boots = { "CItem_FleetfootBoots", "CCitadelBaseAbility" },
+	upgrade_focus_lens = { "CCitadel_Item_FocusLens", "CCitadelBaseAbility" },
+	upgrade_frenzy = { "CCitadel_ArmorUpgrade_Frenzy", "CCitadelBaseAbility" },
+	upgrade_fury_trance = { "CCitadel_WeaponUpgrade_FuryTrance", "CCitadelBaseAbility" },
+	upgrade_glass_cannon = { "CCitadel_WeaponUpgrade_GlassCannon", "CCitadelBaseAbility" },
+	upgrade_goose_egg = { "CCitadel_Item_GooseEgg", "CCitadelBaseAbility" },
+	upgrade_greater_withering_whip = { "CItem_GreaterWitheringWhip", "CCitadelBaseAbility" },
+	upgrade_grit = { "CCitadel_ArmorUpgrade_Grit", "CCitadelBaseAbility" },
+	upgrade_guardian_ward = { "CCitadel_Item_GuardianWard", "CCitadelBaseAbility" },
+	upgrade_haunting_scream = { "CItemHauntingScream", "CCitadelBaseAbility" },
+	upgrade_headshot_damage = { "CCitadel_WeaponUpgrade_HeadshotDamage", "CCitadelBaseAbility" },
+	upgrade_healonlevel = { "CCitadel_ArmorUpgrade_HealOnLevel", "CCitadelBaseAbility" },
+	upgrade_health_nova = { "CCitadel_UtilityUpgrade_HealthNova", "CCitadelBaseAbility" },
+	upgrade_health_regen_aura = { "CCitadel_Item_HealthRegenAura", "CCitadelBaseAbility" },
+	upgrade_health_stimpak = { "CCitadel_ArmorUpgrade_Stimpak", "CCitadelBaseAbility" },
+	upgrade_high_impact_armor = { "CCitadel_ArmorUpgrade_HighImpactArmor", "CCitadelBaseAbility" },
+	upgrade_infinitemagazine = { "CCitadel_WeaponUpgrade_InfiniteMagazine", "CCitadelBaseAbility" },
+	upgrade_infuser = { "CCitadel_TechUpgrade_Infuser", "CCitadelBaseAbility" },
+	upgrade_intensifying_clip = { "CCitadel_Item_Intensifying_Clip", "CCitadelBaseAbility" },
+	upgrade_magic_carpet = { "CCitadel_Upgrade_MagicCarpet", "CCitadelBaseAbility" },
+	upgrade_metal_skin = { "CCitadel_ArmorUpgrade_MetalSkin", "CCitadelBaseAbility" },
+	upgrade_mod_disruptor = { "CCitadel_Item_ModDisruptor", "CCitadelBaseAbility" },
+	upgrade_mystic_regeneration = { "CCitadel_Item_Mystic_Regeneration", "CCitadelBaseAbility" },
+	upgrade_mystic_reverb = { "CItemMysticReverb", "CCitadelBaseAbility" },
+	upgrade_non_player_bonus_sacrifice = { "CCitadel_WeaponUpgrade_CultistSacrifice", "CCitadelBaseAbility" },
+	upgrade_nullification_aura = { "CCitadel_Item_NullificationAura", "CCitadelBaseAbility" },
+	upgrade_omnicharge_pendant = { "CCitadel_Omnicharge_Pendant", "CCitadelBaseAbility" },
+	upgrade_personal_rejuvenator = { "CCitadel_ArmorUpgrade_PersonalRejuvenator", "CCitadelBaseAbility" },
+	upgrade_phantom_strike = { "CCitadel_Item_PhantomStrike", "CCitadelBaseAbility" },
+	upgrade_prism_blast = { "CCitadel_Item_PrismBlast", "CCitadelBaseAbility" },
+	upgrade_recharging_bullets = { "CCitadel_WeaponUpgrade_RechargingBullets", "CCitadelBaseAbility" },
+	upgrade_reduce_debuff_duration = { "CCitadel_ArmorUpgrade_DebuffReducer", "CCitadelBaseAbility" },
+	upgrade_regenerating_bullet_shield = { "CCitadel_ArmorUpgrade_RegeneratingBulletShield", "CCitadelBaseAbility" },
+	upgrade_regenerative_armor = { "CCitadel_ArmorUpgrade_RegenerativeArmor", "CCitadelBaseAbility" },
+	upgrade_rescue_beam = { "CCitadel_Item_RescueBeam", "CCitadelBaseAbility" },
+	upgrade_resonant_healing = { "CItem_ResonantHealing", "CCitadelBaseAbility" },
+	upgrade_restorative_locket = { "CItem_RestorativeLocket", "CCitadelBaseAbility" },
+	upgrade_return_fire = { "CCitadel_ArmorUpgrade_ReturnFire", "CCitadelBaseAbility" },
+	upgrade_ricochet = { "CCitadel_WeaponUpgrade_Ricochet", "CCitadelBaseAbility" },
+	upgrade_rocket_booster = { "CCitadel_UtilityUpgrade_RocketBooster", "CCitadelBaseAbility" },
+	upgrade_rocket_boots = { "CCitadel_UtilityUpgrade_RocketBoots", "CCitadelBaseAbility" },
+	upgrade_self_bubble = { "CCitadel_Item_Bubble", "CCitadelBaseAbility" },
+	upgrade_self_buff_modifier = { "CCitadel_Item_SelfBuffModifier", "CCitadelBaseAbility" },
+	upgrade_shadow_step = { "CCitadel_Item_ShadowStep", "CCitadelBaseAbility" },
+	upgrade_shadow_strike = { "CCitadel_Item_ShadowStrike", "CCitadelBaseAbility" },
+	upgrade_shrink_ray = { "CCitadel_ArmorUpgrade_Shrink_Ray", "CCitadelBaseAbility" },
+	upgrade_silence_glyph = { "CItemSilenceGlyph", "CCitadelBaseAbility" },
+	upgrade_slow_immunity = { "CCitadel_ArmorUpgrade_SlowImmunity", "CCitadelBaseAbility" },
+	upgrade_spellshield = { "CCitadel_ArmorUpgrade_SpellShield", "CCitadelBaseAbility" },
+	upgrade_spellslinger_headshots = { "CCitadel_WeaponUpgrade_SpellslingerHeadshots", "CCitadelBaseAbility" },
+	upgrade_spirit_bubble = { "CCitadel_ArmorUpgrade_SpiritBubble", "CCitadelBaseAbility" },
+	upgrade_spirit_sap = { "CCitadel_Item_SpiritSap", "CCitadelBaseAbility" },
+	upgrade_split_shot = { "CCitadel_WeaponUpgrade_SplitShot", "CCitadelBaseAbility" },
+	upgrade_stasis_bomb = { "CCitadel_Item_Stasis_Bomb", "CCitadelBaseAbility" },
+	upgrade_superacolytegloves = { "CCitadel_TechUpgrade_SuperAcolyteGloves", "CCitadelBaseAbility" },
+	upgrade_surging_power = { "CCitadel_WeaponUpgrade_SurgingPower", "CCitadelBaseAbility" },
+	upgrade_target_stun = { "CCitadel_Item_SingleTargetStun", "CCitadelBaseAbility" },
+	upgrade_tech_cleave = { "CCitadel_Item_TechCleave", "CCitadelBaseAbility" },
+	upgrade_tech_damage_pulse = { "CCitadel_Item_TechDamagePulse", "CCitadelBaseAbility" },
+	upgrade_tracking_projectile_apply_modifier = { "CCitadel_Item_TrackingProjectileApplyModifier", "CCitadelBaseAbility" },
+	upgrade_trophy_collector = { "CCitadel_Item_TrophyCollector", "CCitadelBaseAbility" },
+	upgrade_vex_barrier = { "CCitadel_ArmorUpgrade_VexBarrier", "CCitadelBaseAbility" },
+	upgrade_warp_stone = { "CCitadel_Item_WarpStone", "CCitadelBaseAbility" },
+	upgrade_weapon_eater = { "CCitadel_WeaponUpgrade_WeaponEater", "CCitadelBaseAbility" },
+	upgrade_weapon_instant_reload = { "CCitadel_WeaponUpgrade_InstantReload", "CCitadelBaseAbility" },
+	upgrade_weapon_overdrive_clip = { "CCitadel_Upgrade_OverdriveClip", "CCitadelBaseAbility" },
+	upgrade_weapon_power_and_health_drain = { "CCitadel_Upgrade_WeaponPowerForHealth", "CCitadelBaseAbility" },
+	upgrade_weapon_shielding = { "CCitadel_ArmorUpgrade_WeaponShielding", "CCitadelBaseAbility" },
+	upgrade_weapon_siphon_bullets = { "CCitadel_WeaponUpgrade_SiphonBullets", "CCitadelBaseAbility" },
+	upgrade_withering_whip = { "CItem_WitheringWhip", "CCitadelBaseAbility" },
+	vandal_pillar_projectile = { "CCitadel_Projectile_Pillar", "CBaseModelEntity" },
+	vanguard_aoe_buff = { "CCitadel_NPCAbility_Vanguard_AOEBuff", "CCitadelBaseAbility" },
+	viper_hookblade_projectile = { "CCitadel_Projectile_HookBlade", "CBaseModelEntity" },
+	viper_petrify_projectile = { "CCitadel_Projectile_Petrify", "CBaseModelEntity" },
+	viscous_goo_bowling_ball = { "CCitadel_Ability_GooBowlingBall", "CCitadelBaseAbility" },
+	viscous_goo_grenade = { "CCitadel_Ability_GooGrenade", "CCitadelBaseAbility" },
+	viscous_goo_grenade_projectile = { "CCitadel_Projectile_Viscous_GooGrenade", "CBaseModelEntity" },
+	viscous_restorative_goo = { "CCitadel_Ability_RestorativeGoo", "CCitadelBaseAbility" },
+	viscous_telepunch = { "CCitadel_Ability_Viscous_Telepunch", "CCitadelBaseAbility" },
+	waterbullet = { "CWaterBullet", "CWaterBullet" },
+	wearable_item = { "CEconWearable", "CBaseAnimGraph" },
+	webwall_projectile = { "CCitadel_Projectile_WebWall", "CBaseModelEntity" },
+	worldent = { "CWorld", "CBaseModelEntity" },
+	wrecker_teleport_projectile = { "CCitadel_Projectile_Wrecker_Teleport", "CBaseModelEntity" },
+	wrecking_ball_projectile = { "CCitadel_Projectile_WreckingBall", "CBaseModelEntity" },
+	yakuza_fealty = { "CCitadel_Ability_Fealty", "CCitadelBaseAbility" },
+	yakuza_gang_activity = { "CCitadel_Ability_GangActivity", "CCitadelBaseAbility" },
+	yakuza_gang_activity_cancel = { "CCitadel_Ability_GangActivity_Cancel", "CCitadelBaseAbility" },
+	yakuza_kobun = { "CCitadel_Ability_Kobun", "CCitadelBaseAbility" },
+	yakuza_protection_racket = { "CCitadel_Ability_Protection_Racket", "CCitadelBaseAbility" },
+	yakuza_setting_sun = { "CCitadel_Ability_SettingSun", "CCitadelBaseAbility" },
+	yakuza_shakedown = { "CCitadel_Ability_Yakuza_Shakedown", "CCitadelBaseAbility" },
+	yakuza_shakedown_target = { "CCitadel_Ability_Shakedown_Target", "CCitadelBaseAbility" },
+	yakuza_summon_gangster = { "CCitadel_Ability_SummonGangster", "CCitadelBaseAbility" },
+	yakuza_teleport_to_gangster = { "CCitadel_Ability_TeleportToGangster", "CCitadelBaseAbility" },
+	zip_line_node = { "CCitadelZipLineNode", "CCitadelZipLineNode" },
+}
 
-type DesignerName0 =
-	| "abiilty_boho_channeltether"
-	| "abiilty_boho_doublehit"
-	| "ability_afterburn"
-	| "ability_baba_bench_melee"
-	| "ability_baba_bench_run"
-	| "ability_baba_bubbling_brew"
-	| "ability_baba_hexing_brew"
-	| "ability_baba_hexing_brew_throw"
-	| "ability_baba_ultimate_2"
-	| "ability_bebop_stickybomb2"
-	| "ability_blood_bomb"
-	| "ability_blood_shards"
-	| "ability_boho_ability01"
-	| "ability_boho_ability02"
-	| "ability_boho_bouncyprojectile"
-	| "ability_boho_damageshare"
-	| "ability_boho_skipgrenade"
-	| "ability_bomber_ability02"
-	| "ability_bomber_ability03"
-	| "ability_bomber_ult"
-	| "ability_bookworm_aoemagic"
-	| "ability_bookworm_dragonfire"
-	| "ability_bookworm_knightbarrier"
-	| "ability_bounce_pad"
-	| "ability_bullet_flurry"
-	| "ability_burrow"
-	| "ability_charged_bomb"
-	| "ability_charged_shot"
-	| "ability_crackshot"
-	| "ability_death_tax"
-	| "ability_demonmark"
-	| "ability_digger_entertunnel"
-	| "ability_doorman_bomb"
-	| "ability_doorman_doorway"
-	| "ability_doorman_doorway_trigger"
-	| "ability_doorman_hotel"
-	| "ability_doorman_luggage_cart"
-	| "ability_drifter_hunger"
-	| "ability_druid_base_plant"
-	| "ability_druid_helicopter_seeds"
-	| "ability_druid_leech_seed"
-	| "ability_druid_plant_branch_wall"
-	| "ability_druid_plant_healing_tree"
-	| "ability_druid_plant_invis_bush"
-	| "ability_druid_plant_something"
-	| "ability_druid_sprout"
-	| "ability_druid_ult"
-	| "ability_empower_bullet"
-	| "ability_explosive_barrel"
-	| "ability_familiar_ability01"
-	| "ability_familiar_ability02"
-	| "ability_familiar_alt_weapon"
-	| "ability_familiar_attach"
-	| "ability_familiar_attach_trigger"
-	| "ability_familiar_clone"
-	| "ability_familiar_clone_end"
-	| "ability_familiar_clonesingle"
-	| "ability_familiar_clonesingle_trigger"
-	| "ability_familiar_healhost"
-	| "ability_familiar_helpinghands"
-	| "ability_familiar_primary_weapon_bubblegun"
-	| "ability_familiar_spotlight"
-	| "ability_fencer_lunge"
-	| "ability_fencer_riposte"
-	| "ability_fencer_riposte_target_select"
-	| "ability_fencer_throwblade"
-	| "ability_fencer_ultimate"
-	| "ability_fire_bomb"
-	| "ability_flame_dash"
-	| "ability_fortuna_ability01"
-	| "ability_fortuna_ability02"
-	| "ability_fortuna_ability03"
-	| "ability_fortuna_ult"
-	| "ability_frank_painaura"
-	| "ability_frank_primaryweapon"
-	| "ability_frank_revive"
-	| "ability_frank_selfzap"
-	| "ability_frank_shocktarget2"
-	| "ability_golden_idol"
-	| "ability_graf_ability01"
-	| "ability_graf_ability02"
-	| "ability_graf_ability03"
-	| "ability_graf_ult"
-	| "ability_gravity_lasso"
-	| "ability_guided_arrow"
-	| "ability_gunslinger_knockbackblast"
-	| "ability_gunslinger_spreadingfire"
-	| "ability_health_swap"
-	| "ability_ice_dome"
-	| "ability_ice_grenade"
-	| "ability_icebeam"
-	| "ability_icepath"
-	| "ability_immobilize_trap"
-	| "ability_incendiary_projectile"
-	| "ability_infinity_slash"
-	| "ability_intimidate"
-	| "ability_kali_dust_storm"
-	| "ability_kali_trappers_bolo"
-	| "ability_lash_flog"
-	| "ability_life_drain"
-	| "ability_magician_animalcurse"
-	| "ability_magician_animalhexarea"
-	| "ability_magician_bigbolt"
-	| "ability_magician_cloneturret_trigger"
-	| "ability_magician_copyult"
-	| "ability_magician_escape"
-	| "ability_magician_magicbolt"
-	| "ability_magician_shadowclone"
-	| "ability_medic_trooper_heal"
-	| "ability_nano_catform"
-	| "ability_nano_catform_pounce"
-	| "ability_nano_pounce"
-	| "ability_nano_pounce_instant"
-	| "ability_nano_proximity_ritual"
-	| "ability_nano_shadow_step"
-	| "ability_necro_fear"
-	| "ability_necro_hauntingskull"
-	| "ability_necro_hauntingspirits"
-	| "ability_necro_killsummon"
-	| "ability_necro_killsummon_trigger"
-	| "ability_necro_nukemap"
-	| "ability_necro_zombiewall"
-	| "ability_npc_shield"
-	| "ability_opera_ability01"
-	| "ability_opera_ability02"
-	| "ability_opera_ability03"
-	| "ability_opera_ult"
-	| "ability_perched_predator"
-	| "ability_power_jump"
-	| "ability_power_surge"
-	| "ability_priest_antispiritvest"
-	| "ability_priest_crossbowweapon"
-	| "ability_priest_knockback"
-	| "ability_priest_selfheal"
-	| "ability_priest_smokegrenade"
-	| "ability_priest_stackingdefense"
-	| "ability_priest_weaponswap"
-	| "ability_punkgoat_blasted"
-	| "ability_punkgoat_goatflip"
-	| "ability_punkgoat_tether"
-	| "ability_punkgoat_ult"
-	| "ability_ratking_entertunnel"
-	| "ability_ratking_ratarmor"
-	| "ability_ratking_ratnibble"
-	| "ability_ratking_scrap_grenade"
-	| "ability_ratking_standard_bearer"
-	| "ability_rolling_fireball"
-	| "ability_scrap_blast"
-	| "ability_shieldguy_ability01"
-	| "ability_shieldguy_ability02"
-	| "ability_shieldguy_ability03"
-	| "ability_shieldguy_ult"
-	| "ability_skyrunner_flakshot"
-	| "ability_skyrunner_swingline"
-	| "ability_skyrunner_ult"
-	| "ability_sleep_dagger"
-	| "ability_smoke_bomb"
-	| "ability_snake_dash"
-	| "ability_stacking_damage"
-	| "ability_swan_acrobat"
-	| "ability_swan_featherboomerang"
-	| "ability_swan_leap"
-	| "ability_swan_ult"
-	| "ability_testhero_feartarget"
-	| "ability_testhero_spooky_hide"
-	| "ability_testhero_stance_bow"
-	| "ability_testhero_stance_spaceman"
-	| "ability_testhero_stanceswitch"
-	| "ability_testhero_summoncannon"
-	| "ability_testhero_summonsoldier"
-	| "ability_testhero_ult"
-	| "ability_testhero_wallcling"
-	| "ability_throw_sand"
-	| "ability_trapper_fear"
-	| "ability_trapper_spiderjar"
-	| "ability_trapper_spidershield"
-	| "ability_trapper_webwall"
-	| "ability_ult_combo"
-	| "ability_unicorn_dazzlingorb"
-	| "ability_unicorn_luminousstrike"
-	| "ability_unicorn_prismaticguard"
-	| "ability_unicorn_radiantblast"
-	| "ability_vampirebat_batblink"
-	| "ability_vampirebat_batcloud"
-	| "ability_vampirebat_batswarm"
-	| "ability_vampirebat_doubledagger"
-	| "ability_vampirebat_lovebites"
-	| "ability_vampirebat_steallife"
-	| "ability_vandal_ability03"
-	| "ability_vandal_pillar"
-	| "ability_viper_debuffdagger"
-	| "ability_viper_hookblade"
-	| "ability_viper_petrifybola"
-	| "ability_viper_ult"
-	| "ability_viper_venom"
-	| "ability_warden_crowd_control"
-	| "ability_warden_high_alert"
-	| "ability_warden_lock_down"
-	| "ability_warden_riot_protocol"
-	| "ability_werewolf_cripplingslash"
-	| "ability_werewolf_hunt"
-	| "ability_werewolf_kickflip"
-	| "ability_werewolf_leap"
-	| "ability_werewolf_maulingleap"
-	| "ability_werewolf_netshot"
-	| "ability_werewolf_trackingbomb"
-	| "ability_werewolf_transformation"
-	| "ability_werewolf_unload_gun"
-	| "ability_werewolf_unload_gun2"
-	| "ability_wrecker_salvage"
-	| "ability_wrecker_teleport"
-	| "ability_wrecker_ultimate"
-	| "ability_wrecking_ball"
-	| "ability_wrecking_ball_throw"
-	| "ai_changehintgroup"
-	| "ai_foot_sweep"
-	| "ai_goal_entity"
-	| "ai_hint"
-	| "ai_look_target"
-	| "ai_nav_link_area"
-	| "ai_network"
-	| "ai_relationship"
-	| "ai_script_conditions"
-	| "ai_sound"
-	| "ai_speechfilter"
-	| "ai_test_path"
-	| "ai_volumetric_event"
-	| "ai_volumetric_event_sensor"
-	| "ambient_generic"
-	| "archer_charged_shot_projectile"
-	| "baba_bubblingbrew_projectile"
-	| "base_clientui_entity"
-	| "base_combat_character"
-	| "base_npc"
-	| "base_plat_train"
-	| "base_player_weapon"
-	| "base_prop"
-	| "base_prop_door"
-	| "base_toggle"
-	| "base_upgrade_projectile_aoe_modifier"
-	| "baseanimating"
-	| "baseanimgraph"
-	| "basemodelentity"
-	| "baseplayerpawn"
-	| "batswarm_extra_projectile"
-	| "batswarm_projectile"
-	| "beam"
-	| "bebop_hook_projectile"
-	| "blood_bomb_projectile"
-	| "boho_bouncyprojectile"
-	| "bookwormdragon_projectile"
-	| "bookwormgun_projectile"
-	| "breakable_prop"
-	| "bullet_redirect_volume"
-	| "bullet_time_warp"
-	| "cable_dynamic"
-	| "cadence_ability_anthem"
-	| "cadence_ability_crescendo"
-	| "cadence_ability_grandfinale"
-	| "cadence_ability_lullaby"
-	| "cadence_ability_silencecontraptions"
-	| "citadel_ability_bebop_laser_beam"
-	| "citadel_ability_boho_primaryweapon"
-	| "citadel_ability_boho_ridebroom"
-	| "citadel_ability_bookworm_knightcharge"
-	| "citadel_ability_bookworm_primaryweapon"
-	| "citadel_ability_bull_charge"
-	| "citadel_ability_bull_heal"
-	| "citadel_ability_bull_leap"
-	| "citadel_ability_card_toss"
-	| "citadel_ability_charged_tackle"
-	| "citadel_ability_chrono_kinetic_carbine"
-	| "citadel_ability_chrono_pulse_grenade"
-	| "citadel_ability_chrono_swap"
-	| "citadel_ability_chrono_time_wall"
-	| "citadel_ability_climb_rope"
-	| "citadel_ability_dash"
-	| "citadel_ability_drifter_primaryweapon"
-	| "citadel_ability_empty"
-	| "citadel_ability_fencer_primaryweapon"
-	| "citadel_ability_fissure_wall"
-	| "citadel_ability_flying_strike"
-	| "citadel_ability_fortuna_primaryweapon"
-	| "citadel_ability_gunslinger_demon_carbine"
-	| "citadel_ability_healing_slash"
-	| "citadel_ability_hold_melee"
-	| "citadel_ability_hook"
-	| "citadel_ability_hornet_chain"
-	| "citadel_ability_hornet_leap"
-	| "citadel_ability_hornet_snipe"
-	| "citadel_ability_hornet_sting"
-	| "citadel_ability_jump"
-	| "citadel_ability_kali_disruptive_charge"
-	| "citadel_ability_kali_spinning_blade"
-	| "citadel_ability_lash"
-	| "citadel_ability_lash_down_strike"
-	| "citadel_ability_lash_ultimate"
-	| "citadel_ability_lightning_ball"
-	| "citadel_ability_magewalk"
-	| "citadel_ability_mantle"
-	| "citadel_ability_melee_parry"
-	| "citadel_ability_mobile_resupply"
-	| "citadel_ability_nano_clustergrenade"
-	| "citadel_ability_nano_dash"
-	| "citadel_ability_nano_primaryweapon"
-	| "citadel_ability_necro_coffin"
-	| "citadel_ability_necro_gravestone"
-	| "citadel_ability_necro_primaryweapon"
-	| "citadel_ability_nikuman"
-	| "citadel_ability_passive_beefy"
-	| "citadel_ability_power_slash"
-	| "citadel_ability_priest_silencebomb"
-	| "citadel_ability_primary_weapon"
-	| "citadel_ability_primary_weapon_bebop"
-	| "citadel_ability_primary_weapon_cadence"
-	| "citadel_ability_primary_weapon_scaling_altfire"
-	| "citadel_ability_projectmind"
-	| "citadel_ability_psychic_lift"
-	| "citadel_ability_punkgoat_primaryweapon"
-	| "citadel_ability_ratking_primaryweapon"
-	| "citadel_ability_rocket_barrage"
-	| "citadel_ability_self_vacuum"
-	| "citadel_ability_shieldedsentry"
-	| "citadel_ability_shiv_dagger"
-	| "citadel_ability_shiv_dash"
-	| "citadel_ability_shiv_defer_damage"
-	| "citadel_ability_shiv_killing_blow"
-	| "citadel_ability_skyrunner_magicbeam"
-	| "citadel_ability_skyrunner_primaryweapon"
-	| "citadel_ability_slide"
-	| "citadel_ability_sprint"
-	| "citadel_ability_static_charge"
-	| "citadel_ability_static_charge_v2"
-	| "citadel_ability_sticky_bomb"
-	| "citadel_ability_stomp"
-	| "citadel_ability_storm_cloud"
-	| "citadel_ability_tangotether"
-	| "citadel_ability_tangotether_trigger"
-	| "citadel_ability_teleport"
-	| "citadel_ability_tengu_airlift"
-	| "citadel_ability_tengu_stone_form"
-	| "citadel_ability_tengu_urn"
-	| "citadel_ability_tier2boss_aoe_wave"
-	| "citadel_ability_tier2boss_laser_beam"
-	| "citadel_ability_tier2boss_rocket_barrage"
-	| "citadel_ability_tier2boss_stomp"
-	| "citadel_ability_tier3boss_aoe_wave"
-	| "citadel_ability_tier3boss_drop_bombs"
-	| "citadel_ability_tier3boss_laser_beam"
-	| "citadel_ability_tier3boss_rocket_barrage"
-	| "citadel_ability_tower_regen"
-	| "citadel_ability_trapper_poisonjar"
-	| "citadel_ability_trooper_zip_line"
-	| "citadel_ability_turretclone"
-	| "citadel_ability_unicorn_primaryweapon"
-	| "citadel_ability_uppercut"
-	| "citadel_ability_vandal_overflow"
-	| "citadel_ability_vandal_surge"
-	| "citadel_ability_void_sphere"
-	| "citadel_ability_werewolf_clawweapon"
-	| "citadel_ability_werewolf_frenzy"
-	| "citadel_ability_werewolf_onthehunt"
-	| "citadel_ability_werewolf_rifle"
-	| "citadel_ability_wraith_rapidfire"
-	| "citadel_ability_wrecker_bouldergrenade"
-	| "citadel_ability_wrecker_garbage_suck"
-	| "citadel_ability_zip_line"
-	| "citadel_ability_zipline_boost"
-	| "citadel_animating_model_entity"
-	| "citadel_announcer"
-	| "citadel_base_ability"
-	| "citadel_base_hero"
-	| "citadel_base_lockon_ability"
-	| "citadel_base_prop_midboss_indicator"
-	| "citadel_base_prop_stairs"
-	| "citadel_base_tiered_lockon_ability"
-	| "citadel_base_trigger_ability"
-	| "citadel_bot_test_node"
-	| "citadel_bounce_pad"
-	| "citadel_breakable_prop"
-	| "citadel_capture_point"
-	| "citadel_capture_point_escort"
-	| "citadel_cat_animating"
-	| "citadel_configurable_tracked_projectile"
-	| "citadel_control_point"
-	| "citadel_dash_cast_ability"
-	| "citadel_deployable_preview"
-	| "citadel_dev_trigger"
-	| "citadel_doorway_portal"
-	| "citadel_druid_healing_tree"
-	| "citadel_druid_healing_tree_fruit"
-	| "citadel_druid_invis_bush"
-	| "citadel_druid_plant_shield"
-	| "citadel_econ_item_container"
-	| "citadel_energy_tower"
-	| "citadel_fissure_wall"
-	| "citadel_gaffer"
-	| "citadel_gamerules"
-	| "citadel_grandfinale_stage"
-	| "citadel_gravestone_blocker"
+-- DesignerName is a designer name entities.create can create.
+export type DesignerName = keyof<typeof(designers)>
 
-type DesignerName1 =
-	| "citadel_hero_release_vote_terminal"
-	| "citadel_herotest_orbspawner"
-	| "citadel_hideout_ball"
-	| "citadel_hideout_button"
-	| "citadel_hideout_clock"
-	| "citadel_hideout_interactable_trigger"
-	| "citadel_hideout_prop_base"
-	| "citadel_hideout_prop_slot"
-	| "citadel_hideout_shootable_target_spawner"
-	| "citadel_ice_dome_blocker"
-	| "citadel_invis_volume"
-	| "citadel_item"
-	| "citadel_item_aura_base"
-	| "citadel_item_koth_spawner"
-	| "citadel_item_pickup"
-	| "citadel_item_pickup_idol"
-	| "citadel_item_pickup_rejuv"
-	| "citadel_item_pickup_rejuv_herotest"
-	| "citadel_item_pickup_rejuv_herotest_infospawn"
-	| "citadel_item_powerup_spawner"
-	| "citadel_item_punchable_gold"
-	| "citadel_koth_cashin"
-	| "citadel_local_player_ranked_badge_prop"
-	| "citadel_magic_beam_blocker"
-	| "citadel_magician_turret_object"
-	| "citadel_minimap_boundary"
-	| "citadel_mobile_resupply_object"
-	| "citadel_model_entity"
-	| "citadel_multi_capture_point"
-	| "citadel_nano_predatory_statue"
-	| "citadel_new_years_fireworks"
-	| "citadel_npc"
-	| "citadel_obscured_volume"
-	| "citadel_passthrough_fake_wall"
-	| "citadel_pickup"
-	| "citadel_pickup_ability"
-	| "citadel_pickup_assigned_gold"
-	| "citadel_pickup_currency"
-	| "citadel_pickup_gold"
-	| "citadel_pickup_health"
-	| "citadel_pickup_item"
-	| "citadel_pickup_modifier"
-	| "citadel_pickup_necro_death"
-	| "citadel_pickup_spawner"
-	| "citadel_player_controller"
-	| "citadel_point_talker"
-	| "citadel_point_talker_base"
-	| "citadel_point_talker_idol"
-	| "citadel_pregame_hero_draft_button"
-	| "citadel_priest_slidetrap"
-	| "citadel_projectile"
-	| "citadel_prop_dynamic"
-	| "citadel_ranked_badge_prop"
-	| "citadel_ratking_standard"
-	| "citadel_restorative_goo_cube"
-	| "citadel_shield"
-	| "citadel_shop_prop_dynamic"
-	| "citadel_smokegrenade_blocker"
-	| "citadel_snd_base_music_obb"
-	| "citadel_snd_dsp_obb"
-	| "citadel_snd_obb"
-	| "citadel_snd_opvar_set_obb"
-	| "citadel_snd_stack_field_obb"
-	| "citadel_soldier_entity"
-	| "citadel_spider_animating"
-	| "citadel_team_manager"
-	| "citadel_tracked_projectile"
-	| "citadel_trigger_bonk"
-	| "citadel_trigger_capture_zipline"
-	| "citadel_trigger_climb_rope"
-	| "citadel_trigger_corrupted_item_shop"
-	| "citadel_trigger_hideout"
-	| "citadel_trigger_hideout_teleport"
-	| "citadel_trigger_hotel_exit"
-	| "citadel_trigger_idol_return"
-	| "citadel_trigger_ignore_out_of_play_area"
-	| "citadel_trigger_in_map_district"
-	| "citadel_trigger_interior"
-	| "citadel_trigger_no_portals"
-	| "citadel_trigger_push"
-	| "citadel_trigger_secure_souls"
-	| "citadel_trigger_shop_tunnel"
-	| "citadel_trigger_speed_boost"
-	| "citadel_trigger_suspend_modifier"
-	| "citadel_trigger_teleport"
-	| "citadel_trooper_minimap"
-	| "citadel_tunnel_node"
-	| "citadel_tunnel_trigger"
-	| "citadel_tutorial_controller"
-	| "citadel_viscous_ball"
-	| "citadel_weapon_bosstier2_set"
-	| "citadel_weapon_bosstier3_set"
-	| "citadel_weapon_shiv"
-	| "citadel_zap_trigger"
-	| "citadel_zipline_path"
-	| "citadel_zipline_path_node"
-	| "color_correction"
-	| "color_correction_volume"
-	| "commentary_auto"
-	| "cosmetic_emote"
-	| "cosmetic_snowball"
-	| "cosmetic_voting_poster"
-	| "destroyable_building"
-	| "doorman_bomb_projectile"
-	| "drifter_blood_blast"
-	| "drifter_darkness"
-	| "drifter_shadow_mark"
-	| "drifter_shadow_mark_teleport"
-	| "dynamic_prop"
-	| "entity_blocker"
-	| "entityflame"
-	| "env_beam"
-	| "env_beverage"
-	| "env_combined_light_probe_volume"
-	| "env_credits"
-	| "env_cubemap"
-	| "env_cubemap_fog"
-	| "env_debughistory"
-	| "env_decal"
-	| "env_detail_controller"
-	| "env_entity_dissolver"
-	| "env_entity_igniter"
-	| "env_entity_maker"
-	| "env_explosion"
-	| "env_fade"
-	| "env_fog_controller"
-	| "env_global"
-	| "env_glow"
-	| "env_gradient_fog"
-	| "env_instructor_hint"
-	| "env_instructor_vr_hint"
-	| "env_laser"
-	| "env_light_probe_volume"
-	| "env_message"
-	| "env_muzzleflash"
-	| "env_particle_glow"
-	| "env_physexplosion"
-	| "env_physimpact"
-	| "env_physwire"
-	| "env_player_visibility"
-	| "env_shake"
-	| "env_sky"
-	| "env_soundscape"
-	| "env_soundscape_proxy"
-	| "env_soundscape_triggerable"
-	| "env_spark"
-	| "env_splash"
-	| "env_sprite"
-	| "env_sprite_oriented"
-	| "env_tilt"
-	| "env_tonemap_controller"
-	| "env_tonemap_controller2"
-	| "env_viewpunch"
-	| "env_volumetric_fog_controller"
-	| "env_volumetric_fog_volume"
-	| "env_wind"
-	| "familiar_clone"
-	| "familiar_projectile_movingtoattach"
-	| "fathom_breach"
-	| "fathom_lurkers_ambush"
-	| "fathom_reefdweller_harpoon"
-	| "fathom_scalding_spray"
-	| "featherboomerang_projectile"
-	| "filter_activator_attribute_int"
-	| "filter_activator_class"
-	| "filter_activator_context"
-	| "filter_activator_mass_greater"
-	| "filter_activator_model"
-	| "filter_activator_modifier"
-	| "filter_activator_name"
-	| "filter_activator_team"
-	| "filter_base"
-	| "filter_damage_type"
-	| "filter_enemy"
-	| "filter_health"
-	| "filter_los"
-	| "filter_modifier"
-	| "filter_multi"
-	| "filter_proximity"
-	| "fish"
-	| "fog_volume"
-	| "fortuna_weapon_projectile"
-	| "func_breakable"
-	| "func_brush"
-	| "func_button"
-	| "func_clip_interaction_layer"
-	| "func_clip_vphysics"
-	| "func_combined_light_probe_volume"
-	| "func_conditional_collidable"
-	| "func_door"
-	| "func_door_rotating"
-	| "func_electrified_volume"
-	| "func_fish_pool"
-	| "func_guntarget"
-	| "func_illusionary"
-	| "func_ladder"
-	| "func_monitor"
-	| "func_movelinear"
-	| "func_mover"
-	| "func_mover_router"
-	| "func_nav_avoidance_obstacle"
-	| "func_nav_blocker"
-	| "func_nav_dynamic_connections"
-	| "func_nav_markup"
-	| "func_nav_markup_citadel"
-	| "func_nav_markup_game"
-	| "func_physbox"
-	| "func_physical_button"
-	| "func_plat"
-	| "func_platrot"
-	| "func_precipitation"
-	| "func_precipitation_blocker"
-	| "func_proprrespawnzone"
-	| "func_pushable"
-	| "func_regenerate"
-	| "func_rot_button"
-	| "func_rotating"
-	| "func_rotator"
-	| "func_shatterglass"
-	| "func_spawn_blocker"
-	| "func_tanktrain"
-	| "func_timescale"
-	| "func_trackautochange"
-	| "func_trackchange"
-	| "func_tracktrain"
-	| "func_train"
-	| "func_traincontrols"
-	| "func_useableladder"
-	| "func_vehicleclip"
-	| "func_wall"
-	| "func_wall_toggle"
-	| "game_gib_manager"
-	| "game_player_equip"
-	| "game_ragdoll_manager"
-	| "game_text"
-	| "game_zone_player"
-	| "genericperson_ability_1"
-	| "genericperson_ability_2"
-	| "genericperson_ability_3"
-	| "genericperson_ability_4"
-	| "guided_arrow_projectile"
-	| "gunslinger_rapid_fire"
-	| "gunslinger_rocket_launcher"
-	| "gunslinger_salvo"
-	| "gunslinger_sleep_bomb"
-	| "gunslinger_tenacity"
-	| "handle_dummy"
-	| "handle_test"
-	| "hero_preview"
-	| "hero_testing_controller"
-	| "hl_vr_texture_based_animatable"
-	| "icepath_shard"
-	| "immobilize_trap_projectile"
-	| "in_world_key_bind_panel"
-	| "info_ability_test_bot"
-	| "info_assigned_lane_particle"
-	| "info_choreo_anchor"
-	| "info_citadel_familiar_helper"
-	| "info_citadel_hideout"
-	| "info_citadel_hideout_interest_point"
-	| "info_citadel_matchmaking_status"
-	| "info_constraint_anchor"
-	| "info_data"
-	| "info_dynamic_shadow_hint"
-	| "info_dynamic_shadow_hint_box"
-	| "info_game_event_proxy"
-	| "info_hero_testing_point"
-	| "info_hint"
-	| "info_koth_spawn_location"
-	| "info_ladder_dismount"
-	| "info_landmark"
-	| "info_mid_boss_spawn"
-	| "info_mini_map_marker"
-	| "info_nav_space"
-	| "info_neutral_trooper_camp"
-	| "info_neutral_trooper_spawn"
-	| "info_node"
-	| "info_node_air"
-	| "info_node_air_hint"
-	| "info_node_hint"
-	| "info_npc_spawn_destination"
-	| "info_null"
-	| "info_offscreen_panorama_texture"
-	| "info_particle_system"
-	| "info_particle_target"
-	| "info_player_deathmatch"
-	| "info_player_start"
-	| "info_portal_link"
-	| "info_spawngroup_landmark"
-	| "info_spawngroup_load_unload"
-	| "info_super_trooper_spawn"
-	| "info_target"
-	| "info_target_choreo"
-	| "info_target_instructor_hint"
-	| "info_target_server_only"
-	| "info_team_relative_particle_system"
-	| "info_team_spawn"
-	| "info_teleport_destination"
-	| "info_teleport_location"
-	| "info_trigger_fan"
-	| "info_trooper_spawn"
-	| "info_tutorial_point"
-	| "info_visibility_box"
-	| "info_world_layer"
-	| "instanced_scripted_scene"
-	| "item"
-	| "item_crate"
-	| "item_crate_spawn"
-	| "item_explosive_barrel"
-	| "item_generic"
-	| "item_generic_trigger_helper"
-	| "item_projectile_test_01"
-	| "item_projectile_test_02"
-	| "item_projectile_test_04"
-	| "item_projectile_test_05"
-	| "item_projectile_test_06"
-	| "item_sodacan"
-	| "item_xp"
-	| "kali_boomerang_projectile"
-	| "keyframe_rope"
-	| "keyframe_track"
-	| "knightcharge_projectile"
-	| "knightchargeleading_projectile"
-	| "lane_marker_path"
-	| "light_barn"
-	| "light_directional"
-	| "light_dynamic"
-	| "light_environment"
-	| "light_omni"
-	| "light_omni2"
-	| "light_ortho"
-	| "light_rect"
-	| "light_spot"
-	| "logic_achievement"
-	| "logic_active_autosave"
-	| "logic_activityevent"
-	| "logic_auto"
-	| "logic_auto_citadel"
-	| "logic_autosave"
-	| "logic_branch"
-	| "logic_branch_listener"
-	| "logic_case"
-	| "logic_choreographed_scene"
-	| "logic_collision_pair"
-	| "logic_compare"
-	| "logic_distance_autosave"
-	| "logic_distance_check"
-	| "logic_game_event"
-	| "logic_gameevent_listener"
-	| "logic_gamestate_report"
-	| "logic_lineto"
-	| "logic_measure_movement"
-	| "logic_multilight_proxy"
-	| "logic_navigation"
-	| "logic_npc_counter_aabb"
-	| "logic_npc_counter_obb"
-	| "logic_npc_counter_radius"
-	| "logic_playerproxy"
-	| "logic_playerproxy_base"
-	| "logic_proximity"
-	| "logic_relay"
-	| "logic_scene_list_manager"
-	| "logic_script"
-	| "logic_timer"
-	| "magician_magicbolt_projectile"
-	| "map_shared_environment"
-	| "markup_volume"
-	| "markup_volume_tagged"
-	| "markup_volume_tagged_base"
-	| "markup_volume_with_ref"
-	| "match_tracked_stats"
-	| "math_colorblend"
-	| "math_counter"
-	| "math_remap"
-	| "mirage_fire_beetles"
-	| "mirage_sand_phantom"
-	| "mirage_teleport"
-	| "mirage_tornado"
-	| "momentary_door"
-	| "momentary_rot_button"
-	| "move_rope"
-	| "multisource"
-	| "necro_haunt_projectile"
-	| "npc_barrack_boss"
-	| "npc_base_defense_sentry"
-	| "npc_boss_tier2"
-	| "npc_boss_tier3"
-	| "npc_boss_tier3core"
-	| "npc_escort"
-	| "npc_familiar_helper"
-	| "npc_maker"
-	| "npc_maker_base"
-	| "npc_necro_hauntingskull"
-	| "npc_necro_skele"
-	| "npc_neutral_bug"
-	| "npc_neutral_flying_pigeon"
-	| "npc_neutral_hideout_cat"
-	| "npc_neutral_hideout_rabbit"
-	| "npc_neutral_sinners_sacrifice"
-	| "npc_neutral_sinners_sacrifice_hideout"
-
-type DesignerName2 =
-	| "npc_player_bot_brain"
-	| "npc_ratking_rat"
-	| "npc_shielded_sentry"
-	| "npc_super_neutral"
-	| "npc_template_maker"
-	| "npc_trooper"
-	| "npc_trooper_boss"
-	| "npc_trooper_neutral"
-	| "npc_yakuza_gangster"
-	| "observer"
-	| "operative_blindside"
-	| "operative_revelation"
-	| "operative_umbrella_maneuver"
-	| "orb_spawner"
-	| "path_accompany"
-	| "path_corner"
-	| "path_corner_crash"
-	| "path_mover"
-	| "path_mover_entity_spawner"
-	| "path_node"
-	| "path_node_mover"
-	| "path_particle_rope"
-	| "path_particle_rope_clientside"
-	| "path_simple"
-	| "path_track"
-	| "path_with_dynamic_nodes"
-	| "phys_ballsocket"
-	| "phys_constraint"
-	| "phys_constraint_base"
-	| "phys_force"
-	| "phys_genericconstraint"
-	| "phys_hinge"
-	| "phys_hinge_local"
-	| "phys_keepupright"
-	| "phys_lengthconstraint"
-	| "phys_magnet"
-	| "phys_motor"
-	| "phys_pulleyconstraint"
-	| "phys_ragdollconstraint"
-	| "phys_ragdollmagnet"
-	| "phys_slideconstraint"
-	| "phys_splineconstraint"
-	| "phys_spring"
-	| "phys_thruster"
-	| "phys_torque"
-	| "phys_wheelconstraint"
-	| "physics_entity_solver"
-	| "physics_npc_solver"
-	| "physics_prop_ragdoll"
-	| "plat_trigger"
-	| "player"
-	| "player_controller"
-	| "player_loadsaved"
-	| "player_spray_decal"
-	| "player_tracked_stats"
-	| "point_anglesensor"
-	| "point_angularvelocitysensor"
-	| "point_broadcastclientcommand"
-	| "point_camera"
-	| "point_camera_vertical_fov"
-	| "point_childmodifier"
-	| "point_clientcommand"
-	| "point_clientui_dialog"
-	| "point_clientui_world_panel"
-	| "point_clientui_world_text_panel"
-	| "point_commentary_node"
-	| "point_commentary_viewpoint"
-	| "point_enable_motion_fixup"
-	| "point_entity"
-	| "point_entity_finder"
-	| "point_hurt"
-	| "point_instructor_event"
-	| "point_message"
-	| "point_modifier_thinker"
-	| "point_nav_walkable"
-	| "point_orient"
-	| "point_prefab"
-	| "point_proximity_sensor"
-	| "point_pulse"
-	| "point_push"
-	| "point_servercommand"
-	| "point_soundevent"
-	| "point_teleport"
-	| "point_template"
-	| "point_value_remapper"
-	| "point_velocitysensor"
-	| "point_worldtext"
-	| "post_processing_volume"
-	| "priest_beartrap"
-	| "priest_flashbang"
-	| "projectile_boho_skipgrenade"
-	| "projectile_cyclone"
-	| "projectile_doorman_cart_projectile"
-	| "projectile_dust_storm"
-	| "projectile_gravestone_projectile"
-	| "projectile_necro_zombiewall_projectile"
-	| "projectile_perched_predator"
-	| "projectile_rolling_fireball"
-	| "projectile_stomp_projectile"
-	| "projectile_touch_volume"
-	| "prop_animating_breakable"
-	| "prop_door_rotating"
-	| "prop_door_rotating_breakable"
-	| "prop_dynamic"
-	| "prop_dynamic_ornament"
-	| "prop_dynamic_override"
-	| "prop_physics"
-	| "prop_physics_override"
-	| "prop_physics_respawnable"
-	| "prop_ragdoll"
-	| "prop_ragdoll_attached"
-	| "pulse_game_blackboard"
-	| "punkgoat_tether_projectile"
-	| "ratking_scrap_grenade_projectile"
-	| "rejuv_tracking_projectile"
-	| "render_portal"
-	| "rocket_launcher_rocket_projectile"
-	| "rotator_target"
-	| "rule_entity"
-	| "rule_point_entity"
-	| "rutger_cheat_death"
-	| "rutger_force_field"
-	| "rutger_pulse"
-	| "rutger_rocket"
-	| "rutger_rocket_projectile"
-	| "script_nav_blocker"
-	| "script_trigger_hurt"
-	| "script_trigger_multiple"
-	| "script_trigger_once"
-	| "script_trigger_push"
-	| "scripted_item_drop"
-	| "scripted_scene"
-	| "scripted_sequence"
-	| "setting_sun_projectile"
-	| "shadow_pulse"
-	| "shatterglass_shard"
-	| "simple_animating_ai"
-	| "sky_camera"
-	| "skybox_reference"
-	| "snd_event_alignedbox"
-	| "snd_event_box_helper"
-	| "snd_event_cone"
-	| "snd_event_multipoint"
-	| "snd_event_oriented_boxes"
-	| "snd_event_orientedbox"
-	| "snd_event_param"
-	| "snd_event_path_corner"
-	| "snd_event_point"
-	| "snd_event_sphere"
-	| "snd_opvar_set"
-	| "snd_opvar_set_aabb"
-	| "snd_opvar_set_auto_room"
-	| "snd_opvar_set_box_base"
-	| "snd_opvar_set_dome"
-	| "snd_opvar_set_obb"
-	| "snd_opvar_set_path_corner"
-	| "snd_opvar_set_point"
-	| "snd_opvar_set_point_base"
-	| "snd_opvar_set_precipitation"
-	| "snd_opvar_set_precipitation_obb"
-	| "snd_opvar_set_wind_obb"
-	| "snd_sound_area_base"
-	| "snd_sound_area_obb"
-	| "snd_sound_area_sphere"
-	| "snd_soundscape"
-	| "snd_soundscape_proxy"
-	| "snd_soundscape_triggerable"
-	| "snd_stack_save"
-	| "spark_shower"
-	| "spider_projectile"
-	| "spotlight_end"
-	| "super_neutral_charge"
-	| "super_neutral_incendiary"
-	| "super_neutral_shield"
-	| "synth_affliction"
-	| "synth_barrage"
-	| "synth_barrage_projectile"
-	| "synth_plasma_flux"
-	| "synth_plasma_flux_projectile"
-	| "synth_plasma_flux_trigger"
-	| "synth_pulse"
-	| "tanktrain_ai"
-	| "tanktrain_aitarget"
-	| "targetdummy_ability_1"
-	| "targetdummy_ability_2"
-	| "targetdummy_ability_3"
-	| "targetdummy_ability_4"
-	| "team_manager"
-	| "team_tracked_stats"
-	| "test_effect"
-	| "test_io_combinations"
-	| "thumper_ability_1"
-	| "thumper_ability_2"
-	| "thumper_ability_3"
-	| "thumper_ability_4"
-	| "trigger"
-	| "trigger_Ice_Path_Volume"
-	| "trigger_active_weapon_detect"
-	| "trigger_add_modifier"
-	| "trigger_autosave"
-	| "trigger_brush"
-	| "trigger_burrow_underground"
-	| "trigger_callback"
-	| "trigger_catapult"
-	| "trigger_changelevel"
-	| "trigger_detect_bullet_fire"
-	| "trigger_detect_explosion"
-	| "trigger_fan"
-	| "trigger_fog"
-	| "trigger_game_event"
-	| "trigger_gravity"
-	| "trigger_hurt"
-	| "trigger_hurt_citadel"
-	| "trigger_impact"
-	| "trigger_item_shop"
-	| "trigger_item_shop_safe_zone"
-	| "trigger_lerp_object"
-	| "trigger_look"
-	| "trigger_midboss_shield"
-	| "trigger_modifier"
-	| "trigger_multiple"
-	| "trigger_neutral_idles"
-	| "trigger_neutral_shield"
-	| "trigger_once"
-	| "trigger_passthrough_fake_wall"
-	| "trigger_physics"
-	| "trigger_ping_location"
-	| "trigger_portal"
-	| "trigger_proximity"
-	| "trigger_push"
-	| "trigger_remove"
-	| "trigger_remove_modifier"
-	| "trigger_serverragdoll"
-	| "trigger_snd_sos_opvar"
-	| "trigger_soundscape"
-	| "trigger_team_base"
-	| "trigger_teleport"
-	| "trigger_tier3phase2_shield"
-	| "trigger_tonemap"
-	| "trigger_transition"
-	| "trigger_trooper_damage_reduction_detector"
-	| "trigger_trooper_detector"
-	| "trooper_approach_horizon"
-	| "trooper_boss_grenade"
-	| "trooper_grenade"
-	| "upgrade_ability_power_shard"
-	| "upgrade_ability_refresher"
-	| "upgrade_ability_vampire"
-	| "upgrade_ablative_coat"
-	| "upgrade_active_bullet_shield"
-	| "upgrade_active_reload"
-	| "upgrade_aerial_assault"
-	| "upgrade_ammo_scavenger"
-	| "upgrade_aoe_root"
-	| "upgrade_aoe_smoke_bomb"
-	| "upgrade_aoe_tech_shield"
-	| "upgrade_apex_combat"
-	| "upgrade_arctic_blast"
-	| "upgrade_auto_cleanse"
-	| "upgrade_blood_tribute"
-	| "upgrade_bullet_armor_reduction_aura"
-	| "upgrade_bullet_shield"
-	| "upgrade_burst_fire"
-	| "upgrade_camouflage"
-	| "upgrade_capacitor"
-	| "upgrade_celestial_guidance"
-	| "upgrade_charge_mastery"
-	| "upgrade_cheat_death"
-	| "upgrade_cloaking_device"
-	| "upgrade_cloaking_device_active"
-	| "upgrade_cold_front"
-	| "upgrade_colossus"
-	| "upgrade_combo_breaker"
-	| "upgrade_containment"
-	| "upgrade_cooldown_on_miss"
-	| "upgrade_corpse_explosion"
-	| "upgrade_damage_recycler"
-	| "upgrade_debuff_absorb"
-	| "upgrade_disarm"
-	| "upgrade_divine_barrier"
-	| "upgrade_diviners_kevlar"
-	| "upgrade_double_jump"
-	| "upgrade_dps_aura"
-	| "upgrade_electric_slippers"
-	| "upgrade_express_shot"
-	| "upgrade_fire_rate_aura"
-	| "upgrade_fleetfoot_boots"
-	| "upgrade_focus_lens"
-	| "upgrade_frenzy"
-	| "upgrade_fury_trance"
-	| "upgrade_glass_cannon"
-	| "upgrade_goose_egg"
-	| "upgrade_greater_withering_whip"
-	| "upgrade_grit"
-	| "upgrade_guardian_ward"
-	| "upgrade_haunting_scream"
-	| "upgrade_headshot_damage"
-	| "upgrade_healonlevel"
-	| "upgrade_health_nova"
-	| "upgrade_health_regen_aura"
-	| "upgrade_health_stimpak"
-	| "upgrade_high_impact_armor"
-	| "upgrade_infinitemagazine"
-	| "upgrade_infuser"
-	| "upgrade_intensifying_clip"
-	| "upgrade_magic_carpet"
-	| "upgrade_metal_skin"
-	| "upgrade_mod_disruptor"
-	| "upgrade_mystic_regeneration"
-	| "upgrade_mystic_reverb"
-	| "upgrade_non_player_bonus_sacrifice"
-	| "upgrade_nullification_aura"
-	| "upgrade_omnicharge_pendant"
-	| "upgrade_personal_rejuvenator"
-	| "upgrade_phantom_strike"
-	| "upgrade_prism_blast"
-	| "upgrade_recharging_bullets"
-	| "upgrade_reduce_debuff_duration"
-	| "upgrade_regenerating_bullet_shield"
-	| "upgrade_regenerative_armor"
-	| "upgrade_rescue_beam"
-	| "upgrade_resonant_healing"
-	| "upgrade_restorative_locket"
-	| "upgrade_return_fire"
-	| "upgrade_ricochet"
-	| "upgrade_rocket_booster"
-	| "upgrade_rocket_boots"
-	| "upgrade_self_bubble"
-	| "upgrade_self_buff_modifier"
-	| "upgrade_shadow_step"
-	| "upgrade_shadow_strike"
-	| "upgrade_shrink_ray"
-	| "upgrade_silence_glyph"
-	| "upgrade_slow_immunity"
-	| "upgrade_spellshield"
-	| "upgrade_spellslinger_headshots"
-	| "upgrade_spirit_bubble"
-	| "upgrade_spirit_sap"
-	| "upgrade_split_shot"
-	| "upgrade_stasis_bomb"
-	| "upgrade_superacolytegloves"
-	| "upgrade_surging_power"
-	| "upgrade_target_stun"
-	| "upgrade_tech_cleave"
-	| "upgrade_tech_damage_pulse"
-	| "upgrade_tracking_projectile_apply_modifier"
-	| "upgrade_trophy_collector"
-	| "upgrade_vex_barrier"
-	| "upgrade_warp_stone"
-	| "upgrade_weapon_eater"
-	| "upgrade_weapon_instant_reload"
-	| "upgrade_weapon_overdrive_clip"
-	| "upgrade_weapon_power_and_health_drain"
-	| "upgrade_weapon_shielding"
-	| "upgrade_weapon_siphon_bullets"
-	| "upgrade_withering_whip"
-	| "vandal_pillar_projectile"
-	| "vanguard_aoe_buff"
-	| "viper_hookblade_projectile"
-	| "viper_petrify_projectile"
-	| "viscous_goo_bowling_ball"
-	| "viscous_goo_grenade"
-	| "viscous_goo_grenade_projectile"
-	| "viscous_restorative_goo"
-	| "viscous_telepunch"
-	| "waterbullet"
-	| "wearable_item"
-	| "webwall_projectile"
-	| "worldent"
-	| "wrecker_teleport_projectile"
-	| "wrecking_ball_projectile"
-	| "yakuza_fealty"
-	| "yakuza_gang_activity"
-	| "yakuza_gang_activity_cancel"
-	| "yakuza_kobun"
-	| "yakuza_protection_racket"
-	| "yakuza_setting_sun"
-	| "yakuza_shakedown"
-	| "yakuza_shakedown_target"
-	| "yakuza_summon_gangster"
-	| "yakuza_teleport_to_gangster"
-	| "zip_line_node"
-
-export type DesignerName = DesignerName0 | DesignerName1 | DesignerName2
+-- create creates an entity of designerName from options and addresses it as
+-- the class that implements it, or returns nil when the host refuses.
+function entities.create(designerName: DesignerName, options: Spawn<any>): any
+	local className, map = designers[designerName][1], designers[designerName][2]
+	local keyValues = table.clone(options.keyValues or {})
+	for key, value in (options.keys or {}) :: { [string]: any } do
+		local encoded = keyValue(map, key, value)
+		if encoded ~= nil then
+			table.insert(keyValues, encoded)
+		end
+	end
+	local handle = modlock.createEntity({
+		designerName = designerName,
+		subclass = options.subclass or "",
+		team = options.team or 0,
+		position = options.position,
+		facing = options.facing,
+		keyValues = keyValues,
+		fields = options.fields,
+	})
+	return if handle == nil then nil else new(className, handle)
+end
 
 return entities

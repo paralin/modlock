@@ -2,512 +2,510 @@
 
 package entity
 
-import "github.com/paralin/modlock/mod"
-
 type CCitadelBaseAbility CEntityInstance
 
-func (e CCitadelBaseAbility) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelBaseAbility", name, typ}
+func (e CCitadelBaseAbility) field(name string) Field {
+	return Field{e.Handle, "CCitadelBaseAbility", name}
 }
 
 func (e CCitadelBaseAbility) BIsCoolingDownInternal() Bool {
-	return Bool{e.field("m_bIsCoolingDownInternal", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsCoolingDownInternal")}
 }
 
 func (e CCitadelBaseAbility) FlCancelMashProtectionEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flCancelMashProtectionEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCancelMashProtectionEndTime")}
 }
 
 func (e CCitadelBaseAbility) FlCancelLockoutEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flCancelLockoutEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCancelLockoutEndTime")}
 }
 
 func (e CCitadelBaseAbility) BChanneling() Bool {
-	return Bool{e.field("m_bChanneling", mod.FieldTypeBool)}
+	return Bool{e.field("m_bChanneling")}
 }
 
 func (e CCitadelBaseAbility) BInCastDelay() Bool {
-	return Bool{e.field("m_bInCastDelay", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInCastDelay")}
 }
 
 func (e CCitadelBaseAbility) BShouldBeExecuted() Bool {
-	return Bool{e.field("m_bShouldBeExecuted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bShouldBeExecuted")}
 }
 
 func (e CCitadelBaseAbility) BCanBeUpgraded() Bool {
-	return Bool{e.field("m_bCanBeUpgraded", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanBeUpgraded")}
 }
 
 func (e CCitadelBaseAbility) NUpgradeInfo() Number[uint32] {
-	return Number[uint32]{e.field("m_nUpgradeInfo", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nUpgradeInfo")}
 }
 
 func (e CCitadelBaseAbility) BToggleState() Bool {
-	return Bool{e.field("m_bToggleState", mod.FieldTypeBool)}
+	return Bool{e.field("m_bToggleState")}
 }
 
 func (e CCitadelBaseAbility) FlCooldownStart() Number[float32] {
-	return Number[float32]{e.field("m_flCooldownStart", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCooldownStart")}
 }
 
 func (e CCitadelBaseAbility) FlCooldownEnd() Number[float32] {
-	return Number[float32]{e.field("m_flCooldownEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCooldownEnd")}
 }
 
 func (e CCitadelBaseAbility) FlCastCompletedTime() Number[float32] {
-	return Number[float32]{e.field("m_flCastCompletedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCastCompletedTime")}
 }
 
 func (e CCitadelBaseAbility) FlChannelStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flChannelStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChannelStartTime")}
 }
 
 func (e CCitadelBaseAbility) FlCastDelayStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flCastDelayStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCastDelayStartTime")}
 }
 
 func (e CCitadelBaseAbility) EAbilitySlot() Number[uint16] {
-	return Number[uint16]{e.field("m_eAbilitySlot", mod.FieldTypeUint16)}
+	return Number[uint16]{e.field("m_eAbilitySlot")}
 }
 
 func (e CCitadelBaseAbility) FlPostCastDelayEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flPostCastDelayEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPostCastDelayEndTime")}
 }
 
 func (e CCitadelBaseAbility) IRemainingCharges() Number[int32] {
-	return Number[int32]{e.field("m_iRemainingCharges", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iRemainingCharges")}
 }
 
 func (e CCitadelBaseAbility) FlChargeRechargeStart() Number[float32] {
-	return Number[float32]{e.field("m_flChargeRechargeStart", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeRechargeStart")}
 }
 
 func (e CCitadelBaseAbility) FlChargeRechargeEnd() Number[float32] {
-	return Number[float32]{e.field("m_flChargeRechargeEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeRechargeEnd")}
 }
 
 func (e CCitadelBaseAbility) FlMovementControlActiveTime() Number[float32] {
-	return Number[float32]{e.field("m_flMovementControlActiveTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMovementControlActiveTime")}
 }
 
 func (e CCitadelBaseAbility) FlSelectedChangedTime() Number[float32] {
-	return Number[float32]{e.field("m_flSelectedChangedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSelectedChangedTime")}
 }
 
 func (e CCitadelBaseAbility) FlAltCastHoldStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flAltCastHoldStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAltCastHoldStartTime")}
 }
 
 func (e CCitadelBaseAbility) FlAltCastDoubleTapStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flAltCastDoubleTapStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAltCastDoubleTapStartTime")}
 }
 
 func (e CCitadelBaseAbility) BCanBeImbued() Bool {
-	return Bool{e.field("m_bCanBeImbued", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanBeImbued")}
 }
 
 func (e CCitadelBaseAbility) BSelectionModeIsAltMode() Bool {
-	return Bool{e.field("m_bSelectionModeIsAltMode", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSelectionModeIsAltMode")}
 }
 
 func (e CCitadelBaseAbility) FlPreviousEffectiveCooldown() Number[float32] {
-	return Number[float32]{e.field("m_flPreviousEffectiveCooldown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPreviousEffectiveCooldown")}
 }
 
 func (e CCitadelBaseAbility) EnActiveReasonBits() Number[uint32] {
-	return Number[uint32]{e.field("m_enActiveReasonBits", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_enActiveReasonBits")}
 }
 
 type CAbility_Drifter_BloodBlast CEntityInstance
 
-func (e CAbility_Drifter_BloodBlast) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Drifter_BloodBlast", name, typ}
+func (e CAbility_Drifter_BloodBlast) field(name string) Field {
+	return Field{e.Handle, "CAbility_Drifter_BloodBlast", name}
 }
 
 func (e CAbility_Drifter_BloodBlast) SandEffect() Number[int32] {
-	return Number[int32]{e.field("m_SandEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_SandEffect")}
 }
 
 type CAbility_Drifter_Darkness CEntityInstance
 
 type CAbility_Drifter_ShadowMark CEntityInstance
 
-func (e CAbility_Drifter_ShadowMark) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Drifter_ShadowMark", name, typ}
+func (e CAbility_Drifter_ShadowMark) field(name string) Field {
+	return Field{e.Handle, "CAbility_Drifter_ShadowMark", name}
 }
 
 func (e CAbility_Drifter_ShadowMark) VLastValidTeleportPosition() Vector {
-	return Vector{e.field("m_vLastValidTeleportPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastValidTeleportPosition")}
 }
 
 func (e CAbility_Drifter_ShadowMark) HTeleportTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTeleportTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTeleportTarget")}
 }
 
 func (e CAbility_Drifter_ShadowMark) BTeleported() Bool {
-	return Bool{e.field("m_bTeleported", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTeleported")}
 }
 
 func (e CAbility_Drifter_ShadowMark) QPostTeleportAngles() Angles {
-	return Angles{e.field("m_qPostTeleportAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_qPostTeleportAngles")}
 }
 
 func (e CAbility_Drifter_ShadowMark) FlExpireTime() Number[float32] {
-	return Number[float32]{e.field("m_flExpireTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flExpireTime")}
 }
 
 func (e CAbility_Drifter_ShadowMark) FlTeleportedTime() Number[float32] {
-	return Number[float32]{e.field("m_flTeleportedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTeleportedTime")}
 }
 
 type CAbility_Fathom_LurkersAmbush CEntityInstance
 
-func (e CAbility_Fathom_LurkersAmbush) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Fathom_LurkersAmbush", name, typ}
+func (e CAbility_Fathom_LurkersAmbush) field(name string) Field {
+	return Field{e.Handle, "CAbility_Fathom_LurkersAmbush", name}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) BIsVisibleOnMinimap() Bool {
-	return Bool{e.field("m_bIsVisibleOnMinimap", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsVisibleOnMinimap")}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) FlStoppedMovingStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStoppedMovingStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStoppedMovingStartTime")}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) VLastPos() Vector {
-	return Vector{e.field("m_vLastPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastPos")}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) FlDebuffDuration() Number[float32] {
-	return Number[float32]{e.field("m_flDebuffDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDebuffDuration")}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) FlChannelTimeStarted() Number[float32] {
-	return Number[float32]{e.field("m_flChannelTimeStarted", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChannelTimeStarted")}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) BWasLatchedWhenCast() Bool {
-	return Bool{e.field("m_bWasLatchedWhenCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWasLatchedWhenCast")}
 }
 
 func (e CAbility_Fathom_LurkersAmbush) ChargeUpParticle() Number[int32] {
-	return Number[int32]{e.field("m_ChargeUpParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ChargeUpParticle")}
 }
 
 type CAbility_Fathom_ReefdwellerHarpoon CEntityInstance
 
-func (e CAbility_Fathom_ReefdwellerHarpoon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Fathom_ReefdwellerHarpoon", name, typ}
+func (e CAbility_Fathom_ReefdwellerHarpoon) field(name string) Field {
+	return Field{e.Handle, "CAbility_Fathom_ReefdwellerHarpoon", name}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) BHitTarget() Bool {
-	return Bool{e.field("m_bHitTarget", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitTarget")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) VPrevPos() Vector {
-	return Vector{e.field("m_vPrevPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPrevPos")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) BBulletFlying() Bool {
-	return Bool{e.field("m_bBulletFlying", mod.FieldTypeBool)}
+	return Bool{e.field("m_bBulletFlying")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) BHasLatchedOnce() Bool {
-	return Bool{e.field("m_bHasLatchedOnce", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasLatchedOnce")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) BLatched() Bool {
-	return Bool{e.field("m_bLatched", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLatched")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) VHarpoonTarget() Vector {
-	return Vector{e.field("m_vHarpoonTarget", mod.FieldTypeVector)}
+	return Vector{e.field("m_vHarpoonTarget")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) FlLatchedYaw() Number[float32] {
-	return Number[float32]{e.field("m_flLatchedYaw", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLatchedYaw")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) FlCloseEnoughStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flCloseEnoughStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCloseEnoughStartTime")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) FlStuckStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStuckStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStuckStartTime")}
 }
 
 func (e CAbility_Fathom_ReefdwellerHarpoon) FlReelStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flReelStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flReelStartTime")}
 }
 
 type CAbility_Fencer_Lunge CEntityInstance
 
-func (e CAbility_Fencer_Lunge) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Fencer_Lunge", name, typ}
+func (e CAbility_Fencer_Lunge) field(name string) Field {
+	return Field{e.Handle, "CAbility_Fencer_Lunge", name}
 }
 
 func (e CAbility_Fencer_Lunge) NCurrentLungeState() Number[uint8] {
-	return Number[uint8]{e.field("m_nCurrentLungeState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nCurrentLungeState")}
 }
 
 func (e CAbility_Fencer_Lunge) FlStateStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateStartTime")}
 }
 
 func (e CAbility_Fencer_Lunge) VDashStartPos() Vector {
-	return Vector{e.field("m_vDashStartPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashStartPos")}
 }
 
 func (e CAbility_Fencer_Lunge) VDashDirection() Vector {
-	return Vector{e.field("m_vDashDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashDirection")}
 }
 
 func (e CAbility_Fencer_Lunge) VLookDirection() Vector {
-	return Vector{e.field("m_vLookDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLookDirection")}
 }
 
 func (e CAbility_Fencer_Lunge) VStrikeDirection() Vector {
-	return Vector{e.field("m_vStrikeDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStrikeDirection")}
 }
 
 func (e CAbility_Fencer_Lunge) BStartedInAir() Bool {
-	return Bool{e.field("m_bStartedInAir", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedInAir")}
 }
 
 func (e CAbility_Fencer_Lunge) IRemainingCasts() Number[uint8] {
-	return Number[uint8]{e.field("m_iRemainingCasts", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_iRemainingCasts")}
 }
 
 func (e CAbility_Fencer_Lunge) RecastEndTime() Number[float32] {
-	return Number[float32]{e.field("m_RecastEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_RecastEndTime")}
 }
 
 func (e CAbility_Fencer_Lunge) ELungeDirection() Number[uint8] {
-	return Number[uint8]{e.field("m_eLungeDirection", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eLungeDirection")}
 }
 
 func (e CAbility_Fencer_Lunge) FlHeldTime() Number[float32] {
-	return Number[float32]{e.field("m_flHeldTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHeldTime")}
 }
 
 func (e CAbility_Fencer_Lunge) VLastPosition() Vector {
-	return Vector{e.field("m_vLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastPosition")}
 }
 
 func (e CAbility_Fencer_Lunge) FlStuckTime() Number[float32] {
-	return Number[float32]{e.field("m_flStuckTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStuckTime")}
 }
 
 func (e CAbility_Fencer_Lunge) NGlintParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nGlintParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGlintParticleIndex")}
 }
 
 func (e CAbility_Fencer_Lunge) FlLastOuterCircleProgress() Number[float32] {
-	return Number[float32]{e.field("m_flLastOuterCircleProgress", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastOuterCircleProgress")}
 }
 
 func (e CAbility_Fencer_Lunge) NPowerLevel() Number[int32] {
-	return Number[int32]{e.field("m_nPowerLevel", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPowerLevel")}
 }
 
 type CAbility_Fencer_Ultimate CEntityInstance
 
-func (e CAbility_Fencer_Ultimate) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Fencer_Ultimate", name, typ}
+func (e CAbility_Fencer_Ultimate) field(name string) Field {
+	return Field{e.Handle, "CAbility_Fencer_Ultimate", name}
 }
 
 func (e CAbility_Fencer_Ultimate) VStartPosition() Vector {
-	return Vector{e.field("m_vStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPosition")}
 }
 
 func (e CAbility_Fencer_Ultimate) VDashDirection() Vector {
-	return Vector{e.field("m_vDashDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashDirection")}
 }
 
 func (e CAbility_Fencer_Ultimate) VecLastPosition() Vector {
-	return Vector{e.field("m_vecLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastPosition")}
 }
 
 func (e CAbility_Fencer_Ultimate) EUltState() Number[uint8] {
-	return Number[uint8]{e.field("m_eUltState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eUltState")}
 }
 
 func (e CAbility_Fencer_Ultimate) FlStateStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateStartTime")}
 }
 
 func (e CAbility_Fencer_Ultimate) BHitSomeone() Bool {
-	return Bool{e.field("m_bHitSomeone", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitSomeone")}
 }
 
 func (e CAbility_Fencer_Ultimate) FlStuckTime() Number[float32] {
-	return Number[float32]{e.field("m_flStuckTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStuckTime")}
 }
 
 func (e CAbility_Fencer_Ultimate) UltHoldVFX() Number[int32] {
-	return Number[int32]{e.field("m_UltHoldVFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_UltHoldVFX")}
 }
 
 func (e CAbility_Fencer_Ultimate) DirPreviewVFX() Number[int32] {
-	return Number[int32]{e.field("m_DirPreviewVFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_DirPreviewVFX")}
 }
 
 type CAbility_Mirage_SandPhantom CEntityInstance
 
-func (e CAbility_Mirage_SandPhantom) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Mirage_SandPhantom", name, typ}
+func (e CAbility_Mirage_SandPhantom) field(name string) Field {
+	return Field{e.Handle, "CAbility_Mirage_SandPhantom", name}
 }
 
 func (e CAbility_Mirage_SandPhantom) BHasVictims() Bool {
-	return Bool{e.field("m_bHasVictims", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasVictims")}
 }
 
 type CAbility_Mirage_Tornado CEntityInstance
 
-func (e CAbility_Mirage_Tornado) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Mirage_Tornado", name, typ}
+func (e CAbility_Mirage_Tornado) field(name string) Field {
+	return Field{e.Handle, "CAbility_Mirage_Tornado", name}
 }
 
 func (e CAbility_Mirage_Tornado) RecastWindowEnd() Number[float32] {
-	return Number[float32]{e.field("m_RecastWindowEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_RecastWindowEnd")}
 }
 
 func (e CAbility_Mirage_Tornado) AnglesCharging() Angles {
-	return Angles{e.field("m_anglesCharging", mod.FieldTypeVector)}
+	return Angles{e.field("m_anglesCharging")}
 }
 
 func (e CAbility_Mirage_Tornado) FlChargeStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flChargeStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeStartTime")}
 }
 
 type CAbility_Operative_Revelation CEntityInstance
 
 type CAbility_Operative_UmbrellaManeuver CEntityInstance
 
-func (e CAbility_Operative_UmbrellaManeuver) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Operative_UmbrellaManeuver", name, typ}
+func (e CAbility_Operative_UmbrellaManeuver) field(name string) Field {
+	return Field{e.Handle, "CAbility_Operative_UmbrellaManeuver", name}
 }
 
 func (e CAbility_Operative_UmbrellaManeuver) ChannelParticle() Number[int32] {
-	return Number[int32]{e.field("m_ChannelParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ChannelParticle")}
 }
 
 type CAbility_Rutger_CheatDeath CEntityInstance
 
 type CAbility_Rutger_ForceField CEntityInstance
 
-func (e CAbility_Rutger_ForceField) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Rutger_ForceField", name, typ}
+func (e CAbility_Rutger_ForceField) field(name string) Field {
+	return Field{e.Handle, "CAbility_Rutger_ForceField", name}
 }
 
 func (e CAbility_Rutger_ForceField) HChargingParticle() Number[int32] {
-	return Number[int32]{e.field("m_hChargingParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_hChargingParticle")}
 }
 
 func (e CAbility_Rutger_ForceField) HExplodeParticle() Number[int32] {
-	return Number[int32]{e.field("m_hExplodeParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_hExplodeParticle")}
 }
 
 func (e CAbility_Rutger_ForceField) VSpawnPos() Vector {
-	return Vector{e.field("m_vSpawnPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vSpawnPos")}
 }
 
 func (e CAbility_Rutger_ForceField) FTimeToDestroyForceField() Number[float32] {
-	return Number[float32]{e.field("m_fTimeToDestroyForceField", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fTimeToDestroyForceField")}
 }
 
 func (e CAbility_Rutger_ForceField) BFirstThink() Bool {
-	return Bool{e.field("m_bFirstThink", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstThink")}
 }
 
 type CAbility_Rutger_RocketLauncher CEntityInstance
 
 type CAbility_Synth_Affliction CEntityInstance
 
-func (e CAbility_Synth_Affliction) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Synth_Affliction", name, typ}
+func (e CAbility_Synth_Affliction) field(name string) Field {
+	return Field{e.Handle, "CAbility_Synth_Affliction", name}
 }
 
 func (e CAbility_Synth_Affliction) HAOEParticle() Number[int32] {
-	return Number[int32]{e.field("m_hAOEParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_hAOEParticle")}
 }
 
 type CAbility_Synth_Barrage CEntityInstance
 
-func (e CAbility_Synth_Barrage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Synth_Barrage", name, typ}
+func (e CAbility_Synth_Barrage) field(name string) Field {
+	return Field{e.Handle, "CAbility_Synth_Barrage", name}
 }
 
 func (e CAbility_Synth_Barrage) TLastShotID() Number[uint32] {
-	return Number[uint32]{e.field("m_tLastShotID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_tLastShotID")}
 }
 
 func (e CAbility_Synth_Barrage) NProjectilesScheduled() Number[int32] {
-	return Number[int32]{e.field("m_nProjectilesScheduled", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nProjectilesScheduled")}
 }
 
 func (e CAbility_Synth_Barrage) ChannelParticle() Number[int32] {
-	return Number[int32]{e.field("m_ChannelParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ChannelParticle")}
 }
 
 func (e CAbility_Synth_Barrage) FlNextShootTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextShootTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextShootTime")}
 }
 
 type CAbility_Synth_PlasmaFlux CEntityInstance
 
-func (e CAbility_Synth_PlasmaFlux) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Synth_PlasmaFlux", name, typ}
+func (e CAbility_Synth_PlasmaFlux) field(name string) Field {
+	return Field{e.Handle, "CAbility_Synth_PlasmaFlux", name}
 }
 
 func (e CAbility_Synth_PlasmaFlux) BTeleported() Bool {
-	return Bool{e.field("m_bTeleported", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTeleported")}
 }
 
 func (e CAbility_Synth_PlasmaFlux) VLastValidTeleportPosition() Vector {
-	return Vector{e.field("m_vLastValidTeleportPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastValidTeleportPosition")}
 }
 
 func (e CAbility_Synth_PlasmaFlux) FlProjectileLaunchTime() Number[float32] {
-	return Number[float32]{e.field("m_flProjectileLaunchTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flProjectileLaunchTime")}
 }
 
 func (e CAbility_Synth_PlasmaFlux) FlProjectileExpireTime() Number[float32] {
-	return Number[float32]{e.field("m_flProjectileExpireTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flProjectileExpireTime")}
 }
 
 func (e CAbility_Synth_PlasmaFlux) HActiveProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hActiveProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hActiveProjectile")}
 }
 
 type CAbility_Synth_Pulse CEntityInstance
 
 type CAbility_TestHero_SpookyHide CEntityInstance
 
-func (e CAbility_TestHero_SpookyHide) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_TestHero_SpookyHide", name, typ}
+func (e CAbility_TestHero_SpookyHide) field(name string) Field {
+	return Field{e.Handle, "CAbility_TestHero_SpookyHide", name}
 }
 
 func (e CAbility_TestHero_SpookyHide) BIsVisibleOnMinimap() Bool {
-	return Bool{e.field("m_bIsVisibleOnMinimap", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsVisibleOnMinimap")}
 }
 
 func (e CAbility_TestHero_SpookyHide) FlStoppedMovingStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStoppedMovingStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStoppedMovingStartTime")}
 }
 
 func (e CAbility_TestHero_SpookyHide) VLastPos() Vector {
-	return Vector{e.field("m_vLastPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastPos")}
 }
 
 type CAbility_Werewolf_Frenzy CEntityInstance
 
-func (e CAbility_Werewolf_Frenzy) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAbility_Werewolf_Frenzy", name, typ}
+func (e CAbility_Werewolf_Frenzy) field(name string) Field {
+	return Field{e.Handle, "CAbility_Werewolf_Frenzy", name}
 }
 
 func (e CAbility_Werewolf_Frenzy) SandEffect() Number[int32] {
-	return Number[int32]{e.field("m_SandEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_SandEffect")}
 }
 
 type CCitadelAbilityDruidAbility04 CEntityInstance
@@ -540,42 +538,42 @@ type CCitadel_Ability_Tier2Boss_AoEWave CEntityInstance
 
 type CCitadel_Ability_Tier2Boss_LaserBeam CEntityInstance
 
-func (e CCitadel_Ability_Tier2Boss_LaserBeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tier2Boss_LaserBeam", name, typ}
+func (e CCitadel_Ability_Tier2Boss_LaserBeam) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tier2Boss_LaserBeam", name}
 }
 
 func (e CCitadel_Ability_Tier2Boss_LaserBeam) HAttackPosHigh() Number[uint8] {
-	return Number[uint8]{e.field("m_hAttackPosHigh", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hAttackPosHigh")}
 }
 
 func (e CCitadel_Ability_Tier2Boss_LaserBeam) HAttackPosLow() Number[uint8] {
-	return Number[uint8]{e.field("m_hAttackPosLow", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hAttackPosLow")}
 }
 
 func (e CCitadel_Ability_Tier2Boss_LaserBeam) HAttackPosLeft() Number[uint8] {
-	return Number[uint8]{e.field("m_hAttackPosLeft", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hAttackPosLeft")}
 }
 
 func (e CCitadel_Ability_Tier2Boss_LaserBeam) HAttackPosRight() Number[uint8] {
-	return Number[uint8]{e.field("m_hAttackPosRight", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hAttackPosRight")}
 }
 
 func (e CCitadel_Ability_Tier2Boss_LaserBeam) TCastCompleteTime() Number[float32] {
-	return Number[float32]{e.field("m_tCastCompleteTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tCastCompleteTime")}
 }
 
 type CCitadel_Ability_Tier2Boss_RocketBarrage CEntityInstance
 
-func (e CCitadel_Ability_Tier2Boss_RocketBarrage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tier2Boss_RocketBarrage", name, typ}
+func (e CCitadel_Ability_Tier2Boss_RocketBarrage) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tier2Boss_RocketBarrage", name}
 }
 
 func (e CCitadel_Ability_Tier2Boss_RocketBarrage) NGrenadeIndex() Number[int32] {
-	return Number[int32]{e.field("m_nGrenadeIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGrenadeIndex")}
 }
 
 func (e CCitadel_Ability_Tier2Boss_RocketBarrage) NTotalGrenades() Number[int32] {
-	return Number[int32]{e.field("m_nTotalGrenades", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTotalGrenades")}
 }
 
 type CCitadel_Ability_Tier2Boss_Stomp CEntityInstance
@@ -592,72 +590,72 @@ type CCitadel_Ability_Tier3Boss_AoEWave CEntityInstance
 
 type CCitadel_Ability_Tier3Boss_DropBombs CEntityInstance
 
-func (e CCitadel_Ability_Tier3Boss_DropBombs) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tier3Boss_DropBombs", name, typ}
+func (e CCitadel_Ability_Tier3Boss_DropBombs) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tier3Boss_DropBombs", name}
 }
 
 func (e CCitadel_Ability_Tier3Boss_DropBombs) TNextBombTime() Number[float32] {
-	return Number[float32]{e.field("m_tNextBombTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tNextBombTime")}
 }
 
 func (e CCitadel_Ability_Tier3Boss_DropBombs) HShootPos() Number[uint8] {
-	return Number[uint8]{e.field("m_hShootPos", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hShootPos")}
 }
 
 func (e CCitadel_Ability_Tier3Boss_DropBombs) FlDetonationTime() Number[float32] {
-	return Number[float32]{e.field("m_flDetonationTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDetonationTime")}
 }
 
 type CCitadel_Ability_Tier3Boss_LaserBeam CEntityInstance
 
 type CCitadel_Ability_Tier3Boss_RocketBarrage CEntityInstance
 
-func (e CCitadel_Ability_Tier3Boss_RocketBarrage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tier3Boss_RocketBarrage", name, typ}
+func (e CCitadel_Ability_Tier3Boss_RocketBarrage) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tier3Boss_RocketBarrage", name}
 }
 
 func (e CCitadel_Ability_Tier3Boss_RocketBarrage) NGrenadeIndex() Number[int32] {
-	return Number[int32]{e.field("m_nGrenadeIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGrenadeIndex")}
 }
 
 func (e CCitadel_Ability_Tier3Boss_RocketBarrage) NTotalGrenades() Number[int32] {
-	return Number[int32]{e.field("m_nTotalGrenades", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTotalGrenades")}
 }
 
 func (e CCitadel_Ability_Tier3Boss_RocketBarrage) HShootPos() Number[uint8] {
-	return Number[uint8]{e.field("m_hShootPos", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hShootPos")}
 }
 
 type CCitadel_Ability_Weapon_BossTier3 CEntityInstance
 
 type CCitadelBaseDashCastAbility CEntityInstance
 
-func (e CCitadelBaseDashCastAbility) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelBaseDashCastAbility", name, typ}
+func (e CCitadelBaseDashCastAbility) field(name string) Field {
+	return Field{e.Handle, "CCitadelBaseDashCastAbility", name}
 }
 
 func (e CCitadelBaseDashCastAbility) HAbilityToTrigger() Handle[CCitadelBaseAbility] {
-	return Handle[CCitadelBaseAbility]{e.field("m_hAbilityToTrigger", mod.FieldTypeHandle)}
+	return Handle[CCitadelBaseAbility]{e.field("m_hAbilityToTrigger")}
 }
 
 func (e CCitadelBaseDashCastAbility) FlDashCastStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flDashCastStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDashCastStartTime")}
 }
 
 func (e CCitadelBaseDashCastAbility) VDashCastDir() Vector {
-	return Vector{e.field("m_vDashCastDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashCastDir")}
 }
 
 type CCitadel_Ability_Cadence_SilenceContraptions CEntityInstance
 
 type CCitadelBaseLockonAbility CEntityInstance
 
-func (e CCitadelBaseLockonAbility) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelBaseLockonAbility", name, typ}
+func (e CCitadelBaseLockonAbility) field(name string) Field {
+	return Field{e.Handle, "CCitadelBaseLockonAbility", name}
 }
 
 func (e CCitadelBaseLockonAbility) LockOnStartTime() Number[float32] {
-	return Number[float32]{e.field("m_LockOnStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_LockOnStartTime")}
 }
 
 type CCitadelBaseTieredLockonAbility CEntityInstance
@@ -666,24 +664,24 @@ type CCitadel_Ability_Baba_Ultimate2 CEntityInstance
 
 type CCitadel_Ability_Lash_Ultimate CEntityInstance
 
-func (e CCitadel_Ability_Lash_Ultimate) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Lash_Ultimate", name, typ}
+func (e CCitadel_Ability_Lash_Ultimate) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Lash_Ultimate", name}
 }
 
 func (e CCitadel_Ability_Lash_Ultimate) EGrappleState() Number[uint8] {
-	return Number[uint8]{e.field("m_EGrappleState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_EGrappleState")}
 }
 
 func (e CCitadel_Ability_Lash_Ultimate) FlStateEnterTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateEnterTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateEnterTime")}
 }
 
 func (e CCitadel_Ability_Lash_Ultimate) FlNextStateTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextStateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextStateTime")}
 }
 
 func (e CCitadel_Ability_Lash_Ultimate) FlBoostEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flBoostEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBoostEndTime")}
 }
 
 type CCitadelBaseShivAbility CEntityInstance
@@ -692,122 +690,122 @@ type CCitadel_Ability_ShivDagger CEntityInstance
 
 type CCitadel_Ability_ShivDash CEntityInstance
 
-func (e CCitadel_Ability_ShivDash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ShivDash", name, typ}
+func (e CCitadel_Ability_ShivDash) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ShivDash", name}
 }
 
 func (e CCitadel_Ability_ShivDash) VStartPosition() Vector {
-	return Vector{e.field("m_vStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPosition")}
 }
 
 func (e CCitadel_Ability_ShivDash) VDashDirection() Vector {
-	return Vector{e.field("m_vDashDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashDirection")}
 }
 
 func (e CCitadel_Ability_ShivDash) BIsDashing() Bool {
-	return Bool{e.field("m_bIsDashing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsDashing")}
 }
 
 func (e CCitadel_Ability_ShivDash) VecLastPosition() Vector {
-	return Vector{e.field("m_vecLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastPosition")}
 }
 
 func (e CCitadel_Ability_ShivDash) NReductionsLeft() Number[int32] {
-	return Number[int32]{e.field("m_nReductionsLeft", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nReductionsLeft")}
 }
 
 func (e CCitadel_Ability_ShivDash) FlStuckTime() Number[float32] {
-	return Number[float32]{e.field("m_flStuckTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStuckTime")}
 }
 
 func (e CCitadel_Ability_ShivDash) HEchoThinker() Handle[CPointModifierThinker] {
-	return Handle[CPointModifierThinker]{e.field("m_hEchoThinker", mod.FieldTypeHandle)}
+	return Handle[CPointModifierThinker]{e.field("m_hEchoThinker")}
 }
 
 func (e CCitadel_Ability_ShivDash) EchoStartTime() Number[float32] {
-	return Number[float32]{e.field("m_EchoStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_EchoStartTime")}
 }
 
 func (e CCitadel_Ability_ShivDash) BLetEchoPlay() Bool {
-	return Bool{e.field("m_bLetEchoPlay", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLetEchoPlay")}
 }
 
 func (e CCitadel_Ability_ShivDash) BDiscontinuityInEcho() Bool {
-	return Bool{e.field("m_bDiscontinuityInEcho", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDiscontinuityInEcho")}
 }
 
 type CCitadel_Ability_Shiv_Defer_Damage CEntityInstance
 
-func (e CCitadel_Ability_Shiv_Defer_Damage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Shiv_Defer_Damage", name, typ}
+func (e CCitadel_Ability_Shiv_Defer_Damage) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Shiv_Defer_Damage", name}
 }
 
 func (e CCitadel_Ability_Shiv_Defer_Damage) FlTotalPendingDamage() Number[float32] {
-	return Number[float32]{e.field("m_flTotalPendingDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTotalPendingDamage")}
 }
 
 func (e CCitadel_Ability_Shiv_Defer_Damage) FlLastDeferredDamageApplicationTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastDeferredDamageApplicationTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastDeferredDamageApplicationTime")}
 }
 
 type CCitadel_Ability_Shiv_KillingBlow CEntityInstance
 
-func (e CCitadel_Ability_Shiv_KillingBlow) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Shiv_KillingBlow", name, typ}
+func (e CCitadel_Ability_Shiv_KillingBlow) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Shiv_KillingBlow", name}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) BDamagedAnyHero() Bool {
-	return Bool{e.field("m_bDamagedAnyHero", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDamagedAnyHero")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) BStartedOnGround() Bool {
-	return Bool{e.field("m_bStartedOnGround", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedOnGround")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) BIsBonusCast() Bool {
-	return Bool{e.field("m_bIsBonusCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsBonusCast")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) VStartPosition() Vector {
-	return Vector{e.field("m_vStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPosition")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) QCurrentAngles() Angles {
-	return Angles{e.field("m_qCurrentAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_qCurrentAngles")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) VLastKnownSafePos() Vector {
-	return Vector{e.field("m_vLastKnownSafePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastKnownSafePos")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) BMadeSlashParticle() Bool {
-	return Bool{e.field("m_bMadeSlashParticle", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMadeSlashParticle")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) ChannelParticle() Number[int32] {
-	return Number[int32]{e.field("m_ChannelParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ChannelParticle")}
 }
 
 func (e CCitadel_Ability_Shiv_KillingBlow) FlRecastWindowEnd() Number[float32] {
-	return Number[float32]{e.field("m_flRecastWindowEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRecastWindowEnd")}
 }
 
 type CCitadelBaseTriggerAbility CEntityInstance
 
-func (e CCitadelBaseTriggerAbility) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelBaseTriggerAbility", name, typ}
+func (e CCitadelBaseTriggerAbility) field(name string) Field {
+	return Field{e.Handle, "CCitadelBaseTriggerAbility", name}
 }
 
 func (e CCitadelBaseTriggerAbility) HAbilityToTrigger() Handle[CCitadelBaseAbility] {
-	return Handle[CCitadelBaseAbility]{e.field("m_hAbilityToTrigger", mod.FieldTypeHandle)}
+	return Handle[CCitadelBaseAbility]{e.field("m_hAbilityToTrigger")}
 }
 
 func (e CCitadelBaseTriggerAbility) SwappedToTime() Number[float32] {
-	return Number[float32]{e.field("m_SwappedToTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_SwappedToTime")}
 }
 
 type CAbility_Drifter_StalkersMark_Teleport CEntityInstance
@@ -820,398 +818,398 @@ type CCitadel_Ability_Baba_HexingBrew_Throw CEntityInstance
 
 type CCitadel_Ability_Necro_KillSummonTrigger CEntityInstance
 
-func (e CCitadel_Ability_Necro_KillSummonTrigger) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_KillSummonTrigger", name, typ}
+func (e CCitadel_Ability_Necro_KillSummonTrigger) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_KillSummonTrigger", name}
 }
 
 func (e CCitadel_Ability_Necro_KillSummonTrigger) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Necro_KillSummonTrigger) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_RiposteTargetSelect CEntityInstance
 
 type CCitadel_Ability_TangoTether_Trigger CEntityInstance
 
-func (e CCitadel_Ability_TangoTether_Trigger) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_TangoTether_Trigger", name, typ}
+func (e CCitadel_Ability_TangoTether_Trigger) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_TangoTether_Trigger", name}
 }
 
 func (e CCitadel_Ability_TangoTether_Trigger) HBaseAbility() Handle[CCitadelBaseAbility] {
-	return Handle[CCitadelBaseAbility]{e.field("m_hBaseAbility", mod.FieldTypeHandle)}
+	return Handle[CCitadelBaseAbility]{e.field("m_hBaseAbility")}
 }
 
 type CCitadel_Ability_TurretClone_Trigger CEntityInstance
 
 type CCitadel_Ability_WreckingBallThrow CEntityInstance
 
-func (e CCitadel_Ability_WreckingBallThrow) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_WreckingBallThrow", name, typ}
+func (e CCitadel_Ability_WreckingBallThrow) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_WreckingBallThrow", name}
 }
 
 func (e CCitadel_Ability_WreckingBallThrow) HWreckingBallAbility() Handle[CCitadel_Ability_WreckingBall] {
-	return Handle[CCitadel_Ability_WreckingBall]{e.field("m_hWreckingBallAbility", mod.FieldTypeHandle)}
+	return Handle[CCitadel_Ability_WreckingBall]{e.field("m_hWreckingBallAbility")}
 }
 
 type CCitadelBaseYamatoAbility CEntityInstance
 
-func (e CCitadelBaseYamatoAbility) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelBaseYamatoAbility", name, typ}
+func (e CCitadelBaseYamatoAbility) field(name string) Field {
+	return Field{e.Handle, "CCitadelBaseYamatoAbility", name}
 }
 
 func (e CCitadelBaseYamatoAbility) FlCachedCastTime() Number[float32] {
-	return Number[float32]{e.field("m_flCachedCastTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCachedCastTime")}
 }
 
 func (e CCitadelBaseYamatoAbility) BIsShadowFormCast() Bool {
-	return Bool{e.field("m_bIsShadowFormCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsShadowFormCast")}
 }
 
 type CCitadel_Ability_FlyingStrike CEntityInstance
 
-func (e CCitadel_Ability_FlyingStrike) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_FlyingStrike", name, typ}
+func (e CCitadel_Ability_FlyingStrike) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_FlyingStrike", name}
 }
 
 func (e CCitadel_Ability_FlyingStrike) ITargetPosIndex() Number[int32] {
-	return Number[int32]{e.field("m_iTargetPosIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTargetPosIndex")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) BShadowFormCast() Bool {
-	return Bool{e.field("m_bShadowFormCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bShadowFormCast")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) VYamatoCastPos() Vector {
-	return Vector{e.field("m_vYamatoCastPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vYamatoCastPos")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) VTargetCastPos() Vector {
-	return Vector{e.field("m_vTargetCastPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vTargetCastPos")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlFlyingToTargetStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flFlyingToTargetStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFlyingToTargetStartTime")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlEndAttackTime() Number[float32] {
-	return Number[float32]{e.field("m_flEndAttackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flEndAttackTime")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlGrappleStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flGrappleStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGrappleStartTime")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlGrappleArriveTime() Number[float32] {
-	return Number[float32]{e.field("m_flGrappleArriveTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGrappleArriveTime")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlAttackLatchTime() Number[float32] {
-	return Number[float32]{e.field("m_flAttackLatchTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttackLatchTime")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) VAttackLatchPos() Vector {
-	return Vector{e.field("m_vAttackLatchPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vAttackLatchPos")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) BIsTargetAlly() Bool {
-	return Bool{e.field("m_bIsTargetAlly", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsTargetAlly")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlGrappleShotAttackTime() Number[float32] {
-	return Number[float32]{e.field("m_flGrappleShotAttackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGrappleShotAttackTime")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) HAttackTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAttackTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAttackTarget")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) NPathIdx() Number[int32] {
-	return Number[int32]{e.field("m_nPathIdx", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPathIdx")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) NPathSize() Number[int32] {
-	return Number[int32]{e.field("m_nPathSize", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPathSize")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlPathLength() Number[float32] {
-	return Number[float32]{e.field("m_flPathLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPathLength")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) VFlyingInitialOffsetToPath() Vector {
-	return Vector{e.field("m_vFlyingInitialOffsetToPath", mod.FieldTypeVector)}
+	return Vector{e.field("m_vFlyingInitialOffsetToPath")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) FlDistFlown() Number[float32] {
-	return Number[float32]{e.field("flDistFlown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("flDistFlown")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) VLastSafePos() Vector {
-	return Vector{e.field("m_vLastSafePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastSafePos")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) NGrappleTravelEffect() Number[int32] {
-	return Number[int32]{e.field("m_nGrappleTravelEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGrappleTravelEffect")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) BPathDirty() Bool {
-	return Bool{e.field("m_bPathDirty", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPathDirty")}
 }
 
 func (e CCitadel_Ability_FlyingStrike) BJumpSoundPlayed() Bool {
-	return Bool{e.field("m_bJumpSoundPlayed", mod.FieldTypeBool)}
+	return Bool{e.field("m_bJumpSoundPlayed")}
 }
 
 type CCitadel_Ability_HealingSlash CEntityInstance
 
 type CCitadel_Ability_InfinitySlash CEntityInstance
 
-func (e CCitadel_Ability_InfinitySlash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_InfinitySlash", name, typ}
+func (e CCitadel_Ability_InfinitySlash) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_InfinitySlash", name}
 }
 
 func (e CCitadel_Ability_InfinitySlash) FlExplodeEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flExplodeEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flExplodeEndTime")}
 }
 
 func (e CCitadel_Ability_InfinitySlash) FlBuffEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flBuffEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBuffEndTime")}
 }
 
 func (e CCitadel_Ability_InfinitySlash) NCastEffect() Number[int32] {
-	return Number[int32]{e.field("m_nCastEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastEffect")}
 }
 
 type CCitadel_Ability_PowerSlash CEntityInstance
 
-func (e CCitadel_Ability_PowerSlash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PowerSlash", name, typ}
+func (e CCitadel_Ability_PowerSlash) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PowerSlash", name}
 }
 
 func (e CCitadel_Ability_PowerSlash) NPowerLevel() Number[int32] {
-	return Number[int32]{e.field("m_nPowerLevel", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPowerLevel")}
 }
 
 func (e CCitadel_Ability_PowerSlash) NCastParticle() Number[int32] {
-	return Number[int32]{e.field("m_nCastParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastParticle")}
 }
 
 type CCitadel_Ability_Afterburn CEntityInstance
 
 type CCitadel_Ability_Baba_BenchMelee CEntityInstance
 
-func (e CCitadel_Ability_Baba_BenchMelee) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", name, typ}
+func (e CCitadel_Ability_Baba_BenchMelee) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Baba_BenchMelee", name}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) EState() Number[uint8] {
-	return Number[uint8]{e.field("m_eState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eState")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) EAttackType() Number[uint8] {
-	return Number[uint8]{e.field("m_eAttackType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eAttackType")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) FlStateStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateStartTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) FlCommitTime() Number[float32] {
-	return Number[float32]{e.field("m_flCommitTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCommitTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) FlAttackTriggeredTime() Number[float32] {
-	return Number[float32]{e.field("m_flAttackTriggeredTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttackTriggeredTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) FlNextLightAttackAllowedTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextLightAttackAllowedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextLightAttackAllowedTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) FlNextHeavyAttackAllowedTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextHeavyAttackAllowedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextHeavyAttackAllowedTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) VDashDir() Vector {
-	return Vector{e.field("m_vDashDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashDir")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) BDiveApplied() Bool {
-	return Bool{e.field("m_bDiveApplied", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDiveApplied")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) VDashStartVelocity() Vector {
-	return Vector{e.field("m_vDashStartVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashStartVelocity")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) BAttackImpulseApplied() Bool {
-	return Bool{e.field("m_bAttackImpulseApplied", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAttackImpulseApplied")}
 }
 
 func (e CCitadel_Ability_Baba_BenchMelee) AngForced() Angles {
-	return Angles{e.field("m_angForced", mod.FieldTypeVector)}
+	return Angles{e.field("m_angForced")}
 }
 
 type CCitadel_Ability_Baba_BenchRun CEntityInstance
 
-func (e CCitadel_Ability_Baba_BenchRun) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", name, typ}
+func (e CCitadel_Ability_Baba_BenchRun) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Baba_BenchRun", name}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) BHoldingJump() Bool {
-	return Bool{e.field("m_bHoldingJump", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHoldingJump")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) BHeldJumpAborted() Bool {
-	return Bool{e.field("m_bHeldJumpAborted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHeldJumpAborted")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) FlHoldJumpStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flHoldJumpStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHoldJumpStartTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) FlRideStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flRideStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRideStartTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) FlRideEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flRideEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRideEndTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) FlEndLaunchTime() Number[float32] {
-	return Number[float32]{e.field("m_flEndLaunchTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flEndLaunchTime")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) FlLastChargeJumpFraction() Number[float32] {
-	return Number[float32]{e.field("m_flLastChargeJumpFraction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastChargeJumpFraction")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) BInMelee() Bool {
-	return Bool{e.field("m_bInMelee", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInMelee")}
 }
 
 func (e CCitadel_Ability_Baba_BenchRun) BRideCut() Bool {
-	return Bool{e.field("m_bRideCut", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRideCut")}
 }
 
 type CCitadel_Ability_Baba_BubblingBrew CEntityInstance
 
-func (e CCitadel_Ability_Baba_BubblingBrew) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Baba_BubblingBrew", name, typ}
+func (e CCitadel_Ability_Baba_BubblingBrew) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Baba_BubblingBrew", name}
 }
 
 func (e CCitadel_Ability_Baba_BubblingBrew) EState() Number[uint32] {
-	return Number[uint32]{e.field("m_eState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eState")}
 }
 
 func (e CCitadel_Ability_Baba_BubblingBrew) CurrentStacks() Number[int32] {
-	return Number[int32]{e.field("m_CurrentStacks", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_CurrentStacks")}
 }
 
 func (e CCitadel_Ability_Baba_BubblingBrew) TStackExpiryTime() Number[float32] {
-	return Number[float32]{e.field("m_tStackExpiryTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tStackExpiryTime")}
 }
 
 type CCitadel_Ability_Baba_HexingBrew CEntityInstance
 
-func (e CCitadel_Ability_Baba_HexingBrew) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Baba_HexingBrew", name, typ}
+func (e CCitadel_Ability_Baba_HexingBrew) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Baba_HexingBrew", name}
 }
 
 func (e CCitadel_Ability_Baba_HexingBrew) EBrewEffect() Number[uint32] {
-	return Number[uint32]{e.field("m_eBrewEffect", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eBrewEffect")}
 }
 
 func (e CCitadel_Ability_Baba_HexingBrew) BBrewLocked() Bool {
-	return Bool{e.field("m_bBrewLocked", mod.FieldTypeBool)}
+	return Bool{e.field("m_bBrewLocked")}
 }
 
 func (e CCitadel_Ability_Baba_HexingBrew) FlBrewLockTime() Number[float32] {
-	return Number[float32]{e.field("m_flBrewLockTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBrewLockTime")}
 }
 
 func (e CCitadel_Ability_Baba_HexingBrew) FlBrewPausedTime() Number[float32] {
-	return Number[float32]{e.field("m_flBrewPausedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBrewPausedTime")}
 }
 
 type CCitadel_Ability_BaseHeldItem CEntityInstance
 
-func (e CCitadel_Ability_BaseHeldItem) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_BaseHeldItem", name, typ}
+func (e CCitadel_Ability_BaseHeldItem) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_BaseHeldItem", name}
 }
 
 func (e CCitadel_Ability_BaseHeldItem) HProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hProjectile")}
 }
 
 func (e CCitadel_Ability_BaseHeldItem) TFirstPickupTime() Number[float32] {
-	return Number[float32]{e.field("m_tFirstPickupTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tFirstPickupTime")}
 }
 
 func (e CCitadel_Ability_BaseHeldItem) TLastPickupTime() Number[float32] {
-	return Number[float32]{e.field("m_tLastPickupTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLastPickupTime")}
 }
 
 type CCitadel_Ability_GoldenIdol CEntityInstance
 
-func (e CCitadel_Ability_GoldenIdol) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_GoldenIdol", name, typ}
+func (e CCitadel_Ability_GoldenIdol) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_GoldenIdol", name}
 }
 
 func (e CCitadel_Ability_GoldenIdol) NGold() Number[int32] {
-	return Number[int32]{e.field("m_nGold", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGold")}
 }
 
 func (e CCitadel_Ability_GoldenIdol) NTeamBias() Number[int32] {
-	return Number[int32]{e.field("m_nTeamBias", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTeamBias")}
 }
 
 func (e CCitadel_Ability_GoldenIdol) TAbilityCreateTime() Number[float32] {
-	return Number[float32]{e.field("m_tAbilityCreateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tAbilityCreateTime")}
 }
 
 func (e CCitadel_Ability_GoldenIdol) TLastDamageTime() Number[float32] {
-	return Number[float32]{e.field("m_tLastDamageTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLastDamageTime")}
 }
 
 func (e CCitadel_Ability_GoldenIdol) VHomePosition() Vector {
-	return Vector{e.field("m_vHomePosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vHomePosition")}
 }
 
 func (e CCitadel_Ability_GoldenIdol) FlHeldTime() Number[float32] {
-	return Number[float32]{e.field("m_flHeldTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHeldTime")}
 }
 
 type CCitadel_Ability_Bebop_LaserBeam CEntityInstance
 
-func (e CCitadel_Ability_Bebop_LaserBeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bebop_LaserBeam", name, typ}
+func (e CCitadel_Ability_Bebop_LaserBeam) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bebop_LaserBeam", name}
 }
 
 func (e CCitadel_Ability_Bebop_LaserBeam) BZoomed() Bool {
-	return Bool{e.field("m_bZoomed", mod.FieldTypeBool)}
+	return Bool{e.field("m_bZoomed")}
 }
 
 func (e CCitadel_Ability_Bebop_LaserBeam) BAirCast() Bool {
-	return Bool{e.field("m_bAirCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAirCast")}
 }
 
 func (e CCitadel_Ability_Bebop_LaserBeam) FlAngleBetweenTrace() Number[float32] {
-	return Number[float32]{e.field("m_flAngleBetweenTrace", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngleBetweenTrace")}
 }
 
 func (e CCitadel_Ability_Bebop_LaserBeam) NTotalDamage() Number[int32] {
-	return Number[int32]{e.field("m_nTotalDamage", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTotalDamage")}
 }
 
 func (e CCitadel_Ability_Bebop_LaserBeam) FlNextDamageTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextDamageTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextDamageTime")}
 }
 
 type CCitadel_Ability_Bebop_StickyBomb2 CEntityInstance
@@ -1232,42 +1230,42 @@ type CCitadel_Ability_Boho_DoubleHit CEntityInstance
 
 type CCitadel_Ability_Boho_RideBroom CEntityInstance
 
-func (e CCitadel_Ability_Boho_RideBroom) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Boho_RideBroom", name, typ}
+func (e CCitadel_Ability_Boho_RideBroom) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Boho_RideBroom", name}
 }
 
 func (e CCitadel_Ability_Boho_RideBroom) BLeaping() Bool {
-	return Bool{e.field("m_bLeaping", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLeaping")}
 }
 
 func (e CCitadel_Ability_Boho_RideBroom) FlLeapStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flLeapStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLeapStartTime")}
 }
 
 func (e CCitadel_Ability_Boho_RideBroom) NFXIndex() Number[int32] {
-	return Number[int32]{e.field("m_nFXIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFXIndex")}
 }
 
 func (e CCitadel_Ability_Boho_RideBroom) TrailFX() Number[int32] {
-	return Number[int32]{e.field("m_TrailFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_TrailFX")}
 }
 
 type CCitadel_Ability_Boho_SkipGrenade CEntityInstance
 
-func (e CCitadel_Ability_Boho_SkipGrenade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Boho_SkipGrenade", name, typ}
+func (e CCitadel_Ability_Boho_SkipGrenade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Boho_SkipGrenade", name}
 }
 
 func (e CCitadel_Ability_Boho_SkipGrenade) TInitialShotID() Number[uint32] {
-	return Number[uint32]{e.field("m_tInitialShotID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_tInitialShotID")}
 }
 
 func (e CCitadel_Ability_Boho_SkipGrenade) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Boho_SkipGrenade) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Bomber_Ability02 CEntityInstance
@@ -1280,208 +1278,208 @@ type CCitadel_Ability_Bookworm_AOEMagic CEntityInstance
 
 type CCitadel_Ability_Bookworm_DragonFire CEntityInstance
 
-func (e CCitadel_Ability_Bookworm_DragonFire) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bookworm_DragonFire", name, typ}
+func (e CCitadel_Ability_Bookworm_DragonFire) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bookworm_DragonFire", name}
 }
 
 func (e CCitadel_Ability_Bookworm_DragonFire) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Bookworm_DragonFire) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 func (e CCitadel_Ability_Bookworm_DragonFire) NCastParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCastParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastParticleIndex")}
 }
 
 type CCitadel_Ability_Bookworm_KnightBarrier CEntityInstance
 
-func (e CCitadel_Ability_Bookworm_KnightBarrier) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bookworm_KnightBarrier", name, typ}
+func (e CCitadel_Ability_Bookworm_KnightBarrier) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bookworm_KnightBarrier", name}
 }
 
 func (e CCitadel_Ability_Bookworm_KnightBarrier) NCastParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCastParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastParticleIndex")}
 }
 
 func (e CCitadel_Ability_Bookworm_KnightBarrier) IPendingBonusTargets() Number[int32] {
-	return Number[int32]{e.field("m_iPendingBonusTargets", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPendingBonusTargets")}
 }
 
 type CCitadel_Ability_Bookworm_KnightCharge CEntityInstance
 
-func (e CCitadel_Ability_Bookworm_KnightCharge) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bookworm_KnightCharge", name, typ}
+func (e CCitadel_Ability_Bookworm_KnightCharge) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bookworm_KnightCharge", name}
 }
 
 func (e CCitadel_Ability_Bookworm_KnightCharge) BAffectedAnyTargets() Bool {
-	return Bool{e.field("m_bAffectedAnyTargets", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAffectedAnyTargets")}
 }
 
 type CCitadel_Ability_Bounce_Pad CEntityInstance
 
-func (e CCitadel_Ability_Bounce_Pad) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bounce_Pad", name, typ}
+func (e CCitadel_Ability_Bounce_Pad) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bounce_Pad", name}
 }
 
 func (e CCitadel_Ability_Bounce_Pad) VForward() Vector {
-	return Vector{e.field("m_vForward", mod.FieldTypeVector)}
+	return Vector{e.field("m_vForward")}
 }
 
 func (e CCitadel_Ability_Bounce_Pad) BShouldDeploy() Bool {
-	return Bool{e.field("m_bShouldDeploy", mod.FieldTypeBool)}
+	return Bool{e.field("m_bShouldDeploy")}
 }
 
 func (e CCitadel_Ability_Bounce_Pad) BAnglesSet() Bool {
-	return Bool{e.field("m_bAnglesSet", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAnglesSet")}
 }
 
 func (e CCitadel_Ability_Bounce_Pad) BCanCancel() Bool {
-	return Bool{e.field("m_bCanCancel", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanCancel")}
 }
 
 func (e CCitadel_Ability_Bounce_Pad) AngFacing() Angles {
-	return Angles{e.field("m_angFacing", mod.FieldTypeVector)}
+	return Angles{e.field("m_angFacing")}
 }
 
 type CCitadel_Ability_Bull_Charge CEntityInstance
 
-func (e CCitadel_Ability_Bull_Charge) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bull_Charge", name, typ}
+func (e CCitadel_Ability_Bull_Charge) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bull_Charge", name}
 }
 
 func (e CCitadel_Ability_Bull_Charge) BGainedWeaponPowerBuff() Bool {
-	return Bool{e.field("m_bGainedWeaponPowerBuff", mod.FieldTypeBool)}
+	return Bool{e.field("m_bGainedWeaponPowerBuff")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) AnglesCharging() Angles {
-	return Angles{e.field("m_anglesCharging", mod.FieldTypeVector)}
+	return Angles{e.field("m_anglesCharging")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) FlChargeStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flChargeStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeStartTime")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) FlFastChargeStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flFastChargeStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFastChargeStartTime")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) FlFastChargeEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flFastChargeEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFastChargeEndTime")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) BHitSomethingStunnable() Bool {
-	return Bool{e.field("m_bHitSomethingStunnable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitSomethingStunnable")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) BFirstTick() Bool {
-	return Bool{e.field("m_bFirstTick", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstTick")}
 }
 
 func (e CCitadel_Ability_Bull_Charge) VGoalDir() Vector {
-	return Vector{e.field("m_vGoalDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vGoalDir")}
 }
 
 type CCitadel_Ability_Bull_Heal CEntityInstance
 
 type CCitadel_Ability_Bull_Leap CEntityInstance
 
-func (e CCitadel_Ability_Bull_Leap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Bull_Leap", name, typ}
+func (e CCitadel_Ability_Bull_Leap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Bull_Leap", name}
 }
 
 func (e CCitadel_Ability_Bull_Leap) BBraceParamTriggered() Bool {
-	return Bool{e.field("m_bBraceParamTriggered", mod.FieldTypeBool)}
+	return Bool{e.field("m_bBraceParamTriggered")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) FlBoostYaw() Number[float32] {
-	return Number[float32]{e.field("m_flBoostYaw", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBoostYaw")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) VecCrashPosition() Vector {
-	return Vector{e.field("m_vecCrashPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCrashPosition")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) VecCrashDirection() Vector {
-	return Vector{e.field("m_vecCrashDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCrashDirection")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) ELeapState() Number[uint8] {
-	return Number[uint8]{e.field("m_eLeapState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eLeapState")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) FlStateEnterTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateEnterTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateEnterTime")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) VPrevPos() Vector {
-	return Vector{e.field("m_vPrevPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPrevPos")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) VecLastVel() Vector {
-	return Vector{e.field("m_vecLastVel", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastVel")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) VecCrashDownLastPos() Vector {
-	return Vector{e.field("m_vecCrashDownLastPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCrashDownLastPos")}
 }
 
 func (e CCitadel_Ability_Bull_Leap) BInputBufferCrash() Bool {
-	return Bool{e.field("m_bInputBufferCrash", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInputBufferCrash")}
 }
 
 type CCitadel_Ability_BulletFlurry CEntityInstance
 
-func (e CCitadel_Ability_BulletFlurry) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_BulletFlurry", name, typ}
+func (e CCitadel_Ability_BulletFlurry) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_BulletFlurry", name}
 }
 
 func (e CCitadel_Ability_BulletFlurry) FlNextAttackTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextAttackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextAttackTime")}
 }
 
 func (e CCitadel_Ability_BulletFlurry) NNumPlayersKilled() Number[int32] {
-	return Number[int32]{e.field("m_nNumPlayersKilled", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNumPlayersKilled")}
 }
 
 func (e CCitadel_Ability_BulletFlurry) NShootIndex() Number[int32] {
-	return Number[int32]{e.field("m_nShootIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nShootIndex")}
 }
 
 func (e CCitadel_Ability_BulletFlurry) NShootIndexNPC() Number[int32] {
-	return Number[int32]{e.field("m_nShootIndexNPC", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nShootIndexNPC")}
 }
 
 func (e CCitadel_Ability_BulletFlurry) NBurstShots() Number[int32] {
-	return Number[int32]{e.field("m_nBurstShots", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBurstShots")}
 }
 
 func (e CCitadel_Ability_BulletFlurry) BHasCameraOverride() Bool {
-	return Bool{e.field("m_bHasCameraOverride", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasCameraOverride")}
 }
 
 func (e CCitadel_Ability_BulletFlurry) NConeVFX() Number[int32] {
-	return Number[int32]{e.field("m_nConeVFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nConeVFX")}
 }
 
 type CCitadel_Ability_Burrow CEntityInstance
 
-func (e CCitadel_Ability_Burrow) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Burrow", name, typ}
+func (e CCitadel_Ability_Burrow) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Burrow", name}
 }
 
 func (e CCitadel_Ability_Burrow) BInGround() Bool {
-	return Bool{e.field("m_bInGround", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInGround")}
 }
 
 func (e CCitadel_Ability_Burrow) FlLastDamageTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastDamageTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastDamageTime")}
 }
 
 func (e CCitadel_Ability_Burrow) SpinEndTime() Number[float32] {
-	return Number[float32]{e.field("m_SpinEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_SpinEndTime")}
 }
 
 type CCitadel_Ability_Cadence_Anthem CEntityInstance
@@ -1494,290 +1492,290 @@ type CCitadel_Ability_Cadence_Lullaby CEntityInstance
 
 type CCitadel_Ability_CardToss CEntityInstance
 
-func (e CCitadel_Ability_CardToss) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_CardToss", name, typ}
+func (e CCitadel_Ability_CardToss) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_CardToss", name}
 }
 
 func (e CCitadel_Ability_CardToss) NPreviousMaxCharges() Number[int32] {
-	return Number[int32]{e.field("m_nPreviousMaxCharges", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPreviousMaxCharges")}
 }
 
 func (e CCitadel_Ability_CardToss) BCardIsFlying() Bool {
-	return Bool{e.field("m_bCardIsFlying", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCardIsFlying")}
 }
 
 type CCitadel_Ability_ChargedShot CEntityInstance
 
-func (e CCitadel_Ability_ChargedShot) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ChargedShot", name, typ}
+func (e CCitadel_Ability_ChargedShot) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ChargedShot", name}
 }
 
 func (e CCitadel_Ability_ChargedShot) ChannelParticle() Number[int32] {
-	return Number[int32]{e.field("m_ChannelParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ChannelParticle")}
 }
 
 type CCitadel_Ability_ChargedTackle CEntityInstance
 
-func (e CCitadel_Ability_ChargedTackle) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ChargedTackle", name, typ}
+func (e CCitadel_Ability_ChargedTackle) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ChargedTackle", name}
 }
 
 func (e CCitadel_Ability_ChargedTackle) BPreparing() Bool {
-	return Bool{e.field("m_bPreparing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPreparing")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) BTackling() Bool {
-	return Bool{e.field("m_bTackling", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTackling")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) FlTackleStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flTackleStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTackleStartTime")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) FlPrepareStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flPrepareStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPrepareStartTime")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) VecTackleDir() Vector {
-	return Vector{e.field("m_vecTackleDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecTackleDir")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) VecLastPosition() Vector {
-	return Vector{e.field("m_vecLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastPosition")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) NStuckFramesCount() Number[int32] {
-	return Number[int32]{e.field("m_nStuckFramesCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStuckFramesCount")}
 }
 
 func (e CCitadel_Ability_ChargedTackle) NDistancePreview() Number[int32] {
-	return Number[int32]{e.field("m_nDistancePreview", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDistancePreview")}
 }
 
 type CCitadel_Ability_Charged_Bomb CEntityInstance
 
 type CCitadel_Ability_ChronoSwap CEntityInstance
 
-func (e CCitadel_Ability_ChronoSwap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ChronoSwap", name, typ}
+func (e CCitadel_Ability_ChronoSwap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ChronoSwap", name}
 }
 
 func (e CCitadel_Ability_ChronoSwap) BHitTarget() Bool {
-	return Bool{e.field("m_bHitTarget", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitTarget")}
 }
 
 func (e CCitadel_Ability_ChronoSwap) BAltCast() Bool {
-	return Bool{e.field("m_bAltCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAltCast")}
 }
 
 type CCitadel_Ability_Chrono_KineticCarbine CEntityInstance
 
-func (e CCitadel_Ability_Chrono_KineticCarbine) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Chrono_KineticCarbine", name, typ}
+func (e CCitadel_Ability_Chrono_KineticCarbine) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Chrono_KineticCarbine", name}
 }
 
 func (e CCitadel_Ability_Chrono_KineticCarbine) BWantsSlow() Bool {
-	return Bool{e.field("m_bWantsSlow", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWantsSlow")}
 }
 
 func (e CCitadel_Ability_Chrono_KineticCarbine) FlLatchedTimeScaleFracChangeTime() Number[float32] {
-	return Number[float32]{e.field("m_flLatchedTimeScaleFracChangeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLatchedTimeScaleFracChangeTime")}
 }
 
 func (e CCitadel_Ability_Chrono_KineticCarbine) FlLatchedTimeScaleFrac() Number[float32] {
-	return Number[float32]{e.field("m_flLatchedTimeScaleFrac", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLatchedTimeScaleFrac")}
 }
 
 func (e CCitadel_Ability_Chrono_KineticCarbine) FlSpeedBoostEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flSpeedBoostEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeedBoostEndTime")}
 }
 
 func (e CCitadel_Ability_Chrono_KineticCarbine) FlShotTimeScaleEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flShotTimeScaleEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flShotTimeScaleEndTime")}
 }
 
 func (e CCitadel_Ability_Chrono_KineticCarbine) FlStoredPowerPct() Number[float32] {
-	return Number[float32]{e.field("m_flStoredPowerPct", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStoredPowerPct")}
 }
 
 type CCitadel_Ability_Chrono_PulseGrenade CEntityInstance
 
-func (e CCitadel_Ability_Chrono_PulseGrenade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Chrono_PulseGrenade", name, typ}
+func (e CCitadel_Ability_Chrono_PulseGrenade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Chrono_PulseGrenade", name}
 }
 
 func (e CCitadel_Ability_Chrono_PulseGrenade) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Chrono_PulseGrenade) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Chrono_TimeWall CEntityInstance
 
-func (e CCitadel_Ability_Chrono_TimeWall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Chrono_TimeWall", name, typ}
+func (e CCitadel_Ability_Chrono_TimeWall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Chrono_TimeWall", name}
 }
 
 func (e CCitadel_Ability_Chrono_TimeWall) HWall() Handle[CCitadelBulletTimeWarp] {
-	return Handle[CCitadelBulletTimeWarp]{e.field("m_hWall", mod.FieldTypeHandle)}
+	return Handle[CCitadelBulletTimeWarp]{e.field("m_hWall")}
 }
 
 func (e CCitadel_Ability_Chrono_TimeWall) VecDir() Vector {
-	return Vector{e.field("vecDir", mod.FieldTypeVector)}
+	return Vector{e.field("vecDir")}
 }
 
 func (e CCitadel_Ability_Chrono_TimeWall) HChargingParticle() Number[int32] {
-	return Number[int32]{e.field("m_hChargingParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_hChargingParticle")}
 }
 
 func (e CCitadel_Ability_Chrono_TimeWall) VSpawnPos() Vector {
-	return Vector{e.field("m_vSpawnPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vSpawnPos")}
 }
 
 func (e CCitadel_Ability_Chrono_TimeWall) QAngles() Angles {
-	return Angles{e.field("m_qAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_qAngles")}
 }
 
 func (e CCitadel_Ability_Chrono_TimeWall) BAirCast() Bool {
-	return Bool{e.field("m_bAirCast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAirCast")}
 }
 
 type CCitadel_Ability_Climb_Rope CEntityInstance
 
-func (e CCitadel_Ability_Climb_Rope) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Climb_Rope", name, typ}
+func (e CCitadel_Ability_Climb_Rope) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Climb_Rope", name}
 }
 
 func (e CCitadel_Ability_Climb_Rope) FlActivatePressTime() Number[float32] {
-	return Number[float32]{e.field("m_flActivatePressTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flActivatePressTime")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) FlDisconnectTime() Number[float32] {
-	return Number[float32]{e.field("m_flDisconnectTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDisconnectTime")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) FlClimbStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flClimbStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flClimbStartTime")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) BNoDelayNeeded() Bool {
-	return Bool{e.field("m_bNoDelayNeeded", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNoDelayNeeded")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) BMouseWheelBind() Bool {
-	return Bool{e.field("m_bMouseWheelBind", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMouseWheelBind")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) VLastPos() Vector {
-	return Vector{e.field("m_vLastPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastPos")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) BRequestStopClimbing() Bool {
-	return Bool{e.field("m_bRequestStopClimbing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRequestStopClimbing")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) BRequestJumpToRoof() Bool {
-	return Bool{e.field("m_bRequestJumpToRoof", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRequestJumpToRoof")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) FlMoveDownStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flMoveDownStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMoveDownStartTime")}
 }
 
 func (e CCitadel_Ability_Climb_Rope) EClimbState() Number[uint32] {
-	return Number[uint32]{e.field("m_eClimbState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eClimbState")}
 }
 
 type CCitadel_Ability_Crackshot CEntityInstance
 
-func (e CCitadel_Ability_Crackshot) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Crackshot", name, typ}
+func (e CCitadel_Ability_Crackshot) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Crackshot", name}
 }
 
 func (e CCitadel_Ability_Crackshot) ReadyParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_ReadyParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ReadyParticleIndex")}
 }
 
 type CCitadel_Ability_CrowdControl CEntityInstance
 
 type CCitadel_Ability_Dash CEntityInstance
 
-func (e CCitadel_Ability_Dash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Dash", name, typ}
+func (e CCitadel_Ability_Dash) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Dash", name}
 }
 
 func (e CCitadel_Ability_Dash) FlDashAngle() Number[float32] {
-	return Number[float32]{e.field("m_flDashAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDashAngle")}
 }
 
 func (e CCitadel_Ability_Dash) GroundDashExecuteTime() Number[float32] {
-	return Number[float32]{e.field("m_GroundDashExecuteTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_GroundDashExecuteTime")}
 }
 
 func (e CCitadel_Ability_Dash) GroundDashCancelExecuteTime() Number[float32] {
-	return Number[float32]{e.field("m_GroundDashCancelExecuteTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_GroundDashCancelExecuteTime")}
 }
 
 func (e CCitadel_Ability_Dash) NLastGroundDashTick() Number[int32] {
-	return Number[int32]{e.field("m_nLastGroundDashTick", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastGroundDashTick")}
 }
 
 func (e CCitadel_Ability_Dash) BAnglesControlActive() Bool {
-	return Bool{e.field("m_bAnglesControlActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAnglesControlActive")}
 }
 
 func (e CCitadel_Ability_Dash) FlAirDashCastTime() Number[float32] {
-	return Number[float32]{e.field("m_flAirDashCastTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAirDashCastTime")}
 }
 
 func (e CCitadel_Ability_Dash) FlAirDashStartPos() Vector {
-	return Vector{e.field("m_flAirDashStartPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_flAirDashStartPos")}
 }
 
 func (e CCitadel_Ability_Dash) FlAirDashDragStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flAirDashDragStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAirDashDragStartTime")}
 }
 
 func (e CCitadel_Ability_Dash) FlParryCancelSlideEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flParryCancelSlideEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flParryCancelSlideEndTime")}
 }
 
 func (e CCitadel_Ability_Dash) FlParryCancelAirGlideStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flParryCancelAirGlideStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flParryCancelAirGlideStartTime")}
 }
 
 func (e CCitadel_Ability_Dash) NConsecutiveAirDashes() Number[int8] {
-	return Number[int8]{e.field("m_nConsecutiveAirDashes", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nConsecutiveAirDashes")}
 }
 
 func (e CCitadel_Ability_Dash) NConsecutiveDownDashes() Number[int8] {
-	return Number[int8]{e.field("m_nConsecutiveDownDashes", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nConsecutiveDownDashes")}
 }
 
 func (e CCitadel_Ability_Dash) BDownAirDash() Bool {
-	return Bool{e.field("m_bDownAirDash", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDownAirDash")}
 }
 
 func (e CCitadel_Ability_Dash) FlAirDashDelayedEffectsTime() Number[float32] {
-	return Number[float32]{e.field("m_flAirDashDelayedEffectsTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAirDashDelayedEffectsTime")}
 }
 
 type CCitadel_Ability_DeathTax CEntityInstance
 
 type CCitadel_Ability_Digger_EnterTunnel CEntityInstance
 
-func (e CCitadel_Ability_Digger_EnterTunnel) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Digger_EnterTunnel", name, typ}
+func (e CCitadel_Ability_Digger_EnterTunnel) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Digger_EnterTunnel", name}
 }
 
 func (e CCitadel_Ability_Digger_EnterTunnel) HPushedFakeWall() Handle[CCitadelPassthroughFakeWall] {
-	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWall", mod.FieldTypeHandle)}
+	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWall")}
 }
 
 func (e CCitadel_Ability_Digger_EnterTunnel) HPushedFakeWallLastThink() Handle[CCitadelPassthroughFakeWall] {
-	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWallLastThink", mod.FieldTypeHandle)}
+	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWallLastThink")}
 }
 
 type CCitadel_Ability_Disruptive_Charge CEntityInstance
@@ -1788,54 +1786,54 @@ type CCitadel_Ability_Doorman_Cart CEntityInstance
 
 type CCitadel_Ability_Doorman_Doorway CEntityInstance
 
-func (e CCitadel_Ability_Doorman_Doorway) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Doorman_Doorway", name, typ}
+func (e CCitadel_Ability_Doorman_Doorway) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Doorman_Doorway", name}
 }
 
 func (e CCitadel_Ability_Doorman_Doorway) HDoor1() Handle[CCitadel_DoorwayPortal] {
-	return Handle[CCitadel_DoorwayPortal]{e.field("m_hDoor1", mod.FieldTypeHandle)}
+	return Handle[CCitadel_DoorwayPortal]{e.field("m_hDoor1")}
 }
 
 func (e CCitadel_Ability_Doorman_Doorway) FlLastRangeFailCast() Number[float64] {
-	return Number[float64]{e.field("m_flLastRangeFailCast", mod.FieldTypeFloat64)}
+	return Number[float64]{e.field("m_flLastRangeFailCast")}
 }
 
 func (e CCitadel_Ability_Doorman_Doorway) FlDoorBreakableRadius() Number[float32] {
-	return Number[float32]{e.field("m_flDoorBreakableRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDoorBreakableRadius")}
 }
 
 type CCitadel_Ability_Doorman_Hotel CEntityInstance
 
-func (e CCitadel_Ability_Doorman_Hotel) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Doorman_Hotel", name, typ}
+func (e CCitadel_Ability_Doorman_Hotel) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Doorman_Hotel", name}
 }
 
 func (e CCitadel_Ability_Doorman_Hotel) HHotelStart() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hHotelStart", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hHotelStart")}
 }
 
 func (e CCitadel_Ability_Doorman_Hotel) HStartRelay() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hStartRelay", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hStartRelay")}
 }
 
 func (e CCitadel_Ability_Doorman_Hotel) BSpendCooldown() Bool {
-	return Bool{e.field("m_bSpendCooldown", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSpendCooldown")}
 }
 
 func (e CCitadel_Ability_Doorman_Hotel) VLookTarget() Vector {
-	return Vector{e.field("m_vLookTarget", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLookTarget")}
 }
 
 type CCitadel_Ability_Drifter_Hunger CEntityInstance
 
 type CCitadel_Ability_Dust_Storm CEntityInstance
 
-func (e CCitadel_Ability_Dust_Storm) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Dust_Storm", name, typ}
+func (e CCitadel_Ability_Dust_Storm) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Dust_Storm", name}
 }
 
 func (e CCitadel_Ability_Dust_Storm) HSpinningBladeAbility() Handle[CCitadel_Ability_Spinning_Blade] {
-	return Handle[CCitadel_Ability_Spinning_Blade]{e.field("m_hSpinningBladeAbility", mod.FieldTypeHandle)}
+	return Handle[CCitadel_Ability_Spinning_Blade]{e.field("m_hSpinningBladeAbility")}
 }
 
 type CCitadel_Ability_EmpowerBullet CEntityInstance
@@ -1844,34 +1842,34 @@ type CCitadel_Ability_Empty CEntityInstance
 
 type CCitadel_Ability_ExplosiveBarrel CEntityInstance
 
-func (e CCitadel_Ability_ExplosiveBarrel) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ExplosiveBarrel", name, typ}
+func (e CCitadel_Ability_ExplosiveBarrel) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ExplosiveBarrel", name}
 }
 
 func (e CCitadel_Ability_ExplosiveBarrel) HBarrel() Handle[CCitadelProjectile] {
-	return Handle[CCitadelProjectile]{e.field("m_hBarrel", mod.FieldTypeHandle)}
+	return Handle[CCitadelProjectile]{e.field("m_hBarrel")}
 }
 
 type CCitadel_Ability_Familiar_Ability01 CEntityInstance
 
 type CCitadel_Ability_Familiar_Ability02 CEntityInstance
 
-func (e CCitadel_Ability_Familiar_Ability02) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Familiar_Ability02", name, typ}
+func (e CCitadel_Ability_Familiar_Ability02) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Familiar_Ability02", name}
 }
 
 func (e CCitadel_Ability_Familiar_Ability02) BCastWhileAttached() Bool {
-	return Bool{e.field("m_bCastWhileAttached", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCastWhileAttached")}
 }
 
 type CCitadel_Ability_Familiar_Attach CEntityInstance
 
-func (e CCitadel_Ability_Familiar_Attach) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Familiar_Attach", name, typ}
+func (e CCitadel_Ability_Familiar_Attach) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Familiar_Attach", name}
 }
 
 func (e CCitadel_Ability_Familiar_Attach) HLastAttachedTo() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLastAttachedTo", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLastAttachedTo")}
 }
 
 type CCitadel_Ability_Familiar_Attach_Trigger CEntityInstance
@@ -1886,216 +1884,216 @@ type CCitadel_Ability_Familiar_Clone_End CEntityInstance
 
 type CCitadel_Ability_Familiar_HealHost CEntityInstance
 
-func (e CCitadel_Ability_Familiar_HealHost) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Familiar_HealHost", name, typ}
+func (e CCitadel_Ability_Familiar_HealHost) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Familiar_HealHost", name}
 }
 
 func (e CCitadel_Ability_Familiar_HealHost) FlOverrideCooldown() Number[float32] {
-	return Number[float32]{e.field("m_flOverrideCooldown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOverrideCooldown")}
 }
 
 type CCitadel_Ability_Familiar_HelpingHands CEntityInstance
 
-func (e CCitadel_Ability_Familiar_HelpingHands) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Familiar_HelpingHands", name, typ}
+func (e CCitadel_Ability_Familiar_HelpingHands) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Familiar_HelpingHands", name}
 }
 
 func (e CCitadel_Ability_Familiar_HelpingHands) TChoreUseCooldownEndTime() Number[float32] {
-	return Number[float32]{e.field("m_tChoreUseCooldownEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tChoreUseCooldownEndTime")}
 }
 
 func (e CCitadel_Ability_Familiar_HelpingHands) TSoonestHelperCooldownEndTime() Number[float32] {
-	return Number[float32]{e.field("m_tSoonestHelperCooldownEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tSoonestHelperCooldownEndTime")}
 }
 
 type CCitadel_Ability_Familiar_Spotlight CEntityInstance
 
-func (e CCitadel_Ability_Familiar_Spotlight) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Familiar_Spotlight", name, typ}
+func (e CCitadel_Ability_Familiar_Spotlight) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Familiar_Spotlight", name}
 }
 
 func (e CCitadel_Ability_Familiar_Spotlight) HAuraThinker() Handle[CPointModifierThinker] {
-	return Handle[CPointModifierThinker]{e.field("m_hAuraThinker", mod.FieldTypeHandle)}
+	return Handle[CPointModifierThinker]{e.field("m_hAuraThinker")}
 }
 
 func (e CCitadel_Ability_Familiar_Spotlight) NEyeGlowFX() Number[int32] {
-	return Number[int32]{e.field("m_nEyeGlowFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nEyeGlowFX")}
 }
 
 func (e CCitadel_Ability_Familiar_Spotlight) VLastValidAuraPosition() Vector {
-	return Vector{e.field("m_vLastValidAuraPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastValidAuraPosition")}
 }
 
 func (e CCitadel_Ability_Familiar_Spotlight) HWasAttachedTo() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hWasAttachedTo", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hWasAttachedTo")}
 }
 
 func (e CCitadel_Ability_Familiar_Spotlight) VAuraPosition() Vector {
-	return Vector{e.field("m_vAuraPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vAuraPosition")}
 }
 
 type CCitadel_Ability_Fathom_Breach CEntityInstance
 
-func (e CCitadel_Ability_Fathom_Breach) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Fathom_Breach", name, typ}
+func (e CCitadel_Ability_Fathom_Breach) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Fathom_Breach", name}
 }
 
 func (e CCitadel_Ability_Fathom_Breach) NRollFXIndex() Number[int32] {
-	return Number[int32]{e.field("m_nRollFXIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nRollFXIndex")}
 }
 
 func (e CCitadel_Ability_Fathom_Breach) BInFlight() Bool {
-	return Bool{e.field("m_bInFlight", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInFlight")}
 }
 
 type CCitadel_Ability_Fathom_ScaldingSpray CEntityInstance
 
 type CCitadel_Ability_Fealty CEntityInstance
 
-func (e CCitadel_Ability_Fealty) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Fealty", name, typ}
+func (e CCitadel_Ability_Fealty) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Fealty", name}
 }
 
 func (e CCitadel_Ability_Fealty) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 type CCitadel_Ability_Fencer_Riposte CEntityInstance
 
-func (e CCitadel_Ability_Fencer_Riposte) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Fencer_Riposte", name, typ}
+func (e CCitadel_Ability_Fencer_Riposte) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Fencer_Riposte", name}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) VRiposteStartPosition() Vector {
-	return Vector{e.field("m_vRiposteStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vRiposteStartPosition")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) VDashDirection() Vector {
-	return Vector{e.field("m_vDashDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDashDirection")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) FlStateStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateStartTime")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) NCurrentRiposteState() Number[uint8] {
-	return Number[uint8]{e.field("m_nCurrentRiposteState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nCurrentRiposteState")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) FlSuccessfulRiposteTime() Number[float32] {
-	return Number[float32]{e.field("m_flSuccessfulRiposteTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSuccessfulRiposteTime")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) VecLastPosition() Vector {
-	return Vector{e.field("m_vecLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastPosition")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) FlStuckTime() Number[float32] {
-	return Number[float32]{e.field("m_flStuckTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStuckTime")}
 }
 
 func (e CCitadel_Ability_Fencer_Riposte) NParriedFXIndex() Number[int32] {
-	return Number[int32]{e.field("m_nParriedFXIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nParriedFXIndex")}
 }
 
 type CCitadel_Ability_Fencer_ThrowBlade CEntityInstance
 
-func (e CCitadel_Ability_Fencer_ThrowBlade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Fencer_ThrowBlade", name, typ}
+func (e CCitadel_Ability_Fencer_ThrowBlade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Fencer_ThrowBlade", name}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) VCastPosition() Vector {
-	return Vector{e.field("m_vCastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vCastPosition")}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) QCastAngles() Angles {
-	return Angles{e.field("m_qCastAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_qCastAngles")}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) NMarkParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nMarkParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMarkParticleIndex")}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) NLingerParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nLingerParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLingerParticleIndex")}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) NExplodeParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nExplodeParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nExplodeParticleIndex")}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) BHitEnemyPlayer() Bool {
-	return Bool{e.field("m_bHitEnemyPlayer", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitEnemyPlayer")}
 }
 
 func (e CCitadel_Ability_Fencer_ThrowBlade) TRecastEndTime() Number[float32] {
-	return Number[float32]{e.field("m_tRecastEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tRecastEndTime")}
 }
 
 type CCitadel_Ability_FireBomb CEntityInstance
 
-func (e CCitadel_Ability_FireBomb) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_FireBomb", name, typ}
+func (e CCitadel_Ability_FireBomb) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_FireBomb", name}
 }
 
 func (e CCitadel_Ability_FireBomb) FlStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartTime")}
 }
 
 type CCitadel_Ability_FissureWall CEntityInstance
 
-func (e CCitadel_Ability_FissureWall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_FissureWall", name, typ}
+func (e CCitadel_Ability_FissureWall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_FissureWall", name}
 }
 
 func (e CCitadel_Ability_FissureWall) VecPosition() Vector {
-	return Vector{e.field("m_vecPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecPosition")}
 }
 
 func (e CCitadel_Ability_FissureWall) VecTravellingPosition() Vector {
-	return Vector{e.field("m_vecTravellingPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecTravellingPosition")}
 }
 
 func (e CCitadel_Ability_FissureWall) VecInitialPosition() Vector {
-	return Vector{e.field("m_vecInitialPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecInitialPosition")}
 }
 
 func (e CCitadel_Ability_FissureWall) CastTime() Number[float32] {
-	return Number[float32]{e.field("m_CastTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_CastTime")}
 }
 
 func (e CCitadel_Ability_FissureWall) VecDirection() Vector {
-	return Vector{e.field("m_vecDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecDirection")}
 }
 
 func (e CCitadel_Ability_FissureWall) VecLeft() Vector {
-	return Vector{e.field("m_vecLeft", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLeft")}
 }
 
 func (e CCitadel_Ability_FissureWall) Length() Number[float32] {
-	return Number[float32]{e.field("m_Length", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Length")}
 }
 
 func (e CCitadel_Ability_FissureWall) BTraveling() Bool {
-	return Bool{e.field("m_bTraveling", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTraveling")}
 }
 
 func (e CCitadel_Ability_FissureWall) BPreview() Bool {
-	return Bool{e.field("m_bPreview", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPreview")}
 }
 
 type CCitadel_Ability_FlameDash CEntityInstance
 
-func (e CCitadel_Ability_FlameDash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_FlameDash", name, typ}
+func (e CCitadel_Ability_FlameDash) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_FlameDash", name}
 }
 
 func (e CCitadel_Ability_FlameDash) BIsSpeedBursting() Bool {
-	return Bool{e.field("m_bIsSpeedBursting", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsSpeedBursting")}
 }
 
 type CCitadel_Ability_Fortuna_Ability01 CEntityInstance
@@ -2108,54 +2106,54 @@ type CCitadel_Ability_Fortuna_Ability04 CEntityInstance
 
 type CCitadel_Ability_Frank_PainAura CEntityInstance
 
-func (e CCitadel_Ability_Frank_PainAura) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Frank_PainAura", name, typ}
+func (e CCitadel_Ability_Frank_PainAura) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Frank_PainAura", name}
 }
 
 func (e CCitadel_Ability_Frank_PainAura) ToggleOnTime() Number[float32] {
-	return Number[float32]{e.field("m_ToggleOnTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_ToggleOnTime")}
 }
 
 type CCitadel_Ability_Frank_Revive CEntityInstance
 
-func (e CCitadel_Ability_Frank_Revive) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Frank_Revive", name, typ}
+func (e CCitadel_Ability_Frank_Revive) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Frank_Revive", name}
 }
 
 func (e CCitadel_Ability_Frank_Revive) BReviveIsActive() Bool {
-	return Bool{e.field("m_bReviveIsActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bReviveIsActive")}
 }
 
 func (e CCitadel_Ability_Frank_Revive) TimeOfDeath() Number[float32] {
-	return Number[float32]{e.field("m_TimeOfDeath", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_TimeOfDeath")}
 }
 
 func (e CCitadel_Ability_Frank_Revive) TimeOfRevive() Number[float32] {
-	return Number[float32]{e.field("m_TimeOfRevive", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_TimeOfRevive")}
 }
 
 func (e CCitadel_Ability_Frank_Revive) FlTotalPendingHeal() Number[float32] {
-	return Number[float32]{e.field("m_flTotalPendingHeal", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTotalPendingHeal")}
 }
 
 type CCitadel_Ability_Frank_SelfZap CEntityInstance
 
-func (e CCitadel_Ability_Frank_SelfZap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Frank_SelfZap", name, typ}
+func (e CCitadel_Ability_Frank_SelfZap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Frank_SelfZap", name}
 }
 
 func (e CCitadel_Ability_Frank_SelfZap) FlTotalPendingHeal() Number[float32] {
-	return Number[float32]{e.field("m_flTotalPendingHeal", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTotalPendingHeal")}
 }
 
 type CCitadel_Ability_Frank_ShockTarget2 CEntityInstance
 
-func (e CCitadel_Ability_Frank_ShockTarget2) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Frank_ShockTarget2", name, typ}
+func (e CCitadel_Ability_Frank_ShockTarget2) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Frank_ShockTarget2", name}
 }
 
 func (e CCitadel_Ability_Frank_ShockTarget2) BIsFullyCharged() Bool {
-	return Bool{e.field("m_bIsFullyCharged", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsFullyCharged")}
 }
 
 type CCitadel_Ability_GangActivity CEntityInstance
@@ -2174,54 +2172,54 @@ type CCitadel_Ability_Ghost_BloodShards CEntityInstance
 
 type CCitadel_Ability_GooBowlingBall CEntityInstance
 
-func (e CCitadel_Ability_GooBowlingBall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_GooBowlingBall", name, typ}
+func (e CCitadel_Ability_GooBowlingBall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_GooBowlingBall", name}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) NAirJumpsLeft() Number[int32] {
-	return Number[int32]{e.field("m_nAirJumpsLeft", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nAirJumpsLeft")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) BIsRolling() Bool {
-	return Bool{e.field("m_bIsRolling", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsRolling")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) HBall() Handle[CCitadelViscousBall] {
-	return Handle[CCitadelViscousBall]{e.field("m_hBall", mod.FieldTypeHandle)}
+	return Handle[CCitadelViscousBall]{e.field("m_hBall")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) ERollingState() Number[uint8] {
-	return Number[uint8]{e.field("m_eRollingState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eRollingState")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) FlNextStateTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextStateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextStateTime")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) FlNextWallCheck() Number[float32] {
-	return Number[float32]{e.field("m_flNextWallCheck", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextWallCheck")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) FlRollStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flRollStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRollStartTime")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) FlWallExitTime() Number[float32] {
-	return Number[float32]{e.field("m_flWallExitTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWallExitTime")}
 }
 
 func (e CCitadel_Ability_GooBowlingBall) VecWallExitVelocity() Vector {
-	return Vector{e.field("m_vecWallExitVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecWallExitVelocity")}
 }
 
 type CCitadel_Ability_GooGrenade CEntityInstance
 
-func (e CCitadel_Ability_GooGrenade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_GooGrenade", name, typ}
+func (e CCitadel_Ability_GooGrenade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_GooGrenade", name}
 }
 
 func (e CCitadel_Ability_GooGrenade) LastDetonateTime() Number[float32] {
-	return Number[float32]{e.field("m_LastDetonateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_LastDetonateTime")}
 }
 
 type CCitadel_Ability_Graf_Ability01 CEntityInstance
@@ -2236,114 +2234,114 @@ type CCitadel_Ability_Gravity_Lasso CEntityInstance
 
 type CCitadel_Ability_GuidedArrow CEntityInstance
 
-func (e CCitadel_Ability_GuidedArrow) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_GuidedArrow", name, typ}
+func (e CCitadel_Ability_GuidedArrow) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_GuidedArrow", name}
 }
 
 func (e CCitadel_Ability_GuidedArrow) HProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hProjectile")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) HCameraTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hCameraTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hCameraTarget")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) FlArrowSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flArrowSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flArrowSpeed")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) FlSnapAnglesBackTime() Number[float32] {
-	return Number[float32]{e.field("m_flSnapAnglesBackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSnapAnglesBackTime")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) BNeedsExplosion() Bool {
-	return Bool{e.field("m_bNeedsExplosion", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNeedsExplosion")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) HOwl() Handle[CCitadel_GuidedArrow_OwlModel] {
-	return Handle[CCitadel_GuidedArrow_OwlModel]{e.field("m_hOwl", mod.FieldTypeHandle)}
+	return Handle[CCitadel_GuidedArrow_OwlModel]{e.field("m_hOwl")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) FlCastTime() Number[float32] {
-	return Number[float32]{e.field("m_flCastTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCastTime")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) VProjectileRemovedOrigin() Vector {
-	return Vector{e.field("m_vProjectileRemovedOrigin", mod.FieldTypeVector)}
+	return Vector{e.field("m_vProjectileRemovedOrigin")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) AngCasterAnglesAtCastTime() Angles {
-	return Angles{e.field("m_angCasterAnglesAtCastTime", mod.FieldTypeVector)}
+	return Angles{e.field("m_angCasterAnglesAtCastTime")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) FlTravelDistance() Number[float32] {
-	return Number[float32]{e.field("m_flTravelDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTravelDistance")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) BInKillFlow() Bool {
-	return Bool{e.field("m_bInKillFlow", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInKillFlow")}
 }
 
 func (e CCitadel_Ability_GuidedArrow) FlProjectileTurnVel() Number[float32] {
-	return Number[float32]{e.field("m_flProjectileTurnVel", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flProjectileTurnVel")}
 }
 
 type CCitadel_Ability_Gunslinger_DemonCarbine CEntityInstance
 
-func (e CCitadel_Ability_Gunslinger_DemonCarbine) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Gunslinger_DemonCarbine", name, typ}
+func (e CCitadel_Ability_Gunslinger_DemonCarbine) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Gunslinger_DemonCarbine", name}
 }
 
 func (e CCitadel_Ability_Gunslinger_DemonCarbine) BWantsSlow() Bool {
-	return Bool{e.field("m_bWantsSlow", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWantsSlow")}
 }
 
 func (e CCitadel_Ability_Gunslinger_DemonCarbine) FlLatchedTimeScaleFracChangeTime() Number[float32] {
-	return Number[float32]{e.field("m_flLatchedTimeScaleFracChangeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLatchedTimeScaleFracChangeTime")}
 }
 
 func (e CCitadel_Ability_Gunslinger_DemonCarbine) FlLatchedTimeScaleFrac() Number[float32] {
-	return Number[float32]{e.field("m_flLatchedTimeScaleFrac", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLatchedTimeScaleFrac")}
 }
 
 func (e CCitadel_Ability_Gunslinger_DemonCarbine) FlSpeedBoostEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flSpeedBoostEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeedBoostEndTime")}
 }
 
 func (e CCitadel_Ability_Gunslinger_DemonCarbine) FlShotTimeScaleEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flShotTimeScaleEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flShotTimeScaleEndTime")}
 }
 
 func (e CCitadel_Ability_Gunslinger_DemonCarbine) FlStoredPowerPct() Number[float32] {
-	return Number[float32]{e.field("m_flStoredPowerPct", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStoredPowerPct")}
 }
 
 type CCitadel_Ability_Gunslinger_KnockbackBlast CEntityInstance
 
-func (e CCitadel_Ability_Gunslinger_KnockbackBlast) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Gunslinger_KnockbackBlast", name, typ}
+func (e CCitadel_Ability_Gunslinger_KnockbackBlast) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Gunslinger_KnockbackBlast", name}
 }
 
 func (e CCitadel_Ability_Gunslinger_KnockbackBlast) VecKnockbackDirection() Vector {
-	return Vector{e.field("m_vecKnockbackDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecKnockbackDirection")}
 }
 
 type CCitadel_Ability_Gunslinger_Salvo CEntityInstance
 
-func (e CCitadel_Ability_Gunslinger_Salvo) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Gunslinger_Salvo", name, typ}
+func (e CCitadel_Ability_Gunslinger_Salvo) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Gunslinger_Salvo", name}
 }
 
 func (e CCitadel_Ability_Gunslinger_Salvo) CastTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_CastTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_CastTarget")}
 }
 
 func (e CCitadel_Ability_Gunslinger_Salvo) ICurrentShots() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentShots", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentShots")}
 }
 
 func (e CCitadel_Ability_Gunslinger_Salvo) ITotalShots() Number[int32] {
-	return Number[int32]{e.field("m_iTotalShots", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTotalShots")}
 }
 
 type CCitadel_Ability_Gunslinger_SpreadingFire CEntityInstance
@@ -2352,184 +2350,184 @@ type CCitadel_Ability_Haze_StackingDamage CEntityInstance
 
 type CCitadel_Ability_HealthSwap CEntityInstance
 
-func (e CCitadel_Ability_HealthSwap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_HealthSwap", name, typ}
+func (e CCitadel_Ability_HealthSwap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_HealthSwap", name}
 }
 
 func (e CCitadel_Ability_HealthSwap) NFXIndex() Number[int32] {
-	return Number[int32]{e.field("m_nFXIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFXIndex")}
 }
 
 func (e CCitadel_Ability_HealthSwap) FlPostCastHoldEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flPostCastHoldEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPostCastHoldEndTime")}
 }
 
 type CCitadel_Ability_HighAlert CEntityInstance
 
 type CCitadel_Ability_Hook CEntityInstance
 
-func (e CCitadel_Ability_Hook) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Hook", name, typ}
+func (e CCitadel_Ability_Hook) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Hook", name}
 }
 
 func (e CCitadel_Ability_Hook) HHookVictim() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hHookVictim", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hHookVictim")}
 }
 
 func (e CCitadel_Ability_Hook) VecHookTargetStartPos() Vector {
-	return Vector{e.field("m_vecHookTargetStartPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecHookTargetStartPos")}
 }
 
 func (e CCitadel_Ability_Hook) FlCancelHookTime() Number[float32] {
-	return Number[float32]{e.field("m_flCancelHookTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCancelHookTime")}
 }
 
 func (e CCitadel_Ability_Hook) FlBeginReelHookTime() Number[float32] {
-	return Number[float32]{e.field("m_flBeginReelHookTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBeginReelHookTime")}
 }
 
 func (e CCitadel_Ability_Hook) FlBulletShouldExpireTime() Number[float32] {
-	return Number[float32]{e.field("m_flBulletShouldExpireTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBulletShouldExpireTime")}
 }
 
 func (e CCitadel_Ability_Hook) FlMaxHookTravelTime() Number[float32] {
-	return Number[float32]{e.field("m_flMaxHookTravelTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxHookTravelTime")}
 }
 
 func (e CCitadel_Ability_Hook) FlLastUppercutRestoreTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastUppercutRestoreTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastUppercutRestoreTime")}
 }
 
 type CCitadel_Ability_HornetLeap CEntityInstance
 
-func (e CCitadel_Ability_HornetLeap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_HornetLeap", name, typ}
+func (e CCitadel_Ability_HornetLeap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_HornetLeap", name}
 }
 
 func (e CCitadel_Ability_HornetLeap) BLeaping() Bool {
-	return Bool{e.field("m_bLeaping", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLeaping")}
 }
 
 func (e CCitadel_Ability_HornetLeap) FlLeapStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flLeapStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLeapStartTime")}
 }
 
 func (e CCitadel_Ability_HornetLeap) NFXIndex() Number[int32] {
-	return Number[int32]{e.field("m_nFXIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFXIndex")}
 }
 
 func (e CCitadel_Ability_HornetLeap) TrailFX() Number[int32] {
-	return Number[int32]{e.field("m_TrailFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_TrailFX")}
 }
 
 type CCitadel_Ability_HornetSting CEntityInstance
 
-func (e CCitadel_Ability_HornetSting) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_HornetSting", name, typ}
+func (e CCitadel_Ability_HornetSting) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_HornetSting", name}
 }
 
 func (e CCitadel_Ability_HornetSting) BounceCount() Number[int32] {
-	return Number[int32]{e.field("m_BounceCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_BounceCount")}
 }
 
 func (e CCitadel_Ability_HornetSting) BHitHero() Bool {
-	return Bool{e.field("m_bHitHero", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitHero")}
 }
 
 type CCitadel_Ability_Hornet_Chain CEntityInstance
 
-func (e CCitadel_Ability_Hornet_Chain) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Hornet_Chain", name, typ}
+func (e CCitadel_Ability_Hornet_Chain) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Hornet_Chain", name}
 }
 
 func (e CCitadel_Ability_Hornet_Chain) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Hornet_Chain) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Hornet_Snipe CEntityInstance
 
-func (e CCitadel_Ability_Hornet_Snipe) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Hornet_Snipe", name, typ}
+func (e CCitadel_Ability_Hornet_Snipe) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Hornet_Snipe", name}
 }
 
 func (e CCitadel_Ability_Hornet_Snipe) FlScopeStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flScopeStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flScopeStartTime")}
 }
 
 type CCitadel_Ability_IceBeam CEntityInstance
 
-func (e CCitadel_Ability_IceBeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_IceBeam", name, typ}
+func (e CCitadel_Ability_IceBeam) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_IceBeam", name}
 }
 
 func (e CCitadel_Ability_IceBeam) BIceBeaming() Bool {
-	return Bool{e.field("m_bIceBeaming", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIceBeaming")}
 }
 
 func (e CCitadel_Ability_IceBeam) FlNextDamageTick() Number[float32] {
-	return Number[float32]{e.field("m_flNextDamageTick", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextDamageTick")}
 }
 
 type CCitadel_Ability_IceDome CEntityInstance
 
-func (e CCitadel_Ability_IceDome) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_IceDome", name, typ}
+func (e CCitadel_Ability_IceDome) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_IceDome", name}
 }
 
 func (e CCitadel_Ability_IceDome) FlDomeStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flDomeStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDomeStartTime")}
 }
 
 func (e CCitadel_Ability_IceDome) FlDomeEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flDomeEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDomeEndTime")}
 }
 
 type CCitadel_Ability_IceGrenade CEntityInstance
 
-func (e CCitadel_Ability_IceGrenade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_IceGrenade", name, typ}
+func (e CCitadel_Ability_IceGrenade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_IceGrenade", name}
 }
 
 func (e CCitadel_Ability_IceGrenade) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_IceGrenade) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_IcePath CEntityInstance
 
-func (e CCitadel_Ability_IcePath) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_IcePath", name, typ}
+func (e CCitadel_Ability_IcePath) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_IcePath", name}
 }
 
 func (e CCitadel_Ability_IcePath) VInitialPosition() Vector {
-	return Vector{e.field("m_vInitialPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vInitialPosition")}
 }
 
 func (e CCitadel_Ability_IcePath) BIcePathing() Bool {
-	return Bool{e.field("m_bIcePathing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIcePathing")}
 }
 
 func (e CCitadel_Ability_IcePath) QLastAngles() Angles {
-	return Angles{e.field("m_qLastAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLastAngles")}
 }
 
 func (e CCitadel_Ability_IcePath) VLastVelocity() Vector {
-	return Vector{e.field("m_vLastVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastVelocity")}
 }
 
 func (e CCitadel_Ability_IcePath) BFirstMovementTick() Bool {
-	return Bool{e.field("m_bFirstMovementTick", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstMovementTick")}
 }
 
 func (e CCitadel_Ability_IcePath) TLingerMovementControlUntilTime() Number[float32] {
-	return Number[float32]{e.field("m_tLingerMovementControlUntilTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLingerMovementControlUntilTime")}
 }
 
 type CCitadel_Ability_ImmobilizeTrap CEntityInstance
@@ -2540,212 +2538,212 @@ type CCitadel_Ability_Intimidate CEntityInstance
 
 type CCitadel_Ability_Jump CEntityInstance
 
-func (e CCitadel_Ability_Jump) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Jump", name, typ}
+func (e CCitadel_Ability_Jump) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Jump", name}
 }
 
 func (e CCitadel_Ability_Jump) FlLastTimeOnZipLine() Number[float32] {
-	return Number[float32]{e.field("m_flLastTimeOnZipLine", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastTimeOnZipLine")}
 }
 
 func (e CCitadel_Ability_Jump) FlLastOnGroundTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastOnGroundTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastOnGroundTime")}
 }
 
 func (e CCitadel_Ability_Jump) FlPhaseStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flPhaseStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPhaseStartTime")}
 }
 
 func (e CCitadel_Ability_Jump) FlJumpTime() Number[float32] {
-	return Number[float32]{e.field("m_flJumpTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flJumpTime")}
 }
 
 func (e CCitadel_Ability_Jump) FlWallJumpFatigueStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flWallJumpFatigueStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWallJumpFatigueStartTime")}
 }
 
 func (e CCitadel_Ability_Jump) FlLastThinkTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastThinkTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastThinkTime")}
 }
 
 func (e CCitadel_Ability_Jump) VCurrentWallNormal() Vector {
-	return Vector{e.field("m_vCurrentWallNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vCurrentWallNormal")}
 }
 
 func (e CCitadel_Ability_Jump) VLastWallCollidedWithNormal() Vector {
-	return Vector{e.field("m_vLastWallCollidedWithNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastWallCollidedWithNormal")}
 }
 
 func (e CCitadel_Ability_Jump) VLastValidWallJumpNormal() Vector {
-	return Vector{e.field("m_vLastValidWallJumpNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastValidWallJumpNormal")}
 }
 
 func (e CCitadel_Ability_Jump) VLastValidWallJumpNormal_PlayerPosition() Vector {
-	return Vector{e.field("m_vLastValidWallJumpNormal_PlayerPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastValidWallJumpNormal_PlayerPosition")}
 }
 
 func (e CCitadel_Ability_Jump) FlLastWallJumpTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastWallJumpTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastWallJumpTime")}
 }
 
 func (e CCitadel_Ability_Jump) VWallJumpFacingDir() Vector {
-	return Vector{e.field("m_vWallJumpFacingDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vWallJumpFacingDir")}
 }
 
 func (e CCitadel_Ability_Jump) EWallJumpFacing() Number[uint16] {
-	return Number[uint16]{e.field("m_eWallJumpFacing", mod.FieldTypeUint16)}
+	return Number[uint16]{e.field("m_eWallJumpFacing")}
 }
 
 func (e CCitadel_Ability_Jump) FlLastWallJumpFatigueStrength() Number[float32] {
-	return Number[float32]{e.field("m_flLastWallJumpFatigueStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastWallJumpFatigueStrength")}
 }
 
 func (e CCitadel_Ability_Jump) LastJumpType() Number[uint8] {
-	return Number[uint8]{e.field("m_LastJumpType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_LastJumpType")}
 }
 
 func (e CCitadel_Ability_Jump) BShouldCreateAirJumpEffects() Bool {
-	return Bool{e.field("m_bShouldCreateAirJumpEffects", mod.FieldTypeBool)}
+	return Bool{e.field("m_bShouldCreateAirJumpEffects")}
 }
 
 func (e CCitadel_Ability_Jump) FlDoubleJumpFailTime() Number[float32] {
-	return Number[float32]{e.field("m_flDoubleJumpFailTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDoubleJumpFailTime")}
 }
 
 func (e CCitadel_Ability_Jump) EDoubleJumpFailReason() Number[uint32] {
-	return Number[uint32]{e.field("m_eDoubleJumpFailReason", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eDoubleJumpFailReason")}
 }
 
 func (e CCitadel_Ability_Jump) VWallJumpNormalUsed() Vector {
-	return Vector{e.field("m_vWallJumpNormalUsed", mod.FieldTypeVector)}
+	return Vector{e.field("m_vWallJumpNormalUsed")}
 }
 
 func (e CCitadel_Ability_Jump) BResolvingAirJump() Bool {
-	return Bool{e.field("m_bResolvingAirJump", mod.FieldTypeBool)}
+	return Bool{e.field("m_bResolvingAirJump")}
 }
 
 func (e CCitadel_Ability_Jump) BJumped() Bool {
-	return Bool{e.field("m_bJumped", mod.FieldTypeBool)}
+	return Bool{e.field("m_bJumped")}
 }
 
 func (e CCitadel_Ability_Jump) BCanDashJump() Bool {
-	return Bool{e.field("m_bCanDashJump", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanDashJump")}
 }
 
 func (e CCitadel_Ability_Jump) NDesiredAirJumpCount() Number[int32] {
-	return Number[int32]{e.field("m_nDesiredAirJumpCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDesiredAirJumpCount")}
 }
 
 func (e CCitadel_Ability_Jump) NExecutedAirJumpCount() Number[int32] {
-	return Number[int32]{e.field("m_nExecutedAirJumpCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nExecutedAirJumpCount")}
 }
 
 func (e CCitadel_Ability_Jump) BInSlideJump() Bool {
-	return Bool{e.field("m_bInSlideJump", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInSlideJump")}
 }
 
 func (e CCitadel_Ability_Jump) NConsecutiveAirJumps() Number[int8] {
-	return Number[int8]{e.field("m_nConsecutiveAirJumps", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nConsecutiveAirJumps")}
 }
 
 func (e CCitadel_Ability_Jump) NConsecutiveWallJumps() Number[int8] {
-	return Number[int8]{e.field("m_nConsecutiveWallJumps", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nConsecutiveWallJumps")}
 }
 
 func (e CCitadel_Ability_Jump) FlLateralInputSuppressEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flLateralInputSuppressEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLateralInputSuppressEndTime")}
 }
 
 type CCitadel_Ability_Kobun CEntityInstance
 
-func (e CCitadel_Ability_Kobun) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Kobun", name, typ}
+func (e CCitadel_Ability_Kobun) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Kobun", name}
 }
 
 func (e CCitadel_Ability_Kobun) BFlipOffset() Bool {
-	return Bool{e.field("m_bFlipOffset", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFlipOffset")}
 }
 
 type CCitadel_Ability_Lash CEntityInstance
 
 type CCitadel_Ability_LashDownStrike CEntityInstance
 
-func (e CCitadel_Ability_LashDownStrike) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_LashDownStrike", name, typ}
+func (e CCitadel_Ability_LashDownStrike) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_LashDownStrike", name}
 }
 
 func (e CCitadel_Ability_LashDownStrike) ImpactTime() Number[float32] {
-	return Number[float32]{e.field("m_ImpactTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_ImpactTime")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) VDamagePos() Vector {
-	return Vector{e.field("m_vDamagePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDamagePos")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) VDamageDir() Vector {
-	return Vector{e.field("m_vDamageDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDamageDir")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) PreviewEffect() Number[int32] {
-	return Number[int32]{e.field("m_PreviewEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_PreviewEffect")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) ActiveEffect() Number[int32] {
-	return Number[int32]{e.field("m_ActiveEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ActiveEffect")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) BIsCrashingDown() Bool {
-	return Bool{e.field("m_bIsCrashingDown", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsCrashingDown")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) VStrikeVel() Vector {
-	return Vector{e.field("m_vStrikeVel", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStrikeVel")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) FlInitialYaw() Number[float32] {
-	return Number[float32]{e.field("m_flInitialYaw", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInitialYaw")}
 }
 
 func (e CCitadel_Ability_LashDownStrike) FlStartHeight() Number[float32] {
-	return Number[float32]{e.field("m_flStartHeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartHeight")}
 }
 
 type CCitadel_Ability_Lash_Flog CEntityInstance
 
-func (e CCitadel_Ability_Lash_Flog) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Lash_Flog", name, typ}
+func (e CCitadel_Ability_Lash_Flog) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Lash_Flog", name}
 }
 
 func (e CCitadel_Ability_Lash_Flog) SandEffect() Number[int32] {
-	return Number[int32]{e.field("m_SandEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_SandEffect")}
 }
 
 type CCitadel_Ability_LifeDrain CEntityInstance
 
-func (e CCitadel_Ability_LifeDrain) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_LifeDrain", name, typ}
+func (e CCitadel_Ability_LifeDrain) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_LifeDrain", name}
 }
 
 func (e CCitadel_Ability_LifeDrain) TDrainLifeStopTime() Number[float32] {
-	return Number[float32]{e.field("m_tDrainLifeStopTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tDrainLifeStopTime")}
 }
 
 func (e CCitadel_Ability_LifeDrain) TSlowStartTime() Number[float32] {
-	return Number[float32]{e.field("m_tSlowStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tSlowStartTime")}
 }
 
 func (e CCitadel_Ability_LifeDrain) TSlowStopTime() Number[float32] {
-	return Number[float32]{e.field("m_tSlowStopTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tSlowStopTime")}
 }
 
 type CCitadel_Ability_LightningBall CEntityInstance
 
-func (e CCitadel_Ability_LightningBall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_LightningBall", name, typ}
+func (e CCitadel_Ability_LightningBall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_LightningBall", name}
 }
 
 func (e CCitadel_Ability_LightningBall) FlInitialSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flInitialSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInitialSpeed")}
 }
 
 type CCitadel_Ability_LockDown CEntityInstance
@@ -2754,236 +2752,236 @@ type CCitadel_Ability_MageWalk CEntityInstance
 
 type CCitadel_Ability_Magician_AnimalCurse CEntityInstance
 
-func (e CCitadel_Ability_Magician_AnimalCurse) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Magician_AnimalCurse", name, typ}
+func (e CCitadel_Ability_Magician_AnimalCurse) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Magician_AnimalCurse", name}
 }
 
 func (e CCitadel_Ability_Magician_AnimalCurse) CachedTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_CachedTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_CachedTarget")}
 }
 
 type CCitadel_Ability_Magician_AnimalHexArea CEntityInstance
 
 type CCitadel_Ability_Magician_BigBolt CEntityInstance
 
-func (e CCitadel_Ability_Magician_BigBolt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Magician_BigBolt", name, typ}
+func (e CCitadel_Ability_Magician_BigBolt) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Magician_BigBolt", name}
 }
 
 func (e CCitadel_Ability_Magician_BigBolt) FlNextShootTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextShootTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextShootTime")}
 }
 
 func (e CCitadel_Ability_Magician_BigBolt) IBoltsFired() Number[int32] {
-	return Number[int32]{e.field("m_iBoltsFired", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBoltsFired")}
 }
 
 func (e CCitadel_Ability_Magician_BigBolt) IRemainingBolts() Number[int32] {
-	return Number[int32]{e.field("m_iRemainingBolts", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iRemainingBolts")}
 }
 
 func (e CCitadel_Ability_Magician_BigBolt) BPreppingShoot() Bool {
-	return Bool{e.field("m_bPreppingShoot", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPreppingShoot")}
 }
 
 type CCitadel_Ability_Magician_CopyUlt CEntityInstance
 
-func (e CCitadel_Ability_Magician_CopyUlt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Magician_CopyUlt", name, typ}
+func (e CCitadel_Ability_Magician_CopyUlt) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Magician_CopyUlt", name}
 }
 
 func (e CCitadel_Ability_Magician_CopyUlt) BHasUsedCopiedUlt() Bool {
-	return Bool{e.field("m_bHasUsedCopiedUlt", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasUsedCopiedUlt")}
 }
 
 func (e CCitadel_Ability_Magician_CopyUlt) BHasCopiedUlt() Bool {
-	return Bool{e.field("m_bHasCopiedUlt", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasCopiedUlt")}
 }
 
 func (e CCitadel_Ability_Magician_CopyUlt) BIsModelSwapped() Bool {
-	return Bool{e.field("m_bIsModelSwapped", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsModelSwapped")}
 }
 
 func (e CCitadel_Ability_Magician_CopyUlt) TimeSwappedModel() Number[float32] {
-	return Number[float32]{e.field("m_timeSwappedModel", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_timeSwappedModel")}
 }
 
 func (e CCitadel_Ability_Magician_CopyUlt) PActiveCopyUltimateAbility() Handle[CCitadelBaseAbility] {
-	return Handle[CCitadelBaseAbility]{e.field("m_pActiveCopyUltimateAbility", mod.FieldTypeHandle)}
+	return Handle[CCitadelBaseAbility]{e.field("m_pActiveCopyUltimateAbility")}
 }
 
 func (e CCitadel_Ability_Magician_CopyUlt) NCopiedHeroID() Number[uint32] {
-	return Number[uint32]{e.field("m_nCopiedHeroID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nCopiedHeroID")}
 }
 
 type CCitadel_Ability_Magician_Escape CEntityInstance
 
 type CCitadel_Ability_Magician_MagicBolt CEntityInstance
 
-func (e CCitadel_Ability_Magician_MagicBolt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Magician_MagicBolt", name, typ}
+func (e CCitadel_Ability_Magician_MagicBolt) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Magician_MagicBolt", name}
 }
 
 func (e CCitadel_Ability_Magician_MagicBolt) ICurrentRedirects() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentRedirects", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentRedirects")}
 }
 
 type CCitadel_Ability_Magician_ShadowClone CEntityInstance
 
 type CCitadel_Ability_Mantle CEntityInstance
 
-func (e CCitadel_Ability_Mantle) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Mantle", name, typ}
+func (e CCitadel_Ability_Mantle) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Mantle", name}
 }
 
 func (e CCitadel_Ability_Mantle) FlVertOffset() Number[float32] {
-	return Number[float32]{e.field("m_flVertOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flVertOffset")}
 }
 
 func (e CCitadel_Ability_Mantle) FlHorizGap() Number[float32] {
-	return Number[float32]{e.field("m_flHorizGap", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHorizGap")}
 }
 
 func (e CCitadel_Ability_Mantle) VStartPos() Vector {
-	return Vector{e.field("m_vStartPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPos")}
 }
 
 func (e CCitadel_Ability_Mantle) VTargetPos() Vector {
-	return Vector{e.field("m_vTargetPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vTargetPos")}
 }
 
 func (e CCitadel_Ability_Mantle) AngFacing() Angles {
-	return Angles{e.field("m_angFacing", mod.FieldTypeVector)}
+	return Angles{e.field("m_angFacing")}
 }
 
 func (e CCitadel_Ability_Mantle) NMantleTypeIndex() Number[int32] {
-	return Number[int32]{e.field("m_nMantleTypeIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMantleTypeIndex")}
 }
 
 func (e CCitadel_Ability_Mantle) FlStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartTime")}
 }
 
 func (e CCitadel_Ability_Mantle) FlAutoMantlePushStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flAutoMantlePushStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAutoMantlePushStartTime")}
 }
 
 func (e CCitadel_Ability_Mantle) FlAutoMantleLastPushTime() Number[float32] {
-	return Number[float32]{e.field("m_flAutoMantleLastPushTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAutoMantleLastPushTime")}
 }
 
 func (e CCitadel_Ability_Mantle) VAutoMantleLastPushPos() Vector {
-	return Vector{e.field("m_vAutoMantleLastPushPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vAutoMantleLastPushPos")}
 }
 
 type CCitadel_Ability_MeleeParry CEntityInstance
 
-func (e CCitadel_Ability_MeleeParry) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_MeleeParry", name, typ}
+func (e CCitadel_Ability_MeleeParry) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_MeleeParry", name}
 }
 
 func (e CCitadel_Ability_MeleeParry) NActiveFX() Number[int32] {
-	return Number[int32]{e.field("m_nActiveFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nActiveFX")}
 }
 
 func (e CCitadel_Ability_MeleeParry) FlParryStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flParryStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flParryStartTime")}
 }
 
 func (e CCitadel_Ability_MeleeParry) BAttackParried() Bool {
-	return Bool{e.field("m_bAttackParried", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAttackParried")}
 }
 
 func (e CCitadel_Ability_MeleeParry) FlParrySuccessEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flParrySuccessEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flParrySuccessEndTime")}
 }
 
 type CCitadel_Ability_Melee_Base CEntityInstance
 
-func (e CCitadel_Ability_Melee_Base) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Melee_Base", name, typ}
+func (e CCitadel_Ability_Melee_Base) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Melee_Base", name}
 }
 
 func (e CCitadel_Ability_Melee_Base) NHitNumber() Number[int32] {
-	return Number[int32]{e.field("m_nHitNumber", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nHitNumber")}
 }
 
 func (e CCitadel_Ability_Melee_Base) NPlayerKillNumber() Number[int32] {
-	return Number[int32]{e.field("m_nPlayerKillNumber", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPlayerKillNumber")}
 }
 
 func (e CCitadel_Ability_Melee_Base) BUsingThisMelee() Bool {
-	return Bool{e.field("m_bUsingThisMelee", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUsingThisMelee")}
 }
 
 func (e CCitadel_Ability_Melee_Base) BUsingMeleeTagActive() Bool {
-	return Bool{e.field("m_bUsingMeleeTagActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUsingMeleeTagActive")}
 }
 
 func (e CCitadel_Ability_Melee_Base) BHitWithThisAttack() Bool {
-	return Bool{e.field("m_bHitWithThisAttack", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitWithThisAttack")}
 }
 
 func (e CCitadel_Ability_Melee_Base) FlLastActivateTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastActivateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastActivateTime")}
 }
 
 func (e CCitadel_Ability_Melee_Base) FlNextAttackAllowedTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextAttackAllowedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextAttackAllowedTime")}
 }
 
 func (e CCitadel_Ability_Melee_Base) FlAttackTriggeredTime() Number[float32] {
-	return Number[float32]{e.field("m_flAttackTriggeredTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttackTriggeredTime")}
 }
 
 type CCitadel_Ability_HoldMelee CEntityInstance
 
-func (e CCitadel_Ability_HoldMelee) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_HoldMelee", name, typ}
+func (e CCitadel_Ability_HoldMelee) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_HoldMelee", name}
 }
 
 func (e CCitadel_Ability_HoldMelee) FlStateStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStateStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStateStartTime")}
 }
 
 func (e CCitadel_Ability_HoldMelee) FlDashStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flDashStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDashStartTime")}
 }
 
 func (e CCitadel_Ability_HoldMelee) ECurrentAttackState() Number[uint32] {
-	return Number[uint32]{e.field("m_eCurrentAttackState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eCurrentAttackState")}
 }
 
 func (e CCitadel_Ability_HoldMelee) ECurrentAttackType() Number[uint32] {
-	return Number[uint32]{e.field("m_eCurrentAttackType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eCurrentAttackType")}
 }
 
 func (e CCitadel_Ability_HoldMelee) VAirDashDir() Vector {
-	return Vector{e.field("m_vAirDashDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vAirDashDir")}
 }
 
 func (e CCitadel_Ability_HoldMelee) BAttackStartedWhileSliding() Bool {
-	return Bool{e.field("m_bAttackStartedWhileSliding", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAttackStartedWhileSliding")}
 }
 
 func (e CCitadel_Ability_HoldMelee) FlLightChainEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flLightChainEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLightChainEndTime")}
 }
 
 func (e CCitadel_Ability_HoldMelee) NLightChainCount() Number[int32] {
-	return Number[int32]{e.field("m_nLightChainCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLightChainCount")}
 }
 
 func (e CCitadel_Ability_HoldMelee) BCreatedChargeEffects() Bool {
-	return Bool{e.field("m_bCreatedChargeEffects", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCreatedChargeEffects")}
 }
 
 func (e CCitadel_Ability_HoldMelee) AngForced() Angles {
-	return Angles{e.field("m_angForced", mod.FieldTypeVector)}
+	return Angles{e.field("m_angForced")}
 }
 
 func (e CCitadel_Ability_HoldMelee) VGoalDir() Vector {
-	return Vector{e.field("m_vGoalDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vGoalDir")}
 }
 
 type CCitadel_Ability_Uppercut CEntityInstance
@@ -2992,202 +2990,202 @@ type CCitadel_Ability_Mirage_FireBeetles CEntityInstance
 
 type CCitadel_Ability_Mirage_Teleport CEntityInstance
 
-func (e CCitadel_Ability_Mirage_Teleport) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Mirage_Teleport", name, typ}
+func (e CCitadel_Ability_Mirage_Teleport) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Mirage_Teleport", name}
 }
 
 func (e CCitadel_Ability_Mirage_Teleport) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CCitadel_Ability_Mirage_Teleport) TTeleportCompletedTime() Number[float32] {
-	return Number[float32]{e.field("m_tTeleportCompletedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tTeleportCompletedTime")}
 }
 
 func (e CCitadel_Ability_Mirage_Teleport) VTargetPosition() Vector {
-	return Vector{e.field("m_vTargetPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vTargetPosition")}
 }
 
 func (e CCitadel_Ability_Mirage_Teleport) VTargetAngles() Angles {
-	return Angles{e.field("m_vTargetAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_vTargetAngles")}
 }
 
 type CCitadel_Ability_MobileResupply CEntityInstance
 
-func (e CCitadel_Ability_MobileResupply) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_MobileResupply", name, typ}
+func (e CCitadel_Ability_MobileResupply) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_MobileResupply", name}
 }
 
 func (e CCitadel_Ability_MobileResupply) VDeployPosition() Vector {
-	return Vector{e.field("m_vDeployPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDeployPosition")}
 }
 
 func (e CCitadel_Ability_MobileResupply) AngDeploy() Angles {
-	return Angles{e.field("m_angDeploy", mod.FieldTypeVector)}
+	return Angles{e.field("m_angDeploy")}
 }
 
 type CCitadel_Ability_NanoDash CEntityInstance
 
-func (e CCitadel_Ability_NanoDash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_NanoDash", name, typ}
+func (e CCitadel_Ability_NanoDash) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_NanoDash", name}
 }
 
 func (e CCitadel_Ability_NanoDash) VStartPosition() Vector {
-	return Vector{e.field("m_vStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPosition")}
 }
 
 func (e CCitadel_Ability_NanoDash) VEndPosition() Vector {
-	return Vector{e.field("m_vEndPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vEndPosition")}
 }
 
 func (e CCitadel_Ability_NanoDash) BIsDashing() Bool {
-	return Bool{e.field("m_bIsDashing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsDashing")}
 }
 
 func (e CCitadel_Ability_NanoDash) VecLastPosition() Vector {
-	return Vector{e.field("m_vecLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastPosition")}
 }
 
 func (e CCitadel_Ability_NanoDash) FlStuckTime() Number[float32] {
-	return Number[float32]{e.field("m_flStuckTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStuckTime")}
 }
 
 type CCitadel_Ability_Nano_CatForm CEntityInstance
 
-func (e CCitadel_Ability_Nano_CatForm) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Nano_CatForm", name, typ}
+func (e CCitadel_Ability_Nano_CatForm) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Nano_CatForm", name}
 }
 
 func (e CCitadel_Ability_Nano_CatForm) BIsInCatform() Bool {
-	return Bool{e.field("m_bIsInCatform", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsInCatform")}
 }
 
 func (e CCitadel_Ability_Nano_CatForm) FlLastDamageTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastDamageTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastDamageTime")}
 }
 
 func (e CCitadel_Ability_Nano_CatForm) FlTransformStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flTransformStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTransformStartTime")}
 }
 
 func (e CCitadel_Ability_Nano_CatForm) FlTransformEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flTransformEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTransformEndTime")}
 }
 
 func (e CCitadel_Ability_Nano_CatForm) FlStoredDamageAmp() Number[float32] {
-	return Number[float32]{e.field("m_flStoredDamageAmp", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStoredDamageAmp")}
 }
 
 type CCitadel_Ability_Nano_CatFormPounce CEntityInstance
 
 type CCitadel_Ability_Nano_ClusterGrenade CEntityInstance
 
-func (e CCitadel_Ability_Nano_ClusterGrenade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Nano_ClusterGrenade", name, typ}
+func (e CCitadel_Ability_Nano_ClusterGrenade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Nano_ClusterGrenade", name}
 }
 
 func (e CCitadel_Ability_Nano_ClusterGrenade) FlNextProjectileTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextProjectileTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextProjectileTime")}
 }
 
 type CCitadel_Ability_Nano_Pounce CEntityInstance
 
-func (e CCitadel_Ability_Nano_Pounce) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Nano_Pounce", name, typ}
+func (e CCitadel_Ability_Nano_Pounce) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Nano_Pounce", name}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) HCurrentTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hCurrentTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hCurrentTarget")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) HLastCastTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLastCastTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLastCastTarget")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) VStartPosition() Vector {
-	return Vector{e.field("m_vStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPosition")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) VDeparturePosition() Vector {
-	return Vector{e.field("m_vDeparturePosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDeparturePosition")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) VLastKnownSafePos() Vector {
-	return Vector{e.field("m_vLastKnownSafePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastKnownSafePos")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) BStartedPhase01() Bool {
-	return Bool{e.field("m_bStartedPhase01", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedPhase01")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) BStartedPhase02() Bool {
-	return Bool{e.field("m_bStartedPhase02", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedPhase02")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) BIsFirstCastCompleted() Bool {
-	return Bool{e.field("m_bIsFirstCastCompleted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsFirstCastCompleted")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) TDoubleCastWindow() Number[float32] {
-	return Number[float32]{e.field("m_tDoubleCastWindow", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tDoubleCastWindow")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce) CastStartParticle() Number[int32] {
-	return Number[int32]{e.field("m_CastStartParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_CastStartParticle")}
 }
 
 type CCitadel_Ability_Nano_Pounce_Instant CEntityInstance
 
-func (e CCitadel_Ability_Nano_Pounce_Instant) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Nano_Pounce_Instant", name, typ}
+func (e CCitadel_Ability_Nano_Pounce_Instant) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Nano_Pounce_Instant", name}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) HCurrentTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hCurrentTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hCurrentTarget")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) HLastCastTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLastCastTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLastCastTarget")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) VStartPosition() Vector {
-	return Vector{e.field("m_vStartPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartPosition")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) VDeparturePosition() Vector {
-	return Vector{e.field("m_vDeparturePosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDeparturePosition")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) VLastKnownSafePos() Vector {
-	return Vector{e.field("m_vLastKnownSafePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastKnownSafePos")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) BStartedPhase01() Bool {
-	return Bool{e.field("m_bStartedPhase01", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedPhase01")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) BStartedPhase02() Bool {
-	return Bool{e.field("m_bStartedPhase02", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedPhase02")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) BIsFirstCastCompleted() Bool {
-	return Bool{e.field("m_bIsFirstCastCompleted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsFirstCastCompleted")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) TDoubleCastWindow() Number[float32] {
-	return Number[float32]{e.field("m_tDoubleCastWindow", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tDoubleCastWindow")}
 }
 
 func (e CCitadel_Ability_Nano_Pounce_Instant) CastStartParticle() Number[int32] {
-	return Number[int32]{e.field("m_CastStartParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_CastStartParticle")}
 }
 
 type CCitadel_Ability_Nano_Shadow CEntityInstance
@@ -3196,88 +3194,88 @@ type CCitadel_Ability_Necro_Coffin CEntityInstance
 
 type CCitadel_Ability_Necro_Fear CEntityInstance
 
-func (e CCitadel_Ability_Necro_Fear) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_Fear", name, typ}
+func (e CCitadel_Ability_Necro_Fear) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_Fear", name}
 }
 
 func (e CCitadel_Ability_Necro_Fear) FlTotalBuildup() Number[float32] {
-	return Number[float32]{e.field("m_flTotalBuildup", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTotalBuildup")}
 }
 
 type CCitadel_Ability_Necro_GraveStone CEntityInstance
 
-func (e CCitadel_Ability_Necro_GraveStone) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_GraveStone", name, typ}
+func (e CCitadel_Ability_Necro_GraveStone) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_GraveStone", name}
 }
 
 func (e CCitadel_Ability_Necro_GraveStone) VCastPosition() Vector {
-	return Vector{e.field("m_vCastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vCastPosition")}
 }
 
 func (e CCitadel_Ability_Necro_GraveStone) QCastAngle() Angles {
-	return Angles{e.field("m_qCastAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qCastAngle")}
 }
 
 type CCitadel_Ability_Necro_HauntingSkull CEntityInstance
 
-func (e CCitadel_Ability_Necro_HauntingSkull) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_HauntingSkull", name, typ}
+func (e CCitadel_Ability_Necro_HauntingSkull) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_HauntingSkull", name}
 }
 
 func (e CCitadel_Ability_Necro_HauntingSkull) TPriorityTargetTime() Number[float32] {
-	return Number[float32]{e.field("m_tPriorityTargetTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tPriorityTargetTime")}
 }
 
 func (e CCitadel_Ability_Necro_HauntingSkull) ESkullPriorityTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_eSkullPriorityTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_eSkullPriorityTarget")}
 }
 
 func (e CCitadel_Ability_Necro_HauntingSkull) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Necro_HauntingSkull) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 func (e CCitadel_Ability_Necro_HauntingSkull) BIsFullyCharged() Bool {
-	return Bool{e.field("m_bIsFullyCharged", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsFullyCharged")}
 }
 
 type CCitadel_Ability_Necro_HauntingSpirits CEntityInstance
 
-func (e CCitadel_Ability_Necro_HauntingSpirits) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_HauntingSpirits", name, typ}
+func (e CCitadel_Ability_Necro_HauntingSpirits) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_HauntingSpirits", name}
 }
 
 func (e CCitadel_Ability_Necro_HauntingSpirits) NCastParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCastParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastParticleIndex")}
 }
 
 type CCitadel_Ability_Necro_KillSummon CEntityInstance
 
-func (e CCitadel_Ability_Necro_KillSummon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_KillSummon", name, typ}
+func (e CCitadel_Ability_Necro_KillSummon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_KillSummon", name}
 }
 
 func (e CCitadel_Ability_Necro_KillSummon) BIsInRecast() Bool {
-	return Bool{e.field("m_bIsInRecast", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsInRecast")}
 }
 
 func (e CCitadel_Ability_Necro_KillSummon) RecastEndTime() Number[float32] {
-	return Number[float32]{e.field("m_RecastEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_RecastEndTime")}
 }
 
 type CCitadel_Ability_Necro_NukeMap CEntityInstance
 
 type CCitadel_Ability_Necro_ZombieWall CEntityInstance
 
-func (e CCitadel_Ability_Necro_ZombieWall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_ZombieWall", name, typ}
+func (e CCitadel_Ability_Necro_ZombieWall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_ZombieWall", name}
 }
 
 func (e CCitadel_Ability_Necro_ZombieWall) TWallDeployFinishTime() Number[float32] {
-	return Number[float32]{e.field("m_tWallDeployFinishTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tWallDeployFinishTime")}
 }
 
 type CCitadel_Ability_Nikuman CEntityInstance
@@ -3292,98 +3290,98 @@ type CCitadel_Ability_Opera_Ability04 CEntityInstance
 
 type CCitadel_Ability_Operative_Blindside CEntityInstance
 
-func (e CCitadel_Ability_Operative_Blindside) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Operative_Blindside", name, typ}
+func (e CCitadel_Ability_Operative_Blindside) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Operative_Blindside", name}
 }
 
 func (e CCitadel_Ability_Operative_Blindside) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Operative_Blindside) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_PassiveBeefy CEntityInstance
 
-func (e CCitadel_Ability_PassiveBeefy) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PassiveBeefy", name, typ}
+func (e CCitadel_Ability_PassiveBeefy) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PassiveBeefy", name}
 }
 
 func (e CCitadel_Ability_PassiveBeefy) FlLastHealTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastHealTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastHealTime")}
 }
 
 func (e CCitadel_Ability_PassiveBeefy) FlTotalPendingHeal() Number[float32] {
-	return Number[float32]{e.field("m_flTotalPendingHeal", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTotalPendingHeal")}
 }
 
 type CCitadel_Ability_Perched_Predator CEntityInstance
 
-func (e CCitadel_Ability_Perched_Predator) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Perched_Predator", name, typ}
+func (e CCitadel_Ability_Perched_Predator) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Perched_Predator", name}
 }
 
 func (e CCitadel_Ability_Perched_Predator) HActiveProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hActiveProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hActiveProjectile")}
 }
 
 type CCitadel_Ability_PowerJump CEntityInstance
 
-func (e CCitadel_Ability_PowerJump) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PowerJump", name, typ}
+func (e CCitadel_Ability_PowerJump) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PowerJump", name}
 }
 
 func (e CCitadel_Ability_PowerJump) NTargetingParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nTargetingParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTargetingParticleIndex")}
 }
 
 func (e CCitadel_Ability_PowerJump) BAirRaiding() Bool {
-	return Bool{e.field("m_bAirRaiding", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAirRaiding")}
 }
 
 type CCitadel_Ability_PowerSurge CEntityInstance
 
-func (e CCitadel_Ability_PowerSurge) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PowerSurge", name, typ}
+func (e CCitadel_Ability_PowerSurge) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PowerSurge", name}
 }
 
 func (e CCitadel_Ability_PowerSurge) FlNextProcTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextProcTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextProcTime")}
 }
 
 func (e CCitadel_Ability_PowerSurge) FlBaseCooldown() Number[float32] {
-	return Number[float32]{e.field("m_flBaseCooldown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBaseCooldown")}
 }
 
 type CCitadel_Ability_Priest_AntiSpiritVest CEntityInstance
 
-func (e CCitadel_Ability_Priest_AntiSpiritVest) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Priest_AntiSpiritVest", name, typ}
+func (e CCitadel_Ability_Priest_AntiSpiritVest) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Priest_AntiSpiritVest", name}
 }
 
 func (e CCitadel_Ability_Priest_AntiSpiritVest) TBuffRechargeTime() Number[float32] {
-	return Number[float32]{e.field("m_tBuffRechargeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tBuffRechargeTime")}
 }
 
 type CCitadel_Ability_Priest_BearTrap CEntityInstance
 
 type CCitadel_Ability_Priest_Flashbang CEntityInstance
 
-func (e CCitadel_Ability_Priest_Flashbang) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Priest_Flashbang", name, typ}
+func (e CCitadel_Ability_Priest_Flashbang) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Priest_Flashbang", name}
 }
 
 func (e CCitadel_Ability_Priest_Flashbang) TInitialShotID() Number[uint32] {
-	return Number[uint32]{e.field("m_tInitialShotID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_tInitialShotID")}
 }
 
 func (e CCitadel_Ability_Priest_Flashbang) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Priest_Flashbang) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Priest_Knockback CEntityInstance
@@ -3392,288 +3390,288 @@ type CCitadel_Ability_Priest_SelfHeal CEntityInstance
 
 type CCitadel_Ability_Priest_SilenceBomb CEntityInstance
 
-func (e CCitadel_Ability_Priest_SilenceBomb) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Priest_SilenceBomb", name, typ}
+func (e CCitadel_Ability_Priest_SilenceBomb) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Priest_SilenceBomb", name}
 }
 
 func (e CCitadel_Ability_Priest_SilenceBomb) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Priest_SilenceBomb) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Priest_SmokeGrenade CEntityInstance
 
 type CCitadel_Ability_Priest_StackingDefense CEntityInstance
 
-func (e CCitadel_Ability_Priest_StackingDefense) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Priest_StackingDefense", name, typ}
+func (e CCitadel_Ability_Priest_StackingDefense) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Priest_StackingDefense", name}
 }
 
 func (e CCitadel_Ability_Priest_StackingDefense) FlMaxStacksBonusDamage() Number[float32] {
-	return Number[float32]{e.field("m_flMaxStacksBonusDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxStacksBonusDamage")}
 }
 
 type CCitadel_Ability_Priest_WeaponSwap CEntityInstance
 
-func (e CCitadel_Ability_Priest_WeaponSwap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Priest_WeaponSwap", name, typ}
+func (e CCitadel_Ability_Priest_WeaponSwap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Priest_WeaponSwap", name}
 }
 
 func (e CCitadel_Ability_Priest_WeaponSwap) HOriginalGun() Handle[CCitadelBaseAbility] {
-	return Handle[CCitadelBaseAbility]{e.field("m_hOriginalGun", mod.FieldTypeHandle)}
+	return Handle[CCitadelBaseAbility]{e.field("m_hOriginalGun")}
 }
 
 type CCitadel_Ability_PrimaryWeapon CEntityInstance
 
-func (e CCitadel_Ability_PrimaryWeapon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PrimaryWeapon", name, typ}
+func (e CCitadel_Ability_PrimaryWeapon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PrimaryWeapon", name}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlLastReloadStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastReloadStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastReloadStartTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlNextPrimaryAttack() Number[float32] {
-	return Number[float32]{e.field("m_flNextPrimaryAttack", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextPrimaryAttack")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlDelayedShotCreateTime() Number[float32] {
-	return Number[float32]{e.field("m_flDelayedShotCreateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDelayedShotCreateTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) IClip() Number[int32] {
-	return Number[int32]{e.field("m_iClip", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iClip")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) IBonusClip() Number[int32] {
-	return Number[int32]{e.field("m_iBonusClip", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBonusClip")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NNumContinuousShots() Number[int32] {
-	return Number[int32]{e.field("m_nNumContinuousShots", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNumContinuousShots")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlContinuousShotStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flContinuousShotStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flContinuousShotStartTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlSpreadPenalty() Number[float32] {
-	return Number[float32]{e.field("m_flSpreadPenalty", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpreadPenalty")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlZoomTime() Number[float32] {
-	return Number[float32]{e.field("m_flZoomTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZoomTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlZoomOutTime() Number[float32] {
-	return Number[float32]{e.field("m_flZoomOutTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZoomOutTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) ISpreadIndex() Number[int8] {
-	return Number[int8]{e.field("m_iSpreadIndex", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_iSpreadIndex")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NShotRecoilIndex() Number[int16] {
-	return Number[int16]{e.field("m_nShotRecoilIndex", mod.FieldTypeInt16)}
+	return Number[int16]{e.field("m_nShotRecoilIndex")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlNextShotRecoilRecoveryTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextShotRecoilRecoveryTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextShotRecoilRecoveryTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BIsZoomed() Bool {
-	return Bool{e.field("m_bIsZoomed", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsZoomed")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NBurstShotsRemaining() Number[uint8] {
-	return Number[uint8]{e.field("m_nBurstShotsRemaining", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nBurstShotsRemaining")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NShotNumber() Number[uint32] {
-	return Number[uint32]{e.field("m_nShotNumber", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nShotNumber")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BInReload() Bool {
-	return Bool{e.field("m_bInReload", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInReload")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BSingleShotReloadFirstBullet() Bool {
-	return Bool{e.field("m_bSingleShotReloadFirstBullet", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSingleShotReloadFirstBullet")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) ReloadQueuedStartTime() Number[float32] {
-	return Number[float32]{e.field("m_reloadQueuedStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_reloadQueuedStartTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlReloadAvailableTime() Number[float32] {
-	return Number[float32]{e.field("m_flReloadAvailableTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flReloadAvailableTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BCanActiveReload() Bool {
-	return Bool{e.field("m_bCanActiveReload", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanActiveReload")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlLastAttackTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastAttackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastAttackTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlNextAttackDelayStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextAttackDelayStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextAttackDelayStartTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlNextAttackDelayEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextAttackDelayEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextAttackDelayEndTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlAttackDelayPauseTotalTime() Number[float32] {
-	return Number[float32]{e.field("m_flAttackDelayPauseTotalTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttackDelayPauseTotalTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlAttackDelayPauseEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flAttackDelayPauseEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttackDelayPauseEndTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) ENextAttackDelayReason() Number[uint32] {
-	return Number[uint32]{e.field("m_eNextAttackDelayReason", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eNextAttackDelayReason")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BInputPressedWhileSelected() Bool {
-	return Bool{e.field("m_bInputPressedWhileSelected", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInputPressedWhileSelected")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) TFireOnReleaseHoldBeginTime() Number[float32] {
-	return Number[float32]{e.field("m_tFireOnReleaseHoldBeginTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tFireOnReleaseHoldBeginTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlShotChargeFrac() Number[float32] {
-	return Number[float32]{e.field("m_flShotChargeFrac", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flShotChargeFrac")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) EActiveFireMode() Number[uint32] {
-	return Number[uint32]{e.field("m_eActiveFireMode", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eActiveFireMode")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BPassiveFXActive() Bool {
-	return Bool{e.field("m_bPassiveFXActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPassiveFXActive")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlAmmoFrac() Number[float32] {
-	return Number[float32]{e.field("m_flAmmoFrac", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAmmoFrac")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BFiredRecently() Bool {
-	return Bool{e.field("m_bFiredRecently", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFiredRecently")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) AngRecoilAngles() Angles {
-	return Angles{e.field("m_angRecoilAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_angRecoilAngles")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) AngRecoilToAdd() Angles {
-	return Angles{e.field("m_angRecoilToAdd", mod.FieldTypeVector)}
+	return Angles{e.field("m_angRecoilToAdd")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) AngRecoilRecovery() Angles {
-	return Angles{e.field("m_angRecoilRecovery", mod.FieldTypeVector)}
+	return Angles{e.field("m_angRecoilRecovery")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlRecoilStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flRecoilStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRecoilStartTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlRecoilRecoverySpeed() Number[float32] {
-	return Number[float32]{e.field("m_flRecoilRecoverySpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRecoilRecoverySpeed")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlAddApproachSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flAddApproachSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAddApproachSpeed")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) CurrentSpread() Number[float32] {
-	return Number[float32]{e.field("m_currentSpread", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_currentSpread")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) CurrentMaxSpread() Number[float32] {
-	return Number[float32]{e.field("m_currentMaxSpread", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_currentMaxSpread")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) CurrentFireSpread() Number[float32] {
-	return Number[float32]{e.field("m_currentFireSpread", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_currentFireSpread")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlCurrentSpinRate() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentSpinRate", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentSpinRate")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BWasSpinningUp() Bool {
-	return Bool{e.field("m_bWasSpinningUp", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWasSpinningUp")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FFireDuration() Number[float32] {
-	return Number[float32]{e.field("m_fFireDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fFireDuration")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BPrimaryAttackHeld() Bool {
-	return Bool{e.field("m_bPrimaryAttackHeld", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPrimaryAttackHeld")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BFireOnEmpty() Bool {
-	return Bool{e.field("m_bFireOnEmpty", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFireOnEmpty")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BHasReleasedForFireOnRelease() Bool {
-	return Bool{e.field("m_bHasReleasedForFireOnRelease", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasReleasedForFireOnRelease")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BInputReleasedForFireOnRelease() Bool {
-	return Bool{e.field("m_bInputReleasedForFireOnRelease", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInputReleasedForFireOnRelease")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BChargedShotNeedsInputRelease() Bool {
-	return Bool{e.field("m_bChargedShotNeedsInputRelease", mod.FieldTypeBool)}
+	return Bool{e.field("m_bChargedShotNeedsInputRelease")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) EFireOnReleaseMode() Number[uint32] {
-	return Number[uint32]{e.field("m_eFireOnReleaseMode", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eFireOnReleaseMode")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) BZoomMispredicted() Bool {
-	return Bool{e.field("m_bZoomMispredicted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bZoomMispredicted")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlNextDisarmSound() Number[float32] {
-	return Number[float32]{e.field("m_flNextDisarmSound", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextDisarmSound")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NPrimaryMuzzleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nPrimaryMuzzleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPrimaryMuzzleIndex")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlPrimaryMuzzleResetTime() Number[float32] {
-	return Number[float32]{e.field("m_flPrimaryMuzzleResetTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPrimaryMuzzleResetTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NSecondaryMuzzleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nSecondaryMuzzleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSecondaryMuzzleIndex")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) FlSecondaryMuzzleResetTime() Number[float32] {
-	return Number[float32]{e.field("m_flSecondaryMuzzleResetTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSecondaryMuzzleResetTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NRandomStreak() Number[int32] {
-	return Number[int32]{e.field("m_nRandomStreak", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nRandomStreak")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NLastUsedMuzzleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nLastUsedMuzzleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastUsedMuzzleIndex")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon) NClipSizeBeforeSwap() Number[int32] {
-	return Number[int32]{e.field("m_nClipSizeBeforeSwap", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nClipSizeBeforeSwap")}
 }
 
 type CCitadel_Ability_Boho_PrimaryWeapon CEntityInstance
@@ -3684,28 +3682,28 @@ type CCitadel_Ability_Drifter_PrimaryWeapon CEntityInstance
 
 type CCitadel_Ability_Familiar_AltWeapon CEntityInstance
 
-func (e CCitadel_Ability_Familiar_AltWeapon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Familiar_AltWeapon", name, typ}
+func (e CCitadel_Ability_Familiar_AltWeapon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Familiar_AltWeapon", name}
 }
 
 func (e CCitadel_Ability_Familiar_AltWeapon) NAmmoToBeConsumedForChannel() Number[int16] {
-	return Number[int16]{e.field("m_nAmmoToBeConsumedForChannel", mod.FieldTypeInt16)}
+	return Number[int16]{e.field("m_nAmmoToBeConsumedForChannel")}
 }
 
 func (e CCitadel_Ability_Familiar_AltWeapon) BForceFiring() Bool {
-	return Bool{e.field("m_bForceFiring", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceFiring")}
 }
 
 type CCitadel_Ability_Familiar_PrimaryWeapon CEntityInstance
 
 type CCitadel_Ability_Fencer_PrimaryWeapon CEntityInstance
 
-func (e CCitadel_Ability_Fencer_PrimaryWeapon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Fencer_PrimaryWeapon", name, typ}
+func (e CCitadel_Ability_Fencer_PrimaryWeapon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Fencer_PrimaryWeapon", name}
 }
 
 func (e CCitadel_Ability_Fencer_PrimaryWeapon) ICurrentShotCount() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentShotCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentShotCount")}
 }
 
 type CCitadel_Ability_Fortuna_PrimaryWeapon CEntityInstance
@@ -3716,40 +3714,40 @@ type CCitadel_Ability_Nano_PrimaryWeapon CEntityInstance
 
 type CCitadel_Ability_Necro_PrimaryWeapon CEntityInstance
 
-func (e CCitadel_Ability_Necro_PrimaryWeapon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Necro_PrimaryWeapon", name, typ}
+func (e CCitadel_Ability_Necro_PrimaryWeapon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Necro_PrimaryWeapon", name}
 }
 
 func (e CCitadel_Ability_Necro_PrimaryWeapon) TTetherAttachTime() Number[float32] {
-	return Number[float32]{e.field("m_tTetherAttachTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tTetherAttachTime")}
 }
 
 func (e CCitadel_Ability_Necro_PrimaryWeapon) TTetherBreakTime() Number[float32] {
-	return Number[float32]{e.field("m_tTetherBreakTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tTetherBreakTime")}
 }
 
 func (e CCitadel_Ability_Necro_PrimaryWeapon) BHasTetherTarget() Bool {
-	return Bool{e.field("m_bHasTetherTarget", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasTetherTarget")}
 }
 
 type CCitadel_Ability_Priest_CrossbowWeapon CEntityInstance
 
 type CCitadel_Ability_PrimaryWeapon_Bebop CEntityInstance
 
-func (e CCitadel_Ability_PrimaryWeapon_Bebop) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PrimaryWeapon_Bebop", name, typ}
+func (e CCitadel_Ability_PrimaryWeapon_Bebop) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PrimaryWeapon_Bebop", name}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon_Bebop) FlStartWindUpTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartWindUpTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartWindUpTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon_Bebop) FlStartFiringTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartFiringTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartFiringTime")}
 }
 
 func (e CCitadel_Ability_PrimaryWeapon_Bebop) BFiring() Bool {
-	return Bool{e.field("m_bFiring", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFiring")}
 }
 
 type CCitadel_Ability_PrimaryWeapon_Cadence CEntityInstance
@@ -3770,12 +3768,12 @@ type CCitadel_Ability_SkyRunner_PrimaryWeapon CEntityInstance
 
 type CCitadel_Ability_Unicorn_PrimaryWeapon CEntityInstance
 
-func (e CCitadel_Ability_Unicorn_PrimaryWeapon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Unicorn_PrimaryWeapon", name, typ}
+func (e CCitadel_Ability_Unicorn_PrimaryWeapon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Unicorn_PrimaryWeapon", name}
 }
 
 func (e CCitadel_Ability_Unicorn_PrimaryWeapon) FlActivatePressTime() Number[float32] {
-	return Number[float32]{e.field("m_flActivatePressTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flActivatePressTime")}
 }
 
 type CCitadel_Ability_Werewolf_Rifle CEntityInstance
@@ -3786,130 +3784,130 @@ type CCitadel_Ability_Protection_Racket CEntityInstance
 
 type CCitadel_Ability_ProximityRitual CEntityInstance
 
-func (e CCitadel_Ability_ProximityRitual) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ProximityRitual", name, typ}
+func (e CCitadel_Ability_ProximityRitual) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ProximityRitual", name}
 }
 
 func (e CCitadel_Ability_ProximityRitual) EState() Number[uint8] {
-	return Number[uint8]{e.field("m_eState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eState")}
 }
 
 func (e CCitadel_Ability_ProximityRitual) HStatue() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hStatue", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hStatue")}
 }
 
 func (e CCitadel_Ability_ProximityRitual) TCatRecallTime() Number[float32] {
-	return Number[float32]{e.field("m_tCatRecallTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tCatRecallTime")}
 }
 
 func (e CCitadel_Ability_ProximityRitual) ICatRecallHealth() Number[int32] {
-	return Number[int32]{e.field("m_iCatRecallHealth", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCatRecallHealth")}
 }
 
 func (e CCitadel_Ability_ProximityRitual) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_ProximityRitual) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_PsychicLift CEntityInstance
 
-func (e CCitadel_Ability_PsychicLift) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PsychicLift", name, typ}
+func (e CCitadel_Ability_PsychicLift) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PsychicLift", name}
 }
 
 func (e CCitadel_Ability_PsychicLift) VLiftPosition() Vector {
-	return Vector{e.field("m_vLiftPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLiftPosition")}
 }
 
 func (e CCitadel_Ability_PsychicLift) VCrashPosition() Vector {
-	return Vector{e.field("m_vCrashPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vCrashPosition")}
 }
 
 type CCitadel_Ability_PunkGoat_Blasted CEntityInstance
 
-func (e CCitadel_Ability_PunkGoat_Blasted) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PunkGoat_Blasted", name, typ}
+func (e CCitadel_Ability_PunkGoat_Blasted) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PunkGoat_Blasted", name}
 }
 
 func (e CCitadel_Ability_PunkGoat_Blasted) TTimeOfLastBulletHit() Number[float32] {
-	return Number[float32]{e.field("m_tTimeOfLastBulletHit", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tTimeOfLastBulletHit")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Blasted) FlPendingBlastedTimeToAdd() Number[float32] {
-	return Number[float32]{e.field("m_flPendingBlastedTimeToAdd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPendingBlastedTimeToAdd")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Blasted) FlDeferredHealingFromBlasted() Number[float32] {
-	return Number[float32]{e.field("m_flDeferredHealingFromBlasted", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDeferredHealingFromBlasted")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Blasted) FlBlastedCurrentDuration() Number[float32] {
-	return Number[float32]{e.field("m_flBlastedCurrentDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBlastedCurrentDuration")}
 }
 
 type CCitadel_Ability_PunkGoat_GoatFlip CEntityInstance
 
-func (e CCitadel_Ability_PunkGoat_GoatFlip) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PunkGoat_GoatFlip", name, typ}
+func (e CCitadel_Ability_PunkGoat_GoatFlip) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PunkGoat_GoatFlip", name}
 }
 
 func (e CCitadel_Ability_PunkGoat_GoatFlip) EState() Number[uint8] {
-	return Number[uint8]{e.field("m_eState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eState")}
 }
 
 func (e CCitadel_Ability_PunkGoat_GoatFlip) TStateStartTime() Number[float32] {
-	return Number[float32]{e.field("m_tStateStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tStateStartTime")}
 }
 
 func (e CCitadel_Ability_PunkGoat_GoatFlip) FlGoingUpTargetElevation() Number[float32] {
-	return Number[float32]{e.field("m_flGoingUpTargetElevation", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGoingUpTargetElevation")}
 }
 
 func (e CCitadel_Ability_PunkGoat_GoatFlip) FlGoingUpStartElevation() Number[float32] {
-	return Number[float32]{e.field("m_flGoingUpStartElevation", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGoingUpStartElevation")}
 }
 
 type CCitadel_Ability_PunkGoat_Tether CEntityInstance
 
-func (e CCitadel_Ability_PunkGoat_Tether) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PunkGoat_Tether", name, typ}
+func (e CCitadel_Ability_PunkGoat_Tether) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PunkGoat_Tether", name}
 }
 
 func (e CCitadel_Ability_PunkGoat_Tether) TTetherEndTime() Number[float32] {
-	return Number[float32]{e.field("m_tTetherEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tTetherEndTime")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Tether) BTetheringActive() Bool {
-	return Bool{e.field("m_bTetheringActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTetheringActive")}
 }
 
 type CCitadel_Ability_PunkGoat_Ult CEntityInstance
 
-func (e CCitadel_Ability_PunkGoat_Ult) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_PunkGoat_Ult", name, typ}
+func (e CCitadel_Ability_PunkGoat_Ult) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_PunkGoat_Ult", name}
 }
 
 func (e CCitadel_Ability_PunkGoat_Ult) NBatChargingFX() Number[int32] {
-	return Number[int32]{e.field("m_nBatChargingFX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBatChargingFX")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Ult) NSlamTravelType() Number[uint8] {
-	return Number[uint8]{e.field("m_nSlamTravelType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nSlamTravelType")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Ult) FlDistanceToTravel() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceToTravel", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceToTravel")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Ult) BHoldingAbilityButton() Bool {
-	return Bool{e.field("m_bHoldingAbilityButton", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHoldingAbilityButton")}
 }
 
 func (e CCitadel_Ability_PunkGoat_Ult) BFirstFrameGoingDown() Bool {
-	return Bool{e.field("m_bFirstFrameGoingDown", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstFrameGoingDown")}
 }
 
 type CCitadel_Ability_RapidFire CEntityInstance
@@ -3920,134 +3918,134 @@ type CCitadel_Ability_RatKing_RatNibble CEntityInstance
 
 type CCitadel_Ability_Ratking_EnterTunnel CEntityInstance
 
-func (e CCitadel_Ability_Ratking_EnterTunnel) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Ratking_EnterTunnel", name, typ}
+func (e CCitadel_Ability_Ratking_EnterTunnel) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Ratking_EnterTunnel", name}
 }
 
 func (e CCitadel_Ability_Ratking_EnterTunnel) VStartingPositionSpringVelocity() Vector {
-	return Vector{e.field("m_vStartingPositionSpringVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStartingPositionSpringVelocity")}
 }
 
 func (e CCitadel_Ability_Ratking_EnterTunnel) HPushedFakeWall() Handle[CCitadelPassthroughFakeWall] {
-	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWall", mod.FieldTypeHandle)}
+	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWall")}
 }
 
 func (e CCitadel_Ability_Ratking_EnterTunnel) HPushedFakeWallLastThink() Handle[CCitadelPassthroughFakeWall] {
-	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWallLastThink", mod.FieldTypeHandle)}
+	return Handle[CCitadelPassthroughFakeWall]{e.field("m_hPushedFakeWallLastThink")}
 }
 
 type CCitadel_Ability_Ratking_ScrapGrenade CEntityInstance
 
 type CCitadel_Ability_Ratking_StandardBearer CEntityInstance
 
-func (e CCitadel_Ability_Ratking_StandardBearer) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Ratking_StandardBearer", name, typ}
+func (e CCitadel_Ability_Ratking_StandardBearer) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Ratking_StandardBearer", name}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlForcedPlantTime() Number[float32] {
-	return Number[float32]{e.field("m_flForcedPlantTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flForcedPlantTime")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlChargeResumeTime() Number[float32] {
-	return Number[float32]{e.field("m_flChargeResumeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeResumeTime")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlChargeStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flChargeStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeStartTime")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) EPlantLeapPhase() Number[uint8] {
-	return Number[uint8]{e.field("m_ePlantLeapPhase", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_ePlantLeapPhase")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlPlantLeapPhaseStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flPlantLeapPhaseStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlantLeapPhaseStartTime")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlPlantLeapPhaseElapsedAtPause() Number[float32] {
-	return Number[float32]{e.field("m_flPlantLeapPhaseElapsedAtPause", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlantLeapPhaseElapsedAtPause")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) BLeapLanded() Bool {
-	return Bool{e.field("m_bLeapLanded", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLeapLanded")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) VPlantDir() Vector {
-	return Vector{e.field("m_vPlantDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPlantDir")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) BFirstTick() Bool {
-	return Bool{e.field("m_bFirstTick", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstTick")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) VGoalDir() Vector {
-	return Vector{e.field("m_vGoalDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vGoalDir")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlCurrentChargeSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentChargeSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentChargeSpeed")}
 }
 
 func (e CCitadel_Ability_Ratking_StandardBearer) FlChargeStartSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flChargeStartSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChargeStartSpeed")}
 }
 
 type CCitadel_Ability_RestorativeGoo CEntityInstance
 
-func (e CCitadel_Ability_RestorativeGoo) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_RestorativeGoo", name, typ}
+func (e CCitadel_Ability_RestorativeGoo) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_RestorativeGoo", name}
 }
 
 func (e CCitadel_Ability_RestorativeGoo) FlSelfCastEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flSelfCastEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSelfCastEndTime")}
 }
 
 type CCitadel_Ability_RiotProtocol CEntityInstance
 
-func (e CCitadel_Ability_RiotProtocol) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_RiotProtocol", name, typ}
+func (e CCitadel_Ability_RiotProtocol) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_RiotProtocol", name}
 }
 
 func (e CCitadel_Ability_RiotProtocol) ChargeUpParticle() Number[int32] {
-	return Number[int32]{e.field("m_ChargeUpParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ChargeUpParticle")}
 }
 
 func (e CCitadel_Ability_RiotProtocol) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 type CCitadel_Ability_RocketBarrage CEntityInstance
 
-func (e CCitadel_Ability_RocketBarrage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_RocketBarrage", name, typ}
+func (e CCitadel_Ability_RocketBarrage) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_RocketBarrage", name}
 }
 
 func (e CCitadel_Ability_RocketBarrage) FlCurrentTimeScale() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentTimeScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentTimeScale")}
 }
 
 func (e CCitadel_Ability_RocketBarrage) VecAimPos() Vector {
-	return Vector{e.field("m_vecAimPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAimPos")}
 }
 
 func (e CCitadel_Ability_RocketBarrage) VecAimVel() Vector {
-	return Vector{e.field("m_vecAimVel", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAimVel")}
 }
 
 func (e CCitadel_Ability_RocketBarrage) FlLastUpdateTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastUpdateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastUpdateTime")}
 }
 
 type CCitadel_Ability_RocketLauncher CEntityInstance
 
 type CCitadel_Ability_Rolling_FireBall CEntityInstance
 
-func (e CCitadel_Ability_Rolling_FireBall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Rolling_FireBall", name, typ}
+func (e CCitadel_Ability_Rolling_FireBall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Rolling_FireBall", name}
 }
 
 func (e CCitadel_Ability_Rolling_FireBall) HActiveProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hActiveProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hActiveProjectile")}
 }
 
 type CCitadel_Ability_Rutger_Pulse CEntityInstance
@@ -4056,32 +4054,32 @@ type CCitadel_Ability_SelfVacuum CEntityInstance
 
 type CCitadel_Ability_SettingSun CEntityInstance
 
-func (e CCitadel_Ability_SettingSun) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_SettingSun", name, typ}
+func (e CCitadel_Ability_SettingSun) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_SettingSun", name}
 }
 
 func (e CCitadel_Ability_SettingSun) BProjectileActive() Bool {
-	return Bool{e.field("m_bProjectileActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bProjectileActive")}
 }
 
 func (e CCitadel_Ability_SettingSun) BWasSelected() Bool {
-	return Bool{e.field("m_bWasSelected", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWasSelected")}
 }
 
 type CCitadel_Ability_ShadowPulse CEntityInstance
 
 type CCitadel_Ability_Shakedown_Target CEntityInstance
 
-func (e CCitadel_Ability_Shakedown_Target) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Shakedown_Target", name, typ}
+func (e CCitadel_Ability_Shakedown_Target) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Shakedown_Target", name}
 }
 
 func (e CCitadel_Ability_Shakedown_Target) HShadowdownAbility() Handle[CCitadel_Ability_Yakuza_Shakedown] {
-	return Handle[CCitadel_Ability_Yakuza_Shakedown]{e.field("m_hShadowdownAbility", mod.FieldTypeHandle)}
+	return Handle[CCitadel_Ability_Yakuza_Shakedown]{e.field("m_hShadowdownAbility")}
 }
 
 func (e CCitadel_Ability_Shakedown_Target) AimPos() Vector {
-	return Vector{e.field("m_AimPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_AimPos")}
 }
 
 type CCitadel_Ability_ShieldGuy_Ability01 CEntityInstance
@@ -4100,46 +4098,46 @@ type CCitadel_Ability_SkyRunner_FlakShot CEntityInstance
 
 type CCitadel_Ability_SkyRunner_SwingLine CEntityInstance
 
-func (e CCitadel_Ability_SkyRunner_SwingLine) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_SkyRunner_SwingLine", name, typ}
+func (e CCitadel_Ability_SkyRunner_SwingLine) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_SkyRunner_SwingLine", name}
 }
 
 func (e CCitadel_Ability_SkyRunner_SwingLine) ESwingState() Number[uint8] {
-	return Number[uint8]{e.field("m_eSwingState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eSwingState")}
 }
 
 func (e CCitadel_Ability_SkyRunner_SwingLine) SwingStartTime() Number[float32] {
-	return Number[float32]{e.field("m_SwingStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_SwingStartTime")}
 }
 
 func (e CCitadel_Ability_SkyRunner_SwingLine) SwingEndTime() Number[float32] {
-	return Number[float32]{e.field("m_SwingEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_SwingEndTime")}
 }
 
 func (e CCitadel_Ability_SkyRunner_SwingLine) VecSwingPoint() Vector {
-	return Vector{e.field("m_vecSwingPoint", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecSwingPoint")}
 }
 
 func (e CCitadel_Ability_SkyRunner_SwingLine) VecCurrentPosition() Vector {
-	return Vector{e.field("m_vecCurrentPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCurrentPosition")}
 }
 
 func (e CCitadel_Ability_SkyRunner_SwingLine) FlIdealSpringLength() Number[float32] {
-	return Number[float32]{e.field("m_flIdealSpringLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flIdealSpringLength")}
 }
 
 type CCitadel_Ability_Skyrunner_MagicBeam CEntityInstance
 
-func (e CCitadel_Ability_Skyrunner_MagicBeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Skyrunner_MagicBeam", name, typ}
+func (e CCitadel_Ability_Skyrunner_MagicBeam) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Skyrunner_MagicBeam", name}
 }
 
 func (e CCitadel_Ability_Skyrunner_MagicBeam) VCastPosition() Vector {
-	return Vector{e.field("m_vCastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vCastPosition")}
 }
 
 func (e CCitadel_Ability_Skyrunner_MagicBeam) QCastAngle() Angles {
-	return Angles{e.field("m_qCastAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qCastAngle")}
 }
 
 type CCitadel_Ability_SleepBomb CEntityInstance
@@ -4148,76 +4146,76 @@ type CCitadel_Ability_SleepDagger CEntityInstance
 
 type CCitadel_Ability_Slide CEntityInstance
 
-func (e CCitadel_Ability_Slide) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Slide", name, typ}
+func (e CCitadel_Ability_Slide) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Slide", name}
 }
 
 func (e CCitadel_Ability_Slide) FlSlowGetupStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flSlowGetupStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSlowGetupStartTime")}
 }
 
 func (e CCitadel_Ability_Slide) BShouldTriggerSlowGetup() Bool {
-	return Bool{e.field("m_bShouldTriggerSlowGetup", mod.FieldTypeBool)}
+	return Bool{e.field("m_bShouldTriggerSlowGetup")}
 }
 
 func (e CCitadel_Ability_Slide) BWantsSlide() Bool {
-	return Bool{e.field("m_bWantsSlide", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWantsSlide")}
 }
 
 func (e CCitadel_Ability_Slide) BAirborneWhenDuckPressed() Bool {
-	return Bool{e.field("m_bAirborneWhenDuckPressed", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAirborneWhenDuckPressed")}
 }
 
 func (e CCitadel_Ability_Slide) BIsSliding() Bool {
-	return Bool{e.field("m_bIsSliding", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsSliding")}
 }
 
 func (e CCitadel_Ability_Slide) BSlideIsSticky() Bool {
-	return Bool{e.field("m_bSlideIsSticky", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSlideIsSticky")}
 }
 
 func (e CCitadel_Ability_Slide) FlSpeedAdjust() Number[float32] {
-	return Number[float32]{e.field("m_flSpeedAdjust", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeedAdjust")}
 }
 
 func (e CCitadel_Ability_Slide) FlDuckPressedTime() Number[float32] {
-	return Number[float32]{e.field("m_flDuckPressedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDuckPressedTime")}
 }
 
 func (e CCitadel_Ability_Slide) FlSlideChangeTime() Number[float32] {
-	return Number[float32]{e.field("m_flSlideChangeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSlideChangeTime")}
 }
 
 func (e CCitadel_Ability_Slide) FlSlidingOnFlatStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flSlidingOnFlatStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSlidingOnFlatStartTime")}
 }
 
 func (e CCitadel_Ability_Slide) NJumpsThisSlideSession() Number[int32] {
-	return Number[int32]{e.field("m_nJumpsThisSlideSession", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nJumpsThisSlideSession")}
 }
 
 func (e CCitadel_Ability_Slide) FlOnGroundStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flOnGroundStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOnGroundStartTime")}
 }
 
 func (e CCitadel_Ability_Slide) FlDashSlideStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flDashSlideStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDashSlideStartTime")}
 }
 
 func (e CCitadel_Ability_Slide) BStartedSlideViaProbeSlope() Bool {
-	return Bool{e.field("m_bStartedSlideViaProbeSlope", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartedSlideViaProbeSlope")}
 }
 
 func (e CCitadel_Ability_Slide) NForcedAllowRestartSlideTick() Number[int32] {
-	return Number[int32]{e.field("m_nForcedAllowRestartSlideTick", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nForcedAllowRestartSlideTick")}
 }
 
 func (e CCitadel_Ability_Slide) UnHeroID() Number[uint32] {
-	return Number[uint32]{e.field("m_unHeroID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_unHeroID")}
 }
 
 func (e CCitadel_Ability_Slide) NSlideEffectIndex() Number[int32] {
-	return Number[int32]{e.field("m_nSlideEffectIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSlideEffectIndex")}
 }
 
 type CCitadel_Ability_SmokeBomb CEntityInstance
@@ -4228,34 +4226,34 @@ type CCitadel_Ability_SpiderShield CEntityInstance
 
 type CCitadel_Ability_Spinning_Blade CEntityInstance
 
-func (e CCitadel_Ability_Spinning_Blade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Spinning_Blade", name, typ}
+func (e CCitadel_Ability_Spinning_Blade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Spinning_Blade", name}
 }
 
 func (e CCitadel_Ability_Spinning_Blade) HActiveProjectile() Handle[CCitadelProjectile] {
-	return Handle[CCitadelProjectile]{e.field("m_hActiveProjectile", mod.FieldTypeHandle)}
+	return Handle[CCitadelProjectile]{e.field("m_hActiveProjectile")}
 }
 
 type CCitadel_Ability_Sprint CEntityInstance
 
-func (e CCitadel_Ability_Sprint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Sprint", name, typ}
+func (e CCitadel_Ability_Sprint) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Sprint", name}
 }
 
 func (e CCitadel_Ability_Sprint) NSprintParticle() Number[int32] {
-	return Number[int32]{e.field("m_nSprintParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSprintParticle")}
 }
 
 func (e CCitadel_Ability_Sprint) BSprinting() Bool {
-	return Bool{e.field("m_bSprinting", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSprinting")}
 }
 
 func (e CCitadel_Ability_Sprint) FlSprintStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flSprintStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSprintStartTime")}
 }
 
 func (e CCitadel_Ability_Sprint) BInCombat() Bool {
-	return Bool{e.field("m_bInCombat", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInCombat")}
 }
 
 type CCitadel_Ability_StaticCharge CEntityInstance
@@ -4264,100 +4262,100 @@ type CCitadel_Ability_StaticCharge_V2 CEntityInstance
 
 type CCitadel_Ability_StickyBomb CEntityInstance
 
-func (e CCitadel_Ability_StickyBomb) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_StickyBomb", name, typ}
+func (e CCitadel_Ability_StickyBomb) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_StickyBomb", name}
 }
 
 func (e CCitadel_Ability_StickyBomb) HAutoTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAutoTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAutoTarget")}
 }
 
 func (e CCitadel_Ability_StickyBomb) FlHookEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flHookEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHookEndTime")}
 }
 
 func (e CCitadel_Ability_StickyBomb) FlBombBonusHits() Number[float32] {
-	return Number[float32]{e.field("m_flBombBonusHits", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBombBonusHits")}
 }
 
 func (e CCitadel_Ability_StickyBomb) FlBombBonusKills() Number[float32] {
-	return Number[float32]{e.field("m_flBombBonusKills", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBombBonusKills")}
 }
 
 type CCitadel_Ability_Stomp CEntityInstance
 
-func (e CCitadel_Ability_Stomp) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Stomp", name, typ}
+func (e CCitadel_Ability_Stomp) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Stomp", name}
 }
 
 func (e CCitadel_Ability_Stomp) VStompPos() Vector {
-	return Vector{e.field("m_vStompPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStompPos")}
 }
 
 func (e CCitadel_Ability_Stomp) VStompDir() Vector {
-	return Vector{e.field("m_vStompDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStompDir")}
 }
 
 type CCitadel_Ability_StormCloud CEntityInstance
 
-func (e CCitadel_Ability_StormCloud) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_StormCloud", name, typ}
+func (e CCitadel_Ability_StormCloud) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_StormCloud", name}
 }
 
 func (e CCitadel_Ability_StormCloud) NTargetingParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nTargetingParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTargetingParticleIndex")}
 }
 
 func (e CCitadel_Ability_StormCloud) FlFloat() Number[float32] {
-	return Number[float32]{e.field("m_flFloat", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFloat")}
 }
 
 func (e CCitadel_Ability_StormCloud) NLightningStrikesRemaining() Number[int32] {
-	return Number[int32]{e.field("m_nLightningStrikesRemaining", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLightningStrikesRemaining")}
 }
 
 type CCitadel_Ability_SummonGangster CEntityInstance
 
 type CCitadel_Ability_SuperNeutralCharge CEntityInstance
 
-func (e CCitadel_Ability_SuperNeutralCharge) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_SuperNeutralCharge", name, typ}
+func (e CCitadel_Ability_SuperNeutralCharge) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_SuperNeutralCharge", name}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) BPreparing() Bool {
-	return Bool{e.field("m_bPreparing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPreparing")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) BTackling() Bool {
-	return Bool{e.field("m_bTackling", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTackling")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) FlTackleStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flTackleStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTackleStartTime")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) FlTackleDuration() Number[float32] {
-	return Number[float32]{e.field("m_flTackleDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTackleDuration")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) VecTackleDir() Vector {
-	return Vector{e.field("m_vecTackleDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecTackleDir")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) VecLastPosition() Vector {
-	return Vector{e.field("m_vecLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastPosition")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) NStuckFramesCount() Number[int32] {
-	return Number[int32]{e.field("m_nStuckFramesCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStuckFramesCount")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) FlPrepareStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flPrepareStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPrepareStartTime")}
 }
 
 func (e CCitadel_Ability_SuperNeutralCharge) NDistancePreview() Number[int32] {
-	return Number[int32]{e.field("m_nDistancePreview", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDistancePreview")}
 }
 
 type CCitadel_Ability_Swan_Ability04 CEntityInstance
@@ -4370,68 +4368,68 @@ type CCitadel_Ability_Swan_Leap CEntityInstance
 
 type CCitadel_Ability_TangoTether CEntityInstance
 
-func (e CCitadel_Ability_TangoTether) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_TangoTether", name, typ}
+func (e CCitadel_Ability_TangoTether) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_TangoTether", name}
 }
 
 func (e CCitadel_Ability_TangoTether) ITargetPosIndex() Number[int32] {
-	return Number[int32]{e.field("m_iTargetPosIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTargetPosIndex")}
 }
 
 func (e CCitadel_Ability_TangoTether) HLockOnTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLockOnTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLockOnTarget")}
 }
 
 func (e CCitadel_Ability_TangoTether) VecCastStartPos() Vector {
-	return Vector{e.field("m_vecCastStartPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCastStartPos")}
 }
 
 func (e CCitadel_Ability_TangoTether) VecDashStartPos() Vector {
-	return Vector{e.field("m_vecDashStartPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecDashStartPos")}
 }
 
 func (e CCitadel_Ability_TangoTether) VecDashEndPos() Vector {
-	return Vector{e.field("m_vecDashEndPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecDashEndPos")}
 }
 
 func (e CCitadel_Ability_TangoTether) AngDashStartAng() Angles {
-	return Angles{e.field("m_angDashStartAng", mod.FieldTypeVector)}
+	return Angles{e.field("m_angDashStartAng")}
 }
 
 func (e CCitadel_Ability_TangoTether) FlDashStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flDashStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDashStartTime")}
 }
 
 func (e CCitadel_Ability_TangoTether) FlGrappleStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flGrappleStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGrappleStartTime")}
 }
 
 func (e CCitadel_Ability_TangoTether) FlGrappleArriveTime() Number[float32] {
-	return Number[float32]{e.field("m_flGrappleArriveTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGrappleArriveTime")}
 }
 
 func (e CCitadel_Ability_TangoTether) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CCitadel_Ability_TangoTether) FlVelSpring() Number[float32] {
-	return Number[float32]{e.field("m_flVelSpring", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flVelSpring")}
 }
 
 func (e CCitadel_Ability_TangoTether) FlGrappleShotAttackTime() Number[float32] {
-	return Number[float32]{e.field("m_flGrappleShotAttackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGrappleShotAttackTime")}
 }
 
 func (e CCitadel_Ability_TangoTether) NTicksNotMoving() Number[int32] {
-	return Number[int32]{e.field("m_nTicksNotMoving", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTicksNotMoving")}
 }
 
 func (e CCitadel_Ability_TangoTether) VecPrevPos() Vector {
-	return Vector{e.field("m_vecPrevPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecPrevPos")}
 }
 
 func (e CCitadel_Ability_TangoTether) NGrappleTravelEffect() Number[int32] {
-	return Number[int32]{e.field("m_nGrappleTravelEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGrappleTravelEffect")}
 }
 
 type CCitadel_Ability_Targetdummy_1 CEntityInstance
@@ -4444,20 +4442,20 @@ type CCitadel_Ability_Targetdummy_4 CEntityInstance
 
 type CCitadel_Ability_Teleport CEntityInstance
 
-func (e CCitadel_Ability_Teleport) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Teleport", name, typ}
+func (e CCitadel_Ability_Teleport) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Teleport", name}
 }
 
 func (e CCitadel_Ability_Teleport) BTeleportingToTarget() Bool {
-	return Bool{e.field("m_bTeleportingToTarget", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTeleportingToTarget")}
 }
 
 func (e CCitadel_Ability_Teleport) VTargetPosition() Vector {
-	return Vector{e.field("m_vTargetPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vTargetPosition")}
 }
 
 func (e CCitadel_Ability_Teleport) VTargetAngles() Angles {
-	return Angles{e.field("m_vTargetAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_vTargetAngles")}
 }
 
 type CCitadel_Ability_TeleportToGangster CEntityInstance
@@ -4466,80 +4464,80 @@ type CCitadel_Ability_Tenacity CEntityInstance
 
 type CCitadel_Ability_Tengu_AirLift CEntityInstance
 
-func (e CCitadel_Ability_Tengu_AirLift) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tengu_AirLift", name, typ}
+func (e CCitadel_Ability_Tengu_AirLift) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tengu_AirLift", name}
 }
 
 func (e CCitadel_Ability_Tengu_AirLift) HGrabTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hGrabTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hGrabTarget")}
 }
 
 func (e CCitadel_Ability_Tengu_AirLift) NHoldBombEffect() Number[int32] {
-	return Number[int32]{e.field("m_nHoldBombEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nHoldBombEffect")}
 }
 
 func (e CCitadel_Ability_Tengu_AirLift) EFlightState() Number[uint8] {
-	return Number[uint8]{e.field("m_eFlightState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eFlightState")}
 }
 
 func (e CCitadel_Ability_Tengu_AirLift) BIsGrabbing() Bool {
-	return Bool{e.field("m_bIsGrabbing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsGrabbing")}
 }
 
 func (e CCitadel_Ability_Tengu_AirLift) BIsHoldingBomb() Bool {
-	return Bool{e.field("m_bIsHoldingBomb", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsHoldingBomb")}
 }
 
 func (e CCitadel_Ability_Tengu_AirLift) FlCurrentSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentSpeed")}
 }
 
 type CCitadel_Ability_Tengu_StoneForm CEntityInstance
 
-func (e CCitadel_Ability_Tengu_StoneForm) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tengu_StoneForm", name, typ}
+func (e CCitadel_Ability_Tengu_StoneForm) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tengu_StoneForm", name}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) FlStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartTime")}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) FlLandedTime() Number[float32] {
-	return Number[float32]{e.field("m_flLandedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLandedTime")}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) BLanded() Bool {
-	return Bool{e.field("m_bLanded", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLanded")}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) BFalling() Bool {
-	return Bool{e.field("m_bFalling", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFalling")}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) BInStoneForm() Bool {
-	return Bool{e.field("m_bInStoneForm", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInStoneForm")}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) FlStartHeight() Number[float32] {
-	return Number[float32]{e.field("m_flStartHeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartHeight")}
 }
 
 func (e CCitadel_Ability_Tengu_StoneForm) NStoneFormEffect() Number[int32] {
-	return Number[int32]{e.field("m_nStoneFormEffect", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStoneFormEffect")}
 }
 
 type CCitadel_Ability_Tengu_Urn CEntityInstance
 
-func (e CCitadel_Ability_Tengu_Urn) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Tengu_Urn", name, typ}
+func (e CCitadel_Ability_Tengu_Urn) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Tengu_Urn", name}
 }
 
 func (e CCitadel_Ability_Tengu_Urn) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Tengu_Urn) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_TestHero_Ability04 CEntityInstance
@@ -4548,12 +4546,12 @@ type CCitadel_Ability_TestHero_FearTarget CEntityInstance
 
 type CCitadel_Ability_TestHero_StanceSwitch CEntityInstance
 
-func (e CCitadel_Ability_TestHero_StanceSwitch) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_TestHero_StanceSwitch", name, typ}
+func (e CCitadel_Ability_TestHero_StanceSwitch) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_TestHero_StanceSwitch", name}
 }
 
 func (e CCitadel_Ability_TestHero_StanceSwitch) BStanceActive() Bool {
-	return Bool{e.field("m_bStanceActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStanceActive")}
 }
 
 type CCitadel_Ability_TestHero_Stance_Bow CEntityInstance
@@ -4562,78 +4560,78 @@ type CCitadel_Ability_TestHero_Stance_Spaceman CEntityInstance
 
 type CCitadel_Ability_TestHero_SummonCannon CEntityInstance
 
-func (e CCitadel_Ability_TestHero_SummonCannon) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_TestHero_SummonCannon", name, typ}
+func (e CCitadel_Ability_TestHero_SummonCannon) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_TestHero_SummonCannon", name}
 }
 
 func (e CCitadel_Ability_TestHero_SummonCannon) BCannonPending() Bool {
-	return Bool{e.field("m_bCannonPending", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCannonPending")}
 }
 
 func (e CCitadel_Ability_TestHero_SummonCannon) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_TestHero_SummonCannon) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_TestHero_SummonSoldier CEntityInstance
 
 type CCitadel_Ability_TestHero_WallCling CEntityInstance
 
-func (e CCitadel_Ability_TestHero_WallCling) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_TestHero_WallCling", name, typ}
+func (e CCitadel_Ability_TestHero_WallCling) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_TestHero_WallCling", name}
 }
 
 func (e CCitadel_Ability_TestHero_WallCling) VecWallClingNormal() Vector {
-	return Vector{e.field("m_vecWallClingNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecWallClingNormal")}
 }
 
 func (e CCitadel_Ability_TestHero_WallCling) VecWallPosition() Vector {
-	return Vector{e.field("m_vecWallPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecWallPosition")}
 }
 
 func (e CCitadel_Ability_TestHero_WallCling) VecLastVelocity() Vector {
-	return Vector{e.field("m_vecLastVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecLastVelocity")}
 }
 
 type CCitadel_Ability_ThrowSand CEntityInstance
 
 type CCitadel_Ability_Thumper_1 CEntityInstance
 
-func (e CCitadel_Ability_Thumper_1) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Thumper_1", name, typ}
+func (e CCitadel_Ability_Thumper_1) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Thumper_1", name}
 }
 
 func (e CCitadel_Ability_Thumper_1) VecAimPos() Vector {
-	return Vector{e.field("m_vecAimPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAimPos")}
 }
 
 func (e CCitadel_Ability_Thumper_1) VecAimNormal() Vector {
-	return Vector{e.field("m_vecAimNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAimNormal")}
 }
 
 func (e CCitadel_Ability_Thumper_1) FlPushForce() Number[float32] {
-	return Number[float32]{e.field("m_flPushForce", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPushForce")}
 }
 
 type CCitadel_Ability_Thumper_2 CEntityInstance
 
-func (e CCitadel_Ability_Thumper_2) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Thumper_2", name, typ}
+func (e CCitadel_Ability_Thumper_2) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Thumper_2", name}
 }
 
 func (e CCitadel_Ability_Thumper_2) VStompPos() Vector {
-	return Vector{e.field("m_vStompPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStompPos")}
 }
 
 func (e CCitadel_Ability_Thumper_2) VStompDir() Vector {
-	return Vector{e.field("m_vStompDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vStompDir")}
 }
 
 func (e CCitadel_Ability_Thumper_2) NStomps() Number[int32] {
-	return Number[int32]{e.field("m_nStomps", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStomps")}
 }
 
 type CCitadel_Ability_Thumper_3 CEntityInstance
@@ -4644,152 +4642,152 @@ type CCitadel_Ability_Trapper_Fear CEntityInstance
 
 type CCitadel_Ability_Trapper_PoisonJar CEntityInstance
 
-func (e CCitadel_Ability_Trapper_PoisonJar) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Trapper_PoisonJar", name, typ}
+func (e CCitadel_Ability_Trapper_PoisonJar) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Trapper_PoisonJar", name}
 }
 
 func (e CCitadel_Ability_Trapper_PoisonJar) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Trapper_PoisonJar) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Trapper_SpiderJar CEntityInstance
 
-func (e CCitadel_Ability_Trapper_SpiderJar) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Trapper_SpiderJar", name, typ}
+func (e CCitadel_Ability_Trapper_SpiderJar) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Trapper_SpiderJar", name}
 }
 
 func (e CCitadel_Ability_Trapper_SpiderJar) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Trapper_SpiderJar) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 func (e CCitadel_Ability_Trapper_SpiderJar) BHasMadeSpiders() Bool {
-	return Bool{e.field("m_bHasMadeSpiders", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasMadeSpiders")}
 }
 
 type CCitadel_Ability_Trapper_WebWall CEntityInstance
 
-func (e CCitadel_Ability_Trapper_WebWall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Trapper_WebWall", name, typ}
+func (e CCitadel_Ability_Trapper_WebWall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Trapper_WebWall", name}
 }
 
 func (e CCitadel_Ability_Trapper_WebWall) VecCastPosition() Vector {
-	return Vector{e.field("m_vecCastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCastPosition")}
 }
 
 func (e CCitadel_Ability_Trapper_WebWall) VecCastPositionNormal() Vector {
-	return Vector{e.field("m_vecCastPositionNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCastPositionNormal")}
 }
 
 func (e CCitadel_Ability_Trapper_WebWall) VecEndPosition() Vector {
-	return Vector{e.field("m_vecEndPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecEndPosition")}
 }
 
 func (e CCitadel_Ability_Trapper_WebWall) VecEndPositionNormal() Vector {
-	return Vector{e.field("m_vecEndPositionNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecEndPositionNormal")}
 }
 
 type CCitadel_Ability_Trappers_Bolo CEntityInstance
 
-func (e CCitadel_Ability_Trappers_Bolo) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Trappers_Bolo", name, typ}
+func (e CCitadel_Ability_Trappers_Bolo) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Trappers_Bolo", name}
 }
 
 func (e CCitadel_Ability_Trappers_Bolo) HProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hProjectile")}
 }
 
 func (e CCitadel_Ability_Trappers_Bolo) HNextTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hNextTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hNextTarget")}
 }
 
 func (e CCitadel_Ability_Trappers_Bolo) IBounces() Number[int32] {
-	return Number[int32]{e.field("m_iBounces", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBounces")}
 }
 
 func (e CCitadel_Ability_Trappers_Bolo) BReturning() Bool {
-	return Bool{e.field("m_bReturning", mod.FieldTypeBool)}
+	return Bool{e.field("m_bReturning")}
 }
 
 type CCitadel_Ability_TriggerTower CEntityInstance
 
 type CCitadel_Ability_TurretClone CEntityInstance
 
-func (e CCitadel_Ability_TurretClone) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_TurretClone", name, typ}
+func (e CCitadel_Ability_TurretClone) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_TurretClone", name}
 }
 
 func (e CCitadel_Ability_TurretClone) BHasTurretReady() Bool {
-	return Bool{e.field("m_bHasTurretReady", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasTurretReady")}
 }
 
 func (e CCitadel_Ability_TurretClone) ICurrentSwapCount() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentSwapCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentSwapCount")}
 }
 
 func (e CCitadel_Ability_TurretClone) FlTurretExpireTime() Number[float32] {
-	return Number[float32]{e.field("m_flTurretExpireTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTurretExpireTime")}
 }
 
 func (e CCitadel_Ability_TurretClone) PActiveTurret() Handle[CCitadel_MagicianTurret] {
-	return Handle[CCitadel_MagicianTurret]{e.field("m_pActiveTurret", mod.FieldTypeHandle)}
+	return Handle[CCitadel_MagicianTurret]{e.field("m_pActiveTurret")}
 }
 
 func (e CCitadel_Ability_TurretClone) NTurretFXIndex() Number[int32] {
-	return Number[int32]{e.field("m_nTurretFXIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTurretFXIndex")}
 }
 
 type CCitadel_Ability_UltCombo CEntityInstance
 
-func (e CCitadel_Ability_UltCombo) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_UltCombo", name, typ}
+func (e CCitadel_Ability_UltCombo) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_UltCombo", name}
 }
 
 func (e CCitadel_Ability_UltCombo) FlLastAttackTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastAttackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastAttackTime")}
 }
 
 func (e CCitadel_Ability_UltCombo) NAttackNum() Number[int32] {
-	return Number[int32]{e.field("m_nAttackNum", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nAttackNum")}
 }
 
 func (e CCitadel_Ability_UltCombo) IBonusHealth() Number[int32] {
-	return Number[int32]{e.field("m_iBonusHealth", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBonusHealth")}
 }
 
 func (e CCitadel_Ability_UltCombo) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 type CCitadel_Ability_Unicorn_DazzlingOrb CEntityInstance
 
 type CCitadel_Ability_Unicorn_LuminousStrike CEntityInstance
 
-func (e CCitadel_Ability_Unicorn_LuminousStrike) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Unicorn_LuminousStrike", name, typ}
+func (e CCitadel_Ability_Unicorn_LuminousStrike) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Unicorn_LuminousStrike", name}
 }
 
 func (e CCitadel_Ability_Unicorn_LuminousStrike) FlLastStackChangeTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastStackChangeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastStackChangeTime")}
 }
 
 func (e CCitadel_Ability_Unicorn_LuminousStrike) NLastStackCount() Number[int32] {
-	return Number[int32]{e.field("m_nLastStackCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastStackCount")}
 }
 
 func (e CCitadel_Ability_Unicorn_LuminousStrike) NStackCount() Number[int32] {
-	return Number[int32]{e.field("m_nStackCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStackCount")}
 }
 
 func (e CCitadel_Ability_Unicorn_LuminousStrike) BPendingStackUpdate() Bool {
-	return Bool{e.field("m_bPendingStackUpdate", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPendingStackUpdate")}
 }
 
 type CCitadel_Ability_Unicorn_PrismaticGuard CEntityInstance
@@ -4798,64 +4796,64 @@ type CCitadel_Ability_Unicorn_RadiantBlast CEntityInstance
 
 type CCitadel_Ability_VampireBat_BatBlink CEntityInstance
 
-func (e CCitadel_Ability_VampireBat_BatBlink) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_VampireBat_BatBlink", name, typ}
+func (e CCitadel_Ability_VampireBat_BatBlink) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_VampireBat_BatBlink", name}
 }
 
 func (e CCitadel_Ability_VampireBat_BatBlink) IRemainingCasts() Number[int32] {
-	return Number[int32]{e.field("m_iRemainingCasts", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iRemainingCasts")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatBlink) BIsBlinking() Bool {
-	return Bool{e.field("m_bIsBlinking", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsBlinking")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatBlink) RecastEndTime() Number[float32] {
-	return Number[float32]{e.field("m_RecastEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_RecastEndTime")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatBlink) BlinkEndTime() Number[float32] {
-	return Number[float32]{e.field("m_BlinkEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_BlinkEndTime")}
 }
 
 type CCitadel_Ability_VampireBat_BatCloud CEntityInstance
 
-func (e CCitadel_Ability_VampireBat_BatCloud) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_VampireBat_BatCloud", name, typ}
+func (e CCitadel_Ability_VampireBat_BatCloud) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_VampireBat_BatCloud", name}
 }
 
 func (e CCitadel_Ability_VampireBat_BatCloud) FlBatCloudEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flBatCloudEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBatCloudEndTime")}
 }
 
 type CCitadel_Ability_VampireBat_BatSwarm CEntityInstance
 
-func (e CCitadel_Ability_VampireBat_BatSwarm) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_VampireBat_BatSwarm", name, typ}
+func (e CCitadel_Ability_VampireBat_BatSwarm) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_VampireBat_BatSwarm", name}
 }
 
 func (e CCitadel_Ability_VampireBat_BatSwarm) IBonusBats() Number[int32] {
-	return Number[int32]{e.field("m_iBonusBats", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBonusBats")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatSwarm) IBatCountOnCast() Number[int32] {
-	return Number[int32]{e.field("m_iBatCountOnCast", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBatCountOnCast")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatSwarm) FlChannelTime() Number[float32] {
-	return Number[float32]{e.field("m_flChannelTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flChannelTime")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatSwarm) BPauseChannel() Bool {
-	return Bool{e.field("m_bPauseChannel", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPauseChannel")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatSwarm) FlLastRemainingChannelTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastRemainingChannelTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastRemainingChannelTime")}
 }
 
 func (e CCitadel_Ability_VampireBat_BatSwarm) FlNextBatTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextBatTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextBatTime")}
 }
 
 type CCitadel_Ability_VampireBat_DoubleDagger CEntityInstance
@@ -4864,16 +4862,16 @@ type CCitadel_Ability_VampireBat_LoveBites CEntityInstance
 
 type CCitadel_Ability_VampireBat_StealLife CEntityInstance
 
-func (e CCitadel_Ability_VampireBat_StealLife) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_VampireBat_StealLife", name, typ}
+func (e CCitadel_Ability_VampireBat_StealLife) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_VampireBat_StealLife", name}
 }
 
 func (e CCitadel_Ability_VampireBat_StealLife) FlFloatElapsedTime() Number[float32] {
-	return Number[float32]{e.field("m_flFloatElapsedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFloatElapsedTime")}
 }
 
 func (e CCitadel_Ability_VampireBat_StealLife) BFloating() Bool {
-	return Bool{e.field("m_bFloating", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFloating")}
 }
 
 type CCitadel_Ability_VandalOverflow CEntityInstance
@@ -4896,88 +4894,88 @@ type CCitadel_Ability_Viper_PetrifyBola CEntityInstance
 
 type CCitadel_Ability_Viscous_Telepunch CEntityInstance
 
-func (e CCitadel_Ability_Viscous_Telepunch) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Viscous_Telepunch", name, typ}
+func (e CCitadel_Ability_Viscous_Telepunch) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Viscous_Telepunch", name}
 }
 
 func (e CCitadel_Ability_Viscous_Telepunch) VecTeleportPosition() Vector {
-	return Vector{e.field("m_vecTeleportPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecTeleportPosition")}
 }
 
 func (e CCitadel_Ability_Viscous_Telepunch) VecTeleportPositionNormal() Vector {
-	return Vector{e.field("m_vecTeleportPositionNormal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecTeleportPositionNormal")}
 }
 
 func (e CCitadel_Ability_Viscous_Telepunch) ETelepunchState() Number[uint8] {
-	return Number[uint8]{e.field("m_eTelepunchState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_eTelepunchState")}
 }
 
 func (e CCitadel_Ability_Viscous_Telepunch) FlNextStateTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextStateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextStateTime")}
 }
 
 type CCitadel_Ability_VoidSphere CEntityInstance
 
 type CCitadel_Ability_Werewolf_KickFlip CEntityInstance
 
-func (e CCitadel_Ability_Werewolf_KickFlip) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Werewolf_KickFlip", name, typ}
+func (e CCitadel_Ability_Werewolf_KickFlip) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Werewolf_KickFlip", name}
 }
 
 func (e CCitadel_Ability_Werewolf_KickFlip) BIsLeaping() Bool {
-	return Bool{e.field("m_bIsLeaping", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsLeaping")}
 }
 
 func (e CCitadel_Ability_Werewolf_KickFlip) TLeapStartTime() Number[float32] {
-	return Number[float32]{e.field("m_tLeapStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLeapStartTime")}
 }
 
 func (e CCitadel_Ability_Werewolf_KickFlip) TLeapOffTime() Number[float32] {
-	return Number[float32]{e.field("m_tLeapOffTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLeapOffTime")}
 }
 
 type CCitadel_Ability_Werewolf_Leap CEntityInstance
 
-func (e CCitadel_Ability_Werewolf_Leap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Werewolf_Leap", name, typ}
+func (e CCitadel_Ability_Werewolf_Leap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Werewolf_Leap", name}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) BWillLeapOff() Bool {
-	return Bool{e.field("m_bWillLeapOff", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWillLeapOff")}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) BIsLeaping() Bool {
-	return Bool{e.field("m_bIsLeaping", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsLeaping")}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) TLeapStartTime() Number[float32] {
-	return Number[float32]{e.field("m_tLeapStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLeapStartTime")}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) TLeapOffTime() Number[float32] {
-	return Number[float32]{e.field("m_tLeapOffTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLeapOffTime")}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) VLaunchVelocity() Vector {
-	return Vector{e.field("m_vLaunchVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchVelocity")}
 }
 
 func (e CCitadel_Ability_Werewolf_Leap) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Ability_Werewolf_MaulingLeap CEntityInstance
 
-func (e CCitadel_Ability_Werewolf_MaulingLeap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Werewolf_MaulingLeap", name, typ}
+func (e CCitadel_Ability_Werewolf_MaulingLeap) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Werewolf_MaulingLeap", name}
 }
 
 func (e CCitadel_Ability_Werewolf_MaulingLeap) TLeapStartTime() Number[float32] {
-	return Number[float32]{e.field("m_tLeapStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLeapStartTime")}
 }
 
 type CCitadel_Ability_Werewolf_NetShot CEntityInstance
@@ -4992,222 +4990,222 @@ type CCitadel_Ability_WreckerGarbageSuck CEntityInstance
 
 type CCitadel_Ability_WreckerScrapBlast CEntityInstance
 
-func (e CCitadel_Ability_WreckerScrapBlast) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_WreckerScrapBlast", name, typ}
+func (e CCitadel_Ability_WreckerScrapBlast) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_WreckerScrapBlast", name}
 }
 
 func (e CCitadel_Ability_WreckerScrapBlast) BlastParticle() Number[int32] {
-	return Number[int32]{e.field("m_BlastParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_BlastParticle")}
 }
 
 type CCitadel_Ability_WreckerTeleport CEntityInstance
 
-func (e CCitadel_Ability_WreckerTeleport) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_WreckerTeleport", name, typ}
+func (e CCitadel_Ability_WreckerTeleport) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_WreckerTeleport", name}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) HProjectile() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hProjectile", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hProjectile")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) FlArrowSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flArrowSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flArrowSpeed")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) FlSnapAnglesBackTime() Number[float32] {
-	return Number[float32]{e.field("m_flSnapAnglesBackTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSnapAnglesBackTime")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) FlCastTimeDamage() Number[float32] {
-	return Number[float32]{e.field("m_flCastTimeDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCastTimeDamage")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) FlCastTime() Number[float32] {
-	return Number[float32]{e.field("m_flCastTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCastTime")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) BNeedsExplosion() Bool {
-	return Bool{e.field("m_bNeedsExplosion", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNeedsExplosion")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) VProjectileRemovedOrigin() Vector {
-	return Vector{e.field("m_vProjectileRemovedOrigin", mod.FieldTypeVector)}
+	return Vector{e.field("m_vProjectileRemovedOrigin")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) AngCasterAnglesAtCastTime() Angles {
-	return Angles{e.field("m_angCasterAnglesAtCastTime", mod.FieldTypeVector)}
+	return Angles{e.field("m_angCasterAnglesAtCastTime")}
 }
 
 func (e CCitadel_Ability_WreckerTeleport) FlTravelDistance() Number[float32] {
-	return Number[float32]{e.field("m_flTravelDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTravelDistance")}
 }
 
 type CCitadel_Ability_Wrecker_BoulderGrenade CEntityInstance
 
-func (e CCitadel_Ability_Wrecker_BoulderGrenade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Wrecker_BoulderGrenade", name, typ}
+func (e CCitadel_Ability_Wrecker_BoulderGrenade) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Wrecker_BoulderGrenade", name}
 }
 
 func (e CCitadel_Ability_Wrecker_BoulderGrenade) NBallParticle() Number[int32] {
-	return Number[int32]{e.field("m_nBallParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBallParticle")}
 }
 
 type CCitadel_Ability_Wrecker_Salvage CEntityInstance
 
 type CCitadel_Ability_Wrecker_Ultimate CEntityInstance
 
-func (e CCitadel_Ability_Wrecker_Ultimate) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Wrecker_Ultimate", name, typ}
+func (e CCitadel_Ability_Wrecker_Ultimate) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Wrecker_Ultimate", name}
 }
 
 func (e CCitadel_Ability_Wrecker_Ultimate) AngBeamAngles() Angles {
-	return Angles{e.field("m_angBeamAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_angBeamAngles")}
 }
 
 type CCitadel_Ability_WreckingBall CEntityInstance
 
-func (e CCitadel_Ability_WreckingBall) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_WreckingBall", name, typ}
+func (e CCitadel_Ability_WreckingBall) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_WreckingBall", name}
 }
 
 func (e CCitadel_Ability_WreckingBall) NBallParticle() Number[int32] {
-	return Number[int32]{e.field("m_nBallParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBallParticle")}
 }
 
 func (e CCitadel_Ability_WreckingBall) NCastCompleteParticle() Number[int32] {
-	return Number[int32]{e.field("m_nCastCompleteParticle", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastCompleteParticle")}
 }
 
 func (e CCitadel_Ability_WreckingBall) BHoldingBall() Bool {
-	return Bool{e.field("m_bHoldingBall", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHoldingBall")}
 }
 
 type CCitadel_Ability_Yakuza_Shakedown CEntityInstance
 
-func (e CCitadel_Ability_Yakuza_Shakedown) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_Yakuza_Shakedown", name, typ}
+func (e CCitadel_Ability_Yakuza_Shakedown) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_Yakuza_Shakedown", name}
 }
 
 func (e CCitadel_Ability_Yakuza_Shakedown) IgnoreChannelSlow() Number[int32] {
-	return Number[int32]{e.field("m_IgnoreChannelSlow", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_IgnoreChannelSlow")}
 }
 
 type CCitadel_Ability_ZipLine CEntityInstance
 
-func (e CCitadel_Ability_ZipLine) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Ability_ZipLine", name, typ}
+func (e CCitadel_Ability_ZipLine) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Ability_ZipLine", name}
 }
 
 func (e CCitadel_Ability_ZipLine) FlActivatePressTime() Number[float32] {
-	return Number[float32]{e.field("m_flActivatePressTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flActivatePressTime")}
 }
 
 func (e CCitadel_Ability_ZipLine) BThinking() Bool {
-	return Bool{e.field("m_bThinking", mod.FieldTypeBool)}
+	return Bool{e.field("m_bThinking")}
 }
 
 func (e CCitadel_Ability_ZipLine) BMoveCollidedPushUp() Bool {
-	return Bool{e.field("m_bMoveCollidedPushUp", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMoveCollidedPushUp")}
 }
 
 func (e CCitadel_Ability_ZipLine) BNoDelayNeeded() Bool {
-	return Bool{e.field("m_bNoDelayNeeded", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNoDelayNeeded")}
 }
 
 func (e CCitadel_Ability_ZipLine) BMouseWheelBind() Bool {
-	return Bool{e.field("m_bMouseWheelBind", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMouseWheelBind")}
 }
 
 func (e CCitadel_Ability_ZipLine) ECommittedAttachState() Number[uint32] {
-	return Number[uint32]{e.field("m_eCommittedAttachState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eCommittedAttachState")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlTimeStartZipping() Number[float32] {
-	return Number[float32]{e.field("m_flTimeStartZipping", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeStartZipping")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlTimeForKnockdownProtection() Number[float32] {
-	return Number[float32]{e.field("m_flTimeForKnockdownProtection", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeForKnockdownProtection")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlTimeStopZipping() Number[float32] {
-	return Number[float32]{e.field("m_flTimeStopZipping", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeStopZipping")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlCasterSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flCasterSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCasterSpeed")}
 }
 
 func (e CCitadel_Ability_ZipLine) VecAttachPoint() Vector {
-	return Vector{e.field("m_vecAttachPoint", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAttachPoint")}
 }
 
 func (e CCitadel_Ability_ZipLine) PPrevNode() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_pPrevNode", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_pPrevNode")}
 }
 
 func (e CCitadel_Ability_ZipLine) PNextNode() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_pNextNode", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_pNextNode")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlTimeEnterState() Number[float32] {
-	return Number[float32]{e.field("m_flTimeEnterState", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeEnterState")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlLatchTime() Number[float32] {
-	return Number[float32]{e.field("m_flLatchTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLatchTime")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlDamagedTime() Number[float32] {
-	return Number[float32]{e.field("m_flDamagedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDamagedTime")}
 }
 
 func (e CCitadel_Ability_ZipLine) EAttachState() Number[uint32] {
-	return Number[uint32]{e.field("m_eAttachState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eAttachState")}
 }
 
 func (e CCitadel_Ability_ZipLine) IAttachedZipLineLane() Number[int32] {
-	return Number[int32]{e.field("m_iAttachedZipLineLane", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iAttachedZipLineLane")}
 }
 
 func (e CCitadel_Ability_ZipLine) BDroppedFromZipline() Bool {
-	return Bool{e.field("m_bDroppedFromZipline", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDroppedFromZipline")}
 }
 
 func (e CCitadel_Ability_ZipLine) HAttachZipLine() Number[uint8] {
-	return Number[uint8]{e.field("m_hAttachZipLine", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hAttachZipLine")}
 }
 
 func (e CCitadel_Ability_ZipLine) HZiplineLatchEffectHandle() Number[uint8] {
-	return Number[uint8]{e.field("m_hZiplineLatchEffectHandle", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_hZiplineLatchEffectHandle")}
 }
 
 func (e CCitadel_Ability_ZipLine) VAttachZipLineOffset() Vector {
-	return Vector{e.field("m_vAttachZipLineOffset", mod.FieldTypeVector)}
+	return Vector{e.field("m_vAttachZipLineOffset")}
 }
 
 func (e CCitadel_Ability_ZipLine) FlZiplineAirDrag() Number[float32] {
-	return Number[float32]{e.field("m_flZiplineAirDrag", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZiplineAirDrag")}
 }
 
 func (e CCitadel_Ability_ZipLine) VPendulumVelocity() Vector {
-	return Vector{e.field("m_vPendulumVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPendulumVelocity")}
 }
 
 func (e CCitadel_Ability_ZipLine) VPendulumPosition() Vector {
-	return Vector{e.field("m_vPendulumPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPendulumPosition")}
 }
 
 func (e CCitadel_Ability_ZipLine) VVelocityHistory1() Vector {
-	return Vector{e.field("m_vVelocityHistory1", mod.FieldTypeVector)}
+	return Vector{e.field("m_vVelocityHistory1")}
 }
 
 func (e CCitadel_Ability_ZipLine) VVelocityHistory2() Vector {
-	return Vector{e.field("m_vVelocityHistory2", mod.FieldTypeVector)}
+	return Vector{e.field("m_vVelocityHistory2")}
 }
 
 func (e CCitadel_Ability_ZipLine) IDesiredLane() Number[int32] {
-	return Number[int32]{e.field("m_iDesiredLane", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iDesiredLane")}
 }
 
 type CCitadel_Ability_TrooperZipLine CEntityInstance
@@ -5220,58 +5218,58 @@ type CCitadel_CosmeticAbility_Emote CEntityInstance
 
 type CCitadel_CosmeticAbility_Snowball CEntityInstance
 
-func (e CCitadel_CosmeticAbility_Snowball) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_CosmeticAbility_Snowball", name, typ}
+func (e CCitadel_CosmeticAbility_Snowball) field(name string) Field {
+	return Field{e.Handle, "CCitadel_CosmeticAbility_Snowball", name}
 }
 
 func (e CCitadel_CosmeticAbility_Snowball) NSeasonal2025Level() Number[int32] {
-	return Number[int32]{e.field("m_nSeasonal2025Level", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSeasonal2025Level")}
 }
 
 func (e CCitadel_CosmeticAbility_Snowball) FlSeasonal2025LevelFrac() Number[float32] {
-	return Number[float32]{e.field("m_flSeasonal2025LevelFrac", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSeasonal2025LevelFrac")}
 }
 
 func (e CCitadel_CosmeticAbility_Snowball) FlNextShotTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextShotTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextShotTime")}
 }
 
 func (e CCitadel_CosmeticAbility_Snowball) NShotsRemaining() Number[int32] {
-	return Number[int32]{e.field("m_nShotsRemaining", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nShotsRemaining")}
 }
 
 type CCitadel_CosmeticAbility_VotingPoster CEntityInstance
 
-func (e CCitadel_CosmeticAbility_VotingPoster) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_CosmeticAbility_VotingPoster", name, typ}
+func (e CCitadel_CosmeticAbility_VotingPoster) field(name string) Field {
+	return Field{e.Handle, "CCitadel_CosmeticAbility_VotingPoster", name}
 }
 
 func (e CCitadel_CosmeticAbility_VotingPoster) BPreview() Bool {
-	return Bool{e.field("m_bPreview", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPreview")}
 }
 
 func (e CCitadel_CosmeticAbility_VotingPoster) NActiveHero() Number[uint32] {
-	return Number[uint32]{e.field("m_nActiveHero", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nActiveHero")}
 }
 
 type CCitadel_Gunslinger_DemonMark CEntityInstance
 
-func (e CCitadel_Gunslinger_DemonMark) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Gunslinger_DemonMark", name, typ}
+func (e CCitadel_Gunslinger_DemonMark) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Gunslinger_DemonMark", name}
 }
 
 func (e CCitadel_Gunslinger_DemonMark) FlNextSearchTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextSearchTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextSearchTime")}
 }
 
 type CCitadel_Item CEntityInstance
 
-func (e CCitadel_Item) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item", name, typ}
+func (e CCitadel_Item) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item", name}
 }
 
 func (e CCitadel_Item) BEquipped() Bool {
-	return Bool{e.field("m_bEquipped", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEquipped")}
 }
 
 type CCitadel_Ability_Shield CEntityInstance
@@ -5280,32 +5278,32 @@ type CCitadel_ArmorUpgrade_AbilityLifeSteal CEntityInstance
 
 type CCitadel_ArmorUpgrade_AblativeCoat CEntityInstance
 
-func (e CCitadel_ArmorUpgrade_AblativeCoat) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_ArmorUpgrade_AblativeCoat", name, typ}
+func (e CCitadel_ArmorUpgrade_AblativeCoat) field(name string) Field {
+	return Field{e.Handle, "CCitadel_ArmorUpgrade_AblativeCoat", name}
 }
 
 func (e CCitadel_ArmorUpgrade_AblativeCoat) FlLastDamageTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastDamageTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastDamageTime")}
 }
 
 func (e CCitadel_ArmorUpgrade_AblativeCoat) ICurrentResistValue() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentResistValue", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentResistValue")}
 }
 
 type CCitadel_ArmorUpgrade_ActiveBulletShield CEntityInstance
 
 type CCitadel_ArmorUpgrade_AutoCleanse CEntityInstance
 
-func (e CCitadel_ArmorUpgrade_AutoCleanse) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_ArmorUpgrade_AutoCleanse", name, typ}
+func (e CCitadel_ArmorUpgrade_AutoCleanse) field(name string) Field {
+	return Field{e.Handle, "CCitadel_ArmorUpgrade_AutoCleanse", name}
 }
 
 func (e CCitadel_ArmorUpgrade_AutoCleanse) NAbilityBlockTime() Number[float32] {
-	return Number[float32]{e.field("m_nAbilityBlockTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_nAbilityBlockTime")}
 }
 
 func (e CCitadel_ArmorUpgrade_AutoCleanse) HModifierCaster() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hModifierCaster", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hModifierCaster")}
 }
 
 type CCitadel_ArmorUpgrade_BulletArmorReductionAura CEntityInstance
@@ -5322,12 +5320,12 @@ type CCitadel_ArmorUpgrade_DebuffReducer CEntityInstance
 
 type CCitadel_ArmorUpgrade_DoubleJump CEntityInstance
 
-func (e CCitadel_ArmorUpgrade_DoubleJump) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_ArmorUpgrade_DoubleJump", name, typ}
+func (e CCitadel_ArmorUpgrade_DoubleJump) field(name string) Field {
+	return Field{e.Handle, "CCitadel_ArmorUpgrade_DoubleJump", name}
 }
 
 func (e CCitadel_ArmorUpgrade_DoubleJump) NTickJumped() Number[int32] {
-	return Number[int32]{e.field("m_nTickJumped", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTickJumped")}
 }
 
 type CCitadel_ArmorUpgrade_Frenzy CEntityInstance
@@ -5342,16 +5340,16 @@ type CCitadel_ArmorUpgrade_MetalSkin CEntityInstance
 
 type CCitadel_ArmorUpgrade_PersonalRejuvenator CEntityInstance
 
-func (e CCitadel_ArmorUpgrade_PersonalRejuvenator) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_ArmorUpgrade_PersonalRejuvenator", name, typ}
+func (e CCitadel_ArmorUpgrade_PersonalRejuvenator) field(name string) Field {
+	return Field{e.Handle, "CCitadel_ArmorUpgrade_PersonalRejuvenator", name}
 }
 
 func (e CCitadel_ArmorUpgrade_PersonalRejuvenator) BActivated() Bool {
-	return Bool{e.field("m_bActivated", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActivated")}
 }
 
 func (e CCitadel_ArmorUpgrade_PersonalRejuvenator) NFxIndex() Number[int32] {
-	return Number[int32]{e.field("m_nFxIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFxIndex")}
 }
 
 type CCitadel_ArmorUpgrade_RegeneratingBulletShield CEntityInstance
@@ -5366,12 +5364,12 @@ type CCitadel_ArmorUpgrade_SlowImmunity CEntityInstance
 
 type CCitadel_ArmorUpgrade_SpellShield CEntityInstance
 
-func (e CCitadel_ArmorUpgrade_SpellShield) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_ArmorUpgrade_SpellShield", name, typ}
+func (e CCitadel_ArmorUpgrade_SpellShield) field(name string) Field {
+	return Field{e.Handle, "CCitadel_ArmorUpgrade_SpellShield", name}
 }
 
 func (e CCitadel_ArmorUpgrade_SpellShield) Fl_mSpellShieldBreakTime() Number[float32] {
-	return Number[float32]{e.field("fl_mSpellShieldBreakTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("fl_mSpellShieldBreakTime")}
 }
 
 type CCitadel_ArmorUpgrade_SpiritBubble CEntityInstance
@@ -5388,16 +5386,16 @@ type CCitadel_Item_AOE_Tech_Shield CEntityInstance
 
 type CCitadel_Item_ActiveReload CEntityInstance
 
-func (e CCitadel_Item_ActiveReload) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_ActiveReload", name, typ}
+func (e CCitadel_Item_ActiveReload) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_ActiveReload", name}
 }
 
 func (e CCitadel_Item_ActiveReload) BPlayedStartSound() Bool {
-	return Bool{e.field("m_bPlayedStartSound", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPlayedStartSound")}
 }
 
 func (e CCitadel_Item_ActiveReload) BActiveReloadFailed() Bool {
-	return Bool{e.field("m_bActiveReloadFailed", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActiveReloadFailed")}
 }
 
 type CCitadel_Item_ArcticBlast CEntityInstance
@@ -5406,26 +5404,26 @@ type CCitadel_Item_Aura_Base CEntityInstance
 
 type CCitadel_Item_BaseProjectileAOEModifier CEntityInstance
 
-func (e CCitadel_Item_BaseProjectileAOEModifier) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_BaseProjectileAOEModifier", name, typ}
+func (e CCitadel_Item_BaseProjectileAOEModifier) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_BaseProjectileAOEModifier", name}
 }
 
 func (e CCitadel_Item_BaseProjectileAOEModifier) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Item_BaseProjectileAOEModifier) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Item_Bubble CEntityInstance
 
-func (e CCitadel_Item_Bubble) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_Bubble", name, typ}
+func (e CCitadel_Item_Bubble) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_Bubble", name}
 }
 
 func (e CCitadel_Item_Bubble) FlEndTime() Number[float32] {
-	return Number[float32]{e.field("m_flEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flEndTime")}
 }
 
 type CCitadel_Item_PrismBlast CEntityInstance
@@ -5440,12 +5438,12 @@ type CCitadel_Item_Charge_Mastery CEntityInstance
 
 type CCitadel_Item_CheatDeath CEntityInstance
 
-func (e CCitadel_Item_CheatDeath) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_CheatDeath", name, typ}
+func (e CCitadel_Item_CheatDeath) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_CheatDeath", name}
 }
 
 func (e CCitadel_Item_CheatDeath) BStartCooldown() Bool {
-	return Bool{e.field("m_bStartCooldown", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartCooldown")}
 }
 
 type CCitadel_Item_ColdFront CEntityInstance
@@ -5458,12 +5456,12 @@ type CCitadel_Item_DivineBarrier CEntityInstance
 
 type CCitadel_Item_DivinersKevlar CEntityInstance
 
-func (e CCitadel_Item_DivinersKevlar) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_DivinersKevlar", name, typ}
+func (e CCitadel_Item_DivinersKevlar) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_DivinersKevlar", name}
 }
 
 func (e CCitadel_Item_DivinersKevlar) BExecuted() Bool {
-	return Bool{e.field("m_bExecuted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bExecuted")}
 }
 
 type CCitadel_Item_Electric_Slippers CEntityInstance
@@ -5472,12 +5470,12 @@ type CCitadel_Item_Empty CEntityInstance
 
 type CCitadel_Item_GooseEgg CEntityInstance
 
-func (e CCitadel_Item_GooseEgg) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_GooseEgg", name, typ}
+func (e CCitadel_Item_GooseEgg) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_GooseEgg", name}
 }
 
 func (e CCitadel_Item_GooseEgg) IAccruedGold() Number[int32] {
-	return Number[int32]{e.field("m_iAccruedGold", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iAccruedGold")}
 }
 
 type CCitadel_Item_GuardianWard CEntityInstance
@@ -5486,32 +5484,32 @@ type CCitadel_Item_HealthRegenAura CEntityInstance
 
 type CCitadel_Item_Intensifying_Clip CEntityInstance
 
-func (e CCitadel_Item_Intensifying_Clip) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_Intensifying_Clip", name, typ}
+func (e CCitadel_Item_Intensifying_Clip) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_Intensifying_Clip", name}
 }
 
 func (e CCitadel_Item_Intensifying_Clip) FlSpinUpTime() Number[float32] {
-	return Number[float32]{e.field("m_flSpinUpTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpinUpTime")}
 }
 
 type CCitadel_Item_ModDisruptor CEntityInstance
 
 type CCitadel_Item_Mystic_Regeneration CEntityInstance
 
-func (e CCitadel_Item_Mystic_Regeneration) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_Mystic_Regeneration", name, typ}
+func (e CCitadel_Item_Mystic_Regeneration) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_Mystic_Regeneration", name}
 }
 
 func (e CCitadel_Item_Mystic_Regeneration) BForceModUpdate() Bool {
-	return Bool{e.field("m_bForceModUpdate", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceModUpdate")}
 }
 
 func (e CCitadel_Item_Mystic_Regeneration) IRegenStacks() Number[int32] {
-	return Number[int32]{e.field("m_iRegenStacks", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iRegenStacks")}
 }
 
 func (e CCitadel_Item_Mystic_Regeneration) FlPendingIncomingHeal() Number[float32] {
-	return Number[float32]{e.field("m_flPendingIncomingHeal", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPendingIncomingHeal")}
 }
 
 type CCitadel_Item_NullificationAura CEntityInstance
@@ -5522,16 +5520,16 @@ type CCitadel_Item_PowerShard CEntityInstance
 
 type CCitadel_Item_ProjectileTest CEntityInstance
 
-func (e CCitadel_Item_ProjectileTest) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_ProjectileTest", name, typ}
+func (e CCitadel_Item_ProjectileTest) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_ProjectileTest", name}
 }
 
 func (e CCitadel_Item_ProjectileTest) VLaunchPosition() Vector {
-	return Vector{e.field("m_vLaunchPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLaunchPosition")}
 }
 
 func (e CCitadel_Item_ProjectileTest) QLaunchAngle() Angles {
-	return Angles{e.field("m_qLaunchAngle", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLaunchAngle")}
 }
 
 type CCitadel_Item_ProjectileTest02 CEntityInstance
@@ -5542,58 +5540,58 @@ type CCitadel_Item_ProjectileTest05 CEntityInstance
 
 type CCitadel_Item_ProjectileTest06 CEntityInstance
 
-func (e CCitadel_Item_ProjectileTest06) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_ProjectileTest06", name, typ}
+func (e CCitadel_Item_ProjectileTest06) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_ProjectileTest06", name}
 }
 
 func (e CCitadel_Item_ProjectileTest06) FlApproachX() Number[float32] {
-	return Number[float32]{e.field("m_flApproachX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flApproachX")}
 }
 
 func (e CCitadel_Item_ProjectileTest06) FlApproachY() Number[float32] {
-	return Number[float32]{e.field("m_flApproachY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flApproachY")}
 }
 
 func (e CCitadel_Item_ProjectileTest06) FlApproachZ() Number[float32] {
-	return Number[float32]{e.field("m_flApproachZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flApproachZ")}
 }
 
 type CCitadel_Item_Refresher CEntityInstance
 
 type CCitadel_Item_RescueBeam CEntityInstance
 
-func (e CCitadel_Item_RescueBeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_RescueBeam", name, typ}
+func (e CCitadel_Item_RescueBeam) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_RescueBeam", name}
 }
 
 func (e CCitadel_Item_RescueBeam) BCanPull() Bool {
-	return Bool{e.field("m_bCanPull", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanPull")}
 }
 
 type CCitadel_Item_SelfBuffModifier CEntityInstance
 
 type CCitadel_Item_ShadowStep CEntityInstance
 
-func (e CCitadel_Item_ShadowStep) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_ShadowStep", name, typ}
+func (e CCitadel_Item_ShadowStep) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_ShadowStep", name}
 }
 
 func (e CCitadel_Item_ShadowStep) NCastDelayParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCastDelayParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastDelayParticleIndex")}
 }
 
 func (e CCitadel_Item_ShadowStep) FlLastTickTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastTickTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastTickTime")}
 }
 
 type CCitadel_Item_ShadowStrike CEntityInstance
 
-func (e CCitadel_Item_ShadowStrike) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_ShadowStrike", name, typ}
+func (e CCitadel_Item_ShadowStrike) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_ShadowStrike", name}
 }
 
 func (e CCitadel_Item_ShadowStrike) TAttackWindowStart() Number[float32] {
-	return Number[float32]{e.field("m_tAttackWindowStart", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tAttackWindowStart")}
 }
 
 type CCitadel_Item_SingleTargetStun CEntityInstance
@@ -5620,38 +5618,38 @@ type CItem_WitheringWhip CEntityInstance
 
 type CCitadel_Item_TrophyCollector CEntityInstance
 
-func (e CCitadel_Item_TrophyCollector) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_TrophyCollector", name, typ}
+func (e CCitadel_Item_TrophyCollector) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_TrophyCollector", name}
 }
 
 func (e CCitadel_Item_TrophyCollector) ITrophyCount() Number[int32] {
-	return Number[int32]{e.field("m_iTrophyCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTrophyCount")}
 }
 
 func (e CCitadel_Item_TrophyCollector) IInitialKills() Number[int32] {
-	return Number[int32]{e.field("m_iInitialKills", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iInitialKills")}
 }
 
 func (e CCitadel_Item_TrophyCollector) IInitialAssists() Number[int32] {
-	return Number[int32]{e.field("m_iInitialAssists", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iInitialAssists")}
 }
 
 func (e CCitadel_Item_TrophyCollector) IPrevCount() Number[int32] {
-	return Number[int32]{e.field("m_iPrevCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPrevCount")}
 }
 
 func (e CCitadel_Item_TrophyCollector) BMaxStacksReached() Bool {
-	return Bool{e.field("m_bMaxStacksReached", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMaxStacksReached")}
 }
 
 type CCitadel_Item_WarpStone CEntityInstance
 
-func (e CCitadel_Item_WarpStone) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Item_WarpStone", name, typ}
+func (e CCitadel_Item_WarpStone) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Item_WarpStone", name}
 }
 
 func (e CCitadel_Item_WarpStone) NCastDelayParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCastDelayParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCastDelayParticleIndex")}
 }
 
 type CCitadel_Omnicharge_Pendant CEntityInstance
@@ -5662,42 +5660,42 @@ type CCitadel_TechUpgrade_Infuser CEntityInstance
 
 type CCitadel_TechUpgrade_SuperAcolyteGloves CEntityInstance
 
-func (e CCitadel_TechUpgrade_SuperAcolyteGloves) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_TechUpgrade_SuperAcolyteGloves", name, typ}
+func (e CCitadel_TechUpgrade_SuperAcolyteGloves) field(name string) Field {
+	return Field{e.Handle, "CCitadel_TechUpgrade_SuperAcolyteGloves", name}
 }
 
 func (e CCitadel_TechUpgrade_SuperAcolyteGloves) Fl_StoredDamage() Number[float32] {
-	return Number[float32]{e.field("fl_StoredDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("fl_StoredDamage")}
 }
 
 type CCitadel_Upgrade_AerialAssault CEntityInstance
 
 type CCitadel_Upgrade_AmmoScavenger CEntityInstance
 
-func (e CCitadel_Upgrade_AmmoScavenger) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Upgrade_AmmoScavenger", name, typ}
+func (e CCitadel_Upgrade_AmmoScavenger) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Upgrade_AmmoScavenger", name}
 }
 
 func (e CCitadel_Upgrade_AmmoScavenger) HLastOrbTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLastOrbTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLastOrbTarget")}
 }
 
 type CCitadel_Upgrade_MagicCarpet CEntityInstance
 
-func (e CCitadel_Upgrade_MagicCarpet) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Upgrade_MagicCarpet", name, typ}
+func (e CCitadel_Upgrade_MagicCarpet) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Upgrade_MagicCarpet", name}
 }
 
 func (e CCitadel_Upgrade_MagicCarpet) FlFlyingStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flFlyingStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFlyingStartTime")}
 }
 
 func (e CCitadel_Upgrade_MagicCarpet) BFlying() Bool {
-	return Bool{e.field("m_bFlying", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFlying")}
 }
 
 func (e CCitadel_Upgrade_MagicCarpet) BSummoning() Bool {
-	return Bool{e.field("m_bSummoning", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSummoning")}
 }
 
 type CCitadel_Upgrade_OverdriveClip CEntityInstance
@@ -5714,36 +5712,36 @@ type CCitadel_UtilityUpgrade_RocketBoots CEntityInstance
 
 type CCitadel_UtilityUpgrade_RocketBooster CEntityInstance
 
-func (e CCitadel_UtilityUpgrade_RocketBooster) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_UtilityUpgrade_RocketBooster", name, typ}
+func (e CCitadel_UtilityUpgrade_RocketBooster) field(name string) Field {
+	return Field{e.Handle, "CCitadel_UtilityUpgrade_RocketBooster", name}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) NTargetingParticleIndex() Number[int32] {
-	return Number[int32]{e.field("m_nTargetingParticleIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTargetingParticleIndex")}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) FlCastTime() Number[float32] {
-	return Number[float32]{e.field("m_flCastTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCastTime")}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) BCrashingDown() Bool {
-	return Bool{e.field("m_bCrashingDown", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCrashingDown")}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) BImpulseApplied() Bool {
-	return Bool{e.field("m_bImpulseApplied", mod.FieldTypeBool)}
+	return Bool{e.field("m_bImpulseApplied")}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) BCanCrash() Bool {
-	return Bool{e.field("m_bCanCrash", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanCrash")}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) VecCrashPosition() Vector {
-	return Vector{e.field("m_vecCrashPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCrashPosition")}
 }
 
 func (e CCitadel_UtilityUpgrade_RocketBooster) VecCrashDirection() Vector {
-	return Vector{e.field("m_vecCrashDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecCrashDirection")}
 }
 
 type CCitadel_WeaponUpgrade_ApexCombat CEntityInstance
@@ -5752,12 +5750,12 @@ type CCitadel_WeaponUpgrade_BloodTribute CEntityInstance
 
 type CCitadel_WeaponUpgrade_BurstFire CEntityInstance
 
-func (e CCitadel_WeaponUpgrade_BurstFire) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_WeaponUpgrade_BurstFire", name, typ}
+func (e CCitadel_WeaponUpgrade_BurstFire) field(name string) Field {
+	return Field{e.Handle, "CCitadel_WeaponUpgrade_BurstFire", name}
 }
 
 func (e CCitadel_WeaponUpgrade_BurstFire) NFastFireEndTime() Number[float32] {
-	return Number[float32]{e.field("m_nFastFireEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_nFastFireEndTime")}
 }
 
 type CCitadel_WeaponUpgrade_CooldownOnMiss CEntityInstance
@@ -5766,32 +5764,32 @@ type CCitadel_WeaponUpgrade_CultistSacrifice CEntityInstance
 
 type CCitadel_WeaponUpgrade_ExpressShot CEntityInstance
 
-func (e CCitadel_WeaponUpgrade_ExpressShot) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_WeaponUpgrade_ExpressShot", name, typ}
+func (e CCitadel_WeaponUpgrade_ExpressShot) field(name string) Field {
+	return Field{e.Handle, "CCitadel_WeaponUpgrade_ExpressShot", name}
 }
 
 func (e CCitadel_WeaponUpgrade_ExpressShot) IShotsToCreate() Number[int32] {
-	return Number[int32]{e.field("m_iShotsToCreate", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iShotsToCreate")}
 }
 
 func (e CCitadel_WeaponUpgrade_ExpressShot) BIsInExpressShot() Bool {
-	return Bool{e.field("m_bIsInExpressShot", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsInExpressShot")}
 }
 
 func (e CCitadel_WeaponUpgrade_ExpressShot) BProcShotCharged() Bool {
-	return Bool{e.field("m_bProcShotCharged", mod.FieldTypeBool)}
+	return Bool{e.field("m_bProcShotCharged")}
 }
 
 func (e CCitadel_WeaponUpgrade_ExpressShot) FlProcChargeBonusDamage() Number[float32] {
-	return Number[float32]{e.field("m_flProcChargeBonusDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flProcChargeBonusDamage")}
 }
 
 func (e CCitadel_WeaponUpgrade_ExpressShot) TNextShotTime() Number[float32] {
-	return Number[float32]{e.field("m_tNextShotTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tNextShotTime")}
 }
 
 func (e CCitadel_WeaponUpgrade_ExpressShot) BIsPrimaryProc() Bool {
-	return Bool{e.field("m_bIsPrimaryProc", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsPrimaryProc")}
 }
 
 type CCitadel_WeaponUpgrade_FireRateAura CEntityInstance
@@ -5806,12 +5804,12 @@ type CCitadel_WeaponUpgrade_InfiniteMagazine CEntityInstance
 
 type CCitadel_WeaponUpgrade_InstantReload CEntityInstance
 
-func (e CCitadel_WeaponUpgrade_InstantReload) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_WeaponUpgrade_InstantReload", name, typ}
+func (e CCitadel_WeaponUpgrade_InstantReload) field(name string) Field {
+	return Field{e.Handle, "CCitadel_WeaponUpgrade_InstantReload", name}
 }
 
 func (e CCitadel_WeaponUpgrade_InstantReload) BIsManualReloading() Bool {
-	return Bool{e.field("m_bIsManualReloading", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsManualReloading")}
 }
 
 type CCitadel_WeaponUpgrade_RechargingBullets CEntityInstance
@@ -5820,60 +5818,60 @@ type CCitadel_WeaponUpgrade_Ricochet CEntityInstance
 
 type CCitadel_WeaponUpgrade_SiphonBullets CEntityInstance
 
-func (e CCitadel_WeaponUpgrade_SiphonBullets) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_WeaponUpgrade_SiphonBullets", name, typ}
+func (e CCitadel_WeaponUpgrade_SiphonBullets) field(name string) Field {
+	return Field{e.Handle, "CCitadel_WeaponUpgrade_SiphonBullets", name}
 }
 
 func (e CCitadel_WeaponUpgrade_SiphonBullets) IStacks() Number[int32] {
-	return Number[int32]{e.field("m_iStacks", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iStacks")}
 }
 
 type CCitadel_WeaponUpgrade_SpellslingerHeadshots CEntityInstance
 
 type CCitadel_WeaponUpgrade_SplitShot CEntityInstance
 
-func (e CCitadel_WeaponUpgrade_SplitShot) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_WeaponUpgrade_SplitShot", name, typ}
+func (e CCitadel_WeaponUpgrade_SplitShot) field(name string) Field {
+	return Field{e.Handle, "CCitadel_WeaponUpgrade_SplitShot", name}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) NLastShotID() Number[uint32] {
-	return Number[uint32]{e.field("m_nLastShotID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nLastShotID")}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) NLastHitShotID() Number[uint32] {
-	return Number[uint32]{e.field("m_nLastHitShotID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nLastHitShotID")}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) NWpnBatchCount() Number[int32] {
-	return Number[int32]{e.field("m_nWpnBatchCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nWpnBatchCount")}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) NLastBulletHitShotID() Number[uint32] {
-	return Number[uint32]{e.field("m_nLastBulletHitShotID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nLastBulletHitShotID")}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) NLastBulletHitCount() Number[int32] {
-	return Number[int32]{e.field("m_nLastBulletHitCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastBulletHitCount")}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) ELastBulletHitEnt() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_eLastBulletHitEnt", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_eLastBulletHitEnt")}
 }
 
 func (e CCitadel_WeaponUpgrade_SplitShot) BSplitShotActive() Bool {
-	return Bool{e.field("m_bSplitShotActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSplitShotActive")}
 }
 
 type CCitadel_WeaponUpgrade_SurgingPower CEntityInstance
 
 type CCitadel_WeaponUpgrade_WeaponEater CEntityInstance
 
-func (e CCitadel_WeaponUpgrade_WeaponEater) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_WeaponUpgrade_WeaponEater", name, typ}
+func (e CCitadel_WeaponUpgrade_WeaponEater) field(name string) Field {
+	return Field{e.Handle, "CCitadel_WeaponUpgrade_WeaponEater", name}
 }
 
 func (e CCitadel_WeaponUpgrade_WeaponEater) NWeaponPower() Number[int32] {
-	return Number[int32]{e.field("m_nWeaponPower", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nWeaponPower")}
 }
 
 type CItemCapacitor CEntityInstance
@@ -5888,38 +5886,38 @@ type CItem_FleetfootBoots CEntityInstance
 
 type CItem_ResonantHealing CEntityInstance
 
-func (e CItem_ResonantHealing) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CItem_ResonantHealing", name, typ}
+func (e CItem_ResonantHealing) field(name string) Field {
+	return Field{e.Handle, "CItem_ResonantHealing", name}
 }
 
 func (e CItem_ResonantHealing) BForceModUpdate() Bool {
-	return Bool{e.field("m_bForceModUpdate", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceModUpdate")}
 }
 
 func (e CItem_ResonantHealing) IResonantHealingRegenStacks() Number[int32] {
-	return Number[int32]{e.field("m_iResonantHealingRegenStacks", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iResonantHealingRegenStacks")}
 }
 
 type CItem_RestorativeLocket CEntityInstance
 
-func (e CItem_RestorativeLocket) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CItem_RestorativeLocket", name, typ}
+func (e CItem_RestorativeLocket) field(name string) Field {
+	return Field{e.Handle, "CItem_RestorativeLocket", name}
 }
 
 func (e CItem_RestorativeLocket) NNumStacks() Number[int32] {
-	return Number[int32]{e.field("m_nNumStacks", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNumStacks")}
 }
 
 type CCitadel_NPCAbility_Shield CEntityInstance
 
 type CCitadel_NPCAbility_Vanguard_AOEBuff CEntityInstance
 
-func (e CCitadel_NPCAbility_Vanguard_AOEBuff) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_NPCAbility_Vanguard_AOEBuff", name, typ}
+func (e CCitadel_NPCAbility_Vanguard_AOEBuff) field(name string) Field {
+	return Field{e.Handle, "CCitadel_NPCAbility_Vanguard_AOEBuff", name}
 }
 
 func (e CCitadel_NPCAbility_Vanguard_AOEBuff) TimeNextCast() Number[float32] {
-	return Number[float32]{e.field("m_timeNextCast", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_timeNextCast")}
 }
 
 type CCitadel_Werewolf_CripplingSlash CEntityInstance
@@ -5928,38 +5926,38 @@ type CCitadel_Werewolf_Hunt CEntityInstance
 
 type CCitadel_Werewolf_Transformation CEntityInstance
 
-func (e CCitadel_Werewolf_Transformation) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Werewolf_Transformation", name, typ}
+func (e CCitadel_Werewolf_Transformation) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Werewolf_Transformation", name}
 }
 
 func (e CCitadel_Werewolf_Transformation) BIsTransformed() Bool {
-	return Bool{e.field("m_bIsTransformed", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsTransformed")}
 }
 
 func (e CCitadel_Werewolf_Transformation) BIsTransformingBack() Bool {
-	return Bool{e.field("m_bIsTransformingBack", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsTransformingBack")}
 }
 
 func (e CCitadel_Werewolf_Transformation) TLastRegenComponentThinkTime() Number[float32] {
-	return Number[float32]{e.field("m_tLastRegenComponentThinkTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tLastRegenComponentThinkTime")}
 }
 
 func (e CCitadel_Werewolf_Transformation) TForceTransformTime() Number[float32] {
-	return Number[float32]{e.field("m_tForceTransformTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tForceTransformTime")}
 }
 
 func (e CCitadel_Werewolf_Transformation) FlWerewolfStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flWerewolfStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWerewolfStartTime")}
 }
 
 type CCitadel_Werewolf_UnloadGun CEntityInstance
 
 type CCitadel_Werewolf_UnloadGun2 CEntityInstance
 
-func (e CCitadel_Werewolf_UnloadGun2) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_Werewolf_UnloadGun2", name, typ}
+func (e CCitadel_Werewolf_UnloadGun2) field(name string) Field {
+	return Field{e.Handle, "CCitadel_Werewolf_UnloadGun2", name}
 }
 
 func (e CCitadel_Werewolf_UnloadGun2) TActiveEndTime() Number[float32] {
-	return Number[float32]{e.field("m_tActiveEndTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_tActiveEndTime")}
 }

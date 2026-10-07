@@ -127,6 +127,43 @@ type KeyMap<Keys = unknown> = readonly [base: KeyMap | undefined, keys: Readonly
 /** KeysOf is the type of the key values map takes. */
 type KeysOf<Map> = Map extends KeyMap<infer Keys> ? Keys : never
 
+/** FieldTypes maps each entry of a class's field table to the type it holds. */
+interface FieldTypes {
+  bool: boolean
+  int8: number
+  int16: number
+  int32: number
+  uint8: number
+  uint16: number
+  uint32: number
+  int64: bigint
+  uint64: bigint
+  float32: number
+  float64: number
+  vector: Vector
+  handle: number
+  string: string
+  angles: Angles
+}
+
+/** FieldOf is the type a field of table entry T holds. */
+type FieldOf<T> = T extends keyof FieldTypes ? FieldTypes[T] : T extends keyof Targets ? Targets[T] : never
+
+/**
+ * Fields declares the fields a table installs. A string field is read only,
+ * since the host cannot write text.
+ */
+type Fields<T> = {
+  -readonly [K in keyof T as T[K] extends 'string' ? never : K]: FieldOf<T[K]> | undefined
+} & { readonly [K in keyof T as T[K] extends 'string' ? K : never]: string | undefined }
+
+/** Inputs declares the input methods a table installs. */
+type Inputs<T> = {
+  readonly [K in keyof T as `input${K & string}`]: T[K] extends keyof KeyTypes
+    ? (value: KeyTypes[T[K]]) => boolean
+    : () => boolean
+}
+
 /** Typed is the type of the key values a table of key types takes. */
 type Typed<Keys extends Readonly<Record<string, KeyType>>> = { readonly [Key in keyof Keys]?: KeyTypes[Keys[Key]] }
 
@@ -199,125 +236,7 @@ export function create<D extends DesignerName>(
 /** fieldTypes are the FieldTypes a field's accessor reads directly. */
 const fieldTypes: ReadonlySet<string> = new Set(['bool', 'float32', 'float64', 'handle', 'int16', 'int32', 'int64', 'int8', 'string', 'uint16', 'uint32', 'uint64', 'uint8', 'vector'])
 
-export class CBaseEntity extends CEntityInstance {}
-export interface CBaseEntity {
-  m_iCurrentThinkContext: number | undefined
-  m_nLastThinkTick: number | undefined
-  m_bDisabledContextThinks: boolean | undefined
-  m_lastNetworkChange: number | undefined
-  readonly m_iszResponseContext: string | undefined
-  m_iHealth: number | undefined
-  m_iMaxHealth: number | undefined
-  m_lifeState: number | undefined
-  m_flDamageAccumulator: number | undefined
-  m_bTakesDamage: boolean | undefined
-  m_nTakeDamageFlags: bigint | undefined
-  m_nPlatformType: number | undefined
-  m_MoveCollide: number | undefined
-  m_MoveType: number | undefined
-  m_nPreviouslySetMoveType: number | undefined
-  m_nActualMoveType: number | undefined
-  m_nWaterTouch: number | undefined
-  m_nSlimeTouch: number | undefined
-  m_bRestoreInHierarchy: boolean | undefined
-  readonly m_target: string | undefined
-  m_hDamageFilter: CBaseFilter | undefined
-  readonly m_iszDamageFilterName: string | undefined
-  m_flMoveDoneTime: number | undefined
-  m_hNPCSensingHandle: number | undefined
-  m_flAnimTime: number | undefined
-  m_flSimulationTime: number | undefined
-  m_flCreateTime: number | undefined
-  m_bClientSideRagdoll: boolean | undefined
-  m_ubInterpolationFrame: number | undefined
-  m_vPrevVPhysicsUpdatePos: Vector | undefined
-  m_iTeamNum: number | undefined
-  readonly m_iGlobalname: string | undefined
-  m_iSentToClients: number | undefined
-  readonly m_sUniqueHammerID: string | undefined
-  m_spawnflags: number | undefined
-  m_nNextThinkTick: number | undefined
-  m_nSimulationTick: number | undefined
-  m_fFlags: number | undefined
-  m_vecAbsVelocity: Vector | undefined
-  m_nPushEnumCount: number | undefined
-  m_hEffectEntity: CBaseEntity | undefined
-  m_hOwnerEntity: CBaseEntity | undefined
-  m_fEffects: number | undefined
-  m_hGroundEntity: CBaseEntity | undefined
-  m_nGroundBodyIndex: number | undefined
-  m_flFriction: number | undefined
-  m_flElasticity: number | undefined
-  m_flGravityScale: number | undefined
-  m_flTimeScale: number | undefined
-  m_flWaterLevel: number | undefined
-  m_bGravityDisabled: boolean | undefined
-  m_bAnimatedEveryTick: boolean | undefined
-  m_flActualGravityScale: number | undefined
-  m_bGravityActuallyDisabled: boolean | undefined
-  m_bDisableLowViolence: boolean | undefined
-  m_nWaterType: number | undefined
-  m_iEFlags: number | undefined
-  m_iInitialTeamNum: number | undefined
-  m_flNavIgnoreUntilTime: number | undefined
-  m_vecAngVelocity: Angles | undefined
-  m_bNetworkQuantizeOriginAndAngles: boolean | undefined
-  m_bLagCompensate: boolean | undefined
-  m_pBlocker: CBaseEntity | undefined
-  m_flLocalTime: number | undefined
-  m_flVPhysicsUpdateLocalTime: number | undefined
-  inputAddAttribute(value: string): boolean
-  inputAddContext(value: string): boolean
-  inputAddModifier(value: string): boolean
-  inputAddOutput(value: string): boolean
-  inputChangeSubclass(value: string): boolean
-  /** Set the entity team number. */
-  inputChangeTeam(value: number): boolean
-  inputClearContext(): boolean
-  inputClearParent(): boolean
-  inputDisableAutoSleeping(): boolean
-  inputDisableDamageForces(): boolean
-  inputDisablePlatform(): boolean
-  inputDisableShadow(): boolean
-  inputDispatchResponse(value: string): boolean
-  inputEnableAutoSleeping(): boolean
-  inputEnableDamageForces(): boolean
-  inputEnablePlatform(): boolean
-  inputEnableShadow(): boolean
-  inputFireUser1(): boolean
-  inputFireUser2(): boolean
-  inputFireUser3(): boolean
-  inputFireUser4(): boolean
-  inputFollowEntity(value: string): boolean
-  inputKill(): boolean
-  inputKillConstrained(): boolean
-  inputKillHierarchy(): boolean
-  inputPlatformFollowYaw(): boolean
-  inputPlatformIgnoreYaw(): boolean
-  inputRemoveAttribute(value: string): boolean
-  inputRemoveContext(value: string): boolean
-  inputRemoveModifier(value: string): boolean
-  /** Set the world origin of this entity. */
-  inputSetAbsOrigin(value: Vector): boolean
-  /** Set the world scale of this entity. */
-  inputSetAbsScale(value: number): boolean
-  inputSetDamageFilter(value: string): boolean
-  inputSetKinematic(value: boolean): boolean
-  /** Set the local origin of this entity. Use when you have a parent. */
-  inputSetLocalOrigin(value: Vector): boolean
-  /** Set the local scale of this entity. Use when you have a parent. */
-  inputSetLocalScale(value: number): boolean
-  inputSetParentAttachment(value: string): boolean
-  inputSetParentAttachmentMaintainOffset(value: string): boolean
-  inputSetScale(value: number): boolean
-  inputSetTeam(value: number): boolean
-  inputTeamNum(value: number): boolean
-  /** Teleport the given entity to the specified position and orientation. */
-  inputTeleportToPoint(value: Vector): boolean
-  inputTestComponentFunc(value: string): boolean
-  inputUse(value: number): boolean
-}
-define(CBaseEntity, 'CBaseEntity', {
+const fieldsCBaseEntity = {
   m_iCurrentThinkContext: 'int32',
   m_nLastThinkTick: 'int32',
   m_bDisabledContextThinks: 'bool',
@@ -383,12 +302,14 @@ define(CBaseEntity, 'CBaseEntity', {
   m_pBlocker: 'CBaseEntity',
   m_flLocalTime: 'float32',
   m_flVPhysicsUpdateLocalTime: 'float32',
-}, {
+} as const
+const inputsCBaseEntity = {
   AddAttribute: 'text',
   AddContext: 'text',
   AddModifier: 'text',
   AddOutput: 'text',
   ChangeSubclass: 'text',
+  /** Set the entity team number. */
   ChangeTeam: 'integer',
   ClearContext: '',
   ClearParent: '',
@@ -414,54 +335,44 @@ define(CBaseEntity, 'CBaseEntity', {
   RemoveAttribute: 'text',
   RemoveContext: 'text',
   RemoveModifier: 'text',
+  /** Set the world origin of this entity. */
   SetAbsOrigin: 'vector',
+  /** Set the world scale of this entity. */
   SetAbsScale: 'number',
   SetDamageFilter: 'text',
   SetKinematic: 'boolean',
+  /** Set the local origin of this entity. Use when you have a parent. */
   SetLocalOrigin: 'vector',
+  /** Set the local scale of this entity. Use when you have a parent. */
   SetLocalScale: 'number',
   SetParentAttachment: 'text',
   SetParentAttachmentMaintainOffset: 'text',
   SetScale: 'number',
   SetTeam: 'integer',
   TeamNum: 'integer',
+  /** Teleport the given entity to the specified position and orientation. */
   TeleportToPoint: 'vector',
   TestComponentFunc: 'text',
   Use: 'integer',
-})
+} as const
+export class CBaseEntity extends CEntityInstance {}
+export interface CBaseEntity extends Fields<typeof fieldsCBaseEntity>, Inputs<typeof inputsCBaseEntity> {}
+define(CBaseEntity, 'CBaseEntity', fieldsCBaseEntity, inputsCBaseEntity)
 
-export class CAI_ChangeHintGroup extends CBaseEntity {}
-export interface CAI_ChangeHintGroup {
-  m_iSearchType: number | undefined
-  readonly m_strSearchName: string | undefined
-  readonly m_strNewHintGroup: string | undefined
-  m_flRadius: number | undefined
-  inputActivate(): boolean
-}
-define(CAI_ChangeHintGroup, 'CAI_ChangeHintGroup', {
+const fieldsCAI_ChangeHintGroup = {
   m_iSearchType: 'int32',
   m_strSearchName: 'string',
   m_strNewHintGroup: 'string',
   m_flRadius: 'float32',
-}, {
+} as const
+const inputsCAI_ChangeHintGroup = {
   Activate: '',
-})
+} as const
+export class CAI_ChangeHintGroup extends CBaseEntity {}
+export interface CAI_ChangeHintGroup extends Fields<typeof fieldsCAI_ChangeHintGroup>, Inputs<typeof inputsCAI_ChangeHintGroup> {}
+define(CAI_ChangeHintGroup, 'CAI_ChangeHintGroup', fieldsCAI_ChangeHintGroup, inputsCAI_ChangeHintGroup)
 
-export class CAI_GoalEntity extends CBaseEntity {}
-export interface CAI_GoalEntity {
-  readonly m_iszActor: string | undefined
-  readonly m_iszGoal: string | undefined
-  m_fStartActive: boolean | undefined
-  m_SearchType: number | undefined
-  readonly m_iszConceptModifiers: string | undefined
-  m_hGoalEntity: CBaseEntity | undefined
-  m_flags: number | undefined
-  inputActivate(): boolean
-  inputDeactivate(): boolean
-  inputToggle(): boolean
-  inputUpdateActors(): boolean
-}
-define(CAI_GoalEntity, 'CAI_GoalEntity', {
+const fieldsCAI_GoalEntity = {
   m_iszActor: 'string',
   m_iszGoal: 'string',
   m_fStartActive: 'bool',
@@ -469,33 +380,18 @@ define(CAI_GoalEntity, 'CAI_GoalEntity', {
   m_iszConceptModifiers: 'string',
   m_hGoalEntity: 'CBaseEntity',
   m_flags: 'uint32',
-}, {
+} as const
+const inputsCAI_GoalEntity = {
   Activate: '',
   Deactivate: '',
   Toggle: '',
   UpdateActors: '',
-})
+} as const
+export class CAI_GoalEntity extends CBaseEntity {}
+export interface CAI_GoalEntity extends Fields<typeof fieldsCAI_GoalEntity>, Inputs<typeof inputsCAI_GoalEntity> {}
+define(CAI_GoalEntity, 'CAI_GoalEntity', fieldsCAI_GoalEntity, inputsCAI_GoalEntity)
 
-export class CAI_Relationship extends CBaseEntity {}
-export interface CAI_Relationship {
-  readonly m_iszSubject: string | undefined
-  readonly m_iszSubjectClass: string | undefined
-  m_nSubjectClassifyAs: number | undefined
-  readonly m_iszTargetClass: string | undefined
-  m_nTargetClassifyAs: number | undefined
-  m_iDisposition: number | undefined
-  m_iRank: number | undefined
-  m_fStartActive: boolean | undefined
-  m_bIsActive: boolean | undefined
-  m_iPreviousDisposition: number | undefined
-  m_flRadius: number | undefined
-  m_iPreviousRank: number | undefined
-  m_bReciprocal: boolean | undefined
-  inputApplyRelationship(): boolean
-  inputRevertRelationship(): boolean
-  inputRevertToDefaultRelationship(): boolean
-}
-define(CAI_Relationship, 'CAI_Relationship', {
+const fieldsCAI_Relationship = {
   m_iszSubject: 'string',
   m_iszSubjectClass: 'string',
   m_nSubjectClassifyAs: 'uint32',
@@ -509,43 +405,17 @@ define(CAI_Relationship, 'CAI_Relationship', {
   m_flRadius: 'float32',
   m_iPreviousRank: 'int32',
   m_bReciprocal: 'bool',
-}, {
+} as const
+const inputsCAI_Relationship = {
   ApplyRelationship: '',
   RevertRelationship: '',
   RevertToDefaultRelationship: '',
-})
+} as const
+export class CAI_Relationship extends CBaseEntity {}
+export interface CAI_Relationship extends Fields<typeof fieldsCAI_Relationship>, Inputs<typeof inputsCAI_Relationship> {}
+define(CAI_Relationship, 'CAI_Relationship', fieldsCAI_Relationship, inputsCAI_Relationship)
 
-export class CAI_ScriptConditions extends CBaseEntity {}
-export interface CAI_ScriptConditions {
-  m_fDisabled: boolean | undefined
-  m_bLeaveAsleep: boolean | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_flRequiredDuration: number | undefined
-  m_fMinState: number | undefined
-  m_fMaxState: number | undefined
-  m_fScriptStatus: number | undefined
-  m_fActorSeePlayer: number | undefined
-  readonly m_Actor: string | undefined
-  m_flPlayerActorProximity: number | undefined
-  m_flPlayerActorFOV: number | undefined
-  m_bPlayerActorFOVTrueCone: boolean | undefined
-  m_fPlayerActorLOS: number | undefined
-  m_fActorSeeTarget: number | undefined
-  m_flActorTargetProximity: number | undefined
-  m_flPlayerTargetProximity: number | undefined
-  m_flPlayerTargetFOV: number | undefined
-  m_bPlayerTargetFOVTrueCone: boolean | undefined
-  m_fPlayerTargetLOS: number | undefined
-  m_fPlayerBlockingActor: number | undefined
-  m_fActorInPVS: number | undefined
-  m_flMinTimeout: number | undefined
-  m_flMaxTimeout: number | undefined
-  m_fActorInVehicle: number | undefined
-  m_fPlayerInVehicle: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CAI_ScriptConditions, 'CAI_ScriptConditions', {
+const fieldsCAI_ScriptConditions = {
   m_fDisabled: 'bool',
   m_bLeaveAsleep: 'bool',
   m_hTarget: 'CBaseEntity',
@@ -571,89 +441,31 @@ define(CAI_ScriptConditions, 'CAI_ScriptConditions', {
   m_flMaxTimeout: 'float32',
   m_fActorInVehicle: 'uint32',
   m_fPlayerInVehicle: 'uint32',
-}, {
+} as const
+const inputsCAI_ScriptConditions = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CAI_ScriptConditions extends CBaseEntity {}
+export interface CAI_ScriptConditions extends Fields<typeof fieldsCAI_ScriptConditions>, Inputs<typeof inputsCAI_ScriptConditions> {}
+define(CAI_ScriptConditions, 'CAI_ScriptConditions', fieldsCAI_ScriptConditions, inputsCAI_ScriptConditions)
 
-export class CAI_SpeechFilter extends CBaseEntity {}
-export interface CAI_SpeechFilter {
-  readonly m_iszSubject: string | undefined
-  m_flIdleModifier: number | undefined
-  m_bNeverSayHello: boolean | undefined
-  m_bDisabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetIdleModifier(value: number): boolean
-}
-define(CAI_SpeechFilter, 'CAI_SpeechFilter', {
+const fieldsCAI_SpeechFilter = {
   m_iszSubject: 'string',
   m_flIdleModifier: 'float32',
   m_bNeverSayHello: 'bool',
   m_bDisabled: 'bool',
-}, {
+} as const
+const inputsCAI_SpeechFilter = {
   Disable: '',
   Enable: '',
   SetIdleModifier: 'number',
-})
+} as const
+export class CAI_SpeechFilter extends CBaseEntity {}
+export interface CAI_SpeechFilter extends Fields<typeof fieldsCAI_SpeechFilter>, Inputs<typeof inputsCAI_SpeechFilter> {}
+define(CAI_SpeechFilter, 'CAI_SpeechFilter', fieldsCAI_SpeechFilter, inputsCAI_SpeechFilter)
 
-export class CBaseModelEntity extends CBaseEntity {}
-export interface CBaseModelEntity {
-  m_nDestructiblePartInitialStateDestructed0: number | undefined
-  m_nDestructiblePartInitialStateDestructed1: number | undefined
-  m_nDestructiblePartInitialStateDestructed2: number | undefined
-  m_nDestructiblePartInitialStateDestructed3: number | undefined
-  m_nDestructiblePartInitialStateDestructed4: number | undefined
-  m_nDestructiblePartInitialStateDestructed0_PartIndex: number | undefined
-  m_nDestructiblePartInitialStateDestructed1_PartIndex: number | undefined
-  m_nDestructiblePartInitialStateDestructed2_PartIndex: number | undefined
-  m_nDestructiblePartInitialStateDestructed3_PartIndex: number | undefined
-  m_nDestructiblePartInitialStateDestructed4_PartIndex: number | undefined
-  m_bDestructiblePartInitialStateDestructed0_GenerateBreakpieces: boolean | undefined
-  m_bDestructiblePartInitialStateDestructed1_GenerateBreakpieces: boolean | undefined
-  m_bDestructiblePartInitialStateDestructed2_GenerateBreakpieces: boolean | undefined
-  m_bDestructiblePartInitialStateDestructed3_GenerateBreakpieces: boolean | undefined
-  m_bDestructiblePartInitialStateDestructed4_GenerateBreakpieces: boolean | undefined
-  m_flDissolveStartTime: number | undefined
-  m_nRenderMode: number | undefined
-  m_nRenderFX: number | undefined
-  readonly m_szAddModifier: string | undefined
-  m_bAllowFadeInView: boolean | undefined
-  m_bHasCollision: boolean | undefined
-  m_vSupport: Vector | undefined
-  m_bRenderToCubemaps: boolean | undefined
-  m_bExpandRenderBoundsToIncludeCloth: boolean | undefined
-  m_bNoInterpolate: boolean | undefined
-  m_flGlowBackfaceMult: number | undefined
-  m_fadeMinDist: number | undefined
-  m_fadeMaxDist: number | undefined
-  m_flFadeScale: number | undefined
-  m_flShadowStrength: number | undefined
-  m_nObjectCulling: number | undefined
-  m_bodyGroupTotalRequestCount: number | undefined
-  inputAlpha(value: number): boolean
-  /** Destroy this joint by Name. */
-  inputBreakJointByName(value: string): boolean
-  /** Clear the specified render attribute. */
-  inputClearRenderAttribute(value: string): boolean
-  inputColor(value: number): boolean
-  inputExtinguish(): boolean
-  inputIgnite(): boolean
-  inputIgniteHitboxFireScale(value: number): boolean
-  inputIgniteLifetime(value: number): boolean
-  inputIgniteNumHitboxFires(value: number): boolean
-  /** Change the active materialgroup. */
-  inputSetMaterialGroup(value: string): boolean
-  /** Alpha 0-255. */
-  inputSetRenderAlpha(value: number): boolean
-  inputSetRenderAttribute(value: string): boolean
-  /** Set object render color (Alpha is ignored). */
-  inputSetRenderColor(value: number): boolean
-  inputSkin(value: number): boolean
-  inputfademaxdist(value: number): boolean
-  inputfademindist(value: number): boolean
-}
-define(CBaseModelEntity, 'CBaseModelEntity', {
+const fieldsCBaseModelEntity = {
   m_nDestructiblePartInitialStateDestructed0: 'uint32',
   m_nDestructiblePartInitialStateDestructed1: 'uint32',
   m_nDestructiblePartInitialStateDestructed2: 'uint32',
@@ -686,9 +498,12 @@ define(CBaseModelEntity, 'CBaseModelEntity', {
   m_flShadowStrength: 'float32',
   m_nObjectCulling: 'uint8',
   m_bodyGroupTotalRequestCount: 'uint32',
-}, {
+} as const
+const inputsCBaseModelEntity = {
   Alpha: 'integer',
+  /** Destroy this joint by Name. */
   BreakJointByName: 'text',
+  /** Clear the specified render attribute. */
   ClearRenderAttribute: 'text',
   Color: 'color',
   Extinguish: '',
@@ -696,109 +511,29 @@ define(CBaseModelEntity, 'CBaseModelEntity', {
   IgniteHitboxFireScale: 'number',
   IgniteLifetime: 'number',
   IgniteNumHitboxFires: 'integer',
+  /** Change the active materialgroup. */
   SetMaterialGroup: 'text',
+  /** Alpha 0-255. */
   SetRenderAlpha: 'integer',
   SetRenderAttribute: 'text',
+  /** Set object render color (Alpha is ignored). */
   SetRenderColor: 'color',
   Skin: 'integer',
   fademaxdist: 'number',
   fademindist: 'number',
-})
+} as const
+export class CBaseModelEntity extends CBaseEntity {}
+export interface CBaseModelEntity extends Fields<typeof fieldsCBaseModelEntity>, Inputs<typeof inputsCBaseModelEntity> {}
+define(CBaseModelEntity, 'CBaseModelEntity', fieldsCBaseModelEntity, inputsCBaseModelEntity)
 
-export class CAssignedLaneParticle extends CBaseModelEntity {}
-export interface CAssignedLaneParticle {
-  m_iLane: number | undefined
-}
-define(CAssignedLaneParticle, 'CAssignedLaneParticle', {
+const fieldsCAssignedLaneParticle = {
   m_iLane: 'int32',
-})
+} as const
+export class CAssignedLaneParticle extends CBaseModelEntity {}
+export interface CAssignedLaneParticle extends Fields<typeof fieldsCAssignedLaneParticle> {}
+define(CAssignedLaneParticle, 'CAssignedLaneParticle', fieldsCAssignedLaneParticle)
 
-export class CBarnLight extends CBaseModelEntity {}
-export interface CBarnLight {
-  m_bEnabled: boolean | undefined
-  m_nColorMode: number | undefined
-  m_flColorTemperature: number | undefined
-  m_flBrightness: number | undefined
-  m_flBrightnessScale: number | undefined
-  m_nDirectLight: number | undefined
-  m_nBakedShadowIndex: number | undefined
-  m_nLightPathUniqueId: number | undefined
-  m_nLightMapUniqueId: number | undefined
-  m_nLuminaireShape: number | undefined
-  m_flLuminaireSize: number | undefined
-  m_flLuminaireAnisotropy: number | undefined
-  readonly m_LightStyleString: string | undefined
-  m_flLightStyleStartTime: number | undefined
-  m_flShape: number | undefined
-  m_flSoftX: number | undefined
-  m_flSoftY: number | undefined
-  m_flSkirt: number | undefined
-  m_flSkirtNear: number | undefined
-  m_vSizeParams: Vector | undefined
-  m_flRange: number | undefined
-  m_vShear: Vector | undefined
-  m_nBakeSpecularToCubemaps: number | undefined
-  m_vBakeSpecularToCubemapsSize: Vector | undefined
-  m_flBakeSpecularToCubemapsScale: number | undefined
-  m_nCastShadows: number | undefined
-  m_nShadowMapSize: number | undefined
-  m_nShadowPriority: number | undefined
-  m_bContactShadow: boolean | undefined
-  m_bForceShadowsEnabled: boolean | undefined
-  m_nBounceLight: number | undefined
-  m_flBounceScale: number | undefined
-  m_flMinRoughness: number | undefined
-  m_vAlternateColor: Vector | undefined
-  m_fAlternateColorBrightness: number | undefined
-  m_nFog: number | undefined
-  m_flFogStrength: number | undefined
-  m_nFogShadows: number | undefined
-  m_flFogScale: number | undefined
-  m_flFadeSizeStart: number | undefined
-  m_flFadeSizeEnd: number | undefined
-  m_flShadowFadeSizeStart: number | undefined
-  m_flShadowFadeSizeEnd: number | undefined
-  m_bPrecomputedFieldsValid: boolean | undefined
-  m_vPrecomputedBoundsMins: Vector | undefined
-  m_vPrecomputedBoundsMaxs: Vector | undefined
-  m_vPrecomputedOBBOrigin: Vector | undefined
-  m_vPrecomputedOBBAngles: Angles | undefined
-  m_vPrecomputedOBBExtent: Vector | undefined
-  m_nPrecomputedSubFrusta: number | undefined
-  m_vPrecomputedOBBOrigin0: Vector | undefined
-  m_vPrecomputedOBBAngles0: Angles | undefined
-  m_vPrecomputedOBBExtent0: Vector | undefined
-  m_vPrecomputedOBBOrigin1: Vector | undefined
-  m_vPrecomputedOBBAngles1: Angles | undefined
-  m_vPrecomputedOBBExtent1: Vector | undefined
-  m_vPrecomputedOBBOrigin2: Vector | undefined
-  m_vPrecomputedOBBAngles2: Angles | undefined
-  m_vPrecomputedOBBExtent2: Vector | undefined
-  m_vPrecomputedOBBOrigin3: Vector | undefined
-  m_vPrecomputedOBBAngles3: Angles | undefined
-  m_vPrecomputedOBBExtent3: Vector | undefined
-  m_vPrecomputedOBBOrigin4: Vector | undefined
-  m_vPrecomputedOBBAngles4: Angles | undefined
-  m_vPrecomputedOBBExtent4: Vector | undefined
-  m_vPrecomputedOBBOrigin5: Vector | undefined
-  m_vPrecomputedOBBAngles5: Angles | undefined
-  m_vPrecomputedOBBExtent5: Vector | undefined
-  m_bPvsModifyEntity: boolean | undefined
-  m_bTransmitAlways: boolean | undefined
-  inputCastDynamicShadows(value: boolean): boolean
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetBounceScale(value: number): boolean
-  inputSetBrightness(value: number): boolean
-  inputSetBrightnessScale(value: number): boolean
-  inputSetColor(value: number): boolean
-  inputSetColorTemperature(value: number): boolean
-  inputSetFogScale(value: number): boolean
-  inputSetFogStrength(value: number): boolean
-  inputSetStyle(value: string): boolean
-  inputToggle(): boolean
-}
-define(CBarnLight, 'CBarnLight', {
+const fieldsCBarnLight = {
   m_bEnabled: 'bool',
   m_nColorMode: 'int32',
   m_flColorTemperature: 'float32',
@@ -869,7 +604,8 @@ define(CBarnLight, 'CBarnLight', {
   m_vPrecomputedOBBExtent5: 'vector',
   m_bPvsModifyEntity: 'bool',
   m_bTransmitAlways: 'bool',
-}, {
+} as const
+const inputsCBarnLight = {
   CastDynamicShadows: 'boolean',
   Disable: '',
   Enable: '',
@@ -882,56 +618,36 @@ define(CBarnLight, 'CBarnLight', {
   SetFogStrength: 'number',
   SetStyle: 'text',
   Toggle: '',
-})
+} as const
+export class CBarnLight extends CBaseModelEntity {}
+export interface CBarnLight extends Fields<typeof fieldsCBarnLight>, Inputs<typeof inputsCBarnLight> {}
+define(CBarnLight, 'CBarnLight', fieldsCBarnLight, inputsCBarnLight)
 
-export class CEnvironmentLight extends CBarnLight {}
-export interface CEnvironmentLight {
-  m_flSkyIntensity: number | undefined
-  m_flAngularDiameter: number | undefined
-}
-define(CEnvironmentLight, 'CEnvironmentLight', {
+const fieldsCEnvironmentLight = {
   m_flSkyIntensity: 'float32',
   m_flAngularDiameter: 'float32',
-})
+} as const
+export class CEnvironmentLight extends CBarnLight {}
+export interface CEnvironmentLight extends Fields<typeof fieldsCEnvironmentLight> {}
+define(CEnvironmentLight, 'CEnvironmentLight', fieldsCEnvironmentLight)
 
-export class COmniLight extends CBarnLight {}
-export interface COmniLight {
-  m_flInnerAngle: number | undefined
-  m_flOuterAngle: number | undefined
-  m_bShowLight: boolean | undefined
-}
-define(COmniLight, 'COmniLight', {
+const fieldsCOmniLight = {
   m_flInnerAngle: 'float32',
   m_flOuterAngle: 'float32',
   m_bShowLight: 'bool',
-})
+} as const
+export class COmniLight extends CBarnLight {}
+export interface COmniLight extends Fields<typeof fieldsCOmniLight> {}
+define(COmniLight, 'COmniLight', fieldsCOmniLight)
 
-export class CRectLight extends CBarnLight {}
-export interface CRectLight {
-  m_bShowLight: boolean | undefined
-}
-define(CRectLight, 'CRectLight', {
+const fieldsCRectLight = {
   m_bShowLight: 'bool',
-})
+} as const
+export class CRectLight extends CBarnLight {}
+export interface CRectLight extends Fields<typeof fieldsCRectLight> {}
+define(CRectLight, 'CRectLight', fieldsCRectLight)
 
-export class CBaseAnimGraph extends CBaseModelEntity {}
-export interface CBaseAnimGraph {
-  m_bInitiallyPopulateInterpHistory: boolean | undefined
-  m_bAnimGraphUpdateEnabled: boolean | undefined
-  m_bAnimationUpdateScheduled: boolean | undefined
-  m_vecForce: Vector | undefined
-  m_nForceBone: number | undefined
-  m_bRagdollEnabled: boolean | undefined
-  m_bRagdollClientSide: boolean | undefined
-  m_bShouldUpdateTransformations: boolean | undefined
-  inputClearTargetIdentifierOverride(): boolean
-  /** Play the specified animation sequence on a NON-ANIMGRAPH entity. */
-  inputPlaySequence(value: string): boolean
-  inputSetBodygroup(value: string): boolean
-  inputSetPlaybackRate(value: number): boolean
-  inputSetTargetIdentifierOverride(value: string): boolean
-}
-define(CBaseAnimGraph, 'CBaseAnimGraph', {
+const fieldsCBaseAnimGraph = {
   m_bInitiallyPopulateInterpHistory: 'bool',
   m_bAnimGraphUpdateEnabled: 'bool',
   m_bAnimationUpdateScheduled: 'bool',
@@ -940,30 +656,23 @@ define(CBaseAnimGraph, 'CBaseAnimGraph', {
   m_bRagdollEnabled: 'bool',
   m_bRagdollClientSide: 'bool',
   m_bShouldUpdateTransformations: 'bool',
-}, {
+} as const
+const inputsCBaseAnimGraph = {
   ClearTargetIdentifierOverride: '',
+  /** Play the specified animation sequence on a NON-ANIMGRAPH entity. */
   PlaySequence: 'text',
   SetBodygroup: 'text',
   SetPlaybackRate: 'number',
   SetTargetIdentifierOverride: 'text',
-})
+} as const
+export class CBaseAnimGraph extends CBaseModelEntity {}
+export interface CBaseAnimGraph extends Fields<typeof fieldsCBaseAnimGraph>, Inputs<typeof inputsCBaseAnimGraph> {}
+define(CBaseAnimGraph, 'CBaseAnimGraph', fieldsCBaseAnimGraph, inputsCBaseAnimGraph)
 
 export class CBaseAnimGraphAlias_baseanimating extends CBaseAnimGraph {}
 define(CBaseAnimGraphAlias_baseanimating, 'CBaseAnimGraphAlias_baseanimating', {})
 
-export class CBaseCombatCharacter extends CBaseAnimGraph {}
-export interface CBaseCombatCharacter {
-  m_bForceServerRagdoll: boolean | undefined
-  m_impactEnergyScale: number | undefined
-  m_bApplyStressDamage: boolean | undefined
-  m_bDeathEventsDispatched: boolean | undefined
-  readonly m_strRelationships: string | undefined
-  m_eHull: number | undefined
-  m_nNavHullIdx: number | undefined
-  inputSetRelationship(value: string): boolean
-  inputphysdamagescale(value: number): boolean
-}
-define(CBaseCombatCharacter, 'CBaseCombatCharacter', {
+const fieldsCBaseCombatCharacter = {
   m_bForceServerRagdoll: 'bool',
   m_impactEnergyScale: 'float32',
   m_bApplyStressDamage: 'bool',
@@ -971,60 +680,16 @@ define(CBaseCombatCharacter, 'CBaseCombatCharacter', {
   m_strRelationships: 'string',
   m_eHull: 'uint32',
   m_nNavHullIdx: 'uint32',
-}, {
+} as const
+const inputsCBaseCombatCharacter = {
   SetRelationship: 'text',
   physdamagescale: 'number',
-})
+} as const
+export class CBaseCombatCharacter extends CBaseAnimGraph {}
+export interface CBaseCombatCharacter extends Fields<typeof fieldsCBaseCombatCharacter>, Inputs<typeof inputsCBaseCombatCharacter> {}
+define(CBaseCombatCharacter, 'CBaseCombatCharacter', fieldsCBaseCombatCharacter, inputsCBaseCombatCharacter)
 
-export class CAI_BaseNPC extends CBaseCombatCharacter {}
-export interface CAI_BaseNPC {
-  m_bCheckContacts: boolean | undefined
-  m_bForceDynamicHull: boolean | undefined
-  m_hSynchronizedPrimaryNPC: CAI_BaseNPC | undefined
-  m_NPCState: number | undefined
-  m_nPreModifierNPCState: number | undefined
-  m_IdealNPCState: number | undefined
-  m_flLastStateChangeTime: number | undefined
-  m_bForceConditionsGather: boolean | undefined
-  m_bConditionsGathered: boolean | undefined
-  m_bConditionsGatheredAsync: boolean | undefined
-  m_bGatheringConditions: boolean | undefined
-  m_bGatheringScheduleRelatedConditions: boolean | undefined
-  m_bSkippedChooseEnemy: boolean | undefined
-  m_afCapability: number | undefined
-  m_flLastPositionTolerance: number | undefined
-  m_nMovementFailureBehavior: number | undefined
-  m_nCurrentPathSerialNumber: number | undefined
-  m_nLastPathSerialNumber: number | undefined
-  m_nForcedGoGait: number | undefined
-  m_lastTimeBashedObstacle: number | undefined
-  m_nextMantleTime: number | undefined
-  m_hPathObstructor: CBaseEntity | undefined
-  m_flJumpMaxRise: number | undefined
-  m_flJumpMaxDrop: number | undefined
-  m_flJumpMaxDist: number | undefined
-  m_flJumpMinDist: number | undefined
-  m_flTimeLastMovement: number | undefined
-  readonly m_strNavRestrictionVolume: string | undefined
-  m_afMemory: number | undefined
-  m_flLastTookDamageTime: number | undefined
-  m_flLastTookDamageFromPlayerTime: number | undefined
-  m_bDidDeathCleanup: boolean | undefined
-  m_bReceivedEnemyDeadNotification: boolean | undefined
-  m_nPrevHealthDuringModifyDamage: number | undefined
-  m_flWaitFinished: number | undefined
-  m_fNoDamageDecal: boolean | undefined
-  m_nAITraceMask: bigint | undefined
-  m_bDynamicAILOD: boolean | undefined
-  m_aiLOD: number | undefined
-  m_flThinkTime: number | undefined
-  m_nDebugCurIndex: number | undefined
-  inputBreak(): boolean
-  inputOverrideHealth(value: number): boolean
-  inputSetHealth(value: number): boolean
-  inputSetNavRestrictionVolume(value: string): boolean
-}
-define(CAI_BaseNPC, 'CAI_BaseNPC', {
+const fieldsCAI_BaseNPC = {
   m_bCheckContacts: 'bool',
   m_bForceDynamicHull: 'bool',
   m_hSynchronizedPrimaryNPC: 'CAI_BaseNPC',
@@ -1066,59 +731,43 @@ define(CAI_BaseNPC, 'CAI_BaseNPC', {
   m_aiLOD: 'uint32',
   m_flThinkTime: 'float32',
   m_nDebugCurIndex: 'int32',
-}, {
+} as const
+const inputsCAI_BaseNPC = {
   Break: '',
   OverrideHealth: 'integer',
   SetHealth: 'integer',
   SetNavRestrictionVolume: 'text',
-})
+} as const
+export class CAI_BaseNPC extends CBaseCombatCharacter {}
+export interface CAI_BaseNPC extends Fields<typeof fieldsCAI_BaseNPC>, Inputs<typeof inputsCAI_BaseNPC> {}
+define(CAI_BaseNPC, 'CAI_BaseNPC', fieldsCAI_BaseNPC, inputsCAI_BaseNPC)
 
-export class CAI_CitadelNPC extends CAI_BaseNPC {}
-export interface CAI_CitadelNPC {
-  m_hAbilityOwner: CCitadelBaseAbility | undefined
-  m_bMinion: boolean | undefined
-  m_hLookTarget: CBaseEntity | undefined
-  m_bBeamActive: boolean | undefined
-  m_vEyeBeamTarget: Vector | undefined
-}
-define(CAI_CitadelNPC, 'CAI_CitadelNPC', {
+const fieldsCAI_CitadelNPC = {
   m_hAbilityOwner: 'CCitadelBaseAbility',
   m_bMinion: 'bool',
   m_hLookTarget: 'CBaseEntity',
   m_bBeamActive: 'bool',
   m_vEyeBeamTarget: 'vector',
-})
+} as const
+export class CAI_CitadelNPC extends CAI_BaseNPC {}
+export interface CAI_CitadelNPC extends Fields<typeof fieldsCAI_CitadelNPC> {}
+define(CAI_CitadelNPC, 'CAI_CitadelNPC', fieldsCAI_CitadelNPC)
 
 export class CCitadelPlayerBotNPCBrain extends CAI_CitadelNPC {}
 define(CCitadelPlayerBotNPCBrain, 'CCitadelPlayerBotNPCBrain', {})
 
-export class CNPC_BarrackBoss extends CAI_CitadelNPC {}
-export interface CNPC_BarrackBoss {
-  m_iLane: number | undefined
-  m_hTrooperSpawnPoint: CBaseEntity | undefined
-  m_LaneSide: number | undefined
-  m_flFadeOutStart: number | undefined
-  m_flFadeOutEnd: number | undefined
-}
-define(CNPC_BarrackBoss, 'CNPC_BarrackBoss', {
+const fieldsCNPC_BarrackBoss = {
   m_iLane: 'int32',
   m_hTrooperSpawnPoint: 'CBaseEntity',
   m_LaneSide: 'uint8',
   m_flFadeOutStart: 'float32',
   m_flFadeOutEnd: 'float32',
-})
+} as const
+export class CNPC_BarrackBoss extends CAI_CitadelNPC {}
+export interface CNPC_BarrackBoss extends Fields<typeof fieldsCNPC_BarrackBoss> {}
+define(CNPC_BarrackBoss, 'CNPC_BarrackBoss', fieldsCNPC_BarrackBoss)
 
-export class CNPC_Boss_Tier2 extends CAI_CitadelNPC {}
-export interface CNPC_Boss_Tier2 {
-  m_iLane: number | undefined
-  m_hTargetedEnemy: CBaseEntity | undefined
-  m_flFadeOutStart: number | undefined
-  m_flFadeOutEnd: number | undefined
-  m_flLastWeakpointHitTime: number | undefined
-  m_vecElectricBeamLookTarget: Vector | undefined
-  m_nElectricBeamCasts: number | undefined
-}
-define(CNPC_Boss_Tier2, 'CNPC_Boss_Tier2', {
+const fieldsCNPC_Boss_Tier2 = {
   m_iLane: 'int32',
   m_hTargetedEnemy: 'CBaseEntity',
   m_flFadeOutStart: 'float32',
@@ -1126,115 +775,88 @@ define(CNPC_Boss_Tier2, 'CNPC_Boss_Tier2', {
   m_flLastWeakpointHitTime: 'float32',
   m_vecElectricBeamLookTarget: 'vector',
   m_nElectricBeamCasts: 'int32',
-})
+} as const
+export class CNPC_Boss_Tier2 extends CAI_CitadelNPC {}
+export interface CNPC_Boss_Tier2 extends Fields<typeof fieldsCNPC_Boss_Tier2> {}
+define(CNPC_Boss_Tier2, 'CNPC_Boss_Tier2', fieldsCNPC_Boss_Tier2)
 
-export class CNPC_Boss_Tier3 extends CAI_CitadelNPC {}
-export interface CNPC_Boss_Tier3 {
-  m_iLane: number | undefined
-  m_vecElectricBeamTargetEnd: Vector | undefined
-  readonly m_backdoorProtectionTrigger: string | undefined
-  m_eAliveState: number | undefined
-  m_ePhase: number | undefined
-  m_vShrineAttackTargetPos: Vector | undefined
-}
-define(CNPC_Boss_Tier3, 'CNPC_Boss_Tier3', {
+const fieldsCNPC_Boss_Tier3 = {
   m_iLane: 'int32',
   m_vecElectricBeamTargetEnd: 'vector',
   m_backdoorProtectionTrigger: 'string',
   m_eAliveState: 'uint32',
   m_ePhase: 'uint32',
   m_vShrineAttackTargetPos: 'vector',
-})
+} as const
+export class CNPC_Boss_Tier3 extends CAI_CitadelNPC {}
+export interface CNPC_Boss_Tier3 extends Fields<typeof fieldsCNPC_Boss_Tier3> {}
+define(CNPC_Boss_Tier3, 'CNPC_Boss_Tier3', fieldsCNPC_Boss_Tier3)
 
 export class CNPC_Escort extends CAI_CitadelNPC {}
 define(CNPC_Escort, 'CNPC_Escort', {})
 
-export class CNPC_FamiliarHelper extends CAI_CitadelNPC {}
-export interface CNPC_FamiliarHelper {
-  m_tCooldownStartTime: number | undefined
-  m_tCooldownEndTime: number | undefined
-  m_bIsHelperAvailableNet: boolean | undefined
-}
-define(CNPC_FamiliarHelper, 'CNPC_FamiliarHelper', {
+const fieldsCNPC_FamiliarHelper = {
   m_tCooldownStartTime: 'float32',
   m_tCooldownEndTime: 'float32',
   m_bIsHelperAvailableNet: 'bool',
-})
+} as const
+export class CNPC_FamiliarHelper extends CAI_CitadelNPC {}
+export interface CNPC_FamiliarHelper extends Fields<typeof fieldsCNPC_FamiliarHelper> {}
+define(CNPC_FamiliarHelper, 'CNPC_FamiliarHelper', fieldsCNPC_FamiliarHelper)
 
 export class CNPC_MidBoss extends CAI_CitadelNPC {}
 define(CNPC_MidBoss, 'CNPC_MidBoss', {})
 
-export class CNPC_NecroSkele extends CAI_CitadelNPC {}
-export interface CNPC_NecroSkele {
-  m_hCastingAbility: CCitadelBaseAbility | undefined
-  m_tSpawnTime: number | undefined
-  m_vecCastLocation: Vector | undefined
-  m_bDontMove: boolean | undefined
-  m_flAttackRange: number | undefined
-  m_flSpawnDuration: number | undefined
-}
-define(CNPC_NecroSkele, 'CNPC_NecroSkele', {
+const fieldsCNPC_NecroSkele = {
   m_hCastingAbility: 'CCitadelBaseAbility',
   m_tSpawnTime: 'float32',
   m_vecCastLocation: 'vector',
   m_bDontMove: 'bool',
   m_flAttackRange: 'float32',
   m_flSpawnDuration: 'float32',
-})
+} as const
+export class CNPC_NecroSkele extends CAI_CitadelNPC {}
+export interface CNPC_NecroSkele extends Fields<typeof fieldsCNPC_NecroSkele> {}
+define(CNPC_NecroSkele, 'CNPC_NecroSkele', fieldsCNPC_NecroSkele)
 
-export class CNPC_Trooper extends CAI_CitadelNPC {}
-export interface CNPC_Trooper {
-  m_iLane: number | undefined
-  m_hSpawnWaveController: CInfoTrooperBossSpawn | undefined
-  m_hTrooperSpawnPoint: CInfoTrooperSpawn | undefined
-  m_hTargetedEnemy: CBaseEntity | undefined
-  m_bUsingBossWeapon: boolean | undefined
-}
-define(CNPC_Trooper, 'CNPC_Trooper', {
+const fieldsCNPC_Trooper = {
   m_iLane: 'int32',
   m_hSpawnWaveController: 'CInfoTrooperBossSpawn',
   m_hTrooperSpawnPoint: 'CInfoTrooperSpawn',
   m_hTargetedEnemy: 'CBaseEntity',
   m_bUsingBossWeapon: 'bool',
-})
+} as const
+export class CNPC_Trooper extends CAI_CitadelNPC {}
+export interface CNPC_Trooper extends Fields<typeof fieldsCNPC_Trooper> {}
+define(CNPC_Trooper, 'CNPC_Trooper', fieldsCNPC_Trooper)
 
-export class CNPC_TrooperBoss extends CAI_CitadelNPC {}
-export interface CNPC_TrooperBoss {
-  m_iLane: number | undefined
-  m_hTrooperSpawnPoint: CBaseEntity | undefined
-  m_LaneSide: number | undefined
-  m_flFadeOutStart: number | undefined
-  m_flFadeOutEnd: number | undefined
-}
-define(CNPC_TrooperBoss, 'CNPC_TrooperBoss', {
+const fieldsCNPC_TrooperBoss = {
   m_iLane: 'int32',
   m_hTrooperSpawnPoint: 'CBaseEntity',
   m_LaneSide: 'uint8',
   m_flFadeOutStart: 'float32',
   m_flFadeOutEnd: 'float32',
-})
+} as const
+export class CNPC_TrooperBoss extends CAI_CitadelNPC {}
+export interface CNPC_TrooperBoss extends Fields<typeof fieldsCNPC_TrooperBoss> {}
+define(CNPC_TrooperBoss, 'CNPC_TrooperBoss', fieldsCNPC_TrooperBoss)
 
-export class CNPC_TrooperNeutral extends CAI_CitadelNPC {}
-export interface CNPC_TrooperNeutral {
-  m_vecSpawnOrigin: Vector | undefined
-}
-define(CNPC_TrooperNeutral, 'CNPC_TrooperNeutral', {
+const fieldsCNPC_TrooperNeutral = {
   m_vecSpawnOrigin: 'vector',
-})
+} as const
+export class CNPC_TrooperNeutral extends CAI_CitadelNPC {}
+export interface CNPC_TrooperNeutral extends Fields<typeof fieldsCNPC_TrooperNeutral> {}
+define(CNPC_TrooperNeutral, 'CNPC_TrooperNeutral', fieldsCNPC_TrooperNeutral)
 
-export class CNPC_Neutral_SinnersSacrifice extends CNPC_TrooperNeutral {}
-export interface CNPC_Neutral_SinnersSacrifice {
-  m_iVaultState: number | undefined
-  m_nGoldToGiveOnDamage: number | undefined
-  m_flRandomTimePhase: number | undefined
-  m_flMiniGameTimeScale: number | undefined
-}
-define(CNPC_Neutral_SinnersSacrifice, 'CNPC_Neutral_SinnersSacrifice', {
+const fieldsCNPC_Neutral_SinnersSacrifice = {
   m_iVaultState: 'int32',
   m_nGoldToGiveOnDamage: 'int32',
   m_flRandomTimePhase: 'float32',
   m_flMiniGameTimeScale: 'float32',
-})
+} as const
+export class CNPC_Neutral_SinnersSacrifice extends CNPC_TrooperNeutral {}
+export interface CNPC_Neutral_SinnersSacrifice extends Fields<typeof fieldsCNPC_Neutral_SinnersSacrifice> {}
+define(CNPC_Neutral_SinnersSacrifice, 'CNPC_Neutral_SinnersSacrifice', fieldsCNPC_Neutral_SinnersSacrifice)
 
 export class CNPC_Neutral_SinnersSacrifice_Hideout extends CNPC_Neutral_SinnersSacrifice {}
 define(CNPC_Neutral_SinnersSacrifice_Hideout, 'CNPC_Neutral_SinnersSacrifice_Hideout', {})
@@ -1242,24 +864,7 @@ define(CNPC_Neutral_SinnersSacrifice_Hideout, 'CNPC_Neutral_SinnersSacrifice_Hid
 export class CNPC_YakuzaGangster extends CAI_CitadelNPC {}
 define(CNPC_YakuzaGangster, 'CNPC_YakuzaGangster', {})
 
-export class CBasePlayerPawn extends CBaseCombatCharacter {}
-export interface CBasePlayerPawn {
-  v_angle: Angles | undefined
-  v_anglePrevious: Angles | undefined
-  m_iHideHUD: number | undefined
-  m_fTimeLastHurt: number | undefined
-  m_flDeathTime: number | undefined
-  m_fNextSuicideTime: number | undefined
-  m_fInitHUD: boolean | undefined
-  m_hController: CBasePlayerController | undefined
-  m_hDefaultController: CBasePlayerController | undefined
-  m_fHltvReplayDelay: number | undefined
-  m_fHltvReplayEnd: number | undefined
-  inputSetFogController(value: string): boolean
-  inputSetHUDVisibility(value: boolean): boolean
-  inputSetHealth(value: number): boolean
-}
-define(CBasePlayerPawn, 'CBasePlayerPawn', {
+const fieldsCBasePlayerPawn = {
   v_angle: 'angles',
   v_anglePrevious: 'angles',
   m_iHideHUD: 'uint32',
@@ -1271,11 +876,15 @@ define(CBasePlayerPawn, 'CBasePlayerPawn', {
   m_hDefaultController: 'CBasePlayerController',
   m_fHltvReplayDelay: 'float32',
   m_fHltvReplayEnd: 'float32',
-}, {
+} as const
+const inputsCBasePlayerPawn = {
   SetFogController: 'text',
   SetHUDVisibility: 'boolean',
   SetHealth: 'integer',
-})
+} as const
+export class CBasePlayerPawn extends CBaseCombatCharacter {}
+export interface CBasePlayerPawn extends Fields<typeof fieldsCBasePlayerPawn>, Inputs<typeof inputsCBasePlayerPawn> {}
+define(CBasePlayerPawn, 'CBasePlayerPawn', fieldsCBasePlayerPawn, inputsCBasePlayerPawn)
 
 export class CCitadelPlayerPawnBase extends CBasePlayerPawn {}
 define(CCitadelPlayerPawnBase, 'CCitadelPlayerPawnBase', {})
@@ -1283,93 +892,7 @@ define(CCitadelPlayerPawnBase, 'CCitadelPlayerPawnBase', {})
 export class CCitadelObserverPawn extends CCitadelPlayerPawnBase {}
 define(CCitadelObserverPawn, 'CCitadelObserverPawn', {})
 
-export class CCitadelPlayerPawn extends CCitadelPlayerPawnBase {}
-export interface CCitadelPlayerPawn {
-  m_angClientCamera: Angles | undefined
-  m_angEyeAngles: Angles | undefined
-  m_angLockedEyeAngles: Angles | undefined
-  m_bIgnoringZoom: boolean | undefined
-  m_nLevel: number | undefined
-  m_nNumHeroChangesUsed: number | undefined
-  m_flRespawnTime: number | undefined
-  m_flLastSpawnTime: number | undefined
-  m_bInRegenerationZone: boolean | undefined
-  m_bInItemShopZone: boolean | undefined
-  m_bInHideoutZone: boolean | undefined
-  m_nLastEnteredTunnelID: number | undefined
-  m_bQuickbuyAutoPurchase: boolean | undefined
-  m_bQuickbuyAutoQueueBuild: boolean | undefined
-  m_unHeroBuildID: number | undefined
-  readonly m_sHeroBuildSerialized: string | undefined
-  m_hViewEntityForObserver: CBaseEntity | undefined
-  m_bNetworkDisconnected: boolean | undefined
-  m_bLearningAbility: boolean | undefined
-  m_nFlashStartTick: number | undefined
-  m_nFlashMaxStartTick: number | undefined
-  m_nFlashFadeStartTick: number | undefined
-  m_nFlashEndTick: number | undefined
-  m_nFlashMaxAlpha: number | undefined
-  m_nDeducedLane: number | undefined
-  m_iEnemyPlayerAimTargetBitVec: bigint | undefined
-  m_nStreetBrawlCorruptionsAvailable: number | undefined
-  m_tLastRevealTime: number | undefined
-  m_tLastPlayerRevealTime: number | undefined
-  m_bDismissedReportCard: boolean | undefined
-  m_flCurrentHealingAmount: number | undefined
-  m_hAbilityRequiresDebounce: CCitadelBaseAbility | undefined
-  m_bHasShopOpen: boolean | undefined
-  m_eCurrentPingLocation: number | undefined
-  m_flLastRegenThinkTime: number | undefined
-  m_nBulletsFiredAtUs: number | undefined
-  m_nBulletsHitOnUs: number | undefined
-  m_nHeadshotsOnUs: number | undefined
-  m_flLastGameStatsRecorded: number | undefined
-  m_flUnusedGoldRemainder: number | undefined
-  m_flUnusedAbilityRemainder: number | undefined
-  m_nBulletsFiredAtEnemyHeroes: number | undefined
-  m_nBulletsHitOnEnemyHeroes: number | undefined
-  m_nHeadshotsOnEnemyHeroes: number | undefined
-  m_nLuckyShotsOnEnemyHeroes: number | undefined
-  m_nBulletsHitOnImmobileEnemyHeroes: number | undefined
-  m_nHeadshotsOnImmobileEnemyHeroes: number | undefined
-  m_hEnemyHeroClientAimedAtAttackTime: CBaseEntity | undefined
-  m_bHasOverrideSpawnPos: boolean | undefined
-  m_vecOverrideSpawnPos: Vector | undefined
-  m_iTrooperWaveEventCount: number | undefined
-  m_iTrooperWaveNumber: number | undefined
-  m_iPrevTrooperWaveEventCount: number | undefined
-  m_iPrevTrooperWaveNumber: number | undefined
-  m_bHasStartedPlaying: boolean | undefined
-  m_hRevengeTarget: CBaseEntity | undefined
-  m_flLastHurtTimeByEnemyHero: number | undefined
-  m_flLastHurtByNeutral: number | undefined
-  m_flLastHurtByEnemyNPC: number | undefined
-  m_flLastTimeLookedAtByDirector: number | undefined
-  m_eZipLineLaneColor: number | undefined
-  m_nMapDistrictLocation: number | undefined
-  m_bCanBecomeRagdoll: boolean | undefined
-  m_blindUntilTime: number | undefined
-  m_blindStartTime: number | undefined
-  m_nSuccessiveDucks: number | undefined
-  m_flLastDuckTime: number | undefined
-  m_flPredTimeSlowedStart: number | undefined
-  m_flPredTimeSlowedEnd: number | undefined
-  m_flPredSlowSpeed: number | undefined
-  m_flForceInCombatAnimsUntilTime: number | undefined
-  m_iCurSlowSlot: number | undefined
-  m_nRespawnParticleIndex: number | undefined
-  m_nShoppingParticle: number | undefined
-  m_bLocoLeanTriggeredForDirection: boolean | undefined
-  m_bLocoRunToStopCanTrigger: boolean | undefined
-  m_flCrouchFraction: number | undefined
-  m_flCrouchSpeed: number | undefined
-  m_fidgetTime: number | undefined
-  m_vShootTestOffsetStanding: Vector | undefined
-  m_vShootTestOffsetCrouching: Vector | undefined
-  m_leanStartTime: number | undefined
-  m_nLastUnpredictableMovementTick: number | undefined
-}
-define(CCitadelPlayerPawn, 'CCitadelPlayerPawn', {
+const fieldsCCitadelPlayerPawn = {
   m_angClientCamera: 'angles',
   m_angEyeAngles: 'angles',
   m_angLockedEyeAngles: 'angles',
@@ -1453,15 +976,17 @@ define(CCitadelPlayerPawn, 'CCitadelPlayerPawn', {
   m_vShootTestOffsetCrouching: 'vector',
   m_leanStartTime: 'float32',
   m_nLastUnpredictableMovementTick: 'int32',
-})
+} as const
+export class CCitadelPlayerPawn extends CCitadelPlayerPawnBase {}
+export interface CCitadelPlayerPawn extends Fields<typeof fieldsCCitadelPlayerPawn> {}
+define(CCitadelPlayerPawn, 'CCitadelPlayerPawn', fieldsCCitadelPlayerPawn)
 
-export class CCitadelFamiliarClonePlayerPawn extends CCitadelPlayerPawn {}
-export interface CCitadelFamiliarClonePlayerPawn {
-  m_hFamiliar: CBaseEntity | undefined
-}
-define(CCitadelFamiliarClonePlayerPawn, 'CCitadelFamiliarClonePlayerPawn', {
+const fieldsCCitadelFamiliarClonePlayerPawn = {
   m_hFamiliar: 'CBaseEntity',
-})
+} as const
+export class CCitadelFamiliarClonePlayerPawn extends CCitadelPlayerPawn {}
+export interface CCitadelFamiliarClonePlayerPawn extends Fields<typeof fieldsCCitadelFamiliarClonePlayerPawn> {}
+define(CCitadelFamiliarClonePlayerPawn, 'CCitadelFamiliarClonePlayerPawn', fieldsCCitadelFamiliarClonePlayerPawn)
 
 export class CCitadel_Announcer_Base extends CBaseCombatCharacter {}
 define(CCitadel_Announcer_Base, 'CCitadel_Announcer_Base', {})
@@ -1469,13 +994,12 @@ define(CCitadel_Announcer_Base, 'CCitadel_Announcer_Base', {})
 export class CCitadel_Announcer extends CCitadel_Announcer_Base {}
 define(CCitadel_Announcer, 'CCitadel_Announcer', {})
 
-export class CCitadel_PointTalker_Base extends CBaseCombatCharacter {}
-export interface CCitadel_PointTalker_Base {
-  inputSpeak(value: string): boolean
-}
-define(CCitadel_PointTalker_Base, 'CCitadel_PointTalker_Base', {}, {
+const inputsCCitadel_PointTalker_Base = {
   Speak: 'text',
-})
+} as const
+export class CCitadel_PointTalker_Base extends CBaseCombatCharacter {}
+export interface CCitadel_PointTalker_Base extends Inputs<typeof inputsCCitadel_PointTalker_Base> {}
+define(CCitadel_PointTalker_Base, 'CCitadel_PointTalker_Base', {}, inputsCCitadel_PointTalker_Base)
 
 export class CCitadel_PointTalker extends CCitadel_PointTalker_Base {}
 define(CCitadel_PointTalker, 'CCitadel_PointTalker', {})
@@ -1483,84 +1007,32 @@ define(CCitadel_PointTalker, 'CCitadel_PointTalker', {})
 export class CCitadel_PointTalker_Idol extends CCitadel_PointTalker {}
 define(CCitadel_PointTalker_Idol, 'CCitadel_PointTalker_Idol', {})
 
-export class CBasePlayerWeapon extends CBaseAnimGraph {}
-export interface CBasePlayerWeapon {
-  m_nNextPrimaryAttackTick: number | undefined
-  m_flNextPrimaryAttackTickRatio: number | undefined
-  m_nNextSecondaryAttackTick: number | undefined
-  m_flNextSecondaryAttackTickRatio: number | undefined
-  m_iClip1: number | undefined
-  m_iClip2: number | undefined
-  inputSetClipPrimary(value: number): boolean
-  inputSetClipSecondary(value: number): boolean
-}
-define(CBasePlayerWeapon, 'CBasePlayerWeapon', {
+const fieldsCBasePlayerWeapon = {
   m_nNextPrimaryAttackTick: 'int32',
   m_flNextPrimaryAttackTickRatio: 'float32',
   m_nNextSecondaryAttackTick: 'int32',
   m_flNextSecondaryAttackTickRatio: 'float32',
   m_iClip1: 'int32',
   m_iClip2: 'int32',
-}, {
+} as const
+const inputsCBasePlayerWeapon = {
   SetClipPrimary: 'integer',
   SetClipSecondary: 'integer',
-})
+} as const
+export class CBasePlayerWeapon extends CBaseAnimGraph {}
+export interface CBasePlayerWeapon extends Fields<typeof fieldsCBasePlayerWeapon>, Inputs<typeof inputsCBasePlayerWeapon> {}
+define(CBasePlayerWeapon, 'CBasePlayerWeapon', fieldsCBasePlayerWeapon, inputsCBasePlayerWeapon)
 
-export class CBaseProp extends CBaseAnimGraph {}
-export interface CBaseProp {
-  m_bModelOverrodeBlockLOS: boolean | undefined
-  m_iShapeType: number | undefined
-  m_bConformToCollisionBounds: boolean | undefined
-}
-define(CBaseProp, 'CBaseProp', {
+const fieldsCBaseProp = {
   m_bModelOverrodeBlockLOS: 'bool',
   m_iShapeType: 'int32',
   m_bConformToCollisionBounds: 'bool',
-})
+} as const
+export class CBaseProp extends CBaseAnimGraph {}
+export interface CBaseProp extends Fields<typeof fieldsCBaseProp> {}
+define(CBaseProp, 'CBaseProp', fieldsCBaseProp)
 
-export class CBreakableProp extends CBaseProp {}
-export interface CBreakableProp {
-  m_impactEnergyScale: number | undefined
-  m_iMinHealthDmg: number | undefined
-  m_preferredCarryAngles: Angles | undefined
-  m_flPressureDelay: number | undefined
-  m_flDefBurstScale: number | undefined
-  m_vDefBurstOffset: Vector | undefined
-  m_hBreaker: CBaseEntity | undefined
-  m_PerformanceMode: number | undefined
-  m_flPreventDamageBeforeTime: number | undefined
-  m_BreakableContentsType: number | undefined
-  readonly m_strBreakableContentsPropGroupOverride: string | undefined
-  readonly m_strBreakableContentsParticleOverride: string | undefined
-  m_bHasBreakPiecesOrCommands: boolean | undefined
-  m_explodeDamage: number | undefined
-  m_explodeRadius: number | undefined
-  m_explosionDelay: number | undefined
-  readonly m_explosionBuildupSound: string | undefined
-  readonly m_explosionCustomEffect: string | undefined
-  readonly m_explosionCustomSound: string | undefined
-  readonly m_explosionModifier: string | undefined
-  m_explosionDangerSound: bigint | undefined
-  m_hPhysicsAttacker: CBasePlayerPawn | undefined
-  m_flLastPhysicsInfluenceTime: number | undefined
-  m_flDefaultFadeScale: number | undefined
-  m_hLastAttacker: CBaseEntity | undefined
-  readonly m_iszPuntSound: string | undefined
-  m_bUsePuntSound: boolean | undefined
-  m_bOriginalBlockLOS: boolean | undefined
-  inputAddHealth(value: number): boolean
-  inputBreak(): boolean
-  inputDisablePuntSound(): boolean
-  inputEnablePuntSound(): boolean
-  inputForceDrop(): boolean
-  inputRemoveHealth(value: number): boolean
-  inputSetEnableBreaking(value: boolean): boolean
-  inputSetEnableCollisions(value: boolean): boolean
-  inputSetHealth(value: number): boolean
-  inputSetNavIgnore(value: boolean): boolean
-  inputphysdamagescale(value: number): boolean
-}
-define(CBreakableProp, 'CBreakableProp', {
+const fieldsCBreakableProp = {
   m_impactEnergyScale: 'float32',
   m_iMinHealthDmg: 'int32',
   m_preferredCarryAngles: 'angles',
@@ -1589,7 +1061,8 @@ define(CBreakableProp, 'CBreakableProp', {
   m_iszPuntSound: 'string',
   m_bUsePuntSound: 'bool',
   m_bOriginalBlockLOS: 'bool',
-}, {
+} as const
+const inputsCBreakableProp = {
   AddHealth: 'integer',
   Break: '',
   DisablePuntSound: '',
@@ -1601,52 +1074,12 @@ define(CBreakableProp, 'CBreakableProp', {
   SetHealth: 'integer',
   SetNavIgnore: 'boolean',
   physdamagescale: 'number',
-})
+} as const
+export class CBreakableProp extends CBaseProp {}
+export interface CBreakableProp extends Fields<typeof fieldsCBreakableProp>, Inputs<typeof inputsCBreakableProp> {}
+define(CBreakableProp, 'CBreakableProp', fieldsCBreakableProp, inputsCBreakableProp)
 
-export class CDynamicProp extends CBreakableProp {}
-export interface CDynamicProp {
-  m_bGraphControllerEnabled: boolean | undefined
-  m_bCreateNavObstacle: boolean | undefined
-  m_bNavObstacleUpdatesOverridden: boolean | undefined
-  m_bUseHitboxesForRenderBox: boolean | undefined
-  m_bUseAnimGraph: boolean | undefined
-  readonly m_iszIdleAnim: string | undefined
-  m_nIdleAnimLoopMode: number | undefined
-  m_bRandomizeCycle: boolean | undefined
-  m_bStartDisabled: boolean | undefined
-  m_bFiredStartEndOutput: boolean | undefined
-  m_bForceNpcExclude: boolean | undefined
-  m_bCreateMovableSurfaceGraph: boolean | undefined
-  m_bCreateNonSolid: boolean | undefined
-  m_bIsOverrideProp: boolean | undefined
-  m_iInitialGlowState: number | undefined
-  m_nGlowRange: number | undefined
-  m_nGlowRangeMin: number | undefined
-  m_nGlowTeam: number | undefined
-  inputDisable(): boolean
-  inputDisableCollision(): boolean
-  inputEnable(): boolean
-  inputEnableCollision(): boolean
-  inputSetAnimation(value: string): boolean
-  inputSetAnimationLooping(value: string): boolean
-  inputSetAnimationNoReset(value: string): boolean
-  inputSetAnimationNoResetLooping(value: string): boolean
-  inputSetAnimationNoResetNotLooping(value: string): boolean
-  inputSetAnimationNotLooping(value: string): boolean
-  inputSetDefaultAnimation(value: string): boolean
-  inputSetDefaultAnimationLooping(value: string): boolean
-  inputSetDefaultAnimationNotLooping(value: string): boolean
-  inputSetGlowOverride(value: Vector): boolean
-  inputSetGlowRange(value: number): boolean
-  inputSetIdleAnimationLooping(value: string): boolean
-  inputSetIdleAnimationNotLooping(value: string): boolean
-  inputSetPlaybackRate(value: number): boolean
-  inputStartGlowing(): boolean
-  inputStopGlowing(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CDynamicProp, 'CDynamicProp', {
+const fieldsCDynamicProp = {
   m_bGraphControllerEnabled: 'bool',
   m_bCreateNavObstacle: 'bool',
   m_bNavObstacleUpdatesOverridden: 'bool',
@@ -1665,7 +1098,8 @@ define(CDynamicProp, 'CDynamicProp', {
   m_nGlowRange: 'int32',
   m_nGlowRangeMin: 'int32',
   m_nGlowTeam: 'int32',
-}, {
+} as const
+const inputsCDynamicProp = {
   Disable: '',
   DisableCollision: '',
   Enable: '',
@@ -1688,39 +1122,12 @@ define(CDynamicProp, 'CDynamicProp', {
   StopGlowing: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CDynamicProp extends CBreakableProp {}
+export interface CDynamicProp extends Fields<typeof fieldsCDynamicProp>, Inputs<typeof inputsCDynamicProp> {}
+define(CDynamicProp, 'CDynamicProp', fieldsCDynamicProp, inputsCDynamicProp)
 
-export class CBasePropDoor extends CDynamicProp {}
-export interface CBasePropDoor {
-  m_flAutoReturnDelay: number | undefined
-  m_nHardwareType: number | undefined
-  m_bNeedsHardware: boolean | undefined
-  m_eDoorState: number | undefined
-  m_bLocked: boolean | undefined
-  m_bNoNPCs: boolean | undefined
-  m_closedPosition: Vector | undefined
-  m_closedAngles: Angles | undefined
-  m_hBlocker: CBaseEntity | undefined
-  m_bFirstBlocked: boolean | undefined
-  m_bForceClosed: boolean | undefined
-  m_vecLatchWorldPosition: Vector | undefined
-  m_hActivator: CBaseEntity | undefined
-  m_flSpeed: number | undefined
-  m_numCloseAttempts: number | undefined
-  readonly m_SlaveName: string | undefined
-  m_hMaster: CBasePropDoor | undefined
-  inputClose(): boolean
-  inputLock(): boolean
-  inputOpen(): boolean
-  inputOpenAwayFrom(value: string): boolean
-  inputOpenAwayFromActivator(value: number): boolean
-  inputPlayerClose(): boolean
-  inputPlayerOpen(): boolean
-  inputSetNoNPCs(value: boolean): boolean
-  inputToggle(): boolean
-  inputUnlock(): boolean
-}
-define(CBasePropDoor, 'CBasePropDoor', {
+const fieldsCBasePropDoor = {
   m_flAutoReturnDelay: 'float32',
   m_nHardwareType: 'int32',
   m_bNeedsHardware: 'bool',
@@ -1738,7 +1145,8 @@ define(CBasePropDoor, 'CBasePropDoor', {
   m_numCloseAttempts: 'int32',
   m_SlaveName: 'string',
   m_hMaster: 'CBasePropDoor',
-}, {
+} as const
+const inputsCBasePropDoor = {
   Close: '',
   Lock: '',
   Open: '',
@@ -1749,32 +1157,12 @@ define(CBasePropDoor, 'CBasePropDoor', {
   SetNoNPCs: 'boolean',
   Toggle: '',
   Unlock: '',
-})
+} as const
+export class CBasePropDoor extends CDynamicProp {}
+export interface CBasePropDoor extends Fields<typeof fieldsCBasePropDoor>, Inputs<typeof inputsCBasePropDoor> {}
+define(CBasePropDoor, 'CBasePropDoor', fieldsCBasePropDoor, inputsCBasePropDoor)
 
-export class CPropDoorRotating extends CBasePropDoor {}
-export interface CPropDoorRotating {
-  m_vecAxis: Vector | undefined
-  m_flDistance: number | undefined
-  m_eSpawnPosition: number | undefined
-  m_eOpenDirection: number | undefined
-  m_eCurrentOpenDirection: number | undefined
-  m_eDefaultCheckDirection: number | undefined
-  m_flAjarAngle: number | undefined
-  m_angRotationAjarDeprecated: Angles | undefined
-  m_angRotationClosed: Angles | undefined
-  m_angRotationOpenForward: Angles | undefined
-  m_angRotationOpenBack: Angles | undefined
-  m_angGoal: Angles | undefined
-  m_vecForwardBoundsMin: Vector | undefined
-  m_vecForwardBoundsMax: Vector | undefined
-  m_vecBackBoundsMin: Vector | undefined
-  m_vecBackBoundsMax: Vector | undefined
-  m_bAjarDoorShouldntAlwaysOpen: boolean | undefined
-  m_hEntityBlocker: CEntityBlocker | undefined
-  inputSetRotationDistance(value: number): boolean
-  inputSetSpeed(value: number): boolean
-}
-define(CPropDoorRotating, 'CPropDoorRotating', {
+const fieldsCPropDoorRotating = {
   m_vecAxis: 'vector',
   m_flDistance: 'float32',
   m_eSpawnPosition: 'uint32',
@@ -1793,109 +1181,77 @@ define(CPropDoorRotating, 'CPropDoorRotating', {
   m_vecBackBoundsMax: 'vector',
   m_bAjarDoorShouldntAlwaysOpen: 'bool',
   m_hEntityBlocker: 'CEntityBlocker',
-}, {
+} as const
+const inputsCPropDoorRotating = {
   SetRotationDistance: 'number',
   SetSpeed: 'number',
-})
+} as const
+export class CPropDoorRotating extends CBasePropDoor {}
+export interface CPropDoorRotating extends Fields<typeof fieldsCPropDoorRotating>, Inputs<typeof inputsCPropDoorRotating> {}
+define(CPropDoorRotating, 'CPropDoorRotating', fieldsCPropDoorRotating, inputsCPropDoorRotating)
 
-export class CPropDoorRotatingBreakable extends CPropDoorRotating {}
-export interface CPropDoorRotatingBreakable {
-  m_bBreakable: boolean | undefined
-  m_isAbleToCloseAreaPortals: boolean | undefined
-  m_currentDamageState: number | undefined
-  inputSetBreakable(): boolean
-  inputSetUnbreakable(): boolean
-}
-define(CPropDoorRotatingBreakable, 'CPropDoorRotatingBreakable', {
+const fieldsCPropDoorRotatingBreakable = {
   m_bBreakable: 'bool',
   m_isAbleToCloseAreaPortals: 'bool',
   m_currentDamageState: 'int32',
-}, {
+} as const
+const inputsCPropDoorRotatingBreakable = {
   SetBreakable: '',
   SetUnbreakable: '',
-})
+} as const
+export class CPropDoorRotatingBreakable extends CPropDoorRotating {}
+export interface CPropDoorRotatingBreakable extends Fields<typeof fieldsCPropDoorRotatingBreakable>, Inputs<typeof inputsCPropDoorRotatingBreakable> {}
+define(CPropDoorRotatingBreakable, 'CPropDoorRotatingBreakable', fieldsCPropDoorRotatingBreakable, inputsCPropDoorRotatingBreakable)
 
-export class CCitadelHeroReleaseVoteTerminal extends CDynamicProp {}
-export interface CCitadelHeroReleaseVoteTerminal {
-  m_nGameStateChangedEventID: number | undefined
-  m_nStreetBrawlStateChangedEventID: number | undefined
-}
-define(CCitadelHeroReleaseVoteTerminal, 'CCitadelHeroReleaseVoteTerminal', {
+const fieldsCCitadelHeroReleaseVoteTerminal = {
   m_nGameStateChangedEventID: 'int32',
   m_nStreetBrawlStateChangedEventID: 'int32',
-})
+} as const
+export class CCitadelHeroReleaseVoteTerminal extends CDynamicProp {}
+export interface CCitadelHeroReleaseVoteTerminal extends Fields<typeof fieldsCCitadelHeroReleaseVoteTerminal> {}
+define(CCitadelHeroReleaseVoteTerminal, 'CCitadelHeroReleaseVoteTerminal', fieldsCCitadelHeroReleaseVoteTerminal)
 
-export class CCitadelHideoutInteractableProp extends CDynamicProp {}
-export interface CCitadelHideoutInteractableProp {
-  readonly m_strInteractLocString: string | undefined
-  m_eInteractStyle: number | undefined
-  m_eHideoutAction: number | undefined
-  m_flInteractDistance: number | undefined
-  readonly m_strWorldPanelEntity: string | undefined
-  readonly m_strOpacityCurveString: string | undefined
-}
-define(CCitadelHideoutInteractableProp, 'CCitadelHideoutInteractableProp', {
+const fieldsCCitadelHideoutInteractableProp = {
   m_strInteractLocString: 'string',
   m_eInteractStyle: 'uint32',
   m_eHideoutAction: 'uint32',
   m_flInteractDistance: 'float32',
   m_strWorldPanelEntity: 'string',
   m_strOpacityCurveString: 'string',
-})
+} as const
+export class CCitadelHideoutInteractableProp extends CDynamicProp {}
+export interface CCitadelHideoutInteractableProp extends Fields<typeof fieldsCCitadelHideoutInteractableProp> {}
+define(CCitadelHideoutInteractableProp, 'CCitadelHideoutInteractableProp', fieldsCCitadelHideoutInteractableProp)
 
-export class CCitadelPregameHeroDraftButton extends CDynamicProp {}
-export interface CCitadelPregameHeroDraftButton {
-  m_nGameStateChangedEventID: number | undefined
-}
-define(CCitadelPregameHeroDraftButton, 'CCitadelPregameHeroDraftButton', {
+const fieldsCCitadelPregameHeroDraftButton = {
   m_nGameStateChangedEventID: 'int32',
-})
+} as const
+export class CCitadelPregameHeroDraftButton extends CDynamicProp {}
+export interface CCitadelPregameHeroDraftButton extends Fields<typeof fieldsCCitadelPregameHeroDraftButton> {}
+define(CCitadelPregameHeroDraftButton, 'CCitadelPregameHeroDraftButton', fieldsCCitadelPregameHeroDraftButton)
 
-export class CCitadelRankedBadgeProp extends CDynamicProp {}
-export interface CCitadelRankedBadgeProp {
-  m_unPackedRank: number | undefined
-}
-define(CCitadelRankedBadgeProp, 'CCitadelRankedBadgeProp', {
+const fieldsCCitadelRankedBadgeProp = {
   m_unPackedRank: 'uint8',
-})
+} as const
+export class CCitadelRankedBadgeProp extends CDynamicProp {}
+export interface CCitadelRankedBadgeProp extends Fields<typeof fieldsCCitadelRankedBadgeProp> {}
+define(CCitadelRankedBadgeProp, 'CCitadelRankedBadgeProp', fieldsCCitadelRankedBadgeProp)
 
-export class CCitadel_DynamicProp extends CDynamicProp {}
-export interface CCitadel_DynamicProp {
-  readonly m_strDefaultSkin: string | undefined
-  readonly m_strFriendlySkin: string | undefined
-  readonly m_strEnemySkin: string | undefined
-  m_bIsWorld: boolean | undefined
-  inputSetEnemySkin(value: string): boolean
-  inputSetFriendlySkin(value: string): boolean
-}
-define(CCitadel_DynamicProp, 'CCitadel_DynamicProp', {
+const fieldsCCitadel_DynamicProp = {
   m_strDefaultSkin: 'string',
   m_strFriendlySkin: 'string',
   m_strEnemySkin: 'string',
   m_bIsWorld: 'bool',
-}, {
+} as const
+const inputsCCitadel_DynamicProp = {
   SetEnemySkin: 'text',
   SetFriendlySkin: 'text',
-})
+} as const
+export class CCitadel_DynamicProp extends CDynamicProp {}
+export interface CCitadel_DynamicProp extends Fields<typeof fieldsCCitadel_DynamicProp>, Inputs<typeof inputsCCitadel_DynamicProp> {}
+define(CCitadel_DynamicProp, 'CCitadel_DynamicProp', fieldsCCitadel_DynamicProp, inputsCCitadel_DynamicProp)
 
-export class CCitadel_NewYears_Fireworks extends CDynamicProp {}
-export interface CCitadel_NewYears_Fireworks {
-  m_unShowDurationSeconds: number | undefined
-  m_unShowDelaySeconds: number | undefined
-  m_flFireworkIntervalMin: number | undefined
-  m_flFireworkIntervalMax: number | undefined
-  readonly m_sFireworkParticle1: string | undefined
-  readonly m_sFireworkParticle2: string | undefined
-  readonly m_sFireworkParticle3: string | undefined
-  readonly m_sFireworkParticle4: string | undefined
-  readonly m_sFireworkParticle5: string | undefined
-  readonly m_sFireworkParticle6: string | undefined
-  readonly m_sFireworkParticle7: string | undefined
-  readonly m_sFireworkParticle8: string | undefined
-  readonly m_iszSoundName: string | undefined
-  m_flStartSoundVerticalOffset: number | undefined
-}
-define(CCitadel_NewYears_Fireworks, 'CCitadel_NewYears_Fireworks', {
+const fieldsCCitadel_NewYears_Fireworks = {
   m_unShowDurationSeconds: 'uint32',
   m_unShowDelaySeconds: 'uint32',
   m_flFireworkIntervalMin: 'float32',
@@ -1910,21 +1266,22 @@ define(CCitadel_NewYears_Fireworks, 'CCitadel_NewYears_Fireworks', {
   m_sFireworkParticle8: 'string',
   m_iszSoundName: 'string',
   m_flStartSoundVerticalOffset: 'float32',
-})
+} as const
+export class CCitadel_NewYears_Fireworks extends CDynamicProp {}
+export interface CCitadel_NewYears_Fireworks extends Fields<typeof fieldsCCitadel_NewYears_Fireworks> {}
+define(CCitadel_NewYears_Fireworks, 'CCitadel_NewYears_Fireworks', fieldsCCitadel_NewYears_Fireworks)
 
-export class CCitadel_ShopProp extends CDynamicProp {}
-export interface CCitadel_ShopProp {
-  m_bIsShopOpen: boolean | undefined
-  m_iLane: number | undefined
-  /** Open or close this shop. Keep in sync with its trigger_item_shop. */
-  inputSetShopOpen(value: boolean): boolean
-}
-define(CCitadel_ShopProp, 'CCitadel_ShopProp', {
+const fieldsCCitadel_ShopProp = {
   m_bIsShopOpen: 'bool',
   m_iLane: 'int32',
-}, {
+} as const
+const inputsCCitadel_ShopProp = {
+  /** Open or close this shop. Keep in sync with its trigger_item_shop. */
   SetShopOpen: 'boolean',
-})
+} as const
+export class CCitadel_ShopProp extends CDynamicProp {}
+export interface CCitadel_ShopProp extends Fields<typeof fieldsCCitadel_ShopProp>, Inputs<typeof inputsCCitadel_ShopProp> {}
+define(CCitadel_ShopProp, 'CCitadel_ShopProp', fieldsCCitadel_ShopProp, inputsCCitadel_ShopProp)
 
 export class CDynamicPropAlias_cable_dynamic extends CDynamicProp {}
 define(CDynamicPropAlias_cable_dynamic, 'CDynamicPropAlias_cable_dynamic', {})
@@ -1938,69 +1295,18 @@ define(CDynamicPropAlias_prop_dynamic_override, 'CDynamicPropAlias_prop_dynamic_
 export class CInfoTutorialController extends CDynamicProp {}
 define(CInfoTutorialController, 'CInfoTutorialController', {})
 
-export class COrnamentProp extends CDynamicProp {}
-export interface COrnamentProp {
-  readonly m_initialOwner: string | undefined
-  inputDetach(): boolean
-  inputSetAttached(value: string): boolean
-}
-define(COrnamentProp, 'COrnamentProp', {
+const fieldsCOrnamentProp = {
   m_initialOwner: 'string',
-}, {
+} as const
+const inputsCOrnamentProp = {
   Detach: '',
   SetAttached: 'text',
-})
+} as const
+export class COrnamentProp extends CDynamicProp {}
+export interface COrnamentProp extends Fields<typeof fieldsCOrnamentProp>, Inputs<typeof inputsCOrnamentProp> {}
+define(COrnamentProp, 'COrnamentProp', fieldsCOrnamentProp, inputsCOrnamentProp)
 
-export class CPhysicsProp extends CBreakableProp {}
-export interface CPhysicsProp {
-  m_bForceNavIgnore: boolean | undefined
-  m_bNoNavmeshBlocker: boolean | undefined
-  m_bForceNpcExclude: boolean | undefined
-  m_massScale: number | undefined
-  m_buoyancyScale: number | undefined
-  m_damageType: number | undefined
-  m_damageToEnableMotion: number | undefined
-  m_flForceToEnableMotion: number | undefined
-  m_bDroppedByPlayer: boolean | undefined
-  m_bTouchedByPlayer: boolean | undefined
-  m_bFirstCollisionAfterLaunch: boolean | undefined
-  m_bHasBeenAwakened: boolean | undefined
-  m_bIsOverrideProp: boolean | undefined
-  m_flLastBurn: number | undefined
-  m_nDynamicContinuousContactBehavior: number | undefined
-  m_fNextCheckDisableMotionContactsTime: number | undefined
-  m_iInitialGlowState: number | undefined
-  m_nGlowRange: number | undefined
-  m_nGlowRangeMin: number | undefined
-  m_bShouldAutoConvertBackFromDebris: boolean | undefined
-  m_bMuteImpactEffects: boolean | undefined
-  m_nNavObstacleType: number | undefined
-  m_bUpdateNavWhenMoving: boolean | undefined
-  m_bForceNavObstacleCut: boolean | undefined
-  m_bAcceptDamageFromHeldObjects: boolean | undefined
-  m_bEnableUseOutput: boolean | undefined
-  m_CrateType: number | undefined
-  m_bRemovableForAmmoBalancing: boolean | undefined
-  m_bAwake: boolean | undefined
-  m_bAttachedToReferenceFrame: boolean | undefined
-  inputDisableCollisions(): boolean
-  inputDisableDrag(): boolean
-  inputDisableGravity(): boolean
-  inputDisableMotion(): boolean
-  inputEnableCollisions(): boolean
-  inputEnableMotion(): boolean
-  inputSetAutoConvertBackFromDebris(value: boolean): boolean
-  inputSetDragEnabled(): boolean
-  inputSetGlowOverride(value: Vector): boolean
-  inputSetGlowRange(value: number): boolean
-  inputSetGravityEnabled(): boolean
-  inputSetMass(value: number): boolean
-  inputSleep(): boolean
-  inputStartGlowing(): boolean
-  inputStopGlowing(): boolean
-  inputWake(): boolean
-}
-define(CPhysicsProp, 'CPhysicsProp', {
+const fieldsCPhysicsProp = {
   m_bForceNavIgnore: 'bool',
   m_bNoNavmeshBlocker: 'bool',
   m_bForceNpcExclude: 'bool',
@@ -2031,7 +1337,8 @@ define(CPhysicsProp, 'CPhysicsProp', {
   m_bRemovableForAmmoBalancing: 'bool',
   m_bAwake: 'bool',
   m_bAttachedToReferenceFrame: 'bool',
-}, {
+} as const
+const inputsCPhysicsProp = {
   DisableCollisions: '',
   DisableDrag: '',
   DisableGravity: '',
@@ -2048,38 +1355,33 @@ define(CPhysicsProp, 'CPhysicsProp', {
   StartGlowing: '',
   StopGlowing: '',
   Wake: '',
-})
+} as const
+export class CPhysicsProp extends CBreakableProp {}
+export interface CPhysicsProp extends Fields<typeof fieldsCPhysicsProp>, Inputs<typeof inputsCPhysicsProp> {}
+define(CPhysicsProp, 'CPhysicsProp', fieldsCPhysicsProp, inputsCPhysicsProp)
 
-export class CItemCrate extends CPhysicsProp {}
-export interface CItemCrate {
-  m_hSpawner: CBaseEntity | undefined
-  m_eObjectivePosition: number | undefined
-  m_eLootType: number | undefined
-}
-define(CItemCrate, 'CItemCrate', {
+const fieldsCItemCrate = {
   m_hSpawner: 'CBaseEntity',
   m_eObjectivePosition: 'uint32',
   m_eLootType: 'int32',
-})
+} as const
+export class CItemCrate extends CPhysicsProp {}
+export interface CItemCrate extends Fields<typeof fieldsCItemCrate> {}
+define(CItemCrate, 'CItemCrate', fieldsCItemCrate)
 
 export class CPhysicsPropOverride extends CPhysicsProp {}
 define(CPhysicsPropOverride, 'CPhysicsPropOverride', {})
 
-export class CPhysicsPropRespawnable extends CPhysicsProp {}
-export interface CPhysicsPropRespawnable {
-  m_vOriginalSpawnOrigin: Vector | undefined
-  m_vOriginalSpawnAngles: Angles | undefined
-  m_vOriginalMins: Vector | undefined
-  m_vOriginalMaxs: Vector | undefined
-  m_flRespawnDuration: number | undefined
-}
-define(CPhysicsPropRespawnable, 'CPhysicsPropRespawnable', {
+const fieldsCPhysicsPropRespawnable = {
   m_vOriginalSpawnOrigin: 'vector',
   m_vOriginalSpawnAngles: 'angles',
   m_vOriginalMins: 'vector',
   m_vOriginalMaxs: 'vector',
   m_flRespawnDuration: 'float32',
-})
+} as const
+export class CPhysicsPropRespawnable extends CPhysicsProp {}
+export interface CPhysicsPropRespawnable extends Fields<typeof fieldsCPhysicsPropRespawnable> {}
+define(CPhysicsPropRespawnable, 'CPhysicsPropRespawnable', fieldsCPhysicsPropRespawnable)
 
 export class CCitadelAnimatingModelEntity extends CBaseAnimGraph {}
 define(CCitadelAnimatingModelEntity, 'CCitadelAnimatingModelEntity', {})
@@ -2087,68 +1389,38 @@ define(CCitadelAnimatingModelEntity, 'CCitadelAnimatingModelEntity', {})
 export class CCitadelDruidHealingFruit extends CCitadelAnimatingModelEntity {}
 define(CCitadelDruidHealingFruit, 'CCitadelDruidHealingFruit', {})
 
-export class CCitadelDruidHealingTree extends CCitadelAnimatingModelEntity {}
-export interface CCitadelDruidHealingTree {
-  readonly m_strFruitModelName: string | undefined
-  m_vStartPos: Vector | undefined
-  m_vEndPos: Vector | undefined
-  m_flGrowDuration: number | undefined
-}
-define(CCitadelDruidHealingTree, 'CCitadelDruidHealingTree', {
+const fieldsCCitadelDruidHealingTree = {
   m_strFruitModelName: 'string',
   m_vStartPos: 'vector',
   m_vEndPos: 'vector',
   m_flGrowDuration: 'float32',
-})
+} as const
+export class CCitadelDruidHealingTree extends CCitadelAnimatingModelEntity {}
+export interface CCitadelDruidHealingTree extends Fields<typeof fieldsCCitadelDruidHealingTree> {}
+define(CCitadelDruidHealingTree, 'CCitadelDruidHealingTree', fieldsCCitadelDruidHealingTree)
 
-export class CCitadelDruidInvisBush extends CCitadelAnimatingModelEntity {}
-export interface CCitadelDruidInvisBush {
-  m_vStartPos: Vector | undefined
-  m_vEndPos: Vector | undefined
-  m_flStartGrowTime: number | undefined
-  m_flEndGrowTime: number | undefined
-}
-define(CCitadelDruidInvisBush, 'CCitadelDruidInvisBush', {
+const fieldsCCitadelDruidInvisBush = {
   m_vStartPos: 'vector',
   m_vEndPos: 'vector',
   m_flStartGrowTime: 'float32',
   m_flEndGrowTime: 'float32',
-})
+} as const
+export class CCitadelDruidInvisBush extends CCitadelAnimatingModelEntity {}
+export interface CCitadelDruidInvisBush extends Fields<typeof fieldsCCitadelDruidInvisBush> {}
+define(CCitadelDruidInvisBush, 'CCitadelDruidInvisBush', fieldsCCitadelDruidInvisBush)
 
-export class CCitadelDruidPlantShield extends CCitadelAnimatingModelEntity {}
-export interface CCitadelDruidPlantShield {
-  m_bSolid: boolean | undefined
-  m_vStartPos: Vector | undefined
-  m_vEndPos: Vector | undefined
-  m_flStartGrowTime: number | undefined
-  m_flEndGrowTime: number | undefined
-}
-define(CCitadelDruidPlantShield, 'CCitadelDruidPlantShield', {
+const fieldsCCitadelDruidPlantShield = {
   m_bSolid: 'bool',
   m_vStartPos: 'vector',
   m_vEndPos: 'vector',
   m_flStartGrowTime: 'float32',
   m_flEndGrowTime: 'float32',
-})
+} as const
+export class CCitadelDruidPlantShield extends CCitadelAnimatingModelEntity {}
+export interface CCitadelDruidPlantShield extends Fields<typeof fieldsCCitadelDruidPlantShield> {}
+define(CCitadelDruidPlantShield, 'CCitadelDruidPlantShield', fieldsCCitadelDruidPlantShield)
 
-export class CCitadelItemPickup extends CCitadelAnimatingModelEntity {}
-export interface CCitadelItemPickup {
-  m_eLootType: number | undefined
-  m_nCurrencyValue: number | undefined
-  readonly m_iszModelName: string | undefined
-  m_flModelScale: number | undefined
-  m_hTargetPlayer: CBaseEntity | undefined
-  m_flFallRate: number | undefined
-  m_eObjectivePosition: number | undefined
-  m_bRequireGroundForPickup: boolean | undefined
-  m_bOnGround: boolean | undefined
-  m_nKillingTeamNumber: number | undefined
-  m_vHomePosition: Vector | undefined
-  m_vDropPosition: Vector | undefined
-  m_tFirstPickupTime: number | undefined
-  m_bPlaySpawnMusic: boolean | undefined
-}
-define(CCitadelItemPickup, 'CCitadelItemPickup', {
+const fieldsCCitadelItemPickup = {
   m_eLootType: 'int32',
   m_nCurrencyValue: 'int32',
   m_iszModelName: 'string',
@@ -2163,50 +1435,39 @@ define(CCitadelItemPickup, 'CCitadelItemPickup', {
   m_vDropPosition: 'vector',
   m_tFirstPickupTime: 'float32',
   m_bPlaySpawnMusic: 'bool',
-})
+} as const
+export class CCitadelItemPickup extends CCitadelAnimatingModelEntity {}
+export interface CCitadelItemPickup extends Fields<typeof fieldsCCitadelItemPickup> {}
+define(CCitadelItemPickup, 'CCitadelItemPickup', fieldsCCitadelItemPickup)
 
 export class CCitadelItemKothSpawner extends CCitadelItemPickup {}
 define(CCitadelItemKothSpawner, 'CCitadelItemKothSpawner', {})
 
-export class CCitadelItemPickupIdol extends CCitadelItemPickup {}
-export interface CCitadelItemPickupIdol {
-  m_nTeamBias: number | undefined
-}
-define(CCitadelItemPickupIdol, 'CCitadelItemPickupIdol', {
+const fieldsCCitadelItemPickupIdol = {
   m_nTeamBias: 'int32',
-})
+} as const
+export class CCitadelItemPickupIdol extends CCitadelItemPickup {}
+export interface CCitadelItemPickupIdol extends Fields<typeof fieldsCCitadelItemPickupIdol> {}
+define(CCitadelItemPickupIdol, 'CCitadelItemPickupIdol', fieldsCCitadelItemPickupIdol)
 
-export class CCitadelItemPickupRejuv extends CCitadelItemPickup {}
-export interface CCitadelItemPickupRejuv {
-  m_bPickedUp: boolean | undefined
-}
-define(CCitadelItemPickupRejuv, 'CCitadelItemPickupRejuv', {
+const fieldsCCitadelItemPickupRejuv = {
   m_bPickedUp: 'bool',
-})
+} as const
+export class CCitadelItemPickupRejuv extends CCitadelItemPickup {}
+export interface CCitadelItemPickupRejuv extends Fields<typeof fieldsCCitadelItemPickupRejuv> {}
+define(CCitadelItemPickupRejuv, 'CCitadelItemPickupRejuv', fieldsCCitadelItemPickupRejuv)
 
 export class CCitadelItemPickupRejuvHeroTest extends CCitadelItemPickupRejuv {}
 define(CCitadelItemPickupRejuvHeroTest, 'CCitadelItemPickupRejuvHeroTest', {})
 
-export class CCitadelItemPunchableNeutralGold extends CCitadelItemPickup {}
-export interface CCitadelItemPunchableNeutralGold {
-  m_hVictimPlayer: CBaseEntity | undefined
-}
-define(CCitadelItemPunchableNeutralGold, 'CCitadelItemPunchableNeutralGold', {
+const fieldsCCitadelItemPunchableNeutralGold = {
   m_hVictimPlayer: 'CBaseEntity',
-})
+} as const
+export class CCitadelItemPunchableNeutralGold extends CCitadelItemPickup {}
+export interface CCitadelItemPunchableNeutralGold extends Fields<typeof fieldsCCitadelItemPunchableNeutralGold> {}
+define(CCitadelItemPunchableNeutralGold, 'CCitadelItemPunchableNeutralGold', fieldsCCitadelItemPunchableNeutralGold)
 
-export class CCitadel_Bounce_Pad extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_Bounce_Pad {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_flUpFactor: number | undefined
-  m_flBounceVelocity: number | undefined
-  m_tDeactivationTime: number | undefined
-  m_bDeactivated: boolean | undefined
-  m_flBarrelBounceVelocity: number | undefined
-  m_flBarrelUpFactor: number | undefined
-  m_bSpeedOnLand: boolean | undefined
-}
-define(CCitadel_Bounce_Pad, 'CCitadel_Bounce_Pad', {
+const fieldsCCitadel_Bounce_Pad = {
   m_hAbility: 'CCitadelBaseAbility',
   m_flUpFactor: 'float32',
   m_flBounceVelocity: 'float32',
@@ -2215,25 +1476,15 @@ define(CCitadel_Bounce_Pad, 'CCitadel_Bounce_Pad', {
   m_flBarrelBounceVelocity: 'float32',
   m_flBarrelUpFactor: 'float32',
   m_bSpeedOnLand: 'bool',
-})
+} as const
+export class CCitadel_Bounce_Pad extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_Bounce_Pad extends Fields<typeof fieldsCCitadel_Bounce_Pad> {}
+define(CCitadel_Bounce_Pad, 'CCitadel_Bounce_Pad', fieldsCCitadel_Bounce_Pad)
 
 export class CCitadel_CatAnimating extends CCitadelAnimatingModelEntity {}
 define(CCitadel_CatAnimating, 'CCitadel_CatAnimating', {})
 
-export class CCitadel_Destroyable_Building extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_Destroyable_Building {
-  m_nBuildingHealth: number | undefined
-  m_iLane: number | undefined
-  m_flDestroyedTime: number | undefined
-  m_flLastDamagedTime: number | undefined
-  m_angOriginal: Angles | undefined
-  readonly m_backdoorProtectionTrigger: string | undefined
-  readonly m_strTrooperApproach: string | undefined
-  m_bDestroyed: boolean | undefined
-  m_bActive: boolean | undefined
-  m_bFinal: boolean | undefined
-}
-define(CCitadel_Destroyable_Building, 'CCitadel_Destroyable_Building', {
+const fieldsCCitadel_Destroyable_Building = {
   m_nBuildingHealth: 'int32',
   m_iLane: 'int32',
   m_flDestroyedTime: 'float32',
@@ -2244,19 +1495,19 @@ define(CCitadel_Destroyable_Building, 'CCitadel_Destroyable_Building', {
   m_bDestroyed: 'bool',
   m_bActive: 'bool',
   m_bFinal: 'bool',
-})
+} as const
+export class CCitadel_Destroyable_Building extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_Destroyable_Building extends Fields<typeof fieldsCCitadel_Destroyable_Building> {}
+define(CCitadel_Destroyable_Building, 'CCitadel_Destroyable_Building', fieldsCCitadel_Destroyable_Building)
 
-export class CCitadel_GraveStone_Blocker extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_GraveStone_Blocker {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_iGravestoneState: number | undefined
-  m_flLifetime: number | undefined
-}
-define(CCitadel_GraveStone_Blocker, 'CCitadel_GraveStone_Blocker', {
+const fieldsCCitadel_GraveStone_Blocker = {
   m_hAbility: 'CCitadelBaseAbility',
   m_iGravestoneState: 'int32',
   m_flLifetime: 'float32',
-})
+} as const
+export class CCitadel_GraveStone_Blocker extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_GraveStone_Blocker extends Fields<typeof fieldsCCitadel_GraveStone_Blocker> {}
+define(CCitadel_GraveStone_Blocker, 'CCitadel_GraveStone_Blocker', fieldsCCitadel_GraveStone_Blocker)
 
 export class CCitadel_GuidedArrow_OwlModel extends CCitadelAnimatingModelEntity {}
 define(CCitadel_GuidedArrow_OwlModel, 'CCitadel_GuidedArrow_OwlModel', {})
@@ -2264,56 +1515,47 @@ define(CCitadel_GuidedArrow_OwlModel, 'CCitadel_GuidedArrow_OwlModel', {})
 export class CCitadel_Hideout_Clock extends CCitadelAnimatingModelEntity {}
 define(CCitadel_Hideout_Clock, 'CCitadel_Hideout_Clock', {})
 
-export class CCitadel_MagicianTurret extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_MagicianTurret {
-  m_hAbility: CCitadelBaseAbility | undefined
-}
-define(CCitadel_MagicianTurret, 'CCitadel_MagicianTurret', {
+const fieldsCCitadel_MagicianTurret = {
   m_hAbility: 'CCitadelBaseAbility',
-})
+} as const
+export class CCitadel_MagicianTurret extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_MagicianTurret extends Fields<typeof fieldsCCitadel_MagicianTurret> {}
+define(CCitadel_MagicianTurret, 'CCitadel_MagicianTurret', fieldsCCitadel_MagicianTurret)
 
-export class CCitadel_MobileResupply extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_MobileResupply {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_bFloating: boolean | undefined
-}
-define(CCitadel_MobileResupply, 'CCitadel_MobileResupply', {
+const fieldsCCitadel_MobileResupply = {
   m_hAbility: 'CCitadelBaseAbility',
   m_bFloating: 'bool',
-})
+} as const
+export class CCitadel_MobileResupply extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_MobileResupply extends Fields<typeof fieldsCCitadel_MobileResupply> {}
+define(CCitadel_MobileResupply, 'CCitadel_MobileResupply', fieldsCCitadel_MobileResupply)
 
-export class CCitadel_Nano_Predatory_Statue extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_Nano_Predatory_Statue {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_flLifetime: number | undefined
-}
-define(CCitadel_Nano_Predatory_Statue, 'CCitadel_Nano_Predatory_Statue', {
+const fieldsCCitadel_Nano_Predatory_Statue = {
   m_hAbility: 'CCitadelBaseAbility',
   m_flLifetime: 'float32',
-})
+} as const
+export class CCitadel_Nano_Predatory_Statue extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_Nano_Predatory_Statue extends Fields<typeof fieldsCCitadel_Nano_Predatory_Statue> {}
+define(CCitadel_Nano_Predatory_Statue, 'CCitadel_Nano_Predatory_Statue', fieldsCCitadel_Nano_Predatory_Statue)
 
-export class CCitadel_Ratking_Standard extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_Ratking_Standard {
-  m_hAbility: CCitadelBaseAbility | undefined
-}
-define(CCitadel_Ratking_Standard, 'CCitadel_Ratking_Standard', {
+const fieldsCCitadel_Ratking_Standard = {
   m_hAbility: 'CCitadelBaseAbility',
-})
+} as const
+export class CCitadel_Ratking_Standard extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_Ratking_Standard extends Fields<typeof fieldsCCitadel_Ratking_Standard> {}
+define(CCitadel_Ratking_Standard, 'CCitadel_Ratking_Standard', fieldsCCitadel_Ratking_Standard)
 
 export class CCitadel_RestorativeGooCube extends CCitadelAnimatingModelEntity {}
 define(CCitadel_RestorativeGooCube, 'CCitadel_RestorativeGooCube', {})
 
-export class CCitadel_Soldier_Entity extends CCitadelAnimatingModelEntity {}
-export interface CCitadel_Soldier_Entity {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_iSoldierState: number | undefined
-  m_flLifetime: number | undefined
-}
-define(CCitadel_Soldier_Entity, 'CCitadel_Soldier_Entity', {
+const fieldsCCitadel_Soldier_Entity = {
   m_hAbility: 'CCitadelBaseAbility',
   m_iSoldierState: 'int32',
   m_flLifetime: 'float32',
-})
+} as const
+export class CCitadel_Soldier_Entity extends CCitadelAnimatingModelEntity {}
+export interface CCitadel_Soldier_Entity extends Fields<typeof fieldsCCitadel_Soldier_Entity> {}
+define(CCitadel_Soldier_Entity, 'CCitadel_Soldier_Entity', fieldsCCitadel_Soldier_Entity)
 
 export class CCitadel_SpiderAnimating extends CCitadelAnimatingModelEntity {}
 define(CCitadel_SpiderAnimating, 'CCitadel_SpiderAnimating', {})
@@ -2330,88 +1572,67 @@ define(CNPC_Neutral_Hideout_Cat, 'CNPC_Neutral_Hideout_Cat', {})
 export class CNPC_Neutral_Hideout_Rabbit extends CNPC_Neutral_Hideout_Cat {}
 define(CNPC_Neutral_Hideout_Rabbit, 'CNPC_Neutral_Hideout_Rabbit', {})
 
-export class CNPC_Ratking_Rat extends CCitadelAnimatingModelEntity {}
-export interface CNPC_Ratking_Rat {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_vFlightVelocity: Vector | undefined
-  m_vRunDir: Vector | undefined
-}
-define(CNPC_Ratking_Rat, 'CNPC_Ratking_Rat', {
+const fieldsCNPC_Ratking_Rat = {
   m_hAbility: 'CCitadelBaseAbility',
   m_vFlightVelocity: 'vector',
   m_vRunDir: 'vector',
-})
+} as const
+export class CNPC_Ratking_Rat extends CCitadelAnimatingModelEntity {}
+export interface CNPC_Ratking_Rat extends Fields<typeof fieldsCNPC_Ratking_Rat> {}
+define(CNPC_Ratking_Rat, 'CNPC_Ratking_Rat', fieldsCNPC_Ratking_Rat)
 
 export class CCitadelHideoutPropBase extends CBaseAnimGraph {}
 define(CCitadelHideoutPropBase, 'CCitadelHideoutPropBase', {})
 
-export class CCitadel_BreakableProp extends CBaseAnimGraph {}
-export interface CCitadel_BreakableProp {
-  m_flOverrideInitialSpawnTime: number | undefined
-  m_flOverrideRespawnTime: number | undefined
-  m_nGoldCost: number | undefined
-  m_hBreaker: CCitadelPlayerPawn | undefined
-  m_nMeleeHitsTaken: number | undefined
-}
-define(CCitadel_BreakableProp, 'CCitadel_BreakableProp', {
+const fieldsCCitadel_BreakableProp = {
   m_flOverrideInitialSpawnTime: 'float32',
   m_flOverrideRespawnTime: 'float32',
   m_nGoldCost: 'int32',
   m_hBreaker: 'CCitadelPlayerPawn',
   m_nMeleeHitsTaken: 'int32',
-})
+} as const
+export class CCitadel_BreakableProp extends CBaseAnimGraph {}
+export interface CCitadel_BreakableProp extends Fields<typeof fieldsCCitadel_BreakableProp> {}
+define(CCitadel_BreakableProp, 'CCitadel_BreakableProp', fieldsCCitadel_BreakableProp)
 
 export class CCitadel_DeployablePreview extends CBaseAnimGraph {}
 define(CCitadel_DeployablePreview, 'CCitadel_DeployablePreview', {})
 
-export class CCitadel_DoorwayPortal extends CBaseAnimGraph {}
-export interface CCitadel_DoorwayPortal {
-  m_hLinkedDoorway: CCitadel_DoorwayPortal | undefined
-  /** Close the door. */
-  inputClose(): boolean
-  /** Open the door. */
-  inputOpen(): boolean
-}
-define(CCitadel_DoorwayPortal, 'CCitadel_DoorwayPortal', {
+const fieldsCCitadel_DoorwayPortal = {
   m_hLinkedDoorway: 'CCitadel_DoorwayPortal',
-}, {
+} as const
+const inputsCCitadel_DoorwayPortal = {
+  /** Close the door. */
   Close: '',
+  /** Open the door. */
   Open: '',
-})
+} as const
+export class CCitadel_DoorwayPortal extends CBaseAnimGraph {}
+export interface CCitadel_DoorwayPortal extends Fields<typeof fieldsCCitadel_DoorwayPortal>, Inputs<typeof inputsCCitadel_DoorwayPortal> {}
+define(CCitadel_DoorwayPortal, 'CCitadel_DoorwayPortal', fieldsCCitadel_DoorwayPortal, inputsCCitadel_DoorwayPortal)
 
-export class CCitadel_FissureWall extends CBaseAnimGraph {}
-export interface CCitadel_FissureWall {
-  m_vStartPos: Vector | undefined
-  m_vEndPos: Vector | undefined
-  m_flStartEmitTime: number | undefined
-  m_flEndEmitTime: number | undefined
-  m_bSolid: boolean | undefined
-  m_nTouchCount: number | undefined
-}
-define(CCitadel_FissureWall, 'CCitadel_FissureWall', {
+const fieldsCCitadel_FissureWall = {
   m_vStartPos: 'vector',
   m_vEndPos: 'vector',
   m_flStartEmitTime: 'float32',
   m_flEndEmitTime: 'float32',
   m_bSolid: 'bool',
   m_nTouchCount: 'int32',
-})
+} as const
+export class CCitadel_FissureWall extends CBaseAnimGraph {}
+export interface CCitadel_FissureWall extends Fields<typeof fieldsCCitadel_FissureWall> {}
+define(CCitadel_FissureWall, 'CCitadel_FissureWall', fieldsCCitadel_FissureWall)
 
-export class CCitadel_GrandFinaleStage extends CBaseAnimGraph {}
-export interface CCitadel_GrandFinaleStage {
-  m_vStartPos: Vector | undefined
-  m_vEndPos: Vector | undefined
-  m_flStartEmitTime: number | undefined
-  m_flEndEmitTime: number | undefined
-  m_nTouchCount: number | undefined
-}
-define(CCitadel_GrandFinaleStage, 'CCitadel_GrandFinaleStage', {
+const fieldsCCitadel_GrandFinaleStage = {
   m_vStartPos: 'vector',
   m_vEndPos: 'vector',
   m_flStartEmitTime: 'float32',
   m_flEndEmitTime: 'float32',
   m_nTouchCount: 'int32',
-})
+} as const
+export class CCitadel_GrandFinaleStage extends CBaseAnimGraph {}
+export interface CCitadel_GrandFinaleStage extends Fields<typeof fieldsCCitadel_GrandFinaleStage> {}
+define(CCitadel_GrandFinaleStage, 'CCitadel_GrandFinaleStage', fieldsCCitadel_GrandFinaleStage)
 
 export class CCitadel_HeroTestOrbSpawner extends CBaseAnimGraph {}
 define(CCitadel_HeroTestOrbSpawner, 'CCitadel_HeroTestOrbSpawner', {})
@@ -2419,37 +1640,21 @@ define(CCitadel_HeroTestOrbSpawner, 'CCitadel_HeroTestOrbSpawner', {})
 export class CCitadel_HideOutTargetSpawner extends CBaseAnimGraph {}
 define(CCitadel_HideOutTargetSpawner, 'CCitadel_HideOutTargetSpawner', {})
 
+const fieldsCCitadel_Ice_Dome_Blocker = {
+  m_flTurnSolidTime: 'float32',
+} as const
 export class CCitadel_Ice_Dome_Blocker extends CBaseAnimGraph {}
-export interface CCitadel_Ice_Dome_Blocker {
-  m_flTurnSolidTime: number | undefined
-}
-define(CCitadel_Ice_Dome_Blocker, 'CCitadel_Ice_Dome_Blocker', {
-  m_flTurnSolidTime: 'float32',
-})
+export interface CCitadel_Ice_Dome_Blocker extends Fields<typeof fieldsCCitadel_Ice_Dome_Blocker> {}
+define(CCitadel_Ice_Dome_Blocker, 'CCitadel_Ice_Dome_Blocker', fieldsCCitadel_Ice_Dome_Blocker)
 
+const fieldsCCitadel_Magic_Beam_Blocker = {
+  m_flTurnSolidTime: 'float32',
+} as const
 export class CCitadel_Magic_Beam_Blocker extends CBaseAnimGraph {}
-export interface CCitadel_Magic_Beam_Blocker {
-  m_flTurnSolidTime: number | undefined
-}
-define(CCitadel_Magic_Beam_Blocker, 'CCitadel_Magic_Beam_Blocker', {
-  m_flTurnSolidTime: 'float32',
-})
+export interface CCitadel_Magic_Beam_Blocker extends Fields<typeof fieldsCCitadel_Magic_Beam_Blocker> {}
+define(CCitadel_Magic_Beam_Blocker, 'CCitadel_Magic_Beam_Blocker', fieldsCCitadel_Magic_Beam_Blocker)
 
-export class CCitadel_Pickup extends CBaseAnimGraph {}
-export interface CCitadel_Pickup {
-  m_hAssignedClaimer: CBaseEntity | undefined
-  m_bActive: boolean | undefined
-  m_bInteractive: boolean | undefined
-  m_vVacuumStartPos: Vector | undefined
-  m_vInitialVacuumVel: Vector | undefined
-  m_hVacuumTarget: CBaseEntity | undefined
-  m_vVacuumPos: Vector | undefined
-  m_flVacuumStartTime: number | undefined
-  m_vImpactVel: Vector | undefined
-  m_vImpactPos: Vector | undefined
-  m_flImpactTime: number | undefined
-}
-define(CCitadel_Pickup, 'CCitadel_Pickup', {
+const fieldsCCitadel_Pickup = {
   m_hAssignedClaimer: 'CBaseEntity',
   m_bActive: 'bool',
   m_bInteractive: 'bool',
@@ -2461,21 +1666,20 @@ define(CCitadel_Pickup, 'CCitadel_Pickup', {
   m_vImpactVel: 'vector',
   m_vImpactPos: 'vector',
   m_flImpactTime: 'float32',
-})
+} as const
+export class CCitadel_Pickup extends CBaseAnimGraph {}
+export interface CCitadel_Pickup extends Fields<typeof fieldsCCitadel_Pickup> {}
+define(CCitadel_Pickup, 'CCitadel_Pickup', fieldsCCitadel_Pickup)
 
-export class CCitadel_Pickup_Ability extends CCitadel_Pickup {}
-export interface CCitadel_Pickup_Ability {
-  m_nUpgradeBits: number | undefined
-  m_nUpgradeLevel: number | undefined
-  m_nGoldCost: number | undefined
-  m_bShowGoldCostInUI: boolean | undefined
-}
-define(CCitadel_Pickup_Ability, 'CCitadel_Pickup_Ability', {
+const fieldsCCitadel_Pickup_Ability = {
   m_nUpgradeBits: 'uint16',
   m_nUpgradeLevel: 'int32',
   m_nGoldCost: 'int32',
   m_bShowGoldCostInUI: 'bool',
-})
+} as const
+export class CCitadel_Pickup_Ability extends CCitadel_Pickup {}
+export interface CCitadel_Pickup_Ability extends Fields<typeof fieldsCCitadel_Pickup_Ability> {}
+define(CCitadel_Pickup_Ability, 'CCitadel_Pickup_Ability', fieldsCCitadel_Pickup_Ability)
 
 export class CCitadel_Pickup_Item extends CCitadel_Pickup_Ability {}
 define(CCitadel_Pickup_Item, 'CCitadel_Pickup_Item', {})
@@ -2483,21 +1687,19 @@ define(CCitadel_Pickup_Item, 'CCitadel_Pickup_Item', {})
 export class CCitadel_Pickup_AssignedGold extends CCitadel_Pickup {}
 define(CCitadel_Pickup_AssignedGold, 'CCitadel_Pickup_AssignedGold', {})
 
-export class CCitadel_Pickup_Currency extends CCitadel_Pickup {}
-export interface CCitadel_Pickup_Currency {
-  m_nCurrencyAmount: number | undefined
-}
-define(CCitadel_Pickup_Currency, 'CCitadel_Pickup_Currency', {
+const fieldsCCitadel_Pickup_Currency = {
   m_nCurrencyAmount: 'int32',
-})
+} as const
+export class CCitadel_Pickup_Currency extends CCitadel_Pickup {}
+export interface CCitadel_Pickup_Currency extends Fields<typeof fieldsCCitadel_Pickup_Currency> {}
+define(CCitadel_Pickup_Currency, 'CCitadel_Pickup_Currency', fieldsCCitadel_Pickup_Currency)
 
-export class CCitadel_Pickup_Gold extends CCitadel_Pickup {}
-export interface CCitadel_Pickup_Gold {
-  m_iGoldReward: number | undefined
-}
-define(CCitadel_Pickup_Gold, 'CCitadel_Pickup_Gold', {
+const fieldsCCitadel_Pickup_Gold = {
   m_iGoldReward: 'int32',
-})
+} as const
+export class CCitadel_Pickup_Gold extends CCitadel_Pickup {}
+export interface CCitadel_Pickup_Gold extends Fields<typeof fieldsCCitadel_Pickup_Gold> {}
+define(CCitadel_Pickup_Gold, 'CCitadel_Pickup_Gold', fieldsCCitadel_Pickup_Gold)
 
 export class CCitadel_Pickup_Health extends CCitadel_Pickup {}
 define(CCitadel_Pickup_Health, 'CCitadel_Pickup_Health', {})
@@ -2508,90 +1710,59 @@ define(CCitadel_Pickup_Modifier, 'CCitadel_Pickup_Modifier', {})
 export class CCitadel_Pickup_NecroDeath extends CCitadel_Pickup {}
 define(CCitadel_Pickup_NecroDeath, 'CCitadel_Pickup_NecroDeath', {})
 
-export class CCitadel_PickupItemSpawner extends CBaseAnimGraph {}
-export interface CCitadel_PickupItemSpawner {
-  m_tNextDropTime: number | undefined
-  m_tNextPingTime: number | undefined
-  m_bPingedPowerup: boolean | undefined
-  m_bPowerupActive: boolean | undefined
-  /** Drop one of the spawner's configured powerups. */
-  inputDropPowerup(): boolean
-}
-define(CCitadel_PickupItemSpawner, 'CCitadel_PickupItemSpawner', {
+const fieldsCCitadel_PickupItemSpawner = {
   m_tNextDropTime: 'float32',
   m_tNextPingTime: 'float32',
   m_bPingedPowerup: 'bool',
   m_bPowerupActive: 'bool',
-}, {
+} as const
+const inputsCCitadel_PickupItemSpawner = {
+  /** Drop one of the spawner's configured powerups. */
   DropPowerup: '',
-})
+} as const
+export class CCitadel_PickupItemSpawner extends CBaseAnimGraph {}
+export interface CCitadel_PickupItemSpawner extends Fields<typeof fieldsCCitadel_PickupItemSpawner>, Inputs<typeof inputsCCitadel_PickupItemSpawner> {}
+define(CCitadel_PickupItemSpawner, 'CCitadel_PickupItemSpawner', fieldsCCitadel_PickupItemSpawner, inputsCCitadel_PickupItemSpawner)
 
-export class CCitadel_PickupSpawner extends CBaseAnimGraph {}
-export interface CCitadel_PickupSpawner {
-  readonly m_iszPickupSubclass: string | undefined
-  m_flOverrideSpawnDelay: number | undefined
-  m_flOverrideRespawnTime: number | undefined
-  /** Spawn the configured pickup now, restarting the respawn cycle. */
-  inputSpawnPickup(): boolean
-}
-define(CCitadel_PickupSpawner, 'CCitadel_PickupSpawner', {
+const fieldsCCitadel_PickupSpawner = {
   m_iszPickupSubclass: 'string',
   m_flOverrideSpawnDelay: 'float32',
   m_flOverrideRespawnTime: 'float32',
-}, {
+} as const
+const inputsCCitadel_PickupSpawner = {
+  /** Spawn the configured pickup now, restarting the respawn cycle. */
   SpawnPickup: '',
-})
+} as const
+export class CCitadel_PickupSpawner extends CBaseAnimGraph {}
+export interface CCitadel_PickupSpawner extends Fields<typeof fieldsCCitadel_PickupSpawner>, Inputs<typeof inputsCCitadel_PickupSpawner> {}
+define(CCitadel_PickupSpawner, 'CCitadel_PickupSpawner', fieldsCCitadel_PickupSpawner, inputsCCitadel_PickupSpawner)
 
-export class CCitadel_SmokeGrenade_Blocker extends CBaseAnimGraph {}
-export interface CCitadel_SmokeGrenade_Blocker {
-  m_flTurnSolidTime: number | undefined
-}
-define(CCitadel_SmokeGrenade_Blocker, 'CCitadel_SmokeGrenade_Blocker', {
+const fieldsCCitadel_SmokeGrenade_Blocker = {
   m_flTurnSolidTime: 'float32',
-})
+} as const
+export class CCitadel_SmokeGrenade_Blocker extends CBaseAnimGraph {}
+export interface CCitadel_SmokeGrenade_Blocker extends Fields<typeof fieldsCCitadel_SmokeGrenade_Blocker> {}
+define(CCitadel_SmokeGrenade_Blocker, 'CCitadel_SmokeGrenade_Blocker', fieldsCCitadel_SmokeGrenade_Blocker)
 
-export class CConstraintAnchor extends CBaseAnimGraph {}
-export interface CConstraintAnchor {
-  m_massScale: number | undefined
-}
-define(CConstraintAnchor, 'CConstraintAnchor', {
+const fieldsCConstraintAnchor = {
   m_massScale: 'float32',
-})
+} as const
+export class CConstraintAnchor extends CBaseAnimGraph {}
+export interface CConstraintAnchor extends Fields<typeof fieldsCConstraintAnchor> {}
+define(CConstraintAnchor, 'CConstraintAnchor', fieldsCConstraintAnchor)
 
-export class CEconEntity extends CBaseAnimGraph {}
-export interface CEconEntity {
-  m_hOldProvidee: CBaseEntity | undefined
-  m_iOldOwnerClass: number | undefined
-}
-define(CEconEntity, 'CEconEntity', {
+const fieldsCEconEntity = {
   m_hOldProvidee: 'CBaseEntity',
   m_iOldOwnerClass: 'int32',
-})
+} as const
+export class CEconEntity extends CBaseAnimGraph {}
+export interface CEconEntity extends Fields<typeof fieldsCEconEntity> {}
+define(CEconEntity, 'CEconEntity', fieldsCEconEntity)
 
 export class CEconWearable extends CEconEntity {}
 define(CEconWearable, 'CEconWearable', {})
 
-export class CFish extends CBaseAnimGraph {}
-export interface CFish {
-  m_pool: CFishPool | undefined
-  m_id: number | undefined
-  m_x: number | undefined
-  m_y: number | undefined
-  m_z: number | undefined
-  m_angle: number | undefined
-  m_angleChange: number | undefined
-  m_forward: Vector | undefined
-  m_perp: Vector | undefined
-  m_poolOrigin: Vector | undefined
-  m_waterLevel: number | undefined
-  m_speed: number | undefined
-  m_desiredSpeed: number | undefined
-  m_calmSpeed: number | undefined
-  m_panicSpeed: number | undefined
-  m_avoidRange: number | undefined
-  m_turnClockwise: boolean | undefined
-}
-define(CFish, 'CFish', {
+const fieldsCFish = {
   m_pool: 'CFishPool',
   m_id: 'uint32',
   m_x: 'float32',
@@ -2609,52 +1780,22 @@ define(CFish, 'CFish', {
   m_panicSpeed: 'float32',
   m_avoidRange: 'float32',
   m_turnClockwise: 'bool',
-})
+} as const
+export class CFish extends CBaseAnimGraph {}
+export interface CFish extends Fields<typeof fieldsCFish> {}
+define(CFish, 'CFish', fieldsCFish)
 
-export class CItem extends CBaseAnimGraph {}
-export interface CItem {
-  m_bActivateWhenAtRest: boolean | undefined
-  m_vOriginalSpawnOrigin: Vector | undefined
-  m_vOriginalSpawnAngles: Angles | undefined
-  m_bPhysStartAsleep: boolean | undefined
-}
-define(CItem, 'CItem', {
+const fieldsCItem = {
   m_bActivateWhenAtRest: 'bool',
   m_vOriginalSpawnOrigin: 'vector',
   m_vOriginalSpawnAngles: 'angles',
   m_bPhysStartAsleep: 'bool',
-})
+} as const
+export class CItem extends CBaseAnimGraph {}
+export interface CItem extends Fields<typeof fieldsCItem> {}
+define(CItem, 'CItem', fieldsCItem)
 
-export class CItemGeneric extends CItem {}
-export interface CItemGeneric {
-  m_bHasTriggerRadius: boolean | undefined
-  m_bHasPickupRadius: boolean | undefined
-  m_flPickupRadiusSqr: number | undefined
-  m_flTriggerRadiusSqr: number | undefined
-  m_flLastPickupCheck: number | undefined
-  m_bPlayerCounterListenerAdded: boolean | undefined
-  m_bPlayerInTriggerRadius: boolean | undefined
-  readonly m_pAmbientSoundEffect: string | undefined
-  m_bAutoStartAmbientSound: boolean | undefined
-  readonly m_pSpawnScriptFunction: string | undefined
-  readonly m_pPickupSoundEffect: string | undefined
-  readonly m_pPickupScriptFunction: string | undefined
-  readonly m_pTimeoutSoundEffect: string | undefined
-  readonly m_pTimeoutScriptFunction: string | undefined
-  readonly m_pPickupFilterName: string | undefined
-  m_hPickupFilter: CBaseFilter | undefined
-  readonly m_pAllowPickupScriptFunction: string | undefined
-  m_flPickupRadius: number | undefined
-  m_flTriggerRadius: number | undefined
-  readonly m_pTriggerSoundEffect: string | undefined
-  m_bGlowWhenInTrigger: boolean | undefined
-  m_bUseable: boolean | undefined
-  m_hTriggerHelper: CItemGenericTriggerHelper | undefined
-  inputStartAmbientSound(): boolean
-  inputStopAmbientSound(): boolean
-  inputToggleAmbientSound(): boolean
-}
-define(CItemGeneric, 'CItemGeneric', {
+const fieldsCItemGeneric = {
   m_bHasTriggerRadius: 'bool',
   m_bHasPickupRadius: 'bool',
   m_flPickupRadiusSqr: 'float32',
@@ -2678,19 +1819,22 @@ define(CItemGeneric, 'CItemGeneric', {
   m_bGlowWhenInTrigger: 'bool',
   m_bUseable: 'bool',
   m_hTriggerHelper: 'CItemGenericTriggerHelper',
-}, {
+} as const
+const inputsCItemGeneric = {
   StartAmbientSound: '',
   StopAmbientSound: '',
   ToggleAmbientSound: '',
-})
+} as const
+export class CItemGeneric extends CItem {}
+export interface CItemGeneric extends Fields<typeof fieldsCItemGeneric>, Inputs<typeof inputsCItemGeneric> {}
+define(CItemGeneric, 'CItemGeneric', fieldsCItemGeneric, inputsCItemGeneric)
 
-export class CScriptItem extends CItem {}
-export interface CScriptItem {
-  m_MoveTypeOverride: number | undefined
-}
-define(CScriptItem, 'CScriptItem', {
+const fieldsCScriptItem = {
   m_MoveTypeOverride: 'uint8',
-})
+} as const
+export class CScriptItem extends CItem {}
+export interface CScriptItem extends Fields<typeof fieldsCScriptItem> {}
+define(CScriptItem, 'CScriptItem', fieldsCScriptItem)
 
 export class CItemSoda extends CBaseAnimGraph {}
 define(CItemSoda, 'CItemSoda', {})
@@ -2698,50 +1842,30 @@ define(CItemSoda, 'CItemSoda', {})
 export class CNPC_Neutral_Bug extends CBaseAnimGraph {}
 define(CNPC_Neutral_Bug, 'CNPC_Neutral_Bug', {})
 
-export class CNPC_SimpleAnimatingAI extends CBaseAnimGraph {}
-export interface CNPC_SimpleAnimatingAI {
-  m_hEnemy: CBaseEntity | undefined
-  m_hAbilityOwner: CCitadelBaseAbility | undefined
-}
-define(CNPC_SimpleAnimatingAI, 'CNPC_SimpleAnimatingAI', {
+const fieldsCNPC_SimpleAnimatingAI = {
   m_hEnemy: 'CBaseEntity',
   m_hAbilityOwner: 'CCitadelBaseAbility',
-})
+} as const
+export class CNPC_SimpleAnimatingAI extends CBaseAnimGraph {}
+export interface CNPC_SimpleAnimatingAI extends Fields<typeof fieldsCNPC_SimpleAnimatingAI> {}
+define(CNPC_SimpleAnimatingAI, 'CNPC_SimpleAnimatingAI', fieldsCNPC_SimpleAnimatingAI)
 
-export class CNPC_BaseDefenseSentry extends CNPC_SimpleAnimatingAI {}
-export interface CNPC_BaseDefenseSentry {
-  m_flAttackCone: number | undefined
-  m_flAttackDelay: number | undefined
-  m_flLastAlertSound: number | undefined
-  m_nSentryLevel: number | undefined
-  m_vecForward: Vector | undefined
-  inputDisableAttacking(): boolean
-  inputEnableAttacking(): boolean
-}
-define(CNPC_BaseDefenseSentry, 'CNPC_BaseDefenseSentry', {
+const fieldsCNPC_BaseDefenseSentry = {
   m_flAttackCone: 'float32',
   m_flAttackDelay: 'float32',
   m_flLastAlertSound: 'float32',
   m_nSentryLevel: 'int16',
   m_vecForward: 'vector',
-}, {
+} as const
+const inputsCNPC_BaseDefenseSentry = {
   DisableAttacking: '',
   EnableAttacking: '',
-})
+} as const
+export class CNPC_BaseDefenseSentry extends CNPC_SimpleAnimatingAI {}
+export interface CNPC_BaseDefenseSentry extends Fields<typeof fieldsCNPC_BaseDefenseSentry>, Inputs<typeof inputsCNPC_BaseDefenseSentry> {}
+define(CNPC_BaseDefenseSentry, 'CNPC_BaseDefenseSentry', fieldsCNPC_BaseDefenseSentry, inputsCNPC_BaseDefenseSentry)
 
-export class CNPC_ShieldedSentry extends CNPC_SimpleAnimatingAI {}
-export interface CNPC_ShieldedSentry {
-  m_flAttackRange: number | undefined
-  m_flAimPitch: number | undefined
-  m_bHasRecentlyAttacked: boolean | undefined
-  m_flLifeTime: number | undefined
-  m_flSpawnTime: number | undefined
-  m_flAttackCone: number | undefined
-  m_flTrackingSpeed: number | undefined
-  m_flDeployTime: number | undefined
-  m_flAttackDelay: number | undefined
-}
-define(CNPC_ShieldedSentry, 'CNPC_ShieldedSentry', {
+const fieldsCNPC_ShieldedSentry = {
   m_flAttackRange: 'float32',
   m_flAimPitch: 'float32',
   m_bHasRecentlyAttacked: 'bool',
@@ -2751,24 +1875,12 @@ define(CNPC_ShieldedSentry, 'CNPC_ShieldedSentry', {
   m_flTrackingSpeed: 'float32',
   m_flDeployTime: 'float32',
   m_flAttackDelay: 'float32',
-})
+} as const
+export class CNPC_ShieldedSentry extends CNPC_SimpleAnimatingAI {}
+export interface CNPC_ShieldedSentry extends Fields<typeof fieldsCNPC_ShieldedSentry> {}
+define(CNPC_ShieldedSentry, 'CNPC_ShieldedSentry', fieldsCNPC_ShieldedSentry)
 
-export class CPhysMagnet extends CBaseAnimGraph {}
-export interface CPhysMagnet {
-  m_massScale: number | undefined
-  m_forceLimit: number | undefined
-  m_torqueLimit: number | undefined
-  m_bActive: boolean | undefined
-  m_bHasHitSomething: boolean | undefined
-  m_flTotalMass: number | undefined
-  m_flRadius: number | undefined
-  m_flNextSuckTime: number | undefined
-  m_iMaxObjectsAttached: number | undefined
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CPhysMagnet, 'CPhysMagnet', {
+const fieldsCPhysMagnet = {
   m_massScale: 'float32',
   m_forceLimit: 'float32',
   m_torqueLimit: 'float32',
@@ -2778,48 +1890,17 @@ define(CPhysMagnet, 'CPhysMagnet', {
   m_flRadius: 'float32',
   m_flNextSuckTime: 'float32',
   m_iMaxObjectsAttached: 'int32',
-}, {
+} as const
+const inputsCPhysMagnet = {
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CPhysMagnet extends CBaseAnimGraph {}
+export interface CPhysMagnet extends Fields<typeof fieldsCPhysMagnet>, Inputs<typeof inputsCPhysMagnet> {}
+define(CPhysMagnet, 'CPhysMagnet', fieldsCPhysMagnet, inputsCPhysMagnet)
 
-export class CPointCommentaryNode extends CBaseAnimGraph {}
-export interface CPointCommentaryNode {
-  readonly m_iszPreCommands: string | undefined
-  readonly m_iszPostCommands: string | undefined
-  readonly m_iszCommentaryFile: string | undefined
-  readonly m_iszViewTarget: string | undefined
-  m_hViewTarget: CBaseEntity | undefined
-  m_hViewTargetAngles: CBaseEntity | undefined
-  readonly m_iszViewPosition: string | undefined
-  m_hViewPosition: CBaseEntity | undefined
-  m_hViewPositionMover: CBaseEntity | undefined
-  m_bPreventMovement: boolean | undefined
-  m_bUnderCrosshair: boolean | undefined
-  m_bUnstoppable: boolean | undefined
-  m_flFinishedTime: number | undefined
-  m_vecFinishOrigin: Vector | undefined
-  m_vecOriginalAngles: Angles | undefined
-  m_vecFinishAngles: Angles | undefined
-  m_bPreventChangesWhileMoving: boolean | undefined
-  m_bDisabled: boolean | undefined
-  m_vecTeleportOrigin: Vector | undefined
-  m_flAbortedPlaybackAt: number | undefined
-  m_bActive: boolean | undefined
-  m_flStartTime: number | undefined
-  m_flStartTimeInCommentary: number | undefined
-  readonly m_iszTitle: string | undefined
-  readonly m_iszSpeakers: string | undefined
-  m_iNodeNumber: number | undefined
-  m_iNodeNumberMax: number | undefined
-  m_bListenedTo: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputStartCommentary(): boolean
-  inputStartUnstoppableCommentary(): boolean
-}
-define(CPointCommentaryNode, 'CPointCommentaryNode', {
+const fieldsCPointCommentaryNode = {
   m_iszPreCommands: 'string',
   m_iszPostCommands: 'string',
   m_iszCommentaryFile: 'string',
@@ -2848,56 +1929,25 @@ define(CPointCommentaryNode, 'CPointCommentaryNode', {
   m_iNodeNumber: 'int32',
   m_iNodeNumberMax: 'int32',
   m_bListenedTo: 'bool',
-}, {
+} as const
+const inputsCPointCommentaryNode = {
   Disable: '',
   Enable: '',
   StartCommentary: '',
   StartUnstoppableCommentary: '',
-})
+} as const
+export class CPointCommentaryNode extends CBaseAnimGraph {}
+export interface CPointCommentaryNode extends Fields<typeof fieldsCPointCommentaryNode>, Inputs<typeof inputsCPointCommentaryNode> {}
+define(CPointCommentaryNode, 'CPointCommentaryNode', fieldsCPointCommentaryNode, inputsCPointCommentaryNode)
 
-export class CPropAnimatingBreakable extends CBaseAnimGraph {}
-export interface CPropAnimatingBreakable {
-  inputNextBreakStage(): boolean
-}
-define(CPropAnimatingBreakable, 'CPropAnimatingBreakable', {}, {
+const inputsCPropAnimatingBreakable = {
   NextBreakStage: '',
-})
+} as const
+export class CPropAnimatingBreakable extends CBaseAnimGraph {}
+export interface CPropAnimatingBreakable extends Inputs<typeof inputsCPropAnimatingBreakable> {}
+define(CPropAnimatingBreakable, 'CPropAnimatingBreakable', {}, inputsCPropAnimatingBreakable)
 
-export class CRagdollProp extends CBaseAnimGraph {}
-export interface CRagdollProp {
-  m_bStartDisabled: boolean | undefined
-  m_massScale: number | undefined
-  m_buoyancyScale: number | undefined
-  m_lastUpdateTickCount: number | undefined
-  m_allAsleep: boolean | undefined
-  m_bFirstCollisionAfterLaunch: boolean | undefined
-  m_nNavObstacleType: number | undefined
-  m_bUpdateNavWhenMoving: boolean | undefined
-  m_bForceNavObstacleCut: boolean | undefined
-  m_bAttachedToReferenceFrame: boolean | undefined
-  m_hDamageEntity: CBaseEntity | undefined
-  m_hKiller: CBaseEntity | undefined
-  m_hPhysicsAttacker: CBasePlayerPawn | undefined
-  m_flLastPhysicsInfluenceTime: number | undefined
-  m_flFadeOutStartTime: number | undefined
-  m_flFadeTime: number | undefined
-  m_vecLastOrigin: Vector | undefined
-  m_flAwakeTime: number | undefined
-  m_flLastOriginChangeTime: number | undefined
-  readonly m_strOriginClassName: string | undefined
-  readonly m_strSourceClassName: string | undefined
-  m_bHasBeenPhysgunned: boolean | undefined
-  m_bAllowStretch: boolean | undefined
-  m_flBlendWeight: number | undefined
-  m_flDefaultFadeScale: number | undefined
-  m_bShouldDeleteActivationRecord: boolean | undefined
-  inputDisable(): boolean
-  inputDisableMotion(): boolean
-  inputEnable(): boolean
-  inputEnableMotion(): boolean
-  inputFadeAndRemove(value: number): boolean
-}
-define(CRagdollProp, 'CRagdollProp', {
+const fieldsCRagdollProp = {
   m_bStartDisabled: 'bool',
   m_massScale: 'float32',
   m_buoyancyScale: 'float32',
@@ -2924,102 +1974,59 @@ define(CRagdollProp, 'CRagdollProp', {
   m_flBlendWeight: 'float32',
   m_flDefaultFadeScale: 'float32',
   m_bShouldDeleteActivationRecord: 'bool',
-}, {
+} as const
+const inputsCRagdollProp = {
   Disable: '',
   DisableMotion: '',
   Enable: '',
   EnableMotion: '',
   FadeAndRemove: 'number',
-})
+} as const
+export class CRagdollProp extends CBaseAnimGraph {}
+export interface CRagdollProp extends Fields<typeof fieldsCRagdollProp>, Inputs<typeof inputsCRagdollProp> {}
+define(CRagdollProp, 'CRagdollProp', fieldsCRagdollProp, inputsCRagdollProp)
 
 export class CRagdollPropAlias_physics_prop_ragdoll extends CRagdollProp {}
 define(CRagdollPropAlias_physics_prop_ragdoll, 'CRagdollPropAlias_physics_prop_ragdoll', {})
 
-export class CRagdollPropAttached extends CRagdollProp {}
-export interface CRagdollPropAttached {
-  m_boneIndexAttached: number | undefined
-  m_ragdollAttachedObjectIndex: number | undefined
-  m_attachmentPointBoneSpace: Vector | undefined
-  m_attachmentPointRagdollSpace: Vector | undefined
-  m_bShouldDetach: boolean | undefined
-  m_bShouldDeleteAttachedActivationRecord: boolean | undefined
-}
-define(CRagdollPropAttached, 'CRagdollPropAttached', {
+const fieldsCRagdollPropAttached = {
   m_boneIndexAttached: 'uint32',
   m_ragdollAttachedObjectIndex: 'uint32',
   m_attachmentPointBoneSpace: 'vector',
   m_attachmentPointRagdollSpace: 'vector',
   m_bShouldDetach: 'bool',
   m_bShouldDeleteAttachedActivationRecord: 'bool',
-})
+} as const
+export class CRagdollPropAttached extends CRagdollProp {}
+export interface CRagdollPropAttached extends Fields<typeof fieldsCRagdollPropAttached> {}
+define(CRagdollPropAttached, 'CRagdollPropAttached', fieldsCRagdollPropAttached)
 
 export class CWaterBullet extends CBaseAnimGraph {}
 define(CWaterBullet, 'CWaterBullet', {})
 
-export class CBaseClientUIEntity extends CBaseModelEntity {}
-export interface CBaseClientUIEntity {
-  m_bEnabled: boolean | undefined
-  readonly m_DialogXMLName: string | undefined
-  readonly m_PanelClassName: string | undefined
-  readonly m_PanelID: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CBaseClientUIEntity, 'CBaseClientUIEntity', {
+const fieldsCBaseClientUIEntity = {
   m_bEnabled: 'bool',
   m_DialogXMLName: 'string',
   m_PanelClassName: 'string',
   m_PanelID: 'string',
-}, {
+} as const
+const inputsCBaseClientUIEntity = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CBaseClientUIEntity extends CBaseModelEntity {}
+export interface CBaseClientUIEntity extends Fields<typeof fieldsCBaseClientUIEntity>, Inputs<typeof inputsCBaseClientUIEntity> {}
+define(CBaseClientUIEntity, 'CBaseClientUIEntity', fieldsCBaseClientUIEntity, inputsCBaseClientUIEntity)
 
-export class CPointClientUIDialog extends CBaseClientUIEntity {}
-export interface CPointClientUIDialog {
-  m_hActivator: CBaseEntity | undefined
-  m_bStartEnabled: boolean | undefined
-}
-define(CPointClientUIDialog, 'CPointClientUIDialog', {
+const fieldsCPointClientUIDialog = {
   m_hActivator: 'CBaseEntity',
   m_bStartEnabled: 'bool',
-})
+} as const
+export class CPointClientUIDialog extends CBaseClientUIEntity {}
+export interface CPointClientUIDialog extends Fields<typeof fieldsCPointClientUIDialog> {}
+define(CPointClientUIDialog, 'CPointClientUIDialog', fieldsCPointClientUIDialog)
 
-export class CPointClientUIWorldPanel extends CBaseClientUIEntity {}
-export interface CPointClientUIWorldPanel {
-  m_bIgnoreInput: boolean | undefined
-  m_bLit: boolean | undefined
-  m_bFollowPlayerAcrossTeleport: boolean | undefined
-  m_flWidth: number | undefined
-  m_flHeight: number | undefined
-  m_flDPI: number | undefined
-  m_flWindowUIScale: number | undefined
-  m_flInteractDistance: number | undefined
-  m_flDepthOffset: number | undefined
-  m_unOwnerContext: number | undefined
-  m_unHorizontalAlign: number | undefined
-  m_unVerticalAlign: number | undefined
-  m_unOrientation: number | undefined
-  m_bAllowInteractionFromAllSceneWorlds: boolean | undefined
-  m_bOpaque: boolean | undefined
-  m_bNoDepth: boolean | undefined
-  m_bVisibleWhenParentNoDraw: boolean | undefined
-  m_bRenderBackface: boolean | undefined
-  m_bUseOffScreenIndicator: boolean | undefined
-  m_bExcludeFromSaveGames: boolean | undefined
-  m_bGrabbable: boolean | undefined
-  m_bOnlyRenderToTexture: boolean | undefined
-  m_bDisableMipGen: boolean | undefined
-  m_nExplicitImageLayout: number | undefined
-  m_bIgnoreParentOrientation: boolean | undefined
-  inputAcceptUserInput(): boolean
-  inputAddCSSClass(value: string): boolean
-  inputIgnoreUserInput(): boolean
-  inputLocalPlayerAddCSSClass(value: string): boolean
-  inputLocalPlayerRemoveCSSClass(value: string): boolean
-  inputRemoveCSSClass(value: string): boolean
-}
-define(CPointClientUIWorldPanel, 'CPointClientUIWorldPanel', {
+const fieldsCPointClientUIWorldPanel = {
   m_bIgnoreInput: 'bool',
   m_bLit: 'bool',
   m_bFollowPlayerAcrossTeleport: 'bool',
@@ -3045,50 +2052,32 @@ define(CPointClientUIWorldPanel, 'CPointClientUIWorldPanel', {
   m_bDisableMipGen: 'bool',
   m_nExplicitImageLayout: 'int32',
   m_bIgnoreParentOrientation: 'bool',
-}, {
+} as const
+const inputsCPointClientUIWorldPanel = {
   AcceptUserInput: '',
   AddCSSClass: 'text',
   IgnoreUserInput: '',
   LocalPlayerAddCSSClass: 'text',
   LocalPlayerRemoveCSSClass: 'text',
   RemoveCSSClass: 'text',
-})
+} as const
+export class CPointClientUIWorldPanel extends CBaseClientUIEntity {}
+export interface CPointClientUIWorldPanel extends Fields<typeof fieldsCPointClientUIWorldPanel>, Inputs<typeof inputsCPointClientUIWorldPanel> {}
+define(CPointClientUIWorldPanel, 'CPointClientUIWorldPanel', fieldsCPointClientUIWorldPanel, inputsCPointClientUIWorldPanel)
 
 export class CInWorldKeyBindPanel extends CPointClientUIWorldPanel {}
 define(CInWorldKeyBindPanel, 'CInWorldKeyBindPanel', {})
 
-export class CPointClientUIWorldTextPanel extends CPointClientUIWorldPanel {}
-export interface CPointClientUIWorldTextPanel {
-  inputSetIntMessage(value: number): boolean
-  inputSetMessage(value: string): boolean
-  inputToggle(): boolean
-}
-define(CPointClientUIWorldTextPanel, 'CPointClientUIWorldTextPanel', {}, {
+const inputsCPointClientUIWorldTextPanel = {
   SetIntMessage: 'integer',
   SetMessage: 'text',
   Toggle: '',
-})
+} as const
+export class CPointClientUIWorldTextPanel extends CPointClientUIWorldPanel {}
+export interface CPointClientUIWorldTextPanel extends Inputs<typeof inputsCPointClientUIWorldTextPanel> {}
+define(CPointClientUIWorldTextPanel, 'CPointClientUIWorldTextPanel', {}, inputsCPointClientUIWorldTextPanel)
 
-export class CBaseToggle extends CBaseModelEntity {}
-export interface CBaseToggle {
-  m_toggle_state: number | undefined
-  m_flMoveDistance: number | undefined
-  m_flWait: number | undefined
-  m_flLip: number | undefined
-  m_bAlwaysFireBlockedOutputs: boolean | undefined
-  m_vecPosition1: Vector | undefined
-  m_vecPosition2: Vector | undefined
-  m_vecMoveAng: Angles | undefined
-  m_vecAngle1: Angles | undefined
-  m_vecAngle2: Angles | undefined
-  m_flHeight: number | undefined
-  m_hActivator: CBaseEntity | undefined
-  m_vecFinalDest: Vector | undefined
-  m_vecFinalAngle: Angles | undefined
-  m_movementType: number | undefined
-  readonly m_sMaster: string | undefined
-}
-define(CBaseToggle, 'CBaseToggle', {
+const fieldsCBaseToggle = {
   m_toggle_state: 'uint32',
   m_flMoveDistance: 'float32',
   m_flWait: 'float32',
@@ -3105,36 +2094,12 @@ define(CBaseToggle, 'CBaseToggle', {
   m_vecFinalAngle: 'angles',
   m_movementType: 'int32',
   m_sMaster: 'string',
-})
+} as const
+export class CBaseToggle extends CBaseModelEntity {}
+export interface CBaseToggle extends Fields<typeof fieldsCBaseToggle> {}
+define(CBaseToggle, 'CBaseToggle', fieldsCBaseToggle)
 
-export class CBaseButton extends CBaseToggle {}
-export interface CBaseButton {
-  m_angMoveEntitySpace: Angles | undefined
-  m_fStayPushed: boolean | undefined
-  m_fRotating: boolean | undefined
-  readonly m_sOverrideAnticipationName: string | undefined
-  m_bLocked: boolean | undefined
-  m_bDisabled: boolean | undefined
-  m_flSpeed: number | undefined
-  m_flUseLockedTime: number | undefined
-  m_bSolidBsp: boolean | undefined
-  m_nState: number | undefined
-  m_hConstraint: number | undefined
-  m_hConstraintParent: number | undefined
-  m_bForceNpcExclude: boolean | undefined
-  readonly m_sGlowEntity: string | undefined
-  m_glowEntity: CBaseModelEntity | undefined
-  m_usable: boolean | undefined
-  readonly m_szDisplayText: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputLock(): boolean
-  inputPress(): boolean
-  inputPressIn(): boolean
-  inputPressOut(): boolean
-  inputUnlock(): boolean
-}
-define(CBaseButton, 'CBaseButton', {
+const fieldsCBaseButton = {
   m_angMoveEntitySpace: 'angles',
   m_fStayPushed: 'bool',
   m_fRotating: 'bool',
@@ -3152,7 +2117,8 @@ define(CBaseButton, 'CBaseButton', {
   m_glowEntity: 'CBaseModelEntity',
   m_usable: 'bool',
   m_szDisplayText: 'string',
-}, {
+} as const
+const inputsCBaseButton = {
   Disable: '',
   Enable: '',
   Lock: '',
@@ -3160,7 +2126,10 @@ define(CBaseButton, 'CBaseButton', {
   PressIn: '',
   PressOut: '',
   Unlock: '',
-})
+} as const
+export class CBaseButton extends CBaseToggle {}
+export interface CBaseButton extends Fields<typeof fieldsCBaseButton>, Inputs<typeof inputsCBaseButton> {}
+define(CBaseButton, 'CBaseButton', fieldsCBaseButton, inputsCBaseButton)
 
 export class CPhysicalButton extends CBaseButton {}
 define(CPhysicalButton, 'CPhysicalButton', {})
@@ -3168,23 +2137,7 @@ define(CPhysicalButton, 'CPhysicalButton', {})
 export class CRotButton extends CBaseButton {}
 define(CRotButton, 'CRotButton', {})
 
-export class CMomentaryRotButton extends CRotButton {}
-export interface CMomentaryRotButton {
-  m_lastUsed: number | undefined
-  m_start: Angles | undefined
-  m_end: Angles | undefined
-  m_IdealYaw: number | undefined
-  readonly m_sNoise: string | undefined
-  m_bUpdateTarget: boolean | undefined
-  m_direction: number | undefined
-  m_returnSpeed: number | undefined
-  m_flStartPosition: number | undefined
-  inputSetPosition(value: number): boolean
-  inputSetPositionImmediately(value: number): boolean
-  input_DisableUpdateTarget(): boolean
-  input_EnableUpdateTarget(): boolean
-}
-define(CMomentaryRotButton, 'CMomentaryRotButton', {
+const fieldsCMomentaryRotButton = {
   m_lastUsed: 'int32',
   m_start: 'angles',
   m_end: 'angles',
@@ -3194,40 +2147,18 @@ define(CMomentaryRotButton, 'CMomentaryRotButton', {
   m_direction: 'int32',
   m_returnSpeed: 'float32',
   m_flStartPosition: 'float32',
-}, {
+} as const
+const inputsCMomentaryRotButton = {
   SetPosition: 'number',
   SetPositionImmediately: 'number',
   _DisableUpdateTarget: '',
   _EnableUpdateTarget: '',
-})
+} as const
+export class CMomentaryRotButton extends CRotButton {}
+export interface CMomentaryRotButton extends Fields<typeof fieldsCMomentaryRotButton>, Inputs<typeof inputsCMomentaryRotButton> {}
+define(CMomentaryRotButton, 'CMomentaryRotButton', fieldsCMomentaryRotButton, inputsCMomentaryRotButton)
 
-export class CBaseDoor extends CBaseToggle {}
-export interface CBaseDoor {
-  m_angMoveEntitySpace: Angles | undefined
-  m_vecMoveDirParentSpace: Vector | undefined
-  m_bForceClosed: boolean | undefined
-  m_bDoorGroup: boolean | undefined
-  m_bLocked: boolean | undefined
-  m_bIgnoreDebris: boolean | undefined
-  m_bNoNPCs: boolean | undefined
-  m_eSpawnPosition: number | undefined
-  m_flBlockDamage: number | undefined
-  readonly m_ChainTarget: string | undefined
-  m_bLoopMoveSound: boolean | undefined
-  m_bCreateNavObstacle: boolean | undefined
-  m_flSpeed: number | undefined
-  m_isChaining: boolean | undefined
-  m_bIsUsable: boolean | undefined
-  inputClose(): boolean
-  inputLock(): boolean
-  inputOpen(): boolean
-  inputSetNoNPCs(value: boolean): boolean
-  inputSetSpeed(value: number): boolean
-  inputSetToggleState(value: number): boolean
-  inputToggle(): boolean
-  inputUnlock(): boolean
-}
-define(CBaseDoor, 'CBaseDoor', {
+const fieldsCBaseDoor = {
   m_angMoveEntitySpace: 'angles',
   m_vecMoveDirParentSpace: 'vector',
   m_bForceClosed: 'bool',
@@ -3243,7 +2174,8 @@ define(CBaseDoor, 'CBaseDoor', {
   m_flSpeed: 'float32',
   m_isChaining: 'bool',
   m_bIsUsable: 'bool',
-}, {
+} as const
+const inputsCBaseDoor = {
   Close: '',
   Lock: '',
   Open: '',
@@ -3252,68 +2184,49 @@ define(CBaseDoor, 'CBaseDoor', {
   SetToggleState: 'number',
   Toggle: '',
   Unlock: '',
-})
+} as const
+export class CBaseDoor extends CBaseToggle {}
+export interface CBaseDoor extends Fields<typeof fieldsCBaseDoor>, Inputs<typeof inputsCBaseDoor> {}
+define(CBaseDoor, 'CBaseDoor', fieldsCBaseDoor, inputsCBaseDoor)
 
-export class CRotDoor extends CBaseDoor {}
-export interface CRotDoor {
-  m_bSolidBsp: boolean | undefined
-}
-define(CRotDoor, 'CRotDoor', {
+const fieldsCRotDoor = {
   m_bSolidBsp: 'bool',
-})
+} as const
+export class CRotDoor extends CBaseDoor {}
+export interface CRotDoor extends Fields<typeof fieldsCRotDoor> {}
+define(CRotDoor, 'CRotDoor', fieldsCRotDoor)
 
-export class CBasePlatTrain extends CBaseToggle {}
-export interface CBasePlatTrain {
-  m_volume: number | undefined
-  m_flTWidth: number | undefined
-  m_flTLength: number | undefined
-}
-define(CBasePlatTrain, 'CBasePlatTrain', {
+const fieldsCBasePlatTrain = {
   m_volume: 'float32',
   m_flTWidth: 'float32',
   m_flTLength: 'float32',
-})
+} as const
+export class CBasePlatTrain extends CBaseToggle {}
+export interface CBasePlatTrain extends Fields<typeof fieldsCBasePlatTrain> {}
+define(CBasePlatTrain, 'CBasePlatTrain', fieldsCBasePlatTrain)
 
-export class CFuncPlat extends CBasePlatTrain {}
-export interface CFuncPlat {
-  m_flSpeed: number | undefined
-  readonly m_sNoise: string | undefined
-  inputGoDown(): boolean
-  inputGoUp(): boolean
-  inputToggle(): boolean
-}
-define(CFuncPlat, 'CFuncPlat', {
+const fieldsCFuncPlat = {
   m_flSpeed: 'float32',
   m_sNoise: 'string',
-}, {
+} as const
+const inputsCFuncPlat = {
   GoDown: '',
   GoUp: '',
   Toggle: '',
-})
+} as const
+export class CFuncPlat extends CBasePlatTrain {}
+export interface CFuncPlat extends Fields<typeof fieldsCFuncPlat>, Inputs<typeof inputsCFuncPlat> {}
+define(CFuncPlat, 'CFuncPlat', fieldsCFuncPlat, inputsCFuncPlat)
 
-export class CFuncPlatRot extends CFuncPlat {}
-export interface CFuncPlatRot {
-  m_end: Angles | undefined
-  m_start: Angles | undefined
-}
-define(CFuncPlatRot, 'CFuncPlatRot', {
+const fieldsCFuncPlatRot = {
   m_end: 'angles',
   m_start: 'angles',
-})
+} as const
+export class CFuncPlatRot extends CFuncPlat {}
+export interface CFuncPlatRot extends Fields<typeof fieldsCFuncPlatRot> {}
+define(CFuncPlatRot, 'CFuncPlatRot', fieldsCFuncPlatRot)
 
-export class CFuncTrackChange extends CFuncPlatRot {}
-export interface CFuncTrackChange {
-  m_trackTop: CPathTrack | undefined
-  m_trackBottom: CPathTrack | undefined
-  m_train: CFuncTrackTrain | undefined
-  readonly m_trackTopName: string | undefined
-  readonly m_trackBottomName: string | undefined
-  readonly m_trainName: string | undefined
-  m_code: number | undefined
-  m_targetState: number | undefined
-  m_use: number | undefined
-}
-define(CFuncTrackChange, 'CFuncTrackChange', {
+const fieldsCFuncTrackChange = {
   m_trackTop: 'CPathTrack',
   m_trackBottom: 'CPathTrack',
   m_train: 'CFuncTrackTrain',
@@ -3323,30 +2236,19 @@ define(CFuncTrackChange, 'CFuncTrackChange', {
   m_code: 'uint32',
   m_targetState: 'int32',
   m_use: 'int32',
-})
+} as const
+export class CFuncTrackChange extends CFuncPlatRot {}
+export interface CFuncTrackChange extends Fields<typeof fieldsCFuncTrackChange> {}
+define(CFuncTrackChange, 'CFuncTrackChange', fieldsCFuncTrackChange)
 
-export class CFuncTrackAuto extends CFuncTrackChange {}
-export interface CFuncTrackAuto {
-  inputTrigger(): boolean
-}
-define(CFuncTrackAuto, 'CFuncTrackAuto', {}, {
+const inputsCFuncTrackAuto = {
   Trigger: '',
-})
+} as const
+export class CFuncTrackAuto extends CFuncTrackChange {}
+export interface CFuncTrackAuto extends Inputs<typeof inputsCFuncTrackAuto> {}
+define(CFuncTrackAuto, 'CFuncTrackAuto', {}, inputsCFuncTrackAuto)
 
-export class CFuncTrain extends CBasePlatTrain {}
-export interface CFuncTrain {
-  m_hCurrentTarget: CBaseEntity | undefined
-  m_activated: boolean | undefined
-  m_hEnemy: CBaseEntity | undefined
-  m_flBlockDamage: number | undefined
-  m_flNextBlockTime: number | undefined
-  readonly m_iszLastTarget: string | undefined
-  m_flSpeed: number | undefined
-  inputStart(): boolean
-  inputStop(): boolean
-  inputToggle(): boolean
-}
-define(CFuncTrain, 'CFuncTrain', {
+const fieldsCFuncTrain = {
   m_hCurrentTarget: 'CBaseEntity',
   m_activated: 'bool',
   m_hEnemy: 'CBaseEntity',
@@ -3354,76 +2256,50 @@ define(CFuncTrain, 'CFuncTrain', {
   m_flNextBlockTime: 'float32',
   m_iszLastTarget: 'string',
   m_flSpeed: 'float32',
-}, {
+} as const
+const inputsCFuncTrain = {
   Start: '',
   Stop: '',
   Toggle: '',
-})
+} as const
+export class CFuncTrain extends CBasePlatTrain {}
+export interface CFuncTrain extends Fields<typeof fieldsCFuncTrain>, Inputs<typeof inputsCFuncTrain> {}
+define(CFuncTrain, 'CFuncTrain', fieldsCFuncTrain, inputsCFuncTrain)
 
-export class CBaseTrigger extends CBaseToggle {}
-export interface CBaseTrigger {
-  readonly m_iFilterName: string | undefined
-  m_hFilter: CBaseFilter | undefined
-  m_bDisabled: boolean | undefined
-  m_bUseAsyncQueries: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputEndTouch(): boolean
-  inputStartTouch(): boolean
-  inputToggle(): boolean
-  inputTouchTest(): boolean
-}
-define(CBaseTrigger, 'CBaseTrigger', {
+const fieldsCBaseTrigger = {
   m_iFilterName: 'string',
   m_hFilter: 'CBaseFilter',
   m_bDisabled: 'bool',
   m_bUseAsyncQueries: 'bool',
-}, {
+} as const
+const inputsCBaseTrigger = {
   Disable: '',
   Enable: '',
   EndTouch: '',
   StartTouch: '',
   Toggle: '',
   TouchTest: '',
-})
+} as const
+export class CBaseTrigger extends CBaseToggle {}
+export interface CBaseTrigger extends Fields<typeof fieldsCBaseTrigger>, Inputs<typeof inputsCBaseTrigger> {}
+define(CBaseTrigger, 'CBaseTrigger', fieldsCBaseTrigger, inputsCBaseTrigger)
 
-export class CChangeLevel extends CBaseTrigger {}
-export interface CChangeLevel {
-  readonly m_sMapName: string | undefined
-  readonly m_sLandmarkName: string | undefined
-  m_bTouched: boolean | undefined
-  m_bNoTouch: boolean | undefined
-  m_bNewChapter: boolean | undefined
-  m_bOnChangeLevelFired: boolean | undefined
-  inputChangeLevel(): boolean
-}
-define(CChangeLevel, 'CChangeLevel', {
+const fieldsCChangeLevel = {
   m_sMapName: 'string',
   m_sLandmarkName: 'string',
   m_bTouched: 'bool',
   m_bNoTouch: 'bool',
   m_bNewChapter: 'bool',
   m_bOnChangeLevelFired: 'bool',
-}, {
+} as const
+const inputsCChangeLevel = {
   ChangeLevel: '',
-})
+} as const
+export class CChangeLevel extends CBaseTrigger {}
+export interface CChangeLevel extends Fields<typeof fieldsCChangeLevel>, Inputs<typeof inputsCChangeLevel> {}
+define(CChangeLevel, 'CChangeLevel', fieldsCChangeLevel, inputsCChangeLevel)
 
-export class CCitadelCatapultTrigger extends CBaseTrigger {}
-export interface CCitadelCatapultTrigger {
-  m_vLaunchTarget: Vector | undefined
-  m_flLaunchSpeed: number | undefined
-  readonly m_nameTarget: string | undefined
-  m_bPickupTrailEnabled: boolean | undefined
-  readonly m_iszTrailPickupSubclass: string | undefined
-  m_nTrailPickupCount: number | undefined
-  m_flTrailStartDelay: number | undefined
-  m_flTrailSpawnInterval: number | undefined
-  m_bTrailAutoSpace: boolean | undefined
-  m_flTrailTrajectoryTimeSpacing: number | undefined
-  /** Start laying the configured pickups along the launch arc now. */
-  inputSpawnPickupTrail(): boolean
-}
-define(CCitadelCatapultTrigger, 'CCitadelCatapultTrigger', {
+const fieldsCCitadelCatapultTrigger = {
   m_vLaunchTarget: 'vector',
   m_flLaunchSpeed: 'float32',
   m_nameTarget: 'string',
@@ -3434,116 +2310,94 @@ define(CCitadelCatapultTrigger, 'CCitadelCatapultTrigger', {
   m_flTrailSpawnInterval: 'float32',
   m_bTrailAutoSpace: 'bool',
   m_flTrailTrajectoryTimeSpacing: 'float32',
-}, {
+} as const
+const inputsCCitadelCatapultTrigger = {
+  /** Start laying the configured pickups along the launch arc now. */
   SpawnPickupTrail: '',
-})
+} as const
+export class CCitadelCatapultTrigger extends CBaseTrigger {}
+export interface CCitadelCatapultTrigger extends Fields<typeof fieldsCCitadelCatapultTrigger>, Inputs<typeof inputsCCitadelCatapultTrigger> {}
+define(CCitadelCatapultTrigger, 'CCitadelCatapultTrigger', fieldsCCitadelCatapultTrigger, inputsCCitadelCatapultTrigger)
 
-export class CCitadelClimbRopeTrigger extends CBaseTrigger {}
-export interface CCitadelClimbRopeTrigger {
-  m_bAlignCameraOnAutoDismount: boolean | undefined
-}
-define(CCitadelClimbRopeTrigger, 'CCitadelClimbRopeTrigger', {
+const fieldsCCitadelClimbRopeTrigger = {
   m_bAlignCameraOnAutoDismount: 'bool',
-})
+} as const
+export class CCitadelClimbRopeTrigger extends CBaseTrigger {}
+export interface CCitadelClimbRopeTrigger extends Fields<typeof fieldsCCitadelClimbRopeTrigger> {}
+define(CCitadelClimbRopeTrigger, 'CCitadelClimbRopeTrigger', fieldsCCitadelClimbRopeTrigger)
 
-export class CCitadelDevTrigger extends CBaseTrigger {}
-export interface CCitadelDevTrigger {
-  m_eDevTriggerType: number | undefined
-}
-define(CCitadelDevTrigger, 'CCitadelDevTrigger', {
+const fieldsCCitadelDevTrigger = {
   m_eDevTriggerType: 'uint32',
-})
+} as const
+export class CCitadelDevTrigger extends CBaseTrigger {}
+export interface CCitadelDevTrigger extends Fields<typeof fieldsCCitadelDevTrigger> {}
+define(CCitadelDevTrigger, 'CCitadelDevTrigger', fieldsCCitadelDevTrigger)
 
-export class CCitadelHideoutInteractableTrigger extends CBaseTrigger {}
-export interface CCitadelHideoutInteractableTrigger {
-  readonly m_strInteractLocString: string | undefined
-  m_eHideoutAction: number | undefined
-}
-define(CCitadelHideoutInteractableTrigger, 'CCitadelHideoutInteractableTrigger', {
+const fieldsCCitadelHideoutInteractableTrigger = {
   m_strInteractLocString: 'string',
   m_eHideoutAction: 'uint32',
-})
+} as const
+export class CCitadelHideoutInteractableTrigger extends CBaseTrigger {}
+export interface CCitadelHideoutInteractableTrigger extends Fields<typeof fieldsCCitadelHideoutInteractableTrigger> {}
+define(CCitadelHideoutInteractableTrigger, 'CCitadelHideoutInteractableTrigger', fieldsCCitadelHideoutInteractableTrigger)
 
-export class CCitadelHideoutTeleportTrigger extends CBaseTrigger {}
-export interface CCitadelHideoutTeleportTrigger {
-  readonly m_strDestLandmark: string | undefined
-  readonly m_strDestMap: string | undefined
-  readonly m_strDestLocString: string | undefined
-  readonly m_strPropModel: string | undefined
-}
-define(CCitadelHideoutTeleportTrigger, 'CCitadelHideoutTeleportTrigger', {
+const fieldsCCitadelHideoutTeleportTrigger = {
   m_strDestLandmark: 'string',
   m_strDestMap: 'string',
   m_strDestLocString: 'string',
   m_strPropModel: 'string',
-})
+} as const
+export class CCitadelHideoutTeleportTrigger extends CBaseTrigger {}
+export interface CCitadelHideoutTeleportTrigger extends Fields<typeof fieldsCCitadelHideoutTeleportTrigger> {}
+define(CCitadelHideoutTeleportTrigger, 'CCitadelHideoutTeleportTrigger', fieldsCCitadelHideoutTeleportTrigger)
 
-export class CCitadelHotelExitTrigger extends CBaseTrigger {}
-export interface CCitadelHotelExitTrigger {
-  m_bIsSuccess: boolean | undefined
-}
-define(CCitadelHotelExitTrigger, 'CCitadelHotelExitTrigger', {
+const fieldsCCitadelHotelExitTrigger = {
   m_bIsSuccess: 'bool',
-})
+} as const
+export class CCitadelHotelExitTrigger extends CBaseTrigger {}
+export interface CCitadelHotelExitTrigger extends Fields<typeof fieldsCCitadelHotelExitTrigger> {}
+define(CCitadelHotelExitTrigger, 'CCitadelHotelExitTrigger', fieldsCCitadelHotelExitTrigger)
 
-export class CCitadelMapDistrictTrigger extends CBaseTrigger {}
-export interface CCitadelMapDistrictTrigger {
-  m_nDistrictNumber: number | undefined
-}
-define(CCitadelMapDistrictTrigger, 'CCitadelMapDistrictTrigger', {
+const fieldsCCitadelMapDistrictTrigger = {
   m_nDistrictNumber: 'int32',
-})
+} as const
+export class CCitadelMapDistrictTrigger extends CBaseTrigger {}
+export interface CCitadelMapDistrictTrigger extends Fields<typeof fieldsCCitadelMapDistrictTrigger> {}
+define(CCitadelMapDistrictTrigger, 'CCitadelMapDistrictTrigger', fieldsCCitadelMapDistrictTrigger)
 
-export class CCitadelPortalTrigger extends CBaseTrigger {}
-export interface CCitadelPortalTrigger {
-  m_hOtherPortal: CCitadelPortalTrigger | undefined
-}
-define(CCitadelPortalTrigger, 'CCitadelPortalTrigger', {
+const fieldsCCitadelPortalTrigger = {
   m_hOtherPortal: 'CCitadelPortalTrigger',
-})
+} as const
+export class CCitadelPortalTrigger extends CBaseTrigger {}
+export interface CCitadelPortalTrigger extends Fields<typeof fieldsCCitadelPortalTrigger> {}
+define(CCitadelPortalTrigger, 'CCitadelPortalTrigger', fieldsCCitadelPortalTrigger)
 
 export class CCitadelShopTunnelTrigger extends CBaseTrigger {}
 define(CCitadelShopTunnelTrigger, 'CCitadelShopTunnelTrigger', {})
 
-export class CCitadelSpeedBoostTrigger extends CBaseTrigger {}
-export interface CCitadelSpeedBoostTrigger {
-  m_flMovespeedOverride: number | undefined
-}
-define(CCitadelSpeedBoostTrigger, 'CCitadelSpeedBoostTrigger', {
+const fieldsCCitadelSpeedBoostTrigger = {
   m_flMovespeedOverride: 'float32',
-})
+} as const
+export class CCitadelSpeedBoostTrigger extends CBaseTrigger {}
+export interface CCitadelSpeedBoostTrigger extends Fields<typeof fieldsCCitadelSpeedBoostTrigger> {}
+define(CCitadelSpeedBoostTrigger, 'CCitadelSpeedBoostTrigger', fieldsCCitadelSpeedBoostTrigger)
 
-export class CCitadelTunnelTrigger extends CCitadelSpeedBoostTrigger {}
-export interface CCitadelTunnelTrigger {
-  m_bKillWhenNotTiny: boolean | undefined
-  m_nTunnelID: number | undefined
-}
-define(CCitadelTunnelTrigger, 'CCitadelTunnelTrigger', {
+const fieldsCCitadelTunnelTrigger = {
   m_bKillWhenNotTiny: 'bool',
   m_nTunnelID: 'int32',
-})
+} as const
+export class CCitadelTunnelTrigger extends CCitadelSpeedBoostTrigger {}
+export interface CCitadelTunnelTrigger extends Fields<typeof fieldsCCitadelTunnelTrigger> {}
+define(CCitadelTunnelTrigger, 'CCitadelTunnelTrigger', fieldsCCitadelTunnelTrigger)
 
-export class CCitadelTriggerBonk extends CBaseTrigger {}
-export interface CCitadelTriggerBonk {
-  m_flBonkRange: number | undefined
-}
-define(CCitadelTriggerBonk, 'CCitadelTriggerBonk', {
+const fieldsCCitadelTriggerBonk = {
   m_flBonkRange: 'float32',
-})
+} as const
+export class CCitadelTriggerBonk extends CBaseTrigger {}
+export interface CCitadelTriggerBonk extends Fields<typeof fieldsCCitadelTriggerBonk> {}
+define(CCitadelTriggerBonk, 'CCitadelTriggerBonk', fieldsCCitadelTriggerBonk)
 
-export class CCitadelTriggerCapturePoint extends CBaseTrigger {}
-export interface CCitadelTriggerCapturePoint {
-  readonly m_iszGroupName: string | undefined
-  m_nEnabledParticle: number | undefined
-  m_nPreEnableFX: number | undefined
-  m_tQueuedEnableTime: number | undefined
-  m_flCaptureProgress: number | undefined
-  m_nCaptureProgressOwner: number | undefined
-  m_nActivelyCapturingTeam: number | undefined
-  m_nActiveCapturers: number | undefined
-  m_nEnableState: number | undefined
-}
-define(CCitadelTriggerCapturePoint, 'CCitadelTriggerCapturePoint', {
+const fieldsCCitadelTriggerCapturePoint = {
   m_iszGroupName: 'string',
   m_nEnabledParticle: 'int32',
   m_nPreEnableFX: 'int32',
@@ -3553,15 +2407,17 @@ define(CCitadelTriggerCapturePoint, 'CCitadelTriggerCapturePoint', {
   m_nActivelyCapturingTeam: 'int32',
   m_nActiveCapturers: 'int32',
   m_nEnableState: 'uint8',
-})
+} as const
+export class CCitadelTriggerCapturePoint extends CBaseTrigger {}
+export interface CCitadelTriggerCapturePoint extends Fields<typeof fieldsCCitadelTriggerCapturePoint> {}
+define(CCitadelTriggerCapturePoint, 'CCitadelTriggerCapturePoint', fieldsCCitadelTriggerCapturePoint)
 
-export class CCitadelTriggerCapturePoint_Escort extends CCitadelTriggerCapturePoint {}
-export interface CCitadelTriggerCapturePoint_Escort {
-  m_hEscort: CNPC_Escort | undefined
-}
-define(CCitadelTriggerCapturePoint_Escort, 'CCitadelTriggerCapturePoint_Escort', {
+const fieldsCCitadelTriggerCapturePoint_Escort = {
   m_hEscort: 'CNPC_Escort',
-})
+} as const
+export class CCitadelTriggerCapturePoint_Escort extends CCitadelTriggerCapturePoint {}
+export interface CCitadelTriggerCapturePoint_Escort extends Fields<typeof fieldsCCitadelTriggerCapturePoint_Escort> {}
+define(CCitadelTriggerCapturePoint_Escort, 'CCitadelTriggerCapturePoint_Escort', fieldsCCitadelTriggerCapturePoint_Escort)
 
 export class CCitadelTriggerCorruptedItemShop extends CBaseTrigger {}
 define(CCitadelTriggerCorruptedItemShop, 'CCitadelTriggerCorruptedItemShop', {})
@@ -3569,43 +2425,17 @@ define(CCitadelTriggerCorruptedItemShop, 'CCitadelTriggerCorruptedItemShop', {})
 export class CCitadelTriggerHideout extends CBaseTrigger {}
 define(CCitadelTriggerHideout, 'CCitadelTriggerHideout', {})
 
-export class CCitadelTriggerMultiCapturePoint extends CBaseTrigger {}
-export interface CCitadelTriggerMultiCapturePoint {
-  readonly m_iszGroupName: string | undefined
-  m_nEnabledParticle: number | undefined
-  m_nPreEnableFX: number | undefined
-  m_nEnableState: number | undefined
-}
-define(CCitadelTriggerMultiCapturePoint, 'CCitadelTriggerMultiCapturePoint', {
+const fieldsCCitadelTriggerMultiCapturePoint = {
   m_iszGroupName: 'string',
   m_nEnabledParticle: 'int32',
   m_nPreEnableFX: 'int32',
   m_nEnableState: 'uint8',
-})
+} as const
+export class CCitadelTriggerMultiCapturePoint extends CBaseTrigger {}
+export interface CCitadelTriggerMultiCapturePoint extends Fields<typeof fieldsCCitadelTriggerMultiCapturePoint> {}
+define(CCitadelTriggerMultiCapturePoint, 'CCitadelTriggerMultiCapturePoint', fieldsCCitadelTriggerMultiCapturePoint)
 
-export class CCitadel_KothCashIn extends CCitadelTriggerMultiCapturePoint {}
-export interface CCitadel_KothCashIn {
-  m_flAmberFavored: number | undefined
-  m_flSapphireFavored: number | undefined
-  m_iWinningTeam: number | undefined
-  m_iTroopersToSpawn: number | undefined
-  m_hDropOffPlayer: CBaseEntity | undefined
-  m_nGold: number | undefined
-  m_nTeamBias: number | undefined
-  m_nKOTHIdx: number | undefined
-  m_nAmberNetworth: number | undefined
-  m_nSapphireNetworth: number | undefined
-  m_nAmberGoldValue: number | undefined
-  m_nSapphireGoldValue: number | undefined
-  m_bGiveUpHasWarned: boolean | undefined
-  m_bGivenUp: boolean | undefined
-  m_bWasBlockedAtAnyPoint: boolean | undefined
-  m_nZoneParticle: number | undefined
-  m_bCashedIn: boolean | undefined
-  m_bPlayBlock: boolean | undefined
-  m_bPlayContested: boolean | undefined
-}
-define(CCitadel_KothCashIn, 'CCitadel_KothCashIn', {
+const fieldsCCitadel_KothCashIn = {
   m_flAmberFavored: 'float32',
   m_flSapphireFavored: 'float32',
   m_iWinningTeam: 'int32',
@@ -3625,7 +2455,10 @@ define(CCitadel_KothCashIn, 'CCitadel_KothCashIn', {
   m_bCashedIn: 'bool',
   m_bPlayBlock: 'bool',
   m_bPlayContested: 'bool',
-})
+} as const
+export class CCitadel_KothCashIn extends CCitadelTriggerMultiCapturePoint {}
+export interface CCitadel_KothCashIn extends Fields<typeof fieldsCCitadel_KothCashIn> {}
+define(CCitadel_KothCashIn, 'CCitadel_KothCashIn', fieldsCCitadel_KothCashIn)
 
 export class CCitadelTriggerNoPortals extends CBaseTrigger {}
 define(CCitadelTriggerNoPortals, 'CCitadelTriggerNoPortals', {})
@@ -3636,17 +2469,7 @@ define(CCitadelTriggerSecureSouls, 'CCitadelTriggerSecureSouls', {})
 export class CCitadelZiplineCaptureTrigger extends CBaseTrigger {}
 define(CCitadelZiplineCaptureTrigger, 'CCitadelZiplineCaptureTrigger', {})
 
-export class CColorCorrectionVolume extends CBaseTrigger {}
-export interface CColorCorrectionVolume {
-  m_MaxWeight: number | undefined
-  m_FadeDuration: number | undefined
-  m_Weight: number | undefined
-  m_LastEnterWeight: number | undefined
-  m_LastEnterTime: number | undefined
-  m_LastExitWeight: number | undefined
-  m_LastExitTime: number | undefined
-}
-define(CColorCorrectionVolume, 'CColorCorrectionVolume', {
+const fieldsCColorCorrectionVolume = {
   m_MaxWeight: 'float32',
   m_FadeDuration: 'float32',
   m_Weight: 'float32',
@@ -3654,36 +2477,23 @@ define(CColorCorrectionVolume, 'CColorCorrectionVolume', {
   m_LastEnterTime: 'float32',
   m_LastExitWeight: 'float32',
   m_LastExitTime: 'float32',
-})
+} as const
+export class CColorCorrectionVolume extends CBaseTrigger {}
+export interface CColorCorrectionVolume extends Fields<typeof fieldsCColorCorrectionVolume> {}
+define(CColorCorrectionVolume, 'CColorCorrectionVolume', fieldsCColorCorrectionVolume)
 
 export class CFogTrigger extends CBaseTrigger {}
 define(CFogTrigger, 'CFogTrigger', {})
 
-export class CNpcFootSweep extends CBaseTrigger {}
-export interface CNpcFootSweep {
-  m_bUseCenterPusher: boolean | undefined
-  m_bUseForwardPusher: boolean | undefined
-}
-define(CNpcFootSweep, 'CNpcFootSweep', {
+const fieldsCNpcFootSweep = {
   m_bUseCenterPusher: 'bool',
   m_bUseForwardPusher: 'bool',
-})
+} as const
+export class CNpcFootSweep extends CBaseTrigger {}
+export interface CNpcFootSweep extends Fields<typeof fieldsCNpcFootSweep> {}
+define(CNpcFootSweep, 'CNpcFootSweep', fieldsCNpcFootSweep)
 
-export class CPostProcessingVolume extends CBaseTrigger {}
-export interface CPostProcessingVolume {
-  m_flFadeDuration: number | undefined
-  m_flMinLogExposure: number | undefined
-  m_flMaxLogExposure: number | undefined
-  m_flMinExposure: number | undefined
-  m_flMaxExposure: number | undefined
-  m_flExposureCompensation: number | undefined
-  m_flExposureFadeSpeedUp: number | undefined
-  m_flExposureFadeSpeedDown: number | undefined
-  m_flTonemapEVSmoothingRange: number | undefined
-  m_bMaster: boolean | undefined
-  m_bExposureControl: boolean | undefined
-}
-define(CPostProcessingVolume, 'CPostProcessingVolume', {
+const fieldsCPostProcessingVolume = {
   m_flFadeDuration: 'float32',
   m_flMinLogExposure: 'float32',
   m_flMaxLogExposure: 'float32',
@@ -3695,7 +2505,10 @@ define(CPostProcessingVolume, 'CPostProcessingVolume', {
   m_flTonemapEVSmoothingRange: 'float32',
   m_bMaster: 'bool',
   m_bExposureControl: 'bool',
-})
+} as const
+export class CPostProcessingVolume extends CBaseTrigger {}
+export interface CPostProcessingVolume extends Fields<typeof fieldsCPostProcessingVolume> {}
+define(CPostProcessingVolume, 'CPostProcessingVolume', fieldsCPostProcessingVolume)
 
 export class CPrecipitation extends CBaseTrigger {}
 define(CPrecipitation, 'CPrecipitation', {})
@@ -3706,35 +2519,29 @@ define(CRegenerateZone, 'CRegenerateZone', {})
 export class CServerRagdollTrigger extends CBaseTrigger {}
 define(CServerRagdollTrigger, 'CServerRagdollTrigger', {})
 
-export class CTonemapTrigger extends CBaseTrigger {}
-export interface CTonemapTrigger {
-  readonly m_tonemapControllerName: string | undefined
-  m_hTonemapController: number | undefined
-}
-define(CTonemapTrigger, 'CTonemapTrigger', {
+const fieldsCTonemapTrigger = {
   m_tonemapControllerName: 'string',
   m_hTonemapController: 'handle',
-})
+} as const
+export class CTonemapTrigger extends CBaseTrigger {}
+export interface CTonemapTrigger extends Fields<typeof fieldsCTonemapTrigger> {}
+define(CTonemapTrigger, 'CTonemapTrigger', fieldsCTonemapTrigger)
 
-export class CTriggerActiveWeaponDetect extends CBaseTrigger {}
-export interface CTriggerActiveWeaponDetect {
-  readonly m_iszWeaponClassName: string | undefined
-}
-define(CTriggerActiveWeaponDetect, 'CTriggerActiveWeaponDetect', {
+const fieldsCTriggerActiveWeaponDetect = {
   m_iszWeaponClassName: 'string',
-})
+} as const
+export class CTriggerActiveWeaponDetect extends CBaseTrigger {}
+export interface CTriggerActiveWeaponDetect extends Fields<typeof fieldsCTriggerActiveWeaponDetect> {}
+define(CTriggerActiveWeaponDetect, 'CTriggerActiveWeaponDetect', fieldsCTriggerActiveWeaponDetect)
 
-export class CTriggerAddModifier extends CBaseTrigger {}
-export interface CTriggerAddModifier {
-  readonly m_strModifier: string | undefined
-  m_flDuration: number | undefined
-  m_bMomentary: boolean | undefined
-}
-define(CTriggerAddModifier, 'CTriggerAddModifier', {
+const fieldsCTriggerAddModifier = {
   m_strModifier: 'string',
   m_flDuration: 'float32',
   m_bMomentary: 'bool',
-})
+} as const
+export class CTriggerAddModifier extends CBaseTrigger {}
+export interface CTriggerAddModifier extends Fields<typeof fieldsCTriggerAddModifier> {}
+define(CTriggerAddModifier, 'CTriggerAddModifier', fieldsCTriggerAddModifier)
 
 export class CTriggerBurrowUnderground extends CBaseTrigger {}
 define(CTriggerBurrowUnderground, 'CTriggerBurrowUnderground', {})
@@ -3742,44 +2549,17 @@ define(CTriggerBurrowUnderground, 'CTriggerBurrowUnderground', {})
 export class CTriggerCallback extends CBaseTrigger {}
 define(CTriggerCallback, 'CTriggerCallback', {})
 
-export class CTriggerDetectBulletFire extends CBaseTrigger {}
-export interface CTriggerDetectBulletFire {
-  m_bPlayerFireOnly: boolean | undefined
-}
-define(CTriggerDetectBulletFire, 'CTriggerDetectBulletFire', {
+const fieldsCTriggerDetectBulletFire = {
   m_bPlayerFireOnly: 'bool',
-})
+} as const
+export class CTriggerDetectBulletFire extends CBaseTrigger {}
+export interface CTriggerDetectBulletFire extends Fields<typeof fieldsCTriggerDetectBulletFire> {}
+define(CTriggerDetectBulletFire, 'CTriggerDetectBulletFire', fieldsCTriggerDetectBulletFire)
 
 export class CTriggerDetectExplosion extends CBaseTrigger {}
 define(CTriggerDetectExplosion, 'CTriggerDetectExplosion', {})
 
-export class CTriggerFan extends CBaseTrigger {}
-export interface CTriggerFan {
-  m_vFanOriginOffset: Vector | undefined
-  m_vDirection: Vector | undefined
-  m_bPushTowardsInfoTarget: boolean | undefined
-  m_bPushAwayFromInfoTarget: boolean | undefined
-  m_hInfoFan: CInfoFan | undefined
-  m_flForce: number | undefined
-  m_bFalloff: boolean | undefined
-  m_vFanOriginWS: Vector | undefined
-  m_vFanOriginLS: Vector | undefined
-  m_vFanEndLS: Vector | undefined
-  m_vNoiseDirectionTarget: Vector | undefined
-  readonly m_iszInfoFan: string | undefined
-  m_flRopeForceScale: number | undefined
-  m_flParticleForceScale: number | undefined
-  m_flPlayerForce: number | undefined
-  m_bPlayerWindblock: boolean | undefined
-  m_flNPCForce: number | undefined
-  m_flRampTime: number | undefined
-  m_fNoiseDegrees: number | undefined
-  m_fNoiseSpeed: number | undefined
-  m_bPushPlayer: boolean | undefined
-  m_bRampDown: boolean | undefined
-  m_nManagerFanIdx: number | undefined
-}
-define(CTriggerFan, 'CTriggerFan', {
+const fieldsCTriggerFan = {
   m_vFanOriginOffset: 'vector',
   m_vDirection: 'vector',
   m_bPushTowardsInfoTarget: 'bool',
@@ -3803,44 +2583,28 @@ define(CTriggerFan, 'CTriggerFan', {
   m_bPushPlayer: 'bool',
   m_bRampDown: 'bool',
   m_nManagerFanIdx: 'int32',
-})
+} as const
+export class CTriggerFan extends CBaseTrigger {}
+export interface CTriggerFan extends Fields<typeof fieldsCTriggerFan> {}
+define(CTriggerFan, 'CTriggerFan', fieldsCTriggerFan)
 
-export class CTriggerGameEvent extends CBaseTrigger {}
-export interface CTriggerGameEvent {
-  readonly m_strStartTouchEventName: string | undefined
-  readonly m_strEndTouchEventName: string | undefined
-  readonly m_strTriggerID: string | undefined
-  inputSetEndTouchEvent(value: string): boolean
-  inputSetStartTouchEvent(value: string): boolean
-}
-define(CTriggerGameEvent, 'CTriggerGameEvent', {
+const fieldsCTriggerGameEvent = {
   m_strStartTouchEventName: 'string',
   m_strEndTouchEventName: 'string',
   m_strTriggerID: 'string',
-}, {
+} as const
+const inputsCTriggerGameEvent = {
   SetEndTouchEvent: 'text',
   SetStartTouchEvent: 'text',
-})
+} as const
+export class CTriggerGameEvent extends CBaseTrigger {}
+export interface CTriggerGameEvent extends Fields<typeof fieldsCTriggerGameEvent>, Inputs<typeof inputsCTriggerGameEvent> {}
+define(CTriggerGameEvent, 'CTriggerGameEvent', fieldsCTriggerGameEvent, inputsCTriggerGameEvent)
 
 export class CTriggerGravity extends CBaseTrigger {}
 define(CTriggerGravity, 'CTriggerGravity', {})
 
-export class CTriggerHurt extends CBaseTrigger {}
-export interface CTriggerHurt {
-  m_flOriginalDamage: number | undefined
-  m_flDamage: number | undefined
-  m_flDamageCap: number | undefined
-  m_flLastDmgTime: number | undefined
-  m_flForgivenessDelay: number | undefined
-  m_bitsDamageInflict: number | undefined
-  m_damageModel: number | undefined
-  m_bNoDmgForce: boolean | undefined
-  m_vDamageForce: Vector | undefined
-  m_thinkAlways: boolean | undefined
-  m_hurtThinkPeriod: number | undefined
-  inputSetDamage(value: number): boolean
-}
-define(CTriggerHurt, 'CTriggerHurt', {
+const fieldsCTriggerHurt = {
   m_flOriginalDamage: 'float32',
   m_flDamage: 'float32',
   m_flDamageCap: 'float32',
@@ -3852,20 +2616,23 @@ define(CTriggerHurt, 'CTriggerHurt', {
   m_vDamageForce: 'vector',
   m_thinkAlways: 'bool',
   m_hurtThinkPeriod: 'float32',
-}, {
+} as const
+const inputsCTriggerHurt = {
   SetDamage: 'number',
-})
+} as const
+export class CTriggerHurt extends CBaseTrigger {}
+export interface CTriggerHurt extends Fields<typeof fieldsCTriggerHurt>, Inputs<typeof inputsCTriggerHurt> {}
+define(CTriggerHurt, 'CTriggerHurt', fieldsCTriggerHurt, inputsCTriggerHurt)
 
 export class CCitadelTriggerHurt extends CTriggerHurt {}
 define(CCitadelTriggerHurt, 'CCitadelTriggerHurt', {})
 
-export class CScriptTriggerHurt extends CTriggerHurt {}
-export interface CScriptTriggerHurt {
-  m_vExtent: Vector | undefined
-}
-define(CScriptTriggerHurt, 'CScriptTriggerHurt', {
+const fieldsCScriptTriggerHurt = {
   m_vExtent: 'vector',
-})
+} as const
+export class CScriptTriggerHurt extends CTriggerHurt {}
+export interface CScriptTriggerHurt extends Fields<typeof fieldsCScriptTriggerHurt> {}
+define(CScriptTriggerHurt, 'CScriptTriggerHurt', fieldsCScriptTriggerHurt)
 
 export class CTriggerIcePathVolume extends CBaseTrigger {}
 define(CTriggerIcePathVolume, 'CTriggerIcePathVolume', {})
@@ -3873,37 +2640,19 @@ define(CTriggerIcePathVolume, 'CTriggerIcePathVolume', {})
 export class CTriggerInvisVolume extends CBaseTrigger {}
 define(CTriggerInvisVolume, 'CTriggerInvisVolume', {})
 
-export class CTriggerItemShop extends CBaseTrigger {}
-export interface CTriggerItemShop {
-  readonly m_iszSoundName: string | undefined
-  m_iLane: number | undefined
-  m_vAudioOffset: Vector | undefined
-}
-define(CTriggerItemShop, 'CTriggerItemShop', {
+const fieldsCTriggerItemShop = {
   m_iszSoundName: 'string',
   m_iLane: 'int32',
   m_vAudioOffset: 'vector',
-})
+} as const
+export class CTriggerItemShop extends CBaseTrigger {}
+export interface CTriggerItemShop extends Fields<typeof fieldsCTriggerItemShop> {}
+define(CTriggerItemShop, 'CTriggerItemShop', fieldsCTriggerItemShop)
 
 export class CTriggerItemShopSafeZone extends CBaseTrigger {}
 define(CTriggerItemShopSafeZone, 'CTriggerItemShopSafeZone', {})
 
-export class CTriggerLerpObject extends CBaseTrigger {}
-export interface CTriggerLerpObject {
-  readonly m_iszLerpTarget: string | undefined
-  m_hLerpTarget: CBaseEntity | undefined
-  readonly m_iszLerpTargetAttachment: string | undefined
-  m_hLerpTargetAttachment: number | undefined
-  m_flLerpDuration: number | undefined
-  m_bAttachedEntityWasParented: boolean | undefined
-  m_bLerpRestoreMoveType: boolean | undefined
-  m_bSingleLerpObject: boolean | undefined
-  readonly m_iszLerpEffect: string | undefined
-  readonly m_iszLerpSound: string | undefined
-  m_bAttachTouchingObject: boolean | undefined
-  m_hEntityToWaitForDisconnect: CBaseEntity | undefined
-}
-define(CTriggerLerpObject, 'CTriggerLerpObject', {
+const fieldsCTriggerLerpObject = {
   m_iszLerpTarget: 'string',
   m_hLerpTarget: 'CBaseEntity',
   m_iszLerpTargetAttachment: 'string',
@@ -3916,15 +2665,17 @@ define(CTriggerLerpObject, 'CTriggerLerpObject', {
   m_iszLerpSound: 'string',
   m_bAttachTouchingObject: 'bool',
   m_hEntityToWaitForDisconnect: 'CBaseEntity',
-})
+} as const
+export class CTriggerLerpObject extends CBaseTrigger {}
+export interface CTriggerLerpObject extends Fields<typeof fieldsCTriggerLerpObject> {}
+define(CTriggerLerpObject, 'CTriggerLerpObject', fieldsCTriggerLerpObject)
 
-export class CTriggerModifier extends CBaseTrigger {}
-export interface CTriggerModifier {
-  readonly m_iszModifierName: string | undefined
-}
-define(CTriggerModifier, 'CTriggerModifier', {
+const fieldsCTriggerModifier = {
   m_iszModifierName: 'string',
-})
+} as const
+export class CTriggerModifier extends CBaseTrigger {}
+export interface CTriggerModifier extends Fields<typeof fieldsCTriggerModifier> {}
+define(CTriggerModifier, 'CTriggerModifier', fieldsCTriggerModifier)
 
 export class CCitadelIdolReturnTrigger extends CTriggerModifier {}
 define(CCitadelIdolReturnTrigger, 'CCitadelIdolReturnTrigger', {})
@@ -3932,62 +2683,36 @@ define(CCitadelIdolReturnTrigger, 'CCitadelIdolReturnTrigger', {})
 export class CCitadelIgnoreOutOfPlayArea extends CTriggerModifier {}
 define(CCitadelIgnoreOutOfPlayArea, 'CCitadelIgnoreOutOfPlayArea', {})
 
-export class CCitadelInteriorTrigger extends CTriggerModifier {}
-export interface CCitadelInteriorTrigger {
-  m_nInteriorType: number | undefined
-}
-define(CCitadelInteriorTrigger, 'CCitadelInteriorTrigger', {
+const fieldsCCitadelInteriorTrigger = {
   m_nInteriorType: 'int32',
-})
+} as const
+export class CCitadelInteriorTrigger extends CTriggerModifier {}
+export interface CCitadelInteriorTrigger extends Fields<typeof fieldsCCitadelInteriorTrigger> {}
+define(CCitadelInteriorTrigger, 'CCitadelInteriorTrigger', fieldsCCitadelInteriorTrigger)
 
-export class CCitadelPushTrigger extends CTriggerModifier {}
-export interface CCitadelPushTrigger {
-  m_vPush: Vector | undefined
-  m_angPushEntitySpace: Angles | undefined
-  m_flSpeed: number | undefined
-}
-define(CCitadelPushTrigger, 'CCitadelPushTrigger', {
+const fieldsCCitadelPushTrigger = {
   m_vPush: 'vector',
   m_angPushEntitySpace: 'angles',
   m_flSpeed: 'float32',
-})
+} as const
+export class CCitadelPushTrigger extends CTriggerModifier {}
+export interface CCitadelPushTrigger extends Fields<typeof fieldsCCitadelPushTrigger> {}
+define(CCitadelPushTrigger, 'CCitadelPushTrigger', fieldsCCitadelPushTrigger)
 
-export class CCitadelTeleportTrigger extends CTriggerModifier {}
-export interface CCitadelTeleportTrigger {
-  m_vExitOrigin: Vector | undefined
-  readonly m_strExitPoint: string | undefined
-  readonly m_strPropModel: string | undefined
-  m_flTeleportDelay: number | undefined
-}
-define(CCitadelTeleportTrigger, 'CCitadelTeleportTrigger', {
+const fieldsCCitadelTeleportTrigger = {
   m_vExitOrigin: 'vector',
   m_strExitPoint: 'string',
   m_strPropModel: 'string',
   m_flTeleportDelay: 'float32',
-})
+} as const
+export class CCitadelTeleportTrigger extends CTriggerModifier {}
+export interface CCitadelTeleportTrigger extends Fields<typeof fieldsCCitadelTeleportTrigger> {}
+define(CCitadelTeleportTrigger, 'CCitadelTeleportTrigger', fieldsCCitadelTeleportTrigger)
 
 export class CTriggerMultiple extends CBaseTrigger {}
 define(CTriggerMultiple, 'CTriggerMultiple', {})
 
-export class CCitadelControlPointTrigger extends CTriggerMultiple {}
-export interface CCitadelControlPointTrigger {
-  m_flInitialRadius: number | undefined
-  m_flEndRadius: number | undefined
-  m_flProgress: number | undefined
-  m_flCaptureTime: number | undefined
-  m_hUnlockPrereq: CBaseEntity | undefined
-  m_bAvailable: boolean | undefined
-  m_bIsBeingCaptured: boolean | undefined
-  m_bIsBeingBlocked: boolean | undefined
-  m_flLastTouchedTime: number | undefined
-  m_vecBeamTarget: Vector | undefined
-  m_vecBeamStart: Vector | undefined
-  m_nFXProgressBeam: number | undefined
-  readonly m_strUnlockPrereq: string | undefined
-  readonly m_strBeamStart: string | undefined
-  readonly m_strBeamTarget: string | undefined
-}
-define(CCitadelControlPointTrigger, 'CCitadelControlPointTrigger', {
+const fieldsCCitadelControlPointTrigger = {
   m_flInitialRadius: 'float32',
   m_flEndRadius: 'float32',
   m_flProgress: 'float32',
@@ -4003,78 +2728,53 @@ define(CCitadelControlPointTrigger, 'CCitadelControlPointTrigger', {
   m_strUnlockPrereq: 'string',
   m_strBeamStart: 'string',
   m_strBeamTarget: 'string',
-})
+} as const
+export class CCitadelControlPointTrigger extends CTriggerMultiple {}
+export interface CCitadelControlPointTrigger extends Fields<typeof fieldsCCitadelControlPointTrigger> {}
+define(CCitadelControlPointTrigger, 'CCitadelControlPointTrigger', fieldsCCitadelControlPointTrigger)
 
-export class CDynamicNavConnectionsVolume extends CTriggerMultiple {}
-export interface CDynamicNavConnectionsVolume {
-  readonly m_iszConnectionTarget: string | undefined
-  m_bConnectionsEnabled: boolean | undefined
-  m_flTargetAreaSearchRadius: number | undefined
-  m_flUpdateDistance: number | undefined
-  m_flMaxConnectionDistance: number | undefined
-}
-define(CDynamicNavConnectionsVolume, 'CDynamicNavConnectionsVolume', {
+const fieldsCDynamicNavConnectionsVolume = {
   m_iszConnectionTarget: 'string',
   m_bConnectionsEnabled: 'bool',
   m_flTargetAreaSearchRadius: 'float32',
   m_flUpdateDistance: 'float32',
   m_flMaxConnectionDistance: 'float32',
-})
+} as const
+export class CDynamicNavConnectionsVolume extends CTriggerMultiple {}
+export interface CDynamicNavConnectionsVolume extends Fields<typeof fieldsCDynamicNavConnectionsVolume> {}
+define(CDynamicNavConnectionsVolume, 'CDynamicNavConnectionsVolume', fieldsCDynamicNavConnectionsVolume)
 
-export class CScriptTriggerMultiple extends CTriggerMultiple {}
-export interface CScriptTriggerMultiple {
-  m_vExtent: Vector | undefined
-}
-define(CScriptTriggerMultiple, 'CScriptTriggerMultiple', {
+const fieldsCScriptTriggerMultiple = {
   m_vExtent: 'vector',
-})
+} as const
+export class CScriptTriggerMultiple extends CTriggerMultiple {}
+export interface CScriptTriggerMultiple extends Fields<typeof fieldsCScriptTriggerMultiple> {}
+define(CScriptTriggerMultiple, 'CScriptTriggerMultiple', fieldsCScriptTriggerMultiple)
 
-export class CTriggerImpact extends CTriggerMultiple {}
-export interface CTriggerImpact {
-  m_flMagnitude: number | undefined
-  m_flNoise: number | undefined
-  m_flViewkick: number | undefined
-  inputImpact(): boolean
-  inputSetMagnitude(value: number): boolean
-}
-define(CTriggerImpact, 'CTriggerImpact', {
+const fieldsCTriggerImpact = {
   m_flMagnitude: 'float32',
   m_flNoise: 'float32',
   m_flViewkick: 'float32',
-}, {
+} as const
+const inputsCTriggerImpact = {
   Impact: '',
   SetMagnitude: 'number',
-})
+} as const
+export class CTriggerImpact extends CTriggerMultiple {}
+export interface CTriggerImpact extends Fields<typeof fieldsCTriggerImpact>, Inputs<typeof inputsCTriggerImpact> {}
+define(CTriggerImpact, 'CTriggerImpact', fieldsCTriggerImpact, inputsCTriggerImpact)
 
 export class CTriggerOnce extends CTriggerMultiple {}
 define(CTriggerOnce, 'CTriggerOnce', {})
 
-export class CScriptTriggerOnce extends CTriggerOnce {}
-export interface CScriptTriggerOnce {
-  m_vExtent: Vector | undefined
-}
-define(CScriptTriggerOnce, 'CScriptTriggerOnce', {
+const fieldsCScriptTriggerOnce = {
   m_vExtent: 'vector',
-})
+} as const
+export class CScriptTriggerOnce extends CTriggerOnce {}
+export interface CScriptTriggerOnce extends Fields<typeof fieldsCScriptTriggerOnce> {}
+define(CScriptTriggerOnce, 'CScriptTriggerOnce', fieldsCScriptTriggerOnce)
 
-export class CTriggerLook extends CTriggerOnce {}
-export interface CTriggerLook {
-  m_hLookTarget: CBaseEntity | undefined
-  m_flFieldOfView: number | undefined
-  m_flLookTime: number | undefined
-  m_flLookTimeTotal: number | undefined
-  m_flLookTimeLast: number | undefined
-  m_flTimeoutDuration: number | undefined
-  m_bTimeoutFired: boolean | undefined
-  m_bIsLooking: boolean | undefined
-  m_b2DFOV: boolean | undefined
-  m_bUseVelocity: boolean | undefined
-  m_bTestOcclusion: boolean | undefined
-  m_bTestAllVisibleOcclusion: boolean | undefined
-  inputFieldOfView(value: number): boolean
-  inputLookTime(value: number): boolean
-}
-define(CTriggerLook, 'CTriggerLook', {
+const fieldsCTriggerLook = {
   m_hLookTarget: 'CBaseEntity',
   m_flFieldOfView: 'float32',
   m_flLookTime: 'float32',
@@ -4087,10 +2787,14 @@ define(CTriggerLook, 'CTriggerLook', {
   m_bUseVelocity: 'bool',
   m_bTestOcclusion: 'bool',
   m_bTestAllVisibleOcclusion: 'bool',
-}, {
+} as const
+const inputsCTriggerLook = {
   FieldOfView: 'number',
   LookTime: 'number',
-})
+} as const
+export class CTriggerLook extends CTriggerOnce {}
+export interface CTriggerLook extends Fields<typeof fieldsCTriggerLook>, Inputs<typeof inputsCTriggerLook> {}
+define(CTriggerLook, 'CTriggerLook', fieldsCTriggerLook, inputsCTriggerLook)
 
 export class CTriggerNeutralShield extends CBaseTrigger {}
 define(CTriggerNeutralShield, 'CTriggerNeutralShield', {})
@@ -4101,54 +2805,24 @@ define(CTriggerMidBossShield, 'CTriggerMidBossShield', {})
 export class CTriggerNeutralIdles extends CTriggerNeutralShield {}
 define(CTriggerNeutralIdles, 'CTriggerNeutralIdles', {})
 
-export class CTriggerTier3Phase2Shield extends CTriggerNeutralShield {}
-export interface CTriggerTier3Phase2Shield {
-  m_nNumEnemyPlayers: number | undefined
-}
-define(CTriggerTier3Phase2Shield, 'CTriggerTier3Phase2Shield', {
+const fieldsCTriggerTier3Phase2Shield = {
   m_nNumEnemyPlayers: 'int8',
-})
+} as const
+export class CTriggerTier3Phase2Shield extends CTriggerNeutralShield {}
+export interface CTriggerTier3Phase2Shield extends Fields<typeof fieldsCTriggerTier3Phase2Shield> {}
+define(CTriggerTier3Phase2Shield, 'CTriggerTier3Phase2Shield', fieldsCTriggerTier3Phase2Shield)
 
-export class CTriggerObscuredVolume extends CBaseTrigger {}
-export interface CTriggerObscuredVolume {
-  readonly m_iszModifierName: string | undefined
-}
-define(CTriggerObscuredVolume, 'CTriggerObscuredVolume', {
+const fieldsCTriggerObscuredVolume = {
   m_iszModifierName: 'string',
-})
+} as const
+export class CTriggerObscuredVolume extends CBaseTrigger {}
+export interface CTriggerObscuredVolume extends Fields<typeof fieldsCTriggerObscuredVolume> {}
+define(CTriggerObscuredVolume, 'CTriggerObscuredVolume', fieldsCTriggerObscuredVolume)
 
 export class CTriggerPassthroughFakeWall extends CBaseTrigger {}
 define(CTriggerPassthroughFakeWall, 'CTriggerPassthroughFakeWall', {})
 
-export class CTriggerPhysics extends CBaseTrigger {}
-export interface CTriggerPhysics {
-  m_gravityScale: number | undefined
-  m_linearLimit: number | undefined
-  m_linearDamping: number | undefined
-  m_angularLimit: number | undefined
-  m_angularDamping: number | undefined
-  m_linearForce: number | undefined
-  m_flFrequency: number | undefined
-  m_flDampingRatio: number | undefined
-  m_vecLinearForcePointAt: Vector | undefined
-  m_bCollapseToForcePoint: boolean | undefined
-  m_vecLinearForcePointAtWorld: Vector | undefined
-  m_vecLinearForceDirection: Vector | undefined
-  m_bForceDirectionIsInLocalSpace: boolean | undefined
-  m_bConvertToDebrisWhenPossible: boolean | undefined
-  inputCollapseToForcePoint(value: boolean): boolean
-  inputLinearForcePointAt(value: Vector): boolean
-  inputSetAngVelocityDamping(value: number): boolean
-  inputSetAngVelocityLimit(value: number): boolean
-  inputSetDampingRatio(value: number): boolean
-  inputSetFrequency(value: number): boolean
-  inputSetGravityScale(value: number): boolean
-  inputSetLinearForce(value: number): boolean
-  inputSetLinearForcePointAt(value: string): boolean
-  inputSetVelocityDamping(value: number): boolean
-  inputSetVelocityLimit(value: number): boolean
-}
-define(CTriggerPhysics, 'CTriggerPhysics', {
+const fieldsCTriggerPhysics = {
   m_gravityScale: 'float32',
   m_linearLimit: 'float32',
   m_linearDamping: 'float32',
@@ -4163,7 +2837,8 @@ define(CTriggerPhysics, 'CTriggerPhysics', {
   m_vecLinearForceDirection: 'vector',
   m_bForceDirectionIsInLocalSpace: 'bool',
   m_bConvertToDebrisWhenPossible: 'bool',
-}, {
+} as const
+const inputsCTriggerPhysics = {
   CollapseToForcePoint: 'boolean',
   LinearForcePointAt: 'vector',
   SetAngVelocityDamping: 'number',
@@ -4175,44 +2850,29 @@ define(CTriggerPhysics, 'CTriggerPhysics', {
   SetLinearForcePointAt: 'text',
   SetVelocityDamping: 'number',
   SetVelocityLimit: 'number',
-})
+} as const
+export class CTriggerPhysics extends CBaseTrigger {}
+export interface CTriggerPhysics extends Fields<typeof fieldsCTriggerPhysics>, Inputs<typeof inputsCTriggerPhysics> {}
+define(CTriggerPhysics, 'CTriggerPhysics', fieldsCTriggerPhysics, inputsCTriggerPhysics)
 
-export class CTriggerPingLocation extends CBaseTrigger {}
-export interface CTriggerPingLocation {
-  m_ePingLocation: number | undefined
-}
-define(CTriggerPingLocation, 'CTriggerPingLocation', {
+const fieldsCTriggerPingLocation = {
   m_ePingLocation: 'uint32',
-})
+} as const
+export class CTriggerPingLocation extends CBaseTrigger {}
+export interface CTriggerPingLocation extends Fields<typeof fieldsCTriggerPingLocation> {}
+define(CTriggerPingLocation, 'CTriggerPingLocation', fieldsCTriggerPingLocation)
 
-export class CTriggerProximity extends CBaseTrigger {}
-export interface CTriggerProximity {
-  m_hMeasureTarget: CBaseEntity | undefined
-  readonly m_iszMeasureTarget: string | undefined
-  m_fRadius: number | undefined
-  m_nTouchers: number | undefined
-}
-define(CTriggerProximity, 'CTriggerProximity', {
+const fieldsCTriggerProximity = {
   m_hMeasureTarget: 'CBaseEntity',
   m_iszMeasureTarget: 'string',
   m_fRadius: 'float32',
   m_nTouchers: 'int32',
-})
+} as const
+export class CTriggerProximity extends CBaseTrigger {}
+export interface CTriggerProximity extends Fields<typeof fieldsCTriggerProximity> {}
+define(CTriggerProximity, 'CTriggerProximity', fieldsCTriggerProximity)
 
-export class CTriggerPush extends CBaseTrigger {}
-export interface CTriggerPush {
-  m_angPushEntitySpace: Angles | undefined
-  m_vecPushDirEntitySpace: Vector | undefined
-  m_bTriggerOnStartTouch: boolean | undefined
-  m_bUsePathSimple: boolean | undefined
-  readonly m_iszPathSimpleName: string | undefined
-  m_PathSimple: CPathSimple | undefined
-  m_splinePushType: number | undefined
-  m_flSpeed: number | undefined
-  inputSetPushDirection(value: Vector): boolean
-  inputSetPushSpeed(value: number): boolean
-}
-define(CTriggerPush, 'CTriggerPush', {
+const fieldsCTriggerPush = {
   m_angPushEntitySpace: 'angles',
   m_vecPushDirEntitySpace: 'vector',
   m_bTriggerOnStartTouch: 'bool',
@@ -4221,58 +2881,43 @@ define(CTriggerPush, 'CTriggerPush', {
   m_PathSimple: 'CPathSimple',
   m_splinePushType: 'uint32',
   m_flSpeed: 'float32',
-}, {
+} as const
+const inputsCTriggerPush = {
   SetPushDirection: 'vector',
   SetPushSpeed: 'number',
-})
+} as const
+export class CTriggerPush extends CBaseTrigger {}
+export interface CTriggerPush extends Fields<typeof fieldsCTriggerPush>, Inputs<typeof inputsCTriggerPush> {}
+define(CTriggerPush, 'CTriggerPush', fieldsCTriggerPush, inputsCTriggerPush)
 
-export class CScriptTriggerPush extends CTriggerPush {}
-export interface CScriptTriggerPush {
-  m_vExtent: Vector | undefined
-}
-define(CScriptTriggerPush, 'CScriptTriggerPush', {
+const fieldsCScriptTriggerPush = {
   m_vExtent: 'vector',
-})
+} as const
+export class CScriptTriggerPush extends CTriggerPush {}
+export interface CScriptTriggerPush extends Fields<typeof fieldsCScriptTriggerPush> {}
+define(CScriptTriggerPush, 'CScriptTriggerPush', fieldsCScriptTriggerPush)
 
 export class CTriggerRemove extends CBaseTrigger {}
 define(CTriggerRemove, 'CTriggerRemove', {})
 
-export class CTriggerRemoveModifier extends CBaseTrigger {}
-export interface CTriggerRemoveModifier {
-  readonly m_strModifier: string | undefined
-}
-define(CTriggerRemoveModifier, 'CTriggerRemoveModifier', {
+const fieldsCTriggerRemoveModifier = {
   m_strModifier: 'string',
-})
+} as const
+export class CTriggerRemoveModifier extends CBaseTrigger {}
+export interface CTriggerRemoveModifier extends Fields<typeof fieldsCTriggerRemoveModifier> {}
+define(CTriggerRemoveModifier, 'CTriggerRemoveModifier', fieldsCTriggerRemoveModifier)
 
-export class CTriggerSave extends CBaseTrigger {}
-export interface CTriggerSave {
-  m_bForceNewLevelUnit: boolean | undefined
-  m_fDangerousTimer: number | undefined
-  m_minHitPoints: number | undefined
-  m_flRetriggerDelay: number | undefined
-}
-define(CTriggerSave, 'CTriggerSave', {
+const fieldsCTriggerSave = {
   m_bForceNewLevelUnit: 'bool',
   m_fDangerousTimer: 'float32',
   m_minHitPoints: 'int32',
   m_flRetriggerDelay: 'float32',
-})
+} as const
+export class CTriggerSave extends CBaseTrigger {}
+export interface CTriggerSave extends Fields<typeof fieldsCTriggerSave> {}
+define(CTriggerSave, 'CTriggerSave', fieldsCTriggerSave)
 
-export class CTriggerSndSosOpvar extends CBaseTrigger {}
-export interface CTriggerSndSosOpvar {
-  m_flPosition: Vector | undefined
-  m_flCenterSize: number | undefined
-  m_flMinVal: number | undefined
-  m_flMaxVal: number | undefined
-  readonly m_opvarName: string | undefined
-  readonly m_stackName: string | undefined
-  readonly m_operatorName: string | undefined
-  m_bVolIs2D: boolean | undefined
-  m_VecNormPos: Vector | undefined
-  m_flNormCenterSize: number | undefined
-}
-define(CTriggerSndSosOpvar, 'CTriggerSndSosOpvar', {
+const fieldsCTriggerSndSosOpvar = {
   m_flPosition: 'vector',
   m_flCenterSize: 'float32',
   m_flMinVal: 'float32',
@@ -4283,81 +2928,54 @@ define(CTriggerSndSosOpvar, 'CTriggerSndSosOpvar', {
   m_bVolIs2D: 'bool',
   m_VecNormPos: 'vector',
   m_flNormCenterSize: 'float32',
-})
+} as const
+export class CTriggerSndSosOpvar extends CBaseTrigger {}
+export interface CTriggerSndSosOpvar extends Fields<typeof fieldsCTriggerSndSosOpvar> {}
+define(CTriggerSndSosOpvar, 'CTriggerSndSosOpvar', fieldsCTriggerSndSosOpvar)
 
-export class CTriggerSoundscape extends CBaseTrigger {}
-export interface CTriggerSoundscape {
-  m_hSoundscape: CEnvSoundscapeTriggerable | undefined
-  readonly m_SoundscapeName: string | undefined
-}
-define(CTriggerSoundscape, 'CTriggerSoundscape', {
+const fieldsCTriggerSoundscape = {
   m_hSoundscape: 'CEnvSoundscapeTriggerable',
   m_SoundscapeName: 'string',
-})
+} as const
+export class CTriggerSoundscape extends CBaseTrigger {}
+export interface CTriggerSoundscape extends Fields<typeof fieldsCTriggerSoundscape> {}
+define(CTriggerSoundscape, 'CTriggerSoundscape', fieldsCTriggerSoundscape)
 
-export class CTriggerSuspendModifier extends CBaseTrigger {}
-export interface CTriggerSuspendModifier {
-  readonly m_strModifier: string | undefined
-}
-define(CTriggerSuspendModifier, 'CTriggerSuspendModifier', {
+const fieldsCTriggerSuspendModifier = {
   m_strModifier: 'string',
-})
+} as const
+export class CTriggerSuspendModifier extends CBaseTrigger {}
+export interface CTriggerSuspendModifier extends Fields<typeof fieldsCTriggerSuspendModifier> {}
+define(CTriggerSuspendModifier, 'CTriggerSuspendModifier', fieldsCTriggerSuspendModifier)
 
 export class CTriggerTeamBase extends CBaseTrigger {}
 define(CTriggerTeamBase, 'CTriggerTeamBase', {})
 
-export class CTriggerTeleport extends CBaseTrigger {}
-export interface CTriggerTeleport {
-  readonly m_iLandmark: string | undefined
-  m_bUseLandmarkAngles: boolean | undefined
-  m_bMirrorPlayer: boolean | undefined
-  m_bCheckDestIfClearForPlayer: boolean | undefined
-}
-define(CTriggerTeleport, 'CTriggerTeleport', {
+const fieldsCTriggerTeleport = {
   m_iLandmark: 'string',
   m_bUseLandmarkAngles: 'bool',
   m_bMirrorPlayer: 'bool',
   m_bCheckDestIfClearForPlayer: 'bool',
-})
+} as const
+export class CTriggerTeleport extends CBaseTrigger {}
+export interface CTriggerTeleport extends Fields<typeof fieldsCTriggerTeleport> {}
+define(CTriggerTeleport, 'CTriggerTeleport', fieldsCTriggerTeleport)
 
+const fieldsCTriggerTrooperDamageReductionDetector = {
+  m_flRadius: 'float32',
+} as const
 export class CTriggerTrooperDamageReductionDetector extends CBaseTrigger {}
-export interface CTriggerTrooperDamageReductionDetector {
-  m_flRadius: number | undefined
-}
-define(CTriggerTrooperDamageReductionDetector, 'CTriggerTrooperDamageReductionDetector', {
-  m_flRadius: 'float32',
-})
+export interface CTriggerTrooperDamageReductionDetector extends Fields<typeof fieldsCTriggerTrooperDamageReductionDetector> {}
+define(CTriggerTrooperDamageReductionDetector, 'CTriggerTrooperDamageReductionDetector', fieldsCTriggerTrooperDamageReductionDetector)
 
+const fieldsCTriggerTrooperDetector = {
+  m_flRadius: 'float32',
+} as const
 export class CTriggerTrooperDetector extends CBaseTrigger {}
-export interface CTriggerTrooperDetector {
-  m_flRadius: number | undefined
-}
-define(CTriggerTrooperDetector, 'CTriggerTrooperDetector', {
-  m_flRadius: 'float32',
-})
+export interface CTriggerTrooperDetector extends Fields<typeof fieldsCTriggerTrooperDetector> {}
+define(CTriggerTrooperDetector, 'CTriggerTrooperDetector', fieldsCTriggerTrooperDetector)
 
-export class CFuncMoveLinear extends CBaseToggle {}
-export interface CFuncMoveLinear {
-  m_authoredPosition: number | undefined
-  m_angMoveEntitySpace: Angles | undefined
-  m_vecMoveDirParentSpace: Vector | undefined
-  readonly m_currentSound: string | undefined
-  m_flBlockDamage: number | undefined
-  m_flStartPosition: number | undefined
-  m_flSpeed: number | undefined
-  m_bCreateMovableNavMesh: boolean | undefined
-  m_bAllowMovableNavMeshDockingOnEntireEntity: boolean | undefined
-  m_bCreateNavObstacle: boolean | undefined
-  inputClose(): boolean
-  inputOpen(): boolean
-  inputResetPosition(value: number): boolean
-  inputSetMoveDistanceFromEnd(value: number): boolean
-  inputSetMoveDistanceFromStart(value: number): boolean
-  inputSetPosition(value: number): boolean
-  inputSetSpeed(value: number): boolean
-  inputTeleportToTarget(value: string): boolean
-}
-define(CFuncMoveLinear, 'CFuncMoveLinear', {
+const fieldsCFuncMoveLinear = {
   m_authoredPosition: 'uint32',
   m_angMoveEntitySpace: 'angles',
   m_vecMoveDirParentSpace: 'vector',
@@ -4368,7 +2986,8 @@ define(CFuncMoveLinear, 'CFuncMoveLinear', {
   m_bCreateMovableNavMesh: 'bool',
   m_bAllowMovableNavMeshDockingOnEntireEntity: 'bool',
   m_bCreateNavObstacle: 'bool',
-}, {
+} as const
+const inputsCFuncMoveLinear = {
   Close: '',
   Open: '',
   ResetPosition: 'number',
@@ -4377,59 +2996,29 @@ define(CFuncMoveLinear, 'CFuncMoveLinear', {
   SetPosition: 'number',
   SetSpeed: 'number',
   TeleportToTarget: 'text',
-})
+} as const
+export class CFuncMoveLinear extends CBaseToggle {}
+export interface CFuncMoveLinear extends Fields<typeof fieldsCFuncMoveLinear>, Inputs<typeof inputsCFuncMoveLinear> {}
+define(CFuncMoveLinear, 'CFuncMoveLinear', fieldsCFuncMoveLinear, inputsCFuncMoveLinear)
 
 export class CFuncMoveLinearAlias_momentary_door extends CFuncMoveLinear {}
 define(CFuncMoveLinearAlias_momentary_door, 'CFuncMoveLinearAlias_momentary_door', {})
 
-export class CGunTarget extends CBaseToggle {}
-export interface CGunTarget {
-  m_flSpeed: number | undefined
-  m_on: boolean | undefined
-  m_hTargetEnt: CBaseEntity | undefined
-  inputStart(): boolean
-  inputStop(): boolean
-  inputToggle(): boolean
-}
-define(CGunTarget, 'CGunTarget', {
+const fieldsCGunTarget = {
   m_flSpeed: 'float32',
   m_on: 'bool',
   m_hTargetEnt: 'CBaseEntity',
-}, {
+} as const
+const inputsCGunTarget = {
   Start: '',
   Stop: '',
   Toggle: '',
-})
+} as const
+export class CGunTarget extends CBaseToggle {}
+export interface CGunTarget extends Fields<typeof fieldsCGunTarget>, Inputs<typeof inputsCGunTarget> {}
+define(CGunTarget, 'CGunTarget', fieldsCGunTarget, inputsCGunTarget)
 
-export class CBeam extends CBaseModelEntity {}
-export interface CBeam {
-  m_flFrameRate: number | undefined
-  m_flHDRColorScale: number | undefined
-  m_flFireTime: number | undefined
-  m_flDamage: number | undefined
-  m_nNumBeamEnts: number | undefined
-  m_nBeamType: number | undefined
-  m_nBeamFlags: number | undefined
-  m_fWidth: number | undefined
-  m_fEndWidth: number | undefined
-  m_fFadeLength: number | undefined
-  m_fHaloScale: number | undefined
-  m_fAmplitude: number | undefined
-  m_fStartFrame: number | undefined
-  m_fSpeed: number | undefined
-  m_flFrame: number | undefined
-  m_bTurnedOff: boolean | undefined
-  m_vecEndPos: Vector | undefined
-  m_hEndEntity: CBaseEntity | undefined
-  m_nDissolveType: number | undefined
-  inputColorBlueValue(value: number): boolean
-  inputColorGreenValue(value: number): boolean
-  inputColorRedValue(value: number): boolean
-  inputNoise(value: number): boolean
-  inputScrollSpeed(value: number): boolean
-  inputWidth(value: number): boolean
-}
-define(CBeam, 'CBeam', {
+const fieldsCBeam = {
   m_flFrameRate: 'float32',
   m_flHDRColorScale: 'float32',
   m_flFireTime: 'float32',
@@ -4449,40 +3038,20 @@ define(CBeam, 'CBeam', {
   m_vecEndPos: 'vector',
   m_hEndEntity: 'CBaseEntity',
   m_nDissolveType: 'int32',
-}, {
+} as const
+const inputsCBeam = {
   ColorBlueValue: 'number',
   ColorGreenValue: 'number',
   ColorRedValue: 'number',
   Noise: 'number',
   ScrollSpeed: 'number',
   Width: 'number',
-})
+} as const
+export class CBeam extends CBaseModelEntity {}
+export interface CBeam extends Fields<typeof fieldsCBeam>, Inputs<typeof inputsCBeam> {}
+define(CBeam, 'CBeam', fieldsCBeam, inputsCBeam)
 
-export class CEnvBeam extends CBeam {}
-export interface CEnvBeam {
-  m_active: number | undefined
-  readonly m_iszStartEntity: string | undefined
-  readonly m_iszEndEntity: string | undefined
-  m_life: number | undefined
-  m_boltWidth: number | undefined
-  m_noiseAmplitude: number | undefined
-  m_speed: number | undefined
-  m_restrike: number | undefined
-  readonly m_iszSpriteName: string | undefined
-  m_frameStart: number | undefined
-  m_vEndPointWorld: Vector | undefined
-  m_vEndPointRelative: Vector | undefined
-  m_radius: number | undefined
-  m_TouchType: number | undefined
-  readonly m_iFilterName: string | undefined
-  m_hFilter: CBaseEntity | undefined
-  readonly m_iszDecal: string | undefined
-  inputStrikeOnce(): boolean
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CEnvBeam, 'CEnvBeam', {
+const fieldsCEnvBeam = {
   m_active: 'int32',
   m_iszStartEntity: 'string',
   m_iszEndEntity: 'string',
@@ -4500,60 +3069,34 @@ define(CEnvBeam, 'CEnvBeam', {
   m_iFilterName: 'string',
   m_hFilter: 'CBaseEntity',
   m_iszDecal: 'string',
-}, {
+} as const
+const inputsCEnvBeam = {
   StrikeOnce: '',
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CEnvBeam extends CBeam {}
+export interface CEnvBeam extends Fields<typeof fieldsCEnvBeam>, Inputs<typeof inputsCEnvBeam> {}
+define(CEnvBeam, 'CEnvBeam', fieldsCEnvBeam, inputsCEnvBeam)
 
-export class CEnvLaser extends CBeam {}
-export interface CEnvLaser {
-  readonly m_iszLaserTarget: string | undefined
-  m_pSprite: CSprite | undefined
-  readonly m_iszSpriteName: string | undefined
-  m_firePosition: Vector | undefined
-  m_flStartFrame: number | undefined
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CEnvLaser, 'CEnvLaser', {
+const fieldsCEnvLaser = {
   m_iszLaserTarget: 'string',
   m_pSprite: 'CSprite',
   m_iszSpriteName: 'string',
   m_firePosition: 'vector',
   m_flStartFrame: 'float32',
-}, {
+} as const
+const inputsCEnvLaser = {
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CEnvLaser extends CBeam {}
+export interface CEnvLaser extends Fields<typeof fieldsCEnvLaser>, Inputs<typeof inputsCEnvLaser> {}
+define(CEnvLaser, 'CEnvLaser', fieldsCEnvLaser, inputsCEnvLaser)
 
-export class CBreakable extends CBaseModelEntity {}
-export interface CBreakable {
-  m_Material: number | undefined
-  m_hBreaker: CBaseEntity | undefined
-  m_Explosion: number | undefined
-  readonly m_iszSpawnObject: string | undefined
-  m_flPressureDelay: number | undefined
-  m_iMinHealthDmg: number | undefined
-  readonly m_iszPropData: string | undefined
-  m_impactEnergyScale: number | undefined
-  m_nOverrideBlockLOS: number | undefined
-  m_PerformanceMode: number | undefined
-  m_hPhysicsAttacker: CBasePlayerPawn | undefined
-  m_flLastPhysicsInfluenceTime: number | undefined
-  inputAddHealth(value: number): boolean
-  inputBreak(): boolean
-  inputRemoveHealth(value: number): boolean
-  inputSetEnableBreaking(value: boolean): boolean
-  inputSetEnableCollisions(value: boolean): boolean
-  inputSetHealth(value: number): boolean
-  inputSetMass(value: number): boolean
-  inputphysdamagescale(value: number): boolean
-}
-define(CBreakable, 'CBreakable', {
+const fieldsCBreakable = {
   m_Material: 'uint32',
   m_hBreaker: 'CBaseEntity',
   m_Explosion: 'uint32',
@@ -4566,7 +3109,8 @@ define(CBreakable, 'CBreakable', {
   m_PerformanceMode: 'uint32',
   m_hPhysicsAttacker: 'CBasePlayerPawn',
   m_flLastPhysicsInfluenceTime: 'float32',
-}, {
+} as const
+const inputsCBreakable = {
   AddHealth: 'integer',
   Break: '',
   RemoveHealth: 'integer',
@@ -4575,30 +3119,12 @@ define(CBreakable, 'CBreakable', {
   SetHealth: 'integer',
   SetMass: 'number',
   physdamagescale: 'number',
-})
+} as const
+export class CBreakable extends CBaseModelEntity {}
+export interface CBreakable extends Fields<typeof fieldsCBreakable>, Inputs<typeof inputsCBreakable> {}
+define(CBreakable, 'CBreakable', fieldsCBreakable, inputsCBreakable)
 
-export class CPhysBox extends CBreakable {}
-export interface CPhysBox {
-  m_damageType: number | undefined
-  m_damageToEnableMotion: number | undefined
-  m_flForceToEnableMotion: number | undefined
-  m_vHoverPosePosition: Vector | undefined
-  m_angHoverPoseAngles: Angles | undefined
-  m_bNotSolidToWorld: boolean | undefined
-  m_bEnableUseOutput: boolean | undefined
-  m_nHoverPoseFlags: number | undefined
-  m_flTouchOutputPerEntityDelay: number | undefined
-  readonly m_iszCollisionGroup: string | undefined
-  readonly m_iszInteractsAs: string | undefined
-  readonly m_iszInteractsWith: string | undefined
-  readonly m_iszInteractsExclude: string | undefined
-  inputDisableMotion(): boolean
-  inputEnableMotion(): boolean
-  inputForceDrop(): boolean
-  inputSleep(): boolean
-  inputWake(): boolean
-}
-define(CPhysBox, 'CPhysBox', {
+const fieldsCPhysBox = {
   m_damageType: 'int32',
   m_damageToEnableMotion: 'int32',
   m_flForceToEnableMotion: 'float32',
@@ -4612,13 +3138,17 @@ define(CPhysBox, 'CPhysBox', {
   m_iszInteractsAs: 'string',
   m_iszInteractsWith: 'string',
   m_iszInteractsExclude: 'string',
-}, {
+} as const
+const inputsCPhysBox = {
   DisableMotion: '',
   EnableMotion: '',
   ForceDrop: '',
   Sleep: '',
   Wake: '',
-})
+} as const
+export class CPhysBox extends CBreakable {}
+export interface CPhysBox extends Fields<typeof fieldsCPhysBox>, Inputs<typeof inputsCPhysBox> {}
+define(CPhysBox, 'CPhysBox', fieldsCPhysBox, inputsCPhysBox)
 
 export class CPushable extends CBreakable {}
 define(CPushable, 'CPushable', {})
@@ -4626,94 +3156,55 @@ define(CPushable, 'CPushable', {})
 export class CCitadelBulletRedirectVolume extends CBaseModelEntity {}
 define(CCitadelBulletRedirectVolume, 'CCitadelBulletRedirectVolume', {})
 
-export class CCitadelBulletTimeWarp extends CBaseModelEntity {}
-export interface CCitadelBulletTimeWarp {
-  m_flBulletTimeScale: number | undefined
-  m_flProjectileTimeScale: number | undefined
-  m_flExpireTime: number | undefined
-  m_flStopDuration: number | undefined
-  m_flBulletTimeScaleFriendly: number | undefined
-  m_flBonusBulletBaseDamageFriendly: number | undefined
-}
-define(CCitadelBulletTimeWarp, 'CCitadelBulletTimeWarp', {
+const fieldsCCitadelBulletTimeWarp = {
   m_flBulletTimeScale: 'float32',
   m_flProjectileTimeScale: 'float32',
   m_flExpireTime: 'float32',
   m_flStopDuration: 'float32',
   m_flBulletTimeScaleFriendly: 'float32',
   m_flBonusBulletBaseDamageFriendly: 'float32',
-})
+} as const
+export class CCitadelBulletTimeWarp extends CBaseModelEntity {}
+export interface CCitadelBulletTimeWarp extends Fields<typeof fieldsCCitadelBulletTimeWarp> {}
+define(CCitadelBulletTimeWarp, 'CCitadelBulletTimeWarp', fieldsCCitadelBulletTimeWarp)
 
-export class CCitadelHideoutInterestPoint extends CBaseModelEntity {}
-export interface CCitadelHideoutInterestPoint {
-  m_flMaxDistance: number | undefined
-}
-define(CCitadelHideoutInterestPoint, 'CCitadelHideoutInterestPoint', {
+const fieldsCCitadelHideoutInterestPoint = {
   m_flMaxDistance: 'float32',
-})
+} as const
+export class CCitadelHideoutInterestPoint extends CBaseModelEntity {}
+export interface CCitadelHideoutInterestPoint extends Fields<typeof fieldsCCitadelHideoutInterestPoint> {}
+define(CCitadelHideoutInterestPoint, 'CCitadelHideoutInterestPoint', fieldsCCitadelHideoutInterestPoint)
 
 export class CCitadelModelEntity extends CBaseModelEntity {}
 define(CCitadelModelEntity, 'CCitadelModelEntity', {})
 
-export class CCitadelViscousBall extends CCitadelModelEntity {}
-export interface CCitadelViscousBall {
-  m_hAbility: CCitadelBaseAbility | undefined
-}
-define(CCitadelViscousBall, 'CCitadelViscousBall', {
+const fieldsCCitadelViscousBall = {
   m_hAbility: 'CCitadelBaseAbility',
-})
+} as const
+export class CCitadelViscousBall extends CCitadelModelEntity {}
+export interface CCitadelViscousBall extends Fields<typeof fieldsCCitadelViscousBall> {}
+define(CCitadelViscousBall, 'CCitadelViscousBall', fieldsCCitadelViscousBall)
 
-export class CCitadel_Shield extends CCitadelModelEntity {}
-export interface CCitadel_Shield {
-  m_bAllowRotatingUp: boolean | undefined
-  m_bFixedPosition: boolean | undefined
-  m_flShieldOffset: number | undefined
-}
-define(CCitadel_Shield, 'CCitadel_Shield', {
+const fieldsCCitadel_Shield = {
   m_bAllowRotatingUp: 'bool',
   m_bFixedPosition: 'bool',
   m_flShieldOffset: 'float32',
-})
+} as const
+export class CCitadel_Shield extends CCitadelModelEntity {}
+export interface CCitadel_Shield extends Fields<typeof fieldsCCitadel_Shield> {}
+define(CCitadel_Shield, 'CCitadel_Shield', fieldsCCitadel_Shield)
 
-export class CCitadelPassthroughFakeWall extends CBaseModelEntity {}
-export interface CCitadelPassthroughFakeWall {
-  m_bAllowAnyone: boolean | undefined
-  m_bAllowTinyCharacters: boolean | undefined
-  m_flTriggerDistanceMeters: number | undefined
-  m_hTrigger: CBaseEntity | undefined
-}
-define(CCitadelPassthroughFakeWall, 'CCitadelPassthroughFakeWall', {
+const fieldsCCitadelPassthroughFakeWall = {
   m_bAllowAnyone: 'bool',
   m_bAllowTinyCharacters: 'bool',
   m_flTriggerDistanceMeters: 'float32',
   m_hTrigger: 'CBaseEntity',
-})
+} as const
+export class CCitadelPassthroughFakeWall extends CBaseModelEntity {}
+export interface CCitadelPassthroughFakeWall extends Fields<typeof fieldsCCitadelPassthroughFakeWall> {}
+define(CCitadelPassthroughFakeWall, 'CCitadelPassthroughFakeWall', fieldsCCitadelPassthroughFakeWall)
 
-export class CCitadelProjectile extends CBaseModelEntity {}
-export interface CCitadelProjectile {
-  m_flMaxDistance: number | undefined
-  m_nCachedExcludeFlags: bigint | undefined
-  m_bInPortalEnvironment: boolean | undefined
-  m_bHandlingPortalResult: boolean | undefined
-  m_flArmingTime: number | undefined
-  m_flChargeAmount: number | undefined
-  m_bCollideWithThrower: boolean | undefined
-  m_bNewCollideWithThrower: boolean | undefined
-  m_flTickSoundInterval: number | undefined
-  m_nNumDetonations: number | undefined
-  m_nDetonationsLeft: number | undefined
-  m_vLastAbsOrigin: Vector | undefined
-  m_vLastAbsVelocity: Vector | undefined
-  m_bDetonateStarted: boolean | undefined
-  m_bTouchDisabled: boolean | undefined
-  m_vInitialVelocity: Vector | undefined
-  m_vInitialPosition: Vector | undefined
-  m_vecSpawnPosition: Vector | undefined
-  m_flProjectileSpeed: number | undefined
-  m_flMaxLifetime: number | undefined
-  m_flParticleRadius: number | undefined
-}
-define(CCitadelProjectile, 'CCitadelProjectile', {
+const fieldsCCitadelProjectile = {
   m_flMaxDistance: 'float32',
   m_nCachedExcludeFlags: 'uint64',
   m_bInPortalEnvironment: 'bool',
@@ -4735,59 +3226,40 @@ define(CCitadelProjectile, 'CCitadelProjectile', {
   m_flProjectileSpeed: 'float32',
   m_flMaxLifetime: 'float32',
   m_flParticleRadius: 'float32',
-})
+} as const
+export class CCitadelProjectile extends CBaseModelEntity {}
+export interface CCitadelProjectile extends Fields<typeof fieldsCCitadelProjectile> {}
+define(CCitadelProjectile, 'CCitadelProjectile', fieldsCCitadelProjectile)
 
-export class CCitadelBoomerangProjectile extends CCitadelProjectile {}
-export interface CCitadelBoomerangProjectile {
-  m_bReturning: boolean | undefined
-}
-define(CCitadelBoomerangProjectile, 'CCitadelBoomerangProjectile', {
+const fieldsCCitadelBoomerangProjectile = {
   m_bReturning: 'bool',
-})
+} as const
+export class CCitadelBoomerangProjectile extends CCitadelProjectile {}
+export interface CCitadelBoomerangProjectile extends Fields<typeof fieldsCCitadelBoomerangProjectile> {}
+define(CCitadelBoomerangProjectile, 'CCitadelBoomerangProjectile', fieldsCCitadelBoomerangProjectile)
 
-export class CCitadelConfigurableTrackedProjectile extends CCitadelProjectile {}
-export interface CCitadelConfigurableTrackedProjectile {
-  m_eTrackedTargetType: number | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_flTrackingStartTime: number | undefined
-  m_vLastValidPosition: Vector | undefined
-  m_flTrackingDuration: number | undefined
-}
-define(CCitadelConfigurableTrackedProjectile, 'CCitadelConfigurableTrackedProjectile', {
+const fieldsCCitadelConfigurableTrackedProjectile = {
   m_eTrackedTargetType: 'uint32',
   m_hTarget: 'CBaseEntity',
   m_flTrackingStartTime: 'float32',
   m_vLastValidPosition: 'vector',
   m_flTrackingDuration: 'float32',
-})
+} as const
+export class CCitadelConfigurableTrackedProjectile extends CCitadelProjectile {}
+export interface CCitadelConfigurableTrackedProjectile extends Fields<typeof fieldsCCitadelConfigurableTrackedProjectile> {}
+define(CCitadelConfigurableTrackedProjectile, 'CCitadelConfigurableTrackedProjectile', fieldsCCitadelConfigurableTrackedProjectile)
 
-export class CCitadelProjectile_ImmobilizeTrap extends CCitadelProjectile {}
-export interface CCitadelProjectile_ImmobilizeTrap {
-  m_flStartTime: number | undefined
-  m_vecStartPos: Vector | undefined
-  m_vecEndPos: Vector | undefined
-  m_flProjectileLandTime: number | undefined
-}
-define(CCitadelProjectile_ImmobilizeTrap, 'CCitadelProjectile_ImmobilizeTrap', {
+const fieldsCCitadelProjectile_ImmobilizeTrap = {
   m_flStartTime: 'float32',
   m_vecStartPos: 'vector',
   m_vecEndPos: 'vector',
   m_flProjectileLandTime: 'float32',
-})
+} as const
+export class CCitadelProjectile_ImmobilizeTrap extends CCitadelProjectile {}
+export interface CCitadelProjectile_ImmobilizeTrap extends Fields<typeof fieldsCCitadelProjectile_ImmobilizeTrap> {}
+define(CCitadelProjectile_ImmobilizeTrap, 'CCitadelProjectile_ImmobilizeTrap', fieldsCCitadelProjectile_ImmobilizeTrap)
 
-export class CCitadelTrackedProjectile extends CCitadelProjectile {}
-export interface CCitadelTrackedProjectile {
-  m_eTrackedTargetType: number | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_flTrackingStartTime: number | undefined
-  m_flTrackingDampingCoefficient: number | undefined
-  m_flTrackingSpeed: number | undefined
-  m_flTrackingDuration: number | undefined
-  m_flTrackingWindowStart: number | undefined
-  m_flTrackingWindowEnd: number | undefined
-  m_vLastValidPosition: Vector | undefined
-}
-define(CCitadelTrackedProjectile, 'CCitadelTrackedProjectile', {
+const fieldsCCitadelTrackedProjectile = {
   m_eTrackedTargetType: 'uint32',
   m_hTarget: 'CBaseEntity',
   m_flTrackingStartTime: 'float32',
@@ -4797,19 +3269,19 @@ define(CCitadelTrackedProjectile, 'CCitadelTrackedProjectile', {
   m_flTrackingWindowStart: 'float32',
   m_flTrackingWindowEnd: 'float32',
   m_vLastValidPosition: 'vector',
-})
+} as const
+export class CCitadelTrackedProjectile extends CCitadelProjectile {}
+export interface CCitadelTrackedProjectile extends Fields<typeof fieldsCCitadelTrackedProjectile> {}
+define(CCitadelTrackedProjectile, 'CCitadelTrackedProjectile', fieldsCCitadelTrackedProjectile)
 
-export class CCitadel_Projectile_BatSwarmProjectile extends CCitadelTrackedProjectile {}
-export interface CCitadel_Projectile_BatSwarmProjectile {
-  m_vecTargetVelocity: Vector | undefined
-  m_vecLastVelocity: Vector | undefined
-  m_SpawnTime: number | undefined
-}
-define(CCitadel_Projectile_BatSwarmProjectile, 'CCitadel_Projectile_BatSwarmProjectile', {
+const fieldsCCitadel_Projectile_BatSwarmProjectile = {
   m_vecTargetVelocity: 'vector',
   m_vecLastVelocity: 'vector',
   m_SpawnTime: 'float32',
-})
+} as const
+export class CCitadel_Projectile_BatSwarmProjectile extends CCitadelTrackedProjectile {}
+export interface CCitadel_Projectile_BatSwarmProjectile extends Fields<typeof fieldsCCitadel_Projectile_BatSwarmProjectile> {}
+define(CCitadel_Projectile_BatSwarmProjectile, 'CCitadel_Projectile_BatSwarmProjectile', fieldsCCitadel_Projectile_BatSwarmProjectile)
 
 export class CCitadel_Projectile_BatSwarmExtraProjectile extends CCitadel_Projectile_BatSwarmProjectile {}
 define(CCitadel_Projectile_BatSwarmExtraProjectile, 'CCitadel_Projectile_BatSwarmExtraProjectile', {})
@@ -4817,13 +3289,12 @@ define(CCitadel_Projectile_BatSwarmExtraProjectile, 'CCitadel_Projectile_BatSwar
 export class CCitadel_Projectile_FortunaWeapon extends CCitadelTrackedProjectile {}
 define(CCitadel_Projectile_FortunaWeapon, 'CCitadel_Projectile_FortunaWeapon', {})
 
-export class CCitadel_Projectile_HookBlade extends CCitadelTrackedProjectile {}
-export interface CCitadel_Projectile_HookBlade {
-  bIsReturning: boolean | undefined
-}
-define(CCitadel_Projectile_HookBlade, 'CCitadel_Projectile_HookBlade', {
+const fieldsCCitadel_Projectile_HookBlade = {
   bIsReturning: 'bool',
-})
+} as const
+export class CCitadel_Projectile_HookBlade extends CCitadelTrackedProjectile {}
+export interface CCitadel_Projectile_HookBlade extends Fields<typeof fieldsCCitadel_Projectile_HookBlade> {}
+define(CCitadel_Projectile_HookBlade, 'CCitadel_Projectile_HookBlade', fieldsCCitadel_Projectile_HookBlade)
 
 export class CProjectile_Boho_BouncyProjectile extends CCitadelTrackedProjectile {}
 define(CProjectile_Boho_BouncyProjectile, 'CProjectile_Boho_BouncyProjectile', {})
@@ -4831,13 +3302,12 @@ define(CProjectile_Boho_BouncyProjectile, 'CProjectile_Boho_BouncyProjectile', {
 export class CProjectile_Familiar_MovingToAttach extends CCitadelTrackedProjectile {}
 define(CProjectile_Familiar_MovingToAttach, 'CProjectile_Familiar_MovingToAttach', {})
 
-export class CProjectile_PunkgoatTether extends CCitadelTrackedProjectile {}
-export interface CProjectile_PunkgoatTether {
-  m_nRopeProjectileParticle: number | undefined
-}
-define(CProjectile_PunkgoatTether, 'CProjectile_PunkgoatTether', {
+const fieldsCProjectile_PunkgoatTether = {
   m_nRopeProjectileParticle: 'int32',
-})
+} as const
+export class CProjectile_PunkgoatTether extends CCitadelTrackedProjectile {}
+export interface CProjectile_PunkgoatTether extends Fields<typeof fieldsCProjectile_PunkgoatTether> {}
+define(CProjectile_PunkgoatTether, 'CProjectile_PunkgoatTether', fieldsCProjectile_PunkgoatTether)
 
 export class CCitadel_Projectile_Archer_ChargedShot extends CCitadelProjectile {}
 define(CCitadel_Projectile_Archer_ChargedShot, 'CCitadel_Projectile_Archer_ChargedShot', {})
@@ -4845,50 +3315,41 @@ define(CCitadel_Projectile_Archer_ChargedShot, 'CCitadel_Projectile_Archer_Charg
 export class CCitadel_Projectile_Bebop_Hook extends CCitadelProjectile {}
 define(CCitadel_Projectile_Bebop_Hook, 'CCitadel_Projectile_Bebop_Hook', {})
 
-export class CCitadel_Projectile_BloodBomb extends CCitadelProjectile {}
-export interface CCitadel_Projectile_BloodBomb {
-  m_bSecondBomb: boolean | undefined
-  m_nBeepSoundBuildupCount: number | undefined
-  m_flBeepSoundIntervalBias: number | undefined
-  m_flBeepSoundMaxFrequency: number | undefined
-  m_flArmingDuration: number | undefined
-}
-define(CCitadel_Projectile_BloodBomb, 'CCitadel_Projectile_BloodBomb', {
+const fieldsCCitadel_Projectile_BloodBomb = {
   m_bSecondBomb: 'bool',
   m_nBeepSoundBuildupCount: 'int32',
   m_flBeepSoundIntervalBias: 'float32',
   m_flBeepSoundMaxFrequency: 'float32',
   m_flArmingDuration: 'float32',
-})
+} as const
+export class CCitadel_Projectile_BloodBomb extends CCitadelProjectile {}
+export interface CCitadel_Projectile_BloodBomb extends Fields<typeof fieldsCCitadel_Projectile_BloodBomb> {}
+define(CCitadel_Projectile_BloodBomb, 'CCitadel_Projectile_BloodBomb', fieldsCCitadel_Projectile_BloodBomb)
 
 export class CCitadel_Projectile_BookwormGun extends CCitadelProjectile {}
 define(CCitadel_Projectile_BookwormGun, 'CCitadel_Projectile_BookwormGun', {})
 
-export class CCitadel_Projectile_BubblingBrew extends CCitadelProjectile {}
-export interface CCitadel_Projectile_BubblingBrew {
-  m_bIsReturningProjectile: boolean | undefined
-}
-define(CCitadel_Projectile_BubblingBrew, 'CCitadel_Projectile_BubblingBrew', {
+const fieldsCCitadel_Projectile_BubblingBrew = {
   m_bIsReturningProjectile: 'bool',
-})
+} as const
+export class CCitadel_Projectile_BubblingBrew extends CCitadelProjectile {}
+export interface CCitadel_Projectile_BubblingBrew extends Fields<typeof fieldsCCitadel_Projectile_BubblingBrew> {}
+define(CCitadel_Projectile_BubblingBrew, 'CCitadel_Projectile_BubblingBrew', fieldsCCitadel_Projectile_BubblingBrew)
 
-export class CCitadel_Projectile_Cyclone extends CCitadelProjectile {}
-export interface CCitadel_Projectile_Cyclone {
-  m_CycloneAbility: CCitadel_Ability_Thumper_4 | undefined
-}
-define(CCitadel_Projectile_Cyclone, 'CCitadel_Projectile_Cyclone', {
+const fieldsCCitadel_Projectile_Cyclone = {
   m_CycloneAbility: 'CCitadel_Ability_Thumper_4',
-})
+} as const
+export class CCitadel_Projectile_Cyclone extends CCitadelProjectile {}
+export interface CCitadel_Projectile_Cyclone extends Fields<typeof fieldsCCitadel_Projectile_Cyclone> {}
+define(CCitadel_Projectile_Cyclone, 'CCitadel_Projectile_Cyclone', fieldsCCitadel_Projectile_Cyclone)
 
-export class CCitadel_Projectile_DustStorm extends CCitadelProjectile {}
-export interface CCitadel_Projectile_DustStorm {
-  m_cTicksNoMovement: number | undefined
-  m_DustStormAbility: CCitadel_Ability_Dust_Storm | undefined
-}
-define(CCitadel_Projectile_DustStorm, 'CCitadel_Projectile_DustStorm', {
+const fieldsCCitadel_Projectile_DustStorm = {
   m_cTicksNoMovement: 'int32',
   m_DustStormAbility: 'CCitadel_Ability_Dust_Storm',
-})
+} as const
+export class CCitadel_Projectile_DustStorm extends CCitadelProjectile {}
+export interface CCitadel_Projectile_DustStorm extends Fields<typeof fieldsCCitadel_Projectile_DustStorm> {}
+define(CCitadel_Projectile_DustStorm, 'CCitadel_Projectile_DustStorm', fieldsCCitadel_Projectile_DustStorm)
 
 export class CCitadel_Projectile_FeatherBoomerang extends CCitadelProjectile {}
 define(CCitadel_Projectile_FeatherBoomerang, 'CCitadel_Projectile_FeatherBoomerang', {})
@@ -4896,13 +3357,12 @@ define(CCitadel_Projectile_FeatherBoomerang, 'CCitadel_Projectile_FeatherBoomera
 export class CCitadel_Projectile_Guided_Arrow extends CCitadelProjectile {}
 define(CCitadel_Projectile_Guided_Arrow, 'CCitadel_Projectile_Guided_Arrow', {})
 
-export class CCitadel_Projectile_MagicBolt extends CCitadelProjectile {}
-export interface CCitadel_Projectile_MagicBolt {
-  bIsCloneProjectile: boolean | undefined
-}
-define(CCitadel_Projectile_MagicBolt, 'CCitadel_Projectile_MagicBolt', {
+const fieldsCCitadel_Projectile_MagicBolt = {
   bIsCloneProjectile: 'bool',
-})
+} as const
+export class CCitadel_Projectile_MagicBolt extends CCitadelProjectile {}
+export interface CCitadel_Projectile_MagicBolt extends Fields<typeof fieldsCCitadel_Projectile_MagicBolt> {}
+define(CCitadel_Projectile_MagicBolt, 'CCitadel_Projectile_MagicBolt', fieldsCCitadel_Projectile_MagicBolt)
 
 export class CCitadel_Projectile_Petrify extends CCitadelProjectile {}
 define(CCitadel_Projectile_Petrify, 'CCitadel_Projectile_Petrify', {})
@@ -4916,52 +3376,42 @@ define(CCitadel_Projectile_RocketLauncher_Rocket, 'CCitadel_Projectile_RocketLau
 export class CCitadel_Projectile_SettingSun extends CCitadelProjectile {}
 define(CCitadel_Projectile_SettingSun, 'CCitadel_Projectile_SettingSun', {})
 
-export class CCitadel_Projectile_SpiderProjectile extends CCitadelProjectile {}
-export interface CCitadel_Projectile_SpiderProjectile {
-  m_flNextRandomPositionTime: number | undefined
-}
-define(CCitadel_Projectile_SpiderProjectile, 'CCitadel_Projectile_SpiderProjectile', {
+const fieldsCCitadel_Projectile_SpiderProjectile = {
   m_flNextRandomPositionTime: 'float32',
-})
+} as const
+export class CCitadel_Projectile_SpiderProjectile extends CCitadelProjectile {}
+export interface CCitadel_Projectile_SpiderProjectile extends Fields<typeof fieldsCCitadel_Projectile_SpiderProjectile> {}
+define(CCitadel_Projectile_SpiderProjectile, 'CCitadel_Projectile_SpiderProjectile', fieldsCCitadel_Projectile_SpiderProjectile)
 
-export class CCitadel_Projectile_Viscous_GooGrenade extends CCitadelProjectile {}
-export interface CCitadel_Projectile_Viscous_GooGrenade {
-  m_nBounces: number | undefined
-  m_tNextDetonateTime: number | undefined
-}
-define(CCitadel_Projectile_Viscous_GooGrenade, 'CCitadel_Projectile_Viscous_GooGrenade', {
+const fieldsCCitadel_Projectile_Viscous_GooGrenade = {
   m_nBounces: 'int32',
   m_tNextDetonateTime: 'float32',
-})
+} as const
+export class CCitadel_Projectile_Viscous_GooGrenade extends CCitadelProjectile {}
+export interface CCitadel_Projectile_Viscous_GooGrenade extends Fields<typeof fieldsCCitadel_Projectile_Viscous_GooGrenade> {}
+define(CCitadel_Projectile_Viscous_GooGrenade, 'CCitadel_Projectile_Viscous_GooGrenade', fieldsCCitadel_Projectile_Viscous_GooGrenade)
 
-export class CCitadel_Projectile_WebWall extends CCitadelProjectile {}
-export interface CCitadel_Projectile_WebWall {
-  bHasDetonatedOnTarget: boolean | undefined
-  m_nWebWallFxIndex: number | undefined
-  m_vecCastPosition: Vector | undefined
-  m_vecCastPositionNormal: Vector | undefined
-  m_vecEndPosition: Vector | undefined
-  m_vecEndPositionNormal: Vector | undefined
-}
-define(CCitadel_Projectile_WebWall, 'CCitadel_Projectile_WebWall', {
+const fieldsCCitadel_Projectile_WebWall = {
   bHasDetonatedOnTarget: 'bool',
   m_nWebWallFxIndex: 'int32',
   m_vecCastPosition: 'vector',
   m_vecCastPositionNormal: 'vector',
   m_vecEndPosition: 'vector',
   m_vecEndPositionNormal: 'vector',
-})
+} as const
+export class CCitadel_Projectile_WebWall extends CCitadelProjectile {}
+export interface CCitadel_Projectile_WebWall extends Fields<typeof fieldsCCitadel_Projectile_WebWall> {}
+define(CCitadel_Projectile_WebWall, 'CCitadel_Projectile_WebWall', fieldsCCitadel_Projectile_WebWall)
 
 export class CCitadel_Projectile_Wrecker_Teleport extends CCitadelProjectile {}
 define(CCitadel_Projectile_Wrecker_Teleport, 'CCitadel_Projectile_Wrecker_Teleport', {})
 
-export class CCitadel_Projectile_WreckingBall extends CCitadelProjectile {}
-export interface CCitadel_Projectile_WreckingBall {
-  m_bBroken: boolean | undefined
-}
-define(CCitadel_Projectile_WreckingBall, 'CCitadel_Projectile_WreckingBall', {
+const fieldsCCitadel_Projectile_WreckingBall = {
   m_bBroken: 'bool',
-})
+} as const
+export class CCitadel_Projectile_WreckingBall extends CCitadelProjectile {}
+export interface CCitadel_Projectile_WreckingBall extends Fields<typeof fieldsCCitadel_Projectile_WreckingBall> {}
+define(CCitadel_Projectile_WreckingBall, 'CCitadel_Projectile_WreckingBall', fieldsCCitadel_Projectile_WreckingBall)
 
 export class CDoormanBombProjectile extends CCitadelProjectile {}
 define(CDoormanBombProjectile, 'CDoormanBombProjectile', {})
@@ -4978,19 +3428,15 @@ define(CProjectile_BookwormDragon_Projectile, 'CProjectile_BookwormDragon_Projec
 export class CProjectile_Doorman_Cart_Projectile extends CCitadelProjectile {}
 define(CProjectile_Doorman_Cart_Projectile, 'CProjectile_Doorman_Cart_Projectile', {})
 
-export class CProjectile_GraveStone_Projectile extends CCitadelProjectile {}
-export interface CProjectile_GraveStone_Projectile {
-  m_vLastStompPos: Vector | undefined
-  m_bFinished: boolean | undefined
-  m_flWidth: number | undefined
-  m_tDieTime: number | undefined
-}
-define(CProjectile_GraveStone_Projectile, 'CProjectile_GraveStone_Projectile', {
+const fieldsCProjectile_GraveStone_Projectile = {
   m_vLastStompPos: 'vector',
   m_bFinished: 'bool',
   m_flWidth: 'float32',
   m_tDieTime: 'float32',
-})
+} as const
+export class CProjectile_GraveStone_Projectile extends CCitadelProjectile {}
+export interface CProjectile_GraveStone_Projectile extends Fields<typeof fieldsCProjectile_GraveStone_Projectile> {}
+define(CProjectile_GraveStone_Projectile, 'CProjectile_GraveStone_Projectile', fieldsCProjectile_GraveStone_Projectile)
 
 export class CProjectile_KnightCharge_Projectile extends CCitadelProjectile {}
 define(CProjectile_KnightCharge_Projectile, 'CProjectile_KnightCharge_Projectile', {})
@@ -5007,67 +3453,48 @@ define(CProjectile_Necro_ZombieWall_Projectile, 'CProjectile_Necro_ZombieWall_Pr
 export class CProjectile_Perched_Predator extends CCitadelProjectile {}
 define(CProjectile_Perched_Predator, 'CProjectile_Perched_Predator', {})
 
-export class CProjectile_Rolling_FireBall extends CCitadelProjectile {}
-export interface CProjectile_Rolling_FireBall {
-  m_bHitWorld: boolean | undefined
-  m_vInitialDirection: Vector | undefined
-}
-define(CProjectile_Rolling_FireBall, 'CProjectile_Rolling_FireBall', {
+const fieldsCProjectile_Rolling_FireBall = {
   m_bHitWorld: 'bool',
   m_vInitialDirection: 'vector',
-})
+} as const
+export class CProjectile_Rolling_FireBall extends CCitadelProjectile {}
+export interface CProjectile_Rolling_FireBall extends Fields<typeof fieldsCProjectile_Rolling_FireBall> {}
+define(CProjectile_Rolling_FireBall, 'CProjectile_Rolling_FireBall', fieldsCProjectile_Rolling_FireBall)
 
 export class CProjectile_Rutger_Rocket extends CCitadelProjectile {}
 define(CProjectile_Rutger_Rocket, 'CProjectile_Rutger_Rocket', {})
 
-export class CProjectile_Stomp_Projectile extends CCitadelProjectile {}
-export interface CProjectile_Stomp_Projectile {
-  m_vLastStompPos: Vector | undefined
-  m_bFinished: boolean | undefined
-  m_flWidth: number | undefined
-  m_tDieTime: number | undefined
-}
-define(CProjectile_Stomp_Projectile, 'CProjectile_Stomp_Projectile', {
+const fieldsCProjectile_Stomp_Projectile = {
   m_vLastStompPos: 'vector',
   m_bFinished: 'bool',
   m_flWidth: 'float32',
   m_tDieTime: 'float32',
-})
+} as const
+export class CProjectile_Stomp_Projectile extends CCitadelProjectile {}
+export interface CProjectile_Stomp_Projectile extends Fields<typeof fieldsCProjectile_Stomp_Projectile> {}
+define(CProjectile_Stomp_Projectile, 'CProjectile_Stomp_Projectile', fieldsCProjectile_Stomp_Projectile)
 
 export class CProjectile_Synth_Barrage extends CCitadelProjectile {}
 define(CProjectile_Synth_Barrage, 'CProjectile_Synth_Barrage', {})
 
-export class CProjectile_Synth_PlasmaFlux extends CCitadelProjectile {}
-export interface CProjectile_Synth_PlasmaFlux {
-  m_bSpawnedInNoTeleportArea: boolean | undefined
-}
-define(CProjectile_Synth_PlasmaFlux, 'CProjectile_Synth_PlasmaFlux', {
+const fieldsCProjectile_Synth_PlasmaFlux = {
   m_bSpawnedInNoTeleportArea: 'bool',
-})
+} as const
+export class CProjectile_Synth_PlasmaFlux extends CCitadelProjectile {}
+export interface CProjectile_Synth_PlasmaFlux extends Fields<typeof fieldsCProjectile_Synth_PlasmaFlux> {}
+define(CProjectile_Synth_PlasmaFlux, 'CProjectile_Synth_PlasmaFlux', fieldsCProjectile_Synth_PlasmaFlux)
 
 export class CScrapGrenadeProjectile extends CCitadelProjectile {}
 define(CScrapGrenadeProjectile, 'CScrapGrenadeProjectile', {})
 
-export class CCitadelProjectileTouchVolume extends CBaseModelEntity {}
-export interface CCitadelProjectileTouchVolume {
-  m_hAbility: CCitadelBaseAbility | undefined
-}
-define(CCitadelProjectileTouchVolume, 'CCitadelProjectileTouchVolume', {
+const fieldsCCitadelProjectileTouchVolume = {
   m_hAbility: 'CCitadelBaseAbility',
-})
+} as const
+export class CCitadelProjectileTouchVolume extends CBaseModelEntity {}
+export interface CCitadelProjectileTouchVolume extends Fields<typeof fieldsCCitadelProjectileTouchVolume> {}
+define(CCitadelProjectileTouchVolume, 'CCitadelProjectileTouchVolume', fieldsCCitadelProjectileTouchVolume)
 
-export class CCitadelTunnelNode extends CBaseModelEntity {}
-export interface CCitadelTunnelNode {
-  readonly m_strNode01: string | undefined
-  readonly m_strNode02: string | undefined
-  readonly m_strNode03: string | undefined
-  m_bIsExit: boolean | undefined
-  m_nTunnelID: number | undefined
-  m_hConnection1: CCitadelTunnelNode | undefined
-  m_hConnection2: CCitadelTunnelNode | undefined
-  m_hConnection3: CCitadelTunnelNode | undefined
-}
-define(CCitadelTunnelNode, 'CCitadelTunnelNode', {
+const fieldsCCitadelTunnelNode = {
   m_strNode01: 'string',
   m_strNode02: 'string',
   m_strNode03: 'string',
@@ -5076,28 +3503,12 @@ define(CCitadelTunnelNode, 'CCitadelTunnelNode', {
   m_hConnection1: 'CCitadelTunnelNode',
   m_hConnection2: 'CCitadelTunnelNode',
   m_hConnection3: 'CCitadelTunnelNode',
-})
+} as const
+export class CCitadelTunnelNode extends CBaseModelEntity {}
+export interface CCitadelTunnelNode extends Fields<typeof fieldsCCitadelTunnelNode> {}
+define(CCitadelTunnelNode, 'CCitadelTunnelNode', fieldsCCitadelTunnelNode)
 
-export class CCitadelZipLineNode extends CBaseModelEntity {}
-export interface CCitadelZipLineNode {
-  m_vTangentIn: Vector | undefined
-  m_vTangentOut: Vector | undefined
-  m_flCumulativeDistance: number | undefined
-  readonly m_strGuardBossName: string | undefined
-  readonly m_strGuardBossName2: string | undefined
-  readonly m_strGuardBossName3: string | undefined
-  m_iNodeIndex: number | undefined
-  m_eCaptureState: number | undefined
-  m_iPrimaryLane: number | undefined
-  m_nRopesParity: number | undefined
-  m_bCornerNode: boolean | undefined
-  m_bCapturable: boolean | undefined
-  m_bDisableZippingToByPlayers: boolean | undefined
-  m_flSpeedMultiplierToBaseBonus: number | undefined
-  m_flSpeedMultiplierFromBaseBonus: number | undefined
-  m_flRopeRadius: number | undefined
-}
-define(CCitadelZipLineNode, 'CCitadelZipLineNode', {
+const fieldsCCitadelZipLineNode = {
   m_vTangentIn: 'vector',
   m_vTangentOut: 'vector',
   m_flCumulativeDistance: 'float32',
@@ -5114,64 +3525,38 @@ define(CCitadelZipLineNode, 'CCitadelZipLineNode', {
   m_flSpeedMultiplierToBaseBonus: 'float32',
   m_flSpeedMultiplierFromBaseBonus: 'float32',
   m_flRopeRadius: 'float32',
-})
+} as const
+export class CCitadelZipLineNode extends CBaseModelEntity {}
+export interface CCitadelZipLineNode extends Fields<typeof fieldsCCitadelZipLineNode> {}
+define(CCitadelZipLineNode, 'CCitadelZipLineNode', fieldsCCitadelZipLineNode)
 
 export class CCitadel_Hideout_Ball extends CBaseModelEntity {}
 define(CCitadel_Hideout_Ball, 'CCitadel_Hideout_Ball', {})
 
-export class CCitadel_Ice_Path_Shard_Physics extends CBaseModelEntity {}
-export interface CCitadel_Ice_Path_Shard_Physics {
-  m_qForward: Angles | undefined
-  m_flStartTime: number | undefined
-  m_flEndTime: number | undefined
-  m_flShardWidth: number | undefined
-}
-define(CCitadel_Ice_Path_Shard_Physics, 'CCitadel_Ice_Path_Shard_Physics', {
+const fieldsCCitadel_Ice_Path_Shard_Physics = {
   m_qForward: 'angles',
   m_flStartTime: 'float32',
   m_flEndTime: 'float32',
   m_flShardWidth: 'float32',
-})
+} as const
+export class CCitadel_Ice_Path_Shard_Physics extends CBaseModelEntity {}
+export interface CCitadel_Ice_Path_Shard_Physics extends Fields<typeof fieldsCCitadel_Ice_Path_Shard_Physics> {}
+define(CCitadel_Ice_Path_Shard_Physics, 'CCitadel_Ice_Path_Shard_Physics', fieldsCCitadel_Ice_Path_Shard_Physics)
 
-export class CCitadel_Priest_SlideTrap extends CBaseModelEntity {}
-export interface CCitadel_Priest_SlideTrap {
-  m_flRangeAtCast: number | undefined
-  m_bArmed: boolean | undefined
-  m_bMoving: boolean | undefined
-  m_bFinished: boolean | undefined
-}
-define(CCitadel_Priest_SlideTrap, 'CCitadel_Priest_SlideTrap', {
+const fieldsCCitadel_Priest_SlideTrap = {
   m_flRangeAtCast: 'float32',
   m_bArmed: 'bool',
   m_bMoving: 'bool',
   m_bFinished: 'bool',
-})
+} as const
+export class CCitadel_Priest_SlideTrap extends CBaseModelEntity {}
+export interface CCitadel_Priest_SlideTrap extends Fields<typeof fieldsCCitadel_Priest_SlideTrap> {}
+define(CCitadel_Priest_SlideTrap, 'CCitadel_Priest_SlideTrap', fieldsCCitadel_Priest_SlideTrap)
 
 export class CConditionalCollidable extends CBaseModelEntity {}
 define(CConditionalCollidable, 'CConditionalCollidable', {})
 
-export class CDynamicLight extends CBaseModelEntity {}
-export interface CDynamicLight {
-  m_ActualFlags: number | undefined
-  m_Flags: number | undefined
-  m_LightStyle: number | undefined
-  m_On: boolean | undefined
-  m_Radius: number | undefined
-  m_Exponent: number | undefined
-  m_InnerAngle: number | undefined
-  m_OuterAngle: number | undefined
-  m_SpotRadius: number | undefined
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-  input_cone(value: number): boolean
-  input_inner_cone(value: number): boolean
-  inputbrightness(value: number): boolean
-  inputdistance(value: number): boolean
-  inputspotlight_radius(value: number): boolean
-  inputstyle(value: number): boolean
-}
-define(CDynamicLight, 'CDynamicLight', {
+const fieldsCDynamicLight = {
   m_ActualFlags: 'uint8',
   m_Flags: 'uint8',
   m_LightStyle: 'uint8',
@@ -5181,7 +3566,8 @@ define(CDynamicLight, 'CDynamicLight', {
   m_InnerAngle: 'float32',
   m_OuterAngle: 'float32',
   m_SpotRadius: 'float32',
-}, {
+} as const
+const inputsCDynamicLight = {
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
@@ -5191,26 +3577,15 @@ define(CDynamicLight, 'CDynamicLight', {
   distance: 'number',
   spotlight_radius: 'number',
   style: 'integer',
-})
+} as const
+export class CDynamicLight extends CBaseModelEntity {}
+export interface CDynamicLight extends Fields<typeof fieldsCDynamicLight>, Inputs<typeof inputsCDynamicLight> {}
+define(CDynamicLight, 'CDynamicLight', fieldsCDynamicLight, inputsCDynamicLight)
 
 export class CEntityBlocker extends CBaseModelEntity {}
 define(CEntityBlocker, 'CEntityBlocker', {})
 
-export class CEntityDissolve extends CBaseModelEntity {}
-export interface CEntityDissolve {
-  m_flFadeInStart: number | undefined
-  m_flFadeInLength: number | undefined
-  m_flFadeOutModelStart: number | undefined
-  m_flFadeOutModelLength: number | undefined
-  m_flFadeOutStart: number | undefined
-  m_flFadeOutLength: number | undefined
-  m_flStartTime: number | undefined
-  m_nDissolveType: number | undefined
-  m_vDissolverOrigin: Vector | undefined
-  m_nMagnitude: number | undefined
-  inputDissolve(value: string): boolean
-}
-define(CEntityDissolve, 'CEntityDissolve', {
+const fieldsCEntityDissolve = {
   m_flFadeInStart: 'float32',
   m_flFadeInLength: 'float32',
   m_flFadeOutModelStart: 'float32',
@@ -5221,22 +3596,15 @@ define(CEntityDissolve, 'CEntityDissolve', {
   m_nDissolveType: 'uint32',
   m_vDissolverOrigin: 'vector',
   m_nMagnitude: 'uint32',
-}, {
+} as const
+const inputsCEntityDissolve = {
   Dissolve: 'text',
-})
+} as const
+export class CEntityDissolve extends CBaseModelEntity {}
+export interface CEntityDissolve extends Fields<typeof fieldsCEntityDissolve>, Inputs<typeof inputsCEntityDissolve> {}
+define(CEntityDissolve, 'CEntityDissolve', fieldsCEntityDissolve, inputsCEntityDissolve)
 
-export class CEnvDecal extends CBaseModelEntity {}
-export interface CEnvDecal {
-  m_flWidth: number | undefined
-  m_flHeight: number | undefined
-  m_flDepth: number | undefined
-  m_nRenderOrder: number | undefined
-  m_bProjectOnWorld: boolean | undefined
-  m_bProjectOnCharacters: boolean | undefined
-  m_bProjectOnWater: boolean | undefined
-  m_flDepthSortBias: number | undefined
-}
-define(CEnvDecal, 'CEnvDecal', {
+const fieldsCEnvDecal = {
   m_flWidth: 'float32',
   m_flHeight: 'float32',
   m_flDepth: 'float32',
@@ -5245,22 +3613,12 @@ define(CEnvDecal, 'CEnvDecal', {
   m_bProjectOnCharacters: 'bool',
   m_bProjectOnWater: 'bool',
   m_flDepthSortBias: 'float32',
-})
+} as const
+export class CEnvDecal extends CBaseModelEntity {}
+export interface CEnvDecal extends Fields<typeof fieldsCEnvDecal> {}
+define(CEnvDecal, 'CEnvDecal', fieldsCEnvDecal)
 
-export class CEnvSky extends CBaseModelEntity {}
-export interface CEnvSky {
-  m_bStartDisabled: boolean | undefined
-  m_flBrightnessScale: number | undefined
-  m_nFogType: number | undefined
-  m_flFogMinStart: number | undefined
-  m_flFogMinEnd: number | undefined
-  m_flFogMaxStart: number | undefined
-  m_flFogMaxEnd: number | undefined
-  m_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CEnvSky, 'CEnvSky', {
+const fieldsCEnvSky = {
   m_bStartDisabled: 'bool',
   m_flBrightnessScale: 'float32',
   m_nFogType: 'int32',
@@ -5269,35 +3627,24 @@ define(CEnvSky, 'CEnvSky', {
   m_flFogMaxStart: 'float32',
   m_flFogMaxEnd: 'float32',
   m_bEnabled: 'bool',
-}, {
+} as const
+const inputsCEnvSky = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CEnvSky extends CBaseModelEntity {}
+export interface CEnvSky extends Fields<typeof fieldsCEnvSky>, Inputs<typeof inputsCEnvSky> {}
+define(CEnvSky, 'CEnvSky', fieldsCEnvSky, inputsCEnvSky)
 
-export class CFuncBrush extends CBaseModelEntity {}
-export interface CFuncBrush {
-  m_iSolidity: number | undefined
-  m_iDisabled: number | undefined
-  m_bSolidBsp: boolean | undefined
-  readonly m_iszExcludedClass: string | undefined
-  m_bInvertExclusion: boolean | undefined
-  m_bScriptedMovement: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetExcluded(value: string): boolean
-  inputSetInvert(value: boolean): boolean
-  inputSetNonsolid(): boolean
-  inputSetSolid(): boolean
-  inputToggle(): boolean
-}
-define(CFuncBrush, 'CFuncBrush', {
+const fieldsCFuncBrush = {
   m_iSolidity: 'uint32',
   m_iDisabled: 'int32',
   m_bSolidBsp: 'bool',
   m_iszExcludedClass: 'string',
   m_bInvertExclusion: 'bool',
   m_bScriptedMovement: 'bool',
-}, {
+} as const
+const inputsCFuncBrush = {
   Disable: '',
   Enable: '',
   SetExcluded: 'text',
@@ -5305,61 +3652,39 @@ define(CFuncBrush, 'CFuncBrush', {
   SetNonsolid: '',
   SetSolid: '',
   Toggle: '',
-})
+} as const
+export class CFuncBrush extends CBaseModelEntity {}
+export interface CFuncBrush extends Fields<typeof fieldsCFuncBrush>, Inputs<typeof inputsCFuncBrush> {}
+define(CFuncBrush, 'CFuncBrush', fieldsCFuncBrush, inputsCFuncBrush)
 
 export class CCitadelSpawnBlocker extends CFuncBrush {}
 define(CCitadelSpawnBlocker, 'CCitadelSpawnBlocker', {})
 
-export class CCitadelZapTrigger extends CFuncBrush {}
-export interface CCitadelZapTrigger {
-  m_flShootAfterEnteringTime: number | undefined
-  m_flWaitForNextShootTime: number | undefined
-  m_flPercentMaxHealthDamage: number | undefined
-  readonly m_strShootOrigin: string | undefined
-}
-define(CCitadelZapTrigger, 'CCitadelZapTrigger', {
+const fieldsCCitadelZapTrigger = {
   m_flShootAfterEnteringTime: 'float32',
   m_flWaitForNextShootTime: 'float32',
   m_flPercentMaxHealthDamage: 'float32',
   m_strShootOrigin: 'string',
-})
+} as const
+export class CCitadelZapTrigger extends CFuncBrush {}
+export interface CCitadelZapTrigger extends Fields<typeof fieldsCCitadelZapTrigger> {}
+define(CCitadelZapTrigger, 'CCitadelZapTrigger', fieldsCCitadelZapTrigger)
 
-export class CFuncElectrifiedVolume extends CFuncBrush {}
-export interface CFuncElectrifiedVolume {
-  readonly m_EffectName: string | undefined
-  readonly m_EffectInterpenetrateName: string | undefined
-  readonly m_EffectZapName: string | undefined
-  readonly m_iszEffectSource: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CFuncElectrifiedVolume, 'CFuncElectrifiedVolume', {
+const fieldsCFuncElectrifiedVolume = {
   m_EffectName: 'string',
   m_EffectInterpenetrateName: 'string',
   m_EffectZapName: 'string',
   m_iszEffectSource: 'string',
-}, {
+} as const
+const inputsCFuncElectrifiedVolume = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CFuncElectrifiedVolume extends CFuncBrush {}
+export interface CFuncElectrifiedVolume extends Fields<typeof fieldsCFuncElectrifiedVolume>, Inputs<typeof inputsCFuncElectrifiedVolume> {}
+define(CFuncElectrifiedVolume, 'CFuncElectrifiedVolume', fieldsCFuncElectrifiedVolume, inputsCFuncElectrifiedVolume)
 
-export class CFuncMonitor extends CFuncBrush {}
-export interface CFuncMonitor {
-  readonly m_targetCamera: string | undefined
-  m_nResolutionEnum: number | undefined
-  m_bRenderShadows: boolean | undefined
-  m_bUseUniqueColorTarget: boolean | undefined
-  readonly m_brushModelName: string | undefined
-  m_hTargetCamera: CBaseEntity | undefined
-  m_bEnabled: boolean | undefined
-  m_bDraw3DSkybox: boolean | undefined
-  m_bStartEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetCamera(value: string): boolean
-  inputToggle(): boolean
-}
-define(CFuncMonitor, 'CFuncMonitor', {
+const fieldsCFuncMonitor = {
   m_targetCamera: 'string',
   m_nResolutionEnum: 'int32',
   m_bRenderShadows: 'bool',
@@ -5369,48 +3694,34 @@ define(CFuncMonitor, 'CFuncMonitor', {
   m_bEnabled: 'bool',
   m_bDraw3DSkybox: 'bool',
   m_bStartEnabled: 'bool',
-}, {
+} as const
+const inputsCFuncMonitor = {
   Disable: '',
   Enable: '',
   SetCamera: 'text',
   Toggle: '',
-})
+} as const
+export class CFuncMonitor extends CFuncBrush {}
+export interface CFuncMonitor extends Fields<typeof fieldsCFuncMonitor>, Inputs<typeof inputsCFuncMonitor> {}
+define(CFuncMonitor, 'CFuncMonitor', fieldsCFuncMonitor, inputsCFuncMonitor)
 
 export class CFuncIllusionary extends CBaseModelEntity {}
 define(CFuncIllusionary, 'CFuncIllusionary', {})
 
-export class CFuncInteractionLayerClip extends CBaseModelEntity {}
-export interface CFuncInteractionLayerClip {
-  m_bDisabled: boolean | undefined
-  readonly m_iszInteractsAs: string | undefined
-  readonly m_iszInteractsWith: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CFuncInteractionLayerClip, 'CFuncInteractionLayerClip', {
+const fieldsCFuncInteractionLayerClip = {
   m_bDisabled: 'bool',
   m_iszInteractsAs: 'string',
   m_iszInteractsWith: 'string',
-}, {
+} as const
+const inputsCFuncInteractionLayerClip = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CFuncInteractionLayerClip extends CBaseModelEntity {}
+export interface CFuncInteractionLayerClip extends Fields<typeof fieldsCFuncInteractionLayerClip>, Inputs<typeof inputsCFuncInteractionLayerClip> {}
+define(CFuncInteractionLayerClip, 'CFuncInteractionLayerClip', fieldsCFuncInteractionLayerClip, inputsCFuncInteractionLayerClip)
 
-export class CFuncLadder extends CBaseModelEntity {}
-export interface CFuncLadder {
-  m_vecLadderDir: Vector | undefined
-  m_vecLocalTop: Vector | undefined
-  m_vecPlayerMountPositionTop: Vector | undefined
-  m_vecPlayerMountPositionBottom: Vector | undefined
-  m_flAutoRideSpeed: number | undefined
-  m_bDisabled: boolean | undefined
-  m_bFakeLadder: boolean | undefined
-  m_bHasSlack: boolean | undefined
-  readonly m_surfacePropName: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CFuncLadder, 'CFuncLadder', {
+const fieldsCFuncLadder = {
   m_vecLadderDir: 'vector',
   m_vecLocalTop: 'vector',
   m_vecPlayerMountPositionTop: 'vector',
@@ -5420,146 +3731,19 @@ define(CFuncLadder, 'CFuncLadder', {
   m_bFakeLadder: 'bool',
   m_bHasSlack: 'bool',
   m_surfacePropName: 'string',
-}, {
+} as const
+const inputsCFuncLadder = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CFuncLadder extends CBaseModelEntity {}
+export interface CFuncLadder extends Fields<typeof fieldsCFuncLadder>, Inputs<typeof inputsCFuncLadder> {}
+define(CFuncLadder, 'CFuncLadder', fieldsCFuncLadder, inputsCFuncLadder)
 
 export class CFuncLadderAlias_func_useableladder extends CFuncLadder {}
 define(CFuncLadderAlias_func_useableladder, 'CFuncLadderAlias_func_useableladder', {})
 
-export class CFuncMover extends CBaseModelEntity {}
-export interface CFuncMover {
-  readonly m_iszPathName: string | undefined
-  m_hPathMover: CPathMover | undefined
-  m_hPrevPathMover: CPathMover | undefined
-  readonly m_iszPathNodeStart: string | undefined
-  readonly m_iszPathNodeEnd: string | undefined
-  m_bIgnoreEndNode: boolean | undefined
-  m_eMoveType: number | undefined
-  m_bIsReversing: boolean | undefined
-  m_flStartSpeed: number | undefined
-  m_flPathLocation: number | undefined
-  m_flT: number | undefined
-  m_nCurrentNodeIndex: number | undefined
-  m_nPreviousNodeIndex: number | undefined
-  m_eSolidType: number | undefined
-  m_bIsMoving: boolean | undefined
-  m_flTimeToReachMaxSpeed: number | undefined
-  m_flDistanceToReachMaxSpeed: number | undefined
-  m_flTimeToReachZeroSpeed: number | undefined
-  m_flComputedDistanceToReachMaxSpeed: number | undefined
-  m_flComputedDistanceToReachZeroSpeed: number | undefined
-  m_flStartCurveScale: number | undefined
-  m_flStopCurveScale: number | undefined
-  m_flDistanceToReachZeroSpeed: number | undefined
-  m_flTimeMovementStart: number | undefined
-  m_flTimeMovementStop: number | undefined
-  m_hStopAtNode: CMoverPathNode | undefined
-  m_flPathLocationToBeginStop: number | undefined
-  m_flPathLocationStart: number | undefined
-  m_flBeginStopT: number | undefined
-  m_bStartAtClosestPoint: boolean | undefined
-  m_bStartAtEnd: boolean | undefined
-  m_bStartFollowingClosestMover: boolean | undefined
-  m_flStartFollowingClosestMoverWhenWithinDistance: number | undefined
-  m_flStartFollowingClosestMoverWhenOutsideDistance: number | undefined
-  m_eOrientationUpdate: number | undefined
-  m_flTimeStartOrientationChange: number | undefined
-  m_flTimeToBlendToNewOrientation: number | undefined
-  m_flDurationBlendToNewOrientationRan: number | undefined
-  m_bCreateMovableNavMesh: boolean | undefined
-  m_bCreateMovableSurfaceGraph: boolean | undefined
-  m_bAllowMovableNavMeshDockingOnEntireEntity: boolean | undefined
-  readonly m_iszOrientationMatchEntityName: string | undefined
-  m_hOrientationMatchEntity: CBaseEntity | undefined
-  m_vLerpToNewPosStartWS: Vector | undefined
-  m_flLerpToPositionTargetT: number | undefined
-  m_flLerpToPositionT: number | undefined
-  m_flLerpToPositionDeltaT: number | undefined
-  m_hTransitionSourcePath: CPathMover | undefined
-  m_flTransitionSourceT: number | undefined
-  m_flTransitionSourcePathLocation: number | undefined
-  readonly m_iszTransitionSourcePathNodeStart: string | undefined
-  m_bStoppedDuringTransition: boolean | undefined
-  m_bIsPaused: boolean | undefined
-  m_eTransitionedToPathNodeAction: number | undefined
-  m_nDelayedTeleportToNode: number | undefined
-  m_bIsImGuiLogging: boolean | undefined
-  m_bIsImGuiEntTextLogging: boolean | undefined
-  m_flSpeed: number | undefined
-  m_hFollowEntity: CBaseEntity | undefined
-  m_flFollowDistance: number | undefined
-  m_flFollowMinimumSpeed: number | undefined
-  m_flCurFollowEntityT: number | undefined
-  m_flCurFollowSpeed: number | undefined
-  readonly m_strOrientationFaceEntityName: string | undefined
-  m_hOrientationFaceEntity: CBaseEntity | undefined
-  m_bNextNodeReturnsCurrent: boolean | undefined
-  m_bStartedMoving: boolean | undefined
-  m_eFollowEntityDirection: number | undefined
-  m_hFollowMover: CFuncMover | undefined
-  readonly m_iszFollowEntityName: string | undefined
-  readonly m_iszFollowMoverEntityName: string | undefined
-  m_flFollowMoverDistance: number | undefined
-  m_flFollowMoverRatio: number | undefined
-  m_flFollowMoverCalculatedDistance: number | undefined
-  m_flFollowMoverSpringStrength: number | undefined
-  m_nFollowMoverConstraintPriority: number | undefined
-  m_bFollowConstraintsInitialized: boolean | undefined
-  m_eFollowConstraint: number | undefined
-  m_flFollowMoverSpeed: number | undefined
-  m_flFollowMoverVelocity: number | undefined
-  m_nTickMovementRan: number | undefined
-  m_nNextTransitionId: number | undefined
-  m_nNextFollowMoverTransitionId: number | undefined
-  m_nReplayingFollowMoverTransitionId: number | undefined
-  m_bStopFromBeginStopTarget: boolean | undefined
-  m_bQueueStop: boolean | undefined
-  m_bQueueStopMoving: boolean | undefined
-  m_bQueueSetupPathMover: boolean | undefined
-  m_ePathRebuildStrategy: number | undefined
-  m_eFindFollowMoverStrategy: number | undefined
-  m_bDisableDecelerationToStop: boolean | undefined
-  m_vOffsetFromPath: Vector | undefined
-  m_hPathMoverEntitySpawner: CPathMoverEntitySpawner | undefined
-  inputClearFollowMoverEntity(): boolean
-  inputClearPathEnd(): boolean
-  inputClearStartFollowingClosestMover(): boolean
-  inputDeleteFollowMoverSpringConstraint(): boolean
-  inputDisconnectFromPath(): boolean
-  inputPause(): boolean
-  inputSetDistanceToReachMaxSpeed(value: number): boolean
-  inputSetDistanceToReachZeroSpeed(value: number): boolean
-  inputSetFollowDistance(value: number): boolean
-  inputSetFollowMinimumSpeed(value: number): boolean
-  inputSetFollowMoverConstraintType(value: number): boolean
-  inputSetFollowMoverEntityToClosestOnSpline(): boolean
-  inputSetFollowMoverSpringStrength(value: number): boolean
-  inputSetMoveType(value: number): boolean
-  /**
-   * Set the offset from the spline the mover rides at, in the movers own space.
-   * The mover snaps to the new offset, its location along the path is
-   * unchanged.
-   */
-  inputSetMoverOffsetFromPath(value: Vector): boolean
-  inputSetOffsetFromPath(value: Vector): boolean
-  inputSetOrientationMode(value: number): boolean
-  inputSetSpeed(value: number): boolean
-  inputSetSpeedImmediate(value: number): boolean
-  inputSetTimeToBlendToNewOrientation(value: number): boolean
-  inputSetTimeToReachMaxSpeed(value: number): boolean
-  inputSetTimeToReachZeroSpeed(value: number): boolean
-  inputStart(): boolean
-  inputStartForward(): boolean
-  inputStartReverse(): boolean
-  inputStop(): boolean
-  inputStopImmediate(): boolean
-  inputToggle(): boolean
-  inputToggleDirection(): boolean
-  inputUnpause(): boolean
-}
-define(CFuncMover, 'CFuncMover', {
+const fieldsCFuncMover = {
   m_iszPathName: 'string',
   m_hPathMover: 'CPathMover',
   m_hPrevPathMover: 'CPathMover',
@@ -5653,7 +3837,8 @@ define(CFuncMover, 'CFuncMover', {
   m_bDisableDecelerationToStop: 'bool',
   m_vOffsetFromPath: 'vector',
   m_hPathMoverEntitySpawner: 'CPathMoverEntitySpawner',
-}, {
+} as const
+const inputsCFuncMover = {
   ClearFollowMoverEntity: '',
   ClearPathEnd: '',
   ClearStartFollowingClosestMover: '',
@@ -5668,6 +3853,11 @@ define(CFuncMover, 'CFuncMover', {
   SetFollowMoverEntityToClosestOnSpline: '',
   SetFollowMoverSpringStrength: 'integer',
   SetMoveType: 'integer',
+  /**
+   * Set the offset from the spline the mover rides at, in the movers own space.
+   * The mover snaps to the new offset, its location along the path is
+   * unchanged.
+   */
   SetMoverOffsetFromPath: 'vector',
   SetOffsetFromPath: 'vector',
   SetOrientationMode: 'integer',
@@ -5684,71 +3874,39 @@ define(CFuncMover, 'CFuncMover', {
   Toggle: '',
   ToggleDirection: '',
   Unpause: '',
-})
+} as const
+export class CFuncMover extends CBaseModelEntity {}
+export interface CFuncMover extends Fields<typeof fieldsCFuncMover>, Inputs<typeof inputsCFuncMover> {}
+define(CFuncMover, 'CFuncMover', fieldsCFuncMover, inputsCFuncMover)
 
-export class CFuncNavBlocker extends CBaseModelEntity {}
-export interface CFuncNavBlocker {
-  m_bDisabled: boolean | undefined
-  m_nBlockedTeamNumber: number | undefined
-  inputBlockNav(): boolean
-  inputUnblockNav(): boolean
-}
-define(CFuncNavBlocker, 'CFuncNavBlocker', {
+const fieldsCFuncNavBlocker = {
   m_bDisabled: 'bool',
   m_nBlockedTeamNumber: 'int32',
-}, {
+} as const
+const inputsCFuncNavBlocker = {
   BlockNav: '',
   UnblockNav: '',
-})
+} as const
+export class CFuncNavBlocker extends CBaseModelEntity {}
+export interface CFuncNavBlocker extends Fields<typeof fieldsCFuncNavBlocker>, Inputs<typeof inputsCFuncNavBlocker> {}
+define(CFuncNavBlocker, 'CFuncNavBlocker', fieldsCFuncNavBlocker, inputsCFuncNavBlocker)
 
-export class CScriptNavBlocker extends CFuncNavBlocker {}
-export interface CScriptNavBlocker {
-  m_vExtent: Vector | undefined
-}
-define(CScriptNavBlocker, 'CScriptNavBlocker', {
+const fieldsCScriptNavBlocker = {
   m_vExtent: 'vector',
-})
+} as const
+export class CScriptNavBlocker extends CFuncNavBlocker {}
+export interface CScriptNavBlocker extends Fields<typeof fieldsCScriptNavBlocker> {}
+define(CScriptNavBlocker, 'CScriptNavBlocker', fieldsCScriptNavBlocker)
 
-export class CFuncNavObstruction extends CBaseModelEntity {}
-export interface CFuncNavObstruction {
-  m_bDisabled: boolean | undefined
-  m_bUseAsyncObstacleUpdate: boolean | undefined
-}
-define(CFuncNavObstruction, 'CFuncNavObstruction', {
+const fieldsCFuncNavObstruction = {
   m_bDisabled: 'bool',
   m_bUseAsyncObstacleUpdate: 'bool',
-})
+} as const
+export class CFuncNavObstruction extends CBaseModelEntity {}
+export interface CFuncNavObstruction extends Fields<typeof fieldsCFuncNavObstruction> {}
+define(CFuncNavObstruction, 'CFuncNavObstruction', fieldsCFuncNavObstruction)
 
-export class CFuncRotating extends CBaseModelEntity {}
-export interface CFuncRotating {
-  m_flSpeed: number | undefined
-  m_flFanFriction: number | undefined
-  m_flAttenuation: number | undefined
-  m_flVolume: number | undefined
-  m_flTargetSpeed: number | undefined
-  m_flMaxSpeed: number | undefined
-  m_flBlockDamage: number | undefined
-  m_bReversed: boolean | undefined
-  m_bAccelDecel: boolean | undefined
-  m_prevLocalAngles: Angles | undefined
-  m_angStart: Angles | undefined
-  m_bStopAtStartPos: boolean | undefined
-  m_vecClientOrigin: Vector | undefined
-  m_vecClientAngles: Angles | undefined
-  inputDisableAccelDecel(): boolean
-  inputEnableAccelDecel(): boolean
-  inputReverse(): boolean
-  inputSetSpeed(value: number): boolean
-  inputSetStartPos(value: Vector): boolean
-  inputSnapToStartPos(): boolean
-  inputStart(): boolean
-  inputStartBackward(): boolean
-  inputStartForward(): boolean
-  inputStop(): boolean
-  inputStopAtStartPos(): boolean
-  inputToggle(): boolean
-}
-define(CFuncRotating, 'CFuncRotating', {
+const fieldsCFuncRotating = {
   m_flSpeed: 'float32',
   m_flFanFriction: 'float32',
   m_flAttenuation: 'float32',
@@ -5763,7 +3921,8 @@ define(CFuncRotating, 'CFuncRotating', {
   m_bStopAtStartPos: 'bool',
   m_vecClientOrigin: 'vector',
   m_vecClientAngles: 'angles',
-}, {
+} as const
+const inputsCFuncRotating = {
   DisableAccelDecel: '',
   EnableAccelDecel: '',
   Reverse: '',
@@ -5776,48 +3935,12 @@ define(CFuncRotating, 'CFuncRotating', {
   Stop: '',
   StopAtStartPos: '',
   Toggle: '',
-})
+} as const
+export class CFuncRotating extends CBaseModelEntity {}
+export interface CFuncRotating extends Fields<typeof fieldsCFuncRotating>, Inputs<typeof inputsCFuncRotating> {}
+define(CFuncRotating, 'CFuncRotating', fieldsCFuncRotating, inputsCFuncRotating)
 
-export class CFuncRotator extends CBaseModelEntity {}
-export interface CFuncRotator {
-  m_eRotateType: number | undefined
-  m_bIsRotating: boolean | undefined
-  m_eSolidType: number | undefined
-  m_flSpeed: number | undefined
-  m_flRotationDistanceDegrees: number | undefined
-  m_flTimeToCompleteRotation: number | undefined
-  m_hRotatorTarget: CBaseEntity | undefined
-  readonly m_strRotatorTarget: string | undefined
-  m_nTickRotateRan: number | undefined
-  m_bStartedRotating: boolean | undefined
-  m_flTimeToReachMaxSpeed: number | undefined
-  m_flTimeToReachZeroSpeed: number | undefined
-  m_flTimeRotationStart: number | undefined
-  m_flTimeRotationStop: number | undefined
-  m_flStartSpeed: number | undefined
-  m_angLastWrittenLocal: Angles | undefined
-  m_bReturningToInitialRotation: boolean | undefined
-  m_flMinYawRotation: number | undefined
-  m_flMaxYawRotation: number | undefined
-  m_bOscillationFromStart: boolean | undefined
-  m_flTargetAngle: number | undefined
-  m_flCurrentAngle: number | undefined
-  m_eRotationAxis: number | undefined
-  m_flSpeedDriftFromOverRotate: number | undefined
-  m_bQueueStop: boolean | undefined
-  inputPitch(value: number): boolean
-  inputReturnToInitialOrientation(): boolean
-  inputRoll(value: number): boolean
-  inputSetRotateType(value: number): boolean
-  inputSetRotatorTarget(value: string): boolean
-  inputSetSpeed(value: number): boolean
-  inputSetTimeToCompleteRotation(value: number): boolean
-  inputStart(): boolean
-  inputStartForward(): boolean
-  inputStop(): boolean
-  inputYaw(value: number): boolean
-}
-define(CFuncRotator, 'CFuncRotator', {
+const fieldsCFuncRotator = {
   m_eRotateType: 'uint32',
   m_bIsRotating: 'bool',
   m_eSolidType: 'uint8',
@@ -5843,7 +3966,8 @@ define(CFuncRotator, 'CFuncRotator', {
   m_eRotationAxis: 'uint32',
   m_flSpeedDriftFromOverRotate: 'float32',
   m_bQueueStop: 'bool',
-}, {
+} as const
+const inputsCFuncRotator = {
   Pitch: 'number',
   ReturnToInitialOrientation: '',
   Roll: 'number',
@@ -5855,32 +3979,12 @@ define(CFuncRotator, 'CFuncRotator', {
   StartForward: '',
   Stop: '',
   Yaw: 'number',
-})
+} as const
+export class CFuncRotator extends CBaseModelEntity {}
+export interface CFuncRotator extends Fields<typeof fieldsCFuncRotator>, Inputs<typeof inputsCFuncRotator> {}
+define(CFuncRotator, 'CFuncRotator', fieldsCFuncRotator, inputsCFuncRotator)
 
-export class CFuncShatterglass extends CBaseModelEntity {}
-export interface CFuncShatterglass {
-  m_flLastShatterSoundEmitTime: number | undefined
-  m_flLastCleanupTime: number | undefined
-  m_flInitAtTime: number | undefined
-  m_flGlassThickness: number | undefined
-  m_flSpawnInvulnerability: number | undefined
-  m_bBreakSilent: boolean | undefined
-  m_bBreakShardless: boolean | undefined
-  m_bBroken: boolean | undefined
-  m_bGlassNavIgnore: boolean | undefined
-  m_bGlassInFrame: boolean | undefined
-  m_bStartBroken: boolean | undefined
-  m_iInitialDamageType: number | undefined
-  readonly m_szDamagePositioningEntityName01: string | undefined
-  readonly m_szDamagePositioningEntityName02: string | undefined
-  readonly m_szDamagePositioningEntityName03: string | undefined
-  readonly m_szDamagePositioningEntityName04: string | undefined
-  m_iSurfaceType: number | undefined
-  inputHit(): boolean
-  inputRestore(): boolean
-  inputShatter(): boolean
-}
-define(CFuncShatterglass, 'CFuncShatterglass', {
+const fieldsCFuncShatterglass = {
   m_flLastShatterSoundEmitTime: 'float32',
   m_flLastCleanupTime: 'float32',
   m_flInitAtTime: 'float32',
@@ -5898,61 +4002,17 @@ define(CFuncShatterglass, 'CFuncShatterglass', {
   m_szDamagePositioningEntityName03: 'string',
   m_szDamagePositioningEntityName04: 'string',
   m_iSurfaceType: 'uint8',
-}, {
+} as const
+const inputsCFuncShatterglass = {
   Hit: '',
   Restore: '',
   Shatter: '',
-})
+} as const
+export class CFuncShatterglass extends CBaseModelEntity {}
+export interface CFuncShatterglass extends Fields<typeof fieldsCFuncShatterglass>, Inputs<typeof inputsCFuncShatterglass> {}
+define(CFuncShatterglass, 'CFuncShatterglass', fieldsCFuncShatterglass, inputsCFuncShatterglass)
 
-export class CFuncTrackTrain extends CBaseModelEntity {}
-export interface CFuncTrackTrain {
-  m_ppath: CPathTrack | undefined
-  m_length: number | undefined
-  m_vPosPrev: Vector | undefined
-  m_angPrev: Angles | undefined
-  m_flSpeed: number | undefined
-  m_controlMins: Vector | undefined
-  m_controlMaxs: Vector | undefined
-  m_lastBlockPos: Vector | undefined
-  m_lastBlockTick: number | undefined
-  m_flVolume: number | undefined
-  m_flBank: number | undefined
-  m_oldSpeed: number | undefined
-  m_flBlockDamage: number | undefined
-  m_height: number | undefined
-  m_maxSpeed: number | undefined
-  m_dir: number | undefined
-  m_flMoveSoundMinDuration: number | undefined
-  m_flMoveSoundMaxDuration: number | undefined
-  m_flNextMoveSoundTime: number | undefined
-  m_flMoveSoundMinPitch: number | undefined
-  m_flMoveSoundMaxPitch: number | undefined
-  m_eOrientationType: number | undefined
-  m_eVelocityType: number | undefined
-  m_bManualSpeedChanges: boolean | undefined
-  m_flDesiredSpeed: number | undefined
-  m_flSpeedChangeTime: number | undefined
-  m_flAccelSpeed: number | undefined
-  m_flDecelSpeed: number | undefined
-  m_bAccelToSpeed: boolean | undefined
-  m_flNextMPSoundTime: number | undefined
-  inputLockOrientation(): boolean
-  inputMoveToPathNode(value: string): boolean
-  inputResume(): boolean
-  inputReverse(): boolean
-  inputSetMaxSpeed(value: number): boolean
-  inputSetSpeed(value: number): boolean
-  inputSetSpeedDir(value: number): boolean
-  inputSetSpeedDirAccel(value: number): boolean
-  inputSetSpeedReal(value: number): boolean
-  inputStartBackward(): boolean
-  inputStartForward(): boolean
-  inputStop(): boolean
-  inputTeleportToPathNode(value: string): boolean
-  inputToggle(): boolean
-  inputUnlockOrientation(): boolean
-}
-define(CFuncTrackTrain, 'CFuncTrackTrain', {
+const fieldsCFuncTrackTrain = {
   m_ppath: 'CPathTrack',
   m_length: 'float32',
   m_vPosPrev: 'vector',
@@ -5983,7 +4043,8 @@ define(CFuncTrackTrain, 'CFuncTrackTrain', {
   m_flDecelSpeed: 'float32',
   m_bAccelToSpeed: 'bool',
   m_flNextMPSoundTime: 'float32',
-}, {
+} as const
+const inputsCFuncTrackTrain = {
   LockOrientation: '',
   MoveToPathNode: 'text',
   Resume: '',
@@ -5999,7 +4060,10 @@ define(CFuncTrackTrain, 'CFuncTrackTrain', {
   TeleportToPathNode: 'text',
   Toggle: '',
   UnlockOrientation: '',
-})
+} as const
+export class CFuncTrackTrain extends CBaseModelEntity {}
+export interface CFuncTrackTrain extends Fields<typeof fieldsCFuncTrackTrain>, Inputs<typeof inputsCFuncTrackTrain> {}
+define(CFuncTrackTrain, 'CFuncTrackTrain', fieldsCFuncTrackTrain, inputsCFuncTrackTrain)
 
 export class CFuncTankTrain extends CFuncTrackTrain {}
 define(CFuncTankTrain, 'CFuncTankTrain', {})
@@ -6007,83 +4071,59 @@ define(CFuncTankTrain, 'CFuncTankTrain', {})
 export class CFuncTrainControls extends CBaseModelEntity {}
 define(CFuncTrainControls, 'CFuncTrainControls', {})
 
-export class CFuncVPhysicsClip extends CBaseModelEntity {}
-export interface CFuncVPhysicsClip {
-  m_bDisabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CFuncVPhysicsClip, 'CFuncVPhysicsClip', {
+const fieldsCFuncVPhysicsClip = {
   m_bDisabled: 'bool',
-}, {
+} as const
+const inputsCFuncVPhysicsClip = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CFuncVPhysicsClip extends CBaseModelEntity {}
+export interface CFuncVPhysicsClip extends Fields<typeof fieldsCFuncVPhysicsClip>, Inputs<typeof inputsCFuncVPhysicsClip> {}
+define(CFuncVPhysicsClip, 'CFuncVPhysicsClip', fieldsCFuncVPhysicsClip, inputsCFuncVPhysicsClip)
 
-export class CFuncVehicleClip extends CBaseModelEntity {}
-export interface CFuncVehicleClip {
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetNonsolid(): boolean
-  inputSetSolid(): boolean
-}
-define(CFuncVehicleClip, 'CFuncVehicleClip', {}, {
+const inputsCFuncVehicleClip = {
   Disable: '',
   Enable: '',
   SetNonsolid: '',
   SetSolid: '',
-})
+} as const
+export class CFuncVehicleClip extends CBaseModelEntity {}
+export interface CFuncVehicleClip extends Inputs<typeof inputsCFuncVehicleClip> {}
+define(CFuncVehicleClip, 'CFuncVehicleClip', {}, inputsCFuncVehicleClip)
 
-export class CFuncWall extends CBaseModelEntity {}
-export interface CFuncWall {
-  m_nState: number | undefined
-}
-define(CFuncWall, 'CFuncWall', {
+const fieldsCFuncWall = {
   m_nState: 'int32',
-})
+} as const
+export class CFuncWall extends CBaseModelEntity {}
+export interface CFuncWall extends Fields<typeof fieldsCFuncWall> {}
+define(CFuncWall, 'CFuncWall', fieldsCFuncWall)
 
-export class CFuncWallToggle extends CFuncWall {}
-export interface CFuncWallToggle {
-  inputToggle(): boolean
-}
-define(CFuncWallToggle, 'CFuncWallToggle', {}, {
+const inputsCFuncWallToggle = {
   Toggle: '',
-})
+} as const
+export class CFuncWallToggle extends CFuncWall {}
+export interface CFuncWallToggle extends Inputs<typeof inputsCFuncWallToggle> {}
+define(CFuncWallToggle, 'CFuncWallToggle', {}, inputsCFuncWallToggle)
 
-export class CItemGenericTriggerHelper extends CBaseModelEntity {}
-export interface CItemGenericTriggerHelper {
-  m_hParentItem: CItemGeneric | undefined
-}
-define(CItemGenericTriggerHelper, 'CItemGenericTriggerHelper', {
+const fieldsCItemGenericTriggerHelper = {
   m_hParentItem: 'CItemGeneric',
-})
+} as const
+export class CItemGenericTriggerHelper extends CBaseModelEntity {}
+export interface CItemGenericTriggerHelper extends Fields<typeof fieldsCItemGenericTriggerHelper> {}
+define(CItemGenericTriggerHelper, 'CItemGenericTriggerHelper', fieldsCItemGenericTriggerHelper)
 
-export class CItemXP extends CBaseModelEntity {}
-export interface CItemXP {
-  m_timeLaunch: number | undefined
-  m_flAttackableTime: number | undefined
-  m_flEndAttackableTime: number | undefined
-  m_nLaunchNum: number | undefined
-}
-define(CItemXP, 'CItemXP', {
+const fieldsCItemXP = {
   m_timeLaunch: 'float32',
   m_flAttackableTime: 'float32',
   m_flEndAttackableTime: 'float32',
   m_nLaunchNum: 'int32',
-})
+} as const
+export class CItemXP extends CBaseModelEntity {}
+export interface CItemXP extends Fields<typeof fieldsCItemXP> {}
+define(CItemXP, 'CItemXP', fieldsCItemXP)
 
-export class CLightEntity extends CBaseModelEntity {}
-export interface CLightEntity {
-  inputSetAppearance(value: number): boolean
-  inputSetCustomAppearance(value: string): boolean
-  inputSetLightBrightness(value: number): boolean
-  inputSetLightColor(value: number): boolean
-  inputSetLightEnabled(value: boolean): boolean
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CLightEntity, 'CLightEntity', {}, {
+const inputsCLightEntity = {
   SetAppearance: 'integer',
   SetCustomAppearance: 'text',
   SetLightBrightness: 'number',
@@ -6092,7 +4132,10 @@ define(CLightEntity, 'CLightEntity', {}, {
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CLightEntity extends CBaseModelEntity {}
+export interface CLightEntity extends Inputs<typeof inputsCLightEntity> {}
+define(CLightEntity, 'CLightEntity', {}, inputsCLightEntity)
 
 export class CLightDirectionalEntity extends CLightEntity {}
 define(CLightDirectionalEntity, 'CLightDirectionalEntity', {})
@@ -6103,71 +4146,56 @@ define(CLightOrthoEntity, 'CLightOrthoEntity', {})
 export class CLightSpotEntity extends CLightEntity {}
 define(CLightSpotEntity, 'CLightSpotEntity', {})
 
-export class CMarkupVolume extends CBaseModelEntity {}
-export interface CMarkupVolume {
-  m_bDisabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CMarkupVolume, 'CMarkupVolume', {
+const fieldsCMarkupVolume = {
   m_bDisabled: 'bool',
-}, {
+} as const
+const inputsCMarkupVolume = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CMarkupVolume extends CBaseModelEntity {}
+export interface CMarkupVolume extends Fields<typeof fieldsCMarkupVolume>, Inputs<typeof inputsCMarkupVolume> {}
+define(CMarkupVolume, 'CMarkupVolume', fieldsCMarkupVolume, inputsCMarkupVolume)
 
-export class CMarkupVolumeTagged extends CMarkupVolume {}
-export interface CMarkupVolumeTagged {
-  m_bIsGroup: boolean | undefined
-  m_bGroupByPrefab: boolean | undefined
-  m_bGroupByVolume: boolean | undefined
-  m_bGroupOtherGroups: boolean | undefined
-  m_bIsInGroup: boolean | undefined
-}
-define(CMarkupVolumeTagged, 'CMarkupVolumeTagged', {
+const fieldsCMarkupVolumeTagged = {
   m_bIsGroup: 'bool',
   m_bGroupByPrefab: 'bool',
   m_bGroupByVolume: 'bool',
   m_bGroupOtherGroups: 'bool',
   m_bIsInGroup: 'bool',
-})
+} as const
+export class CMarkupVolumeTagged extends CMarkupVolume {}
+export interface CMarkupVolumeTagged extends Fields<typeof fieldsCMarkupVolumeTagged> {}
+define(CMarkupVolumeTagged, 'CMarkupVolumeTagged', fieldsCMarkupVolumeTagged)
 
-export class CMarkupVolumeTagged_Nav extends CMarkupVolumeTagged {}
-export interface CMarkupVolumeTagged_Nav {
-  m_nScopes: number | undefined
-}
-define(CMarkupVolumeTagged_Nav, 'CMarkupVolumeTagged_Nav', {
+const fieldsCMarkupVolumeTagged_Nav = {
   m_nScopes: 'uint8',
-})
+} as const
+export class CMarkupVolumeTagged_Nav extends CMarkupVolumeTagged {}
+export interface CMarkupVolumeTagged_Nav extends Fields<typeof fieldsCMarkupVolumeTagged_Nav> {}
+define(CMarkupVolumeTagged_Nav, 'CMarkupVolumeTagged_Nav', fieldsCMarkupVolumeTagged_Nav)
 
-export class CMarkupVolumeWithRef extends CMarkupVolumeTagged {}
-export interface CMarkupVolumeWithRef {
-  m_bUseRef: boolean | undefined
-  m_vRefPosEntitySpace: Vector | undefined
-  m_vRefPosWorldSpace: Vector | undefined
-  m_flRefDot: number | undefined
-}
-define(CMarkupVolumeWithRef, 'CMarkupVolumeWithRef', {
+const fieldsCMarkupVolumeWithRef = {
   m_bUseRef: 'bool',
   m_vRefPosEntitySpace: 'vector',
   m_vRefPosWorldSpace: 'vector',
   m_flRefDot: 'float32',
-})
+} as const
+export class CMarkupVolumeWithRef extends CMarkupVolumeTagged {}
+export interface CMarkupVolumeWithRef extends Fields<typeof fieldsCMarkupVolumeWithRef> {}
+define(CMarkupVolumeWithRef, 'CMarkupVolumeWithRef', fieldsCMarkupVolumeWithRef)
 
 export class CMarkupVolumeTagged_NavCitadel extends CMarkupVolumeWithRef {}
 define(CMarkupVolumeTagged_NavCitadel, 'CMarkupVolumeTagged_NavCitadel', {})
 
-export class CMarkupVolumeTagged_NavGame extends CMarkupVolumeWithRef {}
-export interface CMarkupVolumeTagged_NavGame {
-  m_nScopes: number | undefined
-  m_bFloodFillAttribute: boolean | undefined
-  m_bSplitNavSpace: boolean | undefined
-}
-define(CMarkupVolumeTagged_NavGame, 'CMarkupVolumeTagged_NavGame', {
+const fieldsCMarkupVolumeTagged_NavGame = {
   m_nScopes: 'uint8',
   m_bFloodFillAttribute: 'bool',
   m_bSplitNavSpace: 'bool',
-})
+} as const
+export class CMarkupVolumeTagged_NavGame extends CMarkupVolumeWithRef {}
+export interface CMarkupVolumeTagged_NavGame extends Fields<typeof fieldsCMarkupVolumeTagged_NavGame> {}
+define(CMarkupVolumeTagged_NavGame, 'CMarkupVolumeTagged_NavGame', fieldsCMarkupVolumeTagged_NavGame)
 
 export class CSimpleMarkupVolumeTagged extends CMarkupVolumeTagged {}
 define(CSimpleMarkupVolumeTagged, 'CSimpleMarkupVolumeTagged', {})
@@ -6175,27 +4203,7 @@ define(CSimpleMarkupVolumeTagged, 'CSimpleMarkupVolumeTagged', {})
 export class CModelPointEntity extends CBaseModelEntity {}
 define(CModelPointEntity, 'CModelPointEntity', {})
 
-export class CEnvExplosion extends CModelPointEntity {}
-export interface CEnvExplosion {
-  m_iMagnitude: number | undefined
-  m_flPlayerDamage: number | undefined
-  m_iRadiusOverride: number | undefined
-  m_flInnerRadius: number | undefined
-  m_flDamageForce: number | undefined
-  m_hInflictor: CBaseEntity | undefined
-  m_iCustomDamageType: number | undefined
-  m_bHasCustomDamageType: boolean | undefined
-  m_bCreateDebris: boolean | undefined
-  readonly m_iszCustomEffectName: string | undefined
-  readonly m_iszCustomSoundName: string | undefined
-  m_bSuppressParticleImpulse: boolean | undefined
-  m_iClassIgnore: number | undefined
-  m_iClassIgnore2: number | undefined
-  readonly m_iszEntityIgnoreName: string | undefined
-  m_hEntityIgnore: CBaseEntity | undefined
-  inputExplode(): boolean
-}
-define(CEnvExplosion, 'CEnvExplosion', {
+const fieldsCEnvExplosion = {
   m_iMagnitude: 'int32',
   m_flPlayerDamage: 'float32',
   m_iRadiusOverride: 'int32',
@@ -6212,32 +4220,15 @@ define(CEnvExplosion, 'CEnvExplosion', {
   m_iClassIgnore2: 'uint32',
   m_iszEntityIgnoreName: 'string',
   m_hEntityIgnore: 'CBaseEntity',
-}, {
+} as const
+const inputsCEnvExplosion = {
   Explode: '',
-})
+} as const
+export class CEnvExplosion extends CModelPointEntity {}
+export interface CEnvExplosion extends Fields<typeof fieldsCEnvExplosion>, Inputs<typeof inputsCEnvExplosion> {}
+define(CEnvExplosion, 'CEnvExplosion', fieldsCEnvExplosion, inputsCEnvExplosion)
 
-export class CPointWorldText extends CModelPointEntity {}
-export interface CPointWorldText {
-  m_bEnabled: boolean | undefined
-  m_bFullbright: boolean | undefined
-  m_flWorldUnitsPerPx: number | undefined
-  m_flFontSize: number | undefined
-  m_flDepthOffset: number | undefined
-  m_bDrawBackground: boolean | undefined
-  m_flBackgroundBorderWidth: number | undefined
-  m_flBackgroundBorderHeight: number | undefined
-  m_flBackgroundWorldToUV: number | undefined
-  m_nJustifyHorizontal: number | undefined
-  m_nJustifyVertical: number | undefined
-  m_nReorientMode: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetIntMessage(value: number): boolean
-  inputSetMessage(value: string): boolean
-  inputSetTextColor(value: number): boolean
-  inputToggle(): boolean
-}
-define(CPointWorldText, 'CPointWorldText', {
+const fieldsCPointWorldText = {
   m_bEnabled: 'bool',
   m_bFullbright: 'bool',
   m_flWorldUnitsPerPx: 'float32',
@@ -6250,79 +4241,47 @@ define(CPointWorldText, 'CPointWorldText', {
   m_nJustifyHorizontal: 'uint32',
   m_nJustifyVertical: 'uint32',
   m_nReorientMode: 'uint32',
-}, {
+} as const
+const inputsCPointWorldText = {
   Disable: '',
   Enable: '',
   SetIntMessage: 'integer',
   SetMessage: 'text',
   SetTextColor: 'color',
   Toggle: '',
-})
+} as const
+export class CPointWorldText extends CModelPointEntity {}
+export interface CPointWorldText extends Fields<typeof fieldsCPointWorldText>, Inputs<typeof inputsCPointWorldText> {}
+define(CPointWorldText, 'CPointWorldText', fieldsCPointWorldText, inputsCPointWorldText)
 
-export class CRevertSaved extends CModelPointEntity {}
-export interface CRevertSaved {
-  m_loadTime: number | undefined
-  m_Duration: number | undefined
-  m_HoldTime: number | undefined
-  inputReload(): boolean
-}
-define(CRevertSaved, 'CRevertSaved', {
+const fieldsCRevertSaved = {
   m_loadTime: 'float32',
   m_Duration: 'float32',
   m_HoldTime: 'float32',
-}, {
+} as const
+const inputsCRevertSaved = {
   Reload: '',
-})
+} as const
+export class CRevertSaved extends CModelPointEntity {}
+export interface CRevertSaved extends Fields<typeof fieldsCRevertSaved>, Inputs<typeof inputsCRevertSaved> {}
+define(CRevertSaved, 'CRevertSaved', fieldsCRevertSaved, inputsCRevertSaved)
 
-export class CShower extends CModelPointEntity {}
-export interface CShower {
-  m_flSpeed: number | undefined
-}
-define(CShower, 'CShower', {
+const fieldsCShower = {
   m_flSpeed: 'float32',
-})
+} as const
+export class CShower extends CModelPointEntity {}
+export interface CShower extends Fields<typeof fieldsCShower> {}
+define(CShower, 'CShower', fieldsCShower)
 
-export class CNecro_HauntingSkullEntity extends CBaseModelEntity {}
-export interface CNecro_HauntingSkullEntity {
-  m_hAbility: CCitadelBaseAbility | undefined
-  m_eSkullState: number | undefined
-}
-define(CNecro_HauntingSkullEntity, 'CNecro_HauntingSkullEntity', {
+const fieldsCNecro_HauntingSkullEntity = {
   m_hAbility: 'CCitadelBaseAbility',
   m_eSkullState: 'int32',
-})
+} as const
+export class CNecro_HauntingSkullEntity extends CBaseModelEntity {}
+export interface CNecro_HauntingSkullEntity extends Fields<typeof fieldsCNecro_HauntingSkullEntity> {}
+define(CNecro_HauntingSkullEntity, 'CNecro_HauntingSkullEntity', fieldsCNecro_HauntingSkullEntity)
 
-export class CParticleSystem extends CBaseModelEntity {}
-export interface CParticleSystem {
-  m_bActive: boolean | undefined
-  m_bFrozen: boolean | undefined
-  m_flFreezeTransitionDuration: number | undefined
-  m_nStopType: number | undefined
-  m_bAnimateDuringGameplayPause: boolean | undefined
-  m_flStartTime: number | undefined
-  m_flPreSimTime: number | undefined
-  m_bDataStringLocalized: boolean | undefined
-  readonly m_strDataString: string | undefined
-  m_bNoSave: boolean | undefined
-  m_bNoFreeze: boolean | undefined
-  m_bNoRamp: boolean | undefined
-  m_bStartActive: boolean | undefined
-  readonly m_iszEffectName: string | undefined
-  m_nDataCP: number | undefined
-  m_vecDataCPValue: Vector | undefined
-  m_nTintCP: number | undefined
-  inputDestroyImmediately(): boolean
-  inputFreeze(value: number): boolean
-  inputSetControlPoint(value: string): boolean
-  inputSetDataControlPointX(value: number): boolean
-  inputSetDataControlPointY(value: number): boolean
-  inputSetDataControlPointZ(value: number): boolean
-  inputStart(): boolean
-  inputStop(): boolean
-  inputStopPlayEndCap(): boolean
-  inputThaw(value: number): boolean
-}
-define(CParticleSystem, 'CParticleSystem', {
+const fieldsCParticleSystem = {
   m_bActive: 'bool',
   m_bFrozen: 'bool',
   m_flFreezeTransitionDuration: 'float32',
@@ -6340,7 +4299,8 @@ define(CParticleSystem, 'CParticleSystem', {
   m_nDataCP: 'int32',
   m_vecDataCPValue: 'vector',
   m_nTintCP: 'int32',
-}, {
+} as const
+const inputsCParticleSystem = {
   DestroyImmediately: '',
   Freeze: 'number',
   SetControlPoint: 'text',
@@ -6351,65 +4311,41 @@ define(CParticleSystem, 'CParticleSystem', {
   Stop: '',
   StopPlayEndCap: '',
   Thaw: 'number',
-})
+} as const
+export class CParticleSystem extends CBaseModelEntity {}
+export interface CParticleSystem extends Fields<typeof fieldsCParticleSystem>, Inputs<typeof inputsCParticleSystem> {}
+define(CParticleSystem, 'CParticleSystem', fieldsCParticleSystem, inputsCParticleSystem)
 
-export class CEnvParticleGlow extends CParticleSystem {}
-export interface CEnvParticleGlow {
-  m_flAlphaScale: number | undefined
-  m_flRadiusScale: number | undefined
-  m_flSelfIllumScale: number | undefined
-  inputsetalphascale(value: number): boolean
-  inputsetcolortint(value: number): boolean
-  inputsetscale(value: number): boolean
-}
-define(CEnvParticleGlow, 'CEnvParticleGlow', {
+const fieldsCEnvParticleGlow = {
   m_flAlphaScale: 'float32',
   m_flRadiusScale: 'float32',
   m_flSelfIllumScale: 'float32',
-}, {
+} as const
+const inputsCEnvParticleGlow = {
   setalphascale: 'number',
   setcolortint: 'color',
   setscale: 'number',
-})
+} as const
+export class CEnvParticleGlow extends CParticleSystem {}
+export interface CEnvParticleGlow extends Fields<typeof fieldsCEnvParticleGlow>, Inputs<typeof inputsCEnvParticleGlow> {}
+define(CEnvParticleGlow, 'CEnvParticleGlow', fieldsCEnvParticleGlow, inputsCEnvParticleGlow)
 
-export class CTeamRelativeParticleSystem extends CParticleSystem {}
-export interface CTeamRelativeParticleSystem {
-  readonly m_iszFriendlyEffectName: string | undefined
-  readonly m_iszEnemyEffectName: string | undefined
-}
-define(CTeamRelativeParticleSystem, 'CTeamRelativeParticleSystem', {
+const fieldsCTeamRelativeParticleSystem = {
   m_iszFriendlyEffectName: 'string',
   m_iszEnemyEffectName: 'string',
-})
+} as const
+export class CTeamRelativeParticleSystem extends CParticleSystem {}
+export interface CTeamRelativeParticleSystem extends Fields<typeof fieldsCTeamRelativeParticleSystem> {}
+define(CTeamRelativeParticleSystem, 'CTeamRelativeParticleSystem', fieldsCTeamRelativeParticleSystem)
 
-export class CPlatTrigger extends CBaseModelEntity {}
-export interface CPlatTrigger {
-  m_pPlatform: CFuncPlat | undefined
-}
-define(CPlatTrigger, 'CPlatTrigger', {
+const fieldsCPlatTrigger = {
   m_pPlatform: 'CFuncPlat',
-})
+} as const
+export class CPlatTrigger extends CBaseModelEntity {}
+export interface CPlatTrigger extends Fields<typeof fieldsCPlatTrigger> {}
+define(CPlatTrigger, 'CPlatTrigger', fieldsCPlatTrigger)
 
-export class CPlayerSprayDecal extends CBaseModelEntity {}
-export interface CPlayerSprayDecal {
-  m_nUniqueID: number | undefined
-  m_unAccountID: number | undefined
-  m_unTraceID: number | undefined
-  m_vecEndPos: Vector | undefined
-  m_vecStart: Vector | undefined
-  m_vecLeft: Vector | undefined
-  m_vecNormal: Vector | undefined
-  m_nEntity: number | undefined
-  m_nHitbox: number | undefined
-  m_flCreationTime: number | undefined
-  m_nTintID: number | undefined
-  m_nVersion: number | undefined
-  readonly m_sTextureName: string | undefined
-  readonly m_sTextureNameDamaged: string | undefined
-  readonly m_sSoundNameDamaged: string | undefined
-  m_bDamaged: boolean | undefined
-}
-define(CPlayerSprayDecal, 'CPlayerSprayDecal', {
+const fieldsCPlayerSprayDecal = {
   m_nUniqueID: 'int32',
   m_unAccountID: 'uint32',
   m_unTraceID: 'uint32',
@@ -6426,23 +4362,15 @@ define(CPlayerSprayDecal, 'CPlayerSprayDecal', {
   m_sTextureNameDamaged: 'string',
   m_sSoundNameDamaged: 'string',
   m_bDamaged: 'bool',
-})
+} as const
+export class CPlayerSprayDecal extends CBaseModelEntity {}
+export interface CPlayerSprayDecal extends Fields<typeof fieldsCPlayerSprayDecal> {}
+define(CPlayerSprayDecal, 'CPlayerSprayDecal', fieldsCPlayerSprayDecal)
 
 export class CPrecipitationBlocker extends CBaseModelEntity {}
 define(CPrecipitationBlocker, 'CPrecipitationBlocker', {})
 
-export class CRenderPortal extends CBaseModelEntity {}
-export interface CRenderPortal {
-  m_hLocalPortalLink: CBaseEntity | undefined
-  m_hRemotePortalLink: CBaseEntity | undefined
-  readonly m_brushModelName: string | undefined
-  m_flFadeStartDist: number | undefined
-  m_flFadeEndDist: number | undefined
-  m_flFadeStartAngle: number | undefined
-  m_flFadeEndAngle: number | undefined
-  m_flRemoteViewForwardOffset: number | undefined
-}
-define(CRenderPortal, 'CRenderPortal', {
+const fieldsCRenderPortal = {
   m_hLocalPortalLink: 'CBaseEntity',
   m_hRemotePortalLink: 'CBaseEntity',
   m_brushModelName: 'string',
@@ -6451,35 +4379,12 @@ define(CRenderPortal, 'CRenderPortal', {
   m_flFadeStartAngle: 'float32',
   m_flFadeEndAngle: 'float32',
   m_flRemoteViewForwardOffset: 'float32',
-})
+} as const
+export class CRenderPortal extends CBaseModelEntity {}
+export interface CRenderPortal extends Fields<typeof fieldsCRenderPortal> {}
+define(CRenderPortal, 'CRenderPortal', fieldsCRenderPortal)
 
-export class CRopeKeyframe extends CBaseModelEntity {}
-export interface CRopeKeyframe {
-  m_RopeFlags: number | undefined
-  readonly m_iNextLinkName: string | undefined
-  m_Slack: number | undefined
-  m_Width: number | undefined
-  m_TextureScale: number | undefined
-  m_nSegments: number | undefined
-  m_bConstrainBetweenEndpoints: boolean | undefined
-  readonly m_strRopeMaterialModel: string | undefined
-  m_Subdiv: number | undefined
-  m_nChangeCount: number | undefined
-  m_RopeLength: number | undefined
-  m_fLockedPoints: number | undefined
-  m_bCreatedFromMapFile: boolean | undefined
-  m_flScrollSpeed: number | undefined
-  m_bStartPointValid: boolean | undefined
-  m_bEndPointValid: boolean | undefined
-  m_hStartPoint: CBaseEntity | undefined
-  m_hEndPoint: CBaseEntity | undefined
-  m_iStartAttachment: number | undefined
-  m_iEndAttachment: number | undefined
-  inputBreak(): boolean
-  inputSetForce(value: Vector): boolean
-  inputSetScrollSpeed(value: number): boolean
-}
-define(CRopeKeyframe, 'CRopeKeyframe', {
+const fieldsCRopeKeyframe = {
   m_RopeFlags: 'uint16',
   m_iNextLinkName: 'string',
   m_Slack: 'int16',
@@ -6500,148 +4405,100 @@ define(CRopeKeyframe, 'CRopeKeyframe', {
   m_hEndPoint: 'CBaseEntity',
   m_iStartAttachment: 'uint8',
   m_iEndAttachment: 'uint8',
-}, {
+} as const
+const inputsCRopeKeyframe = {
   Break: '',
   SetForce: 'vector',
   SetScrollSpeed: 'number',
-})
+} as const
+export class CRopeKeyframe extends CBaseModelEntity {}
+export interface CRopeKeyframe extends Fields<typeof fieldsCRopeKeyframe>, Inputs<typeof inputsCRopeKeyframe> {}
+define(CRopeKeyframe, 'CRopeKeyframe', fieldsCRopeKeyframe, inputsCRopeKeyframe)
 
 export class CRopeKeyframeAlias_move_rope extends CRopeKeyframe {}
 define(CRopeKeyframeAlias_move_rope, 'CRopeKeyframeAlias_move_rope', {})
 
-export class CRuleEntity extends CBaseModelEntity {}
-export interface CRuleEntity {
-  readonly m_iszMaster: string | undefined
-}
-define(CRuleEntity, 'CRuleEntity', {
+const fieldsCRuleEntity = {
   m_iszMaster: 'string',
-})
+} as const
+export class CRuleEntity extends CBaseModelEntity {}
+export interface CRuleEntity extends Fields<typeof fieldsCRuleEntity> {}
+define(CRuleEntity, 'CRuleEntity', fieldsCRuleEntity)
 
 export class CRuleBrushEntity extends CRuleEntity {}
 define(CRuleBrushEntity, 'CRuleBrushEntity', {})
 
-export class CGamePlayerZone extends CRuleBrushEntity {}
-export interface CGamePlayerZone {
-  inputCountPlayersInZone(): boolean
-}
-define(CGamePlayerZone, 'CGamePlayerZone', {}, {
+const inputsCGamePlayerZone = {
   CountPlayersInZone: '',
-})
+} as const
+export class CGamePlayerZone extends CRuleBrushEntity {}
+export interface CGamePlayerZone extends Inputs<typeof inputsCGamePlayerZone> {}
+define(CGamePlayerZone, 'CGamePlayerZone', {}, inputsCGamePlayerZone)
 
-export class CRulePointEntity extends CRuleEntity {}
-export interface CRulePointEntity {
-  m_Score: number | undefined
-}
-define(CRulePointEntity, 'CRulePointEntity', {
+const fieldsCRulePointEntity = {
   m_Score: 'int32',
-})
+} as const
+export class CRulePointEntity extends CRuleEntity {}
+export interface CRulePointEntity extends Fields<typeof fieldsCRulePointEntity> {}
+define(CRulePointEntity, 'CRulePointEntity', fieldsCRulePointEntity)
 
-export class CGamePlayerEquip extends CRulePointEntity {}
-export interface CGamePlayerEquip {
-  inputTriggerForActivatedPlayer(value: string): boolean
-  inputTriggerForAllPlayers(): boolean
-}
-define(CGamePlayerEquip, 'CGamePlayerEquip', {}, {
+const inputsCGamePlayerEquip = {
   TriggerForActivatedPlayer: 'text',
   TriggerForAllPlayers: '',
-})
+} as const
+export class CGamePlayerEquip extends CRulePointEntity {}
+export interface CGamePlayerEquip extends Inputs<typeof inputsCGamePlayerEquip> {}
+define(CGamePlayerEquip, 'CGamePlayerEquip', {}, inputsCGamePlayerEquip)
 
-export class CGameText extends CRulePointEntity {}
-export interface CGameText {
-  readonly m_iszMessage: string | undefined
-  inputDisplay(): boolean
-  inputSetText(value: string): boolean
-}
-define(CGameText, 'CGameText', {
+const fieldsCGameText = {
   m_iszMessage: 'string',
-}, {
+} as const
+const inputsCGameText = {
   Display: '',
   SetText: 'text',
-})
+} as const
+export class CGameText extends CRulePointEntity {}
+export interface CGameText extends Fields<typeof fieldsCGameText>, Inputs<typeof inputsCGameText> {}
+define(CGameText, 'CGameText', fieldsCGameText, inputsCGameText)
 
 export class CServerOnlyModelEntity extends CBaseModelEntity {}
 define(CServerOnlyModelEntity, 'CServerOnlyModelEntity', {})
 
-export class CFogVolume extends CServerOnlyModelEntity {}
-export interface CFogVolume {
-  readonly m_fogName: string | undefined
-  readonly m_postProcessName: string | undefined
-  readonly m_colorCorrectionName: string | undefined
-  m_bDisabled: boolean | undefined
-  m_bInFogVolumesList: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CFogVolume, 'CFogVolume', {
+const fieldsCFogVolume = {
   m_fogName: 'string',
   m_postProcessName: 'string',
   m_colorCorrectionName: 'string',
   m_bDisabled: 'bool',
   m_bInFogVolumesList: 'bool',
-}, {
+} as const
+const inputsCFogVolume = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CFogVolume extends CServerOnlyModelEntity {}
+export interface CFogVolume extends Fields<typeof fieldsCFogVolume>, Inputs<typeof inputsCFogVolume> {}
+define(CFogVolume, 'CFogVolume', fieldsCFogVolume, inputsCFogVolume)
 
-export class CShatterGlassShardPhysics extends CBaseModelEntity {}
-export interface CShatterGlassShardPhysics {
-  m_hParentShard: number | undefined
-  m_nPoolState: number | undefined
-  m_bTouchedByPlayer: boolean | undefined
-}
-define(CShatterGlassShardPhysics, 'CShatterGlassShardPhysics', {
+const fieldsCShatterGlassShardPhysics = {
   m_hParentShard: 'uint32',
   m_nPoolState: 'uint32',
   m_bTouchedByPlayer: 'bool',
-})
+} as const
+export class CShatterGlassShardPhysics extends CBaseModelEntity {}
+export interface CShatterGlassShardPhysics extends Fields<typeof fieldsCShatterGlassShardPhysics> {}
+define(CShatterGlassShardPhysics, 'CShatterGlassShardPhysics', fieldsCShatterGlassShardPhysics)
 
-export class CSpotlightEnd extends CBaseModelEntity {}
-export interface CSpotlightEnd {
-  m_flLightScale: number | undefined
-  m_Radius: number | undefined
-  m_vSpotlightDir: Vector | undefined
-  m_vSpotlightOrg: Vector | undefined
-}
-define(CSpotlightEnd, 'CSpotlightEnd', {
+const fieldsCSpotlightEnd = {
   m_flLightScale: 'float32',
   m_Radius: 'float32',
   m_vSpotlightDir: 'vector',
   m_vSpotlightOrg: 'vector',
-})
+} as const
+export class CSpotlightEnd extends CBaseModelEntity {}
+export interface CSpotlightEnd extends Fields<typeof fieldsCSpotlightEnd> {}
+define(CSpotlightEnd, 'CSpotlightEnd', fieldsCSpotlightEnd)
 
-export class CSprite extends CBaseModelEntity {}
-export interface CSprite {
-  m_hAttachedToEntity: CBaseEntity | undefined
-  m_nAttachment: number | undefined
-  m_flSpriteFramerate: number | undefined
-  m_flFrame: number | undefined
-  m_flDieTime: number | undefined
-  m_nBrightness: number | undefined
-  m_flBrightnessDuration: number | undefined
-  m_flSpriteScale: number | undefined
-  m_flScaleDuration: number | undefined
-  m_bWorldSpaceScale: boolean | undefined
-  m_flGlowProxySize: number | undefined
-  m_flHDRColorScale: number | undefined
-  m_flLastTime: number | undefined
-  m_flMaxFrame: number | undefined
-  m_flStartScale: number | undefined
-  m_flDestScale: number | undefined
-  m_flScaleTimeStart: number | undefined
-  m_nStartBrightness: number | undefined
-  m_nDestBrightness: number | undefined
-  m_flBrightnessTimeStart: number | undefined
-  m_nSpriteWidth: number | undefined
-  m_nSpriteHeight: number | undefined
-  m_flSpeed: number | undefined
-  inputColorBlueValue(value: number): boolean
-  inputColorGreenValue(value: number): boolean
-  inputColorRedValue(value: number): boolean
-  inputHideSprite(): boolean
-  inputShowSprite(): boolean
-  inputToggleSprite(): boolean
-}
-define(CSprite, 'CSprite', {
+const fieldsCSprite = {
   m_hAttachedToEntity: 'CBaseEntity',
   m_nAttachment: 'uint8',
   m_flSpriteFramerate: 'float32',
@@ -6665,14 +4522,18 @@ define(CSprite, 'CSprite', {
   m_nSpriteWidth: 'int32',
   m_nSpriteHeight: 'int32',
   m_flSpeed: 'float32',
-}, {
+} as const
+const inputsCSprite = {
   ColorBlueValue: 'number',
   ColorGreenValue: 'number',
   ColorRedValue: 'number',
   HideSprite: '',
   ShowSprite: '',
   ToggleSprite: '',
-})
+} as const
+export class CSprite extends CBaseModelEntity {}
+export interface CSprite extends Fields<typeof fieldsCSprite>, Inputs<typeof inputsCSprite> {}
+define(CSprite, 'CSprite', fieldsCSprite, inputsCSprite)
 
 export class CCommentaryViewPosition extends CSprite {}
 define(CCommentaryViewPosition, 'CCommentaryViewPosition', {})
@@ -6683,103 +4544,48 @@ define(CSpriteAlias_env_glow, 'CSpriteAlias_env_glow', {})
 export class CSpriteOriented extends CSprite {}
 define(CSpriteOriented, 'CSpriteOriented', {})
 
-export class CTextureBasedAnimatable extends CBaseModelEntity {}
-export interface CTextureBasedAnimatable {
-  m_bLoop: boolean | undefined
-  m_flFPS: number | undefined
-  m_vAnimationBoundsMin: Vector | undefined
-  m_vAnimationBoundsMax: Vector | undefined
-  m_flStartTime: number | undefined
-  m_flStartFrame: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputStart(): boolean
-  inputStop(): boolean
-}
-define(CTextureBasedAnimatable, 'CTextureBasedAnimatable', {
+const fieldsCTextureBasedAnimatable = {
   m_bLoop: 'bool',
   m_flFPS: 'float32',
   m_vAnimationBoundsMin: 'vector',
   m_vAnimationBoundsMax: 'vector',
   m_flStartTime: 'float32',
   m_flStartFrame: 'float32',
-}, {
+} as const
+const inputsCTextureBasedAnimatable = {
   Disable: '',
   Enable: '',
   Start: '',
   Stop: '',
-})
+} as const
+export class CTextureBasedAnimatable extends CBaseModelEntity {}
+export interface CTextureBasedAnimatable extends Fields<typeof fieldsCTextureBasedAnimatable>, Inputs<typeof inputsCTextureBasedAnimatable> {}
+define(CTextureBasedAnimatable, 'CTextureBasedAnimatable', fieldsCTextureBasedAnimatable, inputsCTextureBasedAnimatable)
 
-export class CTriggerBrush extends CBaseModelEntity {}
-export interface CTriggerBrush {
-  m_iInputFilter: number | undefined
-  m_iDontMessageParent: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CTriggerBrush, 'CTriggerBrush', {
+const fieldsCTriggerBrush = {
   m_iInputFilter: 'int32',
   m_iDontMessageParent: 'int32',
-}, {
+} as const
+const inputsCTriggerBrush = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CTriggerBrush extends CBaseModelEntity {}
+export interface CTriggerBrush extends Fields<typeof fieldsCTriggerBrush>, Inputs<typeof inputsCTriggerBrush> {}
+define(CTriggerBrush, 'CTriggerBrush', fieldsCTriggerBrush, inputsCTriggerBrush)
 
-export class CTriggerVolume extends CBaseModelEntity {}
-export interface CTriggerVolume {
-  readonly m_iFilterName: string | undefined
-  m_hFilter: CBaseFilter | undefined
-}
-define(CTriggerVolume, 'CTriggerVolume', {
+const fieldsCTriggerVolume = {
   m_iFilterName: 'string',
   m_hFilter: 'CBaseFilter',
-})
+} as const
+export class CTriggerVolume extends CBaseModelEntity {}
+export interface CTriggerVolume extends Fields<typeof fieldsCTriggerVolume> {}
+define(CTriggerVolume, 'CTriggerVolume', fieldsCTriggerVolume)
 
 export class CWorld extends CBaseModelEntity {}
 define(CWorld, 'CWorld', {})
 
-export class CBaseNPCMaker extends CBaseEntity {}
-export interface CBaseNPCMaker {
-  m_nMaxNumNPCs: number | undefined
-  m_flSpawnFrequency: number | undefined
-  m_flRetryFrequency: number | undefined
-  m_nHullCheckMode: number | undefined
-  m_nLiveChildren: number | undefined
-  m_nMaxLiveChildren: number | undefined
-  m_nMinSpawnDistance: number | undefined
-  m_nSpawnThreshold: number | undefined
-  m_nBatchCount: number | undefined
-  m_flRadius: number | undefined
-  m_bDisabled: boolean | undefined
-  m_bSpawning: boolean | undefined
-  m_bZeroPitchAndRoll: boolean | undefined
-  m_hIgnoreEntity: CBaseEntity | undefined
-  readonly m_iszIgnoreEnt: string | undefined
-  readonly m_iszDestinationGroup: string | undefined
-  m_hSpawnEntity: CNPCSpawnDestination | undefined
-  m_hSpawnedNPC: CAI_BaseNPC | undefined
-  m_nCurrentBatchCount: number | undefined
-  m_CriterionVisibility: number | undefined
-  m_CriterionDistance: number | undefined
-  inputAddMaxChildren(value: number): boolean
-  inputChangeDestinationGroup(value: string): boolean
-  inputDisable(): boolean
-  inputDisableInfiniteSpawns(value: boolean): boolean
-  inputEnable(): boolean
-  inputEnableInfiniteSpawns(): boolean
-  inputSetBatchCount(value: number): boolean
-  inputSetMaxChildren(value: number): boolean
-  inputSetMaxLiveChildren(value: number): boolean
-  inputSetMinimumSpawnDistance(value: number): boolean
-  inputSetSpawnEntity(value: string): boolean
-  inputSetSpawnFrequency(value: number): boolean
-  inputSpawn(): boolean
-  inputSpawnInLine(): boolean
-  inputSpawnInRadius(): boolean
-  inputSpawnMultiple(value: number): boolean
-  inputToggle(): boolean
-}
-define(CBaseNPCMaker, 'CBaseNPCMaker', {
+const fieldsCBaseNPCMaker = {
   m_nMaxNumNPCs: 'int32',
   m_flSpawnFrequency: 'float32',
   m_flRetryFrequency: 'float32',
@@ -6801,7 +4607,8 @@ define(CBaseNPCMaker, 'CBaseNPCMaker', {
   m_nCurrentBatchCount: 'int32',
   m_CriterionVisibility: 'uint32',
   m_CriterionDistance: 'uint32',
-}, {
+} as const
+const inputsCBaseNPCMaker = {
   AddMaxChildren: 'integer',
   ChangeDestinationGroup: 'text',
   Disable: '',
@@ -6819,60 +4626,31 @@ define(CBaseNPCMaker, 'CBaseNPCMaker', {
   SpawnInRadius: '',
   SpawnMultiple: 'integer',
   Toggle: '',
-})
+} as const
+export class CBaseNPCMaker extends CBaseEntity {}
+export interface CBaseNPCMaker extends Fields<typeof fieldsCBaseNPCMaker>, Inputs<typeof inputsCBaseNPCMaker> {}
+define(CBaseNPCMaker, 'CBaseNPCMaker', fieldsCBaseNPCMaker, inputsCBaseNPCMaker)
 
-export class CNPCMaker extends CBaseNPCMaker {}
-export interface CNPCMaker {
-  readonly m_iszNPCSubClass: string | undefined
-  readonly m_iszSquadName: string | undefined
-  readonly m_iszHintGroup: string | undefined
-  readonly m_RelationshipString: string | undefined
-  readonly m_ChildTargetName: string | undefined
-}
-define(CNPCMaker, 'CNPCMaker', {
+const fieldsCNPCMaker = {
   m_iszNPCSubClass: 'string',
   m_iszSquadName: 'string',
   m_iszHintGroup: 'string',
   m_RelationshipString: 'string',
   m_ChildTargetName: 'string',
-})
+} as const
+export class CNPCMaker extends CBaseNPCMaker {}
+export interface CNPCMaker extends Fields<typeof fieldsCNPCMaker> {}
+define(CNPCMaker, 'CNPCMaker', fieldsCNPCMaker)
 
-export class CTemplateNPCMaker extends CBaseNPCMaker {}
-export interface CTemplateNPCMaker {
-  readonly m_iszWorldName: string | undefined
-  readonly m_iszSource2EntityLumpName: string | undefined
-}
-define(CTemplateNPCMaker, 'CTemplateNPCMaker', {
+const fieldsCTemplateNPCMaker = {
   m_iszWorldName: 'string',
   m_iszSource2EntityLumpName: 'string',
-})
+} as const
+export class CTemplateNPCMaker extends CBaseNPCMaker {}
+export interface CTemplateNPCMaker extends Fields<typeof fieldsCTemplateNPCMaker> {}
+define(CTemplateNPCMaker, 'CTemplateNPCMaker', fieldsCTemplateNPCMaker)
 
-export class CBasePlayerController extends CBaseEntity {}
-export interface CBasePlayerController {
-  m_nInButtonsWhichAreToggles: bigint | undefined
-  m_nTickBase: number | undefined
-  m_hPawn: CBasePlayerPawn | undefined
-  m_bKnownTeamMismatch: boolean | undefined
-  m_hSplitOwner: CBasePlayerController | undefined
-  m_bIsHLTV: boolean | undefined
-  m_iConnected: number | undefined
-  m_iMostConnected: number | undefined
-  readonly m_szNetworkIDString: string | undefined
-  m_fLerpTime: number | undefined
-  m_bLagCompensation: boolean | undefined
-  m_bPredict: boolean | undefined
-  m_bIsLowViolence: boolean | undefined
-  m_bGamePaused: boolean | undefined
-  m_iIgnoreGlobalChat: number | undefined
-  m_flLastPlayerTalkTime: number | undefined
-  m_flLastEntitySteadyState: number | undefined
-  m_nAvailableEntitySteadyState: number | undefined
-  m_bHasAnySteadyStateEnts: boolean | undefined
-  m_steamID: bigint | undefined
-  m_bNoClipEnabled: boolean | undefined
-  m_iDesiredFOV: number | undefined
-}
-define(CBasePlayerController, 'CBasePlayerController', {
+const fieldsCBasePlayerController = {
   m_nInButtonsWhichAreToggles: 'uint64',
   m_nTickBase: 'uint32',
   m_hPawn: 'CBasePlayerPawn',
@@ -6895,44 +4673,12 @@ define(CBasePlayerController, 'CBasePlayerController', {
   m_steamID: 'uint64',
   m_bNoClipEnabled: 'bool',
   m_iDesiredFOV: 'uint32',
-})
+} as const
+export class CBasePlayerController extends CBaseEntity {}
+export interface CBasePlayerController extends Fields<typeof fieldsCBasePlayerController> {}
+define(CBasePlayerController, 'CBasePlayerController', fieldsCBasePlayerController)
 
-export class CCitadelPlayerController extends CBasePlayerController {}
-export interface CCitadelPlayerController {
-  m_ePlayState: number | undefined
-  m_iGuidedBotMatchLastHits: number | undefined
-  m_iGuidedBotMatchOrbsSecured: number | undefined
-  m_iGuidedBotMatchOrbsDenied: number | undefined
-  m_iGuidedBotMatchDamageToGuardians: number | undefined
-  m_iGuidedBotMatchDamageToPlayers: number | undefined
-  m_iGuidedBotMatchDamageTaken: number | undefined
-  m_iGuidedBotMatchNetWorth: number | undefined
-  m_iGuidedBotMatchModsPurchased: number | undefined
-  m_iGuidedBotMatchAbilityUpgrades: number | undefined
-  m_flGuideBotMatchLastTaskNagVO: number | undefined
-  m_flGuideBotLastTimeTaskCompleted: number | undefined
-  m_eGuidedBotMatchObjective: number | undefined
-  m_nCurrentRank: number | undefined
-  m_nAssignedLane: number | undefined
-  m_nOriginalLaneAssignment: number | undefined
-  m_bBotDisconnectTakeover: boolean | undefined
-  m_bInTeamChat: boolean | undefined
-  m_bInPartyChat: boolean | undefined
-  m_bLaneSwapLocked: boolean | undefined
-  m_bCommsRestricted: boolean | undefined
-  m_bPriorCommsAbuse: boolean | undefined
-  m_bIsNewPlayer: boolean | undefined
-  m_unEconAccountID: number | undefined
-  m_hHeroPawn: CCitadelPlayerPawn | undefined
-  m_nDeathReplayAvailable: number | undefined
-  m_unLobbyPlayerSlot: number | undefined
-  m_flLastCommsTime: number | undefined
-  m_flNextAllowedCommsTime: number | undefined
-  m_flLastFailedCommsTime: number | undefined
-  m_nTotalCommsAttempted: number | undefined
-  m_nGuideBotNumTasksComplete: number | undefined
-}
-define(CCitadelPlayerController, 'CCitadelPlayerController', {
+const fieldsCCitadelPlayerController = {
   m_ePlayState: 'uint32',
   m_iGuidedBotMatchLastHits: 'int32',
   m_iGuidedBotMatchOrbsSecured: 'int32',
@@ -6965,7 +4711,10 @@ define(CCitadelPlayerController, 'CCitadelPlayerController', {
   m_flLastFailedCommsTime: 'float32',
   m_nTotalCommsAttempted: 'int32',
   m_nGuideBotNumTasksComplete: 'int32',
-})
+} as const
+export class CCitadelPlayerController extends CBasePlayerController {}
+export interface CCitadelPlayerController extends Fields<typeof fieldsCCitadelPlayerController> {}
+define(CCitadelPlayerController, 'CCitadelPlayerController', fieldsCCitadelPlayerController)
 
 export class CBaseTrackedStatsEntity extends CBaseEntity {}
 define(CBaseTrackedStatsEntity, 'CBaseTrackedStatsEntity', {})
@@ -6973,73 +4722,37 @@ define(CBaseTrackedStatsEntity, 'CBaseTrackedStatsEntity', {})
 export class CMatchTrackedStatsEntity extends CBaseTrackedStatsEntity {}
 define(CMatchTrackedStatsEntity, 'CMatchTrackedStatsEntity', {})
 
+const fieldsCPlayerTrackedStatsEntity = {
+  m_nTeam: 'int32',
+} as const
 export class CPlayerTrackedStatsEntity extends CBaseTrackedStatsEntity {}
-export interface CPlayerTrackedStatsEntity {
-  m_nTeam: number | undefined
-}
-define(CPlayerTrackedStatsEntity, 'CPlayerTrackedStatsEntity', {
-  m_nTeam: 'int32',
-})
+export interface CPlayerTrackedStatsEntity extends Fields<typeof fieldsCPlayerTrackedStatsEntity> {}
+define(CPlayerTrackedStatsEntity, 'CPlayerTrackedStatsEntity', fieldsCPlayerTrackedStatsEntity)
 
+const fieldsCTeamTrackedStatsEntity = {
+  m_nTeam: 'int32',
+} as const
 export class CTeamTrackedStatsEntity extends CBaseTrackedStatsEntity {}
-export interface CTeamTrackedStatsEntity {
-  m_nTeam: number | undefined
-}
-define(CTeamTrackedStatsEntity, 'CTeamTrackedStatsEntity', {
-  m_nTeam: 'int32',
-})
+export interface CTeamTrackedStatsEntity extends Fields<typeof fieldsCTeamTrackedStatsEntity> {}
+define(CTeamTrackedStatsEntity, 'CTeamTrackedStatsEntity', fieldsCTeamTrackedStatsEntity)
 
-export class CCitadelAudioProcessingVolumeBase extends CBaseEntity {}
-export interface CCitadelAudioProcessingVolumeBase {
-  readonly m_strEffectName: string | undefined
-  m_nVolumeID: number | undefined
-}
-define(CCitadelAudioProcessingVolumeBase, 'CCitadelAudioProcessingVolumeBase', {
+const fieldsCCitadelAudioProcessingVolumeBase = {
   m_strEffectName: 'string',
   m_nVolumeID: 'int32',
-})
+} as const
+export class CCitadelAudioProcessingVolumeBase extends CBaseEntity {}
+export interface CCitadelAudioProcessingVolumeBase extends Fields<typeof fieldsCCitadelAudioProcessingVolumeBase> {}
+define(CCitadelAudioProcessingVolumeBase, 'CCitadelAudioProcessingVolumeBase', fieldsCCitadelAudioProcessingVolumeBase)
 
-export class CCitadelAudioProcessingVolumeOBB extends CCitadelAudioProcessingVolumeBase {}
-export interface CCitadelAudioProcessingVolumeOBB {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-}
-define(CCitadelAudioProcessingVolumeOBB, 'CCitadelAudioProcessingVolumeOBB', {
+const fieldsCCitadelAudioProcessingVolumeOBB = {
   m_vMins: 'vector',
   m_vMaxs: 'vector',
-})
+} as const
+export class CCitadelAudioProcessingVolumeOBB extends CCitadelAudioProcessingVolumeBase {}
+export interface CCitadelAudioProcessingVolumeOBB extends Fields<typeof fieldsCCitadelAudioProcessingVolumeOBB> {}
+define(CCitadelAudioProcessingVolumeOBB, 'CCitadelAudioProcessingVolumeOBB', fieldsCCitadelAudioProcessingVolumeOBB)
 
-export class CCitadelBaseAbility extends CBaseEntity {}
-export interface CCitadelBaseAbility {
-  m_bIsCoolingDownInternal: boolean | undefined
-  m_flCancelMashProtectionEndTime: number | undefined
-  m_flCancelLockoutEndTime: number | undefined
-  m_bChanneling: boolean | undefined
-  m_bInCastDelay: boolean | undefined
-  m_bShouldBeExecuted: boolean | undefined
-  m_bCanBeUpgraded: boolean | undefined
-  m_nUpgradeInfo: number | undefined
-  m_bToggleState: boolean | undefined
-  m_flCooldownStart: number | undefined
-  m_flCooldownEnd: number | undefined
-  m_flCastCompletedTime: number | undefined
-  m_flChannelStartTime: number | undefined
-  m_flCastDelayStartTime: number | undefined
-  m_eAbilitySlot: number | undefined
-  m_flPostCastDelayEndTime: number | undefined
-  m_iRemainingCharges: number | undefined
-  m_flChargeRechargeStart: number | undefined
-  m_flChargeRechargeEnd: number | undefined
-  m_flMovementControlActiveTime: number | undefined
-  m_flSelectedChangedTime: number | undefined
-  m_flAltCastHoldStartTime: number | undefined
-  m_flAltCastDoubleTapStartTime: number | undefined
-  m_bCanBeImbued: boolean | undefined
-  m_bSelectionModeIsAltMode: boolean | undefined
-  m_flPreviousEffectiveCooldown: number | undefined
-  m_enActiveReasonBits: number | undefined
-}
-define(CCitadelBaseAbility, 'CCitadelBaseAbility', {
+const fieldsCCitadelBaseAbility = {
   m_bIsCoolingDownInternal: 'bool',
   m_flCancelMashProtectionEndTime: 'float32',
   m_flCancelLockoutEndTime: 'float32',
@@ -7067,48 +4780,34 @@ define(CCitadelBaseAbility, 'CCitadelBaseAbility', {
   m_bSelectionModeIsAltMode: 'bool',
   m_flPreviousEffectiveCooldown: 'float32',
   m_enActiveReasonBits: 'uint32',
-})
+} as const
+export class CCitadelBaseAbility extends CBaseEntity {}
+export interface CCitadelBaseAbility extends Fields<typeof fieldsCCitadelBaseAbility> {}
+define(CCitadelBaseAbility, 'CCitadelBaseAbility', fieldsCCitadelBaseAbility)
 
-export class CAbility_Drifter_BloodBlast extends CCitadelBaseAbility {}
-export interface CAbility_Drifter_BloodBlast {
-  m_SandEffect: number | undefined
-}
-define(CAbility_Drifter_BloodBlast, 'CAbility_Drifter_BloodBlast', {
+const fieldsCAbility_Drifter_BloodBlast = {
   m_SandEffect: 'int32',
-})
+} as const
+export class CAbility_Drifter_BloodBlast extends CCitadelBaseAbility {}
+export interface CAbility_Drifter_BloodBlast extends Fields<typeof fieldsCAbility_Drifter_BloodBlast> {}
+define(CAbility_Drifter_BloodBlast, 'CAbility_Drifter_BloodBlast', fieldsCAbility_Drifter_BloodBlast)
 
 export class CAbility_Drifter_Darkness extends CCitadelBaseAbility {}
 define(CAbility_Drifter_Darkness, 'CAbility_Drifter_Darkness', {})
 
-export class CAbility_Drifter_ShadowMark extends CCitadelBaseAbility {}
-export interface CAbility_Drifter_ShadowMark {
-  m_vLastValidTeleportPosition: Vector | undefined
-  m_hTeleportTarget: CBaseEntity | undefined
-  m_bTeleported: boolean | undefined
-  m_qPostTeleportAngles: Angles | undefined
-  m_flExpireTime: number | undefined
-  m_flTeleportedTime: number | undefined
-}
-define(CAbility_Drifter_ShadowMark, 'CAbility_Drifter_ShadowMark', {
+const fieldsCAbility_Drifter_ShadowMark = {
   m_vLastValidTeleportPosition: 'vector',
   m_hTeleportTarget: 'CBaseEntity',
   m_bTeleported: 'bool',
   m_qPostTeleportAngles: 'angles',
   m_flExpireTime: 'float32',
   m_flTeleportedTime: 'float32',
-})
+} as const
+export class CAbility_Drifter_ShadowMark extends CCitadelBaseAbility {}
+export interface CAbility_Drifter_ShadowMark extends Fields<typeof fieldsCAbility_Drifter_ShadowMark> {}
+define(CAbility_Drifter_ShadowMark, 'CAbility_Drifter_ShadowMark', fieldsCAbility_Drifter_ShadowMark)
 
-export class CAbility_Fathom_LurkersAmbush extends CCitadelBaseAbility {}
-export interface CAbility_Fathom_LurkersAmbush {
-  m_bIsVisibleOnMinimap: boolean | undefined
-  m_flStoppedMovingStartTime: number | undefined
-  m_vLastPos: Vector | undefined
-  m_flDebuffDuration: number | undefined
-  m_flChannelTimeStarted: number | undefined
-  m_bWasLatchedWhenCast: boolean | undefined
-  m_ChargeUpParticle: number | undefined
-}
-define(CAbility_Fathom_LurkersAmbush, 'CAbility_Fathom_LurkersAmbush', {
+const fieldsCAbility_Fathom_LurkersAmbush = {
   m_bIsVisibleOnMinimap: 'bool',
   m_flStoppedMovingStartTime: 'float32',
   m_vLastPos: 'vector',
@@ -7116,22 +4815,12 @@ define(CAbility_Fathom_LurkersAmbush, 'CAbility_Fathom_LurkersAmbush', {
   m_flChannelTimeStarted: 'float32',
   m_bWasLatchedWhenCast: 'bool',
   m_ChargeUpParticle: 'int32',
-})
+} as const
+export class CAbility_Fathom_LurkersAmbush extends CCitadelBaseAbility {}
+export interface CAbility_Fathom_LurkersAmbush extends Fields<typeof fieldsCAbility_Fathom_LurkersAmbush> {}
+define(CAbility_Fathom_LurkersAmbush, 'CAbility_Fathom_LurkersAmbush', fieldsCAbility_Fathom_LurkersAmbush)
 
-export class CAbility_Fathom_ReefdwellerHarpoon extends CCitadelBaseAbility {}
-export interface CAbility_Fathom_ReefdwellerHarpoon {
-  m_bHitTarget: boolean | undefined
-  m_vPrevPos: Vector | undefined
-  m_bBulletFlying: boolean | undefined
-  m_bHasLatchedOnce: boolean | undefined
-  m_bLatched: boolean | undefined
-  m_vHarpoonTarget: Vector | undefined
-  m_flLatchedYaw: number | undefined
-  m_flCloseEnoughStartTime: number | undefined
-  m_flStuckStartTime: number | undefined
-  m_flReelStartTime: number | undefined
-}
-define(CAbility_Fathom_ReefdwellerHarpoon, 'CAbility_Fathom_ReefdwellerHarpoon', {
+const fieldsCAbility_Fathom_ReefdwellerHarpoon = {
   m_bHitTarget: 'bool',
   m_vPrevPos: 'vector',
   m_bBulletFlying: 'bool',
@@ -7142,28 +4831,12 @@ define(CAbility_Fathom_ReefdwellerHarpoon, 'CAbility_Fathom_ReefdwellerHarpoon',
   m_flCloseEnoughStartTime: 'float32',
   m_flStuckStartTime: 'float32',
   m_flReelStartTime: 'float32',
-})
+} as const
+export class CAbility_Fathom_ReefdwellerHarpoon extends CCitadelBaseAbility {}
+export interface CAbility_Fathom_ReefdwellerHarpoon extends Fields<typeof fieldsCAbility_Fathom_ReefdwellerHarpoon> {}
+define(CAbility_Fathom_ReefdwellerHarpoon, 'CAbility_Fathom_ReefdwellerHarpoon', fieldsCAbility_Fathom_ReefdwellerHarpoon)
 
-export class CAbility_Fencer_Lunge extends CCitadelBaseAbility {}
-export interface CAbility_Fencer_Lunge {
-  m_nCurrentLungeState: number | undefined
-  m_flStateStartTime: number | undefined
-  m_vDashStartPos: Vector | undefined
-  m_vDashDirection: Vector | undefined
-  m_vLookDirection: Vector | undefined
-  m_vStrikeDirection: Vector | undefined
-  m_bStartedInAir: boolean | undefined
-  m_iRemainingCasts: number | undefined
-  m_RecastEndTime: number | undefined
-  m_eLungeDirection: number | undefined
-  m_flHeldTime: number | undefined
-  m_vLastPosition: Vector | undefined
-  m_flStuckTime: number | undefined
-  m_nGlintParticleIndex: number | undefined
-  m_flLastOuterCircleProgress: number | undefined
-  m_nPowerLevel: number | undefined
-}
-define(CAbility_Fencer_Lunge, 'CAbility_Fencer_Lunge', {
+const fieldsCAbility_Fencer_Lunge = {
   m_nCurrentLungeState: 'uint8',
   m_flStateStartTime: 'float32',
   m_vDashStartPos: 'vector',
@@ -7180,21 +4853,12 @@ define(CAbility_Fencer_Lunge, 'CAbility_Fencer_Lunge', {
   m_nGlintParticleIndex: 'int32',
   m_flLastOuterCircleProgress: 'float32',
   m_nPowerLevel: 'int32',
-})
+} as const
+export class CAbility_Fencer_Lunge extends CCitadelBaseAbility {}
+export interface CAbility_Fencer_Lunge extends Fields<typeof fieldsCAbility_Fencer_Lunge> {}
+define(CAbility_Fencer_Lunge, 'CAbility_Fencer_Lunge', fieldsCAbility_Fencer_Lunge)
 
-export class CAbility_Fencer_Ultimate extends CCitadelBaseAbility {}
-export interface CAbility_Fencer_Ultimate {
-  m_vStartPosition: Vector | undefined
-  m_vDashDirection: Vector | undefined
-  m_vecLastPosition: Vector | undefined
-  m_eUltState: number | undefined
-  m_flStateStartTime: number | undefined
-  m_bHitSomeone: boolean | undefined
-  m_flStuckTime: number | undefined
-  m_UltHoldVFX: number | undefined
-  m_DirPreviewVFX: number | undefined
-}
-define(CAbility_Fencer_Ultimate, 'CAbility_Fencer_Ultimate', {
+const fieldsCAbility_Fencer_Ultimate = {
   m_vStartPosition: 'vector',
   m_vDashDirection: 'vector',
   m_vecLastPosition: 'vector',
@@ -7204,121 +4868,100 @@ define(CAbility_Fencer_Ultimate, 'CAbility_Fencer_Ultimate', {
   m_flStuckTime: 'float32',
   m_UltHoldVFX: 'int32',
   m_DirPreviewVFX: 'int32',
-})
+} as const
+export class CAbility_Fencer_Ultimate extends CCitadelBaseAbility {}
+export interface CAbility_Fencer_Ultimate extends Fields<typeof fieldsCAbility_Fencer_Ultimate> {}
+define(CAbility_Fencer_Ultimate, 'CAbility_Fencer_Ultimate', fieldsCAbility_Fencer_Ultimate)
 
-export class CAbility_Mirage_SandPhantom extends CCitadelBaseAbility {}
-export interface CAbility_Mirage_SandPhantom {
-  m_bHasVictims: boolean | undefined
-}
-define(CAbility_Mirage_SandPhantom, 'CAbility_Mirage_SandPhantom', {
+const fieldsCAbility_Mirage_SandPhantom = {
   m_bHasVictims: 'bool',
-})
+} as const
+export class CAbility_Mirage_SandPhantom extends CCitadelBaseAbility {}
+export interface CAbility_Mirage_SandPhantom extends Fields<typeof fieldsCAbility_Mirage_SandPhantom> {}
+define(CAbility_Mirage_SandPhantom, 'CAbility_Mirage_SandPhantom', fieldsCAbility_Mirage_SandPhantom)
 
-export class CAbility_Mirage_Tornado extends CCitadelBaseAbility {}
-export interface CAbility_Mirage_Tornado {
-  m_RecastWindowEnd: number | undefined
-  m_anglesCharging: Angles | undefined
-  m_flChargeStartTime: number | undefined
-}
-define(CAbility_Mirage_Tornado, 'CAbility_Mirage_Tornado', {
+const fieldsCAbility_Mirage_Tornado = {
   m_RecastWindowEnd: 'float32',
   m_anglesCharging: 'angles',
   m_flChargeStartTime: 'float32',
-})
+} as const
+export class CAbility_Mirage_Tornado extends CCitadelBaseAbility {}
+export interface CAbility_Mirage_Tornado extends Fields<typeof fieldsCAbility_Mirage_Tornado> {}
+define(CAbility_Mirage_Tornado, 'CAbility_Mirage_Tornado', fieldsCAbility_Mirage_Tornado)
 
 export class CAbility_Operative_Revelation extends CCitadelBaseAbility {}
 define(CAbility_Operative_Revelation, 'CAbility_Operative_Revelation', {})
 
-export class CAbility_Operative_UmbrellaManeuver extends CCitadelBaseAbility {}
-export interface CAbility_Operative_UmbrellaManeuver {
-  m_ChannelParticle: number | undefined
-}
-define(CAbility_Operative_UmbrellaManeuver, 'CAbility_Operative_UmbrellaManeuver', {
+const fieldsCAbility_Operative_UmbrellaManeuver = {
   m_ChannelParticle: 'int32',
-})
+} as const
+export class CAbility_Operative_UmbrellaManeuver extends CCitadelBaseAbility {}
+export interface CAbility_Operative_UmbrellaManeuver extends Fields<typeof fieldsCAbility_Operative_UmbrellaManeuver> {}
+define(CAbility_Operative_UmbrellaManeuver, 'CAbility_Operative_UmbrellaManeuver', fieldsCAbility_Operative_UmbrellaManeuver)
 
 export class CAbility_Rutger_CheatDeath extends CCitadelBaseAbility {}
 define(CAbility_Rutger_CheatDeath, 'CAbility_Rutger_CheatDeath', {})
 
-export class CAbility_Rutger_ForceField extends CCitadelBaseAbility {}
-export interface CAbility_Rutger_ForceField {
-  m_hChargingParticle: number | undefined
-  m_hExplodeParticle: number | undefined
-  m_vSpawnPos: Vector | undefined
-  m_fTimeToDestroyForceField: number | undefined
-  m_bFirstThink: boolean | undefined
-}
-define(CAbility_Rutger_ForceField, 'CAbility_Rutger_ForceField', {
+const fieldsCAbility_Rutger_ForceField = {
   m_hChargingParticle: 'int32',
   m_hExplodeParticle: 'int32',
   m_vSpawnPos: 'vector',
   m_fTimeToDestroyForceField: 'float32',
   m_bFirstThink: 'bool',
-})
+} as const
+export class CAbility_Rutger_ForceField extends CCitadelBaseAbility {}
+export interface CAbility_Rutger_ForceField extends Fields<typeof fieldsCAbility_Rutger_ForceField> {}
+define(CAbility_Rutger_ForceField, 'CAbility_Rutger_ForceField', fieldsCAbility_Rutger_ForceField)
 
 export class CAbility_Rutger_RocketLauncher extends CCitadelBaseAbility {}
 define(CAbility_Rutger_RocketLauncher, 'CAbility_Rutger_RocketLauncher', {})
 
-export class CAbility_Synth_Affliction extends CCitadelBaseAbility {}
-export interface CAbility_Synth_Affliction {
-  m_hAOEParticle: number | undefined
-}
-define(CAbility_Synth_Affliction, 'CAbility_Synth_Affliction', {
+const fieldsCAbility_Synth_Affliction = {
   m_hAOEParticle: 'int32',
-})
+} as const
+export class CAbility_Synth_Affliction extends CCitadelBaseAbility {}
+export interface CAbility_Synth_Affliction extends Fields<typeof fieldsCAbility_Synth_Affliction> {}
+define(CAbility_Synth_Affliction, 'CAbility_Synth_Affliction', fieldsCAbility_Synth_Affliction)
 
-export class CAbility_Synth_Barrage extends CCitadelBaseAbility {}
-export interface CAbility_Synth_Barrage {
-  m_tLastShotID: number | undefined
-  m_nProjectilesScheduled: number | undefined
-  m_ChannelParticle: number | undefined
-  m_flNextShootTime: number | undefined
-}
-define(CAbility_Synth_Barrage, 'CAbility_Synth_Barrage', {
+const fieldsCAbility_Synth_Barrage = {
   m_tLastShotID: 'uint32',
   m_nProjectilesScheduled: 'int32',
   m_ChannelParticle: 'int32',
   m_flNextShootTime: 'float32',
-})
+} as const
+export class CAbility_Synth_Barrage extends CCitadelBaseAbility {}
+export interface CAbility_Synth_Barrage extends Fields<typeof fieldsCAbility_Synth_Barrage> {}
+define(CAbility_Synth_Barrage, 'CAbility_Synth_Barrage', fieldsCAbility_Synth_Barrage)
 
-export class CAbility_Synth_PlasmaFlux extends CCitadelBaseAbility {}
-export interface CAbility_Synth_PlasmaFlux {
-  m_bTeleported: boolean | undefined
-  m_vLastValidTeleportPosition: Vector | undefined
-  m_flProjectileLaunchTime: number | undefined
-  m_flProjectileExpireTime: number | undefined
-  m_hActiveProjectile: CBaseEntity | undefined
-}
-define(CAbility_Synth_PlasmaFlux, 'CAbility_Synth_PlasmaFlux', {
+const fieldsCAbility_Synth_PlasmaFlux = {
   m_bTeleported: 'bool',
   m_vLastValidTeleportPosition: 'vector',
   m_flProjectileLaunchTime: 'float32',
   m_flProjectileExpireTime: 'float32',
   m_hActiveProjectile: 'CBaseEntity',
-})
+} as const
+export class CAbility_Synth_PlasmaFlux extends CCitadelBaseAbility {}
+export interface CAbility_Synth_PlasmaFlux extends Fields<typeof fieldsCAbility_Synth_PlasmaFlux> {}
+define(CAbility_Synth_PlasmaFlux, 'CAbility_Synth_PlasmaFlux', fieldsCAbility_Synth_PlasmaFlux)
 
 export class CAbility_Synth_Pulse extends CCitadelBaseAbility {}
 define(CAbility_Synth_Pulse, 'CAbility_Synth_Pulse', {})
 
-export class CAbility_TestHero_SpookyHide extends CCitadelBaseAbility {}
-export interface CAbility_TestHero_SpookyHide {
-  m_bIsVisibleOnMinimap: boolean | undefined
-  m_flStoppedMovingStartTime: number | undefined
-  m_vLastPos: Vector | undefined
-}
-define(CAbility_TestHero_SpookyHide, 'CAbility_TestHero_SpookyHide', {
+const fieldsCAbility_TestHero_SpookyHide = {
   m_bIsVisibleOnMinimap: 'bool',
   m_flStoppedMovingStartTime: 'float32',
   m_vLastPos: 'vector',
-})
+} as const
+export class CAbility_TestHero_SpookyHide extends CCitadelBaseAbility {}
+export interface CAbility_TestHero_SpookyHide extends Fields<typeof fieldsCAbility_TestHero_SpookyHide> {}
+define(CAbility_TestHero_SpookyHide, 'CAbility_TestHero_SpookyHide', fieldsCAbility_TestHero_SpookyHide)
 
-export class CAbility_Werewolf_Frenzy extends CCitadelBaseAbility {}
-export interface CAbility_Werewolf_Frenzy {
-  m_SandEffect: number | undefined
-}
-define(CAbility_Werewolf_Frenzy, 'CAbility_Werewolf_Frenzy', {
+const fieldsCAbility_Werewolf_Frenzy = {
   m_SandEffect: 'int32',
-})
+} as const
+export class CAbility_Werewolf_Frenzy extends CCitadelBaseAbility {}
+export interface CAbility_Werewolf_Frenzy extends Fields<typeof fieldsCAbility_Werewolf_Frenzy> {}
+define(CAbility_Werewolf_Frenzy, 'CAbility_Werewolf_Frenzy', fieldsCAbility_Werewolf_Frenzy)
 
 export class CCitadelAbilityDruidAbility04 extends CCitadelBaseAbility {}
 define(CCitadelAbilityDruidAbility04, 'CCitadelAbilityDruidAbility04', {})
@@ -7362,31 +5005,24 @@ define(CCitadel_Ability_SuperNeutralShield, 'CCitadel_Ability_SuperNeutralShield
 export class CCitadel_Ability_Tier2Boss_AoEWave extends CCitadelBaseAbilityServerOnly {}
 define(CCitadel_Ability_Tier2Boss_AoEWave, 'CCitadel_Ability_Tier2Boss_AoEWave', {})
 
-export class CCitadel_Ability_Tier2Boss_LaserBeam extends CCitadelBaseAbilityServerOnly {}
-export interface CCitadel_Ability_Tier2Boss_LaserBeam {
-  m_hAttackPosHigh: number | undefined
-  m_hAttackPosLow: number | undefined
-  m_hAttackPosLeft: number | undefined
-  m_hAttackPosRight: number | undefined
-  m_tCastCompleteTime: number | undefined
-}
-define(CCitadel_Ability_Tier2Boss_LaserBeam, 'CCitadel_Ability_Tier2Boss_LaserBeam', {
+const fieldsCCitadel_Ability_Tier2Boss_LaserBeam = {
   m_hAttackPosHigh: 'uint8',
   m_hAttackPosLow: 'uint8',
   m_hAttackPosLeft: 'uint8',
   m_hAttackPosRight: 'uint8',
   m_tCastCompleteTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Tier2Boss_LaserBeam extends CCitadelBaseAbilityServerOnly {}
+export interface CCitadel_Ability_Tier2Boss_LaserBeam extends Fields<typeof fieldsCCitadel_Ability_Tier2Boss_LaserBeam> {}
+define(CCitadel_Ability_Tier2Boss_LaserBeam, 'CCitadel_Ability_Tier2Boss_LaserBeam', fieldsCCitadel_Ability_Tier2Boss_LaserBeam)
 
-export class CCitadel_Ability_Tier2Boss_RocketBarrage extends CCitadelBaseAbilityServerOnly {}
-export interface CCitadel_Ability_Tier2Boss_RocketBarrage {
-  m_nGrenadeIndex: number | undefined
-  m_nTotalGrenades: number | undefined
-}
-define(CCitadel_Ability_Tier2Boss_RocketBarrage, 'CCitadel_Ability_Tier2Boss_RocketBarrage', {
+const fieldsCCitadel_Ability_Tier2Boss_RocketBarrage = {
   m_nGrenadeIndex: 'int32',
   m_nTotalGrenades: 'int32',
-})
+} as const
+export class CCitadel_Ability_Tier2Boss_RocketBarrage extends CCitadelBaseAbilityServerOnly {}
+export interface CCitadel_Ability_Tier2Boss_RocketBarrage extends Fields<typeof fieldsCCitadel_Ability_Tier2Boss_RocketBarrage> {}
+define(CCitadel_Ability_Tier2Boss_RocketBarrage, 'CCitadel_Ability_Tier2Boss_RocketBarrage', fieldsCCitadel_Ability_Tier2Boss_RocketBarrage)
 
 export class CCitadel_Ability_Tier2Boss_Stomp extends CCitadelBaseAbilityServerOnly {}
 define(CCitadel_Ability_Tier2Boss_Stomp, 'CCitadel_Ability_Tier2Boss_Stomp', {})
@@ -7406,58 +5042,48 @@ define(CTier3BossAbility, 'CTier3BossAbility', {})
 export class CCitadel_Ability_Tier3Boss_AoEWave extends CTier3BossAbility {}
 define(CCitadel_Ability_Tier3Boss_AoEWave, 'CCitadel_Ability_Tier3Boss_AoEWave', {})
 
-export class CCitadel_Ability_Tier3Boss_DropBombs extends CTier3BossAbility {}
-export interface CCitadel_Ability_Tier3Boss_DropBombs {
-  m_tNextBombTime: number | undefined
-  m_hShootPos: number | undefined
-  m_flDetonationTime: number | undefined
-}
-define(CCitadel_Ability_Tier3Boss_DropBombs, 'CCitadel_Ability_Tier3Boss_DropBombs', {
+const fieldsCCitadel_Ability_Tier3Boss_DropBombs = {
   m_tNextBombTime: 'float32',
   m_hShootPos: 'uint8',
   m_flDetonationTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Tier3Boss_DropBombs extends CTier3BossAbility {}
+export interface CCitadel_Ability_Tier3Boss_DropBombs extends Fields<typeof fieldsCCitadel_Ability_Tier3Boss_DropBombs> {}
+define(CCitadel_Ability_Tier3Boss_DropBombs, 'CCitadel_Ability_Tier3Boss_DropBombs', fieldsCCitadel_Ability_Tier3Boss_DropBombs)
 
 export class CCitadel_Ability_Tier3Boss_LaserBeam extends CTier3BossAbility {}
 define(CCitadel_Ability_Tier3Boss_LaserBeam, 'CCitadel_Ability_Tier3Boss_LaserBeam', {})
 
-export class CCitadel_Ability_Tier3Boss_RocketBarrage extends CTier3BossAbility {}
-export interface CCitadel_Ability_Tier3Boss_RocketBarrage {
-  m_nGrenadeIndex: number | undefined
-  m_nTotalGrenades: number | undefined
-  m_hShootPos: number | undefined
-}
-define(CCitadel_Ability_Tier3Boss_RocketBarrage, 'CCitadel_Ability_Tier3Boss_RocketBarrage', {
+const fieldsCCitadel_Ability_Tier3Boss_RocketBarrage = {
   m_nGrenadeIndex: 'int32',
   m_nTotalGrenades: 'int32',
   m_hShootPos: 'uint8',
-})
+} as const
+export class CCitadel_Ability_Tier3Boss_RocketBarrage extends CTier3BossAbility {}
+export interface CCitadel_Ability_Tier3Boss_RocketBarrage extends Fields<typeof fieldsCCitadel_Ability_Tier3Boss_RocketBarrage> {}
+define(CCitadel_Ability_Tier3Boss_RocketBarrage, 'CCitadel_Ability_Tier3Boss_RocketBarrage', fieldsCCitadel_Ability_Tier3Boss_RocketBarrage)
 
 export class CCitadel_Ability_Weapon_BossTier3 extends CTier3BossAbility {}
 define(CCitadel_Ability_Weapon_BossTier3, 'CCitadel_Ability_Weapon_BossTier3', {})
 
-export class CCitadelBaseDashCastAbility extends CCitadelBaseAbility {}
-export interface CCitadelBaseDashCastAbility {
-  m_hAbilityToTrigger: CCitadelBaseAbility | undefined
-  m_flDashCastStartTime: number | undefined
-  m_vDashCastDir: Vector | undefined
-}
-define(CCitadelBaseDashCastAbility, 'CCitadelBaseDashCastAbility', {
+const fieldsCCitadelBaseDashCastAbility = {
   m_hAbilityToTrigger: 'CCitadelBaseAbility',
   m_flDashCastStartTime: 'float32',
   m_vDashCastDir: 'vector',
-})
+} as const
+export class CCitadelBaseDashCastAbility extends CCitadelBaseAbility {}
+export interface CCitadelBaseDashCastAbility extends Fields<typeof fieldsCCitadelBaseDashCastAbility> {}
+define(CCitadelBaseDashCastAbility, 'CCitadelBaseDashCastAbility', fieldsCCitadelBaseDashCastAbility)
 
 export class CCitadel_Ability_Cadence_SilenceContraptions extends CCitadelBaseDashCastAbility {}
 define(CCitadel_Ability_Cadence_SilenceContraptions, 'CCitadel_Ability_Cadence_SilenceContraptions', {})
 
-export class CCitadelBaseLockonAbility extends CCitadelBaseAbility {}
-export interface CCitadelBaseLockonAbility {
-  m_LockOnStartTime: number | undefined
-}
-define(CCitadelBaseLockonAbility, 'CCitadelBaseLockonAbility', {
+const fieldsCCitadelBaseLockonAbility = {
   m_LockOnStartTime: 'float32',
-})
+} as const
+export class CCitadelBaseLockonAbility extends CCitadelBaseAbility {}
+export interface CCitadelBaseLockonAbility extends Fields<typeof fieldsCCitadelBaseLockonAbility> {}
+define(CCitadelBaseLockonAbility, 'CCitadelBaseLockonAbility', fieldsCCitadelBaseLockonAbility)
 
 export class CCitadelBaseTieredLockonAbility extends CCitadelBaseLockonAbility {}
 define(CCitadelBaseTieredLockonAbility, 'CCitadelBaseTieredLockonAbility', {})
@@ -7465,19 +5091,15 @@ define(CCitadelBaseTieredLockonAbility, 'CCitadelBaseTieredLockonAbility', {})
 export class CCitadel_Ability_Baba_Ultimate2 extends CCitadelBaseTieredLockonAbility {}
 define(CCitadel_Ability_Baba_Ultimate2, 'CCitadel_Ability_Baba_Ultimate2', {})
 
-export class CCitadel_Ability_Lash_Ultimate extends CCitadelBaseLockonAbility {}
-export interface CCitadel_Ability_Lash_Ultimate {
-  m_EGrappleState: number | undefined
-  m_flStateEnterTime: number | undefined
-  m_flNextStateTime: number | undefined
-  m_flBoostEndTime: number | undefined
-}
-define(CCitadel_Ability_Lash_Ultimate, 'CCitadel_Ability_Lash_Ultimate', {
+const fieldsCCitadel_Ability_Lash_Ultimate = {
   m_EGrappleState: 'uint8',
   m_flStateEnterTime: 'float32',
   m_flNextStateTime: 'float32',
   m_flBoostEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Lash_Ultimate extends CCitadelBaseLockonAbility {}
+export interface CCitadel_Ability_Lash_Ultimate extends Fields<typeof fieldsCCitadel_Ability_Lash_Ultimate> {}
+define(CCitadel_Ability_Lash_Ultimate, 'CCitadel_Ability_Lash_Ultimate', fieldsCCitadel_Ability_Lash_Ultimate)
 
 export class CCitadelBaseShivAbility extends CCitadelBaseAbility {}
 define(CCitadelBaseShivAbility, 'CCitadelBaseShivAbility', {})
@@ -7485,20 +5107,7 @@ define(CCitadelBaseShivAbility, 'CCitadelBaseShivAbility', {})
 export class CCitadel_Ability_ShivDagger extends CCitadelBaseShivAbility {}
 define(CCitadel_Ability_ShivDagger, 'CCitadel_Ability_ShivDagger', {})
 
-export class CCitadel_Ability_ShivDash extends CCitadelBaseShivAbility {}
-export interface CCitadel_Ability_ShivDash {
-  m_vStartPosition: Vector | undefined
-  m_vDashDirection: Vector | undefined
-  m_bIsDashing: boolean | undefined
-  m_vecLastPosition: Vector | undefined
-  m_nReductionsLeft: number | undefined
-  m_flStuckTime: number | undefined
-  m_hEchoThinker: CPointModifierThinker | undefined
-  m_EchoStartTime: number | undefined
-  m_bLetEchoPlay: boolean | undefined
-  m_bDiscontinuityInEcho: boolean | undefined
-}
-define(CCitadel_Ability_ShivDash, 'CCitadel_Ability_ShivDash', {
+const fieldsCCitadel_Ability_ShivDash = {
   m_vStartPosition: 'vector',
   m_vDashDirection: 'vector',
   m_bIsDashing: 'bool',
@@ -7509,32 +5118,20 @@ define(CCitadel_Ability_ShivDash, 'CCitadel_Ability_ShivDash', {
   m_EchoStartTime: 'float32',
   m_bLetEchoPlay: 'bool',
   m_bDiscontinuityInEcho: 'bool',
-})
+} as const
+export class CCitadel_Ability_ShivDash extends CCitadelBaseShivAbility {}
+export interface CCitadel_Ability_ShivDash extends Fields<typeof fieldsCCitadel_Ability_ShivDash> {}
+define(CCitadel_Ability_ShivDash, 'CCitadel_Ability_ShivDash', fieldsCCitadel_Ability_ShivDash)
 
-export class CCitadel_Ability_Shiv_Defer_Damage extends CCitadelBaseShivAbility {}
-export interface CCitadel_Ability_Shiv_Defer_Damage {
-  m_flTotalPendingDamage: number | undefined
-  m_flLastDeferredDamageApplicationTime: number | undefined
-}
-define(CCitadel_Ability_Shiv_Defer_Damage, 'CCitadel_Ability_Shiv_Defer_Damage', {
+const fieldsCCitadel_Ability_Shiv_Defer_Damage = {
   m_flTotalPendingDamage: 'float32',
   m_flLastDeferredDamageApplicationTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Shiv_Defer_Damage extends CCitadelBaseShivAbility {}
+export interface CCitadel_Ability_Shiv_Defer_Damage extends Fields<typeof fieldsCCitadel_Ability_Shiv_Defer_Damage> {}
+define(CCitadel_Ability_Shiv_Defer_Damage, 'CCitadel_Ability_Shiv_Defer_Damage', fieldsCCitadel_Ability_Shiv_Defer_Damage)
 
-export class CCitadel_Ability_Shiv_KillingBlow extends CCitadelBaseShivAbility {}
-export interface CCitadel_Ability_Shiv_KillingBlow {
-  m_bDamagedAnyHero: boolean | undefined
-  m_bActive: boolean | undefined
-  m_bStartedOnGround: boolean | undefined
-  m_bIsBonusCast: boolean | undefined
-  m_vStartPosition: Vector | undefined
-  m_qCurrentAngles: Angles | undefined
-  m_vLastKnownSafePos: Vector | undefined
-  m_bMadeSlashParticle: boolean | undefined
-  m_ChannelParticle: number | undefined
-  m_flRecastWindowEnd: number | undefined
-}
-define(CCitadel_Ability_Shiv_KillingBlow, 'CCitadel_Ability_Shiv_KillingBlow', {
+const fieldsCCitadel_Ability_Shiv_KillingBlow = {
   m_bDamagedAnyHero: 'bool',
   m_bActive: 'bool',
   m_bStartedOnGround: 'bool',
@@ -7545,17 +5142,18 @@ define(CCitadel_Ability_Shiv_KillingBlow, 'CCitadel_Ability_Shiv_KillingBlow', {
   m_bMadeSlashParticle: 'bool',
   m_ChannelParticle: 'int32',
   m_flRecastWindowEnd: 'float32',
-})
+} as const
+export class CCitadel_Ability_Shiv_KillingBlow extends CCitadelBaseShivAbility {}
+export interface CCitadel_Ability_Shiv_KillingBlow extends Fields<typeof fieldsCCitadel_Ability_Shiv_KillingBlow> {}
+define(CCitadel_Ability_Shiv_KillingBlow, 'CCitadel_Ability_Shiv_KillingBlow', fieldsCCitadel_Ability_Shiv_KillingBlow)
 
-export class CCitadelBaseTriggerAbility extends CCitadelBaseAbility {}
-export interface CCitadelBaseTriggerAbility {
-  m_hAbilityToTrigger: CCitadelBaseAbility | undefined
-  m_SwappedToTime: number | undefined
-}
-define(CCitadelBaseTriggerAbility, 'CCitadelBaseTriggerAbility', {
+const fieldsCCitadelBaseTriggerAbility = {
   m_hAbilityToTrigger: 'CCitadelBaseAbility',
   m_SwappedToTime: 'float32',
-})
+} as const
+export class CCitadelBaseTriggerAbility extends CCitadelBaseAbility {}
+export interface CCitadelBaseTriggerAbility extends Fields<typeof fieldsCCitadelBaseTriggerAbility> {}
+define(CCitadelBaseTriggerAbility, 'CCitadelBaseTriggerAbility', fieldsCCitadelBaseTriggerAbility)
 
 export class CAbility_Drifter_StalkersMark_Teleport extends CCitadelBaseTriggerAbility {}
 define(CAbility_Drifter_StalkersMark_Teleport, 'CAbility_Drifter_StalkersMark_Teleport', {})
@@ -7569,75 +5167,43 @@ define(CCitadel_Ability_AbilityName, 'CCitadel_Ability_AbilityName', {})
 export class CCitadel_Ability_Baba_HexingBrew_Throw extends CCitadelBaseTriggerAbility {}
 define(CCitadel_Ability_Baba_HexingBrew_Throw, 'CCitadel_Ability_Baba_HexingBrew_Throw', {})
 
-export class CCitadel_Ability_Necro_KillSummonTrigger extends CCitadelBaseTriggerAbility {}
-export interface CCitadel_Ability_Necro_KillSummonTrigger {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Necro_KillSummonTrigger, 'CCitadel_Ability_Necro_KillSummonTrigger', {
+const fieldsCCitadel_Ability_Necro_KillSummonTrigger = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Necro_KillSummonTrigger extends CCitadelBaseTriggerAbility {}
+export interface CCitadel_Ability_Necro_KillSummonTrigger extends Fields<typeof fieldsCCitadel_Ability_Necro_KillSummonTrigger> {}
+define(CCitadel_Ability_Necro_KillSummonTrigger, 'CCitadel_Ability_Necro_KillSummonTrigger', fieldsCCitadel_Ability_Necro_KillSummonTrigger)
 
 export class CCitadel_Ability_RiposteTargetSelect extends CCitadelBaseTriggerAbility {}
 define(CCitadel_Ability_RiposteTargetSelect, 'CCitadel_Ability_RiposteTargetSelect', {})
 
-export class CCitadel_Ability_TangoTether_Trigger extends CCitadelBaseTriggerAbility {}
-export interface CCitadel_Ability_TangoTether_Trigger {
-  m_hBaseAbility: CCitadelBaseAbility | undefined
-}
-define(CCitadel_Ability_TangoTether_Trigger, 'CCitadel_Ability_TangoTether_Trigger', {
+const fieldsCCitadel_Ability_TangoTether_Trigger = {
   m_hBaseAbility: 'CCitadelBaseAbility',
-})
+} as const
+export class CCitadel_Ability_TangoTether_Trigger extends CCitadelBaseTriggerAbility {}
+export interface CCitadel_Ability_TangoTether_Trigger extends Fields<typeof fieldsCCitadel_Ability_TangoTether_Trigger> {}
+define(CCitadel_Ability_TangoTether_Trigger, 'CCitadel_Ability_TangoTether_Trigger', fieldsCCitadel_Ability_TangoTether_Trigger)
 
 export class CCitadel_Ability_TurretClone_Trigger extends CCitadelBaseTriggerAbility {}
 define(CCitadel_Ability_TurretClone_Trigger, 'CCitadel_Ability_TurretClone_Trigger', {})
 
-export class CCitadel_Ability_WreckingBallThrow extends CCitadelBaseTriggerAbility {}
-export interface CCitadel_Ability_WreckingBallThrow {
-  m_hWreckingBallAbility: CCitadel_Ability_WreckingBall | undefined
-}
-define(CCitadel_Ability_WreckingBallThrow, 'CCitadel_Ability_WreckingBallThrow', {
+const fieldsCCitadel_Ability_WreckingBallThrow = {
   m_hWreckingBallAbility: 'CCitadel_Ability_WreckingBall',
-})
+} as const
+export class CCitadel_Ability_WreckingBallThrow extends CCitadelBaseTriggerAbility {}
+export interface CCitadel_Ability_WreckingBallThrow extends Fields<typeof fieldsCCitadel_Ability_WreckingBallThrow> {}
+define(CCitadel_Ability_WreckingBallThrow, 'CCitadel_Ability_WreckingBallThrow', fieldsCCitadel_Ability_WreckingBallThrow)
 
-export class CCitadelBaseYamatoAbility extends CCitadelBaseAbility {}
-export interface CCitadelBaseYamatoAbility {
-  m_flCachedCastTime: number | undefined
-  m_bIsShadowFormCast: boolean | undefined
-}
-define(CCitadelBaseYamatoAbility, 'CCitadelBaseYamatoAbility', {
+const fieldsCCitadelBaseYamatoAbility = {
   m_flCachedCastTime: 'float32',
   m_bIsShadowFormCast: 'bool',
-})
+} as const
+export class CCitadelBaseYamatoAbility extends CCitadelBaseAbility {}
+export interface CCitadelBaseYamatoAbility extends Fields<typeof fieldsCCitadelBaseYamatoAbility> {}
+define(CCitadelBaseYamatoAbility, 'CCitadelBaseYamatoAbility', fieldsCCitadelBaseYamatoAbility)
 
-export class CCitadel_Ability_FlyingStrike extends CCitadelBaseYamatoAbility {}
-export interface CCitadel_Ability_FlyingStrike {
-  m_iTargetPosIndex: number | undefined
-  m_bShadowFormCast: boolean | undefined
-  m_vYamatoCastPos: Vector | undefined
-  m_vTargetCastPos: Vector | undefined
-  m_flFlyingToTargetStartTime: number | undefined
-  m_flEndAttackTime: number | undefined
-  m_flGrappleStartTime: number | undefined
-  m_flGrappleArriveTime: number | undefined
-  m_flAttackLatchTime: number | undefined
-  m_vAttackLatchPos: Vector | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_bIsTargetAlly: boolean | undefined
-  m_flGrappleShotAttackTime: number | undefined
-  m_hAttackTarget: CBaseEntity | undefined
-  m_nPathIdx: number | undefined
-  m_nPathSize: number | undefined
-  m_flPathLength: number | undefined
-  m_vFlyingInitialOffsetToPath: Vector | undefined
-  flDistFlown: number | undefined
-  m_vLastSafePos: Vector | undefined
-  m_nGrappleTravelEffect: number | undefined
-  m_bPathDirty: boolean | undefined
-  m_bJumpSoundPlayed: boolean | undefined
-}
-define(CCitadel_Ability_FlyingStrike, 'CCitadel_Ability_FlyingStrike', {
+const fieldsCCitadel_Ability_FlyingStrike = {
   m_iTargetPosIndex: 'int32',
   m_bShadowFormCast: 'bool',
   m_vYamatoCastPos: 'vector',
@@ -7661,52 +5227,35 @@ define(CCitadel_Ability_FlyingStrike, 'CCitadel_Ability_FlyingStrike', {
   m_nGrappleTravelEffect: 'int32',
   m_bPathDirty: 'bool',
   m_bJumpSoundPlayed: 'bool',
-})
+} as const
+export class CCitadel_Ability_FlyingStrike extends CCitadelBaseYamatoAbility {}
+export interface CCitadel_Ability_FlyingStrike extends Fields<typeof fieldsCCitadel_Ability_FlyingStrike> {}
+define(CCitadel_Ability_FlyingStrike, 'CCitadel_Ability_FlyingStrike', fieldsCCitadel_Ability_FlyingStrike)
 
 export class CCitadel_Ability_HealingSlash extends CCitadelBaseYamatoAbility {}
 define(CCitadel_Ability_HealingSlash, 'CCitadel_Ability_HealingSlash', {})
 
-export class CCitadel_Ability_InfinitySlash extends CCitadelBaseYamatoAbility {}
-export interface CCitadel_Ability_InfinitySlash {
-  m_flExplodeEndTime: number | undefined
-  m_flBuffEndTime: number | undefined
-  m_nCastEffect: number | undefined
-}
-define(CCitadel_Ability_InfinitySlash, 'CCitadel_Ability_InfinitySlash', {
+const fieldsCCitadel_Ability_InfinitySlash = {
   m_flExplodeEndTime: 'float32',
   m_flBuffEndTime: 'float32',
   m_nCastEffect: 'int32',
-})
+} as const
+export class CCitadel_Ability_InfinitySlash extends CCitadelBaseYamatoAbility {}
+export interface CCitadel_Ability_InfinitySlash extends Fields<typeof fieldsCCitadel_Ability_InfinitySlash> {}
+define(CCitadel_Ability_InfinitySlash, 'CCitadel_Ability_InfinitySlash', fieldsCCitadel_Ability_InfinitySlash)
 
-export class CCitadel_Ability_PowerSlash extends CCitadelBaseYamatoAbility {}
-export interface CCitadel_Ability_PowerSlash {
-  m_nPowerLevel: number | undefined
-  m_nCastParticle: number | undefined
-}
-define(CCitadel_Ability_PowerSlash, 'CCitadel_Ability_PowerSlash', {
+const fieldsCCitadel_Ability_PowerSlash = {
   m_nPowerLevel: 'int32',
   m_nCastParticle: 'int32',
-})
+} as const
+export class CCitadel_Ability_PowerSlash extends CCitadelBaseYamatoAbility {}
+export interface CCitadel_Ability_PowerSlash extends Fields<typeof fieldsCCitadel_Ability_PowerSlash> {}
+define(CCitadel_Ability_PowerSlash, 'CCitadel_Ability_PowerSlash', fieldsCCitadel_Ability_PowerSlash)
 
 export class CCitadel_Ability_Afterburn extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Afterburn, 'CCitadel_Ability_Afterburn', {})
 
-export class CCitadel_Ability_Baba_BenchMelee extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Baba_BenchMelee {
-  m_eState: number | undefined
-  m_eAttackType: number | undefined
-  m_flStateStartTime: number | undefined
-  m_flCommitTime: number | undefined
-  m_flAttackTriggeredTime: number | undefined
-  m_flNextLightAttackAllowedTime: number | undefined
-  m_flNextHeavyAttackAllowedTime: number | undefined
-  m_vDashDir: Vector | undefined
-  m_bDiveApplied: boolean | undefined
-  m_vDashStartVelocity: Vector | undefined
-  m_bAttackImpulseApplied: boolean | undefined
-  m_angForced: Angles | undefined
-}
-define(CCitadel_Ability_Baba_BenchMelee, 'CCitadel_Ability_Baba_BenchMelee', {
+const fieldsCCitadel_Ability_Baba_BenchMelee = {
   m_eState: 'uint8',
   m_eAttackType: 'uint8',
   m_flStateStartTime: 'float32',
@@ -7719,21 +5268,12 @@ define(CCitadel_Ability_Baba_BenchMelee, 'CCitadel_Ability_Baba_BenchMelee', {
   m_vDashStartVelocity: 'vector',
   m_bAttackImpulseApplied: 'bool',
   m_angForced: 'angles',
-})
+} as const
+export class CCitadel_Ability_Baba_BenchMelee extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Baba_BenchMelee extends Fields<typeof fieldsCCitadel_Ability_Baba_BenchMelee> {}
+define(CCitadel_Ability_Baba_BenchMelee, 'CCitadel_Ability_Baba_BenchMelee', fieldsCCitadel_Ability_Baba_BenchMelee)
 
-export class CCitadel_Ability_Baba_BenchRun extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Baba_BenchRun {
-  m_bHoldingJump: boolean | undefined
-  m_bHeldJumpAborted: boolean | undefined
-  m_flHoldJumpStartTime: number | undefined
-  m_flRideStartTime: number | undefined
-  m_flRideEndTime: number | undefined
-  m_flEndLaunchTime: number | undefined
-  m_flLastChargeJumpFraction: number | undefined
-  m_bInMelee: boolean | undefined
-  m_bRideCut: boolean | undefined
-}
-define(CCitadel_Ability_Baba_BenchRun, 'CCitadel_Ability_Baba_BenchRun', {
+const fieldsCCitadel_Ability_Baba_BenchRun = {
   m_bHoldingJump: 'bool',
   m_bHeldJumpAborted: 'bool',
   m_flHoldJumpStartTime: 'float32',
@@ -7743,79 +5283,61 @@ define(CCitadel_Ability_Baba_BenchRun, 'CCitadel_Ability_Baba_BenchRun', {
   m_flLastChargeJumpFraction: 'float32',
   m_bInMelee: 'bool',
   m_bRideCut: 'bool',
-})
+} as const
+export class CCitadel_Ability_Baba_BenchRun extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Baba_BenchRun extends Fields<typeof fieldsCCitadel_Ability_Baba_BenchRun> {}
+define(CCitadel_Ability_Baba_BenchRun, 'CCitadel_Ability_Baba_BenchRun', fieldsCCitadel_Ability_Baba_BenchRun)
 
-export class CCitadel_Ability_Baba_BubblingBrew extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Baba_BubblingBrew {
-  m_eState: number | undefined
-  m_CurrentStacks: number | undefined
-  m_tStackExpiryTime: number | undefined
-}
-define(CCitadel_Ability_Baba_BubblingBrew, 'CCitadel_Ability_Baba_BubblingBrew', {
+const fieldsCCitadel_Ability_Baba_BubblingBrew = {
   m_eState: 'uint32',
   m_CurrentStacks: 'int32',
   m_tStackExpiryTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Baba_BubblingBrew extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Baba_BubblingBrew extends Fields<typeof fieldsCCitadel_Ability_Baba_BubblingBrew> {}
+define(CCitadel_Ability_Baba_BubblingBrew, 'CCitadel_Ability_Baba_BubblingBrew', fieldsCCitadel_Ability_Baba_BubblingBrew)
 
-export class CCitadel_Ability_Baba_HexingBrew extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Baba_HexingBrew {
-  m_eBrewEffect: number | undefined
-  m_bBrewLocked: boolean | undefined
-  m_flBrewLockTime: number | undefined
-  m_flBrewPausedTime: number | undefined
-}
-define(CCitadel_Ability_Baba_HexingBrew, 'CCitadel_Ability_Baba_HexingBrew', {
+const fieldsCCitadel_Ability_Baba_HexingBrew = {
   m_eBrewEffect: 'uint32',
   m_bBrewLocked: 'bool',
   m_flBrewLockTime: 'float32',
   m_flBrewPausedTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Baba_HexingBrew extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Baba_HexingBrew extends Fields<typeof fieldsCCitadel_Ability_Baba_HexingBrew> {}
+define(CCitadel_Ability_Baba_HexingBrew, 'CCitadel_Ability_Baba_HexingBrew', fieldsCCitadel_Ability_Baba_HexingBrew)
 
-export class CCitadel_Ability_BaseHeldItem extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_BaseHeldItem {
-  m_hProjectile: CBaseEntity | undefined
-  m_tFirstPickupTime: number | undefined
-  m_tLastPickupTime: number | undefined
-}
-define(CCitadel_Ability_BaseHeldItem, 'CCitadel_Ability_BaseHeldItem', {
+const fieldsCCitadel_Ability_BaseHeldItem = {
   m_hProjectile: 'CBaseEntity',
   m_tFirstPickupTime: 'float32',
   m_tLastPickupTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_BaseHeldItem extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_BaseHeldItem extends Fields<typeof fieldsCCitadel_Ability_BaseHeldItem> {}
+define(CCitadel_Ability_BaseHeldItem, 'CCitadel_Ability_BaseHeldItem', fieldsCCitadel_Ability_BaseHeldItem)
 
-export class CCitadel_Ability_GoldenIdol extends CCitadel_Ability_BaseHeldItem {}
-export interface CCitadel_Ability_GoldenIdol {
-  m_nGold: number | undefined
-  m_nTeamBias: number | undefined
-  m_tAbilityCreateTime: number | undefined
-  m_tLastDamageTime: number | undefined
-  m_vHomePosition: Vector | undefined
-  m_flHeldTime: number | undefined
-}
-define(CCitadel_Ability_GoldenIdol, 'CCitadel_Ability_GoldenIdol', {
+const fieldsCCitadel_Ability_GoldenIdol = {
   m_nGold: 'int32',
   m_nTeamBias: 'int32',
   m_tAbilityCreateTime: 'float32',
   m_tLastDamageTime: 'float32',
   m_vHomePosition: 'vector',
   m_flHeldTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_GoldenIdol extends CCitadel_Ability_BaseHeldItem {}
+export interface CCitadel_Ability_GoldenIdol extends Fields<typeof fieldsCCitadel_Ability_GoldenIdol> {}
+define(CCitadel_Ability_GoldenIdol, 'CCitadel_Ability_GoldenIdol', fieldsCCitadel_Ability_GoldenIdol)
 
-export class CCitadel_Ability_Bebop_LaserBeam extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bebop_LaserBeam {
-  m_bZoomed: boolean | undefined
-  m_bAirCast: boolean | undefined
-  m_flAngleBetweenTrace: number | undefined
-  m_nTotalDamage: number | undefined
-  m_flNextDamageTime: number | undefined
-}
-define(CCitadel_Ability_Bebop_LaserBeam, 'CCitadel_Ability_Bebop_LaserBeam', {
+const fieldsCCitadel_Ability_Bebop_LaserBeam = {
   m_bZoomed: 'bool',
   m_bAirCast: 'bool',
   m_flAngleBetweenTrace: 'float32',
   m_nTotalDamage: 'int32',
   m_flNextDamageTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Bebop_LaserBeam extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bebop_LaserBeam extends Fields<typeof fieldsCCitadel_Ability_Bebop_LaserBeam> {}
+define(CCitadel_Ability_Bebop_LaserBeam, 'CCitadel_Ability_Bebop_LaserBeam', fieldsCCitadel_Ability_Bebop_LaserBeam)
 
 export class CCitadel_Ability_Bebop_StickyBomb2 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Bebop_StickyBomb2, 'CCitadel_Ability_Bebop_StickyBomb2', {})
@@ -7841,31 +5363,24 @@ define(CCitadel_Ability_Boho_DamageShare, 'CCitadel_Ability_Boho_DamageShare', {
 export class CCitadel_Ability_Boho_DoubleHit extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Boho_DoubleHit, 'CCitadel_Ability_Boho_DoubleHit', {})
 
-export class CCitadel_Ability_Boho_RideBroom extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Boho_RideBroom {
-  m_bLeaping: boolean | undefined
-  m_flLeapStartTime: number | undefined
-  m_nFXIndex: number | undefined
-  m_TrailFX: number | undefined
-}
-define(CCitadel_Ability_Boho_RideBroom, 'CCitadel_Ability_Boho_RideBroom', {
+const fieldsCCitadel_Ability_Boho_RideBroom = {
   m_bLeaping: 'bool',
   m_flLeapStartTime: 'float32',
   m_nFXIndex: 'int32',
   m_TrailFX: 'int32',
-})
+} as const
+export class CCitadel_Ability_Boho_RideBroom extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Boho_RideBroom extends Fields<typeof fieldsCCitadel_Ability_Boho_RideBroom> {}
+define(CCitadel_Ability_Boho_RideBroom, 'CCitadel_Ability_Boho_RideBroom', fieldsCCitadel_Ability_Boho_RideBroom)
 
-export class CCitadel_Ability_Boho_SkipGrenade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Boho_SkipGrenade {
-  m_tInitialShotID: number | undefined
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Boho_SkipGrenade, 'CCitadel_Ability_Boho_SkipGrenade', {
+const fieldsCCitadel_Ability_Boho_SkipGrenade = {
   m_tInitialShotID: 'uint32',
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Boho_SkipGrenade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Boho_SkipGrenade extends Fields<typeof fieldsCCitadel_Ability_Boho_SkipGrenade> {}
+define(CCitadel_Ability_Boho_SkipGrenade, 'CCitadel_Ability_Boho_SkipGrenade', fieldsCCitadel_Ability_Boho_SkipGrenade)
 
 export class CCitadel_Ability_Bomber_Ability02 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Bomber_Ability02, 'CCitadel_Ability_Bomber_Ability02', {})
@@ -7879,64 +5394,42 @@ define(CCitadel_Ability_Bomber_ULT, 'CCitadel_Ability_Bomber_ULT', {})
 export class CCitadel_Ability_Bookworm_AOEMagic extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Bookworm_AOEMagic, 'CCitadel_Ability_Bookworm_AOEMagic', {})
 
-export class CCitadel_Ability_Bookworm_DragonFire extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bookworm_DragonFire {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-  m_nCastParticleIndex: number | undefined
-}
-define(CCitadel_Ability_Bookworm_DragonFire, 'CCitadel_Ability_Bookworm_DragonFire', {
+const fieldsCCitadel_Ability_Bookworm_DragonFire = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
   m_nCastParticleIndex: 'int32',
-})
+} as const
+export class CCitadel_Ability_Bookworm_DragonFire extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bookworm_DragonFire extends Fields<typeof fieldsCCitadel_Ability_Bookworm_DragonFire> {}
+define(CCitadel_Ability_Bookworm_DragonFire, 'CCitadel_Ability_Bookworm_DragonFire', fieldsCCitadel_Ability_Bookworm_DragonFire)
 
-export class CCitadel_Ability_Bookworm_KnightBarrier extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bookworm_KnightBarrier {
-  m_nCastParticleIndex: number | undefined
-  m_iPendingBonusTargets: number | undefined
-}
-define(CCitadel_Ability_Bookworm_KnightBarrier, 'CCitadel_Ability_Bookworm_KnightBarrier', {
+const fieldsCCitadel_Ability_Bookworm_KnightBarrier = {
   m_nCastParticleIndex: 'int32',
   m_iPendingBonusTargets: 'int32',
-})
+} as const
+export class CCitadel_Ability_Bookworm_KnightBarrier extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bookworm_KnightBarrier extends Fields<typeof fieldsCCitadel_Ability_Bookworm_KnightBarrier> {}
+define(CCitadel_Ability_Bookworm_KnightBarrier, 'CCitadel_Ability_Bookworm_KnightBarrier', fieldsCCitadel_Ability_Bookworm_KnightBarrier)
 
-export class CCitadel_Ability_Bookworm_KnightCharge extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bookworm_KnightCharge {
-  m_bAffectedAnyTargets: boolean | undefined
-}
-define(CCitadel_Ability_Bookworm_KnightCharge, 'CCitadel_Ability_Bookworm_KnightCharge', {
+const fieldsCCitadel_Ability_Bookworm_KnightCharge = {
   m_bAffectedAnyTargets: 'bool',
-})
+} as const
+export class CCitadel_Ability_Bookworm_KnightCharge extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bookworm_KnightCharge extends Fields<typeof fieldsCCitadel_Ability_Bookworm_KnightCharge> {}
+define(CCitadel_Ability_Bookworm_KnightCharge, 'CCitadel_Ability_Bookworm_KnightCharge', fieldsCCitadel_Ability_Bookworm_KnightCharge)
 
-export class CCitadel_Ability_Bounce_Pad extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bounce_Pad {
-  m_vForward: Vector | undefined
-  m_bShouldDeploy: boolean | undefined
-  m_bAnglesSet: boolean | undefined
-  m_bCanCancel: boolean | undefined
-  m_angFacing: Angles | undefined
-}
-define(CCitadel_Ability_Bounce_Pad, 'CCitadel_Ability_Bounce_Pad', {
+const fieldsCCitadel_Ability_Bounce_Pad = {
   m_vForward: 'vector',
   m_bShouldDeploy: 'bool',
   m_bAnglesSet: 'bool',
   m_bCanCancel: 'bool',
   m_angFacing: 'angles',
-})
+} as const
+export class CCitadel_Ability_Bounce_Pad extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bounce_Pad extends Fields<typeof fieldsCCitadel_Ability_Bounce_Pad> {}
+define(CCitadel_Ability_Bounce_Pad, 'CCitadel_Ability_Bounce_Pad', fieldsCCitadel_Ability_Bounce_Pad)
 
-export class CCitadel_Ability_Bull_Charge extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bull_Charge {
-  m_bGainedWeaponPowerBuff: boolean | undefined
-  m_anglesCharging: Angles | undefined
-  m_flChargeStartTime: number | undefined
-  m_flFastChargeStartTime: number | undefined
-  m_flFastChargeEndTime: number | undefined
-  m_bHitSomethingStunnable: boolean | undefined
-  m_bFirstTick: boolean | undefined
-  m_vGoalDir: Vector | undefined
-}
-define(CCitadel_Ability_Bull_Charge, 'CCitadel_Ability_Bull_Charge', {
+const fieldsCCitadel_Ability_Bull_Charge = {
   m_bGainedWeaponPowerBuff: 'bool',
   m_anglesCharging: 'angles',
   m_flChargeStartTime: 'float32',
@@ -7945,25 +5438,15 @@ define(CCitadel_Ability_Bull_Charge, 'CCitadel_Ability_Bull_Charge', {
   m_bHitSomethingStunnable: 'bool',
   m_bFirstTick: 'bool',
   m_vGoalDir: 'vector',
-})
+} as const
+export class CCitadel_Ability_Bull_Charge extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bull_Charge extends Fields<typeof fieldsCCitadel_Ability_Bull_Charge> {}
+define(CCitadel_Ability_Bull_Charge, 'CCitadel_Ability_Bull_Charge', fieldsCCitadel_Ability_Bull_Charge)
 
 export class CCitadel_Ability_Bull_Heal extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Bull_Heal, 'CCitadel_Ability_Bull_Heal', {})
 
-export class CCitadel_Ability_Bull_Leap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Bull_Leap {
-  m_bBraceParamTriggered: boolean | undefined
-  m_flBoostYaw: number | undefined
-  m_vecCrashPosition: Vector | undefined
-  m_vecCrashDirection: Vector | undefined
-  m_eLeapState: number | undefined
-  m_flStateEnterTime: number | undefined
-  m_vPrevPos: Vector | undefined
-  m_vecLastVel: Vector | undefined
-  m_vecCrashDownLastPos: Vector | undefined
-  m_bInputBufferCrash: boolean | undefined
-}
-define(CCitadel_Ability_Bull_Leap, 'CCitadel_Ability_Bull_Leap', {
+const fieldsCCitadel_Ability_Bull_Leap = {
   m_bBraceParamTriggered: 'bool',
   m_flBoostYaw: 'float32',
   m_vecCrashPosition: 'vector',
@@ -7974,19 +5457,12 @@ define(CCitadel_Ability_Bull_Leap, 'CCitadel_Ability_Bull_Leap', {
   m_vecLastVel: 'vector',
   m_vecCrashDownLastPos: 'vector',
   m_bInputBufferCrash: 'bool',
-})
+} as const
+export class CCitadel_Ability_Bull_Leap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Bull_Leap extends Fields<typeof fieldsCCitadel_Ability_Bull_Leap> {}
+define(CCitadel_Ability_Bull_Leap, 'CCitadel_Ability_Bull_Leap', fieldsCCitadel_Ability_Bull_Leap)
 
-export class CCitadel_Ability_BulletFlurry extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_BulletFlurry {
-  m_flNextAttackTime: number | undefined
-  m_nNumPlayersKilled: number | undefined
-  m_nShootIndex: number | undefined
-  m_nShootIndexNPC: number | undefined
-  m_nBurstShots: number | undefined
-  m_bHasCameraOverride: boolean | undefined
-  m_nConeVFX: number | undefined
-}
-define(CCitadel_Ability_BulletFlurry, 'CCitadel_Ability_BulletFlurry', {
+const fieldsCCitadel_Ability_BulletFlurry = {
   m_flNextAttackTime: 'float32',
   m_nNumPlayersKilled: 'int32',
   m_nShootIndex: 'int32',
@@ -7994,19 +5470,19 @@ define(CCitadel_Ability_BulletFlurry, 'CCitadel_Ability_BulletFlurry', {
   m_nBurstShots: 'int32',
   m_bHasCameraOverride: 'bool',
   m_nConeVFX: 'int32',
-})
+} as const
+export class CCitadel_Ability_BulletFlurry extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_BulletFlurry extends Fields<typeof fieldsCCitadel_Ability_BulletFlurry> {}
+define(CCitadel_Ability_BulletFlurry, 'CCitadel_Ability_BulletFlurry', fieldsCCitadel_Ability_BulletFlurry)
 
-export class CCitadel_Ability_Burrow extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Burrow {
-  m_bInGround: boolean | undefined
-  m_flLastDamageTime: number | undefined
-  m_SpinEndTime: number | undefined
-}
-define(CCitadel_Ability_Burrow, 'CCitadel_Ability_Burrow', {
+const fieldsCCitadel_Ability_Burrow = {
   m_bInGround: 'bool',
   m_flLastDamageTime: 'float32',
   m_SpinEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Burrow extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Burrow extends Fields<typeof fieldsCCitadel_Ability_Burrow> {}
+define(CCitadel_Ability_Burrow, 'CCitadel_Ability_Burrow', fieldsCCitadel_Ability_Burrow)
 
 export class CCitadel_Ability_Cadence_Anthem extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Cadence_Anthem, 'CCitadel_Ability_Cadence_Anthem', {})
@@ -8020,36 +5496,22 @@ define(CCitadel_Ability_Cadence_GrandFinale, 'CCitadel_Ability_Cadence_GrandFina
 export class CCitadel_Ability_Cadence_Lullaby extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Cadence_Lullaby, 'CCitadel_Ability_Cadence_Lullaby', {})
 
-export class CCitadel_Ability_CardToss extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_CardToss {
-  m_nPreviousMaxCharges: number | undefined
-  m_bCardIsFlying: boolean | undefined
-}
-define(CCitadel_Ability_CardToss, 'CCitadel_Ability_CardToss', {
+const fieldsCCitadel_Ability_CardToss = {
   m_nPreviousMaxCharges: 'int32',
   m_bCardIsFlying: 'bool',
-})
+} as const
+export class CCitadel_Ability_CardToss extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_CardToss extends Fields<typeof fieldsCCitadel_Ability_CardToss> {}
+define(CCitadel_Ability_CardToss, 'CCitadel_Ability_CardToss', fieldsCCitadel_Ability_CardToss)
 
-export class CCitadel_Ability_ChargedShot extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_ChargedShot {
-  m_ChannelParticle: number | undefined
-}
-define(CCitadel_Ability_ChargedShot, 'CCitadel_Ability_ChargedShot', {
+const fieldsCCitadel_Ability_ChargedShot = {
   m_ChannelParticle: 'int32',
-})
+} as const
+export class CCitadel_Ability_ChargedShot extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_ChargedShot extends Fields<typeof fieldsCCitadel_Ability_ChargedShot> {}
+define(CCitadel_Ability_ChargedShot, 'CCitadel_Ability_ChargedShot', fieldsCCitadel_Ability_ChargedShot)
 
-export class CCitadel_Ability_ChargedTackle extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_ChargedTackle {
-  m_bPreparing: boolean | undefined
-  m_bTackling: boolean | undefined
-  m_flTackleStartTime: number | undefined
-  m_flPrepareStartTime: number | undefined
-  m_vecTackleDir: Vector | undefined
-  m_vecLastPosition: Vector | undefined
-  m_nStuckFramesCount: number | undefined
-  m_nDistancePreview: number | undefined
-}
-define(CCitadel_Ability_ChargedTackle, 'CCitadel_Ability_ChargedTackle', {
+const fieldsCCitadel_Ability_ChargedTackle = {
   m_bPreparing: 'bool',
   m_bTackling: 'bool',
   m_flTackleStartTime: 'float32',
@@ -8058,81 +5520,55 @@ define(CCitadel_Ability_ChargedTackle, 'CCitadel_Ability_ChargedTackle', {
   m_vecLastPosition: 'vector',
   m_nStuckFramesCount: 'int32',
   m_nDistancePreview: 'int32',
-})
+} as const
+export class CCitadel_Ability_ChargedTackle extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_ChargedTackle extends Fields<typeof fieldsCCitadel_Ability_ChargedTackle> {}
+define(CCitadel_Ability_ChargedTackle, 'CCitadel_Ability_ChargedTackle', fieldsCCitadel_Ability_ChargedTackle)
 
 export class CCitadel_Ability_Charged_Bomb extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Charged_Bomb, 'CCitadel_Ability_Charged_Bomb', {})
 
-export class CCitadel_Ability_ChronoSwap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_ChronoSwap {
-  m_bHitTarget: boolean | undefined
-  m_bAltCast: boolean | undefined
-}
-define(CCitadel_Ability_ChronoSwap, 'CCitadel_Ability_ChronoSwap', {
+const fieldsCCitadel_Ability_ChronoSwap = {
   m_bHitTarget: 'bool',
   m_bAltCast: 'bool',
-})
+} as const
+export class CCitadel_Ability_ChronoSwap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_ChronoSwap extends Fields<typeof fieldsCCitadel_Ability_ChronoSwap> {}
+define(CCitadel_Ability_ChronoSwap, 'CCitadel_Ability_ChronoSwap', fieldsCCitadel_Ability_ChronoSwap)
 
-export class CCitadel_Ability_Chrono_KineticCarbine extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Chrono_KineticCarbine {
-  m_bWantsSlow: boolean | undefined
-  m_flLatchedTimeScaleFracChangeTime: number | undefined
-  m_flLatchedTimeScaleFrac: number | undefined
-  m_flSpeedBoostEndTime: number | undefined
-  m_flShotTimeScaleEndTime: number | undefined
-  m_flStoredPowerPct: number | undefined
-}
-define(CCitadel_Ability_Chrono_KineticCarbine, 'CCitadel_Ability_Chrono_KineticCarbine', {
+const fieldsCCitadel_Ability_Chrono_KineticCarbine = {
   m_bWantsSlow: 'bool',
   m_flLatchedTimeScaleFracChangeTime: 'float32',
   m_flLatchedTimeScaleFrac: 'float32',
   m_flSpeedBoostEndTime: 'float32',
   m_flShotTimeScaleEndTime: 'float32',
   m_flStoredPowerPct: 'float32',
-})
+} as const
+export class CCitadel_Ability_Chrono_KineticCarbine extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Chrono_KineticCarbine extends Fields<typeof fieldsCCitadel_Ability_Chrono_KineticCarbine> {}
+define(CCitadel_Ability_Chrono_KineticCarbine, 'CCitadel_Ability_Chrono_KineticCarbine', fieldsCCitadel_Ability_Chrono_KineticCarbine)
 
-export class CCitadel_Ability_Chrono_PulseGrenade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Chrono_PulseGrenade {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Chrono_PulseGrenade, 'CCitadel_Ability_Chrono_PulseGrenade', {
+const fieldsCCitadel_Ability_Chrono_PulseGrenade = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Chrono_PulseGrenade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Chrono_PulseGrenade extends Fields<typeof fieldsCCitadel_Ability_Chrono_PulseGrenade> {}
+define(CCitadel_Ability_Chrono_PulseGrenade, 'CCitadel_Ability_Chrono_PulseGrenade', fieldsCCitadel_Ability_Chrono_PulseGrenade)
 
-export class CCitadel_Ability_Chrono_TimeWall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Chrono_TimeWall {
-  m_hWall: CCitadelBulletTimeWarp | undefined
-  vecDir: Vector | undefined
-  m_hChargingParticle: number | undefined
-  m_vSpawnPos: Vector | undefined
-  m_qAngles: Angles | undefined
-  m_bAirCast: boolean | undefined
-}
-define(CCitadel_Ability_Chrono_TimeWall, 'CCitadel_Ability_Chrono_TimeWall', {
+const fieldsCCitadel_Ability_Chrono_TimeWall = {
   m_hWall: 'CCitadelBulletTimeWarp',
   vecDir: 'vector',
   m_hChargingParticle: 'int32',
   m_vSpawnPos: 'vector',
   m_qAngles: 'angles',
   m_bAirCast: 'bool',
-})
+} as const
+export class CCitadel_Ability_Chrono_TimeWall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Chrono_TimeWall extends Fields<typeof fieldsCCitadel_Ability_Chrono_TimeWall> {}
+define(CCitadel_Ability_Chrono_TimeWall, 'CCitadel_Ability_Chrono_TimeWall', fieldsCCitadel_Ability_Chrono_TimeWall)
 
-export class CCitadel_Ability_Climb_Rope extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Climb_Rope {
-  m_flActivatePressTime: number | undefined
-  m_flDisconnectTime: number | undefined
-  m_flClimbStartTime: number | undefined
-  m_bNoDelayNeeded: boolean | undefined
-  m_bMouseWheelBind: boolean | undefined
-  m_vLastPos: Vector | undefined
-  m_bRequestStopClimbing: boolean | undefined
-  m_bRequestJumpToRoof: boolean | undefined
-  m_flMoveDownStartTime: number | undefined
-  m_eClimbState: number | undefined
-}
-define(CCitadel_Ability_Climb_Rope, 'CCitadel_Ability_Climb_Rope', {
+const fieldsCCitadel_Ability_Climb_Rope = {
   m_flActivatePressTime: 'float32',
   m_flDisconnectTime: 'float32',
   m_flClimbStartTime: 'float32',
@@ -8143,37 +5579,22 @@ define(CCitadel_Ability_Climb_Rope, 'CCitadel_Ability_Climb_Rope', {
   m_bRequestJumpToRoof: 'bool',
   m_flMoveDownStartTime: 'float32',
   m_eClimbState: 'uint32',
-})
+} as const
+export class CCitadel_Ability_Climb_Rope extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Climb_Rope extends Fields<typeof fieldsCCitadel_Ability_Climb_Rope> {}
+define(CCitadel_Ability_Climb_Rope, 'CCitadel_Ability_Climb_Rope', fieldsCCitadel_Ability_Climb_Rope)
 
-export class CCitadel_Ability_Crackshot extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Crackshot {
-  m_ReadyParticleIndex: number | undefined
-}
-define(CCitadel_Ability_Crackshot, 'CCitadel_Ability_Crackshot', {
+const fieldsCCitadel_Ability_Crackshot = {
   m_ReadyParticleIndex: 'int32',
-})
+} as const
+export class CCitadel_Ability_Crackshot extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Crackshot extends Fields<typeof fieldsCCitadel_Ability_Crackshot> {}
+define(CCitadel_Ability_Crackshot, 'CCitadel_Ability_Crackshot', fieldsCCitadel_Ability_Crackshot)
 
 export class CCitadel_Ability_CrowdControl extends CCitadelBaseAbility {}
 define(CCitadel_Ability_CrowdControl, 'CCitadel_Ability_CrowdControl', {})
 
-export class CCitadel_Ability_Dash extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Dash {
-  m_flDashAngle: number | undefined
-  m_GroundDashExecuteTime: number | undefined
-  m_GroundDashCancelExecuteTime: number | undefined
-  m_nLastGroundDashTick: number | undefined
-  m_bAnglesControlActive: boolean | undefined
-  m_flAirDashCastTime: number | undefined
-  m_flAirDashStartPos: Vector | undefined
-  m_flAirDashDragStartTime: number | undefined
-  m_flParryCancelSlideEndTime: number | undefined
-  m_flParryCancelAirGlideStartTime: number | undefined
-  m_nConsecutiveAirDashes: number | undefined
-  m_nConsecutiveDownDashes: number | undefined
-  m_bDownAirDash: boolean | undefined
-  m_flAirDashDelayedEffectsTime: number | undefined
-}
-define(CCitadel_Ability_Dash, 'CCitadel_Ability_Dash', {
+const fieldsCCitadel_Ability_Dash = {
   m_flDashAngle: 'float32',
   m_GroundDashExecuteTime: 'float32',
   m_GroundDashCancelExecuteTime: 'float32',
@@ -8188,20 +5609,21 @@ define(CCitadel_Ability_Dash, 'CCitadel_Ability_Dash', {
   m_nConsecutiveDownDashes: 'int8',
   m_bDownAirDash: 'bool',
   m_flAirDashDelayedEffectsTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Dash extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Dash extends Fields<typeof fieldsCCitadel_Ability_Dash> {}
+define(CCitadel_Ability_Dash, 'CCitadel_Ability_Dash', fieldsCCitadel_Ability_Dash)
 
 export class CCitadel_Ability_DeathTax extends CCitadelBaseAbility {}
 define(CCitadel_Ability_DeathTax, 'CCitadel_Ability_DeathTax', {})
 
-export class CCitadel_Ability_Digger_EnterTunnel extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Digger_EnterTunnel {
-  m_hPushedFakeWall: CCitadelPassthroughFakeWall | undefined
-  m_hPushedFakeWallLastThink: CCitadelPassthroughFakeWall | undefined
-}
-define(CCitadel_Ability_Digger_EnterTunnel, 'CCitadel_Ability_Digger_EnterTunnel', {
+const fieldsCCitadel_Ability_Digger_EnterTunnel = {
   m_hPushedFakeWall: 'CCitadelPassthroughFakeWall',
   m_hPushedFakeWallLastThink: 'CCitadelPassthroughFakeWall',
-})
+} as const
+export class CCitadel_Ability_Digger_EnterTunnel extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Digger_EnterTunnel extends Fields<typeof fieldsCCitadel_Ability_Digger_EnterTunnel> {}
+define(CCitadel_Ability_Digger_EnterTunnel, 'CCitadel_Ability_Digger_EnterTunnel', fieldsCCitadel_Ability_Digger_EnterTunnel)
 
 export class CCitadel_Ability_Disruptive_Charge extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Disruptive_Charge, 'CCitadel_Ability_Disruptive_Charge', {})
@@ -8212,42 +5634,34 @@ define(CCitadel_Ability_Doorman_Bomb, 'CCitadel_Ability_Doorman_Bomb', {})
 export class CCitadel_Ability_Doorman_Cart extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Doorman_Cart, 'CCitadel_Ability_Doorman_Cart', {})
 
-export class CCitadel_Ability_Doorman_Doorway extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Doorman_Doorway {
-  m_hDoor1: CCitadel_DoorwayPortal | undefined
-  m_flLastRangeFailCast: number | undefined
-  m_flDoorBreakableRadius: number | undefined
-}
-define(CCitadel_Ability_Doorman_Doorway, 'CCitadel_Ability_Doorman_Doorway', {
+const fieldsCCitadel_Ability_Doorman_Doorway = {
   m_hDoor1: 'CCitadel_DoorwayPortal',
   m_flLastRangeFailCast: 'float64',
   m_flDoorBreakableRadius: 'float32',
-})
+} as const
+export class CCitadel_Ability_Doorman_Doorway extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Doorman_Doorway extends Fields<typeof fieldsCCitadel_Ability_Doorman_Doorway> {}
+define(CCitadel_Ability_Doorman_Doorway, 'CCitadel_Ability_Doorman_Doorway', fieldsCCitadel_Ability_Doorman_Doorway)
 
-export class CCitadel_Ability_Doorman_Hotel extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Doorman_Hotel {
-  m_hHotelStart: CBaseEntity | undefined
-  m_hStartRelay: CBaseEntity | undefined
-  m_bSpendCooldown: boolean | undefined
-  m_vLookTarget: Vector | undefined
-}
-define(CCitadel_Ability_Doorman_Hotel, 'CCitadel_Ability_Doorman_Hotel', {
+const fieldsCCitadel_Ability_Doorman_Hotel = {
   m_hHotelStart: 'CBaseEntity',
   m_hStartRelay: 'CBaseEntity',
   m_bSpendCooldown: 'bool',
   m_vLookTarget: 'vector',
-})
+} as const
+export class CCitadel_Ability_Doorman_Hotel extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Doorman_Hotel extends Fields<typeof fieldsCCitadel_Ability_Doorman_Hotel> {}
+define(CCitadel_Ability_Doorman_Hotel, 'CCitadel_Ability_Doorman_Hotel', fieldsCCitadel_Ability_Doorman_Hotel)
 
 export class CCitadel_Ability_Drifter_Hunger extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Drifter_Hunger, 'CCitadel_Ability_Drifter_Hunger', {})
 
-export class CCitadel_Ability_Dust_Storm extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Dust_Storm {
-  m_hSpinningBladeAbility: CCitadel_Ability_Spinning_Blade | undefined
-}
-define(CCitadel_Ability_Dust_Storm, 'CCitadel_Ability_Dust_Storm', {
+const fieldsCCitadel_Ability_Dust_Storm = {
   m_hSpinningBladeAbility: 'CCitadel_Ability_Spinning_Blade',
-})
+} as const
+export class CCitadel_Ability_Dust_Storm extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Dust_Storm extends Fields<typeof fieldsCCitadel_Ability_Dust_Storm> {}
+define(CCitadel_Ability_Dust_Storm, 'CCitadel_Ability_Dust_Storm', fieldsCCitadel_Ability_Dust_Storm)
 
 export class CCitadel_Ability_EmpowerBullet extends CCitadelBaseAbility {}
 define(CCitadel_Ability_EmpowerBullet, 'CCitadel_Ability_EmpowerBullet', {})
@@ -8255,32 +5669,29 @@ define(CCitadel_Ability_EmpowerBullet, 'CCitadel_Ability_EmpowerBullet', {})
 export class CCitadel_Ability_Empty extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Empty, 'CCitadel_Ability_Empty', {})
 
-export class CCitadel_Ability_ExplosiveBarrel extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_ExplosiveBarrel {
-  m_hBarrel: CCitadelProjectile | undefined
-}
-define(CCitadel_Ability_ExplosiveBarrel, 'CCitadel_Ability_ExplosiveBarrel', {
+const fieldsCCitadel_Ability_ExplosiveBarrel = {
   m_hBarrel: 'CCitadelProjectile',
-})
+} as const
+export class CCitadel_Ability_ExplosiveBarrel extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_ExplosiveBarrel extends Fields<typeof fieldsCCitadel_Ability_ExplosiveBarrel> {}
+define(CCitadel_Ability_ExplosiveBarrel, 'CCitadel_Ability_ExplosiveBarrel', fieldsCCitadel_Ability_ExplosiveBarrel)
 
 export class CCitadel_Ability_Familiar_Ability01 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Familiar_Ability01, 'CCitadel_Ability_Familiar_Ability01', {})
 
-export class CCitadel_Ability_Familiar_Ability02 extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Familiar_Ability02 {
-  m_bCastWhileAttached: boolean | undefined
-}
-define(CCitadel_Ability_Familiar_Ability02, 'CCitadel_Ability_Familiar_Ability02', {
+const fieldsCCitadel_Ability_Familiar_Ability02 = {
   m_bCastWhileAttached: 'bool',
-})
+} as const
+export class CCitadel_Ability_Familiar_Ability02 extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Familiar_Ability02 extends Fields<typeof fieldsCCitadel_Ability_Familiar_Ability02> {}
+define(CCitadel_Ability_Familiar_Ability02, 'CCitadel_Ability_Familiar_Ability02', fieldsCCitadel_Ability_Familiar_Ability02)
 
-export class CCitadel_Ability_Familiar_Attach extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Familiar_Attach {
-  m_hLastAttachedTo: CBaseEntity | undefined
-}
-define(CCitadel_Ability_Familiar_Attach, 'CCitadel_Ability_Familiar_Attach', {
+const fieldsCCitadel_Ability_Familiar_Attach = {
   m_hLastAttachedTo: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Ability_Familiar_Attach extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Familiar_Attach extends Fields<typeof fieldsCCitadel_Ability_Familiar_Attach> {}
+define(CCitadel_Ability_Familiar_Attach, 'CCitadel_Ability_Familiar_Attach', fieldsCCitadel_Ability_Familiar_Attach)
 
 export class CCitadel_Ability_Familiar_Attach_Trigger extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Familiar_Attach_Trigger, 'CCitadel_Ability_Familiar_Attach_Trigger', {})
@@ -8297,74 +5708,51 @@ define(CCitadel_Ability_Familiar_CloneSingle_Trigger, 'CCitadel_Ability_Familiar
 export class CCitadel_Ability_Familiar_Clone_End extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Familiar_Clone_End, 'CCitadel_Ability_Familiar_Clone_End', {})
 
-export class CCitadel_Ability_Familiar_HealHost extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Familiar_HealHost {
-  m_flOverrideCooldown: number | undefined
-}
-define(CCitadel_Ability_Familiar_HealHost, 'CCitadel_Ability_Familiar_HealHost', {
+const fieldsCCitadel_Ability_Familiar_HealHost = {
   m_flOverrideCooldown: 'float32',
-})
+} as const
+export class CCitadel_Ability_Familiar_HealHost extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Familiar_HealHost extends Fields<typeof fieldsCCitadel_Ability_Familiar_HealHost> {}
+define(CCitadel_Ability_Familiar_HealHost, 'CCitadel_Ability_Familiar_HealHost', fieldsCCitadel_Ability_Familiar_HealHost)
 
-export class CCitadel_Ability_Familiar_HelpingHands extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Familiar_HelpingHands {
-  m_tChoreUseCooldownEndTime: number | undefined
-  m_tSoonestHelperCooldownEndTime: number | undefined
-}
-define(CCitadel_Ability_Familiar_HelpingHands, 'CCitadel_Ability_Familiar_HelpingHands', {
+const fieldsCCitadel_Ability_Familiar_HelpingHands = {
   m_tChoreUseCooldownEndTime: 'float32',
   m_tSoonestHelperCooldownEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Familiar_HelpingHands extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Familiar_HelpingHands extends Fields<typeof fieldsCCitadel_Ability_Familiar_HelpingHands> {}
+define(CCitadel_Ability_Familiar_HelpingHands, 'CCitadel_Ability_Familiar_HelpingHands', fieldsCCitadel_Ability_Familiar_HelpingHands)
 
-export class CCitadel_Ability_Familiar_Spotlight extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Familiar_Spotlight {
-  m_hAuraThinker: CPointModifierThinker | undefined
-  m_nEyeGlowFX: number | undefined
-  m_vLastValidAuraPosition: Vector | undefined
-  m_hWasAttachedTo: CBaseEntity | undefined
-  m_vAuraPosition: Vector | undefined
-}
-define(CCitadel_Ability_Familiar_Spotlight, 'CCitadel_Ability_Familiar_Spotlight', {
+const fieldsCCitadel_Ability_Familiar_Spotlight = {
   m_hAuraThinker: 'CPointModifierThinker',
   m_nEyeGlowFX: 'int32',
   m_vLastValidAuraPosition: 'vector',
   m_hWasAttachedTo: 'CBaseEntity',
   m_vAuraPosition: 'vector',
-})
+} as const
+export class CCitadel_Ability_Familiar_Spotlight extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Familiar_Spotlight extends Fields<typeof fieldsCCitadel_Ability_Familiar_Spotlight> {}
+define(CCitadel_Ability_Familiar_Spotlight, 'CCitadel_Ability_Familiar_Spotlight', fieldsCCitadel_Ability_Familiar_Spotlight)
 
-export class CCitadel_Ability_Fathom_Breach extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Fathom_Breach {
-  m_nRollFXIndex: number | undefined
-  m_bInFlight: boolean | undefined
-}
-define(CCitadel_Ability_Fathom_Breach, 'CCitadel_Ability_Fathom_Breach', {
+const fieldsCCitadel_Ability_Fathom_Breach = {
   m_nRollFXIndex: 'int32',
   m_bInFlight: 'bool',
-})
+} as const
+export class CCitadel_Ability_Fathom_Breach extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Fathom_Breach extends Fields<typeof fieldsCCitadel_Ability_Fathom_Breach> {}
+define(CCitadel_Ability_Fathom_Breach, 'CCitadel_Ability_Fathom_Breach', fieldsCCitadel_Ability_Fathom_Breach)
 
 export class CCitadel_Ability_Fathom_ScaldingSpray extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Fathom_ScaldingSpray, 'CCitadel_Ability_Fathom_ScaldingSpray', {})
 
-export class CCitadel_Ability_Fealty extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Fealty {
-  m_hTarget: CBaseEntity | undefined
-}
-define(CCitadel_Ability_Fealty, 'CCitadel_Ability_Fealty', {
+const fieldsCCitadel_Ability_Fealty = {
   m_hTarget: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Ability_Fealty extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Fealty extends Fields<typeof fieldsCCitadel_Ability_Fealty> {}
+define(CCitadel_Ability_Fealty, 'CCitadel_Ability_Fealty', fieldsCCitadel_Ability_Fealty)
 
-export class CCitadel_Ability_Fencer_Riposte extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Fencer_Riposte {
-  m_hTarget: CBaseEntity | undefined
-  m_vRiposteStartPosition: Vector | undefined
-  m_vDashDirection: Vector | undefined
-  m_flStateStartTime: number | undefined
-  m_nCurrentRiposteState: number | undefined
-  m_flSuccessfulRiposteTime: number | undefined
-  m_vecLastPosition: Vector | undefined
-  m_flStuckTime: number | undefined
-  m_nParriedFXIndex: number | undefined
-}
-define(CCitadel_Ability_Fencer_Riposte, 'CCitadel_Ability_Fencer_Riposte', {
+const fieldsCCitadel_Ability_Fencer_Riposte = {
   m_hTarget: 'CBaseEntity',
   m_vRiposteStartPosition: 'vector',
   m_vDashDirection: 'vector',
@@ -8374,19 +5762,12 @@ define(CCitadel_Ability_Fencer_Riposte, 'CCitadel_Ability_Fencer_Riposte', {
   m_vecLastPosition: 'vector',
   m_flStuckTime: 'float32',
   m_nParriedFXIndex: 'int32',
-})
+} as const
+export class CCitadel_Ability_Fencer_Riposte extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Fencer_Riposte extends Fields<typeof fieldsCCitadel_Ability_Fencer_Riposte> {}
+define(CCitadel_Ability_Fencer_Riposte, 'CCitadel_Ability_Fencer_Riposte', fieldsCCitadel_Ability_Fencer_Riposte)
 
-export class CCitadel_Ability_Fencer_ThrowBlade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Fencer_ThrowBlade {
-  m_vCastPosition: Vector | undefined
-  m_qCastAngles: Angles | undefined
-  m_nMarkParticleIndex: number | undefined
-  m_nLingerParticleIndex: number | undefined
-  m_nExplodeParticleIndex: number | undefined
-  m_bHitEnemyPlayer: boolean | undefined
-  m_tRecastEndTime: number | undefined
-}
-define(CCitadel_Ability_Fencer_ThrowBlade, 'CCitadel_Ability_Fencer_ThrowBlade', {
+const fieldsCCitadel_Ability_Fencer_ThrowBlade = {
   m_vCastPosition: 'vector',
   m_qCastAngles: 'angles',
   m_nMarkParticleIndex: 'int32',
@@ -8394,29 +5775,19 @@ define(CCitadel_Ability_Fencer_ThrowBlade, 'CCitadel_Ability_Fencer_ThrowBlade',
   m_nExplodeParticleIndex: 'int32',
   m_bHitEnemyPlayer: 'bool',
   m_tRecastEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Fencer_ThrowBlade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Fencer_ThrowBlade extends Fields<typeof fieldsCCitadel_Ability_Fencer_ThrowBlade> {}
+define(CCitadel_Ability_Fencer_ThrowBlade, 'CCitadel_Ability_Fencer_ThrowBlade', fieldsCCitadel_Ability_Fencer_ThrowBlade)
 
-export class CCitadel_Ability_FireBomb extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_FireBomb {
-  m_flStartTime: number | undefined
-}
-define(CCitadel_Ability_FireBomb, 'CCitadel_Ability_FireBomb', {
+const fieldsCCitadel_Ability_FireBomb = {
   m_flStartTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_FireBomb extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_FireBomb extends Fields<typeof fieldsCCitadel_Ability_FireBomb> {}
+define(CCitadel_Ability_FireBomb, 'CCitadel_Ability_FireBomb', fieldsCCitadel_Ability_FireBomb)
 
-export class CCitadel_Ability_FissureWall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_FissureWall {
-  m_vecPosition: Vector | undefined
-  m_vecTravellingPosition: Vector | undefined
-  m_vecInitialPosition: Vector | undefined
-  m_CastTime: number | undefined
-  m_vecDirection: Vector | undefined
-  m_vecLeft: Vector | undefined
-  m_Length: number | undefined
-  m_bTraveling: boolean | undefined
-  m_bPreview: boolean | undefined
-}
-define(CCitadel_Ability_FissureWall, 'CCitadel_Ability_FissureWall', {
+const fieldsCCitadel_Ability_FissureWall = {
   m_vecPosition: 'vector',
   m_vecTravellingPosition: 'vector',
   m_vecInitialPosition: 'vector',
@@ -8426,15 +5797,17 @@ define(CCitadel_Ability_FissureWall, 'CCitadel_Ability_FissureWall', {
   m_Length: 'float32',
   m_bTraveling: 'bool',
   m_bPreview: 'bool',
-})
+} as const
+export class CCitadel_Ability_FissureWall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_FissureWall extends Fields<typeof fieldsCCitadel_Ability_FissureWall> {}
+define(CCitadel_Ability_FissureWall, 'CCitadel_Ability_FissureWall', fieldsCCitadel_Ability_FissureWall)
 
-export class CCitadel_Ability_FlameDash extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_FlameDash {
-  m_bIsSpeedBursting: boolean | undefined
-}
-define(CCitadel_Ability_FlameDash, 'CCitadel_Ability_FlameDash', {
+const fieldsCCitadel_Ability_FlameDash = {
   m_bIsSpeedBursting: 'bool',
-})
+} as const
+export class CCitadel_Ability_FlameDash extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_FlameDash extends Fields<typeof fieldsCCitadel_Ability_FlameDash> {}
+define(CCitadel_Ability_FlameDash, 'CCitadel_Ability_FlameDash', fieldsCCitadel_Ability_FlameDash)
 
 export class CCitadel_Ability_Fortuna_Ability01 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Fortuna_Ability01, 'CCitadel_Ability_Fortuna_Ability01', {})
@@ -8448,43 +5821,36 @@ define(CCitadel_Ability_Fortuna_Ability03, 'CCitadel_Ability_Fortuna_Ability03',
 export class CCitadel_Ability_Fortuna_Ability04 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Fortuna_Ability04, 'CCitadel_Ability_Fortuna_Ability04', {})
 
-export class CCitadel_Ability_Frank_PainAura extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Frank_PainAura {
-  m_ToggleOnTime: number | undefined
-}
-define(CCitadel_Ability_Frank_PainAura, 'CCitadel_Ability_Frank_PainAura', {
+const fieldsCCitadel_Ability_Frank_PainAura = {
   m_ToggleOnTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Frank_PainAura extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Frank_PainAura extends Fields<typeof fieldsCCitadel_Ability_Frank_PainAura> {}
+define(CCitadel_Ability_Frank_PainAura, 'CCitadel_Ability_Frank_PainAura', fieldsCCitadel_Ability_Frank_PainAura)
 
-export class CCitadel_Ability_Frank_Revive extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Frank_Revive {
-  m_bReviveIsActive: boolean | undefined
-  m_TimeOfDeath: number | undefined
-  m_TimeOfRevive: number | undefined
-  m_flTotalPendingHeal: number | undefined
-}
-define(CCitadel_Ability_Frank_Revive, 'CCitadel_Ability_Frank_Revive', {
+const fieldsCCitadel_Ability_Frank_Revive = {
   m_bReviveIsActive: 'bool',
   m_TimeOfDeath: 'float32',
   m_TimeOfRevive: 'float32',
   m_flTotalPendingHeal: 'float32',
-})
+} as const
+export class CCitadel_Ability_Frank_Revive extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Frank_Revive extends Fields<typeof fieldsCCitadel_Ability_Frank_Revive> {}
+define(CCitadel_Ability_Frank_Revive, 'CCitadel_Ability_Frank_Revive', fieldsCCitadel_Ability_Frank_Revive)
 
-export class CCitadel_Ability_Frank_SelfZap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Frank_SelfZap {
-  m_flTotalPendingHeal: number | undefined
-}
-define(CCitadel_Ability_Frank_SelfZap, 'CCitadel_Ability_Frank_SelfZap', {
+const fieldsCCitadel_Ability_Frank_SelfZap = {
   m_flTotalPendingHeal: 'float32',
-})
+} as const
+export class CCitadel_Ability_Frank_SelfZap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Frank_SelfZap extends Fields<typeof fieldsCCitadel_Ability_Frank_SelfZap> {}
+define(CCitadel_Ability_Frank_SelfZap, 'CCitadel_Ability_Frank_SelfZap', fieldsCCitadel_Ability_Frank_SelfZap)
 
-export class CCitadel_Ability_Frank_ShockTarget2 extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Frank_ShockTarget2 {
-  m_bIsFullyCharged: boolean | undefined
-}
-define(CCitadel_Ability_Frank_ShockTarget2, 'CCitadel_Ability_Frank_ShockTarget2', {
+const fieldsCCitadel_Ability_Frank_ShockTarget2 = {
   m_bIsFullyCharged: 'bool',
-})
+} as const
+export class CCitadel_Ability_Frank_ShockTarget2 extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Frank_ShockTarget2 extends Fields<typeof fieldsCCitadel_Ability_Frank_ShockTarget2> {}
+define(CCitadel_Ability_Frank_ShockTarget2, 'CCitadel_Ability_Frank_ShockTarget2', fieldsCCitadel_Ability_Frank_ShockTarget2)
 
 export class CCitadel_Ability_GangActivity extends CCitadelBaseAbility {}
 define(CCitadel_Ability_GangActivity, 'CCitadel_Ability_GangActivity', {})
@@ -8507,19 +5873,7 @@ define(CCitadel_Ability_GenericPerson_4, 'CCitadel_Ability_GenericPerson_4', {})
 export class CCitadel_Ability_Ghost_BloodShards extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Ghost_BloodShards, 'CCitadel_Ability_Ghost_BloodShards', {})
 
-export class CCitadel_Ability_GooBowlingBall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_GooBowlingBall {
-  m_nAirJumpsLeft: number | undefined
-  m_bIsRolling: boolean | undefined
-  m_hBall: CCitadelViscousBall | undefined
-  m_eRollingState: number | undefined
-  m_flNextStateTime: number | undefined
-  m_flNextWallCheck: number | undefined
-  m_flRollStartTime: number | undefined
-  m_flWallExitTime: number | undefined
-  m_vecWallExitVelocity: Vector | undefined
-}
-define(CCitadel_Ability_GooBowlingBall, 'CCitadel_Ability_GooBowlingBall', {
+const fieldsCCitadel_Ability_GooBowlingBall = {
   m_nAirJumpsLeft: 'int32',
   m_bIsRolling: 'bool',
   m_hBall: 'CCitadelViscousBall',
@@ -8529,15 +5883,17 @@ define(CCitadel_Ability_GooBowlingBall, 'CCitadel_Ability_GooBowlingBall', {
   m_flRollStartTime: 'float32',
   m_flWallExitTime: 'float32',
   m_vecWallExitVelocity: 'vector',
-})
+} as const
+export class CCitadel_Ability_GooBowlingBall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_GooBowlingBall extends Fields<typeof fieldsCCitadel_Ability_GooBowlingBall> {}
+define(CCitadel_Ability_GooBowlingBall, 'CCitadel_Ability_GooBowlingBall', fieldsCCitadel_Ability_GooBowlingBall)
 
-export class CCitadel_Ability_GooGrenade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_GooGrenade {
-  m_LastDetonateTime: number | undefined
-}
-define(CCitadel_Ability_GooGrenade, 'CCitadel_Ability_GooGrenade', {
+const fieldsCCitadel_Ability_GooGrenade = {
   m_LastDetonateTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_GooGrenade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_GooGrenade extends Fields<typeof fieldsCCitadel_Ability_GooGrenade> {}
+define(CCitadel_Ability_GooGrenade, 'CCitadel_Ability_GooGrenade', fieldsCCitadel_Ability_GooGrenade)
 
 export class CCitadel_Ability_Graf_Ability01 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Graf_Ability01, 'CCitadel_Ability_Graf_Ability01', {})
@@ -8554,22 +5910,7 @@ define(CCitadel_Ability_Graf_Ability04, 'CCitadel_Ability_Graf_Ability04', {})
 export class CCitadel_Ability_Gravity_Lasso extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Gravity_Lasso, 'CCitadel_Ability_Gravity_Lasso', {})
 
-export class CCitadel_Ability_GuidedArrow extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_GuidedArrow {
-  m_hProjectile: CBaseEntity | undefined
-  m_hCameraTarget: CBaseEntity | undefined
-  m_flArrowSpeed: number | undefined
-  m_flSnapAnglesBackTime: number | undefined
-  m_bNeedsExplosion: boolean | undefined
-  m_hOwl: CCitadel_GuidedArrow_OwlModel | undefined
-  m_flCastTime: number | undefined
-  m_vProjectileRemovedOrigin: Vector | undefined
-  m_angCasterAnglesAtCastTime: Angles | undefined
-  m_flTravelDistance: number | undefined
-  m_bInKillFlow: boolean | undefined
-  m_flProjectileTurnVel: number | undefined
-}
-define(CCitadel_Ability_GuidedArrow, 'CCitadel_Ability_GuidedArrow', {
+const fieldsCCitadel_Ability_GuidedArrow = {
   m_hProjectile: 'CBaseEntity',
   m_hCameraTarget: 'CBaseEntity',
   m_flArrowSpeed: 'float32',
@@ -8582,45 +5923,38 @@ define(CCitadel_Ability_GuidedArrow, 'CCitadel_Ability_GuidedArrow', {
   m_flTravelDistance: 'float32',
   m_bInKillFlow: 'bool',
   m_flProjectileTurnVel: 'float32',
-})
+} as const
+export class CCitadel_Ability_GuidedArrow extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_GuidedArrow extends Fields<typeof fieldsCCitadel_Ability_GuidedArrow> {}
+define(CCitadel_Ability_GuidedArrow, 'CCitadel_Ability_GuidedArrow', fieldsCCitadel_Ability_GuidedArrow)
 
-export class CCitadel_Ability_Gunslinger_DemonCarbine extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Gunslinger_DemonCarbine {
-  m_bWantsSlow: boolean | undefined
-  m_flLatchedTimeScaleFracChangeTime: number | undefined
-  m_flLatchedTimeScaleFrac: number | undefined
-  m_flSpeedBoostEndTime: number | undefined
-  m_flShotTimeScaleEndTime: number | undefined
-  m_flStoredPowerPct: number | undefined
-}
-define(CCitadel_Ability_Gunslinger_DemonCarbine, 'CCitadel_Ability_Gunslinger_DemonCarbine', {
+const fieldsCCitadel_Ability_Gunslinger_DemonCarbine = {
   m_bWantsSlow: 'bool',
   m_flLatchedTimeScaleFracChangeTime: 'float32',
   m_flLatchedTimeScaleFrac: 'float32',
   m_flSpeedBoostEndTime: 'float32',
   m_flShotTimeScaleEndTime: 'float32',
   m_flStoredPowerPct: 'float32',
-})
+} as const
+export class CCitadel_Ability_Gunslinger_DemonCarbine extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Gunslinger_DemonCarbine extends Fields<typeof fieldsCCitadel_Ability_Gunslinger_DemonCarbine> {}
+define(CCitadel_Ability_Gunslinger_DemonCarbine, 'CCitadel_Ability_Gunslinger_DemonCarbine', fieldsCCitadel_Ability_Gunslinger_DemonCarbine)
 
-export class CCitadel_Ability_Gunslinger_KnockbackBlast extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Gunslinger_KnockbackBlast {
-  m_vecKnockbackDirection: Vector | undefined
-}
-define(CCitadel_Ability_Gunslinger_KnockbackBlast, 'CCitadel_Ability_Gunslinger_KnockbackBlast', {
+const fieldsCCitadel_Ability_Gunslinger_KnockbackBlast = {
   m_vecKnockbackDirection: 'vector',
-})
+} as const
+export class CCitadel_Ability_Gunslinger_KnockbackBlast extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Gunslinger_KnockbackBlast extends Fields<typeof fieldsCCitadel_Ability_Gunslinger_KnockbackBlast> {}
+define(CCitadel_Ability_Gunslinger_KnockbackBlast, 'CCitadel_Ability_Gunslinger_KnockbackBlast', fieldsCCitadel_Ability_Gunslinger_KnockbackBlast)
 
-export class CCitadel_Ability_Gunslinger_Salvo extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Gunslinger_Salvo {
-  m_CastTarget: CBaseEntity | undefined
-  m_iCurrentShots: number | undefined
-  m_iTotalShots: number | undefined
-}
-define(CCitadel_Ability_Gunslinger_Salvo, 'CCitadel_Ability_Gunslinger_Salvo', {
+const fieldsCCitadel_Ability_Gunslinger_Salvo = {
   m_CastTarget: 'CBaseEntity',
   m_iCurrentShots: 'int32',
   m_iTotalShots: 'int32',
-})
+} as const
+export class CCitadel_Ability_Gunslinger_Salvo extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Gunslinger_Salvo extends Fields<typeof fieldsCCitadel_Ability_Gunslinger_Salvo> {}
+define(CCitadel_Ability_Gunslinger_Salvo, 'CCitadel_Ability_Gunslinger_Salvo', fieldsCCitadel_Ability_Gunslinger_Salvo)
 
 export class CCitadel_Ability_Gunslinger_SpreadingFire extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Gunslinger_SpreadingFire, 'CCitadel_Ability_Gunslinger_SpreadingFire', {})
@@ -8628,30 +5962,18 @@ define(CCitadel_Ability_Gunslinger_SpreadingFire, 'CCitadel_Ability_Gunslinger_S
 export class CCitadel_Ability_Haze_StackingDamage extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Haze_StackingDamage, 'CCitadel_Ability_Haze_StackingDamage', {})
 
-export class CCitadel_Ability_HealthSwap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_HealthSwap {
-  m_nFXIndex: number | undefined
-  m_flPostCastHoldEndTime: number | undefined
-}
-define(CCitadel_Ability_HealthSwap, 'CCitadel_Ability_HealthSwap', {
+const fieldsCCitadel_Ability_HealthSwap = {
   m_nFXIndex: 'int32',
   m_flPostCastHoldEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_HealthSwap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_HealthSwap extends Fields<typeof fieldsCCitadel_Ability_HealthSwap> {}
+define(CCitadel_Ability_HealthSwap, 'CCitadel_Ability_HealthSwap', fieldsCCitadel_Ability_HealthSwap)
 
 export class CCitadel_Ability_HighAlert extends CCitadelBaseAbility {}
 define(CCitadel_Ability_HighAlert, 'CCitadel_Ability_HighAlert', {})
 
-export class CCitadel_Ability_Hook extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Hook {
-  m_hHookVictim: CBaseEntity | undefined
-  m_vecHookTargetStartPos: Vector | undefined
-  m_flCancelHookTime: number | undefined
-  m_flBeginReelHookTime: number | undefined
-  m_flBulletShouldExpireTime: number | undefined
-  m_flMaxHookTravelTime: number | undefined
-  m_flLastUppercutRestoreTime: number | undefined
-}
-define(CCitadel_Ability_Hook, 'CCitadel_Ability_Hook', {
+const fieldsCCitadel_Ability_Hook = {
   m_hHookVictim: 'CBaseEntity',
   m_vecHookTargetStartPos: 'vector',
   m_flCancelHookTime: 'float32',
@@ -8659,97 +5981,79 @@ define(CCitadel_Ability_Hook, 'CCitadel_Ability_Hook', {
   m_flBulletShouldExpireTime: 'float32',
   m_flMaxHookTravelTime: 'float32',
   m_flLastUppercutRestoreTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Hook extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Hook extends Fields<typeof fieldsCCitadel_Ability_Hook> {}
+define(CCitadel_Ability_Hook, 'CCitadel_Ability_Hook', fieldsCCitadel_Ability_Hook)
 
-export class CCitadel_Ability_HornetLeap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_HornetLeap {
-  m_bLeaping: boolean | undefined
-  m_flLeapStartTime: number | undefined
-  m_nFXIndex: number | undefined
-  m_TrailFX: number | undefined
-}
-define(CCitadel_Ability_HornetLeap, 'CCitadel_Ability_HornetLeap', {
+const fieldsCCitadel_Ability_HornetLeap = {
   m_bLeaping: 'bool',
   m_flLeapStartTime: 'float32',
   m_nFXIndex: 'int32',
   m_TrailFX: 'int32',
-})
+} as const
+export class CCitadel_Ability_HornetLeap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_HornetLeap extends Fields<typeof fieldsCCitadel_Ability_HornetLeap> {}
+define(CCitadel_Ability_HornetLeap, 'CCitadel_Ability_HornetLeap', fieldsCCitadel_Ability_HornetLeap)
 
-export class CCitadel_Ability_HornetSting extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_HornetSting {
-  m_BounceCount: number | undefined
-  m_bHitHero: boolean | undefined
-}
-define(CCitadel_Ability_HornetSting, 'CCitadel_Ability_HornetSting', {
+const fieldsCCitadel_Ability_HornetSting = {
   m_BounceCount: 'int32',
   m_bHitHero: 'bool',
-})
+} as const
+export class CCitadel_Ability_HornetSting extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_HornetSting extends Fields<typeof fieldsCCitadel_Ability_HornetSting> {}
+define(CCitadel_Ability_HornetSting, 'CCitadel_Ability_HornetSting', fieldsCCitadel_Ability_HornetSting)
 
-export class CCitadel_Ability_Hornet_Chain extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Hornet_Chain {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Hornet_Chain, 'CCitadel_Ability_Hornet_Chain', {
+const fieldsCCitadel_Ability_Hornet_Chain = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Hornet_Chain extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Hornet_Chain extends Fields<typeof fieldsCCitadel_Ability_Hornet_Chain> {}
+define(CCitadel_Ability_Hornet_Chain, 'CCitadel_Ability_Hornet_Chain', fieldsCCitadel_Ability_Hornet_Chain)
 
-export class CCitadel_Ability_Hornet_Snipe extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Hornet_Snipe {
-  m_flScopeStartTime: number | undefined
-}
-define(CCitadel_Ability_Hornet_Snipe, 'CCitadel_Ability_Hornet_Snipe', {
+const fieldsCCitadel_Ability_Hornet_Snipe = {
   m_flScopeStartTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Hornet_Snipe extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Hornet_Snipe extends Fields<typeof fieldsCCitadel_Ability_Hornet_Snipe> {}
+define(CCitadel_Ability_Hornet_Snipe, 'CCitadel_Ability_Hornet_Snipe', fieldsCCitadel_Ability_Hornet_Snipe)
 
-export class CCitadel_Ability_IceBeam extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_IceBeam {
-  m_bIceBeaming: boolean | undefined
-  m_flNextDamageTick: number | undefined
-}
-define(CCitadel_Ability_IceBeam, 'CCitadel_Ability_IceBeam', {
+const fieldsCCitadel_Ability_IceBeam = {
   m_bIceBeaming: 'bool',
   m_flNextDamageTick: 'float32',
-})
+} as const
+export class CCitadel_Ability_IceBeam extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_IceBeam extends Fields<typeof fieldsCCitadel_Ability_IceBeam> {}
+define(CCitadel_Ability_IceBeam, 'CCitadel_Ability_IceBeam', fieldsCCitadel_Ability_IceBeam)
 
-export class CCitadel_Ability_IceDome extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_IceDome {
-  m_flDomeStartTime: number | undefined
-  m_flDomeEndTime: number | undefined
-}
-define(CCitadel_Ability_IceDome, 'CCitadel_Ability_IceDome', {
+const fieldsCCitadel_Ability_IceDome = {
   m_flDomeStartTime: 'float32',
   m_flDomeEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_IceDome extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_IceDome extends Fields<typeof fieldsCCitadel_Ability_IceDome> {}
+define(CCitadel_Ability_IceDome, 'CCitadel_Ability_IceDome', fieldsCCitadel_Ability_IceDome)
 
-export class CCitadel_Ability_IceGrenade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_IceGrenade {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_IceGrenade, 'CCitadel_Ability_IceGrenade', {
+const fieldsCCitadel_Ability_IceGrenade = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_IceGrenade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_IceGrenade extends Fields<typeof fieldsCCitadel_Ability_IceGrenade> {}
+define(CCitadel_Ability_IceGrenade, 'CCitadel_Ability_IceGrenade', fieldsCCitadel_Ability_IceGrenade)
 
-export class CCitadel_Ability_IcePath extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_IcePath {
-  m_vInitialPosition: Vector | undefined
-  m_bIcePathing: boolean | undefined
-  m_qLastAngles: Angles | undefined
-  m_vLastVelocity: Vector | undefined
-  m_bFirstMovementTick: boolean | undefined
-  m_tLingerMovementControlUntilTime: number | undefined
-}
-define(CCitadel_Ability_IcePath, 'CCitadel_Ability_IcePath', {
+const fieldsCCitadel_Ability_IcePath = {
   m_vInitialPosition: 'vector',
   m_bIcePathing: 'bool',
   m_qLastAngles: 'angles',
   m_vLastVelocity: 'vector',
   m_bFirstMovementTick: 'bool',
   m_tLingerMovementControlUntilTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_IcePath extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_IcePath extends Fields<typeof fieldsCCitadel_Ability_IcePath> {}
+define(CCitadel_Ability_IcePath, 'CCitadel_Ability_IcePath', fieldsCCitadel_Ability_IcePath)
 
 export class CCitadel_Ability_ImmobilizeTrap extends CCitadelBaseAbility {}
 define(CCitadel_Ability_ImmobilizeTrap, 'CCitadel_Ability_ImmobilizeTrap', {})
@@ -8760,38 +6064,7 @@ define(CCitadel_Ability_IncendiaryProjectile, 'CCitadel_Ability_IncendiaryProjec
 export class CCitadel_Ability_Intimidate extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Intimidate, 'CCitadel_Ability_Intimidate', {})
 
-export class CCitadel_Ability_Jump extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Jump {
-  m_flLastTimeOnZipLine: number | undefined
-  m_flLastOnGroundTime: number | undefined
-  m_flPhaseStartTime: number | undefined
-  m_flJumpTime: number | undefined
-  m_flWallJumpFatigueStartTime: number | undefined
-  m_flLastThinkTime: number | undefined
-  m_vCurrentWallNormal: Vector | undefined
-  m_vLastWallCollidedWithNormal: Vector | undefined
-  m_vLastValidWallJumpNormal: Vector | undefined
-  m_vLastValidWallJumpNormal_PlayerPosition: Vector | undefined
-  m_flLastWallJumpTime: number | undefined
-  m_vWallJumpFacingDir: Vector | undefined
-  m_eWallJumpFacing: number | undefined
-  m_flLastWallJumpFatigueStrength: number | undefined
-  m_LastJumpType: number | undefined
-  m_bShouldCreateAirJumpEffects: boolean | undefined
-  m_flDoubleJumpFailTime: number | undefined
-  m_eDoubleJumpFailReason: number | undefined
-  m_vWallJumpNormalUsed: Vector | undefined
-  m_bResolvingAirJump: boolean | undefined
-  m_bJumped: boolean | undefined
-  m_bCanDashJump: boolean | undefined
-  m_nDesiredAirJumpCount: number | undefined
-  m_nExecutedAirJumpCount: number | undefined
-  m_bInSlideJump: boolean | undefined
-  m_nConsecutiveAirJumps: number | undefined
-  m_nConsecutiveWallJumps: number | undefined
-  m_flLateralInputSuppressEndTime: number | undefined
-}
-define(CCitadel_Ability_Jump, 'CCitadel_Ability_Jump', {
+const fieldsCCitadel_Ability_Jump = {
   m_flLastTimeOnZipLine: 'float32',
   m_flLastOnGroundTime: 'float32',
   m_flPhaseStartTime: 'float32',
@@ -8820,32 +6093,22 @@ define(CCitadel_Ability_Jump, 'CCitadel_Ability_Jump', {
   m_nConsecutiveAirJumps: 'int8',
   m_nConsecutiveWallJumps: 'int8',
   m_flLateralInputSuppressEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Jump extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Jump extends Fields<typeof fieldsCCitadel_Ability_Jump> {}
+define(CCitadel_Ability_Jump, 'CCitadel_Ability_Jump', fieldsCCitadel_Ability_Jump)
 
-export class CCitadel_Ability_Kobun extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Kobun {
-  m_bFlipOffset: boolean | undefined
-}
-define(CCitadel_Ability_Kobun, 'CCitadel_Ability_Kobun', {
+const fieldsCCitadel_Ability_Kobun = {
   m_bFlipOffset: 'bool',
-})
+} as const
+export class CCitadel_Ability_Kobun extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Kobun extends Fields<typeof fieldsCCitadel_Ability_Kobun> {}
+define(CCitadel_Ability_Kobun, 'CCitadel_Ability_Kobun', fieldsCCitadel_Ability_Kobun)
 
 export class CCitadel_Ability_Lash extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Lash, 'CCitadel_Ability_Lash', {})
 
-export class CCitadel_Ability_LashDownStrike extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_LashDownStrike {
-  m_ImpactTime: number | undefined
-  m_vDamagePos: Vector | undefined
-  m_vDamageDir: Vector | undefined
-  m_PreviewEffect: number | undefined
-  m_ActiveEffect: number | undefined
-  m_bIsCrashingDown: boolean | undefined
-  m_vStrikeVel: Vector | undefined
-  m_flInitialYaw: number | undefined
-  m_flStartHeight: number | undefined
-}
-define(CCitadel_Ability_LashDownStrike, 'CCitadel_Ability_LashDownStrike', {
+const fieldsCCitadel_Ability_LashDownStrike = {
   m_ImpactTime: 'float32',
   m_vDamagePos: 'vector',
   m_vDamageDir: 'vector',
@@ -8855,35 +6118,33 @@ define(CCitadel_Ability_LashDownStrike, 'CCitadel_Ability_LashDownStrike', {
   m_vStrikeVel: 'vector',
   m_flInitialYaw: 'float32',
   m_flStartHeight: 'float32',
-})
+} as const
+export class CCitadel_Ability_LashDownStrike extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_LashDownStrike extends Fields<typeof fieldsCCitadel_Ability_LashDownStrike> {}
+define(CCitadel_Ability_LashDownStrike, 'CCitadel_Ability_LashDownStrike', fieldsCCitadel_Ability_LashDownStrike)
 
-export class CCitadel_Ability_Lash_Flog extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Lash_Flog {
-  m_SandEffect: number | undefined
-}
-define(CCitadel_Ability_Lash_Flog, 'CCitadel_Ability_Lash_Flog', {
+const fieldsCCitadel_Ability_Lash_Flog = {
   m_SandEffect: 'int32',
-})
+} as const
+export class CCitadel_Ability_Lash_Flog extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Lash_Flog extends Fields<typeof fieldsCCitadel_Ability_Lash_Flog> {}
+define(CCitadel_Ability_Lash_Flog, 'CCitadel_Ability_Lash_Flog', fieldsCCitadel_Ability_Lash_Flog)
 
-export class CCitadel_Ability_LifeDrain extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_LifeDrain {
-  m_tDrainLifeStopTime: number | undefined
-  m_tSlowStartTime: number | undefined
-  m_tSlowStopTime: number | undefined
-}
-define(CCitadel_Ability_LifeDrain, 'CCitadel_Ability_LifeDrain', {
+const fieldsCCitadel_Ability_LifeDrain = {
   m_tDrainLifeStopTime: 'float32',
   m_tSlowStartTime: 'float32',
   m_tSlowStopTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_LifeDrain extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_LifeDrain extends Fields<typeof fieldsCCitadel_Ability_LifeDrain> {}
+define(CCitadel_Ability_LifeDrain, 'CCitadel_Ability_LifeDrain', fieldsCCitadel_Ability_LifeDrain)
 
-export class CCitadel_Ability_LightningBall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_LightningBall {
-  m_flInitialSpeed: number | undefined
-}
-define(CCitadel_Ability_LightningBall, 'CCitadel_Ability_LightningBall', {
+const fieldsCCitadel_Ability_LightningBall = {
   m_flInitialSpeed: 'float32',
-})
+} as const
+export class CCitadel_Ability_LightningBall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_LightningBall extends Fields<typeof fieldsCCitadel_Ability_LightningBall> {}
+define(CCitadel_Ability_LightningBall, 'CCitadel_Ability_LightningBall', fieldsCCitadel_Ability_LightningBall)
 
 export class CCitadel_Ability_LockDown extends CCitadelBaseAbility {}
 define(CCitadel_Ability_LockDown, 'CCitadel_Ability_LockDown', {})
@@ -8891,77 +6152,52 @@ define(CCitadel_Ability_LockDown, 'CCitadel_Ability_LockDown', {})
 export class CCitadel_Ability_MageWalk extends CCitadelBaseAbility {}
 define(CCitadel_Ability_MageWalk, 'CCitadel_Ability_MageWalk', {})
 
-export class CCitadel_Ability_Magician_AnimalCurse extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Magician_AnimalCurse {
-  m_CachedTarget: CBaseEntity | undefined
-}
-define(CCitadel_Ability_Magician_AnimalCurse, 'CCitadel_Ability_Magician_AnimalCurse', {
+const fieldsCCitadel_Ability_Magician_AnimalCurse = {
   m_CachedTarget: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Ability_Magician_AnimalCurse extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Magician_AnimalCurse extends Fields<typeof fieldsCCitadel_Ability_Magician_AnimalCurse> {}
+define(CCitadel_Ability_Magician_AnimalCurse, 'CCitadel_Ability_Magician_AnimalCurse', fieldsCCitadel_Ability_Magician_AnimalCurse)
 
 export class CCitadel_Ability_Magician_AnimalHexArea extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Magician_AnimalHexArea, 'CCitadel_Ability_Magician_AnimalHexArea', {})
 
-export class CCitadel_Ability_Magician_BigBolt extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Magician_BigBolt {
-  m_flNextShootTime: number | undefined
-  m_iBoltsFired: number | undefined
-  m_iRemainingBolts: number | undefined
-  m_bPreppingShoot: boolean | undefined
-}
-define(CCitadel_Ability_Magician_BigBolt, 'CCitadel_Ability_Magician_BigBolt', {
+const fieldsCCitadel_Ability_Magician_BigBolt = {
   m_flNextShootTime: 'float32',
   m_iBoltsFired: 'int32',
   m_iRemainingBolts: 'int32',
   m_bPreppingShoot: 'bool',
-})
+} as const
+export class CCitadel_Ability_Magician_BigBolt extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Magician_BigBolt extends Fields<typeof fieldsCCitadel_Ability_Magician_BigBolt> {}
+define(CCitadel_Ability_Magician_BigBolt, 'CCitadel_Ability_Magician_BigBolt', fieldsCCitadel_Ability_Magician_BigBolt)
 
-export class CCitadel_Ability_Magician_CopyUlt extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Magician_CopyUlt {
-  m_bHasUsedCopiedUlt: boolean | undefined
-  m_bHasCopiedUlt: boolean | undefined
-  m_bIsModelSwapped: boolean | undefined
-  m_timeSwappedModel: number | undefined
-  m_pActiveCopyUltimateAbility: CCitadelBaseAbility | undefined
-  m_nCopiedHeroID: number | undefined
-}
-define(CCitadel_Ability_Magician_CopyUlt, 'CCitadel_Ability_Magician_CopyUlt', {
+const fieldsCCitadel_Ability_Magician_CopyUlt = {
   m_bHasUsedCopiedUlt: 'bool',
   m_bHasCopiedUlt: 'bool',
   m_bIsModelSwapped: 'bool',
   m_timeSwappedModel: 'float32',
   m_pActiveCopyUltimateAbility: 'CCitadelBaseAbility',
   m_nCopiedHeroID: 'uint32',
-})
+} as const
+export class CCitadel_Ability_Magician_CopyUlt extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Magician_CopyUlt extends Fields<typeof fieldsCCitadel_Ability_Magician_CopyUlt> {}
+define(CCitadel_Ability_Magician_CopyUlt, 'CCitadel_Ability_Magician_CopyUlt', fieldsCCitadel_Ability_Magician_CopyUlt)
 
 export class CCitadel_Ability_Magician_Escape extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Magician_Escape, 'CCitadel_Ability_Magician_Escape', {})
 
-export class CCitadel_Ability_Magician_MagicBolt extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Magician_MagicBolt {
-  m_iCurrentRedirects: number | undefined
-}
-define(CCitadel_Ability_Magician_MagicBolt, 'CCitadel_Ability_Magician_MagicBolt', {
+const fieldsCCitadel_Ability_Magician_MagicBolt = {
   m_iCurrentRedirects: 'int32',
-})
+} as const
+export class CCitadel_Ability_Magician_MagicBolt extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Magician_MagicBolt extends Fields<typeof fieldsCCitadel_Ability_Magician_MagicBolt> {}
+define(CCitadel_Ability_Magician_MagicBolt, 'CCitadel_Ability_Magician_MagicBolt', fieldsCCitadel_Ability_Magician_MagicBolt)
 
 export class CCitadel_Ability_Magician_ShadowClone extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Magician_ShadowClone, 'CCitadel_Ability_Magician_ShadowClone', {})
 
-export class CCitadel_Ability_Mantle extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Mantle {
-  m_flVertOffset: number | undefined
-  m_flHorizGap: number | undefined
-  m_vStartPos: Vector | undefined
-  m_vTargetPos: Vector | undefined
-  m_angFacing: Angles | undefined
-  m_nMantleTypeIndex: number | undefined
-  m_flStartTime: number | undefined
-  m_flAutoMantlePushStartTime: number | undefined
-  m_flAutoMantleLastPushTime: number | undefined
-  m_vAutoMantleLastPushPos: Vector | undefined
-}
-define(CCitadel_Ability_Mantle, 'CCitadel_Ability_Mantle', {
+const fieldsCCitadel_Ability_Mantle = {
   m_flVertOffset: 'float32',
   m_flHorizGap: 'float32',
   m_vStartPos: 'vector',
@@ -8972,34 +6208,22 @@ define(CCitadel_Ability_Mantle, 'CCitadel_Ability_Mantle', {
   m_flAutoMantlePushStartTime: 'float32',
   m_flAutoMantleLastPushTime: 'float32',
   m_vAutoMantleLastPushPos: 'vector',
-})
+} as const
+export class CCitadel_Ability_Mantle extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Mantle extends Fields<typeof fieldsCCitadel_Ability_Mantle> {}
+define(CCitadel_Ability_Mantle, 'CCitadel_Ability_Mantle', fieldsCCitadel_Ability_Mantle)
 
-export class CCitadel_Ability_MeleeParry extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_MeleeParry {
-  m_nActiveFX: number | undefined
-  m_flParryStartTime: number | undefined
-  m_bAttackParried: boolean | undefined
-  m_flParrySuccessEndTime: number | undefined
-}
-define(CCitadel_Ability_MeleeParry, 'CCitadel_Ability_MeleeParry', {
+const fieldsCCitadel_Ability_MeleeParry = {
   m_nActiveFX: 'int32',
   m_flParryStartTime: 'float32',
   m_bAttackParried: 'bool',
   m_flParrySuccessEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_MeleeParry extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_MeleeParry extends Fields<typeof fieldsCCitadel_Ability_MeleeParry> {}
+define(CCitadel_Ability_MeleeParry, 'CCitadel_Ability_MeleeParry', fieldsCCitadel_Ability_MeleeParry)
 
-export class CCitadel_Ability_Melee_Base extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Melee_Base {
-  m_nHitNumber: number | undefined
-  m_nPlayerKillNumber: number | undefined
-  m_bUsingThisMelee: boolean | undefined
-  m_bUsingMeleeTagActive: boolean | undefined
-  m_bHitWithThisAttack: boolean | undefined
-  m_flLastActivateTime: number | undefined
-  m_flNextAttackAllowedTime: number | undefined
-  m_flAttackTriggeredTime: number | undefined
-}
-define(CCitadel_Ability_Melee_Base, 'CCitadel_Ability_Melee_Base', {
+const fieldsCCitadel_Ability_Melee_Base = {
   m_nHitNumber: 'int32',
   m_nPlayerKillNumber: 'int32',
   m_bUsingThisMelee: 'bool',
@@ -9008,23 +6232,12 @@ define(CCitadel_Ability_Melee_Base, 'CCitadel_Ability_Melee_Base', {
   m_flLastActivateTime: 'float32',
   m_flNextAttackAllowedTime: 'float32',
   m_flAttackTriggeredTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Melee_Base extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Melee_Base extends Fields<typeof fieldsCCitadel_Ability_Melee_Base> {}
+define(CCitadel_Ability_Melee_Base, 'CCitadel_Ability_Melee_Base', fieldsCCitadel_Ability_Melee_Base)
 
-export class CCitadel_Ability_HoldMelee extends CCitadel_Ability_Melee_Base {}
-export interface CCitadel_Ability_HoldMelee {
-  m_flStateStartTime: number | undefined
-  m_flDashStartTime: number | undefined
-  m_eCurrentAttackState: number | undefined
-  m_eCurrentAttackType: number | undefined
-  m_vAirDashDir: Vector | undefined
-  m_bAttackStartedWhileSliding: boolean | undefined
-  m_flLightChainEndTime: number | undefined
-  m_nLightChainCount: number | undefined
-  m_bCreatedChargeEffects: boolean | undefined
-  m_angForced: Angles | undefined
-  m_vGoalDir: Vector | undefined
-}
-define(CCitadel_Ability_HoldMelee, 'CCitadel_Ability_HoldMelee', {
+const fieldsCCitadel_Ability_HoldMelee = {
   m_flStateStartTime: 'float32',
   m_flDashStartTime: 'float32',
   m_eCurrentAttackState: 'uint32',
@@ -9036,7 +6249,10 @@ define(CCitadel_Ability_HoldMelee, 'CCitadel_Ability_HoldMelee', {
   m_bCreatedChargeEffects: 'bool',
   m_angForced: 'angles',
   m_vGoalDir: 'vector',
-})
+} as const
+export class CCitadel_Ability_HoldMelee extends CCitadel_Ability_Melee_Base {}
+export interface CCitadel_Ability_HoldMelee extends Fields<typeof fieldsCCitadel_Ability_HoldMelee> {}
+define(CCitadel_Ability_HoldMelee, 'CCitadel_Ability_HoldMelee', fieldsCCitadel_Ability_HoldMelee)
 
 export class CCitadel_Ability_Uppercut extends CCitadel_Ability_Melee_Base {}
 define(CCitadel_Ability_Uppercut, 'CCitadel_Ability_Uppercut', {})
@@ -9044,116 +6260,74 @@ define(CCitadel_Ability_Uppercut, 'CCitadel_Ability_Uppercut', {})
 export class CCitadel_Ability_Mirage_FireBeetles extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Mirage_FireBeetles, 'CCitadel_Ability_Mirage_FireBeetles', {})
 
-export class CCitadel_Ability_Mirage_Teleport extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Mirage_Teleport {
-  m_hTarget: CBaseEntity | undefined
-  m_tTeleportCompletedTime: number | undefined
-  m_vTargetPosition: Vector | undefined
-  m_vTargetAngles: Angles | undefined
-}
-define(CCitadel_Ability_Mirage_Teleport, 'CCitadel_Ability_Mirage_Teleport', {
+const fieldsCCitadel_Ability_Mirage_Teleport = {
   m_hTarget: 'CBaseEntity',
   m_tTeleportCompletedTime: 'float32',
   m_vTargetPosition: 'vector',
   m_vTargetAngles: 'angles',
-})
+} as const
+export class CCitadel_Ability_Mirage_Teleport extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Mirage_Teleport extends Fields<typeof fieldsCCitadel_Ability_Mirage_Teleport> {}
+define(CCitadel_Ability_Mirage_Teleport, 'CCitadel_Ability_Mirage_Teleport', fieldsCCitadel_Ability_Mirage_Teleport)
 
-export class CCitadel_Ability_MobileResupply extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_MobileResupply {
-  m_vDeployPosition: Vector | undefined
-  m_angDeploy: Angles | undefined
-}
-define(CCitadel_Ability_MobileResupply, 'CCitadel_Ability_MobileResupply', {
+const fieldsCCitadel_Ability_MobileResupply = {
   m_vDeployPosition: 'vector',
   m_angDeploy: 'angles',
-})
+} as const
+export class CCitadel_Ability_MobileResupply extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_MobileResupply extends Fields<typeof fieldsCCitadel_Ability_MobileResupply> {}
+define(CCitadel_Ability_MobileResupply, 'CCitadel_Ability_MobileResupply', fieldsCCitadel_Ability_MobileResupply)
 
-export class CCitadel_Ability_NanoDash extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_NanoDash {
-  m_vStartPosition: Vector | undefined
-  m_vEndPosition: Vector | undefined
-  m_bIsDashing: boolean | undefined
-  m_vecLastPosition: Vector | undefined
-  m_flStuckTime: number | undefined
-}
-define(CCitadel_Ability_NanoDash, 'CCitadel_Ability_NanoDash', {
+const fieldsCCitadel_Ability_NanoDash = {
   m_vStartPosition: 'vector',
   m_vEndPosition: 'vector',
   m_bIsDashing: 'bool',
   m_vecLastPosition: 'vector',
   m_flStuckTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_NanoDash extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_NanoDash extends Fields<typeof fieldsCCitadel_Ability_NanoDash> {}
+define(CCitadel_Ability_NanoDash, 'CCitadel_Ability_NanoDash', fieldsCCitadel_Ability_NanoDash)
 
-export class CCitadel_Ability_Nano_CatForm extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Nano_CatForm {
-  m_bIsInCatform: boolean | undefined
-  m_flLastDamageTime: number | undefined
-  m_flTransformStartTime: number | undefined
-  m_flTransformEndTime: number | undefined
-  m_flStoredDamageAmp: number | undefined
-}
-define(CCitadel_Ability_Nano_CatForm, 'CCitadel_Ability_Nano_CatForm', {
+const fieldsCCitadel_Ability_Nano_CatForm = {
   m_bIsInCatform: 'bool',
   m_flLastDamageTime: 'float32',
   m_flTransformStartTime: 'float32',
   m_flTransformEndTime: 'float32',
   m_flStoredDamageAmp: 'float32',
-})
+} as const
+export class CCitadel_Ability_Nano_CatForm extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Nano_CatForm extends Fields<typeof fieldsCCitadel_Ability_Nano_CatForm> {}
+define(CCitadel_Ability_Nano_CatForm, 'CCitadel_Ability_Nano_CatForm', fieldsCCitadel_Ability_Nano_CatForm)
 
 export class CCitadel_Ability_Nano_CatFormPounce extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Nano_CatFormPounce, 'CCitadel_Ability_Nano_CatFormPounce', {})
 
-export class CCitadel_Ability_Nano_ClusterGrenade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Nano_ClusterGrenade {
-  m_flNextProjectileTime: number | undefined
-}
-define(CCitadel_Ability_Nano_ClusterGrenade, 'CCitadel_Ability_Nano_ClusterGrenade', {
+const fieldsCCitadel_Ability_Nano_ClusterGrenade = {
   m_flNextProjectileTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Nano_ClusterGrenade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Nano_ClusterGrenade extends Fields<typeof fieldsCCitadel_Ability_Nano_ClusterGrenade> {}
+define(CCitadel_Ability_Nano_ClusterGrenade, 'CCitadel_Ability_Nano_ClusterGrenade', fieldsCCitadel_Ability_Nano_ClusterGrenade)
 
+const fieldsCCitadel_Ability_Nano_Pounce = {
+  m_bActive: 'bool',
+  m_hCurrentTarget: 'CBaseEntity',
+  m_hLastCastTarget: 'CBaseEntity',
+  m_vStartPosition: 'vector',
+  m_vDeparturePosition: 'vector',
+  m_vLastKnownSafePos: 'vector',
+  m_bStartedPhase01: 'bool',
+  m_bStartedPhase02: 'bool',
+  m_bIsFirstCastCompleted: 'bool',
+  m_tDoubleCastWindow: 'float32',
+  m_CastStartParticle: 'int32',
+} as const
 export class CCitadel_Ability_Nano_Pounce extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Nano_Pounce {
-  m_bActive: boolean | undefined
-  m_hCurrentTarget: CBaseEntity | undefined
-  m_hLastCastTarget: CBaseEntity | undefined
-  m_vStartPosition: Vector | undefined
-  m_vDeparturePosition: Vector | undefined
-  m_vLastKnownSafePos: Vector | undefined
-  m_bStartedPhase01: boolean | undefined
-  m_bStartedPhase02: boolean | undefined
-  m_bIsFirstCastCompleted: boolean | undefined
-  m_tDoubleCastWindow: number | undefined
-  m_CastStartParticle: number | undefined
-}
-define(CCitadel_Ability_Nano_Pounce, 'CCitadel_Ability_Nano_Pounce', {
-  m_bActive: 'bool',
-  m_hCurrentTarget: 'CBaseEntity',
-  m_hLastCastTarget: 'CBaseEntity',
-  m_vStartPosition: 'vector',
-  m_vDeparturePosition: 'vector',
-  m_vLastKnownSafePos: 'vector',
-  m_bStartedPhase01: 'bool',
-  m_bStartedPhase02: 'bool',
-  m_bIsFirstCastCompleted: 'bool',
-  m_tDoubleCastWindow: 'float32',
-  m_CastStartParticle: 'int32',
-})
+export interface CCitadel_Ability_Nano_Pounce extends Fields<typeof fieldsCCitadel_Ability_Nano_Pounce> {}
+define(CCitadel_Ability_Nano_Pounce, 'CCitadel_Ability_Nano_Pounce', fieldsCCitadel_Ability_Nano_Pounce)
 
-export class CCitadel_Ability_Nano_Pounce_Instant extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Nano_Pounce_Instant {
-  m_bActive: boolean | undefined
-  m_hCurrentTarget: CBaseEntity | undefined
-  m_hLastCastTarget: CBaseEntity | undefined
-  m_vStartPosition: Vector | undefined
-  m_vDeparturePosition: Vector | undefined
-  m_vLastKnownSafePos: Vector | undefined
-  m_bStartedPhase01: boolean | undefined
-  m_bStartedPhase02: boolean | undefined
-  m_bIsFirstCastCompleted: boolean | undefined
-  m_tDoubleCastWindow: number | undefined
-  m_CastStartParticle: number | undefined
-}
-define(CCitadel_Ability_Nano_Pounce_Instant, 'CCitadel_Ability_Nano_Pounce_Instant', {
+const fieldsCCitadel_Ability_Nano_Pounce_Instant = {
   m_bActive: 'bool',
   m_hCurrentTarget: 'CBaseEntity',
   m_hLastCastTarget: 'CBaseEntity',
@@ -9165,7 +6339,10 @@ define(CCitadel_Ability_Nano_Pounce_Instant, 'CCitadel_Ability_Nano_Pounce_Insta
   m_bIsFirstCastCompleted: 'bool',
   m_tDoubleCastWindow: 'float32',
   m_CastStartParticle: 'int32',
-})
+} as const
+export class CCitadel_Ability_Nano_Pounce_Instant extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Nano_Pounce_Instant extends Fields<typeof fieldsCCitadel_Ability_Nano_Pounce_Instant> {}
+define(CCitadel_Ability_Nano_Pounce_Instant, 'CCitadel_Ability_Nano_Pounce_Instant', fieldsCCitadel_Ability_Nano_Pounce_Instant)
 
 export class CCitadel_Ability_Nano_Shadow extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Nano_Shadow, 'CCitadel_Ability_Nano_Shadow', {})
@@ -9173,68 +6350,56 @@ define(CCitadel_Ability_Nano_Shadow, 'CCitadel_Ability_Nano_Shadow', {})
 export class CCitadel_Ability_Necro_Coffin extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Necro_Coffin, 'CCitadel_Ability_Necro_Coffin', {})
 
-export class CCitadel_Ability_Necro_Fear extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Necro_Fear {
-  m_flTotalBuildup: number | undefined
-}
-define(CCitadel_Ability_Necro_Fear, 'CCitadel_Ability_Necro_Fear', {
+const fieldsCCitadel_Ability_Necro_Fear = {
   m_flTotalBuildup: 'float32',
-})
+} as const
+export class CCitadel_Ability_Necro_Fear extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Necro_Fear extends Fields<typeof fieldsCCitadel_Ability_Necro_Fear> {}
+define(CCitadel_Ability_Necro_Fear, 'CCitadel_Ability_Necro_Fear', fieldsCCitadel_Ability_Necro_Fear)
 
-export class CCitadel_Ability_Necro_GraveStone extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Necro_GraveStone {
-  m_vCastPosition: Vector | undefined
-  m_qCastAngle: Angles | undefined
-}
-define(CCitadel_Ability_Necro_GraveStone, 'CCitadel_Ability_Necro_GraveStone', {
+const fieldsCCitadel_Ability_Necro_GraveStone = {
   m_vCastPosition: 'vector',
   m_qCastAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Necro_GraveStone extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Necro_GraveStone extends Fields<typeof fieldsCCitadel_Ability_Necro_GraveStone> {}
+define(CCitadel_Ability_Necro_GraveStone, 'CCitadel_Ability_Necro_GraveStone', fieldsCCitadel_Ability_Necro_GraveStone)
 
-export class CCitadel_Ability_Necro_HauntingSkull extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Necro_HauntingSkull {
-  m_tPriorityTargetTime: number | undefined
-  m_eSkullPriorityTarget: CBaseEntity | undefined
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-  m_bIsFullyCharged: boolean | undefined
-}
-define(CCitadel_Ability_Necro_HauntingSkull, 'CCitadel_Ability_Necro_HauntingSkull', {
+const fieldsCCitadel_Ability_Necro_HauntingSkull = {
   m_tPriorityTargetTime: 'float32',
   m_eSkullPriorityTarget: 'CBaseEntity',
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
   m_bIsFullyCharged: 'bool',
-})
+} as const
+export class CCitadel_Ability_Necro_HauntingSkull extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Necro_HauntingSkull extends Fields<typeof fieldsCCitadel_Ability_Necro_HauntingSkull> {}
+define(CCitadel_Ability_Necro_HauntingSkull, 'CCitadel_Ability_Necro_HauntingSkull', fieldsCCitadel_Ability_Necro_HauntingSkull)
 
-export class CCitadel_Ability_Necro_HauntingSpirits extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Necro_HauntingSpirits {
-  m_nCastParticleIndex: number | undefined
-}
-define(CCitadel_Ability_Necro_HauntingSpirits, 'CCitadel_Ability_Necro_HauntingSpirits', {
+const fieldsCCitadel_Ability_Necro_HauntingSpirits = {
   m_nCastParticleIndex: 'int32',
-})
+} as const
+export class CCitadel_Ability_Necro_HauntingSpirits extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Necro_HauntingSpirits extends Fields<typeof fieldsCCitadel_Ability_Necro_HauntingSpirits> {}
+define(CCitadel_Ability_Necro_HauntingSpirits, 'CCitadel_Ability_Necro_HauntingSpirits', fieldsCCitadel_Ability_Necro_HauntingSpirits)
 
-export class CCitadel_Ability_Necro_KillSummon extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Necro_KillSummon {
-  m_bIsInRecast: boolean | undefined
-  m_RecastEndTime: number | undefined
-}
-define(CCitadel_Ability_Necro_KillSummon, 'CCitadel_Ability_Necro_KillSummon', {
+const fieldsCCitadel_Ability_Necro_KillSummon = {
   m_bIsInRecast: 'bool',
   m_RecastEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Necro_KillSummon extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Necro_KillSummon extends Fields<typeof fieldsCCitadel_Ability_Necro_KillSummon> {}
+define(CCitadel_Ability_Necro_KillSummon, 'CCitadel_Ability_Necro_KillSummon', fieldsCCitadel_Ability_Necro_KillSummon)
 
 export class CCitadel_Ability_Necro_NukeMap extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Necro_NukeMap, 'CCitadel_Ability_Necro_NukeMap', {})
 
-export class CCitadel_Ability_Necro_ZombieWall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Necro_ZombieWall {
-  m_tWallDeployFinishTime: number | undefined
-}
-define(CCitadel_Ability_Necro_ZombieWall, 'CCitadel_Ability_Necro_ZombieWall', {
+const fieldsCCitadel_Ability_Necro_ZombieWall = {
   m_tWallDeployFinishTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Necro_ZombieWall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Necro_ZombieWall extends Fields<typeof fieldsCCitadel_Ability_Necro_ZombieWall> {}
+define(CCitadel_Ability_Necro_ZombieWall, 'CCitadel_Ability_Necro_ZombieWall', fieldsCCitadel_Ability_Necro_ZombieWall)
 
 export class CCitadel_Ability_Nikuman extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Nikuman, 'CCitadel_Ability_Nikuman', {})
@@ -9251,76 +6416,63 @@ define(CCitadel_Ability_Opera_Ability03, 'CCitadel_Ability_Opera_Ability03', {})
 export class CCitadel_Ability_Opera_Ability04 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Opera_Ability04, 'CCitadel_Ability_Opera_Ability04', {})
 
-export class CCitadel_Ability_Operative_Blindside extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Operative_Blindside {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Operative_Blindside, 'CCitadel_Ability_Operative_Blindside', {
+const fieldsCCitadel_Ability_Operative_Blindside = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Operative_Blindside extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Operative_Blindside extends Fields<typeof fieldsCCitadel_Ability_Operative_Blindside> {}
+define(CCitadel_Ability_Operative_Blindside, 'CCitadel_Ability_Operative_Blindside', fieldsCCitadel_Ability_Operative_Blindside)
 
-export class CCitadel_Ability_PassiveBeefy extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PassiveBeefy {
-  m_flLastHealTime: number | undefined
-  m_flTotalPendingHeal: number | undefined
-}
-define(CCitadel_Ability_PassiveBeefy, 'CCitadel_Ability_PassiveBeefy', {
+const fieldsCCitadel_Ability_PassiveBeefy = {
   m_flLastHealTime: 'float32',
   m_flTotalPendingHeal: 'float32',
-})
+} as const
+export class CCitadel_Ability_PassiveBeefy extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PassiveBeefy extends Fields<typeof fieldsCCitadel_Ability_PassiveBeefy> {}
+define(CCitadel_Ability_PassiveBeefy, 'CCitadel_Ability_PassiveBeefy', fieldsCCitadel_Ability_PassiveBeefy)
 
-export class CCitadel_Ability_Perched_Predator extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Perched_Predator {
-  m_hActiveProjectile: CBaseEntity | undefined
-}
-define(CCitadel_Ability_Perched_Predator, 'CCitadel_Ability_Perched_Predator', {
+const fieldsCCitadel_Ability_Perched_Predator = {
   m_hActiveProjectile: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Ability_Perched_Predator extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Perched_Predator extends Fields<typeof fieldsCCitadel_Ability_Perched_Predator> {}
+define(CCitadel_Ability_Perched_Predator, 'CCitadel_Ability_Perched_Predator', fieldsCCitadel_Ability_Perched_Predator)
 
-export class CCitadel_Ability_PowerJump extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PowerJump {
-  m_nTargetingParticleIndex: number | undefined
-  m_bAirRaiding: boolean | undefined
-}
-define(CCitadel_Ability_PowerJump, 'CCitadel_Ability_PowerJump', {
+const fieldsCCitadel_Ability_PowerJump = {
   m_nTargetingParticleIndex: 'int32',
   m_bAirRaiding: 'bool',
-})
+} as const
+export class CCitadel_Ability_PowerJump extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PowerJump extends Fields<typeof fieldsCCitadel_Ability_PowerJump> {}
+define(CCitadel_Ability_PowerJump, 'CCitadel_Ability_PowerJump', fieldsCCitadel_Ability_PowerJump)
 
-export class CCitadel_Ability_PowerSurge extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PowerSurge {
-  m_flNextProcTime: number | undefined
-  m_flBaseCooldown: number | undefined
-}
-define(CCitadel_Ability_PowerSurge, 'CCitadel_Ability_PowerSurge', {
+const fieldsCCitadel_Ability_PowerSurge = {
   m_flNextProcTime: 'float32',
   m_flBaseCooldown: 'float32',
-})
+} as const
+export class CCitadel_Ability_PowerSurge extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PowerSurge extends Fields<typeof fieldsCCitadel_Ability_PowerSurge> {}
+define(CCitadel_Ability_PowerSurge, 'CCitadel_Ability_PowerSurge', fieldsCCitadel_Ability_PowerSurge)
 
-export class CCitadel_Ability_Priest_AntiSpiritVest extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Priest_AntiSpiritVest {
-  m_tBuffRechargeTime: number | undefined
-}
-define(CCitadel_Ability_Priest_AntiSpiritVest, 'CCitadel_Ability_Priest_AntiSpiritVest', {
+const fieldsCCitadel_Ability_Priest_AntiSpiritVest = {
   m_tBuffRechargeTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Priest_AntiSpiritVest extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Priest_AntiSpiritVest extends Fields<typeof fieldsCCitadel_Ability_Priest_AntiSpiritVest> {}
+define(CCitadel_Ability_Priest_AntiSpiritVest, 'CCitadel_Ability_Priest_AntiSpiritVest', fieldsCCitadel_Ability_Priest_AntiSpiritVest)
 
 export class CCitadel_Ability_Priest_BearTrap extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Priest_BearTrap, 'CCitadel_Ability_Priest_BearTrap', {})
 
-export class CCitadel_Ability_Priest_Flashbang extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Priest_Flashbang {
-  m_tInitialShotID: number | undefined
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Priest_Flashbang, 'CCitadel_Ability_Priest_Flashbang', {
+const fieldsCCitadel_Ability_Priest_Flashbang = {
   m_tInitialShotID: 'uint32',
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Priest_Flashbang extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Priest_Flashbang extends Fields<typeof fieldsCCitadel_Ability_Priest_Flashbang> {}
+define(CCitadel_Ability_Priest_Flashbang, 'CCitadel_Ability_Priest_Flashbang', fieldsCCitadel_Ability_Priest_Flashbang)
 
 export class CCitadel_Ability_Priest_Knockback extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Priest_Knockback, 'CCitadel_Ability_Priest_Knockback', {})
@@ -9328,100 +6480,32 @@ define(CCitadel_Ability_Priest_Knockback, 'CCitadel_Ability_Priest_Knockback', {
 export class CCitadel_Ability_Priest_SelfHeal extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Priest_SelfHeal, 'CCitadel_Ability_Priest_SelfHeal', {})
 
-export class CCitadel_Ability_Priest_SilenceBomb extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Priest_SilenceBomb {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Priest_SilenceBomb, 'CCitadel_Ability_Priest_SilenceBomb', {
+const fieldsCCitadel_Ability_Priest_SilenceBomb = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Priest_SilenceBomb extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Priest_SilenceBomb extends Fields<typeof fieldsCCitadel_Ability_Priest_SilenceBomb> {}
+define(CCitadel_Ability_Priest_SilenceBomb, 'CCitadel_Ability_Priest_SilenceBomb', fieldsCCitadel_Ability_Priest_SilenceBomb)
 
 export class CCitadel_Ability_Priest_SmokeGrenade extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Priest_SmokeGrenade, 'CCitadel_Ability_Priest_SmokeGrenade', {})
 
-export class CCitadel_Ability_Priest_StackingDefense extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Priest_StackingDefense {
-  m_flMaxStacksBonusDamage: number | undefined
-}
-define(CCitadel_Ability_Priest_StackingDefense, 'CCitadel_Ability_Priest_StackingDefense', {
+const fieldsCCitadel_Ability_Priest_StackingDefense = {
   m_flMaxStacksBonusDamage: 'float32',
-})
+} as const
+export class CCitadel_Ability_Priest_StackingDefense extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Priest_StackingDefense extends Fields<typeof fieldsCCitadel_Ability_Priest_StackingDefense> {}
+define(CCitadel_Ability_Priest_StackingDefense, 'CCitadel_Ability_Priest_StackingDefense', fieldsCCitadel_Ability_Priest_StackingDefense)
 
-export class CCitadel_Ability_Priest_WeaponSwap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Priest_WeaponSwap {
-  m_hOriginalGun: CCitadelBaseAbility | undefined
-}
-define(CCitadel_Ability_Priest_WeaponSwap, 'CCitadel_Ability_Priest_WeaponSwap', {
+const fieldsCCitadel_Ability_Priest_WeaponSwap = {
   m_hOriginalGun: 'CCitadelBaseAbility',
-})
+} as const
+export class CCitadel_Ability_Priest_WeaponSwap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Priest_WeaponSwap extends Fields<typeof fieldsCCitadel_Ability_Priest_WeaponSwap> {}
+define(CCitadel_Ability_Priest_WeaponSwap, 'CCitadel_Ability_Priest_WeaponSwap', fieldsCCitadel_Ability_Priest_WeaponSwap)
 
-export class CCitadel_Ability_PrimaryWeapon extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PrimaryWeapon {
-  m_flLastReloadStartTime: number | undefined
-  m_flNextPrimaryAttack: number | undefined
-  m_flDelayedShotCreateTime: number | undefined
-  m_iClip: number | undefined
-  m_iBonusClip: number | undefined
-  m_nNumContinuousShots: number | undefined
-  m_flContinuousShotStartTime: number | undefined
-  m_flSpreadPenalty: number | undefined
-  m_flZoomTime: number | undefined
-  m_flZoomOutTime: number | undefined
-  m_iSpreadIndex: number | undefined
-  m_nShotRecoilIndex: number | undefined
-  m_flNextShotRecoilRecoveryTime: number | undefined
-  m_bIsZoomed: boolean | undefined
-  m_nBurstShotsRemaining: number | undefined
-  m_nShotNumber: number | undefined
-  m_bInReload: boolean | undefined
-  m_bSingleShotReloadFirstBullet: boolean | undefined
-  m_reloadQueuedStartTime: number | undefined
-  m_flReloadAvailableTime: number | undefined
-  m_bCanActiveReload: boolean | undefined
-  m_flLastAttackTime: number | undefined
-  m_flNextAttackDelayStartTime: number | undefined
-  m_flNextAttackDelayEndTime: number | undefined
-  m_flAttackDelayPauseTotalTime: number | undefined
-  m_flAttackDelayPauseEndTime: number | undefined
-  m_eNextAttackDelayReason: number | undefined
-  m_bInputPressedWhileSelected: boolean | undefined
-  m_tFireOnReleaseHoldBeginTime: number | undefined
-  m_flShotChargeFrac: number | undefined
-  m_eActiveFireMode: number | undefined
-  m_bPassiveFXActive: boolean | undefined
-  m_flAmmoFrac: number | undefined
-  m_bFiredRecently: boolean | undefined
-  m_angRecoilAngles: Angles | undefined
-  m_angRecoilToAdd: Angles | undefined
-  m_angRecoilRecovery: Angles | undefined
-  m_flRecoilStartTime: number | undefined
-  m_flRecoilRecoverySpeed: number | undefined
-  m_flAddApproachSpeed: number | undefined
-  m_currentSpread: number | undefined
-  m_currentMaxSpread: number | undefined
-  m_currentFireSpread: number | undefined
-  m_flCurrentSpinRate: number | undefined
-  m_bWasSpinningUp: boolean | undefined
-  m_fFireDuration: number | undefined
-  m_bPrimaryAttackHeld: boolean | undefined
-  m_bFireOnEmpty: boolean | undefined
-  m_bHasReleasedForFireOnRelease: boolean | undefined
-  m_bInputReleasedForFireOnRelease: boolean | undefined
-  m_bChargedShotNeedsInputRelease: boolean | undefined
-  m_eFireOnReleaseMode: number | undefined
-  m_bZoomMispredicted: boolean | undefined
-  m_flNextDisarmSound: number | undefined
-  m_nPrimaryMuzzleIndex: number | undefined
-  m_flPrimaryMuzzleResetTime: number | undefined
-  m_nSecondaryMuzzleIndex: number | undefined
-  m_flSecondaryMuzzleResetTime: number | undefined
-  m_nRandomStreak: number | undefined
-  m_nLastUsedMuzzleIndex: number | undefined
-  m_nClipSizeBeforeSwap: number | undefined
-}
-define(CCitadel_Ability_PrimaryWeapon, 'CCitadel_Ability_PrimaryWeapon', {
+const fieldsCCitadel_Ability_PrimaryWeapon = {
   m_flLastReloadStartTime: 'float32',
   m_flNextPrimaryAttack: 'float32',
   m_flDelayedShotCreateTime: 'float32',
@@ -9483,7 +6567,10 @@ define(CCitadel_Ability_PrimaryWeapon, 'CCitadel_Ability_PrimaryWeapon', {
   m_nRandomStreak: 'int32',
   m_nLastUsedMuzzleIndex: 'int32',
   m_nClipSizeBeforeSwap: 'int32',
-})
+} as const
+export class CCitadel_Ability_PrimaryWeapon extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PrimaryWeapon extends Fields<typeof fieldsCCitadel_Ability_PrimaryWeapon> {}
+define(CCitadel_Ability_PrimaryWeapon, 'CCitadel_Ability_PrimaryWeapon', fieldsCCitadel_Ability_PrimaryWeapon)
 
 export class CCitadel_Ability_Boho_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Boho_PrimaryWeapon, 'CCitadel_Ability_Boho_PrimaryWeapon', {})
@@ -9494,26 +6581,23 @@ define(CCitadel_Ability_BookWorm_PrimaryWeapon, 'CCitadel_Ability_BookWorm_Prima
 export class CCitadel_Ability_Drifter_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Drifter_PrimaryWeapon, 'CCitadel_Ability_Drifter_PrimaryWeapon', {})
 
-export class CCitadel_Ability_Familiar_AltWeapon extends CCitadel_Ability_PrimaryWeapon {}
-export interface CCitadel_Ability_Familiar_AltWeapon {
-  m_nAmmoToBeConsumedForChannel: number | undefined
-  m_bForceFiring: boolean | undefined
-}
-define(CCitadel_Ability_Familiar_AltWeapon, 'CCitadel_Ability_Familiar_AltWeapon', {
+const fieldsCCitadel_Ability_Familiar_AltWeapon = {
   m_nAmmoToBeConsumedForChannel: 'int16',
   m_bForceFiring: 'bool',
-})
+} as const
+export class CCitadel_Ability_Familiar_AltWeapon extends CCitadel_Ability_PrimaryWeapon {}
+export interface CCitadel_Ability_Familiar_AltWeapon extends Fields<typeof fieldsCCitadel_Ability_Familiar_AltWeapon> {}
+define(CCitadel_Ability_Familiar_AltWeapon, 'CCitadel_Ability_Familiar_AltWeapon', fieldsCCitadel_Ability_Familiar_AltWeapon)
 
 export class CCitadel_Ability_Familiar_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Familiar_PrimaryWeapon, 'CCitadel_Ability_Familiar_PrimaryWeapon', {})
 
-export class CCitadel_Ability_Fencer_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
-export interface CCitadel_Ability_Fencer_PrimaryWeapon {
-  m_iCurrentShotCount: number | undefined
-}
-define(CCitadel_Ability_Fencer_PrimaryWeapon, 'CCitadel_Ability_Fencer_PrimaryWeapon', {
+const fieldsCCitadel_Ability_Fencer_PrimaryWeapon = {
   m_iCurrentShotCount: 'int32',
-})
+} as const
+export class CCitadel_Ability_Fencer_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
+export interface CCitadel_Ability_Fencer_PrimaryWeapon extends Fields<typeof fieldsCCitadel_Ability_Fencer_PrimaryWeapon> {}
+define(CCitadel_Ability_Fencer_PrimaryWeapon, 'CCitadel_Ability_Fencer_PrimaryWeapon', fieldsCCitadel_Ability_Fencer_PrimaryWeapon)
 
 export class CCitadel_Ability_Fortuna_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Fortuna_PrimaryWeapon, 'CCitadel_Ability_Fortuna_PrimaryWeapon', {})
@@ -9524,32 +6608,26 @@ define(CCitadel_Ability_Frank_PrimaryWeapon, 'CCitadel_Ability_Frank_PrimaryWeap
 export class CCitadel_Ability_Nano_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Nano_PrimaryWeapon, 'CCitadel_Ability_Nano_PrimaryWeapon', {})
 
-export class CCitadel_Ability_Necro_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
-export interface CCitadel_Ability_Necro_PrimaryWeapon {
-  m_tTetherAttachTime: number | undefined
-  m_tTetherBreakTime: number | undefined
-  m_bHasTetherTarget: boolean | undefined
-}
-define(CCitadel_Ability_Necro_PrimaryWeapon, 'CCitadel_Ability_Necro_PrimaryWeapon', {
+const fieldsCCitadel_Ability_Necro_PrimaryWeapon = {
   m_tTetherAttachTime: 'float32',
   m_tTetherBreakTime: 'float32',
   m_bHasTetherTarget: 'bool',
-})
+} as const
+export class CCitadel_Ability_Necro_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
+export interface CCitadel_Ability_Necro_PrimaryWeapon extends Fields<typeof fieldsCCitadel_Ability_Necro_PrimaryWeapon> {}
+define(CCitadel_Ability_Necro_PrimaryWeapon, 'CCitadel_Ability_Necro_PrimaryWeapon', fieldsCCitadel_Ability_Necro_PrimaryWeapon)
 
 export class CCitadel_Ability_Priest_CrossbowWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Priest_CrossbowWeapon, 'CCitadel_Ability_Priest_CrossbowWeapon', {})
 
-export class CCitadel_Ability_PrimaryWeapon_Bebop extends CCitadel_Ability_PrimaryWeapon {}
-export interface CCitadel_Ability_PrimaryWeapon_Bebop {
-  m_flStartWindUpTime: number | undefined
-  m_flStartFiringTime: number | undefined
-  m_bFiring: boolean | undefined
-}
-define(CCitadel_Ability_PrimaryWeapon_Bebop, 'CCitadel_Ability_PrimaryWeapon_Bebop', {
+const fieldsCCitadel_Ability_PrimaryWeapon_Bebop = {
   m_flStartWindUpTime: 'float32',
   m_flStartFiringTime: 'float32',
   m_bFiring: 'bool',
-})
+} as const
+export class CCitadel_Ability_PrimaryWeapon_Bebop extends CCitadel_Ability_PrimaryWeapon {}
+export interface CCitadel_Ability_PrimaryWeapon_Bebop extends Fields<typeof fieldsCCitadel_Ability_PrimaryWeapon_Bebop> {}
+define(CCitadel_Ability_PrimaryWeapon_Bebop, 'CCitadel_Ability_PrimaryWeapon_Bebop', fieldsCCitadel_Ability_PrimaryWeapon_Bebop)
 
 export class CCitadel_Ability_PrimaryWeapon_Cadence extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_PrimaryWeapon_Cadence, 'CCitadel_Ability_PrimaryWeapon_Cadence', {})
@@ -9575,13 +6653,12 @@ define(CCitadel_Ability_ShivWeapon, 'CCitadel_Ability_ShivWeapon', {})
 export class CCitadel_Ability_SkyRunner_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_SkyRunner_PrimaryWeapon, 'CCitadel_Ability_SkyRunner_PrimaryWeapon', {})
 
-export class CCitadel_Ability_Unicorn_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
-export interface CCitadel_Ability_Unicorn_PrimaryWeapon {
-  m_flActivatePressTime: number | undefined
-}
-define(CCitadel_Ability_Unicorn_PrimaryWeapon, 'CCitadel_Ability_Unicorn_PrimaryWeapon', {
+const fieldsCCitadel_Ability_Unicorn_PrimaryWeapon = {
   m_flActivatePressTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Unicorn_PrimaryWeapon extends CCitadel_Ability_PrimaryWeapon {}
+export interface CCitadel_Ability_Unicorn_PrimaryWeapon extends Fields<typeof fieldsCCitadel_Ability_Unicorn_PrimaryWeapon> {}
+define(CCitadel_Ability_Unicorn_PrimaryWeapon, 'CCitadel_Ability_Unicorn_PrimaryWeapon', fieldsCCitadel_Ability_Unicorn_PrimaryWeapon)
 
 export class CCitadel_Ability_Werewolf_Rifle extends CCitadel_Ability_PrimaryWeapon {}
 define(CCitadel_Ability_Werewolf_Rifle, 'CCitadel_Ability_Werewolf_Rifle', {})
@@ -9592,87 +6669,64 @@ define(CCitadel_Ability_ProjectMind, 'CCitadel_Ability_ProjectMind', {})
 export class CCitadel_Ability_Protection_Racket extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Protection_Racket, 'CCitadel_Ability_Protection_Racket', {})
 
-export class CCitadel_Ability_ProximityRitual extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_ProximityRitual {
-  m_eState: number | undefined
-  m_hStatue: CBaseEntity | undefined
-  m_tCatRecallTime: number | undefined
-  m_iCatRecallHealth: number | undefined
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_ProximityRitual, 'CCitadel_Ability_ProximityRitual', {
+const fieldsCCitadel_Ability_ProximityRitual = {
   m_eState: 'uint8',
   m_hStatue: 'CBaseEntity',
   m_tCatRecallTime: 'float32',
   m_iCatRecallHealth: 'int32',
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_ProximityRitual extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_ProximityRitual extends Fields<typeof fieldsCCitadel_Ability_ProximityRitual> {}
+define(CCitadel_Ability_ProximityRitual, 'CCitadel_Ability_ProximityRitual', fieldsCCitadel_Ability_ProximityRitual)
 
-export class CCitadel_Ability_PsychicLift extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PsychicLift {
-  m_vLiftPosition: Vector | undefined
-  m_vCrashPosition: Vector | undefined
-}
-define(CCitadel_Ability_PsychicLift, 'CCitadel_Ability_PsychicLift', {
+const fieldsCCitadel_Ability_PsychicLift = {
   m_vLiftPosition: 'vector',
   m_vCrashPosition: 'vector',
-})
+} as const
+export class CCitadel_Ability_PsychicLift extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PsychicLift extends Fields<typeof fieldsCCitadel_Ability_PsychicLift> {}
+define(CCitadel_Ability_PsychicLift, 'CCitadel_Ability_PsychicLift', fieldsCCitadel_Ability_PsychicLift)
 
-export class CCitadel_Ability_PunkGoat_Blasted extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PunkGoat_Blasted {
-  m_tTimeOfLastBulletHit: number | undefined
-  m_flPendingBlastedTimeToAdd: number | undefined
-  m_flDeferredHealingFromBlasted: number | undefined
-  m_flBlastedCurrentDuration: number | undefined
-}
-define(CCitadel_Ability_PunkGoat_Blasted, 'CCitadel_Ability_PunkGoat_Blasted', {
+const fieldsCCitadel_Ability_PunkGoat_Blasted = {
   m_tTimeOfLastBulletHit: 'float32',
   m_flPendingBlastedTimeToAdd: 'float32',
   m_flDeferredHealingFromBlasted: 'float32',
   m_flBlastedCurrentDuration: 'float32',
-})
+} as const
+export class CCitadel_Ability_PunkGoat_Blasted extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PunkGoat_Blasted extends Fields<typeof fieldsCCitadel_Ability_PunkGoat_Blasted> {}
+define(CCitadel_Ability_PunkGoat_Blasted, 'CCitadel_Ability_PunkGoat_Blasted', fieldsCCitadel_Ability_PunkGoat_Blasted)
 
-export class CCitadel_Ability_PunkGoat_GoatFlip extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PunkGoat_GoatFlip {
-  m_eState: number | undefined
-  m_tStateStartTime: number | undefined
-  m_flGoingUpTargetElevation: number | undefined
-  m_flGoingUpStartElevation: number | undefined
-}
-define(CCitadel_Ability_PunkGoat_GoatFlip, 'CCitadel_Ability_PunkGoat_GoatFlip', {
+const fieldsCCitadel_Ability_PunkGoat_GoatFlip = {
   m_eState: 'uint8',
   m_tStateStartTime: 'float32',
   m_flGoingUpTargetElevation: 'float32',
   m_flGoingUpStartElevation: 'float32',
-})
+} as const
+export class CCitadel_Ability_PunkGoat_GoatFlip extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PunkGoat_GoatFlip extends Fields<typeof fieldsCCitadel_Ability_PunkGoat_GoatFlip> {}
+define(CCitadel_Ability_PunkGoat_GoatFlip, 'CCitadel_Ability_PunkGoat_GoatFlip', fieldsCCitadel_Ability_PunkGoat_GoatFlip)
 
-export class CCitadel_Ability_PunkGoat_Tether extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PunkGoat_Tether {
-  m_tTetherEndTime: number | undefined
-  m_bTetheringActive: boolean | undefined
-}
-define(CCitadel_Ability_PunkGoat_Tether, 'CCitadel_Ability_PunkGoat_Tether', {
+const fieldsCCitadel_Ability_PunkGoat_Tether = {
   m_tTetherEndTime: 'float32',
   m_bTetheringActive: 'bool',
-})
+} as const
+export class CCitadel_Ability_PunkGoat_Tether extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PunkGoat_Tether extends Fields<typeof fieldsCCitadel_Ability_PunkGoat_Tether> {}
+define(CCitadel_Ability_PunkGoat_Tether, 'CCitadel_Ability_PunkGoat_Tether', fieldsCCitadel_Ability_PunkGoat_Tether)
 
-export class CCitadel_Ability_PunkGoat_Ult extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_PunkGoat_Ult {
-  m_nBatChargingFX: number | undefined
-  m_nSlamTravelType: number | undefined
-  m_flDistanceToTravel: number | undefined
-  m_bHoldingAbilityButton: boolean | undefined
-  m_bFirstFrameGoingDown: boolean | undefined
-}
-define(CCitadel_Ability_PunkGoat_Ult, 'CCitadel_Ability_PunkGoat_Ult', {
+const fieldsCCitadel_Ability_PunkGoat_Ult = {
   m_nBatChargingFX: 'int32',
   m_nSlamTravelType: 'uint8',
   m_flDistanceToTravel: 'float32',
   m_bHoldingAbilityButton: 'bool',
   m_bFirstFrameGoingDown: 'bool',
-})
+} as const
+export class CCitadel_Ability_PunkGoat_Ult extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_PunkGoat_Ult extends Fields<typeof fieldsCCitadel_Ability_PunkGoat_Ult> {}
+define(CCitadel_Ability_PunkGoat_Ult, 'CCitadel_Ability_PunkGoat_Ult', fieldsCCitadel_Ability_PunkGoat_Ult)
 
 export class CCitadel_Ability_RapidFire extends CCitadelBaseAbility {}
 define(CCitadel_Ability_RapidFire, 'CCitadel_Ability_RapidFire', {})
@@ -9683,37 +6737,19 @@ define(CCitadel_Ability_RatArmor, 'CCitadel_Ability_RatArmor', {})
 export class CCitadel_Ability_RatKing_RatNibble extends CCitadelBaseAbility {}
 define(CCitadel_Ability_RatKing_RatNibble, 'CCitadel_Ability_RatKing_RatNibble', {})
 
-export class CCitadel_Ability_Ratking_EnterTunnel extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Ratking_EnterTunnel {
-  m_vStartingPositionSpringVelocity: Vector | undefined
-  m_hPushedFakeWall: CCitadelPassthroughFakeWall | undefined
-  m_hPushedFakeWallLastThink: CCitadelPassthroughFakeWall | undefined
-}
-define(CCitadel_Ability_Ratking_EnterTunnel, 'CCitadel_Ability_Ratking_EnterTunnel', {
+const fieldsCCitadel_Ability_Ratking_EnterTunnel = {
   m_vStartingPositionSpringVelocity: 'vector',
   m_hPushedFakeWall: 'CCitadelPassthroughFakeWall',
   m_hPushedFakeWallLastThink: 'CCitadelPassthroughFakeWall',
-})
+} as const
+export class CCitadel_Ability_Ratking_EnterTunnel extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Ratking_EnterTunnel extends Fields<typeof fieldsCCitadel_Ability_Ratking_EnterTunnel> {}
+define(CCitadel_Ability_Ratking_EnterTunnel, 'CCitadel_Ability_Ratking_EnterTunnel', fieldsCCitadel_Ability_Ratking_EnterTunnel)
 
 export class CCitadel_Ability_Ratking_ScrapGrenade extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Ratking_ScrapGrenade, 'CCitadel_Ability_Ratking_ScrapGrenade', {})
 
-export class CCitadel_Ability_Ratking_StandardBearer extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Ratking_StandardBearer {
-  m_flForcedPlantTime: number | undefined
-  m_flChargeResumeTime: number | undefined
-  m_flChargeStartTime: number | undefined
-  m_ePlantLeapPhase: number | undefined
-  m_flPlantLeapPhaseStartTime: number | undefined
-  m_flPlantLeapPhaseElapsedAtPause: number | undefined
-  m_bLeapLanded: boolean | undefined
-  m_vPlantDir: Vector | undefined
-  m_bFirstTick: boolean | undefined
-  m_vGoalDir: Vector | undefined
-  m_flCurrentChargeSpeed: number | undefined
-  m_flChargeStartSpeed: number | undefined
-}
-define(CCitadel_Ability_Ratking_StandardBearer, 'CCitadel_Ability_Ratking_StandardBearer', {
+const fieldsCCitadel_Ability_Ratking_StandardBearer = {
   m_flForcedPlantTime: 'float32',
   m_flChargeResumeTime: 'float32',
   m_flChargeStartTime: 'float32',
@@ -9726,50 +6762,45 @@ define(CCitadel_Ability_Ratking_StandardBearer, 'CCitadel_Ability_Ratking_Standa
   m_vGoalDir: 'vector',
   m_flCurrentChargeSpeed: 'float32',
   m_flChargeStartSpeed: 'float32',
-})
+} as const
+export class CCitadel_Ability_Ratking_StandardBearer extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Ratking_StandardBearer extends Fields<typeof fieldsCCitadel_Ability_Ratking_StandardBearer> {}
+define(CCitadel_Ability_Ratking_StandardBearer, 'CCitadel_Ability_Ratking_StandardBearer', fieldsCCitadel_Ability_Ratking_StandardBearer)
 
-export class CCitadel_Ability_RestorativeGoo extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_RestorativeGoo {
-  m_flSelfCastEndTime: number | undefined
-}
-define(CCitadel_Ability_RestorativeGoo, 'CCitadel_Ability_RestorativeGoo', {
+const fieldsCCitadel_Ability_RestorativeGoo = {
   m_flSelfCastEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_RestorativeGoo extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_RestorativeGoo extends Fields<typeof fieldsCCitadel_Ability_RestorativeGoo> {}
+define(CCitadel_Ability_RestorativeGoo, 'CCitadel_Ability_RestorativeGoo', fieldsCCitadel_Ability_RestorativeGoo)
 
-export class CCitadel_Ability_RiotProtocol extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_RiotProtocol {
-  m_ChargeUpParticle: number | undefined
-  m_bActive: boolean | undefined
-}
-define(CCitadel_Ability_RiotProtocol, 'CCitadel_Ability_RiotProtocol', {
+const fieldsCCitadel_Ability_RiotProtocol = {
   m_ChargeUpParticle: 'int32',
   m_bActive: 'bool',
-})
+} as const
+export class CCitadel_Ability_RiotProtocol extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_RiotProtocol extends Fields<typeof fieldsCCitadel_Ability_RiotProtocol> {}
+define(CCitadel_Ability_RiotProtocol, 'CCitadel_Ability_RiotProtocol', fieldsCCitadel_Ability_RiotProtocol)
 
-export class CCitadel_Ability_RocketBarrage extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_RocketBarrage {
-  m_flCurrentTimeScale: number | undefined
-  m_vecAimPos: Vector | undefined
-  m_vecAimVel: Vector | undefined
-  m_flLastUpdateTime: number | undefined
-}
-define(CCitadel_Ability_RocketBarrage, 'CCitadel_Ability_RocketBarrage', {
+const fieldsCCitadel_Ability_RocketBarrage = {
   m_flCurrentTimeScale: 'float32',
   m_vecAimPos: 'vector',
   m_vecAimVel: 'vector',
   m_flLastUpdateTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_RocketBarrage extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_RocketBarrage extends Fields<typeof fieldsCCitadel_Ability_RocketBarrage> {}
+define(CCitadel_Ability_RocketBarrage, 'CCitadel_Ability_RocketBarrage', fieldsCCitadel_Ability_RocketBarrage)
 
 export class CCitadel_Ability_RocketLauncher extends CCitadelBaseAbility {}
 define(CCitadel_Ability_RocketLauncher, 'CCitadel_Ability_RocketLauncher', {})
 
-export class CCitadel_Ability_Rolling_FireBall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Rolling_FireBall {
-  m_hActiveProjectile: CBaseEntity | undefined
-}
-define(CCitadel_Ability_Rolling_FireBall, 'CCitadel_Ability_Rolling_FireBall', {
+const fieldsCCitadel_Ability_Rolling_FireBall = {
   m_hActiveProjectile: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Ability_Rolling_FireBall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Rolling_FireBall extends Fields<typeof fieldsCCitadel_Ability_Rolling_FireBall> {}
+define(CCitadel_Ability_Rolling_FireBall, 'CCitadel_Ability_Rolling_FireBall', fieldsCCitadel_Ability_Rolling_FireBall)
 
 export class CCitadel_Ability_Rutger_Pulse extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Rutger_Pulse, 'CCitadel_Ability_Rutger_Pulse', {})
@@ -9777,28 +6808,24 @@ define(CCitadel_Ability_Rutger_Pulse, 'CCitadel_Ability_Rutger_Pulse', {})
 export class CCitadel_Ability_SelfVacuum extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SelfVacuum, 'CCitadel_Ability_SelfVacuum', {})
 
-export class CCitadel_Ability_SettingSun extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_SettingSun {
-  m_bProjectileActive: boolean | undefined
-  m_bWasSelected: boolean | undefined
-}
-define(CCitadel_Ability_SettingSun, 'CCitadel_Ability_SettingSun', {
+const fieldsCCitadel_Ability_SettingSun = {
   m_bProjectileActive: 'bool',
   m_bWasSelected: 'bool',
-})
+} as const
+export class CCitadel_Ability_SettingSun extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_SettingSun extends Fields<typeof fieldsCCitadel_Ability_SettingSun> {}
+define(CCitadel_Ability_SettingSun, 'CCitadel_Ability_SettingSun', fieldsCCitadel_Ability_SettingSun)
 
 export class CCitadel_Ability_ShadowPulse extends CCitadelBaseAbility {}
 define(CCitadel_Ability_ShadowPulse, 'CCitadel_Ability_ShadowPulse', {})
 
-export class CCitadel_Ability_Shakedown_Target extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Shakedown_Target {
-  m_hShadowdownAbility: CCitadel_Ability_Yakuza_Shakedown | undefined
-  m_AimPos: Vector | undefined
-}
-define(CCitadel_Ability_Shakedown_Target, 'CCitadel_Ability_Shakedown_Target', {
+const fieldsCCitadel_Ability_Shakedown_Target = {
   m_hShadowdownAbility: 'CCitadel_Ability_Yakuza_Shakedown',
   m_AimPos: 'vector',
-})
+} as const
+export class CCitadel_Ability_Shakedown_Target extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Shakedown_Target extends Fields<typeof fieldsCCitadel_Ability_Shakedown_Target> {}
+define(CCitadel_Ability_Shakedown_Target, 'CCitadel_Ability_Shakedown_Target', fieldsCCitadel_Ability_Shakedown_Target)
 
 export class CCitadel_Ability_ShieldGuy_Ability01 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_ShieldGuy_Ability01, 'CCitadel_Ability_ShieldGuy_Ability01', {})
@@ -9821,33 +6848,25 @@ define(CCitadel_Ability_SkyRunner_Ability04, 'CCitadel_Ability_SkyRunner_Ability
 export class CCitadel_Ability_SkyRunner_FlakShot extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SkyRunner_FlakShot, 'CCitadel_Ability_SkyRunner_FlakShot', {})
 
-export class CCitadel_Ability_SkyRunner_SwingLine extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_SkyRunner_SwingLine {
-  m_eSwingState: number | undefined
-  m_SwingStartTime: number | undefined
-  m_SwingEndTime: number | undefined
-  m_vecSwingPoint: Vector | undefined
-  m_vecCurrentPosition: Vector | undefined
-  m_flIdealSpringLength: number | undefined
-}
-define(CCitadel_Ability_SkyRunner_SwingLine, 'CCitadel_Ability_SkyRunner_SwingLine', {
+const fieldsCCitadel_Ability_SkyRunner_SwingLine = {
   m_eSwingState: 'uint8',
   m_SwingStartTime: 'float32',
   m_SwingEndTime: 'float32',
   m_vecSwingPoint: 'vector',
   m_vecCurrentPosition: 'vector',
   m_flIdealSpringLength: 'float32',
-})
+} as const
+export class CCitadel_Ability_SkyRunner_SwingLine extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_SkyRunner_SwingLine extends Fields<typeof fieldsCCitadel_Ability_SkyRunner_SwingLine> {}
+define(CCitadel_Ability_SkyRunner_SwingLine, 'CCitadel_Ability_SkyRunner_SwingLine', fieldsCCitadel_Ability_SkyRunner_SwingLine)
 
-export class CCitadel_Ability_Skyrunner_MagicBeam extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Skyrunner_MagicBeam {
-  m_vCastPosition: Vector | undefined
-  m_qCastAngle: Angles | undefined
-}
-define(CCitadel_Ability_Skyrunner_MagicBeam, 'CCitadel_Ability_Skyrunner_MagicBeam', {
+const fieldsCCitadel_Ability_Skyrunner_MagicBeam = {
   m_vCastPosition: 'vector',
   m_qCastAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Skyrunner_MagicBeam extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Skyrunner_MagicBeam extends Fields<typeof fieldsCCitadel_Ability_Skyrunner_MagicBeam> {}
+define(CCitadel_Ability_Skyrunner_MagicBeam, 'CCitadel_Ability_Skyrunner_MagicBeam', fieldsCCitadel_Ability_Skyrunner_MagicBeam)
 
 export class CCitadel_Ability_SleepBomb extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SleepBomb, 'CCitadel_Ability_SleepBomb', {})
@@ -9855,27 +6874,7 @@ define(CCitadel_Ability_SleepBomb, 'CCitadel_Ability_SleepBomb', {})
 export class CCitadel_Ability_SleepDagger extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SleepDagger, 'CCitadel_Ability_SleepDagger', {})
 
-export class CCitadel_Ability_Slide extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Slide {
-  m_flSlowGetupStartTime: number | undefined
-  m_bShouldTriggerSlowGetup: boolean | undefined
-  m_bWantsSlide: boolean | undefined
-  m_bAirborneWhenDuckPressed: boolean | undefined
-  m_bIsSliding: boolean | undefined
-  m_bSlideIsSticky: boolean | undefined
-  m_flSpeedAdjust: number | undefined
-  m_flDuckPressedTime: number | undefined
-  m_flSlideChangeTime: number | undefined
-  m_flSlidingOnFlatStartTime: number | undefined
-  m_nJumpsThisSlideSession: number | undefined
-  m_flOnGroundStartTime: number | undefined
-  m_flDashSlideStartTime: number | undefined
-  m_bStartedSlideViaProbeSlope: boolean | undefined
-  m_nForcedAllowRestartSlideTick: number | undefined
-  m_unHeroID: number | undefined
-  m_nSlideEffectIndex: number | undefined
-}
-define(CCitadel_Ability_Slide, 'CCitadel_Ability_Slide', {
+const fieldsCCitadel_Ability_Slide = {
   m_flSlowGetupStartTime: 'float32',
   m_bShouldTriggerSlowGetup: 'bool',
   m_bWantsSlide: 'bool',
@@ -9893,7 +6892,10 @@ define(CCitadel_Ability_Slide, 'CCitadel_Ability_Slide', {
   m_nForcedAllowRestartSlideTick: 'int32',
   m_unHeroID: 'uint32',
   m_nSlideEffectIndex: 'int32',
-})
+} as const
+export class CCitadel_Ability_Slide extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Slide extends Fields<typeof fieldsCCitadel_Ability_Slide> {}
+define(CCitadel_Ability_Slide, 'CCitadel_Ability_Slide', fieldsCCitadel_Ability_Slide)
 
 export class CCitadel_Ability_SmokeBomb extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SmokeBomb, 'CCitadel_Ability_SmokeBomb', {})
@@ -9904,27 +6906,22 @@ define(CCitadel_Ability_SnakeDash, 'CCitadel_Ability_SnakeDash', {})
 export class CCitadel_Ability_SpiderShield extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SpiderShield, 'CCitadel_Ability_SpiderShield', {})
 
-export class CCitadel_Ability_Spinning_Blade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Spinning_Blade {
-  m_hActiveProjectile: CCitadelProjectile | undefined
-}
-define(CCitadel_Ability_Spinning_Blade, 'CCitadel_Ability_Spinning_Blade', {
+const fieldsCCitadel_Ability_Spinning_Blade = {
   m_hActiveProjectile: 'CCitadelProjectile',
-})
+} as const
+export class CCitadel_Ability_Spinning_Blade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Spinning_Blade extends Fields<typeof fieldsCCitadel_Ability_Spinning_Blade> {}
+define(CCitadel_Ability_Spinning_Blade, 'CCitadel_Ability_Spinning_Blade', fieldsCCitadel_Ability_Spinning_Blade)
 
-export class CCitadel_Ability_Sprint extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Sprint {
-  m_nSprintParticle: number | undefined
-  m_bSprinting: boolean | undefined
-  m_flSprintStartTime: number | undefined
-  m_bInCombat: boolean | undefined
-}
-define(CCitadel_Ability_Sprint, 'CCitadel_Ability_Sprint', {
+const fieldsCCitadel_Ability_Sprint = {
   m_nSprintParticle: 'int32',
   m_bSprinting: 'bool',
   m_flSprintStartTime: 'float32',
   m_bInCombat: 'bool',
-})
+} as const
+export class CCitadel_Ability_Sprint extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Sprint extends Fields<typeof fieldsCCitadel_Ability_Sprint> {}
+define(CCitadel_Ability_Sprint, 'CCitadel_Ability_Sprint', fieldsCCitadel_Ability_Sprint)
 
 export class CCitadel_Ability_StaticCharge extends CCitadelBaseAbility {}
 define(CCitadel_Ability_StaticCharge, 'CCitadel_Ability_StaticCharge', {})
@@ -9932,58 +6929,37 @@ define(CCitadel_Ability_StaticCharge, 'CCitadel_Ability_StaticCharge', {})
 export class CCitadel_Ability_StaticCharge_V2 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_StaticCharge_V2, 'CCitadel_Ability_StaticCharge_V2', {})
 
-export class CCitadel_Ability_StickyBomb extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_StickyBomb {
-  m_hAutoTarget: CBaseEntity | undefined
-  m_flHookEndTime: number | undefined
-  m_flBombBonusHits: number | undefined
-  m_flBombBonusKills: number | undefined
-}
-define(CCitadel_Ability_StickyBomb, 'CCitadel_Ability_StickyBomb', {
+const fieldsCCitadel_Ability_StickyBomb = {
   m_hAutoTarget: 'CBaseEntity',
   m_flHookEndTime: 'float32',
   m_flBombBonusHits: 'float32',
   m_flBombBonusKills: 'float32',
-})
+} as const
+export class CCitadel_Ability_StickyBomb extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_StickyBomb extends Fields<typeof fieldsCCitadel_Ability_StickyBomb> {}
+define(CCitadel_Ability_StickyBomb, 'CCitadel_Ability_StickyBomb', fieldsCCitadel_Ability_StickyBomb)
 
-export class CCitadel_Ability_Stomp extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Stomp {
-  m_vStompPos: Vector | undefined
-  m_vStompDir: Vector | undefined
-}
-define(CCitadel_Ability_Stomp, 'CCitadel_Ability_Stomp', {
+const fieldsCCitadel_Ability_Stomp = {
   m_vStompPos: 'vector',
   m_vStompDir: 'vector',
-})
+} as const
+export class CCitadel_Ability_Stomp extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Stomp extends Fields<typeof fieldsCCitadel_Ability_Stomp> {}
+define(CCitadel_Ability_Stomp, 'CCitadel_Ability_Stomp', fieldsCCitadel_Ability_Stomp)
 
-export class CCitadel_Ability_StormCloud extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_StormCloud {
-  m_nTargetingParticleIndex: number | undefined
-  m_flFloat: number | undefined
-  m_nLightningStrikesRemaining: number | undefined
-}
-define(CCitadel_Ability_StormCloud, 'CCitadel_Ability_StormCloud', {
+const fieldsCCitadel_Ability_StormCloud = {
   m_nTargetingParticleIndex: 'int32',
   m_flFloat: 'float32',
   m_nLightningStrikesRemaining: 'int32',
-})
+} as const
+export class CCitadel_Ability_StormCloud extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_StormCloud extends Fields<typeof fieldsCCitadel_Ability_StormCloud> {}
+define(CCitadel_Ability_StormCloud, 'CCitadel_Ability_StormCloud', fieldsCCitadel_Ability_StormCloud)
 
 export class CCitadel_Ability_SummonGangster extends CCitadelBaseAbility {}
 define(CCitadel_Ability_SummonGangster, 'CCitadel_Ability_SummonGangster', {})
 
-export class CCitadel_Ability_SuperNeutralCharge extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_SuperNeutralCharge {
-  m_bPreparing: boolean | undefined
-  m_bTackling: boolean | undefined
-  m_flTackleStartTime: number | undefined
-  m_flTackleDuration: number | undefined
-  m_vecTackleDir: Vector | undefined
-  m_vecLastPosition: Vector | undefined
-  m_nStuckFramesCount: number | undefined
-  m_flPrepareStartTime: number | undefined
-  m_nDistancePreview: number | undefined
-}
-define(CCitadel_Ability_SuperNeutralCharge, 'CCitadel_Ability_SuperNeutralCharge', {
+const fieldsCCitadel_Ability_SuperNeutralCharge = {
   m_bPreparing: 'bool',
   m_bTackling: 'bool',
   m_flTackleStartTime: 'float32',
@@ -9993,7 +6969,10 @@ define(CCitadel_Ability_SuperNeutralCharge, 'CCitadel_Ability_SuperNeutralCharge
   m_nStuckFramesCount: 'int32',
   m_flPrepareStartTime: 'float32',
   m_nDistancePreview: 'int32',
-})
+} as const
+export class CCitadel_Ability_SuperNeutralCharge extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_SuperNeutralCharge extends Fields<typeof fieldsCCitadel_Ability_SuperNeutralCharge> {}
+define(CCitadel_Ability_SuperNeutralCharge, 'CCitadel_Ability_SuperNeutralCharge', fieldsCCitadel_Ability_SuperNeutralCharge)
 
 export class CCitadel_Ability_Swan_Ability04 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Swan_Ability04, 'CCitadel_Ability_Swan_Ability04', {})
@@ -10007,25 +6986,7 @@ define(CCitadel_Ability_Swan_FeatherBoomerang, 'CCitadel_Ability_Swan_FeatherBoo
 export class CCitadel_Ability_Swan_Leap extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Swan_Leap, 'CCitadel_Ability_Swan_Leap', {})
 
-export class CCitadel_Ability_TangoTether extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_TangoTether {
-  m_iTargetPosIndex: number | undefined
-  m_hLockOnTarget: CBaseEntity | undefined
-  m_vecCastStartPos: Vector | undefined
-  m_vecDashStartPos: Vector | undefined
-  m_vecDashEndPos: Vector | undefined
-  m_angDashStartAng: Angles | undefined
-  m_flDashStartTime: number | undefined
-  m_flGrappleStartTime: number | undefined
-  m_flGrappleArriveTime: number | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_flVelSpring: number | undefined
-  m_flGrappleShotAttackTime: number | undefined
-  m_nTicksNotMoving: number | undefined
-  m_vecPrevPos: Vector | undefined
-  m_nGrappleTravelEffect: number | undefined
-}
-define(CCitadel_Ability_TangoTether, 'CCitadel_Ability_TangoTether', {
+const fieldsCCitadel_Ability_TangoTether = {
   m_iTargetPosIndex: 'int32',
   m_hLockOnTarget: 'CBaseEntity',
   m_vecCastStartPos: 'vector',
@@ -10041,7 +7002,10 @@ define(CCitadel_Ability_TangoTether, 'CCitadel_Ability_TangoTether', {
   m_nTicksNotMoving: 'int32',
   m_vecPrevPos: 'vector',
   m_nGrappleTravelEffect: 'int32',
-})
+} as const
+export class CCitadel_Ability_TangoTether extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_TangoTether extends Fields<typeof fieldsCCitadel_Ability_TangoTether> {}
+define(CCitadel_Ability_TangoTether, 'CCitadel_Ability_TangoTether', fieldsCCitadel_Ability_TangoTether)
 
 export class CCitadel_Ability_Targetdummy_1 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Targetdummy_1, 'CCitadel_Ability_Targetdummy_1', {})
@@ -10055,17 +7019,14 @@ define(CCitadel_Ability_Targetdummy_3, 'CCitadel_Ability_Targetdummy_3', {})
 export class CCitadel_Ability_Targetdummy_4 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Targetdummy_4, 'CCitadel_Ability_Targetdummy_4', {})
 
-export class CCitadel_Ability_Teleport extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Teleport {
-  m_bTeleportingToTarget: boolean | undefined
-  m_vTargetPosition: Vector | undefined
-  m_vTargetAngles: Angles | undefined
-}
-define(CCitadel_Ability_Teleport, 'CCitadel_Ability_Teleport', {
+const fieldsCCitadel_Ability_Teleport = {
   m_bTeleportingToTarget: 'bool',
   m_vTargetPosition: 'vector',
   m_vTargetAngles: 'angles',
-})
+} as const
+export class CCitadel_Ability_Teleport extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Teleport extends Fields<typeof fieldsCCitadel_Ability_Teleport> {}
+define(CCitadel_Ability_Teleport, 'CCitadel_Ability_Teleport', fieldsCCitadel_Ability_Teleport)
 
 export class CCitadel_Ability_TeleportToGangster extends CCitadelBaseAbility {}
 define(CCitadel_Ability_TeleportToGangster, 'CCitadel_Ability_TeleportToGangster', {})
@@ -10073,35 +7034,19 @@ define(CCitadel_Ability_TeleportToGangster, 'CCitadel_Ability_TeleportToGangster
 export class CCitadel_Ability_Tenacity extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Tenacity, 'CCitadel_Ability_Tenacity', {})
 
-export class CCitadel_Ability_Tengu_AirLift extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Tengu_AirLift {
-  m_hGrabTarget: CBaseEntity | undefined
-  m_nHoldBombEffect: number | undefined
-  m_eFlightState: number | undefined
-  m_bIsGrabbing: boolean | undefined
-  m_bIsHoldingBomb: boolean | undefined
-  m_flCurrentSpeed: number | undefined
-}
-define(CCitadel_Ability_Tengu_AirLift, 'CCitadel_Ability_Tengu_AirLift', {
+const fieldsCCitadel_Ability_Tengu_AirLift = {
   m_hGrabTarget: 'CBaseEntity',
   m_nHoldBombEffect: 'int32',
   m_eFlightState: 'uint8',
   m_bIsGrabbing: 'bool',
   m_bIsHoldingBomb: 'bool',
   m_flCurrentSpeed: 'float32',
-})
+} as const
+export class CCitadel_Ability_Tengu_AirLift extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Tengu_AirLift extends Fields<typeof fieldsCCitadel_Ability_Tengu_AirLift> {}
+define(CCitadel_Ability_Tengu_AirLift, 'CCitadel_Ability_Tengu_AirLift', fieldsCCitadel_Ability_Tengu_AirLift)
 
-export class CCitadel_Ability_Tengu_StoneForm extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Tengu_StoneForm {
-  m_flStartTime: number | undefined
-  m_flLandedTime: number | undefined
-  m_bLanded: boolean | undefined
-  m_bFalling: boolean | undefined
-  m_bInStoneForm: boolean | undefined
-  m_flStartHeight: number | undefined
-  m_nStoneFormEffect: number | undefined
-}
-define(CCitadel_Ability_Tengu_StoneForm, 'CCitadel_Ability_Tengu_StoneForm', {
+const fieldsCCitadel_Ability_Tengu_StoneForm = {
   m_flStartTime: 'float32',
   m_flLandedTime: 'float32',
   m_bLanded: 'bool',
@@ -10109,17 +7054,18 @@ define(CCitadel_Ability_Tengu_StoneForm, 'CCitadel_Ability_Tengu_StoneForm', {
   m_bInStoneForm: 'bool',
   m_flStartHeight: 'float32',
   m_nStoneFormEffect: 'int32',
-})
+} as const
+export class CCitadel_Ability_Tengu_StoneForm extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Tengu_StoneForm extends Fields<typeof fieldsCCitadel_Ability_Tengu_StoneForm> {}
+define(CCitadel_Ability_Tengu_StoneForm, 'CCitadel_Ability_Tengu_StoneForm', fieldsCCitadel_Ability_Tengu_StoneForm)
 
-export class CCitadel_Ability_Tengu_Urn extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Tengu_Urn {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Tengu_Urn, 'CCitadel_Ability_Tengu_Urn', {
+const fieldsCCitadel_Ability_Tengu_Urn = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Tengu_Urn extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Tengu_Urn extends Fields<typeof fieldsCCitadel_Ability_Tengu_Urn> {}
+define(CCitadel_Ability_Tengu_Urn, 'CCitadel_Ability_Tengu_Urn', fieldsCCitadel_Ability_Tengu_Urn)
 
 export class CCitadel_Ability_TestHero_Ability04 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_TestHero_Ability04, 'CCitadel_Ability_TestHero_Ability04', {})
@@ -10127,13 +7073,12 @@ define(CCitadel_Ability_TestHero_Ability04, 'CCitadel_Ability_TestHero_Ability04
 export class CCitadel_Ability_TestHero_FearTarget extends CCitadelBaseAbility {}
 define(CCitadel_Ability_TestHero_FearTarget, 'CCitadel_Ability_TestHero_FearTarget', {})
 
-export class CCitadel_Ability_TestHero_StanceSwitch extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_TestHero_StanceSwitch {
-  m_bStanceActive: boolean | undefined
-}
-define(CCitadel_Ability_TestHero_StanceSwitch, 'CCitadel_Ability_TestHero_StanceSwitch', {
+const fieldsCCitadel_Ability_TestHero_StanceSwitch = {
   m_bStanceActive: 'bool',
-})
+} as const
+export class CCitadel_Ability_TestHero_StanceSwitch extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_TestHero_StanceSwitch extends Fields<typeof fieldsCCitadel_Ability_TestHero_StanceSwitch> {}
+define(CCitadel_Ability_TestHero_StanceSwitch, 'CCitadel_Ability_TestHero_StanceSwitch', fieldsCCitadel_Ability_TestHero_StanceSwitch)
 
 export class CCitadel_Ability_TestHero_Stance_Bow extends CCitadel_Ability_TestHero_StanceSwitch {}
 define(CCitadel_Ability_TestHero_Stance_Bow, 'CCitadel_Ability_TestHero_Stance_Bow', {})
@@ -10141,59 +7086,47 @@ define(CCitadel_Ability_TestHero_Stance_Bow, 'CCitadel_Ability_TestHero_Stance_B
 export class CCitadel_Ability_TestHero_Stance_Spaceman extends CCitadel_Ability_TestHero_StanceSwitch {}
 define(CCitadel_Ability_TestHero_Stance_Spaceman, 'CCitadel_Ability_TestHero_Stance_Spaceman', {})
 
-export class CCitadel_Ability_TestHero_SummonCannon extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_TestHero_SummonCannon {
-  m_bCannonPending: boolean | undefined
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_TestHero_SummonCannon, 'CCitadel_Ability_TestHero_SummonCannon', {
+const fieldsCCitadel_Ability_TestHero_SummonCannon = {
   m_bCannonPending: 'bool',
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_TestHero_SummonCannon extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_TestHero_SummonCannon extends Fields<typeof fieldsCCitadel_Ability_TestHero_SummonCannon> {}
+define(CCitadel_Ability_TestHero_SummonCannon, 'CCitadel_Ability_TestHero_SummonCannon', fieldsCCitadel_Ability_TestHero_SummonCannon)
 
 export class CCitadel_Ability_TestHero_SummonSoldier extends CCitadelBaseAbility {}
 define(CCitadel_Ability_TestHero_SummonSoldier, 'CCitadel_Ability_TestHero_SummonSoldier', {})
 
-export class CCitadel_Ability_TestHero_WallCling extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_TestHero_WallCling {
-  m_vecWallClingNormal: Vector | undefined
-  m_vecWallPosition: Vector | undefined
-  m_vecLastVelocity: Vector | undefined
-}
-define(CCitadel_Ability_TestHero_WallCling, 'CCitadel_Ability_TestHero_WallCling', {
+const fieldsCCitadel_Ability_TestHero_WallCling = {
   m_vecWallClingNormal: 'vector',
   m_vecWallPosition: 'vector',
   m_vecLastVelocity: 'vector',
-})
+} as const
+export class CCitadel_Ability_TestHero_WallCling extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_TestHero_WallCling extends Fields<typeof fieldsCCitadel_Ability_TestHero_WallCling> {}
+define(CCitadel_Ability_TestHero_WallCling, 'CCitadel_Ability_TestHero_WallCling', fieldsCCitadel_Ability_TestHero_WallCling)
 
 export class CCitadel_Ability_ThrowSand extends CCitadelBaseAbility {}
 define(CCitadel_Ability_ThrowSand, 'CCitadel_Ability_ThrowSand', {})
 
-export class CCitadel_Ability_Thumper_1 extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Thumper_1 {
-  m_vecAimPos: Vector | undefined
-  m_vecAimNormal: Vector | undefined
-  m_flPushForce: number | undefined
-}
-define(CCitadel_Ability_Thumper_1, 'CCitadel_Ability_Thumper_1', {
+const fieldsCCitadel_Ability_Thumper_1 = {
   m_vecAimPos: 'vector',
   m_vecAimNormal: 'vector',
   m_flPushForce: 'float32',
-})
+} as const
+export class CCitadel_Ability_Thumper_1 extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Thumper_1 extends Fields<typeof fieldsCCitadel_Ability_Thumper_1> {}
+define(CCitadel_Ability_Thumper_1, 'CCitadel_Ability_Thumper_1', fieldsCCitadel_Ability_Thumper_1)
 
-export class CCitadel_Ability_Thumper_2 extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Thumper_2 {
-  m_vStompPos: Vector | undefined
-  m_vStompDir: Vector | undefined
-  m_nStomps: number | undefined
-}
-define(CCitadel_Ability_Thumper_2, 'CCitadel_Ability_Thumper_2', {
+const fieldsCCitadel_Ability_Thumper_2 = {
   m_vStompPos: 'vector',
   m_vStompDir: 'vector',
   m_nStomps: 'int32',
-})
+} as const
+export class CCitadel_Ability_Thumper_2 extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Thumper_2 extends Fields<typeof fieldsCCitadel_Ability_Thumper_2> {}
+define(CCitadel_Ability_Thumper_2, 'CCitadel_Ability_Thumper_2', fieldsCCitadel_Ability_Thumper_2)
 
 export class CCitadel_Ability_Thumper_3 extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Thumper_3, 'CCitadel_Ability_Thumper_3', {})
@@ -10204,105 +7137,79 @@ define(CCitadel_Ability_Thumper_4, 'CCitadel_Ability_Thumper_4', {})
 export class CCitadel_Ability_Trapper_Fear extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Trapper_Fear, 'CCitadel_Ability_Trapper_Fear', {})
 
-export class CCitadel_Ability_Trapper_PoisonJar extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Trapper_PoisonJar {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Trapper_PoisonJar, 'CCitadel_Ability_Trapper_PoisonJar', {
+const fieldsCCitadel_Ability_Trapper_PoisonJar = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Trapper_PoisonJar extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Trapper_PoisonJar extends Fields<typeof fieldsCCitadel_Ability_Trapper_PoisonJar> {}
+define(CCitadel_Ability_Trapper_PoisonJar, 'CCitadel_Ability_Trapper_PoisonJar', fieldsCCitadel_Ability_Trapper_PoisonJar)
 
-export class CCitadel_Ability_Trapper_SpiderJar extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Trapper_SpiderJar {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-  m_bHasMadeSpiders: boolean | undefined
-}
-define(CCitadel_Ability_Trapper_SpiderJar, 'CCitadel_Ability_Trapper_SpiderJar', {
+const fieldsCCitadel_Ability_Trapper_SpiderJar = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
   m_bHasMadeSpiders: 'bool',
-})
+} as const
+export class CCitadel_Ability_Trapper_SpiderJar extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Trapper_SpiderJar extends Fields<typeof fieldsCCitadel_Ability_Trapper_SpiderJar> {}
+define(CCitadel_Ability_Trapper_SpiderJar, 'CCitadel_Ability_Trapper_SpiderJar', fieldsCCitadel_Ability_Trapper_SpiderJar)
 
-export class CCitadel_Ability_Trapper_WebWall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Trapper_WebWall {
-  m_vecCastPosition: Vector | undefined
-  m_vecCastPositionNormal: Vector | undefined
-  m_vecEndPosition: Vector | undefined
-  m_vecEndPositionNormal: Vector | undefined
-}
-define(CCitadel_Ability_Trapper_WebWall, 'CCitadel_Ability_Trapper_WebWall', {
+const fieldsCCitadel_Ability_Trapper_WebWall = {
   m_vecCastPosition: 'vector',
   m_vecCastPositionNormal: 'vector',
   m_vecEndPosition: 'vector',
   m_vecEndPositionNormal: 'vector',
-})
+} as const
+export class CCitadel_Ability_Trapper_WebWall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Trapper_WebWall extends Fields<typeof fieldsCCitadel_Ability_Trapper_WebWall> {}
+define(CCitadel_Ability_Trapper_WebWall, 'CCitadel_Ability_Trapper_WebWall', fieldsCCitadel_Ability_Trapper_WebWall)
 
-export class CCitadel_Ability_Trappers_Bolo extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Trappers_Bolo {
-  m_hProjectile: CBaseEntity | undefined
-  m_hNextTarget: CBaseEntity | undefined
-  m_iBounces: number | undefined
-  m_bReturning: boolean | undefined
-}
-define(CCitadel_Ability_Trappers_Bolo, 'CCitadel_Ability_Trappers_Bolo', {
+const fieldsCCitadel_Ability_Trappers_Bolo = {
   m_hProjectile: 'CBaseEntity',
   m_hNextTarget: 'CBaseEntity',
   m_iBounces: 'int32',
   m_bReturning: 'bool',
-})
+} as const
+export class CCitadel_Ability_Trappers_Bolo extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Trappers_Bolo extends Fields<typeof fieldsCCitadel_Ability_Trappers_Bolo> {}
+define(CCitadel_Ability_Trappers_Bolo, 'CCitadel_Ability_Trappers_Bolo', fieldsCCitadel_Ability_Trappers_Bolo)
 
 export class CCitadel_Ability_TriggerTower extends CCitadelBaseAbility {}
 define(CCitadel_Ability_TriggerTower, 'CCitadel_Ability_TriggerTower', {})
 
-export class CCitadel_Ability_TurretClone extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_TurretClone {
-  m_bHasTurretReady: boolean | undefined
-  m_iCurrentSwapCount: number | undefined
-  m_flTurretExpireTime: number | undefined
-  m_pActiveTurret: CCitadel_MagicianTurret | undefined
-  m_nTurretFXIndex: number | undefined
-}
-define(CCitadel_Ability_TurretClone, 'CCitadel_Ability_TurretClone', {
+const fieldsCCitadel_Ability_TurretClone = {
   m_bHasTurretReady: 'bool',
   m_iCurrentSwapCount: 'int32',
   m_flTurretExpireTime: 'float32',
   m_pActiveTurret: 'CCitadel_MagicianTurret',
   m_nTurretFXIndex: 'int32',
-})
+} as const
+export class CCitadel_Ability_TurretClone extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_TurretClone extends Fields<typeof fieldsCCitadel_Ability_TurretClone> {}
+define(CCitadel_Ability_TurretClone, 'CCitadel_Ability_TurretClone', fieldsCCitadel_Ability_TurretClone)
 
-export class CCitadel_Ability_UltCombo extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_UltCombo {
-  m_flLastAttackTime: number | undefined
-  m_nAttackNum: number | undefined
-  m_iBonusHealth: number | undefined
-  m_hTarget: CBaseEntity | undefined
-}
-define(CCitadel_Ability_UltCombo, 'CCitadel_Ability_UltCombo', {
+const fieldsCCitadel_Ability_UltCombo = {
   m_flLastAttackTime: 'float32',
   m_nAttackNum: 'int32',
   m_iBonusHealth: 'int32',
   m_hTarget: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Ability_UltCombo extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_UltCombo extends Fields<typeof fieldsCCitadel_Ability_UltCombo> {}
+define(CCitadel_Ability_UltCombo, 'CCitadel_Ability_UltCombo', fieldsCCitadel_Ability_UltCombo)
 
 export class CCitadel_Ability_Unicorn_DazzlingOrb extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Unicorn_DazzlingOrb, 'CCitadel_Ability_Unicorn_DazzlingOrb', {})
 
-export class CCitadel_Ability_Unicorn_LuminousStrike extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Unicorn_LuminousStrike {
-  m_flLastStackChangeTime: number | undefined
-  m_nLastStackCount: number | undefined
-  m_nStackCount: number | undefined
-  m_bPendingStackUpdate: boolean | undefined
-}
-define(CCitadel_Ability_Unicorn_LuminousStrike, 'CCitadel_Ability_Unicorn_LuminousStrike', {
+const fieldsCCitadel_Ability_Unicorn_LuminousStrike = {
   m_flLastStackChangeTime: 'float32',
   m_nLastStackCount: 'int32',
   m_nStackCount: 'int32',
   m_bPendingStackUpdate: 'bool',
-})
+} as const
+export class CCitadel_Ability_Unicorn_LuminousStrike extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Unicorn_LuminousStrike extends Fields<typeof fieldsCCitadel_Ability_Unicorn_LuminousStrike> {}
+define(CCitadel_Ability_Unicorn_LuminousStrike, 'CCitadel_Ability_Unicorn_LuminousStrike', fieldsCCitadel_Ability_Unicorn_LuminousStrike)
 
 export class CCitadel_Ability_Unicorn_PrismaticGuard extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Unicorn_PrismaticGuard, 'CCitadel_Ability_Unicorn_PrismaticGuard', {})
@@ -10310,45 +7217,34 @@ define(CCitadel_Ability_Unicorn_PrismaticGuard, 'CCitadel_Ability_Unicorn_Prisma
 export class CCitadel_Ability_Unicorn_RadiantBlast extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Unicorn_RadiantBlast, 'CCitadel_Ability_Unicorn_RadiantBlast', {})
 
-export class CCitadel_Ability_VampireBat_BatBlink extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_VampireBat_BatBlink {
-  m_iRemainingCasts: number | undefined
-  m_bIsBlinking: boolean | undefined
-  m_RecastEndTime: number | undefined
-  m_BlinkEndTime: number | undefined
-}
-define(CCitadel_Ability_VampireBat_BatBlink, 'CCitadel_Ability_VampireBat_BatBlink', {
+const fieldsCCitadel_Ability_VampireBat_BatBlink = {
   m_iRemainingCasts: 'int32',
   m_bIsBlinking: 'bool',
   m_RecastEndTime: 'float32',
   m_BlinkEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_VampireBat_BatBlink extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_VampireBat_BatBlink extends Fields<typeof fieldsCCitadel_Ability_VampireBat_BatBlink> {}
+define(CCitadel_Ability_VampireBat_BatBlink, 'CCitadel_Ability_VampireBat_BatBlink', fieldsCCitadel_Ability_VampireBat_BatBlink)
 
-export class CCitadel_Ability_VampireBat_BatCloud extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_VampireBat_BatCloud {
-  m_flBatCloudEndTime: number | undefined
-}
-define(CCitadel_Ability_VampireBat_BatCloud, 'CCitadel_Ability_VampireBat_BatCloud', {
+const fieldsCCitadel_Ability_VampireBat_BatCloud = {
   m_flBatCloudEndTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_VampireBat_BatCloud extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_VampireBat_BatCloud extends Fields<typeof fieldsCCitadel_Ability_VampireBat_BatCloud> {}
+define(CCitadel_Ability_VampireBat_BatCloud, 'CCitadel_Ability_VampireBat_BatCloud', fieldsCCitadel_Ability_VampireBat_BatCloud)
 
-export class CCitadel_Ability_VampireBat_BatSwarm extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_VampireBat_BatSwarm {
-  m_iBonusBats: number | undefined
-  m_iBatCountOnCast: number | undefined
-  m_flChannelTime: number | undefined
-  m_bPauseChannel: boolean | undefined
-  m_flLastRemainingChannelTime: number | undefined
-  m_flNextBatTime: number | undefined
-}
-define(CCitadel_Ability_VampireBat_BatSwarm, 'CCitadel_Ability_VampireBat_BatSwarm', {
+const fieldsCCitadel_Ability_VampireBat_BatSwarm = {
   m_iBonusBats: 'int32',
   m_iBatCountOnCast: 'int32',
   m_flChannelTime: 'float32',
   m_bPauseChannel: 'bool',
   m_flLastRemainingChannelTime: 'float32',
   m_flNextBatTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_VampireBat_BatSwarm extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_VampireBat_BatSwarm extends Fields<typeof fieldsCCitadel_Ability_VampireBat_BatSwarm> {}
+define(CCitadel_Ability_VampireBat_BatSwarm, 'CCitadel_Ability_VampireBat_BatSwarm', fieldsCCitadel_Ability_VampireBat_BatSwarm)
 
 export class CCitadel_Ability_VampireBat_DoubleDagger extends CCitadelBaseAbility {}
 define(CCitadel_Ability_VampireBat_DoubleDagger, 'CCitadel_Ability_VampireBat_DoubleDagger', {})
@@ -10356,15 +7252,13 @@ define(CCitadel_Ability_VampireBat_DoubleDagger, 'CCitadel_Ability_VampireBat_Do
 export class CCitadel_Ability_VampireBat_LoveBites extends CCitadelBaseAbility {}
 define(CCitadel_Ability_VampireBat_LoveBites, 'CCitadel_Ability_VampireBat_LoveBites', {})
 
-export class CCitadel_Ability_VampireBat_StealLife extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_VampireBat_StealLife {
-  m_flFloatElapsedTime: number | undefined
-  m_bFloating: boolean | undefined
-}
-define(CCitadel_Ability_VampireBat_StealLife, 'CCitadel_Ability_VampireBat_StealLife', {
+const fieldsCCitadel_Ability_VampireBat_StealLife = {
   m_flFloatElapsedTime: 'float32',
   m_bFloating: 'bool',
-})
+} as const
+export class CCitadel_Ability_VampireBat_StealLife extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_VampireBat_StealLife extends Fields<typeof fieldsCCitadel_Ability_VampireBat_StealLife> {}
+define(CCitadel_Ability_VampireBat_StealLife, 'CCitadel_Ability_VampireBat_StealLife', fieldsCCitadel_Ability_VampireBat_StealLife)
 
 export class CCitadel_Ability_VandalOverflow extends CCitadelBaseAbility {}
 define(CCitadel_Ability_VandalOverflow, 'CCitadel_Ability_VandalOverflow', {})
@@ -10393,46 +7287,29 @@ define(CCitadel_Ability_Viper_DebuffDagger, 'CCitadel_Ability_Viper_DebuffDagger
 export class CCitadel_Ability_Viper_PetrifyBola extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Viper_PetrifyBola, 'CCitadel_Ability_Viper_PetrifyBola', {})
 
-export class CCitadel_Ability_Viscous_Telepunch extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Viscous_Telepunch {
-  m_vecTeleportPosition: Vector | undefined
-  m_vecTeleportPositionNormal: Vector | undefined
-  m_eTelepunchState: number | undefined
-  m_flNextStateTime: number | undefined
-}
-define(CCitadel_Ability_Viscous_Telepunch, 'CCitadel_Ability_Viscous_Telepunch', {
+const fieldsCCitadel_Ability_Viscous_Telepunch = {
   m_vecTeleportPosition: 'vector',
   m_vecTeleportPositionNormal: 'vector',
   m_eTelepunchState: 'uint8',
   m_flNextStateTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Viscous_Telepunch extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Viscous_Telepunch extends Fields<typeof fieldsCCitadel_Ability_Viscous_Telepunch> {}
+define(CCitadel_Ability_Viscous_Telepunch, 'CCitadel_Ability_Viscous_Telepunch', fieldsCCitadel_Ability_Viscous_Telepunch)
 
 export class CCitadel_Ability_VoidSphere extends CCitadelBaseAbility {}
 define(CCitadel_Ability_VoidSphere, 'CCitadel_Ability_VoidSphere', {})
 
-export class CCitadel_Ability_Werewolf_KickFlip extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Werewolf_KickFlip {
-  m_bIsLeaping: boolean | undefined
-  m_tLeapStartTime: number | undefined
-  m_tLeapOffTime: number | undefined
-}
-define(CCitadel_Ability_Werewolf_KickFlip, 'CCitadel_Ability_Werewolf_KickFlip', {
+const fieldsCCitadel_Ability_Werewolf_KickFlip = {
   m_bIsLeaping: 'bool',
   m_tLeapStartTime: 'float32',
   m_tLeapOffTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Werewolf_KickFlip extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Werewolf_KickFlip extends Fields<typeof fieldsCCitadel_Ability_Werewolf_KickFlip> {}
+define(CCitadel_Ability_Werewolf_KickFlip, 'CCitadel_Ability_Werewolf_KickFlip', fieldsCCitadel_Ability_Werewolf_KickFlip)
 
-export class CCitadel_Ability_Werewolf_Leap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Werewolf_Leap {
-  m_bWillLeapOff: boolean | undefined
-  m_bIsLeaping: boolean | undefined
-  m_tLeapStartTime: number | undefined
-  m_tLeapOffTime: number | undefined
-  m_vLaunchPosition: Vector | undefined
-  m_vLaunchVelocity: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Ability_Werewolf_Leap, 'CCitadel_Ability_Werewolf_Leap', {
+const fieldsCCitadel_Ability_Werewolf_Leap = {
   m_bWillLeapOff: 'bool',
   m_bIsLeaping: 'bool',
   m_tLeapStartTime: 'float32',
@@ -10440,15 +7317,17 @@ define(CCitadel_Ability_Werewolf_Leap, 'CCitadel_Ability_Werewolf_Leap', {
   m_vLaunchPosition: 'vector',
   m_vLaunchVelocity: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Ability_Werewolf_Leap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Werewolf_Leap extends Fields<typeof fieldsCCitadel_Ability_Werewolf_Leap> {}
+define(CCitadel_Ability_Werewolf_Leap, 'CCitadel_Ability_Werewolf_Leap', fieldsCCitadel_Ability_Werewolf_Leap)
 
-export class CCitadel_Ability_Werewolf_MaulingLeap extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Werewolf_MaulingLeap {
-  m_tLeapStartTime: number | undefined
-}
-define(CCitadel_Ability_Werewolf_MaulingLeap, 'CCitadel_Ability_Werewolf_MaulingLeap', {
+const fieldsCCitadel_Ability_Werewolf_MaulingLeap = {
   m_tLeapStartTime: 'float32',
-})
+} as const
+export class CCitadel_Ability_Werewolf_MaulingLeap extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Werewolf_MaulingLeap extends Fields<typeof fieldsCCitadel_Ability_Werewolf_MaulingLeap> {}
+define(CCitadel_Ability_Werewolf_MaulingLeap, 'CCitadel_Ability_Werewolf_MaulingLeap', fieldsCCitadel_Ability_Werewolf_MaulingLeap)
 
 export class CCitadel_Ability_Werewolf_NetShot extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Werewolf_NetShot, 'CCitadel_Ability_Werewolf_NetShot', {})
@@ -10465,27 +7344,14 @@ define(CCitadel_Ability_Wraith_RapidFire, 'CCitadel_Ability_Wraith_RapidFire', {
 export class CCitadel_Ability_WreckerGarbageSuck extends CCitadelBaseAbility {}
 define(CCitadel_Ability_WreckerGarbageSuck, 'CCitadel_Ability_WreckerGarbageSuck', {})
 
-export class CCitadel_Ability_WreckerScrapBlast extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_WreckerScrapBlast {
-  m_BlastParticle: number | undefined
-}
-define(CCitadel_Ability_WreckerScrapBlast, 'CCitadel_Ability_WreckerScrapBlast', {
+const fieldsCCitadel_Ability_WreckerScrapBlast = {
   m_BlastParticle: 'int32',
-})
+} as const
+export class CCitadel_Ability_WreckerScrapBlast extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_WreckerScrapBlast extends Fields<typeof fieldsCCitadel_Ability_WreckerScrapBlast> {}
+define(CCitadel_Ability_WreckerScrapBlast, 'CCitadel_Ability_WreckerScrapBlast', fieldsCCitadel_Ability_WreckerScrapBlast)
 
-export class CCitadel_Ability_WreckerTeleport extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_WreckerTeleport {
-  m_hProjectile: CBaseEntity | undefined
-  m_flArrowSpeed: number | undefined
-  m_flSnapAnglesBackTime: number | undefined
-  m_flCastTimeDamage: number | undefined
-  m_flCastTime: number | undefined
-  m_bNeedsExplosion: boolean | undefined
-  m_vProjectileRemovedOrigin: Vector | undefined
-  m_angCasterAnglesAtCastTime: Angles | undefined
-  m_flTravelDistance: number | undefined
-}
-define(CCitadel_Ability_WreckerTeleport, 'CCitadel_Ability_WreckerTeleport', {
+const fieldsCCitadel_Ability_WreckerTeleport = {
   m_hProjectile: 'CBaseEntity',
   m_flArrowSpeed: 'float32',
   m_flSnapAnglesBackTime: 'float32',
@@ -10495,79 +7361,45 @@ define(CCitadel_Ability_WreckerTeleport, 'CCitadel_Ability_WreckerTeleport', {
   m_vProjectileRemovedOrigin: 'vector',
   m_angCasterAnglesAtCastTime: 'angles',
   m_flTravelDistance: 'float32',
-})
+} as const
+export class CCitadel_Ability_WreckerTeleport extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_WreckerTeleport extends Fields<typeof fieldsCCitadel_Ability_WreckerTeleport> {}
+define(CCitadel_Ability_WreckerTeleport, 'CCitadel_Ability_WreckerTeleport', fieldsCCitadel_Ability_WreckerTeleport)
 
-export class CCitadel_Ability_Wrecker_BoulderGrenade extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Wrecker_BoulderGrenade {
-  m_nBallParticle: number | undefined
-}
-define(CCitadel_Ability_Wrecker_BoulderGrenade, 'CCitadel_Ability_Wrecker_BoulderGrenade', {
+const fieldsCCitadel_Ability_Wrecker_BoulderGrenade = {
   m_nBallParticle: 'int32',
-})
+} as const
+export class CCitadel_Ability_Wrecker_BoulderGrenade extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Wrecker_BoulderGrenade extends Fields<typeof fieldsCCitadel_Ability_Wrecker_BoulderGrenade> {}
+define(CCitadel_Ability_Wrecker_BoulderGrenade, 'CCitadel_Ability_Wrecker_BoulderGrenade', fieldsCCitadel_Ability_Wrecker_BoulderGrenade)
 
 export class CCitadel_Ability_Wrecker_Salvage extends CCitadelBaseAbility {}
 define(CCitadel_Ability_Wrecker_Salvage, 'CCitadel_Ability_Wrecker_Salvage', {})
 
-export class CCitadel_Ability_Wrecker_Ultimate extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Wrecker_Ultimate {
-  m_angBeamAngles: Angles | undefined
-}
-define(CCitadel_Ability_Wrecker_Ultimate, 'CCitadel_Ability_Wrecker_Ultimate', {
+const fieldsCCitadel_Ability_Wrecker_Ultimate = {
   m_angBeamAngles: 'angles',
-})
+} as const
+export class CCitadel_Ability_Wrecker_Ultimate extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Wrecker_Ultimate extends Fields<typeof fieldsCCitadel_Ability_Wrecker_Ultimate> {}
+define(CCitadel_Ability_Wrecker_Ultimate, 'CCitadel_Ability_Wrecker_Ultimate', fieldsCCitadel_Ability_Wrecker_Ultimate)
 
-export class CCitadel_Ability_WreckingBall extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_WreckingBall {
-  m_nBallParticle: number | undefined
-  m_nCastCompleteParticle: number | undefined
-  m_bHoldingBall: boolean | undefined
-}
-define(CCitadel_Ability_WreckingBall, 'CCitadel_Ability_WreckingBall', {
+const fieldsCCitadel_Ability_WreckingBall = {
   m_nBallParticle: 'int32',
   m_nCastCompleteParticle: 'int32',
   m_bHoldingBall: 'bool',
-})
+} as const
+export class CCitadel_Ability_WreckingBall extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_WreckingBall extends Fields<typeof fieldsCCitadel_Ability_WreckingBall> {}
+define(CCitadel_Ability_WreckingBall, 'CCitadel_Ability_WreckingBall', fieldsCCitadel_Ability_WreckingBall)
 
-export class CCitadel_Ability_Yakuza_Shakedown extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_Yakuza_Shakedown {
-  m_IgnoreChannelSlow: number | undefined
-}
-define(CCitadel_Ability_Yakuza_Shakedown, 'CCitadel_Ability_Yakuza_Shakedown', {
+const fieldsCCitadel_Ability_Yakuza_Shakedown = {
   m_IgnoreChannelSlow: 'int32',
-})
+} as const
+export class CCitadel_Ability_Yakuza_Shakedown extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_Yakuza_Shakedown extends Fields<typeof fieldsCCitadel_Ability_Yakuza_Shakedown> {}
+define(CCitadel_Ability_Yakuza_Shakedown, 'CCitadel_Ability_Yakuza_Shakedown', fieldsCCitadel_Ability_Yakuza_Shakedown)
 
-export class CCitadel_Ability_ZipLine extends CCitadelBaseAbility {}
-export interface CCitadel_Ability_ZipLine {
-  m_flActivatePressTime: number | undefined
-  m_bThinking: boolean | undefined
-  m_bMoveCollidedPushUp: boolean | undefined
-  m_bNoDelayNeeded: boolean | undefined
-  m_bMouseWheelBind: boolean | undefined
-  m_eCommittedAttachState: number | undefined
-  m_flTimeStartZipping: number | undefined
-  m_flTimeForKnockdownProtection: number | undefined
-  m_flTimeStopZipping: number | undefined
-  m_flCasterSpeed: number | undefined
-  m_vecAttachPoint: Vector | undefined
-  m_pPrevNode: CBaseEntity | undefined
-  m_pNextNode: CBaseEntity | undefined
-  m_flTimeEnterState: number | undefined
-  m_flLatchTime: number | undefined
-  m_flDamagedTime: number | undefined
-  m_eAttachState: number | undefined
-  m_iAttachedZipLineLane: number | undefined
-  m_bDroppedFromZipline: boolean | undefined
-  m_hAttachZipLine: number | undefined
-  m_hZiplineLatchEffectHandle: number | undefined
-  m_vAttachZipLineOffset: Vector | undefined
-  m_flZiplineAirDrag: number | undefined
-  m_vPendulumVelocity: Vector | undefined
-  m_vPendulumPosition: Vector | undefined
-  m_vVelocityHistory1: Vector | undefined
-  m_vVelocityHistory2: Vector | undefined
-  m_iDesiredLane: number | undefined
-}
-define(CCitadel_Ability_ZipLine, 'CCitadel_Ability_ZipLine', {
+const fieldsCCitadel_Ability_ZipLine = {
   m_flActivatePressTime: 'float32',
   m_bThinking: 'bool',
   m_bMoveCollidedPushUp: 'bool',
@@ -10596,7 +7428,10 @@ define(CCitadel_Ability_ZipLine, 'CCitadel_Ability_ZipLine', {
   m_vVelocityHistory1: 'vector',
   m_vVelocityHistory2: 'vector',
   m_iDesiredLane: 'int32',
-})
+} as const
+export class CCitadel_Ability_ZipLine extends CCitadelBaseAbility {}
+export interface CCitadel_Ability_ZipLine extends Fields<typeof fieldsCCitadel_Ability_ZipLine> {}
+define(CCitadel_Ability_ZipLine, 'CCitadel_Ability_ZipLine', fieldsCCitadel_Ability_ZipLine)
 
 export class CCitadel_Ability_TrooperZipLine extends CCitadel_Ability_ZipLine {}
 define(CCitadel_Ability_TrooperZipLine, 'CCitadel_Ability_TrooperZipLine', {})
@@ -10610,45 +7445,37 @@ define(CCitadel_CosmeticAbility, 'CCitadel_CosmeticAbility', {})
 export class CCitadel_CosmeticAbility_Emote extends CCitadel_CosmeticAbility {}
 define(CCitadel_CosmeticAbility_Emote, 'CCitadel_CosmeticAbility_Emote', {})
 
-export class CCitadel_CosmeticAbility_Snowball extends CCitadel_CosmeticAbility {}
-export interface CCitadel_CosmeticAbility_Snowball {
-  m_nSeasonal2025Level: number | undefined
-  m_flSeasonal2025LevelFrac: number | undefined
-  m_flNextShotTime: number | undefined
-  m_nShotsRemaining: number | undefined
-}
-define(CCitadel_CosmeticAbility_Snowball, 'CCitadel_CosmeticAbility_Snowball', {
+const fieldsCCitadel_CosmeticAbility_Snowball = {
   m_nSeasonal2025Level: 'int32',
   m_flSeasonal2025LevelFrac: 'float32',
   m_flNextShotTime: 'float32',
   m_nShotsRemaining: 'int32',
-})
+} as const
+export class CCitadel_CosmeticAbility_Snowball extends CCitadel_CosmeticAbility {}
+export interface CCitadel_CosmeticAbility_Snowball extends Fields<typeof fieldsCCitadel_CosmeticAbility_Snowball> {}
+define(CCitadel_CosmeticAbility_Snowball, 'CCitadel_CosmeticAbility_Snowball', fieldsCCitadel_CosmeticAbility_Snowball)
 
-export class CCitadel_CosmeticAbility_VotingPoster extends CCitadel_CosmeticAbility {}
-export interface CCitadel_CosmeticAbility_VotingPoster {
-  m_bPreview: boolean | undefined
-  m_nActiveHero: number | undefined
-}
-define(CCitadel_CosmeticAbility_VotingPoster, 'CCitadel_CosmeticAbility_VotingPoster', {
+const fieldsCCitadel_CosmeticAbility_VotingPoster = {
   m_bPreview: 'bool',
   m_nActiveHero: 'uint32',
-})
+} as const
+export class CCitadel_CosmeticAbility_VotingPoster extends CCitadel_CosmeticAbility {}
+export interface CCitadel_CosmeticAbility_VotingPoster extends Fields<typeof fieldsCCitadel_CosmeticAbility_VotingPoster> {}
+define(CCitadel_CosmeticAbility_VotingPoster, 'CCitadel_CosmeticAbility_VotingPoster', fieldsCCitadel_CosmeticAbility_VotingPoster)
 
-export class CCitadel_Gunslinger_DemonMark extends CCitadelBaseAbility {}
-export interface CCitadel_Gunslinger_DemonMark {
-  m_flNextSearchTime: number | undefined
-}
-define(CCitadel_Gunslinger_DemonMark, 'CCitadel_Gunslinger_DemonMark', {
+const fieldsCCitadel_Gunslinger_DemonMark = {
   m_flNextSearchTime: 'float32',
-})
+} as const
+export class CCitadel_Gunslinger_DemonMark extends CCitadelBaseAbility {}
+export interface CCitadel_Gunslinger_DemonMark extends Fields<typeof fieldsCCitadel_Gunslinger_DemonMark> {}
+define(CCitadel_Gunslinger_DemonMark, 'CCitadel_Gunslinger_DemonMark', fieldsCCitadel_Gunslinger_DemonMark)
 
-export class CCitadel_Item extends CCitadelBaseAbility {}
-export interface CCitadel_Item {
-  m_bEquipped: boolean | undefined
-}
-define(CCitadel_Item, 'CCitadel_Item', {
+const fieldsCCitadel_Item = {
   m_bEquipped: 'bool',
-})
+} as const
+export class CCitadel_Item extends CCitadelBaseAbility {}
+export interface CCitadel_Item extends Fields<typeof fieldsCCitadel_Item> {}
+define(CCitadel_Item, 'CCitadel_Item', fieldsCCitadel_Item)
 
 export class CCitadel_Ability_Shield extends CCitadel_Item {}
 define(CCitadel_Ability_Shield, 'CCitadel_Ability_Shield', {})
@@ -10656,28 +7483,24 @@ define(CCitadel_Ability_Shield, 'CCitadel_Ability_Shield', {})
 export class CCitadel_ArmorUpgrade_AbilityLifeSteal extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_AbilityLifeSteal, 'CCitadel_ArmorUpgrade_AbilityLifeSteal', {})
 
-export class CCitadel_ArmorUpgrade_AblativeCoat extends CCitadel_Item {}
-export interface CCitadel_ArmorUpgrade_AblativeCoat {
-  m_flLastDamageTime: number | undefined
-  m_iCurrentResistValue: number | undefined
-}
-define(CCitadel_ArmorUpgrade_AblativeCoat, 'CCitadel_ArmorUpgrade_AblativeCoat', {
+const fieldsCCitadel_ArmorUpgrade_AblativeCoat = {
   m_flLastDamageTime: 'float32',
   m_iCurrentResistValue: 'int32',
-})
+} as const
+export class CCitadel_ArmorUpgrade_AblativeCoat extends CCitadel_Item {}
+export interface CCitadel_ArmorUpgrade_AblativeCoat extends Fields<typeof fieldsCCitadel_ArmorUpgrade_AblativeCoat> {}
+define(CCitadel_ArmorUpgrade_AblativeCoat, 'CCitadel_ArmorUpgrade_AblativeCoat', fieldsCCitadel_ArmorUpgrade_AblativeCoat)
 
 export class CCitadel_ArmorUpgrade_ActiveBulletShield extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_ActiveBulletShield, 'CCitadel_ArmorUpgrade_ActiveBulletShield', {})
 
-export class CCitadel_ArmorUpgrade_AutoCleanse extends CCitadel_Item {}
-export interface CCitadel_ArmorUpgrade_AutoCleanse {
-  m_nAbilityBlockTime: number | undefined
-  m_hModifierCaster: CBaseEntity | undefined
-}
-define(CCitadel_ArmorUpgrade_AutoCleanse, 'CCitadel_ArmorUpgrade_AutoCleanse', {
+const fieldsCCitadel_ArmorUpgrade_AutoCleanse = {
   m_nAbilityBlockTime: 'float32',
   m_hModifierCaster: 'CBaseEntity',
-})
+} as const
+export class CCitadel_ArmorUpgrade_AutoCleanse extends CCitadel_Item {}
+export interface CCitadel_ArmorUpgrade_AutoCleanse extends Fields<typeof fieldsCCitadel_ArmorUpgrade_AutoCleanse> {}
+define(CCitadel_ArmorUpgrade_AutoCleanse, 'CCitadel_ArmorUpgrade_AutoCleanse', fieldsCCitadel_ArmorUpgrade_AutoCleanse)
 
 export class CCitadel_ArmorUpgrade_BulletArmorReductionAura extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_BulletArmorReductionAura, 'CCitadel_ArmorUpgrade_BulletArmorReductionAura', {})
@@ -10697,13 +7520,12 @@ define(CCitadel_ArmorUpgrade_DamageRecycler, 'CCitadel_ArmorUpgrade_DamageRecycl
 export class CCitadel_ArmorUpgrade_DebuffReducer extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_DebuffReducer, 'CCitadel_ArmorUpgrade_DebuffReducer', {})
 
-export class CCitadel_ArmorUpgrade_DoubleJump extends CCitadel_Item {}
-export interface CCitadel_ArmorUpgrade_DoubleJump {
-  m_nTickJumped: number | undefined
-}
-define(CCitadel_ArmorUpgrade_DoubleJump, 'CCitadel_ArmorUpgrade_DoubleJump', {
+const fieldsCCitadel_ArmorUpgrade_DoubleJump = {
   m_nTickJumped: 'int32',
-})
+} as const
+export class CCitadel_ArmorUpgrade_DoubleJump extends CCitadel_Item {}
+export interface CCitadel_ArmorUpgrade_DoubleJump extends Fields<typeof fieldsCCitadel_ArmorUpgrade_DoubleJump> {}
+define(CCitadel_ArmorUpgrade_DoubleJump, 'CCitadel_ArmorUpgrade_DoubleJump', fieldsCCitadel_ArmorUpgrade_DoubleJump)
 
 export class CCitadel_ArmorUpgrade_Frenzy extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_Frenzy, 'CCitadel_ArmorUpgrade_Frenzy', {})
@@ -10720,15 +7542,13 @@ define(CCitadel_ArmorUpgrade_HighImpactArmor, 'CCitadel_ArmorUpgrade_HighImpactA
 export class CCitadel_ArmorUpgrade_MetalSkin extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_MetalSkin, 'CCitadel_ArmorUpgrade_MetalSkin', {})
 
-export class CCitadel_ArmorUpgrade_PersonalRejuvenator extends CCitadel_Item {}
-export interface CCitadel_ArmorUpgrade_PersonalRejuvenator {
-  m_bActivated: boolean | undefined
-  m_nFxIndex: number | undefined
-}
-define(CCitadel_ArmorUpgrade_PersonalRejuvenator, 'CCitadel_ArmorUpgrade_PersonalRejuvenator', {
+const fieldsCCitadel_ArmorUpgrade_PersonalRejuvenator = {
   m_bActivated: 'bool',
   m_nFxIndex: 'int32',
-})
+} as const
+export class CCitadel_ArmorUpgrade_PersonalRejuvenator extends CCitadel_Item {}
+export interface CCitadel_ArmorUpgrade_PersonalRejuvenator extends Fields<typeof fieldsCCitadel_ArmorUpgrade_PersonalRejuvenator> {}
+define(CCitadel_ArmorUpgrade_PersonalRejuvenator, 'CCitadel_ArmorUpgrade_PersonalRejuvenator', fieldsCCitadel_ArmorUpgrade_PersonalRejuvenator)
 
 export class CCitadel_ArmorUpgrade_RegeneratingBulletShield extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_RegeneratingBulletShield, 'CCitadel_ArmorUpgrade_RegeneratingBulletShield', {})
@@ -10745,13 +7565,12 @@ define(CCitadel_ArmorUpgrade_Shrink_Ray, 'CCitadel_ArmorUpgrade_Shrink_Ray', {})
 export class CCitadel_ArmorUpgrade_SlowImmunity extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_SlowImmunity, 'CCitadel_ArmorUpgrade_SlowImmunity', {})
 
-export class CCitadel_ArmorUpgrade_SpellShield extends CCitadel_Item {}
-export interface CCitadel_ArmorUpgrade_SpellShield {
-  fl_mSpellShieldBreakTime: number | undefined
-}
-define(CCitadel_ArmorUpgrade_SpellShield, 'CCitadel_ArmorUpgrade_SpellShield', {
+const fieldsCCitadel_ArmorUpgrade_SpellShield = {
   fl_mSpellShieldBreakTime: 'float32',
-})
+} as const
+export class CCitadel_ArmorUpgrade_SpellShield extends CCitadel_Item {}
+export interface CCitadel_ArmorUpgrade_SpellShield extends Fields<typeof fieldsCCitadel_ArmorUpgrade_SpellShield> {}
+define(CCitadel_ArmorUpgrade_SpellShield, 'CCitadel_ArmorUpgrade_SpellShield', fieldsCCitadel_ArmorUpgrade_SpellShield)
 
 export class CCitadel_ArmorUpgrade_SpiritBubble extends CCitadel_Item {}
 define(CCitadel_ArmorUpgrade_SpiritBubble, 'CCitadel_ArmorUpgrade_SpiritBubble', {})
@@ -10771,15 +7590,13 @@ define(CCitadel_Item_AOERoot, 'CCitadel_Item_AOERoot', {})
 export class CCitadel_Item_AOE_Tech_Shield extends CCitadel_Item {}
 define(CCitadel_Item_AOE_Tech_Shield, 'CCitadel_Item_AOE_Tech_Shield', {})
 
-export class CCitadel_Item_ActiveReload extends CCitadel_Item {}
-export interface CCitadel_Item_ActiveReload {
-  m_bPlayedStartSound: boolean | undefined
-  m_bActiveReloadFailed: boolean | undefined
-}
-define(CCitadel_Item_ActiveReload, 'CCitadel_Item_ActiveReload', {
+const fieldsCCitadel_Item_ActiveReload = {
   m_bPlayedStartSound: 'bool',
   m_bActiveReloadFailed: 'bool',
-})
+} as const
+export class CCitadel_Item_ActiveReload extends CCitadel_Item {}
+export interface CCitadel_Item_ActiveReload extends Fields<typeof fieldsCCitadel_Item_ActiveReload> {}
+define(CCitadel_Item_ActiveReload, 'CCitadel_Item_ActiveReload', fieldsCCitadel_Item_ActiveReload)
 
 export class CCitadel_Item_ArcticBlast extends CCitadel_Item {}
 define(CCitadel_Item_ArcticBlast, 'CCitadel_Item_ArcticBlast', {})
@@ -10787,23 +7604,20 @@ define(CCitadel_Item_ArcticBlast, 'CCitadel_Item_ArcticBlast', {})
 export class CCitadel_Item_Aura_Base extends CCitadel_Item {}
 define(CCitadel_Item_Aura_Base, 'CCitadel_Item_Aura_Base', {})
 
-export class CCitadel_Item_BaseProjectileAOEModifier extends CCitadel_Item {}
-export interface CCitadel_Item_BaseProjectileAOEModifier {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Item_BaseProjectileAOEModifier, 'CCitadel_Item_BaseProjectileAOEModifier', {
+const fieldsCCitadel_Item_BaseProjectileAOEModifier = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Item_BaseProjectileAOEModifier extends CCitadel_Item {}
+export interface CCitadel_Item_BaseProjectileAOEModifier extends Fields<typeof fieldsCCitadel_Item_BaseProjectileAOEModifier> {}
+define(CCitadel_Item_BaseProjectileAOEModifier, 'CCitadel_Item_BaseProjectileAOEModifier', fieldsCCitadel_Item_BaseProjectileAOEModifier)
 
-export class CCitadel_Item_Bubble extends CCitadel_Item {}
-export interface CCitadel_Item_Bubble {
-  m_flEndTime: number | undefined
-}
-define(CCitadel_Item_Bubble, 'CCitadel_Item_Bubble', {
+const fieldsCCitadel_Item_Bubble = {
   m_flEndTime: 'float32',
-})
+} as const
+export class CCitadel_Item_Bubble extends CCitadel_Item {}
+export interface CCitadel_Item_Bubble extends Fields<typeof fieldsCCitadel_Item_Bubble> {}
+define(CCitadel_Item_Bubble, 'CCitadel_Item_Bubble', fieldsCCitadel_Item_Bubble)
 
 export class CCitadel_Item_PrismBlast extends CCitadel_Item_Bubble {}
 define(CCitadel_Item_PrismBlast, 'CCitadel_Item_PrismBlast', {})
@@ -10820,13 +7634,12 @@ define(CCitadel_Item_CelestialGuidance, 'CCitadel_Item_CelestialGuidance', {})
 export class CCitadel_Item_Charge_Mastery extends CCitadel_Item {}
 define(CCitadel_Item_Charge_Mastery, 'CCitadel_Item_Charge_Mastery', {})
 
-export class CCitadel_Item_CheatDeath extends CCitadel_Item {}
-export interface CCitadel_Item_CheatDeath {
-  m_bStartCooldown: boolean | undefined
-}
-define(CCitadel_Item_CheatDeath, 'CCitadel_Item_CheatDeath', {
+const fieldsCCitadel_Item_CheatDeath = {
   m_bStartCooldown: 'bool',
-})
+} as const
+export class CCitadel_Item_CheatDeath extends CCitadel_Item {}
+export interface CCitadel_Item_CheatDeath extends Fields<typeof fieldsCCitadel_Item_CheatDeath> {}
+define(CCitadel_Item_CheatDeath, 'CCitadel_Item_CheatDeath', fieldsCCitadel_Item_CheatDeath)
 
 export class CCitadel_Item_ColdFront extends CCitadel_Item {}
 define(CCitadel_Item_ColdFront, 'CCitadel_Item_ColdFront', {})
@@ -10840,13 +7653,12 @@ define(CCitadel_Item_DPS_Aura, 'CCitadel_Item_DPS_Aura', {})
 export class CCitadel_Item_DivineBarrier extends CCitadel_Item {}
 define(CCitadel_Item_DivineBarrier, 'CCitadel_Item_DivineBarrier', {})
 
-export class CCitadel_Item_DivinersKevlar extends CCitadel_Item {}
-export interface CCitadel_Item_DivinersKevlar {
-  m_bExecuted: boolean | undefined
-}
-define(CCitadel_Item_DivinersKevlar, 'CCitadel_Item_DivinersKevlar', {
+const fieldsCCitadel_Item_DivinersKevlar = {
   m_bExecuted: 'bool',
-})
+} as const
+export class CCitadel_Item_DivinersKevlar extends CCitadel_Item {}
+export interface CCitadel_Item_DivinersKevlar extends Fields<typeof fieldsCCitadel_Item_DivinersKevlar> {}
+define(CCitadel_Item_DivinersKevlar, 'CCitadel_Item_DivinersKevlar', fieldsCCitadel_Item_DivinersKevlar)
 
 export class CCitadel_Item_Electric_Slippers extends CCitadel_Item {}
 define(CCitadel_Item_Electric_Slippers, 'CCitadel_Item_Electric_Slippers', {})
@@ -10854,13 +7666,12 @@ define(CCitadel_Item_Electric_Slippers, 'CCitadel_Item_Electric_Slippers', {})
 export class CCitadel_Item_Empty extends CCitadel_Item {}
 define(CCitadel_Item_Empty, 'CCitadel_Item_Empty', {})
 
-export class CCitadel_Item_GooseEgg extends CCitadel_Item {}
-export interface CCitadel_Item_GooseEgg {
-  m_iAccruedGold: number | undefined
-}
-define(CCitadel_Item_GooseEgg, 'CCitadel_Item_GooseEgg', {
+const fieldsCCitadel_Item_GooseEgg = {
   m_iAccruedGold: 'int32',
-})
+} as const
+export class CCitadel_Item_GooseEgg extends CCitadel_Item {}
+export interface CCitadel_Item_GooseEgg extends Fields<typeof fieldsCCitadel_Item_GooseEgg> {}
+define(CCitadel_Item_GooseEgg, 'CCitadel_Item_GooseEgg', fieldsCCitadel_Item_GooseEgg)
 
 export class CCitadel_Item_GuardianWard extends CCitadel_Item {}
 define(CCitadel_Item_GuardianWard, 'CCitadel_Item_GuardianWard', {})
@@ -10868,28 +7679,24 @@ define(CCitadel_Item_GuardianWard, 'CCitadel_Item_GuardianWard', {})
 export class CCitadel_Item_HealthRegenAura extends CCitadel_Item {}
 define(CCitadel_Item_HealthRegenAura, 'CCitadel_Item_HealthRegenAura', {})
 
-export class CCitadel_Item_Intensifying_Clip extends CCitadel_Item {}
-export interface CCitadel_Item_Intensifying_Clip {
-  m_flSpinUpTime: number | undefined
-}
-define(CCitadel_Item_Intensifying_Clip, 'CCitadel_Item_Intensifying_Clip', {
+const fieldsCCitadel_Item_Intensifying_Clip = {
   m_flSpinUpTime: 'float32',
-})
+} as const
+export class CCitadel_Item_Intensifying_Clip extends CCitadel_Item {}
+export interface CCitadel_Item_Intensifying_Clip extends Fields<typeof fieldsCCitadel_Item_Intensifying_Clip> {}
+define(CCitadel_Item_Intensifying_Clip, 'CCitadel_Item_Intensifying_Clip', fieldsCCitadel_Item_Intensifying_Clip)
 
 export class CCitadel_Item_ModDisruptor extends CCitadel_Item {}
 define(CCitadel_Item_ModDisruptor, 'CCitadel_Item_ModDisruptor', {})
 
-export class CCitadel_Item_Mystic_Regeneration extends CCitadel_Item {}
-export interface CCitadel_Item_Mystic_Regeneration {
-  m_bForceModUpdate: boolean | undefined
-  m_iRegenStacks: number | undefined
-  m_flPendingIncomingHeal: number | undefined
-}
-define(CCitadel_Item_Mystic_Regeneration, 'CCitadel_Item_Mystic_Regeneration', {
+const fieldsCCitadel_Item_Mystic_Regeneration = {
   m_bForceModUpdate: 'bool',
   m_iRegenStacks: 'int32',
   m_flPendingIncomingHeal: 'float32',
-})
+} as const
+export class CCitadel_Item_Mystic_Regeneration extends CCitadel_Item {}
+export interface CCitadel_Item_Mystic_Regeneration extends Fields<typeof fieldsCCitadel_Item_Mystic_Regeneration> {}
+define(CCitadel_Item_Mystic_Regeneration, 'CCitadel_Item_Mystic_Regeneration', fieldsCCitadel_Item_Mystic_Regeneration)
 
 export class CCitadel_Item_NullificationAura extends CCitadel_Item {}
 define(CCitadel_Item_NullificationAura, 'CCitadel_Item_NullificationAura', {})
@@ -10900,15 +7707,13 @@ define(CCitadel_Item_PhantomStrike, 'CCitadel_Item_PhantomStrike', {})
 export class CCitadel_Item_PowerShard extends CCitadel_Item {}
 define(CCitadel_Item_PowerShard, 'CCitadel_Item_PowerShard', {})
 
-export class CCitadel_Item_ProjectileTest extends CCitadel_Item {}
-export interface CCitadel_Item_ProjectileTest {
-  m_vLaunchPosition: Vector | undefined
-  m_qLaunchAngle: Angles | undefined
-}
-define(CCitadel_Item_ProjectileTest, 'CCitadel_Item_ProjectileTest', {
+const fieldsCCitadel_Item_ProjectileTest = {
   m_vLaunchPosition: 'vector',
   m_qLaunchAngle: 'angles',
-})
+} as const
+export class CCitadel_Item_ProjectileTest extends CCitadel_Item {}
+export interface CCitadel_Item_ProjectileTest extends Fields<typeof fieldsCCitadel_Item_ProjectileTest> {}
+define(CCitadel_Item_ProjectileTest, 'CCitadel_Item_ProjectileTest', fieldsCCitadel_Item_ProjectileTest)
 
 export class CCitadel_Item_ProjectileTest02 extends CCitadel_Item_ProjectileTest {}
 define(CCitadel_Item_ProjectileTest02, 'CCitadel_Item_ProjectileTest02', {})
@@ -10919,49 +7724,42 @@ define(CCitadel_Item_ProjectileTest04, 'CCitadel_Item_ProjectileTest04', {})
 export class CCitadel_Item_ProjectileTest05 extends CCitadel_Item_ProjectileTest {}
 define(CCitadel_Item_ProjectileTest05, 'CCitadel_Item_ProjectileTest05', {})
 
-export class CCitadel_Item_ProjectileTest06 extends CCitadel_Item_ProjectileTest {}
-export interface CCitadel_Item_ProjectileTest06 {
-  m_flApproachX: number | undefined
-  m_flApproachY: number | undefined
-  m_flApproachZ: number | undefined
-}
-define(CCitadel_Item_ProjectileTest06, 'CCitadel_Item_ProjectileTest06', {
+const fieldsCCitadel_Item_ProjectileTest06 = {
   m_flApproachX: 'float32',
   m_flApproachY: 'float32',
   m_flApproachZ: 'float32',
-})
+} as const
+export class CCitadel_Item_ProjectileTest06 extends CCitadel_Item_ProjectileTest {}
+export interface CCitadel_Item_ProjectileTest06 extends Fields<typeof fieldsCCitadel_Item_ProjectileTest06> {}
+define(CCitadel_Item_ProjectileTest06, 'CCitadel_Item_ProjectileTest06', fieldsCCitadel_Item_ProjectileTest06)
 
 export class CCitadel_Item_Refresher extends CCitadel_Item {}
 define(CCitadel_Item_Refresher, 'CCitadel_Item_Refresher', {})
 
-export class CCitadel_Item_RescueBeam extends CCitadel_Item {}
-export interface CCitadel_Item_RescueBeam {
-  m_bCanPull: boolean | undefined
-}
-define(CCitadel_Item_RescueBeam, 'CCitadel_Item_RescueBeam', {
+const fieldsCCitadel_Item_RescueBeam = {
   m_bCanPull: 'bool',
-})
+} as const
+export class CCitadel_Item_RescueBeam extends CCitadel_Item {}
+export interface CCitadel_Item_RescueBeam extends Fields<typeof fieldsCCitadel_Item_RescueBeam> {}
+define(CCitadel_Item_RescueBeam, 'CCitadel_Item_RescueBeam', fieldsCCitadel_Item_RescueBeam)
 
 export class CCitadel_Item_SelfBuffModifier extends CCitadel_Item {}
 define(CCitadel_Item_SelfBuffModifier, 'CCitadel_Item_SelfBuffModifier', {})
 
-export class CCitadel_Item_ShadowStep extends CCitadel_Item {}
-export interface CCitadel_Item_ShadowStep {
-  m_nCastDelayParticleIndex: number | undefined
-  m_flLastTickTime: number | undefined
-}
-define(CCitadel_Item_ShadowStep, 'CCitadel_Item_ShadowStep', {
+const fieldsCCitadel_Item_ShadowStep = {
   m_nCastDelayParticleIndex: 'int32',
   m_flLastTickTime: 'float32',
-})
+} as const
+export class CCitadel_Item_ShadowStep extends CCitadel_Item {}
+export interface CCitadel_Item_ShadowStep extends Fields<typeof fieldsCCitadel_Item_ShadowStep> {}
+define(CCitadel_Item_ShadowStep, 'CCitadel_Item_ShadowStep', fieldsCCitadel_Item_ShadowStep)
 
-export class CCitadel_Item_ShadowStrike extends CCitadel_Item {}
-export interface CCitadel_Item_ShadowStrike {
-  m_tAttackWindowStart: number | undefined
-}
-define(CCitadel_Item_ShadowStrike, 'CCitadel_Item_ShadowStrike', {
+const fieldsCCitadel_Item_ShadowStrike = {
   m_tAttackWindowStart: 'float32',
-})
+} as const
+export class CCitadel_Item_ShadowStrike extends CCitadel_Item {}
+export interface CCitadel_Item_ShadowStrike extends Fields<typeof fieldsCCitadel_Item_ShadowStrike> {}
+define(CCitadel_Item_ShadowStrike, 'CCitadel_Item_ShadowStrike', fieldsCCitadel_Item_ShadowStrike)
 
 export class CCitadel_Item_SingleTargetStun extends CCitadel_Item {}
 define(CCitadel_Item_SingleTargetStun, 'CCitadel_Item_SingleTargetStun', {})
@@ -10996,29 +7794,23 @@ define(CItem_GreaterWitheringWhip, 'CItem_GreaterWitheringWhip', {})
 export class CItem_WitheringWhip extends CCitadel_Item_TrackingProjectileApplyModifier {}
 define(CItem_WitheringWhip, 'CItem_WitheringWhip', {})
 
-export class CCitadel_Item_TrophyCollector extends CCitadel_Item {}
-export interface CCitadel_Item_TrophyCollector {
-  m_iTrophyCount: number | undefined
-  m_iInitialKills: number | undefined
-  m_iInitialAssists: number | undefined
-  m_iPrevCount: number | undefined
-  m_bMaxStacksReached: boolean | undefined
-}
-define(CCitadel_Item_TrophyCollector, 'CCitadel_Item_TrophyCollector', {
+const fieldsCCitadel_Item_TrophyCollector = {
   m_iTrophyCount: 'int32',
   m_iInitialKills: 'int32',
   m_iInitialAssists: 'int32',
   m_iPrevCount: 'int32',
   m_bMaxStacksReached: 'bool',
-})
+} as const
+export class CCitadel_Item_TrophyCollector extends CCitadel_Item {}
+export interface CCitadel_Item_TrophyCollector extends Fields<typeof fieldsCCitadel_Item_TrophyCollector> {}
+define(CCitadel_Item_TrophyCollector, 'CCitadel_Item_TrophyCollector', fieldsCCitadel_Item_TrophyCollector)
 
-export class CCitadel_Item_WarpStone extends CCitadel_Item {}
-export interface CCitadel_Item_WarpStone {
-  m_nCastDelayParticleIndex: number | undefined
-}
-define(CCitadel_Item_WarpStone, 'CCitadel_Item_WarpStone', {
+const fieldsCCitadel_Item_WarpStone = {
   m_nCastDelayParticleIndex: 'int32',
-})
+} as const
+export class CCitadel_Item_WarpStone extends CCitadel_Item {}
+export interface CCitadel_Item_WarpStone extends Fields<typeof fieldsCCitadel_Item_WarpStone> {}
+define(CCitadel_Item_WarpStone, 'CCitadel_Item_WarpStone', fieldsCCitadel_Item_WarpStone)
 
 export class CCitadel_Omnicharge_Pendant extends CCitadel_Item {}
 define(CCitadel_Omnicharge_Pendant, 'CCitadel_Omnicharge_Pendant', {})
@@ -11029,36 +7821,31 @@ define(CCitadel_TechUpgrade_CorpseExplosion, 'CCitadel_TechUpgrade_CorpseExplosi
 export class CCitadel_TechUpgrade_Infuser extends CCitadel_Item {}
 define(CCitadel_TechUpgrade_Infuser, 'CCitadel_TechUpgrade_Infuser', {})
 
-export class CCitadel_TechUpgrade_SuperAcolyteGloves extends CCitadel_Item {}
-export interface CCitadel_TechUpgrade_SuperAcolyteGloves {
-  fl_StoredDamage: number | undefined
-}
-define(CCitadel_TechUpgrade_SuperAcolyteGloves, 'CCitadel_TechUpgrade_SuperAcolyteGloves', {
+const fieldsCCitadel_TechUpgrade_SuperAcolyteGloves = {
   fl_StoredDamage: 'float32',
-})
+} as const
+export class CCitadel_TechUpgrade_SuperAcolyteGloves extends CCitadel_Item {}
+export interface CCitadel_TechUpgrade_SuperAcolyteGloves extends Fields<typeof fieldsCCitadel_TechUpgrade_SuperAcolyteGloves> {}
+define(CCitadel_TechUpgrade_SuperAcolyteGloves, 'CCitadel_TechUpgrade_SuperAcolyteGloves', fieldsCCitadel_TechUpgrade_SuperAcolyteGloves)
 
 export class CCitadel_Upgrade_AerialAssault extends CCitadel_Item {}
 define(CCitadel_Upgrade_AerialAssault, 'CCitadel_Upgrade_AerialAssault', {})
 
-export class CCitadel_Upgrade_AmmoScavenger extends CCitadel_Item {}
-export interface CCitadel_Upgrade_AmmoScavenger {
-  m_hLastOrbTarget: CBaseEntity | undefined
-}
-define(CCitadel_Upgrade_AmmoScavenger, 'CCitadel_Upgrade_AmmoScavenger', {
+const fieldsCCitadel_Upgrade_AmmoScavenger = {
   m_hLastOrbTarget: 'CBaseEntity',
-})
+} as const
+export class CCitadel_Upgrade_AmmoScavenger extends CCitadel_Item {}
+export interface CCitadel_Upgrade_AmmoScavenger extends Fields<typeof fieldsCCitadel_Upgrade_AmmoScavenger> {}
+define(CCitadel_Upgrade_AmmoScavenger, 'CCitadel_Upgrade_AmmoScavenger', fieldsCCitadel_Upgrade_AmmoScavenger)
 
-export class CCitadel_Upgrade_MagicCarpet extends CCitadel_Item {}
-export interface CCitadel_Upgrade_MagicCarpet {
-  m_flFlyingStartTime: number | undefined
-  m_bFlying: boolean | undefined
-  m_bSummoning: boolean | undefined
-}
-define(CCitadel_Upgrade_MagicCarpet, 'CCitadel_Upgrade_MagicCarpet', {
+const fieldsCCitadel_Upgrade_MagicCarpet = {
   m_flFlyingStartTime: 'float32',
   m_bFlying: 'bool',
   m_bSummoning: 'bool',
-})
+} as const
+export class CCitadel_Upgrade_MagicCarpet extends CCitadel_Item {}
+export interface CCitadel_Upgrade_MagicCarpet extends Fields<typeof fieldsCCitadel_Upgrade_MagicCarpet> {}
+define(CCitadel_Upgrade_MagicCarpet, 'CCitadel_Upgrade_MagicCarpet', fieldsCCitadel_Upgrade_MagicCarpet)
 
 export class CCitadel_Upgrade_OverdriveClip extends CCitadel_Item {}
 define(CCitadel_Upgrade_OverdriveClip, 'CCitadel_Upgrade_OverdriveClip', {})
@@ -11078,17 +7865,7 @@ define(CCitadel_UtilityUpgrade_HealthNova, 'CCitadel_UtilityUpgrade_HealthNova',
 export class CCitadel_UtilityUpgrade_RocketBoots extends CCitadel_Item {}
 define(CCitadel_UtilityUpgrade_RocketBoots, 'CCitadel_UtilityUpgrade_RocketBoots', {})
 
-export class CCitadel_UtilityUpgrade_RocketBooster extends CCitadel_UtilityUpgrade_RocketBoots {}
-export interface CCitadel_UtilityUpgrade_RocketBooster {
-  m_nTargetingParticleIndex: number | undefined
-  m_flCastTime: number | undefined
-  m_bCrashingDown: boolean | undefined
-  m_bImpulseApplied: boolean | undefined
-  m_bCanCrash: boolean | undefined
-  m_vecCrashPosition: Vector | undefined
-  m_vecCrashDirection: Vector | undefined
-}
-define(CCitadel_UtilityUpgrade_RocketBooster, 'CCitadel_UtilityUpgrade_RocketBooster', {
+const fieldsCCitadel_UtilityUpgrade_RocketBooster = {
   m_nTargetingParticleIndex: 'int32',
   m_flCastTime: 'float32',
   m_bCrashingDown: 'bool',
@@ -11096,7 +7873,10 @@ define(CCitadel_UtilityUpgrade_RocketBooster, 'CCitadel_UtilityUpgrade_RocketBoo
   m_bCanCrash: 'bool',
   m_vecCrashPosition: 'vector',
   m_vecCrashDirection: 'vector',
-})
+} as const
+export class CCitadel_UtilityUpgrade_RocketBooster extends CCitadel_UtilityUpgrade_RocketBoots {}
+export interface CCitadel_UtilityUpgrade_RocketBooster extends Fields<typeof fieldsCCitadel_UtilityUpgrade_RocketBooster> {}
+define(CCitadel_UtilityUpgrade_RocketBooster, 'CCitadel_UtilityUpgrade_RocketBooster', fieldsCCitadel_UtilityUpgrade_RocketBooster)
 
 export class CCitadel_WeaponUpgrade_ApexCombat extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_ApexCombat, 'CCitadel_WeaponUpgrade_ApexCombat', {})
@@ -11104,13 +7884,12 @@ define(CCitadel_WeaponUpgrade_ApexCombat, 'CCitadel_WeaponUpgrade_ApexCombat', {
 export class CCitadel_WeaponUpgrade_BloodTribute extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_BloodTribute, 'CCitadel_WeaponUpgrade_BloodTribute', {})
 
-export class CCitadel_WeaponUpgrade_BurstFire extends CCitadel_Item {}
-export interface CCitadel_WeaponUpgrade_BurstFire {
-  m_nFastFireEndTime: number | undefined
-}
-define(CCitadel_WeaponUpgrade_BurstFire, 'CCitadel_WeaponUpgrade_BurstFire', {
+const fieldsCCitadel_WeaponUpgrade_BurstFire = {
   m_nFastFireEndTime: 'float32',
-})
+} as const
+export class CCitadel_WeaponUpgrade_BurstFire extends CCitadel_Item {}
+export interface CCitadel_WeaponUpgrade_BurstFire extends Fields<typeof fieldsCCitadel_WeaponUpgrade_BurstFire> {}
+define(CCitadel_WeaponUpgrade_BurstFire, 'CCitadel_WeaponUpgrade_BurstFire', fieldsCCitadel_WeaponUpgrade_BurstFire)
 
 export class CCitadel_WeaponUpgrade_CooldownOnMiss extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_CooldownOnMiss, 'CCitadel_WeaponUpgrade_CooldownOnMiss', {})
@@ -11118,23 +7897,17 @@ define(CCitadel_WeaponUpgrade_CooldownOnMiss, 'CCitadel_WeaponUpgrade_CooldownOn
 export class CCitadel_WeaponUpgrade_CultistSacrifice extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_CultistSacrifice, 'CCitadel_WeaponUpgrade_CultistSacrifice', {})
 
-export class CCitadel_WeaponUpgrade_ExpressShot extends CCitadel_Item {}
-export interface CCitadel_WeaponUpgrade_ExpressShot {
-  m_iShotsToCreate: number | undefined
-  m_bIsInExpressShot: boolean | undefined
-  m_bProcShotCharged: boolean | undefined
-  m_flProcChargeBonusDamage: number | undefined
-  m_tNextShotTime: number | undefined
-  m_bIsPrimaryProc: boolean | undefined
-}
-define(CCitadel_WeaponUpgrade_ExpressShot, 'CCitadel_WeaponUpgrade_ExpressShot', {
+const fieldsCCitadel_WeaponUpgrade_ExpressShot = {
   m_iShotsToCreate: 'int32',
   m_bIsInExpressShot: 'bool',
   m_bProcShotCharged: 'bool',
   m_flProcChargeBonusDamage: 'float32',
   m_tNextShotTime: 'float32',
   m_bIsPrimaryProc: 'bool',
-})
+} as const
+export class CCitadel_WeaponUpgrade_ExpressShot extends CCitadel_Item {}
+export interface CCitadel_WeaponUpgrade_ExpressShot extends Fields<typeof fieldsCCitadel_WeaponUpgrade_ExpressShot> {}
+define(CCitadel_WeaponUpgrade_ExpressShot, 'CCitadel_WeaponUpgrade_ExpressShot', fieldsCCitadel_WeaponUpgrade_ExpressShot)
 
 export class CCitadel_WeaponUpgrade_FireRateAura extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_FireRateAura, 'CCitadel_WeaponUpgrade_FireRateAura', {})
@@ -11151,13 +7924,12 @@ define(CCitadel_WeaponUpgrade_HeadshotDamage, 'CCitadel_WeaponUpgrade_HeadshotDa
 export class CCitadel_WeaponUpgrade_InfiniteMagazine extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_InfiniteMagazine, 'CCitadel_WeaponUpgrade_InfiniteMagazine', {})
 
-export class CCitadel_WeaponUpgrade_InstantReload extends CCitadel_Item {}
-export interface CCitadel_WeaponUpgrade_InstantReload {
-  m_bIsManualReloading: boolean | undefined
-}
-define(CCitadel_WeaponUpgrade_InstantReload, 'CCitadel_WeaponUpgrade_InstantReload', {
+const fieldsCCitadel_WeaponUpgrade_InstantReload = {
   m_bIsManualReloading: 'bool',
-})
+} as const
+export class CCitadel_WeaponUpgrade_InstantReload extends CCitadel_Item {}
+export interface CCitadel_WeaponUpgrade_InstantReload extends Fields<typeof fieldsCCitadel_WeaponUpgrade_InstantReload> {}
+define(CCitadel_WeaponUpgrade_InstantReload, 'CCitadel_WeaponUpgrade_InstantReload', fieldsCCitadel_WeaponUpgrade_InstantReload)
 
 export class CCitadel_WeaponUpgrade_RechargingBullets extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_RechargingBullets, 'CCitadel_WeaponUpgrade_RechargingBullets', {})
@@ -11165,28 +7937,17 @@ define(CCitadel_WeaponUpgrade_RechargingBullets, 'CCitadel_WeaponUpgrade_Recharg
 export class CCitadel_WeaponUpgrade_Ricochet extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_Ricochet, 'CCitadel_WeaponUpgrade_Ricochet', {})
 
-export class CCitadel_WeaponUpgrade_SiphonBullets extends CCitadel_Item {}
-export interface CCitadel_WeaponUpgrade_SiphonBullets {
-  m_iStacks: number | undefined
-}
-define(CCitadel_WeaponUpgrade_SiphonBullets, 'CCitadel_WeaponUpgrade_SiphonBullets', {
+const fieldsCCitadel_WeaponUpgrade_SiphonBullets = {
   m_iStacks: 'int32',
-})
+} as const
+export class CCitadel_WeaponUpgrade_SiphonBullets extends CCitadel_Item {}
+export interface CCitadel_WeaponUpgrade_SiphonBullets extends Fields<typeof fieldsCCitadel_WeaponUpgrade_SiphonBullets> {}
+define(CCitadel_WeaponUpgrade_SiphonBullets, 'CCitadel_WeaponUpgrade_SiphonBullets', fieldsCCitadel_WeaponUpgrade_SiphonBullets)
 
 export class CCitadel_WeaponUpgrade_SpellslingerHeadshots extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_SpellslingerHeadshots, 'CCitadel_WeaponUpgrade_SpellslingerHeadshots', {})
 
-export class CCitadel_WeaponUpgrade_SplitShot extends CCitadel_Item {}
-export interface CCitadel_WeaponUpgrade_SplitShot {
-  m_nLastShotID: number | undefined
-  m_nLastHitShotID: number | undefined
-  m_nWpnBatchCount: number | undefined
-  m_nLastBulletHitShotID: number | undefined
-  m_nLastBulletHitCount: number | undefined
-  m_eLastBulletHitEnt: CBaseEntity | undefined
-  m_bSplitShotActive: boolean | undefined
-}
-define(CCitadel_WeaponUpgrade_SplitShot, 'CCitadel_WeaponUpgrade_SplitShot', {
+const fieldsCCitadel_WeaponUpgrade_SplitShot = {
   m_nLastShotID: 'uint32',
   m_nLastHitShotID: 'uint32',
   m_nWpnBatchCount: 'int32',
@@ -11194,18 +7955,20 @@ define(CCitadel_WeaponUpgrade_SplitShot, 'CCitadel_WeaponUpgrade_SplitShot', {
   m_nLastBulletHitCount: 'int32',
   m_eLastBulletHitEnt: 'CBaseEntity',
   m_bSplitShotActive: 'bool',
-})
+} as const
+export class CCitadel_WeaponUpgrade_SplitShot extends CCitadel_Item {}
+export interface CCitadel_WeaponUpgrade_SplitShot extends Fields<typeof fieldsCCitadel_WeaponUpgrade_SplitShot> {}
+define(CCitadel_WeaponUpgrade_SplitShot, 'CCitadel_WeaponUpgrade_SplitShot', fieldsCCitadel_WeaponUpgrade_SplitShot)
 
 export class CCitadel_WeaponUpgrade_SurgingPower extends CCitadel_Item {}
 define(CCitadel_WeaponUpgrade_SurgingPower, 'CCitadel_WeaponUpgrade_SurgingPower', {})
 
-export class CCitadel_WeaponUpgrade_WeaponEater extends CCitadel_Item {}
-export interface CCitadel_WeaponUpgrade_WeaponEater {
-  m_nWeaponPower: number | undefined
-}
-define(CCitadel_WeaponUpgrade_WeaponEater, 'CCitadel_WeaponUpgrade_WeaponEater', {
+const fieldsCCitadel_WeaponUpgrade_WeaponEater = {
   m_nWeaponPower: 'int32',
-})
+} as const
+export class CCitadel_WeaponUpgrade_WeaponEater extends CCitadel_Item {}
+export interface CCitadel_WeaponUpgrade_WeaponEater extends Fields<typeof fieldsCCitadel_WeaponUpgrade_WeaponEater> {}
+define(CCitadel_WeaponUpgrade_WeaponEater, 'CCitadel_WeaponUpgrade_WeaponEater', fieldsCCitadel_WeaponUpgrade_WeaponEater)
 
 export class CItemCapacitor extends CCitadel_Item {}
 define(CItemCapacitor, 'CItemCapacitor', {})
@@ -11222,34 +7985,30 @@ define(CItemSilenceGlyph, 'CItemSilenceGlyph', {})
 export class CItem_FleetfootBoots extends CCitadel_Item {}
 define(CItem_FleetfootBoots, 'CItem_FleetfootBoots', {})
 
-export class CItem_ResonantHealing extends CCitadel_Item {}
-export interface CItem_ResonantHealing {
-  m_bForceModUpdate: boolean | undefined
-  m_iResonantHealingRegenStacks: number | undefined
-}
-define(CItem_ResonantHealing, 'CItem_ResonantHealing', {
+const fieldsCItem_ResonantHealing = {
   m_bForceModUpdate: 'bool',
   m_iResonantHealingRegenStacks: 'int32',
-})
+} as const
+export class CItem_ResonantHealing extends CCitadel_Item {}
+export interface CItem_ResonantHealing extends Fields<typeof fieldsCItem_ResonantHealing> {}
+define(CItem_ResonantHealing, 'CItem_ResonantHealing', fieldsCItem_ResonantHealing)
 
-export class CItem_RestorativeLocket extends CCitadel_Item {}
-export interface CItem_RestorativeLocket {
-  m_nNumStacks: number | undefined
-}
-define(CItem_RestorativeLocket, 'CItem_RestorativeLocket', {
+const fieldsCItem_RestorativeLocket = {
   m_nNumStacks: 'int32',
-})
+} as const
+export class CItem_RestorativeLocket extends CCitadel_Item {}
+export interface CItem_RestorativeLocket extends Fields<typeof fieldsCItem_RestorativeLocket> {}
+define(CItem_RestorativeLocket, 'CItem_RestorativeLocket', fieldsCItem_RestorativeLocket)
 
 export class CCitadel_NPCAbility_Shield extends CCitadelBaseAbility {}
 define(CCitadel_NPCAbility_Shield, 'CCitadel_NPCAbility_Shield', {})
 
-export class CCitadel_NPCAbility_Vanguard_AOEBuff extends CCitadelBaseAbility {}
-export interface CCitadel_NPCAbility_Vanguard_AOEBuff {
-  m_timeNextCast: number | undefined
-}
-define(CCitadel_NPCAbility_Vanguard_AOEBuff, 'CCitadel_NPCAbility_Vanguard_AOEBuff', {
+const fieldsCCitadel_NPCAbility_Vanguard_AOEBuff = {
   m_timeNextCast: 'float32',
-})
+} as const
+export class CCitadel_NPCAbility_Vanguard_AOEBuff extends CCitadelBaseAbility {}
+export interface CCitadel_NPCAbility_Vanguard_AOEBuff extends Fields<typeof fieldsCCitadel_NPCAbility_Vanguard_AOEBuff> {}
+define(CCitadel_NPCAbility_Vanguard_AOEBuff, 'CCitadel_NPCAbility_Vanguard_AOEBuff', fieldsCCitadel_NPCAbility_Vanguard_AOEBuff)
 
 export class CCitadel_Werewolf_CripplingSlash extends CCitadelBaseAbility {}
 define(CCitadel_Werewolf_CripplingSlash, 'CCitadel_Werewolf_CripplingSlash', {})
@@ -11257,67 +8016,54 @@ define(CCitadel_Werewolf_CripplingSlash, 'CCitadel_Werewolf_CripplingSlash', {})
 export class CCitadel_Werewolf_Hunt extends CCitadelBaseAbility {}
 define(CCitadel_Werewolf_Hunt, 'CCitadel_Werewolf_Hunt', {})
 
-export class CCitadel_Werewolf_Transformation extends CCitadelBaseAbility {}
-export interface CCitadel_Werewolf_Transformation {
-  m_bIsTransformed: boolean | undefined
-  m_bIsTransformingBack: boolean | undefined
-  m_tLastRegenComponentThinkTime: number | undefined
-  m_tForceTransformTime: number | undefined
-  m_flWerewolfStartTime: number | undefined
-}
-define(CCitadel_Werewolf_Transformation, 'CCitadel_Werewolf_Transformation', {
+const fieldsCCitadel_Werewolf_Transformation = {
   m_bIsTransformed: 'bool',
   m_bIsTransformingBack: 'bool',
   m_tLastRegenComponentThinkTime: 'float32',
   m_tForceTransformTime: 'float32',
   m_flWerewolfStartTime: 'float32',
-})
+} as const
+export class CCitadel_Werewolf_Transformation extends CCitadelBaseAbility {}
+export interface CCitadel_Werewolf_Transformation extends Fields<typeof fieldsCCitadel_Werewolf_Transformation> {}
+define(CCitadel_Werewolf_Transformation, 'CCitadel_Werewolf_Transformation', fieldsCCitadel_Werewolf_Transformation)
 
 export class CCitadel_Werewolf_UnloadGun extends CCitadelBaseAbility {}
 define(CCitadel_Werewolf_UnloadGun, 'CCitadel_Werewolf_UnloadGun', {})
 
-export class CCitadel_Werewolf_UnloadGun2 extends CCitadelBaseAbility {}
-export interface CCitadel_Werewolf_UnloadGun2 {
-  m_tActiveEndTime: number | undefined
-}
-define(CCitadel_Werewolf_UnloadGun2, 'CCitadel_Werewolf_UnloadGun2', {
+const fieldsCCitadel_Werewolf_UnloadGun2 = {
   m_tActiveEndTime: 'float32',
-})
+} as const
+export class CCitadel_Werewolf_UnloadGun2 extends CCitadelBaseAbility {}
+export interface CCitadel_Werewolf_UnloadGun2 extends Fields<typeof fieldsCCitadel_Werewolf_UnloadGun2> {}
+define(CCitadel_Werewolf_UnloadGun2, 'CCitadel_Werewolf_UnloadGun2', fieldsCCitadel_Werewolf_UnloadGun2)
 
 export class CCitadelEconItemContainer extends CBaseEntity {}
 define(CCitadelEconItemContainer, 'CCitadelEconItemContainer', {})
 
-export class CCitadelGaffer extends CBaseEntity {}
-export interface CCitadelGaffer {
-  inputBlendTo(value: string): boolean
-}
-define(CCitadelGaffer, 'CCitadelGaffer', {}, {
+const inputsCCitadelGaffer = {
   BlendTo: 'text',
-})
+} as const
+export class CCitadelGaffer extends CBaseEntity {}
+export interface CCitadelGaffer extends Inputs<typeof inputsCCitadelGaffer> {}
+define(CCitadelGaffer, 'CCitadelGaffer', {}, inputsCCitadelGaffer)
 
-export class CCitadelHeroLoader extends CBaseEntity {}
-export interface CCitadelHeroLoader {
-  readonly m_hero: string | undefined
-  m_nLoadSeq: number | undefined
-  m_hOwner: CBaseEntity | undefined
-}
-define(CCitadelHeroLoader, 'CCitadelHeroLoader', {
+const fieldsCCitadelHeroLoader = {
   m_hero: 'string',
   m_nLoadSeq: 'int32',
   m_hOwner: 'CBaseEntity',
-})
+} as const
+export class CCitadelHeroLoader extends CBaseEntity {}
+export interface CCitadelHeroLoader extends Fields<typeof fieldsCCitadelHeroLoader> {}
+define(CCitadelHeroLoader, 'CCitadelHeroLoader', fieldsCCitadelHeroLoader)
 
-export class CCitadelHideoutPropSlot extends CBaseEntity {}
-export interface CCitadelHideoutPropSlot {
-  m_nSlotID: number | undefined
-  m_nSlotType: number | undefined
-  m_hProp: CCitadelHideoutPropBase | undefined
-}
-define(CCitadelHideoutPropSlot, 'CCitadelHideoutPropSlot', {
+const fieldsCCitadelHideoutPropSlot = {
   m_nSlotID: 'int32',
   m_nSlotType: 'uint32',
   m_hProp: 'CCitadelHideoutPropBase',
-})
+} as const
+export class CCitadelHideoutPropSlot extends CBaseEntity {}
+export interface CCitadelHideoutPropSlot extends Fields<typeof fieldsCCitadelHideoutPropSlot> {}
+define(CCitadelHideoutPropSlot, 'CCitadelHideoutPropSlot', fieldsCCitadelHideoutPropSlot)
 
 export class CCitadelLocalPlayerRankedBadgeProp extends CBaseEntity {}
 define(CCitadelLocalPlayerRankedBadgeProp, 'CCitadelLocalPlayerRankedBadgeProp', {})
@@ -11325,18 +8071,7 @@ define(CCitadelLocalPlayerRankedBadgeProp, 'CCitadelLocalPlayerRankedBadgeProp',
 export class CCitadelMinimapBoundary extends CBaseEntity {}
 define(CCitadelMinimapBoundary, 'CCitadelMinimapBoundary', {})
 
-export class CCitadelSoundOpvarSetOBB extends CBaseEntity {}
-export interface CCitadelSoundOpvarSetOBB {
-  readonly m_iszStackName: string | undefined
-  readonly m_iszOperatorName: string | undefined
-  readonly m_iszOpvarName: string | undefined
-  m_vDistanceInnerMins: Vector | undefined
-  m_vDistanceInnerMaxs: Vector | undefined
-  m_vDistanceOuterMins: Vector | undefined
-  m_vDistanceOuterMaxs: Vector | undefined
-  m_nAABBDirection: number | undefined
-}
-define(CCitadelSoundOpvarSetOBB, 'CCitadelSoundOpvarSetOBB', {
+const fieldsCCitadelSoundOpvarSetOBB = {
   m_iszStackName: 'string',
   m_iszOperatorName: 'string',
   m_iszOpvarName: 'string',
@@ -11345,19 +8080,12 @@ define(CCitadelSoundOpvarSetOBB, 'CCitadelSoundOpvarSetOBB', {
   m_vDistanceOuterMins: 'vector',
   m_vDistanceOuterMaxs: 'vector',
   m_nAABBDirection: 'int32',
-})
+} as const
+export class CCitadelSoundOpvarSetOBB extends CBaseEntity {}
+export interface CCitadelSoundOpvarSetOBB extends Fields<typeof fieldsCCitadelSoundOpvarSetOBB> {}
+define(CCitadelSoundOpvarSetOBB, 'CCitadelSoundOpvarSetOBB', fieldsCCitadelSoundOpvarSetOBB)
 
-export class CCitadelSoundStackFieldOBB extends CBaseEntity {}
-export interface CCitadelSoundStackFieldOBB {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-  m_nMaxDistance: number | undefined
-  readonly m_nStackName: string | undefined
-  readonly m_nOperatorName: string | undefined
-  readonly m_nOperatorFieldName: string | undefined
-  m_nMusicState: number | undefined
-}
-define(CCitadelSoundStackFieldOBB, 'CCitadelSoundStackFieldOBB', {
+const fieldsCCitadelSoundStackFieldOBB = {
   m_vMins: 'vector',
   m_vMaxs: 'vector',
   m_nMaxDistance: 'uint32',
@@ -11365,31 +8093,22 @@ define(CCitadelSoundStackFieldOBB, 'CCitadelSoundStackFieldOBB', {
   m_nOperatorName: 'string',
   m_nOperatorFieldName: 'string',
   m_nMusicState: 'uint32',
-})
+} as const
+export class CCitadelSoundStackFieldOBB extends CBaseEntity {}
+export interface CCitadelSoundStackFieldOBB extends Fields<typeof fieldsCCitadelSoundStackFieldOBB> {}
+define(CCitadelSoundStackFieldOBB, 'CCitadelSoundStackFieldOBB', fieldsCCitadelSoundStackFieldOBB)
 
 export class CCitadelBaseMusicOBB extends CCitadelSoundStackFieldOBB {}
 define(CCitadelBaseMusicOBB, 'CCitadelBaseMusicOBB', {})
 
-export class CCitadelTrooperMinimap extends CBaseEntity {}
-export interface CCitadelTrooperMinimap {
-  m_flUpdateInterval: number | undefined
-}
-define(CCitadelTrooperMinimap, 'CCitadelTrooperMinimap', {
+const fieldsCCitadelTrooperMinimap = {
   m_flUpdateInterval: 'float32',
-})
+} as const
+export class CCitadelTrooperMinimap extends CBaseEntity {}
+export interface CCitadelTrooperMinimap extends Fields<typeof fieldsCCitadelTrooperMinimap> {}
+define(CCitadelTrooperMinimap, 'CCitadelTrooperMinimap', fieldsCCitadelTrooperMinimap)
 
-export class CCitadelZipLinePathNode extends CBaseEntity {}
-export interface CCitadelZipLinePathNode {
-  m_bCornerNode: boolean | undefined
-  m_bDisableZippingToByPlayers: boolean | undefined
-  m_bCapturable: boolean | undefined
-  readonly m_strGuardBossName: string | undefined
-  readonly m_strGuardBossName2: string | undefined
-  readonly m_strGuardBossName3: string | undefined
-  m_flSpeedMultiplierToBaseBonus: number | undefined
-  m_flSpeedMultiplierFromBaseBonus: number | undefined
-}
-define(CCitadelZipLinePathNode, 'CCitadelZipLinePathNode', {
+const fieldsCCitadelZipLinePathNode = {
   m_bCornerNode: 'bool',
   m_bDisableZippingToByPlayers: 'bool',
   m_bCapturable: 'bool',
@@ -11398,32 +8117,12 @@ define(CCitadelZipLinePathNode, 'CCitadelZipLinePathNode', {
   m_strGuardBossName3: 'string',
   m_flSpeedMultiplierToBaseBonus: 'float32',
   m_flSpeedMultiplierFromBaseBonus: 'float32',
-})
+} as const
+export class CCitadelZipLinePathNode extends CBaseEntity {}
+export interface CCitadelZipLinePathNode extends Fields<typeof fieldsCCitadelZipLinePathNode> {}
+define(CCitadelZipLinePathNode, 'CCitadelZipLinePathNode', fieldsCCitadelZipLinePathNode)
 
-export class CColorCorrection extends CBaseEntity {}
-export interface CColorCorrection {
-  m_flFadeInDuration: number | undefined
-  m_flFadeOutDuration: number | undefined
-  m_flStartFadeInWeight: number | undefined
-  m_flStartFadeOutWeight: number | undefined
-  m_flTimeStartFadeIn: number | undefined
-  m_flTimeStartFadeOut: number | undefined
-  m_flMaxWeight: number | undefined
-  m_bStartDisabled: boolean | undefined
-  m_bEnabled: boolean | undefined
-  m_bMaster: boolean | undefined
-  m_bClientSide: boolean | undefined
-  m_bExclusive: boolean | undefined
-  m_MinFalloff: number | undefined
-  m_MaxFalloff: number | undefined
-  m_flCurWeight: number | undefined
-  readonly m_lookupFilename: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetFadeInDuration(value: number): boolean
-  inputSetFadeOutDuration(value: number): boolean
-}
-define(CColorCorrection, 'CColorCorrection', {
+const fieldsCColorCorrection = {
   m_flFadeInDuration: 'float32',
   m_flFadeOutDuration: 'float32',
   m_flStartFadeInWeight: 'float32',
@@ -11440,46 +8139,35 @@ define(CColorCorrection, 'CColorCorrection', {
   m_MaxFalloff: 'float32',
   m_flCurWeight: 'float32',
   m_lookupFilename: 'string',
-}, {
+} as const
+const inputsCColorCorrection = {
   Disable: '',
   Enable: '',
   SetFadeInDuration: 'number',
   SetFadeOutDuration: 'number',
-})
+} as const
+export class CColorCorrection extends CBaseEntity {}
+export interface CColorCorrection extends Fields<typeof fieldsCColorCorrection>, Inputs<typeof inputsCColorCorrection> {}
+define(CColorCorrection, 'CColorCorrection', fieldsCColorCorrection, inputsCColorCorrection)
 
-export class CCommentaryAuto extends CBaseEntity {}
-export interface CCommentaryAuto {
-  inputMultiplayerSpawned(): boolean
-}
-define(CCommentaryAuto, 'CCommentaryAuto', {}, {
+const inputsCCommentaryAuto = {
   MultiplayerSpawned: '',
-})
+} as const
+export class CCommentaryAuto extends CBaseEntity {}
+export interface CCommentaryAuto extends Inputs<typeof inputsCCommentaryAuto> {}
+define(CCommentaryAuto, 'CCommentaryAuto', {}, inputsCCommentaryAuto)
 
-export class CDebugHistory extends CBaseEntity {}
-export interface CDebugHistory {
-  m_nNpcEvents: number | undefined
-}
-define(CDebugHistory, 'CDebugHistory', {
+const fieldsCDebugHistory = {
   m_nNpcEvents: 'int32',
-})
+} as const
+export class CDebugHistory extends CBaseEntity {}
+export interface CDebugHistory extends Fields<typeof fieldsCDebugHistory> {}
+define(CDebugHistory, 'CDebugHistory', fieldsCDebugHistory)
 
 export class CEnableMotionFixup extends CBaseEntity {}
 define(CEnableMotionFixup, 'CEnableMotionFixup', {})
 
-export class CEntityFlame extends CBaseEntity {}
-export interface CEntityFlame {
-  m_hEntAttached: CBaseEntity | undefined
-  m_bCheapEffect: boolean | undefined
-  m_flSize: number | undefined
-  m_bUseHitboxes: boolean | undefined
-  m_iNumHitboxFires: number | undefined
-  m_flHitboxFireScale: number | undefined
-  m_flLifetime: number | undefined
-  m_hAttacker: CBaseEntity | undefined
-  m_flDirectDamagePerSecond: number | undefined
-  m_iCustomDamageType: number | undefined
-}
-define(CEntityFlame, 'CEntityFlame', {
+const fieldsCEntityFlame = {
   m_hEntAttached: 'CBaseEntity',
   m_bCheapEffect: 'bool',
   m_flSize: 'float32',
@@ -11490,47 +8178,23 @@ define(CEntityFlame, 'CEntityFlame', {
   m_hAttacker: 'CBaseEntity',
   m_flDirectDamagePerSecond: 'float32',
   m_iCustomDamageType: 'int32',
-})
+} as const
+export class CEntityFlame extends CBaseEntity {}
+export interface CEntityFlame extends Fields<typeof fieldsCEntityFlame> {}
+define(CEntityFlame, 'CEntityFlame', fieldsCEntityFlame)
 
-export class CEnvBeverage extends CBaseEntity {}
-export interface CEnvBeverage {
-  m_CanInDispenser: boolean | undefined
-  m_nBeverageType: number | undefined
-  inputActivate(): boolean
-}
-define(CEnvBeverage, 'CEnvBeverage', {
+const fieldsCEnvBeverage = {
   m_CanInDispenser: 'bool',
   m_nBeverageType: 'int32',
-}, {
+} as const
+const inputsCEnvBeverage = {
   Activate: '',
-})
+} as const
+export class CEnvBeverage extends CBaseEntity {}
+export interface CEnvBeverage extends Fields<typeof fieldsCEnvBeverage>, Inputs<typeof inputsCEnvBeverage> {}
+define(CEnvBeverage, 'CEnvBeverage', fieldsCEnvBeverage, inputsCEnvBeverage)
 
-export class CEnvCombinedLightProbeVolume extends CBaseEntity {}
-export interface CEnvCombinedLightProbeVolume {
-  m_Entity_flBrightness: number | undefined
-  m_Entity_bCustomCubemapTexture: boolean | undefined
-  m_Entity_vBoxMins: Vector | undefined
-  m_Entity_vBoxMaxs: Vector | undefined
-  m_Entity_bMoveable: boolean | undefined
-  m_Entity_nHandshake: number | undefined
-  m_Entity_nEnvCubeMapArrayIndex: number | undefined
-  m_Entity_nPriority: number | undefined
-  m_Entity_bStartDisabled: boolean | undefined
-  m_Entity_flEdgeFadeDist: number | undefined
-  m_Entity_vEdgeFadeDists: Vector | undefined
-  m_Entity_nLightProbeSizeX: number | undefined
-  m_Entity_nLightProbeSizeY: number | undefined
-  m_Entity_nLightProbeSizeZ: number | undefined
-  m_Entity_nLightProbeAtlasX: number | undefined
-  m_Entity_nLightProbeAtlasY: number | undefined
-  m_Entity_nLightProbeAtlasZ: number | undefined
-  m_Entity_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetBrightness(value: number): boolean
-  inputSetColor(value: number): boolean
-}
-define(CEnvCombinedLightProbeVolume, 'CEnvCombinedLightProbeVolume', {
+const fieldsCEnvCombinedLightProbeVolume = {
   m_Entity_flBrightness: 'float32',
   m_Entity_bCustomCubemapTexture: 'bool',
   m_Entity_vBoxMins: 'vector',
@@ -11549,39 +8213,21 @@ define(CEnvCombinedLightProbeVolume, 'CEnvCombinedLightProbeVolume', {
   m_Entity_nLightProbeAtlasY: 'int32',
   m_Entity_nLightProbeAtlasZ: 'int32',
   m_Entity_bEnabled: 'bool',
-}, {
+} as const
+const inputsCEnvCombinedLightProbeVolume = {
   Disable: '',
   Enable: '',
   SetBrightness: 'number',
   SetColor: 'color',
-})
+} as const
+export class CEnvCombinedLightProbeVolume extends CBaseEntity {}
+export interface CEnvCombinedLightProbeVolume extends Fields<typeof fieldsCEnvCombinedLightProbeVolume>, Inputs<typeof inputsCEnvCombinedLightProbeVolume> {}
+define(CEnvCombinedLightProbeVolume, 'CEnvCombinedLightProbeVolume', fieldsCEnvCombinedLightProbeVolume, inputsCEnvCombinedLightProbeVolume)
 
 export class CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume extends CEnvCombinedLightProbeVolume {}
 define(CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume, 'CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume', {})
 
-export class CEnvCubemap extends CBaseEntity {}
-export interface CEnvCubemap {
-  m_Entity_bCustomCubemapTexture: boolean | undefined
-  m_Entity_flInfluenceRadius: number | undefined
-  m_Entity_vBoxProjectMins: Vector | undefined
-  m_Entity_vBoxProjectMaxs: Vector | undefined
-  m_Entity_bMoveable: boolean | undefined
-  m_Entity_nHandshake: number | undefined
-  m_Entity_nEnvCubeMapArrayIndex: number | undefined
-  m_Entity_nPriority: number | undefined
-  m_Entity_flEdgeFadeDist: number | undefined
-  m_Entity_vEdgeFadeDists: Vector | undefined
-  m_Entity_flDiffuseScale: number | undefined
-  m_Entity_bStartDisabled: boolean | undefined
-  m_Entity_bDefaultEnvMap: boolean | undefined
-  m_Entity_bDefaultSpecEnvMap: boolean | undefined
-  m_Entity_bIndoorCubeMap: boolean | undefined
-  m_Entity_bCopyDiffuseFromDefaultCubemap: boolean | undefined
-  m_Entity_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CEnvCubemap, 'CEnvCubemap', {
+const fieldsCEnvCubemap = {
   m_Entity_bCustomCubemapTexture: 'bool',
   m_Entity_flInfluenceRadius: 'float32',
   m_Entity_vBoxProjectMins: 'vector',
@@ -11599,39 +8245,16 @@ define(CEnvCubemap, 'CEnvCubemap', {
   m_Entity_bIndoorCubeMap: 'bool',
   m_Entity_bCopyDiffuseFromDefaultCubemap: 'bool',
   m_Entity_bEnabled: 'bool',
-}, {
+} as const
+const inputsCEnvCubemap = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CEnvCubemap extends CBaseEntity {}
+export interface CEnvCubemap extends Fields<typeof fieldsCEnvCubemap>, Inputs<typeof inputsCEnvCubemap> {}
+define(CEnvCubemap, 'CEnvCubemap', fieldsCEnvCubemap, inputsCEnvCubemap)
 
-export class CEnvCubemapFog extends CBaseEntity {}
-export interface CEnvCubemapFog {
-  m_flEndDistance: number | undefined
-  m_flStartDistance: number | undefined
-  m_flFogFalloffExponent: number | undefined
-  m_bHeightFogEnabled: boolean | undefined
-  m_flFogHeightWidth: number | undefined
-  m_flFogHeightEnd: number | undefined
-  m_flFogHeightStart: number | undefined
-  m_flFogHeightExponent: number | undefined
-  m_flLODBias: number | undefined
-  m_bActive: boolean | undefined
-  m_bStartDisabled: boolean | undefined
-  m_flFogMaxOpacity: number | undefined
-  m_nCubemapSourceType: number | undefined
-  readonly m_iszSkyEntity: string | undefined
-  m_nHeightFogType: number | undefined
-  m_nFogHeightBlendMode: number | undefined
-  m_nFogHeightCoordinateSpace: number | undefined
-  m_nDistanceFogType: number | undefined
-  readonly m_DistanceFogCurveString: string | undefined
-  readonly m_HeightFogCurveString: string | undefined
-  m_bHasHeightFogEnd: boolean | undefined
-  m_bFirstTime: boolean | undefined
-  inputDisable(value: boolean): boolean
-  inputEnable(value: boolean): boolean
-}
-define(CEnvCubemapFog, 'CEnvCubemapFog', {
+const fieldsCEnvCubemapFog = {
   m_flEndDistance: 'float32',
   m_flStartDistance: 'float32',
   m_flFogFalloffExponent: 'float32',
@@ -11654,51 +8277,34 @@ define(CEnvCubemapFog, 'CEnvCubemapFog', {
   m_HeightFogCurveString: 'string',
   m_bHasHeightFogEnd: 'bool',
   m_bFirstTime: 'bool',
-}, {
+} as const
+const inputsCEnvCubemapFog = {
   Disable: 'boolean',
   Enable: 'boolean',
-})
+} as const
+export class CEnvCubemapFog extends CBaseEntity {}
+export interface CEnvCubemapFog extends Fields<typeof fieldsCEnvCubemapFog>, Inputs<typeof inputsCEnvCubemapFog> {}
+define(CEnvCubemapFog, 'CEnvCubemapFog', fieldsCEnvCubemapFog, inputsCEnvCubemapFog)
 
-export class CEnvDetailController extends CBaseEntity {}
-export interface CEnvDetailController {
-  m_flFadeStartDist: number | undefined
-  m_flFadeEndDist: number | undefined
-}
-define(CEnvDetailController, 'CEnvDetailController', {
+const fieldsCEnvDetailController = {
   m_flFadeStartDist: 'float32',
   m_flFadeEndDist: 'float32',
-})
+} as const
+export class CEnvDetailController extends CBaseEntity {}
+export interface CEnvDetailController extends Fields<typeof fieldsCEnvDetailController> {}
+define(CEnvDetailController, 'CEnvDetailController', fieldsCEnvDetailController)
 
-export class CEnvEntityIgniter extends CBaseEntity {}
-export interface CEnvEntityIgniter {
-  m_flLifetime: number | undefined
-  inputIgnite(): boolean
-}
-define(CEnvEntityIgniter, 'CEnvEntityIgniter', {
+const fieldsCEnvEntityIgniter = {
   m_flLifetime: 'float32',
-}, {
+} as const
+const inputsCEnvEntityIgniter = {
   Ignite: '',
-})
+} as const
+export class CEnvEntityIgniter extends CBaseEntity {}
+export interface CEnvEntityIgniter extends Fields<typeof fieldsCEnvEntityIgniter>, Inputs<typeof inputsCEnvEntityIgniter> {}
+define(CEnvEntityIgniter, 'CEnvEntityIgniter', fieldsCEnvEntityIgniter, inputsCEnvEntityIgniter)
 
-export class CEnvLightProbeVolume extends CBaseEntity {}
-export interface CEnvLightProbeVolume {
-  m_Entity_vBoxMins: Vector | undefined
-  m_Entity_vBoxMaxs: Vector | undefined
-  m_Entity_bMoveable: boolean | undefined
-  m_Entity_nHandshake: number | undefined
-  m_Entity_nPriority: number | undefined
-  m_Entity_bStartDisabled: boolean | undefined
-  m_Entity_nLightProbeSizeX: number | undefined
-  m_Entity_nLightProbeSizeY: number | undefined
-  m_Entity_nLightProbeSizeZ: number | undefined
-  m_Entity_nLightProbeAtlasX: number | undefined
-  m_Entity_nLightProbeAtlasY: number | undefined
-  m_Entity_nLightProbeAtlasZ: number | undefined
-  m_Entity_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CEnvLightProbeVolume, 'CEnvLightProbeVolume', {
+const fieldsCEnvLightProbeVolume = {
   m_Entity_vBoxMins: 'vector',
   m_Entity_vBoxMaxs: 'vector',
   m_Entity_bMoveable: 'bool',
@@ -11712,26 +8318,16 @@ define(CEnvLightProbeVolume, 'CEnvLightProbeVolume', {
   m_Entity_nLightProbeAtlasY: 'int32',
   m_Entity_nLightProbeAtlasZ: 'int32',
   m_Entity_bEnabled: 'bool',
-}, {
+} as const
+const inputsCEnvLightProbeVolume = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CEnvLightProbeVolume extends CBaseEntity {}
+export interface CEnvLightProbeVolume extends Fields<typeof fieldsCEnvLightProbeVolume>, Inputs<typeof inputsCEnvLightProbeVolume> {}
+define(CEnvLightProbeVolume, 'CEnvLightProbeVolume', fieldsCEnvLightProbeVolume, inputsCEnvLightProbeVolume)
 
-export class CEnvSoundscape extends CBaseEntity {}
-export interface CEnvSoundscape {
-  m_flRadius: number | undefined
-  m_bOverrideWithEvent: boolean | undefined
-  m_soundscapeIndex: number | undefined
-  m_soundscapeEntityListId: number | undefined
-  m_hProxySoundscape: CEnvSoundscape | undefined
-  m_bDisabled: boolean | undefined
-  readonly m_soundscapeName: string | undefined
-  m_soundEventHash: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputToggleEnabled(): boolean
-}
-define(CEnvSoundscape, 'CEnvSoundscape', {
+const fieldsCEnvSoundscape = {
   m_flRadius: 'float32',
   m_bOverrideWithEvent: 'bool',
   m_soundscapeIndex: 'int32',
@@ -11740,22 +8336,25 @@ define(CEnvSoundscape, 'CEnvSoundscape', {
   m_bDisabled: 'bool',
   m_soundscapeName: 'string',
   m_soundEventHash: 'uint32',
-}, {
+} as const
+const inputsCEnvSoundscape = {
   Disable: '',
   Enable: '',
   ToggleEnabled: '',
-})
+} as const
+export class CEnvSoundscape extends CBaseEntity {}
+export interface CEnvSoundscape extends Fields<typeof fieldsCEnvSoundscape>, Inputs<typeof inputsCEnvSoundscape> {}
+define(CEnvSoundscape, 'CEnvSoundscape', fieldsCEnvSoundscape, inputsCEnvSoundscape)
 
 export class CEnvSoundscapeAlias_snd_soundscape extends CEnvSoundscape {}
 define(CEnvSoundscapeAlias_snd_soundscape, 'CEnvSoundscapeAlias_snd_soundscape', {})
 
-export class CEnvSoundscapeProxy extends CEnvSoundscape {}
-export interface CEnvSoundscapeProxy {
-  readonly m_MainSoundscapeName: string | undefined
-}
-define(CEnvSoundscapeProxy, 'CEnvSoundscapeProxy', {
+const fieldsCEnvSoundscapeProxy = {
   m_MainSoundscapeName: 'string',
-})
+} as const
+export class CEnvSoundscapeProxy extends CEnvSoundscape {}
+export interface CEnvSoundscapeProxy extends Fields<typeof fieldsCEnvSoundscapeProxy> {}
+define(CEnvSoundscapeProxy, 'CEnvSoundscapeProxy', fieldsCEnvSoundscapeProxy)
 
 export class CEnvSoundscapeProxyAlias_snd_soundscape_proxy extends CEnvSoundscapeProxy {}
 define(CEnvSoundscapeProxyAlias_snd_soundscape_proxy, 'CEnvSoundscapeProxyAlias_snd_soundscape_proxy', {})
@@ -11766,53 +8365,7 @@ define(CEnvSoundscapeTriggerable, 'CEnvSoundscapeTriggerable', {})
 export class CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable extends CEnvSoundscapeTriggerable {}
 define(CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable, 'CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable', {})
 
-export class CEnvVolumetricFogController extends CBaseEntity {}
-export interface CEnvVolumetricFogController {
-  m_flScattering: number | undefined
-  m_flAnisotropy: number | undefined
-  m_flFadeSpeed: number | undefined
-  m_flDrawDistance: number | undefined
-  m_flFadeInStart: number | undefined
-  m_flFadeInEnd: number | undefined
-  m_flIndirectStrength: number | undefined
-  m_nVolumeDepth: number | undefined
-  m_fFirstVolumeSliceThickness: number | undefined
-  m_nIndirectTextureDimX: number | undefined
-  m_nIndirectTextureDimY: number | undefined
-  m_nIndirectTextureDimZ: number | undefined
-  m_vBoxMins: Vector | undefined
-  m_vBoxMaxs: Vector | undefined
-  m_bActive: boolean | undefined
-  m_flStartAnisoTime: number | undefined
-  m_flStartScatterTime: number | undefined
-  m_flStartDrawDistanceTime: number | undefined
-  m_flStartAnisotropy: number | undefined
-  m_flStartScattering: number | undefined
-  m_flStartDrawDistance: number | undefined
-  m_flDefaultAnisotropy: number | undefined
-  m_flDefaultScattering: number | undefined
-  m_flDefaultDrawDistance: number | undefined
-  m_bStartDisabled: boolean | undefined
-  m_bEnableIndirect: boolean | undefined
-  m_bIsMaster: boolean | undefined
-  m_nForceRefreshCount: number | undefined
-  m_fNoiseSpeed: number | undefined
-  m_fNoiseStrength: number | undefined
-  m_vNoiseScale: Vector | undefined
-  m_fWindSpeed: number | undefined
-  m_vWindDirection: Vector | undefined
-  m_bFirstTime: boolean | undefined
-  inputDisable(value: boolean): boolean
-  inputEnable(value: boolean): boolean
-  inputEnableIndirect(value: boolean): boolean
-  inputForceRefresh(): boolean
-  inputSetAnisotropy(value: number): boolean
-  inputSetDrawDistance(value: number): boolean
-  inputSetFadeSpeed(value: number): boolean
-  inputSetFogStrength(value: number): boolean
-  inputSetToDefaults(): boolean
-}
-define(CEnvVolumetricFogController, 'CEnvVolumetricFogController', {
+const fieldsCEnvVolumetricFogController = {
   m_flScattering: 'float32',
   m_flAnisotropy: 'float32',
   m_flFadeSpeed: 'float32',
@@ -11847,7 +8400,8 @@ define(CEnvVolumetricFogController, 'CEnvVolumetricFogController', {
   m_fWindSpeed: 'float32',
   m_vWindDirection: 'vector',
   m_bFirstTime: 'bool',
-}, {
+} as const
+const inputsCEnvVolumetricFogController = {
   Disable: 'boolean',
   Enable: 'boolean',
   EnableIndirect: 'boolean',
@@ -11857,31 +8411,12 @@ define(CEnvVolumetricFogController, 'CEnvVolumetricFogController', {
   SetFadeSpeed: 'number',
   SetFogStrength: 'number',
   SetToDefaults: '',
-})
+} as const
+export class CEnvVolumetricFogController extends CBaseEntity {}
+export interface CEnvVolumetricFogController extends Fields<typeof fieldsCEnvVolumetricFogController>, Inputs<typeof inputsCEnvVolumetricFogController> {}
+define(CEnvVolumetricFogController, 'CEnvVolumetricFogController', fieldsCEnvVolumetricFogController, inputsCEnvVolumetricFogController)
 
-export class CEnvVolumetricFogVolume extends CBaseEntity {}
-export interface CEnvVolumetricFogVolume {
-  m_bActive: boolean | undefined
-  m_vBoxMins: Vector | undefined
-  m_vBoxMaxs: Vector | undefined
-  m_bStartDisabled: boolean | undefined
-  m_bIndirectUseLPVs: boolean | undefined
-  m_flStrength: number | undefined
-  m_nFalloffShape: number | undefined
-  m_flFalloffExponent: number | undefined
-  m_flHeightFogDepth: number | undefined
-  m_fHeightFogEdgeWidth: number | undefined
-  m_fIndirectLightStrength: number | undefined
-  m_fSunLightStrength: number | undefined
-  m_fNoiseStrength: number | undefined
-  m_bOverrideTintColor: boolean | undefined
-  m_bOverrideIndirectLightStrength: boolean | undefined
-  m_bOverrideSunLightStrength: boolean | undefined
-  m_bOverrideNoiseStrength: boolean | undefined
-  inputDisable(value: boolean): boolean
-  inputEnable(value: boolean): boolean
-}
-define(CEnvVolumetricFogVolume, 'CEnvVolumetricFogVolume', {
+const fieldsCEnvVolumetricFogVolume = {
   m_bActive: 'bool',
   m_vBoxMins: 'vector',
   m_vBoxMaxs: 'vector',
@@ -11899,56 +8434,34 @@ define(CEnvVolumetricFogVolume, 'CEnvVolumetricFogVolume', {
   m_bOverrideIndirectLightStrength: 'bool',
   m_bOverrideSunLightStrength: 'bool',
   m_bOverrideNoiseStrength: 'bool',
-}, {
+} as const
+const inputsCEnvVolumetricFogVolume = {
   Disable: 'boolean',
   Enable: 'boolean',
-})
+} as const
+export class CEnvVolumetricFogVolume extends CBaseEntity {}
+export interface CEnvVolumetricFogVolume extends Fields<typeof fieldsCEnvVolumetricFogVolume>, Inputs<typeof inputsCEnvVolumetricFogVolume> {}
+define(CEnvVolumetricFogVolume, 'CEnvVolumetricFogVolume', fieldsCEnvVolumetricFogVolume, inputsCEnvVolumetricFogVolume)
 
 export class CEnvWind extends CBaseEntity {}
 define(CEnvWind, 'CEnvWind', {})
 
-export class CFishPool extends CBaseEntity {}
-export interface CFishPool {
-  m_fishCount: number | undefined
-  m_maxRange: number | undefined
-  m_swimDepth: number | undefined
-  m_waterLevel: number | undefined
-  m_isDormant: boolean | undefined
-}
-define(CFishPool, 'CFishPool', {
+const fieldsCFishPool = {
   m_fishCount: 'int32',
   m_maxRange: 'float32',
   m_swimDepth: 'float32',
   m_waterLevel: 'float32',
   m_isDormant: 'bool',
-})
+} as const
+export class CFishPool extends CBaseEntity {}
+export interface CFishPool extends Fields<typeof fieldsCFishPool> {}
+define(CFishPool, 'CFishPool', fieldsCFishPool)
 
-export class CFogController extends CBaseEntity {}
-export interface CFogController {
-  m_bUseAngles: boolean | undefined
-  m_iChangedVariables: number | undefined
-  inputSet2DSkyboxFogFactor(value: number): boolean
-  inputSet2DSkyboxFogFactorLerpTo(value: number): boolean
-  inputSetAngles(value: string): boolean
-  inputSetColor(value: number): boolean
-  inputSetColorLerpTo(value: number): boolean
-  inputSetColorSecondary(value: number): boolean
-  inputSetColorSecondaryLerpTo(value: number): boolean
-  inputSetEndDist(value: number): boolean
-  inputSetEndDistLerpTo(value: number): boolean
-  inputSetFarZ(value: number): boolean
-  inputSetMaxDensity(value: number): boolean
-  inputSetMaxDensityLerpTo(value: number): boolean
-  inputSetStartDist(value: number): boolean
-  inputSetStartDistLerpTo(value: number): boolean
-  inputStartFogTransition(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CFogController, 'CFogController', {
+const fieldsCFogController = {
   m_bUseAngles: 'bool',
   m_iChangedVariables: 'int32',
-}, {
+} as const
+const inputsCFogController = {
   Set2DSkyboxFogFactor: 'number',
   Set2DSkyboxFogFactorLerpTo: 'number',
   SetAngles: 'text',
@@ -11966,52 +8479,43 @@ define(CFogController, 'CFogController', {
   StartFogTransition: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CFogController extends CBaseEntity {}
+export interface CFogController extends Fields<typeof fieldsCFogController>, Inputs<typeof inputsCFogController> {}
+define(CFogController, 'CFogController', fieldsCFogController, inputsCFogController)
 
 export class CFuncPropRespawnZone extends CBaseEntity {}
 define(CFuncPropRespawnZone, 'CFuncPropRespawnZone', {})
 
-export class CFuncTimescale extends CBaseEntity {}
-export interface CFuncTimescale {
-  m_flDesiredTimescale: number | undefined
-  m_flAcceleration: number | undefined
-  m_flMinBlendRate: number | undefined
-  m_flBlendDeltaMultiplier: number | undefined
-  m_isStarted: boolean | undefined
-  inputReset(): boolean
-  inputStart(): boolean
-  inputStop(): boolean
-}
-define(CFuncTimescale, 'CFuncTimescale', {
+const fieldsCFuncTimescale = {
   m_flDesiredTimescale: 'float32',
   m_flAcceleration: 'float32',
   m_flMinBlendRate: 'float32',
   m_flBlendDeltaMultiplier: 'float32',
   m_isStarted: 'bool',
-}, {
+} as const
+const inputsCFuncTimescale = {
   Reset: '',
   Start: '',
   Stop: '',
-})
+} as const
+export class CFuncTimescale extends CBaseEntity {}
+export interface CFuncTimescale extends Fields<typeof fieldsCFuncTimescale>, Inputs<typeof inputsCFuncTimescale> {}
+define(CFuncTimescale, 'CFuncTimescale', fieldsCFuncTimescale, inputsCFuncTimescale)
 
-export class CGameGibManager extends CBaseEntity {}
-export interface CGameGibManager {
-  m_bAllowNewGibs: boolean | undefined
-  m_iCurrentMaxPieces: number | undefined
-  m_iMaxPieces: number | undefined
-  m_iLastFrame: number | undefined
-  inputSetMaxPieces(value: number): boolean
-  inputSetMaxPiecesDX8(value: number): boolean
-}
-define(CGameGibManager, 'CGameGibManager', {
+const fieldsCGameGibManager = {
   m_bAllowNewGibs: 'bool',
   m_iCurrentMaxPieces: 'int32',
   m_iMaxPieces: 'int32',
   m_iLastFrame: 'int32',
-}, {
+} as const
+const inputsCGameGibManager = {
   SetMaxPieces: 'integer',
   SetMaxPiecesDX8: 'integer',
-})
+} as const
+export class CGameGibManager extends CBaseEntity {}
+export interface CGameGibManager extends Fields<typeof fieldsCGameGibManager>, Inputs<typeof inputsCGameGibManager> {}
+define(CGameGibManager, 'CGameGibManager', fieldsCGameGibManager, inputsCGameGibManager)
 
 export class CGameRulesProxy extends CBaseEntity {}
 define(CGameRulesProxy, 'CGameRulesProxy', {})
@@ -12019,36 +8523,7 @@ define(CGameRulesProxy, 'CGameRulesProxy', {})
 export class CCitadelGameRulesProxy extends CGameRulesProxy {}
 define(CCitadelGameRulesProxy, 'CCitadelGameRulesProxy', {})
 
-export class CGradientFog extends CBaseEntity {}
-export interface CGradientFog {
-  m_flFogStartDistance: number | undefined
-  m_flFogEndDistance: number | undefined
-  m_bHeightFogEnabled: boolean | undefined
-  m_flFogStartHeight: number | undefined
-  m_flFogEndHeight: number | undefined
-  m_flFarZ: number | undefined
-  m_flFogMaxOpacity: number | undefined
-  m_flFogFalloffExponent: number | undefined
-  m_flFogVerticalExponent: number | undefined
-  m_flFogStrength: number | undefined
-  m_flFadeTime: number | undefined
-  m_bStartDisabled: boolean | undefined
-  m_bIsEnabled: boolean | undefined
-  m_bGradientFogNeedsTextures: boolean | undefined
-  inputDisable(value: boolean): boolean
-  inputEnable(value: boolean): boolean
-  inputSetFarZ(value: number): boolean
-  inputSetFogColor(value: number): boolean
-  inputSetFogEndDistance(value: number): boolean
-  inputSetFogEndHeight(value: number): boolean
-  inputSetFogFalloffExponent(value: number): boolean
-  inputSetFogMaxOpacity(value: number): boolean
-  inputSetFogStartDistance(value: number): boolean
-  inputSetFogStartHeight(value: number): boolean
-  inputSetFogStrength(value: number): boolean
-  inputSetFogVerticalExponent(value: number): boolean
-}
-define(CGradientFog, 'CGradientFog', {
+const fieldsCGradientFog = {
   m_flFogStartDistance: 'float32',
   m_flFogEndDistance: 'float32',
   m_bHeightFogEnabled: 'bool',
@@ -12063,7 +8538,8 @@ define(CGradientFog, 'CGradientFog', {
   m_bStartDisabled: 'bool',
   m_bIsEnabled: 'bool',
   m_bGradientFogNeedsTextures: 'bool',
-}, {
+} as const
+const inputsCGradientFog = {
   Disable: 'boolean',
   Enable: 'boolean',
   SetFarZ: 'number',
@@ -12076,138 +8552,82 @@ define(CGradientFog, 'CGradientFog', {
   SetFogStartHeight: 'number',
   SetFogStrength: 'number',
   SetFogVerticalExponent: 'number',
-})
+} as const
+export class CGradientFog extends CBaseEntity {}
+export interface CGradientFog extends Fields<typeof fieldsCGradientFog>, Inputs<typeof inputsCGradientFog> {}
+define(CGradientFog, 'CGradientFog', fieldsCGradientFog, inputsCGradientFog)
 
 export class CHandleDummy extends CBaseEntity {}
 define(CHandleDummy, 'CHandleDummy', {})
 
-export class CHandleTest extends CBaseEntity {}
-export interface CHandleTest {
-  m_Handle: CBaseEntity | undefined
-  m_bSendHandle: boolean | undefined
-}
-define(CHandleTest, 'CHandleTest', {
+const fieldsCHandleTest = {
   m_Handle: 'CBaseEntity',
   m_bSendHandle: 'bool',
-})
+} as const
+export class CHandleTest extends CBaseEntity {}
+export interface CHandleTest extends Fields<typeof fieldsCHandleTest> {}
+define(CHandleTest, 'CHandleTest', fieldsCHandleTest)
 
 export class CInfoLadderDismount extends CBaseEntity {}
 define(CInfoLadderDismount, 'CInfoLadderDismount', {})
 
-export class CInfoVisibilityBox extends CBaseEntity {}
-export interface CInfoVisibilityBox {
-  m_nMode: number | undefined
-  m_vBoxSize: Vector | undefined
-  m_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CInfoVisibilityBox, 'CInfoVisibilityBox', {
+const fieldsCInfoVisibilityBox = {
   m_nMode: 'int32',
   m_vBoxSize: 'vector',
   m_bEnabled: 'bool',
-}, {
+} as const
+const inputsCInfoVisibilityBox = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CInfoVisibilityBox extends CBaseEntity {}
+export interface CInfoVisibilityBox extends Fields<typeof fieldsCInfoVisibilityBox>, Inputs<typeof inputsCInfoVisibilityBox> {}
+define(CInfoVisibilityBox, 'CInfoVisibilityBox', fieldsCInfoVisibilityBox, inputsCInfoVisibilityBox)
 
-export class CInfoWorldLayer extends CBaseEntity {}
-export interface CInfoWorldLayer {
-  readonly m_worldName: string | undefined
-  readonly m_layerName: string | undefined
-  m_bWorldLayerVisible: boolean | undefined
-  m_bEntitiesSpawned: boolean | undefined
-  m_bCreateAsChildSpawnGroup: boolean | undefined
-  m_hLayerSpawnGroup: number | undefined
-  inputDestroyEntities(): boolean
-  inputHideWorldLayer(): boolean
-  inputHideWorldLayerAndDestroyEntities(): boolean
-  inputShowWorldLayer(): boolean
-  inputShowWorldLayerAndSpawnEntities(): boolean
-  inputSpawnEntities(): boolean
-}
-define(CInfoWorldLayer, 'CInfoWorldLayer', {
+const fieldsCInfoWorldLayer = {
   m_worldName: 'string',
   m_layerName: 'string',
   m_bWorldLayerVisible: 'bool',
   m_bEntitiesSpawned: 'bool',
   m_bCreateAsChildSpawnGroup: 'bool',
   m_hLayerSpawnGroup: 'uint32',
-}, {
+} as const
+const inputsCInfoWorldLayer = {
   DestroyEntities: '',
   HideWorldLayer: '',
   HideWorldLayerAndDestroyEntities: '',
   ShowWorldLayer: '',
   ShowWorldLayerAndSpawnEntities: '',
   SpawnEntities: '',
-})
+} as const
+export class CInfoWorldLayer extends CBaseEntity {}
+export interface CInfoWorldLayer extends Fields<typeof fieldsCInfoWorldLayer>, Inputs<typeof inputsCInfoWorldLayer> {}
+define(CInfoWorldLayer, 'CInfoWorldLayer', fieldsCInfoWorldLayer, inputsCInfoWorldLayer)
 
-export class CLogicAuto extends CBaseEntity {}
-export interface CLogicAuto {
-  readonly m_globalstate: string | undefined
-}
-define(CLogicAuto, 'CLogicAuto', {
+const fieldsCLogicAuto = {
   m_globalstate: 'string',
-})
+} as const
+export class CLogicAuto extends CBaseEntity {}
+export interface CLogicAuto extends Fields<typeof fieldsCLogicAuto> {}
+define(CLogicAuto, 'CLogicAuto', fieldsCLogicAuto)
 
 export class CLogicAutoCitadel extends CBaseEntity {}
 define(CLogicAutoCitadel, 'CLogicAutoCitadel', {})
 
-export class CLogicGameStateReport extends CBaseEntity {}
-export interface CLogicGameStateReport {
-  m_bDisabled: boolean | undefined
-  /** Must clear all collections each pass. */
-  inputClearCollections(): boolean
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CLogicGameStateReport, 'CLogicGameStateReport', {
+const fieldsCLogicGameStateReport = {
   m_bDisabled: 'bool',
-}, {
+} as const
+const inputsCLogicGameStateReport = {
+  /** Must clear all collections each pass. */
   ClearCollections: '',
   Disable: '',
   Enable: '',
-})
+} as const
+export class CLogicGameStateReport extends CBaseEntity {}
+export interface CLogicGameStateReport extends Fields<typeof fieldsCLogicGameStateReport>, Inputs<typeof inputsCLogicGameStateReport> {}
+define(CLogicGameStateReport, 'CLogicGameStateReport', fieldsCLogicGameStateReport, inputsCLogicGameStateReport)
 
-export class CLogicNPCCounter extends CBaseEntity {}
-export interface CLogicNPCCounter {
-  m_hSource: number | undefined
-  readonly m_iszSourceEntityName: string | undefined
-  m_flDistanceMax: number | undefined
-  m_bDisabled: boolean | undefined
-  m_nMinCountAll: number | undefined
-  m_nMaxCountAll: number | undefined
-  m_nMinFactorAll: number | undefined
-  m_nMaxFactorAll: number | undefined
-  readonly m_iszNPCClassname_1: string | undefined
-  m_nNPCState_1: number | undefined
-  m_bInvertState_1: boolean | undefined
-  m_nMinCount_1: number | undefined
-  m_nMaxCount_1: number | undefined
-  m_nMinFactor_1: number | undefined
-  m_nMaxFactor_1: number | undefined
-  m_flDefaultDist_1: number | undefined
-  readonly m_iszNPCClassname_2: string | undefined
-  m_nNPCState_2: number | undefined
-  m_bInvertState_2: boolean | undefined
-  m_nMinCount_2: number | undefined
-  m_nMaxCount_2: number | undefined
-  m_nMinFactor_2: number | undefined
-  m_nMaxFactor_2: number | undefined
-  m_flDefaultDist_2: number | undefined
-  readonly m_iszNPCClassname_3: string | undefined
-  m_nNPCState_3: number | undefined
-  m_bInvertState_3: boolean | undefined
-  m_nMinCount_3: number | undefined
-  m_nMaxCount_3: number | undefined
-  m_nMinFactor_3: number | undefined
-  m_nMaxFactor_3: number | undefined
-  m_flDefaultDist_3: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetSourceEntity(value: string): boolean
-}
-define(CLogicNPCCounter, 'CLogicNPCCounter', {
+const fieldsCLogicNPCCounter = {
   m_hSource: 'handle',
   m_iszSourceEntityName: 'string',
   m_flDistanceMax: 'float32',
@@ -12240,25 +8660,25 @@ define(CLogicNPCCounter, 'CLogicNPCCounter', {
   m_nMinFactor_3: 'int32',
   m_nMaxFactor_3: 'int32',
   m_flDefaultDist_3: 'float32',
-}, {
+} as const
+const inputsCLogicNPCCounter = {
   Disable: '',
   Enable: '',
   SetSourceEntity: 'text',
-})
+} as const
+export class CLogicNPCCounter extends CBaseEntity {}
+export interface CLogicNPCCounter extends Fields<typeof fieldsCLogicNPCCounter>, Inputs<typeof inputsCLogicNPCCounter> {}
+define(CLogicNPCCounter, 'CLogicNPCCounter', fieldsCLogicNPCCounter, inputsCLogicNPCCounter)
 
-export class CLogicNPCCounterAABB extends CLogicNPCCounter {}
-export interface CLogicNPCCounterAABB {
-  m_vDistanceOuterMins: Vector | undefined
-  m_vDistanceOuterMaxs: Vector | undefined
-  m_vOuterMins: Vector | undefined
-  m_vOuterMaxs: Vector | undefined
-}
-define(CLogicNPCCounterAABB, 'CLogicNPCCounterAABB', {
+const fieldsCLogicNPCCounterAABB = {
   m_vDistanceOuterMins: 'vector',
   m_vDistanceOuterMaxs: 'vector',
   m_vOuterMins: 'vector',
   m_vOuterMaxs: 'vector',
-})
+} as const
+export class CLogicNPCCounterAABB extends CLogicNPCCounter {}
+export interface CLogicNPCCounterAABB extends Fields<typeof fieldsCLogicNPCCounterAABB> {}
+define(CLogicNPCCounterAABB, 'CLogicNPCCounterAABB', fieldsCLogicNPCCounterAABB)
 
 export class CLogicNPCCounterOBB extends CLogicNPCCounterAABB {}
 define(CLogicNPCCounterOBB, 'CLogicNPCCounterOBB', {})
@@ -12269,38 +8689,17 @@ define(CNullEntity, 'CNullEntity', {})
 export class COrbSpawner extends CBaseEntity {}
 define(COrbSpawner, 'COrbSpawner', {})
 
-export class CPathAccompany extends CBaseEntity {}
-export interface CPathAccompany {
-  m_flPathLength: number | undefined
-  m_flLastPathRecalc: number | undefined
-  m_bAllowAutoLead: boolean | undefined
-  m_nLastDebugDraw: number | undefined
-}
-define(CPathAccompany, 'CPathAccompany', {
+const fieldsCPathAccompany = {
   m_flPathLength: 'float32',
   m_flLastPathRecalc: 'float32',
   m_bAllowAutoLead: 'bool',
   m_nLastDebugDraw: 'float32',
-})
+} as const
+export class CPathAccompany extends CBaseEntity {}
+export interface CPathAccompany extends Fields<typeof fieldsCPathAccompany> {}
+define(CPathAccompany, 'CPathAccompany', fieldsCPathAccompany)
 
-export class CPathParticleRope extends CBaseEntity {}
-export interface CPathParticleRope {
-  m_bStartActive: boolean | undefined
-  m_flMaxSimulationTime: number | undefined
-  readonly m_iszEffectName: string | undefined
-  m_flParticleSpacing: number | undefined
-  m_flSlack: number | undefined
-  m_flRadius: number | undefined
-  m_nEffectState: number | undefined
-  inputDestroyImmediately(): boolean
-  inputDisablePin(value: string): boolean
-  inputSetRadius(value: number): boolean
-  inputSetSlack(value: number): boolean
-  inputStart(): boolean
-  inputStop(): boolean
-  inputStopPlayEndCap(): boolean
-}
-define(CPathParticleRope, 'CPathParticleRope', {
+const fieldsCPathParticleRope = {
   m_bStartActive: 'bool',
   m_flMaxSimulationTime: 'float32',
   m_iszEffectName: 'string',
@@ -12308,7 +8707,8 @@ define(CPathParticleRope, 'CPathParticleRope', {
   m_flSlack: 'float32',
   m_flRadius: 'float32',
   m_nEffectState: 'int32',
-}, {
+} as const
+const inputsCPathParticleRope = {
   DestroyImmediately: '',
   DisablePin: 'text',
   SetRadius: 'number',
@@ -12316,70 +8716,48 @@ define(CPathParticleRope, 'CPathParticleRope', {
   Start: '',
   Stop: '',
   StopPlayEndCap: '',
-})
+} as const
+export class CPathParticleRope extends CBaseEntity {}
+export interface CPathParticleRope extends Fields<typeof fieldsCPathParticleRope>, Inputs<typeof inputsCPathParticleRope> {}
+define(CPathParticleRope, 'CPathParticleRope', fieldsCPathParticleRope, inputsCPathParticleRope)
 
-export class CCitadelZiplinePath extends CPathParticleRope {}
-export interface CCitadelZiplinePath {
-  m_iLaneNumber: number | undefined
-}
-define(CCitadelZiplinePath, 'CCitadelZiplinePath', {
+const fieldsCCitadelZiplinePath = {
   m_iLaneNumber: 'int32',
-})
+} as const
+export class CCitadelZiplinePath extends CPathParticleRope {}
+export interface CCitadelZiplinePath extends Fields<typeof fieldsCCitadelZiplinePath> {}
+define(CCitadelZiplinePath, 'CCitadelZiplinePath', fieldsCCitadelZiplinePath)
 
 export class CPathParticleRopeAlias_path_particle_rope_clientside extends CPathParticleRope {}
 define(CPathParticleRopeAlias_path_particle_rope_clientside, 'CPathParticleRopeAlias_path_particle_rope_clientside', {})
 
-export class CPathSimple extends CBaseEntity {}
-export interface CPathSimple {
-  readonly m_pathString: string | undefined
-  m_bClosedLoop: boolean | undefined
-}
-define(CPathSimple, 'CPathSimple', {
+const fieldsCPathSimple = {
   m_pathString: 'string',
   m_bClosedLoop: 'bool',
-})
+} as const
+export class CPathSimple extends CBaseEntity {}
+export interface CPathSimple extends Fields<typeof fieldsCPathSimple> {}
+define(CPathSimple, 'CPathSimple', fieldsCPathSimple)
 
-export class CPathWithDynamicNodes extends CPathSimple {}
-export interface CPathWithDynamicNodes {
-  m_eDesiredDirection: number | undefined
-  m_bIgnoreParentRotation: boolean | undefined
-}
-define(CPathWithDynamicNodes, 'CPathWithDynamicNodes', {
+const fieldsCPathWithDynamicNodes = {
   m_eDesiredDirection: 'uint32',
   m_bIgnoreParentRotation: 'bool',
-})
+} as const
+export class CPathWithDynamicNodes extends CPathSimple {}
+export interface CPathWithDynamicNodes extends Fields<typeof fieldsCPathWithDynamicNodes> {}
+define(CPathWithDynamicNodes, 'CPathWithDynamicNodes', fieldsCPathWithDynamicNodes)
 
-export class CPathMover extends CPathWithDynamicNodes {}
-export interface CPathMover {
-  readonly m_iszMoverSpawnerName: string | undefined
-  m_hMoverRouter: CFuncMoverRouter | undefined
-  readonly m_iszMoverRouterName: string | undefined
-  m_flSampleSpacing: number | undefined
-}
-define(CPathMover, 'CPathMover', {
+const fieldsCPathMover = {
   m_iszMoverSpawnerName: 'string',
   m_hMoverRouter: 'CFuncMoverRouter',
   m_iszMoverRouterName: 'string',
   m_flSampleSpacing: 'float32',
-})
+} as const
+export class CPathMover extends CPathWithDynamicNodes {}
+export interface CPathMover extends Fields<typeof fieldsCPathMover> {}
+define(CPathMover, 'CPathMover', fieldsCPathMover)
 
-export class CPhysicsSpring extends CBaseEntity {}
-export interface CPhysicsSpring {
-  m_flFrequency: number | undefined
-  m_flDampingRatio: number | undefined
-  m_flRestLength: number | undefined
-  readonly m_nameAttachStart: string | undefined
-  readonly m_nameAttachEnd: string | undefined
-  m_start: Vector | undefined
-  m_end: Vector | undefined
-  m_teleportTick: number | undefined
-  inputAddRestLength(value: number): boolean
-  inputRemoveRestLength(value: number): boolean
-  inputSetDampingRatio(value: number): boolean
-  inputSetFrequency(value: number): boolean
-  inputSetRestLength(value: number): boolean
-}
-define(CPhysicsSpring, 'CPhysicsSpring', {
+const fieldsCPhysicsSpring = {
   m_flFrequency: 'float32',
   m_flDampingRatio: 'float32',
   m_flRestLength: 'float32',
@@ -12388,92 +8766,45 @@ define(CPhysicsSpring, 'CPhysicsSpring', {
   m_start: 'vector',
   m_end: 'vector',
   m_teleportTick: 'uint32',
-}, {
+} as const
+const inputsCPhysicsSpring = {
   AddRestLength: 'number',
   RemoveRestLength: 'number',
   SetDampingRatio: 'number',
   SetFrequency: 'number',
   SetRestLength: 'number',
-})
+} as const
+export class CPhysicsSpring extends CBaseEntity {}
+export interface CPhysicsSpring extends Fields<typeof fieldsCPhysicsSpring>, Inputs<typeof inputsCPhysicsSpring> {}
+define(CPhysicsSpring, 'CPhysicsSpring', fieldsCPhysicsSpring, inputsCPhysicsSpring)
 
-export class CPhysicsWire extends CBaseEntity {}
-export interface CPhysicsWire {
-  m_nDensity: number | undefined
-}
-define(CPhysicsWire, 'CPhysicsWire', {
+const fieldsCPhysicsWire = {
   m_nDensity: 'int32',
-})
+} as const
+export class CPhysicsWire extends CBaseEntity {}
+export interface CPhysicsWire extends Fields<typeof fieldsCPhysicsWire> {}
+define(CPhysicsWire, 'CPhysicsWire', fieldsCPhysicsWire)
 
-export class CPlayerVisibility extends CBaseEntity {}
-export interface CPlayerVisibility {
-  m_flVisibilityStrength: number | undefined
-  m_flFogDistanceMultiplier: number | undefined
-  m_flFogMaxDensityMultiplier: number | undefined
-  m_flFadeTime: number | undefined
-  m_bStartDisabled: boolean | undefined
-  m_bIsEnabled: boolean | undefined
-  inputDisable(value: boolean): boolean
-  inputEnable(value: boolean): boolean
-  inputSetPlayerFogDistanceMultiplier(value: number): boolean
-  inputSetPlayerFogMaxDensityMultiplier(value: number): boolean
-  inputSetPlayerVisibilityStrength(value: number): boolean
-}
-define(CPlayerVisibility, 'CPlayerVisibility', {
+const fieldsCPlayerVisibility = {
   m_flVisibilityStrength: 'float32',
   m_flFogDistanceMultiplier: 'float32',
   m_flFogMaxDensityMultiplier: 'float32',
   m_flFadeTime: 'float32',
   m_bStartDisabled: 'bool',
   m_bIsEnabled: 'bool',
-}, {
+} as const
+const inputsCPlayerVisibility = {
   Disable: 'boolean',
   Enable: 'boolean',
   SetPlayerFogDistanceMultiplier: 'number',
   SetPlayerFogMaxDensityMultiplier: 'number',
   SetPlayerVisibilityStrength: 'number',
-})
+} as const
+export class CPlayerVisibility extends CBaseEntity {}
+export interface CPlayerVisibility extends Fields<typeof fieldsCPlayerVisibility>, Inputs<typeof inputsCPlayerVisibility> {}
+define(CPlayerVisibility, 'CPlayerVisibility', fieldsCPlayerVisibility, inputsCPlayerVisibility)
 
-export class CPointCamera extends CBaseEntity {}
-export interface CPointCamera {
-  m_FOV: number | undefined
-  m_Resolution: number | undefined
-  m_bFogEnable: boolean | undefined
-  m_flFogStart: number | undefined
-  m_flFogEnd: number | undefined
-  m_flFogMaxDensity: number | undefined
-  m_bActive: boolean | undefined
-  m_bUseScreenAspectRatio: boolean | undefined
-  m_flAspectRatio: number | undefined
-  m_bNoSky: boolean | undefined
-  m_fBrightness: number | undefined
-  m_flZFar: number | undefined
-  m_flZNear: number | undefined
-  m_bCanHLTVUse: boolean | undefined
-  m_bAlignWithParent: boolean | undefined
-  m_bDofEnabled: boolean | undefined
-  m_flDofNearBlurry: number | undefined
-  m_flDofNearCrisp: number | undefined
-  m_flDofFarCrisp: number | undefined
-  m_flDofFarBlurry: number | undefined
-  m_flDofTiltToGround: number | undefined
-  m_TargetFOV: number | undefined
-  m_DegreesPerSecond: number | undefined
-  m_bIsOn: boolean | undefined
-  inputActivate(): boolean
-  inputChangeFOV(value: string): boolean
-  inputDeactivate(): boolean
-  inputDisableDOF(): boolean
-  inputEnableDOF(): boolean
-  inputSetDOFFarBlurry(value: number): boolean
-  inputSetDOFFarCrisp(value: number): boolean
-  inputSetDOFNearBlurry(value: number): boolean
-  inputSetDOFNearCrisp(value: number): boolean
-  inputSetDOFTiltToGround(value: number): boolean
-  inputSetOff(): boolean
-  inputSetOn(): boolean
-  inputSetOnAndTurnOthersOff(): boolean
-}
-define(CPointCamera, 'CPointCamera', {
+const fieldsCPointCamera = {
   m_FOV: 'float32',
   m_Resolution: 'float32',
   m_bFogEnable: 'bool',
@@ -12498,7 +8829,8 @@ define(CPointCamera, 'CPointCamera', {
   m_TargetFOV: 'float32',
   m_DegreesPerSecond: 'float32',
   m_bIsOn: 'bool',
-}, {
+} as const
+const inputsCPointCamera = {
   Activate: '',
   ChangeFOV: 'text',
   Deactivate: '',
@@ -12512,118 +8844,82 @@ define(CPointCamera, 'CPointCamera', {
   SetOff: '',
   SetOn: '',
   SetOnAndTurnOthersOff: '',
-})
+} as const
+export class CPointCamera extends CBaseEntity {}
+export interface CPointCamera extends Fields<typeof fieldsCPointCamera>, Inputs<typeof inputsCPointCamera> {}
+define(CPointCamera, 'CPointCamera', fieldsCPointCamera, inputsCPointCamera)
 
-export class CPointCameraVFOV extends CPointCamera {}
-export interface CPointCameraVFOV {
-  m_flVerticalFOV: number | undefined
-}
-define(CPointCameraVFOV, 'CPointCameraVFOV', {
+const fieldsCPointCameraVFOV = {
   m_flVerticalFOV: 'float32',
-})
+} as const
+export class CPointCameraVFOV extends CPointCamera {}
+export interface CPointCameraVFOV extends Fields<typeof fieldsCPointCameraVFOV> {}
+define(CPointCameraVFOV, 'CPointCameraVFOV', fieldsCPointCameraVFOV)
 
-export class CPointEntity extends CBaseEntity {}
-export interface CPointEntity {
-  inputSetPosition(value: Vector): boolean
-}
-define(CPointEntity, 'CPointEntity', {}, {
+const inputsCPointEntity = {
   SetPosition: 'vector',
-})
+} as const
+export class CPointEntity extends CBaseEntity {}
+export interface CPointEntity extends Inputs<typeof inputsCPointEntity> {}
+define(CPointEntity, 'CPointEntity', {}, inputsCPointEntity)
 
-export class CAITestPath extends CPointEntity {}
-export interface CAITestPath {
-  readonly m_strNextPath: string | undefined
-}
-define(CAITestPath, 'CAITestPath', {
+const fieldsCAITestPath = {
   m_strNextPath: 'string',
-})
+} as const
+export class CAITestPath extends CPointEntity {}
+export interface CAITestPath extends Fields<typeof fieldsCAITestPath> {}
+define(CAITestPath, 'CAITestPath', fieldsCAITestPath)
 
-export class CAI_LookTarget extends CPointEntity {}
-export interface CAI_LookTarget {
-  m_iContext: number | undefined
-  m_iPriority: number | undefined
-  m_bDisabled: boolean | undefined
-  m_flTimeNextAvailable: number | undefined
-  m_flMaxDist: number | undefined
-}
-define(CAI_LookTarget, 'CAI_LookTarget', {
+const fieldsCAI_LookTarget = {
   m_iContext: 'int32',
   m_iPriority: 'int32',
   m_bDisabled: 'bool',
   m_flTimeNextAvailable: 'float32',
   m_flMaxDist: 'float32',
-})
+} as const
+export class CAI_LookTarget extends CPointEntity {}
+export interface CAI_LookTarget extends Fields<typeof fieldsCAI_LookTarget> {}
+define(CAI_LookTarget, 'CAI_LookTarget', fieldsCAI_LookTarget)
 
 export class CAI_NetworkManager extends CPointEntity {}
 define(CAI_NetworkManager, 'CAI_NetworkManager', {})
 
-export class CAI_VolumetricEventEntity extends CPointEntity {}
-export interface CAI_VolumetricEventEntity {
-  m_iEventType: number | undefined
-  m_iEventFlags: number | undefined
-  m_flRadius: number | undefined
-  m_hEvent: bigint | undefined
-  m_flDuration: number | undefined
-  readonly m_iszProxyEntityName: string | undefined
-  inputEmitAIVolumetricEvent(): boolean
-  inputStopAIVolumetricEvent(): boolean
-}
-define(CAI_VolumetricEventEntity, 'CAI_VolumetricEventEntity', {
+const fieldsCAI_VolumetricEventEntity = {
   m_iEventType: 'uint8',
   m_iEventFlags: 'uint16',
   m_flRadius: 'float32',
   m_hEvent: 'uint64',
   m_flDuration: 'float32',
   m_iszProxyEntityName: 'string',
-}, {
+} as const
+const inputsCAI_VolumetricEventEntity = {
   EmitAIVolumetricEvent: '',
   StopAIVolumetricEvent: '',
-})
+} as const
+export class CAI_VolumetricEventEntity extends CPointEntity {}
+export interface CAI_VolumetricEventEntity extends Fields<typeof fieldsCAI_VolumetricEventEntity>, Inputs<typeof inputsCAI_VolumetricEventEntity> {}
+define(CAI_VolumetricEventEntity, 'CAI_VolumetricEventEntity', fieldsCAI_VolumetricEventEntity, inputsCAI_VolumetricEventEntity)
 
 export class CAI_VolumetricEventEntityAlias_ai_sound extends CAI_VolumetricEventEntity {}
 define(CAI_VolumetricEventEntityAlias_ai_sound, 'CAI_VolumetricEventEntityAlias_ai_sound', {})
 
-export class CAI_VolumetricEventSensor extends CPointEntity {}
-export interface CAI_VolumetricEventSensor {
-  m_bDisabled: boolean | undefined
-  m_nEventTypeMask: bigint | undefined
-  m_flSensitivity: number | undefined
-  m_flMaxRange: number | undefined
-  readonly m_iszListenFilter: string | undefined
-  m_hListenFilter: CBaseFilter | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CAI_VolumetricEventSensor, 'CAI_VolumetricEventSensor', {
+const fieldsCAI_VolumetricEventSensor = {
   m_bDisabled: 'bool',
   m_nEventTypeMask: 'uint64',
   m_flSensitivity: 'float32',
   m_flMaxRange: 'float32',
   m_iszListenFilter: 'string',
   m_hListenFilter: 'CBaseFilter',
-}, {
+} as const
+const inputsCAI_VolumetricEventSensor = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CAI_VolumetricEventSensor extends CPointEntity {}
+export interface CAI_VolumetricEventSensor extends Fields<typeof fieldsCAI_VolumetricEventSensor>, Inputs<typeof inputsCAI_VolumetricEventSensor> {}
+define(CAI_VolumetricEventSensor, 'CAI_VolumetricEventSensor', fieldsCAI_VolumetricEventSensor, inputsCAI_VolumetricEventSensor)
 
-export class CAmbientGeneric extends CPointEntity {}
-export interface CAmbientGeneric {
-  m_radius: number | undefined
-  m_flMaxRadius: number | undefined
-  m_iSoundLevel: number | undefined
-  m_fActive: boolean | undefined
-  m_fLooping: boolean | undefined
-  readonly m_sSourceEntName: string | undefined
-  m_hSoundSource: CBaseEntity | undefined
-  inputFadeIn(value: number): boolean
-  inputFadeOut(value: number): boolean
-  inputPitch(value: number): boolean
-  inputPlaySound(): boolean
-  inputStopSound(): boolean
-  inputToggleSound(): boolean
-  inputVolume(value: number): boolean
-}
-define(CAmbientGeneric, 'CAmbientGeneric', {
+const fieldsCAmbientGeneric = {
   m_radius: 'float32',
   m_flMaxRadius: 'float32',
   m_iSoundLevel: 'uint32',
@@ -12631,7 +8927,8 @@ define(CAmbientGeneric, 'CAmbientGeneric', {
   m_fLooping: 'bool',
   m_sSourceEntName: 'string',
   m_hSoundSource: 'CBaseEntity',
-}, {
+} as const
+const inputsCAmbientGeneric = {
   FadeIn: 'number',
   FadeOut: 'number',
   Pitch: 'number',
@@ -12639,15 +8936,17 @@ define(CAmbientGeneric, 'CAmbientGeneric', {
   StopSound: '',
   ToggleSound: '',
   Volume: 'number',
-})
+} as const
+export class CAmbientGeneric extends CPointEntity {}
+export interface CAmbientGeneric extends Fields<typeof fieldsCAmbientGeneric>, Inputs<typeof inputsCAmbientGeneric> {}
+define(CAmbientGeneric, 'CAmbientGeneric', fieldsCAmbientGeneric, inputsCAmbientGeneric)
 
-export class CBaseDMStart extends CPointEntity {}
-export interface CBaseDMStart {
-  readonly m_Master: string | undefined
-}
-define(CBaseDMStart, 'CBaseDMStart', {
+const fieldsCBaseDMStart = {
   m_Master: 'string',
-})
+} as const
+export class CBaseDMStart extends CPointEntity {}
+export interface CBaseDMStart extends Fields<typeof fieldsCBaseDMStart> {}
+define(CBaseDMStart, 'CBaseDMStart', fieldsCBaseDMStart)
 
 export class CChoreoInfoTarget extends CPointEntity {}
 define(CChoreoInfoTarget, 'CChoreoInfoTarget', {})
@@ -12658,52 +8957,31 @@ define(CCitadelItemPickupRejuvHeroTestInfoSpawn, 'CCitadelItemPickupRejuvHeroTes
 export class CCitadelMatchmakingStatusInfo extends CPointEntity {}
 define(CCitadelMatchmakingStatusInfo, 'CCitadelMatchmakingStatusInfo', {})
 
-export class CCitadel_BaseProp_MidStairs extends CPointEntity {}
-export interface CCitadel_BaseProp_MidStairs {
-  m_eLocation: number | undefined
-}
-define(CCitadel_BaseProp_MidStairs, 'CCitadel_BaseProp_MidStairs', {
+const fieldsCCitadel_BaseProp_MidStairs = {
   m_eLocation: 'uint32',
-})
+} as const
+export class CCitadel_BaseProp_MidStairs extends CPointEntity {}
+export interface CCitadel_BaseProp_MidStairs extends Fields<typeof fieldsCCitadel_BaseProp_MidStairs> {}
+define(CCitadel_BaseProp_MidStairs, 'CCitadel_BaseProp_MidStairs', fieldsCCitadel_BaseProp_MidStairs)
 
 export class CCitadel_Prop_MidBossIndicator extends CPointEntity {}
 define(CCitadel_Prop_MidBossIndicator, 'CCitadel_Prop_MidBossIndicator', {})
 
-export class CCredits extends CPointEntity {}
-export interface CCredits {
-  m_bRolledOutroCredits: boolean | undefined
-  m_flLogoLength: number | undefined
-  inputRollCredits(): boolean
-  inputRollOutroCredits(): boolean
-  inputSetLogoLength(value: number): boolean
-  inputShowLogo(): boolean
-}
-define(CCredits, 'CCredits', {
+const fieldsCCredits = {
   m_bRolledOutroCredits: 'bool',
   m_flLogoLength: 'float32',
-}, {
+} as const
+const inputsCCredits = {
   RollCredits: '',
   RollOutroCredits: '',
   SetLogoLength: 'number',
   ShowLogo: '',
-})
+} as const
+export class CCredits extends CPointEntity {}
+export interface CCredits extends Fields<typeof fieldsCCredits>, Inputs<typeof inputsCCredits> {}
+define(CCredits, 'CCredits', fieldsCCredits, inputsCCredits)
 
-export class CEnvEntityMaker extends CPointEntity {}
-export interface CEnvEntityMaker {
-  m_vecEntityMins: Vector | undefined
-  m_vecEntityMaxs: Vector | undefined
-  m_hCurrentInstance: CBaseEntity | undefined
-  m_hCurrentBlocker: CBaseEntity | undefined
-  m_vecBlockerOrigin: Vector | undefined
-  m_angPostSpawnDirection: Angles | undefined
-  m_flPostSpawnDirectionVariance: number | undefined
-  m_flPostSpawnSpeed: number | undefined
-  m_bPostSpawnUseAngles: boolean | undefined
-  readonly m_iszTemplate: string | undefined
-  inputForceSpawn(): boolean
-  inputForceSpawnAtEntityOrigin(value: string): boolean
-}
-define(CEnvEntityMaker, 'CEnvEntityMaker', {
+const fieldsCEnvEntityMaker = {
   m_vecEntityMins: 'vector',
   m_vecEntityMaxs: 'vector',
   m_hCurrentInstance: 'CBaseEntity',
@@ -12714,40 +8992,16 @@ define(CEnvEntityMaker, 'CEnvEntityMaker', {
   m_flPostSpawnSpeed: 'float32',
   m_bPostSpawnUseAngles: 'bool',
   m_iszTemplate: 'string',
-}, {
+} as const
+const inputsCEnvEntityMaker = {
   ForceSpawn: '',
   ForceSpawnAtEntityOrigin: 'text',
-})
+} as const
+export class CEnvEntityMaker extends CPointEntity {}
+export interface CEnvEntityMaker extends Fields<typeof fieldsCEnvEntityMaker>, Inputs<typeof inputsCEnvEntityMaker> {}
+define(CEnvEntityMaker, 'CEnvEntityMaker', fieldsCEnvEntityMaker, inputsCEnvEntityMaker)
 
-export class CEnvInstructorHint extends CPointEntity {}
-export interface CEnvInstructorHint {
-  readonly m_iszName: string | undefined
-  readonly m_iszReplace_Key: string | undefined
-  readonly m_iszHintTargetEntity: string | undefined
-  m_iTimeout: number | undefined
-  m_iDisplayLimit: number | undefined
-  readonly m_iszIcon_Onscreen: string | undefined
-  readonly m_iszIcon_Offscreen: string | undefined
-  readonly m_iszCaption: string | undefined
-  readonly m_iszActivatorCaption: string | undefined
-  m_fIconOffset: number | undefined
-  m_fRange: number | undefined
-  m_iPulseOption: number | undefined
-  m_iAlphaOption: number | undefined
-  m_iShakeOption: number | undefined
-  m_bStatic: boolean | undefined
-  m_bNoOffscreen: boolean | undefined
-  m_bForceCaption: boolean | undefined
-  m_iInstanceType: number | undefined
-  m_bSuppressRest: boolean | undefined
-  readonly m_iszBinding: string | undefined
-  m_bAllowNoDrawTarget: boolean | undefined
-  m_bAutoStart: boolean | undefined
-  m_bLocalPlayerOnly: boolean | undefined
-  inputEndHint(): boolean
-  inputShowHint(value: string): boolean
-}
-define(CEnvInstructorHint, 'CEnvInstructorHint', {
+const fieldsCEnvInstructorHint = {
   m_iszName: 'string',
   m_iszReplace_Key: 'string',
   m_iszHintTargetEntity: 'string',
@@ -12771,26 +9025,16 @@ define(CEnvInstructorHint, 'CEnvInstructorHint', {
   m_bAllowNoDrawTarget: 'bool',
   m_bAutoStart: 'bool',
   m_bLocalPlayerOnly: 'bool',
-}, {
+} as const
+const inputsCEnvInstructorHint = {
   EndHint: '',
   ShowHint: 'text',
-})
+} as const
+export class CEnvInstructorHint extends CPointEntity {}
+export interface CEnvInstructorHint extends Fields<typeof fieldsCEnvInstructorHint>, Inputs<typeof inputsCEnvInstructorHint> {}
+define(CEnvInstructorHint, 'CEnvInstructorHint', fieldsCEnvInstructorHint, inputsCEnvInstructorHint)
 
-export class CEnvInstructorVRHint extends CPointEntity {}
-export interface CEnvInstructorVRHint {
-  readonly m_iszName: string | undefined
-  readonly m_iszHintTargetEntity: string | undefined
-  m_iTimeout: number | undefined
-  readonly m_iszCaption: string | undefined
-  readonly m_iszStartSound: string | undefined
-  m_iLayoutFileType: number | undefined
-  readonly m_iszCustomLayoutFile: string | undefined
-  m_iAttachType: number | undefined
-  m_flHeightOffset: number | undefined
-  inputEndHint(): boolean
-  inputShowHint(value: string): boolean
-}
-define(CEnvInstructorVRHint, 'CEnvInstructorVRHint', {
+const fieldsCEnvInstructorVRHint = {
   m_iszName: 'string',
   m_iszHintTargetEntity: 'string',
   m_iTimeout: 'int32',
@@ -12800,41 +9044,27 @@ define(CEnvInstructorVRHint, 'CEnvInstructorVRHint', {
   m_iszCustomLayoutFile: 'string',
   m_iAttachType: 'int32',
   m_flHeightOffset: 'float32',
-}, {
+} as const
+const inputsCEnvInstructorVRHint = {
   EndHint: '',
   ShowHint: 'text',
-})
+} as const
+export class CEnvInstructorVRHint extends CPointEntity {}
+export interface CEnvInstructorVRHint extends Fields<typeof fieldsCEnvInstructorVRHint>, Inputs<typeof inputsCEnvInstructorVRHint> {}
+define(CEnvInstructorVRHint, 'CEnvInstructorVRHint', fieldsCEnvInstructorVRHint, inputsCEnvInstructorVRHint)
 
-export class CEnvMuzzleFlash extends CPointEntity {}
-export interface CEnvMuzzleFlash {
-  m_flScale: number | undefined
-  readonly m_iszParentAttachment: string | undefined
-  inputFire(): boolean
-}
-define(CEnvMuzzleFlash, 'CEnvMuzzleFlash', {
+const fieldsCEnvMuzzleFlash = {
   m_flScale: 'float32',
   m_iszParentAttachment: 'string',
-}, {
+} as const
+const inputsCEnvMuzzleFlash = {
   Fire: '',
-})
+} as const
+export class CEnvMuzzleFlash extends CPointEntity {}
+export interface CEnvMuzzleFlash extends Fields<typeof fieldsCEnvMuzzleFlash>, Inputs<typeof inputsCEnvMuzzleFlash> {}
+define(CEnvMuzzleFlash, 'CEnvMuzzleFlash', fieldsCEnvMuzzleFlash, inputsCEnvMuzzleFlash)
 
-export class CEnvShake extends CPointEntity {}
-export interface CEnvShake {
-  readonly m_limitToEntity: string | undefined
-  m_Amplitude: number | undefined
-  m_Frequency: number | undefined
-  m_Duration: number | undefined
-  m_Radius: number | undefined
-  m_stopTime: number | undefined
-  m_nextShake: number | undefined
-  m_currentAmp: number | undefined
-  m_maxForce: Vector | undefined
-  inputAmplitude(value: number): boolean
-  inputFrequency(value: number): boolean
-  inputStartShake(): boolean
-  inputStopShake(): boolean
-}
-define(CEnvShake, 'CEnvShake', {
+const fieldsCEnvShake = {
   m_limitToEntity: 'string',
   m_Amplitude: 'float32',
   m_Frequency: 'float32',
@@ -12844,78 +9074,67 @@ define(CEnvShake, 'CEnvShake', {
   m_nextShake: 'float32',
   m_currentAmp: 'float32',
   m_maxForce: 'vector',
-}, {
+} as const
+const inputsCEnvShake = {
   Amplitude: 'number',
   Frequency: 'number',
   StartShake: '',
   StopShake: '',
-})
+} as const
+export class CEnvShake extends CPointEntity {}
+export interface CEnvShake extends Fields<typeof fieldsCEnvShake>, Inputs<typeof inputsCEnvShake> {}
+define(CEnvShake, 'CEnvShake', fieldsCEnvShake, inputsCEnvShake)
 
-export class CEnvSpark extends CPointEntity {}
-export interface CEnvSpark {
-  m_flDelay: number | undefined
-  m_nMagnitude: number | undefined
-  m_nTrailLength: number | undefined
-  m_nType: number | undefined
-  inputSparkOnce(): boolean
-  inputStartSpark(): boolean
-  inputStopSpark(): boolean
-  inputToggleSpark(): boolean
-}
-define(CEnvSpark, 'CEnvSpark', {
+const fieldsCEnvSpark = {
   m_flDelay: 'float32',
   m_nMagnitude: 'int32',
   m_nTrailLength: 'int32',
   m_nType: 'int32',
-}, {
+} as const
+const inputsCEnvSpark = {
   SparkOnce: '',
   StartSpark: '',
   StopSpark: '',
   ToggleSpark: '',
-})
+} as const
+export class CEnvSpark extends CPointEntity {}
+export interface CEnvSpark extends Fields<typeof fieldsCEnvSpark>, Inputs<typeof inputsCEnvSpark> {}
+define(CEnvSpark, 'CEnvSpark', fieldsCEnvSpark, inputsCEnvSpark)
 
-export class CEnvSplash extends CPointEntity {}
-export interface CEnvSplash {
-  m_flScale: number | undefined
-  inputSplash(): boolean
-}
-define(CEnvSplash, 'CEnvSplash', {
+const fieldsCEnvSplash = {
   m_flScale: 'float32',
-}, {
+} as const
+const inputsCEnvSplash = {
   Splash: '',
-})
+} as const
+export class CEnvSplash extends CPointEntity {}
+export interface CEnvSplash extends Fields<typeof fieldsCEnvSplash>, Inputs<typeof inputsCEnvSplash> {}
+define(CEnvSplash, 'CEnvSplash', fieldsCEnvSplash, inputsCEnvSplash)
 
-export class CEnvTilt extends CPointEntity {}
-export interface CEnvTilt {
-  m_Duration: number | undefined
-  m_Radius: number | undefined
-  m_TiltTime: number | undefined
-  m_stopTime: number | undefined
-  inputStartTilt(): boolean
-  inputStopTilt(): boolean
-}
-define(CEnvTilt, 'CEnvTilt', {
+const fieldsCEnvTilt = {
   m_Duration: 'float32',
   m_Radius: 'float32',
   m_TiltTime: 'float32',
   m_stopTime: 'float32',
-}, {
+} as const
+const inputsCEnvTilt = {
   StartTilt: '',
   StopTilt: '',
-})
+} as const
+export class CEnvTilt extends CPointEntity {}
+export interface CEnvTilt extends Fields<typeof fieldsCEnvTilt>, Inputs<typeof inputsCEnvTilt> {}
+define(CEnvTilt, 'CEnvTilt', fieldsCEnvTilt, inputsCEnvTilt)
 
-export class CEnvViewPunch extends CPointEntity {}
-export interface CEnvViewPunch {
-  m_flRadius: number | undefined
-  m_angViewPunch: Angles | undefined
-  inputViewPunch(): boolean
-}
-define(CEnvViewPunch, 'CEnvViewPunch', {
+const fieldsCEnvViewPunch = {
   m_flRadius: 'float32',
   m_angViewPunch: 'angles',
-}, {
+} as const
+const inputsCEnvViewPunch = {
   ViewPunch: '',
-})
+} as const
+export class CEnvViewPunch extends CPointEntity {}
+export interface CEnvViewPunch extends Fields<typeof fieldsCEnvViewPunch>, Inputs<typeof inputsCEnvViewPunch> {}
+define(CEnvViewPunch, 'CEnvViewPunch', fieldsCEnvViewPunch, inputsCEnvViewPunch)
 
 export class CInfoAbilityTestBot extends CPointEntity {}
 define(CInfoAbilityTestBot, 'CInfoAbilityTestBot', {})
@@ -12923,86 +9142,68 @@ define(CInfoAbilityTestBot, 'CInfoAbilityTestBot', {})
 export class CInfoChoreoAnchor extends CPointEntity {}
 define(CInfoChoreoAnchor, 'CInfoChoreoAnchor', {})
 
-export class CInfoCitadelHideout extends CPointEntity {}
-export interface CInfoCitadelHideout {
-  inputToggleFastCooldowns(): boolean
-}
-define(CInfoCitadelHideout, 'CInfoCitadelHideout', {}, {
+const inputsCInfoCitadelHideout = {
   ToggleFastCooldowns: '',
-})
+} as const
+export class CInfoCitadelHideout extends CPointEntity {}
+export interface CInfoCitadelHideout extends Inputs<typeof inputsCInfoCitadelHideout> {}
+define(CInfoCitadelHideout, 'CInfoCitadelHideout', {}, inputsCInfoCitadelHideout)
 
-export class CInfoDynamicShadowHint extends CPointEntity {}
-export interface CInfoDynamicShadowHint {
-  m_bDisabled: boolean | undefined
-  m_flRange: number | undefined
-  m_nImportance: number | undefined
-  m_nLightChoice: number | undefined
-  m_hLight: CBaseEntity | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CInfoDynamicShadowHint, 'CInfoDynamicShadowHint', {
+const fieldsCInfoDynamicShadowHint = {
   m_bDisabled: 'bool',
   m_flRange: 'float32',
   m_nImportance: 'int32',
   m_nLightChoice: 'int32',
   m_hLight: 'CBaseEntity',
-}, {
+} as const
+const inputsCInfoDynamicShadowHint = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CInfoDynamicShadowHint extends CPointEntity {}
+export interface CInfoDynamicShadowHint extends Fields<typeof fieldsCInfoDynamicShadowHint>, Inputs<typeof inputsCInfoDynamicShadowHint> {}
+define(CInfoDynamicShadowHint, 'CInfoDynamicShadowHint', fieldsCInfoDynamicShadowHint, inputsCInfoDynamicShadowHint)
 
-export class CInfoDynamicShadowHintBox extends CInfoDynamicShadowHint {}
-export interface CInfoDynamicShadowHintBox {
-  m_vBoxMins: Vector | undefined
-  m_vBoxMaxs: Vector | undefined
-}
-define(CInfoDynamicShadowHintBox, 'CInfoDynamicShadowHintBox', {
+const fieldsCInfoDynamicShadowHintBox = {
   m_vBoxMins: 'vector',
   m_vBoxMaxs: 'vector',
-})
+} as const
+export class CInfoDynamicShadowHintBox extends CInfoDynamicShadowHint {}
+export interface CInfoDynamicShadowHintBox extends Fields<typeof fieldsCInfoDynamicShadowHintBox> {}
+define(CInfoDynamicShadowHintBox, 'CInfoDynamicShadowHintBox', fieldsCInfoDynamicShadowHintBox)
 
-export class CInfoFan extends CPointEntity {}
-export interface CInfoFan {
-  m_fFanForceMaxRadius: number | undefined
-  m_fFanForceMinRadius: number | undefined
-  m_flCurveDistRange: number | undefined
-  readonly m_FanForceCurveString: string | undefined
-}
-define(CInfoFan, 'CInfoFan', {
+const fieldsCInfoFan = {
   m_fFanForceMaxRadius: 'float32',
   m_fFanForceMinRadius: 'float32',
   m_flCurveDistRange: 'float32',
   m_FanForceCurveString: 'string',
-})
+} as const
+export class CInfoFan extends CPointEntity {}
+export interface CInfoFan extends Fields<typeof fieldsCInfoFan> {}
+define(CInfoFan, 'CInfoFan', fieldsCInfoFan)
 
-export class CInfoGameEventProxy extends CPointEntity {}
-export interface CInfoGameEventProxy {
-  readonly m_iszEventName: string | undefined
-  m_flRange: number | undefined
-  inputGenerateGameEvent(value: string): boolean
-}
-define(CInfoGameEventProxy, 'CInfoGameEventProxy', {
+const fieldsCInfoGameEventProxy = {
   m_iszEventName: 'string',
   m_flRange: 'float32',
-}, {
+} as const
+const inputsCInfoGameEventProxy = {
   GenerateGameEvent: 'text',
-})
+} as const
+export class CInfoGameEventProxy extends CPointEntity {}
+export interface CInfoGameEventProxy extends Fields<typeof fieldsCInfoGameEventProxy>, Inputs<typeof inputsCInfoGameEventProxy> {}
+define(CInfoGameEventProxy, 'CInfoGameEventProxy', fieldsCInfoGameEventProxy, inputsCInfoGameEventProxy)
 
 export class CInfoHeroTestingController extends CPointEntity {}
 define(CInfoHeroTestingController, 'CInfoHeroTestingController', {})
 
-export class CInfoHeroTestingPoint extends CPointEntity {}
-export interface CInfoHeroTestingPoint {
-  m_ePointType: number | undefined
-  readonly m_sMoveTarget: string | undefined
-  m_HeroID: number | undefined
-}
-define(CInfoHeroTestingPoint, 'CInfoHeroTestingPoint', {
+const fieldsCInfoHeroTestingPoint = {
   m_ePointType: 'int32',
   m_sMoveTarget: 'string',
   m_HeroID: 'uint32',
-})
+} as const
+export class CInfoHeroTestingPoint extends CPointEntity {}
+export interface CInfoHeroTestingPoint extends Fields<typeof fieldsCInfoHeroTestingPoint> {}
+define(CInfoHeroTestingPoint, 'CInfoHeroTestingPoint', fieldsCInfoHeroTestingPoint)
 
 export class CInfoInstructorHintTarget extends CPointEntity {}
 define(CInfoInstructorHintTarget, 'CInfoInstructorHintTarget', {})
@@ -13013,23 +9214,7 @@ define(CInfoKOTHSpawnLocation, 'CInfoKOTHSpawnLocation', {})
 export class CInfoLandmark extends CPointEntity {}
 define(CInfoLandmark, 'CInfoLandmark', {})
 
-export class CInfoOffscreenPanoramaTexture extends CPointEntity {}
-export interface CInfoOffscreenPanoramaTexture {
-  m_bDisabled: boolean | undefined
-  m_bEnableMipGen: boolean | undefined
-  m_nResolutionX: number | undefined
-  m_nResolutionY: number | undefined
-  readonly m_szPanelType: string | undefined
-  readonly m_szLayoutFileName: string | undefined
-  readonly m_RenderAttrName: string | undefined
-  m_nTargetChangeCount: number | undefined
-  readonly m_szTargetsName: string | undefined
-  inputAddCSSClass(value: string): boolean
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputRemoveCSSClass(value: string): boolean
-}
-define(CInfoOffscreenPanoramaTexture, 'CInfoOffscreenPanoramaTexture', {
+const fieldsCInfoOffscreenPanoramaTexture = {
   m_bDisabled: 'bool',
   m_bEnableMipGen: 'bool',
   m_nResolutionX: 'int32',
@@ -13039,32 +9224,32 @@ define(CInfoOffscreenPanoramaTexture, 'CInfoOffscreenPanoramaTexture', {
   m_RenderAttrName: 'string',
   m_nTargetChangeCount: 'int32',
   m_szTargetsName: 'string',
-}, {
+} as const
+const inputsCInfoOffscreenPanoramaTexture = {
   AddCSSClass: 'text',
   Disable: '',
   Enable: '',
   RemoveCSSClass: 'text',
-})
+} as const
+export class CInfoOffscreenPanoramaTexture extends CPointEntity {}
+export interface CInfoOffscreenPanoramaTexture extends Fields<typeof fieldsCInfoOffscreenPanoramaTexture>, Inputs<typeof inputsCInfoOffscreenPanoramaTexture> {}
+define(CInfoOffscreenPanoramaTexture, 'CInfoOffscreenPanoramaTexture', fieldsCInfoOffscreenPanoramaTexture, inputsCInfoOffscreenPanoramaTexture)
 
 export class CInfoParticleTarget extends CPointEntity {}
 define(CInfoParticleTarget, 'CInfoParticleTarget', {})
 
-export class CInfoPlayerStart extends CPointEntity {}
-export interface CInfoPlayerStart {
-  m_bDisabled: boolean | undefined
-  m_bIsMaster: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputToggle(): boolean
-}
-define(CInfoPlayerStart, 'CInfoPlayerStart', {
+const fieldsCInfoPlayerStart = {
   m_bDisabled: 'bool',
   m_bIsMaster: 'bool',
-}, {
+} as const
+const inputsCInfoPlayerStart = {
   Disable: '',
   Enable: '',
   Toggle: '',
-})
+} as const
+export class CInfoPlayerStart extends CPointEntity {}
+export interface CInfoPlayerStart extends Fields<typeof fieldsCInfoPlayerStart>, Inputs<typeof inputsCInfoPlayerStart> {}
+define(CInfoPlayerStart, 'CInfoPlayerStart', fieldsCInfoPlayerStart, inputsCInfoPlayerStart)
 
 export class CInfoPortalLink extends CPointEntity {}
 define(CInfoPortalLink, 'CInfoPortalLink', {})
@@ -13078,64 +9263,41 @@ define(CInfoTarget, 'CInfoTarget', {})
 export class CInfoTeleportDestination extends CPointEntity {}
 define(CInfoTeleportDestination, 'CInfoTeleportDestination', {})
 
-export class CInfoTrooperNeutralCamp extends CPointEntity {}
-export interface CInfoTrooperNeutralCamp {
-  readonly m_iszCampName: string | undefined
-  m_flTetherRadiusOverride: number | undefined
-  inputSetDisabled(value: boolean): boolean
-}
-define(CInfoTrooperNeutralCamp, 'CInfoTrooperNeutralCamp', {
+const fieldsCInfoTrooperNeutralCamp = {
   m_iszCampName: 'string',
   m_flTetherRadiusOverride: 'float32',
-}, {
+} as const
+const inputsCInfoTrooperNeutralCamp = {
   SetDisabled: 'boolean',
-})
+} as const
+export class CInfoTrooperNeutralCamp extends CPointEntity {}
+export interface CInfoTrooperNeutralCamp extends Fields<typeof fieldsCInfoTrooperNeutralCamp>, Inputs<typeof inputsCInfoTrooperNeutralCamp> {}
+define(CInfoTrooperNeutralCamp, 'CInfoTrooperNeutralCamp', fieldsCInfoTrooperNeutralCamp, inputsCInfoTrooperNeutralCamp)
 
-export class CInfoTutorialPoint extends CPointEntity {}
-export interface CInfoTutorialPoint {
-  m_ePointType: number | undefined
-  readonly m_sMoveTarget: string | undefined
-  m_HeroID: number | undefined
-}
-define(CInfoTutorialPoint, 'CInfoTutorialPoint', {
+const fieldsCInfoTutorialPoint = {
   m_ePointType: 'int32',
   m_sMoveTarget: 'string',
   m_HeroID: 'uint32',
-})
+} as const
+export class CInfoTutorialPoint extends CPointEntity {}
+export interface CInfoTutorialPoint extends Fields<typeof fieldsCInfoTutorialPoint> {}
+define(CInfoTutorialPoint, 'CInfoTutorialPoint', fieldsCInfoTutorialPoint)
 
-export class CInstructorEventEntity extends CPointEntity {}
-export interface CInstructorEventEntity {
-  readonly m_iszName: string | undefined
-  readonly m_iszHintTargetEntity: string | undefined
-  m_hTargetPlayer: CBasePlayerPawn | undefined
-  inputEndHint(): boolean
-  inputSetTargetPlayerToActivator(): boolean
-  inputShowHint(value: string): boolean
-}
-define(CInstructorEventEntity, 'CInstructorEventEntity', {
+const fieldsCInstructorEventEntity = {
   m_iszName: 'string',
   m_iszHintTargetEntity: 'string',
   m_hTargetPlayer: 'CBasePlayerPawn',
-}, {
+} as const
+const inputsCInstructorEventEntity = {
   EndHint: '',
   SetTargetPlayerToActivator: '',
   ShowHint: 'text',
-})
+} as const
+export class CInstructorEventEntity extends CPointEntity {}
+export interface CInstructorEventEntity extends Fields<typeof fieldsCInstructorEventEntity>, Inputs<typeof inputsCInstructorEventEntity> {}
+define(CInstructorEventEntity, 'CInstructorEventEntity', fieldsCInstructorEventEntity, inputsCInstructorEventEntity)
 
-export class CKeepUpright extends CPointEntity {}
-export interface CKeepUpright {
-  m_worldGoalAxis: Vector | undefined
-  m_localTestAxis: Vector | undefined
-  readonly m_nameAttach: string | undefined
-  m_attachedObject: CBaseEntity | undefined
-  m_angularLimit: number | undefined
-  m_bActive: boolean | undefined
-  m_bDampAllRotation: boolean | undefined
-  inputSetAngularLimit(value: number): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CKeepUpright, 'CKeepUpright', {
+const fieldsCKeepUpright = {
   m_worldGoalAxis: 'vector',
   m_localTestAxis: 'vector',
   m_nameAttach: 'string',
@@ -13143,11 +9305,15 @@ define(CKeepUpright, 'CKeepUpright', {
   m_angularLimit: 'float32',
   m_bActive: 'bool',
   m_bDampAllRotation: 'bool',
-}, {
+} as const
+const inputsCKeepUpright = {
   SetAngularLimit: 'number',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CKeepUpright extends CPointEntity {}
+export interface CKeepUpright extends Fields<typeof fieldsCKeepUpright>, Inputs<typeof inputsCKeepUpright> {}
+define(CKeepUpright, 'CKeepUpright', fieldsCKeepUpright, inputsCKeepUpright)
 
 export class CLogicProximity extends CPointEntity {}
 define(CLogicProximity, 'CLogicProximity', {})
@@ -13155,91 +9321,52 @@ define(CLogicProximity, 'CLogicProximity', {})
 export class CLogicScript extends CPointEntity {}
 define(CLogicScript, 'CLogicScript', {})
 
-export class CMessage extends CPointEntity {}
-export interface CMessage {
-  readonly m_iszMessage: string | undefined
-  m_MessageVolume: number | undefined
-  m_MessageAttenuation: number | undefined
-  m_Radius: number | undefined
-  inputShowMessage(): boolean
-}
-define(CMessage, 'CMessage', {
+const fieldsCMessage = {
   m_iszMessage: 'string',
   m_MessageVolume: 'float32',
   m_MessageAttenuation: 'int32',
   m_Radius: 'float32',
-}, {
+} as const
+const inputsCMessage = {
   ShowMessage: '',
-})
+} as const
+export class CMessage extends CPointEntity {}
+export interface CMessage extends Fields<typeof fieldsCMessage>, Inputs<typeof inputsCMessage> {}
+define(CMessage, 'CMessage', fieldsCMessage, inputsCMessage)
 
-export class CMessageEntity extends CPointEntity {}
-export interface CMessageEntity {
-  m_radius: number | undefined
-  readonly m_messageText: string | undefined
-  m_drawText: boolean | undefined
-  m_bDeveloperOnly: boolean | undefined
-  m_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetMessage(value: string): boolean
-}
-define(CMessageEntity, 'CMessageEntity', {
+const fieldsCMessageEntity = {
   m_radius: 'int32',
   m_messageText: 'string',
   m_drawText: 'bool',
   m_bDeveloperOnly: 'bool',
   m_bEnabled: 'bool',
-}, {
+} as const
+const inputsCMessageEntity = {
   Disable: '',
   Enable: '',
   SetMessage: 'text',
-})
+} as const
+export class CMessageEntity extends CPointEntity {}
+export interface CMessageEntity extends Fields<typeof fieldsCMessageEntity>, Inputs<typeof inputsCMessageEntity> {}
+define(CMessageEntity, 'CMessageEntity', fieldsCMessageEntity, inputsCMessageEntity)
 
-export class CMiniMapMarker extends CPointEntity {}
-export interface CMiniMapMarker {
-  m_eType: number | undefined
-}
-define(CMiniMapMarker, 'CMiniMapMarker', {
+const fieldsCMiniMapMarker = {
   m_eType: 'uint32',
-})
+} as const
+export class CMiniMapMarker extends CPointEntity {}
+export interface CMiniMapMarker extends Fields<typeof fieldsCMiniMapMarker> {}
+define(CMiniMapMarker, 'CMiniMapMarker', fieldsCMiniMapMarker)
 
-export class CNPCSpawnDestination extends CPointEntity {}
-export interface CNPCSpawnDestination {
-  m_ReuseDelay: number | undefined
-  readonly m_RenameNPC: string | undefined
-  m_TimeNextAvailable: number | undefined
-}
-define(CNPCSpawnDestination, 'CNPCSpawnDestination', {
+const fieldsCNPCSpawnDestination = {
   m_ReuseDelay: 'float32',
   m_RenameNPC: 'string',
   m_TimeNextAvailable: 'float32',
-})
+} as const
+export class CNPCSpawnDestination extends CPointEntity {}
+export interface CNPCSpawnDestination extends Fields<typeof fieldsCNPCSpawnDestination> {}
+define(CNPCSpawnDestination, 'CNPCSpawnDestination', fieldsCNPCSpawnDestination)
 
-export class CNavLinkAreaEntity extends CPointEntity {}
-export interface CNavLinkAreaEntity {
-  m_flWidth: number | undefined
-  m_vLocatorOffset: Vector | undefined
-  m_qLocatorAnglesOffset: Angles | undefined
-  m_vPrevEntry: Vector | undefined
-  m_vPrevExit: Vector | undefined
-  readonly m_strEndLocatorParentName: string | undefined
-  m_hEndLocatorParent: CBaseEntity | undefined
-  readonly m_strMovementForward: string | undefined
-  readonly m_strMovementReverse: string | undefined
-  m_bEnabled: boolean | undefined
-  m_bAllowCrossMovableConnections: boolean | undefined
-  m_bSuspendConnectionsWhileMoving: boolean | undefined
-  readonly m_strFilterName: string | undefined
-  m_hFilter: CBaseFilter | undefined
-  m_bIsTerminus: boolean | undefined
-  m_bIsAutoAdjustForward: boolean | undefined
-  m_nProcessOrder: number | undefined
-  m_nSplits: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputUpdate(): boolean
-}
-define(CNavLinkAreaEntity, 'CNavLinkAreaEntity', {
+const fieldsCNavLinkAreaEntity = {
   m_flWidth: 'float32',
   m_vLocatorOffset: 'vector',
   m_qLocatorAnglesOffset: 'angles',
@@ -13258,11 +9385,15 @@ define(CNavLinkAreaEntity, 'CNavLinkAreaEntity', {
   m_bIsAutoAdjustForward: 'bool',
   m_nProcessOrder: 'int32',
   m_nSplits: 'int32',
-}, {
+} as const
+const inputsCNavLinkAreaEntity = {
   Disable: '',
   Enable: '',
   Update: '',
-})
+} as const
+export class CNavLinkAreaEntity extends CPointEntity {}
+export interface CNavLinkAreaEntity extends Fields<typeof fieldsCNavLinkAreaEntity>, Inputs<typeof inputsCNavLinkAreaEntity> {}
+define(CNavLinkAreaEntity, 'CNavLinkAreaEntity', fieldsCNavLinkAreaEntity, inputsCNavLinkAreaEntity)
 
 export class CNavSpaceInfo extends CPointEntity {}
 define(CNavSpaceInfo, 'CNavSpaceInfo', {})
@@ -13270,21 +9401,7 @@ define(CNavSpaceInfo, 'CNavSpaceInfo', {})
 export class CNavWalkable extends CPointEntity {}
 define(CNavWalkable, 'CNavWalkable', {})
 
-export class CPathCorner extends CPointEntity {}
-export interface CPathCorner {
-  m_bTriggerLocomotionStop: boolean | undefined
-  m_bSmoothArrival: boolean | undefined
-  m_bExactPositioning: boolean | undefined
-  m_flWait: number | undefined
-  m_flRadius: number | undefined
-  m_flWaypointSuccessRadiusWhenBlocked: number | undefined
-  m_flWaypointSuccessRadius: number | undefined
-  m_flPathEndDistanceFromGoal: number | undefined
-  m_flSpeed: number | undefined
-  inputInPass(): boolean
-  inputSetNextPathCorner(value: string): boolean
-}
-define(CPathCorner, 'CPathCorner', {
+const fieldsCPathCorner = {
   m_bTriggerLocomotionStop: 'bool',
   m_bSmoothArrival: 'bool',
   m_bExactPositioning: 'bool',
@@ -13294,53 +9411,33 @@ define(CPathCorner, 'CPathCorner', {
   m_flWaypointSuccessRadius: 'float32',
   m_flPathEndDistanceFromGoal: 'float32',
   m_flSpeed: 'float32',
-}, {
+} as const
+const inputsCPathCorner = {
   InPass: '',
   SetNextPathCorner: 'text',
-})
+} as const
+export class CPathCorner extends CPointEntity {}
+export interface CPathCorner extends Fields<typeof fieldsCPathCorner>, Inputs<typeof inputsCPathCorner> {}
+define(CPathCorner, 'CPathCorner', fieldsCPathCorner, inputsCPathCorner)
 
 export class CPathCornerCrash extends CPathCorner {}
 define(CPathCornerCrash, 'CPathCornerCrash', {})
 
-export class CPathNode extends CPointEntity {}
-export interface CPathNode {
-  m_vInTangentLocal: Vector | undefined
-  m_vOutTangentLocal: Vector | undefined
-  readonly m_strParentPathUniqueID: string | undefined
-  readonly m_strPathNodeParameter: string | undefined
-  m_hPath: CPathWithDynamicNodes | undefined
-}
-define(CPathNode, 'CPathNode', {
+const fieldsCPathNode = {
   m_vInTangentLocal: 'vector',
   m_vOutTangentLocal: 'vector',
   m_strParentPathUniqueID: 'string',
   m_strPathNodeParameter: 'string',
   m_hPath: 'CPathWithDynamicNodes',
-})
+} as const
+export class CPathNode extends CPointEntity {}
+export interface CPathNode extends Fields<typeof fieldsCPathNode> {}
+define(CPathNode, 'CPathNode', fieldsCPathNode)
 
 export class CMoverPathNode extends CPathNode {}
 define(CMoverPathNode, 'CMoverPathNode', {})
 
-export class CPathTrack extends CPointEntity {}
-export interface CPathTrack {
-  m_pnext: CPathTrack | undefined
-  m_pprevious: CPathTrack | undefined
-  m_paltpath: CPathTrack | undefined
-  m_flSpeed: number | undefined
-  m_flRadius: number | undefined
-  m_length: number | undefined
-  readonly m_altName: string | undefined
-  m_nIterVal: number | undefined
-  m_eOrientationType: number | undefined
-  inputDisableAlternatePath(): boolean
-  inputDisablePath(): boolean
-  inputEnableAlternatePath(): boolean
-  inputEnablePath(): boolean
-  inputInPass(): boolean
-  inputToggleAlternatePath(): boolean
-  inputTogglePath(): boolean
-}
-define(CPathTrack, 'CPathTrack', {
+const fieldsCPathTrack = {
   m_pnext: 'CPathTrack',
   m_pprevious: 'CPathTrack',
   m_paltpath: 'CPathTrack',
@@ -13350,7 +9447,8 @@ define(CPathTrack, 'CPathTrack', {
   m_altName: 'string',
   m_nIterVal: 'int32',
   m_eOrientationType: 'uint32',
-}, {
+} as const
+const inputsCPathTrack = {
   DisableAlternatePath: '',
   DisablePath: '',
   EnableAlternatePath: '',
@@ -13358,24 +9456,12 @@ define(CPathTrack, 'CPathTrack', {
   InPass: '',
   ToggleAlternatePath: '',
   TogglePath: '',
-})
+} as const
+export class CPathTrack extends CPointEntity {}
+export interface CPathTrack extends Fields<typeof fieldsCPathTrack>, Inputs<typeof inputsCPathTrack> {}
+define(CPathTrack, 'CPathTrack', fieldsCPathTrack, inputsCPathTrack)
 
-export class CPhysExplosion extends CPointEntity {}
-export interface CPhysExplosion {
-  m_bExplodeOnSpawn: boolean | undefined
-  m_flMagnitude: number | undefined
-  m_flDamage: number | undefined
-  m_radius: number | undefined
-  readonly m_targetEntityName: string | undefined
-  readonly m_ignoreEntityName: string | undefined
-  m_flInnerRadius: number | undefined
-  m_flPushScale: number | undefined
-  m_bConvertToDebrisWhenPossible: boolean | undefined
-  m_bAffectInvulnerableEnts: boolean | undefined
-  m_bDisablePushClamp: boolean | undefined
-  inputExplode(): boolean
-}
-define(CPhysExplosion, 'CPhysExplosion', {
+const fieldsCPhysExplosion = {
   m_bExplodeOnSpawn: 'bool',
   m_flMagnitude: 'float32',
   m_flDamage: 'float32',
@@ -13387,81 +9473,57 @@ define(CPhysExplosion, 'CPhysExplosion', {
   m_bConvertToDebrisWhenPossible: 'bool',
   m_bAffectInvulnerableEnts: 'bool',
   m_bDisablePushClamp: 'bool',
-}, {
+} as const
+const inputsCPhysExplosion = {
   Explode: '',
-})
+} as const
+export class CPhysExplosion extends CPointEntity {}
+export interface CPhysExplosion extends Fields<typeof fieldsCPhysExplosion>, Inputs<typeof inputsCPhysExplosion> {}
+define(CPhysExplosion, 'CPhysExplosion', fieldsCPhysExplosion, inputsCPhysExplosion)
 
-export class CPhysForce extends CPointEntity {}
-export interface CPhysForce {
-  readonly m_nameAttach: string | undefined
-  m_force: number | undefined
-  m_forceTime: number | undefined
-  m_attachedObject: CBaseEntity | undefined
-  m_wasRestored: boolean | undefined
-  inputActivate(): boolean
-  inputDeactivate(): boolean
-  inputscale(value: number): boolean
-}
-define(CPhysForce, 'CPhysForce', {
+const fieldsCPhysForce = {
   m_nameAttach: 'string',
   m_force: 'float32',
   m_forceTime: 'float32',
   m_attachedObject: 'CBaseEntity',
   m_wasRestored: 'bool',
-}, {
+} as const
+const inputsCPhysForce = {
   Activate: '',
   Deactivate: '',
   scale: 'number',
-})
+} as const
+export class CPhysForce extends CPointEntity {}
+export interface CPhysForce extends Fields<typeof fieldsCPhysForce>, Inputs<typeof inputsCPhysForce> {}
+define(CPhysForce, 'CPhysForce', fieldsCPhysForce, inputsCPhysForce)
 
-export class CPhysThruster extends CPhysForce {}
-export interface CPhysThruster {
-  m_localOrigin: Vector | undefined
-}
-define(CPhysThruster, 'CPhysThruster', {
+const fieldsCPhysThruster = {
   m_localOrigin: 'vector',
-})
+} as const
+export class CPhysThruster extends CPhysForce {}
+export interface CPhysThruster extends Fields<typeof fieldsCPhysThruster> {}
+define(CPhysThruster, 'CPhysThruster', fieldsCPhysThruster)
 
-export class CPhysTorque extends CPhysForce {}
-export interface CPhysTorque {
-  m_axis: Vector | undefined
-}
-define(CPhysTorque, 'CPhysTorque', {
+const fieldsCPhysTorque = {
   m_axis: 'vector',
-})
+} as const
+export class CPhysTorque extends CPhysForce {}
+export interface CPhysTorque extends Fields<typeof fieldsCPhysTorque> {}
+define(CPhysTorque, 'CPhysTorque', fieldsCPhysTorque)
 
-export class CPhysImpact extends CPointEntity {}
-export interface CPhysImpact {
-  m_damage: number | undefined
-  m_distance: number | undefined
-  readonly m_directionEntityName: string | undefined
-  inputImpact(): boolean
-}
-define(CPhysImpact, 'CPhysImpact', {
+const fieldsCPhysImpact = {
   m_damage: 'float32',
   m_distance: 'float32',
   m_directionEntityName: 'string',
-}, {
+} as const
+const inputsCPhysImpact = {
   Impact: '',
-})
+} as const
+export class CPhysImpact extends CPointEntity {}
+export interface CPhysImpact extends Fields<typeof fieldsCPhysImpact>, Inputs<typeof inputsCPhysImpact> {}
+define(CPhysImpact, 'CPhysImpact', fieldsCPhysImpact, inputsCPhysImpact)
 
-export class CPointAngleSensor extends CPointEntity {}
-export interface CPointAngleSensor {
-  m_bDisabled: boolean | undefined
-  readonly m_nLookAtName: string | undefined
-  m_hTargetEntity: CBaseEntity | undefined
-  m_hLookAtEntity: CBaseEntity | undefined
-  m_flDuration: number | undefined
-  m_flDotTolerance: number | undefined
-  m_flFacingTime: number | undefined
-  m_bFired: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetTargetEntity(value: string): boolean
-  inputTest(): boolean
-  inputToggle(): boolean
-}
-define(CPointAngleSensor, 'CPointAngleSensor', {
+const fieldsCPointAngleSensor = {
   m_bDisabled: 'bool',
   m_nLookAtName: 'string',
   m_hTargetEntity: 'CBaseEntity',
@@ -13470,30 +9532,19 @@ define(CPointAngleSensor, 'CPointAngleSensor', {
   m_flDotTolerance: 'float32',
   m_flFacingTime: 'float32',
   m_bFired: 'bool',
-}, {
+} as const
+const inputsCPointAngleSensor = {
   Disable: '',
   Enable: '',
   SetTargetEntity: 'text',
   Test: '',
   Toggle: '',
-})
+} as const
+export class CPointAngleSensor extends CPointEntity {}
+export interface CPointAngleSensor extends Fields<typeof fieldsCPointAngleSensor>, Inputs<typeof inputsCPointAngleSensor> {}
+define(CPointAngleSensor, 'CPointAngleSensor', fieldsCPointAngleSensor, inputsCPointAngleSensor)
 
-export class CPointAngularVelocitySensor extends CPointEntity {}
-export interface CPointAngularVelocitySensor {
-  m_hTargetEntity: CBaseEntity | undefined
-  m_flThreshold: number | undefined
-  m_nLastCompareResult: number | undefined
-  m_nLastFireResult: number | undefined
-  m_flFireTime: number | undefined
-  m_flFireInterval: number | undefined
-  m_flLastAngVelocity: number | undefined
-  m_lastOrientation: Angles | undefined
-  m_vecAxis: Vector | undefined
-  m_bUseHelper: boolean | undefined
-  inputTest(): boolean
-  inputTestWithInterval(): boolean
-}
-define(CPointAngularVelocitySensor, 'CPointAngularVelocitySensor', {
+const fieldsCPointAngularVelocitySensor = {
   m_hTargetEntity: 'CBaseEntity',
   m_flThreshold: 'float32',
   m_nLastCompareResult: 'int32',
@@ -13504,94 +9555,69 @@ define(CPointAngularVelocitySensor, 'CPointAngularVelocitySensor', {
   m_lastOrientation: 'angles',
   m_vecAxis: 'vector',
   m_bUseHelper: 'bool',
-}, {
+} as const
+const inputsCPointAngularVelocitySensor = {
   Test: '',
   TestWithInterval: '',
-})
+} as const
+export class CPointAngularVelocitySensor extends CPointEntity {}
+export interface CPointAngularVelocitySensor extends Fields<typeof fieldsCPointAngularVelocitySensor>, Inputs<typeof inputsCPointAngularVelocitySensor> {}
+define(CPointAngularVelocitySensor, 'CPointAngularVelocitySensor', fieldsCPointAngularVelocitySensor, inputsCPointAngularVelocitySensor)
 
+const inputsCPointBroadcastClientCommand = {
+  Command: 'text',
+} as const
 export class CPointBroadcastClientCommand extends CPointEntity {}
-export interface CPointBroadcastClientCommand {
-  inputCommand(value: string): boolean
-}
-define(CPointBroadcastClientCommand, 'CPointBroadcastClientCommand', {}, {
-  Command: 'text',
-})
+export interface CPointBroadcastClientCommand extends Inputs<typeof inputsCPointBroadcastClientCommand> {}
+define(CPointBroadcastClientCommand, 'CPointBroadcastClientCommand', {}, inputsCPointBroadcastClientCommand)
 
-export class CPointChildModifier extends CPointEntity {}
-export interface CPointChildModifier {
-  m_bOrphanInsteadOfDeletingChildrenOnRemove: boolean | undefined
-}
-define(CPointChildModifier, 'CPointChildModifier', {
+const fieldsCPointChildModifier = {
   m_bOrphanInsteadOfDeletingChildrenOnRemove: 'bool',
-})
+} as const
+export class CPointChildModifier extends CPointEntity {}
+export interface CPointChildModifier extends Fields<typeof fieldsCPointChildModifier> {}
+define(CPointChildModifier, 'CPointChildModifier', fieldsCPointChildModifier)
 
-export class CPointClientCommand extends CPointEntity {}
-export interface CPointClientCommand {
-  inputCommand(value: string): boolean
-}
-define(CPointClientCommand, 'CPointClientCommand', {}, {
+const inputsCPointClientCommand = {
   Command: 'text',
-})
+} as const
+export class CPointClientCommand extends CPointEntity {}
+export interface CPointClientCommand extends Inputs<typeof inputsCPointClientCommand> {}
+define(CPointClientCommand, 'CPointClientCommand', {}, inputsCPointClientCommand)
 
-export class CPointHurt extends CPointEntity {}
-export interface CPointHurt {
-  m_nDamage: number | undefined
-  m_bitsDamageType: number | undefined
-  m_flRadius: number | undefined
-  m_flDelay: number | undefined
-  readonly m_strTarget: string | undefined
-  m_pActivator: CBaseEntity | undefined
-  inputHurt(): boolean
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CPointHurt, 'CPointHurt', {
+const fieldsCPointHurt = {
   m_nDamage: 'int32',
   m_bitsDamageType: 'uint32',
   m_flRadius: 'float32',
   m_flDelay: 'float32',
   m_strTarget: 'string',
   m_pActivator: 'CBaseEntity',
-}, {
+} as const
+const inputsCPointHurt = {
   Hurt: '',
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CPointHurt extends CPointEntity {}
+export interface CPointHurt extends Fields<typeof fieldsCPointHurt>, Inputs<typeof inputsCPointHurt> {}
+define(CPointHurt, 'CPointHurt', fieldsCPointHurt, inputsCPointHurt)
 
-export class CPointProximitySensor extends CPointEntity {}
-export interface CPointProximitySensor {
-  m_bDisabled: boolean | undefined
-  m_hTargetEntity: CBaseEntity | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetTargetEntity(value: string): boolean
-  inputToggle(): boolean
-}
-define(CPointProximitySensor, 'CPointProximitySensor', {
+const fieldsCPointProximitySensor = {
   m_bDisabled: 'bool',
   m_hTargetEntity: 'CBaseEntity',
-}, {
+} as const
+const inputsCPointProximitySensor = {
   Disable: '',
   Enable: '',
   SetTargetEntity: 'text',
   Toggle: '',
-})
+} as const
+export class CPointProximitySensor extends CPointEntity {}
+export interface CPointProximitySensor extends Fields<typeof fieldsCPointProximitySensor>, Inputs<typeof inputsCPointProximitySensor> {}
+define(CPointProximitySensor, 'CPointProximitySensor', fieldsCPointProximitySensor, inputsCPointProximitySensor)
 
-export class CPointPush extends CPointEntity {}
-export interface CPointPush {
-  m_bEnabled: boolean | undefined
-  m_flMagnitude: number | undefined
-  m_flRadius: number | undefined
-  m_flInnerRadius: number | undefined
-  m_flConeOfInfluence: number | undefined
-  readonly m_iszFilterName: string | undefined
-  m_hFilter: CBaseFilter | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CPointPush, 'CPointPush', {
+const fieldsCPointPush = {
   m_bEnabled: 'bool',
   m_flMagnitude: 'float32',
   m_flRadius: 'float32',
@@ -13599,135 +9625,55 @@ define(CPointPush, 'CPointPush', {
   m_flConeOfInfluence: 'float32',
   m_iszFilterName: 'string',
   m_hFilter: 'CBaseFilter',
-}, {
+} as const
+const inputsCPointPush = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CPointPush extends CPointEntity {}
+export interface CPointPush extends Fields<typeof fieldsCPointPush>, Inputs<typeof inputsCPointPush> {}
+define(CPointPush, 'CPointPush', fieldsCPointPush, inputsCPointPush)
 
-export class CPointServerCommand extends CPointEntity {}
-export interface CPointServerCommand {
-  inputCommand(value: string): boolean
-}
-define(CPointServerCommand, 'CPointServerCommand', {}, {
+const inputsCPointServerCommand = {
   Command: 'text',
-})
+} as const
+export class CPointServerCommand extends CPointEntity {}
+export interface CPointServerCommand extends Inputs<typeof inputsCPointServerCommand> {}
+define(CPointServerCommand, 'CPointServerCommand', {}, inputsCPointServerCommand)
 
-export class CPointVelocitySensor extends CPointEntity {}
-export interface CPointVelocitySensor {
-  m_hTargetEntity: CBaseEntity | undefined
-  m_vecAxis: Vector | undefined
-  m_bEnabled: boolean | undefined
-  m_fPrevVelocity: number | undefined
-  m_flAvgInterval: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CPointVelocitySensor, 'CPointVelocitySensor', {
+const fieldsCPointVelocitySensor = {
   m_hTargetEntity: 'CBaseEntity',
   m_vecAxis: 'vector',
   m_bEnabled: 'bool',
   m_fPrevVelocity: 'float32',
   m_flAvgInterval: 'float32',
-}, {
+} as const
+const inputsCPointVelocitySensor = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CPointVelocitySensor extends CPointEntity {}
+export interface CPointVelocitySensor extends Fields<typeof fieldsCPointVelocitySensor>, Inputs<typeof inputsCPointVelocitySensor> {}
+define(CPointVelocitySensor, 'CPointVelocitySensor', fieldsCPointVelocitySensor, inputsCPointVelocitySensor)
 
-export class CRagdollMagnet extends CPointEntity {}
-export interface CRagdollMagnet {
-  m_bDisabled: boolean | undefined
-  m_radius: number | undefined
-  m_force: number | undefined
-  m_axis: Vector | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CRagdollMagnet, 'CRagdollMagnet', {
+const fieldsCRagdollMagnet = {
   m_bDisabled: 'bool',
   m_radius: 'float32',
   m_force: 'float32',
   m_axis: 'vector',
-}, {
+} as const
+const inputsCRagdollMagnet = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CRagdollMagnet extends CPointEntity {}
+export interface CRagdollMagnet extends Fields<typeof fieldsCRagdollMagnet>, Inputs<typeof inputsCRagdollMagnet> {}
+define(CRagdollMagnet, 'CRagdollMagnet', fieldsCRagdollMagnet, inputsCRagdollMagnet)
 
 export class CRotatorTarget extends CPointEntity {}
 define(CRotatorTarget, 'CRotatorTarget', {})
 
-export class CSceneEntity extends CPointEntity {}
-export interface CSceneEntity {
-  readonly m_iszSceneFile: string | undefined
-  readonly m_iszTarget1: string | undefined
-  readonly m_iszTarget2: string | undefined
-  readonly m_iszTarget3: string | undefined
-  readonly m_iszTarget4: string | undefined
-  readonly m_iszTarget5: string | undefined
-  readonly m_iszTarget6: string | undefined
-  readonly m_iszTarget7: string | undefined
-  readonly m_iszTarget8: string | undefined
-  m_hTarget1: CBaseEntity | undefined
-  m_hTarget2: CBaseEntity | undefined
-  m_hTarget3: CBaseEntity | undefined
-  m_hTarget4: CBaseEntity | undefined
-  m_hTarget5: CBaseEntity | undefined
-  m_hTarget6: CBaseEntity | undefined
-  m_hTarget7: CBaseEntity | undefined
-  m_hTarget8: CBaseEntity | undefined
-  m_hLocatorOrigin: CBaseEntity | undefined
-  readonly m_sTargetAttachment: string | undefined
-  m_bIsPlayingBack: boolean | undefined
-  m_bPaused: boolean | undefined
-  m_bMultiplayer: boolean | undefined
-  m_bAutogenerated: boolean | undefined
-  m_flForceClientTime: number | undefined
-  m_flCurrentTime: number | undefined
-  m_flFrameTime: number | undefined
-  m_bCancelAtNextInterrupt: boolean | undefined
-  m_bRemoveOnCompletion: boolean | undefined
-  m_fPitch: number | undefined
-  m_bAutomated: boolean | undefined
-  m_nAutomatedAction: number | undefined
-  m_flAutomationDelay: number | undefined
-  m_flAutomationTime: number | undefined
-  m_nSpeechPriority: number | undefined
-  m_bPausedViaInput: boolean | undefined
-  m_bPauseAtNextInterrupt: boolean | undefined
-  m_bWaitingForActor: boolean | undefined
-  m_bWaitingForInterrupt: boolean | undefined
-  m_bInterruptedActorsScenes: boolean | undefined
-  m_bBreakOnNonIdle: boolean | undefined
-  m_bSceneFinished: boolean | undefined
-  m_nSceneStringIndex: number | undefined
-  m_hInterruptScene: CSceneEntity | undefined
-  m_nInterruptCount: number | undefined
-  readonly m_responseConcept: string | undefined
-  readonly m_responseCriteria: string | undefined
-  m_bSceneMissing: boolean | undefined
-  m_bInterrupted: boolean | undefined
-  m_bCompletedEarly: boolean | undefined
-  m_bInterruptSceneFinished: boolean | undefined
-  m_bRestoring: boolean | undefined
-  readonly m_iszSoundName: string | undefined
-  readonly m_iszSequenceName: string | undefined
-  m_hActor: CBaseModelEntity | undefined
-  m_hActivator: CBaseEntity | undefined
-  m_BusyActor: number | undefined
-  m_iPlayerDeathBehavior: number | undefined
-  inputCancel(): boolean
-  inputCancelAtNextInterrupt(): boolean
-  inputInterjectResponse(value: string): boolean
-  inputPause(): boolean
-  inputPauseAtNextInterrupt(): boolean
-  inputPitchShift(value: number): boolean
-  inputResume(): boolean
-  inputScriptPlayerDeath(): boolean
-  inputSetTarget1(value: string): boolean
-  inputSetTarget2(value: string): boolean
-  inputStart(): boolean
-  inputStopWaitingForActor(): boolean
-}
-define(CSceneEntity, 'CSceneEntity', {
+const fieldsCSceneEntity = {
   m_iszSceneFile: 'string',
   m_iszTarget1: 'string',
   m_iszTarget2: 'string',
@@ -13785,7 +9731,8 @@ define(CSceneEntity, 'CSceneEntity', {
   m_hActivator: 'CBaseEntity',
   m_BusyActor: 'int32',
   m_iPlayerDeathBehavior: 'uint32',
-}, {
+} as const
+const inputsCSceneEntity = {
   Cancel: '',
   CancelAtNextInterrupt: '',
   InterjectResponse: 'text',
@@ -13798,49 +9745,34 @@ define(CSceneEntity, 'CSceneEntity', {
   SetTarget2: 'text',
   Start: '',
   StopWaitingForActor: '',
-})
+} as const
+export class CSceneEntity extends CPointEntity {}
+export interface CSceneEntity extends Fields<typeof fieldsCSceneEntity>, Inputs<typeof inputsCSceneEntity> {}
+define(CSceneEntity, 'CSceneEntity', fieldsCSceneEntity, inputsCSceneEntity)
 
-export class CInstancedSceneEntity extends CSceneEntity {}
-export interface CInstancedSceneEntity {
-  m_hOwner: CBaseEntity | undefined
-  m_bHadOwner: boolean | undefined
-  m_flPostSpeakDelay: number | undefined
-  m_flPreDelay: number | undefined
-  m_bIsBackground: boolean | undefined
-  m_hTarget: CBaseEntity | undefined
-}
-define(CInstancedSceneEntity, 'CInstancedSceneEntity', {
+const fieldsCInstancedSceneEntity = {
   m_hOwner: 'CBaseEntity',
   m_bHadOwner: 'bool',
   m_flPostSpeakDelay: 'float32',
   m_flPreDelay: 'float32',
   m_bIsBackground: 'bool',
   m_hTarget: 'CBaseEntity',
-})
+} as const
+export class CInstancedSceneEntity extends CSceneEntity {}
+export interface CInstancedSceneEntity extends Fields<typeof fieldsCInstancedSceneEntity> {}
+define(CInstancedSceneEntity, 'CInstancedSceneEntity', fieldsCInstancedSceneEntity)
 
 export class CSceneEntityAlias_logic_choreographed_scene extends CSceneEntity {}
 define(CSceneEntityAlias_logic_choreographed_scene, 'CSceneEntityAlias_logic_choreographed_scene', {})
 
-export class CTankTargetChange extends CPointEntity {}
-export interface CTankTargetChange {
-  readonly m_newTargetName: string | undefined
-}
-define(CTankTargetChange, 'CTankTargetChange', {
+const fieldsCTankTargetChange = {
   m_newTargetName: 'string',
-})
+} as const
+export class CTankTargetChange extends CPointEntity {}
+export interface CTankTargetChange extends Fields<typeof fieldsCTankTargetChange> {}
+define(CTankTargetChange, 'CTankTargetChange', fieldsCTankTargetChange)
 
-export class CTankTrainAI extends CPointEntity {}
-export interface CTankTrainAI {
-  m_hTrain: CFuncTrackTrain | undefined
-  m_hTargetEntity: CBaseEntity | undefined
-  m_soundPlaying: number | undefined
-  readonly m_startSoundName: string | undefined
-  readonly m_engineSoundName: string | undefined
-  readonly m_movementSoundName: string | undefined
-  readonly m_targetEntityName: string | undefined
-  inputTargetEntity(value: string): boolean
-}
-define(CTankTrainAI, 'CTankTrainAI', {
+const fieldsCTankTrainAI = {
   m_hTrain: 'CFuncTrackTrain',
   m_hTargetEntity: 'CBaseEntity',
   m_soundPlaying: 'int32',
@@ -13848,52 +9780,37 @@ define(CTankTrainAI, 'CTankTrainAI', {
   m_engineSoundName: 'string',
   m_movementSoundName: 'string',
   m_targetEntityName: 'string',
-}, {
+} as const
+const inputsCTankTrainAI = {
   TargetEntity: 'text',
-})
+} as const
+export class CTankTrainAI extends CPointEntity {}
+export interface CTankTrainAI extends Fields<typeof fieldsCTankTrainAI>, Inputs<typeof inputsCTankTrainAI> {}
+define(CTankTrainAI, 'CTankTrainAI', fieldsCTankTrainAI, inputsCTankTrainAI)
 
-export class CPointEntityFinder extends CBaseEntity {}
-export interface CPointEntityFinder {
-  m_hEntity: CBaseEntity | undefined
-  readonly m_iFilterName: string | undefined
-  m_hFilter: CBaseFilter | undefined
-  readonly m_iRefName: string | undefined
-  m_hReference: CBaseEntity | undefined
-  m_FindMethod: number | undefined
-  inputFindEntity(): boolean
-}
-define(CPointEntityFinder, 'CPointEntityFinder', {
+const fieldsCPointEntityFinder = {
   m_hEntity: 'CBaseEntity',
   m_iFilterName: 'string',
   m_hFilter: 'CBaseFilter',
   m_iRefName: 'string',
   m_hReference: 'CBaseEntity',
   m_FindMethod: 'uint32',
-}, {
+} as const
+const inputsCPointEntityFinder = {
   FindEntity: '',
-})
+} as const
+export class CPointEntityFinder extends CBaseEntity {}
+export interface CPointEntityFinder extends Fields<typeof fieldsCPointEntityFinder>, Inputs<typeof inputsCPointEntityFinder> {}
+define(CPointEntityFinder, 'CPointEntityFinder', fieldsCPointEntityFinder, inputsCPointEntityFinder)
 
-export class CPointModifierThinker extends CBaseEntity {}
-export interface CPointModifierThinker {
-  m_bSendToClients: boolean | undefined
-}
-define(CPointModifierThinker, 'CPointModifierThinker', {
+const fieldsCPointModifierThinker = {
   m_bSendToClients: 'bool',
-})
+} as const
+export class CPointModifierThinker extends CBaseEntity {}
+export interface CPointModifierThinker extends Fields<typeof fieldsCPointModifierThinker> {}
+define(CPointModifierThinker, 'CPointModifierThinker', fieldsCPointModifierThinker)
 
-export class CPointOrient extends CBaseEntity {}
-export interface CPointOrient {
-  readonly m_iszSpawnTargetName: string | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_bActive: boolean | undefined
-  m_nGoalDirection: number | undefined
-  m_nConstraint: number | undefined
-  m_flMaxTurnRate: number | undefined
-  m_flLastGameTime: number | undefined
-  inputSetActive(value: boolean): boolean
-  inputSetTarget(value: string): boolean
-}
-define(CPointOrient, 'CPointOrient', {
+const fieldsCPointOrient = {
   m_iszSpawnTargetName: 'string',
   m_hTarget: 'CBaseEntity',
   m_bActive: 'bool',
@@ -13901,61 +9818,19 @@ define(CPointOrient, 'CPointOrient', {
   m_nConstraint: 'uint32',
   m_flMaxTurnRate: 'float32',
   m_flLastGameTime: 'float32',
-}, {
+} as const
+const inputsCPointOrient = {
   SetActive: 'boolean',
   SetTarget: 'text',
-})
+} as const
+export class CPointOrient extends CBaseEntity {}
+export interface CPointOrient extends Fields<typeof fieldsCPointOrient>, Inputs<typeof inputsCPointOrient> {}
+define(CPointOrient, 'CPointOrient', fieldsCPointOrient, inputsCPointOrient)
 
 export class CPointPulse extends CBaseEntity {}
 define(CPointPulse, 'CPointPulse', {})
 
-export class CPointValueRemapper extends CBaseEntity {}
-export interface CPointValueRemapper {
-  m_bDisabled: boolean | undefined
-  m_bUpdateOnClient: boolean | undefined
-  m_nInputType: number | undefined
-  readonly m_iszRemapLineStartName: string | undefined
-  readonly m_iszRemapLineEndName: string | undefined
-  m_hRemapLineStart: CBaseEntity | undefined
-  m_hRemapLineEnd: CBaseEntity | undefined
-  m_flMaximumChangePerSecond: number | undefined
-  m_flDisengageDistance: number | undefined
-  m_flEngageDistance: number | undefined
-  m_bRequiresUseKey: boolean | undefined
-  m_nOutputType: number | undefined
-  readonly m_iszOutputEntityName: string | undefined
-  readonly m_iszOutputEntity2Name: string | undefined
-  readonly m_iszOutputEntity3Name: string | undefined
-  readonly m_iszOutputEntity4Name: string | undefined
-  m_nHapticsType: number | undefined
-  m_nMomentumType: number | undefined
-  m_flMomentumModifier: number | undefined
-  m_flSnapValue: number | undefined
-  m_flCurrentMomentum: number | undefined
-  m_nRatchetType: number | undefined
-  m_flRatchetOffset: number | undefined
-  m_flInputOffset: number | undefined
-  m_bEngaged: boolean | undefined
-  m_bFirstUpdate: boolean | undefined
-  m_flPreviousValue: number | undefined
-  m_flPreviousUpdateTickTime: number | undefined
-  m_vecPreviousTestPoint: Vector | undefined
-  m_hUsingPlayer: CBasePlayerPawn | undefined
-  m_flCustomOutputValue: number | undefined
-  readonly m_iszSoundEngage: string | undefined
-  readonly m_iszSoundDisengage: string | undefined
-  readonly m_iszSoundReachedValueZero: string | undefined
-  readonly m_iszSoundReachedValueOne: string | undefined
-  readonly m_iszSoundMovingLoop: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetDisengageistance(value: number): boolean
-  inputSetEngageDistance(value: number): boolean
-  inputSetMomentumModifier(value: number): boolean
-  inputSetMomentumType(value: number): boolean
-  inputSetSnapValue(value: number): boolean
-}
-define(CPointValueRemapper, 'CPointValueRemapper', {
+const fieldsCPointValueRemapper = {
   m_bDisabled: 'bool',
   m_bUpdateOnClient: 'bool',
   m_nInputType: 'uint32',
@@ -13992,7 +9867,8 @@ define(CPointValueRemapper, 'CPointValueRemapper', {
   m_iszSoundReachedValueZero: 'string',
   m_iszSoundReachedValueOne: 'string',
   m_iszSoundMovingLoop: 'string',
-}, {
+} as const
+const inputsCPointValueRemapper = {
   Disable: '',
   Enable: '',
   SetDisengageistance: 'number',
@@ -14000,114 +9876,33 @@ define(CPointValueRemapper, 'CPointValueRemapper', {
   SetMomentumModifier: 'number',
   SetMomentumType: 'integer',
   SetSnapValue: 'number',
-})
+} as const
+export class CPointValueRemapper extends CBaseEntity {}
+export interface CPointValueRemapper extends Fields<typeof fieldsCPointValueRemapper>, Inputs<typeof inputsCPointValueRemapper> {}
+define(CPointValueRemapper, 'CPointValueRemapper', fieldsCPointValueRemapper, inputsCPointValueRemapper)
 
-export class CPulseGameBlackboard extends CBaseEntity {}
-export interface CPulseGameBlackboard {
-  readonly m_strGraphName: string | undefined
-  readonly m_strStateBlob: string | undefined
-}
-define(CPulseGameBlackboard, 'CPulseGameBlackboard', {
+const fieldsCPulseGameBlackboard = {
   m_strGraphName: 'string',
   m_strStateBlob: 'string',
-})
+} as const
+export class CPulseGameBlackboard extends CBaseEntity {}
+export interface CPulseGameBlackboard extends Fields<typeof fieldsCPulseGameBlackboard> {}
+define(CPulseGameBlackboard, 'CPulseGameBlackboard', fieldsCPulseGameBlackboard)
 
-export class CRagdollManager extends CBaseEntity {}
-export interface CRagdollManager {
-  m_iCurrentMaxRagdollCount: number | undefined
-  m_iMaxRagdollCount: number | undefined
-  m_bSaveImportant: boolean | undefined
-  m_bCanTakeDamage: boolean | undefined
-  inputSetMaxRagdollCount(value: number): boolean
-}
-define(CRagdollManager, 'CRagdollManager', {
+const fieldsCRagdollManager = {
   m_iCurrentMaxRagdollCount: 'int8',
   m_iMaxRagdollCount: 'int32',
   m_bSaveImportant: 'bool',
   m_bCanTakeDamage: 'bool',
-}, {
+} as const
+const inputsCRagdollManager = {
   SetMaxRagdollCount: 'integer',
-})
+} as const
+export class CRagdollManager extends CBaseEntity {}
+export interface CRagdollManager extends Fields<typeof fieldsCRagdollManager>, Inputs<typeof inputsCRagdollManager> {}
+define(CRagdollManager, 'CRagdollManager', fieldsCRagdollManager, inputsCRagdollManager)
 
-export class CScriptedSequence extends CBaseEntity {}
-export interface CScriptedSequence {
-  readonly m_iszEntry: string | undefined
-  readonly m_iszPreIdle: string | undefined
-  readonly m_iszPlay: string | undefined
-  readonly m_iszPostIdle: string | undefined
-  readonly m_iszModifierToAddOnPlay: string | undefined
-  readonly m_iszNextScript: string | undefined
-  readonly m_iszEntity: string | undefined
-  readonly m_iszSyncGroup: string | undefined
-  m_nMoveTo: number | undefined
-  m_nMoveToGait: number | undefined
-  m_nHeldWeaponBehavior: number | undefined
-  m_nForcedCrouchState: number | undefined
-  m_bIsPlayingPreIdle: boolean | undefined
-  m_bIsPlayingEntry: boolean | undefined
-  m_bIsPlayingAction: boolean | undefined
-  m_bIsPlayingPostIdle: boolean | undefined
-  m_bDontRotateOther: boolean | undefined
-  m_bIsRepeatable: boolean | undefined
-  m_bShouldLeaveCorpse: boolean | undefined
-  m_bStartOnSpawn: boolean | undefined
-  m_bDisallowInterrupts: boolean | undefined
-  m_bCanOverrideNPCState: boolean | undefined
-  m_bDontTeleportAtEnd: boolean | undefined
-  m_bHighPriority: boolean | undefined
-  m_bHideDebugComplaints: boolean | undefined
-  m_bContinueOnDeath: boolean | undefined
-  m_bLoopPreIdleSequence: boolean | undefined
-  m_bLoopActionSequence: boolean | undefined
-  m_bLoopPostIdleSequence: boolean | undefined
-  m_bSynchPostIdles: boolean | undefined
-  m_bIgnoreLookAt: boolean | undefined
-  m_bIgnoreGravity: boolean | undefined
-  m_bDisableNPCCollisions: boolean | undefined
-  m_bKeepAnimgraphLockedPost: boolean | undefined
-  m_bDontAddModifiers: boolean | undefined
-  m_bDisableAimingWhileMoving: boolean | undefined
-  m_bIgnoreRotation: boolean | undefined
-  m_flRadius: number | undefined
-  m_flRepeat: number | undefined
-  m_flPlayAnimFadeInTime: number | undefined
-  m_flMoveInterpTime: number | undefined
-  m_flAngRate: number | undefined
-  m_flMoveSpeed: number | undefined
-  m_bWaitUntilMoveCompletesToStartAnimation: boolean | undefined
-  m_nNotReadySequenceCount: number | undefined
-  m_startTime: number | undefined
-  m_bWaitForBeginSequence: boolean | undefined
-  m_saved_effects: number | undefined
-  m_savedFlags: number | undefined
-  m_savedCollisionGroup: number | undefined
-  m_bInterruptable: boolean | undefined
-  m_sequenceStarted: boolean | undefined
-  m_bPositionRelativeToOtherEntity: boolean | undefined
-  m_hTargetEnt: CBaseEntity | undefined
-  m_hNextCine: CScriptedSequence | undefined
-  m_bThinking: boolean | undefined
-  m_bInitiatedSelfDelete: boolean | undefined
-  m_bIsTeleportingDueToMoveTo: boolean | undefined
-  m_bAllowCustomInterruptConditions: boolean | undefined
-  m_hForcedTarget: CBaseAnimGraph | undefined
-  m_bDontCancelOtherSequences: boolean | undefined
-  m_bForceSynch: boolean | undefined
-  m_bPreventUpdateYawOnFinish: boolean | undefined
-  m_bEnsureOnNavmeshOnFinish: boolean | undefined
-  m_onDeathBehavior: number | undefined
-  m_ConflictResponse: number | undefined
-  m_hInteractionMainEntity: CBaseEntity | undefined
-  m_iPlayerDeathBehavior: number | undefined
-  m_bSkipFadeIn: boolean | undefined
-  inputBeginSequence(): boolean
-  inputCancelSequence(): boolean
-  inputForceTarget(value: string): boolean
-  inputMoveToPosition(): boolean
-  inputScriptPlayerDeath(): boolean
-  inputSetActionSequence(value: string): boolean
-}
-define(CScriptedSequence, 'CScriptedSequence', {
+const fieldsCScriptedSequence = {
   m_iszEntry: 'string',
   m_iszPreIdle: 'string',
   m_iszPlay: 'string',
@@ -14177,41 +9972,23 @@ define(CScriptedSequence, 'CScriptedSequence', {
   m_hInteractionMainEntity: 'CBaseEntity',
   m_iPlayerDeathBehavior: 'int32',
   m_bSkipFadeIn: 'bool',
-}, {
+} as const
+const inputsCScriptedSequence = {
   BeginSequence: '',
   CancelSequence: '',
   ForceTarget: 'text',
   MoveToPosition: '',
   ScriptPlayerDeath: '',
   SetActionSequence: 'text',
-})
+} as const
+export class CScriptedSequence extends CBaseEntity {}
+export interface CScriptedSequence extends Fields<typeof fieldsCScriptedSequence>, Inputs<typeof inputsCScriptedSequence> {}
+define(CScriptedSequence, 'CScriptedSequence', fieldsCScriptedSequence, inputsCScriptedSequence)
 
 export class CServerOnlyEntity extends CBaseEntity {}
 define(CServerOnlyEntity, 'CServerOnlyEntity', {})
 
-export class CAI_Hint extends CServerOnlyEntity {}
-export interface CAI_Hint {
-  m_hHintOwner: CBaseEntity | undefined
-  m_flNextUseTime: number | undefined
-  m_nodeFOV: number | undefined
-  m_bNodeFOVCheckBehind: boolean | undefined
-  m_vecForward: Vector | undefined
-  readonly m_iszAnimgraphEntryAction: string | undefined
-  readonly m_iszAnimgraphExitAction: string | undefined
-  readonly m_iszAnimgraphEntryCmd: string | undefined
-  readonly m_iszAnimgraphExitCmd: string | undefined
-  readonly m_iszNavlinkTargetName: string | undefined
-  m_bRemoveOnUnreserved: boolean | undefined
-  m_hAssociatedEntity: CBaseEntity | undefined
-  m_flInteractionDistance: number | undefined
-  m_flCooldown: number | undefined
-  readonly m_iszNPCFollowsEntity: string | undefined
-  m_flNPCSnapToHintDistance: number | undefined
-  inputDisableHint(): boolean
-  inputEnableHint(): boolean
-  inputToggleHint(): boolean
-}
-define(CAI_Hint, 'CAI_Hint', {
+const fieldsCAI_Hint = {
   m_hHintOwner: 'CBaseEntity',
   m_flNextUseTime: 'float32',
   m_nodeFOV: 'float32',
@@ -14228,226 +10005,186 @@ define(CAI_Hint, 'CAI_Hint', {
   m_flCooldown: 'float32',
   m_iszNPCFollowsEntity: 'string',
   m_flNPCSnapToHintDistance: 'float32',
-}, {
+} as const
+const inputsCAI_Hint = {
   DisableHint: '',
   EnableHint: '',
   ToggleHint: '',
-})
+} as const
+export class CAI_Hint extends CServerOnlyEntity {}
+export interface CAI_Hint extends Fields<typeof fieldsCAI_Hint>, Inputs<typeof inputsCAI_Hint> {}
+define(CAI_Hint, 'CAI_Hint', fieldsCAI_Hint, inputsCAI_Hint)
 
-export class CCitadelEnergyTower extends CServerOnlyEntity {}
-export interface CCitadelEnergyTower {
-  m_bEnabled: boolean | undefined
-  m_flDamage: number | undefined
-  m_flRadius: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CCitadelEnergyTower, 'CCitadelEnergyTower', {
+const fieldsCCitadelEnergyTower = {
   m_bEnabled: 'bool',
   m_flDamage: 'float32',
   m_flRadius: 'float32',
-}, {
+} as const
+const inputsCCitadelEnergyTower = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CCitadelEnergyTower extends CServerOnlyEntity {}
+export interface CCitadelEnergyTower extends Fields<typeof fieldsCCitadelEnergyTower>, Inputs<typeof inputsCCitadelEnergyTower> {}
+define(CCitadelEnergyTower, 'CCitadelEnergyTower', fieldsCCitadelEnergyTower, inputsCCitadelEnergyTower)
 
-export class CCitadelTeleportLocation extends CServerOnlyEntity {}
-export interface CCitadelTeleportLocation {
-  m_iLane: number | undefined
-  m_iObjective: number | undefined
-}
-define(CCitadelTeleportLocation, 'CCitadelTeleportLocation', {
+const fieldsCCitadelTeleportLocation = {
   m_iLane: 'int32',
   m_iObjective: 'int32',
-})
+} as const
+export class CCitadelTeleportLocation extends CServerOnlyEntity {}
+export interface CCitadelTeleportLocation extends Fields<typeof fieldsCCitadelTeleportLocation> {}
+define(CCitadelTeleportLocation, 'CCitadelTeleportLocation', fieldsCCitadelTeleportLocation)
 
 export class CInfoData extends CServerOnlyEntity {}
 define(CInfoData, 'CInfoData', {})
 
-export class CLaneMarkerPath extends CServerOnlyEntity {}
-export interface CLaneMarkerPath {
-  m_iLane: number | undefined
-  m_iPath: number | undefined
-}
-define(CLaneMarkerPath, 'CLaneMarkerPath', {
+const fieldsCLaneMarkerPath = {
   m_iLane: 'int32',
   m_iPath: 'int32',
-})
+} as const
+export class CLaneMarkerPath extends CServerOnlyEntity {}
+export interface CLaneMarkerPath extends Fields<typeof fieldsCLaneMarkerPath> {}
+define(CLaneMarkerPath, 'CLaneMarkerPath', fieldsCLaneMarkerPath)
 
 export class CLogicalEntity extends CServerOnlyEntity {}
 define(CLogicalEntity, 'CLogicalEntity', {})
 
-export class CBaseFilter extends CLogicalEntity {}
-export interface CBaseFilter {
-  m_bNegated: boolean | undefined
-  inputTestActivator(): boolean
-}
-define(CBaseFilter, 'CBaseFilter', {
+const fieldsCBaseFilter = {
   m_bNegated: 'bool',
-}, {
+} as const
+const inputsCBaseFilter = {
   TestActivator: '',
-})
+} as const
+export class CBaseFilter extends CLogicalEntity {}
+export interface CBaseFilter extends Fields<typeof fieldsCBaseFilter>, Inputs<typeof inputsCBaseFilter> {}
+define(CBaseFilter, 'CBaseFilter', fieldsCBaseFilter, inputsCBaseFilter)
 
-export class CCitadelFilterModifier extends CBaseFilter {}
-export interface CCitadelFilterModifier {
-  readonly m_iModifierName: string | undefined
-}
-define(CCitadelFilterModifier, 'CCitadelFilterModifier', {
+const fieldsCCitadelFilterModifier = {
   m_iModifierName: 'string',
-})
+} as const
+export class CCitadelFilterModifier extends CBaseFilter {}
+export interface CCitadelFilterModifier extends Fields<typeof fieldsCCitadelFilterModifier> {}
+define(CCitadelFilterModifier, 'CCitadelFilterModifier', fieldsCCitadelFilterModifier)
 
-export class CFilterAttributeInt extends CBaseFilter {}
-export interface CFilterAttributeInt {
-  readonly m_sAttributeName: string | undefined
-}
-define(CFilterAttributeInt, 'CFilterAttributeInt', {
+const fieldsCFilterAttributeInt = {
   m_sAttributeName: 'string',
-})
+} as const
+export class CFilterAttributeInt extends CBaseFilter {}
+export interface CFilterAttributeInt extends Fields<typeof fieldsCFilterAttributeInt> {}
+define(CFilterAttributeInt, 'CFilterAttributeInt', fieldsCFilterAttributeInt)
 
-export class CFilterClass extends CBaseFilter {}
-export interface CFilterClass {
-  readonly m_iFilterClass: string | undefined
-}
-define(CFilterClass, 'CFilterClass', {
+const fieldsCFilterClass = {
   m_iFilterClass: 'string',
-})
+} as const
+export class CFilterClass extends CBaseFilter {}
+export interface CFilterClass extends Fields<typeof fieldsCFilterClass> {}
+define(CFilterClass, 'CFilterClass', fieldsCFilterClass)
 
-export class CFilterContext extends CBaseFilter {}
-export interface CFilterContext {
-  readonly m_iFilterContext: string | undefined
-}
-define(CFilterContext, 'CFilterContext', {
+const fieldsCFilterContext = {
   m_iFilterContext: 'string',
-})
+} as const
+export class CFilterContext extends CBaseFilter {}
+export interface CFilterContext extends Fields<typeof fieldsCFilterContext> {}
+define(CFilterContext, 'CFilterContext', fieldsCFilterContext)
 
-export class CFilterEnemy extends CBaseFilter {}
-export interface CFilterEnemy {
-  readonly m_iszEnemyName: string | undefined
-  m_flRadius: number | undefined
-  m_flOuterRadius: number | undefined
-  m_nMaxSquadmatesPerEnemy: number | undefined
-  readonly m_iszPlayerName: string | undefined
-}
-define(CFilterEnemy, 'CFilterEnemy', {
+const fieldsCFilterEnemy = {
   m_iszEnemyName: 'string',
   m_flRadius: 'float32',
   m_flOuterRadius: 'float32',
   m_nMaxSquadmatesPerEnemy: 'int32',
   m_iszPlayerName: 'string',
-})
+} as const
+export class CFilterEnemy extends CBaseFilter {}
+export interface CFilterEnemy extends Fields<typeof fieldsCFilterEnemy> {}
+define(CFilterEnemy, 'CFilterEnemy', fieldsCFilterEnemy)
 
 export class CFilterLOS extends CBaseFilter {}
 define(CFilterLOS, 'CFilterLOS', {})
 
-export class CFilterMassGreater extends CBaseFilter {}
-export interface CFilterMassGreater {
-  m_fFilterMass: number | undefined
-}
-define(CFilterMassGreater, 'CFilterMassGreater', {
+const fieldsCFilterMassGreater = {
   m_fFilterMass: 'float32',
-})
+} as const
+export class CFilterMassGreater extends CBaseFilter {}
+export interface CFilterMassGreater extends Fields<typeof fieldsCFilterMassGreater> {}
+define(CFilterMassGreater, 'CFilterMassGreater', fieldsCFilterMassGreater)
 
-export class CFilterModel extends CBaseFilter {}
-export interface CFilterModel {
-  readonly m_iFilterModel: string | undefined
-}
-define(CFilterModel, 'CFilterModel', {
+const fieldsCFilterModel = {
   m_iFilterModel: 'string',
-})
+} as const
+export class CFilterModel extends CBaseFilter {}
+export interface CFilterModel extends Fields<typeof fieldsCFilterModel> {}
+define(CFilterModel, 'CFilterModel', fieldsCFilterModel)
 
-export class CFilterModifier extends CBaseFilter {}
-export interface CFilterModifier {
-  readonly m_iFilterModifier: string | undefined
-}
-define(CFilterModifier, 'CFilterModifier', {
+const fieldsCFilterModifier = {
   m_iFilterModifier: 'string',
-})
+} as const
+export class CFilterModifier extends CBaseFilter {}
+export interface CFilterModifier extends Fields<typeof fieldsCFilterModifier> {}
+define(CFilterModifier, 'CFilterModifier', fieldsCFilterModifier)
 
-export class CFilterMultiple extends CBaseFilter {}
-export interface CFilterMultiple {
-  m_nFilterType: number | undefined
-}
-define(CFilterMultiple, 'CFilterMultiple', {
+const fieldsCFilterMultiple = {
   m_nFilterType: 'uint32',
-})
+} as const
+export class CFilterMultiple extends CBaseFilter {}
+export interface CFilterMultiple extends Fields<typeof fieldsCFilterMultiple> {}
+define(CFilterMultiple, 'CFilterMultiple', fieldsCFilterMultiple)
 
-export class CFilterName extends CBaseFilter {}
-export interface CFilterName {
-  readonly m_iFilterName: string | undefined
-}
-define(CFilterName, 'CFilterName', {
+const fieldsCFilterName = {
   m_iFilterName: 'string',
-})
+} as const
+export class CFilterName extends CBaseFilter {}
+export interface CFilterName extends Fields<typeof fieldsCFilterName> {}
+define(CFilterName, 'CFilterName', fieldsCFilterName)
 
-export class CFilterProximity extends CBaseFilter {}
-export interface CFilterProximity {
-  m_flRadius: number | undefined
-}
-define(CFilterProximity, 'CFilterProximity', {
+const fieldsCFilterProximity = {
   m_flRadius: 'float32',
-})
+} as const
+export class CFilterProximity extends CBaseFilter {}
+export interface CFilterProximity extends Fields<typeof fieldsCFilterProximity> {}
+define(CFilterProximity, 'CFilterProximity', fieldsCFilterProximity)
 
-export class CFilterTeam extends CBaseFilter {}
-export interface CFilterTeam {
-  m_iFilterTeam: number | undefined
-}
-define(CFilterTeam, 'CFilterTeam', {
+const fieldsCFilterTeam = {
   m_iFilterTeam: 'int32',
-})
+} as const
+export class CFilterTeam extends CBaseFilter {}
+export interface CFilterTeam extends Fields<typeof fieldsCFilterTeam> {}
+define(CFilterTeam, 'CFilterTeam', fieldsCFilterTeam)
 
-export class FilterDamageType extends CBaseFilter {}
-export interface FilterDamageType {
-  m_iDamageType: number | undefined
-}
-define(FilterDamageType, 'FilterDamageType', {
+const fieldsFilterDamageType = {
   m_iDamageType: 'int32',
-})
+} as const
+export class FilterDamageType extends CBaseFilter {}
+export interface FilterDamageType extends Fields<typeof fieldsFilterDamageType> {}
+define(FilterDamageType, 'FilterDamageType', fieldsFilterDamageType)
 
-export class FilterHealth extends CBaseFilter {}
-export interface FilterHealth {
-  m_bAdrenalineActive: boolean | undefined
-  m_iHealthMin: number | undefined
-  m_iHealthMax: number | undefined
-}
-define(FilterHealth, 'FilterHealth', {
+const fieldsFilterHealth = {
   m_bAdrenalineActive: 'bool',
   m_iHealthMin: 'int32',
   m_iHealthMax: 'int32',
-})
+} as const
+export class FilterHealth extends CBaseFilter {}
+export interface FilterHealth extends Fields<typeof fieldsFilterHealth> {}
+define(FilterHealth, 'FilterHealth', fieldsFilterHealth)
 
-export class CEnvFade extends CLogicalEntity {}
-export interface CEnvFade {
-  m_Duration: number | undefined
-  m_HoldDuration: number | undefined
-  inputFade(): boolean
-}
-define(CEnvFade, 'CEnvFade', {
+const fieldsCEnvFade = {
   m_Duration: 'float32',
   m_HoldDuration: 'float32',
-}, {
+} as const
+const inputsCEnvFade = {
   Fade: '',
-})
+} as const
+export class CEnvFade extends CLogicalEntity {}
+export interface CEnvFade extends Fields<typeof fieldsCEnvFade>, Inputs<typeof inputsCEnvFade> {}
+define(CEnvFade, 'CEnvFade', fieldsCEnvFade, inputsCEnvFade)
 
-export class CEnvGlobal extends CLogicalEntity {}
-export interface CEnvGlobal {
-  readonly m_globalstate: string | undefined
-  m_triggermode: number | undefined
-  m_initialstate: number | undefined
-  m_counter: number | undefined
-  inputAddToCounter(value: number): boolean
-  inputGetCounter(): boolean
-  inputRemove(): boolean
-  inputSetCounter(value: number): boolean
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CEnvGlobal, 'CEnvGlobal', {
+const fieldsCEnvGlobal = {
   m_globalstate: 'string',
   m_triggermode: 'int32',
   m_initialstate: 'int32',
   m_counter: 'int32',
-}, {
+} as const
+const inputsCEnvGlobal = {
   AddToCounter: 'integer',
   GetCounter: '',
   Remove: '',
@@ -14455,34 +10192,18 @@ define(CEnvGlobal, 'CEnvGlobal', {
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CEnvGlobal extends CLogicalEntity {}
+export interface CEnvGlobal extends Fields<typeof fieldsCEnvGlobal>, Inputs<typeof inputsCEnvGlobal> {}
+define(CEnvGlobal, 'CEnvGlobal', fieldsCEnvGlobal, inputsCEnvGlobal)
 
-export class CFuncMoverRouter extends CLogicalEntity {}
-export interface CFuncMoverRouter {
-  m_nMoverIndex: number | undefined
-  m_bRouteToAllMovers: boolean | undefined
-  m_hPathMover: CPathMover | undefined
-  readonly m_iszPathMoverName: string | undefined
-  inputClearFollowMoverEntity(): boolean
-  inputClearStartFollowingClosestMover(): boolean
-  inputFireUser1(): boolean
-  inputFireUser2(): boolean
-  inputFireUser3(): boolean
-  inputFireUser4(): boolean
-  inputSetMoverIndex(value: number): boolean
-  inputSetSpeed(value: number): boolean
-  inputStart(): boolean
-  inputStartForward(): boolean
-  inputStartReverse(): boolean
-  inputStop(): boolean
-  inputStopImmediate(): boolean
-}
-define(CFuncMoverRouter, 'CFuncMoverRouter', {
+const fieldsCFuncMoverRouter = {
   m_nMoverIndex: 'int32',
   m_bRouteToAllMovers: 'bool',
   m_hPathMover: 'CPathMover',
   m_iszPathMoverName: 'string',
-}, {
+} as const
+const inputsCFuncMoverRouter = {
   ClearFollowMoverEntity: '',
   ClearStartFollowingClosestMover: '',
   FireUser1: '',
@@ -14496,25 +10217,12 @@ define(CFuncMoverRouter, 'CFuncMoverRouter', {
   StartReverse: '',
   Stop: '',
   StopImmediate: '',
-})
+} as const
+export class CFuncMoverRouter extends CLogicalEntity {}
+export interface CFuncMoverRouter extends Fields<typeof fieldsCFuncMoverRouter>, Inputs<typeof inputsCFuncMoverRouter> {}
+define(CFuncMoverRouter, 'CFuncMoverRouter', fieldsCFuncMoverRouter, inputsCFuncMoverRouter)
 
-export class CInfoSpawnGroupLoadUnload extends CLogicalEntity {}
-export interface CInfoSpawnGroupLoadUnload {
-  readonly m_iszSpawnGroupName: string | undefined
-  readonly m_iszSpawnGroupFilterName: string | undefined
-  readonly m_iszLandmarkName: string | undefined
-  readonly m_sFixedSpawnGroupName: string | undefined
-  m_flTimeoutInterval: number | undefined
-  m_bAutoActivate: boolean | undefined
-  m_bUnloadingStarted: boolean | undefined
-  m_bQueueActiveSpawnGroupChange: boolean | undefined
-  m_bQueueFinishLoading: boolean | undefined
-  inputActivateSpawnGroup(): boolean
-  inputSetSpawnGroup(value: string): boolean
-  inputStartSpawnGroupLoad(): boolean
-  inputStartSpawnGroupUnload(): boolean
-}
-define(CInfoSpawnGroupLoadUnload, 'CInfoSpawnGroupLoadUnload', {
+const fieldsCInfoSpawnGroupLoadUnload = {
   m_iszSpawnGroupName: 'string',
   m_iszSpawnGroupFilterName: 'string',
   m_iszLandmarkName: 'string',
@@ -14524,152 +10232,112 @@ define(CInfoSpawnGroupLoadUnload, 'CInfoSpawnGroupLoadUnload', {
   m_bUnloadingStarted: 'bool',
   m_bQueueActiveSpawnGroupChange: 'bool',
   m_bQueueFinishLoading: 'bool',
-}, {
+} as const
+const inputsCInfoSpawnGroupLoadUnload = {
   ActivateSpawnGroup: '',
   SetSpawnGroup: 'text',
   StartSpawnGroupLoad: '',
   StartSpawnGroupUnload: '',
-})
+} as const
+export class CInfoSpawnGroupLoadUnload extends CLogicalEntity {}
+export interface CInfoSpawnGroupLoadUnload extends Fields<typeof fieldsCInfoSpawnGroupLoadUnload>, Inputs<typeof inputsCInfoSpawnGroupLoadUnload> {}
+define(CInfoSpawnGroupLoadUnload, 'CInfoSpawnGroupLoadUnload', fieldsCInfoSpawnGroupLoadUnload, inputsCInfoSpawnGroupLoadUnload)
 
-export class CLogicAchievement extends CLogicalEntity {}
-export interface CLogicAchievement {
-  m_bDisabled: boolean | undefined
-  readonly m_iszAchievementEventID: string | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputFireEvent(): boolean
-  inputToggle(): boolean
-}
-define(CLogicAchievement, 'CLogicAchievement', {
+const fieldsCLogicAchievement = {
   m_bDisabled: 'bool',
   m_iszAchievementEventID: 'string',
-}, {
+} as const
+const inputsCLogicAchievement = {
   Disable: '',
   Enable: '',
   FireEvent: '',
   Toggle: '',
-})
+} as const
+export class CLogicAchievement extends CLogicalEntity {}
+export interface CLogicAchievement extends Fields<typeof fieldsCLogicAchievement>, Inputs<typeof inputsCLogicAchievement> {}
+define(CLogicAchievement, 'CLogicAchievement', fieldsCLogicAchievement, inputsCLogicAchievement)
 
-export class CLogicActivityEvent extends CLogicalEntity {}
-export interface CLogicActivityEvent {
-  m_nEventType: number | undefined
-  m_flDuration: number | undefined
-  readonly m_iszSourceEntityName: string | undefined
-  m_hSource: number | undefined
-  inputFireEvent(): boolean
-}
-define(CLogicActivityEvent, 'CLogicActivityEvent', {
+const fieldsCLogicActivityEvent = {
   m_nEventType: 'int32',
   m_flDuration: 'float32',
   m_iszSourceEntityName: 'string',
   m_hSource: 'handle',
-}, {
+} as const
+const inputsCLogicActivityEvent = {
   FireEvent: '',
-})
+} as const
+export class CLogicActivityEvent extends CLogicalEntity {}
+export interface CLogicActivityEvent extends Fields<typeof fieldsCLogicActivityEvent>, Inputs<typeof inputsCLogicActivityEvent> {}
+define(CLogicActivityEvent, 'CLogicActivityEvent', fieldsCLogicActivityEvent, inputsCLogicActivityEvent)
 
-export class CLogicAutosave extends CLogicalEntity {}
-export interface CLogicAutosave {
-  m_bForceNewLevelUnit: boolean | undefined
-  m_minHitPoints: number | undefined
-  m_minHitPointsToCommit: number | undefined
-  inputSave(): boolean
-  inputSaveDangerous(value: number): boolean
-  inputSetMinHitpointsThreshold(value: number): boolean
-}
-define(CLogicAutosave, 'CLogicAutosave', {
+const fieldsCLogicAutosave = {
   m_bForceNewLevelUnit: 'bool',
   m_minHitPoints: 'int32',
   m_minHitPointsToCommit: 'int32',
-}, {
+} as const
+const inputsCLogicAutosave = {
   Save: '',
   SaveDangerous: 'number',
   SetMinHitpointsThreshold: 'integer',
-})
+} as const
+export class CLogicAutosave extends CLogicalEntity {}
+export interface CLogicAutosave extends Fields<typeof fieldsCLogicAutosave>, Inputs<typeof inputsCLogicAutosave> {}
+define(CLogicAutosave, 'CLogicAutosave', fieldsCLogicAutosave, inputsCLogicAutosave)
 
-export class CLogicActiveAutosave extends CLogicAutosave {}
-export interface CLogicActiveAutosave {
-  m_TriggerHitPoints: number | undefined
-  m_flTimeToTrigger: number | undefined
-  m_flStartTime: number | undefined
-  m_flDangerousTime: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CLogicActiveAutosave, 'CLogicActiveAutosave', {
+const fieldsCLogicActiveAutosave = {
   m_TriggerHitPoints: 'int32',
   m_flTimeToTrigger: 'float32',
   m_flStartTime: 'float32',
   m_flDangerousTime: 'float32',
-}, {
+} as const
+const inputsCLogicActiveAutosave = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CLogicActiveAutosave extends CLogicAutosave {}
+export interface CLogicActiveAutosave extends Fields<typeof fieldsCLogicActiveAutosave>, Inputs<typeof inputsCLogicActiveAutosave> {}
+define(CLogicActiveAutosave, 'CLogicActiveAutosave', fieldsCLogicActiveAutosave, inputsCLogicActiveAutosave)
 
-export class CLogicBranch extends CLogicalEntity {}
-export interface CLogicBranch {
-  m_bInValue: boolean | undefined
-  inputSetValue(value: boolean): boolean
-  inputSetValueTest(value: boolean): boolean
-  inputTest(): boolean
-  inputToggle(): boolean
-  inputToggleTest(): boolean
-}
-define(CLogicBranch, 'CLogicBranch', {
+const fieldsCLogicBranch = {
   m_bInValue: 'bool',
-}, {
+} as const
+const inputsCLogicBranch = {
   SetValue: 'boolean',
   SetValueTest: 'boolean',
   Test: '',
   Toggle: '',
   ToggleTest: '',
-})
+} as const
+export class CLogicBranch extends CLogicalEntity {}
+export interface CLogicBranch extends Fields<typeof fieldsCLogicBranch>, Inputs<typeof inputsCLogicBranch> {}
+define(CLogicBranch, 'CLogicBranch', fieldsCLogicBranch, inputsCLogicBranch)
 
-export class CLogicBranchList extends CLogicalEntity {}
-export interface CLogicBranchList {
-  m_eLastState: number | undefined
-  inputTest(): boolean
-  input_OnLogicBranchChanged(): boolean
-  input_OnLogicBranchRemoved(): boolean
-}
-define(CLogicBranchList, 'CLogicBranchList', {
+const fieldsCLogicBranchList = {
   m_eLastState: 'uint32',
-}, {
+} as const
+const inputsCLogicBranchList = {
   Test: '',
   _OnLogicBranchChanged: '',
   _OnLogicBranchRemoved: '',
-})
+} as const
+export class CLogicBranchList extends CLogicalEntity {}
+export interface CLogicBranchList extends Fields<typeof fieldsCLogicBranchList>, Inputs<typeof inputsCLogicBranchList> {}
+define(CLogicBranchList, 'CLogicBranchList', fieldsCLogicBranchList, inputsCLogicBranchList)
 
-export class CLogicCase extends CLogicalEntity {}
-export interface CLogicCase {
-  m_nShuffleCases: number | undefined
-  m_nLastShuffleCase: number | undefined
-  inputPickRandom(): boolean
-  inputPickRandomShuffle(): boolean
-  inputResetShuffle(): boolean
-}
-define(CLogicCase, 'CLogicCase', {
+const fieldsCLogicCase = {
   m_nShuffleCases: 'int32',
   m_nLastShuffleCase: 'int32',
-}, {
+} as const
+const inputsCLogicCase = {
   PickRandom: '',
   PickRandomShuffle: '',
   ResetShuffle: '',
-})
+} as const
+export class CLogicCase extends CLogicalEntity {}
+export interface CLogicCase extends Fields<typeof fieldsCLogicCase>, Inputs<typeof inputsCLogicCase> {}
+define(CLogicCase, 'CLogicCase', fieldsCLogicCase, inputsCLogicCase)
 
-export class CLogicCollisionPair extends CLogicalEntity {}
-export interface CLogicCollisionPair {
-  readonly m_nameAttach1: string | undefined
-  readonly m_nameAttach2: string | undefined
-  m_includeHierarchy: boolean | undefined
-  m_supportMultipleEntitiesWithSameName: boolean | undefined
-  m_disabled: boolean | undefined
-  m_succeeded: boolean | undefined
-  m_allowMissing: boolean | undefined
-  inputDisableCollisions(): boolean
-  inputDisableCollisionsWith(value: string): boolean
-  inputEnableCollisions(): boolean
-}
-define(CLogicCollisionPair, 'CLogicCollisionPair', {
+const fieldsCLogicCollisionPair = {
   m_nameAttach1: 'string',
   m_nameAttach2: 'string',
   m_includeHierarchy: 'bool',
@@ -14677,135 +10345,94 @@ define(CLogicCollisionPair, 'CLogicCollisionPair', {
   m_disabled: 'bool',
   m_succeeded: 'bool',
   m_allowMissing: 'bool',
-}, {
+} as const
+const inputsCLogicCollisionPair = {
   DisableCollisions: '',
   DisableCollisionsWith: 'text',
   EnableCollisions: '',
-})
+} as const
+export class CLogicCollisionPair extends CLogicalEntity {}
+export interface CLogicCollisionPair extends Fields<typeof fieldsCLogicCollisionPair>, Inputs<typeof inputsCLogicCollisionPair> {}
+define(CLogicCollisionPair, 'CLogicCollisionPair', fieldsCLogicCollisionPair, inputsCLogicCollisionPair)
 
-export class CLogicCompare extends CLogicalEntity {}
-export interface CLogicCompare {
-  m_flInValue: number | undefined
-  m_flCompareValue: number | undefined
-  inputCompare(): boolean
-  inputSetCompareValue(value: number): boolean
-  inputSetValue(value: number): boolean
-  inputSetValueCompare(value: number): boolean
-}
-define(CLogicCompare, 'CLogicCompare', {
+const fieldsCLogicCompare = {
   m_flInValue: 'float32',
   m_flCompareValue: 'float32',
-}, {
+} as const
+const inputsCLogicCompare = {
   Compare: '',
   SetCompareValue: 'number',
   SetValue: 'number',
   SetValueCompare: 'number',
-})
+} as const
+export class CLogicCompare extends CLogicalEntity {}
+export interface CLogicCompare extends Fields<typeof fieldsCLogicCompare>, Inputs<typeof inputsCLogicCompare> {}
+define(CLogicCompare, 'CLogicCompare', fieldsCLogicCompare, inputsCLogicCompare)
 
-export class CLogicDistanceAutosave extends CLogicalEntity {}
-export interface CLogicDistanceAutosave {
-  readonly m_iszTargetEntity: string | undefined
-  m_flDistanceToPlayer: number | undefined
-  m_bForceNewLevelUnit: boolean | undefined
-  m_bCheckCough: boolean | undefined
-  m_bThinkDangerous: boolean | undefined
-  m_flDangerousTime: number | undefined
-  inputSave(): boolean
-  inputSaveDangerous(value: number): boolean
-}
-define(CLogicDistanceAutosave, 'CLogicDistanceAutosave', {
+const fieldsCLogicDistanceAutosave = {
   m_iszTargetEntity: 'string',
   m_flDistanceToPlayer: 'float32',
   m_bForceNewLevelUnit: 'bool',
   m_bCheckCough: 'bool',
   m_bThinkDangerous: 'bool',
   m_flDangerousTime: 'float32',
-}, {
+} as const
+const inputsCLogicDistanceAutosave = {
   Save: '',
   SaveDangerous: 'number',
-})
+} as const
+export class CLogicDistanceAutosave extends CLogicalEntity {}
+export interface CLogicDistanceAutosave extends Fields<typeof fieldsCLogicDistanceAutosave>, Inputs<typeof inputsCLogicDistanceAutosave> {}
+define(CLogicDistanceAutosave, 'CLogicDistanceAutosave', fieldsCLogicDistanceAutosave, inputsCLogicDistanceAutosave)
 
-export class CLogicDistanceCheck extends CLogicalEntity {}
-export interface CLogicDistanceCheck {
-  readonly m_iszEntityA: string | undefined
-  readonly m_iszEntityB: string | undefined
-  m_flZone1Distance: number | undefined
-  m_flZone2Distance: number | undefined
-  inputCheckDistance(): boolean
-}
-define(CLogicDistanceCheck, 'CLogicDistanceCheck', {
+const fieldsCLogicDistanceCheck = {
   m_iszEntityA: 'string',
   m_iszEntityB: 'string',
   m_flZone1Distance: 'float32',
   m_flZone2Distance: 'float32',
-}, {
+} as const
+const inputsCLogicDistanceCheck = {
   CheckDistance: '',
-})
+} as const
+export class CLogicDistanceCheck extends CLogicalEntity {}
+export interface CLogicDistanceCheck extends Fields<typeof fieldsCLogicDistanceCheck>, Inputs<typeof inputsCLogicDistanceCheck> {}
+define(CLogicDistanceCheck, 'CLogicDistanceCheck', fieldsCLogicDistanceCheck, inputsCLogicDistanceCheck)
 
-export class CLogicGameEvent extends CLogicalEntity {}
-export interface CLogicGameEvent {
-  readonly m_iszEventName: string | undefined
-  inputFireEvent(): boolean
-}
-define(CLogicGameEvent, 'CLogicGameEvent', {
+const fieldsCLogicGameEvent = {
   m_iszEventName: 'string',
-}, {
+} as const
+const inputsCLogicGameEvent = {
   FireEvent: '',
-})
+} as const
+export class CLogicGameEvent extends CLogicalEntity {}
+export interface CLogicGameEvent extends Fields<typeof fieldsCLogicGameEvent>, Inputs<typeof inputsCLogicGameEvent> {}
+define(CLogicGameEvent, 'CLogicGameEvent', fieldsCLogicGameEvent, inputsCLogicGameEvent)
 
-export class CLogicGameEventListener extends CLogicalEntity {}
-export interface CLogicGameEventListener {
-  readonly m_iszGameEventName: string | undefined
-  readonly m_iszGameEventItem: string | undefined
-  m_bEnabled: boolean | undefined
-  m_bStartDisabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputToggle(): boolean
-}
-define(CLogicGameEventListener, 'CLogicGameEventListener', {
+const fieldsCLogicGameEventListener = {
   m_iszGameEventName: 'string',
   m_iszGameEventItem: 'string',
   m_bEnabled: 'bool',
   m_bStartDisabled: 'bool',
-}, {
+} as const
+const inputsCLogicGameEventListener = {
   Disable: '',
   Enable: '',
   Toggle: '',
-})
+} as const
+export class CLogicGameEventListener extends CLogicalEntity {}
+export interface CLogicGameEventListener extends Fields<typeof fieldsCLogicGameEventListener>, Inputs<typeof inputsCLogicGameEventListener> {}
+define(CLogicGameEventListener, 'CLogicGameEventListener', fieldsCLogicGameEventListener, inputsCLogicGameEventListener)
 
-export class CLogicLineToEntity extends CLogicalEntity {}
-export interface CLogicLineToEntity {
-  readonly m_SourceName: string | undefined
-  m_StartEntity: CBaseEntity | undefined
-  m_EndEntity: CBaseEntity | undefined
-}
-define(CLogicLineToEntity, 'CLogicLineToEntity', {
+const fieldsCLogicLineToEntity = {
   m_SourceName: 'string',
   m_StartEntity: 'CBaseEntity',
   m_EndEntity: 'CBaseEntity',
-})
+} as const
+export class CLogicLineToEntity extends CLogicalEntity {}
+export interface CLogicLineToEntity extends Fields<typeof fieldsCLogicLineToEntity> {}
+define(CLogicLineToEntity, 'CLogicLineToEntity', fieldsCLogicLineToEntity)
 
-export class CLogicMeasureMovement extends CLogicalEntity {}
-export interface CLogicMeasureMovement {
-  readonly m_strMeasureTarget: string | undefined
-  readonly m_strMeasureReference: string | undefined
-  readonly m_strTargetReference: string | undefined
-  m_hMeasureTarget: CBaseEntity | undefined
-  m_hMeasureReference: CBaseEntity | undefined
-  m_hTarget: CBaseEntity | undefined
-  m_hTargetReference: CBaseEntity | undefined
-  m_flScale: number | undefined
-  m_nMeasureType: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetMeasureReference(value: string): boolean
-  inputSetMeasureTarget(value: string): boolean
-  inputSetTarget(value: string): boolean
-  inputSetTargetReference(value: string): boolean
-  inputSetTargetScale(value: number): boolean
-}
-define(CLogicMeasureMovement, 'CLogicMeasureMovement', {
+const fieldsCLogicMeasureMovement = {
   m_strMeasureTarget: 'string',
   m_strMeasureReference: 'string',
   m_strTargetReference: 'string',
@@ -14815,7 +10442,8 @@ define(CLogicMeasureMovement, 'CLogicMeasureMovement', {
   m_hTargetReference: 'CBaseEntity',
   m_flScale: 'float32',
   m_nMeasureType: 'int32',
-}, {
+} as const
+const inputsCLogicMeasureMovement = {
   Disable: '',
   Enable: '',
   SetMeasureReference: 'text',
@@ -14823,122 +10451,89 @@ define(CLogicMeasureMovement, 'CLogicMeasureMovement', {
   SetTarget: 'text',
   SetTargetReference: 'text',
   SetTargetScale: 'number',
-})
+} as const
+export class CLogicMeasureMovement extends CLogicalEntity {}
+export interface CLogicMeasureMovement extends Fields<typeof fieldsCLogicMeasureMovement>, Inputs<typeof inputsCLogicMeasureMovement> {}
+define(CLogicMeasureMovement, 'CLogicMeasureMovement', fieldsCLogicMeasureMovement, inputsCLogicMeasureMovement)
 
-export class CLogicNavigation extends CLogicalEntity {}
-export interface CLogicNavigation {
-  m_isOn: boolean | undefined
-  m_navProperty: number | undefined
-  inputToggle(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CLogicNavigation, 'CLogicNavigation', {
+const fieldsCLogicNavigation = {
   m_isOn: 'bool',
   m_navProperty: 'uint32',
-}, {
+} as const
+const inputsCLogicNavigation = {
   Toggle: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CLogicNavigation extends CLogicalEntity {}
+export interface CLogicNavigation extends Fields<typeof fieldsCLogicNavigation>, Inputs<typeof inputsCLogicNavigation> {}
+define(CLogicNavigation, 'CLogicNavigation', fieldsCLogicNavigation, inputsCLogicNavigation)
 
-export class CLogicPlayerProxyBase extends CLogicalEntity {}
-export interface CLogicPlayerProxyBase {
-  m_hPlayer: CBaseEntity | undefined
-}
-define(CLogicPlayerProxyBase, 'CLogicPlayerProxyBase', {
+const fieldsCLogicPlayerProxyBase = {
   m_hPlayer: 'CBaseEntity',
-})
+} as const
+export class CLogicPlayerProxyBase extends CLogicalEntity {}
+export interface CLogicPlayerProxyBase extends Fields<typeof fieldsCLogicPlayerProxyBase> {}
+define(CLogicPlayerProxyBase, 'CLogicPlayerProxyBase', fieldsCLogicPlayerProxyBase)
 
 export class CGenericLogicPlayerProxy extends CLogicPlayerProxyBase {}
 define(CGenericLogicPlayerProxy, 'CGenericLogicPlayerProxy', {})
 
-export class CLogicRelay extends CLogicalEntity {}
-export interface CLogicRelay {
-  m_bDisabled: boolean | undefined
-  m_bWaitForRefire: boolean | undefined
-  m_bTriggerOnce: boolean | undefined
-  m_bFastRetrigger: boolean | undefined
-  m_bPassthoughCaller: boolean | undefined
-  /**
-   * Cancel any events fired by this relay that are currently pending in the I/O
-   * event queue.
-   */
-  inputCancelPending(): boolean
-  /** Disable this entity. */
-  inputDisable(): boolean
-  /** Enable this entity. */
-  inputEnable(): boolean
-  inputEnableRefire(): boolean
-  /** Toggle the relay between enabled and disabled. */
-  inputToggle(): boolean
-  /**
-   * Trigger the relay, causing its OnTrigger output to fire if it is enabled.
-   */
-  inputTrigger(): boolean
-}
-define(CLogicRelay, 'CLogicRelay', {
+const fieldsCLogicRelay = {
   m_bDisabled: 'bool',
   m_bWaitForRefire: 'bool',
   m_bTriggerOnce: 'bool',
   m_bFastRetrigger: 'bool',
   m_bPassthoughCaller: 'bool',
-}, {
+} as const
+const inputsCLogicRelay = {
+  /**
+   * Cancel any events fired by this relay that are currently pending in the I/O
+   * event queue.
+   */
   CancelPending: '',
+  /** Disable this entity. */
   Disable: '',
+  /** Enable this entity. */
   Enable: '',
   EnableRefire: '',
+  /** Toggle the relay between enabled and disabled. */
   Toggle: '',
+  /**
+   * Trigger the relay, causing its OnTrigger output to fire if it is enabled.
+   */
   Trigger: '',
-})
+} as const
+export class CLogicRelay extends CLogicalEntity {}
+export interface CLogicRelay extends Fields<typeof fieldsCLogicRelay>, Inputs<typeof inputsCLogicRelay> {}
+define(CLogicRelay, 'CLogicRelay', fieldsCLogicRelay, inputsCLogicRelay)
 
-export class CMapSharedEnvironment extends CLogicalEntity {}
-export interface CMapSharedEnvironment {
-  readonly m_targetMapName: string | undefined
-}
-define(CMapSharedEnvironment, 'CMapSharedEnvironment', {
+const fieldsCMapSharedEnvironment = {
   m_targetMapName: 'string',
-})
+} as const
+export class CMapSharedEnvironment extends CLogicalEntity {}
+export interface CMapSharedEnvironment extends Fields<typeof fieldsCMapSharedEnvironment> {}
+define(CMapSharedEnvironment, 'CMapSharedEnvironment', fieldsCMapSharedEnvironment)
 
-export class CMathColorBlend extends CLogicalEntity {}
-export interface CMathColorBlend {
-  m_flInMin: number | undefined
-  m_flInMax: number | undefined
-  inputInValue(value: number): boolean
-}
-define(CMathColorBlend, 'CMathColorBlend', {
+const fieldsCMathColorBlend = {
   m_flInMin: 'float32',
   m_flInMax: 'float32',
-}, {
+} as const
+const inputsCMathColorBlend = {
   InValue: 'number',
-})
+} as const
+export class CMathColorBlend extends CLogicalEntity {}
+export interface CMathColorBlend extends Fields<typeof fieldsCMathColorBlend>, Inputs<typeof inputsCMathColorBlend> {}
+define(CMathColorBlend, 'CMathColorBlend', fieldsCMathColorBlend, inputsCMathColorBlend)
 
-export class CMathCounter extends CLogicalEntity {}
-export interface CMathCounter {
-  m_flMin: number | undefined
-  m_flMax: number | undefined
-  m_bHitMin: boolean | undefined
-  m_bHitMax: boolean | undefined
-  m_bDisabled: boolean | undefined
-  inputAdd(value: number): boolean
-  inputDisable(): boolean
-  inputDivide(value: number): boolean
-  inputEnable(): boolean
-  inputGetValue(): boolean
-  inputMultiply(value: number): boolean
-  inputSetHitMax(value: number): boolean
-  inputSetHitMin(value: number): boolean
-  inputSetValue(value: number): boolean
-  inputSetValueNoFire(value: number): boolean
-  inputSubtract(value: number): boolean
-}
-define(CMathCounter, 'CMathCounter', {
+const fieldsCMathCounter = {
   m_flMin: 'float32',
   m_flMax: 'float32',
   m_bHitMin: 'bool',
   m_bHitMax: 'bool',
   m_bDisabled: 'bool',
-}, {
+} as const
+const inputsCMathCounter = {
   Add: 'number',
   Disable: '',
   Divide: 'number',
@@ -14950,48 +10545,29 @@ define(CMathCounter, 'CMathCounter', {
   SetValue: 'number',
   SetValueNoFire: 'number',
   Subtract: 'number',
-})
+} as const
+export class CMathCounter extends CLogicalEntity {}
+export interface CMathCounter extends Fields<typeof fieldsCMathCounter>, Inputs<typeof inputsCMathCounter> {}
+define(CMathCounter, 'CMathCounter', fieldsCMathCounter, inputsCMathCounter)
 
-export class CMathRemap extends CLogicalEntity {}
-export interface CMathRemap {
-  m_flInMin: number | undefined
-  m_flInMax: number | undefined
-  m_flOut1: number | undefined
-  m_flOut2: number | undefined
-  m_flOldInValue: number | undefined
-  m_bEnabled: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputInValue(value: number): boolean
-}
-define(CMathRemap, 'CMathRemap', {
+const fieldsCMathRemap = {
   m_flInMin: 'float32',
   m_flInMax: 'float32',
   m_flOut1: 'float32',
   m_flOut2: 'float32',
   m_flOldInValue: 'float32',
   m_bEnabled: 'bool',
-}, {
+} as const
+const inputsCMathRemap = {
   Disable: '',
   Enable: '',
   InValue: 'number',
-})
+} as const
+export class CMathRemap extends CLogicalEntity {}
+export interface CMathRemap extends Fields<typeof fieldsCMathRemap>, Inputs<typeof inputsCMathRemap> {}
+define(CMathRemap, 'CMathRemap', fieldsCMathRemap, inputsCMathRemap)
 
-export class CMultiLightProxy extends CLogicalEntity {}
-export interface CMultiLightProxy {
-  readonly m_iszLightNameFilter: string | undefined
-  readonly m_iszLightClassFilter: string | undefined
-  m_flLightRadiusFilter: number | undefined
-  m_flBrightnessDelta: number | undefined
-  m_bPerformScreenFade: boolean | undefined
-  m_flTargetBrightnessMultiplier: number | undefined
-  m_flCurrentBrightnessMultiplier: number | undefined
-  inputDisableLights(value: number): boolean
-  inputFlickerLights(value: number): boolean
-  inputSetBrightnessDelta(value: number): boolean
-  inputSetLightsBrightnessMultiplier(value: number): boolean
-}
-define(CMultiLightProxy, 'CMultiLightProxy', {
+const fieldsCMultiLightProxy = {
   m_iszLightNameFilter: 'string',
   m_iszLightClassFilter: 'string',
   m_flLightRadiusFilter: 'float32',
@@ -14999,34 +10575,26 @@ define(CMultiLightProxy, 'CMultiLightProxy', {
   m_bPerformScreenFade: 'bool',
   m_flTargetBrightnessMultiplier: 'float32',
   m_flCurrentBrightnessMultiplier: 'float32',
-}, {
+} as const
+const inputsCMultiLightProxy = {
   DisableLights: 'number',
   FlickerLights: 'number',
   SetBrightnessDelta: 'number',
   SetLightsBrightnessMultiplier: 'number',
-})
+} as const
+export class CMultiLightProxy extends CLogicalEntity {}
+export interface CMultiLightProxy extends Fields<typeof fieldsCMultiLightProxy>, Inputs<typeof inputsCMultiLightProxy> {}
+define(CMultiLightProxy, 'CMultiLightProxy', fieldsCMultiLightProxy, inputsCMultiLightProxy)
 
-export class CMultiSource extends CLogicalEntity {}
-export interface CMultiSource {
-  m_iTotal: number | undefined
-  readonly m_globalstate: string | undefined
-}
-define(CMultiSource, 'CMultiSource', {
+const fieldsCMultiSource = {
   m_iTotal: 'int32',
   m_globalstate: 'string',
-})
+} as const
+export class CMultiSource extends CLogicalEntity {}
+export interface CMultiSource extends Fields<typeof fieldsCMultiSource> {}
+define(CMultiSource, 'CMultiSource', fieldsCMultiSource)
 
-export class CPathKeyFrame extends CLogicalEntity {}
-export interface CPathKeyFrame {
-  m_Origin: Vector | undefined
-  m_Angles: Angles | undefined
-  readonly m_iNextKey: string | undefined
-  m_flNextTime: number | undefined
-  m_pNextKey: CPathKeyFrame | undefined
-  m_pPrevKey: CPathKeyFrame | undefined
-  m_flMoveSpeed: number | undefined
-}
-define(CPathKeyFrame, 'CPathKeyFrame', {
+const fieldsCPathKeyFrame = {
   m_Origin: 'vector',
   m_Angles: 'angles',
   m_iNextKey: 'string',
@@ -15034,35 +10602,12 @@ define(CPathKeyFrame, 'CPathKeyFrame', {
   m_pNextKey: 'CPathKeyFrame',
   m_pPrevKey: 'CPathKeyFrame',
   m_flMoveSpeed: 'float32',
-})
+} as const
+export class CPathKeyFrame extends CLogicalEntity {}
+export interface CPathKeyFrame extends Fields<typeof fieldsCPathKeyFrame> {}
+define(CPathKeyFrame, 'CPathKeyFrame', fieldsCPathKeyFrame)
 
-export class CPathMoverEntitySpawner extends CLogicalEntity {}
-export interface CPathMoverEntitySpawner {
-  m_eTemplateChoiceStrategy: number | undefined
-  m_nSpawnIndex: number | undefined
-  m_hPathMover: CPathMover | undefined
-  m_flSpawnFrequencySeconds: number | undefined
-  m_flSpawnFrequencyDistToNearestMover: number | undefined
-  m_nMaxActive: number | undefined
-  m_nSpawnNum: number | undefined
-  m_nSpawnActive: number | undefined
-  m_flLastSpawnTime: number | undefined
-  m_bEnabled: boolean | undefined
-  m_bDestroyMoverOnArrivedAtEnd: boolean | undefined
-  readonly m_iszPathMoverName: string | undefined
-  m_bPrepopulateOnSpawn: boolean | undefined
-  readonly m_iszPathNodeStartName: string | undefined
-  m_vMoverSpawnPos: Vector | undefined
-  m_bRunningDebugThink: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputForceSpawn(): boolean
-  inputRemoveFromTemplate(value: string): boolean
-  inputSetPathNodeStart(value: string): boolean
-  inputSpawn(): boolean
-  inputToggle(): boolean
-}
-define(CPathMoverEntitySpawner, 'CPathMoverEntitySpawner', {
+const fieldsCPathMoverEntitySpawner = {
   m_eTemplateChoiceStrategy: 'uint32',
   m_nSpawnIndex: 'int32',
   m_hPathMover: 'CPathMover',
@@ -15079,7 +10624,8 @@ define(CPathMoverEntitySpawner, 'CPathMoverEntitySpawner', {
   m_iszPathNodeStartName: 'string',
   m_vMoverSpawnPos: 'vector',
   m_bRunningDebugThink: 'bool',
-}, {
+} as const
+const inputsCPathMoverEntitySpawner = {
   Disable: '',
   Enable: '',
   ForceSpawn: '',
@@ -15087,35 +10633,12 @@ define(CPathMoverEntitySpawner, 'CPathMoverEntitySpawner', {
   SetPathNodeStart: 'text',
   Spawn: '',
   Toggle: '',
-})
+} as const
+export class CPathMoverEntitySpawner extends CLogicalEntity {}
+export interface CPathMoverEntitySpawner extends Fields<typeof fieldsCPathMoverEntitySpawner>, Inputs<typeof inputsCPathMoverEntitySpawner> {}
+define(CPathMoverEntitySpawner, 'CPathMoverEntitySpawner', fieldsCPathMoverEntitySpawner, inputsCPathMoverEntitySpawner)
 
-export class CPhysConstraint extends CLogicalEntity {}
-export interface CPhysConstraint {
-  readonly m_nameAttach1: string | undefined
-  readonly m_nameAttach2: string | undefined
-  m_hAttach1: CBaseEntity | undefined
-  m_hAttach2: CBaseEntity | undefined
-  readonly m_nameAttachment1: string | undefined
-  readonly m_nameAttachment2: string | undefined
-  m_forceLimit: number | undefined
-  m_torqueLimit: number | undefined
-  m_minTeleportDistance: number | undefined
-  m_bSnapObjectPositions: boolean | undefined
-  m_bTreatEntity1AsInfiniteMass: boolean | undefined
-  inputBreak(): boolean
-  inputConstraintBroken(): boolean
-  inputDisableAngularConstraint(): boolean
-  inputDisableLinearConstraint(): boolean
-  inputEnableAngularConstraint(): boolean
-  inputEnableLinearConstraint(): boolean
-  inputSetMotorTargetVelocity(value: number): boolean
-  inputSetMotorTorqueFactor(value: number): boolean
-  inputTurnMotorOff(): boolean
-  inputTurnMotorOn(): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CPhysConstraint, 'CPhysConstraint', {
+const fieldsCPhysConstraint = {
   m_nameAttach1: 'string',
   m_nameAttach2: 'string',
   m_hAttach1: 'CBaseEntity',
@@ -15127,7 +10650,8 @@ define(CPhysConstraint, 'CPhysConstraint', {
   m_minTeleportDistance: 'float32',
   m_bSnapObjectPositions: 'bool',
   m_bTreatEntity1AsInfiniteMass: 'bool',
-}, {
+} as const
+const inputsCPhysConstraint = {
   Break: '',
   ConstraintBroken: '',
   DisableAngularConstraint: '',
@@ -15140,76 +10664,12 @@ define(CPhysConstraint, 'CPhysConstraint', {
   TurnMotorOn: '',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CPhysConstraint extends CLogicalEntity {}
+export interface CPhysConstraint extends Fields<typeof fieldsCPhysConstraint>, Inputs<typeof inputsCPhysConstraint> {}
+define(CPhysConstraint, 'CPhysConstraint', fieldsCPhysConstraint, inputsCPhysConstraint)
 
-export class CGenericConstraint extends CPhysConstraint {}
-export interface CGenericConstraint {
-  m_bPlaceAnchorsAtConstraintTransform: boolean | undefined
-  m_nLinearMotionX: number | undefined
-  m_nLinearMotionY: number | undefined
-  m_nLinearMotionZ: number | undefined
-  m_flLinearFrequencyX: number | undefined
-  m_flLinearFrequencyY: number | undefined
-  m_flLinearFrequencyZ: number | undefined
-  m_flLinearDampingRatioX: number | undefined
-  m_flLinearDampingRatioY: number | undefined
-  m_flLinearDampingRatioZ: number | undefined
-  m_flMaxLinearImpulseX: number | undefined
-  m_flMaxLinearImpulseY: number | undefined
-  m_flMaxLinearImpulseZ: number | undefined
-  m_flBreakAfterTimeX: number | undefined
-  m_flBreakAfterTimeY: number | undefined
-  m_flBreakAfterTimeZ: number | undefined
-  m_flBreakAfterTimeStartTimeX: number | undefined
-  m_flBreakAfterTimeStartTimeY: number | undefined
-  m_flBreakAfterTimeStartTimeZ: number | undefined
-  m_flBreakAfterTimeThresholdX: number | undefined
-  m_flBreakAfterTimeThresholdY: number | undefined
-  m_flBreakAfterTimeThresholdZ: number | undefined
-  m_flNotifyForceX: number | undefined
-  m_flNotifyForceY: number | undefined
-  m_flNotifyForceZ: number | undefined
-  m_flNotifyForceMinTimeX: number | undefined
-  m_flNotifyForceMinTimeY: number | undefined
-  m_flNotifyForceMinTimeZ: number | undefined
-  m_flNotifyForceLastTimeX: number | undefined
-  m_flNotifyForceLastTimeY: number | undefined
-  m_flNotifyForceLastTimeZ: number | undefined
-  m_bAxisNotifiedX: boolean | undefined
-  m_bAxisNotifiedY: boolean | undefined
-  m_bAxisNotifiedZ: boolean | undefined
-  m_nAngularMotionX: number | undefined
-  m_nAngularMotionY: number | undefined
-  m_nAngularMotionZ: number | undefined
-  m_flAngularFrequencyX: number | undefined
-  m_flAngularFrequencyY: number | undefined
-  m_flAngularFrequencyZ: number | undefined
-  m_flAngularDampingRatioX: number | undefined
-  m_flAngularDampingRatioY: number | undefined
-  m_flAngularDampingRatioZ: number | undefined
-  m_flMaxAngularImpulseX: number | undefined
-  m_flMaxAngularImpulseY: number | undefined
-  m_flMaxAngularImpulseZ: number | undefined
-  inputSetAngularDampingRatioX(value: number): boolean
-  inputSetAngularDampingRatioY(value: number): boolean
-  inputSetAngularDampingRatioZ(value: number): boolean
-  inputSetAngularFrequencyX(value: number): boolean
-  inputSetAngularFrequencyY(value: number): boolean
-  inputSetAngularFrequencyZ(value: number): boolean
-  inputSetAngularMotionLockedX(value: boolean): boolean
-  inputSetAngularMotionLockedY(value: boolean): boolean
-  inputSetAngularMotionLockedZ(value: boolean): boolean
-  inputSetLinearDampingRatioX(value: number): boolean
-  inputSetLinearDampingRatioY(value: number): boolean
-  inputSetLinearDampingRatioZ(value: number): boolean
-  inputSetLinearFrequencyX(value: number): boolean
-  inputSetLinearFrequencyY(value: number): boolean
-  inputSetLinearFrequencyZ(value: number): boolean
-  inputSetLinearMotionLockedX(value: boolean): boolean
-  inputSetLinearMotionLockedY(value: boolean): boolean
-  inputSetLinearMotionLockedZ(value: boolean): boolean
-}
-define(CGenericConstraint, 'CGenericConstraint', {
+const fieldsCGenericConstraint = {
   m_bPlaceAnchorsAtConstraintTransform: 'bool',
   m_nLinearMotionX: 'uint32',
   m_nLinearMotionY: 'uint32',
@@ -15256,7 +10716,8 @@ define(CGenericConstraint, 'CGenericConstraint', {
   m_flMaxAngularImpulseX: 'float32',
   m_flMaxAngularImpulseY: 'float32',
   m_flMaxAngularImpulseZ: 'float32',
-}, {
+} as const
+const inputsCGenericConstraint = {
   SetAngularDampingRatioX: 'number',
   SetAngularDampingRatioY: 'number',
   SetAngularDampingRatioZ: 'number',
@@ -15275,42 +10736,24 @@ define(CGenericConstraint, 'CGenericConstraint', {
   SetLinearMotionLockedX: 'boolean',
   SetLinearMotionLockedY: 'boolean',
   SetLinearMotionLockedZ: 'boolean',
-})
+} as const
+export class CGenericConstraint extends CPhysConstraint {}
+export interface CGenericConstraint extends Fields<typeof fieldsCGenericConstraint>, Inputs<typeof inputsCGenericConstraint> {}
+define(CGenericConstraint, 'CGenericConstraint', fieldsCGenericConstraint, inputsCGenericConstraint)
 
-export class CPhysBallSocket extends CPhysConstraint {}
-export interface CPhysBallSocket {
-  m_flJointFriction: number | undefined
-  m_bEnableSwingLimit: boolean | undefined
-  m_flSwingLimit: number | undefined
-  m_bEnableTwistLimit: boolean | undefined
-  m_flMinTwistAngle: number | undefined
-  m_flMaxTwistAngle: number | undefined
-}
-define(CPhysBallSocket, 'CPhysBallSocket', {
+const fieldsCPhysBallSocket = {
   m_flJointFriction: 'float32',
   m_bEnableSwingLimit: 'bool',
   m_flSwingLimit: 'float32',
   m_bEnableTwistLimit: 'bool',
   m_flMinTwistAngle: 'float32',
   m_flMaxTwistAngle: 'float32',
-})
+} as const
+export class CPhysBallSocket extends CPhysConstraint {}
+export interface CPhysBallSocket extends Fields<typeof fieldsCPhysBallSocket> {}
+define(CPhysBallSocket, 'CPhysBallSocket', fieldsCPhysBallSocket)
 
-export class CPhysFixed extends CPhysConstraint {}
-export interface CPhysFixed {
-  m_flLinearFrequency: number | undefined
-  m_flLinearDampingRatio: number | undefined
-  m_flAngularFrequency: number | undefined
-  m_flAngularDampingRatio: number | undefined
-  m_bEnableLinearConstraint: boolean | undefined
-  m_bEnableAngularConstraint: boolean | undefined
-  readonly m_sBoneName1: string | undefined
-  readonly m_sBoneName2: string | undefined
-  inputSetAngularDampingRatio(value: number): boolean
-  inputSetAngularFrequency(value: number): boolean
-  inputSetLinearDampingRatio(value: number): boolean
-  inputSetLinearFrequency(value: number): boolean
-}
-define(CPhysFixed, 'CPhysFixed', {
+const fieldsCPhysFixed = {
   m_flLinearFrequency: 'float32',
   m_flLinearDampingRatio: 'float32',
   m_flAngularFrequency: 'float32',
@@ -15319,35 +10762,18 @@ define(CPhysFixed, 'CPhysFixed', {
   m_bEnableAngularConstraint: 'bool',
   m_sBoneName1: 'string',
   m_sBoneName2: 'string',
-}, {
+} as const
+const inputsCPhysFixed = {
   SetAngularDampingRatio: 'number',
   SetAngularFrequency: 'number',
   SetLinearDampingRatio: 'number',
   SetLinearFrequency: 'number',
-})
+} as const
+export class CPhysFixed extends CPhysConstraint {}
+export interface CPhysFixed extends Fields<typeof fieldsCPhysFixed>, Inputs<typeof inputsCPhysFixed> {}
+define(CPhysFixed, 'CPhysFixed', fieldsCPhysFixed, inputsCPhysFixed)
 
-export class CPhysHinge extends CPhysConstraint {}
-export interface CPhysHinge {
-  m_bAtMinLimit: boolean | undefined
-  m_bAtMaxLimit: boolean | undefined
-  m_hingeFriction: number | undefined
-  m_systemLoadScale: number | undefined
-  m_bIsAxisLocal: boolean | undefined
-  m_flMinRotation: number | undefined
-  m_flMaxRotation: number | undefined
-  m_flInitialRotation: number | undefined
-  m_flMotorFrequency: number | undefined
-  m_flMotorDampingRatio: number | undefined
-  m_flAngleSpeed: number | undefined
-  m_flAngleSpeedThreshold: number | undefined
-  m_flLimitsDebugVisRotation: number | undefined
-  inputSetAngularVelocity(value: number): boolean
-  inputSetHingeFriction(value: number): boolean
-  inputSetMaxLimit(value: number): boolean
-  inputSetMinLimit(value: number): boolean
-  inputSetMotorTargetAngle(value: number): boolean
-}
-define(CPhysHinge, 'CPhysHinge', {
+const fieldsCPhysHinge = {
   m_bAtMinLimit: 'bool',
   m_bAtMaxLimit: 'bool',
   m_hingeFriction: 'float32',
@@ -15361,59 +10787,41 @@ define(CPhysHinge, 'CPhysHinge', {
   m_flAngleSpeed: 'float32',
   m_flAngleSpeedThreshold: 'float32',
   m_flLimitsDebugVisRotation: 'float32',
-}, {
+} as const
+const inputsCPhysHinge = {
   SetAngularVelocity: 'number',
   SetHingeFriction: 'number',
   SetMaxLimit: 'number',
   SetMinLimit: 'number',
   SetMotorTargetAngle: 'number',
-})
+} as const
+export class CPhysHinge extends CPhysConstraint {}
+export interface CPhysHinge extends Fields<typeof fieldsCPhysHinge>, Inputs<typeof inputsCPhysHinge> {}
+define(CPhysHinge, 'CPhysHinge', fieldsCPhysHinge, inputsCPhysHinge)
 
 export class CPhysHingeAlias_phys_hinge_local extends CPhysHinge {}
 define(CPhysHingeAlias_phys_hinge_local, 'CPhysHingeAlias_phys_hinge_local', {})
 
-export class CPhysLength extends CPhysConstraint {}
-export interface CPhysLength {
-  m_vecAttach: Vector | undefined
-  m_addLength: number | undefined
-  m_minLength: number | undefined
-  m_totalLength: number | undefined
-}
-define(CPhysLength, 'CPhysLength', {
+const fieldsCPhysLength = {
   m_vecAttach: 'vector',
   m_addLength: 'float32',
   m_minLength: 'float32',
   m_totalLength: 'float32',
-})
+} as const
+export class CPhysLength extends CPhysConstraint {}
+export interface CPhysLength extends Fields<typeof fieldsCPhysLength> {}
+define(CPhysLength, 'CPhysLength', fieldsCPhysLength)
 
-export class CPhysPulley extends CPhysConstraint {}
-export interface CPhysPulley {
-  m_position2: Vector | undefined
-  m_addLength: number | undefined
-  m_gearRatio: number | undefined
-}
-define(CPhysPulley, 'CPhysPulley', {
+const fieldsCPhysPulley = {
   m_position2: 'vector',
   m_addLength: 'float32',
   m_gearRatio: 'float32',
-})
+} as const
+export class CPhysPulley extends CPhysConstraint {}
+export interface CPhysPulley extends Fields<typeof fieldsCPhysPulley> {}
+define(CPhysPulley, 'CPhysPulley', fieldsCPhysPulley)
 
-export class CPhysSlideConstraint extends CPhysConstraint {}
-export interface CPhysSlideConstraint {
-  m_axisEnd: Vector | undefined
-  m_slideFriction: number | undefined
-  m_systemLoadScale: number | undefined
-  m_initialOffset: number | undefined
-  m_bEnableLinearConstraint: boolean | undefined
-  m_bEnableAngularConstraint: boolean | undefined
-  m_flMotorFrequency: number | undefined
-  m_flMotorDampingRatio: number | undefined
-  m_bUseEntityPivot: boolean | undefined
-  inputSetOffset(value: number): boolean
-  inputSetSlideFriction(value: number): boolean
-  inputSetVelocity(value: number): boolean
-}
-define(CPhysSlideConstraint, 'CPhysSlideConstraint', {
+const fieldsCPhysSlideConstraint = {
   m_axisEnd: 'vector',
   m_slideFriction: 'float32',
   m_systemLoadScale: 'float32',
@@ -15423,31 +10831,17 @@ define(CPhysSlideConstraint, 'CPhysSlideConstraint', {
   m_flMotorFrequency: 'float32',
   m_flMotorDampingRatio: 'float32',
   m_bUseEntityPivot: 'bool',
-}, {
+} as const
+const inputsCPhysSlideConstraint = {
   SetOffset: 'number',
   SetSlideFriction: 'number',
   SetVelocity: 'number',
-})
+} as const
+export class CPhysSlideConstraint extends CPhysConstraint {}
+export interface CPhysSlideConstraint extends Fields<typeof fieldsCPhysSlideConstraint>, Inputs<typeof inputsCPhysSlideConstraint> {}
+define(CPhysSlideConstraint, 'CPhysSlideConstraint', fieldsCPhysSlideConstraint, inputsCPhysSlideConstraint)
 
-export class CPhysWheelConstraint extends CPhysConstraint {}
-export interface CPhysWheelConstraint {
-  m_flSuspensionFrequency: number | undefined
-  m_flSuspensionDampingRatio: number | undefined
-  m_flSuspensionHeightOffset: number | undefined
-  m_bEnableSuspensionLimit: boolean | undefined
-  m_flMinSuspensionOffset: number | undefined
-  m_flMaxSuspensionOffset: number | undefined
-  m_bEnableSteeringLimit: boolean | undefined
-  m_flMinSteeringAngle: number | undefined
-  m_flMaxSteeringAngle: number | undefined
-  m_flSteeringAxisFriction: number | undefined
-  m_flSpinAxisFriction: number | undefined
-  m_hSteeringMimicsEntity: CBaseEntity | undefined
-  inputSetMaxSuspensionOffset(value: number): boolean
-  inputSetMinSuspensionOffset(value: number): boolean
-  inputSetSteeringMimicsEntity(value: string): boolean
-}
-define(CPhysWheelConstraint, 'CPhysWheelConstraint', {
+const fieldsCPhysWheelConstraint = {
   m_flSuspensionFrequency: 'float32',
   m_flSuspensionDampingRatio: 'float32',
   m_flSuspensionHeightOffset: 'float32',
@@ -15460,25 +10854,17 @@ define(CPhysWheelConstraint, 'CPhysWheelConstraint', {
   m_flSteeringAxisFriction: 'float32',
   m_flSpinAxisFriction: 'float32',
   m_hSteeringMimicsEntity: 'CBaseEntity',
-}, {
+} as const
+const inputsCPhysWheelConstraint = {
   SetMaxSuspensionOffset: 'number',
   SetMinSuspensionOffset: 'number',
   SetSteeringMimicsEntity: 'text',
-})
+} as const
+export class CPhysWheelConstraint extends CPhysConstraint {}
+export interface CPhysWheelConstraint extends Fields<typeof fieldsCPhysWheelConstraint>, Inputs<typeof inputsCPhysWheelConstraint> {}
+define(CPhysWheelConstraint, 'CPhysWheelConstraint', fieldsCPhysWheelConstraint, inputsCPhysWheelConstraint)
 
-export class CRagdollConstraint extends CPhysConstraint {}
-export interface CRagdollConstraint {
-  m_xmin: number | undefined
-  m_xmax: number | undefined
-  m_ymin: number | undefined
-  m_ymax: number | undefined
-  m_zmin: number | undefined
-  m_zmax: number | undefined
-  m_xfriction: number | undefined
-  m_yfriction: number | undefined
-  m_zfriction: number | undefined
-}
-define(CRagdollConstraint, 'CRagdollConstraint', {
+const fieldsCRagdollConstraint = {
   m_xmin: 'float32',
   m_xmax: 'float32',
   m_ymin: 'float32',
@@ -15488,30 +10874,12 @@ define(CRagdollConstraint, 'CRagdollConstraint', {
   m_xfriction: 'float32',
   m_yfriction: 'float32',
   m_zfriction: 'float32',
-})
+} as const
+export class CRagdollConstraint extends CPhysConstraint {}
+export interface CRagdollConstraint extends Fields<typeof fieldsCRagdollConstraint> {}
+define(CRagdollConstraint, 'CRagdollConstraint', fieldsCRagdollConstraint)
 
-export class CSplineConstraint extends CPhysConstraint {}
-export interface CSplineConstraint {
-  m_vAnchorOffsetRestore: Vector | undefined
-  m_hSplineEntity: CBaseEntity | undefined
-  m_bEnableLateralConstraint: boolean | undefined
-  m_bEnableVerticalConstraint: boolean | undefined
-  m_bEnableAngularConstraint: boolean | undefined
-  m_bEnableLimit: boolean | undefined
-  m_bFireEventsOnPath: boolean | undefined
-  m_flLinearFrequency: number | undefined
-  m_flLinarDampingRatio: number | undefined
-  m_flJointFriction: number | undefined
-  m_flTransitionTime: number | undefined
-  m_vPreSolveAnchorPos: Vector | undefined
-  m_StartTransitionTime: number | undefined
-  m_vTangentSpaceAnchorAtTransitionStart: Vector | undefined
-  inputDisableLimit(): boolean
-  inputEnableLimit(): boolean
-  inputSetSplineEntity(value: string): boolean
-  inputSetTransitionTime(value: number): boolean
-}
-define(CSplineConstraint, 'CSplineConstraint', {
+const fieldsCSplineConstraint = {
   m_vAnchorOffsetRestore: 'vector',
   m_hSplineEntity: 'CBaseEntity',
   m_bEnableLateralConstraint: 'bool',
@@ -15526,49 +10894,18 @@ define(CSplineConstraint, 'CSplineConstraint', {
   m_vPreSolveAnchorPos: 'vector',
   m_StartTransitionTime: 'float32',
   m_vTangentSpaceAnchorAtTransitionStart: 'vector',
-}, {
+} as const
+const inputsCSplineConstraint = {
   DisableLimit: '',
   EnableLimit: '',
   SetSplineEntity: 'text',
   SetTransitionTime: 'number',
-})
+} as const
+export class CSplineConstraint extends CPhysConstraint {}
+export interface CSplineConstraint extends Fields<typeof fieldsCSplineConstraint>, Inputs<typeof inputsCSplineConstraint> {}
+define(CSplineConstraint, 'CSplineConstraint', fieldsCSplineConstraint, inputsCSplineConstraint)
 
-export class CPhysMotor extends CLogicalEntity {}
-export interface CPhysMotor {
-  readonly m_nameAttach: string | undefined
-  readonly m_nameAnchor: string | undefined
-  m_hAttachedObject: CBaseEntity | undefined
-  m_hAnchorObject: CBaseEntity | undefined
-  m_spinUp: number | undefined
-  m_spinDown: number | undefined
-  m_flMotorFriction: number | undefined
-  m_additionalAcceleration: number | undefined
-  m_angularAcceleration: number | undefined
-  m_flTorqueScale: number | undefined
-  m_flTargetSpeed: number | undefined
-  m_flSpeedWhenSpinUpOrSpinDownStarted: number | undefined
-  inputSetFriction(value: number): boolean
-  inputSetSpeed(value: number): boolean
-  /**
-   * Sets the time the motor takes to spin down to a lesser target speed when
-   * it's on.
-   */
-  inputSetSpinDownTime(value: number): boolean
-  /**
-   * Sets the time the motor takes to spin up to a greater target speed when
-   * it's on.
-   */
-  inputSetSpinUpTime(value: number): boolean
-  /**
-   * Sets the inertia scale on the motor, which affects the maximum amount of
-   * torque it can generate (this will also affect the actual time the motor
-   * takes to spin up or spin down).
-   */
-  inputSetSystemInertiaScale(value: number): boolean
-  inputTurnOff(): boolean
-  inputTurnOn(): boolean
-}
-define(CPhysMotor, 'CPhysMotor', {
+const fieldsCPhysMotor = {
   m_nameAttach: 'string',
   m_nameAnchor: 'string',
   m_hAttachedObject: 'CBaseEntity',
@@ -15581,64 +10918,55 @@ define(CPhysMotor, 'CPhysMotor', {
   m_flTorqueScale: 'float32',
   m_flTargetSpeed: 'float32',
   m_flSpeedWhenSpinUpOrSpinDownStarted: 'float32',
-}, {
+} as const
+const inputsCPhysMotor = {
   SetFriction: 'number',
   SetSpeed: 'number',
+  /**
+   * Sets the time the motor takes to spin down to a lesser target speed when
+   * it's on.
+   */
   SetSpinDownTime: 'number',
+  /**
+   * Sets the time the motor takes to spin up to a greater target speed when
+   * it's on.
+   */
   SetSpinUpTime: 'number',
+  /**
+   * Sets the inertia scale on the motor, which affects the maximum amount of
+   * torque it can generate (this will also affect the actual time the motor
+   * takes to spin up or spin down).
+   */
   SetSystemInertiaScale: 'number',
   TurnOff: '',
   TurnOn: '',
-})
+} as const
+export class CPhysMotor extends CLogicalEntity {}
+export interface CPhysMotor extends Fields<typeof fieldsCPhysMotor>, Inputs<typeof inputsCPhysMotor> {}
+define(CPhysMotor, 'CPhysMotor', fieldsCPhysMotor, inputsCPhysMotor)
 
-export class CPhysicsEntitySolver extends CLogicalEntity {}
-export interface CPhysicsEntitySolver {
-  m_hMovingEntity: CBaseEntity | undefined
-  m_hPhysicsBlocker: CBaseEntity | undefined
-  m_separationDuration: number | undefined
-  m_cancelTime: number | undefined
-}
-define(CPhysicsEntitySolver, 'CPhysicsEntitySolver', {
+const fieldsCPhysicsEntitySolver = {
   m_hMovingEntity: 'CBaseEntity',
   m_hPhysicsBlocker: 'CBaseEntity',
   m_separationDuration: 'float32',
   m_cancelTime: 'float32',
-})
+} as const
+export class CPhysicsEntitySolver extends CLogicalEntity {}
+export interface CPhysicsEntitySolver extends Fields<typeof fieldsCPhysicsEntitySolver> {}
+define(CPhysicsEntitySolver, 'CPhysicsEntitySolver', fieldsCPhysicsEntitySolver)
 
-export class CPhysicsNPCSolver extends CLogicalEntity {}
-export interface CPhysicsNPCSolver {
-  m_hNPC: CAI_BaseNPC | undefined
-  m_hEntity: CBaseEntity | undefined
-  m_separationDuration: number | undefined
-  m_cancelTime: number | undefined
-  m_allowIntersection: boolean | undefined
-}
-define(CPhysicsNPCSolver, 'CPhysicsNPCSolver', {
+const fieldsCPhysicsNPCSolver = {
   m_hNPC: 'CAI_BaseNPC',
   m_hEntity: 'CBaseEntity',
   m_separationDuration: 'float32',
   m_cancelTime: 'float32',
   m_allowIntersection: 'bool',
-})
+} as const
+export class CPhysicsNPCSolver extends CLogicalEntity {}
+export interface CPhysicsNPCSolver extends Fields<typeof fieldsCPhysicsNPCSolver> {}
+define(CPhysicsNPCSolver, 'CPhysicsNPCSolver', fieldsCPhysicsNPCSolver)
 
-export class CPointTemplate extends CLogicalEntity {}
-export interface CPointTemplate {
-  readonly m_iszWorldName: string | undefined
-  readonly m_iszSource2EntityLumpName: string | undefined
-  readonly m_iszEntityFilterName: string | undefined
-  m_flTimeoutInterval: number | undefined
-  m_bAsynchronouslySpawnEntities: boolean | undefined
-  m_clientOnlyEntityBehavior: number | undefined
-  m_ownerSpawnGroupType: number | undefined
-  /**
-   * Deletes all spawn groups created by the template. Only works if you use
-   * asynchronous spawn and INSERT_INTO_NEWLY_CREATED_SPAWN_GROUP.
-   */
-  inputDeleteCreatedSpawnGroups(): boolean
-  /** Spawn an instance of the template at the original position. */
-  inputForceSpawn(): boolean
-}
-define(CPointTemplate, 'CPointTemplate', {
+const fieldsCPointTemplate = {
   m_iszWorldName: 'string',
   m_iszSource2EntityLumpName: 'string',
   m_iszEntityFilterName: 'string',
@@ -15646,49 +10974,38 @@ define(CPointTemplate, 'CPointTemplate', {
   m_bAsynchronouslySpawnEntities: 'bool',
   m_clientOnlyEntityBehavior: 'uint32',
   m_ownerSpawnGroupType: 'uint32',
-}, {
+} as const
+const inputsCPointTemplate = {
+  /**
+   * Deletes all spawn groups created by the template. Only works if you use
+   * asynchronous spawn and INSERT_INTO_NEWLY_CREATED_SPAWN_GROUP.
+   */
   DeleteCreatedSpawnGroups: '',
+  /** Spawn an instance of the template at the original position. */
   ForceSpawn: '',
-})
+} as const
+export class CPointTemplate extends CLogicalEntity {}
+export interface CPointTemplate extends Fields<typeof fieldsCPointTemplate>, Inputs<typeof inputsCPointTemplate> {}
+define(CPointTemplate, 'CPointTemplate', fieldsCPointTemplate, inputsCPointTemplate)
 
-export class CSceneListManager extends CLogicalEntity {}
-export interface CSceneListManager {
-  inputShutdown(): boolean
-}
-define(CSceneListManager, 'CSceneListManager', {}, {
+const inputsCSceneListManager = {
   Shutdown: '',
-})
+} as const
+export class CSceneListManager extends CLogicalEntity {}
+export interface CSceneListManager extends Inputs<typeof inputsCSceneListManager> {}
+define(CSceneListManager, 'CSceneListManager', {}, inputsCSceneListManager)
 
-export class CSoundStackSave extends CLogicalEntity {}
-export interface CSoundStackSave {
-  readonly m_iszStackName: string | undefined
-}
-define(CSoundStackSave, 'CSoundStackSave', {
+const fieldsCSoundStackSave = {
   m_iszStackName: 'string',
-})
+} as const
+export class CSoundStackSave extends CLogicalEntity {}
+export interface CSoundStackSave extends Fields<typeof fieldsCSoundStackSave> {}
+define(CSoundStackSave, 'CSoundStackSave', fieldsCSoundStackSave)
 
-export class CTestPulseIO extends CLogicalEntity {}
-export interface CTestPulseIO {
-  m_bAllowEmptyInputs: boolean | undefined
-  inputInternalTestBool(value: boolean): boolean
-  inputInternalTestColor(value: number): boolean
-  inputInternalTestEntityName(value: string): boolean
-  inputInternalTestFloat(value: number): boolean
-  inputInternalTestInt(value: number): boolean
-  inputInternalTestString(value: string): boolean
-  inputInternalTestVector(value: Vector): boolean
-  inputInternalTestVoid(): boolean
-  inputVariantBool(value: boolean): boolean
-  inputVariantColor(value: number): boolean
-  inputVariantFloat(value: number): boolean
-  inputVariantInt(value: number): boolean
-  inputVariantString(value: string): boolean
-  inputVariantVector(value: Vector): boolean
-  inputVariantVoid(): boolean
-}
-define(CTestPulseIO, 'CTestPulseIO', {
+const fieldsCTestPulseIO = {
   m_bAllowEmptyInputs: 'bool',
-}, {
+} as const
+const inputsCTestPulseIO = {
   InternalTestBool: 'boolean',
   InternalTestColor: 'color',
   InternalTestEntityName: 'text',
@@ -15704,36 +11021,12 @@ define(CTestPulseIO, 'CTestPulseIO', {
   VariantString: 'text',
   VariantVector: 'vector',
   VariantVoid: '',
-})
+} as const
+export class CTestPulseIO extends CLogicalEntity {}
+export interface CTestPulseIO extends Fields<typeof fieldsCTestPulseIO>, Inputs<typeof inputsCTestPulseIO> {}
+define(CTestPulseIO, 'CTestPulseIO', fieldsCTestPulseIO, inputsCTestPulseIO)
 
-export class CTimerEntity extends CLogicalEntity {}
-export interface CTimerEntity {
-  m_iDisabled: number | undefined
-  m_flInitialDelay: number | undefined
-  m_flRefireTime: number | undefined
-  m_bUpDownState: boolean | undefined
-  m_iUseRandomTime: number | undefined
-  m_bPauseAfterFiring: boolean | undefined
-  m_flLowerRandomBound: number | undefined
-  m_flUpperRandomBound: number | undefined
-  m_flRemainingTime: number | undefined
-  m_bPaused: boolean | undefined
-  inputAddToTimer(value: number): boolean
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputFireTimer(): boolean
-  inputLowerRandomBound(value: number): boolean
-  inputPauseAfterFiring(value: boolean): boolean
-  inputPauseTimer(): boolean
-  inputRefireTime(value: number): boolean
-  inputResetTimer(): boolean
-  inputSubtractFromTimer(value: number): boolean
-  inputToggle(): boolean
-  inputUnpauseTimer(): boolean
-  inputUpperRandomBound(value: number): boolean
-  inputUseRandomTime(value: number): boolean
-}
-define(CTimerEntity, 'CTimerEntity', {
+const fieldsCTimerEntity = {
   m_iDisabled: 'int32',
   m_flInitialDelay: 'float32',
   m_flRefireTime: 'float32',
@@ -15744,7 +11037,8 @@ define(CTimerEntity, 'CTimerEntity', {
   m_flUpperRandomBound: 'float32',
   m_flRemainingTime: 'float32',
   m_bPaused: 'bool',
-}, {
+} as const
+const inputsCTimerEntity = {
   AddToTimer: 'number',
   Disable: '',
   Enable: '',
@@ -15759,28 +11053,25 @@ define(CTimerEntity, 'CTimerEntity', {
   UnpauseTimer: '',
   UpperRandomBound: 'number',
   UseRandomTime: 'integer',
-})
+} as const
+export class CTimerEntity extends CLogicalEntity {}
+export interface CTimerEntity extends Fields<typeof fieldsCTimerEntity>, Inputs<typeof inputsCTimerEntity> {}
+define(CTimerEntity, 'CTimerEntity', fieldsCTimerEntity, inputsCTimerEntity)
 
 export class CServerOnlyPointEntity extends CServerOnlyEntity {}
 define(CServerOnlyPointEntity, 'CServerOnlyPointEntity', {})
 
-export class CCitadelBotTestNode extends CServerOnlyPointEntity {}
-export interface CCitadelBotTestNode {
-  m_eNodeType: number | undefined
-  readonly m_sNextNode: string | undefined
-  readonly m_sShootTarget: string | undefined
-  m_hNextNode: CCitadelBotTestNode | undefined
-  m_hShootTarget: CCitadelBotTestNode | undefined
-  m_hLockingEntity: CCitadelPlayerPawn | undefined
-}
-define(CCitadelBotTestNode, 'CCitadelBotTestNode', {
+const fieldsCCitadelBotTestNode = {
   m_eNodeType: 'uint32',
   m_sNextNode: 'string',
   m_sShootTarget: 'string',
   m_hNextNode: 'CCitadelBotTestNode',
   m_hShootTarget: 'CCitadelBotTestNode',
   m_hLockingEntity: 'CCitadelPlayerPawn',
-})
+} as const
+export class CCitadelBotTestNode extends CServerOnlyPointEntity {}
+export interface CCitadelBotTestNode extends Fields<typeof fieldsCCitadelBotTestNode> {}
+define(CCitadelBotTestNode, 'CCitadelBotTestNode', fieldsCCitadelBotTestNode)
 
 export class CInfoCitadelHelperLocation extends CServerOnlyPointEntity {}
 define(CInfoCitadelHelperLocation, 'CInfoCitadelHelperLocation', {})
@@ -15791,77 +11082,61 @@ define(CInfoMidBossSpawn, 'CInfoMidBossSpawn', {})
 export class CInfoTargetServerOnly extends CServerOnlyPointEntity {}
 define(CInfoTargetServerOnly, 'CInfoTargetServerOnly', {})
 
-export class CInfoTeamSpawn extends CServerOnlyPointEntity {}
-export interface CInfoTeamSpawn {
-  m_bIntroSpawn: boolean | undefined
-  m_iLaneNum: number | undefined
-  readonly m_strGroupTag: string | undefined
-  m_hAssignedPlayer: CBaseEntity | undefined
-}
-define(CInfoTeamSpawn, 'CInfoTeamSpawn', {
+const fieldsCInfoTeamSpawn = {
   m_bIntroSpawn: 'bool',
   m_iLaneNum: 'int32',
   m_strGroupTag: 'string',
   m_hAssignedPlayer: 'CBaseEntity',
-})
+} as const
+export class CInfoTeamSpawn extends CServerOnlyPointEntity {}
+export interface CInfoTeamSpawn extends Fields<typeof fieldsCInfoTeamSpawn> {}
+define(CInfoTeamSpawn, 'CInfoTeamSpawn', fieldsCInfoTeamSpawn)
 
-export class CInfoTrooperBossSpawn extends CServerOnlyPointEntity {}
-export interface CInfoTrooperBossSpawn {
-  readonly m_strBossEntityName: string | undefined
-  m_iLane: number | undefined
-  m_bReinforcementsOnly: boolean | undefined
-  m_bTrooperTestSpawner: boolean | undefined
-}
-define(CInfoTrooperBossSpawn, 'CInfoTrooperBossSpawn', {
+const fieldsCInfoTrooperBossSpawn = {
   m_strBossEntityName: 'string',
   m_iLane: 'int32',
   m_bReinforcementsOnly: 'bool',
   m_bTrooperTestSpawner: 'bool',
-})
+} as const
+export class CInfoTrooperBossSpawn extends CServerOnlyPointEntity {}
+export interface CInfoTrooperBossSpawn extends Fields<typeof fieldsCInfoTrooperBossSpawn> {}
+define(CInfoTrooperBossSpawn, 'CInfoTrooperBossSpawn', fieldsCInfoTrooperBossSpawn)
 
-export class CInfoTrooperNeutralSpawn extends CServerOnlyPointEntity {}
-export interface CInfoTrooperNeutralSpawn {
-  readonly m_iszSquadName: string | undefined
-  m_eNeutralNPCType: number | undefined
-  readonly m_iszNeutralSubclass: string | undefined
-}
-define(CInfoTrooperNeutralSpawn, 'CInfoTrooperNeutralSpawn', {
+const fieldsCInfoTrooperNeutralSpawn = {
   m_iszSquadName: 'string',
   m_eNeutralNPCType: 'uint32',
   m_iszNeutralSubclass: 'string',
-})
+} as const
+export class CInfoTrooperNeutralSpawn extends CServerOnlyPointEntity {}
+export interface CInfoTrooperNeutralSpawn extends Fields<typeof fieldsCInfoTrooperNeutralSpawn> {}
+define(CInfoTrooperNeutralSpawn, 'CInfoTrooperNeutralSpawn', fieldsCInfoTrooperNeutralSpawn)
 
-export class CInfoTrooperSpawn extends CServerOnlyPointEntity {}
-export interface CInfoTrooperSpawn {
-  m_iLane: number | undefined
-  m_bDisableZiplining: boolean | undefined
-  /** Enable or disable spawning from this point. */
-  inputSetSpawningEnabled(value: boolean): boolean
-}
-define(CInfoTrooperSpawn, 'CInfoTrooperSpawn', {
+const fieldsCInfoTrooperSpawn = {
   m_iLane: 'int32',
   m_bDisableZiplining: 'bool',
-}, {
+} as const
+const inputsCInfoTrooperSpawn = {
+  /** Enable or disable spawning from this point. */
   SetSpawningEnabled: 'boolean',
-})
+} as const
+export class CInfoTrooperSpawn extends CServerOnlyPointEntity {}
+export interface CInfoTrooperSpawn extends Fields<typeof fieldsCInfoTrooperSpawn>, Inputs<typeof inputsCInfoTrooperSpawn> {}
+define(CInfoTrooperSpawn, 'CInfoTrooperSpawn', fieldsCInfoTrooperSpawn, inputsCInfoTrooperSpawn)
 
-export class CItemCrateSpawn extends CServerOnlyPointEntity {}
-export interface CItemCrateSpawn {
-  m_eLootType: number | undefined
-  m_eObjectivePosition: number | undefined
-}
-define(CItemCrateSpawn, 'CItemCrateSpawn', {
+const fieldsCItemCrateSpawn = {
   m_eLootType: 'uint32',
   m_eObjectivePosition: 'uint32',
-})
+} as const
+export class CItemCrateSpawn extends CServerOnlyPointEntity {}
+export interface CItemCrateSpawn extends Fields<typeof fieldsCItemCrateSpawn> {}
+define(CItemCrateSpawn, 'CItemCrateSpawn', fieldsCItemCrateSpawn)
 
-export class CNodeEnt extends CServerOnlyPointEntity {}
-export interface CNodeEnt {
-  m_bDontDropNode: boolean | undefined
-}
-define(CNodeEnt, 'CNodeEnt', {
+const fieldsCNodeEnt = {
   m_bDontDropNode: 'bool',
-})
+} as const
+export class CNodeEnt extends CServerOnlyPointEntity {}
+export interface CNodeEnt extends Fields<typeof fieldsCNodeEnt> {}
+define(CNodeEnt, 'CNodeEnt', fieldsCNodeEnt)
 
 export class CNodeEnt_InfoHint extends CNodeEnt {}
 define(CNodeEnt_InfoHint, 'CNodeEnt_InfoHint', {})
@@ -15875,153 +11150,107 @@ define(CNodeEnt_InfoNodeAirHint, 'CNodeEnt_InfoNodeAirHint', {})
 export class CNodeEnt_InfoNodeHint extends CNodeEnt {}
 define(CNodeEnt_InfoNodeHint, 'CNodeEnt_InfoNodeHint', {})
 
-export class CPointPrefab extends CServerOnlyPointEntity {}
-export interface CPointPrefab {
-  readonly m_targetMapName: string | undefined
-  readonly m_forceWorldGroupID: string | undefined
-  readonly m_associatedRelayTargetName: string | undefined
-  m_fixupNames: boolean | undefined
-  m_bLoadDynamic: boolean | undefined
-  m_associatedRelayEntity: CPointPrefab | undefined
-}
-define(CPointPrefab, 'CPointPrefab', {
+const fieldsCPointPrefab = {
   m_targetMapName: 'string',
   m_forceWorldGroupID: 'string',
   m_associatedRelayTargetName: 'string',
   m_fixupNames: 'bool',
   m_bLoadDynamic: 'bool',
   m_associatedRelayEntity: 'CPointPrefab',
-})
+} as const
+export class CPointPrefab extends CServerOnlyPointEntity {}
+export interface CPointPrefab extends Fields<typeof fieldsCPointPrefab> {}
+define(CPointPrefab, 'CPointPrefab', fieldsCPointPrefab)
 
-export class CPointTeleport extends CServerOnlyPointEntity {}
-export interface CPointTeleport {
-  m_vSaveOrigin: Vector | undefined
-  m_vSaveAngles: Angles | undefined
-  m_bTeleportParentedEntities: boolean | undefined
-  m_bTeleportUseCurrentAngle: boolean | undefined
+const fieldsCPointTeleport = {
+  m_vSaveOrigin: 'vector',
+  m_vSaveAngles: 'angles',
+  m_bTeleportParentedEntities: 'bool',
+  m_bTeleportUseCurrentAngle: 'bool',
+} as const
+const inputsCPointTeleport = {
   /** Teleport the target entity. */
-  inputTeleport(): boolean
+  Teleport: '',
   /**
    * Teleport the entity specified by the parameter override. Use this to
    * teleport an entity other than the one specified in the Entity To Teleport
    * field.
    */
-  inputTeleportEntity(value: string): boolean
+  TeleportEntity: 'text',
   /**
    * Teleport the entity specified by the parameter override to wherever the
    * point_teleport entity is currently. The Teleport input teleports to the
    * current position of the point_teleport.
    */
-  inputTeleportEntityToCurrentPos(value: string): boolean
+  TeleportEntityToCurrentPos: 'text',
   /**
    * Teleport the target entity to wherever the point_teleport entity is
    * currently. The Teleport input teleports to the initial position of the
    * point_teleport, so this input was added to avoid breaking old content.
    */
-  inputTeleportToCurrentPos(): boolean
-}
-define(CPointTeleport, 'CPointTeleport', {
-  m_vSaveOrigin: 'vector',
-  m_vSaveAngles: 'angles',
-  m_bTeleportParentedEntities: 'bool',
-  m_bTeleportUseCurrentAngle: 'bool',
-}, {
-  Teleport: '',
-  TeleportEntity: 'text',
-  TeleportEntityToCurrentPos: 'text',
   TeleportToCurrentPos: '',
-})
+} as const
+export class CPointTeleport extends CServerOnlyPointEntity {}
+export interface CPointTeleport extends Fields<typeof fieldsCPointTeleport>, Inputs<typeof inputsCPointTeleport> {}
+define(CPointTeleport, 'CPointTeleport', fieldsCPointTeleport, inputsCPointTeleport)
 
 export class CTrooperApproachHorizon extends CServerOnlyEntity {}
 define(CTrooperApproachHorizon, 'CTrooperApproachHorizon', {})
 
-export class CSkyCamera extends CBaseEntity {}
-export interface CSkyCamera {
-  m_bUseAngles: boolean | undefined
-  inputActivateSkybox(): boolean
-}
-define(CSkyCamera, 'CSkyCamera', {
+const fieldsCSkyCamera = {
   m_bUseAngles: 'bool',
-}, {
+} as const
+const inputsCSkyCamera = {
   ActivateSkybox: '',
-})
+} as const
+export class CSkyCamera extends CBaseEntity {}
+export interface CSkyCamera extends Fields<typeof fieldsCSkyCamera>, Inputs<typeof inputsCSkyCamera> {}
+define(CSkyCamera, 'CSkyCamera', fieldsCSkyCamera, inputsCSkyCamera)
 
-export class CSkyboxReference extends CBaseEntity {}
-export interface CSkyboxReference {
-  m_hSkyCamera: CSkyCamera | undefined
-}
-define(CSkyboxReference, 'CSkyboxReference', {
+const fieldsCSkyboxReference = {
   m_hSkyCamera: 'CSkyCamera',
-})
+} as const
+export class CSkyboxReference extends CBaseEntity {}
+export interface CSkyboxReference extends Fields<typeof fieldsCSkyboxReference> {}
+define(CSkyboxReference, 'CSkyboxReference', fieldsCSkyboxReference)
 
-export class CSoundAreaEntityBase extends CBaseEntity {}
-export interface CSoundAreaEntityBase {
-  m_bDisabled: boolean | undefined
-  readonly m_iszSoundAreaType: string | undefined
-  m_vPos: Vector | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-}
-define(CSoundAreaEntityBase, 'CSoundAreaEntityBase', {
+const fieldsCSoundAreaEntityBase = {
   m_bDisabled: 'bool',
   m_iszSoundAreaType: 'string',
   m_vPos: 'vector',
-}, {
+} as const
+const inputsCSoundAreaEntityBase = {
   Disable: '',
   Enable: '',
-})
+} as const
+export class CSoundAreaEntityBase extends CBaseEntity {}
+export interface CSoundAreaEntityBase extends Fields<typeof fieldsCSoundAreaEntityBase>, Inputs<typeof inputsCSoundAreaEntityBase> {}
+define(CSoundAreaEntityBase, 'CSoundAreaEntityBase', fieldsCSoundAreaEntityBase, inputsCSoundAreaEntityBase)
 
-export class CSoundAreaEntityOrientedBox extends CSoundAreaEntityBase {}
-export interface CSoundAreaEntityOrientedBox {
-  m_vMin: Vector | undefined
-  m_vMax: Vector | undefined
-}
-define(CSoundAreaEntityOrientedBox, 'CSoundAreaEntityOrientedBox', {
+const fieldsCSoundAreaEntityOrientedBox = {
   m_vMin: 'vector',
   m_vMax: 'vector',
-})
+} as const
+export class CSoundAreaEntityOrientedBox extends CSoundAreaEntityBase {}
+export interface CSoundAreaEntityOrientedBox extends Fields<typeof fieldsCSoundAreaEntityOrientedBox> {}
+define(CSoundAreaEntityOrientedBox, 'CSoundAreaEntityOrientedBox', fieldsCSoundAreaEntityOrientedBox)
 
-export class CSoundAreaEntitySphere extends CSoundAreaEntityBase {}
-export interface CSoundAreaEntitySphere {
-  m_flRadius: number | undefined
-}
-define(CSoundAreaEntitySphere, 'CSoundAreaEntitySphere', {
+const fieldsCSoundAreaEntitySphere = {
   m_flRadius: 'float32',
-})
+} as const
+export class CSoundAreaEntitySphere extends CSoundAreaEntityBase {}
+export interface CSoundAreaEntitySphere extends Fields<typeof fieldsCSoundAreaEntitySphere> {}
+define(CSoundAreaEntitySphere, 'CSoundAreaEntitySphere', fieldsCSoundAreaEntitySphere)
 
-export class CSoundEventBoxHelper extends CBaseEntity {}
-export interface CSoundEventBoxHelper {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-}
-define(CSoundEventBoxHelper, 'CSoundEventBoxHelper', {
+const fieldsCSoundEventBoxHelper = {
   m_vMins: 'vector',
   m_vMaxs: 'vector',
-})
+} as const
+export class CSoundEventBoxHelper extends CBaseEntity {}
+export interface CSoundEventBoxHelper extends Fields<typeof fieldsCSoundEventBoxHelper> {}
+define(CSoundEventBoxHelper, 'CSoundEventBoxHelper', fieldsCSoundEventBoxHelper)
 
-export class CSoundEventEntity extends CBaseEntity {}
-export interface CSoundEventEntity {
-  m_bStartOnSpawn: boolean | undefined
-  m_bToLocalPlayer: boolean | undefined
-  m_bStopOnNew: boolean | undefined
-  m_bSaveRestore: boolean | undefined
-  m_bSavedIsPlaying: boolean | undefined
-  m_flSavedElapsedTime: number | undefined
-  readonly m_iszSourceEntityName: string | undefined
-  readonly m_iszAttachmentName: string | undefined
-  m_flClientCullRadius: number | undefined
-  readonly m_iszSoundName: string | undefined
-  m_hSource: number | undefined
-  m_nEntityIndexSelection: number | undefined
-  inputPauseSound(value: boolean): boolean
-  inputSetSoundEventName(value: string): boolean
-  inputSetSourceEntity(value: string): boolean
-  inputStartSound(value: string): boolean
-  inputStartSoundOnSingleClient(value: number): boolean
-  inputStopSound(): boolean
-  inputUnPauseSound(value: boolean): boolean
-}
-define(CSoundEventEntity, 'CSoundEventEntity', {
+const fieldsCSoundEventEntity = {
   m_bStartOnSpawn: 'bool',
   m_bToLocalPlayer: 'bool',
   m_bStopOnNew: 'bool',
@@ -16034,7 +11263,8 @@ define(CSoundEventEntity, 'CSoundEventEntity', {
   m_iszSoundName: 'string',
   m_hSource: 'handle',
   m_nEntityIndexSelection: 'int32',
-}, {
+} as const
+const inputsCSoundEventEntity = {
   PauseSound: 'boolean',
   SetSoundEventName: 'text',
   SetSourceEntity: 'text',
@@ -16042,126 +11272,90 @@ define(CSoundEventEntity, 'CSoundEventEntity', {
   StartSoundOnSingleClient: 'integer',
   StopSound: '',
   UnPauseSound: 'boolean',
-})
+} as const
+export class CSoundEventEntity extends CBaseEntity {}
+export interface CSoundEventEntity extends Fields<typeof fieldsCSoundEventEntity>, Inputs<typeof inputsCSoundEventEntity> {}
+define(CSoundEventEntity, 'CSoundEventEntity', fieldsCSoundEventEntity, inputsCSoundEventEntity)
 
+const fieldsCCitadelSoundEntityOBB = {
+  m_vMins: 'vector',
+  m_vMaxs: 'vector',
+} as const
 export class CCitadelSoundEntityOBB extends CSoundEventEntity {}
-export interface CCitadelSoundEntityOBB {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-}
-define(CCitadelSoundEntityOBB, 'CCitadelSoundEntityOBB', {
+export interface CCitadelSoundEntityOBB extends Fields<typeof fieldsCCitadelSoundEntityOBB> {}
+define(CCitadelSoundEntityOBB, 'CCitadelSoundEntityOBB', fieldsCCitadelSoundEntityOBB)
+
+const fieldsCSoundEventAABBEntity = {
   m_vMins: 'vector',
   m_vMaxs: 'vector',
-})
-
+} as const
 export class CSoundEventAABBEntity extends CSoundEventEntity {}
-export interface CSoundEventAABBEntity {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-}
-define(CSoundEventAABBEntity, 'CSoundEventAABBEntity', {
-  m_vMins: 'vector',
-  m_vMaxs: 'vector',
-})
+export interface CSoundEventAABBEntity extends Fields<typeof fieldsCSoundEventAABBEntity> {}
+define(CSoundEventAABBEntity, 'CSoundEventAABBEntity', fieldsCSoundEventAABBEntity)
 
-export class CSoundEventConeEntity extends CSoundEventEntity {}
-export interface CSoundEventConeEntity {
-  m_flEmitterAngle: number | undefined
-  m_flSweetSpotAngle: number | undefined
-  m_flAttenMin: number | undefined
-  m_flAttenMax: number | undefined
-  readonly m_iszParameterName: string | undefined
-}
-define(CSoundEventConeEntity, 'CSoundEventConeEntity', {
+const fieldsCSoundEventConeEntity = {
   m_flEmitterAngle: 'float32',
   m_flSweetSpotAngle: 'float32',
   m_flAttenMin: 'float32',
   m_flAttenMax: 'float32',
   m_iszParameterName: 'string',
-})
+} as const
+export class CSoundEventConeEntity extends CSoundEventEntity {}
+export interface CSoundEventConeEntity extends Fields<typeof fieldsCSoundEventConeEntity> {}
+define(CSoundEventConeEntity, 'CSoundEventConeEntity', fieldsCSoundEventConeEntity)
 
 export class CSoundEventEntityAlias_snd_event_point extends CSoundEventEntity {}
 define(CSoundEventEntityAlias_snd_event_point, 'CSoundEventEntityAlias_snd_event_point', {})
 
-export class CSoundEventMultiPointEntity extends CSoundEventEntity {}
-export interface CSoundEventMultiPointEntity {
-  m_iCountMax: number | undefined
-  m_flDistanceMax: number | undefined
-  m_flDistMaxSqr: number | undefined
-  m_flDotProductMax: number | undefined
-  m_bPlaying: boolean | undefined
-}
-define(CSoundEventMultiPointEntity, 'CSoundEventMultiPointEntity', {
+const fieldsCSoundEventMultiPointEntity = {
   m_iCountMax: 'int32',
   m_flDistanceMax: 'float32',
   m_flDistMaxSqr: 'float32',
   m_flDotProductMax: 'float32',
   m_bPlaying: 'bool',
-})
+} as const
+export class CSoundEventMultiPointEntity extends CSoundEventEntity {}
+export interface CSoundEventMultiPointEntity extends Fields<typeof fieldsCSoundEventMultiPointEntity> {}
+define(CSoundEventMultiPointEntity, 'CSoundEventMultiPointEntity', fieldsCSoundEventMultiPointEntity)
 
 export class CSoundEventBoxEntity extends CSoundEventMultiPointEntity {}
 define(CSoundEventBoxEntity, 'CSoundEventBoxEntity', {})
 
-export class CSoundEventPathCornerEntity extends CSoundEventMultiPointEntity {}
-export interface CSoundEventPathCornerEntity {
-  readonly m_iszPathCorner: string | undefined
-}
-define(CSoundEventPathCornerEntity, 'CSoundEventPathCornerEntity', {
+const fieldsCSoundEventPathCornerEntity = {
   m_iszPathCorner: 'string',
-})
+} as const
+export class CSoundEventPathCornerEntity extends CSoundEventMultiPointEntity {}
+export interface CSoundEventPathCornerEntity extends Fields<typeof fieldsCSoundEventPathCornerEntity> {}
+define(CSoundEventPathCornerEntity, 'CSoundEventPathCornerEntity', fieldsCSoundEventPathCornerEntity)
 
-export class CSoundEventOBBEntity extends CSoundEventEntity {}
-export interface CSoundEventOBBEntity {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-}
-define(CSoundEventOBBEntity, 'CSoundEventOBBEntity', {
+const fieldsCSoundEventOBBEntity = {
   m_vMins: 'vector',
   m_vMaxs: 'vector',
-})
+} as const
+export class CSoundEventOBBEntity extends CSoundEventEntity {}
+export interface CSoundEventOBBEntity extends Fields<typeof fieldsCSoundEventOBBEntity> {}
+define(CSoundEventOBBEntity, 'CSoundEventOBBEntity', fieldsCSoundEventOBBEntity)
 
-export class CSoundEventSphereEntity extends CSoundEventEntity {}
-export interface CSoundEventSphereEntity {
-  m_flRadius: number | undefined
-}
-define(CSoundEventSphereEntity, 'CSoundEventSphereEntity', {
+const fieldsCSoundEventSphereEntity = {
   m_flRadius: 'float32',
-})
+} as const
+export class CSoundEventSphereEntity extends CSoundEventEntity {}
+export interface CSoundEventSphereEntity extends Fields<typeof fieldsCSoundEventSphereEntity> {}
+define(CSoundEventSphereEntity, 'CSoundEventSphereEntity', fieldsCSoundEventSphereEntity)
 
-export class CSoundEventParameter extends CBaseEntity {}
-export interface CSoundEventParameter {
-  readonly m_iszParamName: string | undefined
-  m_flFloatValue: number | undefined
-  inputSetFloatValue(value: number): boolean
-  inputSetParamName(value: string): boolean
-}
-define(CSoundEventParameter, 'CSoundEventParameter', {
+const fieldsCSoundEventParameter = {
   m_iszParamName: 'string',
   m_flFloatValue: 'float32',
-}, {
+} as const
+const inputsCSoundEventParameter = {
   SetFloatValue: 'number',
   SetParamName: 'text',
-})
+} as const
+export class CSoundEventParameter extends CBaseEntity {}
+export interface CSoundEventParameter extends Fields<typeof fieldsCSoundEventParameter>, Inputs<typeof inputsCSoundEventParameter> {}
+define(CSoundEventParameter, 'CSoundEventParameter', fieldsCSoundEventParameter, inputsCSoundEventParameter)
 
-export class CSoundOpvarSetEntity extends CBaseEntity {}
-export interface CSoundOpvarSetEntity {
-  readonly m_iszStackName: string | undefined
-  readonly m_iszOperatorName: string | undefined
-  readonly m_iszOpvarName: string | undefined
-  m_nOpvarType: number | undefined
-  m_nOpvarIndex: number | undefined
-  m_flOpvarValue: number | undefined
-  readonly m_OpvarValueString: string | undefined
-  m_bSetOnSpawn: boolean | undefined
-  inputChangeOpvarValue(value: number): boolean
-  inputChangeOpvarValueAndSet(value: number): boolean
-  inputSetOperatorName(value: string): boolean
-  inputSetOpvar(): boolean
-  inputSetOpvarIndex(value: number): boolean
-  inputSetOpvarName(value: string): boolean
-  inputSetStackName(value: string): boolean
-}
-define(CSoundOpvarSetEntity, 'CSoundOpvarSetEntity', {
+const fieldsCSoundOpvarSetEntity = {
   m_iszStackName: 'string',
   m_iszOperatorName: 'string',
   m_iszOpvarName: 'string',
@@ -16170,7 +11364,8 @@ define(CSoundOpvarSetEntity, 'CSoundOpvarSetEntity', {
   m_flOpvarValue: 'float32',
   m_OpvarValueString: 'string',
   m_bSetOnSpawn: 'bool',
-}, {
+} as const
+const inputsCSoundOpvarSetEntity = {
   ChangeOpvarValue: 'number',
   ChangeOpvarValueAndSet: 'number',
   SetOperatorName: 'text',
@@ -16178,30 +11373,12 @@ define(CSoundOpvarSetEntity, 'CSoundOpvarSetEntity', {
   SetOpvarIndex: 'integer',
   SetOpvarName: 'text',
   SetStackName: 'text',
-})
+} as const
+export class CSoundOpvarSetEntity extends CBaseEntity {}
+export interface CSoundOpvarSetEntity extends Fields<typeof fieldsCSoundOpvarSetEntity>, Inputs<typeof inputsCSoundOpvarSetEntity> {}
+define(CSoundOpvarSetEntity, 'CSoundOpvarSetEntity', fieldsCSoundOpvarSetEntity, inputsCSoundOpvarSetEntity)
 
-export class CSoundOpvarSetPointBase extends CBaseEntity {}
-export interface CSoundOpvarSetPointBase {
-  m_bDisabled: boolean | undefined
-  m_hSource: number | undefined
-  readonly m_iszSourceEntityName: string | undefined
-  m_vLastPosition: Vector | undefined
-  m_flRefreshTime: number | undefined
-  readonly m_iszStackName: string | undefined
-  readonly m_iszOperatorName: string | undefined
-  readonly m_iszOpvarName: string | undefined
-  m_iOpvarIndex: number | undefined
-  m_bUseAutoCompare: boolean | undefined
-  m_bFastRefresh: boolean | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetOperatorName(value: string): boolean
-  inputSetOpvarIndex(value: string): boolean
-  inputSetOpvarName(value: string): boolean
-  inputSetSourceEntity(value: string): boolean
-  inputSetStackName(value: string): boolean
-}
-define(CSoundOpvarSetPointBase, 'CSoundOpvarSetPointBase', {
+const fieldsCSoundOpvarSetPointBase = {
   m_bDisabled: 'bool',
   m_hSource: 'handle',
   m_iszSourceEntityName: 'string',
@@ -16213,7 +11390,8 @@ define(CSoundOpvarSetPointBase, 'CSoundOpvarSetPointBase', {
   m_iOpvarIndex: 'int32',
   m_bUseAutoCompare: 'bool',
   m_bFastRefresh: 'bool',
-}, {
+} as const
+const inputsCSoundOpvarSetPointBase = {
   Disable: '',
   Enable: '',
   SetOperatorName: 'text',
@@ -16221,20 +11399,12 @@ define(CSoundOpvarSetPointBase, 'CSoundOpvarSetPointBase', {
   SetOpvarName: 'text',
   SetSourceEntity: 'text',
   SetStackName: 'text',
-})
+} as const
+export class CSoundOpvarSetPointBase extends CBaseEntity {}
+export interface CSoundOpvarSetPointBase extends Fields<typeof fieldsCSoundOpvarSetPointBase>, Inputs<typeof inputsCSoundOpvarSetPointBase> {}
+define(CSoundOpvarSetPointBase, 'CSoundOpvarSetPointBase', fieldsCSoundOpvarSetPointBase, inputsCSoundOpvarSetPointBase)
 
-export class CSoundOpvarSetOBBWindEntity extends CSoundOpvarSetPointBase {}
-export interface CSoundOpvarSetOBBWindEntity {
-  m_vMins: Vector | undefined
-  m_vMaxs: Vector | undefined
-  m_vDistanceMins: Vector | undefined
-  m_vDistanceMaxs: Vector | undefined
-  m_flWindMin: number | undefined
-  m_flWindMax: number | undefined
-  m_flWindMapMin: number | undefined
-  m_flWindMapMax: number | undefined
-}
-define(CSoundOpvarSetOBBWindEntity, 'CSoundOpvarSetOBBWindEntity', {
+const fieldsCSoundOpvarSetOBBWindEntity = {
   m_vMins: 'vector',
   m_vMaxs: 'vector',
   m_vDistanceMins: 'vector',
@@ -16243,37 +11413,12 @@ define(CSoundOpvarSetOBBWindEntity, 'CSoundOpvarSetOBBWindEntity', {
   m_flWindMax: 'float32',
   m_flWindMapMin: 'float32',
   m_flWindMapMax: 'float32',
-})
+} as const
+export class CSoundOpvarSetOBBWindEntity extends CSoundOpvarSetPointBase {}
+export interface CSoundOpvarSetOBBWindEntity extends Fields<typeof fieldsCSoundOpvarSetOBBWindEntity> {}
+define(CSoundOpvarSetOBBWindEntity, 'CSoundOpvarSetOBBWindEntity', fieldsCSoundOpvarSetOBBWindEntity)
 
-export class CSoundOpvarSetPointEntity extends CSoundOpvarSetPointBase {}
-export interface CSoundOpvarSetPointEntity {
-  m_bAutoDisable: boolean | undefined
-  m_flDistanceMin: number | undefined
-  m_flDistanceMax: number | undefined
-  m_flDistanceMapMin: number | undefined
-  m_flDistanceMapMax: number | undefined
-  m_flOcclusionRadius: number | undefined
-  m_flOcclusionMin: number | undefined
-  m_flOcclusionMax: number | undefined
-  m_flValSetOnDisable: number | undefined
-  m_bSetValueOnDisable: boolean | undefined
-  m_bReloading: boolean | undefined
-  m_nSimulationMode: number | undefined
-  m_nVisibilitySamples: number | undefined
-  m_vDynamicProxyPoint: Vector | undefined
-  m_flDynamicMaximumOcclusion: number | undefined
-  m_hDynamicEntity: number | undefined
-  readonly m_iszDynamicEntityName: string | undefined
-  m_flPathingDistanceNormFactor: number | undefined
-  m_vPathingSourcePos: Vector | undefined
-  m_vPathingListenerPos: Vector | undefined
-  m_vPathingDirection: Vector | undefined
-  m_nPathingSourceIndex: number | undefined
-  inputSetDisabledValue(): boolean
-  inputSetDistanceMapMax(value: number): boolean
-  inputSetDistanceMapMin(value: number): boolean
-}
-define(CSoundOpvarSetPointEntity, 'CSoundOpvarSetPointEntity', {
+const fieldsCSoundOpvarSetPointEntity = {
   m_bAutoDisable: 'bool',
   m_flDistanceMin: 'float32',
   m_flDistanceMax: 'float32',
@@ -16296,37 +11441,26 @@ define(CSoundOpvarSetPointEntity, 'CSoundOpvarSetPointEntity', {
   m_vPathingListenerPos: 'vector',
   m_vPathingDirection: 'vector',
   m_nPathingSourceIndex: 'int32',
-}, {
+} as const
+const inputsCSoundOpvarSetPointEntity = {
   SetDisabledValue: '',
   SetDistanceMapMax: 'number',
   SetDistanceMapMin: 'number',
-})
+} as const
+export class CSoundOpvarSetPointEntity extends CSoundOpvarSetPointBase {}
+export interface CSoundOpvarSetPointEntity extends Fields<typeof fieldsCSoundOpvarSetPointEntity>, Inputs<typeof inputsCSoundOpvarSetPointEntity> {}
+define(CSoundOpvarSetPointEntity, 'CSoundOpvarSetPointEntity', fieldsCSoundOpvarSetPointEntity, inputsCSoundOpvarSetPointEntity)
 
-export class CSoundOpvarSetAutoRoomEntity extends CSoundOpvarSetPointEntity {}
-export interface CSoundOpvarSetAutoRoomEntity {
-  m_flSize: number | undefined
-  m_flHeightTolerance: number | undefined
-  m_flSizeSqr: number | undefined
-}
-define(CSoundOpvarSetAutoRoomEntity, 'CSoundOpvarSetAutoRoomEntity', {
+const fieldsCSoundOpvarSetAutoRoomEntity = {
   m_flSize: 'float32',
   m_flHeightTolerance: 'float32',
   m_flSizeSqr: 'float32',
-})
+} as const
+export class CSoundOpvarSetAutoRoomEntity extends CSoundOpvarSetPointEntity {}
+export interface CSoundOpvarSetAutoRoomEntity extends Fields<typeof fieldsCSoundOpvarSetAutoRoomEntity> {}
+define(CSoundOpvarSetAutoRoomEntity, 'CSoundOpvarSetAutoRoomEntity', fieldsCSoundOpvarSetAutoRoomEntity)
 
-export class CSoundOpvarSetBoxEntity extends CSoundOpvarSetPointEntity {}
-export interface CSoundOpvarSetBoxEntity {
-  m_vDistanceInnerMins: Vector | undefined
-  m_vDistanceInnerMaxs: Vector | undefined
-  m_vDistanceOuterMins: Vector | undefined
-  m_vDistanceOuterMaxs: Vector | undefined
-  m_nBoxDirection: number | undefined
-  m_vInnerMins: Vector | undefined
-  m_vInnerMaxs: Vector | undefined
-  m_vOuterMins: Vector | undefined
-  m_vOuterMaxs: Vector | undefined
-}
-define(CSoundOpvarSetBoxEntity, 'CSoundOpvarSetBoxEntity', {
+const fieldsCSoundOpvarSetBoxEntity = {
   m_vDistanceInnerMins: 'vector',
   m_vDistanceInnerMaxs: 'vector',
   m_vDistanceOuterMins: 'vector',
@@ -16336,7 +11470,10 @@ define(CSoundOpvarSetBoxEntity, 'CSoundOpvarSetBoxEntity', {
   m_vInnerMaxs: 'vector',
   m_vOuterMins: 'vector',
   m_vOuterMaxs: 'vector',
-})
+} as const
+export class CSoundOpvarSetBoxEntity extends CSoundOpvarSetPointEntity {}
+export interface CSoundOpvarSetBoxEntity extends Fields<typeof fieldsCSoundOpvarSetBoxEntity> {}
+define(CSoundOpvarSetBoxEntity, 'CSoundOpvarSetBoxEntity', fieldsCSoundOpvarSetBoxEntity)
 
 export class CSoundOpvarSetAABBEntity extends CSoundOpvarSetBoxEntity {}
 define(CSoundOpvarSetAABBEntity, 'CSoundOpvarSetAABBEntity', {})
@@ -16344,37 +11481,7 @@ define(CSoundOpvarSetAABBEntity, 'CSoundOpvarSetAABBEntity', {})
 export class CSoundOpvarSetOBBEntity extends CSoundOpvarSetAABBEntity {}
 define(CSoundOpvarSetOBBEntity, 'CSoundOpvarSetOBBEntity', {})
 
-export class CSoundOpvarSetDomeEntity extends CSoundOpvarSetPointEntity {}
-export interface CSoundOpvarSetDomeEntity {
-  m_nCurrentIndex: number | undefined
-  m_nClusterIndex: number | undefined
-  m_flClusteredOpenness: number | undefined
-  m_vClusterDirection: Vector | undefined
-  m_vSmoothedOpenDir: Vector | undefined
-  m_nDirWarmupThinksRemaining: number | undefined
-  m_vLastTraceOrigin: Vector | undefined
-  m_bTraceOriginValid: boolean | undefined
-  m_nCatchUpThinksRemaining: number | undefined
-  m_bDiscontinuityPending: boolean | undefined
-  m_flSmoothedOpenness: number | undefined
-  m_flLastSmoothTime: number | undefined
-  m_flSize: number | undefined
-  m_nTotalDirections: number | undefined
-  m_nTracesPerFrame: number | undefined
-  m_bDomeMode: boolean | undefined
-  m_bMultiWall: boolean | undefined
-  m_flWallTransmission: number | undefined
-  m_nClusterK: number | undefined
-  m_flClusterP: number | undefined
-  m_flClusterBlend: number | undefined
-  m_flOpennessExponent: number | undefined
-  m_flShoulderExponent: number | undefined
-  m_flSmoothHalfLife: number | undefined
-  inputSetSize(value: number): boolean
-  inputSetTotalDirections(value: number): boolean
-  inputSetTracesPerFrame(value: number): boolean
-}
-define(CSoundOpvarSetDomeEntity, 'CSoundOpvarSetDomeEntity', {
+const fieldsCSoundOpvarSetDomeEntity = {
   m_nCurrentIndex: 'int32',
   m_nClusterIndex: 'int32',
   m_flClusteredOpenness: 'float32',
@@ -16399,47 +11506,27 @@ define(CSoundOpvarSetDomeEntity, 'CSoundOpvarSetDomeEntity', {
   m_flOpennessExponent: 'float32',
   m_flShoulderExponent: 'float32',
   m_flSmoothHalfLife: 'float32',
-}, {
+} as const
+const inputsCSoundOpvarSetDomeEntity = {
   SetSize: 'number',
   SetTotalDirections: 'integer',
   SetTracesPerFrame: 'integer',
-})
+} as const
+export class CSoundOpvarSetDomeEntity extends CSoundOpvarSetPointEntity {}
+export interface CSoundOpvarSetDomeEntity extends Fields<typeof fieldsCSoundOpvarSetDomeEntity>, Inputs<typeof inputsCSoundOpvarSetDomeEntity> {}
+define(CSoundOpvarSetDomeEntity, 'CSoundOpvarSetDomeEntity', fieldsCSoundOpvarSetDomeEntity, inputsCSoundOpvarSetDomeEntity)
 
-export class CSoundOpvarSetPathCornerEntity extends CSoundOpvarSetPointEntity {}
-export interface CSoundOpvarSetPathCornerEntity {
-  m_bUseParentedPath: boolean | undefined
-  m_flDistMinSqr: number | undefined
-  m_flDistMaxSqr: number | undefined
-  readonly m_iszPathCornerEntityName: string | undefined
-}
-define(CSoundOpvarSetPathCornerEntity, 'CSoundOpvarSetPathCornerEntity', {
+const fieldsCSoundOpvarSetPathCornerEntity = {
   m_bUseParentedPath: 'bool',
   m_flDistMinSqr: 'float32',
   m_flDistMaxSqr: 'float32',
   m_iszPathCornerEntityName: 'string',
-})
+} as const
+export class CSoundOpvarSetPathCornerEntity extends CSoundOpvarSetPointEntity {}
+export interface CSoundOpvarSetPathCornerEntity extends Fields<typeof fieldsCSoundOpvarSetPathCornerEntity> {}
+define(CSoundOpvarSetPathCornerEntity, 'CSoundOpvarSetPathCornerEntity', fieldsCSoundOpvarSetPathCornerEntity)
 
-export class CSoundOpvarSetPrecipitationEntity extends CSoundOpvarSetPointBase {}
-export interface CSoundOpvarSetPrecipitationEntity {
-  m_nCurrentIndex: number | undefined
-  m_flSmoothedValue: number | undefined
-  m_flLastSmoothTime: number | undefined
-  m_nMode: number | undefined
-  readonly m_iszPrecipitationSubclass: string | undefined
-  m_vBoxMins: Vector | undefined
-  m_vBoxMaxs: Vector | undefined
-  m_flDensityMin: number | undefined
-  m_flDensityMax: number | undefined
-  m_flDensityMapMin: number | undefined
-  m_flDensityMapMax: number | undefined
-  m_nTotalDirections: number | undefined
-  m_nTracesPerFrame: number | undefined
-  m_flConeAngle: number | undefined
-  m_flTraceDistance: number | undefined
-  m_flSmoothHalfLife: number | undefined
-  inputSetMode(value: number): boolean
-}
-define(CSoundOpvarSetPrecipitationEntity, 'CSoundOpvarSetPrecipitationEntity', {
+const fieldsCSoundOpvarSetPrecipitationEntity = {
   m_nCurrentIndex: 'int32',
   m_flSmoothedValue: 'float32',
   m_flLastSmoothTime: 'float32',
@@ -16456,35 +11543,25 @@ define(CSoundOpvarSetPrecipitationEntity, 'CSoundOpvarSetPrecipitationEntity', {
   m_flConeAngle: 'float32',
   m_flTraceDistance: 'float32',
   m_flSmoothHalfLife: 'float32',
-}, {
+} as const
+const inputsCSoundOpvarSetPrecipitationEntity = {
   SetMode: 'integer',
-})
+} as const
+export class CSoundOpvarSetPrecipitationEntity extends CSoundOpvarSetPointBase {}
+export interface CSoundOpvarSetPrecipitationEntity extends Fields<typeof fieldsCSoundOpvarSetPrecipitationEntity>, Inputs<typeof inputsCSoundOpvarSetPrecipitationEntity> {}
+define(CSoundOpvarSetPrecipitationEntity, 'CSoundOpvarSetPrecipitationEntity', fieldsCSoundOpvarSetPrecipitationEntity, inputsCSoundOpvarSetPrecipitationEntity)
 
 export class CSoundOpvarSetPrecipitationOBBEntity extends CSoundOpvarSetPrecipitationEntity {}
 define(CSoundOpvarSetPrecipitationOBBEntity, 'CSoundOpvarSetPrecipitationOBBEntity', {})
 
-export class CTeam extends CBaseEntity {}
-export interface CTeam {
-  m_iScore: number | undefined
-}
-define(CTeam, 'CTeam', {
+const fieldsCTeam = {
   m_iScore: 'int32',
-})
+} as const
+export class CTeam extends CBaseEntity {}
+export interface CTeam extends Fields<typeof fieldsCTeam> {}
+define(CTeam, 'CTeam', fieldsCTeam)
 
-export class CCitadelTeam extends CTeam {}
-export interface CCitadelTeam {
-  m_flBaseObjectiveHealth: number | undefined
-  m_vecBaseLocationX: number | undefined
-  m_vecBaseLocationY: number | undefined
-  m_bHasValidBaseLocation: boolean | undefined
-  m_nBossesAlive: number | undefined
-  m_nBossesMax: number | undefined
-  m_nFlexSlotsUnlocked: number | undefined
-  m_nBaseGuardianLanesCleared: number | undefined
-  m_nStreetBrawlScore: number | undefined
-  m_nStreetBrawlScoreLastRound: number | undefined
-}
-define(CCitadelTeam, 'CCitadelTeam', {
+const fieldsCCitadelTeam = {
   m_flBaseObjectiveHealth: 'float32',
   m_vecBaseLocationX: 'int32',
   m_vecBaseLocationY: 'int32',
@@ -16495,54 +11572,102 @@ define(CCitadelTeam, 'CCitadelTeam', {
   m_nBaseGuardianLanesCleared: 'int32',
   m_nStreetBrawlScore: 'int32',
   m_nStreetBrawlScoreLastRound: 'int32',
-})
+} as const
+export class CCitadelTeam extends CTeam {}
+export interface CCitadelTeam extends Fields<typeof fieldsCCitadelTeam> {}
+define(CCitadelTeam, 'CCitadelTeam', fieldsCCitadelTeam)
 
-export class CTestEffect extends CBaseEntity {}
-export interface CTestEffect {
-  m_iLoop: number | undefined
-  m_iBeam: number | undefined
-  m_flStartTime: number | undefined
-}
-define(CTestEffect, 'CTestEffect', {
+const fieldsCTestEffect = {
   m_iLoop: 'int32',
   m_iBeam: 'int32',
   m_flStartTime: 'float32',
-})
+} as const
+export class CTestEffect extends CBaseEntity {}
+export interface CTestEffect extends Fields<typeof fieldsCTestEffect> {}
+define(CTestEffect, 'CTestEffect', fieldsCTestEffect)
 
-export class CTonemapController2 extends CBaseEntity {}
-export interface CTonemapController2 {
-  m_flAutoExposureMin: number | undefined
-  m_flAutoExposureMax: number | undefined
-  m_flExposureAdaptationSpeedUp: number | undefined
-  m_flExposureAdaptationSpeedDown: number | undefined
-  m_flTonemapEVSmoothingRange: number | undefined
-  inputDisable(): boolean
-  inputEnable(): boolean
-  inputSetExposureAdaptationSpeedDown(value: number): boolean
-  inputSetExposureAdaptationSpeedUp(value: number): boolean
-  inputSetMaxExposure(value: number): boolean
-  inputSetMinExposure(value: number): boolean
-}
-define(CTonemapController2, 'CTonemapController2', {
+const fieldsCTonemapController2 = {
   m_flAutoExposureMin: 'float32',
   m_flAutoExposureMax: 'float32',
   m_flExposureAdaptationSpeedUp: 'float32',
   m_flExposureAdaptationSpeedDown: 'float32',
   m_flTonemapEVSmoothingRange: 'float32',
-}, {
+} as const
+const inputsCTonemapController2 = {
   Disable: '',
   Enable: '',
   SetExposureAdaptationSpeedDown: 'number',
   SetExposureAdaptationSpeedUp: 'number',
   SetMaxExposure: 'number',
   SetMinExposure: 'number',
-})
+} as const
+export class CTonemapController2 extends CBaseEntity {}
+export interface CTonemapController2 extends Fields<typeof fieldsCTonemapController2>, Inputs<typeof inputsCTonemapController2> {}
+define(CTonemapController2, 'CTonemapController2', fieldsCTonemapController2, inputsCTonemapController2)
 
 export class CTonemapController2Alias_env_tonemap_controller2 extends CTonemapController2 {}
 define(CTonemapController2Alias_env_tonemap_controller2, 'CTonemapController2Alias_env_tonemap_controller2', {})
 
 export class C_HeroPreview extends CBaseEntity {}
 define(C_HeroPreview, 'C_HeroPreview', {})
+
+/** Targets maps each class a handle field names to its instances. */
+interface Targets {
+  CAI_BaseNPC: CAI_BaseNPC
+  CBaseAnimGraph: CBaseAnimGraph
+  CBaseEntity: CBaseEntity
+  CBaseFilter: CBaseFilter
+  CBaseModelEntity: CBaseModelEntity
+  CBasePlayerController: CBasePlayerController
+  CBasePlayerPawn: CBasePlayerPawn
+  CBasePropDoor: CBasePropDoor
+  CCitadelBaseAbility: CCitadelBaseAbility
+  CCitadelBotTestNode: CCitadelBotTestNode
+  CCitadelBulletTimeWarp: CCitadelBulletTimeWarp
+  CCitadelHideoutPropBase: CCitadelHideoutPropBase
+  CCitadelPassthroughFakeWall: CCitadelPassthroughFakeWall
+  CCitadelPlayerPawn: CCitadelPlayerPawn
+  CCitadelPortalTrigger: CCitadelPortalTrigger
+  CCitadelProjectile: CCitadelProjectile
+  CCitadelTunnelNode: CCitadelTunnelNode
+  CCitadelViscousBall: CCitadelViscousBall
+  CCitadel_Ability_Dust_Storm: CCitadel_Ability_Dust_Storm
+  CCitadel_Ability_Spinning_Blade: CCitadel_Ability_Spinning_Blade
+  CCitadel_Ability_Thumper_4: CCitadel_Ability_Thumper_4
+  CCitadel_Ability_WreckingBall: CCitadel_Ability_WreckingBall
+  CCitadel_Ability_Yakuza_Shakedown: CCitadel_Ability_Yakuza_Shakedown
+  CCitadel_DoorwayPortal: CCitadel_DoorwayPortal
+  CCitadel_GuidedArrow_OwlModel: CCitadel_GuidedArrow_OwlModel
+  CCitadel_MagicianTurret: CCitadel_MagicianTurret
+  CEntityBlocker: CEntityBlocker
+  CEnvSoundscape: CEnvSoundscape
+  CEnvSoundscapeTriggerable: CEnvSoundscapeTriggerable
+  CFishPool: CFishPool
+  CFuncMover: CFuncMover
+  CFuncMoverRouter: CFuncMoverRouter
+  CFuncPlat: CFuncPlat
+  CFuncTrackTrain: CFuncTrackTrain
+  CInfoFan: CInfoFan
+  CInfoTrooperBossSpawn: CInfoTrooperBossSpawn
+  CInfoTrooperSpawn: CInfoTrooperSpawn
+  CItemGeneric: CItemGeneric
+  CItemGenericTriggerHelper: CItemGenericTriggerHelper
+  CMoverPathNode: CMoverPathNode
+  CNPCSpawnDestination: CNPCSpawnDestination
+  CNPC_Escort: CNPC_Escort
+  CPathKeyFrame: CPathKeyFrame
+  CPathMover: CPathMover
+  CPathMoverEntitySpawner: CPathMoverEntitySpawner
+  CPathSimple: CPathSimple
+  CPathTrack: CPathTrack
+  CPathWithDynamicNodes: CPathWithDynamicNodes
+  CPointModifierThinker: CPointModifierThinker
+  CPointPrefab: CPointPrefab
+  CSceneEntity: CSceneEntity
+  CScriptedSequence: CScriptedSequence
+  CSkyCamera: CSkyCamera
+  CSprite: CSprite
+}
 
 const tableCBaseEntity = {
   globalname: 'text',

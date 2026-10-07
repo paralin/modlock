@@ -2,8 +2,6 @@
 
 package entity
 
-import "github.com/paralin/modlock/mod"
-
 // CEntityInstance is the root of every entity class: one entity's handle.
 type CEntityInstance struct {
 	// Handle names the entity, as mod.Pawn.Entity does.
@@ -12,868 +10,868 @@ type CEntityInstance struct {
 
 type CBaseEntity CEntityInstance
 
-func (e CBaseEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CBaseEntity", name, typ}
+func (e CBaseEntity) field(name string) Field {
+	return Field{e.Handle, "CBaseEntity", name}
 }
 
 func (e CBaseEntity) ICurrentThinkContext() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentThinkContext", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentThinkContext")}
 }
 
 func (e CBaseEntity) NLastThinkTick() Number[int32] {
-	return Number[int32]{e.field("m_nLastThinkTick", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastThinkTick")}
 }
 
 func (e CBaseEntity) BDisabledContextThinks() Bool {
-	return Bool{e.field("m_bDisabledContextThinks", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabledContextThinks")}
 }
 
 func (e CBaseEntity) LastNetworkChange() Number[float32] {
-	return Number[float32]{e.field("m_lastNetworkChange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_lastNetworkChange")}
 }
 
 func (e CBaseEntity) IszResponseContext() Text {
-	return Text{e.field("m_iszResponseContext", mod.FieldTypeString)}
+	return Text{e.field("m_iszResponseContext")}
 }
 
 func (e CBaseEntity) IHealth() Number[int32] {
-	return Number[int32]{e.field("m_iHealth", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iHealth")}
 }
 
 func (e CBaseEntity) IMaxHealth() Number[int32] {
-	return Number[int32]{e.field("m_iMaxHealth", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iMaxHealth")}
 }
 
 func (e CBaseEntity) LifeState() Number[uint8] {
-	return Number[uint8]{e.field("m_lifeState", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_lifeState")}
 }
 
 func (e CBaseEntity) FlDamageAccumulator() Number[float32] {
-	return Number[float32]{e.field("m_flDamageAccumulator", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDamageAccumulator")}
 }
 
 func (e CBaseEntity) BTakesDamage() Bool {
-	return Bool{e.field("m_bTakesDamage", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTakesDamage")}
 }
 
 func (e CBaseEntity) NTakeDamageFlags() Number[uint64] {
-	return Number[uint64]{e.field("m_nTakeDamageFlags", mod.FieldTypeUint64)}
+	return Number[uint64]{e.field("m_nTakeDamageFlags")}
 }
 
 func (e CBaseEntity) NPlatformType() Number[uint8] {
-	return Number[uint8]{e.field("m_nPlatformType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nPlatformType")}
 }
 
 func (e CBaseEntity) MoveCollide() Number[uint8] {
-	return Number[uint8]{e.field("m_MoveCollide", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_MoveCollide")}
 }
 
 func (e CBaseEntity) MoveType() Number[uint8] {
-	return Number[uint8]{e.field("m_MoveType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_MoveType")}
 }
 
 func (e CBaseEntity) NPreviouslySetMoveType() Number[uint8] {
-	return Number[uint8]{e.field("m_nPreviouslySetMoveType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nPreviouslySetMoveType")}
 }
 
 func (e CBaseEntity) NActualMoveType() Number[uint8] {
-	return Number[uint8]{e.field("m_nActualMoveType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nActualMoveType")}
 }
 
 func (e CBaseEntity) NWaterTouch() Number[uint8] {
-	return Number[uint8]{e.field("m_nWaterTouch", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nWaterTouch")}
 }
 
 func (e CBaseEntity) NSlimeTouch() Number[uint8] {
-	return Number[uint8]{e.field("m_nSlimeTouch", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nSlimeTouch")}
 }
 
 func (e CBaseEntity) BRestoreInHierarchy() Bool {
-	return Bool{e.field("m_bRestoreInHierarchy", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRestoreInHierarchy")}
 }
 
 func (e CBaseEntity) Target() Text {
-	return Text{e.field("m_target", mod.FieldTypeString)}
+	return Text{e.field("m_target")}
 }
 
 func (e CBaseEntity) HDamageFilter() Handle[CBaseFilter] {
-	return Handle[CBaseFilter]{e.field("m_hDamageFilter", mod.FieldTypeHandle)}
+	return Handle[CBaseFilter]{e.field("m_hDamageFilter")}
 }
 
 func (e CBaseEntity) IszDamageFilterName() Text {
-	return Text{e.field("m_iszDamageFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_iszDamageFilterName")}
 }
 
 func (e CBaseEntity) FlMoveDoneTime() Number[float32] {
-	return Number[float32]{e.field("m_flMoveDoneTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMoveDoneTime")}
 }
 
 func (e CBaseEntity) HNPCSensingHandle() Number[uint32] {
-	return Number[uint32]{e.field("m_hNPCSensingHandle", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_hNPCSensingHandle")}
 }
 
 func (e CBaseEntity) FlAnimTime() Number[float32] {
-	return Number[float32]{e.field("m_flAnimTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAnimTime")}
 }
 
 func (e CBaseEntity) FlSimulationTime() Number[float32] {
-	return Number[float32]{e.field("m_flSimulationTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSimulationTime")}
 }
 
 func (e CBaseEntity) FlCreateTime() Number[float32] {
-	return Number[float32]{e.field("m_flCreateTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCreateTime")}
 }
 
 func (e CBaseEntity) BClientSideRagdoll() Bool {
-	return Bool{e.field("m_bClientSideRagdoll", mod.FieldTypeBool)}
+	return Bool{e.field("m_bClientSideRagdoll")}
 }
 
 func (e CBaseEntity) UbInterpolationFrame() Number[uint8] {
-	return Number[uint8]{e.field("m_ubInterpolationFrame", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_ubInterpolationFrame")}
 }
 
 func (e CBaseEntity) VPrevVPhysicsUpdatePos() Vector {
-	return Vector{e.field("m_vPrevVPhysicsUpdatePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPrevVPhysicsUpdatePos")}
 }
 
 func (e CBaseEntity) ITeamNum() Number[uint8] {
-	return Number[uint8]{e.field("m_iTeamNum", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_iTeamNum")}
 }
 
 func (e CBaseEntity) IGlobalname() Text {
-	return Text{e.field("m_iGlobalname", mod.FieldTypeString)}
+	return Text{e.field("m_iGlobalname")}
 }
 
 func (e CBaseEntity) ISentToClients() Number[int32] {
-	return Number[int32]{e.field("m_iSentToClients", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iSentToClients")}
 }
 
 func (e CBaseEntity) SUniqueHammerID() Text {
-	return Text{e.field("m_sUniqueHammerID", mod.FieldTypeString)}
+	return Text{e.field("m_sUniqueHammerID")}
 }
 
 func (e CBaseEntity) Spawnflags() Number[uint32] {
-	return Number[uint32]{e.field("m_spawnflags", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_spawnflags")}
 }
 
 func (e CBaseEntity) NNextThinkTick() Number[int32] {
-	return Number[int32]{e.field("m_nNextThinkTick", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNextThinkTick")}
 }
 
 func (e CBaseEntity) NSimulationTick() Number[int32] {
-	return Number[int32]{e.field("m_nSimulationTick", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSimulationTick")}
 }
 
 func (e CBaseEntity) FFlags() Number[uint32] {
-	return Number[uint32]{e.field("m_fFlags", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fFlags")}
 }
 
 func (e CBaseEntity) VecAbsVelocity() Vector {
-	return Vector{e.field("m_vecAbsVelocity", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAbsVelocity")}
 }
 
 func (e CBaseEntity) NPushEnumCount() Number[int32] {
-	return Number[int32]{e.field("m_nPushEnumCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPushEnumCount")}
 }
 
 func (e CBaseEntity) HEffectEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hEffectEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hEffectEntity")}
 }
 
 func (e CBaseEntity) HOwnerEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hOwnerEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hOwnerEntity")}
 }
 
 func (e CBaseEntity) FEffects() Number[uint32] {
-	return Number[uint32]{e.field("m_fEffects", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fEffects")}
 }
 
 func (e CBaseEntity) HGroundEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hGroundEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hGroundEntity")}
 }
 
 func (e CBaseEntity) NGroundBodyIndex() Number[int32] {
-	return Number[int32]{e.field("m_nGroundBodyIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGroundBodyIndex")}
 }
 
 func (e CBaseEntity) FlFriction() Number[float32] {
-	return Number[float32]{e.field("m_flFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFriction")}
 }
 
 func (e CBaseEntity) FlElasticity() Number[float32] {
-	return Number[float32]{e.field("m_flElasticity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flElasticity")}
 }
 
 func (e CBaseEntity) FlGravityScale() Number[float32] {
-	return Number[float32]{e.field("m_flGravityScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGravityScale")}
 }
 
 func (e CBaseEntity) FlTimeScale() Number[float32] {
-	return Number[float32]{e.field("m_flTimeScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeScale")}
 }
 
 func (e CBaseEntity) FlWaterLevel() Number[float32] {
-	return Number[float32]{e.field("m_flWaterLevel", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWaterLevel")}
 }
 
 func (e CBaseEntity) BGravityDisabled() Bool {
-	return Bool{e.field("m_bGravityDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bGravityDisabled")}
 }
 
 func (e CBaseEntity) BAnimatedEveryTick() Bool {
-	return Bool{e.field("m_bAnimatedEveryTick", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAnimatedEveryTick")}
 }
 
 func (e CBaseEntity) FlActualGravityScale() Number[float32] {
-	return Number[float32]{e.field("m_flActualGravityScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flActualGravityScale")}
 }
 
 func (e CBaseEntity) BGravityActuallyDisabled() Bool {
-	return Bool{e.field("m_bGravityActuallyDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bGravityActuallyDisabled")}
 }
 
 func (e CBaseEntity) BDisableLowViolence() Bool {
-	return Bool{e.field("m_bDisableLowViolence", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisableLowViolence")}
 }
 
 func (e CBaseEntity) NWaterType() Number[uint8] {
-	return Number[uint8]{e.field("m_nWaterType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nWaterType")}
 }
 
 func (e CBaseEntity) IEFlags() Number[int32] {
-	return Number[int32]{e.field("m_iEFlags", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iEFlags")}
 }
 
 func (e CBaseEntity) IInitialTeamNum() Number[int32] {
-	return Number[int32]{e.field("m_iInitialTeamNum", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iInitialTeamNum")}
 }
 
 func (e CBaseEntity) FlNavIgnoreUntilTime() Number[float32] {
-	return Number[float32]{e.field("m_flNavIgnoreUntilTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNavIgnoreUntilTime")}
 }
 
 func (e CBaseEntity) VecAngVelocity() Angles {
-	return Angles{e.field("m_vecAngVelocity", mod.FieldTypeVector)}
+	return Angles{e.field("m_vecAngVelocity")}
 }
 
 func (e CBaseEntity) BNetworkQuantizeOriginAndAngles() Bool {
-	return Bool{e.field("m_bNetworkQuantizeOriginAndAngles", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNetworkQuantizeOriginAndAngles")}
 }
 
 func (e CBaseEntity) BLagCompensate() Bool {
-	return Bool{e.field("m_bLagCompensate", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLagCompensate")}
 }
 
 func (e CBaseEntity) PBlocker() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_pBlocker", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_pBlocker")}
 }
 
 func (e CBaseEntity) FlLocalTime() Number[float32] {
-	return Number[float32]{e.field("m_flLocalTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLocalTime")}
 }
 
 func (e CBaseEntity) FlVPhysicsUpdateLocalTime() Number[float32] {
-	return Number[float32]{e.field("m_flVPhysicsUpdateLocalTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flVPhysicsUpdateLocalTime")}
 }
 
 type CAI_ChangeHintGroup CEntityInstance
 
-func (e CAI_ChangeHintGroup) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_ChangeHintGroup", name, typ}
+func (e CAI_ChangeHintGroup) field(name string) Field {
+	return Field{e.Handle, "CAI_ChangeHintGroup", name}
 }
 
 func (e CAI_ChangeHintGroup) ISearchType() Number[int32] {
-	return Number[int32]{e.field("m_iSearchType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iSearchType")}
 }
 
 func (e CAI_ChangeHintGroup) StrSearchName() Text {
-	return Text{e.field("m_strSearchName", mod.FieldTypeString)}
+	return Text{e.field("m_strSearchName")}
 }
 
 func (e CAI_ChangeHintGroup) StrNewHintGroup() Text {
-	return Text{e.field("m_strNewHintGroup", mod.FieldTypeString)}
+	return Text{e.field("m_strNewHintGroup")}
 }
 
 func (e CAI_ChangeHintGroup) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 type CAI_GoalEntity CEntityInstance
 
-func (e CAI_GoalEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_GoalEntity", name, typ}
+func (e CAI_GoalEntity) field(name string) Field {
+	return Field{e.Handle, "CAI_GoalEntity", name}
 }
 
 func (e CAI_GoalEntity) IszActor() Text {
-	return Text{e.field("m_iszActor", mod.FieldTypeString)}
+	return Text{e.field("m_iszActor")}
 }
 
 func (e CAI_GoalEntity) IszGoal() Text {
-	return Text{e.field("m_iszGoal", mod.FieldTypeString)}
+	return Text{e.field("m_iszGoal")}
 }
 
 func (e CAI_GoalEntity) FStartActive() Bool {
-	return Bool{e.field("m_fStartActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_fStartActive")}
 }
 
 func (e CAI_GoalEntity) SearchType() Number[uint32] {
-	return Number[uint32]{e.field("m_SearchType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_SearchType")}
 }
 
 func (e CAI_GoalEntity) IszConceptModifiers() Text {
-	return Text{e.field("m_iszConceptModifiers", mod.FieldTypeString)}
+	return Text{e.field("m_iszConceptModifiers")}
 }
 
 func (e CAI_GoalEntity) HGoalEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hGoalEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hGoalEntity")}
 }
 
 func (e CAI_GoalEntity) Flags() Number[uint32] {
-	return Number[uint32]{e.field("m_flags", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_flags")}
 }
 
 type CAI_Relationship CEntityInstance
 
-func (e CAI_Relationship) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_Relationship", name, typ}
+func (e CAI_Relationship) field(name string) Field {
+	return Field{e.Handle, "CAI_Relationship", name}
 }
 
 func (e CAI_Relationship) IszSubject() Text {
-	return Text{e.field("m_iszSubject", mod.FieldTypeString)}
+	return Text{e.field("m_iszSubject")}
 }
 
 func (e CAI_Relationship) IszSubjectClass() Text {
-	return Text{e.field("m_iszSubjectClass", mod.FieldTypeString)}
+	return Text{e.field("m_iszSubjectClass")}
 }
 
 func (e CAI_Relationship) NSubjectClassifyAs() Number[uint32] {
-	return Number[uint32]{e.field("m_nSubjectClassifyAs", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nSubjectClassifyAs")}
 }
 
 func (e CAI_Relationship) IszTargetClass() Text {
-	return Text{e.field("m_iszTargetClass", mod.FieldTypeString)}
+	return Text{e.field("m_iszTargetClass")}
 }
 
 func (e CAI_Relationship) NTargetClassifyAs() Number[uint32] {
-	return Number[uint32]{e.field("m_nTargetClassifyAs", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nTargetClassifyAs")}
 }
 
 func (e CAI_Relationship) IDisposition() Number[int32] {
-	return Number[int32]{e.field("m_iDisposition", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iDisposition")}
 }
 
 func (e CAI_Relationship) IRank() Number[int32] {
-	return Number[int32]{e.field("m_iRank", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iRank")}
 }
 
 func (e CAI_Relationship) FStartActive() Bool {
-	return Bool{e.field("m_fStartActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_fStartActive")}
 }
 
 func (e CAI_Relationship) BIsActive() Bool {
-	return Bool{e.field("m_bIsActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsActive")}
 }
 
 func (e CAI_Relationship) IPreviousDisposition() Number[int32] {
-	return Number[int32]{e.field("m_iPreviousDisposition", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPreviousDisposition")}
 }
 
 func (e CAI_Relationship) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CAI_Relationship) IPreviousRank() Number[int32] {
-	return Number[int32]{e.field("m_iPreviousRank", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPreviousRank")}
 }
 
 func (e CAI_Relationship) BReciprocal() Bool {
-	return Bool{e.field("m_bReciprocal", mod.FieldTypeBool)}
+	return Bool{e.field("m_bReciprocal")}
 }
 
 type CAI_ScriptConditions CEntityInstance
 
-func (e CAI_ScriptConditions) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_ScriptConditions", name, typ}
+func (e CAI_ScriptConditions) field(name string) Field {
+	return Field{e.Handle, "CAI_ScriptConditions", name}
 }
 
 func (e CAI_ScriptConditions) FDisabled() Bool {
-	return Bool{e.field("m_fDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_fDisabled")}
 }
 
 func (e CAI_ScriptConditions) BLeaveAsleep() Bool {
-	return Bool{e.field("m_bLeaveAsleep", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLeaveAsleep")}
 }
 
 func (e CAI_ScriptConditions) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CAI_ScriptConditions) FlRequiredDuration() Number[float32] {
-	return Number[float32]{e.field("m_flRequiredDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRequiredDuration")}
 }
 
 func (e CAI_ScriptConditions) FMinState() Number[uint32] {
-	return Number[uint32]{e.field("m_fMinState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fMinState")}
 }
 
 func (e CAI_ScriptConditions) FMaxState() Number[uint32] {
-	return Number[uint32]{e.field("m_fMaxState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fMaxState")}
 }
 
 func (e CAI_ScriptConditions) FScriptStatus() Number[uint32] {
-	return Number[uint32]{e.field("m_fScriptStatus", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fScriptStatus")}
 }
 
 func (e CAI_ScriptConditions) FActorSeePlayer() Number[uint32] {
-	return Number[uint32]{e.field("m_fActorSeePlayer", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fActorSeePlayer")}
 }
 
 func (e CAI_ScriptConditions) Actor() Text {
-	return Text{e.field("m_Actor", mod.FieldTypeString)}
+	return Text{e.field("m_Actor")}
 }
 
 func (e CAI_ScriptConditions) FlPlayerActorProximity() Number[float32] {
-	return Number[float32]{e.field("m_flPlayerActorProximity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlayerActorProximity")}
 }
 
 func (e CAI_ScriptConditions) FlPlayerActorFOV() Number[float32] {
-	return Number[float32]{e.field("m_flPlayerActorFOV", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlayerActorFOV")}
 }
 
 func (e CAI_ScriptConditions) BPlayerActorFOVTrueCone() Bool {
-	return Bool{e.field("m_bPlayerActorFOVTrueCone", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPlayerActorFOVTrueCone")}
 }
 
 func (e CAI_ScriptConditions) FPlayerActorLOS() Number[uint32] {
-	return Number[uint32]{e.field("m_fPlayerActorLOS", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fPlayerActorLOS")}
 }
 
 func (e CAI_ScriptConditions) FActorSeeTarget() Number[uint32] {
-	return Number[uint32]{e.field("m_fActorSeeTarget", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fActorSeeTarget")}
 }
 
 func (e CAI_ScriptConditions) FlActorTargetProximity() Number[float32] {
-	return Number[float32]{e.field("m_flActorTargetProximity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flActorTargetProximity")}
 }
 
 func (e CAI_ScriptConditions) FlPlayerTargetProximity() Number[float32] {
-	return Number[float32]{e.field("m_flPlayerTargetProximity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlayerTargetProximity")}
 }
 
 func (e CAI_ScriptConditions) FlPlayerTargetFOV() Number[float32] {
-	return Number[float32]{e.field("m_flPlayerTargetFOV", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlayerTargetFOV")}
 }
 
 func (e CAI_ScriptConditions) BPlayerTargetFOVTrueCone() Bool {
-	return Bool{e.field("m_bPlayerTargetFOVTrueCone", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPlayerTargetFOVTrueCone")}
 }
 
 func (e CAI_ScriptConditions) FPlayerTargetLOS() Number[uint32] {
-	return Number[uint32]{e.field("m_fPlayerTargetLOS", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fPlayerTargetLOS")}
 }
 
 func (e CAI_ScriptConditions) FPlayerBlockingActor() Number[uint32] {
-	return Number[uint32]{e.field("m_fPlayerBlockingActor", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fPlayerBlockingActor")}
 }
 
 func (e CAI_ScriptConditions) FActorInPVS() Number[uint32] {
-	return Number[uint32]{e.field("m_fActorInPVS", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fActorInPVS")}
 }
 
 func (e CAI_ScriptConditions) FlMinTimeout() Number[float32] {
-	return Number[float32]{e.field("m_flMinTimeout", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMinTimeout")}
 }
 
 func (e CAI_ScriptConditions) FlMaxTimeout() Number[float32] {
-	return Number[float32]{e.field("m_flMaxTimeout", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxTimeout")}
 }
 
 func (e CAI_ScriptConditions) FActorInVehicle() Number[uint32] {
-	return Number[uint32]{e.field("m_fActorInVehicle", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fActorInVehicle")}
 }
 
 func (e CAI_ScriptConditions) FPlayerInVehicle() Number[uint32] {
-	return Number[uint32]{e.field("m_fPlayerInVehicle", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_fPlayerInVehicle")}
 }
 
 type CAI_SpeechFilter CEntityInstance
 
-func (e CAI_SpeechFilter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_SpeechFilter", name, typ}
+func (e CAI_SpeechFilter) field(name string) Field {
+	return Field{e.Handle, "CAI_SpeechFilter", name}
 }
 
 func (e CAI_SpeechFilter) IszSubject() Text {
-	return Text{e.field("m_iszSubject", mod.FieldTypeString)}
+	return Text{e.field("m_iszSubject")}
 }
 
 func (e CAI_SpeechFilter) FlIdleModifier() Number[float32] {
-	return Number[float32]{e.field("m_flIdleModifier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flIdleModifier")}
 }
 
 func (e CAI_SpeechFilter) BNeverSayHello() Bool {
-	return Bool{e.field("m_bNeverSayHello", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNeverSayHello")}
 }
 
 func (e CAI_SpeechFilter) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 type CBaseNPCMaker CEntityInstance
 
-func (e CBaseNPCMaker) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CBaseNPCMaker", name, typ}
+func (e CBaseNPCMaker) field(name string) Field {
+	return Field{e.Handle, "CBaseNPCMaker", name}
 }
 
 func (e CBaseNPCMaker) NMaxNumNPCs() Number[int32] {
-	return Number[int32]{e.field("m_nMaxNumNPCs", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxNumNPCs")}
 }
 
 func (e CBaseNPCMaker) FlSpawnFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flSpawnFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpawnFrequency")}
 }
 
 func (e CBaseNPCMaker) FlRetryFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flRetryFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRetryFrequency")}
 }
 
 func (e CBaseNPCMaker) NHullCheckMode() Number[int32] {
-	return Number[int32]{e.field("m_nHullCheckMode", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nHullCheckMode")}
 }
 
 func (e CBaseNPCMaker) NLiveChildren() Number[int32] {
-	return Number[int32]{e.field("m_nLiveChildren", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLiveChildren")}
 }
 
 func (e CBaseNPCMaker) NMaxLiveChildren() Number[int32] {
-	return Number[int32]{e.field("m_nMaxLiveChildren", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxLiveChildren")}
 }
 
 func (e CBaseNPCMaker) NMinSpawnDistance() Number[int32] {
-	return Number[int32]{e.field("m_nMinSpawnDistance", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinSpawnDistance")}
 }
 
 func (e CBaseNPCMaker) NSpawnThreshold() Number[int32] {
-	return Number[int32]{e.field("m_nSpawnThreshold", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSpawnThreshold")}
 }
 
 func (e CBaseNPCMaker) NBatchCount() Number[int32] {
-	return Number[int32]{e.field("m_nBatchCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBatchCount")}
 }
 
 func (e CBaseNPCMaker) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CBaseNPCMaker) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CBaseNPCMaker) BSpawning() Bool {
-	return Bool{e.field("m_bSpawning", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSpawning")}
 }
 
 func (e CBaseNPCMaker) BZeroPitchAndRoll() Bool {
-	return Bool{e.field("m_bZeroPitchAndRoll", mod.FieldTypeBool)}
+	return Bool{e.field("m_bZeroPitchAndRoll")}
 }
 
 func (e CBaseNPCMaker) HIgnoreEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hIgnoreEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hIgnoreEntity")}
 }
 
 func (e CBaseNPCMaker) IszIgnoreEnt() Text {
-	return Text{e.field("m_iszIgnoreEnt", mod.FieldTypeString)}
+	return Text{e.field("m_iszIgnoreEnt")}
 }
 
 func (e CBaseNPCMaker) IszDestinationGroup() Text {
-	return Text{e.field("m_iszDestinationGroup", mod.FieldTypeString)}
+	return Text{e.field("m_iszDestinationGroup")}
 }
 
 func (e CBaseNPCMaker) HSpawnEntity() Handle[CNPCSpawnDestination] {
-	return Handle[CNPCSpawnDestination]{e.field("m_hSpawnEntity", mod.FieldTypeHandle)}
+	return Handle[CNPCSpawnDestination]{e.field("m_hSpawnEntity")}
 }
 
 func (e CBaseNPCMaker) HSpawnedNPC() Handle[CAI_BaseNPC] {
-	return Handle[CAI_BaseNPC]{e.field("m_hSpawnedNPC", mod.FieldTypeHandle)}
+	return Handle[CAI_BaseNPC]{e.field("m_hSpawnedNPC")}
 }
 
 func (e CBaseNPCMaker) NCurrentBatchCount() Number[int32] {
-	return Number[int32]{e.field("m_nCurrentBatchCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCurrentBatchCount")}
 }
 
 func (e CBaseNPCMaker) CriterionVisibility() Number[uint32] {
-	return Number[uint32]{e.field("m_CriterionVisibility", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_CriterionVisibility")}
 }
 
 func (e CBaseNPCMaker) CriterionDistance() Number[uint32] {
-	return Number[uint32]{e.field("m_CriterionDistance", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_CriterionDistance")}
 }
 
 type CNPCMaker CEntityInstance
 
-func (e CNPCMaker) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CNPCMaker", name, typ}
+func (e CNPCMaker) field(name string) Field {
+	return Field{e.Handle, "CNPCMaker", name}
 }
 
 func (e CNPCMaker) IszNPCSubClass() Text {
-	return Text{e.field("m_iszNPCSubClass", mod.FieldTypeString)}
+	return Text{e.field("m_iszNPCSubClass")}
 }
 
 func (e CNPCMaker) IszSquadName() Text {
-	return Text{e.field("m_iszSquadName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSquadName")}
 }
 
 func (e CNPCMaker) IszHintGroup() Text {
-	return Text{e.field("m_iszHintGroup", mod.FieldTypeString)}
+	return Text{e.field("m_iszHintGroup")}
 }
 
 func (e CNPCMaker) RelationshipString() Text {
-	return Text{e.field("m_RelationshipString", mod.FieldTypeString)}
+	return Text{e.field("m_RelationshipString")}
 }
 
 func (e CNPCMaker) ChildTargetName() Text {
-	return Text{e.field("m_ChildTargetName", mod.FieldTypeString)}
+	return Text{e.field("m_ChildTargetName")}
 }
 
 type CTemplateNPCMaker CEntityInstance
 
-func (e CTemplateNPCMaker) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTemplateNPCMaker", name, typ}
+func (e CTemplateNPCMaker) field(name string) Field {
+	return Field{e.Handle, "CTemplateNPCMaker", name}
 }
 
 func (e CTemplateNPCMaker) IszWorldName() Text {
-	return Text{e.field("m_iszWorldName", mod.FieldTypeString)}
+	return Text{e.field("m_iszWorldName")}
 }
 
 func (e CTemplateNPCMaker) IszSource2EntityLumpName() Text {
-	return Text{e.field("m_iszSource2EntityLumpName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSource2EntityLumpName")}
 }
 
 type CBasePlayerController CEntityInstance
 
-func (e CBasePlayerController) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CBasePlayerController", name, typ}
+func (e CBasePlayerController) field(name string) Field {
+	return Field{e.Handle, "CBasePlayerController", name}
 }
 
 func (e CBasePlayerController) NInButtonsWhichAreToggles() Number[uint64] {
-	return Number[uint64]{e.field("m_nInButtonsWhichAreToggles", mod.FieldTypeUint64)}
+	return Number[uint64]{e.field("m_nInButtonsWhichAreToggles")}
 }
 
 func (e CBasePlayerController) NTickBase() Number[uint32] {
-	return Number[uint32]{e.field("m_nTickBase", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nTickBase")}
 }
 
 func (e CBasePlayerController) HPawn() Handle[CBasePlayerPawn] {
-	return Handle[CBasePlayerPawn]{e.field("m_hPawn", mod.FieldTypeHandle)}
+	return Handle[CBasePlayerPawn]{e.field("m_hPawn")}
 }
 
 func (e CBasePlayerController) BKnownTeamMismatch() Bool {
-	return Bool{e.field("m_bKnownTeamMismatch", mod.FieldTypeBool)}
+	return Bool{e.field("m_bKnownTeamMismatch")}
 }
 
 func (e CBasePlayerController) HSplitOwner() Handle[CBasePlayerController] {
-	return Handle[CBasePlayerController]{e.field("m_hSplitOwner", mod.FieldTypeHandle)}
+	return Handle[CBasePlayerController]{e.field("m_hSplitOwner")}
 }
 
 func (e CBasePlayerController) BIsHLTV() Bool {
-	return Bool{e.field("m_bIsHLTV", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsHLTV")}
 }
 
 func (e CBasePlayerController) IConnected() Number[uint32] {
-	return Number[uint32]{e.field("m_iConnected", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_iConnected")}
 }
 
 func (e CBasePlayerController) IMostConnected() Number[uint32] {
-	return Number[uint32]{e.field("m_iMostConnected", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_iMostConnected")}
 }
 
 func (e CBasePlayerController) SzNetworkIDString() Text {
-	return Text{e.field("m_szNetworkIDString", mod.FieldTypeString)}
+	return Text{e.field("m_szNetworkIDString")}
 }
 
 func (e CBasePlayerController) FLerpTime() Number[float32] {
-	return Number[float32]{e.field("m_fLerpTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fLerpTime")}
 }
 
 func (e CBasePlayerController) BLagCompensation() Bool {
-	return Bool{e.field("m_bLagCompensation", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLagCompensation")}
 }
 
 func (e CBasePlayerController) BPredict() Bool {
-	return Bool{e.field("m_bPredict", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPredict")}
 }
 
 func (e CBasePlayerController) BIsLowViolence() Bool {
-	return Bool{e.field("m_bIsLowViolence", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsLowViolence")}
 }
 
 func (e CBasePlayerController) BGamePaused() Bool {
-	return Bool{e.field("m_bGamePaused", mod.FieldTypeBool)}
+	return Bool{e.field("m_bGamePaused")}
 }
 
 func (e CBasePlayerController) IIgnoreGlobalChat() Number[uint32] {
-	return Number[uint32]{e.field("m_iIgnoreGlobalChat", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_iIgnoreGlobalChat")}
 }
 
 func (e CBasePlayerController) FlLastPlayerTalkTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastPlayerTalkTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastPlayerTalkTime")}
 }
 
 func (e CBasePlayerController) FlLastEntitySteadyState() Number[float32] {
-	return Number[float32]{e.field("m_flLastEntitySteadyState", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastEntitySteadyState")}
 }
 
 func (e CBasePlayerController) NAvailableEntitySteadyState() Number[int32] {
-	return Number[int32]{e.field("m_nAvailableEntitySteadyState", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nAvailableEntitySteadyState")}
 }
 
 func (e CBasePlayerController) BHasAnySteadyStateEnts() Bool {
-	return Bool{e.field("m_bHasAnySteadyStateEnts", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasAnySteadyStateEnts")}
 }
 
 func (e CBasePlayerController) SteamID() Number[uint64] {
-	return Number[uint64]{e.field("m_steamID", mod.FieldTypeUint64)}
+	return Number[uint64]{e.field("m_steamID")}
 }
 
 func (e CBasePlayerController) BNoClipEnabled() Bool {
-	return Bool{e.field("m_bNoClipEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNoClipEnabled")}
 }
 
 func (e CBasePlayerController) IDesiredFOV() Number[uint32] {
-	return Number[uint32]{e.field("m_iDesiredFOV", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_iDesiredFOV")}
 }
 
 type CCitadelPlayerController CEntityInstance
 
-func (e CCitadelPlayerController) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelPlayerController", name, typ}
+func (e CCitadelPlayerController) field(name string) Field {
+	return Field{e.Handle, "CCitadelPlayerController", name}
 }
 
 func (e CCitadelPlayerController) EPlayState() Number[uint32] {
-	return Number[uint32]{e.field("m_ePlayState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_ePlayState")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchLastHits() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchLastHits", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchLastHits")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchOrbsSecured() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchOrbsSecured", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchOrbsSecured")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchOrbsDenied() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchOrbsDenied", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchOrbsDenied")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchDamageToGuardians() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchDamageToGuardians", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchDamageToGuardians")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchDamageToPlayers() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchDamageToPlayers", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchDamageToPlayers")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchDamageTaken() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchDamageTaken", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchDamageTaken")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchNetWorth() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchNetWorth", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchNetWorth")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchModsPurchased() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchModsPurchased", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchModsPurchased")}
 }
 
 func (e CCitadelPlayerController) IGuidedBotMatchAbilityUpgrades() Number[int32] {
-	return Number[int32]{e.field("m_iGuidedBotMatchAbilityUpgrades", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iGuidedBotMatchAbilityUpgrades")}
 }
 
 func (e CCitadelPlayerController) FlGuideBotMatchLastTaskNagVO() Number[float32] {
-	return Number[float32]{e.field("m_flGuideBotMatchLastTaskNagVO", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGuideBotMatchLastTaskNagVO")}
 }
 
 func (e CCitadelPlayerController) FlGuideBotLastTimeTaskCompleted() Number[float32] {
-	return Number[float32]{e.field("m_flGuideBotLastTimeTaskCompleted", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flGuideBotLastTimeTaskCompleted")}
 }
 
 func (e CCitadelPlayerController) EGuidedBotMatchObjective() Number[uint32] {
-	return Number[uint32]{e.field("m_eGuidedBotMatchObjective", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eGuidedBotMatchObjective")}
 }
 
 func (e CCitadelPlayerController) NCurrentRank() Number[int32] {
-	return Number[int32]{e.field("m_nCurrentRank", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCurrentRank")}
 }
 
 func (e CCitadelPlayerController) NAssignedLane() Number[int8] {
-	return Number[int8]{e.field("m_nAssignedLane", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nAssignedLane")}
 }
 
 func (e CCitadelPlayerController) NOriginalLaneAssignment() Number[int8] {
-	return Number[int8]{e.field("m_nOriginalLaneAssignment", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nOriginalLaneAssignment")}
 }
 
 func (e CCitadelPlayerController) BBotDisconnectTakeover() Bool {
-	return Bool{e.field("m_bBotDisconnectTakeover", mod.FieldTypeBool)}
+	return Bool{e.field("m_bBotDisconnectTakeover")}
 }
 
 func (e CCitadelPlayerController) BInTeamChat() Bool {
-	return Bool{e.field("m_bInTeamChat", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInTeamChat")}
 }
 
 func (e CCitadelPlayerController) BInPartyChat() Bool {
-	return Bool{e.field("m_bInPartyChat", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInPartyChat")}
 }
 
 func (e CCitadelPlayerController) BLaneSwapLocked() Bool {
-	return Bool{e.field("m_bLaneSwapLocked", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLaneSwapLocked")}
 }
 
 func (e CCitadelPlayerController) BCommsRestricted() Bool {
-	return Bool{e.field("m_bCommsRestricted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCommsRestricted")}
 }
 
 func (e CCitadelPlayerController) BPriorCommsAbuse() Bool {
-	return Bool{e.field("m_bPriorCommsAbuse", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPriorCommsAbuse")}
 }
 
 func (e CCitadelPlayerController) BIsNewPlayer() Bool {
-	return Bool{e.field("m_bIsNewPlayer", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsNewPlayer")}
 }
 
 func (e CCitadelPlayerController) UnEconAccountID() Number[uint32] {
-	return Number[uint32]{e.field("m_unEconAccountID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_unEconAccountID")}
 }
 
 func (e CCitadelPlayerController) HHeroPawn() Handle[CCitadelPlayerPawn] {
-	return Handle[CCitadelPlayerPawn]{e.field("m_hHeroPawn", mod.FieldTypeHandle)}
+	return Handle[CCitadelPlayerPawn]{e.field("m_hHeroPawn")}
 }
 
 func (e CCitadelPlayerController) NDeathReplayAvailable() Number[int8] {
-	return Number[int8]{e.field("m_nDeathReplayAvailable", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_nDeathReplayAvailable")}
 }
 
 func (e CCitadelPlayerController) UnLobbyPlayerSlot() Number[uint8] {
-	return Number[uint8]{e.field("m_unLobbyPlayerSlot", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_unLobbyPlayerSlot")}
 }
 
 func (e CCitadelPlayerController) FlLastCommsTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastCommsTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastCommsTime")}
 }
 
 func (e CCitadelPlayerController) FlNextAllowedCommsTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextAllowedCommsTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextAllowedCommsTime")}
 }
 
 func (e CCitadelPlayerController) FlLastFailedCommsTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastFailedCommsTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastFailedCommsTime")}
 }
 
 func (e CCitadelPlayerController) NTotalCommsAttempted() Number[int32] {
-	return Number[int32]{e.field("m_nTotalCommsAttempted", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTotalCommsAttempted")}
 }
 
 func (e CCitadelPlayerController) NGuideBotNumTasksComplete() Number[int32] {
-	return Number[int32]{e.field("m_nGuideBotNumTasksComplete", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nGuideBotNumTasksComplete")}
 }
 
 type CBaseTrackedStatsEntity CEntityInstance
@@ -882,50 +880,50 @@ type CMatchTrackedStatsEntity CEntityInstance
 
 type CPlayerTrackedStatsEntity CEntityInstance
 
-func (e CPlayerTrackedStatsEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPlayerTrackedStatsEntity", name, typ}
+func (e CPlayerTrackedStatsEntity) field(name string) Field {
+	return Field{e.Handle, "CPlayerTrackedStatsEntity", name}
 }
 
 func (e CPlayerTrackedStatsEntity) NTeam() Number[int32] {
-	return Number[int32]{e.field("m_nTeam", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTeam")}
 }
 
 type CTeamTrackedStatsEntity CEntityInstance
 
-func (e CTeamTrackedStatsEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTeamTrackedStatsEntity", name, typ}
+func (e CTeamTrackedStatsEntity) field(name string) Field {
+	return Field{e.Handle, "CTeamTrackedStatsEntity", name}
 }
 
 func (e CTeamTrackedStatsEntity) NTeam() Number[int32] {
-	return Number[int32]{e.field("m_nTeam", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTeam")}
 }
 
 type CCitadelAudioProcessingVolumeBase CEntityInstance
 
-func (e CCitadelAudioProcessingVolumeBase) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelAudioProcessingVolumeBase", name, typ}
+func (e CCitadelAudioProcessingVolumeBase) field(name string) Field {
+	return Field{e.Handle, "CCitadelAudioProcessingVolumeBase", name}
 }
 
 func (e CCitadelAudioProcessingVolumeBase) StrEffectName() Text {
-	return Text{e.field("m_strEffectName", mod.FieldTypeString)}
+	return Text{e.field("m_strEffectName")}
 }
 
 func (e CCitadelAudioProcessingVolumeBase) NVolumeID() Number[int32] {
-	return Number[int32]{e.field("m_nVolumeID", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nVolumeID")}
 }
 
 type CCitadelAudioProcessingVolumeOBB CEntityInstance
 
-func (e CCitadelAudioProcessingVolumeOBB) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelAudioProcessingVolumeOBB", name, typ}
+func (e CCitadelAudioProcessingVolumeOBB) field(name string) Field {
+	return Field{e.Handle, "CCitadelAudioProcessingVolumeOBB", name}
 }
 
 func (e CCitadelAudioProcessingVolumeOBB) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CCitadelAudioProcessingVolumeOBB) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 type CCitadelEconItemContainer CEntityInstance
@@ -934,38 +932,38 @@ type CCitadelGaffer CEntityInstance
 
 type CCitadelHeroLoader CEntityInstance
 
-func (e CCitadelHeroLoader) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelHeroLoader", name, typ}
+func (e CCitadelHeroLoader) field(name string) Field {
+	return Field{e.Handle, "CCitadelHeroLoader", name}
 }
 
 func (e CCitadelHeroLoader) Hero() Text {
-	return Text{e.field("m_hero", mod.FieldTypeString)}
+	return Text{e.field("m_hero")}
 }
 
 func (e CCitadelHeroLoader) NLoadSeq() Number[int32] {
-	return Number[int32]{e.field("m_nLoadSeq", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLoadSeq")}
 }
 
 func (e CCitadelHeroLoader) HOwner() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hOwner", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hOwner")}
 }
 
 type CCitadelHideoutPropSlot CEntityInstance
 
-func (e CCitadelHideoutPropSlot) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelHideoutPropSlot", name, typ}
+func (e CCitadelHideoutPropSlot) field(name string) Field {
+	return Field{e.Handle, "CCitadelHideoutPropSlot", name}
 }
 
 func (e CCitadelHideoutPropSlot) NSlotID() Number[int32] {
-	return Number[int32]{e.field("m_nSlotID", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSlotID")}
 }
 
 func (e CCitadelHideoutPropSlot) NSlotType() Number[uint32] {
-	return Number[uint32]{e.field("m_nSlotType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nSlotType")}
 }
 
 func (e CCitadelHideoutPropSlot) HProp() Handle[CCitadelHideoutPropBase] {
-	return Handle[CCitadelHideoutPropBase]{e.field("m_hProp", mod.FieldTypeHandle)}
+	return Handle[CCitadelHideoutPropBase]{e.field("m_hProp")}
 }
 
 type CCitadelLocalPlayerRankedBadgeProp CEntityInstance
@@ -974,648 +972,648 @@ type CCitadelMinimapBoundary CEntityInstance
 
 type CCitadelSoundOpvarSetOBB CEntityInstance
 
-func (e CCitadelSoundOpvarSetOBB) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelSoundOpvarSetOBB", name, typ}
+func (e CCitadelSoundOpvarSetOBB) field(name string) Field {
+	return Field{e.Handle, "CCitadelSoundOpvarSetOBB", name}
 }
 
 func (e CCitadelSoundOpvarSetOBB) IszStackName() Text {
-	return Text{e.field("m_iszStackName", mod.FieldTypeString)}
+	return Text{e.field("m_iszStackName")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) IszOperatorName() Text {
-	return Text{e.field("m_iszOperatorName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOperatorName")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) IszOpvarName() Text {
-	return Text{e.field("m_iszOpvarName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOpvarName")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) VDistanceInnerMins() Vector {
-	return Vector{e.field("m_vDistanceInnerMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceInnerMins")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) VDistanceInnerMaxs() Vector {
-	return Vector{e.field("m_vDistanceInnerMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceInnerMaxs")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) VDistanceOuterMins() Vector {
-	return Vector{e.field("m_vDistanceOuterMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceOuterMins")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) VDistanceOuterMaxs() Vector {
-	return Vector{e.field("m_vDistanceOuterMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceOuterMaxs")}
 }
 
 func (e CCitadelSoundOpvarSetOBB) NAABBDirection() Number[int32] {
-	return Number[int32]{e.field("m_nAABBDirection", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nAABBDirection")}
 }
 
 type CCitadelSoundStackFieldOBB CEntityInstance
 
-func (e CCitadelSoundStackFieldOBB) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelSoundStackFieldOBB", name, typ}
+func (e CCitadelSoundStackFieldOBB) field(name string) Field {
+	return Field{e.Handle, "CCitadelSoundStackFieldOBB", name}
 }
 
 func (e CCitadelSoundStackFieldOBB) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CCitadelSoundStackFieldOBB) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 func (e CCitadelSoundStackFieldOBB) NMaxDistance() Number[uint32] {
-	return Number[uint32]{e.field("m_nMaxDistance", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nMaxDistance")}
 }
 
 func (e CCitadelSoundStackFieldOBB) NStackName() Text {
-	return Text{e.field("m_nStackName", mod.FieldTypeString)}
+	return Text{e.field("m_nStackName")}
 }
 
 func (e CCitadelSoundStackFieldOBB) NOperatorName() Text {
-	return Text{e.field("m_nOperatorName", mod.FieldTypeString)}
+	return Text{e.field("m_nOperatorName")}
 }
 
 func (e CCitadelSoundStackFieldOBB) NOperatorFieldName() Text {
-	return Text{e.field("m_nOperatorFieldName", mod.FieldTypeString)}
+	return Text{e.field("m_nOperatorFieldName")}
 }
 
 func (e CCitadelSoundStackFieldOBB) NMusicState() Number[uint32] {
-	return Number[uint32]{e.field("m_nMusicState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nMusicState")}
 }
 
 type CCitadelBaseMusicOBB CEntityInstance
 
 type CCitadelTrooperMinimap CEntityInstance
 
-func (e CCitadelTrooperMinimap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelTrooperMinimap", name, typ}
+func (e CCitadelTrooperMinimap) field(name string) Field {
+	return Field{e.Handle, "CCitadelTrooperMinimap", name}
 }
 
 func (e CCitadelTrooperMinimap) FlUpdateInterval() Number[float32] {
-	return Number[float32]{e.field("m_flUpdateInterval", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flUpdateInterval")}
 }
 
 type CCitadelZipLinePathNode CEntityInstance
 
-func (e CCitadelZipLinePathNode) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelZipLinePathNode", name, typ}
+func (e CCitadelZipLinePathNode) field(name string) Field {
+	return Field{e.Handle, "CCitadelZipLinePathNode", name}
 }
 
 func (e CCitadelZipLinePathNode) BCornerNode() Bool {
-	return Bool{e.field("m_bCornerNode", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCornerNode")}
 }
 
 func (e CCitadelZipLinePathNode) BDisableZippingToByPlayers() Bool {
-	return Bool{e.field("m_bDisableZippingToByPlayers", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisableZippingToByPlayers")}
 }
 
 func (e CCitadelZipLinePathNode) BCapturable() Bool {
-	return Bool{e.field("m_bCapturable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCapturable")}
 }
 
 func (e CCitadelZipLinePathNode) StrGuardBossName() Text {
-	return Text{e.field("m_strGuardBossName", mod.FieldTypeString)}
+	return Text{e.field("m_strGuardBossName")}
 }
 
 func (e CCitadelZipLinePathNode) StrGuardBossName2() Text {
-	return Text{e.field("m_strGuardBossName2", mod.FieldTypeString)}
+	return Text{e.field("m_strGuardBossName2")}
 }
 
 func (e CCitadelZipLinePathNode) StrGuardBossName3() Text {
-	return Text{e.field("m_strGuardBossName3", mod.FieldTypeString)}
+	return Text{e.field("m_strGuardBossName3")}
 }
 
 func (e CCitadelZipLinePathNode) FlSpeedMultiplierToBaseBonus() Number[float32] {
-	return Number[float32]{e.field("m_flSpeedMultiplierToBaseBonus", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeedMultiplierToBaseBonus")}
 }
 
 func (e CCitadelZipLinePathNode) FlSpeedMultiplierFromBaseBonus() Number[float32] {
-	return Number[float32]{e.field("m_flSpeedMultiplierFromBaseBonus", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeedMultiplierFromBaseBonus")}
 }
 
 type CColorCorrection CEntityInstance
 
-func (e CColorCorrection) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CColorCorrection", name, typ}
+func (e CColorCorrection) field(name string) Field {
+	return Field{e.Handle, "CColorCorrection", name}
 }
 
 func (e CColorCorrection) FlFadeInDuration() Number[float32] {
-	return Number[float32]{e.field("m_flFadeInDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeInDuration")}
 }
 
 func (e CColorCorrection) FlFadeOutDuration() Number[float32] {
-	return Number[float32]{e.field("m_flFadeOutDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeOutDuration")}
 }
 
 func (e CColorCorrection) FlStartFadeInWeight() Number[float32] {
-	return Number[float32]{e.field("m_flStartFadeInWeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartFadeInWeight")}
 }
 
 func (e CColorCorrection) FlStartFadeOutWeight() Number[float32] {
-	return Number[float32]{e.field("m_flStartFadeOutWeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartFadeOutWeight")}
 }
 
 func (e CColorCorrection) FlTimeStartFadeIn() Number[float32] {
-	return Number[float32]{e.field("m_flTimeStartFadeIn", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeStartFadeIn")}
 }
 
 func (e CColorCorrection) FlTimeStartFadeOut() Number[float32] {
-	return Number[float32]{e.field("m_flTimeStartFadeOut", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeStartFadeOut")}
 }
 
 func (e CColorCorrection) FlMaxWeight() Number[float32] {
-	return Number[float32]{e.field("m_flMaxWeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxWeight")}
 }
 
 func (e CColorCorrection) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 func (e CColorCorrection) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CColorCorrection) BMaster() Bool {
-	return Bool{e.field("m_bMaster", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMaster")}
 }
 
 func (e CColorCorrection) BClientSide() Bool {
-	return Bool{e.field("m_bClientSide", mod.FieldTypeBool)}
+	return Bool{e.field("m_bClientSide")}
 }
 
 func (e CColorCorrection) BExclusive() Bool {
-	return Bool{e.field("m_bExclusive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bExclusive")}
 }
 
 func (e CColorCorrection) MinFalloff() Number[float32] {
-	return Number[float32]{e.field("m_MinFalloff", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_MinFalloff")}
 }
 
 func (e CColorCorrection) MaxFalloff() Number[float32] {
-	return Number[float32]{e.field("m_MaxFalloff", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_MaxFalloff")}
 }
 
 func (e CColorCorrection) FlCurWeight() Number[float32] {
-	return Number[float32]{e.field("m_flCurWeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurWeight")}
 }
 
 func (e CColorCorrection) LookupFilename() Text {
-	return Text{e.field("m_lookupFilename", mod.FieldTypeString)}
+	return Text{e.field("m_lookupFilename")}
 }
 
 type CCommentaryAuto CEntityInstance
 
 type CDebugHistory CEntityInstance
 
-func (e CDebugHistory) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CDebugHistory", name, typ}
+func (e CDebugHistory) field(name string) Field {
+	return Field{e.Handle, "CDebugHistory", name}
 }
 
 func (e CDebugHistory) NNpcEvents() Number[int32] {
-	return Number[int32]{e.field("m_nNpcEvents", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNpcEvents")}
 }
 
 type CEnableMotionFixup CEntityInstance
 
 type CEntityFlame CEntityInstance
 
-func (e CEntityFlame) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEntityFlame", name, typ}
+func (e CEntityFlame) field(name string) Field {
+	return Field{e.Handle, "CEntityFlame", name}
 }
 
 func (e CEntityFlame) HEntAttached() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hEntAttached", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hEntAttached")}
 }
 
 func (e CEntityFlame) BCheapEffect() Bool {
-	return Bool{e.field("m_bCheapEffect", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCheapEffect")}
 }
 
 func (e CEntityFlame) FlSize() Number[float32] {
-	return Number[float32]{e.field("m_flSize", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSize")}
 }
 
 func (e CEntityFlame) BUseHitboxes() Bool {
-	return Bool{e.field("m_bUseHitboxes", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseHitboxes")}
 }
 
 func (e CEntityFlame) INumHitboxFires() Number[int32] {
-	return Number[int32]{e.field("m_iNumHitboxFires", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iNumHitboxFires")}
 }
 
 func (e CEntityFlame) FlHitboxFireScale() Number[float32] {
-	return Number[float32]{e.field("m_flHitboxFireScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHitboxFireScale")}
 }
 
 func (e CEntityFlame) FlLifetime() Number[float32] {
-	return Number[float32]{e.field("m_flLifetime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLifetime")}
 }
 
 func (e CEntityFlame) HAttacker() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAttacker", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAttacker")}
 }
 
 func (e CEntityFlame) FlDirectDamagePerSecond() Number[float32] {
-	return Number[float32]{e.field("m_flDirectDamagePerSecond", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDirectDamagePerSecond")}
 }
 
 func (e CEntityFlame) ICustomDamageType() Number[int32] {
-	return Number[int32]{e.field("m_iCustomDamageType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCustomDamageType")}
 }
 
 type CEnvBeverage CEntityInstance
 
-func (e CEnvBeverage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvBeverage", name, typ}
+func (e CEnvBeverage) field(name string) Field {
+	return Field{e.Handle, "CEnvBeverage", name}
 }
 
 func (e CEnvBeverage) CanInDispenser() Bool {
-	return Bool{e.field("m_CanInDispenser", mod.FieldTypeBool)}
+	return Bool{e.field("m_CanInDispenser")}
 }
 
 func (e CEnvBeverage) NBeverageType() Number[int32] {
-	return Number[int32]{e.field("m_nBeverageType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBeverageType")}
 }
 
 type CEnvCombinedLightProbeVolume CEntityInstance
 
-func (e CEnvCombinedLightProbeVolume) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvCombinedLightProbeVolume", name, typ}
+func (e CEnvCombinedLightProbeVolume) field(name string) Field {
+	return Field{e.Handle, "CEnvCombinedLightProbeVolume", name}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_flBrightness() Number[float32] {
-	return Number[float32]{e.field("m_Entity_flBrightness", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Entity_flBrightness")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_bCustomCubemapTexture() Bool {
-	return Bool{e.field("m_Entity_bCustomCubemapTexture", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bCustomCubemapTexture")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_vBoxMins() Vector {
-	return Vector{e.field("m_Entity_vBoxMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vBoxMins")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_vBoxMaxs() Vector {
-	return Vector{e.field("m_Entity_vBoxMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vBoxMaxs")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_bMoveable() Bool {
-	return Bool{e.field("m_Entity_bMoveable", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bMoveable")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nHandshake() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nHandshake", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nHandshake")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nEnvCubeMapArrayIndex() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nEnvCubeMapArrayIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nEnvCubeMapArrayIndex")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nPriority() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nPriority", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nPriority")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_bStartDisabled() Bool {
-	return Bool{e.field("m_Entity_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bStartDisabled")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_flEdgeFadeDist() Number[float32] {
-	return Number[float32]{e.field("m_Entity_flEdgeFadeDist", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Entity_flEdgeFadeDist")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_vEdgeFadeDists() Vector {
-	return Vector{e.field("m_Entity_vEdgeFadeDists", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vEdgeFadeDists")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nLightProbeSizeX() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeSizeX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeSizeX")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nLightProbeSizeY() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeSizeY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeSizeY")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nLightProbeSizeZ() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeSizeZ", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeSizeZ")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nLightProbeAtlasX() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeAtlasX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeAtlasX")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nLightProbeAtlasY() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeAtlasY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeAtlasY")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_nLightProbeAtlasZ() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeAtlasZ", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeAtlasZ")}
 }
 
 func (e CEnvCombinedLightProbeVolume) Entity_bEnabled() Bool {
-	return Bool{e.field("m_Entity_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bEnabled")}
 }
 
 type CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume CEntityInstance
 
 type CEnvCubemap CEntityInstance
 
-func (e CEnvCubemap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvCubemap", name, typ}
+func (e CEnvCubemap) field(name string) Field {
+	return Field{e.Handle, "CEnvCubemap", name}
 }
 
 func (e CEnvCubemap) Entity_bCustomCubemapTexture() Bool {
-	return Bool{e.field("m_Entity_bCustomCubemapTexture", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bCustomCubemapTexture")}
 }
 
 func (e CEnvCubemap) Entity_flInfluenceRadius() Number[float32] {
-	return Number[float32]{e.field("m_Entity_flInfluenceRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Entity_flInfluenceRadius")}
 }
 
 func (e CEnvCubemap) Entity_vBoxProjectMins() Vector {
-	return Vector{e.field("m_Entity_vBoxProjectMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vBoxProjectMins")}
 }
 
 func (e CEnvCubemap) Entity_vBoxProjectMaxs() Vector {
-	return Vector{e.field("m_Entity_vBoxProjectMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vBoxProjectMaxs")}
 }
 
 func (e CEnvCubemap) Entity_bMoveable() Bool {
-	return Bool{e.field("m_Entity_bMoveable", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bMoveable")}
 }
 
 func (e CEnvCubemap) Entity_nHandshake() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nHandshake", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nHandshake")}
 }
 
 func (e CEnvCubemap) Entity_nEnvCubeMapArrayIndex() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nEnvCubeMapArrayIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nEnvCubeMapArrayIndex")}
 }
 
 func (e CEnvCubemap) Entity_nPriority() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nPriority", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nPriority")}
 }
 
 func (e CEnvCubemap) Entity_flEdgeFadeDist() Number[float32] {
-	return Number[float32]{e.field("m_Entity_flEdgeFadeDist", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Entity_flEdgeFadeDist")}
 }
 
 func (e CEnvCubemap) Entity_vEdgeFadeDists() Vector {
-	return Vector{e.field("m_Entity_vEdgeFadeDists", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vEdgeFadeDists")}
 }
 
 func (e CEnvCubemap) Entity_flDiffuseScale() Number[float32] {
-	return Number[float32]{e.field("m_Entity_flDiffuseScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Entity_flDiffuseScale")}
 }
 
 func (e CEnvCubemap) Entity_bStartDisabled() Bool {
-	return Bool{e.field("m_Entity_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bStartDisabled")}
 }
 
 func (e CEnvCubemap) Entity_bDefaultEnvMap() Bool {
-	return Bool{e.field("m_Entity_bDefaultEnvMap", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bDefaultEnvMap")}
 }
 
 func (e CEnvCubemap) Entity_bDefaultSpecEnvMap() Bool {
-	return Bool{e.field("m_Entity_bDefaultSpecEnvMap", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bDefaultSpecEnvMap")}
 }
 
 func (e CEnvCubemap) Entity_bIndoorCubeMap() Bool {
-	return Bool{e.field("m_Entity_bIndoorCubeMap", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bIndoorCubeMap")}
 }
 
 func (e CEnvCubemap) Entity_bCopyDiffuseFromDefaultCubemap() Bool {
-	return Bool{e.field("m_Entity_bCopyDiffuseFromDefaultCubemap", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bCopyDiffuseFromDefaultCubemap")}
 }
 
 func (e CEnvCubemap) Entity_bEnabled() Bool {
-	return Bool{e.field("m_Entity_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bEnabled")}
 }
 
 type CEnvCubemapFog CEntityInstance
 
-func (e CEnvCubemapFog) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvCubemapFog", name, typ}
+func (e CEnvCubemapFog) field(name string) Field {
+	return Field{e.Handle, "CEnvCubemapFog", name}
 }
 
 func (e CEnvCubemapFog) FlEndDistance() Number[float32] {
-	return Number[float32]{e.field("m_flEndDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flEndDistance")}
 }
 
 func (e CEnvCubemapFog) FlStartDistance() Number[float32] {
-	return Number[float32]{e.field("m_flStartDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartDistance")}
 }
 
 func (e CEnvCubemapFog) FlFogFalloffExponent() Number[float32] {
-	return Number[float32]{e.field("m_flFogFalloffExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogFalloffExponent")}
 }
 
 func (e CEnvCubemapFog) BHeightFogEnabled() Bool {
-	return Bool{e.field("m_bHeightFogEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHeightFogEnabled")}
 }
 
 func (e CEnvCubemapFog) FlFogHeightWidth() Number[float32] {
-	return Number[float32]{e.field("m_flFogHeightWidth", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogHeightWidth")}
 }
 
 func (e CEnvCubemapFog) FlFogHeightEnd() Number[float32] {
-	return Number[float32]{e.field("m_flFogHeightEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogHeightEnd")}
 }
 
 func (e CEnvCubemapFog) FlFogHeightStart() Number[float32] {
-	return Number[float32]{e.field("m_flFogHeightStart", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogHeightStart")}
 }
 
 func (e CEnvCubemapFog) FlFogHeightExponent() Number[float32] {
-	return Number[float32]{e.field("m_flFogHeightExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogHeightExponent")}
 }
 
 func (e CEnvCubemapFog) FlLODBias() Number[float32] {
-	return Number[float32]{e.field("m_flLODBias", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLODBias")}
 }
 
 func (e CEnvCubemapFog) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CEnvCubemapFog) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 func (e CEnvCubemapFog) FlFogMaxOpacity() Number[float32] {
-	return Number[float32]{e.field("m_flFogMaxOpacity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogMaxOpacity")}
 }
 
 func (e CEnvCubemapFog) NCubemapSourceType() Number[int32] {
-	return Number[int32]{e.field("m_nCubemapSourceType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCubemapSourceType")}
 }
 
 func (e CEnvCubemapFog) IszSkyEntity() Text {
-	return Text{e.field("m_iszSkyEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszSkyEntity")}
 }
 
 func (e CEnvCubemapFog) NHeightFogType() Number[int32] {
-	return Number[int32]{e.field("m_nHeightFogType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nHeightFogType")}
 }
 
 func (e CEnvCubemapFog) NFogHeightBlendMode() Number[int32] {
-	return Number[int32]{e.field("m_nFogHeightBlendMode", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFogHeightBlendMode")}
 }
 
 func (e CEnvCubemapFog) NFogHeightCoordinateSpace() Number[int32] {
-	return Number[int32]{e.field("m_nFogHeightCoordinateSpace", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFogHeightCoordinateSpace")}
 }
 
 func (e CEnvCubemapFog) NDistanceFogType() Number[int32] {
-	return Number[int32]{e.field("m_nDistanceFogType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDistanceFogType")}
 }
 
 func (e CEnvCubemapFog) DistanceFogCurveString() Text {
-	return Text{e.field("m_DistanceFogCurveString", mod.FieldTypeString)}
+	return Text{e.field("m_DistanceFogCurveString")}
 }
 
 func (e CEnvCubemapFog) HeightFogCurveString() Text {
-	return Text{e.field("m_HeightFogCurveString", mod.FieldTypeString)}
+	return Text{e.field("m_HeightFogCurveString")}
 }
 
 func (e CEnvCubemapFog) BHasHeightFogEnd() Bool {
-	return Bool{e.field("m_bHasHeightFogEnd", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasHeightFogEnd")}
 }
 
 func (e CEnvCubemapFog) BFirstTime() Bool {
-	return Bool{e.field("m_bFirstTime", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstTime")}
 }
 
 type CEnvDetailController CEntityInstance
 
-func (e CEnvDetailController) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvDetailController", name, typ}
+func (e CEnvDetailController) field(name string) Field {
+	return Field{e.Handle, "CEnvDetailController", name}
 }
 
 func (e CEnvDetailController) FlFadeStartDist() Number[float32] {
-	return Number[float32]{e.field("m_flFadeStartDist", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeStartDist")}
 }
 
 func (e CEnvDetailController) FlFadeEndDist() Number[float32] {
-	return Number[float32]{e.field("m_flFadeEndDist", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeEndDist")}
 }
 
 type CEnvEntityIgniter CEntityInstance
 
-func (e CEnvEntityIgniter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvEntityIgniter", name, typ}
+func (e CEnvEntityIgniter) field(name string) Field {
+	return Field{e.Handle, "CEnvEntityIgniter", name}
 }
 
 func (e CEnvEntityIgniter) FlLifetime() Number[float32] {
-	return Number[float32]{e.field("m_flLifetime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLifetime")}
 }
 
 type CEnvLightProbeVolume CEntityInstance
 
-func (e CEnvLightProbeVolume) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvLightProbeVolume", name, typ}
+func (e CEnvLightProbeVolume) field(name string) Field {
+	return Field{e.Handle, "CEnvLightProbeVolume", name}
 }
 
 func (e CEnvLightProbeVolume) Entity_vBoxMins() Vector {
-	return Vector{e.field("m_Entity_vBoxMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vBoxMins")}
 }
 
 func (e CEnvLightProbeVolume) Entity_vBoxMaxs() Vector {
-	return Vector{e.field("m_Entity_vBoxMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_Entity_vBoxMaxs")}
 }
 
 func (e CEnvLightProbeVolume) Entity_bMoveable() Bool {
-	return Bool{e.field("m_Entity_bMoveable", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bMoveable")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nHandshake() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nHandshake", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nHandshake")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nPriority() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nPriority", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nPriority")}
 }
 
 func (e CEnvLightProbeVolume) Entity_bStartDisabled() Bool {
-	return Bool{e.field("m_Entity_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bStartDisabled")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nLightProbeSizeX() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeSizeX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeSizeX")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nLightProbeSizeY() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeSizeY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeSizeY")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nLightProbeSizeZ() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeSizeZ", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeSizeZ")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nLightProbeAtlasX() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeAtlasX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeAtlasX")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nLightProbeAtlasY() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeAtlasY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeAtlasY")}
 }
 
 func (e CEnvLightProbeVolume) Entity_nLightProbeAtlasZ() Number[int32] {
-	return Number[int32]{e.field("m_Entity_nLightProbeAtlasZ", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_Entity_nLightProbeAtlasZ")}
 }
 
 func (e CEnvLightProbeVolume) Entity_bEnabled() Bool {
-	return Bool{e.field("m_Entity_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_Entity_bEnabled")}
 }
 
 type CEnvSoundscape CEntityInstance
 
-func (e CEnvSoundscape) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvSoundscape", name, typ}
+func (e CEnvSoundscape) field(name string) Field {
+	return Field{e.Handle, "CEnvSoundscape", name}
 }
 
 func (e CEnvSoundscape) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CEnvSoundscape) BOverrideWithEvent() Bool {
-	return Bool{e.field("m_bOverrideWithEvent", mod.FieldTypeBool)}
+	return Bool{e.field("m_bOverrideWithEvent")}
 }
 
 func (e CEnvSoundscape) SoundscapeIndex() Number[int32] {
-	return Number[int32]{e.field("m_soundscapeIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_soundscapeIndex")}
 }
 
 func (e CEnvSoundscape) SoundscapeEntityListId() Number[int32] {
-	return Number[int32]{e.field("m_soundscapeEntityListId", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_soundscapeEntityListId")}
 }
 
 func (e CEnvSoundscape) HProxySoundscape() Handle[CEnvSoundscape] {
-	return Handle[CEnvSoundscape]{e.field("m_hProxySoundscape", mod.FieldTypeHandle)}
+	return Handle[CEnvSoundscape]{e.field("m_hProxySoundscape")}
 }
 
 func (e CEnvSoundscape) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CEnvSoundscape) SoundscapeName() Text {
-	return Text{e.field("m_soundscapeName", mod.FieldTypeString)}
+	return Text{e.field("m_soundscapeName")}
 }
 
 func (e CEnvSoundscape) SoundEventHash() Number[uint32] {
-	return Number[uint32]{e.field("m_soundEventHash", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_soundEventHash")}
 }
 
 type CEnvSoundscapeAlias_snd_soundscape CEntityInstance
 
 type CEnvSoundscapeProxy CEntityInstance
 
-func (e CEnvSoundscapeProxy) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvSoundscapeProxy", name, typ}
+func (e CEnvSoundscapeProxy) field(name string) Field {
+	return Field{e.Handle, "CEnvSoundscapeProxy", name}
 }
 
 func (e CEnvSoundscapeProxy) MainSoundscapeName() Text {
-	return Text{e.field("m_MainSoundscapeName", mod.FieldTypeString)}
+	return Text{e.field("m_MainSoundscapeName")}
 }
 
 type CEnvSoundscapeProxyAlias_snd_soundscape_proxy CEntityInstance
@@ -1626,310 +1624,310 @@ type CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable CEntityInstance
 
 type CEnvVolumetricFogController CEntityInstance
 
-func (e CEnvVolumetricFogController) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvVolumetricFogController", name, typ}
+func (e CEnvVolumetricFogController) field(name string) Field {
+	return Field{e.Handle, "CEnvVolumetricFogController", name}
 }
 
 func (e CEnvVolumetricFogController) FlScattering() Number[float32] {
-	return Number[float32]{e.field("m_flScattering", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flScattering")}
 }
 
 func (e CEnvVolumetricFogController) FlAnisotropy() Number[float32] {
-	return Number[float32]{e.field("m_flAnisotropy", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAnisotropy")}
 }
 
 func (e CEnvVolumetricFogController) FlFadeSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flFadeSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeSpeed")}
 }
 
 func (e CEnvVolumetricFogController) FlDrawDistance() Number[float32] {
-	return Number[float32]{e.field("m_flDrawDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDrawDistance")}
 }
 
 func (e CEnvVolumetricFogController) FlFadeInStart() Number[float32] {
-	return Number[float32]{e.field("m_flFadeInStart", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeInStart")}
 }
 
 func (e CEnvVolumetricFogController) FlFadeInEnd() Number[float32] {
-	return Number[float32]{e.field("m_flFadeInEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeInEnd")}
 }
 
 func (e CEnvVolumetricFogController) FlIndirectStrength() Number[float32] {
-	return Number[float32]{e.field("m_flIndirectStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flIndirectStrength")}
 }
 
 func (e CEnvVolumetricFogController) NVolumeDepth() Number[int32] {
-	return Number[int32]{e.field("m_nVolumeDepth", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nVolumeDepth")}
 }
 
 func (e CEnvVolumetricFogController) FFirstVolumeSliceThickness() Number[float32] {
-	return Number[float32]{e.field("m_fFirstVolumeSliceThickness", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fFirstVolumeSliceThickness")}
 }
 
 func (e CEnvVolumetricFogController) NIndirectTextureDimX() Number[int32] {
-	return Number[int32]{e.field("m_nIndirectTextureDimX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nIndirectTextureDimX")}
 }
 
 func (e CEnvVolumetricFogController) NIndirectTextureDimY() Number[int32] {
-	return Number[int32]{e.field("m_nIndirectTextureDimY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nIndirectTextureDimY")}
 }
 
 func (e CEnvVolumetricFogController) NIndirectTextureDimZ() Number[int32] {
-	return Number[int32]{e.field("m_nIndirectTextureDimZ", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nIndirectTextureDimZ")}
 }
 
 func (e CEnvVolumetricFogController) VBoxMins() Vector {
-	return Vector{e.field("m_vBoxMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMins")}
 }
 
 func (e CEnvVolumetricFogController) VBoxMaxs() Vector {
-	return Vector{e.field("m_vBoxMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMaxs")}
 }
 
 func (e CEnvVolumetricFogController) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CEnvVolumetricFogController) FlStartAnisoTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartAnisoTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartAnisoTime")}
 }
 
 func (e CEnvVolumetricFogController) FlStartScatterTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartScatterTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartScatterTime")}
 }
 
 func (e CEnvVolumetricFogController) FlStartDrawDistanceTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartDrawDistanceTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartDrawDistanceTime")}
 }
 
 func (e CEnvVolumetricFogController) FlStartAnisotropy() Number[float32] {
-	return Number[float32]{e.field("m_flStartAnisotropy", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartAnisotropy")}
 }
 
 func (e CEnvVolumetricFogController) FlStartScattering() Number[float32] {
-	return Number[float32]{e.field("m_flStartScattering", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartScattering")}
 }
 
 func (e CEnvVolumetricFogController) FlStartDrawDistance() Number[float32] {
-	return Number[float32]{e.field("m_flStartDrawDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartDrawDistance")}
 }
 
 func (e CEnvVolumetricFogController) FlDefaultAnisotropy() Number[float32] {
-	return Number[float32]{e.field("m_flDefaultAnisotropy", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDefaultAnisotropy")}
 }
 
 func (e CEnvVolumetricFogController) FlDefaultScattering() Number[float32] {
-	return Number[float32]{e.field("m_flDefaultScattering", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDefaultScattering")}
 }
 
 func (e CEnvVolumetricFogController) FlDefaultDrawDistance() Number[float32] {
-	return Number[float32]{e.field("m_flDefaultDrawDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDefaultDrawDistance")}
 }
 
 func (e CEnvVolumetricFogController) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 func (e CEnvVolumetricFogController) BEnableIndirect() Bool {
-	return Bool{e.field("m_bEnableIndirect", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableIndirect")}
 }
 
 func (e CEnvVolumetricFogController) BIsMaster() Bool {
-	return Bool{e.field("m_bIsMaster", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsMaster")}
 }
 
 func (e CEnvVolumetricFogController) NForceRefreshCount() Number[int32] {
-	return Number[int32]{e.field("m_nForceRefreshCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nForceRefreshCount")}
 }
 
 func (e CEnvVolumetricFogController) FNoiseSpeed() Number[float32] {
-	return Number[float32]{e.field("m_fNoiseSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fNoiseSpeed")}
 }
 
 func (e CEnvVolumetricFogController) FNoiseStrength() Number[float32] {
-	return Number[float32]{e.field("m_fNoiseStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fNoiseStrength")}
 }
 
 func (e CEnvVolumetricFogController) VNoiseScale() Vector {
-	return Vector{e.field("m_vNoiseScale", mod.FieldTypeVector)}
+	return Vector{e.field("m_vNoiseScale")}
 }
 
 func (e CEnvVolumetricFogController) FWindSpeed() Number[float32] {
-	return Number[float32]{e.field("m_fWindSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fWindSpeed")}
 }
 
 func (e CEnvVolumetricFogController) VWindDirection() Vector {
-	return Vector{e.field("m_vWindDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vWindDirection")}
 }
 
 func (e CEnvVolumetricFogController) BFirstTime() Bool {
-	return Bool{e.field("m_bFirstTime", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstTime")}
 }
 
 type CEnvVolumetricFogVolume CEntityInstance
 
-func (e CEnvVolumetricFogVolume) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvVolumetricFogVolume", name, typ}
+func (e CEnvVolumetricFogVolume) field(name string) Field {
+	return Field{e.Handle, "CEnvVolumetricFogVolume", name}
 }
 
 func (e CEnvVolumetricFogVolume) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CEnvVolumetricFogVolume) VBoxMins() Vector {
-	return Vector{e.field("m_vBoxMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMins")}
 }
 
 func (e CEnvVolumetricFogVolume) VBoxMaxs() Vector {
-	return Vector{e.field("m_vBoxMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMaxs")}
 }
 
 func (e CEnvVolumetricFogVolume) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 func (e CEnvVolumetricFogVolume) BIndirectUseLPVs() Bool {
-	return Bool{e.field("m_bIndirectUseLPVs", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIndirectUseLPVs")}
 }
 
 func (e CEnvVolumetricFogVolume) FlStrength() Number[float32] {
-	return Number[float32]{e.field("m_flStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStrength")}
 }
 
 func (e CEnvVolumetricFogVolume) NFalloffShape() Number[int32] {
-	return Number[int32]{e.field("m_nFalloffShape", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nFalloffShape")}
 }
 
 func (e CEnvVolumetricFogVolume) FlFalloffExponent() Number[float32] {
-	return Number[float32]{e.field("m_flFalloffExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFalloffExponent")}
 }
 
 func (e CEnvVolumetricFogVolume) FlHeightFogDepth() Number[float32] {
-	return Number[float32]{e.field("m_flHeightFogDepth", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHeightFogDepth")}
 }
 
 func (e CEnvVolumetricFogVolume) FHeightFogEdgeWidth() Number[float32] {
-	return Number[float32]{e.field("m_fHeightFogEdgeWidth", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fHeightFogEdgeWidth")}
 }
 
 func (e CEnvVolumetricFogVolume) FIndirectLightStrength() Number[float32] {
-	return Number[float32]{e.field("m_fIndirectLightStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fIndirectLightStrength")}
 }
 
 func (e CEnvVolumetricFogVolume) FSunLightStrength() Number[float32] {
-	return Number[float32]{e.field("m_fSunLightStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fSunLightStrength")}
 }
 
 func (e CEnvVolumetricFogVolume) FNoiseStrength() Number[float32] {
-	return Number[float32]{e.field("m_fNoiseStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fNoiseStrength")}
 }
 
 func (e CEnvVolumetricFogVolume) BOverrideTintColor() Bool {
-	return Bool{e.field("m_bOverrideTintColor", mod.FieldTypeBool)}
+	return Bool{e.field("m_bOverrideTintColor")}
 }
 
 func (e CEnvVolumetricFogVolume) BOverrideIndirectLightStrength() Bool {
-	return Bool{e.field("m_bOverrideIndirectLightStrength", mod.FieldTypeBool)}
+	return Bool{e.field("m_bOverrideIndirectLightStrength")}
 }
 
 func (e CEnvVolumetricFogVolume) BOverrideSunLightStrength() Bool {
-	return Bool{e.field("m_bOverrideSunLightStrength", mod.FieldTypeBool)}
+	return Bool{e.field("m_bOverrideSunLightStrength")}
 }
 
 func (e CEnvVolumetricFogVolume) BOverrideNoiseStrength() Bool {
-	return Bool{e.field("m_bOverrideNoiseStrength", mod.FieldTypeBool)}
+	return Bool{e.field("m_bOverrideNoiseStrength")}
 }
 
 type CEnvWind CEntityInstance
 
 type CFishPool CEntityInstance
 
-func (e CFishPool) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFishPool", name, typ}
+func (e CFishPool) field(name string) Field {
+	return Field{e.Handle, "CFishPool", name}
 }
 
 func (e CFishPool) FishCount() Number[int32] {
-	return Number[int32]{e.field("m_fishCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_fishCount")}
 }
 
 func (e CFishPool) MaxRange() Number[float32] {
-	return Number[float32]{e.field("m_maxRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_maxRange")}
 }
 
 func (e CFishPool) SwimDepth() Number[float32] {
-	return Number[float32]{e.field("m_swimDepth", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_swimDepth")}
 }
 
 func (e CFishPool) WaterLevel() Number[float32] {
-	return Number[float32]{e.field("m_waterLevel", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_waterLevel")}
 }
 
 func (e CFishPool) IsDormant() Bool {
-	return Bool{e.field("m_isDormant", mod.FieldTypeBool)}
+	return Bool{e.field("m_isDormant")}
 }
 
 type CFogController CEntityInstance
 
-func (e CFogController) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFogController", name, typ}
+func (e CFogController) field(name string) Field {
+	return Field{e.Handle, "CFogController", name}
 }
 
 func (e CFogController) BUseAngles() Bool {
-	return Bool{e.field("m_bUseAngles", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseAngles")}
 }
 
 func (e CFogController) IChangedVariables() Number[int32] {
-	return Number[int32]{e.field("m_iChangedVariables", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iChangedVariables")}
 }
 
 type CFuncPropRespawnZone CEntityInstance
 
 type CFuncTimescale CEntityInstance
 
-func (e CFuncTimescale) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFuncTimescale", name, typ}
+func (e CFuncTimescale) field(name string) Field {
+	return Field{e.Handle, "CFuncTimescale", name}
 }
 
 func (e CFuncTimescale) FlDesiredTimescale() Number[float32] {
-	return Number[float32]{e.field("m_flDesiredTimescale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDesiredTimescale")}
 }
 
 func (e CFuncTimescale) FlAcceleration() Number[float32] {
-	return Number[float32]{e.field("m_flAcceleration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAcceleration")}
 }
 
 func (e CFuncTimescale) FlMinBlendRate() Number[float32] {
-	return Number[float32]{e.field("m_flMinBlendRate", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMinBlendRate")}
 }
 
 func (e CFuncTimescale) FlBlendDeltaMultiplier() Number[float32] {
-	return Number[float32]{e.field("m_flBlendDeltaMultiplier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBlendDeltaMultiplier")}
 }
 
 func (e CFuncTimescale) IsStarted() Bool {
-	return Bool{e.field("m_isStarted", mod.FieldTypeBool)}
+	return Bool{e.field("m_isStarted")}
 }
 
 type CGameGibManager CEntityInstance
 
-func (e CGameGibManager) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CGameGibManager", name, typ}
+func (e CGameGibManager) field(name string) Field {
+	return Field{e.Handle, "CGameGibManager", name}
 }
 
 func (e CGameGibManager) BAllowNewGibs() Bool {
-	return Bool{e.field("m_bAllowNewGibs", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAllowNewGibs")}
 }
 
 func (e CGameGibManager) ICurrentMaxPieces() Number[int32] {
-	return Number[int32]{e.field("m_iCurrentMaxPieces", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCurrentMaxPieces")}
 }
 
 func (e CGameGibManager) IMaxPieces() Number[int32] {
-	return Number[int32]{e.field("m_iMaxPieces", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iMaxPieces")}
 }
 
 func (e CGameGibManager) ILastFrame() Number[int32] {
-	return Number[int32]{e.field("m_iLastFrame", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLastFrame")}
 }
 
 type CGameRulesProxy CEntityInstance
@@ -1938,304 +1936,304 @@ type CCitadelGameRulesProxy CEntityInstance
 
 type CGradientFog CEntityInstance
 
-func (e CGradientFog) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CGradientFog", name, typ}
+func (e CGradientFog) field(name string) Field {
+	return Field{e.Handle, "CGradientFog", name}
 }
 
 func (e CGradientFog) FlFogStartDistance() Number[float32] {
-	return Number[float32]{e.field("m_flFogStartDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogStartDistance")}
 }
 
 func (e CGradientFog) FlFogEndDistance() Number[float32] {
-	return Number[float32]{e.field("m_flFogEndDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogEndDistance")}
 }
 
 func (e CGradientFog) BHeightFogEnabled() Bool {
-	return Bool{e.field("m_bHeightFogEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHeightFogEnabled")}
 }
 
 func (e CGradientFog) FlFogStartHeight() Number[float32] {
-	return Number[float32]{e.field("m_flFogStartHeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogStartHeight")}
 }
 
 func (e CGradientFog) FlFogEndHeight() Number[float32] {
-	return Number[float32]{e.field("m_flFogEndHeight", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogEndHeight")}
 }
 
 func (e CGradientFog) FlFarZ() Number[float32] {
-	return Number[float32]{e.field("m_flFarZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFarZ")}
 }
 
 func (e CGradientFog) FlFogMaxOpacity() Number[float32] {
-	return Number[float32]{e.field("m_flFogMaxOpacity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogMaxOpacity")}
 }
 
 func (e CGradientFog) FlFogFalloffExponent() Number[float32] {
-	return Number[float32]{e.field("m_flFogFalloffExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogFalloffExponent")}
 }
 
 func (e CGradientFog) FlFogVerticalExponent() Number[float32] {
-	return Number[float32]{e.field("m_flFogVerticalExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogVerticalExponent")}
 }
 
 func (e CGradientFog) FlFogStrength() Number[float32] {
-	return Number[float32]{e.field("m_flFogStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogStrength")}
 }
 
 func (e CGradientFog) FlFadeTime() Number[float32] {
-	return Number[float32]{e.field("m_flFadeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeTime")}
 }
 
 func (e CGradientFog) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 func (e CGradientFog) BIsEnabled() Bool {
-	return Bool{e.field("m_bIsEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsEnabled")}
 }
 
 func (e CGradientFog) BGradientFogNeedsTextures() Bool {
-	return Bool{e.field("m_bGradientFogNeedsTextures", mod.FieldTypeBool)}
+	return Bool{e.field("m_bGradientFogNeedsTextures")}
 }
 
 type CHandleDummy CEntityInstance
 
 type CHandleTest CEntityInstance
 
-func (e CHandleTest) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CHandleTest", name, typ}
+func (e CHandleTest) field(name string) Field {
+	return Field{e.Handle, "CHandleTest", name}
 }
 
 func (e CHandleTest) BSendHandle() Bool {
-	return Bool{e.field("m_bSendHandle", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSendHandle")}
 }
 
 type CInfoLadderDismount CEntityInstance
 
 type CInfoVisibilityBox CEntityInstance
 
-func (e CInfoVisibilityBox) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoVisibilityBox", name, typ}
+func (e CInfoVisibilityBox) field(name string) Field {
+	return Field{e.Handle, "CInfoVisibilityBox", name}
 }
 
 func (e CInfoVisibilityBox) NMode() Number[int32] {
-	return Number[int32]{e.field("m_nMode", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMode")}
 }
 
 func (e CInfoVisibilityBox) VBoxSize() Vector {
-	return Vector{e.field("m_vBoxSize", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxSize")}
 }
 
 func (e CInfoVisibilityBox) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 type CInfoWorldLayer CEntityInstance
 
-func (e CInfoWorldLayer) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoWorldLayer", name, typ}
+func (e CInfoWorldLayer) field(name string) Field {
+	return Field{e.Handle, "CInfoWorldLayer", name}
 }
 
 func (e CInfoWorldLayer) WorldName() Text {
-	return Text{e.field("m_worldName", mod.FieldTypeString)}
+	return Text{e.field("m_worldName")}
 }
 
 func (e CInfoWorldLayer) LayerName() Text {
-	return Text{e.field("m_layerName", mod.FieldTypeString)}
+	return Text{e.field("m_layerName")}
 }
 
 func (e CInfoWorldLayer) BWorldLayerVisible() Bool {
-	return Bool{e.field("m_bWorldLayerVisible", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWorldLayerVisible")}
 }
 
 func (e CInfoWorldLayer) BEntitiesSpawned() Bool {
-	return Bool{e.field("m_bEntitiesSpawned", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEntitiesSpawned")}
 }
 
 func (e CInfoWorldLayer) BCreateAsChildSpawnGroup() Bool {
-	return Bool{e.field("m_bCreateAsChildSpawnGroup", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCreateAsChildSpawnGroup")}
 }
 
 func (e CInfoWorldLayer) HLayerSpawnGroup() Number[uint32] {
-	return Number[uint32]{e.field("m_hLayerSpawnGroup", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_hLayerSpawnGroup")}
 }
 
 type CLogicAuto CEntityInstance
 
-func (e CLogicAuto) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicAuto", name, typ}
+func (e CLogicAuto) field(name string) Field {
+	return Field{e.Handle, "CLogicAuto", name}
 }
 
 func (e CLogicAuto) Globalstate() Text {
-	return Text{e.field("m_globalstate", mod.FieldTypeString)}
+	return Text{e.field("m_globalstate")}
 }
 
 type CLogicAutoCitadel CEntityInstance
 
 type CLogicGameStateReport CEntityInstance
 
-func (e CLogicGameStateReport) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicGameStateReport", name, typ}
+func (e CLogicGameStateReport) field(name string) Field {
+	return Field{e.Handle, "CLogicGameStateReport", name}
 }
 
 func (e CLogicGameStateReport) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 type CLogicNPCCounter CEntityInstance
 
-func (e CLogicNPCCounter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicNPCCounter", name, typ}
+func (e CLogicNPCCounter) field(name string) Field {
+	return Field{e.Handle, "CLogicNPCCounter", name}
 }
 
 func (e CLogicNPCCounter) HSource() Number[uint32] {
-	return Number[uint32]{e.field("m_hSource", mod.FieldTypeHandle)}
+	return Number[uint32]{e.field("m_hSource")}
 }
 
 func (e CLogicNPCCounter) IszSourceEntityName() Text {
-	return Text{e.field("m_iszSourceEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSourceEntityName")}
 }
 
 func (e CLogicNPCCounter) FlDistanceMax() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceMax")}
 }
 
 func (e CLogicNPCCounter) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CLogicNPCCounter) NMinCountAll() Number[int32] {
-	return Number[int32]{e.field("m_nMinCountAll", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinCountAll")}
 }
 
 func (e CLogicNPCCounter) NMaxCountAll() Number[int32] {
-	return Number[int32]{e.field("m_nMaxCountAll", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxCountAll")}
 }
 
 func (e CLogicNPCCounter) NMinFactorAll() Number[int32] {
-	return Number[int32]{e.field("m_nMinFactorAll", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinFactorAll")}
 }
 
 func (e CLogicNPCCounter) NMaxFactorAll() Number[int32] {
-	return Number[int32]{e.field("m_nMaxFactorAll", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxFactorAll")}
 }
 
 func (e CLogicNPCCounter) IszNPCClassname_1() Text {
-	return Text{e.field("m_iszNPCClassname_1", mod.FieldTypeString)}
+	return Text{e.field("m_iszNPCClassname_1")}
 }
 
 func (e CLogicNPCCounter) NNPCState_1() Number[int32] {
-	return Number[int32]{e.field("m_nNPCState_1", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNPCState_1")}
 }
 
 func (e CLogicNPCCounter) BInvertState_1() Bool {
-	return Bool{e.field("m_bInvertState_1", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInvertState_1")}
 }
 
 func (e CLogicNPCCounter) NMinCount_1() Number[int32] {
-	return Number[int32]{e.field("m_nMinCount_1", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinCount_1")}
 }
 
 func (e CLogicNPCCounter) NMaxCount_1() Number[int32] {
-	return Number[int32]{e.field("m_nMaxCount_1", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxCount_1")}
 }
 
 func (e CLogicNPCCounter) NMinFactor_1() Number[int32] {
-	return Number[int32]{e.field("m_nMinFactor_1", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinFactor_1")}
 }
 
 func (e CLogicNPCCounter) NMaxFactor_1() Number[int32] {
-	return Number[int32]{e.field("m_nMaxFactor_1", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxFactor_1")}
 }
 
 func (e CLogicNPCCounter) FlDefaultDist_1() Number[float32] {
-	return Number[float32]{e.field("m_flDefaultDist_1", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDefaultDist_1")}
 }
 
 func (e CLogicNPCCounter) IszNPCClassname_2() Text {
-	return Text{e.field("m_iszNPCClassname_2", mod.FieldTypeString)}
+	return Text{e.field("m_iszNPCClassname_2")}
 }
 
 func (e CLogicNPCCounter) NNPCState_2() Number[int32] {
-	return Number[int32]{e.field("m_nNPCState_2", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNPCState_2")}
 }
 
 func (e CLogicNPCCounter) BInvertState_2() Bool {
-	return Bool{e.field("m_bInvertState_2", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInvertState_2")}
 }
 
 func (e CLogicNPCCounter) NMinCount_2() Number[int32] {
-	return Number[int32]{e.field("m_nMinCount_2", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinCount_2")}
 }
 
 func (e CLogicNPCCounter) NMaxCount_2() Number[int32] {
-	return Number[int32]{e.field("m_nMaxCount_2", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxCount_2")}
 }
 
 func (e CLogicNPCCounter) NMinFactor_2() Number[int32] {
-	return Number[int32]{e.field("m_nMinFactor_2", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinFactor_2")}
 }
 
 func (e CLogicNPCCounter) NMaxFactor_2() Number[int32] {
-	return Number[int32]{e.field("m_nMaxFactor_2", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxFactor_2")}
 }
 
 func (e CLogicNPCCounter) FlDefaultDist_2() Number[float32] {
-	return Number[float32]{e.field("m_flDefaultDist_2", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDefaultDist_2")}
 }
 
 func (e CLogicNPCCounter) IszNPCClassname_3() Text {
-	return Text{e.field("m_iszNPCClassname_3", mod.FieldTypeString)}
+	return Text{e.field("m_iszNPCClassname_3")}
 }
 
 func (e CLogicNPCCounter) NNPCState_3() Number[int32] {
-	return Number[int32]{e.field("m_nNPCState_3", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNPCState_3")}
 }
 
 func (e CLogicNPCCounter) BInvertState_3() Bool {
-	return Bool{e.field("m_bInvertState_3", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInvertState_3")}
 }
 
 func (e CLogicNPCCounter) NMinCount_3() Number[int32] {
-	return Number[int32]{e.field("m_nMinCount_3", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinCount_3")}
 }
 
 func (e CLogicNPCCounter) NMaxCount_3() Number[int32] {
-	return Number[int32]{e.field("m_nMaxCount_3", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxCount_3")}
 }
 
 func (e CLogicNPCCounter) NMinFactor_3() Number[int32] {
-	return Number[int32]{e.field("m_nMinFactor_3", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMinFactor_3")}
 }
 
 func (e CLogicNPCCounter) NMaxFactor_3() Number[int32] {
-	return Number[int32]{e.field("m_nMaxFactor_3", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxFactor_3")}
 }
 
 func (e CLogicNPCCounter) FlDefaultDist_3() Number[float32] {
-	return Number[float32]{e.field("m_flDefaultDist_3", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDefaultDist_3")}
 }
 
 type CLogicNPCCounterAABB CEntityInstance
 
-func (e CLogicNPCCounterAABB) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicNPCCounterAABB", name, typ}
+func (e CLogicNPCCounterAABB) field(name string) Field {
+	return Field{e.Handle, "CLogicNPCCounterAABB", name}
 }
 
 func (e CLogicNPCCounterAABB) VDistanceOuterMins() Vector {
-	return Vector{e.field("m_vDistanceOuterMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceOuterMins")}
 }
 
 func (e CLogicNPCCounterAABB) VDistanceOuterMaxs() Vector {
-	return Vector{e.field("m_vDistanceOuterMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceOuterMaxs")}
 }
 
 func (e CLogicNPCCounterAABB) VOuterMins() Vector {
-	return Vector{e.field("m_vOuterMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vOuterMins")}
 }
 
 func (e CLogicNPCCounterAABB) VOuterMaxs() Vector {
-	return Vector{e.field("m_vOuterMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vOuterMaxs")}
 }
 
 type CLogicNPCCounterOBB CEntityInstance
@@ -2246,456 +2244,456 @@ type COrbSpawner CEntityInstance
 
 type CPathAccompany CEntityInstance
 
-func (e CPathAccompany) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathAccompany", name, typ}
+func (e CPathAccompany) field(name string) Field {
+	return Field{e.Handle, "CPathAccompany", name}
 }
 
 func (e CPathAccompany) FlPathLength() Number[float32] {
-	return Number[float32]{e.field("m_flPathLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPathLength")}
 }
 
 func (e CPathAccompany) FlLastPathRecalc() Number[float32] {
-	return Number[float32]{e.field("m_flLastPathRecalc", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastPathRecalc")}
 }
 
 func (e CPathAccompany) BAllowAutoLead() Bool {
-	return Bool{e.field("m_bAllowAutoLead", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAllowAutoLead")}
 }
 
 func (e CPathAccompany) NLastDebugDraw() Number[float32] {
-	return Number[float32]{e.field("m_nLastDebugDraw", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_nLastDebugDraw")}
 }
 
 type CPathParticleRope CEntityInstance
 
-func (e CPathParticleRope) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathParticleRope", name, typ}
+func (e CPathParticleRope) field(name string) Field {
+	return Field{e.Handle, "CPathParticleRope", name}
 }
 
 func (e CPathParticleRope) BStartActive() Bool {
-	return Bool{e.field("m_bStartActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartActive")}
 }
 
 func (e CPathParticleRope) FlMaxSimulationTime() Number[float32] {
-	return Number[float32]{e.field("m_flMaxSimulationTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxSimulationTime")}
 }
 
 func (e CPathParticleRope) IszEffectName() Text {
-	return Text{e.field("m_iszEffectName", mod.FieldTypeString)}
+	return Text{e.field("m_iszEffectName")}
 }
 
 func (e CPathParticleRope) FlParticleSpacing() Number[float32] {
-	return Number[float32]{e.field("m_flParticleSpacing", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flParticleSpacing")}
 }
 
 func (e CPathParticleRope) FlSlack() Number[float32] {
-	return Number[float32]{e.field("m_flSlack", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSlack")}
 }
 
 func (e CPathParticleRope) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CPathParticleRope) NEffectState() Number[int32] {
-	return Number[int32]{e.field("m_nEffectState", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nEffectState")}
 }
 
 type CCitadelZiplinePath CEntityInstance
 
-func (e CCitadelZiplinePath) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelZiplinePath", name, typ}
+func (e CCitadelZiplinePath) field(name string) Field {
+	return Field{e.Handle, "CCitadelZiplinePath", name}
 }
 
 func (e CCitadelZiplinePath) ILaneNumber() Number[int32] {
-	return Number[int32]{e.field("m_iLaneNumber", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLaneNumber")}
 }
 
 type CPathParticleRopeAlias_path_particle_rope_clientside CEntityInstance
 
 type CPathSimple CEntityInstance
 
-func (e CPathSimple) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathSimple", name, typ}
+func (e CPathSimple) field(name string) Field {
+	return Field{e.Handle, "CPathSimple", name}
 }
 
 func (e CPathSimple) PathString() Text {
-	return Text{e.field("m_pathString", mod.FieldTypeString)}
+	return Text{e.field("m_pathString")}
 }
 
 func (e CPathSimple) BClosedLoop() Bool {
-	return Bool{e.field("m_bClosedLoop", mod.FieldTypeBool)}
+	return Bool{e.field("m_bClosedLoop")}
 }
 
 type CPathWithDynamicNodes CEntityInstance
 
-func (e CPathWithDynamicNodes) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathWithDynamicNodes", name, typ}
+func (e CPathWithDynamicNodes) field(name string) Field {
+	return Field{e.Handle, "CPathWithDynamicNodes", name}
 }
 
 func (e CPathWithDynamicNodes) EDesiredDirection() Number[uint32] {
-	return Number[uint32]{e.field("m_eDesiredDirection", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eDesiredDirection")}
 }
 
 func (e CPathWithDynamicNodes) BIgnoreParentRotation() Bool {
-	return Bool{e.field("m_bIgnoreParentRotation", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIgnoreParentRotation")}
 }
 
 type CPathMover CEntityInstance
 
-func (e CPathMover) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathMover", name, typ}
+func (e CPathMover) field(name string) Field {
+	return Field{e.Handle, "CPathMover", name}
 }
 
 func (e CPathMover) IszMoverSpawnerName() Text {
-	return Text{e.field("m_iszMoverSpawnerName", mod.FieldTypeString)}
+	return Text{e.field("m_iszMoverSpawnerName")}
 }
 
 func (e CPathMover) HMoverRouter() Handle[CFuncMoverRouter] {
-	return Handle[CFuncMoverRouter]{e.field("m_hMoverRouter", mod.FieldTypeHandle)}
+	return Handle[CFuncMoverRouter]{e.field("m_hMoverRouter")}
 }
 
 func (e CPathMover) IszMoverRouterName() Text {
-	return Text{e.field("m_iszMoverRouterName", mod.FieldTypeString)}
+	return Text{e.field("m_iszMoverRouterName")}
 }
 
 func (e CPathMover) FlSampleSpacing() Number[float32] {
-	return Number[float32]{e.field("m_flSampleSpacing", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSampleSpacing")}
 }
 
 type CPhysicsSpring CEntityInstance
 
-func (e CPhysicsSpring) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysicsSpring", name, typ}
+func (e CPhysicsSpring) field(name string) Field {
+	return Field{e.Handle, "CPhysicsSpring", name}
 }
 
 func (e CPhysicsSpring) FlFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFrequency")}
 }
 
 func (e CPhysicsSpring) FlDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDampingRatio")}
 }
 
 func (e CPhysicsSpring) FlRestLength() Number[float32] {
-	return Number[float32]{e.field("m_flRestLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRestLength")}
 }
 
 func (e CPhysicsSpring) NameAttachStart() Text {
-	return Text{e.field("m_nameAttachStart", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttachStart")}
 }
 
 func (e CPhysicsSpring) NameAttachEnd() Text {
-	return Text{e.field("m_nameAttachEnd", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttachEnd")}
 }
 
 func (e CPhysicsSpring) Start() Vector {
-	return Vector{e.field("m_start", mod.FieldTypeVector)}
+	return Vector{e.field("m_start")}
 }
 
 func (e CPhysicsSpring) End() Vector {
-	return Vector{e.field("m_end", mod.FieldTypeVector)}
+	return Vector{e.field("m_end")}
 }
 
 func (e CPhysicsSpring) TeleportTick() Number[uint32] {
-	return Number[uint32]{e.field("m_teleportTick", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_teleportTick")}
 }
 
 type CPhysicsWire CEntityInstance
 
-func (e CPhysicsWire) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysicsWire", name, typ}
+func (e CPhysicsWire) field(name string) Field {
+	return Field{e.Handle, "CPhysicsWire", name}
 }
 
 func (e CPhysicsWire) NDensity() Number[int32] {
-	return Number[int32]{e.field("m_nDensity", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDensity")}
 }
 
 type CPlayerVisibility CEntityInstance
 
-func (e CPlayerVisibility) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPlayerVisibility", name, typ}
+func (e CPlayerVisibility) field(name string) Field {
+	return Field{e.Handle, "CPlayerVisibility", name}
 }
 
 func (e CPlayerVisibility) FlVisibilityStrength() Number[float32] {
-	return Number[float32]{e.field("m_flVisibilityStrength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flVisibilityStrength")}
 }
 
 func (e CPlayerVisibility) FlFogDistanceMultiplier() Number[float32] {
-	return Number[float32]{e.field("m_flFogDistanceMultiplier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogDistanceMultiplier")}
 }
 
 func (e CPlayerVisibility) FlFogMaxDensityMultiplier() Number[float32] {
-	return Number[float32]{e.field("m_flFogMaxDensityMultiplier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogMaxDensityMultiplier")}
 }
 
 func (e CPlayerVisibility) FlFadeTime() Number[float32] {
-	return Number[float32]{e.field("m_flFadeTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFadeTime")}
 }
 
 func (e CPlayerVisibility) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 func (e CPlayerVisibility) BIsEnabled() Bool {
-	return Bool{e.field("m_bIsEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsEnabled")}
 }
 
 type CPointCamera CEntityInstance
 
-func (e CPointCamera) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointCamera", name, typ}
+func (e CPointCamera) field(name string) Field {
+	return Field{e.Handle, "CPointCamera", name}
 }
 
 func (e CPointCamera) FOV() Number[float32] {
-	return Number[float32]{e.field("m_FOV", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_FOV")}
 }
 
 func (e CPointCamera) Resolution() Number[float32] {
-	return Number[float32]{e.field("m_Resolution", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Resolution")}
 }
 
 func (e CPointCamera) BFogEnable() Bool {
-	return Bool{e.field("m_bFogEnable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFogEnable")}
 }
 
 func (e CPointCamera) FlFogStart() Number[float32] {
-	return Number[float32]{e.field("m_flFogStart", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogStart")}
 }
 
 func (e CPointCamera) FlFogEnd() Number[float32] {
-	return Number[float32]{e.field("m_flFogEnd", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogEnd")}
 }
 
 func (e CPointCamera) FlFogMaxDensity() Number[float32] {
-	return Number[float32]{e.field("m_flFogMaxDensity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFogMaxDensity")}
 }
 
 func (e CPointCamera) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CPointCamera) BUseScreenAspectRatio() Bool {
-	return Bool{e.field("m_bUseScreenAspectRatio", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseScreenAspectRatio")}
 }
 
 func (e CPointCamera) FlAspectRatio() Number[float32] {
-	return Number[float32]{e.field("m_flAspectRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAspectRatio")}
 }
 
 func (e CPointCamera) BNoSky() Bool {
-	return Bool{e.field("m_bNoSky", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNoSky")}
 }
 
 func (e CPointCamera) FBrightness() Number[float32] {
-	return Number[float32]{e.field("m_fBrightness", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fBrightness")}
 }
 
 func (e CPointCamera) FlZFar() Number[float32] {
-	return Number[float32]{e.field("m_flZFar", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZFar")}
 }
 
 func (e CPointCamera) FlZNear() Number[float32] {
-	return Number[float32]{e.field("m_flZNear", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZNear")}
 }
 
 func (e CPointCamera) BCanHLTVUse() Bool {
-	return Bool{e.field("m_bCanHLTVUse", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanHLTVUse")}
 }
 
 func (e CPointCamera) BAlignWithParent() Bool {
-	return Bool{e.field("m_bAlignWithParent", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAlignWithParent")}
 }
 
 func (e CPointCamera) BDofEnabled() Bool {
-	return Bool{e.field("m_bDofEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDofEnabled")}
 }
 
 func (e CPointCamera) FlDofNearBlurry() Number[float32] {
-	return Number[float32]{e.field("m_flDofNearBlurry", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDofNearBlurry")}
 }
 
 func (e CPointCamera) FlDofNearCrisp() Number[float32] {
-	return Number[float32]{e.field("m_flDofNearCrisp", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDofNearCrisp")}
 }
 
 func (e CPointCamera) FlDofFarCrisp() Number[float32] {
-	return Number[float32]{e.field("m_flDofFarCrisp", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDofFarCrisp")}
 }
 
 func (e CPointCamera) FlDofFarBlurry() Number[float32] {
-	return Number[float32]{e.field("m_flDofFarBlurry", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDofFarBlurry")}
 }
 
 func (e CPointCamera) FlDofTiltToGround() Number[float32] {
-	return Number[float32]{e.field("m_flDofTiltToGround", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDofTiltToGround")}
 }
 
 func (e CPointCamera) TargetFOV() Number[float32] {
-	return Number[float32]{e.field("m_TargetFOV", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_TargetFOV")}
 }
 
 func (e CPointCamera) DegreesPerSecond() Number[float32] {
-	return Number[float32]{e.field("m_DegreesPerSecond", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_DegreesPerSecond")}
 }
 
 func (e CPointCamera) BIsOn() Bool {
-	return Bool{e.field("m_bIsOn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsOn")}
 }
 
 type CPointCameraVFOV CEntityInstance
 
-func (e CPointCameraVFOV) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointCameraVFOV", name, typ}
+func (e CPointCameraVFOV) field(name string) Field {
+	return Field{e.Handle, "CPointCameraVFOV", name}
 }
 
 func (e CPointCameraVFOV) FlVerticalFOV() Number[float32] {
-	return Number[float32]{e.field("m_flVerticalFOV", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flVerticalFOV")}
 }
 
 type CPointEntity CEntityInstance
 
 type CAITestPath CEntityInstance
 
-func (e CAITestPath) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAITestPath", name, typ}
+func (e CAITestPath) field(name string) Field {
+	return Field{e.Handle, "CAITestPath", name}
 }
 
 func (e CAITestPath) StrNextPath() Text {
-	return Text{e.field("m_strNextPath", mod.FieldTypeString)}
+	return Text{e.field("m_strNextPath")}
 }
 
 type CAI_LookTarget CEntityInstance
 
-func (e CAI_LookTarget) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_LookTarget", name, typ}
+func (e CAI_LookTarget) field(name string) Field {
+	return Field{e.Handle, "CAI_LookTarget", name}
 }
 
 func (e CAI_LookTarget) IContext() Number[int32] {
-	return Number[int32]{e.field("m_iContext", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iContext")}
 }
 
 func (e CAI_LookTarget) IPriority() Number[int32] {
-	return Number[int32]{e.field("m_iPriority", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPriority")}
 }
 
 func (e CAI_LookTarget) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CAI_LookTarget) FlTimeNextAvailable() Number[float32] {
-	return Number[float32]{e.field("m_flTimeNextAvailable", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeNextAvailable")}
 }
 
 func (e CAI_LookTarget) FlMaxDist() Number[float32] {
-	return Number[float32]{e.field("m_flMaxDist", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxDist")}
 }
 
 type CAI_NetworkManager CEntityInstance
 
 type CAI_VolumetricEventEntity CEntityInstance
 
-func (e CAI_VolumetricEventEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_VolumetricEventEntity", name, typ}
+func (e CAI_VolumetricEventEntity) field(name string) Field {
+	return Field{e.Handle, "CAI_VolumetricEventEntity", name}
 }
 
 func (e CAI_VolumetricEventEntity) IEventType() Number[uint8] {
-	return Number[uint8]{e.field("m_iEventType", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_iEventType")}
 }
 
 func (e CAI_VolumetricEventEntity) IEventFlags() Number[uint16] {
-	return Number[uint16]{e.field("m_iEventFlags", mod.FieldTypeUint16)}
+	return Number[uint16]{e.field("m_iEventFlags")}
 }
 
 func (e CAI_VolumetricEventEntity) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CAI_VolumetricEventEntity) HEvent() Number[uint64] {
-	return Number[uint64]{e.field("m_hEvent", mod.FieldTypeUint64)}
+	return Number[uint64]{e.field("m_hEvent")}
 }
 
 func (e CAI_VolumetricEventEntity) FlDuration() Number[float32] {
-	return Number[float32]{e.field("m_flDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDuration")}
 }
 
 func (e CAI_VolumetricEventEntity) IszProxyEntityName() Text {
-	return Text{e.field("m_iszProxyEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszProxyEntityName")}
 }
 
 type CAI_VolumetricEventEntityAlias_ai_sound CEntityInstance
 
 type CAI_VolumetricEventSensor CEntityInstance
 
-func (e CAI_VolumetricEventSensor) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_VolumetricEventSensor", name, typ}
+func (e CAI_VolumetricEventSensor) field(name string) Field {
+	return Field{e.Handle, "CAI_VolumetricEventSensor", name}
 }
 
 func (e CAI_VolumetricEventSensor) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CAI_VolumetricEventSensor) NEventTypeMask() Number[uint64] {
-	return Number[uint64]{e.field("m_nEventTypeMask", mod.FieldTypeUint64)}
+	return Number[uint64]{e.field("m_nEventTypeMask")}
 }
 
 func (e CAI_VolumetricEventSensor) FlSensitivity() Number[float32] {
-	return Number[float32]{e.field("m_flSensitivity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSensitivity")}
 }
 
 func (e CAI_VolumetricEventSensor) FlMaxRange() Number[float32] {
-	return Number[float32]{e.field("m_flMaxRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxRange")}
 }
 
 func (e CAI_VolumetricEventSensor) IszListenFilter() Text {
-	return Text{e.field("m_iszListenFilter", mod.FieldTypeString)}
+	return Text{e.field("m_iszListenFilter")}
 }
 
 func (e CAI_VolumetricEventSensor) HListenFilter() Handle[CBaseFilter] {
-	return Handle[CBaseFilter]{e.field("m_hListenFilter", mod.FieldTypeHandle)}
+	return Handle[CBaseFilter]{e.field("m_hListenFilter")}
 }
 
 type CAmbientGeneric CEntityInstance
 
-func (e CAmbientGeneric) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAmbientGeneric", name, typ}
+func (e CAmbientGeneric) field(name string) Field {
+	return Field{e.Handle, "CAmbientGeneric", name}
 }
 
 func (e CAmbientGeneric) Radius() Number[float32] {
-	return Number[float32]{e.field("m_radius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_radius")}
 }
 
 func (e CAmbientGeneric) FlMaxRadius() Number[float32] {
-	return Number[float32]{e.field("m_flMaxRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxRadius")}
 }
 
 func (e CAmbientGeneric) ISoundLevel() Number[uint32] {
-	return Number[uint32]{e.field("m_iSoundLevel", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_iSoundLevel")}
 }
 
 func (e CAmbientGeneric) FActive() Bool {
-	return Bool{e.field("m_fActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_fActive")}
 }
 
 func (e CAmbientGeneric) FLooping() Bool {
-	return Bool{e.field("m_fLooping", mod.FieldTypeBool)}
+	return Bool{e.field("m_fLooping")}
 }
 
 func (e CAmbientGeneric) SSourceEntName() Text {
-	return Text{e.field("m_sSourceEntName", mod.FieldTypeString)}
+	return Text{e.field("m_sSourceEntName")}
 }
 
 func (e CAmbientGeneric) HSoundSource() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hSoundSource", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hSoundSource")}
 }
 
 type CBaseDMStart CEntityInstance
 
-func (e CBaseDMStart) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CBaseDMStart", name, typ}
+func (e CBaseDMStart) field(name string) Field {
+	return Field{e.Handle, "CBaseDMStart", name}
 }
 
 func (e CBaseDMStart) Master() Text {
-	return Text{e.field("m_Master", mod.FieldTypeString)}
+	return Text{e.field("m_Master")}
 }
 
 type CChoreoInfoTarget CEntityInstance
@@ -2706,338 +2704,338 @@ type CCitadelMatchmakingStatusInfo CEntityInstance
 
 type CCitadel_BaseProp_MidStairs CEntityInstance
 
-func (e CCitadel_BaseProp_MidStairs) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadel_BaseProp_MidStairs", name, typ}
+func (e CCitadel_BaseProp_MidStairs) field(name string) Field {
+	return Field{e.Handle, "CCitadel_BaseProp_MidStairs", name}
 }
 
 func (e CCitadel_BaseProp_MidStairs) ELocation() Number[uint32] {
-	return Number[uint32]{e.field("m_eLocation", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eLocation")}
 }
 
 type CCitadel_Prop_MidBossIndicator CEntityInstance
 
 type CCredits CEntityInstance
 
-func (e CCredits) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCredits", name, typ}
+func (e CCredits) field(name string) Field {
+	return Field{e.Handle, "CCredits", name}
 }
 
 func (e CCredits) BRolledOutroCredits() Bool {
-	return Bool{e.field("m_bRolledOutroCredits", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRolledOutroCredits")}
 }
 
 func (e CCredits) FlLogoLength() Number[float32] {
-	return Number[float32]{e.field("m_flLogoLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLogoLength")}
 }
 
 type CEnvEntityMaker CEntityInstance
 
-func (e CEnvEntityMaker) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvEntityMaker", name, typ}
+func (e CEnvEntityMaker) field(name string) Field {
+	return Field{e.Handle, "CEnvEntityMaker", name}
 }
 
 func (e CEnvEntityMaker) VecEntityMins() Vector {
-	return Vector{e.field("m_vecEntityMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecEntityMins")}
 }
 
 func (e CEnvEntityMaker) VecEntityMaxs() Vector {
-	return Vector{e.field("m_vecEntityMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecEntityMaxs")}
 }
 
 func (e CEnvEntityMaker) HCurrentInstance() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hCurrentInstance", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hCurrentInstance")}
 }
 
 func (e CEnvEntityMaker) HCurrentBlocker() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hCurrentBlocker", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hCurrentBlocker")}
 }
 
 func (e CEnvEntityMaker) VecBlockerOrigin() Vector {
-	return Vector{e.field("m_vecBlockerOrigin", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecBlockerOrigin")}
 }
 
 func (e CEnvEntityMaker) AngPostSpawnDirection() Angles {
-	return Angles{e.field("m_angPostSpawnDirection", mod.FieldTypeVector)}
+	return Angles{e.field("m_angPostSpawnDirection")}
 }
 
 func (e CEnvEntityMaker) FlPostSpawnDirectionVariance() Number[float32] {
-	return Number[float32]{e.field("m_flPostSpawnDirectionVariance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPostSpawnDirectionVariance")}
 }
 
 func (e CEnvEntityMaker) FlPostSpawnSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flPostSpawnSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPostSpawnSpeed")}
 }
 
 func (e CEnvEntityMaker) BPostSpawnUseAngles() Bool {
-	return Bool{e.field("m_bPostSpawnUseAngles", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPostSpawnUseAngles")}
 }
 
 func (e CEnvEntityMaker) IszTemplate() Text {
-	return Text{e.field("m_iszTemplate", mod.FieldTypeString)}
+	return Text{e.field("m_iszTemplate")}
 }
 
 type CEnvInstructorHint CEntityInstance
 
-func (e CEnvInstructorHint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvInstructorHint", name, typ}
+func (e CEnvInstructorHint) field(name string) Field {
+	return Field{e.Handle, "CEnvInstructorHint", name}
 }
 
 func (e CEnvInstructorHint) IszName() Text {
-	return Text{e.field("m_iszName", mod.FieldTypeString)}
+	return Text{e.field("m_iszName")}
 }
 
 func (e CEnvInstructorHint) IszReplace_Key() Text {
-	return Text{e.field("m_iszReplace_Key", mod.FieldTypeString)}
+	return Text{e.field("m_iszReplace_Key")}
 }
 
 func (e CEnvInstructorHint) IszHintTargetEntity() Text {
-	return Text{e.field("m_iszHintTargetEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszHintTargetEntity")}
 }
 
 func (e CEnvInstructorHint) ITimeout() Number[int32] {
-	return Number[int32]{e.field("m_iTimeout", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTimeout")}
 }
 
 func (e CEnvInstructorHint) IDisplayLimit() Number[int32] {
-	return Number[int32]{e.field("m_iDisplayLimit", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iDisplayLimit")}
 }
 
 func (e CEnvInstructorHint) IszIcon_Onscreen() Text {
-	return Text{e.field("m_iszIcon_Onscreen", mod.FieldTypeString)}
+	return Text{e.field("m_iszIcon_Onscreen")}
 }
 
 func (e CEnvInstructorHint) IszIcon_Offscreen() Text {
-	return Text{e.field("m_iszIcon_Offscreen", mod.FieldTypeString)}
+	return Text{e.field("m_iszIcon_Offscreen")}
 }
 
 func (e CEnvInstructorHint) IszCaption() Text {
-	return Text{e.field("m_iszCaption", mod.FieldTypeString)}
+	return Text{e.field("m_iszCaption")}
 }
 
 func (e CEnvInstructorHint) IszActivatorCaption() Text {
-	return Text{e.field("m_iszActivatorCaption", mod.FieldTypeString)}
+	return Text{e.field("m_iszActivatorCaption")}
 }
 
 func (e CEnvInstructorHint) FIconOffset() Number[float32] {
-	return Number[float32]{e.field("m_fIconOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fIconOffset")}
 }
 
 func (e CEnvInstructorHint) FRange() Number[float32] {
-	return Number[float32]{e.field("m_fRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fRange")}
 }
 
 func (e CEnvInstructorHint) IPulseOption() Number[uint8] {
-	return Number[uint8]{e.field("m_iPulseOption", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_iPulseOption")}
 }
 
 func (e CEnvInstructorHint) IAlphaOption() Number[uint8] {
-	return Number[uint8]{e.field("m_iAlphaOption", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_iAlphaOption")}
 }
 
 func (e CEnvInstructorHint) IShakeOption() Number[uint8] {
-	return Number[uint8]{e.field("m_iShakeOption", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_iShakeOption")}
 }
 
 func (e CEnvInstructorHint) BStatic() Bool {
-	return Bool{e.field("m_bStatic", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStatic")}
 }
 
 func (e CEnvInstructorHint) BNoOffscreen() Bool {
-	return Bool{e.field("m_bNoOffscreen", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNoOffscreen")}
 }
 
 func (e CEnvInstructorHint) BForceCaption() Bool {
-	return Bool{e.field("m_bForceCaption", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceCaption")}
 }
 
 func (e CEnvInstructorHint) IInstanceType() Number[int32] {
-	return Number[int32]{e.field("m_iInstanceType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iInstanceType")}
 }
 
 func (e CEnvInstructorHint) BSuppressRest() Bool {
-	return Bool{e.field("m_bSuppressRest", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSuppressRest")}
 }
 
 func (e CEnvInstructorHint) IszBinding() Text {
-	return Text{e.field("m_iszBinding", mod.FieldTypeString)}
+	return Text{e.field("m_iszBinding")}
 }
 
 func (e CEnvInstructorHint) BAllowNoDrawTarget() Bool {
-	return Bool{e.field("m_bAllowNoDrawTarget", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAllowNoDrawTarget")}
 }
 
 func (e CEnvInstructorHint) BAutoStart() Bool {
-	return Bool{e.field("m_bAutoStart", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAutoStart")}
 }
 
 func (e CEnvInstructorHint) BLocalPlayerOnly() Bool {
-	return Bool{e.field("m_bLocalPlayerOnly", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLocalPlayerOnly")}
 }
 
 type CEnvInstructorVRHint CEntityInstance
 
-func (e CEnvInstructorVRHint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvInstructorVRHint", name, typ}
+func (e CEnvInstructorVRHint) field(name string) Field {
+	return Field{e.Handle, "CEnvInstructorVRHint", name}
 }
 
 func (e CEnvInstructorVRHint) IszName() Text {
-	return Text{e.field("m_iszName", mod.FieldTypeString)}
+	return Text{e.field("m_iszName")}
 }
 
 func (e CEnvInstructorVRHint) IszHintTargetEntity() Text {
-	return Text{e.field("m_iszHintTargetEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszHintTargetEntity")}
 }
 
 func (e CEnvInstructorVRHint) ITimeout() Number[int32] {
-	return Number[int32]{e.field("m_iTimeout", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTimeout")}
 }
 
 func (e CEnvInstructorVRHint) IszCaption() Text {
-	return Text{e.field("m_iszCaption", mod.FieldTypeString)}
+	return Text{e.field("m_iszCaption")}
 }
 
 func (e CEnvInstructorVRHint) IszStartSound() Text {
-	return Text{e.field("m_iszStartSound", mod.FieldTypeString)}
+	return Text{e.field("m_iszStartSound")}
 }
 
 func (e CEnvInstructorVRHint) ILayoutFileType() Number[int32] {
-	return Number[int32]{e.field("m_iLayoutFileType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLayoutFileType")}
 }
 
 func (e CEnvInstructorVRHint) IszCustomLayoutFile() Text {
-	return Text{e.field("m_iszCustomLayoutFile", mod.FieldTypeString)}
+	return Text{e.field("m_iszCustomLayoutFile")}
 }
 
 func (e CEnvInstructorVRHint) IAttachType() Number[int32] {
-	return Number[int32]{e.field("m_iAttachType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iAttachType")}
 }
 
 func (e CEnvInstructorVRHint) FlHeightOffset() Number[float32] {
-	return Number[float32]{e.field("m_flHeightOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHeightOffset")}
 }
 
 type CEnvMuzzleFlash CEntityInstance
 
-func (e CEnvMuzzleFlash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvMuzzleFlash", name, typ}
+func (e CEnvMuzzleFlash) field(name string) Field {
+	return Field{e.Handle, "CEnvMuzzleFlash", name}
 }
 
 func (e CEnvMuzzleFlash) FlScale() Number[float32] {
-	return Number[float32]{e.field("m_flScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flScale")}
 }
 
 func (e CEnvMuzzleFlash) IszParentAttachment() Text {
-	return Text{e.field("m_iszParentAttachment", mod.FieldTypeString)}
+	return Text{e.field("m_iszParentAttachment")}
 }
 
 type CEnvShake CEntityInstance
 
-func (e CEnvShake) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvShake", name, typ}
+func (e CEnvShake) field(name string) Field {
+	return Field{e.Handle, "CEnvShake", name}
 }
 
 func (e CEnvShake) LimitToEntity() Text {
-	return Text{e.field("m_limitToEntity", mod.FieldTypeString)}
+	return Text{e.field("m_limitToEntity")}
 }
 
 func (e CEnvShake) Amplitude() Number[float32] {
-	return Number[float32]{e.field("m_Amplitude", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Amplitude")}
 }
 
 func (e CEnvShake) Frequency() Number[float32] {
-	return Number[float32]{e.field("m_Frequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Frequency")}
 }
 
 func (e CEnvShake) Duration() Number[float32] {
-	return Number[float32]{e.field("m_Duration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Duration")}
 }
 
 func (e CEnvShake) Radius() Number[float32] {
-	return Number[float32]{e.field("m_Radius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Radius")}
 }
 
 func (e CEnvShake) StopTime() Number[float32] {
-	return Number[float32]{e.field("m_stopTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_stopTime")}
 }
 
 func (e CEnvShake) NextShake() Number[float32] {
-	return Number[float32]{e.field("m_nextShake", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_nextShake")}
 }
 
 func (e CEnvShake) CurrentAmp() Number[float32] {
-	return Number[float32]{e.field("m_currentAmp", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_currentAmp")}
 }
 
 func (e CEnvShake) MaxForce() Vector {
-	return Vector{e.field("m_maxForce", mod.FieldTypeVector)}
+	return Vector{e.field("m_maxForce")}
 }
 
 type CEnvSpark CEntityInstance
 
-func (e CEnvSpark) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvSpark", name, typ}
+func (e CEnvSpark) field(name string) Field {
+	return Field{e.Handle, "CEnvSpark", name}
 }
 
 func (e CEnvSpark) FlDelay() Number[float32] {
-	return Number[float32]{e.field("m_flDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDelay")}
 }
 
 func (e CEnvSpark) NMagnitude() Number[int32] {
-	return Number[int32]{e.field("m_nMagnitude", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMagnitude")}
 }
 
 func (e CEnvSpark) NTrailLength() Number[int32] {
-	return Number[int32]{e.field("m_nTrailLength", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTrailLength")}
 }
 
 func (e CEnvSpark) NType() Number[int32] {
-	return Number[int32]{e.field("m_nType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nType")}
 }
 
 type CEnvSplash CEntityInstance
 
-func (e CEnvSplash) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvSplash", name, typ}
+func (e CEnvSplash) field(name string) Field {
+	return Field{e.Handle, "CEnvSplash", name}
 }
 
 func (e CEnvSplash) FlScale() Number[float32] {
-	return Number[float32]{e.field("m_flScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flScale")}
 }
 
 type CEnvTilt CEntityInstance
 
-func (e CEnvTilt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvTilt", name, typ}
+func (e CEnvTilt) field(name string) Field {
+	return Field{e.Handle, "CEnvTilt", name}
 }
 
 func (e CEnvTilt) Duration() Number[float32] {
-	return Number[float32]{e.field("m_Duration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Duration")}
 }
 
 func (e CEnvTilt) Radius() Number[float32] {
-	return Number[float32]{e.field("m_Radius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Radius")}
 }
 
 func (e CEnvTilt) TiltTime() Number[float32] {
-	return Number[float32]{e.field("m_TiltTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_TiltTime")}
 }
 
 func (e CEnvTilt) StopTime() Number[float32] {
-	return Number[float32]{e.field("m_stopTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_stopTime")}
 }
 
 type CEnvViewPunch CEntityInstance
 
-func (e CEnvViewPunch) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvViewPunch", name, typ}
+func (e CEnvViewPunch) field(name string) Field {
+	return Field{e.Handle, "CEnvViewPunch", name}
 }
 
 func (e CEnvViewPunch) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CEnvViewPunch) AngViewPunch() Angles {
-	return Angles{e.field("m_angViewPunch", mod.FieldTypeVector)}
+	return Angles{e.field("m_angViewPunch")}
 }
 
 type CInfoAbilityTestBot CEntityInstance
@@ -3048,98 +3046,98 @@ type CInfoCitadelHideout CEntityInstance
 
 type CInfoDynamicShadowHint CEntityInstance
 
-func (e CInfoDynamicShadowHint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoDynamicShadowHint", name, typ}
+func (e CInfoDynamicShadowHint) field(name string) Field {
+	return Field{e.Handle, "CInfoDynamicShadowHint", name}
 }
 
 func (e CInfoDynamicShadowHint) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CInfoDynamicShadowHint) FlRange() Number[float32] {
-	return Number[float32]{e.field("m_flRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRange")}
 }
 
 func (e CInfoDynamicShadowHint) NImportance() Number[int32] {
-	return Number[int32]{e.field("m_nImportance", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nImportance")}
 }
 
 func (e CInfoDynamicShadowHint) NLightChoice() Number[int32] {
-	return Number[int32]{e.field("m_nLightChoice", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLightChoice")}
 }
 
 func (e CInfoDynamicShadowHint) HLight() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLight", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLight")}
 }
 
 type CInfoDynamicShadowHintBox CEntityInstance
 
-func (e CInfoDynamicShadowHintBox) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoDynamicShadowHintBox", name, typ}
+func (e CInfoDynamicShadowHintBox) field(name string) Field {
+	return Field{e.Handle, "CInfoDynamicShadowHintBox", name}
 }
 
 func (e CInfoDynamicShadowHintBox) VBoxMins() Vector {
-	return Vector{e.field("m_vBoxMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMins")}
 }
 
 func (e CInfoDynamicShadowHintBox) VBoxMaxs() Vector {
-	return Vector{e.field("m_vBoxMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMaxs")}
 }
 
 type CInfoFan CEntityInstance
 
-func (e CInfoFan) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoFan", name, typ}
+func (e CInfoFan) field(name string) Field {
+	return Field{e.Handle, "CInfoFan", name}
 }
 
 func (e CInfoFan) FFanForceMaxRadius() Number[float32] {
-	return Number[float32]{e.field("m_fFanForceMaxRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fFanForceMaxRadius")}
 }
 
 func (e CInfoFan) FFanForceMinRadius() Number[float32] {
-	return Number[float32]{e.field("m_fFanForceMinRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fFanForceMinRadius")}
 }
 
 func (e CInfoFan) FlCurveDistRange() Number[float32] {
-	return Number[float32]{e.field("m_flCurveDistRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurveDistRange")}
 }
 
 func (e CInfoFan) FanForceCurveString() Text {
-	return Text{e.field("m_FanForceCurveString", mod.FieldTypeString)}
+	return Text{e.field("m_FanForceCurveString")}
 }
 
 type CInfoGameEventProxy CEntityInstance
 
-func (e CInfoGameEventProxy) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoGameEventProxy", name, typ}
+func (e CInfoGameEventProxy) field(name string) Field {
+	return Field{e.Handle, "CInfoGameEventProxy", name}
 }
 
 func (e CInfoGameEventProxy) IszEventName() Text {
-	return Text{e.field("m_iszEventName", mod.FieldTypeString)}
+	return Text{e.field("m_iszEventName")}
 }
 
 func (e CInfoGameEventProxy) FlRange() Number[float32] {
-	return Number[float32]{e.field("m_flRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRange")}
 }
 
 type CInfoHeroTestingController CEntityInstance
 
 type CInfoHeroTestingPoint CEntityInstance
 
-func (e CInfoHeroTestingPoint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoHeroTestingPoint", name, typ}
+func (e CInfoHeroTestingPoint) field(name string) Field {
+	return Field{e.Handle, "CInfoHeroTestingPoint", name}
 }
 
 func (e CInfoHeroTestingPoint) EPointType() Number[int32] {
-	return Number[int32]{e.field("m_ePointType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ePointType")}
 }
 
 func (e CInfoHeroTestingPoint) SMoveTarget() Text {
-	return Text{e.field("m_sMoveTarget", mod.FieldTypeString)}
+	return Text{e.field("m_sMoveTarget")}
 }
 
 func (e CInfoHeroTestingPoint) HeroID() Number[uint32] {
-	return Number[uint32]{e.field("m_HeroID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_HeroID")}
 }
 
 type CInfoInstructorHintTarget CEntityInstance
@@ -3150,60 +3148,60 @@ type CInfoLandmark CEntityInstance
 
 type CInfoOffscreenPanoramaTexture CEntityInstance
 
-func (e CInfoOffscreenPanoramaTexture) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoOffscreenPanoramaTexture", name, typ}
+func (e CInfoOffscreenPanoramaTexture) field(name string) Field {
+	return Field{e.Handle, "CInfoOffscreenPanoramaTexture", name}
 }
 
 func (e CInfoOffscreenPanoramaTexture) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) BEnableMipGen() Bool {
-	return Bool{e.field("m_bEnableMipGen", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableMipGen")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) NResolutionX() Number[int32] {
-	return Number[int32]{e.field("m_nResolutionX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nResolutionX")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) NResolutionY() Number[int32] {
-	return Number[int32]{e.field("m_nResolutionY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nResolutionY")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) SzPanelType() Text {
-	return Text{e.field("m_szPanelType", mod.FieldTypeString)}
+	return Text{e.field("m_szPanelType")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) SzLayoutFileName() Text {
-	return Text{e.field("m_szLayoutFileName", mod.FieldTypeString)}
+	return Text{e.field("m_szLayoutFileName")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) RenderAttrName() Text {
-	return Text{e.field("m_RenderAttrName", mod.FieldTypeString)}
+	return Text{e.field("m_RenderAttrName")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) NTargetChangeCount() Number[int32] {
-	return Number[int32]{e.field("m_nTargetChangeCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTargetChangeCount")}
 }
 
 func (e CInfoOffscreenPanoramaTexture) SzTargetsName() Text {
-	return Text{e.field("m_szTargetsName", mod.FieldTypeString)}
+	return Text{e.field("m_szTargetsName")}
 }
 
 type CInfoParticleTarget CEntityInstance
 
 type CInfoPlayerStart CEntityInstance
 
-func (e CInfoPlayerStart) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoPlayerStart", name, typ}
+func (e CInfoPlayerStart) field(name string) Field {
+	return Field{e.Handle, "CInfoPlayerStart", name}
 }
 
 func (e CInfoPlayerStart) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CInfoPlayerStart) BIsMaster() Bool {
-	return Bool{e.field("m_bIsMaster", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsMaster")}
 }
 
 type CInfoPortalLink CEntityInstance
@@ -3216,86 +3214,86 @@ type CInfoTeleportDestination CEntityInstance
 
 type CInfoTrooperNeutralCamp CEntityInstance
 
-func (e CInfoTrooperNeutralCamp) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoTrooperNeutralCamp", name, typ}
+func (e CInfoTrooperNeutralCamp) field(name string) Field {
+	return Field{e.Handle, "CInfoTrooperNeutralCamp", name}
 }
 
 func (e CInfoTrooperNeutralCamp) IszCampName() Text {
-	return Text{e.field("m_iszCampName", mod.FieldTypeString)}
+	return Text{e.field("m_iszCampName")}
 }
 
 func (e CInfoTrooperNeutralCamp) FlTetherRadiusOverride() Number[float32] {
-	return Number[float32]{e.field("m_flTetherRadiusOverride", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTetherRadiusOverride")}
 }
 
 type CInfoTutorialPoint CEntityInstance
 
-func (e CInfoTutorialPoint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoTutorialPoint", name, typ}
+func (e CInfoTutorialPoint) field(name string) Field {
+	return Field{e.Handle, "CInfoTutorialPoint", name}
 }
 
 func (e CInfoTutorialPoint) EPointType() Number[int32] {
-	return Number[int32]{e.field("m_ePointType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_ePointType")}
 }
 
 func (e CInfoTutorialPoint) SMoveTarget() Text {
-	return Text{e.field("m_sMoveTarget", mod.FieldTypeString)}
+	return Text{e.field("m_sMoveTarget")}
 }
 
 func (e CInfoTutorialPoint) HeroID() Number[uint32] {
-	return Number[uint32]{e.field("m_HeroID", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_HeroID")}
 }
 
 type CInstructorEventEntity CEntityInstance
 
-func (e CInstructorEventEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInstructorEventEntity", name, typ}
+func (e CInstructorEventEntity) field(name string) Field {
+	return Field{e.Handle, "CInstructorEventEntity", name}
 }
 
 func (e CInstructorEventEntity) IszName() Text {
-	return Text{e.field("m_iszName", mod.FieldTypeString)}
+	return Text{e.field("m_iszName")}
 }
 
 func (e CInstructorEventEntity) IszHintTargetEntity() Text {
-	return Text{e.field("m_iszHintTargetEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszHintTargetEntity")}
 }
 
 func (e CInstructorEventEntity) HTargetPlayer() Handle[CBasePlayerPawn] {
-	return Handle[CBasePlayerPawn]{e.field("m_hTargetPlayer", mod.FieldTypeHandle)}
+	return Handle[CBasePlayerPawn]{e.field("m_hTargetPlayer")}
 }
 
 type CKeepUpright CEntityInstance
 
-func (e CKeepUpright) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CKeepUpright", name, typ}
+func (e CKeepUpright) field(name string) Field {
+	return Field{e.Handle, "CKeepUpright", name}
 }
 
 func (e CKeepUpright) WorldGoalAxis() Vector {
-	return Vector{e.field("m_worldGoalAxis", mod.FieldTypeVector)}
+	return Vector{e.field("m_worldGoalAxis")}
 }
 
 func (e CKeepUpright) LocalTestAxis() Vector {
-	return Vector{e.field("m_localTestAxis", mod.FieldTypeVector)}
+	return Vector{e.field("m_localTestAxis")}
 }
 
 func (e CKeepUpright) NameAttach() Text {
-	return Text{e.field("m_nameAttach", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach")}
 }
 
 func (e CKeepUpright) AttachedObject() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_attachedObject", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_attachedObject")}
 }
 
 func (e CKeepUpright) AngularLimit() Number[float32] {
-	return Number[float32]{e.field("m_angularLimit", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_angularLimit")}
 }
 
 func (e CKeepUpright) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CKeepUpright) BDampAllRotation() Bool {
-	return Bool{e.field("m_bDampAllRotation", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDampAllRotation")}
 }
 
 type CLogicProximity CEntityInstance
@@ -3304,156 +3302,156 @@ type CLogicScript CEntityInstance
 
 type CMessage CEntityInstance
 
-func (e CMessage) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMessage", name, typ}
+func (e CMessage) field(name string) Field {
+	return Field{e.Handle, "CMessage", name}
 }
 
 func (e CMessage) IszMessage() Text {
-	return Text{e.field("m_iszMessage", mod.FieldTypeString)}
+	return Text{e.field("m_iszMessage")}
 }
 
 func (e CMessage) MessageVolume() Number[float32] {
-	return Number[float32]{e.field("m_MessageVolume", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_MessageVolume")}
 }
 
 func (e CMessage) MessageAttenuation() Number[int32] {
-	return Number[int32]{e.field("m_MessageAttenuation", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_MessageAttenuation")}
 }
 
 func (e CMessage) Radius() Number[float32] {
-	return Number[float32]{e.field("m_Radius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Radius")}
 }
 
 type CMessageEntity CEntityInstance
 
-func (e CMessageEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMessageEntity", name, typ}
+func (e CMessageEntity) field(name string) Field {
+	return Field{e.Handle, "CMessageEntity", name}
 }
 
 func (e CMessageEntity) Radius() Number[int32] {
-	return Number[int32]{e.field("m_radius", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_radius")}
 }
 
 func (e CMessageEntity) MessageText() Text {
-	return Text{e.field("m_messageText", mod.FieldTypeString)}
+	return Text{e.field("m_messageText")}
 }
 
 func (e CMessageEntity) DrawText() Bool {
-	return Bool{e.field("m_drawText", mod.FieldTypeBool)}
+	return Bool{e.field("m_drawText")}
 }
 
 func (e CMessageEntity) BDeveloperOnly() Bool {
-	return Bool{e.field("m_bDeveloperOnly", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDeveloperOnly")}
 }
 
 func (e CMessageEntity) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 type CMiniMapMarker CEntityInstance
 
-func (e CMiniMapMarker) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMiniMapMarker", name, typ}
+func (e CMiniMapMarker) field(name string) Field {
+	return Field{e.Handle, "CMiniMapMarker", name}
 }
 
 func (e CMiniMapMarker) EType() Number[uint32] {
-	return Number[uint32]{e.field("m_eType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eType")}
 }
 
 type CNPCSpawnDestination CEntityInstance
 
-func (e CNPCSpawnDestination) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CNPCSpawnDestination", name, typ}
+func (e CNPCSpawnDestination) field(name string) Field {
+	return Field{e.Handle, "CNPCSpawnDestination", name}
 }
 
 func (e CNPCSpawnDestination) ReuseDelay() Number[float32] {
-	return Number[float32]{e.field("m_ReuseDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_ReuseDelay")}
 }
 
 func (e CNPCSpawnDestination) RenameNPC() Text {
-	return Text{e.field("m_RenameNPC", mod.FieldTypeString)}
+	return Text{e.field("m_RenameNPC")}
 }
 
 func (e CNPCSpawnDestination) TimeNextAvailable() Number[float32] {
-	return Number[float32]{e.field("m_TimeNextAvailable", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_TimeNextAvailable")}
 }
 
 type CNavLinkAreaEntity CEntityInstance
 
-func (e CNavLinkAreaEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CNavLinkAreaEntity", name, typ}
+func (e CNavLinkAreaEntity) field(name string) Field {
+	return Field{e.Handle, "CNavLinkAreaEntity", name}
 }
 
 func (e CNavLinkAreaEntity) FlWidth() Number[float32] {
-	return Number[float32]{e.field("m_flWidth", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWidth")}
 }
 
 func (e CNavLinkAreaEntity) VLocatorOffset() Vector {
-	return Vector{e.field("m_vLocatorOffset", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLocatorOffset")}
 }
 
 func (e CNavLinkAreaEntity) QLocatorAnglesOffset() Angles {
-	return Angles{e.field("m_qLocatorAnglesOffset", mod.FieldTypeVector)}
+	return Angles{e.field("m_qLocatorAnglesOffset")}
 }
 
 func (e CNavLinkAreaEntity) VPrevEntry() Vector {
-	return Vector{e.field("m_vPrevEntry", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPrevEntry")}
 }
 
 func (e CNavLinkAreaEntity) VPrevExit() Vector {
-	return Vector{e.field("m_vPrevExit", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPrevExit")}
 }
 
 func (e CNavLinkAreaEntity) StrEndLocatorParentName() Text {
-	return Text{e.field("m_strEndLocatorParentName", mod.FieldTypeString)}
+	return Text{e.field("m_strEndLocatorParentName")}
 }
 
 func (e CNavLinkAreaEntity) HEndLocatorParent() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hEndLocatorParent", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hEndLocatorParent")}
 }
 
 func (e CNavLinkAreaEntity) StrMovementForward() Text {
-	return Text{e.field("m_strMovementForward", mod.FieldTypeString)}
+	return Text{e.field("m_strMovementForward")}
 }
 
 func (e CNavLinkAreaEntity) StrMovementReverse() Text {
-	return Text{e.field("m_strMovementReverse", mod.FieldTypeString)}
+	return Text{e.field("m_strMovementReverse")}
 }
 
 func (e CNavLinkAreaEntity) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CNavLinkAreaEntity) BAllowCrossMovableConnections() Bool {
-	return Bool{e.field("m_bAllowCrossMovableConnections", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAllowCrossMovableConnections")}
 }
 
 func (e CNavLinkAreaEntity) BSuspendConnectionsWhileMoving() Bool {
-	return Bool{e.field("m_bSuspendConnectionsWhileMoving", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSuspendConnectionsWhileMoving")}
 }
 
 func (e CNavLinkAreaEntity) StrFilterName() Text {
-	return Text{e.field("m_strFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_strFilterName")}
 }
 
 func (e CNavLinkAreaEntity) HFilter() Handle[CBaseFilter] {
-	return Handle[CBaseFilter]{e.field("m_hFilter", mod.FieldTypeHandle)}
+	return Handle[CBaseFilter]{e.field("m_hFilter")}
 }
 
 func (e CNavLinkAreaEntity) BIsTerminus() Bool {
-	return Bool{e.field("m_bIsTerminus", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsTerminus")}
 }
 
 func (e CNavLinkAreaEntity) BIsAutoAdjustForward() Bool {
-	return Bool{e.field("m_bIsAutoAdjustForward", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsAutoAdjustForward")}
 }
 
 func (e CNavLinkAreaEntity) NProcessOrder() Number[int32] {
-	return Number[int32]{e.field("m_nProcessOrder", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nProcessOrder")}
 }
 
 func (e CNavLinkAreaEntity) NSplits() Number[int32] {
-	return Number[int32]{e.field("m_nSplits", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSplits")}
 }
 
 type CNavSpaceInfo CEntityInstance
@@ -3462,3140 +3460,3140 @@ type CNavWalkable CEntityInstance
 
 type CPathCorner CEntityInstance
 
-func (e CPathCorner) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathCorner", name, typ}
+func (e CPathCorner) field(name string) Field {
+	return Field{e.Handle, "CPathCorner", name}
 }
 
 func (e CPathCorner) BTriggerLocomotionStop() Bool {
-	return Bool{e.field("m_bTriggerLocomotionStop", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTriggerLocomotionStop")}
 }
 
 func (e CPathCorner) BSmoothArrival() Bool {
-	return Bool{e.field("m_bSmoothArrival", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSmoothArrival")}
 }
 
 func (e CPathCorner) BExactPositioning() Bool {
-	return Bool{e.field("m_bExactPositioning", mod.FieldTypeBool)}
+	return Bool{e.field("m_bExactPositioning")}
 }
 
 func (e CPathCorner) FlWait() Number[float32] {
-	return Number[float32]{e.field("m_flWait", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWait")}
 }
 
 func (e CPathCorner) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CPathCorner) FlWaypointSuccessRadiusWhenBlocked() Number[float32] {
-	return Number[float32]{e.field("m_flWaypointSuccessRadiusWhenBlocked", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWaypointSuccessRadiusWhenBlocked")}
 }
 
 func (e CPathCorner) FlWaypointSuccessRadius() Number[float32] {
-	return Number[float32]{e.field("m_flWaypointSuccessRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWaypointSuccessRadius")}
 }
 
 func (e CPathCorner) FlPathEndDistanceFromGoal() Number[float32] {
-	return Number[float32]{e.field("m_flPathEndDistanceFromGoal", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPathEndDistanceFromGoal")}
 }
 
 func (e CPathCorner) FlSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeed")}
 }
 
 type CPathCornerCrash CEntityInstance
 
 type CPathNode CEntityInstance
 
-func (e CPathNode) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathNode", name, typ}
+func (e CPathNode) field(name string) Field {
+	return Field{e.Handle, "CPathNode", name}
 }
 
 func (e CPathNode) VInTangentLocal() Vector {
-	return Vector{e.field("m_vInTangentLocal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vInTangentLocal")}
 }
 
 func (e CPathNode) VOutTangentLocal() Vector {
-	return Vector{e.field("m_vOutTangentLocal", mod.FieldTypeVector)}
+	return Vector{e.field("m_vOutTangentLocal")}
 }
 
 func (e CPathNode) StrParentPathUniqueID() Text {
-	return Text{e.field("m_strParentPathUniqueID", mod.FieldTypeString)}
+	return Text{e.field("m_strParentPathUniqueID")}
 }
 
 func (e CPathNode) StrPathNodeParameter() Text {
-	return Text{e.field("m_strPathNodeParameter", mod.FieldTypeString)}
+	return Text{e.field("m_strPathNodeParameter")}
 }
 
 func (e CPathNode) HPath() Handle[CPathWithDynamicNodes] {
-	return Handle[CPathWithDynamicNodes]{e.field("m_hPath", mod.FieldTypeHandle)}
+	return Handle[CPathWithDynamicNodes]{e.field("m_hPath")}
 }
 
 type CMoverPathNode CEntityInstance
 
 type CPathTrack CEntityInstance
 
-func (e CPathTrack) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathTrack", name, typ}
+func (e CPathTrack) field(name string) Field {
+	return Field{e.Handle, "CPathTrack", name}
 }
 
 func (e CPathTrack) Pnext() Handle[CPathTrack] {
-	return Handle[CPathTrack]{e.field("m_pnext", mod.FieldTypeHandle)}
+	return Handle[CPathTrack]{e.field("m_pnext")}
 }
 
 func (e CPathTrack) Pprevious() Handle[CPathTrack] {
-	return Handle[CPathTrack]{e.field("m_pprevious", mod.FieldTypeHandle)}
+	return Handle[CPathTrack]{e.field("m_pprevious")}
 }
 
 func (e CPathTrack) Paltpath() Handle[CPathTrack] {
-	return Handle[CPathTrack]{e.field("m_paltpath", mod.FieldTypeHandle)}
+	return Handle[CPathTrack]{e.field("m_paltpath")}
 }
 
 func (e CPathTrack) FlSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeed")}
 }
 
 func (e CPathTrack) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CPathTrack) Length() Number[float32] {
-	return Number[float32]{e.field("m_length", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_length")}
 }
 
 func (e CPathTrack) AltName() Text {
-	return Text{e.field("m_altName", mod.FieldTypeString)}
+	return Text{e.field("m_altName")}
 }
 
 func (e CPathTrack) NIterVal() Number[int32] {
-	return Number[int32]{e.field("m_nIterVal", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nIterVal")}
 }
 
 func (e CPathTrack) EOrientationType() Number[uint32] {
-	return Number[uint32]{e.field("m_eOrientationType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eOrientationType")}
 }
 
 type CPhysExplosion CEntityInstance
 
-func (e CPhysExplosion) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysExplosion", name, typ}
+func (e CPhysExplosion) field(name string) Field {
+	return Field{e.Handle, "CPhysExplosion", name}
 }
 
 func (e CPhysExplosion) BExplodeOnSpawn() Bool {
-	return Bool{e.field("m_bExplodeOnSpawn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bExplodeOnSpawn")}
 }
 
 func (e CPhysExplosion) FlMagnitude() Number[float32] {
-	return Number[float32]{e.field("m_flMagnitude", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMagnitude")}
 }
 
 func (e CPhysExplosion) FlDamage() Number[float32] {
-	return Number[float32]{e.field("m_flDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDamage")}
 }
 
 func (e CPhysExplosion) Radius() Number[float32] {
-	return Number[float32]{e.field("m_radius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_radius")}
 }
 
 func (e CPhysExplosion) TargetEntityName() Text {
-	return Text{e.field("m_targetEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_targetEntityName")}
 }
 
 func (e CPhysExplosion) IgnoreEntityName() Text {
-	return Text{e.field("m_ignoreEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_ignoreEntityName")}
 }
 
 func (e CPhysExplosion) FlInnerRadius() Number[float32] {
-	return Number[float32]{e.field("m_flInnerRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInnerRadius")}
 }
 
 func (e CPhysExplosion) FlPushScale() Number[float32] {
-	return Number[float32]{e.field("m_flPushScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPushScale")}
 }
 
 func (e CPhysExplosion) BConvertToDebrisWhenPossible() Bool {
-	return Bool{e.field("m_bConvertToDebrisWhenPossible", mod.FieldTypeBool)}
+	return Bool{e.field("m_bConvertToDebrisWhenPossible")}
 }
 
 func (e CPhysExplosion) BAffectInvulnerableEnts() Bool {
-	return Bool{e.field("m_bAffectInvulnerableEnts", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAffectInvulnerableEnts")}
 }
 
 func (e CPhysExplosion) BDisablePushClamp() Bool {
-	return Bool{e.field("m_bDisablePushClamp", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisablePushClamp")}
 }
 
 type CPhysForce CEntityInstance
 
-func (e CPhysForce) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysForce", name, typ}
+func (e CPhysForce) field(name string) Field {
+	return Field{e.Handle, "CPhysForce", name}
 }
 
 func (e CPhysForce) NameAttach() Text {
-	return Text{e.field("m_nameAttach", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach")}
 }
 
 func (e CPhysForce) Force() Number[float32] {
-	return Number[float32]{e.field("m_force", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_force")}
 }
 
 func (e CPhysForce) ForceTime() Number[float32] {
-	return Number[float32]{e.field("m_forceTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_forceTime")}
 }
 
 func (e CPhysForce) AttachedObject() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_attachedObject", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_attachedObject")}
 }
 
 func (e CPhysForce) WasRestored() Bool {
-	return Bool{e.field("m_wasRestored", mod.FieldTypeBool)}
+	return Bool{e.field("m_wasRestored")}
 }
 
 type CPhysThruster CEntityInstance
 
-func (e CPhysThruster) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysThruster", name, typ}
+func (e CPhysThruster) field(name string) Field {
+	return Field{e.Handle, "CPhysThruster", name}
 }
 
 func (e CPhysThruster) LocalOrigin() Vector {
-	return Vector{e.field("m_localOrigin", mod.FieldTypeVector)}
+	return Vector{e.field("m_localOrigin")}
 }
 
 type CPhysTorque CEntityInstance
 
-func (e CPhysTorque) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysTorque", name, typ}
+func (e CPhysTorque) field(name string) Field {
+	return Field{e.Handle, "CPhysTorque", name}
 }
 
 func (e CPhysTorque) Axis() Vector {
-	return Vector{e.field("m_axis", mod.FieldTypeVector)}
+	return Vector{e.field("m_axis")}
 }
 
 type CPhysImpact CEntityInstance
 
-func (e CPhysImpact) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysImpact", name, typ}
+func (e CPhysImpact) field(name string) Field {
+	return Field{e.Handle, "CPhysImpact", name}
 }
 
 func (e CPhysImpact) Damage() Number[float32] {
-	return Number[float32]{e.field("m_damage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_damage")}
 }
 
 func (e CPhysImpact) Distance() Number[float32] {
-	return Number[float32]{e.field("m_distance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_distance")}
 }
 
 func (e CPhysImpact) DirectionEntityName() Text {
-	return Text{e.field("m_directionEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_directionEntityName")}
 }
 
 type CPointAngleSensor CEntityInstance
 
-func (e CPointAngleSensor) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointAngleSensor", name, typ}
+func (e CPointAngleSensor) field(name string) Field {
+	return Field{e.Handle, "CPointAngleSensor", name}
 }
 
 func (e CPointAngleSensor) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CPointAngleSensor) NLookAtName() Text {
-	return Text{e.field("m_nLookAtName", mod.FieldTypeString)}
+	return Text{e.field("m_nLookAtName")}
 }
 
 func (e CPointAngleSensor) HTargetEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetEntity")}
 }
 
 func (e CPointAngleSensor) HLookAtEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLookAtEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLookAtEntity")}
 }
 
 func (e CPointAngleSensor) FlDuration() Number[float32] {
-	return Number[float32]{e.field("m_flDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDuration")}
 }
 
 func (e CPointAngleSensor) FlDotTolerance() Number[float32] {
-	return Number[float32]{e.field("m_flDotTolerance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDotTolerance")}
 }
 
 func (e CPointAngleSensor) FlFacingTime() Number[float32] {
-	return Number[float32]{e.field("m_flFacingTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFacingTime")}
 }
 
 func (e CPointAngleSensor) BFired() Bool {
-	return Bool{e.field("m_bFired", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFired")}
 }
 
 type CPointAngularVelocitySensor CEntityInstance
 
-func (e CPointAngularVelocitySensor) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointAngularVelocitySensor", name, typ}
+func (e CPointAngularVelocitySensor) field(name string) Field {
+	return Field{e.Handle, "CPointAngularVelocitySensor", name}
 }
 
 func (e CPointAngularVelocitySensor) HTargetEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetEntity")}
 }
 
 func (e CPointAngularVelocitySensor) FlThreshold() Number[float32] {
-	return Number[float32]{e.field("m_flThreshold", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flThreshold")}
 }
 
 func (e CPointAngularVelocitySensor) NLastCompareResult() Number[int32] {
-	return Number[int32]{e.field("m_nLastCompareResult", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastCompareResult")}
 }
 
 func (e CPointAngularVelocitySensor) NLastFireResult() Number[int32] {
-	return Number[int32]{e.field("m_nLastFireResult", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastFireResult")}
 }
 
 func (e CPointAngularVelocitySensor) FlFireTime() Number[float32] {
-	return Number[float32]{e.field("m_flFireTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFireTime")}
 }
 
 func (e CPointAngularVelocitySensor) FlFireInterval() Number[float32] {
-	return Number[float32]{e.field("m_flFireInterval", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFireInterval")}
 }
 
 func (e CPointAngularVelocitySensor) FlLastAngVelocity() Number[float32] {
-	return Number[float32]{e.field("m_flLastAngVelocity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastAngVelocity")}
 }
 
 func (e CPointAngularVelocitySensor) LastOrientation() Angles {
-	return Angles{e.field("m_lastOrientation", mod.FieldTypeVector)}
+	return Angles{e.field("m_lastOrientation")}
 }
 
 func (e CPointAngularVelocitySensor) VecAxis() Vector {
-	return Vector{e.field("m_vecAxis", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAxis")}
 }
 
 func (e CPointAngularVelocitySensor) BUseHelper() Bool {
-	return Bool{e.field("m_bUseHelper", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseHelper")}
 }
 
 type CPointBroadcastClientCommand CEntityInstance
 
 type CPointChildModifier CEntityInstance
 
-func (e CPointChildModifier) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointChildModifier", name, typ}
+func (e CPointChildModifier) field(name string) Field {
+	return Field{e.Handle, "CPointChildModifier", name}
 }
 
 func (e CPointChildModifier) BOrphanInsteadOfDeletingChildrenOnRemove() Bool {
-	return Bool{e.field("m_bOrphanInsteadOfDeletingChildrenOnRemove", mod.FieldTypeBool)}
+	return Bool{e.field("m_bOrphanInsteadOfDeletingChildrenOnRemove")}
 }
 
 type CPointClientCommand CEntityInstance
 
 type CPointHurt CEntityInstance
 
-func (e CPointHurt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointHurt", name, typ}
+func (e CPointHurt) field(name string) Field {
+	return Field{e.Handle, "CPointHurt", name}
 }
 
 func (e CPointHurt) NDamage() Number[int32] {
-	return Number[int32]{e.field("m_nDamage", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDamage")}
 }
 
 func (e CPointHurt) BitsDamageType() Number[uint32] {
-	return Number[uint32]{e.field("m_bitsDamageType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_bitsDamageType")}
 }
 
 func (e CPointHurt) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CPointHurt) FlDelay() Number[float32] {
-	return Number[float32]{e.field("m_flDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDelay")}
 }
 
 func (e CPointHurt) StrTarget() Text {
-	return Text{e.field("m_strTarget", mod.FieldTypeString)}
+	return Text{e.field("m_strTarget")}
 }
 
 func (e CPointHurt) PActivator() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_pActivator", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_pActivator")}
 }
 
 type CPointProximitySensor CEntityInstance
 
-func (e CPointProximitySensor) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointProximitySensor", name, typ}
+func (e CPointProximitySensor) field(name string) Field {
+	return Field{e.Handle, "CPointProximitySensor", name}
 }
 
 func (e CPointProximitySensor) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CPointProximitySensor) HTargetEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetEntity")}
 }
 
 type CPointPush CEntityInstance
 
-func (e CPointPush) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointPush", name, typ}
+func (e CPointPush) field(name string) Field {
+	return Field{e.Handle, "CPointPush", name}
 }
 
 func (e CPointPush) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CPointPush) FlMagnitude() Number[float32] {
-	return Number[float32]{e.field("m_flMagnitude", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMagnitude")}
 }
 
 func (e CPointPush) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CPointPush) FlInnerRadius() Number[float32] {
-	return Number[float32]{e.field("m_flInnerRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInnerRadius")}
 }
 
 func (e CPointPush) FlConeOfInfluence() Number[float32] {
-	return Number[float32]{e.field("m_flConeOfInfluence", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flConeOfInfluence")}
 }
 
 func (e CPointPush) IszFilterName() Text {
-	return Text{e.field("m_iszFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_iszFilterName")}
 }
 
 func (e CPointPush) HFilter() Handle[CBaseFilter] {
-	return Handle[CBaseFilter]{e.field("m_hFilter", mod.FieldTypeHandle)}
+	return Handle[CBaseFilter]{e.field("m_hFilter")}
 }
 
 type CPointServerCommand CEntityInstance
 
 type CPointVelocitySensor CEntityInstance
 
-func (e CPointVelocitySensor) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointVelocitySensor", name, typ}
+func (e CPointVelocitySensor) field(name string) Field {
+	return Field{e.Handle, "CPointVelocitySensor", name}
 }
 
 func (e CPointVelocitySensor) HTargetEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetEntity")}
 }
 
 func (e CPointVelocitySensor) VecAxis() Vector {
-	return Vector{e.field("m_vecAxis", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAxis")}
 }
 
 func (e CPointVelocitySensor) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CPointVelocitySensor) FPrevVelocity() Number[float32] {
-	return Number[float32]{e.field("m_fPrevVelocity", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fPrevVelocity")}
 }
 
 func (e CPointVelocitySensor) FlAvgInterval() Number[float32] {
-	return Number[float32]{e.field("m_flAvgInterval", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAvgInterval")}
 }
 
 type CRagdollMagnet CEntityInstance
 
-func (e CRagdollMagnet) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CRagdollMagnet", name, typ}
+func (e CRagdollMagnet) field(name string) Field {
+	return Field{e.Handle, "CRagdollMagnet", name}
 }
 
 func (e CRagdollMagnet) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CRagdollMagnet) Radius() Number[float32] {
-	return Number[float32]{e.field("m_radius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_radius")}
 }
 
 func (e CRagdollMagnet) Force() Number[float32] {
-	return Number[float32]{e.field("m_force", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_force")}
 }
 
 func (e CRagdollMagnet) Axis() Vector {
-	return Vector{e.field("m_axis", mod.FieldTypeVector)}
+	return Vector{e.field("m_axis")}
 }
 
 type CRotatorTarget CEntityInstance
 
 type CSceneEntity CEntityInstance
 
-func (e CSceneEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSceneEntity", name, typ}
+func (e CSceneEntity) field(name string) Field {
+	return Field{e.Handle, "CSceneEntity", name}
 }
 
 func (e CSceneEntity) IszSceneFile() Text {
-	return Text{e.field("m_iszSceneFile", mod.FieldTypeString)}
+	return Text{e.field("m_iszSceneFile")}
 }
 
 func (e CSceneEntity) IszTarget1() Text {
-	return Text{e.field("m_iszTarget1", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget1")}
 }
 
 func (e CSceneEntity) IszTarget2() Text {
-	return Text{e.field("m_iszTarget2", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget2")}
 }
 
 func (e CSceneEntity) IszTarget3() Text {
-	return Text{e.field("m_iszTarget3", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget3")}
 }
 
 func (e CSceneEntity) IszTarget4() Text {
-	return Text{e.field("m_iszTarget4", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget4")}
 }
 
 func (e CSceneEntity) IszTarget5() Text {
-	return Text{e.field("m_iszTarget5", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget5")}
 }
 
 func (e CSceneEntity) IszTarget6() Text {
-	return Text{e.field("m_iszTarget6", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget6")}
 }
 
 func (e CSceneEntity) IszTarget7() Text {
-	return Text{e.field("m_iszTarget7", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget7")}
 }
 
 func (e CSceneEntity) IszTarget8() Text {
-	return Text{e.field("m_iszTarget8", mod.FieldTypeString)}
+	return Text{e.field("m_iszTarget8")}
 }
 
 func (e CSceneEntity) HTarget1() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget1", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget1")}
 }
 
 func (e CSceneEntity) HTarget2() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget2", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget2")}
 }
 
 func (e CSceneEntity) HTarget3() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget3", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget3")}
 }
 
 func (e CSceneEntity) HTarget4() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget4", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget4")}
 }
 
 func (e CSceneEntity) HTarget5() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget5", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget5")}
 }
 
 func (e CSceneEntity) HTarget6() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget6", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget6")}
 }
 
 func (e CSceneEntity) HTarget7() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget7", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget7")}
 }
 
 func (e CSceneEntity) HTarget8() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget8", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget8")}
 }
 
 func (e CSceneEntity) HLocatorOrigin() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hLocatorOrigin", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hLocatorOrigin")}
 }
 
 func (e CSceneEntity) STargetAttachment() Text {
-	return Text{e.field("m_sTargetAttachment", mod.FieldTypeString)}
+	return Text{e.field("m_sTargetAttachment")}
 }
 
 func (e CSceneEntity) BIsPlayingBack() Bool {
-	return Bool{e.field("m_bIsPlayingBack", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsPlayingBack")}
 }
 
 func (e CSceneEntity) BPaused() Bool {
-	return Bool{e.field("m_bPaused", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPaused")}
 }
 
 func (e CSceneEntity) BMultiplayer() Bool {
-	return Bool{e.field("m_bMultiplayer", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMultiplayer")}
 }
 
 func (e CSceneEntity) BAutogenerated() Bool {
-	return Bool{e.field("m_bAutogenerated", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAutogenerated")}
 }
 
 func (e CSceneEntity) FlForceClientTime() Number[float32] {
-	return Number[float32]{e.field("m_flForceClientTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flForceClientTime")}
 }
 
 func (e CSceneEntity) FlCurrentTime() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentTime")}
 }
 
 func (e CSceneEntity) FlFrameTime() Number[float32] {
-	return Number[float32]{e.field("m_flFrameTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFrameTime")}
 }
 
 func (e CSceneEntity) BCancelAtNextInterrupt() Bool {
-	return Bool{e.field("m_bCancelAtNextInterrupt", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCancelAtNextInterrupt")}
 }
 
 func (e CSceneEntity) BRemoveOnCompletion() Bool {
-	return Bool{e.field("m_bRemoveOnCompletion", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRemoveOnCompletion")}
 }
 
 func (e CSceneEntity) FPitch() Number[float32] {
-	return Number[float32]{e.field("m_fPitch", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fPitch")}
 }
 
 func (e CSceneEntity) BAutomated() Bool {
-	return Bool{e.field("m_bAutomated", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAutomated")}
 }
 
 func (e CSceneEntity) NAutomatedAction() Number[int32] {
-	return Number[int32]{e.field("m_nAutomatedAction", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nAutomatedAction")}
 }
 
 func (e CSceneEntity) FlAutomationDelay() Number[float32] {
-	return Number[float32]{e.field("m_flAutomationDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAutomationDelay")}
 }
 
 func (e CSceneEntity) FlAutomationTime() Number[float32] {
-	return Number[float32]{e.field("m_flAutomationTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAutomationTime")}
 }
 
 func (e CSceneEntity) NSpeechPriority() Number[int32] {
-	return Number[int32]{e.field("m_nSpeechPriority", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSpeechPriority")}
 }
 
 func (e CSceneEntity) BPausedViaInput() Bool {
-	return Bool{e.field("m_bPausedViaInput", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPausedViaInput")}
 }
 
 func (e CSceneEntity) BPauseAtNextInterrupt() Bool {
-	return Bool{e.field("m_bPauseAtNextInterrupt", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPauseAtNextInterrupt")}
 }
 
 func (e CSceneEntity) BWaitingForActor() Bool {
-	return Bool{e.field("m_bWaitingForActor", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWaitingForActor")}
 }
 
 func (e CSceneEntity) BWaitingForInterrupt() Bool {
-	return Bool{e.field("m_bWaitingForInterrupt", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWaitingForInterrupt")}
 }
 
 func (e CSceneEntity) BInterruptedActorsScenes() Bool {
-	return Bool{e.field("m_bInterruptedActorsScenes", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInterruptedActorsScenes")}
 }
 
 func (e CSceneEntity) BBreakOnNonIdle() Bool {
-	return Bool{e.field("m_bBreakOnNonIdle", mod.FieldTypeBool)}
+	return Bool{e.field("m_bBreakOnNonIdle")}
 }
 
 func (e CSceneEntity) BSceneFinished() Bool {
-	return Bool{e.field("m_bSceneFinished", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSceneFinished")}
 }
 
 func (e CSceneEntity) NSceneStringIndex() Number[uint16] {
-	return Number[uint16]{e.field("m_nSceneStringIndex", mod.FieldTypeUint16)}
+	return Number[uint16]{e.field("m_nSceneStringIndex")}
 }
 
 func (e CSceneEntity) HInterruptScene() Handle[CSceneEntity] {
-	return Handle[CSceneEntity]{e.field("m_hInterruptScene", mod.FieldTypeHandle)}
+	return Handle[CSceneEntity]{e.field("m_hInterruptScene")}
 }
 
 func (e CSceneEntity) NInterruptCount() Number[int32] {
-	return Number[int32]{e.field("m_nInterruptCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nInterruptCount")}
 }
 
 func (e CSceneEntity) ResponseConcept() Text {
-	return Text{e.field("m_responseConcept", mod.FieldTypeString)}
+	return Text{e.field("m_responseConcept")}
 }
 
 func (e CSceneEntity) ResponseCriteria() Text {
-	return Text{e.field("m_responseCriteria", mod.FieldTypeString)}
+	return Text{e.field("m_responseCriteria")}
 }
 
 func (e CSceneEntity) BSceneMissing() Bool {
-	return Bool{e.field("m_bSceneMissing", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSceneMissing")}
 }
 
 func (e CSceneEntity) BInterrupted() Bool {
-	return Bool{e.field("m_bInterrupted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInterrupted")}
 }
 
 func (e CSceneEntity) BCompletedEarly() Bool {
-	return Bool{e.field("m_bCompletedEarly", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCompletedEarly")}
 }
 
 func (e CSceneEntity) BInterruptSceneFinished() Bool {
-	return Bool{e.field("m_bInterruptSceneFinished", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInterruptSceneFinished")}
 }
 
 func (e CSceneEntity) BRestoring() Bool {
-	return Bool{e.field("m_bRestoring", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRestoring")}
 }
 
 func (e CSceneEntity) IszSoundName() Text {
-	return Text{e.field("m_iszSoundName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundName")}
 }
 
 func (e CSceneEntity) IszSequenceName() Text {
-	return Text{e.field("m_iszSequenceName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSequenceName")}
 }
 
 func (e CSceneEntity) HActor() Handle[CBaseModelEntity] {
-	return Handle[CBaseModelEntity]{e.field("m_hActor", mod.FieldTypeHandle)}
+	return Handle[CBaseModelEntity]{e.field("m_hActor")}
 }
 
 func (e CSceneEntity) HActivator() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hActivator", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hActivator")}
 }
 
 func (e CSceneEntity) BusyActor() Number[int32] {
-	return Number[int32]{e.field("m_BusyActor", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_BusyActor")}
 }
 
 func (e CSceneEntity) IPlayerDeathBehavior() Number[uint32] {
-	return Number[uint32]{e.field("m_iPlayerDeathBehavior", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_iPlayerDeathBehavior")}
 }
 
 type CInstancedSceneEntity CEntityInstance
 
-func (e CInstancedSceneEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInstancedSceneEntity", name, typ}
+func (e CInstancedSceneEntity) field(name string) Field {
+	return Field{e.Handle, "CInstancedSceneEntity", name}
 }
 
 func (e CInstancedSceneEntity) HOwner() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hOwner", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hOwner")}
 }
 
 func (e CInstancedSceneEntity) BHadOwner() Bool {
-	return Bool{e.field("m_bHadOwner", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHadOwner")}
 }
 
 func (e CInstancedSceneEntity) FlPostSpeakDelay() Number[float32] {
-	return Number[float32]{e.field("m_flPostSpeakDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPostSpeakDelay")}
 }
 
 func (e CInstancedSceneEntity) FlPreDelay() Number[float32] {
-	return Number[float32]{e.field("m_flPreDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPreDelay")}
 }
 
 func (e CInstancedSceneEntity) BIsBackground() Bool {
-	return Bool{e.field("m_bIsBackground", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsBackground")}
 }
 
 func (e CInstancedSceneEntity) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 type CSceneEntityAlias_logic_choreographed_scene CEntityInstance
 
 type CTankTargetChange CEntityInstance
 
-func (e CTankTargetChange) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTankTargetChange", name, typ}
+func (e CTankTargetChange) field(name string) Field {
+	return Field{e.Handle, "CTankTargetChange", name}
 }
 
 func (e CTankTargetChange) NewTargetName() Text {
-	return Text{e.field("m_newTargetName", mod.FieldTypeString)}
+	return Text{e.field("m_newTargetName")}
 }
 
 type CTankTrainAI CEntityInstance
 
-func (e CTankTrainAI) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTankTrainAI", name, typ}
+func (e CTankTrainAI) field(name string) Field {
+	return Field{e.Handle, "CTankTrainAI", name}
 }
 
 func (e CTankTrainAI) HTrain() Handle[CFuncTrackTrain] {
-	return Handle[CFuncTrackTrain]{e.field("m_hTrain", mod.FieldTypeHandle)}
+	return Handle[CFuncTrackTrain]{e.field("m_hTrain")}
 }
 
 func (e CTankTrainAI) HTargetEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetEntity")}
 }
 
 func (e CTankTrainAI) SoundPlaying() Number[int32] {
-	return Number[int32]{e.field("m_soundPlaying", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_soundPlaying")}
 }
 
 func (e CTankTrainAI) StartSoundName() Text {
-	return Text{e.field("m_startSoundName", mod.FieldTypeString)}
+	return Text{e.field("m_startSoundName")}
 }
 
 func (e CTankTrainAI) EngineSoundName() Text {
-	return Text{e.field("m_engineSoundName", mod.FieldTypeString)}
+	return Text{e.field("m_engineSoundName")}
 }
 
 func (e CTankTrainAI) MovementSoundName() Text {
-	return Text{e.field("m_movementSoundName", mod.FieldTypeString)}
+	return Text{e.field("m_movementSoundName")}
 }
 
 func (e CTankTrainAI) TargetEntityName() Text {
-	return Text{e.field("m_targetEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_targetEntityName")}
 }
 
 type CPointEntityFinder CEntityInstance
 
-func (e CPointEntityFinder) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointEntityFinder", name, typ}
+func (e CPointEntityFinder) field(name string) Field {
+	return Field{e.Handle, "CPointEntityFinder", name}
 }
 
 func (e CPointEntityFinder) HEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hEntity")}
 }
 
 func (e CPointEntityFinder) IFilterName() Text {
-	return Text{e.field("m_iFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_iFilterName")}
 }
 
 func (e CPointEntityFinder) HFilter() Handle[CBaseFilter] {
-	return Handle[CBaseFilter]{e.field("m_hFilter", mod.FieldTypeHandle)}
+	return Handle[CBaseFilter]{e.field("m_hFilter")}
 }
 
 func (e CPointEntityFinder) IRefName() Text {
-	return Text{e.field("m_iRefName", mod.FieldTypeString)}
+	return Text{e.field("m_iRefName")}
 }
 
 func (e CPointEntityFinder) HReference() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hReference", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hReference")}
 }
 
 func (e CPointEntityFinder) FindMethod() Number[uint32] {
-	return Number[uint32]{e.field("m_FindMethod", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_FindMethod")}
 }
 
 type CPointModifierThinker CEntityInstance
 
-func (e CPointModifierThinker) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointModifierThinker", name, typ}
+func (e CPointModifierThinker) field(name string) Field {
+	return Field{e.Handle, "CPointModifierThinker", name}
 }
 
 func (e CPointModifierThinker) BSendToClients() Bool {
-	return Bool{e.field("m_bSendToClients", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSendToClients")}
 }
 
 type CPointOrient CEntityInstance
 
-func (e CPointOrient) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointOrient", name, typ}
+func (e CPointOrient) field(name string) Field {
+	return Field{e.Handle, "CPointOrient", name}
 }
 
 func (e CPointOrient) IszSpawnTargetName() Text {
-	return Text{e.field("m_iszSpawnTargetName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSpawnTargetName")}
 }
 
 func (e CPointOrient) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CPointOrient) BActive() Bool {
-	return Bool{e.field("m_bActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bActive")}
 }
 
 func (e CPointOrient) NGoalDirection() Number[uint32] {
-	return Number[uint32]{e.field("m_nGoalDirection", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nGoalDirection")}
 }
 
 func (e CPointOrient) NConstraint() Number[uint32] {
-	return Number[uint32]{e.field("m_nConstraint", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nConstraint")}
 }
 
 func (e CPointOrient) FlMaxTurnRate() Number[float32] {
-	return Number[float32]{e.field("m_flMaxTurnRate", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxTurnRate")}
 }
 
 func (e CPointOrient) FlLastGameTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastGameTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastGameTime")}
 }
 
 type CPointPulse CEntityInstance
 
 type CPointValueRemapper CEntityInstance
 
-func (e CPointValueRemapper) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointValueRemapper", name, typ}
+func (e CPointValueRemapper) field(name string) Field {
+	return Field{e.Handle, "CPointValueRemapper", name}
 }
 
 func (e CPointValueRemapper) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CPointValueRemapper) BUpdateOnClient() Bool {
-	return Bool{e.field("m_bUpdateOnClient", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUpdateOnClient")}
 }
 
 func (e CPointValueRemapper) NInputType() Number[uint32] {
-	return Number[uint32]{e.field("m_nInputType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nInputType")}
 }
 
 func (e CPointValueRemapper) IszRemapLineStartName() Text {
-	return Text{e.field("m_iszRemapLineStartName", mod.FieldTypeString)}
+	return Text{e.field("m_iszRemapLineStartName")}
 }
 
 func (e CPointValueRemapper) IszRemapLineEndName() Text {
-	return Text{e.field("m_iszRemapLineEndName", mod.FieldTypeString)}
+	return Text{e.field("m_iszRemapLineEndName")}
 }
 
 func (e CPointValueRemapper) HRemapLineStart() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hRemapLineStart", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hRemapLineStart")}
 }
 
 func (e CPointValueRemapper) HRemapLineEnd() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hRemapLineEnd", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hRemapLineEnd")}
 }
 
 func (e CPointValueRemapper) FlMaximumChangePerSecond() Number[float32] {
-	return Number[float32]{e.field("m_flMaximumChangePerSecond", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaximumChangePerSecond")}
 }
 
 func (e CPointValueRemapper) FlDisengageDistance() Number[float32] {
-	return Number[float32]{e.field("m_flDisengageDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDisengageDistance")}
 }
 
 func (e CPointValueRemapper) FlEngageDistance() Number[float32] {
-	return Number[float32]{e.field("m_flEngageDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flEngageDistance")}
 }
 
 func (e CPointValueRemapper) BRequiresUseKey() Bool {
-	return Bool{e.field("m_bRequiresUseKey", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRequiresUseKey")}
 }
 
 func (e CPointValueRemapper) NOutputType() Number[uint32] {
-	return Number[uint32]{e.field("m_nOutputType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nOutputType")}
 }
 
 func (e CPointValueRemapper) IszOutputEntityName() Text {
-	return Text{e.field("m_iszOutputEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOutputEntityName")}
 }
 
 func (e CPointValueRemapper) IszOutputEntity2Name() Text {
-	return Text{e.field("m_iszOutputEntity2Name", mod.FieldTypeString)}
+	return Text{e.field("m_iszOutputEntity2Name")}
 }
 
 func (e CPointValueRemapper) IszOutputEntity3Name() Text {
-	return Text{e.field("m_iszOutputEntity3Name", mod.FieldTypeString)}
+	return Text{e.field("m_iszOutputEntity3Name")}
 }
 
 func (e CPointValueRemapper) IszOutputEntity4Name() Text {
-	return Text{e.field("m_iszOutputEntity4Name", mod.FieldTypeString)}
+	return Text{e.field("m_iszOutputEntity4Name")}
 }
 
 func (e CPointValueRemapper) NHapticsType() Number[uint32] {
-	return Number[uint32]{e.field("m_nHapticsType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nHapticsType")}
 }
 
 func (e CPointValueRemapper) NMomentumType() Number[uint32] {
-	return Number[uint32]{e.field("m_nMomentumType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nMomentumType")}
 }
 
 func (e CPointValueRemapper) FlMomentumModifier() Number[float32] {
-	return Number[float32]{e.field("m_flMomentumModifier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMomentumModifier")}
 }
 
 func (e CPointValueRemapper) FlSnapValue() Number[float32] {
-	return Number[float32]{e.field("m_flSnapValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSnapValue")}
 }
 
 func (e CPointValueRemapper) FlCurrentMomentum() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentMomentum", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentMomentum")}
 }
 
 func (e CPointValueRemapper) NRatchetType() Number[uint32] {
-	return Number[uint32]{e.field("m_nRatchetType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nRatchetType")}
 }
 
 func (e CPointValueRemapper) FlRatchetOffset() Number[float32] {
-	return Number[float32]{e.field("m_flRatchetOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRatchetOffset")}
 }
 
 func (e CPointValueRemapper) FlInputOffset() Number[float32] {
-	return Number[float32]{e.field("m_flInputOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInputOffset")}
 }
 
 func (e CPointValueRemapper) BEngaged() Bool {
-	return Bool{e.field("m_bEngaged", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEngaged")}
 }
 
 func (e CPointValueRemapper) BFirstUpdate() Bool {
-	return Bool{e.field("m_bFirstUpdate", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFirstUpdate")}
 }
 
 func (e CPointValueRemapper) FlPreviousValue() Number[float32] {
-	return Number[float32]{e.field("m_flPreviousValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPreviousValue")}
 }
 
 func (e CPointValueRemapper) FlPreviousUpdateTickTime() Number[float32] {
-	return Number[float32]{e.field("m_flPreviousUpdateTickTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPreviousUpdateTickTime")}
 }
 
 func (e CPointValueRemapper) VecPreviousTestPoint() Vector {
-	return Vector{e.field("m_vecPreviousTestPoint", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecPreviousTestPoint")}
 }
 
 func (e CPointValueRemapper) HUsingPlayer() Handle[CBasePlayerPawn] {
-	return Handle[CBasePlayerPawn]{e.field("m_hUsingPlayer", mod.FieldTypeHandle)}
+	return Handle[CBasePlayerPawn]{e.field("m_hUsingPlayer")}
 }
 
 func (e CPointValueRemapper) FlCustomOutputValue() Number[float32] {
-	return Number[float32]{e.field("m_flCustomOutputValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCustomOutputValue")}
 }
 
 func (e CPointValueRemapper) IszSoundEngage() Text {
-	return Text{e.field("m_iszSoundEngage", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundEngage")}
 }
 
 func (e CPointValueRemapper) IszSoundDisengage() Text {
-	return Text{e.field("m_iszSoundDisengage", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundDisengage")}
 }
 
 func (e CPointValueRemapper) IszSoundReachedValueZero() Text {
-	return Text{e.field("m_iszSoundReachedValueZero", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundReachedValueZero")}
 }
 
 func (e CPointValueRemapper) IszSoundReachedValueOne() Text {
-	return Text{e.field("m_iszSoundReachedValueOne", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundReachedValueOne")}
 }
 
 func (e CPointValueRemapper) IszSoundMovingLoop() Text {
-	return Text{e.field("m_iszSoundMovingLoop", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundMovingLoop")}
 }
 
 type CPulseGameBlackboard CEntityInstance
 
-func (e CPulseGameBlackboard) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPulseGameBlackboard", name, typ}
+func (e CPulseGameBlackboard) field(name string) Field {
+	return Field{e.Handle, "CPulseGameBlackboard", name}
 }
 
 func (e CPulseGameBlackboard) StrGraphName() Text {
-	return Text{e.field("m_strGraphName", mod.FieldTypeString)}
+	return Text{e.field("m_strGraphName")}
 }
 
 func (e CPulseGameBlackboard) StrStateBlob() Text {
-	return Text{e.field("m_strStateBlob", mod.FieldTypeString)}
+	return Text{e.field("m_strStateBlob")}
 }
 
 type CRagdollManager CEntityInstance
 
-func (e CRagdollManager) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CRagdollManager", name, typ}
+func (e CRagdollManager) field(name string) Field {
+	return Field{e.Handle, "CRagdollManager", name}
 }
 
 func (e CRagdollManager) ICurrentMaxRagdollCount() Number[int8] {
-	return Number[int8]{e.field("m_iCurrentMaxRagdollCount", mod.FieldTypeInt8)}
+	return Number[int8]{e.field("m_iCurrentMaxRagdollCount")}
 }
 
 func (e CRagdollManager) IMaxRagdollCount() Number[int32] {
-	return Number[int32]{e.field("m_iMaxRagdollCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iMaxRagdollCount")}
 }
 
 func (e CRagdollManager) BSaveImportant() Bool {
-	return Bool{e.field("m_bSaveImportant", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSaveImportant")}
 }
 
 func (e CRagdollManager) BCanTakeDamage() Bool {
-	return Bool{e.field("m_bCanTakeDamage", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanTakeDamage")}
 }
 
 type CScriptedSequence CEntityInstance
 
-func (e CScriptedSequence) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CScriptedSequence", name, typ}
+func (e CScriptedSequence) field(name string) Field {
+	return Field{e.Handle, "CScriptedSequence", name}
 }
 
 func (e CScriptedSequence) IszEntry() Text {
-	return Text{e.field("m_iszEntry", mod.FieldTypeString)}
+	return Text{e.field("m_iszEntry")}
 }
 
 func (e CScriptedSequence) IszPreIdle() Text {
-	return Text{e.field("m_iszPreIdle", mod.FieldTypeString)}
+	return Text{e.field("m_iszPreIdle")}
 }
 
 func (e CScriptedSequence) IszPlay() Text {
-	return Text{e.field("m_iszPlay", mod.FieldTypeString)}
+	return Text{e.field("m_iszPlay")}
 }
 
 func (e CScriptedSequence) IszPostIdle() Text {
-	return Text{e.field("m_iszPostIdle", mod.FieldTypeString)}
+	return Text{e.field("m_iszPostIdle")}
 }
 
 func (e CScriptedSequence) IszModifierToAddOnPlay() Text {
-	return Text{e.field("m_iszModifierToAddOnPlay", mod.FieldTypeString)}
+	return Text{e.field("m_iszModifierToAddOnPlay")}
 }
 
 func (e CScriptedSequence) IszNextScript() Text {
-	return Text{e.field("m_iszNextScript", mod.FieldTypeString)}
+	return Text{e.field("m_iszNextScript")}
 }
 
 func (e CScriptedSequence) IszEntity() Text {
-	return Text{e.field("m_iszEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszEntity")}
 }
 
 func (e CScriptedSequence) IszSyncGroup() Text {
-	return Text{e.field("m_iszSyncGroup", mod.FieldTypeString)}
+	return Text{e.field("m_iszSyncGroup")}
 }
 
 func (e CScriptedSequence) NMoveTo() Number[uint32] {
-	return Number[uint32]{e.field("m_nMoveTo", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nMoveTo")}
 }
 
 func (e CScriptedSequence) NMoveToGait() Number[uint8] {
-	return Number[uint8]{e.field("m_nMoveToGait", mod.FieldTypeUint8)}
+	return Number[uint8]{e.field("m_nMoveToGait")}
 }
 
 func (e CScriptedSequence) NHeldWeaponBehavior() Number[uint32] {
-	return Number[uint32]{e.field("m_nHeldWeaponBehavior", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nHeldWeaponBehavior")}
 }
 
 func (e CScriptedSequence) NForcedCrouchState() Number[uint32] {
-	return Number[uint32]{e.field("m_nForcedCrouchState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nForcedCrouchState")}
 }
 
 func (e CScriptedSequence) BIsPlayingPreIdle() Bool {
-	return Bool{e.field("m_bIsPlayingPreIdle", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsPlayingPreIdle")}
 }
 
 func (e CScriptedSequence) BIsPlayingEntry() Bool {
-	return Bool{e.field("m_bIsPlayingEntry", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsPlayingEntry")}
 }
 
 func (e CScriptedSequence) BIsPlayingAction() Bool {
-	return Bool{e.field("m_bIsPlayingAction", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsPlayingAction")}
 }
 
 func (e CScriptedSequence) BIsPlayingPostIdle() Bool {
-	return Bool{e.field("m_bIsPlayingPostIdle", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsPlayingPostIdle")}
 }
 
 func (e CScriptedSequence) BDontRotateOther() Bool {
-	return Bool{e.field("m_bDontRotateOther", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDontRotateOther")}
 }
 
 func (e CScriptedSequence) BIsRepeatable() Bool {
-	return Bool{e.field("m_bIsRepeatable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsRepeatable")}
 }
 
 func (e CScriptedSequence) BShouldLeaveCorpse() Bool {
-	return Bool{e.field("m_bShouldLeaveCorpse", mod.FieldTypeBool)}
+	return Bool{e.field("m_bShouldLeaveCorpse")}
 }
 
 func (e CScriptedSequence) BStartOnSpawn() Bool {
-	return Bool{e.field("m_bStartOnSpawn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartOnSpawn")}
 }
 
 func (e CScriptedSequence) BDisallowInterrupts() Bool {
-	return Bool{e.field("m_bDisallowInterrupts", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisallowInterrupts")}
 }
 
 func (e CScriptedSequence) BCanOverrideNPCState() Bool {
-	return Bool{e.field("m_bCanOverrideNPCState", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCanOverrideNPCState")}
 }
 
 func (e CScriptedSequence) BDontTeleportAtEnd() Bool {
-	return Bool{e.field("m_bDontTeleportAtEnd", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDontTeleportAtEnd")}
 }
 
 func (e CScriptedSequence) BHighPriority() Bool {
-	return Bool{e.field("m_bHighPriority", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHighPriority")}
 }
 
 func (e CScriptedSequence) BHideDebugComplaints() Bool {
-	return Bool{e.field("m_bHideDebugComplaints", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHideDebugComplaints")}
 }
 
 func (e CScriptedSequence) BContinueOnDeath() Bool {
-	return Bool{e.field("m_bContinueOnDeath", mod.FieldTypeBool)}
+	return Bool{e.field("m_bContinueOnDeath")}
 }
 
 func (e CScriptedSequence) BLoopPreIdleSequence() Bool {
-	return Bool{e.field("m_bLoopPreIdleSequence", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLoopPreIdleSequence")}
 }
 
 func (e CScriptedSequence) BLoopActionSequence() Bool {
-	return Bool{e.field("m_bLoopActionSequence", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLoopActionSequence")}
 }
 
 func (e CScriptedSequence) BLoopPostIdleSequence() Bool {
-	return Bool{e.field("m_bLoopPostIdleSequence", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLoopPostIdleSequence")}
 }
 
 func (e CScriptedSequence) BSynchPostIdles() Bool {
-	return Bool{e.field("m_bSynchPostIdles", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSynchPostIdles")}
 }
 
 func (e CScriptedSequence) BIgnoreLookAt() Bool {
-	return Bool{e.field("m_bIgnoreLookAt", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIgnoreLookAt")}
 }
 
 func (e CScriptedSequence) BIgnoreGravity() Bool {
-	return Bool{e.field("m_bIgnoreGravity", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIgnoreGravity")}
 }
 
 func (e CScriptedSequence) BDisableNPCCollisions() Bool {
-	return Bool{e.field("m_bDisableNPCCollisions", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisableNPCCollisions")}
 }
 
 func (e CScriptedSequence) BKeepAnimgraphLockedPost() Bool {
-	return Bool{e.field("m_bKeepAnimgraphLockedPost", mod.FieldTypeBool)}
+	return Bool{e.field("m_bKeepAnimgraphLockedPost")}
 }
 
 func (e CScriptedSequence) BDontAddModifiers() Bool {
-	return Bool{e.field("m_bDontAddModifiers", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDontAddModifiers")}
 }
 
 func (e CScriptedSequence) BDisableAimingWhileMoving() Bool {
-	return Bool{e.field("m_bDisableAimingWhileMoving", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisableAimingWhileMoving")}
 }
 
 func (e CScriptedSequence) BIgnoreRotation() Bool {
-	return Bool{e.field("m_bIgnoreRotation", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIgnoreRotation")}
 }
 
 func (e CScriptedSequence) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CScriptedSequence) FlRepeat() Number[float32] {
-	return Number[float32]{e.field("m_flRepeat", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRepeat")}
 }
 
 func (e CScriptedSequence) FlPlayAnimFadeInTime() Number[float32] {
-	return Number[float32]{e.field("m_flPlayAnimFadeInTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPlayAnimFadeInTime")}
 }
 
 func (e CScriptedSequence) FlMoveInterpTime() Number[float32] {
-	return Number[float32]{e.field("m_flMoveInterpTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMoveInterpTime")}
 }
 
 func (e CScriptedSequence) FlAngRate() Number[float32] {
-	return Number[float32]{e.field("m_flAngRate", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngRate")}
 }
 
 func (e CScriptedSequence) FlMoveSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flMoveSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMoveSpeed")}
 }
 
 func (e CScriptedSequence) BWaitUntilMoveCompletesToStartAnimation() Bool {
-	return Bool{e.field("m_bWaitUntilMoveCompletesToStartAnimation", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWaitUntilMoveCompletesToStartAnimation")}
 }
 
 func (e CScriptedSequence) NNotReadySequenceCount() Number[int32] {
-	return Number[int32]{e.field("m_nNotReadySequenceCount", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nNotReadySequenceCount")}
 }
 
 func (e CScriptedSequence) StartTime() Number[float32] {
-	return Number[float32]{e.field("m_startTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_startTime")}
 }
 
 func (e CScriptedSequence) BWaitForBeginSequence() Bool {
-	return Bool{e.field("m_bWaitForBeginSequence", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWaitForBeginSequence")}
 }
 
 func (e CScriptedSequence) Saved_effects() Number[int32] {
-	return Number[int32]{e.field("m_saved_effects", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_saved_effects")}
 }
 
 func (e CScriptedSequence) SavedFlags() Number[int32] {
-	return Number[int32]{e.field("m_savedFlags", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_savedFlags")}
 }
 
 func (e CScriptedSequence) SavedCollisionGroup() Number[int32] {
-	return Number[int32]{e.field("m_savedCollisionGroup", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_savedCollisionGroup")}
 }
 
 func (e CScriptedSequence) BInterruptable() Bool {
-	return Bool{e.field("m_bInterruptable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInterruptable")}
 }
 
 func (e CScriptedSequence) SequenceStarted() Bool {
-	return Bool{e.field("m_sequenceStarted", mod.FieldTypeBool)}
+	return Bool{e.field("m_sequenceStarted")}
 }
 
 func (e CScriptedSequence) BPositionRelativeToOtherEntity() Bool {
-	return Bool{e.field("m_bPositionRelativeToOtherEntity", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPositionRelativeToOtherEntity")}
 }
 
 func (e CScriptedSequence) HTargetEnt() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetEnt", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetEnt")}
 }
 
 func (e CScriptedSequence) HNextCine() Handle[CScriptedSequence] {
-	return Handle[CScriptedSequence]{e.field("m_hNextCine", mod.FieldTypeHandle)}
+	return Handle[CScriptedSequence]{e.field("m_hNextCine")}
 }
 
 func (e CScriptedSequence) BThinking() Bool {
-	return Bool{e.field("m_bThinking", mod.FieldTypeBool)}
+	return Bool{e.field("m_bThinking")}
 }
 
 func (e CScriptedSequence) BInitiatedSelfDelete() Bool {
-	return Bool{e.field("m_bInitiatedSelfDelete", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInitiatedSelfDelete")}
 }
 
 func (e CScriptedSequence) BIsTeleportingDueToMoveTo() Bool {
-	return Bool{e.field("m_bIsTeleportingDueToMoveTo", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsTeleportingDueToMoveTo")}
 }
 
 func (e CScriptedSequence) BAllowCustomInterruptConditions() Bool {
-	return Bool{e.field("m_bAllowCustomInterruptConditions", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAllowCustomInterruptConditions")}
 }
 
 func (e CScriptedSequence) HForcedTarget() Handle[CBaseAnimGraph] {
-	return Handle[CBaseAnimGraph]{e.field("m_hForcedTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseAnimGraph]{e.field("m_hForcedTarget")}
 }
 
 func (e CScriptedSequence) BDontCancelOtherSequences() Bool {
-	return Bool{e.field("m_bDontCancelOtherSequences", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDontCancelOtherSequences")}
 }
 
 func (e CScriptedSequence) BForceSynch() Bool {
-	return Bool{e.field("m_bForceSynch", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceSynch")}
 }
 
 func (e CScriptedSequence) BPreventUpdateYawOnFinish() Bool {
-	return Bool{e.field("m_bPreventUpdateYawOnFinish", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPreventUpdateYawOnFinish")}
 }
 
 func (e CScriptedSequence) BEnsureOnNavmeshOnFinish() Bool {
-	return Bool{e.field("m_bEnsureOnNavmeshOnFinish", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnsureOnNavmeshOnFinish")}
 }
 
 func (e CScriptedSequence) OnDeathBehavior() Number[uint32] {
-	return Number[uint32]{e.field("m_onDeathBehavior", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_onDeathBehavior")}
 }
 
 func (e CScriptedSequence) ConflictResponse() Number[uint32] {
-	return Number[uint32]{e.field("m_ConflictResponse", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_ConflictResponse")}
 }
 
 func (e CScriptedSequence) HInteractionMainEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hInteractionMainEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hInteractionMainEntity")}
 }
 
 func (e CScriptedSequence) IPlayerDeathBehavior() Number[int32] {
-	return Number[int32]{e.field("m_iPlayerDeathBehavior", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPlayerDeathBehavior")}
 }
 
 func (e CScriptedSequence) BSkipFadeIn() Bool {
-	return Bool{e.field("m_bSkipFadeIn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSkipFadeIn")}
 }
 
 type CServerOnlyEntity CEntityInstance
 
 type CAI_Hint CEntityInstance
 
-func (e CAI_Hint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CAI_Hint", name, typ}
+func (e CAI_Hint) field(name string) Field {
+	return Field{e.Handle, "CAI_Hint", name}
 }
 
 func (e CAI_Hint) HHintOwner() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hHintOwner", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hHintOwner")}
 }
 
 func (e CAI_Hint) FlNextUseTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextUseTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextUseTime")}
 }
 
 func (e CAI_Hint) NodeFOV() Number[float32] {
-	return Number[float32]{e.field("m_nodeFOV", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_nodeFOV")}
 }
 
 func (e CAI_Hint) BNodeFOVCheckBehind() Bool {
-	return Bool{e.field("m_bNodeFOVCheckBehind", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNodeFOVCheckBehind")}
 }
 
 func (e CAI_Hint) VecForward() Vector {
-	return Vector{e.field("m_vecForward", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecForward")}
 }
 
 func (e CAI_Hint) IszAnimgraphEntryAction() Text {
-	return Text{e.field("m_iszAnimgraphEntryAction", mod.FieldTypeString)}
+	return Text{e.field("m_iszAnimgraphEntryAction")}
 }
 
 func (e CAI_Hint) IszAnimgraphExitAction() Text {
-	return Text{e.field("m_iszAnimgraphExitAction", mod.FieldTypeString)}
+	return Text{e.field("m_iszAnimgraphExitAction")}
 }
 
 func (e CAI_Hint) IszAnimgraphEntryCmd() Text {
-	return Text{e.field("m_iszAnimgraphEntryCmd", mod.FieldTypeString)}
+	return Text{e.field("m_iszAnimgraphEntryCmd")}
 }
 
 func (e CAI_Hint) IszAnimgraphExitCmd() Text {
-	return Text{e.field("m_iszAnimgraphExitCmd", mod.FieldTypeString)}
+	return Text{e.field("m_iszAnimgraphExitCmd")}
 }
 
 func (e CAI_Hint) IszNavlinkTargetName() Text {
-	return Text{e.field("m_iszNavlinkTargetName", mod.FieldTypeString)}
+	return Text{e.field("m_iszNavlinkTargetName")}
 }
 
 func (e CAI_Hint) BRemoveOnUnreserved() Bool {
-	return Bool{e.field("m_bRemoveOnUnreserved", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRemoveOnUnreserved")}
 }
 
 func (e CAI_Hint) HAssociatedEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAssociatedEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAssociatedEntity")}
 }
 
 func (e CAI_Hint) FlInteractionDistance() Number[float32] {
-	return Number[float32]{e.field("m_flInteractionDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInteractionDistance")}
 }
 
 func (e CAI_Hint) FlCooldown() Number[float32] {
-	return Number[float32]{e.field("m_flCooldown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCooldown")}
 }
 
 func (e CAI_Hint) IszNPCFollowsEntity() Text {
-	return Text{e.field("m_iszNPCFollowsEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszNPCFollowsEntity")}
 }
 
 func (e CAI_Hint) FlNPCSnapToHintDistance() Number[float32] {
-	return Number[float32]{e.field("m_flNPCSnapToHintDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNPCSnapToHintDistance")}
 }
 
 type CCitadelEnergyTower CEntityInstance
 
-func (e CCitadelEnergyTower) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelEnergyTower", name, typ}
+func (e CCitadelEnergyTower) field(name string) Field {
+	return Field{e.Handle, "CCitadelEnergyTower", name}
 }
 
 func (e CCitadelEnergyTower) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CCitadelEnergyTower) FlDamage() Number[float32] {
-	return Number[float32]{e.field("m_flDamage", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDamage")}
 }
 
 func (e CCitadelEnergyTower) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 type CCitadelTeleportLocation CEntityInstance
 
-func (e CCitadelTeleportLocation) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelTeleportLocation", name, typ}
+func (e CCitadelTeleportLocation) field(name string) Field {
+	return Field{e.Handle, "CCitadelTeleportLocation", name}
 }
 
 func (e CCitadelTeleportLocation) ILane() Number[int32] {
-	return Number[int32]{e.field("m_iLane", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLane")}
 }
 
 func (e CCitadelTeleportLocation) IObjective() Number[int32] {
-	return Number[int32]{e.field("m_iObjective", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iObjective")}
 }
 
 type CInfoData CEntityInstance
 
 type CLaneMarkerPath CEntityInstance
 
-func (e CLaneMarkerPath) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLaneMarkerPath", name, typ}
+func (e CLaneMarkerPath) field(name string) Field {
+	return Field{e.Handle, "CLaneMarkerPath", name}
 }
 
 func (e CLaneMarkerPath) ILane() Number[int32] {
-	return Number[int32]{e.field("m_iLane", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLane")}
 }
 
 func (e CLaneMarkerPath) IPath() Number[int32] {
-	return Number[int32]{e.field("m_iPath", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iPath")}
 }
 
 type CLogicalEntity CEntityInstance
 
 type CBaseFilter CEntityInstance
 
-func (e CBaseFilter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CBaseFilter", name, typ}
+func (e CBaseFilter) field(name string) Field {
+	return Field{e.Handle, "CBaseFilter", name}
 }
 
 func (e CBaseFilter) BNegated() Bool {
-	return Bool{e.field("m_bNegated", mod.FieldTypeBool)}
+	return Bool{e.field("m_bNegated")}
 }
 
 type CCitadelFilterModifier CEntityInstance
 
-func (e CCitadelFilterModifier) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelFilterModifier", name, typ}
+func (e CCitadelFilterModifier) field(name string) Field {
+	return Field{e.Handle, "CCitadelFilterModifier", name}
 }
 
 func (e CCitadelFilterModifier) IModifierName() Text {
-	return Text{e.field("m_iModifierName", mod.FieldTypeString)}
+	return Text{e.field("m_iModifierName")}
 }
 
 type CFilterAttributeInt CEntityInstance
 
-func (e CFilterAttributeInt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterAttributeInt", name, typ}
+func (e CFilterAttributeInt) field(name string) Field {
+	return Field{e.Handle, "CFilterAttributeInt", name}
 }
 
 func (e CFilterAttributeInt) SAttributeName() Text {
-	return Text{e.field("m_sAttributeName", mod.FieldTypeString)}
+	return Text{e.field("m_sAttributeName")}
 }
 
 type CFilterClass CEntityInstance
 
-func (e CFilterClass) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterClass", name, typ}
+func (e CFilterClass) field(name string) Field {
+	return Field{e.Handle, "CFilterClass", name}
 }
 
 func (e CFilterClass) IFilterClass() Text {
-	return Text{e.field("m_iFilterClass", mod.FieldTypeString)}
+	return Text{e.field("m_iFilterClass")}
 }
 
 type CFilterContext CEntityInstance
 
-func (e CFilterContext) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterContext", name, typ}
+func (e CFilterContext) field(name string) Field {
+	return Field{e.Handle, "CFilterContext", name}
 }
 
 func (e CFilterContext) IFilterContext() Text {
-	return Text{e.field("m_iFilterContext", mod.FieldTypeString)}
+	return Text{e.field("m_iFilterContext")}
 }
 
 type CFilterEnemy CEntityInstance
 
-func (e CFilterEnemy) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterEnemy", name, typ}
+func (e CFilterEnemy) field(name string) Field {
+	return Field{e.Handle, "CFilterEnemy", name}
 }
 
 func (e CFilterEnemy) IszEnemyName() Text {
-	return Text{e.field("m_iszEnemyName", mod.FieldTypeString)}
+	return Text{e.field("m_iszEnemyName")}
 }
 
 func (e CFilterEnemy) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 func (e CFilterEnemy) FlOuterRadius() Number[float32] {
-	return Number[float32]{e.field("m_flOuterRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOuterRadius")}
 }
 
 func (e CFilterEnemy) NMaxSquadmatesPerEnemy() Number[int32] {
-	return Number[int32]{e.field("m_nMaxSquadmatesPerEnemy", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxSquadmatesPerEnemy")}
 }
 
 func (e CFilterEnemy) IszPlayerName() Text {
-	return Text{e.field("m_iszPlayerName", mod.FieldTypeString)}
+	return Text{e.field("m_iszPlayerName")}
 }
 
 type CFilterLOS CEntityInstance
 
 type CFilterMassGreater CEntityInstance
 
-func (e CFilterMassGreater) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterMassGreater", name, typ}
+func (e CFilterMassGreater) field(name string) Field {
+	return Field{e.Handle, "CFilterMassGreater", name}
 }
 
 func (e CFilterMassGreater) FFilterMass() Number[float32] {
-	return Number[float32]{e.field("m_fFilterMass", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_fFilterMass")}
 }
 
 type CFilterModel CEntityInstance
 
-func (e CFilterModel) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterModel", name, typ}
+func (e CFilterModel) field(name string) Field {
+	return Field{e.Handle, "CFilterModel", name}
 }
 
 func (e CFilterModel) IFilterModel() Text {
-	return Text{e.field("m_iFilterModel", mod.FieldTypeString)}
+	return Text{e.field("m_iFilterModel")}
 }
 
 type CFilterModifier CEntityInstance
 
-func (e CFilterModifier) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterModifier", name, typ}
+func (e CFilterModifier) field(name string) Field {
+	return Field{e.Handle, "CFilterModifier", name}
 }
 
 func (e CFilterModifier) IFilterModifier() Text {
-	return Text{e.field("m_iFilterModifier", mod.FieldTypeString)}
+	return Text{e.field("m_iFilterModifier")}
 }
 
 type CFilterMultiple CEntityInstance
 
-func (e CFilterMultiple) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterMultiple", name, typ}
+func (e CFilterMultiple) field(name string) Field {
+	return Field{e.Handle, "CFilterMultiple", name}
 }
 
 func (e CFilterMultiple) NFilterType() Number[uint32] {
-	return Number[uint32]{e.field("m_nFilterType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nFilterType")}
 }
 
 type CFilterName CEntityInstance
 
-func (e CFilterName) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterName", name, typ}
+func (e CFilterName) field(name string) Field {
+	return Field{e.Handle, "CFilterName", name}
 }
 
 func (e CFilterName) IFilterName() Text {
-	return Text{e.field("m_iFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_iFilterName")}
 }
 
 type CFilterProximity CEntityInstance
 
-func (e CFilterProximity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterProximity", name, typ}
+func (e CFilterProximity) field(name string) Field {
+	return Field{e.Handle, "CFilterProximity", name}
 }
 
 func (e CFilterProximity) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 type CFilterTeam CEntityInstance
 
-func (e CFilterTeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFilterTeam", name, typ}
+func (e CFilterTeam) field(name string) Field {
+	return Field{e.Handle, "CFilterTeam", name}
 }
 
 func (e CFilterTeam) IFilterTeam() Number[int32] {
-	return Number[int32]{e.field("m_iFilterTeam", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iFilterTeam")}
 }
 
 type FilterDamageType CEntityInstance
 
-func (e FilterDamageType) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "FilterDamageType", name, typ}
+func (e FilterDamageType) field(name string) Field {
+	return Field{e.Handle, "FilterDamageType", name}
 }
 
 func (e FilterDamageType) IDamageType() Number[int32] {
-	return Number[int32]{e.field("m_iDamageType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iDamageType")}
 }
 
 type FilterHealth CEntityInstance
 
-func (e FilterHealth) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "FilterHealth", name, typ}
+func (e FilterHealth) field(name string) Field {
+	return Field{e.Handle, "FilterHealth", name}
 }
 
 func (e FilterHealth) BAdrenalineActive() Bool {
-	return Bool{e.field("m_bAdrenalineActive", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAdrenalineActive")}
 }
 
 func (e FilterHealth) IHealthMin() Number[int32] {
-	return Number[int32]{e.field("m_iHealthMin", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iHealthMin")}
 }
 
 func (e FilterHealth) IHealthMax() Number[int32] {
-	return Number[int32]{e.field("m_iHealthMax", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iHealthMax")}
 }
 
 type CEnvFade CEntityInstance
 
-func (e CEnvFade) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvFade", name, typ}
+func (e CEnvFade) field(name string) Field {
+	return Field{e.Handle, "CEnvFade", name}
 }
 
 func (e CEnvFade) Duration() Number[float32] {
-	return Number[float32]{e.field("m_Duration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_Duration")}
 }
 
 func (e CEnvFade) HoldDuration() Number[float32] {
-	return Number[float32]{e.field("m_HoldDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_HoldDuration")}
 }
 
 type CEnvGlobal CEntityInstance
 
-func (e CEnvGlobal) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CEnvGlobal", name, typ}
+func (e CEnvGlobal) field(name string) Field {
+	return Field{e.Handle, "CEnvGlobal", name}
 }
 
 func (e CEnvGlobal) Globalstate() Text {
-	return Text{e.field("m_globalstate", mod.FieldTypeString)}
+	return Text{e.field("m_globalstate")}
 }
 
 func (e CEnvGlobal) Triggermode() Number[int32] {
-	return Number[int32]{e.field("m_triggermode", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_triggermode")}
 }
 
 func (e CEnvGlobal) Initialstate() Number[int32] {
-	return Number[int32]{e.field("m_initialstate", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_initialstate")}
 }
 
 func (e CEnvGlobal) Counter() Number[int32] {
-	return Number[int32]{e.field("m_counter", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_counter")}
 }
 
 type CFuncMoverRouter CEntityInstance
 
-func (e CFuncMoverRouter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CFuncMoverRouter", name, typ}
+func (e CFuncMoverRouter) field(name string) Field {
+	return Field{e.Handle, "CFuncMoverRouter", name}
 }
 
 func (e CFuncMoverRouter) NMoverIndex() Number[int32] {
-	return Number[int32]{e.field("m_nMoverIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMoverIndex")}
 }
 
 func (e CFuncMoverRouter) BRouteToAllMovers() Bool {
-	return Bool{e.field("m_bRouteToAllMovers", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRouteToAllMovers")}
 }
 
 func (e CFuncMoverRouter) HPathMover() Handle[CPathMover] {
-	return Handle[CPathMover]{e.field("m_hPathMover", mod.FieldTypeHandle)}
+	return Handle[CPathMover]{e.field("m_hPathMover")}
 }
 
 func (e CFuncMoverRouter) IszPathMoverName() Text {
-	return Text{e.field("m_iszPathMoverName", mod.FieldTypeString)}
+	return Text{e.field("m_iszPathMoverName")}
 }
 
 type CInfoSpawnGroupLoadUnload CEntityInstance
 
-func (e CInfoSpawnGroupLoadUnload) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoSpawnGroupLoadUnload", name, typ}
+func (e CInfoSpawnGroupLoadUnload) field(name string) Field {
+	return Field{e.Handle, "CInfoSpawnGroupLoadUnload", name}
 }
 
 func (e CInfoSpawnGroupLoadUnload) IszSpawnGroupName() Text {
-	return Text{e.field("m_iszSpawnGroupName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSpawnGroupName")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) IszSpawnGroupFilterName() Text {
-	return Text{e.field("m_iszSpawnGroupFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSpawnGroupFilterName")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) IszLandmarkName() Text {
-	return Text{e.field("m_iszLandmarkName", mod.FieldTypeString)}
+	return Text{e.field("m_iszLandmarkName")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) SFixedSpawnGroupName() Text {
-	return Text{e.field("m_sFixedSpawnGroupName", mod.FieldTypeString)}
+	return Text{e.field("m_sFixedSpawnGroupName")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) FlTimeoutInterval() Number[float32] {
-	return Number[float32]{e.field("m_flTimeoutInterval", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeoutInterval")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) BAutoActivate() Bool {
-	return Bool{e.field("m_bAutoActivate", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAutoActivate")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) BUnloadingStarted() Bool {
-	return Bool{e.field("m_bUnloadingStarted", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUnloadingStarted")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) BQueueActiveSpawnGroupChange() Bool {
-	return Bool{e.field("m_bQueueActiveSpawnGroupChange", mod.FieldTypeBool)}
+	return Bool{e.field("m_bQueueActiveSpawnGroupChange")}
 }
 
 func (e CInfoSpawnGroupLoadUnload) BQueueFinishLoading() Bool {
-	return Bool{e.field("m_bQueueFinishLoading", mod.FieldTypeBool)}
+	return Bool{e.field("m_bQueueFinishLoading")}
 }
 
 type CLogicAchievement CEntityInstance
 
-func (e CLogicAchievement) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicAchievement", name, typ}
+func (e CLogicAchievement) field(name string) Field {
+	return Field{e.Handle, "CLogicAchievement", name}
 }
 
 func (e CLogicAchievement) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CLogicAchievement) IszAchievementEventID() Text {
-	return Text{e.field("m_iszAchievementEventID", mod.FieldTypeString)}
+	return Text{e.field("m_iszAchievementEventID")}
 }
 
 type CLogicActivityEvent CEntityInstance
 
-func (e CLogicActivityEvent) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicActivityEvent", name, typ}
+func (e CLogicActivityEvent) field(name string) Field {
+	return Field{e.Handle, "CLogicActivityEvent", name}
 }
 
 func (e CLogicActivityEvent) NEventType() Number[int32] {
-	return Number[int32]{e.field("m_nEventType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nEventType")}
 }
 
 func (e CLogicActivityEvent) FlDuration() Number[float32] {
-	return Number[float32]{e.field("m_flDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDuration")}
 }
 
 func (e CLogicActivityEvent) IszSourceEntityName() Text {
-	return Text{e.field("m_iszSourceEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSourceEntityName")}
 }
 
 func (e CLogicActivityEvent) HSource() Number[uint32] {
-	return Number[uint32]{e.field("m_hSource", mod.FieldTypeHandle)}
+	return Number[uint32]{e.field("m_hSource")}
 }
 
 type CLogicAutosave CEntityInstance
 
-func (e CLogicAutosave) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicAutosave", name, typ}
+func (e CLogicAutosave) field(name string) Field {
+	return Field{e.Handle, "CLogicAutosave", name}
 }
 
 func (e CLogicAutosave) BForceNewLevelUnit() Bool {
-	return Bool{e.field("m_bForceNewLevelUnit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceNewLevelUnit")}
 }
 
 func (e CLogicAutosave) MinHitPoints() Number[int32] {
-	return Number[int32]{e.field("m_minHitPoints", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_minHitPoints")}
 }
 
 func (e CLogicAutosave) MinHitPointsToCommit() Number[int32] {
-	return Number[int32]{e.field("m_minHitPointsToCommit", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_minHitPointsToCommit")}
 }
 
 type CLogicActiveAutosave CEntityInstance
 
-func (e CLogicActiveAutosave) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicActiveAutosave", name, typ}
+func (e CLogicActiveAutosave) field(name string) Field {
+	return Field{e.Handle, "CLogicActiveAutosave", name}
 }
 
 func (e CLogicActiveAutosave) TriggerHitPoints() Number[int32] {
-	return Number[int32]{e.field("m_TriggerHitPoints", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_TriggerHitPoints")}
 }
 
 func (e CLogicActiveAutosave) FlTimeToTrigger() Number[float32] {
-	return Number[float32]{e.field("m_flTimeToTrigger", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeToTrigger")}
 }
 
 func (e CLogicActiveAutosave) FlStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartTime")}
 }
 
 func (e CLogicActiveAutosave) FlDangerousTime() Number[float32] {
-	return Number[float32]{e.field("m_flDangerousTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDangerousTime")}
 }
 
 type CLogicBranch CEntityInstance
 
-func (e CLogicBranch) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicBranch", name, typ}
+func (e CLogicBranch) field(name string) Field {
+	return Field{e.Handle, "CLogicBranch", name}
 }
 
 func (e CLogicBranch) BInValue() Bool {
-	return Bool{e.field("m_bInValue", mod.FieldTypeBool)}
+	return Bool{e.field("m_bInValue")}
 }
 
 type CLogicBranchList CEntityInstance
 
-func (e CLogicBranchList) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicBranchList", name, typ}
+func (e CLogicBranchList) field(name string) Field {
+	return Field{e.Handle, "CLogicBranchList", name}
 }
 
 func (e CLogicBranchList) ELastState() Number[uint32] {
-	return Number[uint32]{e.field("m_eLastState", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eLastState")}
 }
 
 type CLogicCase CEntityInstance
 
-func (e CLogicCase) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicCase", name, typ}
+func (e CLogicCase) field(name string) Field {
+	return Field{e.Handle, "CLogicCase", name}
 }
 
 func (e CLogicCase) NShuffleCases() Number[int32] {
-	return Number[int32]{e.field("m_nShuffleCases", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nShuffleCases")}
 }
 
 func (e CLogicCase) NLastShuffleCase() Number[int32] {
-	return Number[int32]{e.field("m_nLastShuffleCase", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nLastShuffleCase")}
 }
 
 type CLogicCollisionPair CEntityInstance
 
-func (e CLogicCollisionPair) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicCollisionPair", name, typ}
+func (e CLogicCollisionPair) field(name string) Field {
+	return Field{e.Handle, "CLogicCollisionPair", name}
 }
 
 func (e CLogicCollisionPair) NameAttach1() Text {
-	return Text{e.field("m_nameAttach1", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach1")}
 }
 
 func (e CLogicCollisionPair) NameAttach2() Text {
-	return Text{e.field("m_nameAttach2", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach2")}
 }
 
 func (e CLogicCollisionPair) IncludeHierarchy() Bool {
-	return Bool{e.field("m_includeHierarchy", mod.FieldTypeBool)}
+	return Bool{e.field("m_includeHierarchy")}
 }
 
 func (e CLogicCollisionPair) SupportMultipleEntitiesWithSameName() Bool {
-	return Bool{e.field("m_supportMultipleEntitiesWithSameName", mod.FieldTypeBool)}
+	return Bool{e.field("m_supportMultipleEntitiesWithSameName")}
 }
 
 func (e CLogicCollisionPair) Disabled() Bool {
-	return Bool{e.field("m_disabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_disabled")}
 }
 
 func (e CLogicCollisionPair) Succeeded() Bool {
-	return Bool{e.field("m_succeeded", mod.FieldTypeBool)}
+	return Bool{e.field("m_succeeded")}
 }
 
 func (e CLogicCollisionPair) AllowMissing() Bool {
-	return Bool{e.field("m_allowMissing", mod.FieldTypeBool)}
+	return Bool{e.field("m_allowMissing")}
 }
 
 type CLogicCompare CEntityInstance
 
-func (e CLogicCompare) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicCompare", name, typ}
+func (e CLogicCompare) field(name string) Field {
+	return Field{e.Handle, "CLogicCompare", name}
 }
 
 func (e CLogicCompare) FlInValue() Number[float32] {
-	return Number[float32]{e.field("m_flInValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInValue")}
 }
 
 func (e CLogicCompare) FlCompareValue() Number[float32] {
-	return Number[float32]{e.field("m_flCompareValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCompareValue")}
 }
 
 type CLogicDistanceAutosave CEntityInstance
 
-func (e CLogicDistanceAutosave) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicDistanceAutosave", name, typ}
+func (e CLogicDistanceAutosave) field(name string) Field {
+	return Field{e.Handle, "CLogicDistanceAutosave", name}
 }
 
 func (e CLogicDistanceAutosave) IszTargetEntity() Text {
-	return Text{e.field("m_iszTargetEntity", mod.FieldTypeString)}
+	return Text{e.field("m_iszTargetEntity")}
 }
 
 func (e CLogicDistanceAutosave) FlDistanceToPlayer() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceToPlayer", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceToPlayer")}
 }
 
 func (e CLogicDistanceAutosave) BForceNewLevelUnit() Bool {
-	return Bool{e.field("m_bForceNewLevelUnit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bForceNewLevelUnit")}
 }
 
 func (e CLogicDistanceAutosave) BCheckCough() Bool {
-	return Bool{e.field("m_bCheckCough", mod.FieldTypeBool)}
+	return Bool{e.field("m_bCheckCough")}
 }
 
 func (e CLogicDistanceAutosave) BThinkDangerous() Bool {
-	return Bool{e.field("m_bThinkDangerous", mod.FieldTypeBool)}
+	return Bool{e.field("m_bThinkDangerous")}
 }
 
 func (e CLogicDistanceAutosave) FlDangerousTime() Number[float32] {
-	return Number[float32]{e.field("m_flDangerousTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDangerousTime")}
 }
 
 type CLogicDistanceCheck CEntityInstance
 
-func (e CLogicDistanceCheck) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicDistanceCheck", name, typ}
+func (e CLogicDistanceCheck) field(name string) Field {
+	return Field{e.Handle, "CLogicDistanceCheck", name}
 }
 
 func (e CLogicDistanceCheck) IszEntityA() Text {
-	return Text{e.field("m_iszEntityA", mod.FieldTypeString)}
+	return Text{e.field("m_iszEntityA")}
 }
 
 func (e CLogicDistanceCheck) IszEntityB() Text {
-	return Text{e.field("m_iszEntityB", mod.FieldTypeString)}
+	return Text{e.field("m_iszEntityB")}
 }
 
 func (e CLogicDistanceCheck) FlZone1Distance() Number[float32] {
-	return Number[float32]{e.field("m_flZone1Distance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZone1Distance")}
 }
 
 func (e CLogicDistanceCheck) FlZone2Distance() Number[float32] {
-	return Number[float32]{e.field("m_flZone2Distance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flZone2Distance")}
 }
 
 type CLogicGameEvent CEntityInstance
 
-func (e CLogicGameEvent) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicGameEvent", name, typ}
+func (e CLogicGameEvent) field(name string) Field {
+	return Field{e.Handle, "CLogicGameEvent", name}
 }
 
 func (e CLogicGameEvent) IszEventName() Text {
-	return Text{e.field("m_iszEventName", mod.FieldTypeString)}
+	return Text{e.field("m_iszEventName")}
 }
 
 type CLogicGameEventListener CEntityInstance
 
-func (e CLogicGameEventListener) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicGameEventListener", name, typ}
+func (e CLogicGameEventListener) field(name string) Field {
+	return Field{e.Handle, "CLogicGameEventListener", name}
 }
 
 func (e CLogicGameEventListener) IszGameEventName() Text {
-	return Text{e.field("m_iszGameEventName", mod.FieldTypeString)}
+	return Text{e.field("m_iszGameEventName")}
 }
 
 func (e CLogicGameEventListener) IszGameEventItem() Text {
-	return Text{e.field("m_iszGameEventItem", mod.FieldTypeString)}
+	return Text{e.field("m_iszGameEventItem")}
 }
 
 func (e CLogicGameEventListener) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CLogicGameEventListener) BStartDisabled() Bool {
-	return Bool{e.field("m_bStartDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartDisabled")}
 }
 
 type CLogicLineToEntity CEntityInstance
 
-func (e CLogicLineToEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicLineToEntity", name, typ}
+func (e CLogicLineToEntity) field(name string) Field {
+	return Field{e.Handle, "CLogicLineToEntity", name}
 }
 
 func (e CLogicLineToEntity) SourceName() Text {
-	return Text{e.field("m_SourceName", mod.FieldTypeString)}
+	return Text{e.field("m_SourceName")}
 }
 
 func (e CLogicLineToEntity) StartEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_StartEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_StartEntity")}
 }
 
 func (e CLogicLineToEntity) EndEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_EndEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_EndEntity")}
 }
 
 type CLogicMeasureMovement CEntityInstance
 
-func (e CLogicMeasureMovement) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicMeasureMovement", name, typ}
+func (e CLogicMeasureMovement) field(name string) Field {
+	return Field{e.Handle, "CLogicMeasureMovement", name}
 }
 
 func (e CLogicMeasureMovement) StrMeasureTarget() Text {
-	return Text{e.field("m_strMeasureTarget", mod.FieldTypeString)}
+	return Text{e.field("m_strMeasureTarget")}
 }
 
 func (e CLogicMeasureMovement) StrMeasureReference() Text {
-	return Text{e.field("m_strMeasureReference", mod.FieldTypeString)}
+	return Text{e.field("m_strMeasureReference")}
 }
 
 func (e CLogicMeasureMovement) StrTargetReference() Text {
-	return Text{e.field("m_strTargetReference", mod.FieldTypeString)}
+	return Text{e.field("m_strTargetReference")}
 }
 
 func (e CLogicMeasureMovement) HMeasureTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hMeasureTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hMeasureTarget")}
 }
 
 func (e CLogicMeasureMovement) HMeasureReference() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hMeasureReference", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hMeasureReference")}
 }
 
 func (e CLogicMeasureMovement) HTarget() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTarget", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTarget")}
 }
 
 func (e CLogicMeasureMovement) HTargetReference() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hTargetReference", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hTargetReference")}
 }
 
 func (e CLogicMeasureMovement) FlScale() Number[float32] {
-	return Number[float32]{e.field("m_flScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flScale")}
 }
 
 func (e CLogicMeasureMovement) NMeasureType() Number[int32] {
-	return Number[int32]{e.field("m_nMeasureType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMeasureType")}
 }
 
 type CLogicNavigation CEntityInstance
 
-func (e CLogicNavigation) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicNavigation", name, typ}
+func (e CLogicNavigation) field(name string) Field {
+	return Field{e.Handle, "CLogicNavigation", name}
 }
 
 func (e CLogicNavigation) IsOn() Bool {
-	return Bool{e.field("m_isOn", mod.FieldTypeBool)}
+	return Bool{e.field("m_isOn")}
 }
 
 func (e CLogicNavigation) NavProperty() Number[uint32] {
-	return Number[uint32]{e.field("m_navProperty", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_navProperty")}
 }
 
 type CLogicPlayerProxyBase CEntityInstance
 
-func (e CLogicPlayerProxyBase) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicPlayerProxyBase", name, typ}
+func (e CLogicPlayerProxyBase) field(name string) Field {
+	return Field{e.Handle, "CLogicPlayerProxyBase", name}
 }
 
 func (e CLogicPlayerProxyBase) HPlayer() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hPlayer", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hPlayer")}
 }
 
 type CGenericLogicPlayerProxy CEntityInstance
 
 type CLogicRelay CEntityInstance
 
-func (e CLogicRelay) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CLogicRelay", name, typ}
+func (e CLogicRelay) field(name string) Field {
+	return Field{e.Handle, "CLogicRelay", name}
 }
 
 func (e CLogicRelay) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CLogicRelay) BWaitForRefire() Bool {
-	return Bool{e.field("m_bWaitForRefire", mod.FieldTypeBool)}
+	return Bool{e.field("m_bWaitForRefire")}
 }
 
 func (e CLogicRelay) BTriggerOnce() Bool {
-	return Bool{e.field("m_bTriggerOnce", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTriggerOnce")}
 }
 
 func (e CLogicRelay) BFastRetrigger() Bool {
-	return Bool{e.field("m_bFastRetrigger", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFastRetrigger")}
 }
 
 func (e CLogicRelay) BPassthoughCaller() Bool {
-	return Bool{e.field("m_bPassthoughCaller", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPassthoughCaller")}
 }
 
 type CMapSharedEnvironment CEntityInstance
 
-func (e CMapSharedEnvironment) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMapSharedEnvironment", name, typ}
+func (e CMapSharedEnvironment) field(name string) Field {
+	return Field{e.Handle, "CMapSharedEnvironment", name}
 }
 
 func (e CMapSharedEnvironment) TargetMapName() Text {
-	return Text{e.field("m_targetMapName", mod.FieldTypeString)}
+	return Text{e.field("m_targetMapName")}
 }
 
 type CMathColorBlend CEntityInstance
 
-func (e CMathColorBlend) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMathColorBlend", name, typ}
+func (e CMathColorBlend) field(name string) Field {
+	return Field{e.Handle, "CMathColorBlend", name}
 }
 
 func (e CMathColorBlend) FlInMin() Number[float32] {
-	return Number[float32]{e.field("m_flInMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInMin")}
 }
 
 func (e CMathColorBlend) FlInMax() Number[float32] {
-	return Number[float32]{e.field("m_flInMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInMax")}
 }
 
 type CMathCounter CEntityInstance
 
-func (e CMathCounter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMathCounter", name, typ}
+func (e CMathCounter) field(name string) Field {
+	return Field{e.Handle, "CMathCounter", name}
 }
 
 func (e CMathCounter) FlMin() Number[float32] {
-	return Number[float32]{e.field("m_flMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMin")}
 }
 
 func (e CMathCounter) FlMax() Number[float32] {
-	return Number[float32]{e.field("m_flMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMax")}
 }
 
 func (e CMathCounter) BHitMin() Bool {
-	return Bool{e.field("m_bHitMin", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitMin")}
 }
 
 func (e CMathCounter) BHitMax() Bool {
-	return Bool{e.field("m_bHitMax", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHitMax")}
 }
 
 func (e CMathCounter) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 type CMathRemap CEntityInstance
 
-func (e CMathRemap) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMathRemap", name, typ}
+func (e CMathRemap) field(name string) Field {
+	return Field{e.Handle, "CMathRemap", name}
 }
 
 func (e CMathRemap) FlInMin() Number[float32] {
-	return Number[float32]{e.field("m_flInMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInMin")}
 }
 
 func (e CMathRemap) FlInMax() Number[float32] {
-	return Number[float32]{e.field("m_flInMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInMax")}
 }
 
 func (e CMathRemap) FlOut1() Number[float32] {
-	return Number[float32]{e.field("m_flOut1", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOut1")}
 }
 
 func (e CMathRemap) FlOut2() Number[float32] {
-	return Number[float32]{e.field("m_flOut2", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOut2")}
 }
 
 func (e CMathRemap) FlOldInValue() Number[float32] {
-	return Number[float32]{e.field("m_flOldInValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOldInValue")}
 }
 
 func (e CMathRemap) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 type CMultiLightProxy CEntityInstance
 
-func (e CMultiLightProxy) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMultiLightProxy", name, typ}
+func (e CMultiLightProxy) field(name string) Field {
+	return Field{e.Handle, "CMultiLightProxy", name}
 }
 
 func (e CMultiLightProxy) IszLightNameFilter() Text {
-	return Text{e.field("m_iszLightNameFilter", mod.FieldTypeString)}
+	return Text{e.field("m_iszLightNameFilter")}
 }
 
 func (e CMultiLightProxy) IszLightClassFilter() Text {
-	return Text{e.field("m_iszLightClassFilter", mod.FieldTypeString)}
+	return Text{e.field("m_iszLightClassFilter")}
 }
 
 func (e CMultiLightProxy) FlLightRadiusFilter() Number[float32] {
-	return Number[float32]{e.field("m_flLightRadiusFilter", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLightRadiusFilter")}
 }
 
 func (e CMultiLightProxy) FlBrightnessDelta() Number[float32] {
-	return Number[float32]{e.field("m_flBrightnessDelta", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBrightnessDelta")}
 }
 
 func (e CMultiLightProxy) BPerformScreenFade() Bool {
-	return Bool{e.field("m_bPerformScreenFade", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPerformScreenFade")}
 }
 
 func (e CMultiLightProxy) FlTargetBrightnessMultiplier() Number[float32] {
-	return Number[float32]{e.field("m_flTargetBrightnessMultiplier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTargetBrightnessMultiplier")}
 }
 
 func (e CMultiLightProxy) FlCurrentBrightnessMultiplier() Number[float32] {
-	return Number[float32]{e.field("m_flCurrentBrightnessMultiplier", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flCurrentBrightnessMultiplier")}
 }
 
 type CMultiSource CEntityInstance
 
-func (e CMultiSource) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CMultiSource", name, typ}
+func (e CMultiSource) field(name string) Field {
+	return Field{e.Handle, "CMultiSource", name}
 }
 
 func (e CMultiSource) ITotal() Number[int32] {
-	return Number[int32]{e.field("m_iTotal", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iTotal")}
 }
 
 func (e CMultiSource) Globalstate() Text {
-	return Text{e.field("m_globalstate", mod.FieldTypeString)}
+	return Text{e.field("m_globalstate")}
 }
 
 type CPathKeyFrame CEntityInstance
 
-func (e CPathKeyFrame) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathKeyFrame", name, typ}
+func (e CPathKeyFrame) field(name string) Field {
+	return Field{e.Handle, "CPathKeyFrame", name}
 }
 
 func (e CPathKeyFrame) Origin() Vector {
-	return Vector{e.field("m_Origin", mod.FieldTypeVector)}
+	return Vector{e.field("m_Origin")}
 }
 
 func (e CPathKeyFrame) Angles() Angles {
-	return Angles{e.field("m_Angles", mod.FieldTypeVector)}
+	return Angles{e.field("m_Angles")}
 }
 
 func (e CPathKeyFrame) INextKey() Text {
-	return Text{e.field("m_iNextKey", mod.FieldTypeString)}
+	return Text{e.field("m_iNextKey")}
 }
 
 func (e CPathKeyFrame) FlNextTime() Number[float32] {
-	return Number[float32]{e.field("m_flNextTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNextTime")}
 }
 
 func (e CPathKeyFrame) PNextKey() Handle[CPathKeyFrame] {
-	return Handle[CPathKeyFrame]{e.field("m_pNextKey", mod.FieldTypeHandle)}
+	return Handle[CPathKeyFrame]{e.field("m_pNextKey")}
 }
 
 func (e CPathKeyFrame) PPrevKey() Handle[CPathKeyFrame] {
-	return Handle[CPathKeyFrame]{e.field("m_pPrevKey", mod.FieldTypeHandle)}
+	return Handle[CPathKeyFrame]{e.field("m_pPrevKey")}
 }
 
 func (e CPathKeyFrame) FlMoveSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flMoveSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMoveSpeed")}
 }
 
 type CPathMoverEntitySpawner CEntityInstance
 
-func (e CPathMoverEntitySpawner) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPathMoverEntitySpawner", name, typ}
+func (e CPathMoverEntitySpawner) field(name string) Field {
+	return Field{e.Handle, "CPathMoverEntitySpawner", name}
 }
 
 func (e CPathMoverEntitySpawner) ETemplateChoiceStrategy() Number[uint32] {
-	return Number[uint32]{e.field("m_eTemplateChoiceStrategy", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eTemplateChoiceStrategy")}
 }
 
 func (e CPathMoverEntitySpawner) NSpawnIndex() Number[int32] {
-	return Number[int32]{e.field("m_nSpawnIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSpawnIndex")}
 }
 
 func (e CPathMoverEntitySpawner) HPathMover() Handle[CPathMover] {
-	return Handle[CPathMover]{e.field("m_hPathMover", mod.FieldTypeHandle)}
+	return Handle[CPathMover]{e.field("m_hPathMover")}
 }
 
 func (e CPathMoverEntitySpawner) FlSpawnFrequencySeconds() Number[float32] {
-	return Number[float32]{e.field("m_flSpawnFrequencySeconds", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpawnFrequencySeconds")}
 }
 
 func (e CPathMoverEntitySpawner) FlSpawnFrequencyDistToNearestMover() Number[float32] {
-	return Number[float32]{e.field("m_flSpawnFrequencyDistToNearestMover", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpawnFrequencyDistToNearestMover")}
 }
 
 func (e CPathMoverEntitySpawner) NMaxActive() Number[int32] {
-	return Number[int32]{e.field("m_nMaxActive", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMaxActive")}
 }
 
 func (e CPathMoverEntitySpawner) NSpawnNum() Number[int32] {
-	return Number[int32]{e.field("m_nSpawnNum", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSpawnNum")}
 }
 
 func (e CPathMoverEntitySpawner) NSpawnActive() Number[int32] {
-	return Number[int32]{e.field("m_nSpawnActive", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSpawnActive")}
 }
 
 func (e CPathMoverEntitySpawner) FlLastSpawnTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastSpawnTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastSpawnTime")}
 }
 
 func (e CPathMoverEntitySpawner) BEnabled() Bool {
-	return Bool{e.field("m_bEnabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnabled")}
 }
 
 func (e CPathMoverEntitySpawner) BDestroyMoverOnArrivedAtEnd() Bool {
-	return Bool{e.field("m_bDestroyMoverOnArrivedAtEnd", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDestroyMoverOnArrivedAtEnd")}
 }
 
 func (e CPathMoverEntitySpawner) IszPathMoverName() Text {
-	return Text{e.field("m_iszPathMoverName", mod.FieldTypeString)}
+	return Text{e.field("m_iszPathMoverName")}
 }
 
 func (e CPathMoverEntitySpawner) BPrepopulateOnSpawn() Bool {
-	return Bool{e.field("m_bPrepopulateOnSpawn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPrepopulateOnSpawn")}
 }
 
 func (e CPathMoverEntitySpawner) IszPathNodeStartName() Text {
-	return Text{e.field("m_iszPathNodeStartName", mod.FieldTypeString)}
+	return Text{e.field("m_iszPathNodeStartName")}
 }
 
 func (e CPathMoverEntitySpawner) VMoverSpawnPos() Vector {
-	return Vector{e.field("m_vMoverSpawnPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMoverSpawnPos")}
 }
 
 func (e CPathMoverEntitySpawner) BRunningDebugThink() Bool {
-	return Bool{e.field("m_bRunningDebugThink", mod.FieldTypeBool)}
+	return Bool{e.field("m_bRunningDebugThink")}
 }
 
 type CPhysConstraint CEntityInstance
 
-func (e CPhysConstraint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysConstraint", name, typ}
+func (e CPhysConstraint) field(name string) Field {
+	return Field{e.Handle, "CPhysConstraint", name}
 }
 
 func (e CPhysConstraint) NameAttach1() Text {
-	return Text{e.field("m_nameAttach1", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach1")}
 }
 
 func (e CPhysConstraint) NameAttach2() Text {
-	return Text{e.field("m_nameAttach2", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach2")}
 }
 
 func (e CPhysConstraint) HAttach1() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAttach1", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAttach1")}
 }
 
 func (e CPhysConstraint) HAttach2() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAttach2", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAttach2")}
 }
 
 func (e CPhysConstraint) NameAttachment1() Text {
-	return Text{e.field("m_nameAttachment1", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttachment1")}
 }
 
 func (e CPhysConstraint) NameAttachment2() Text {
-	return Text{e.field("m_nameAttachment2", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttachment2")}
 }
 
 func (e CPhysConstraint) ForceLimit() Number[float32] {
-	return Number[float32]{e.field("m_forceLimit", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_forceLimit")}
 }
 
 func (e CPhysConstraint) TorqueLimit() Number[float32] {
-	return Number[float32]{e.field("m_torqueLimit", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_torqueLimit")}
 }
 
 func (e CPhysConstraint) MinTeleportDistance() Number[float32] {
-	return Number[float32]{e.field("m_minTeleportDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_minTeleportDistance")}
 }
 
 func (e CPhysConstraint) BSnapObjectPositions() Bool {
-	return Bool{e.field("m_bSnapObjectPositions", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSnapObjectPositions")}
 }
 
 func (e CPhysConstraint) BTreatEntity1AsInfiniteMass() Bool {
-	return Bool{e.field("m_bTreatEntity1AsInfiniteMass", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTreatEntity1AsInfiniteMass")}
 }
 
 type CGenericConstraint CEntityInstance
 
-func (e CGenericConstraint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CGenericConstraint", name, typ}
+func (e CGenericConstraint) field(name string) Field {
+	return Field{e.Handle, "CGenericConstraint", name}
 }
 
 func (e CGenericConstraint) BPlaceAnchorsAtConstraintTransform() Bool {
-	return Bool{e.field("m_bPlaceAnchorsAtConstraintTransform", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPlaceAnchorsAtConstraintTransform")}
 }
 
 func (e CGenericConstraint) NLinearMotionX() Number[uint32] {
-	return Number[uint32]{e.field("m_nLinearMotionX", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nLinearMotionX")}
 }
 
 func (e CGenericConstraint) NLinearMotionY() Number[uint32] {
-	return Number[uint32]{e.field("m_nLinearMotionY", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nLinearMotionY")}
 }
 
 func (e CGenericConstraint) NLinearMotionZ() Number[uint32] {
-	return Number[uint32]{e.field("m_nLinearMotionZ", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nLinearMotionZ")}
 }
 
 func (e CGenericConstraint) FlLinearFrequencyX() Number[float32] {
-	return Number[float32]{e.field("m_flLinearFrequencyX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearFrequencyX")}
 }
 
 func (e CGenericConstraint) FlLinearFrequencyY() Number[float32] {
-	return Number[float32]{e.field("m_flLinearFrequencyY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearFrequencyY")}
 }
 
 func (e CGenericConstraint) FlLinearFrequencyZ() Number[float32] {
-	return Number[float32]{e.field("m_flLinearFrequencyZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearFrequencyZ")}
 }
 
 func (e CGenericConstraint) FlLinearDampingRatioX() Number[float32] {
-	return Number[float32]{e.field("m_flLinearDampingRatioX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearDampingRatioX")}
 }
 
 func (e CGenericConstraint) FlLinearDampingRatioY() Number[float32] {
-	return Number[float32]{e.field("m_flLinearDampingRatioY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearDampingRatioY")}
 }
 
 func (e CGenericConstraint) FlLinearDampingRatioZ() Number[float32] {
-	return Number[float32]{e.field("m_flLinearDampingRatioZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearDampingRatioZ")}
 }
 
 func (e CGenericConstraint) FlMaxLinearImpulseX() Number[float32] {
-	return Number[float32]{e.field("m_flMaxLinearImpulseX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxLinearImpulseX")}
 }
 
 func (e CGenericConstraint) FlMaxLinearImpulseY() Number[float32] {
-	return Number[float32]{e.field("m_flMaxLinearImpulseY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxLinearImpulseY")}
 }
 
 func (e CGenericConstraint) FlMaxLinearImpulseZ() Number[float32] {
-	return Number[float32]{e.field("m_flMaxLinearImpulseZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxLinearImpulseZ")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeX() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeX")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeY() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeY")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeZ() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeZ")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeStartTimeX() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeStartTimeX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeStartTimeX")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeStartTimeY() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeStartTimeY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeStartTimeY")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeStartTimeZ() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeStartTimeZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeStartTimeZ")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeThresholdX() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeThresholdX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeThresholdX")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeThresholdY() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeThresholdY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeThresholdY")}
 }
 
 func (e CGenericConstraint) FlBreakAfterTimeThresholdZ() Number[float32] {
-	return Number[float32]{e.field("m_flBreakAfterTimeThresholdZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBreakAfterTimeThresholdZ")}
 }
 
 func (e CGenericConstraint) FlNotifyForceX() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceX")}
 }
 
 func (e CGenericConstraint) FlNotifyForceY() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceY")}
 }
 
 func (e CGenericConstraint) FlNotifyForceZ() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceZ")}
 }
 
 func (e CGenericConstraint) FlNotifyForceMinTimeX() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceMinTimeX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceMinTimeX")}
 }
 
 func (e CGenericConstraint) FlNotifyForceMinTimeY() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceMinTimeY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceMinTimeY")}
 }
 
 func (e CGenericConstraint) FlNotifyForceMinTimeZ() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceMinTimeZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceMinTimeZ")}
 }
 
 func (e CGenericConstraint) FlNotifyForceLastTimeX() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceLastTimeX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceLastTimeX")}
 }
 
 func (e CGenericConstraint) FlNotifyForceLastTimeY() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceLastTimeY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceLastTimeY")}
 }
 
 func (e CGenericConstraint) FlNotifyForceLastTimeZ() Number[float32] {
-	return Number[float32]{e.field("m_flNotifyForceLastTimeZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flNotifyForceLastTimeZ")}
 }
 
 func (e CGenericConstraint) BAxisNotifiedX() Bool {
-	return Bool{e.field("m_bAxisNotifiedX", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAxisNotifiedX")}
 }
 
 func (e CGenericConstraint) BAxisNotifiedY() Bool {
-	return Bool{e.field("m_bAxisNotifiedY", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAxisNotifiedY")}
 }
 
 func (e CGenericConstraint) BAxisNotifiedZ() Bool {
-	return Bool{e.field("m_bAxisNotifiedZ", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAxisNotifiedZ")}
 }
 
 func (e CGenericConstraint) NAngularMotionX() Number[uint32] {
-	return Number[uint32]{e.field("m_nAngularMotionX", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nAngularMotionX")}
 }
 
 func (e CGenericConstraint) NAngularMotionY() Number[uint32] {
-	return Number[uint32]{e.field("m_nAngularMotionY", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nAngularMotionY")}
 }
 
 func (e CGenericConstraint) NAngularMotionZ() Number[uint32] {
-	return Number[uint32]{e.field("m_nAngularMotionZ", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_nAngularMotionZ")}
 }
 
 func (e CGenericConstraint) FlAngularFrequencyX() Number[float32] {
-	return Number[float32]{e.field("m_flAngularFrequencyX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularFrequencyX")}
 }
 
 func (e CGenericConstraint) FlAngularFrequencyY() Number[float32] {
-	return Number[float32]{e.field("m_flAngularFrequencyY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularFrequencyY")}
 }
 
 func (e CGenericConstraint) FlAngularFrequencyZ() Number[float32] {
-	return Number[float32]{e.field("m_flAngularFrequencyZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularFrequencyZ")}
 }
 
 func (e CGenericConstraint) FlAngularDampingRatioX() Number[float32] {
-	return Number[float32]{e.field("m_flAngularDampingRatioX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularDampingRatioX")}
 }
 
 func (e CGenericConstraint) FlAngularDampingRatioY() Number[float32] {
-	return Number[float32]{e.field("m_flAngularDampingRatioY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularDampingRatioY")}
 }
 
 func (e CGenericConstraint) FlAngularDampingRatioZ() Number[float32] {
-	return Number[float32]{e.field("m_flAngularDampingRatioZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularDampingRatioZ")}
 }
 
 func (e CGenericConstraint) FlMaxAngularImpulseX() Number[float32] {
-	return Number[float32]{e.field("m_flMaxAngularImpulseX", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxAngularImpulseX")}
 }
 
 func (e CGenericConstraint) FlMaxAngularImpulseY() Number[float32] {
-	return Number[float32]{e.field("m_flMaxAngularImpulseY", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxAngularImpulseY")}
 }
 
 func (e CGenericConstraint) FlMaxAngularImpulseZ() Number[float32] {
-	return Number[float32]{e.field("m_flMaxAngularImpulseZ", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxAngularImpulseZ")}
 }
 
 type CPhysBallSocket CEntityInstance
 
-func (e CPhysBallSocket) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysBallSocket", name, typ}
+func (e CPhysBallSocket) field(name string) Field {
+	return Field{e.Handle, "CPhysBallSocket", name}
 }
 
 func (e CPhysBallSocket) FlJointFriction() Number[float32] {
-	return Number[float32]{e.field("m_flJointFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flJointFriction")}
 }
 
 func (e CPhysBallSocket) BEnableSwingLimit() Bool {
-	return Bool{e.field("m_bEnableSwingLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableSwingLimit")}
 }
 
 func (e CPhysBallSocket) FlSwingLimit() Number[float32] {
-	return Number[float32]{e.field("m_flSwingLimit", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSwingLimit")}
 }
 
 func (e CPhysBallSocket) BEnableTwistLimit() Bool {
-	return Bool{e.field("m_bEnableTwistLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableTwistLimit")}
 }
 
 func (e CPhysBallSocket) FlMinTwistAngle() Number[float32] {
-	return Number[float32]{e.field("m_flMinTwistAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMinTwistAngle")}
 }
 
 func (e CPhysBallSocket) FlMaxTwistAngle() Number[float32] {
-	return Number[float32]{e.field("m_flMaxTwistAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxTwistAngle")}
 }
 
 type CPhysFixed CEntityInstance
 
-func (e CPhysFixed) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysFixed", name, typ}
+func (e CPhysFixed) field(name string) Field {
+	return Field{e.Handle, "CPhysFixed", name}
 }
 
 func (e CPhysFixed) FlLinearFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flLinearFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearFrequency")}
 }
 
 func (e CPhysFixed) FlLinearDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flLinearDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearDampingRatio")}
 }
 
 func (e CPhysFixed) FlAngularFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flAngularFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularFrequency")}
 }
 
 func (e CPhysFixed) FlAngularDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flAngularDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngularDampingRatio")}
 }
 
 func (e CPhysFixed) BEnableLinearConstraint() Bool {
-	return Bool{e.field("m_bEnableLinearConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableLinearConstraint")}
 }
 
 func (e CPhysFixed) BEnableAngularConstraint() Bool {
-	return Bool{e.field("m_bEnableAngularConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableAngularConstraint")}
 }
 
 func (e CPhysFixed) SBoneName1() Text {
-	return Text{e.field("m_sBoneName1", mod.FieldTypeString)}
+	return Text{e.field("m_sBoneName1")}
 }
 
 func (e CPhysFixed) SBoneName2() Text {
-	return Text{e.field("m_sBoneName2", mod.FieldTypeString)}
+	return Text{e.field("m_sBoneName2")}
 }
 
 type CPhysHinge CEntityInstance
 
-func (e CPhysHinge) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysHinge", name, typ}
+func (e CPhysHinge) field(name string) Field {
+	return Field{e.Handle, "CPhysHinge", name}
 }
 
 func (e CPhysHinge) BAtMinLimit() Bool {
-	return Bool{e.field("m_bAtMinLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAtMinLimit")}
 }
 
 func (e CPhysHinge) BAtMaxLimit() Bool {
-	return Bool{e.field("m_bAtMaxLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAtMaxLimit")}
 }
 
 func (e CPhysHinge) HingeFriction() Number[float32] {
-	return Number[float32]{e.field("m_hingeFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_hingeFriction")}
 }
 
 func (e CPhysHinge) SystemLoadScale() Number[float32] {
-	return Number[float32]{e.field("m_systemLoadScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_systemLoadScale")}
 }
 
 func (e CPhysHinge) BIsAxisLocal() Bool {
-	return Bool{e.field("m_bIsAxisLocal", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIsAxisLocal")}
 }
 
 func (e CPhysHinge) FlMinRotation() Number[float32] {
-	return Number[float32]{e.field("m_flMinRotation", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMinRotation")}
 }
 
 func (e CPhysHinge) FlMaxRotation() Number[float32] {
-	return Number[float32]{e.field("m_flMaxRotation", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxRotation")}
 }
 
 func (e CPhysHinge) FlInitialRotation() Number[float32] {
-	return Number[float32]{e.field("m_flInitialRotation", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInitialRotation")}
 }
 
 func (e CPhysHinge) FlMotorFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flMotorFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMotorFrequency")}
 }
 
 func (e CPhysHinge) FlMotorDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flMotorDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMotorDampingRatio")}
 }
 
 func (e CPhysHinge) FlAngleSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flAngleSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngleSpeed")}
 }
 
 func (e CPhysHinge) FlAngleSpeedThreshold() Number[float32] {
-	return Number[float32]{e.field("m_flAngleSpeedThreshold", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAngleSpeedThreshold")}
 }
 
 func (e CPhysHinge) FlLimitsDebugVisRotation() Number[float32] {
-	return Number[float32]{e.field("m_flLimitsDebugVisRotation", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLimitsDebugVisRotation")}
 }
 
 type CPhysHingeAlias_phys_hinge_local CEntityInstance
 
 type CPhysLength CEntityInstance
 
-func (e CPhysLength) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysLength", name, typ}
+func (e CPhysLength) field(name string) Field {
+	return Field{e.Handle, "CPhysLength", name}
 }
 
 func (e CPhysLength) VecAttach() Vector {
-	return Vector{e.field("m_vecAttach", mod.FieldTypeVector)}
+	return Vector{e.field("m_vecAttach")}
 }
 
 func (e CPhysLength) AddLength() Number[float32] {
-	return Number[float32]{e.field("m_addLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_addLength")}
 }
 
 func (e CPhysLength) MinLength() Number[float32] {
-	return Number[float32]{e.field("m_minLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_minLength")}
 }
 
 func (e CPhysLength) TotalLength() Number[float32] {
-	return Number[float32]{e.field("m_totalLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_totalLength")}
 }
 
 type CPhysPulley CEntityInstance
 
-func (e CPhysPulley) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysPulley", name, typ}
+func (e CPhysPulley) field(name string) Field {
+	return Field{e.Handle, "CPhysPulley", name}
 }
 
 func (e CPhysPulley) Position2() Vector {
-	return Vector{e.field("m_position2", mod.FieldTypeVector)}
+	return Vector{e.field("m_position2")}
 }
 
 func (e CPhysPulley) AddLength() Number[float32] {
-	return Number[float32]{e.field("m_addLength", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_addLength")}
 }
 
 func (e CPhysPulley) GearRatio() Number[float32] {
-	return Number[float32]{e.field("m_gearRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_gearRatio")}
 }
 
 type CPhysSlideConstraint CEntityInstance
 
-func (e CPhysSlideConstraint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysSlideConstraint", name, typ}
+func (e CPhysSlideConstraint) field(name string) Field {
+	return Field{e.Handle, "CPhysSlideConstraint", name}
 }
 
 func (e CPhysSlideConstraint) AxisEnd() Vector {
-	return Vector{e.field("m_axisEnd", mod.FieldTypeVector)}
+	return Vector{e.field("m_axisEnd")}
 }
 
 func (e CPhysSlideConstraint) SlideFriction() Number[float32] {
-	return Number[float32]{e.field("m_slideFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_slideFriction")}
 }
 
 func (e CPhysSlideConstraint) SystemLoadScale() Number[float32] {
-	return Number[float32]{e.field("m_systemLoadScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_systemLoadScale")}
 }
 
 func (e CPhysSlideConstraint) InitialOffset() Number[float32] {
-	return Number[float32]{e.field("m_initialOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_initialOffset")}
 }
 
 func (e CPhysSlideConstraint) BEnableLinearConstraint() Bool {
-	return Bool{e.field("m_bEnableLinearConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableLinearConstraint")}
 }
 
 func (e CPhysSlideConstraint) BEnableAngularConstraint() Bool {
-	return Bool{e.field("m_bEnableAngularConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableAngularConstraint")}
 }
 
 func (e CPhysSlideConstraint) FlMotorFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flMotorFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMotorFrequency")}
 }
 
 func (e CPhysSlideConstraint) FlMotorDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flMotorDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMotorDampingRatio")}
 }
 
 func (e CPhysSlideConstraint) BUseEntityPivot() Bool {
-	return Bool{e.field("m_bUseEntityPivot", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseEntityPivot")}
 }
 
 type CPhysWheelConstraint CEntityInstance
 
-func (e CPhysWheelConstraint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysWheelConstraint", name, typ}
+func (e CPhysWheelConstraint) field(name string) Field {
+	return Field{e.Handle, "CPhysWheelConstraint", name}
 }
 
 func (e CPhysWheelConstraint) FlSuspensionFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flSuspensionFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSuspensionFrequency")}
 }
 
 func (e CPhysWheelConstraint) FlSuspensionDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flSuspensionDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSuspensionDampingRatio")}
 }
 
 func (e CPhysWheelConstraint) FlSuspensionHeightOffset() Number[float32] {
-	return Number[float32]{e.field("m_flSuspensionHeightOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSuspensionHeightOffset")}
 }
 
 func (e CPhysWheelConstraint) BEnableSuspensionLimit() Bool {
-	return Bool{e.field("m_bEnableSuspensionLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableSuspensionLimit")}
 }
 
 func (e CPhysWheelConstraint) FlMinSuspensionOffset() Number[float32] {
-	return Number[float32]{e.field("m_flMinSuspensionOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMinSuspensionOffset")}
 }
 
 func (e CPhysWheelConstraint) FlMaxSuspensionOffset() Number[float32] {
-	return Number[float32]{e.field("m_flMaxSuspensionOffset", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxSuspensionOffset")}
 }
 
 func (e CPhysWheelConstraint) BEnableSteeringLimit() Bool {
-	return Bool{e.field("m_bEnableSteeringLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableSteeringLimit")}
 }
 
 func (e CPhysWheelConstraint) FlMinSteeringAngle() Number[float32] {
-	return Number[float32]{e.field("m_flMinSteeringAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMinSteeringAngle")}
 }
 
 func (e CPhysWheelConstraint) FlMaxSteeringAngle() Number[float32] {
-	return Number[float32]{e.field("m_flMaxSteeringAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMaxSteeringAngle")}
 }
 
 func (e CPhysWheelConstraint) FlSteeringAxisFriction() Number[float32] {
-	return Number[float32]{e.field("m_flSteeringAxisFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSteeringAxisFriction")}
 }
 
 func (e CPhysWheelConstraint) FlSpinAxisFriction() Number[float32] {
-	return Number[float32]{e.field("m_flSpinAxisFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpinAxisFriction")}
 }
 
 func (e CPhysWheelConstraint) HSteeringMimicsEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hSteeringMimicsEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hSteeringMimicsEntity")}
 }
 
 type CRagdollConstraint CEntityInstance
 
-func (e CRagdollConstraint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CRagdollConstraint", name, typ}
+func (e CRagdollConstraint) field(name string) Field {
+	return Field{e.Handle, "CRagdollConstraint", name}
 }
 
 func (e CRagdollConstraint) Xmin() Number[float32] {
-	return Number[float32]{e.field("m_xmin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_xmin")}
 }
 
 func (e CRagdollConstraint) Xmax() Number[float32] {
-	return Number[float32]{e.field("m_xmax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_xmax")}
 }
 
 func (e CRagdollConstraint) Ymin() Number[float32] {
-	return Number[float32]{e.field("m_ymin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_ymin")}
 }
 
 func (e CRagdollConstraint) Ymax() Number[float32] {
-	return Number[float32]{e.field("m_ymax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_ymax")}
 }
 
 func (e CRagdollConstraint) Zmin() Number[float32] {
-	return Number[float32]{e.field("m_zmin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_zmin")}
 }
 
 func (e CRagdollConstraint) Zmax() Number[float32] {
-	return Number[float32]{e.field("m_zmax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_zmax")}
 }
 
 func (e CRagdollConstraint) Xfriction() Number[float32] {
-	return Number[float32]{e.field("m_xfriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_xfriction")}
 }
 
 func (e CRagdollConstraint) Yfriction() Number[float32] {
-	return Number[float32]{e.field("m_yfriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_yfriction")}
 }
 
 func (e CRagdollConstraint) Zfriction() Number[float32] {
-	return Number[float32]{e.field("m_zfriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_zfriction")}
 }
 
 type CSplineConstraint CEntityInstance
 
-func (e CSplineConstraint) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSplineConstraint", name, typ}
+func (e CSplineConstraint) field(name string) Field {
+	return Field{e.Handle, "CSplineConstraint", name}
 }
 
 func (e CSplineConstraint) VAnchorOffsetRestore() Vector {
-	return Vector{e.field("m_vAnchorOffsetRestore", mod.FieldTypeVector)}
+	return Vector{e.field("m_vAnchorOffsetRestore")}
 }
 
 func (e CSplineConstraint) HSplineEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hSplineEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hSplineEntity")}
 }
 
 func (e CSplineConstraint) BEnableLateralConstraint() Bool {
-	return Bool{e.field("m_bEnableLateralConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableLateralConstraint")}
 }
 
 func (e CSplineConstraint) BEnableVerticalConstraint() Bool {
-	return Bool{e.field("m_bEnableVerticalConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableVerticalConstraint")}
 }
 
 func (e CSplineConstraint) BEnableAngularConstraint() Bool {
-	return Bool{e.field("m_bEnableAngularConstraint", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableAngularConstraint")}
 }
 
 func (e CSplineConstraint) BEnableLimit() Bool {
-	return Bool{e.field("m_bEnableLimit", mod.FieldTypeBool)}
+	return Bool{e.field("m_bEnableLimit")}
 }
 
 func (e CSplineConstraint) BFireEventsOnPath() Bool {
-	return Bool{e.field("m_bFireEventsOnPath", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFireEventsOnPath")}
 }
 
 func (e CSplineConstraint) FlLinearFrequency() Number[float32] {
-	return Number[float32]{e.field("m_flLinearFrequency", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinearFrequency")}
 }
 
 func (e CSplineConstraint) FlLinarDampingRatio() Number[float32] {
-	return Number[float32]{e.field("m_flLinarDampingRatio", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLinarDampingRatio")}
 }
 
 func (e CSplineConstraint) FlJointFriction() Number[float32] {
-	return Number[float32]{e.field("m_flJointFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flJointFriction")}
 }
 
 func (e CSplineConstraint) FlTransitionTime() Number[float32] {
-	return Number[float32]{e.field("m_flTransitionTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTransitionTime")}
 }
 
 func (e CSplineConstraint) VPreSolveAnchorPos() Vector {
-	return Vector{e.field("m_vPreSolveAnchorPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPreSolveAnchorPos")}
 }
 
 func (e CSplineConstraint) StartTransitionTime() Number[float32] {
-	return Number[float32]{e.field("m_StartTransitionTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_StartTransitionTime")}
 }
 
 func (e CSplineConstraint) VTangentSpaceAnchorAtTransitionStart() Vector {
-	return Vector{e.field("m_vTangentSpaceAnchorAtTransitionStart", mod.FieldTypeVector)}
+	return Vector{e.field("m_vTangentSpaceAnchorAtTransitionStart")}
 }
 
 type CPhysMotor CEntityInstance
 
-func (e CPhysMotor) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysMotor", name, typ}
+func (e CPhysMotor) field(name string) Field {
+	return Field{e.Handle, "CPhysMotor", name}
 }
 
 func (e CPhysMotor) NameAttach() Text {
-	return Text{e.field("m_nameAttach", mod.FieldTypeString)}
+	return Text{e.field("m_nameAttach")}
 }
 
 func (e CPhysMotor) NameAnchor() Text {
-	return Text{e.field("m_nameAnchor", mod.FieldTypeString)}
+	return Text{e.field("m_nameAnchor")}
 }
 
 func (e CPhysMotor) HAttachedObject() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAttachedObject", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAttachedObject")}
 }
 
 func (e CPhysMotor) HAnchorObject() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAnchorObject", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAnchorObject")}
 }
 
 func (e CPhysMotor) SpinUp() Number[float32] {
-	return Number[float32]{e.field("m_spinUp", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_spinUp")}
 }
 
 func (e CPhysMotor) SpinDown() Number[float32] {
-	return Number[float32]{e.field("m_spinDown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_spinDown")}
 }
 
 func (e CPhysMotor) FlMotorFriction() Number[float32] {
-	return Number[float32]{e.field("m_flMotorFriction", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flMotorFriction")}
 }
 
 func (e CPhysMotor) AdditionalAcceleration() Number[float32] {
-	return Number[float32]{e.field("m_additionalAcceleration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_additionalAcceleration")}
 }
 
 func (e CPhysMotor) AngularAcceleration() Number[float32] {
-	return Number[float32]{e.field("m_angularAcceleration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_angularAcceleration")}
 }
 
 func (e CPhysMotor) FlTorqueScale() Number[float32] {
-	return Number[float32]{e.field("m_flTorqueScale", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTorqueScale")}
 }
 
 func (e CPhysMotor) FlTargetSpeed() Number[float32] {
-	return Number[float32]{e.field("m_flTargetSpeed", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTargetSpeed")}
 }
 
 func (e CPhysMotor) FlSpeedWhenSpinUpOrSpinDownStarted() Number[float32] {
-	return Number[float32]{e.field("m_flSpeedWhenSpinUpOrSpinDownStarted", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSpeedWhenSpinUpOrSpinDownStarted")}
 }
 
 type CPhysicsEntitySolver CEntityInstance
 
-func (e CPhysicsEntitySolver) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysicsEntitySolver", name, typ}
+func (e CPhysicsEntitySolver) field(name string) Field {
+	return Field{e.Handle, "CPhysicsEntitySolver", name}
 }
 
 func (e CPhysicsEntitySolver) HMovingEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hMovingEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hMovingEntity")}
 }
 
 func (e CPhysicsEntitySolver) HPhysicsBlocker() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hPhysicsBlocker", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hPhysicsBlocker")}
 }
 
 func (e CPhysicsEntitySolver) SeparationDuration() Number[float32] {
-	return Number[float32]{e.field("m_separationDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_separationDuration")}
 }
 
 func (e CPhysicsEntitySolver) CancelTime() Number[float32] {
-	return Number[float32]{e.field("m_cancelTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_cancelTime")}
 }
 
 type CPhysicsNPCSolver CEntityInstance
 
-func (e CPhysicsNPCSolver) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPhysicsNPCSolver", name, typ}
+func (e CPhysicsNPCSolver) field(name string) Field {
+	return Field{e.Handle, "CPhysicsNPCSolver", name}
 }
 
 func (e CPhysicsNPCSolver) HNPC() Handle[CAI_BaseNPC] {
-	return Handle[CAI_BaseNPC]{e.field("m_hNPC", mod.FieldTypeHandle)}
+	return Handle[CAI_BaseNPC]{e.field("m_hNPC")}
 }
 
 func (e CPhysicsNPCSolver) HEntity() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hEntity", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hEntity")}
 }
 
 func (e CPhysicsNPCSolver) SeparationDuration() Number[float32] {
-	return Number[float32]{e.field("m_separationDuration", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_separationDuration")}
 }
 
 func (e CPhysicsNPCSolver) CancelTime() Number[float32] {
-	return Number[float32]{e.field("m_cancelTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_cancelTime")}
 }
 
 func (e CPhysicsNPCSolver) AllowIntersection() Bool {
-	return Bool{e.field("m_allowIntersection", mod.FieldTypeBool)}
+	return Bool{e.field("m_allowIntersection")}
 }
 
 type CPointTemplate CEntityInstance
 
-func (e CPointTemplate) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointTemplate", name, typ}
+func (e CPointTemplate) field(name string) Field {
+	return Field{e.Handle, "CPointTemplate", name}
 }
 
 func (e CPointTemplate) IszWorldName() Text {
-	return Text{e.field("m_iszWorldName", mod.FieldTypeString)}
+	return Text{e.field("m_iszWorldName")}
 }
 
 func (e CPointTemplate) IszSource2EntityLumpName() Text {
-	return Text{e.field("m_iszSource2EntityLumpName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSource2EntityLumpName")}
 }
 
 func (e CPointTemplate) IszEntityFilterName() Text {
-	return Text{e.field("m_iszEntityFilterName", mod.FieldTypeString)}
+	return Text{e.field("m_iszEntityFilterName")}
 }
 
 func (e CPointTemplate) FlTimeoutInterval() Number[float32] {
-	return Number[float32]{e.field("m_flTimeoutInterval", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTimeoutInterval")}
 }
 
 func (e CPointTemplate) BAsynchronouslySpawnEntities() Bool {
-	return Bool{e.field("m_bAsynchronouslySpawnEntities", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAsynchronouslySpawnEntities")}
 }
 
 func (e CPointTemplate) ClientOnlyEntityBehavior() Number[uint32] {
-	return Number[uint32]{e.field("m_clientOnlyEntityBehavior", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_clientOnlyEntityBehavior")}
 }
 
 func (e CPointTemplate) OwnerSpawnGroupType() Number[uint32] {
-	return Number[uint32]{e.field("m_ownerSpawnGroupType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_ownerSpawnGroupType")}
 }
 
 type CSceneListManager CEntityInstance
 
 type CSoundStackSave CEntityInstance
 
-func (e CSoundStackSave) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundStackSave", name, typ}
+func (e CSoundStackSave) field(name string) Field {
+	return Field{e.Handle, "CSoundStackSave", name}
 }
 
 func (e CSoundStackSave) IszStackName() Text {
-	return Text{e.field("m_iszStackName", mod.FieldTypeString)}
+	return Text{e.field("m_iszStackName")}
 }
 
 type CTestPulseIO CEntityInstance
 
-func (e CTestPulseIO) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTestPulseIO", name, typ}
+func (e CTestPulseIO) field(name string) Field {
+	return Field{e.Handle, "CTestPulseIO", name}
 }
 
 func (e CTestPulseIO) BAllowEmptyInputs() Bool {
-	return Bool{e.field("m_bAllowEmptyInputs", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAllowEmptyInputs")}
 }
 
 type CTimerEntity CEntityInstance
 
-func (e CTimerEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTimerEntity", name, typ}
+func (e CTimerEntity) field(name string) Field {
+	return Field{e.Handle, "CTimerEntity", name}
 }
 
 func (e CTimerEntity) IDisabled() Number[int32] {
-	return Number[int32]{e.field("m_iDisabled", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iDisabled")}
 }
 
 func (e CTimerEntity) FlInitialDelay() Number[float32] {
-	return Number[float32]{e.field("m_flInitialDelay", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flInitialDelay")}
 }
 
 func (e CTimerEntity) FlRefireTime() Number[float32] {
-	return Number[float32]{e.field("m_flRefireTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRefireTime")}
 }
 
 func (e CTimerEntity) BUpDownState() Bool {
-	return Bool{e.field("m_bUpDownState", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUpDownState")}
 }
 
 func (e CTimerEntity) IUseRandomTime() Number[int32] {
-	return Number[int32]{e.field("m_iUseRandomTime", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iUseRandomTime")}
 }
 
 func (e CTimerEntity) BPauseAfterFiring() Bool {
-	return Bool{e.field("m_bPauseAfterFiring", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPauseAfterFiring")}
 }
 
 func (e CTimerEntity) FlLowerRandomBound() Number[float32] {
-	return Number[float32]{e.field("m_flLowerRandomBound", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLowerRandomBound")}
 }
 
 func (e CTimerEntity) FlUpperRandomBound() Number[float32] {
-	return Number[float32]{e.field("m_flUpperRandomBound", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flUpperRandomBound")}
 }
 
 func (e CTimerEntity) FlRemainingTime() Number[float32] {
-	return Number[float32]{e.field("m_flRemainingTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRemainingTime")}
 }
 
 func (e CTimerEntity) BPaused() Bool {
-	return Bool{e.field("m_bPaused", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPaused")}
 }
 
 type CServerOnlyPointEntity CEntityInstance
 
 type CCitadelBotTestNode CEntityInstance
 
-func (e CCitadelBotTestNode) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelBotTestNode", name, typ}
+func (e CCitadelBotTestNode) field(name string) Field {
+	return Field{e.Handle, "CCitadelBotTestNode", name}
 }
 
 func (e CCitadelBotTestNode) ENodeType() Number[uint32] {
-	return Number[uint32]{e.field("m_eNodeType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eNodeType")}
 }
 
 func (e CCitadelBotTestNode) SNextNode() Text {
-	return Text{e.field("m_sNextNode", mod.FieldTypeString)}
+	return Text{e.field("m_sNextNode")}
 }
 
 func (e CCitadelBotTestNode) SShootTarget() Text {
-	return Text{e.field("m_sShootTarget", mod.FieldTypeString)}
+	return Text{e.field("m_sShootTarget")}
 }
 
 func (e CCitadelBotTestNode) HNextNode() Handle[CCitadelBotTestNode] {
-	return Handle[CCitadelBotTestNode]{e.field("m_hNextNode", mod.FieldTypeHandle)}
+	return Handle[CCitadelBotTestNode]{e.field("m_hNextNode")}
 }
 
 func (e CCitadelBotTestNode) HShootTarget() Handle[CCitadelBotTestNode] {
-	return Handle[CCitadelBotTestNode]{e.field("m_hShootTarget", mod.FieldTypeHandle)}
+	return Handle[CCitadelBotTestNode]{e.field("m_hShootTarget")}
 }
 
 func (e CCitadelBotTestNode) HLockingEntity() Handle[CCitadelPlayerPawn] {
-	return Handle[CCitadelPlayerPawn]{e.field("m_hLockingEntity", mod.FieldTypeHandle)}
+	return Handle[CCitadelPlayerPawn]{e.field("m_hLockingEntity")}
 }
 
 type CInfoCitadelHelperLocation CEntityInstance
@@ -6606,102 +6604,102 @@ type CInfoTargetServerOnly CEntityInstance
 
 type CInfoTeamSpawn CEntityInstance
 
-func (e CInfoTeamSpawn) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoTeamSpawn", name, typ}
+func (e CInfoTeamSpawn) field(name string) Field {
+	return Field{e.Handle, "CInfoTeamSpawn", name}
 }
 
 func (e CInfoTeamSpawn) BIntroSpawn() Bool {
-	return Bool{e.field("m_bIntroSpawn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bIntroSpawn")}
 }
 
 func (e CInfoTeamSpawn) ILaneNum() Number[int32] {
-	return Number[int32]{e.field("m_iLaneNum", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLaneNum")}
 }
 
 func (e CInfoTeamSpawn) StrGroupTag() Text {
-	return Text{e.field("m_strGroupTag", mod.FieldTypeString)}
+	return Text{e.field("m_strGroupTag")}
 }
 
 func (e CInfoTeamSpawn) HAssignedPlayer() Handle[CBaseEntity] {
-	return Handle[CBaseEntity]{e.field("m_hAssignedPlayer", mod.FieldTypeHandle)}
+	return Handle[CBaseEntity]{e.field("m_hAssignedPlayer")}
 }
 
 type CInfoTrooperBossSpawn CEntityInstance
 
-func (e CInfoTrooperBossSpawn) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoTrooperBossSpawn", name, typ}
+func (e CInfoTrooperBossSpawn) field(name string) Field {
+	return Field{e.Handle, "CInfoTrooperBossSpawn", name}
 }
 
 func (e CInfoTrooperBossSpawn) StrBossEntityName() Text {
-	return Text{e.field("m_strBossEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_strBossEntityName")}
 }
 
 func (e CInfoTrooperBossSpawn) ILane() Number[int32] {
-	return Number[int32]{e.field("m_iLane", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLane")}
 }
 
 func (e CInfoTrooperBossSpawn) BReinforcementsOnly() Bool {
-	return Bool{e.field("m_bReinforcementsOnly", mod.FieldTypeBool)}
+	return Bool{e.field("m_bReinforcementsOnly")}
 }
 
 func (e CInfoTrooperBossSpawn) BTrooperTestSpawner() Bool {
-	return Bool{e.field("m_bTrooperTestSpawner", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTrooperTestSpawner")}
 }
 
 type CInfoTrooperNeutralSpawn CEntityInstance
 
-func (e CInfoTrooperNeutralSpawn) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoTrooperNeutralSpawn", name, typ}
+func (e CInfoTrooperNeutralSpawn) field(name string) Field {
+	return Field{e.Handle, "CInfoTrooperNeutralSpawn", name}
 }
 
 func (e CInfoTrooperNeutralSpawn) IszSquadName() Text {
-	return Text{e.field("m_iszSquadName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSquadName")}
 }
 
 func (e CInfoTrooperNeutralSpawn) ENeutralNPCType() Number[uint32] {
-	return Number[uint32]{e.field("m_eNeutralNPCType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eNeutralNPCType")}
 }
 
 func (e CInfoTrooperNeutralSpawn) IszNeutralSubclass() Text {
-	return Text{e.field("m_iszNeutralSubclass", mod.FieldTypeString)}
+	return Text{e.field("m_iszNeutralSubclass")}
 }
 
 type CInfoTrooperSpawn CEntityInstance
 
-func (e CInfoTrooperSpawn) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CInfoTrooperSpawn", name, typ}
+func (e CInfoTrooperSpawn) field(name string) Field {
+	return Field{e.Handle, "CInfoTrooperSpawn", name}
 }
 
 func (e CInfoTrooperSpawn) ILane() Number[int32] {
-	return Number[int32]{e.field("m_iLane", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLane")}
 }
 
 func (e CInfoTrooperSpawn) BDisableZiplining() Bool {
-	return Bool{e.field("m_bDisableZiplining", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisableZiplining")}
 }
 
 type CItemCrateSpawn CEntityInstance
 
-func (e CItemCrateSpawn) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CItemCrateSpawn", name, typ}
+func (e CItemCrateSpawn) field(name string) Field {
+	return Field{e.Handle, "CItemCrateSpawn", name}
 }
 
 func (e CItemCrateSpawn) ELootType() Number[uint32] {
-	return Number[uint32]{e.field("m_eLootType", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eLootType")}
 }
 
 func (e CItemCrateSpawn) EObjectivePosition() Number[uint32] {
-	return Number[uint32]{e.field("m_eObjectivePosition", mod.FieldTypeUint32)}
+	return Number[uint32]{e.field("m_eObjectivePosition")}
 }
 
 type CNodeEnt CEntityInstance
 
-func (e CNodeEnt) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CNodeEnt", name, typ}
+func (e CNodeEnt) field(name string) Field {
+	return Field{e.Handle, "CNodeEnt", name}
 }
 
 func (e CNodeEnt) BDontDropNode() Bool {
-	return Bool{e.field("m_bDontDropNode", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDontDropNode")}
 }
 
 type CNodeEnt_InfoHint CEntityInstance
@@ -6714,598 +6712,598 @@ type CNodeEnt_InfoNodeHint CEntityInstance
 
 type CPointPrefab CEntityInstance
 
-func (e CPointPrefab) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointPrefab", name, typ}
+func (e CPointPrefab) field(name string) Field {
+	return Field{e.Handle, "CPointPrefab", name}
 }
 
 func (e CPointPrefab) TargetMapName() Text {
-	return Text{e.field("m_targetMapName", mod.FieldTypeString)}
+	return Text{e.field("m_targetMapName")}
 }
 
 func (e CPointPrefab) ForceWorldGroupID() Text {
-	return Text{e.field("m_forceWorldGroupID", mod.FieldTypeString)}
+	return Text{e.field("m_forceWorldGroupID")}
 }
 
 func (e CPointPrefab) AssociatedRelayTargetName() Text {
-	return Text{e.field("m_associatedRelayTargetName", mod.FieldTypeString)}
+	return Text{e.field("m_associatedRelayTargetName")}
 }
 
 func (e CPointPrefab) FixupNames() Bool {
-	return Bool{e.field("m_fixupNames", mod.FieldTypeBool)}
+	return Bool{e.field("m_fixupNames")}
 }
 
 func (e CPointPrefab) BLoadDynamic() Bool {
-	return Bool{e.field("m_bLoadDynamic", mod.FieldTypeBool)}
+	return Bool{e.field("m_bLoadDynamic")}
 }
 
 func (e CPointPrefab) AssociatedRelayEntity() Handle[CPointPrefab] {
-	return Handle[CPointPrefab]{e.field("m_associatedRelayEntity", mod.FieldTypeHandle)}
+	return Handle[CPointPrefab]{e.field("m_associatedRelayEntity")}
 }
 
 type CPointTeleport CEntityInstance
 
-func (e CPointTeleport) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CPointTeleport", name, typ}
+func (e CPointTeleport) field(name string) Field {
+	return Field{e.Handle, "CPointTeleport", name}
 }
 
 func (e CPointTeleport) VSaveOrigin() Vector {
-	return Vector{e.field("m_vSaveOrigin", mod.FieldTypeVector)}
+	return Vector{e.field("m_vSaveOrigin")}
 }
 
 func (e CPointTeleport) VSaveAngles() Angles {
-	return Angles{e.field("m_vSaveAngles", mod.FieldTypeVector)}
+	return Angles{e.field("m_vSaveAngles")}
 }
 
 func (e CPointTeleport) BTeleportParentedEntities() Bool {
-	return Bool{e.field("m_bTeleportParentedEntities", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTeleportParentedEntities")}
 }
 
 func (e CPointTeleport) BTeleportUseCurrentAngle() Bool {
-	return Bool{e.field("m_bTeleportUseCurrentAngle", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTeleportUseCurrentAngle")}
 }
 
 type CTrooperApproachHorizon CEntityInstance
 
 type CSkyCamera CEntityInstance
 
-func (e CSkyCamera) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSkyCamera", name, typ}
+func (e CSkyCamera) field(name string) Field {
+	return Field{e.Handle, "CSkyCamera", name}
 }
 
 func (e CSkyCamera) BUseAngles() Bool {
-	return Bool{e.field("m_bUseAngles", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseAngles")}
 }
 
 type CSkyboxReference CEntityInstance
 
-func (e CSkyboxReference) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSkyboxReference", name, typ}
+func (e CSkyboxReference) field(name string) Field {
+	return Field{e.Handle, "CSkyboxReference", name}
 }
 
 func (e CSkyboxReference) HSkyCamera() Handle[CSkyCamera] {
-	return Handle[CSkyCamera]{e.field("m_hSkyCamera", mod.FieldTypeHandle)}
+	return Handle[CSkyCamera]{e.field("m_hSkyCamera")}
 }
 
 type CSoundAreaEntityBase CEntityInstance
 
-func (e CSoundAreaEntityBase) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundAreaEntityBase", name, typ}
+func (e CSoundAreaEntityBase) field(name string) Field {
+	return Field{e.Handle, "CSoundAreaEntityBase", name}
 }
 
 func (e CSoundAreaEntityBase) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CSoundAreaEntityBase) IszSoundAreaType() Text {
-	return Text{e.field("m_iszSoundAreaType", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundAreaType")}
 }
 
 func (e CSoundAreaEntityBase) VPos() Vector {
-	return Vector{e.field("m_vPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPos")}
 }
 
 type CSoundAreaEntityOrientedBox CEntityInstance
 
-func (e CSoundAreaEntityOrientedBox) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundAreaEntityOrientedBox", name, typ}
+func (e CSoundAreaEntityOrientedBox) field(name string) Field {
+	return Field{e.Handle, "CSoundAreaEntityOrientedBox", name}
 }
 
 func (e CSoundAreaEntityOrientedBox) VMin() Vector {
-	return Vector{e.field("m_vMin", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMin")}
 }
 
 func (e CSoundAreaEntityOrientedBox) VMax() Vector {
-	return Vector{e.field("m_vMax", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMax")}
 }
 
 type CSoundAreaEntitySphere CEntityInstance
 
-func (e CSoundAreaEntitySphere) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundAreaEntitySphere", name, typ}
+func (e CSoundAreaEntitySphere) field(name string) Field {
+	return Field{e.Handle, "CSoundAreaEntitySphere", name}
 }
 
 func (e CSoundAreaEntitySphere) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 type CSoundEventBoxHelper CEntityInstance
 
-func (e CSoundEventBoxHelper) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventBoxHelper", name, typ}
+func (e CSoundEventBoxHelper) field(name string) Field {
+	return Field{e.Handle, "CSoundEventBoxHelper", name}
 }
 
 func (e CSoundEventBoxHelper) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CSoundEventBoxHelper) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 type CSoundEventEntity CEntityInstance
 
-func (e CSoundEventEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventEntity", name, typ}
+func (e CSoundEventEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventEntity", name}
 }
 
 func (e CSoundEventEntity) BStartOnSpawn() Bool {
-	return Bool{e.field("m_bStartOnSpawn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStartOnSpawn")}
 }
 
 func (e CSoundEventEntity) BToLocalPlayer() Bool {
-	return Bool{e.field("m_bToLocalPlayer", mod.FieldTypeBool)}
+	return Bool{e.field("m_bToLocalPlayer")}
 }
 
 func (e CSoundEventEntity) BStopOnNew() Bool {
-	return Bool{e.field("m_bStopOnNew", mod.FieldTypeBool)}
+	return Bool{e.field("m_bStopOnNew")}
 }
 
 func (e CSoundEventEntity) BSaveRestore() Bool {
-	return Bool{e.field("m_bSaveRestore", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSaveRestore")}
 }
 
 func (e CSoundEventEntity) BSavedIsPlaying() Bool {
-	return Bool{e.field("m_bSavedIsPlaying", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSavedIsPlaying")}
 }
 
 func (e CSoundEventEntity) FlSavedElapsedTime() Number[float32] {
-	return Number[float32]{e.field("m_flSavedElapsedTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSavedElapsedTime")}
 }
 
 func (e CSoundEventEntity) IszSourceEntityName() Text {
-	return Text{e.field("m_iszSourceEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSourceEntityName")}
 }
 
 func (e CSoundEventEntity) IszAttachmentName() Text {
-	return Text{e.field("m_iszAttachmentName", mod.FieldTypeString)}
+	return Text{e.field("m_iszAttachmentName")}
 }
 
 func (e CSoundEventEntity) FlClientCullRadius() Number[float32] {
-	return Number[float32]{e.field("m_flClientCullRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flClientCullRadius")}
 }
 
 func (e CSoundEventEntity) IszSoundName() Text {
-	return Text{e.field("m_iszSoundName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSoundName")}
 }
 
 func (e CSoundEventEntity) HSource() Number[uint32] {
-	return Number[uint32]{e.field("m_hSource", mod.FieldTypeHandle)}
+	return Number[uint32]{e.field("m_hSource")}
 }
 
 func (e CSoundEventEntity) NEntityIndexSelection() Number[int32] {
-	return Number[int32]{e.field("m_nEntityIndexSelection", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nEntityIndexSelection")}
 }
 
 type CCitadelSoundEntityOBB CEntityInstance
 
-func (e CCitadelSoundEntityOBB) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelSoundEntityOBB", name, typ}
+func (e CCitadelSoundEntityOBB) field(name string) Field {
+	return Field{e.Handle, "CCitadelSoundEntityOBB", name}
 }
 
 func (e CCitadelSoundEntityOBB) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CCitadelSoundEntityOBB) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 type CSoundEventAABBEntity CEntityInstance
 
-func (e CSoundEventAABBEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventAABBEntity", name, typ}
+func (e CSoundEventAABBEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventAABBEntity", name}
 }
 
 func (e CSoundEventAABBEntity) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CSoundEventAABBEntity) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 type CSoundEventConeEntity CEntityInstance
 
-func (e CSoundEventConeEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventConeEntity", name, typ}
+func (e CSoundEventConeEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventConeEntity", name}
 }
 
 func (e CSoundEventConeEntity) FlEmitterAngle() Number[float32] {
-	return Number[float32]{e.field("m_flEmitterAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flEmitterAngle")}
 }
 
 func (e CSoundEventConeEntity) FlSweetSpotAngle() Number[float32] {
-	return Number[float32]{e.field("m_flSweetSpotAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSweetSpotAngle")}
 }
 
 func (e CSoundEventConeEntity) FlAttenMin() Number[float32] {
-	return Number[float32]{e.field("m_flAttenMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttenMin")}
 }
 
 func (e CSoundEventConeEntity) FlAttenMax() Number[float32] {
-	return Number[float32]{e.field("m_flAttenMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAttenMax")}
 }
 
 func (e CSoundEventConeEntity) IszParameterName() Text {
-	return Text{e.field("m_iszParameterName", mod.FieldTypeString)}
+	return Text{e.field("m_iszParameterName")}
 }
 
 type CSoundEventEntityAlias_snd_event_point CEntityInstance
 
 type CSoundEventMultiPointEntity CEntityInstance
 
-func (e CSoundEventMultiPointEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventMultiPointEntity", name, typ}
+func (e CSoundEventMultiPointEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventMultiPointEntity", name}
 }
 
 func (e CSoundEventMultiPointEntity) ICountMax() Number[int32] {
-	return Number[int32]{e.field("m_iCountMax", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iCountMax")}
 }
 
 func (e CSoundEventMultiPointEntity) FlDistanceMax() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceMax")}
 }
 
 func (e CSoundEventMultiPointEntity) FlDistMaxSqr() Number[float32] {
-	return Number[float32]{e.field("m_flDistMaxSqr", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistMaxSqr")}
 }
 
 func (e CSoundEventMultiPointEntity) FlDotProductMax() Number[float32] {
-	return Number[float32]{e.field("m_flDotProductMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDotProductMax")}
 }
 
 func (e CSoundEventMultiPointEntity) BPlaying() Bool {
-	return Bool{e.field("m_bPlaying", mod.FieldTypeBool)}
+	return Bool{e.field("m_bPlaying")}
 }
 
 type CSoundEventBoxEntity CEntityInstance
 
 type CSoundEventPathCornerEntity CEntityInstance
 
-func (e CSoundEventPathCornerEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventPathCornerEntity", name, typ}
+func (e CSoundEventPathCornerEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventPathCornerEntity", name}
 }
 
 func (e CSoundEventPathCornerEntity) IszPathCorner() Text {
-	return Text{e.field("m_iszPathCorner", mod.FieldTypeString)}
+	return Text{e.field("m_iszPathCorner")}
 }
 
 type CSoundEventOBBEntity CEntityInstance
 
-func (e CSoundEventOBBEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventOBBEntity", name, typ}
+func (e CSoundEventOBBEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventOBBEntity", name}
 }
 
 func (e CSoundEventOBBEntity) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CSoundEventOBBEntity) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 type CSoundEventSphereEntity CEntityInstance
 
-func (e CSoundEventSphereEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventSphereEntity", name, typ}
+func (e CSoundEventSphereEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundEventSphereEntity", name}
 }
 
 func (e CSoundEventSphereEntity) FlRadius() Number[float32] {
-	return Number[float32]{e.field("m_flRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRadius")}
 }
 
 type CSoundEventParameter CEntityInstance
 
-func (e CSoundEventParameter) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundEventParameter", name, typ}
+func (e CSoundEventParameter) field(name string) Field {
+	return Field{e.Handle, "CSoundEventParameter", name}
 }
 
 func (e CSoundEventParameter) IszParamName() Text {
-	return Text{e.field("m_iszParamName", mod.FieldTypeString)}
+	return Text{e.field("m_iszParamName")}
 }
 
 func (e CSoundEventParameter) FlFloatValue() Number[float32] {
-	return Number[float32]{e.field("m_flFloatValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flFloatValue")}
 }
 
 type CSoundOpvarSetEntity CEntityInstance
 
-func (e CSoundOpvarSetEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetEntity", name, typ}
+func (e CSoundOpvarSetEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetEntity", name}
 }
 
 func (e CSoundOpvarSetEntity) IszStackName() Text {
-	return Text{e.field("m_iszStackName", mod.FieldTypeString)}
+	return Text{e.field("m_iszStackName")}
 }
 
 func (e CSoundOpvarSetEntity) IszOperatorName() Text {
-	return Text{e.field("m_iszOperatorName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOperatorName")}
 }
 
 func (e CSoundOpvarSetEntity) IszOpvarName() Text {
-	return Text{e.field("m_iszOpvarName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOpvarName")}
 }
 
 func (e CSoundOpvarSetEntity) NOpvarType() Number[int32] {
-	return Number[int32]{e.field("m_nOpvarType", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nOpvarType")}
 }
 
 func (e CSoundOpvarSetEntity) NOpvarIndex() Number[int32] {
-	return Number[int32]{e.field("m_nOpvarIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nOpvarIndex")}
 }
 
 func (e CSoundOpvarSetEntity) FlOpvarValue() Number[float32] {
-	return Number[float32]{e.field("m_flOpvarValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOpvarValue")}
 }
 
 func (e CSoundOpvarSetEntity) OpvarValueString() Text {
-	return Text{e.field("m_OpvarValueString", mod.FieldTypeString)}
+	return Text{e.field("m_OpvarValueString")}
 }
 
 func (e CSoundOpvarSetEntity) BSetOnSpawn() Bool {
-	return Bool{e.field("m_bSetOnSpawn", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSetOnSpawn")}
 }
 
 type CSoundOpvarSetPointBase CEntityInstance
 
-func (e CSoundOpvarSetPointBase) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetPointBase", name, typ}
+func (e CSoundOpvarSetPointBase) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetPointBase", name}
 }
 
 func (e CSoundOpvarSetPointBase) BDisabled() Bool {
-	return Bool{e.field("m_bDisabled", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDisabled")}
 }
 
 func (e CSoundOpvarSetPointBase) HSource() Number[uint32] {
-	return Number[uint32]{e.field("m_hSource", mod.FieldTypeHandle)}
+	return Number[uint32]{e.field("m_hSource")}
 }
 
 func (e CSoundOpvarSetPointBase) IszSourceEntityName() Text {
-	return Text{e.field("m_iszSourceEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszSourceEntityName")}
 }
 
 func (e CSoundOpvarSetPointBase) VLastPosition() Vector {
-	return Vector{e.field("m_vLastPosition", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastPosition")}
 }
 
 func (e CSoundOpvarSetPointBase) FlRefreshTime() Number[float32] {
-	return Number[float32]{e.field("m_flRefreshTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flRefreshTime")}
 }
 
 func (e CSoundOpvarSetPointBase) IszStackName() Text {
-	return Text{e.field("m_iszStackName", mod.FieldTypeString)}
+	return Text{e.field("m_iszStackName")}
 }
 
 func (e CSoundOpvarSetPointBase) IszOperatorName() Text {
-	return Text{e.field("m_iszOperatorName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOperatorName")}
 }
 
 func (e CSoundOpvarSetPointBase) IszOpvarName() Text {
-	return Text{e.field("m_iszOpvarName", mod.FieldTypeString)}
+	return Text{e.field("m_iszOpvarName")}
 }
 
 func (e CSoundOpvarSetPointBase) IOpvarIndex() Number[int32] {
-	return Number[int32]{e.field("m_iOpvarIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iOpvarIndex")}
 }
 
 func (e CSoundOpvarSetPointBase) BUseAutoCompare() Bool {
-	return Bool{e.field("m_bUseAutoCompare", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseAutoCompare")}
 }
 
 func (e CSoundOpvarSetPointBase) BFastRefresh() Bool {
-	return Bool{e.field("m_bFastRefresh", mod.FieldTypeBool)}
+	return Bool{e.field("m_bFastRefresh")}
 }
 
 type CSoundOpvarSetOBBWindEntity CEntityInstance
 
-func (e CSoundOpvarSetOBBWindEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetOBBWindEntity", name, typ}
+func (e CSoundOpvarSetOBBWindEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetOBBWindEntity", name}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) VMins() Vector {
-	return Vector{e.field("m_vMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMins")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) VMaxs() Vector {
-	return Vector{e.field("m_vMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vMaxs")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) VDistanceMins() Vector {
-	return Vector{e.field("m_vDistanceMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceMins")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) VDistanceMaxs() Vector {
-	return Vector{e.field("m_vDistanceMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceMaxs")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) FlWindMin() Number[float32] {
-	return Number[float32]{e.field("m_flWindMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWindMin")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) FlWindMax() Number[float32] {
-	return Number[float32]{e.field("m_flWindMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWindMax")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) FlWindMapMin() Number[float32] {
-	return Number[float32]{e.field("m_flWindMapMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWindMapMin")}
 }
 
 func (e CSoundOpvarSetOBBWindEntity) FlWindMapMax() Number[float32] {
-	return Number[float32]{e.field("m_flWindMapMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWindMapMax")}
 }
 
 type CSoundOpvarSetPointEntity CEntityInstance
 
-func (e CSoundOpvarSetPointEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetPointEntity", name, typ}
+func (e CSoundOpvarSetPointEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetPointEntity", name}
 }
 
 func (e CSoundOpvarSetPointEntity) BAutoDisable() Bool {
-	return Bool{e.field("m_bAutoDisable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bAutoDisable")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlDistanceMin() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceMin")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlDistanceMax() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceMax")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlDistanceMapMin() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceMapMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceMapMin")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlDistanceMapMax() Number[float32] {
-	return Number[float32]{e.field("m_flDistanceMapMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistanceMapMax")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlOcclusionRadius() Number[float32] {
-	return Number[float32]{e.field("m_flOcclusionRadius", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOcclusionRadius")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlOcclusionMin() Number[float32] {
-	return Number[float32]{e.field("m_flOcclusionMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOcclusionMin")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlOcclusionMax() Number[float32] {
-	return Number[float32]{e.field("m_flOcclusionMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOcclusionMax")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlValSetOnDisable() Number[float32] {
-	return Number[float32]{e.field("m_flValSetOnDisable", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flValSetOnDisable")}
 }
 
 func (e CSoundOpvarSetPointEntity) BSetValueOnDisable() Bool {
-	return Bool{e.field("m_bSetValueOnDisable", mod.FieldTypeBool)}
+	return Bool{e.field("m_bSetValueOnDisable")}
 }
 
 func (e CSoundOpvarSetPointEntity) BReloading() Bool {
-	return Bool{e.field("m_bReloading", mod.FieldTypeBool)}
+	return Bool{e.field("m_bReloading")}
 }
 
 func (e CSoundOpvarSetPointEntity) NSimulationMode() Number[int32] {
-	return Number[int32]{e.field("m_nSimulationMode", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nSimulationMode")}
 }
 
 func (e CSoundOpvarSetPointEntity) NVisibilitySamples() Number[int32] {
-	return Number[int32]{e.field("m_nVisibilitySamples", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nVisibilitySamples")}
 }
 
 func (e CSoundOpvarSetPointEntity) VDynamicProxyPoint() Vector {
-	return Vector{e.field("m_vDynamicProxyPoint", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDynamicProxyPoint")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlDynamicMaximumOcclusion() Number[float32] {
-	return Number[float32]{e.field("m_flDynamicMaximumOcclusion", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDynamicMaximumOcclusion")}
 }
 
 func (e CSoundOpvarSetPointEntity) HDynamicEntity() Number[uint32] {
-	return Number[uint32]{e.field("m_hDynamicEntity", mod.FieldTypeHandle)}
+	return Number[uint32]{e.field("m_hDynamicEntity")}
 }
 
 func (e CSoundOpvarSetPointEntity) IszDynamicEntityName() Text {
-	return Text{e.field("m_iszDynamicEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszDynamicEntityName")}
 }
 
 func (e CSoundOpvarSetPointEntity) FlPathingDistanceNormFactor() Number[float32] {
-	return Number[float32]{e.field("m_flPathingDistanceNormFactor", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flPathingDistanceNormFactor")}
 }
 
 func (e CSoundOpvarSetPointEntity) VPathingSourcePos() Vector {
-	return Vector{e.field("m_vPathingSourcePos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPathingSourcePos")}
 }
 
 func (e CSoundOpvarSetPointEntity) VPathingListenerPos() Vector {
-	return Vector{e.field("m_vPathingListenerPos", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPathingListenerPos")}
 }
 
 func (e CSoundOpvarSetPointEntity) VPathingDirection() Vector {
-	return Vector{e.field("m_vPathingDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vPathingDirection")}
 }
 
 func (e CSoundOpvarSetPointEntity) NPathingSourceIndex() Number[int32] {
-	return Number[int32]{e.field("m_nPathingSourceIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nPathingSourceIndex")}
 }
 
 type CSoundOpvarSetAutoRoomEntity CEntityInstance
 
-func (e CSoundOpvarSetAutoRoomEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetAutoRoomEntity", name, typ}
+func (e CSoundOpvarSetAutoRoomEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetAutoRoomEntity", name}
 }
 
 func (e CSoundOpvarSetAutoRoomEntity) FlSize() Number[float32] {
-	return Number[float32]{e.field("m_flSize", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSize")}
 }
 
 func (e CSoundOpvarSetAutoRoomEntity) FlHeightTolerance() Number[float32] {
-	return Number[float32]{e.field("m_flHeightTolerance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flHeightTolerance")}
 }
 
 func (e CSoundOpvarSetAutoRoomEntity) FlSizeSqr() Number[float32] {
-	return Number[float32]{e.field("m_flSizeSqr", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSizeSqr")}
 }
 
 type CSoundOpvarSetBoxEntity CEntityInstance
 
-func (e CSoundOpvarSetBoxEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetBoxEntity", name, typ}
+func (e CSoundOpvarSetBoxEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetBoxEntity", name}
 }
 
 func (e CSoundOpvarSetBoxEntity) VDistanceInnerMins() Vector {
-	return Vector{e.field("m_vDistanceInnerMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceInnerMins")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VDistanceInnerMaxs() Vector {
-	return Vector{e.field("m_vDistanceInnerMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceInnerMaxs")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VDistanceOuterMins() Vector {
-	return Vector{e.field("m_vDistanceOuterMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceOuterMins")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VDistanceOuterMaxs() Vector {
-	return Vector{e.field("m_vDistanceOuterMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vDistanceOuterMaxs")}
 }
 
 func (e CSoundOpvarSetBoxEntity) NBoxDirection() Number[int32] {
-	return Number[int32]{e.field("m_nBoxDirection", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBoxDirection")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VInnerMins() Vector {
-	return Vector{e.field("m_vInnerMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vInnerMins")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VInnerMaxs() Vector {
-	return Vector{e.field("m_vInnerMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vInnerMaxs")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VOuterMins() Vector {
-	return Vector{e.field("m_vOuterMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vOuterMins")}
 }
 
 func (e CSoundOpvarSetBoxEntity) VOuterMaxs() Vector {
-	return Vector{e.field("m_vOuterMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vOuterMaxs")}
 }
 
 type CSoundOpvarSetAABBEntity CEntityInstance
@@ -7314,298 +7312,298 @@ type CSoundOpvarSetOBBEntity CEntityInstance
 
 type CSoundOpvarSetDomeEntity CEntityInstance
 
-func (e CSoundOpvarSetDomeEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetDomeEntity", name, typ}
+func (e CSoundOpvarSetDomeEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetDomeEntity", name}
 }
 
 func (e CSoundOpvarSetDomeEntity) NCurrentIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCurrentIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCurrentIndex")}
 }
 
 func (e CSoundOpvarSetDomeEntity) NClusterIndex() Number[int32] {
-	return Number[int32]{e.field("m_nClusterIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nClusterIndex")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlClusteredOpenness() Number[float32] {
-	return Number[float32]{e.field("m_flClusteredOpenness", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flClusteredOpenness")}
 }
 
 func (e CSoundOpvarSetDomeEntity) VClusterDirection() Vector {
-	return Vector{e.field("m_vClusterDirection", mod.FieldTypeVector)}
+	return Vector{e.field("m_vClusterDirection")}
 }
 
 func (e CSoundOpvarSetDomeEntity) VSmoothedOpenDir() Vector {
-	return Vector{e.field("m_vSmoothedOpenDir", mod.FieldTypeVector)}
+	return Vector{e.field("m_vSmoothedOpenDir")}
 }
 
 func (e CSoundOpvarSetDomeEntity) NDirWarmupThinksRemaining() Number[int32] {
-	return Number[int32]{e.field("m_nDirWarmupThinksRemaining", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nDirWarmupThinksRemaining")}
 }
 
 func (e CSoundOpvarSetDomeEntity) VLastTraceOrigin() Vector {
-	return Vector{e.field("m_vLastTraceOrigin", mod.FieldTypeVector)}
+	return Vector{e.field("m_vLastTraceOrigin")}
 }
 
 func (e CSoundOpvarSetDomeEntity) BTraceOriginValid() Bool {
-	return Bool{e.field("m_bTraceOriginValid", mod.FieldTypeBool)}
+	return Bool{e.field("m_bTraceOriginValid")}
 }
 
 func (e CSoundOpvarSetDomeEntity) NCatchUpThinksRemaining() Number[int32] {
-	return Number[int32]{e.field("m_nCatchUpThinksRemaining", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCatchUpThinksRemaining")}
 }
 
 func (e CSoundOpvarSetDomeEntity) BDiscontinuityPending() Bool {
-	return Bool{e.field("m_bDiscontinuityPending", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDiscontinuityPending")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlSmoothedOpenness() Number[float32] {
-	return Number[float32]{e.field("m_flSmoothedOpenness", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSmoothedOpenness")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlLastSmoothTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastSmoothTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastSmoothTime")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlSize() Number[float32] {
-	return Number[float32]{e.field("m_flSize", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSize")}
 }
 
 func (e CSoundOpvarSetDomeEntity) NTotalDirections() Number[int32] {
-	return Number[int32]{e.field("m_nTotalDirections", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTotalDirections")}
 }
 
 func (e CSoundOpvarSetDomeEntity) NTracesPerFrame() Number[int32] {
-	return Number[int32]{e.field("m_nTracesPerFrame", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTracesPerFrame")}
 }
 
 func (e CSoundOpvarSetDomeEntity) BDomeMode() Bool {
-	return Bool{e.field("m_bDomeMode", mod.FieldTypeBool)}
+	return Bool{e.field("m_bDomeMode")}
 }
 
 func (e CSoundOpvarSetDomeEntity) BMultiWall() Bool {
-	return Bool{e.field("m_bMultiWall", mod.FieldTypeBool)}
+	return Bool{e.field("m_bMultiWall")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlWallTransmission() Number[float32] {
-	return Number[float32]{e.field("m_flWallTransmission", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flWallTransmission")}
 }
 
 func (e CSoundOpvarSetDomeEntity) NClusterK() Number[int32] {
-	return Number[int32]{e.field("m_nClusterK", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nClusterK")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlClusterP() Number[float32] {
-	return Number[float32]{e.field("m_flClusterP", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flClusterP")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlClusterBlend() Number[float32] {
-	return Number[float32]{e.field("m_flClusterBlend", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flClusterBlend")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlOpennessExponent() Number[float32] {
-	return Number[float32]{e.field("m_flOpennessExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flOpennessExponent")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlShoulderExponent() Number[float32] {
-	return Number[float32]{e.field("m_flShoulderExponent", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flShoulderExponent")}
 }
 
 func (e CSoundOpvarSetDomeEntity) FlSmoothHalfLife() Number[float32] {
-	return Number[float32]{e.field("m_flSmoothHalfLife", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSmoothHalfLife")}
 }
 
 type CSoundOpvarSetPathCornerEntity CEntityInstance
 
-func (e CSoundOpvarSetPathCornerEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetPathCornerEntity", name, typ}
+func (e CSoundOpvarSetPathCornerEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetPathCornerEntity", name}
 }
 
 func (e CSoundOpvarSetPathCornerEntity) BUseParentedPath() Bool {
-	return Bool{e.field("m_bUseParentedPath", mod.FieldTypeBool)}
+	return Bool{e.field("m_bUseParentedPath")}
 }
 
 func (e CSoundOpvarSetPathCornerEntity) FlDistMinSqr() Number[float32] {
-	return Number[float32]{e.field("m_flDistMinSqr", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistMinSqr")}
 }
 
 func (e CSoundOpvarSetPathCornerEntity) FlDistMaxSqr() Number[float32] {
-	return Number[float32]{e.field("m_flDistMaxSqr", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDistMaxSqr")}
 }
 
 func (e CSoundOpvarSetPathCornerEntity) IszPathCornerEntityName() Text {
-	return Text{e.field("m_iszPathCornerEntityName", mod.FieldTypeString)}
+	return Text{e.field("m_iszPathCornerEntityName")}
 }
 
 type CSoundOpvarSetPrecipitationEntity CEntityInstance
 
-func (e CSoundOpvarSetPrecipitationEntity) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CSoundOpvarSetPrecipitationEntity", name, typ}
+func (e CSoundOpvarSetPrecipitationEntity) field(name string) Field {
+	return Field{e.Handle, "CSoundOpvarSetPrecipitationEntity", name}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) NCurrentIndex() Number[int32] {
-	return Number[int32]{e.field("m_nCurrentIndex", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nCurrentIndex")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlSmoothedValue() Number[float32] {
-	return Number[float32]{e.field("m_flSmoothedValue", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSmoothedValue")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlLastSmoothTime() Number[float32] {
-	return Number[float32]{e.field("m_flLastSmoothTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flLastSmoothTime")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) NMode() Number[int32] {
-	return Number[int32]{e.field("m_nMode", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nMode")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) IszPrecipitationSubclass() Text {
-	return Text{e.field("m_iszPrecipitationSubclass", mod.FieldTypeString)}
+	return Text{e.field("m_iszPrecipitationSubclass")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) VBoxMins() Vector {
-	return Vector{e.field("m_vBoxMins", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMins")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) VBoxMaxs() Vector {
-	return Vector{e.field("m_vBoxMaxs", mod.FieldTypeVector)}
+	return Vector{e.field("m_vBoxMaxs")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlDensityMin() Number[float32] {
-	return Number[float32]{e.field("m_flDensityMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDensityMin")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlDensityMax() Number[float32] {
-	return Number[float32]{e.field("m_flDensityMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDensityMax")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlDensityMapMin() Number[float32] {
-	return Number[float32]{e.field("m_flDensityMapMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDensityMapMin")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlDensityMapMax() Number[float32] {
-	return Number[float32]{e.field("m_flDensityMapMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flDensityMapMax")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) NTotalDirections() Number[int32] {
-	return Number[int32]{e.field("m_nTotalDirections", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTotalDirections")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) NTracesPerFrame() Number[int32] {
-	return Number[int32]{e.field("m_nTracesPerFrame", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nTracesPerFrame")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlConeAngle() Number[float32] {
-	return Number[float32]{e.field("m_flConeAngle", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flConeAngle")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlTraceDistance() Number[float32] {
-	return Number[float32]{e.field("m_flTraceDistance", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTraceDistance")}
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) FlSmoothHalfLife() Number[float32] {
-	return Number[float32]{e.field("m_flSmoothHalfLife", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flSmoothHalfLife")}
 }
 
 type CSoundOpvarSetPrecipitationOBBEntity CEntityInstance
 
 type CTeam CEntityInstance
 
-func (e CTeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTeam", name, typ}
+func (e CTeam) field(name string) Field {
+	return Field{e.Handle, "CTeam", name}
 }
 
 func (e CTeam) IScore() Number[int32] {
-	return Number[int32]{e.field("m_iScore", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iScore")}
 }
 
 type CCitadelTeam CEntityInstance
 
-func (e CCitadelTeam) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CCitadelTeam", name, typ}
+func (e CCitadelTeam) field(name string) Field {
+	return Field{e.Handle, "CCitadelTeam", name}
 }
 
 func (e CCitadelTeam) FlBaseObjectiveHealth() Number[float32] {
-	return Number[float32]{e.field("m_flBaseObjectiveHealth", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flBaseObjectiveHealth")}
 }
 
 func (e CCitadelTeam) VecBaseLocationX() Number[int32] {
-	return Number[int32]{e.field("m_vecBaseLocationX", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_vecBaseLocationX")}
 }
 
 func (e CCitadelTeam) VecBaseLocationY() Number[int32] {
-	return Number[int32]{e.field("m_vecBaseLocationY", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_vecBaseLocationY")}
 }
 
 func (e CCitadelTeam) BHasValidBaseLocation() Bool {
-	return Bool{e.field("m_bHasValidBaseLocation", mod.FieldTypeBool)}
+	return Bool{e.field("m_bHasValidBaseLocation")}
 }
 
 func (e CCitadelTeam) NBossesAlive() Number[int32] {
-	return Number[int32]{e.field("m_nBossesAlive", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBossesAlive")}
 }
 
 func (e CCitadelTeam) NBossesMax() Number[int32] {
-	return Number[int32]{e.field("m_nBossesMax", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBossesMax")}
 }
 
 func (e CCitadelTeam) NFlexSlotsUnlocked() Number[uint16] {
-	return Number[uint16]{e.field("m_nFlexSlotsUnlocked", mod.FieldTypeUint16)}
+	return Number[uint16]{e.field("m_nFlexSlotsUnlocked")}
 }
 
 func (e CCitadelTeam) NBaseGuardianLanesCleared() Number[int32] {
-	return Number[int32]{e.field("m_nBaseGuardianLanesCleared", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nBaseGuardianLanesCleared")}
 }
 
 func (e CCitadelTeam) NStreetBrawlScore() Number[int32] {
-	return Number[int32]{e.field("m_nStreetBrawlScore", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStreetBrawlScore")}
 }
 
 func (e CCitadelTeam) NStreetBrawlScoreLastRound() Number[int32] {
-	return Number[int32]{e.field("m_nStreetBrawlScoreLastRound", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_nStreetBrawlScoreLastRound")}
 }
 
 type CTestEffect CEntityInstance
 
-func (e CTestEffect) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTestEffect", name, typ}
+func (e CTestEffect) field(name string) Field {
+	return Field{e.Handle, "CTestEffect", name}
 }
 
 func (e CTestEffect) ILoop() Number[int32] {
-	return Number[int32]{e.field("m_iLoop", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iLoop")}
 }
 
 func (e CTestEffect) IBeam() Number[int32] {
-	return Number[int32]{e.field("m_iBeam", mod.FieldTypeInt32)}
+	return Number[int32]{e.field("m_iBeam")}
 }
 
 func (e CTestEffect) FlStartTime() Number[float32] {
-	return Number[float32]{e.field("m_flStartTime", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flStartTime")}
 }
 
 type CTonemapController2 CEntityInstance
 
-func (e CTonemapController2) field(name string, typ mod.FieldType) Field {
-	return Field{e.Handle, "CTonemapController2", name, typ}
+func (e CTonemapController2) field(name string) Field {
+	return Field{e.Handle, "CTonemapController2", name}
 }
 
 func (e CTonemapController2) FlAutoExposureMin() Number[float32] {
-	return Number[float32]{e.field("m_flAutoExposureMin", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAutoExposureMin")}
 }
 
 func (e CTonemapController2) FlAutoExposureMax() Number[float32] {
-	return Number[float32]{e.field("m_flAutoExposureMax", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flAutoExposureMax")}
 }
 
 func (e CTonemapController2) FlExposureAdaptationSpeedUp() Number[float32] {
-	return Number[float32]{e.field("m_flExposureAdaptationSpeedUp", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flExposureAdaptationSpeedUp")}
 }
 
 func (e CTonemapController2) FlExposureAdaptationSpeedDown() Number[float32] {
-	return Number[float32]{e.field("m_flExposureAdaptationSpeedDown", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flExposureAdaptationSpeedDown")}
 }
 
 func (e CTonemapController2) FlTonemapEVSmoothingRange() Number[float32] {
-	return Number[float32]{e.field("m_flTonemapEVSmoothingRange", mod.FieldTypeFloat32)}
+	return Number[float32]{e.field("m_flTonemapEVSmoothingRange")}
 }
 
 type CTonemapController2Alias_env_tonemap_controller2 CEntityInstance

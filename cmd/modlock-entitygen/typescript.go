@@ -139,6 +139,43 @@ type KeyMap<Keys = unknown> = readonly [base: KeyMap | undefined, keys: Readonly
 /** KeysOf is the type of the key values map takes. */
 type KeysOf<Map> = Map extends KeyMap<infer Keys> ? Keys : never
 
+/** FieldTypes maps each entry of a class's field table to the type it holds. */
+interface FieldTypes {
+  bool: boolean
+  int8: number
+  int16: number
+  int32: number
+  uint8: number
+  uint16: number
+  uint32: number
+  int64: bigint
+  uint64: bigint
+  float32: number
+  float64: number
+  vector: Vector
+  handle: number
+  string: string
+  angles: Angles
+}
+
+/** FieldOf is the type a field of table entry T holds. */
+type FieldOf<T> = T extends keyof FieldTypes ? FieldTypes[T] : T extends keyof Targets ? Targets[T] : never
+
+/**
+ * Fields declares the fields a table installs. A string field is read only,
+ * since the host cannot write text.
+ */
+type Fields<T> = {
+  -readonly [K in keyof T as T[K] extends 'string' ? never : K]: FieldOf<T[K]> | undefined
+} & { readonly [K in keyof T as T[K] extends 'string' ? K : never]: string | undefined }
+
+/** Inputs declares the input methods a table installs. */
+type Inputs<T> = {
+  readonly [K in keyof T as ` + "`input${K & string}`" + `]: T[K] extends keyof KeyTypes
+    ? (value: KeyTypes[T[K]]) => boolean
+    : () => boolean
+}
+
 /** Typed is the type of the key values a table of key types takes. */
 type Typed<Keys extends Readonly<Record<string, KeyType>>> = { readonly [Key in keyof Keys]?: KeyTypes[Keys[Key]] }
 
@@ -227,22 +264,11 @@ var typeScriptTypes = map[string]string{
 	"string":  "string",
 }
 
-// typeScriptValues maps each value to the type a key or input takes.
-var typeScriptValues = map[value]string{
-	"boolean": "boolean",
-	"integer": "number",
-	"number":  "number",
-	"text":    "string",
-	"vector":  "Vector",
-	"color":   "number",
-	"angles":  "Angles",
-}
-
 // writeTypeScript writes the entity classes as one TypeScript module. Each
-// class declares its fields and inputs in an interface merged with it, and
-// installs them from one table, so a field costs a declaration and a table
-// entry rather than a getter and setter of its own. The designer names follow
-// as one table create reads.
+// class's fields and inputs are two constant tables: define installs them as
+// accessors and methods, and Fields and Inputs map them to the interface
+// merged with the class, so a field costs one table entry. The designer names
+// follow as one table create reads.
 func writeTypeScript(s *schema, classes []*class, e *entities) map[string][]byte {
 	// Open with the imports and shared helpers, and the field types the
 	// accessors read directly.
@@ -256,39 +282,56 @@ func writeTypeScript(s *schema, classes []*class, e *entities) map[string][]byte
 	// inherited getter of the same name. The root's handle conflicts with
 	// every field.
 	getters := map[string]map[string]string{entityRoot: {"handle": ""}}
+	targets := map[string]bool{}
 	for _, c := range classes[1:] {
 		own := maps.Clone(getters[c.base])
 		getters[c.name] = own
 
-		// Declare each field and input, and gather the table that installs
-		// them.
-		var members, fields, inputs []string
+		// Gather the tables of fields and inputs.
+		var fields, inputs []string
 		for _, f := range s.readableFields(c) {
 			typ := typeScriptType(f.kind)
 			if inherited, ok := own[f.name]; ok && inherited != typ {
 				continue
 			}
 			own[f.name] = typ
-			members = append(members, typeScriptMember(f, typ))
+			if f.target != "" {
+				targets[f.target] = true
+			}
 			fields = append(fields, fmt.Sprintf("%s: '%s'", f.name, typeScriptEntry(f)))
 		}
 		for _, in := range e.inputs[c.name] {
-			members = append(members, typeScriptInput(in))
-			inputs = append(inputs, fmt.Sprintf("%s: '%s'", in.name, in.value))
+			inputs = append(inputs, typeScriptInput(in))
 		}
 
-		// Write the class, its declarations and the call that installs them.
+		// Write the tables, the class, the interface they declare and the
+		// call that installs them.
+		var bases []string
+		arguments := "{}"
 		out.WriteString("\n")
-		fmt.Fprintf(&out, "export class %s extends %s {}\n", c.name, c.base)
-		if len(members) != 0 {
-			fmt.Fprintf(&out, "export interface %s {\n%s}\n", c.name, strings.Join(members, ""))
+		if len(fields) != 0 {
+			fmt.Fprintf(&out, "const fields%s = %s as const\n", c.name, typeScriptTable(fields))
+			bases = append(bases, "Fields<typeof fields"+c.name+">")
+			arguments = "fields" + c.name
 		}
-		fmt.Fprintf(&out, "define(%s, '%s', %s", c.name, c.name, typeScriptTable(fields))
 		if len(inputs) != 0 {
-			fmt.Fprintf(&out, ", %s", typeScriptTable(inputs))
+			fmt.Fprintf(&out, "const inputs%s = {\n%s} as const\n", c.name, strings.Join(inputs, ""))
+			bases = append(bases, "Inputs<typeof inputs"+c.name+">")
+			arguments += ", inputs" + c.name
 		}
-		out.WriteString(")\n")
+		fmt.Fprintf(&out, "export class %s extends %s {}\n", c.name, c.base)
+		if len(bases) != 0 {
+			fmt.Fprintf(&out, "export interface %s extends %s {}\n", c.name, strings.Join(bases, ", "))
+		}
+		fmt.Fprintf(&out, "define(%s, '%s', %s)\n", c.name, c.name, arguments)
 	}
+
+	// Name each class a handle field names, for FieldOf.
+	out.WriteString("\n/** Targets maps each class a handle field names to its instances. */\ninterface Targets {\n")
+	for _, target := range slices.Sorted(maps.Keys(targets)) {
+		fmt.Fprintf(&out, "  %s: %s\n", target, target)
+	}
+	out.WriteString("}\n")
 
 	// Write each data description's keys after its base's: the table of key
 	// types create reads, the type it gives, and the map that joins them.
@@ -334,15 +377,6 @@ func typeScriptTable(entries []string) string {
 	return "{\n  " + strings.Join(entries, ",\n  ") + ",\n}"
 }
 
-// typeScriptMember returns the declaration of field f, whose getter returns
-// typ. A string field is read only, since the host cannot write text.
-func typeScriptMember(f readable, typ string) string {
-	if f.wire == "string" {
-		return fmt.Sprintf("  readonly %s: %s | undefined\n", f.name, typ)
-	}
-	return fmt.Sprintf("  %s: %s | undefined\n", f.name, typ)
-}
-
 // typeScriptEntry returns field f's entry in its class's table: angles, the
 // class its handle names, or its FieldType.
 func typeScriptEntry(f readable) string {
@@ -355,20 +389,18 @@ func typeScriptEntry(f readable) string {
 	return f.wire
 }
 
-// typeScriptInput returns the declaration of the method that sends input in.
+// typeScriptInput returns input in's entry in its class's table of inputs:
+// the case of EntityValue it sends, or the empty string for none.
 func typeScriptInput(in input) string {
-	parameter := ""
-	if in.value != "" {
-		parameter = "value: " + typeScriptValues[in.value]
-	}
-	method := fmt.Sprintf("  input%s(%s): boolean\n", in.name, parameter)
-	switch doc := in.doc(); {
+	entry := fmt.Sprintf("  %s: '%s',\n", in.name, in.value)
+	doc := in.doc()
+	switch {
 	case doc == "":
-		return method
+		return entry
 	case len(doc) <= 70:
-		return "  /** " + doc + " */\n" + method
+		return "  /** " + doc + " */\n" + entry
 	}
-	return "  /**\n" + wrap("   * ", in.doc()) + "   */\n" + method
+	return "  /**\n" + wrap("   * ", doc) + "   */\n" + entry
 }
 
 // typeScriptType returns the type a getter for a field of kind k returns.

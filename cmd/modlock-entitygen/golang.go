@@ -25,7 +25,8 @@ var goFiles = map[string]string{
 	"CCitadelBaseAbility": "abilities.go",
 }
 
-// goNumbers maps each numeric wire field type to its Go type.
+// goNumbers maps each numeric wire field type to its Go type. A handle to
+// a class the libraries lack is the uint32 the host reads it as.
 var goNumbers = map[string]string{
 	"int8":    "int8",
 	"int16":   "int16",
@@ -91,8 +92,8 @@ func writeGo(s *schema, classes []*class, e *entities) map[string][]byte {
 		methods[c] = taken
 		fields := s.readableFields(c)
 		if len(fields) != 0 {
-			fmt.Fprintf(out, "\nfunc (e %s) field(name string, typ mod.FieldType) Field {\n", c.name)
-			fmt.Fprintf(out, "\treturn Field{e.Handle, %q, name, typ}\n}\n", c.name)
+			fmt.Fprintf(out, "\nfunc (e %s) field(name string) Field {\n", c.name)
+			fmt.Fprintf(out, "\treturn Field{e.Handle, %q, name}\n}\n", c.name)
 		}
 		for _, f := range fields {
 			method := goMethod(f.name)
@@ -106,7 +107,7 @@ func writeGo(s *schema, classes []*class, e *entities) map[string][]byte {
 	}
 	files := map[string][]byte{}
 	for file, out := range sources {
-		files[file] = goSource(out.Bytes(), true)
+		files[file] = goSource(out.Bytes(), false)
 	}
 
 	// Write a method per input, unless a field took its name.
@@ -203,8 +204,6 @@ func goMethod(field string) string {
 // goField returns the type of field f and the expression that addresses it
 // on entity e.
 func goField(f readable) (typ, value string) {
-	constant := "mod.FieldType" + strings.ToUpper(f.wire[:1]) + f.wire[1:]
-	field := fmt.Sprintf("e.field(%q, %s)", f.name, constant)
 	switch {
 	case f.angles:
 		typ = "Angles"
@@ -215,5 +214,5 @@ func goField(f readable) (typ, value string) {
 	default:
 		typ = "Number[" + goNumbers[f.wire] + "]"
 	}
-	return typ, fmt.Sprintf("%s{%s}", typ, field)
+	return typ, fmt.Sprintf("%s{e.field(%q)}", typ, f.name)
 }
