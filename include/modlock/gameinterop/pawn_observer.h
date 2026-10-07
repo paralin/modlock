@@ -351,9 +351,10 @@ class MODLOCK_API PawnObserver {
   // Returns no value outside that window.
   std::optional<std::array<float, 3>> CurrentOriginForSlot(int32_t slot) const;
 
-  // SetEyeAngles applies recorded aim to the observed pawn and requests native
-  // replication. It uses the same-frame pawn and schema layout as Observe.
-  std::expected<void, std::string> SetEyeAngles(int32_t slot, const std::array<float, 3>& angles);
+  // SetEyeAngles applies recorded aim to a hero pawn and requests native
+  // replication. It uses the schema layout Observe resolved, so it works on any
+  // live pawn of the world last observed, inside or outside the frame window.
+  std::expected<void, std::string> SetEyeAngles(void* pawn, const std::array<float, 3>& angles);
 
   struct Ability {
     uint32_t handle;

@@ -1112,13 +1112,13 @@ std::optional<std::array<float, 3>> PawnObserver::CurrentOriginForSlot(int32_t s
   return std::array<float, 3>{origin[0], origin[1], origin[2]};
 }
 
-std::expected<void, std::string> PawnObserver::SetEyeAngles(int32_t slot,
+std::expected<void, std::string> PawnObserver::SetEyeAngles(void* pawn,
                                                             const std::array<float, 3>& angles) {
-  auto* pawn = static_cast<unsigned char*>(PawnForSlot(slot));
   if (!pawn || !offsets_ok_) return std::unexpected("pawn aim is unavailable in this frame");
   if (!std::all_of(angles.begin(), angles.end(), [](float angle) { return std::isfinite(angle); }))
     return std::unexpected("pawn aim must be finite");
-  std::memcpy(pawn + layout_.eye_angles, angles.data(), sizeof(float) * angles.size());
+  std::memcpy(static_cast<unsigned char*>(pawn) + layout_.eye_angles, angles.data(),
+              sizeof(float) * angles.size());
   if (!NotifyEntityStateChanged(pawn)) return std::unexpected("pawn aim replication unavailable");
   return {};
 }
