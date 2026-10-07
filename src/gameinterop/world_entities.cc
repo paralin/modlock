@@ -67,6 +67,7 @@ constexpr std::string_view kMapData = "game data that only its map provides";
 
 constexpr Unmade kUnmade[] = {
     {"baseplayerpawn", "a player's controller: spawn a hero instead"},
+    {"citadel_bounce_pad", kMakerAbility},
     {"citadel_capture_point", "a game mode's capture data"},
     {"citadel_deployable_preview", kMakerAbility},
     {"citadel_herotest_orbspawner", kMapData},
