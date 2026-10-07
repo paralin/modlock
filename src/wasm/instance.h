@@ -21,14 +21,14 @@ struct Limits {
   // memory_bytes caps each linear memory the mod creates or grows.
   int64_t memory_bytes = int64_t{256} << 20;
   // start_budget bounds module initialization, which runs package setup,
-  // and the Start event, where a script mod evaluates its whole script.
+  // and the Start event, where a script mod evaluates its whole script. Both
+  // run while the server loads the mod, before players are in it.
   std::chrono::milliseconds start_budget{5000};
-  // event_budget bounds the mod's own work in one event. Time inside host
-  // calls does not count; the host bounds its own work, which may include a
-  // one-time setup such as installing a hook. The budget is wall time, so a
-  // busy machine's preemption and the interpreter's garbage collection count
-  // against it; it stops a runaway loop, not a slow frame.
-  std::chrono::milliseconds event_budget{1000};
+  // event_budget bounds one event, including the host calls it makes. The
+  // engine drops a player whose commands hold its thread for about a second,
+  // so the budget stays well under that. It is wall time: a busy machine's
+  // preemption and the interpreter's garbage collection count against it.
+  std::chrono::milliseconds event_budget{250};
 };
 
 // Instance runs one WebAssembly mod in its own Wasmtime store. The mod sees
@@ -77,9 +77,23 @@ class Instance {
                                                             uint32_t size);
   wasmtime::Result<std::monostate, wasmtime::Trap> HostReadImport(wasmtime::Caller caller,
                                                                   uint32_t data, uint32_t size);
-  void SetBudget(std::chrono::milliseconds budget);
-  // ArmDeadline sets the epoch deadline to the time left before deadline_.
+  // Budget is the running call's time limit and how its host calls spent it.
+  struct Budget {
+    std::string call;
+    std::chrono::milliseconds limit{};
+    std::chrono::steady_clock::time_point began;
+    std::chrono::steady_clock::duration host{};
+    std::string slowest;
+    std::chrono::steady_clock::duration slowest_time{};
+  };
+
+  // SetBudget starts the budget limit for call.
+  void SetBudget(std::string call, std::chrono::milliseconds limit);
+  // ArmDeadline sets the epoch deadline to the time left in budget_.
   void ArmDeadline();
+  // Stop fails the instance after a trap: an overrun budget, which it
+  // describes with where the time went, or else the trap itself.
+  std::string Stop(std::string trap);
   std::string Fail(std::string reason);
 
   // runtime_ compiles the module and advances the epoch the budgets count.
@@ -94,9 +108,7 @@ class Instance {
   std::optional<wasmtime::Func> event_;
   // pending_ holds the encoded message host_read copies next.
   std::string pending_;
-  // deadline_ is when the running call's budget ends. A host call moves it
-  // later by the time the host spent.
-  std::chrono::steady_clock::time_point deadline_;
+  Budget budget_;
   // busy_ is true while a call into the mod is running.
   bool busy_ = false;
   std::optional<std::string> failure_;

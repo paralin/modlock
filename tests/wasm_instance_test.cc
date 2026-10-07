@@ -15,10 +15,10 @@
 namespace {
 
 using modlock::wasm::Call;
-using modlock::wasm::FieldResponse;
 using modlock::wasm::ChatRequest;
 using modlock::wasm::CommandEvent;
 using modlock::wasm::CommandResult;
+using modlock::wasm::FieldResponse;
 using modlock::wasm::FrameEvent;
 using modlock::wasm::Instance;
 using modlock::wasm::Limits;
@@ -375,7 +375,9 @@ TEST(WasmInstance, StartGetsTheStartBudget) {
   EXPECT_FALSE((*instance)->Deliver(Event("Frame", FrameEvent{})));
 }
 
-TEST(WasmInstance, BudgetExcludesHostCalls) {
+// A slow host call holds the engine thread as surely as a loop does, so it
+// spends the budget, and the failure names where the time went.
+TEST(WasmInstance, BudgetCountsHostCalls) {
   Runtime runtime;
   Limits limits;
   limits.event_budget = std::chrono::milliseconds{50};
@@ -386,8 +388,9 @@ TEST(WasmInstance, BudgetExcludesHostCalls) {
   auto instance = Instance::Load(runtime, Wat(R"((module
     (import "modlock" "host_call" (func $call (param i32 i32) (result i32)))
     (memory (export "memory") 1)
+    (data (i32.const 0) "\0a\05Sleep")
     (func (export "modlock_event") (param i32) (result i64) (local $i i32)
-      (drop (call $call (i32.const 0) (i32.const 0)))
+      (drop (call $call (i32.const 0) (i32.const 7)))
       (loop
         (local.set $i (i32.add (local.get $i) (i32.const 1)))
         (br_if 0 (i32.lt_u (local.get $i) (i32.const 1000))))
@@ -395,9 +398,11 @@ TEST(WasmInstance, BudgetExcludesHostCalls) {
                                  limits, slow);
   ASSERT_TRUE(instance) << instance.error();
 
-  const auto frame = Event("Frame", FrameEvent{});
-  auto delivered = (*instance)->Deliver(frame);
-  EXPECT_TRUE(delivered) << delivered.error();
+  EXPECT_FALSE((*instance)->Deliver(Event("Frame", FrameEvent{})));
+  ASSERT_TRUE((*instance)->Failure());
+  const auto& failure = *(*instance)->Failure();
+  EXPECT_TRUE(failure.starts_with("Frame ran past its 50 ms budget")) << failure;
+  EXPECT_TRUE(failure.contains("the slowest Sleep at")) << failure;
 }
 
 TEST(WasmInstance, MemoryLimitRefusesALargeMod) {

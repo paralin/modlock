@@ -28,8 +28,9 @@ command('hello', (player) => {
 
 - **Safe to share.** A mod runs in a [Wasmtime] sandbox inside the server. It
   has no files, network or environment, only the calls the schema offers. A
-  crash, an endless loop or a runaway allocation stops that mod with a log line
-  and leaves the match running.
+  crash, an endless loop, a runaway allocation or an event that holds the
+  server past its time budget stops that mod with a log line and leaves the
+  match running.
 - **Any language.** Anything that compiles to WebAssembly can be a mod. Each
   language gets a small library over the generated protobuf types.
 - **Built once.** A mod is a portable `.wasm` file. It does not depend on the
@@ -384,8 +385,10 @@ command('ready', (player) => match.ready(player))
 ```
 
 [`examples/arena`](examples/arena) is laid out this way. Each event runs
-within a time budget, and a mod that overruns it stops for the rest of the
-match, so keep each frame's work small.
+within a 250 ms budget, which counts the game calls it makes, and a mod that
+overruns it stops for the rest of the match with a log line naming its slowest
+call. Keep each frame's work small, and spread a large build over several
+frames.
 
 ### 9. Test a whole round
 

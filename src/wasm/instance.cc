@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <format>
 #include <utility>
 #include <variant>
 
@@ -68,7 +69,7 @@ std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> 
     return std::unexpected("cannot define WASI: " + defined.err().message());
   }
   if (auto defined = DefineImports(linker); !defined) return defined;
-  SetBudget(limits_.start_budget);
+  SetBudget("initialization", limits_.start_budget);
   auto instance = linker.instantiate(store_.context(), *module_);
   if (!instance) return std::unexpected("cannot instantiate the mod: " + instance.err().message());
 
@@ -93,7 +94,7 @@ std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> 
   busy_ = true;
   auto initialized = function->call(context, {});
   busy_ = false;
-  if (!initialized) return std::unexpected(Fail(initialized.err().message()));
+  if (!initialized) return std::unexpected(Stop(initialized.err().message()));
   return {};
 }
 
@@ -119,12 +120,12 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
   auto typed = event_->typed<uint32_t, uint64_t>(store_.context());
   if (!typed) return std::unexpected(Fail("modlock_event must take i32 and return i64"));
   call.SerializeToString(&pending_);
-  SetBudget(call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
+  SetBudget(call.method(), call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
   busy_ = true;
   auto called = typed.ok_ref().call(store_.context(), static_cast<uint32_t>(pending_.size()));
   busy_ = false;
   pending_.clear();
-  if (!called) return std::unexpected(Fail(called.err().message()));
+  if (!called) return std::unexpected(Stop(called.err().message()));
 
   // Decode the reply the mod left in its memory.
   const uint64_t packed = called.ok();
@@ -149,10 +150,16 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
     return wasmtime::Trap("modlock.host_call: invalid Call");
   }
 
-  // Answer it and hold the encoded reply for host_read.
+  // Answer it and hold the encoded reply for host_read. The host's time
+  // counts against the budget; past it, the mod traps on return.
   const auto entered = std::chrono::steady_clock::now();
   host_call_(call).SerializeToString(&pending_);
-  deadline_ += std::chrono::steady_clock::now() - entered;
+  const auto spent = std::chrono::steady_clock::now() - entered;
+  budget_.host += spent;
+  if (spent > budget_.slowest_time) {
+    budget_.slowest = call.method();
+    budget_.slowest_time = spent;
+  }
   ArmDeadline();
   return static_cast<uint32_t>(pending_.size());
 }
@@ -170,16 +177,32 @@ wasmtime::Result<std::monostate, wasmtime::Trap> Instance::HostReadImport(wasmti
   return std::monostate{};
 }
 
-void Instance::SetBudget(std::chrono::milliseconds budget) {
-  deadline_ = std::chrono::steady_clock::now() + budget;
+void Instance::SetBudget(std::string call, std::chrono::milliseconds limit) {
+  budget_ = {.call = std::move(call), .limit = limit, .began = std::chrono::steady_clock::now()};
   ArmDeadline();
 }
 
 void Instance::ArmDeadline() {
   const auto left = std::max(std::chrono::steady_clock::duration::zero(),
-                             deadline_ - std::chrono::steady_clock::now());
+                             budget_.began + budget_.limit - std::chrono::steady_clock::now());
   store_.context().set_epoch_deadline((left + kEpochTick - std::chrono::nanoseconds{1}) /
                                       kEpochTick);
+}
+
+std::string Instance::Stop(std::string trap) {
+  using std::chrono::milliseconds;
+  const auto spent = std::chrono::steady_clock::now() - budget_.began;
+  if (spent < budget_.limit) return Fail(std::move(trap));
+  auto reason =
+      std::format("{} ran past its {} ms budget: {} ms", budget_.call, budget_.limit.count(),
+                  std::chrono::duration_cast<milliseconds>(spent).count());
+  if (budget_.host > budget_.host.zero()) {
+    reason +=
+        std::format(", {} ms of it in host calls, the slowest {} at {} ms",
+                    std::chrono::duration_cast<milliseconds>(budget_.host).count(), budget_.slowest,
+                    std::chrono::duration_cast<milliseconds>(budget_.slowest_time).count());
+  }
+  return Fail(std::move(reason));
 }
 
 std::string Instance::Fail(std::string reason) {
