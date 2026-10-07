@@ -242,7 +242,7 @@ local modlock = require("@modlock")
 local entities = require("@modlock/entities")
 
 modlock.command("heal", function(_player, args)
-	local pawn: entities.CCitadelPlayerPawn = entities.CCitadelPlayerPawn(tonumber(args) :: number)
+	local pawn: entities.CCitadelPlayerPawn = entities.new("CCitadelPlayerPawn", tonumber(args) :: number)
 	pawn.m_iHealth = (pawn.m_iHealth :: number) + 50
 end)
 )"},
