@@ -385,7 +385,7 @@ command('ready', (player) => match.ready(player))
 ```
 
 [`examples/arena`](examples/arena) is laid out this way. Each event runs
-within a 250 ms budget, which counts the game calls it makes, and a mod that
+within a 500 ms budget, which counts the game calls it makes, and a mod that
 overruns it stops for the rest of the match with a log line naming its slowest
 call. Keep each frame's work small, and spread a large build over several
 frames.

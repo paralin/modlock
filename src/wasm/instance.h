@@ -26,9 +26,10 @@ struct Limits {
   std::chrono::milliseconds start_budget{5000};
   // event_budget bounds one event, including the host calls it makes. The
   // engine drops a player whose commands hold its thread for about a second,
-  // so the budget stays well under that. It is wall time: a busy machine's
-  // preemption and the interpreter's garbage collection count against it.
-  std::chrono::milliseconds event_budget{250};
+  // so the budget is half that, which still fits one slow engine call such as
+  // adding a bot (about 270 ms). It is wall time: a busy machine's preemption
+  // and the interpreter's garbage collection count against it.
+  std::chrono::milliseconds event_budget{500};
 };
 
 // Instance runs one WebAssembly mod in its own Wasmtime store. The mod sees
