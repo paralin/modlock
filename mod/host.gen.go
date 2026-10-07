@@ -772,7 +772,8 @@ func CallService(service, method string, payload []byte) ([]byte, error) {
 // CreateEntity creates any entity the server knows by its designer name,
 // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 // written before it spawns. The world removes it when the world ends;
-// stopping the mod removes it too.
+// stopping the mod removes it too. It refuses an ability, item or weapon,
+// which only a hero holds: GiveItem and ReplaceAbility give one.
 func CreateEntity(options *EntityOptions) (uint32, error) {
 	response := &wasm.EntityResponse{}
 	if err := invoke("CreateEntity", options, response); err != nil {
@@ -811,8 +812,9 @@ func RemoveEntity(entity uint32) (bool, error) {
 	return response.GetAlive(), nil
 }
 
-// SpawnNpc adds a unit that is not a player, such as a trooper. It thinks
-// from the next frame. The world removes it when the world ends; stopping
+// SpawnNpc adds a unit that is not a player, such as a trooper, as
+// CreateEntity does, then sets its health and lane. It thinks from the next
+// frame. The world removes it when the world ends; stopping
 // the mod removes it too.
 func SpawnNpc(options *NpcOptions) (Npc, error) {
 	response := &wasm.NpcResponse{}
@@ -854,8 +856,8 @@ func (n Npc) SetHealth(health int32, maxHealth *int32) (bool, error) {
 	return response.GetAlive(), nil
 }
 
-// Remove takes the unit out of the world without rewards. It reports
-// false when the unit was already gone.
+// Remove takes a unit the mod spawned out of the world without rewards.
+// It reports false when the unit was already gone.
 func (n Npc) Remove() (bool, error) {
 	request := &wasm.NpcRequest{Npc: n.Entity}
 	response := &wasm.AliveResponse{}

@@ -415,7 +415,8 @@ class HostService {
   // CreateEntity creates any entity the server knows by its designer name,
   // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
   // written before it spawns. The world removes it when the world ends;
-  // stopping the mod removes it too.
+  // stopping the mod removes it too. It refuses an ability, item or weapon,
+  // which only a hero holds: GiveItem and ReplaceAbility give one.
   virtual std::expected<EntityResponse, std::string> CreateEntity(
       const EntityOptions& /*request*/) {
     return std::unexpected("this host does not support CreateEntity");
@@ -434,8 +435,9 @@ class HostService {
     return std::unexpected("this host does not support RemoveEntity");
   }
 
-  // SpawnNpc adds a unit that is not a player, such as a trooper. It thinks
-  // from the next frame. The world removes it when the world ends; stopping
+  // SpawnNpc adds a unit that is not a player, such as a trooper, as
+  // CreateEntity does, then sets its health and lane. It thinks from the next
+  // frame. The world removes it when the world ends; stopping
   // the mod removes it too.
   virtual std::expected<NpcResponse, std::string> SpawnNpc(const NpcOptions& /*request*/) {
     return std::unexpected("this host does not support SpawnNpc");
@@ -459,8 +461,8 @@ class HostService {
     return std::unexpected("this host does not support SetNpcHealth");
   }
 
-  // RemoveNpc takes the unit out of the world without rewards. It reports
-  // false when the unit was already gone.
+  // RemoveNpc takes a unit the mod spawned out of the world without rewards.
+  // It reports false when the unit was already gone.
   virtual std::expected<AliveResponse, std::string> RemoveNpc(const NpcRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveNpc");
   }

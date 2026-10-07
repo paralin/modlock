@@ -7,6 +7,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -29,6 +30,7 @@ class MODLOCK_API WorldEntities {
     std::expected<void*, std::string> (*entity_system)() = nullptr;
     void* schema = nullptr;
     KeyValuesCalls key_values;
+    void* (*find_class)(void* system, const char* designer_name, void* unused) = nullptr;
     void* (*create)(void*, const char*, int) = nullptr;
     void (*queue)(void*, void*, void*) = nullptr;
     void (*execute)(void*) = nullptr;
@@ -66,12 +68,6 @@ class MODLOCK_API WorldEntities {
   // the native identities retained by Restore. Call on the next engine frame.
   std::expected<void, std::string> FinishRestore();
 
-  enum class Pickup { kUrn, kMovementBuff };
-  // CreatePickup spawns one real native pickup and returns its serial-fenced
-  // identity. Later ReadPickup distinguishes a live pickup from collection/removal.
-  std::expected<uint32_t, std::string> CreatePickup(Pickup kind,
-                                                    const std::array<float, 3>& position);
-  std::expected<std::optional<Sample>, std::string> ReadPickup(uint32_t handle) const;
   // ClearAuthored kills interfering NPCs and removes native round objectives without
   // kill rewards. It preserves scenery and urn delivery triggers. Exact replay
   // restoration never calls this authored-world operation.
@@ -81,10 +77,10 @@ class MODLOCK_API WorldEntities {
   // returns how many entities were queued for removal.
   std::expected<size_t, std::string> Remove(std::string_view designer_name);
 
-  // Spawn adds one NPC beside the existing world and returns its handle. It
-  // accepts the restorable classes plus npc_trooper_boss (the lane Guardian).
-  // A health of zero keeps the subclass default. Call FinishSpawns on the next
-  // engine frame; it reapplies placement to spawns that are still alive.
+  // Spawn adds one NPC beside the existing world through CreateEntity and
+  // returns its handle. A health of zero keeps the subclass default. Call
+  // FinishSpawns on the next engine frame; it reapplies placement and health
+  // to spawns that are still alive.
   // Prepare, when set, runs on the created entity before it spawns, for
   // fields the game reads only while spawning; its failure cancels the spawn.
   using Prepare = std::function<std::expected<void, std::string>(void* entity)>;
@@ -93,7 +89,8 @@ class MODLOCK_API WorldEntities {
   // CreateEntity creates any designer name the server knows, applies
   // key_values as its spawn key values, and returns its handle. The target's
   // subclass, team and placement apply as for Spawn; its health and velocity
-  // are ignored. Prepare runs as for Spawn.
+  // are ignored. Prepare runs as for Spawn. It refuses an ability, item or
+  // weapon, which only a hero holds.
   std::expected<uint32_t, std::string> CreateEntity(const Target& target,
                                                     std::span<const EntityKeyValue> key_values,
                                                     const Prepare& prepare = {});
@@ -107,13 +104,12 @@ class MODLOCK_API WorldEntities {
   // RemoveEntity deletes one live entity through UTIL_Remove without rewards.
   // It returns false when the handle no longer names one.
   std::expected<bool, std::string> RemoveEntity(uint32_t handle);
+  // Exists reports whether the handle still names a live entity.
+  std::expected<bool, std::string> Exists(uint32_t handle) const;
   // ReadNpc samples one live NPC by handle; nullopt once it is gone or dead.
   std::expected<std::optional<Sample>, std::string> ReadNpc(uint32_t handle) const;
-  // RemoveNpc deletes one NPC or pickup through UTIL_Remove without rewards.
-  // It returns false when the handle no longer names one.
-  std::expected<bool, std::string> RemoveNpc(uint32_t handle);
-  // Move teleports one live NPC this class may spawn, for modes that steer
-  // units themselves each frame; false when it is gone.
+  // Move teleports one live NPC, for modes that steer units themselves each
+  // frame; false when it is gone.
   std::expected<bool, std::string> Move(uint32_t handle, const std::array<float, 3>& position,
                                         const std::array<float, 3>& facing,
                                         const std::array<float, 3>& velocity);
@@ -125,6 +121,9 @@ class MODLOCK_API WorldEntities {
 
  private:
   std::expected<Sample, std::string> ReadEntity(void* entity, std::string name) const;
+  // LaneOffset returns where an entity whose class walks a lane, such as a
+  // trooper, stores it, or nullopt for one that walks none.
+  std::optional<size_t> LaneOffset(void* entity) const;
   std::expected<void*, std::string> Create(const Target& target,
                                            std::span<const EntityKeyValue> key_values = {},
                                            const Prepare& prepare = {});
@@ -132,6 +131,8 @@ class MODLOCK_API WorldEntities {
   Calls calls_;
   std::vector<Sample> pending_;
   std::vector<Sample> spawned_;
+  // lanes_ caches LaneOffset by schema class.
+  mutable std::unordered_map<const void*, std::optional<size_t>> lanes_;
 };
 
 }  // namespace modlock::gameinterop

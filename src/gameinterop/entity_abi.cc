@@ -174,9 +174,13 @@ std::expected<const void*, std::string> SchemaClassOfEntity(void* entity,
   const void* identity = ReadLink(entity, kIdentityOffset, read);
   if (identity == nullptr || ReadLink(identity, 0, read) != entity)
     return std::unexpected("the entity has no live identity");
+  return SchemaClassOfEntityClass(ReadLink(identity, kIdentityClass, read), read);
+}
+
+std::expected<const void*, std::string> SchemaClassOfEntityClass(const void* entity_class,
+                                                                 const BoundedReader& read) {
   const void* binding =
-      ReadLink(ReadLink(ReadLink(identity, kIdentityClass, read), kEntityClassInfo, read),
-               kClassInfoSchemaBinding, read);
+      ReadLink(ReadLink(entity_class, kEntityClassInfo, read), kClassInfoSchemaBinding, read);
   if (binding == nullptr || ReadLink(binding, 0, read) != binding)
     return std::unexpected("the entity's schema class is unreadable");
   return binding;

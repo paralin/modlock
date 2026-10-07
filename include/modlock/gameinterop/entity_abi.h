@@ -182,6 +182,12 @@ struct SchemaField {
 [[nodiscard]] MODLOCK_API std::expected<const void*, std::string> SchemaClassOfEntity(
     void* entity, const BoundedReader& read);
 
+// SchemaClassOfEntityClass returns the schema class info a CEntityClass, the
+// entity system's record of one designer name, binds. It reads the links
+// after the identity's as SchemaClassOfEntity does.
+[[nodiscard]] MODLOCK_API std::expected<const void*, std::string> SchemaClassOfEntityClass(
+    const void* entity_class, const BoundedReader& read);
+
 // SchemaClassNameOf returns the name of a schema class info, such as
 // CCitadelPlayerPawn.
 [[nodiscard]] MODLOCK_API std::string_view SchemaClassNameOf(const void* class_info);

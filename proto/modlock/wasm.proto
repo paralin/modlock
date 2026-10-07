@@ -293,7 +293,8 @@ service Host {
   // CreateEntity creates any entity the server knows by its designer name,
   // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
   // written before it spawns. The world removes it when the world ends;
-  // stopping the mod removes it too.
+  // stopping the mod removes it too. It refuses an ability, item or weapon,
+  // which only a hero holds: GiveItem and ReplaceAbility give one.
   rpc CreateEntity(EntityOptions) returns (EntityResponse);
 
   // FireInput sends an input to a live entity, as a map's output would, such
@@ -305,8 +306,9 @@ service Host {
   // rewards. It reports false when the entity was already gone.
   rpc RemoveEntity(EntityRequest) returns (AliveResponse);
 
-  // SpawnNpc adds a unit that is not a player, such as a trooper. It thinks
-  // from the next frame. The world removes it when the world ends; stopping
+  // SpawnNpc adds a unit that is not a player, such as a trooper, as
+  // CreateEntity does, then sets its health and lane. It thinks from the next
+  // frame. The world removes it when the world ends; stopping
   // the mod removes it too.
   rpc SpawnNpc(NpcOptions) returns (NpcResponse);
 
@@ -321,8 +323,8 @@ service Host {
   // reports false once the unit is gone.
   rpc SetNpcHealth(SetNpcHealthRequest) returns (AliveResponse);
 
-  // RemoveNpc takes the unit out of the world without rewards. It reports
-  // false when the unit was already gone.
+  // RemoveNpc takes a unit the mod spawned out of the world without rewards.
+  // It reports false when the unit was already gone.
   rpc RemoveNpc(NpcRequest) returns (AliveResponse);
 
   // CreatePickup places an urn, which a hero carries once collected, or a
@@ -1807,7 +1809,8 @@ message NpcOptions {
   // npc_trooper_boss.
   string class_name = 1;
 
-  // Unit names the unit's game data entry, such as trooper_melee.
+  // Unit names the unit's game data entry, such as trooper_melee, or is empty
+  // for a unit that needs none.
   string unit = 2;
 
   // Team is the unit's team number; 4 is neutral.
@@ -1825,7 +1828,8 @@ message NpcOptions {
   // MaxHealth is the unit's maximum health; the default is health.
   optional int32 max_health = 7;
 
-  // Lane is the lane a trooper walks.
+  // Lane is the lane the unit walks. A unit whose class walks none, unlike a
+  // trooper, refuses it.
   optional uint32 lane = 8;
 
   // Fields are schema fields the host writes after it creates the unit and

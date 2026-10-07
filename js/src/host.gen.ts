@@ -1194,7 +1194,10 @@ export interface NpcOptions {
    * npc_trooper_boss.
    */
   className: string
-  /** unit names the unit's game data entry, such as trooper_melee. */
+  /**
+   * unit names the unit's game data entry, such as trooper_melee, or is empty
+   * for a unit that needs none.
+   */
   unit: string
   /** team is the unit's team number; 4 is neutral. */
   team: number
@@ -1206,7 +1209,10 @@ export interface NpcOptions {
   health?: number
   /** maxHealth is the unit's maximum health; the default is health. */
   maxHealth?: number
-  /** lane is the lane a trooper walks. */
+  /**
+   * lane is the lane the unit walks. A unit whose class walks none, unlike a
+   * trooper, refuses it.
+   */
   lane?: number
   /**
    * fields are schema fields the host writes after it creates the unit and
@@ -1793,8 +1799,8 @@ export class Npc {
   }
 
   /**
-   * remove takes the unit out of the world without rewards. It reports
-   * false when the unit was already gone.
+   * remove takes a unit the mod spawned out of the world without rewards.
+   * It reports false when the unit was already gone.
    */
   remove(): boolean {
     const reply = call('RemoveNpc', pb.NpcRequest.toBinary({ npc: this.entity }))
@@ -2016,7 +2022,8 @@ export function callService(service: string, method: string, payload: Uint8Array
  * createEntity creates any entity the server knows by its designer name,
  * such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
  * written before it spawns. The world removes it when the world ends;
- * stopping the mod removes it too.
+ * stopping the mod removes it too. It refuses an ability, item or weapon,
+ * which only a hero holds: GiveItem and ReplaceAbility give one.
  */
 export function createEntity(options: EntityOptions): number | undefined {
   const reply = call('CreateEntity', pb.EntityOptions.toBinary(toEntityOptions(options)))
@@ -2049,8 +2056,9 @@ export function removeEntity(entity: number): boolean {
 }
 
 /**
- * spawnNpc adds a unit that is not a player, such as a trooper. It thinks
- * from the next frame. The world removes it when the world ends; stopping
+ * spawnNpc adds a unit that is not a player, such as a trooper, as
+ * CreateEntity does, then sets its health and lane. It thinks from the next
+ * frame. The world removes it when the world ends; stopping
  * the mod removes it too.
  */
 export function spawnNpc(options: NpcOptions): Npc | undefined {

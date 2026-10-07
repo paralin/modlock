@@ -20,6 +20,13 @@ T ReadAt(const void* instance, size_t offset) {
   return value;
 }
 
+// ReadLive reads memory of a live entity or of the engine's class tables,
+// which the game keeps mapped while this class runs.
+bool ReadLive(const void* source, void* out, size_t size) {
+  std::memcpy(out, source, size);
+  return true;
+}
+
 template <typename T>
 void WriteAt(void* instance, size_t offset, const T& value) {
   std::memcpy(static_cast<unsigned char*>(instance) + offset, &value, sizeof(value));
@@ -35,26 +42,12 @@ bool IsRestoredNpc(std::string_view name) {
          name == "npc_super_neutral" || name == "npc_neutral_sinners_sacrifice";
 }
 
-// IsSpawnableNpc adds the lane Guardian, whose designer class Restore never
-// reconciles, to the restorable NPC classes.
-bool IsSpawnableNpc(std::string_view name) {
-  return IsRestoredNpc(name) || name == "npc_trooper_boss";
-}
-
 bool IsPickup(std::string_view name) {
   return name == "citadel_item_pickup" || name == "citadel_item_pickup_idol";
 }
 
 bool IsRoundObjective(std::string_view name) {
   return IsPickup(name) || name == "citadel_koth_cashin" || name == "citadel_item_powerup_spawner";
-}
-
-const char* LaneClass(std::string_view name) {
-  if (name == "npc_trooper") return "CNPC_Trooper";
-  if (name == "npc_boss_tier2") return "CNPC_Boss_Tier2";
-  if (name == "npc_boss_tier3") return "CNPC_Boss_Tier3";
-  if (name == "npc_barrack_boss") return "CNPC_BarrackBoss";
-  return nullptr;
 }
 
 std::string DesignerName(void* entity) {
@@ -94,6 +87,7 @@ std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleIma
     void** slot;
   };
   const Entry entries[] = {
+      {"entity-system.find-class", reinterpret_cast<void**>(&world.calls_.find_class)},
       {"entity-system.create-entity-by-name", reinterpret_cast<void**>(&world.calls_.create)},
       {"entity-system.queue-spawn-entity", reinterpret_cast<void**>(&world.calls_.queue)},
       {"entity-system.execute-queued-creation", reinterpret_cast<void**>(&world.calls_.execute)},
@@ -143,12 +137,20 @@ std::expected<WorldEntities::Sample, std::string> WorldEntities::ReadEntity(
   state.position = ReadAt<std::array<float, 3>>(scene, calls_.offsets[6]);
   state.health = ReadAt<int32_t>(entity, calls_.offsets[2]);
   state.max_health = ReadAt<int32_t>(entity, calls_.offsets[3]);
-  if (const auto* owner = LaneClass(state.designer_name)) {
-    auto lane = SchemaFieldOf(calls_.schema, "server.dll", owner, "m_iLane");
-    if (!lane || lane->size < sizeof(uint32_t)) return std::unexpected("trooper lane unavailable");
-    state.lane = ReadAt<uint32_t>(entity, lane->offset);
-  }
+  if (const auto lane = LaneOffset(entity)) state.lane = ReadAt<uint32_t>(entity, *lane);
   return Sample{*handle, std::move(state)};
+}
+
+std::optional<size_t> WorldEntities::LaneOffset(void* entity) const {
+  auto schema = SchemaClassOfEntity(entity, ReadLive);
+  if (!schema) return std::nullopt;
+  if (auto found = lanes_.find(*schema); found != lanes_.end()) return found->second;
+  const std::string name(SchemaClassNameOf(*schema));
+  auto lane = SchemaFieldOf(calls_.schema, "server.dll", name.c_str(), "m_iLane");
+  std::optional<size_t> offset;
+  if (lane && lane->size >= sizeof(uint32_t)) offset = lane->offset;
+  lanes_.emplace(*schema, offset);
+  return offset;
 }
 
 std::expected<std::vector<WorldEntities::Sample>, std::string> WorldEntities::Read() const {
@@ -191,17 +193,12 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
   }
   WriteAt(entity, calls_.offsets[0], static_cast<uint8_t>(target.team));
   if (target.lane) {
-    const auto* owner = LaneClass(target.designer_name);
-    if (!owner) {
+    const auto lane = LaneOffset(entity);
+    if (!lane) {
       calls_.remove(entity);
-      return std::unexpected("NPC lane class is unsupported");
+      return std::unexpected(target.designer_name + " walks no lane");
     }
-    auto lane = SchemaFieldOf(calls_.schema, "server.dll", owner, "m_iLane");
-    if (!lane || lane->size < sizeof(uint32_t)) {
-      calls_.remove(entity);
-      return std::unexpected("trooper lane unavailable");
-    }
-    WriteAt(entity, lane->offset, *target.lane);
+    WriteAt(entity, *lane, *target.lane);
   }
   if (prepare) {
     if (auto prepared = prepare(entity); !prepared) {
@@ -213,7 +210,7 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
   const auto handle = ReferenceHandleOf(entity);
   if (!handle) {
     calls_.remove(entity);
-    return std::unexpected("created NPC has no native identity");
+    return std::unexpected(target.designer_name + " has no native identity");
   }
   auto built = BuildEntityKeyValues(calls_.key_values, key_values);
   if (!built) {
@@ -292,38 +289,6 @@ std::expected<void, std::string> WorldEntities::FinishRestore() {
   return {};
 }
 
-std::expected<uint32_t, std::string> WorldEntities::CreatePickup(
-    Pickup kind, const std::array<float, 3>& position) {
-  if (!std::ranges::all_of(position, [](float value) { return std::isfinite(value); }))
-    return std::unexpected("pickup position must be finite");
-  const bool urn = kind == Pickup::kUrn;
-  Target target{};
-  target.designer_name = urn ? "citadel_item_pickup_idol" : "citadel_item_pickup";
-  // Native pickup Spawn reads its aura from VData. The urn's subclass shares
-  // its designer name; movement buffs select the movement pickup definition.
-  target.subclass_id =
-      MakeMemberName(urn ? "citadel_item_pickup_idol" : "movement_powerup_pickup").hash;
-  target.position = position;
-  auto entity = Create(target);
-  if (!entity) return std::unexpected(entity.error());
-  const auto handle = ReferenceHandleOf(*entity);
-  if (!handle) return std::unexpected("native pickup identity is absent after spawn");
-  return *handle;
-}
-
-std::expected<std::optional<WorldEntities::Sample>, std::string> WorldEntities::ReadPickup(
-    uint32_t handle) const {
-  auto system = calls_.entity_system();
-  if (!system) return std::unexpected(system.error());
-  void* entity = EntityInstance(*system, handle);
-  if (!entity) return std::nullopt;
-  auto name = DesignerName(entity);
-  if (!IsPickup(name)) return std::unexpected("pickup identity refers to another entity class");
-  auto sample = ReadEntity(entity, std::move(name));
-  if (!sample) return std::unexpected(sample.error());
-  return std::move(*sample);
-}
-
 std::expected<void, std::string> WorldEntities::ClearAuthored(const NativeDamage& damage) {
   auto system = calls_.entity_system();
   if (!system) return std::unexpected(system.error());
@@ -369,24 +334,19 @@ uint32_t WorldEntities::SubclassId(std::string_view vdata_name) {
 
 std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target,
                                                           const Prepare& prepare) {
-  if (!IsSpawnableNpc(target.designer_name) || !target.subclass_id || target.team < 0 ||
-      target.team > 4 || target.health < 0 || target.max_health < target.health)
-    return std::unexpected("unsupported NPC spawn: " + target.designer_name);
-  for (const auto& vector : {target.position, target.facing, target.velocity})
-    for (float value : vector)
-      if (!std::isfinite(value)) return std::unexpected("NPC spawn motion is nonfinite");
-  auto created = Create(target, {}, prepare);
-  if (!created) return std::unexpected(created.error());
+  if (target.health < 0 || target.max_health < target.health)
+    return std::unexpected("NPC health is invalid");
+  auto handle = CreateEntity(target, {}, prepare);
+  if (!handle) return std::unexpected(handle.error());
+
   // A spawn that fails after creation is removed, so no untracked NPC remains.
-  auto applied = Apply(*created, target);
-  if (!applied) {
-    calls_.remove(*created);
+  auto system = calls_.entity_system();
+  if (!system) return std::unexpected(system.error());
+  void* entity = EntityInstance(*system, *handle);
+  if (!entity) return std::unexpected(target.designer_name + " did not survive its spawn");
+  if (auto applied = Apply(entity, target); !applied) {
+    calls_.remove(entity);
     return std::unexpected(applied.error());
-  }
-  const auto handle = ReferenceHandleOf(*created);
-  if (!handle) {
-    calls_.remove(*created);
-    return std::unexpected("spawned NPC identity is absent");
   }
   spawned_.push_back({*handle, target});
   return *handle;
@@ -398,6 +358,21 @@ std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
   for (const auto& vector : {target.position, target.facing})
     for (float value : vector)
       if (!std::isfinite(value)) return std::unexpected("entity placement is nonfinite");
+
+  // A hero holds its abilities, items and weapons. One created alone crashes
+  // the server once it is removed or thinks, so it is refused before it
+  // exists.
+  auto system = calls_.entity_system();
+  if (!system) return std::unexpected(system.error());
+  void* entity_class = calls_.find_class(*system, target.designer_name.c_str(), nullptr);
+  if (!entity_class) return std::unexpected("the server has no entity " + target.designer_name);
+  auto schema = SchemaClassOfEntityClass(entity_class, ReadLive);
+  if (!schema) return std::unexpected(schema.error());
+  if (SchemaClassDerivesFrom(*schema, "CCitadelBaseAbility")) {
+    return std::unexpected(target.designer_name +
+                           " is an ability, which only a hero holds: give it with GiveItem or "
+                           "ReplaceAbility");
+  }
   auto created = Create(target, key_values, prepare);
   if (!created) return std::unexpected(created.error());
   const auto handle = ReferenceHandleOf(*created);
@@ -472,15 +447,19 @@ void WorldEntities::FinishSpawns() {
   spawned_.clear();
 }
 
+std::expected<bool, std::string> WorldEntities::Exists(uint32_t handle) const {
+  auto system = ResolveLiveEntitySystem();
+  if (!system) return std::unexpected(system.error());
+  return EntityInstance(*system, handle) != nullptr;
+}
+
 std::expected<std::optional<WorldEntities::Sample>, std::string> WorldEntities::ReadNpc(
     uint32_t handle) const {
   auto system = ResolveLiveEntitySystem();
   if (!system) return std::unexpected(system.error());
   void* entity = EntityInstance(*system, handle);
   if (!entity) return std::nullopt;
-  auto name = DesignerName(entity);
-  if (!IsSpawnableNpc(name)) return std::nullopt;
-  auto sample = ReadEntity(entity, std::move(name));
+  auto sample = ReadEntity(entity, DesignerName(entity));
   if (!sample) return std::unexpected(sample.error());
   if (sample->state.health <= 0) return std::nullopt;
   return std::move(*sample);
@@ -492,7 +471,7 @@ std::expected<bool, std::string> WorldEntities::SetHealth(uint32_t handle, int32
   auto system = ResolveLiveEntitySystem();
   if (!system) return std::unexpected(system.error());
   void* entity = EntityInstance(*system, handle);
-  if (!entity || !IsSpawnableNpc(DesignerName(entity))) return false;
+  if (!entity) return false;
   if (!RestorePawnHealth(entity, health, max_health))
     return std::unexpected("NPC health restoration failed");
   return true;
@@ -505,21 +484,8 @@ std::expected<bool, std::string> WorldEntities::Move(uint32_t handle,
   auto system = ResolveLiveEntitySystem();
   if (!system) return std::unexpected(system.error());
   void* entity = EntityInstance(*system, handle);
-  if (!entity || !IsSpawnableNpc(DesignerName(entity))) return false;
-  TeleportEntity(entity, position, facing, velocity);
-  return true;
-}
-
-std::expected<bool, std::string> WorldEntities::RemoveNpc(uint32_t handle) {
-  auto system = ResolveLiveEntitySystem();
-  if (!system) return std::unexpected(system.error());
-  void* entity = EntityInstance(*system, handle);
-  // Only an NPC or pickup this class may create is removed; any other entity
-  // is refused.
   if (!entity) return false;
-  const auto name = DesignerName(entity);
-  if (!IsSpawnableNpc(name) && !IsPickup(name)) return false;
-  calls_.remove(entity);
+  TeleportEntity(entity, position, facing, velocity);
   return true;
 }
 

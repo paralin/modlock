@@ -1707,7 +1707,8 @@ std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request
   const int32_t max_health = request.max_health() == 0 ? request.health() : request.max_health();
   gameinterop::WorldEntities::Target target{
       .designer_name = request.class_name(),
-      .subclass_id = gameinterop::WorldEntities::SubclassId(request.unit()),
+      .subclass_id =
+          request.unit().empty() ? 0 : gameinterop::WorldEntities::SubclassId(request.unit()),
       .team = request.team(),
       .position = Floats(request.position()),
       .facing = Floats(request.facing()),
@@ -1757,19 +1758,30 @@ std::expected<AliveResponse, std::string> Game::SetNpcHealth(const SetNpcHealthR
 }
 
 std::expected<AliveResponse, std::string> Game::RemoveNpc(const NpcRequest& request) {
-  auto world = World();
-  if (!world) return std::unexpected(world.error());
-  created_.erase(request.npc());
-  return Alive((*world)->RemoveNpc(request.npc()));
+  EntityRequest entity;
+  entity.set_entity(request.npc());
+  return RemoveEntity(entity);
 }
 
 std::expected<PickupResponse, std::string> Game::CreatePickup(const CreatePickupRequest& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
-  const auto kind = request.kind() == PICKUP_KIND_URN
-                        ? gameinterop::WorldEntities::Pickup::kUrn
-                        : gameinterop::WorldEntities::Pickup::kMovementBuff;
-  auto entity = (*world)->CreatePickup(kind, Floats(request.position()));
+  // A pickup reads its aura from its game data entry. The urn's entry shares
+  // its designer name; a movement buff names the movement pickup entry.
+  const bool urn = request.kind() == PICKUP_KIND_URN;
+  gameinterop::WorldEntities::Target target{
+      .designer_name = urn ? "citadel_item_pickup_idol" : "citadel_item_pickup",
+      .subclass_id = gameinterop::WorldEntities::SubclassId(urn ? "citadel_item_pickup_idol"
+                                                                : "movement_powerup_pickup"),
+      .team = 0,
+      .position = Floats(request.position()),
+      .facing = {},
+      .velocity = {},
+      .health = 0,
+      .max_health = 0,
+      .lane = std::nullopt,
+  };
+  auto entity = (*world)->CreateEntity(target, {});
   if (!entity) return std::unexpected(entity.error());
   created_.insert(*entity);
   PickupResponse response;
@@ -1780,16 +1792,13 @@ std::expected<PickupResponse, std::string> Game::CreatePickup(const CreatePickup
 std::expected<AliveResponse, std::string> Game::PickupPresent(const PickupRequest& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
-  auto sample = (*world)->ReadPickup(request.pickup());
-  if (!sample) return std::unexpected(sample.error());
-  return Alive(sample->has_value());
+  return Alive((*world)->Exists(request.pickup()));
 }
 
 std::expected<AliveResponse, std::string> Game::RemovePickup(const PickupRequest& request) {
-  auto world = World();
-  if (!world) return std::unexpected(world.error());
-  created_.erase(request.pickup());
-  return Alive((*world)->RemoveNpc(request.pickup()));
+  EntityRequest entity;
+  entity.set_entity(request.pickup());
+  return RemoveEntity(entity);
 }
 
 std::expected<CountResponse, std::string> Game::RemoveEntities(

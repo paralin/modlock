@@ -749,7 +749,8 @@ export type NpcOptions = {
 	-- className is the unit's entity class, such as npc_trooper or
 	-- npc_trooper_boss.
 	className: string,
-	-- unit names the unit's game data entry, such as trooper_melee.
+	-- unit names the unit's game data entry, such as trooper_melee, or is empty
+	-- for a unit that needs none.
 	unit: string,
 	-- team is the unit's team number; 4 is neutral.
 	team: number,
@@ -761,7 +762,8 @@ export type NpcOptions = {
 	health: number?,
 	-- maxHealth is the unit's maximum health; the default is health.
 	maxHealth: number?,
-	-- lane is the lane a trooper walks.
+	-- lane is the lane the unit walks. A unit whose class walks none, unlike a
+	-- trooper, refuses it.
 	lane: number?,
 	-- fields are schema fields the host writes after it creates the unit and
 	-- before the unit spawns, such as m_iInitialTeamNum, which the game reads
@@ -1323,8 +1325,8 @@ export type Npc = {
 	-- setHealth sets the unit's health, and its maximum when given. It
 	-- reports false once the unit is gone.
 	setHealth: (self: Npc, health: number, maxHealth: number?) -> boolean,
-	-- remove takes the unit out of the world without rewards. It reports
-	-- false when the unit was already gone.
+	-- remove takes a unit the mod spawned out of the world without rewards.
+	-- It reports false when the unit was already gone.
 	remove: (self: Npc) -> boolean,
 }
 local Npc = {}
@@ -1364,8 +1366,8 @@ function Npc.setHealth(self: Npc, health: number, maxHealth: number?): boolean
 	return response.alive
 end
 
--- remove takes the unit out of the world without rewards. It reports
--- false when the unit was already gone.
+-- remove takes a unit the mod spawned out of the world without rewards.
+-- It reports false when the unit was already gone.
 function Npc.remove(self: Npc): boolean
 	local response = call("RemoveNpc", "NpcRequest", { npc = self }, "AliveResponse")
 	if response == nil then
@@ -2244,7 +2246,8 @@ end
 -- createEntity creates any entity the server knows by its designer name,
 -- such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
 -- written before it spawns. The world removes it when the world ends;
--- stopping the mod removes it too.
+-- stopping the mod removes it too. It refuses an ability, item or weapon,
+-- which only a hero holds: GiveItem and ReplaceAbility give one.
 function modlock.createEntity(options: EntityOptions): number?
 	local response = call("CreateEntity", "EntityOptions", options, "EntityResponse")
 	if response == nil then
@@ -2274,8 +2277,9 @@ function modlock.removeEntity(entity: number): boolean
 	return response.alive
 end
 
--- spawnNpc adds a unit that is not a player, such as a trooper. It thinks
--- from the next frame. The world removes it when the world ends; stopping
+-- spawnNpc adds a unit that is not a player, such as a trooper, as
+-- CreateEntity does, then sets its health and lane. It thinks from the next
+-- frame. The world removes it when the world ends; stopping
 -- the mod removes it too.
 function modlock.spawnNpc(options: NpcOptions): Npc?
 	local response = call("SpawnNpc", "NpcOptions", options, "NpcResponse")

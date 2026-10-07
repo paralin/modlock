@@ -888,7 +888,8 @@ class NpcOptions:
     # class_name is the unit's entity class, such as npc_trooper or
     # npc_trooper_boss.
     class_name: str = ""
-    # unit names the unit's game data entry, such as trooper_melee.
+    # unit names the unit's game data entry, such as trooper_melee, or is empty
+    # for a unit that needs none.
     unit: str = ""
     # team is the unit's team number; 4 is neutral.
     team: int = 0
@@ -900,7 +901,8 @@ class NpcOptions:
     health: int | None = None
     # max_health is the unit's maximum health; the default is health.
     max_health: int | None = None
-    # lane is the lane a trooper walks.
+    # lane is the lane the unit walks. A unit whose class walks none, unlike a
+    # trooper, refuses it.
     lane: int | None = None
     # fields are schema fields the host writes after it creates the unit and
     # before the unit spawns, such as m_iInitialTeamNum, which the game reads
@@ -1339,8 +1341,8 @@ class Npc:
         return response["alive"]
 
     def remove(self) -> bool:
-        """remove takes the unit out of the world without rewards. It reports
-        false when the unit was already gone.
+        """remove takes a unit the mod spawned out of the world without rewards.
+        It reports false when the unit was already gone.
         """
         response = _call("RemoveNpc", "NpcRequest", {"npc": self}, "AliveResponse")
         if response is None:
@@ -2592,7 +2594,8 @@ def create_entity(options: EntityOptions) -> int | None:
     """create_entity creates any entity the server knows by its designer name,
     such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
     written before it spawns. The world removes it when the world ends;
-    stopping the mod removes it too.
+    stopping the mod removes it too. It refuses an ability, item or weapon,
+    which only a hero holds: GiveItem and ReplaceAbility give one.
     """
     response = _call("CreateEntity", "EntityOptions", options, "EntityResponse")
     if response is None:
@@ -2622,8 +2625,9 @@ def remove_entity(entity: int) -> bool:
 
 
 def spawn_npc(options: NpcOptions) -> Npc | None:
-    """spawn_npc adds a unit that is not a player, such as a trooper. It thinks
-    from the next frame. The world removes it when the world ends; stopping
+    """spawn_npc adds a unit that is not a player, such as a trooper, as
+    CreateEntity does, then sets its health and lane. It thinks from the next
+    frame. The world removes it when the world ends; stopping
     the mod removes it too.
     """
     response = _call("SpawnNpc", "NpcOptions", options, "NpcResponse")

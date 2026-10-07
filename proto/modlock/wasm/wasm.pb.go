@@ -4761,7 +4761,8 @@ type NpcOptions struct {
 	// ClassName is the unit's entity class, such as npc_trooper or
 	// npc_trooper_boss.
 	ClassName string `protobuf:"bytes,1,opt,name=class_name,json=className,proto3" json:"className,omitempty"`
-	// Unit names the unit's game data entry, such as trooper_melee.
+	// Unit names the unit's game data entry, such as trooper_melee, or is empty
+	// for a unit that needs none.
 	Unit string `protobuf:"bytes,2,opt,name=unit,proto3" json:"unit,omitempty"`
 	// Team is the unit's team number; 4 is neutral.
 	Team int32 `protobuf:"varint,3,opt,name=team,proto3" json:"team,omitempty"`
@@ -4773,7 +4774,8 @@ type NpcOptions struct {
 	Health *int32 `protobuf:"varint,6,opt,name=health,proto3,oneof" json:"health,omitempty"`
 	// MaxHealth is the unit's maximum health; the default is health.
 	MaxHealth *int32 `protobuf:"varint,7,opt,name=max_health,json=maxHealth,proto3,oneof" json:"maxHealth,omitempty"`
-	// Lane is the lane a trooper walks.
+	// Lane is the lane the unit walks. A unit whose class walks none, unlike a
+	// trooper, refuses it.
 	Lane *uint32 `protobuf:"varint,8,opt,name=lane,proto3,oneof" json:"lane,omitempty"`
 	// Fields are schema fields the host writes after it creates the unit and
 	// before the unit spawns, such as m_iInitialTeamNum, which the game reads

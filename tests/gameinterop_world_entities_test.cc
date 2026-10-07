@@ -11,10 +11,16 @@ namespace {
 using modlock::gameinterop::MakeMemberName;
 using modlock::gameinterop::WorldEntities;
 
-// NativeWorld keeps the native identity and subclass layouts consumed by
-// CreatePickup and Spawn.
+// NativeWorld keeps the native class, identity and subclass layouts consumed
+// by CreateEntity and Spawn.
 class NativeWorld : public testing::Test {
  protected:
+  // entity_class reaches schema through CEntityClass::m_pClassInfo and
+  // CEntityClassInfo::m_pSchemaBinding; schema binds itself and holds its
+  // class name second.
+  static inline std::array<void*, 12> entity_class;
+  static inline std::array<void*, 6> class_info;
+  static inline std::array<void*, 8> schema;
   static inline std::array<std::byte, 0x400> entity;
   static inline std::array<std::byte, 0x70> identity;
   static inline std::array<void*, 66> system;
@@ -39,6 +45,13 @@ class NativeWorld : public testing::Test {
 
   void SetUp() override {
     entity.fill({});
+    entity_class.fill(nullptr);
+    class_info.fill(nullptr);
+    schema.fill(nullptr);
+    entity_class[11] = class_info.data();
+    class_info[5] = schema.data();
+    schema[0] = schema.data();
+    schema[1] = const_cast<char*>("CNPC_Trooper");
     identity.fill({});
     system.fill(nullptr);
     vtable.fill(nullptr);
@@ -63,6 +76,10 @@ class NativeWorld : public testing::Test {
   static WorldEntities World() {
     WorldEntities::Calls calls;
     calls.entity_system = []() -> std::expected<void*, std::string> { return system.data(); };
+    calls.find_class = [](void* world, const char*, void*) -> void* {
+      EXPECT_EQ(world, system.data());
+      return entity_class.data();
+    };
     calls.offsets = {0x30, kSubclassOffset, 0, 0, 0, 0, 0};
     calls.definition = [](int32_t type, uint32_t token) -> void* {
       EXPECT_EQ(type, -1);
@@ -98,9 +115,13 @@ class NativeWorld : public testing::Test {
   }
 };
 
-TEST_F(NativeWorld, UrnInstallsItsSubclassBeforeNativeSpawn) {
+TEST_F(NativeWorld, CreateEntityInstallsItsSubclassBeforeNativeSpawn) {
+  schema[1] = const_cast<char*>("CCitadelItemPickupIdol");
   auto world = World();
-  const auto pickup = world.CreatePickup(WorldEntities::Pickup::kUrn, {-6579, 0, 144});
+  WorldEntities::Target target{.designer_name = "citadel_item_pickup_idol",
+                               .subclass_id = WorldEntities::SubclassId("citadel_item_pickup_idol"),
+                               .position = {-6579, 0, 144}};
+  const auto pickup = world.CreateEntity(target, {});
   ASSERT_TRUE(pickup) << pickup.error();
   EXPECT_EQ(*pickup, kHandle);
   EXPECT_EQ(designer, "citadel_item_pickup_idol");
@@ -110,23 +131,28 @@ TEST_F(NativeWorld, UrnInstallsItsSubclassBeforeNativeSpawn) {
   EXPECT_EQ(spawned, 1);
 }
 
-TEST_F(NativeWorld, MissingUrnDefinitionNeverReachesNativeSpawn) {
+TEST_F(NativeWorld, MissingDefinitionNeverReachesNativeSpawn) {
   has_definition = false;
   auto world = World();
-  const auto pickup = world.CreatePickup(WorldEntities::Pickup::kUrn, {0, 0, 24});
+  WorldEntities::Target target{
+      .designer_name = "citadel_item_pickup_idol",
+      .subclass_id = WorldEntities::SubclassId("citadel_item_pickup_idol")};
+  const auto pickup = world.CreateEntity(target, {});
   ASSERT_FALSE(pickup);
   EXPECT_EQ(pickup.error(), "entity subclass is absent from this game build");
   EXPECT_EQ(created, 0);
   EXPECT_EQ(spawned, 0);
 }
 
-TEST_F(NativeWorld, MovementBuffKeepsItsOwnSubclass) {
+TEST_F(NativeWorld, AnAbilityIsRefusedBeforeItExists) {
+  schema[1] = const_cast<char*>("CCitadelBaseAbility");
   auto world = World();
-  const auto pickup = world.CreatePickup(WorldEntities::Pickup::kMovementBuff, {0, 0, 16});
-  ASSERT_TRUE(pickup) << pickup.error();
-  EXPECT_EQ(designer, "citadel_item_pickup");
-  EXPECT_EQ(subclass, MakeMemberName("movement_powerup_pickup").hash);
-  EXPECT_EQ(spawned, 1);
+  const auto ability = world.CreateEntity({.designer_name = "upgrade_spellshield"}, {});
+  ASSERT_FALSE(ability);
+  EXPECT_EQ(ability.error(),
+            "upgrade_spellshield is an ability, which only a hero holds: give it with GiveItem or "
+            "ReplaceAbility");
+  EXPECT_EQ(created, 0);
 }
 
 TEST_F(NativeWorld, SpawnPreparesTheUnitBeforeNativeSpawn) {

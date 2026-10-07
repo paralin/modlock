@@ -4525,7 +4525,8 @@ export interface NpcOptions {
    */
   className?: string;
   /**
-   * Unit names the unit's game data entry, such as trooper_melee.
+   * Unit names the unit's game data entry, such as trooper_melee, or is empty
+   * for a unit that needs none.
    *
    * @generated from field: string unit = 2;
    */
@@ -4561,7 +4562,8 @@ export interface NpcOptions {
    */
   maxHealth?: number;
   /**
-   * Lane is the lane a trooper walks.
+   * Lane is the lane the unit walks. A unit whose class walks none, unlike a
+   * trooper, refuses it.
    *
    * @generated from field: optional uint32 lane = 8;
    */

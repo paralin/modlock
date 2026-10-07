@@ -161,6 +161,13 @@ signatures {
 }
 
 signatures {
+  id: "entity-system.find-class"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 ?? 48 89 74 24 ?? 48 89 54 24 ?? 57 48 83 EC ?? 49 8B D8 48 8B F9 48 85 D2 0F 84 ?? ?? ?? ?? 80 3A 00 0F 84 ?? ?? ?? ?? 48 81 C1"
+  shape: "CEntityClass* (CGameEntitySystem*, const char* designer_name, CUtlString* resolved_alias); the alias may be null"
+}
+
+signatures {
   id: "entity-system.create-entity-by-name"
   modules: GAME_MODULE_SERVER
   pattern: "48 83 EC ?? 48 8B 0D ?? ?? ?? ?? 41 8B C0"
