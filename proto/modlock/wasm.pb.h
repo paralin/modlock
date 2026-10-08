@@ -31689,6 +31689,7 @@ class MODLOCK_API FireInputRequest final : public ::google::protobuf::Message
     kInputFieldNumber = 2,
     kValueFieldNumber = 3,
     kEntityFieldNumber = 1,
+    kActivatorFieldNumber = 4,
   };
   // string input = 2;
   void clear_input() ;
@@ -31730,11 +31731,22 @@ class MODLOCK_API FireInputRequest final : public ::google::protobuf::Message
   void _internal_set_entity(::uint32_t value);
 
   public:
+  // optional uint32 activator = 4;
+  bool has_activator() const;
+  void clear_activator() ;
+  ::uint32_t activator() const;
+  void set_activator(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_activator() const;
+  void _internal_set_activator(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.FireInputRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    1, 43,
                                    2>
       _table_;
@@ -31759,6 +31771,7 @@ class MODLOCK_API FireInputRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr input_;
     ::modlock::wasm::EntityValue* PROTOBUF_NULLABLE value_;
     ::uint32_t entity_;
+    ::uint32_t activator_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -49443,6 +49456,35 @@ inline void FireInputRequest::set_allocated_value(::modlock::wasm::EntityValue* 
 
   _impl_.value_ = reinterpret_cast<::modlock::wasm::EntityValue*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.FireInputRequest.value)
+}
+
+// optional uint32 activator = 4;
+inline bool FireInputRequest::has_activator() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  return value;
+}
+inline void FireInputRequest::clear_activator() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.activator_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::uint32_t FireInputRequest::activator() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.FireInputRequest.activator)
+  return _internal_activator();
+}
+inline void FireInputRequest::set_activator(::uint32_t value) {
+  _internal_set_activator(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.FireInputRequest.activator)
+}
+inline ::uint32_t FireInputRequest::_internal_activator() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.activator_;
+}
+inline void FireInputRequest::_internal_set_activator(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.activator_ = value;
 }
 
 // -------------------------------------------------------------------

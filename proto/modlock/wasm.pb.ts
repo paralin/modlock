@@ -4617,6 +4617,14 @@ export interface FireInputRequest {
    * @generated from field: optional modlock.wasm.EntityValue value = 3;
    */
   value?: EntityValue;
+  /**
+   * Activator is the handle of the entity that caused the input, such as a
+   * player's hero. Inputs that act on one player, such as
+   * LocalPlayerAddCSSClass, act on the activator's player.
+   *
+   * @generated from field: optional uint32 activator = 4;
+   */
+  activator?: number;
 
 };
 
@@ -4626,6 +4634,7 @@ export const FireInputRequest: MessageType<FireInputRequest> = /* @__PURE__ */ c
         { no: 1, name: "entity", kind: "scalar", T: ScalarType.UINT32 },
         { no: 2, name: "input", kind: "scalar", T: ScalarType.STRING },
         { no: 3, name: "value", kind: "message", T: () => EntityValue, opt: true },
+        { no: 4, name: "activator", kind: "scalar", T: ScalarType.UINT32, opt: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

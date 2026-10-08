@@ -5,3536 +5,3536 @@ package entity
 import "github.com/paralin/modlock/mod"
 
 func (e CBaseEntity) InputAddAttribute(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "AddAttribute", value)
+	return mod.FireInput(e.Handle, "AddAttribute", value, nil)
 }
 
 func (e CBaseEntity) InputAddContext(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "AddContext", value)
+	return mod.FireInput(e.Handle, "AddContext", value, nil)
 }
 
 func (e CBaseEntity) InputAddModifier(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "AddModifier", value)
+	return mod.FireInput(e.Handle, "AddModifier", value, nil)
 }
 
 func (e CBaseEntity) InputAddOutput(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "AddOutput", value)
+	return mod.FireInput(e.Handle, "AddOutput", value, nil)
 }
 
 func (e CBaseEntity) InputChangeSubclass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeSubclass", value)
+	return mod.FireInput(e.Handle, "ChangeSubclass", value, nil)
 }
 
 // InputChangeTeam sends ChangeTeam. Set the entity team number.
 func (e CBaseEntity) InputChangeTeam(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeTeam", value)
+	return mod.FireInput(e.Handle, "ChangeTeam", value, nil)
 }
 
 func (e CBaseEntity) InputClearContext() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearContext", nil)
+	return mod.FireInput(e.Handle, "ClearContext", nil, nil)
 }
 
 func (e CBaseEntity) InputClearParent() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearParent", nil)
+	return mod.FireInput(e.Handle, "ClearParent", nil, nil)
 }
 
 func (e CBaseEntity) InputDisableAutoSleeping() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableAutoSleeping", nil)
+	return mod.FireInput(e.Handle, "DisableAutoSleeping", nil, nil)
 }
 
 func (e CBaseEntity) InputDisableDamageForces() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableDamageForces", nil)
+	return mod.FireInput(e.Handle, "DisableDamageForces", nil, nil)
 }
 
 func (e CBaseEntity) InputDisablePlatform() (bool, error) {
-	return mod.FireInput(e.Handle, "DisablePlatform", nil)
+	return mod.FireInput(e.Handle, "DisablePlatform", nil, nil)
 }
 
 func (e CBaseEntity) InputDisableShadow() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableShadow", nil)
+	return mod.FireInput(e.Handle, "DisableShadow", nil, nil)
 }
 
 func (e CBaseEntity) InputDispatchResponse(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "DispatchResponse", value)
+	return mod.FireInput(e.Handle, "DispatchResponse", value, nil)
 }
 
 func (e CBaseEntity) InputEnableAutoSleeping() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableAutoSleeping", nil)
+	return mod.FireInput(e.Handle, "EnableAutoSleeping", nil, nil)
 }
 
 func (e CBaseEntity) InputEnableDamageForces() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableDamageForces", nil)
+	return mod.FireInput(e.Handle, "EnableDamageForces", nil, nil)
 }
 
 func (e CBaseEntity) InputEnablePlatform() (bool, error) {
-	return mod.FireInput(e.Handle, "EnablePlatform", nil)
+	return mod.FireInput(e.Handle, "EnablePlatform", nil, nil)
 }
 
 func (e CBaseEntity) InputEnableShadow() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableShadow", nil)
+	return mod.FireInput(e.Handle, "EnableShadow", nil, nil)
 }
 
 func (e CBaseEntity) InputFireUser1() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser1", nil)
+	return mod.FireInput(e.Handle, "FireUser1", nil, nil)
 }
 
 func (e CBaseEntity) InputFireUser2() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser2", nil)
+	return mod.FireInput(e.Handle, "FireUser2", nil, nil)
 }
 
 func (e CBaseEntity) InputFireUser3() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser3", nil)
+	return mod.FireInput(e.Handle, "FireUser3", nil, nil)
 }
 
 func (e CBaseEntity) InputFireUser4() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser4", nil)
+	return mod.FireInput(e.Handle, "FireUser4", nil, nil)
 }
 
 func (e CBaseEntity) InputFollowEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "FollowEntity", value)
+	return mod.FireInput(e.Handle, "FollowEntity", value, nil)
 }
 
 func (e CBaseEntity) InputKill() (bool, error) {
-	return mod.FireInput(e.Handle, "Kill", nil)
+	return mod.FireInput(e.Handle, "Kill", nil, nil)
 }
 
 func (e CBaseEntity) InputKillConstrained() (bool, error) {
-	return mod.FireInput(e.Handle, "KillConstrained", nil)
+	return mod.FireInput(e.Handle, "KillConstrained", nil, nil)
 }
 
 func (e CBaseEntity) InputKillHierarchy() (bool, error) {
-	return mod.FireInput(e.Handle, "KillHierarchy", nil)
+	return mod.FireInput(e.Handle, "KillHierarchy", nil, nil)
 }
 
 func (e CBaseEntity) InputPlatformFollowYaw() (bool, error) {
-	return mod.FireInput(e.Handle, "PlatformFollowYaw", nil)
+	return mod.FireInput(e.Handle, "PlatformFollowYaw", nil, nil)
 }
 
 func (e CBaseEntity) InputPlatformIgnoreYaw() (bool, error) {
-	return mod.FireInput(e.Handle, "PlatformIgnoreYaw", nil)
+	return mod.FireInput(e.Handle, "PlatformIgnoreYaw", nil, nil)
 }
 
 func (e CBaseEntity) InputRemoveAttribute(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveAttribute", value)
+	return mod.FireInput(e.Handle, "RemoveAttribute", value, nil)
 }
 
 func (e CBaseEntity) InputRemoveContext(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveContext", value)
+	return mod.FireInput(e.Handle, "RemoveContext", value, nil)
 }
 
 func (e CBaseEntity) InputRemoveModifier(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveModifier", value)
+	return mod.FireInput(e.Handle, "RemoveModifier", value, nil)
 }
 
 // InputSetAbsOrigin sends SetAbsOrigin. Set the world origin of this entity.
 func (e CBaseEntity) InputSetAbsOrigin(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAbsOrigin", value)
+	return mod.FireInput(e.Handle, "SetAbsOrigin", value, nil)
 }
 
 // InputSetAbsScale sends SetAbsScale. Set the world scale of this entity.
 func (e CBaseEntity) InputSetAbsScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAbsScale", value)
+	return mod.FireInput(e.Handle, "SetAbsScale", value, nil)
 }
 
 func (e CBaseEntity) InputSetDamageFilter(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDamageFilter", value)
+	return mod.FireInput(e.Handle, "SetDamageFilter", value, nil)
 }
 
 func (e CBaseEntity) InputSetKinematic(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetKinematic", value)
+	return mod.FireInput(e.Handle, "SetKinematic", value, nil)
 }
 
 // InputSetLocalOrigin sends SetLocalOrigin. Set the local origin of this
 // entity. Use when you have a parent.
 func (e CBaseEntity) InputSetLocalOrigin(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLocalOrigin", value)
+	return mod.FireInput(e.Handle, "SetLocalOrigin", value, nil)
 }
 
 // InputSetLocalScale sends SetLocalScale. Set the local scale of this entity.
 // Use when you have a parent.
 func (e CBaseEntity) InputSetLocalScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLocalScale", value)
+	return mod.FireInput(e.Handle, "SetLocalScale", value, nil)
 }
 
 func (e CBaseEntity) InputSetParentAttachment(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetParentAttachment", value)
+	return mod.FireInput(e.Handle, "SetParentAttachment", value, nil)
 }
 
 func (e CBaseEntity) InputSetParentAttachmentMaintainOffset(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetParentAttachmentMaintainOffset", value)
+	return mod.FireInput(e.Handle, "SetParentAttachmentMaintainOffset", value, nil)
 }
 
 func (e CBaseEntity) InputSetScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetScale", value)
+	return mod.FireInput(e.Handle, "SetScale", value, nil)
 }
 
 func (e CBaseEntity) InputSetTeam(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTeam", value)
+	return mod.FireInput(e.Handle, "SetTeam", value, nil)
 }
 
 func (e CBaseEntity) InputTeamNum(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "TeamNum", value)
+	return mod.FireInput(e.Handle, "TeamNum", value, nil)
 }
 
 // InputTeleportToPoint sends TeleportToPoint. Teleport the given entity to the
 // specified position and orientation.
 func (e CBaseEntity) InputTeleportToPoint(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "TeleportToPoint", value)
+	return mod.FireInput(e.Handle, "TeleportToPoint", value, nil)
 }
 
 func (e CBaseEntity) InputTestComponentFunc(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TestComponentFunc", value)
+	return mod.FireInput(e.Handle, "TestComponentFunc", value, nil)
 }
 
 func (e CBaseEntity) InputUse(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "Use", value)
+	return mod.FireInput(e.Handle, "Use", value, nil)
 }
 
 func (e CAI_ChangeHintGroup) InputActivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Activate", nil)
+	return mod.FireInput(e.Handle, "Activate", nil, nil)
 }
 
 func (e CAI_GoalEntity) InputActivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Activate", nil)
+	return mod.FireInput(e.Handle, "Activate", nil, nil)
 }
 
 func (e CAI_GoalEntity) InputDeactivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Deactivate", nil)
+	return mod.FireInput(e.Handle, "Deactivate", nil, nil)
 }
 
 func (e CAI_GoalEntity) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CAI_GoalEntity) InputUpdateActors() (bool, error) {
-	return mod.FireInput(e.Handle, "UpdateActors", nil)
+	return mod.FireInput(e.Handle, "UpdateActors", nil, nil)
 }
 
 func (e CAI_Relationship) InputApplyRelationship() (bool, error) {
-	return mod.FireInput(e.Handle, "ApplyRelationship", nil)
+	return mod.FireInput(e.Handle, "ApplyRelationship", nil, nil)
 }
 
 func (e CAI_Relationship) InputRevertRelationship() (bool, error) {
-	return mod.FireInput(e.Handle, "RevertRelationship", nil)
+	return mod.FireInput(e.Handle, "RevertRelationship", nil, nil)
 }
 
 func (e CAI_Relationship) InputRevertToDefaultRelationship() (bool, error) {
-	return mod.FireInput(e.Handle, "RevertToDefaultRelationship", nil)
+	return mod.FireInput(e.Handle, "RevertToDefaultRelationship", nil, nil)
 }
 
 func (e CAI_ScriptConditions) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CAI_ScriptConditions) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CAI_SpeechFilter) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CAI_SpeechFilter) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CAI_SpeechFilter) InputSetIdleModifier(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetIdleModifier", value)
+	return mod.FireInput(e.Handle, "SetIdleModifier", value, nil)
 }
 
 func (e CBaseModelEntity) InputAlpha(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "Alpha", value)
+	return mod.FireInput(e.Handle, "Alpha", value, nil)
 }
 
 // InputBreakJointByName sends BreakJointByName. Destroy this joint by Name.
 func (e CBaseModelEntity) InputBreakJointByName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "BreakJointByName", value)
+	return mod.FireInput(e.Handle, "BreakJointByName", value, nil)
 }
 
 // InputClearRenderAttribute sends ClearRenderAttribute. Clear the specified
 // render attribute.
 func (e CBaseModelEntity) InputClearRenderAttribute(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ClearRenderAttribute", value)
+	return mod.FireInput(e.Handle, "ClearRenderAttribute", value, nil)
 }
 
 func (e CBaseModelEntity) InputColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "Color", value)
+	return mod.FireInput(e.Handle, "Color", value, nil)
 }
 
 func (e CBaseModelEntity) InputExtinguish() (bool, error) {
-	return mod.FireInput(e.Handle, "Extinguish", nil)
+	return mod.FireInput(e.Handle, "Extinguish", nil, nil)
 }
 
 func (e CBaseModelEntity) InputIgnite() (bool, error) {
-	return mod.FireInput(e.Handle, "Ignite", nil)
+	return mod.FireInput(e.Handle, "Ignite", nil, nil)
 }
 
 func (e CBaseModelEntity) InputIgniteHitboxFireScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "IgniteHitboxFireScale", value)
+	return mod.FireInput(e.Handle, "IgniteHitboxFireScale", value, nil)
 }
 
 func (e CBaseModelEntity) InputIgniteLifetime(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "IgniteLifetime", value)
+	return mod.FireInput(e.Handle, "IgniteLifetime", value, nil)
 }
 
 func (e CBaseModelEntity) InputIgniteNumHitboxFires(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "IgniteNumHitboxFires", value)
+	return mod.FireInput(e.Handle, "IgniteNumHitboxFires", value, nil)
 }
 
 // InputSetMaterialGroup sends SetMaterialGroup. Change the active
 // materialgroup.
 func (e CBaseModelEntity) InputSetMaterialGroup(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaterialGroup", value)
+	return mod.FireInput(e.Handle, "SetMaterialGroup", value, nil)
 }
 
 // InputSetRenderAlpha sends SetRenderAlpha. Alpha 0-255.
 func (e CBaseModelEntity) InputSetRenderAlpha(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRenderAlpha", value)
+	return mod.FireInput(e.Handle, "SetRenderAlpha", value, nil)
 }
 
 func (e CBaseModelEntity) InputSetRenderAttribute(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRenderAttribute", value)
+	return mod.FireInput(e.Handle, "SetRenderAttribute", value, nil)
 }
 
 // InputSetRenderColor sends SetRenderColor. Set object render color (Alpha is
 // ignored).
 func (e CBaseModelEntity) InputSetRenderColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRenderColor", value)
+	return mod.FireInput(e.Handle, "SetRenderColor", value, nil)
 }
 
 func (e CBaseModelEntity) InputSkin(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "Skin", value)
+	return mod.FireInput(e.Handle, "Skin", value, nil)
 }
 
 func (e CBaseModelEntity) Inputfademaxdist(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "fademaxdist", value)
+	return mod.FireInput(e.Handle, "fademaxdist", value, nil)
 }
 
 func (e CBaseModelEntity) Inputfademindist(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "fademindist", value)
+	return mod.FireInput(e.Handle, "fademindist", value, nil)
 }
 
 func (e CBarnLight) InputCastDynamicShadows(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "CastDynamicShadows", value)
+	return mod.FireInput(e.Handle, "CastDynamicShadows", value, nil)
 }
 
 func (e CBarnLight) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CBarnLight) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CBarnLight) InputSetBounceScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBounceScale", value)
+	return mod.FireInput(e.Handle, "SetBounceScale", value, nil)
 }
 
 func (e CBarnLight) InputSetBrightness(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBrightness", value)
+	return mod.FireInput(e.Handle, "SetBrightness", value, nil)
 }
 
 func (e CBarnLight) InputSetBrightnessScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBrightnessScale", value)
+	return mod.FireInput(e.Handle, "SetBrightnessScale", value, nil)
 }
 
 func (e CBarnLight) InputSetColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColor", value)
+	return mod.FireInput(e.Handle, "SetColor", value, nil)
 }
 
 func (e CBarnLight) InputSetColorTemperature(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColorTemperature", value)
+	return mod.FireInput(e.Handle, "SetColorTemperature", value, nil)
 }
 
 func (e CBarnLight) InputSetFogScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogScale", value)
+	return mod.FireInput(e.Handle, "SetFogScale", value, nil)
 }
 
 func (e CBarnLight) InputSetFogStrength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogStrength", value)
+	return mod.FireInput(e.Handle, "SetFogStrength", value, nil)
 }
 
 func (e CBarnLight) InputSetStyle(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStyle", value)
+	return mod.FireInput(e.Handle, "SetStyle", value, nil)
 }
 
 func (e CBarnLight) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBaseAnimGraph) InputClearTargetIdentifierOverride() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearTargetIdentifierOverride", nil)
+	return mod.FireInput(e.Handle, "ClearTargetIdentifierOverride", nil, nil)
 }
 
 // InputPlaySequence sends PlaySequence. Play the specified animation sequence
 // on a NON-ANIMGRAPH entity.
 func (e CBaseAnimGraph) InputPlaySequence(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "PlaySequence", value)
+	return mod.FireInput(e.Handle, "PlaySequence", value, nil)
 }
 
 func (e CBaseAnimGraph) InputSetBodygroup(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBodygroup", value)
+	return mod.FireInput(e.Handle, "SetBodygroup", value, nil)
 }
 
 func (e CBaseAnimGraph) InputSetPlaybackRate(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPlaybackRate", value)
+	return mod.FireInput(e.Handle, "SetPlaybackRate", value, nil)
 }
 
 func (e CBaseAnimGraph) InputSetTargetIdentifierOverride(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTargetIdentifierOverride", value)
+	return mod.FireInput(e.Handle, "SetTargetIdentifierOverride", value, nil)
 }
 
 func (e CBaseCombatCharacter) InputSetRelationship(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRelationship", value)
+	return mod.FireInput(e.Handle, "SetRelationship", value, nil)
 }
 
 func (e CBaseCombatCharacter) Inputphysdamagescale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "physdamagescale", value)
+	return mod.FireInput(e.Handle, "physdamagescale", value, nil)
 }
 
 func (e CAI_BaseNPC) InputBreak() (bool, error) {
-	return mod.FireInput(e.Handle, "Break", nil)
+	return mod.FireInput(e.Handle, "Break", nil, nil)
 }
 
 func (e CAI_BaseNPC) InputOverrideHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "OverrideHealth", value)
+	return mod.FireInput(e.Handle, "OverrideHealth", value, nil)
 }
 
 func (e CAI_BaseNPC) InputSetHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHealth", value)
+	return mod.FireInput(e.Handle, "SetHealth", value, nil)
 }
 
 func (e CAI_BaseNPC) InputSetNavRestrictionVolume(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetNavRestrictionVolume", value)
+	return mod.FireInput(e.Handle, "SetNavRestrictionVolume", value, nil)
 }
 
 func (e CBasePlayerPawn) InputSetFogController(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogController", value)
+	return mod.FireInput(e.Handle, "SetFogController", value, nil)
 }
 
 func (e CBasePlayerPawn) InputSetHUDVisibility(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHUDVisibility", value)
+	return mod.FireInput(e.Handle, "SetHUDVisibility", value, nil)
 }
 
 func (e CBasePlayerPawn) InputSetHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHealth", value)
+	return mod.FireInput(e.Handle, "SetHealth", value, nil)
 }
 
 func (e CCitadel_PointTalker_Base) InputSpeak(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "Speak", value)
+	return mod.FireInput(e.Handle, "Speak", value, nil)
 }
 
 func (e CBasePlayerWeapon) InputSetClipPrimary(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetClipPrimary", value)
+	return mod.FireInput(e.Handle, "SetClipPrimary", value, nil)
 }
 
 func (e CBasePlayerWeapon) InputSetClipSecondary(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetClipSecondary", value)
+	return mod.FireInput(e.Handle, "SetClipSecondary", value, nil)
 }
 
 func (e CBreakableProp) InputAddHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "AddHealth", value)
+	return mod.FireInput(e.Handle, "AddHealth", value, nil)
 }
 
 func (e CBreakableProp) InputBreak() (bool, error) {
-	return mod.FireInput(e.Handle, "Break", nil)
+	return mod.FireInput(e.Handle, "Break", nil, nil)
 }
 
 func (e CBreakableProp) InputDisablePuntSound() (bool, error) {
-	return mod.FireInput(e.Handle, "DisablePuntSound", nil)
+	return mod.FireInput(e.Handle, "DisablePuntSound", nil, nil)
 }
 
 func (e CBreakableProp) InputEnablePuntSound() (bool, error) {
-	return mod.FireInput(e.Handle, "EnablePuntSound", nil)
+	return mod.FireInput(e.Handle, "EnablePuntSound", nil, nil)
 }
 
 func (e CBreakableProp) InputForceDrop() (bool, error) {
-	return mod.FireInput(e.Handle, "ForceDrop", nil)
+	return mod.FireInput(e.Handle, "ForceDrop", nil, nil)
 }
 
 func (e CBreakableProp) InputRemoveHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveHealth", value)
+	return mod.FireInput(e.Handle, "RemoveHealth", value, nil)
 }
 
 func (e CBreakableProp) InputSetEnableBreaking(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEnableBreaking", value)
+	return mod.FireInput(e.Handle, "SetEnableBreaking", value, nil)
 }
 
 func (e CBreakableProp) InputSetEnableCollisions(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEnableCollisions", value)
+	return mod.FireInput(e.Handle, "SetEnableCollisions", value, nil)
 }
 
 func (e CBreakableProp) InputSetHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHealth", value)
+	return mod.FireInput(e.Handle, "SetHealth", value, nil)
 }
 
 func (e CBreakableProp) InputSetNavIgnore(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetNavIgnore", value)
+	return mod.FireInput(e.Handle, "SetNavIgnore", value, nil)
 }
 
 func (e CBreakableProp) Inputphysdamagescale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "physdamagescale", value)
+	return mod.FireInput(e.Handle, "physdamagescale", value, nil)
 }
 
 func (e CDynamicProp) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CDynamicProp) InputDisableCollision() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableCollision", nil)
+	return mod.FireInput(e.Handle, "DisableCollision", nil, nil)
 }
 
 func (e CDynamicProp) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CDynamicProp) InputEnableCollision() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableCollision", nil)
+	return mod.FireInput(e.Handle, "EnableCollision", nil, nil)
 }
 
 func (e CDynamicProp) InputSetAnimation(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnimation", value)
+	return mod.FireInput(e.Handle, "SetAnimation", value, nil)
 }
 
 func (e CDynamicProp) InputSetAnimationLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnimationLooping", value)
+	return mod.FireInput(e.Handle, "SetAnimationLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetAnimationNoReset(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnimationNoReset", value)
+	return mod.FireInput(e.Handle, "SetAnimationNoReset", value, nil)
 }
 
 func (e CDynamicProp) InputSetAnimationNoResetLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnimationNoResetLooping", value)
+	return mod.FireInput(e.Handle, "SetAnimationNoResetLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetAnimationNoResetNotLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnimationNoResetNotLooping", value)
+	return mod.FireInput(e.Handle, "SetAnimationNoResetNotLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetAnimationNotLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnimationNotLooping", value)
+	return mod.FireInput(e.Handle, "SetAnimationNotLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetDefaultAnimation(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDefaultAnimation", value)
+	return mod.FireInput(e.Handle, "SetDefaultAnimation", value, nil)
 }
 
 func (e CDynamicProp) InputSetDefaultAnimationLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDefaultAnimationLooping", value)
+	return mod.FireInput(e.Handle, "SetDefaultAnimationLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetDefaultAnimationNotLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDefaultAnimationNotLooping", value)
+	return mod.FireInput(e.Handle, "SetDefaultAnimationNotLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetGlowOverride(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetGlowOverride", value)
+	return mod.FireInput(e.Handle, "SetGlowOverride", value, nil)
 }
 
 func (e CDynamicProp) InputSetGlowRange(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetGlowRange", value)
+	return mod.FireInput(e.Handle, "SetGlowRange", value, nil)
 }
 
 func (e CDynamicProp) InputSetIdleAnimationLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetIdleAnimationLooping", value)
+	return mod.FireInput(e.Handle, "SetIdleAnimationLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetIdleAnimationNotLooping(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetIdleAnimationNotLooping", value)
+	return mod.FireInput(e.Handle, "SetIdleAnimationNotLooping", value, nil)
 }
 
 func (e CDynamicProp) InputSetPlaybackRate(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPlaybackRate", value)
+	return mod.FireInput(e.Handle, "SetPlaybackRate", value, nil)
 }
 
 func (e CDynamicProp) InputStartGlowing() (bool, error) {
-	return mod.FireInput(e.Handle, "StartGlowing", nil)
+	return mod.FireInput(e.Handle, "StartGlowing", nil, nil)
 }
 
 func (e CDynamicProp) InputStopGlowing() (bool, error) {
-	return mod.FireInput(e.Handle, "StopGlowing", nil)
+	return mod.FireInput(e.Handle, "StopGlowing", nil, nil)
 }
 
 func (e CDynamicProp) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CDynamicProp) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CBasePropDoor) InputClose() (bool, error) {
-	return mod.FireInput(e.Handle, "Close", nil)
+	return mod.FireInput(e.Handle, "Close", nil, nil)
 }
 
 func (e CBasePropDoor) InputLock() (bool, error) {
-	return mod.FireInput(e.Handle, "Lock", nil)
+	return mod.FireInput(e.Handle, "Lock", nil, nil)
 }
 
 func (e CBasePropDoor) InputOpen() (bool, error) {
-	return mod.FireInput(e.Handle, "Open", nil)
+	return mod.FireInput(e.Handle, "Open", nil, nil)
 }
 
 func (e CBasePropDoor) InputOpenAwayFrom(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "OpenAwayFrom", value)
+	return mod.FireInput(e.Handle, "OpenAwayFrom", value, nil)
 }
 
 func (e CBasePropDoor) InputOpenAwayFromActivator(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "OpenAwayFromActivator", value)
+	return mod.FireInput(e.Handle, "OpenAwayFromActivator", value, nil)
 }
 
 func (e CBasePropDoor) InputPlayerClose() (bool, error) {
-	return mod.FireInput(e.Handle, "PlayerClose", nil)
+	return mod.FireInput(e.Handle, "PlayerClose", nil, nil)
 }
 
 func (e CBasePropDoor) InputPlayerOpen() (bool, error) {
-	return mod.FireInput(e.Handle, "PlayerOpen", nil)
+	return mod.FireInput(e.Handle, "PlayerOpen", nil, nil)
 }
 
 func (e CBasePropDoor) InputSetNoNPCs(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetNoNPCs", value)
+	return mod.FireInput(e.Handle, "SetNoNPCs", value, nil)
 }
 
 func (e CBasePropDoor) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBasePropDoor) InputUnlock() (bool, error) {
-	return mod.FireInput(e.Handle, "Unlock", nil)
+	return mod.FireInput(e.Handle, "Unlock", nil, nil)
 }
 
 func (e CPropDoorRotating) InputSetRotationDistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRotationDistance", value)
+	return mod.FireInput(e.Handle, "SetRotationDistance", value, nil)
 }
 
 func (e CPropDoorRotating) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CPropDoorRotatingBreakable) InputSetBreakable() (bool, error) {
-	return mod.FireInput(e.Handle, "SetBreakable", nil)
+	return mod.FireInput(e.Handle, "SetBreakable", nil, nil)
 }
 
 func (e CPropDoorRotatingBreakable) InputSetUnbreakable() (bool, error) {
-	return mod.FireInput(e.Handle, "SetUnbreakable", nil)
+	return mod.FireInput(e.Handle, "SetUnbreakable", nil, nil)
 }
 
 func (e CCitadel_DynamicProp) InputSetEnemySkin(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEnemySkin", value)
+	return mod.FireInput(e.Handle, "SetEnemySkin", value, nil)
 }
 
 func (e CCitadel_DynamicProp) InputSetFriendlySkin(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFriendlySkin", value)
+	return mod.FireInput(e.Handle, "SetFriendlySkin", value, nil)
 }
 
 // InputSetShopOpen sends SetShopOpen. Open or close this shop. Keep in sync
 // with its trigger_item_shop.
 func (e CCitadel_ShopProp) InputSetShopOpen(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetShopOpen", value)
+	return mod.FireInput(e.Handle, "SetShopOpen", value, nil)
 }
 
 func (e COrnamentProp) InputDetach() (bool, error) {
-	return mod.FireInput(e.Handle, "Detach", nil)
+	return mod.FireInput(e.Handle, "Detach", nil, nil)
 }
 
 func (e COrnamentProp) InputSetAttached(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAttached", value)
+	return mod.FireInput(e.Handle, "SetAttached", value, nil)
 }
 
 func (e CPhysicsProp) InputDisableCollisions() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableCollisions", nil)
+	return mod.FireInput(e.Handle, "DisableCollisions", nil, nil)
 }
 
 func (e CPhysicsProp) InputDisableDrag() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableDrag", nil)
+	return mod.FireInput(e.Handle, "DisableDrag", nil, nil)
 }
 
 func (e CPhysicsProp) InputDisableGravity() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableGravity", nil)
+	return mod.FireInput(e.Handle, "DisableGravity", nil, nil)
 }
 
 func (e CPhysicsProp) InputDisableMotion() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableMotion", nil)
+	return mod.FireInput(e.Handle, "DisableMotion", nil, nil)
 }
 
 func (e CPhysicsProp) InputEnableCollisions() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableCollisions", nil)
+	return mod.FireInput(e.Handle, "EnableCollisions", nil, nil)
 }
 
 func (e CPhysicsProp) InputEnableMotion() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableMotion", nil)
+	return mod.FireInput(e.Handle, "EnableMotion", nil, nil)
 }
 
 func (e CPhysicsProp) InputSetAutoConvertBackFromDebris(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAutoConvertBackFromDebris", value)
+	return mod.FireInput(e.Handle, "SetAutoConvertBackFromDebris", value, nil)
 }
 
 func (e CPhysicsProp) InputSetDragEnabled() (bool, error) {
-	return mod.FireInput(e.Handle, "SetDragEnabled", nil)
+	return mod.FireInput(e.Handle, "SetDragEnabled", nil, nil)
 }
 
 func (e CPhysicsProp) InputSetGlowOverride(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetGlowOverride", value)
+	return mod.FireInput(e.Handle, "SetGlowOverride", value, nil)
 }
 
 func (e CPhysicsProp) InputSetGlowRange(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetGlowRange", value)
+	return mod.FireInput(e.Handle, "SetGlowRange", value, nil)
 }
 
 func (e CPhysicsProp) InputSetGravityEnabled() (bool, error) {
-	return mod.FireInput(e.Handle, "SetGravityEnabled", nil)
+	return mod.FireInput(e.Handle, "SetGravityEnabled", nil, nil)
 }
 
 func (e CPhysicsProp) InputSetMass(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMass", value)
+	return mod.FireInput(e.Handle, "SetMass", value, nil)
 }
 
 func (e CPhysicsProp) InputSleep() (bool, error) {
-	return mod.FireInput(e.Handle, "Sleep", nil)
+	return mod.FireInput(e.Handle, "Sleep", nil, nil)
 }
 
 func (e CPhysicsProp) InputStartGlowing() (bool, error) {
-	return mod.FireInput(e.Handle, "StartGlowing", nil)
+	return mod.FireInput(e.Handle, "StartGlowing", nil, nil)
 }
 
 func (e CPhysicsProp) InputStopGlowing() (bool, error) {
-	return mod.FireInput(e.Handle, "StopGlowing", nil)
+	return mod.FireInput(e.Handle, "StopGlowing", nil, nil)
 }
 
 func (e CPhysicsProp) InputWake() (bool, error) {
-	return mod.FireInput(e.Handle, "Wake", nil)
+	return mod.FireInput(e.Handle, "Wake", nil, nil)
 }
 
 // InputClose sends Close. Close the door.
 func (e CCitadel_DoorwayPortal) InputClose() (bool, error) {
-	return mod.FireInput(e.Handle, "Close", nil)
+	return mod.FireInput(e.Handle, "Close", nil, nil)
 }
 
 // InputOpen sends Open. Open the door.
 func (e CCitadel_DoorwayPortal) InputOpen() (bool, error) {
-	return mod.FireInput(e.Handle, "Open", nil)
+	return mod.FireInput(e.Handle, "Open", nil, nil)
 }
 
 // InputDropPowerup sends DropPowerup. Drop one of the spawner's configured
 // powerups.
 func (e CCitadel_PickupItemSpawner) InputDropPowerup() (bool, error) {
-	return mod.FireInput(e.Handle, "DropPowerup", nil)
+	return mod.FireInput(e.Handle, "DropPowerup", nil, nil)
 }
 
 // InputSpawnPickup sends SpawnPickup. Spawn the configured pickup now,
 // restarting the respawn cycle.
 func (e CCitadel_PickupSpawner) InputSpawnPickup() (bool, error) {
-	return mod.FireInput(e.Handle, "SpawnPickup", nil)
+	return mod.FireInput(e.Handle, "SpawnPickup", nil, nil)
 }
 
 func (e CItemGeneric) InputStartAmbientSound() (bool, error) {
-	return mod.FireInput(e.Handle, "StartAmbientSound", nil)
+	return mod.FireInput(e.Handle, "StartAmbientSound", nil, nil)
 }
 
 func (e CItemGeneric) InputStopAmbientSound() (bool, error) {
-	return mod.FireInput(e.Handle, "StopAmbientSound", nil)
+	return mod.FireInput(e.Handle, "StopAmbientSound", nil, nil)
 }
 
 func (e CItemGeneric) InputToggleAmbientSound() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleAmbientSound", nil)
+	return mod.FireInput(e.Handle, "ToggleAmbientSound", nil, nil)
 }
 
 func (e CNPC_BaseDefenseSentry) InputDisableAttacking() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableAttacking", nil)
+	return mod.FireInput(e.Handle, "DisableAttacking", nil, nil)
 }
 
 func (e CNPC_BaseDefenseSentry) InputEnableAttacking() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableAttacking", nil)
+	return mod.FireInput(e.Handle, "EnableAttacking", nil, nil)
 }
 
 func (e CPhysMagnet) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CPhysMagnet) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CPhysMagnet) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CPointCommentaryNode) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointCommentaryNode) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointCommentaryNode) InputStartCommentary() (bool, error) {
-	return mod.FireInput(e.Handle, "StartCommentary", nil)
+	return mod.FireInput(e.Handle, "StartCommentary", nil, nil)
 }
 
 func (e CPointCommentaryNode) InputStartUnstoppableCommentary() (bool, error) {
-	return mod.FireInput(e.Handle, "StartUnstoppableCommentary", nil)
+	return mod.FireInput(e.Handle, "StartUnstoppableCommentary", nil, nil)
 }
 
 func (e CPropAnimatingBreakable) InputNextBreakStage() (bool, error) {
-	return mod.FireInput(e.Handle, "NextBreakStage", nil)
+	return mod.FireInput(e.Handle, "NextBreakStage", nil, nil)
 }
 
 func (e CRagdollProp) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CRagdollProp) InputDisableMotion() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableMotion", nil)
+	return mod.FireInput(e.Handle, "DisableMotion", nil, nil)
 }
 
 func (e CRagdollProp) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CRagdollProp) InputEnableMotion() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableMotion", nil)
+	return mod.FireInput(e.Handle, "EnableMotion", nil, nil)
 }
 
 func (e CRagdollProp) InputFadeAndRemove(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "FadeAndRemove", value)
+	return mod.FireInput(e.Handle, "FadeAndRemove", value, nil)
 }
 
 func (e CBaseClientUIEntity) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CBaseClientUIEntity) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointClientUIWorldPanel) InputAcceptUserInput() (bool, error) {
-	return mod.FireInput(e.Handle, "AcceptUserInput", nil)
+	return mod.FireInput(e.Handle, "AcceptUserInput", nil, nil)
 }
 
 func (e CPointClientUIWorldPanel) InputAddCSSClass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "AddCSSClass", value)
+	return mod.FireInput(e.Handle, "AddCSSClass", value, nil)
 }
 
 func (e CPointClientUIWorldPanel) InputIgnoreUserInput() (bool, error) {
-	return mod.FireInput(e.Handle, "IgnoreUserInput", nil)
+	return mod.FireInput(e.Handle, "IgnoreUserInput", nil, nil)
 }
 
 func (e CPointClientUIWorldPanel) InputLocalPlayerAddCSSClass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "LocalPlayerAddCSSClass", value)
+	return mod.FireInput(e.Handle, "LocalPlayerAddCSSClass", value, nil)
 }
 
 func (e CPointClientUIWorldPanel) InputLocalPlayerRemoveCSSClass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "LocalPlayerRemoveCSSClass", value)
+	return mod.FireInput(e.Handle, "LocalPlayerRemoveCSSClass", value, nil)
 }
 
 func (e CPointClientUIWorldPanel) InputRemoveCSSClass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveCSSClass", value)
+	return mod.FireInput(e.Handle, "RemoveCSSClass", value, nil)
 }
 
 func (e CPointClientUIWorldTextPanel) InputSetIntMessage(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetIntMessage", value)
+	return mod.FireInput(e.Handle, "SetIntMessage", value, nil)
 }
 
 func (e CPointClientUIWorldTextPanel) InputSetMessage(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMessage", value)
+	return mod.FireInput(e.Handle, "SetMessage", value, nil)
 }
 
 func (e CPointClientUIWorldTextPanel) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBaseButton) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CBaseButton) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CBaseButton) InputLock() (bool, error) {
-	return mod.FireInput(e.Handle, "Lock", nil)
+	return mod.FireInput(e.Handle, "Lock", nil, nil)
 }
 
 func (e CBaseButton) InputPress() (bool, error) {
-	return mod.FireInput(e.Handle, "Press", nil)
+	return mod.FireInput(e.Handle, "Press", nil, nil)
 }
 
 func (e CBaseButton) InputPressIn() (bool, error) {
-	return mod.FireInput(e.Handle, "PressIn", nil)
+	return mod.FireInput(e.Handle, "PressIn", nil, nil)
 }
 
 func (e CBaseButton) InputPressOut() (bool, error) {
-	return mod.FireInput(e.Handle, "PressOut", nil)
+	return mod.FireInput(e.Handle, "PressOut", nil, nil)
 }
 
 func (e CBaseButton) InputUnlock() (bool, error) {
-	return mod.FireInput(e.Handle, "Unlock", nil)
+	return mod.FireInput(e.Handle, "Unlock", nil, nil)
 }
 
 func (e CMomentaryRotButton) InputSetPosition(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPosition", value)
+	return mod.FireInput(e.Handle, "SetPosition", value, nil)
 }
 
 func (e CMomentaryRotButton) InputSetPositionImmediately(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPositionImmediately", value)
+	return mod.FireInput(e.Handle, "SetPositionImmediately", value, nil)
 }
 
 func (e CMomentaryRotButton) Input_DisableUpdateTarget() (bool, error) {
-	return mod.FireInput(e.Handle, "_DisableUpdateTarget", nil)
+	return mod.FireInput(e.Handle, "_DisableUpdateTarget", nil, nil)
 }
 
 func (e CMomentaryRotButton) Input_EnableUpdateTarget() (bool, error) {
-	return mod.FireInput(e.Handle, "_EnableUpdateTarget", nil)
+	return mod.FireInput(e.Handle, "_EnableUpdateTarget", nil, nil)
 }
 
 func (e CBaseDoor) InputClose() (bool, error) {
-	return mod.FireInput(e.Handle, "Close", nil)
+	return mod.FireInput(e.Handle, "Close", nil, nil)
 }
 
 func (e CBaseDoor) InputLock() (bool, error) {
-	return mod.FireInput(e.Handle, "Lock", nil)
+	return mod.FireInput(e.Handle, "Lock", nil, nil)
 }
 
 func (e CBaseDoor) InputOpen() (bool, error) {
-	return mod.FireInput(e.Handle, "Open", nil)
+	return mod.FireInput(e.Handle, "Open", nil, nil)
 }
 
 func (e CBaseDoor) InputSetNoNPCs(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetNoNPCs", value)
+	return mod.FireInput(e.Handle, "SetNoNPCs", value, nil)
 }
 
 func (e CBaseDoor) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CBaseDoor) InputSetToggleState(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetToggleState", value)
+	return mod.FireInput(e.Handle, "SetToggleState", value, nil)
 }
 
 func (e CBaseDoor) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBaseDoor) InputUnlock() (bool, error) {
-	return mod.FireInput(e.Handle, "Unlock", nil)
+	return mod.FireInput(e.Handle, "Unlock", nil, nil)
 }
 
 func (e CFuncPlat) InputGoDown() (bool, error) {
-	return mod.FireInput(e.Handle, "GoDown", nil)
+	return mod.FireInput(e.Handle, "GoDown", nil, nil)
 }
 
 func (e CFuncPlat) InputGoUp() (bool, error) {
-	return mod.FireInput(e.Handle, "GoUp", nil)
+	return mod.FireInput(e.Handle, "GoUp", nil, nil)
 }
 
 func (e CFuncPlat) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CFuncTrackAuto) InputTrigger() (bool, error) {
-	return mod.FireInput(e.Handle, "Trigger", nil)
+	return mod.FireInput(e.Handle, "Trigger", nil, nil)
 }
 
 func (e CFuncTrain) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CFuncTrain) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CFuncTrain) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBaseTrigger) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CBaseTrigger) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CBaseTrigger) InputEndTouch() (bool, error) {
-	return mod.FireInput(e.Handle, "EndTouch", nil)
+	return mod.FireInput(e.Handle, "EndTouch", nil, nil)
 }
 
 func (e CBaseTrigger) InputStartTouch() (bool, error) {
-	return mod.FireInput(e.Handle, "StartTouch", nil)
+	return mod.FireInput(e.Handle, "StartTouch", nil, nil)
 }
 
 func (e CBaseTrigger) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBaseTrigger) InputTouchTest() (bool, error) {
-	return mod.FireInput(e.Handle, "TouchTest", nil)
+	return mod.FireInput(e.Handle, "TouchTest", nil, nil)
 }
 
 func (e CChangeLevel) InputChangeLevel() (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeLevel", nil)
+	return mod.FireInput(e.Handle, "ChangeLevel", nil, nil)
 }
 
 // InputSpawnPickupTrail sends SpawnPickupTrail. Start laying the configured
 // pickups along the launch arc now.
 func (e CCitadelCatapultTrigger) InputSpawnPickupTrail() (bool, error) {
-	return mod.FireInput(e.Handle, "SpawnPickupTrail", nil)
+	return mod.FireInput(e.Handle, "SpawnPickupTrail", nil, nil)
 }
 
 func (e CTriggerGameEvent) InputSetEndTouchEvent(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEndTouchEvent", value)
+	return mod.FireInput(e.Handle, "SetEndTouchEvent", value, nil)
 }
 
 func (e CTriggerGameEvent) InputSetStartTouchEvent(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStartTouchEvent", value)
+	return mod.FireInput(e.Handle, "SetStartTouchEvent", value, nil)
 }
 
 func (e CTriggerHurt) InputSetDamage(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDamage", value)
+	return mod.FireInput(e.Handle, "SetDamage", value, nil)
 }
 
 func (e CTriggerImpact) InputImpact() (bool, error) {
-	return mod.FireInput(e.Handle, "Impact", nil)
+	return mod.FireInput(e.Handle, "Impact", nil, nil)
 }
 
 func (e CTriggerImpact) InputSetMagnitude(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMagnitude", value)
+	return mod.FireInput(e.Handle, "SetMagnitude", value, nil)
 }
 
 func (e CTriggerLook) InputFieldOfView(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "FieldOfView", value)
+	return mod.FireInput(e.Handle, "FieldOfView", value, nil)
 }
 
 func (e CTriggerLook) InputLookTime(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "LookTime", value)
+	return mod.FireInput(e.Handle, "LookTime", value, nil)
 }
 
 func (e CTriggerPhysics) InputCollapseToForcePoint(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "CollapseToForcePoint", value)
+	return mod.FireInput(e.Handle, "CollapseToForcePoint", value, nil)
 }
 
 func (e CTriggerPhysics) InputLinearForcePointAt(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "LinearForcePointAt", value)
+	return mod.FireInput(e.Handle, "LinearForcePointAt", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetAngVelocityDamping(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngVelocityDamping", value)
+	return mod.FireInput(e.Handle, "SetAngVelocityDamping", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetAngVelocityLimit(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngVelocityLimit", value)
+	return mod.FireInput(e.Handle, "SetAngVelocityLimit", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetDampingRatio(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDampingRatio", value)
+	return mod.FireInput(e.Handle, "SetDampingRatio", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetFrequency(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFrequency", value)
+	return mod.FireInput(e.Handle, "SetFrequency", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetGravityScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetGravityScale", value)
+	return mod.FireInput(e.Handle, "SetGravityScale", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetLinearForce(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearForce", value)
+	return mod.FireInput(e.Handle, "SetLinearForce", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetLinearForcePointAt(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearForcePointAt", value)
+	return mod.FireInput(e.Handle, "SetLinearForcePointAt", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetVelocityDamping(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetVelocityDamping", value)
+	return mod.FireInput(e.Handle, "SetVelocityDamping", value, nil)
 }
 
 func (e CTriggerPhysics) InputSetVelocityLimit(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetVelocityLimit", value)
+	return mod.FireInput(e.Handle, "SetVelocityLimit", value, nil)
 }
 
 func (e CTriggerPush) InputSetPushDirection(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPushDirection", value)
+	return mod.FireInput(e.Handle, "SetPushDirection", value, nil)
 }
 
 func (e CTriggerPush) InputSetPushSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPushSpeed", value)
+	return mod.FireInput(e.Handle, "SetPushSpeed", value, nil)
 }
 
 func (e CFuncMoveLinear) InputClose() (bool, error) {
-	return mod.FireInput(e.Handle, "Close", nil)
+	return mod.FireInput(e.Handle, "Close", nil, nil)
 }
 
 func (e CFuncMoveLinear) InputOpen() (bool, error) {
-	return mod.FireInput(e.Handle, "Open", nil)
+	return mod.FireInput(e.Handle, "Open", nil, nil)
 }
 
 func (e CFuncMoveLinear) InputResetPosition(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ResetPosition", value)
+	return mod.FireInput(e.Handle, "ResetPosition", value, nil)
 }
 
 func (e CFuncMoveLinear) InputSetMoveDistanceFromEnd(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMoveDistanceFromEnd", value)
+	return mod.FireInput(e.Handle, "SetMoveDistanceFromEnd", value, nil)
 }
 
 func (e CFuncMoveLinear) InputSetMoveDistanceFromStart(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMoveDistanceFromStart", value)
+	return mod.FireInput(e.Handle, "SetMoveDistanceFromStart", value, nil)
 }
 
 func (e CFuncMoveLinear) InputSetPosition(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPosition", value)
+	return mod.FireInput(e.Handle, "SetPosition", value, nil)
 }
 
 func (e CFuncMoveLinear) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CFuncMoveLinear) InputTeleportToTarget(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TeleportToTarget", value)
+	return mod.FireInput(e.Handle, "TeleportToTarget", value, nil)
 }
 
 func (e CGunTarget) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CGunTarget) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CGunTarget) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CBeam) InputColorBlueValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ColorBlueValue", value)
+	return mod.FireInput(e.Handle, "ColorBlueValue", value, nil)
 }
 
 func (e CBeam) InputColorGreenValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ColorGreenValue", value)
+	return mod.FireInput(e.Handle, "ColorGreenValue", value, nil)
 }
 
 func (e CBeam) InputColorRedValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ColorRedValue", value)
+	return mod.FireInput(e.Handle, "ColorRedValue", value, nil)
 }
 
 func (e CBeam) InputNoise(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Noise", value)
+	return mod.FireInput(e.Handle, "Noise", value, nil)
 }
 
 func (e CBeam) InputScrollSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ScrollSpeed", value)
+	return mod.FireInput(e.Handle, "ScrollSpeed", value, nil)
 }
 
 func (e CBeam) InputWidth(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Width", value)
+	return mod.FireInput(e.Handle, "Width", value, nil)
 }
 
 func (e CEnvBeam) InputStrikeOnce() (bool, error) {
-	return mod.FireInput(e.Handle, "StrikeOnce", nil)
+	return mod.FireInput(e.Handle, "StrikeOnce", nil, nil)
 }
 
 func (e CEnvBeam) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CEnvBeam) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CEnvBeam) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CEnvLaser) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CEnvLaser) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CEnvLaser) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CBreakable) InputAddHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "AddHealth", value)
+	return mod.FireInput(e.Handle, "AddHealth", value, nil)
 }
 
 func (e CBreakable) InputBreak() (bool, error) {
-	return mod.FireInput(e.Handle, "Break", nil)
+	return mod.FireInput(e.Handle, "Break", nil, nil)
 }
 
 func (e CBreakable) InputRemoveHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveHealth", value)
+	return mod.FireInput(e.Handle, "RemoveHealth", value, nil)
 }
 
 func (e CBreakable) InputSetEnableBreaking(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEnableBreaking", value)
+	return mod.FireInput(e.Handle, "SetEnableBreaking", value, nil)
 }
 
 func (e CBreakable) InputSetEnableCollisions(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEnableCollisions", value)
+	return mod.FireInput(e.Handle, "SetEnableCollisions", value, nil)
 }
 
 func (e CBreakable) InputSetHealth(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHealth", value)
+	return mod.FireInput(e.Handle, "SetHealth", value, nil)
 }
 
 func (e CBreakable) InputSetMass(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMass", value)
+	return mod.FireInput(e.Handle, "SetMass", value, nil)
 }
 
 func (e CBreakable) Inputphysdamagescale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "physdamagescale", value)
+	return mod.FireInput(e.Handle, "physdamagescale", value, nil)
 }
 
 func (e CPhysBox) InputDisableMotion() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableMotion", nil)
+	return mod.FireInput(e.Handle, "DisableMotion", nil, nil)
 }
 
 func (e CPhysBox) InputEnableMotion() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableMotion", nil)
+	return mod.FireInput(e.Handle, "EnableMotion", nil, nil)
 }
 
 func (e CPhysBox) InputForceDrop() (bool, error) {
-	return mod.FireInput(e.Handle, "ForceDrop", nil)
+	return mod.FireInput(e.Handle, "ForceDrop", nil, nil)
 }
 
 func (e CPhysBox) InputSleep() (bool, error) {
-	return mod.FireInput(e.Handle, "Sleep", nil)
+	return mod.FireInput(e.Handle, "Sleep", nil, nil)
 }
 
 func (e CPhysBox) InputWake() (bool, error) {
-	return mod.FireInput(e.Handle, "Wake", nil)
+	return mod.FireInput(e.Handle, "Wake", nil, nil)
 }
 
 func (e CDynamicLight) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CDynamicLight) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CDynamicLight) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CDynamicLight) Input_cone(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "_cone", value)
+	return mod.FireInput(e.Handle, "_cone", value, nil)
 }
 
 func (e CDynamicLight) Input_inner_cone(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "_inner_cone", value)
+	return mod.FireInput(e.Handle, "_inner_cone", value, nil)
 }
 
 func (e CDynamicLight) Inputbrightness(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "brightness", value)
+	return mod.FireInput(e.Handle, "brightness", value, nil)
 }
 
 func (e CDynamicLight) Inputdistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "distance", value)
+	return mod.FireInput(e.Handle, "distance", value, nil)
 }
 
 func (e CDynamicLight) Inputspotlight_radius(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "spotlight_radius", value)
+	return mod.FireInput(e.Handle, "spotlight_radius", value, nil)
 }
 
 func (e CDynamicLight) Inputstyle(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "style", value)
+	return mod.FireInput(e.Handle, "style", value, nil)
 }
 
 func (e CEntityDissolve) InputDissolve(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "Dissolve", value)
+	return mod.FireInput(e.Handle, "Dissolve", value, nil)
 }
 
 func (e CEnvSky) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CEnvSky) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncBrush) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncBrush) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncBrush) InputSetExcluded(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetExcluded", value)
+	return mod.FireInput(e.Handle, "SetExcluded", value, nil)
 }
 
 func (e CFuncBrush) InputSetInvert(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetInvert", value)
+	return mod.FireInput(e.Handle, "SetInvert", value, nil)
 }
 
 func (e CFuncBrush) InputSetNonsolid() (bool, error) {
-	return mod.FireInput(e.Handle, "SetNonsolid", nil)
+	return mod.FireInput(e.Handle, "SetNonsolid", nil, nil)
 }
 
 func (e CFuncBrush) InputSetSolid() (bool, error) {
-	return mod.FireInput(e.Handle, "SetSolid", nil)
+	return mod.FireInput(e.Handle, "SetSolid", nil, nil)
 }
 
 func (e CFuncBrush) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CFuncElectrifiedVolume) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncElectrifiedVolume) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncMonitor) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncMonitor) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncMonitor) InputSetCamera(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetCamera", value)
+	return mod.FireInput(e.Handle, "SetCamera", value, nil)
 }
 
 func (e CFuncMonitor) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CFuncInteractionLayerClip) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncInteractionLayerClip) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncLadder) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncLadder) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncMover) InputClearFollowMoverEntity() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearFollowMoverEntity", nil)
+	return mod.FireInput(e.Handle, "ClearFollowMoverEntity", nil, nil)
 }
 
 func (e CFuncMover) InputClearPathEnd() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearPathEnd", nil)
+	return mod.FireInput(e.Handle, "ClearPathEnd", nil, nil)
 }
 
 func (e CFuncMover) InputClearStartFollowingClosestMover() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearStartFollowingClosestMover", nil)
+	return mod.FireInput(e.Handle, "ClearStartFollowingClosestMover", nil, nil)
 }
 
 func (e CFuncMover) InputDeleteFollowMoverSpringConstraint() (bool, error) {
-	return mod.FireInput(e.Handle, "DeleteFollowMoverSpringConstraint", nil)
+	return mod.FireInput(e.Handle, "DeleteFollowMoverSpringConstraint", nil, nil)
 }
 
 func (e CFuncMover) InputDisconnectFromPath() (bool, error) {
-	return mod.FireInput(e.Handle, "DisconnectFromPath", nil)
+	return mod.FireInput(e.Handle, "DisconnectFromPath", nil, nil)
 }
 
 func (e CFuncMover) InputPause() (bool, error) {
-	return mod.FireInput(e.Handle, "Pause", nil)
+	return mod.FireInput(e.Handle, "Pause", nil, nil)
 }
 
 func (e CFuncMover) InputSetDistanceToReachMaxSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDistanceToReachMaxSpeed", value)
+	return mod.FireInput(e.Handle, "SetDistanceToReachMaxSpeed", value, nil)
 }
 
 func (e CFuncMover) InputSetDistanceToReachZeroSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDistanceToReachZeroSpeed", value)
+	return mod.FireInput(e.Handle, "SetDistanceToReachZeroSpeed", value, nil)
 }
 
 func (e CFuncMover) InputSetFollowDistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFollowDistance", value)
+	return mod.FireInput(e.Handle, "SetFollowDistance", value, nil)
 }
 
 func (e CFuncMover) InputSetFollowMinimumSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFollowMinimumSpeed", value)
+	return mod.FireInput(e.Handle, "SetFollowMinimumSpeed", value, nil)
 }
 
 func (e CFuncMover) InputSetFollowMoverConstraintType(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFollowMoverConstraintType", value)
+	return mod.FireInput(e.Handle, "SetFollowMoverConstraintType", value, nil)
 }
 
 func (e CFuncMover) InputSetFollowMoverEntityToClosestOnSpline() (bool, error) {
-	return mod.FireInput(e.Handle, "SetFollowMoverEntityToClosestOnSpline", nil)
+	return mod.FireInput(e.Handle, "SetFollowMoverEntityToClosestOnSpline", nil, nil)
 }
 
 func (e CFuncMover) InputSetFollowMoverSpringStrength(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFollowMoverSpringStrength", value)
+	return mod.FireInput(e.Handle, "SetFollowMoverSpringStrength", value, nil)
 }
 
 func (e CFuncMover) InputSetMoveType(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMoveType", value)
+	return mod.FireInput(e.Handle, "SetMoveType", value, nil)
 }
 
 // InputSetMoverOffsetFromPath sends SetMoverOffsetFromPath. Set the offset from
 // the spline the mover rides at, in the movers own space. The mover snaps to
 // the new offset, its location along the path is unchanged.
 func (e CFuncMover) InputSetMoverOffsetFromPath(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMoverOffsetFromPath", value)
+	return mod.FireInput(e.Handle, "SetMoverOffsetFromPath", value, nil)
 }
 
 func (e CFuncMover) InputSetOffsetFromPath(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOffsetFromPath", value)
+	return mod.FireInput(e.Handle, "SetOffsetFromPath", value, nil)
 }
 
 func (e CFuncMover) InputSetOrientationMode(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOrientationMode", value)
+	return mod.FireInput(e.Handle, "SetOrientationMode", value, nil)
 }
 
 func (e CFuncMover) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CFuncMover) InputSetSpeedImmediate(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeedImmediate", value)
+	return mod.FireInput(e.Handle, "SetSpeedImmediate", value, nil)
 }
 
 func (e CFuncMover) InputSetTimeToBlendToNewOrientation(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTimeToBlendToNewOrientation", value)
+	return mod.FireInput(e.Handle, "SetTimeToBlendToNewOrientation", value, nil)
 }
 
 func (e CFuncMover) InputSetTimeToReachMaxSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTimeToReachMaxSpeed", value)
+	return mod.FireInput(e.Handle, "SetTimeToReachMaxSpeed", value, nil)
 }
 
 func (e CFuncMover) InputSetTimeToReachZeroSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTimeToReachZeroSpeed", value)
+	return mod.FireInput(e.Handle, "SetTimeToReachZeroSpeed", value, nil)
 }
 
 func (e CFuncMover) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CFuncMover) InputStartForward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartForward", nil)
+	return mod.FireInput(e.Handle, "StartForward", nil, nil)
 }
 
 func (e CFuncMover) InputStartReverse() (bool, error) {
-	return mod.FireInput(e.Handle, "StartReverse", nil)
+	return mod.FireInput(e.Handle, "StartReverse", nil, nil)
 }
 
 func (e CFuncMover) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CFuncMover) InputStopImmediate() (bool, error) {
-	return mod.FireInput(e.Handle, "StopImmediate", nil)
+	return mod.FireInput(e.Handle, "StopImmediate", nil, nil)
 }
 
 func (e CFuncMover) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CFuncMover) InputToggleDirection() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleDirection", nil)
+	return mod.FireInput(e.Handle, "ToggleDirection", nil, nil)
 }
 
 func (e CFuncMover) InputUnpause() (bool, error) {
-	return mod.FireInput(e.Handle, "Unpause", nil)
+	return mod.FireInput(e.Handle, "Unpause", nil, nil)
 }
 
 func (e CFuncNavBlocker) InputBlockNav() (bool, error) {
-	return mod.FireInput(e.Handle, "BlockNav", nil)
+	return mod.FireInput(e.Handle, "BlockNav", nil, nil)
 }
 
 func (e CFuncNavBlocker) InputUnblockNav() (bool, error) {
-	return mod.FireInput(e.Handle, "UnblockNav", nil)
+	return mod.FireInput(e.Handle, "UnblockNav", nil, nil)
 }
 
 func (e CFuncRotating) InputDisableAccelDecel() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableAccelDecel", nil)
+	return mod.FireInput(e.Handle, "DisableAccelDecel", nil, nil)
 }
 
 func (e CFuncRotating) InputEnableAccelDecel() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableAccelDecel", nil)
+	return mod.FireInput(e.Handle, "EnableAccelDecel", nil, nil)
 }
 
 func (e CFuncRotating) InputReverse() (bool, error) {
-	return mod.FireInput(e.Handle, "Reverse", nil)
+	return mod.FireInput(e.Handle, "Reverse", nil, nil)
 }
 
 func (e CFuncRotating) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CFuncRotating) InputSetStartPos(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStartPos", value)
+	return mod.FireInput(e.Handle, "SetStartPos", value, nil)
 }
 
 func (e CFuncRotating) InputSnapToStartPos() (bool, error) {
-	return mod.FireInput(e.Handle, "SnapToStartPos", nil)
+	return mod.FireInput(e.Handle, "SnapToStartPos", nil, nil)
 }
 
 func (e CFuncRotating) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CFuncRotating) InputStartBackward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartBackward", nil)
+	return mod.FireInput(e.Handle, "StartBackward", nil, nil)
 }
 
 func (e CFuncRotating) InputStartForward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartForward", nil)
+	return mod.FireInput(e.Handle, "StartForward", nil, nil)
 }
 
 func (e CFuncRotating) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CFuncRotating) InputStopAtStartPos() (bool, error) {
-	return mod.FireInput(e.Handle, "StopAtStartPos", nil)
+	return mod.FireInput(e.Handle, "StopAtStartPos", nil, nil)
 }
 
 func (e CFuncRotating) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CFuncRotator) InputPitch(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Pitch", value)
+	return mod.FireInput(e.Handle, "Pitch", value, nil)
 }
 
 func (e CFuncRotator) InputReturnToInitialOrientation() (bool, error) {
-	return mod.FireInput(e.Handle, "ReturnToInitialOrientation", nil)
+	return mod.FireInput(e.Handle, "ReturnToInitialOrientation", nil, nil)
 }
 
 func (e CFuncRotator) InputRoll(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Roll", value)
+	return mod.FireInput(e.Handle, "Roll", value, nil)
 }
 
 func (e CFuncRotator) InputSetRotateType(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRotateType", value)
+	return mod.FireInput(e.Handle, "SetRotateType", value, nil)
 }
 
 func (e CFuncRotator) InputSetRotatorTarget(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRotatorTarget", value)
+	return mod.FireInput(e.Handle, "SetRotatorTarget", value, nil)
 }
 
 func (e CFuncRotator) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CFuncRotator) InputSetTimeToCompleteRotation(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTimeToCompleteRotation", value)
+	return mod.FireInput(e.Handle, "SetTimeToCompleteRotation", value, nil)
 }
 
 func (e CFuncRotator) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CFuncRotator) InputStartForward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartForward", nil)
+	return mod.FireInput(e.Handle, "StartForward", nil, nil)
 }
 
 func (e CFuncRotator) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CFuncRotator) InputYaw(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Yaw", value)
+	return mod.FireInput(e.Handle, "Yaw", value, nil)
 }
 
 func (e CFuncShatterglass) InputHit() (bool, error) {
-	return mod.FireInput(e.Handle, "Hit", nil)
+	return mod.FireInput(e.Handle, "Hit", nil, nil)
 }
 
 func (e CFuncShatterglass) InputRestore() (bool, error) {
-	return mod.FireInput(e.Handle, "Restore", nil)
+	return mod.FireInput(e.Handle, "Restore", nil, nil)
 }
 
 func (e CFuncShatterglass) InputShatter() (bool, error) {
-	return mod.FireInput(e.Handle, "Shatter", nil)
+	return mod.FireInput(e.Handle, "Shatter", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputLockOrientation() (bool, error) {
-	return mod.FireInput(e.Handle, "LockOrientation", nil)
+	return mod.FireInput(e.Handle, "LockOrientation", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputMoveToPathNode(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "MoveToPathNode", value)
+	return mod.FireInput(e.Handle, "MoveToPathNode", value, nil)
 }
 
 func (e CFuncTrackTrain) InputResume() (bool, error) {
-	return mod.FireInput(e.Handle, "Resume", nil)
+	return mod.FireInput(e.Handle, "Resume", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputReverse() (bool, error) {
-	return mod.FireInput(e.Handle, "Reverse", nil)
+	return mod.FireInput(e.Handle, "Reverse", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputSetMaxSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxSpeed", value)
+	return mod.FireInput(e.Handle, "SetMaxSpeed", value, nil)
 }
 
 func (e CFuncTrackTrain) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CFuncTrackTrain) InputSetSpeedDir(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeedDir", value)
+	return mod.FireInput(e.Handle, "SetSpeedDir", value, nil)
 }
 
 func (e CFuncTrackTrain) InputSetSpeedDirAccel(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeedDirAccel", value)
+	return mod.FireInput(e.Handle, "SetSpeedDirAccel", value, nil)
 }
 
 func (e CFuncTrackTrain) InputSetSpeedReal(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeedReal", value)
+	return mod.FireInput(e.Handle, "SetSpeedReal", value, nil)
 }
 
 func (e CFuncTrackTrain) InputStartBackward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartBackward", nil)
+	return mod.FireInput(e.Handle, "StartBackward", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputStartForward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartForward", nil)
+	return mod.FireInput(e.Handle, "StartForward", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputTeleportToPathNode(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TeleportToPathNode", value)
+	return mod.FireInput(e.Handle, "TeleportToPathNode", value, nil)
 }
 
 func (e CFuncTrackTrain) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CFuncTrackTrain) InputUnlockOrientation() (bool, error) {
-	return mod.FireInput(e.Handle, "UnlockOrientation", nil)
+	return mod.FireInput(e.Handle, "UnlockOrientation", nil, nil)
 }
 
 func (e CFuncVPhysicsClip) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncVPhysicsClip) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncVehicleClip) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFuncVehicleClip) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CFuncVehicleClip) InputSetNonsolid() (bool, error) {
-	return mod.FireInput(e.Handle, "SetNonsolid", nil)
+	return mod.FireInput(e.Handle, "SetNonsolid", nil, nil)
 }
 
 func (e CFuncVehicleClip) InputSetSolid() (bool, error) {
-	return mod.FireInput(e.Handle, "SetSolid", nil)
+	return mod.FireInput(e.Handle, "SetSolid", nil, nil)
 }
 
 func (e CFuncWallToggle) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CLightEntity) InputSetAppearance(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAppearance", value)
+	return mod.FireInput(e.Handle, "SetAppearance", value, nil)
 }
 
 func (e CLightEntity) InputSetCustomAppearance(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetCustomAppearance", value)
+	return mod.FireInput(e.Handle, "SetCustomAppearance", value, nil)
 }
 
 func (e CLightEntity) InputSetLightBrightness(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLightBrightness", value)
+	return mod.FireInput(e.Handle, "SetLightBrightness", value, nil)
 }
 
 func (e CLightEntity) InputSetLightColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLightColor", value)
+	return mod.FireInput(e.Handle, "SetLightColor", value, nil)
 }
 
 func (e CLightEntity) InputSetLightEnabled(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLightEnabled", value)
+	return mod.FireInput(e.Handle, "SetLightEnabled", value, nil)
 }
 
 func (e CLightEntity) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CLightEntity) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CLightEntity) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CMarkupVolume) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CMarkupVolume) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CEnvExplosion) InputExplode() (bool, error) {
-	return mod.FireInput(e.Handle, "Explode", nil)
+	return mod.FireInput(e.Handle, "Explode", nil, nil)
 }
 
 func (e CPointWorldText) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointWorldText) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointWorldText) InputSetIntMessage(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetIntMessage", value)
+	return mod.FireInput(e.Handle, "SetIntMessage", value, nil)
 }
 
 func (e CPointWorldText) InputSetMessage(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMessage", value)
+	return mod.FireInput(e.Handle, "SetMessage", value, nil)
 }
 
 func (e CPointWorldText) InputSetTextColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTextColor", value)
+	return mod.FireInput(e.Handle, "SetTextColor", value, nil)
 }
 
 func (e CPointWorldText) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CRevertSaved) InputReload() (bool, error) {
-	return mod.FireInput(e.Handle, "Reload", nil)
+	return mod.FireInput(e.Handle, "Reload", nil, nil)
 }
 
 func (e CParticleSystem) InputDestroyImmediately() (bool, error) {
-	return mod.FireInput(e.Handle, "DestroyImmediately", nil)
+	return mod.FireInput(e.Handle, "DestroyImmediately", nil, nil)
 }
 
 func (e CParticleSystem) InputFreeze(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Freeze", value)
+	return mod.FireInput(e.Handle, "Freeze", value, nil)
 }
 
 func (e CParticleSystem) InputSetControlPoint(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetControlPoint", value)
+	return mod.FireInput(e.Handle, "SetControlPoint", value, nil)
 }
 
 func (e CParticleSystem) InputSetDataControlPointX(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDataControlPointX", value)
+	return mod.FireInput(e.Handle, "SetDataControlPointX", value, nil)
 }
 
 func (e CParticleSystem) InputSetDataControlPointY(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDataControlPointY", value)
+	return mod.FireInput(e.Handle, "SetDataControlPointY", value, nil)
 }
 
 func (e CParticleSystem) InputSetDataControlPointZ(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDataControlPointZ", value)
+	return mod.FireInput(e.Handle, "SetDataControlPointZ", value, nil)
 }
 
 func (e CParticleSystem) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CParticleSystem) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CParticleSystem) InputStopPlayEndCap() (bool, error) {
-	return mod.FireInput(e.Handle, "StopPlayEndCap", nil)
+	return mod.FireInput(e.Handle, "StopPlayEndCap", nil, nil)
 }
 
 func (e CParticleSystem) InputThaw(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Thaw", value)
+	return mod.FireInput(e.Handle, "Thaw", value, nil)
 }
 
 func (e CEnvParticleGlow) Inputsetalphascale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "setalphascale", value)
+	return mod.FireInput(e.Handle, "setalphascale", value, nil)
 }
 
 func (e CEnvParticleGlow) Inputsetcolortint(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "setcolortint", value)
+	return mod.FireInput(e.Handle, "setcolortint", value, nil)
 }
 
 func (e CEnvParticleGlow) Inputsetscale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "setscale", value)
+	return mod.FireInput(e.Handle, "setscale", value, nil)
 }
 
 func (e CRopeKeyframe) InputBreak() (bool, error) {
-	return mod.FireInput(e.Handle, "Break", nil)
+	return mod.FireInput(e.Handle, "Break", nil, nil)
 }
 
 func (e CRopeKeyframe) InputSetForce(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetForce", value)
+	return mod.FireInput(e.Handle, "SetForce", value, nil)
 }
 
 func (e CRopeKeyframe) InputSetScrollSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetScrollSpeed", value)
+	return mod.FireInput(e.Handle, "SetScrollSpeed", value, nil)
 }
 
 func (e CGamePlayerZone) InputCountPlayersInZone() (bool, error) {
-	return mod.FireInput(e.Handle, "CountPlayersInZone", nil)
+	return mod.FireInput(e.Handle, "CountPlayersInZone", nil, nil)
 }
 
 func (e CGamePlayerEquip) InputTriggerForActivatedPlayer(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TriggerForActivatedPlayer", value)
+	return mod.FireInput(e.Handle, "TriggerForActivatedPlayer", value, nil)
 }
 
 func (e CGamePlayerEquip) InputTriggerForAllPlayers() (bool, error) {
-	return mod.FireInput(e.Handle, "TriggerForAllPlayers", nil)
+	return mod.FireInput(e.Handle, "TriggerForAllPlayers", nil, nil)
 }
 
 func (e CGameText) InputDisplay() (bool, error) {
-	return mod.FireInput(e.Handle, "Display", nil)
+	return mod.FireInput(e.Handle, "Display", nil, nil)
 }
 
 func (e CGameText) InputSetText(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetText", value)
+	return mod.FireInput(e.Handle, "SetText", value, nil)
 }
 
 func (e CFogVolume) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CFogVolume) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CSprite) InputColorBlueValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ColorBlueValue", value)
+	return mod.FireInput(e.Handle, "ColorBlueValue", value, nil)
 }
 
 func (e CSprite) InputColorGreenValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ColorGreenValue", value)
+	return mod.FireInput(e.Handle, "ColorGreenValue", value, nil)
 }
 
 func (e CSprite) InputColorRedValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ColorRedValue", value)
+	return mod.FireInput(e.Handle, "ColorRedValue", value, nil)
 }
 
 func (e CSprite) InputHideSprite() (bool, error) {
-	return mod.FireInput(e.Handle, "HideSprite", nil)
+	return mod.FireInput(e.Handle, "HideSprite", nil, nil)
 }
 
 func (e CSprite) InputShowSprite() (bool, error) {
-	return mod.FireInput(e.Handle, "ShowSprite", nil)
+	return mod.FireInput(e.Handle, "ShowSprite", nil, nil)
 }
 
 func (e CSprite) InputToggleSprite() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleSprite", nil)
+	return mod.FireInput(e.Handle, "ToggleSprite", nil, nil)
 }
 
 func (e CTextureBasedAnimatable) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CTextureBasedAnimatable) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CTextureBasedAnimatable) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CTextureBasedAnimatable) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CTriggerBrush) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CTriggerBrush) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputAddMaxChildren(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "AddMaxChildren", value)
+	return mod.FireInput(e.Handle, "AddMaxChildren", value, nil)
 }
 
 func (e CBaseNPCMaker) InputChangeDestinationGroup(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeDestinationGroup", value)
+	return mod.FireInput(e.Handle, "ChangeDestinationGroup", value, nil)
 }
 
 func (e CBaseNPCMaker) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputDisableInfiniteSpawns(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "DisableInfiniteSpawns", value)
+	return mod.FireInput(e.Handle, "DisableInfiniteSpawns", value, nil)
 }
 
 func (e CBaseNPCMaker) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputEnableInfiniteSpawns() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableInfiniteSpawns", nil)
+	return mod.FireInput(e.Handle, "EnableInfiniteSpawns", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputSetBatchCount(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBatchCount", value)
+	return mod.FireInput(e.Handle, "SetBatchCount", value, nil)
 }
 
 func (e CBaseNPCMaker) InputSetMaxChildren(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxChildren", value)
+	return mod.FireInput(e.Handle, "SetMaxChildren", value, nil)
 }
 
 func (e CBaseNPCMaker) InputSetMaxLiveChildren(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxLiveChildren", value)
+	return mod.FireInput(e.Handle, "SetMaxLiveChildren", value, nil)
 }
 
 func (e CBaseNPCMaker) InputSetMinimumSpawnDistance(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMinimumSpawnDistance", value)
+	return mod.FireInput(e.Handle, "SetMinimumSpawnDistance", value, nil)
 }
 
 func (e CBaseNPCMaker) InputSetSpawnEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpawnEntity", value)
+	return mod.FireInput(e.Handle, "SetSpawnEntity", value, nil)
 }
 
 func (e CBaseNPCMaker) InputSetSpawnFrequency(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpawnFrequency", value)
+	return mod.FireInput(e.Handle, "SetSpawnFrequency", value, nil)
 }
 
 func (e CBaseNPCMaker) InputSpawn() (bool, error) {
-	return mod.FireInput(e.Handle, "Spawn", nil)
+	return mod.FireInput(e.Handle, "Spawn", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputSpawnInLine() (bool, error) {
-	return mod.FireInput(e.Handle, "SpawnInLine", nil)
+	return mod.FireInput(e.Handle, "SpawnInLine", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputSpawnInRadius() (bool, error) {
-	return mod.FireInput(e.Handle, "SpawnInRadius", nil)
+	return mod.FireInput(e.Handle, "SpawnInRadius", nil, nil)
 }
 
 func (e CBaseNPCMaker) InputSpawnMultiple(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SpawnMultiple", value)
+	return mod.FireInput(e.Handle, "SpawnMultiple", value, nil)
 }
 
 func (e CBaseNPCMaker) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CCitadelGaffer) InputBlendTo(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "BlendTo", value)
+	return mod.FireInput(e.Handle, "BlendTo", value, nil)
 }
 
 func (e CColorCorrection) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CColorCorrection) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CColorCorrection) InputSetFadeInDuration(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFadeInDuration", value)
+	return mod.FireInput(e.Handle, "SetFadeInDuration", value, nil)
 }
 
 func (e CColorCorrection) InputSetFadeOutDuration(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFadeOutDuration", value)
+	return mod.FireInput(e.Handle, "SetFadeOutDuration", value, nil)
 }
 
 func (e CCommentaryAuto) InputMultiplayerSpawned() (bool, error) {
-	return mod.FireInput(e.Handle, "MultiplayerSpawned", nil)
+	return mod.FireInput(e.Handle, "MultiplayerSpawned", nil, nil)
 }
 
 func (e CEnvBeverage) InputActivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Activate", nil)
+	return mod.FireInput(e.Handle, "Activate", nil, nil)
 }
 
 func (e CEnvCombinedLightProbeVolume) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CEnvCombinedLightProbeVolume) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CEnvCombinedLightProbeVolume) InputSetBrightness(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBrightness", value)
+	return mod.FireInput(e.Handle, "SetBrightness", value, nil)
 }
 
 func (e CEnvCombinedLightProbeVolume) InputSetColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColor", value)
+	return mod.FireInput(e.Handle, "SetColor", value, nil)
 }
 
 func (e CEnvCubemap) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CEnvCubemap) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CEnvCubemapFog) InputDisable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", value)
+	return mod.FireInput(e.Handle, "Disable", value, nil)
 }
 
 func (e CEnvCubemapFog) InputEnable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", value)
+	return mod.FireInput(e.Handle, "Enable", value, nil)
 }
 
 func (e CEnvEntityIgniter) InputIgnite() (bool, error) {
-	return mod.FireInput(e.Handle, "Ignite", nil)
+	return mod.FireInput(e.Handle, "Ignite", nil, nil)
 }
 
 func (e CEnvLightProbeVolume) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CEnvLightProbeVolume) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CEnvSoundscape) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CEnvSoundscape) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CEnvSoundscape) InputToggleEnabled() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleEnabled", nil)
+	return mod.FireInput(e.Handle, "ToggleEnabled", nil, nil)
 }
 
 func (e CEnvVolumetricFogController) InputDisable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", value)
+	return mod.FireInput(e.Handle, "Disable", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputEnable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", value)
+	return mod.FireInput(e.Handle, "Enable", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputEnableIndirect(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "EnableIndirect", value)
+	return mod.FireInput(e.Handle, "EnableIndirect", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputForceRefresh() (bool, error) {
-	return mod.FireInput(e.Handle, "ForceRefresh", nil)
+	return mod.FireInput(e.Handle, "ForceRefresh", nil, nil)
 }
 
 func (e CEnvVolumetricFogController) InputSetAnisotropy(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAnisotropy", value)
+	return mod.FireInput(e.Handle, "SetAnisotropy", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputSetDrawDistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDrawDistance", value)
+	return mod.FireInput(e.Handle, "SetDrawDistance", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputSetFadeSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFadeSpeed", value)
+	return mod.FireInput(e.Handle, "SetFadeSpeed", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputSetFogStrength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogStrength", value)
+	return mod.FireInput(e.Handle, "SetFogStrength", value, nil)
 }
 
 func (e CEnvVolumetricFogController) InputSetToDefaults() (bool, error) {
-	return mod.FireInput(e.Handle, "SetToDefaults", nil)
+	return mod.FireInput(e.Handle, "SetToDefaults", nil, nil)
 }
 
 func (e CEnvVolumetricFogVolume) InputDisable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", value)
+	return mod.FireInput(e.Handle, "Disable", value, nil)
 }
 
 func (e CEnvVolumetricFogVolume) InputEnable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", value)
+	return mod.FireInput(e.Handle, "Enable", value, nil)
 }
 
 func (e CFogController) InputSet2DSkyboxFogFactor(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Set2DSkyboxFogFactor", value)
+	return mod.FireInput(e.Handle, "Set2DSkyboxFogFactor", value, nil)
 }
 
 func (e CFogController) InputSet2DSkyboxFogFactorLerpTo(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Set2DSkyboxFogFactorLerpTo", value)
+	return mod.FireInput(e.Handle, "Set2DSkyboxFogFactorLerpTo", value, nil)
 }
 
 func (e CFogController) InputSetAngles(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngles", value)
+	return mod.FireInput(e.Handle, "SetAngles", value, nil)
 }
 
 func (e CFogController) InputSetColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColor", value)
+	return mod.FireInput(e.Handle, "SetColor", value, nil)
 }
 
 func (e CFogController) InputSetColorLerpTo(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColorLerpTo", value)
+	return mod.FireInput(e.Handle, "SetColorLerpTo", value, nil)
 }
 
 func (e CFogController) InputSetColorSecondary(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColorSecondary", value)
+	return mod.FireInput(e.Handle, "SetColorSecondary", value, nil)
 }
 
 func (e CFogController) InputSetColorSecondaryLerpTo(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetColorSecondaryLerpTo", value)
+	return mod.FireInput(e.Handle, "SetColorSecondaryLerpTo", value, nil)
 }
 
 func (e CFogController) InputSetEndDist(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEndDist", value)
+	return mod.FireInput(e.Handle, "SetEndDist", value, nil)
 }
 
 func (e CFogController) InputSetEndDistLerpTo(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEndDistLerpTo", value)
+	return mod.FireInput(e.Handle, "SetEndDistLerpTo", value, nil)
 }
 
 func (e CFogController) InputSetFarZ(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFarZ", value)
+	return mod.FireInput(e.Handle, "SetFarZ", value, nil)
 }
 
 func (e CFogController) InputSetMaxDensity(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxDensity", value)
+	return mod.FireInput(e.Handle, "SetMaxDensity", value, nil)
 }
 
 func (e CFogController) InputSetMaxDensityLerpTo(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxDensityLerpTo", value)
+	return mod.FireInput(e.Handle, "SetMaxDensityLerpTo", value, nil)
 }
 
 func (e CFogController) InputSetStartDist(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStartDist", value)
+	return mod.FireInput(e.Handle, "SetStartDist", value, nil)
 }
 
 func (e CFogController) InputSetStartDistLerpTo(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStartDistLerpTo", value)
+	return mod.FireInput(e.Handle, "SetStartDistLerpTo", value, nil)
 }
 
 func (e CFogController) InputStartFogTransition() (bool, error) {
-	return mod.FireInput(e.Handle, "StartFogTransition", nil)
+	return mod.FireInput(e.Handle, "StartFogTransition", nil, nil)
 }
 
 func (e CFogController) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CFogController) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CFuncTimescale) InputReset() (bool, error) {
-	return mod.FireInput(e.Handle, "Reset", nil)
+	return mod.FireInput(e.Handle, "Reset", nil, nil)
 }
 
 func (e CFuncTimescale) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CFuncTimescale) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CGameGibManager) InputSetMaxPieces(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxPieces", value)
+	return mod.FireInput(e.Handle, "SetMaxPieces", value, nil)
 }
 
 func (e CGameGibManager) InputSetMaxPiecesDX8(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxPiecesDX8", value)
+	return mod.FireInput(e.Handle, "SetMaxPiecesDX8", value, nil)
 }
 
 func (e CGradientFog) InputDisable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", value)
+	return mod.FireInput(e.Handle, "Disable", value, nil)
 }
 
 func (e CGradientFog) InputEnable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", value)
+	return mod.FireInput(e.Handle, "Enable", value, nil)
 }
 
 func (e CGradientFog) InputSetFarZ(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFarZ", value)
+	return mod.FireInput(e.Handle, "SetFarZ", value, nil)
 }
 
 func (e CGradientFog) InputSetFogColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogColor", value)
+	return mod.FireInput(e.Handle, "SetFogColor", value, nil)
 }
 
 func (e CGradientFog) InputSetFogEndDistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogEndDistance", value)
+	return mod.FireInput(e.Handle, "SetFogEndDistance", value, nil)
 }
 
 func (e CGradientFog) InputSetFogEndHeight(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogEndHeight", value)
+	return mod.FireInput(e.Handle, "SetFogEndHeight", value, nil)
 }
 
 func (e CGradientFog) InputSetFogFalloffExponent(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogFalloffExponent", value)
+	return mod.FireInput(e.Handle, "SetFogFalloffExponent", value, nil)
 }
 
 func (e CGradientFog) InputSetFogMaxOpacity(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogMaxOpacity", value)
+	return mod.FireInput(e.Handle, "SetFogMaxOpacity", value, nil)
 }
 
 func (e CGradientFog) InputSetFogStartDistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogStartDistance", value)
+	return mod.FireInput(e.Handle, "SetFogStartDistance", value, nil)
 }
 
 func (e CGradientFog) InputSetFogStartHeight(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogStartHeight", value)
+	return mod.FireInput(e.Handle, "SetFogStartHeight", value, nil)
 }
 
 func (e CGradientFog) InputSetFogStrength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogStrength", value)
+	return mod.FireInput(e.Handle, "SetFogStrength", value, nil)
 }
 
 func (e CGradientFog) InputSetFogVerticalExponent(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFogVerticalExponent", value)
+	return mod.FireInput(e.Handle, "SetFogVerticalExponent", value, nil)
 }
 
 func (e CInfoVisibilityBox) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CInfoVisibilityBox) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CInfoWorldLayer) InputDestroyEntities() (bool, error) {
-	return mod.FireInput(e.Handle, "DestroyEntities", nil)
+	return mod.FireInput(e.Handle, "DestroyEntities", nil, nil)
 }
 
 func (e CInfoWorldLayer) InputHideWorldLayer() (bool, error) {
-	return mod.FireInput(e.Handle, "HideWorldLayer", nil)
+	return mod.FireInput(e.Handle, "HideWorldLayer", nil, nil)
 }
 
 func (e CInfoWorldLayer) InputHideWorldLayerAndDestroyEntities() (bool, error) {
-	return mod.FireInput(e.Handle, "HideWorldLayerAndDestroyEntities", nil)
+	return mod.FireInput(e.Handle, "HideWorldLayerAndDestroyEntities", nil, nil)
 }
 
 func (e CInfoWorldLayer) InputShowWorldLayer() (bool, error) {
-	return mod.FireInput(e.Handle, "ShowWorldLayer", nil)
+	return mod.FireInput(e.Handle, "ShowWorldLayer", nil, nil)
 }
 
 func (e CInfoWorldLayer) InputShowWorldLayerAndSpawnEntities() (bool, error) {
-	return mod.FireInput(e.Handle, "ShowWorldLayerAndSpawnEntities", nil)
+	return mod.FireInput(e.Handle, "ShowWorldLayerAndSpawnEntities", nil, nil)
 }
 
 func (e CInfoWorldLayer) InputSpawnEntities() (bool, error) {
-	return mod.FireInput(e.Handle, "SpawnEntities", nil)
+	return mod.FireInput(e.Handle, "SpawnEntities", nil, nil)
 }
 
 // InputClearCollections sends ClearCollections. Must clear all collections each
 // pass.
 func (e CLogicGameStateReport) InputClearCollections() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearCollections", nil)
+	return mod.FireInput(e.Handle, "ClearCollections", nil, nil)
 }
 
 func (e CLogicGameStateReport) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CLogicGameStateReport) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicNPCCounter) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CLogicNPCCounter) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicNPCCounter) InputSetSourceEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSourceEntity", value)
+	return mod.FireInput(e.Handle, "SetSourceEntity", value, nil)
 }
 
 func (e CPathParticleRope) InputDestroyImmediately() (bool, error) {
-	return mod.FireInput(e.Handle, "DestroyImmediately", nil)
+	return mod.FireInput(e.Handle, "DestroyImmediately", nil, nil)
 }
 
 func (e CPathParticleRope) InputDisablePin(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "DisablePin", value)
+	return mod.FireInput(e.Handle, "DisablePin", value, nil)
 }
 
 func (e CPathParticleRope) InputSetRadius(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRadius", value)
+	return mod.FireInput(e.Handle, "SetRadius", value, nil)
 }
 
 func (e CPathParticleRope) InputSetSlack(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSlack", value)
+	return mod.FireInput(e.Handle, "SetSlack", value, nil)
 }
 
 func (e CPathParticleRope) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CPathParticleRope) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CPathParticleRope) InputStopPlayEndCap() (bool, error) {
-	return mod.FireInput(e.Handle, "StopPlayEndCap", nil)
+	return mod.FireInput(e.Handle, "StopPlayEndCap", nil, nil)
 }
 
 func (e CPhysicsSpring) InputAddRestLength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "AddRestLength", value)
+	return mod.FireInput(e.Handle, "AddRestLength", value, nil)
 }
 
 func (e CPhysicsSpring) InputRemoveRestLength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveRestLength", value)
+	return mod.FireInput(e.Handle, "RemoveRestLength", value, nil)
 }
 
 func (e CPhysicsSpring) InputSetDampingRatio(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDampingRatio", value)
+	return mod.FireInput(e.Handle, "SetDampingRatio", value, nil)
 }
 
 func (e CPhysicsSpring) InputSetFrequency(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFrequency", value)
+	return mod.FireInput(e.Handle, "SetFrequency", value, nil)
 }
 
 func (e CPhysicsSpring) InputSetRestLength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetRestLength", value)
+	return mod.FireInput(e.Handle, "SetRestLength", value, nil)
 }
 
 func (e CPlayerVisibility) InputDisable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", value)
+	return mod.FireInput(e.Handle, "Disable", value, nil)
 }
 
 func (e CPlayerVisibility) InputEnable(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", value)
+	return mod.FireInput(e.Handle, "Enable", value, nil)
 }
 
 func (e CPlayerVisibility) InputSetPlayerFogDistanceMultiplier(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPlayerFogDistanceMultiplier", value)
+	return mod.FireInput(e.Handle, "SetPlayerFogDistanceMultiplier", value, nil)
 }
 
 func (e CPlayerVisibility) InputSetPlayerFogMaxDensityMultiplier(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPlayerFogMaxDensityMultiplier", value)
+	return mod.FireInput(e.Handle, "SetPlayerFogMaxDensityMultiplier", value, nil)
 }
 
 func (e CPlayerVisibility) InputSetPlayerVisibilityStrength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPlayerVisibilityStrength", value)
+	return mod.FireInput(e.Handle, "SetPlayerVisibilityStrength", value, nil)
 }
 
 func (e CPointCamera) InputActivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Activate", nil)
+	return mod.FireInput(e.Handle, "Activate", nil, nil)
 }
 
 func (e CPointCamera) InputChangeFOV(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeFOV", value)
+	return mod.FireInput(e.Handle, "ChangeFOV", value, nil)
 }
 
 func (e CPointCamera) InputDeactivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Deactivate", nil)
+	return mod.FireInput(e.Handle, "Deactivate", nil, nil)
 }
 
 func (e CPointCamera) InputDisableDOF() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableDOF", nil)
+	return mod.FireInput(e.Handle, "DisableDOF", nil, nil)
 }
 
 func (e CPointCamera) InputEnableDOF() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableDOF", nil)
+	return mod.FireInput(e.Handle, "EnableDOF", nil, nil)
 }
 
 func (e CPointCamera) InputSetDOFFarBlurry(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDOFFarBlurry", value)
+	return mod.FireInput(e.Handle, "SetDOFFarBlurry", value, nil)
 }
 
 func (e CPointCamera) InputSetDOFFarCrisp(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDOFFarCrisp", value)
+	return mod.FireInput(e.Handle, "SetDOFFarCrisp", value, nil)
 }
 
 func (e CPointCamera) InputSetDOFNearBlurry(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDOFNearBlurry", value)
+	return mod.FireInput(e.Handle, "SetDOFNearBlurry", value, nil)
 }
 
 func (e CPointCamera) InputSetDOFNearCrisp(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDOFNearCrisp", value)
+	return mod.FireInput(e.Handle, "SetDOFNearCrisp", value, nil)
 }
 
 func (e CPointCamera) InputSetDOFTiltToGround(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDOFTiltToGround", value)
+	return mod.FireInput(e.Handle, "SetDOFTiltToGround", value, nil)
 }
 
 func (e CPointCamera) InputSetOff() (bool, error) {
-	return mod.FireInput(e.Handle, "SetOff", nil)
+	return mod.FireInput(e.Handle, "SetOff", nil, nil)
 }
 
 func (e CPointCamera) InputSetOn() (bool, error) {
-	return mod.FireInput(e.Handle, "SetOn", nil)
+	return mod.FireInput(e.Handle, "SetOn", nil, nil)
 }
 
 func (e CPointCamera) InputSetOnAndTurnOthersOff() (bool, error) {
-	return mod.FireInput(e.Handle, "SetOnAndTurnOthersOff", nil)
+	return mod.FireInput(e.Handle, "SetOnAndTurnOthersOff", nil, nil)
 }
 
 func (e CPointEntity) InputSetPosition(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPosition", value)
+	return mod.FireInput(e.Handle, "SetPosition", value, nil)
 }
 
 func (e CAI_VolumetricEventEntity) InputEmitAIVolumetricEvent() (bool, error) {
-	return mod.FireInput(e.Handle, "EmitAIVolumetricEvent", nil)
+	return mod.FireInput(e.Handle, "EmitAIVolumetricEvent", nil, nil)
 }
 
 func (e CAI_VolumetricEventEntity) InputStopAIVolumetricEvent() (bool, error) {
-	return mod.FireInput(e.Handle, "StopAIVolumetricEvent", nil)
+	return mod.FireInput(e.Handle, "StopAIVolumetricEvent", nil, nil)
 }
 
 func (e CAI_VolumetricEventSensor) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CAI_VolumetricEventSensor) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CAmbientGeneric) InputFadeIn(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "FadeIn", value)
+	return mod.FireInput(e.Handle, "FadeIn", value, nil)
 }
 
 func (e CAmbientGeneric) InputFadeOut(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "FadeOut", value)
+	return mod.FireInput(e.Handle, "FadeOut", value, nil)
 }
 
 func (e CAmbientGeneric) InputPitch(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Pitch", value)
+	return mod.FireInput(e.Handle, "Pitch", value, nil)
 }
 
 func (e CAmbientGeneric) InputPlaySound() (bool, error) {
-	return mod.FireInput(e.Handle, "PlaySound", nil)
+	return mod.FireInput(e.Handle, "PlaySound", nil, nil)
 }
 
 func (e CAmbientGeneric) InputStopSound() (bool, error) {
-	return mod.FireInput(e.Handle, "StopSound", nil)
+	return mod.FireInput(e.Handle, "StopSound", nil, nil)
 }
 
 func (e CAmbientGeneric) InputToggleSound() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleSound", nil)
+	return mod.FireInput(e.Handle, "ToggleSound", nil, nil)
 }
 
 func (e CAmbientGeneric) InputVolume(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Volume", value)
+	return mod.FireInput(e.Handle, "Volume", value, nil)
 }
 
 func (e CCredits) InputRollCredits() (bool, error) {
-	return mod.FireInput(e.Handle, "RollCredits", nil)
+	return mod.FireInput(e.Handle, "RollCredits", nil, nil)
 }
 
 func (e CCredits) InputRollOutroCredits() (bool, error) {
-	return mod.FireInput(e.Handle, "RollOutroCredits", nil)
+	return mod.FireInput(e.Handle, "RollOutroCredits", nil, nil)
 }
 
 func (e CCredits) InputSetLogoLength(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLogoLength", value)
+	return mod.FireInput(e.Handle, "SetLogoLength", value, nil)
 }
 
 func (e CCredits) InputShowLogo() (bool, error) {
-	return mod.FireInput(e.Handle, "ShowLogo", nil)
+	return mod.FireInput(e.Handle, "ShowLogo", nil, nil)
 }
 
 func (e CEnvEntityMaker) InputForceSpawn() (bool, error) {
-	return mod.FireInput(e.Handle, "ForceSpawn", nil)
+	return mod.FireInput(e.Handle, "ForceSpawn", nil, nil)
 }
 
 func (e CEnvEntityMaker) InputForceSpawnAtEntityOrigin(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ForceSpawnAtEntityOrigin", value)
+	return mod.FireInput(e.Handle, "ForceSpawnAtEntityOrigin", value, nil)
 }
 
 func (e CEnvInstructorHint) InputEndHint() (bool, error) {
-	return mod.FireInput(e.Handle, "EndHint", nil)
+	return mod.FireInput(e.Handle, "EndHint", nil, nil)
 }
 
 func (e CEnvInstructorHint) InputShowHint(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ShowHint", value)
+	return mod.FireInput(e.Handle, "ShowHint", value, nil)
 }
 
 func (e CEnvInstructorVRHint) InputEndHint() (bool, error) {
-	return mod.FireInput(e.Handle, "EndHint", nil)
+	return mod.FireInput(e.Handle, "EndHint", nil, nil)
 }
 
 func (e CEnvInstructorVRHint) InputShowHint(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ShowHint", value)
+	return mod.FireInput(e.Handle, "ShowHint", value, nil)
 }
 
 func (e CEnvMuzzleFlash) InputFire() (bool, error) {
-	return mod.FireInput(e.Handle, "Fire", nil)
+	return mod.FireInput(e.Handle, "Fire", nil, nil)
 }
 
 func (e CEnvShake) InputAmplitude(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Amplitude", value)
+	return mod.FireInput(e.Handle, "Amplitude", value, nil)
 }
 
 func (e CEnvShake) InputFrequency(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Frequency", value)
+	return mod.FireInput(e.Handle, "Frequency", value, nil)
 }
 
 func (e CEnvShake) InputStartShake() (bool, error) {
-	return mod.FireInput(e.Handle, "StartShake", nil)
+	return mod.FireInput(e.Handle, "StartShake", nil, nil)
 }
 
 func (e CEnvShake) InputStopShake() (bool, error) {
-	return mod.FireInput(e.Handle, "StopShake", nil)
+	return mod.FireInput(e.Handle, "StopShake", nil, nil)
 }
 
 func (e CEnvSpark) InputSparkOnce() (bool, error) {
-	return mod.FireInput(e.Handle, "SparkOnce", nil)
+	return mod.FireInput(e.Handle, "SparkOnce", nil, nil)
 }
 
 func (e CEnvSpark) InputStartSpark() (bool, error) {
-	return mod.FireInput(e.Handle, "StartSpark", nil)
+	return mod.FireInput(e.Handle, "StartSpark", nil, nil)
 }
 
 func (e CEnvSpark) InputStopSpark() (bool, error) {
-	return mod.FireInput(e.Handle, "StopSpark", nil)
+	return mod.FireInput(e.Handle, "StopSpark", nil, nil)
 }
 
 func (e CEnvSpark) InputToggleSpark() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleSpark", nil)
+	return mod.FireInput(e.Handle, "ToggleSpark", nil, nil)
 }
 
 func (e CEnvSplash) InputSplash() (bool, error) {
-	return mod.FireInput(e.Handle, "Splash", nil)
+	return mod.FireInput(e.Handle, "Splash", nil, nil)
 }
 
 func (e CEnvTilt) InputStartTilt() (bool, error) {
-	return mod.FireInput(e.Handle, "StartTilt", nil)
+	return mod.FireInput(e.Handle, "StartTilt", nil, nil)
 }
 
 func (e CEnvTilt) InputStopTilt() (bool, error) {
-	return mod.FireInput(e.Handle, "StopTilt", nil)
+	return mod.FireInput(e.Handle, "StopTilt", nil, nil)
 }
 
 func (e CEnvViewPunch) InputViewPunch() (bool, error) {
-	return mod.FireInput(e.Handle, "ViewPunch", nil)
+	return mod.FireInput(e.Handle, "ViewPunch", nil, nil)
 }
 
 func (e CInfoCitadelHideout) InputToggleFastCooldowns() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleFastCooldowns", nil)
+	return mod.FireInput(e.Handle, "ToggleFastCooldowns", nil, nil)
 }
 
 func (e CInfoDynamicShadowHint) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CInfoDynamicShadowHint) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CInfoGameEventProxy) InputGenerateGameEvent(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "GenerateGameEvent", value)
+	return mod.FireInput(e.Handle, "GenerateGameEvent", value, nil)
 }
 
 func (e CInfoOffscreenPanoramaTexture) InputAddCSSClass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "AddCSSClass", value)
+	return mod.FireInput(e.Handle, "AddCSSClass", value, nil)
 }
 
 func (e CInfoOffscreenPanoramaTexture) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CInfoOffscreenPanoramaTexture) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CInfoOffscreenPanoramaTexture) InputRemoveCSSClass(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveCSSClass", value)
+	return mod.FireInput(e.Handle, "RemoveCSSClass", value, nil)
 }
 
 func (e CInfoPlayerStart) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CInfoPlayerStart) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CInfoPlayerStart) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CInfoTrooperNeutralCamp) InputSetDisabled(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDisabled", value)
+	return mod.FireInput(e.Handle, "SetDisabled", value, nil)
 }
 
 func (e CInstructorEventEntity) InputEndHint() (bool, error) {
-	return mod.FireInput(e.Handle, "EndHint", nil)
+	return mod.FireInput(e.Handle, "EndHint", nil, nil)
 }
 
 func (e CInstructorEventEntity) InputSetTargetPlayerToActivator() (bool, error) {
-	return mod.FireInput(e.Handle, "SetTargetPlayerToActivator", nil)
+	return mod.FireInput(e.Handle, "SetTargetPlayerToActivator", nil, nil)
 }
 
 func (e CInstructorEventEntity) InputShowHint(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ShowHint", value)
+	return mod.FireInput(e.Handle, "ShowHint", value, nil)
 }
 
 func (e CKeepUpright) InputSetAngularLimit(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularLimit", value)
+	return mod.FireInput(e.Handle, "SetAngularLimit", value, nil)
 }
 
 func (e CKeepUpright) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CKeepUpright) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CMessage) InputShowMessage() (bool, error) {
-	return mod.FireInput(e.Handle, "ShowMessage", nil)
+	return mod.FireInput(e.Handle, "ShowMessage", nil, nil)
 }
 
 func (e CMessageEntity) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CMessageEntity) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CMessageEntity) InputSetMessage(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMessage", value)
+	return mod.FireInput(e.Handle, "SetMessage", value, nil)
 }
 
 func (e CNavLinkAreaEntity) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CNavLinkAreaEntity) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CNavLinkAreaEntity) InputUpdate() (bool, error) {
-	return mod.FireInput(e.Handle, "Update", nil)
+	return mod.FireInput(e.Handle, "Update", nil, nil)
 }
 
 func (e CPathCorner) InputInPass() (bool, error) {
-	return mod.FireInput(e.Handle, "InPass", nil)
+	return mod.FireInput(e.Handle, "InPass", nil, nil)
 }
 
 func (e CPathCorner) InputSetNextPathCorner(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetNextPathCorner", value)
+	return mod.FireInput(e.Handle, "SetNextPathCorner", value, nil)
 }
 
 func (e CPathTrack) InputDisableAlternatePath() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableAlternatePath", nil)
+	return mod.FireInput(e.Handle, "DisableAlternatePath", nil, nil)
 }
 
 func (e CPathTrack) InputDisablePath() (bool, error) {
-	return mod.FireInput(e.Handle, "DisablePath", nil)
+	return mod.FireInput(e.Handle, "DisablePath", nil, nil)
 }
 
 func (e CPathTrack) InputEnableAlternatePath() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableAlternatePath", nil)
+	return mod.FireInput(e.Handle, "EnableAlternatePath", nil, nil)
 }
 
 func (e CPathTrack) InputEnablePath() (bool, error) {
-	return mod.FireInput(e.Handle, "EnablePath", nil)
+	return mod.FireInput(e.Handle, "EnablePath", nil, nil)
 }
 
 func (e CPathTrack) InputInPass() (bool, error) {
-	return mod.FireInput(e.Handle, "InPass", nil)
+	return mod.FireInput(e.Handle, "InPass", nil, nil)
 }
 
 func (e CPathTrack) InputToggleAlternatePath() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleAlternatePath", nil)
+	return mod.FireInput(e.Handle, "ToggleAlternatePath", nil, nil)
 }
 
 func (e CPathTrack) InputTogglePath() (bool, error) {
-	return mod.FireInput(e.Handle, "TogglePath", nil)
+	return mod.FireInput(e.Handle, "TogglePath", nil, nil)
 }
 
 func (e CPhysExplosion) InputExplode() (bool, error) {
-	return mod.FireInput(e.Handle, "Explode", nil)
+	return mod.FireInput(e.Handle, "Explode", nil, nil)
 }
 
 func (e CPhysForce) InputActivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Activate", nil)
+	return mod.FireInput(e.Handle, "Activate", nil, nil)
 }
 
 func (e CPhysForce) InputDeactivate() (bool, error) {
-	return mod.FireInput(e.Handle, "Deactivate", nil)
+	return mod.FireInput(e.Handle, "Deactivate", nil, nil)
 }
 
 func (e CPhysForce) Inputscale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "scale", value)
+	return mod.FireInput(e.Handle, "scale", value, nil)
 }
 
 func (e CPhysImpact) InputImpact() (bool, error) {
-	return mod.FireInput(e.Handle, "Impact", nil)
+	return mod.FireInput(e.Handle, "Impact", nil, nil)
 }
 
 func (e CPointAngleSensor) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointAngleSensor) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointAngleSensor) InputSetTargetEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTargetEntity", value)
+	return mod.FireInput(e.Handle, "SetTargetEntity", value, nil)
 }
 
 func (e CPointAngleSensor) InputTest() (bool, error) {
-	return mod.FireInput(e.Handle, "Test", nil)
+	return mod.FireInput(e.Handle, "Test", nil, nil)
 }
 
 func (e CPointAngleSensor) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CPointAngularVelocitySensor) InputTest() (bool, error) {
-	return mod.FireInput(e.Handle, "Test", nil)
+	return mod.FireInput(e.Handle, "Test", nil, nil)
 }
 
 func (e CPointAngularVelocitySensor) InputTestWithInterval() (bool, error) {
-	return mod.FireInput(e.Handle, "TestWithInterval", nil)
+	return mod.FireInput(e.Handle, "TestWithInterval", nil, nil)
 }
 
 func (e CPointBroadcastClientCommand) InputCommand(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "Command", value)
+	return mod.FireInput(e.Handle, "Command", value, nil)
 }
 
 func (e CPointClientCommand) InputCommand(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "Command", value)
+	return mod.FireInput(e.Handle, "Command", value, nil)
 }
 
 func (e CPointHurt) InputHurt() (bool, error) {
-	return mod.FireInput(e.Handle, "Hurt", nil)
+	return mod.FireInput(e.Handle, "Hurt", nil, nil)
 }
 
 func (e CPointHurt) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CPointHurt) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CPointHurt) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CPointProximitySensor) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointProximitySensor) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointProximitySensor) InputSetTargetEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTargetEntity", value)
+	return mod.FireInput(e.Handle, "SetTargetEntity", value, nil)
 }
 
 func (e CPointProximitySensor) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CPointPush) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointPush) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointServerCommand) InputCommand(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "Command", value)
+	return mod.FireInput(e.Handle, "Command", value, nil)
 }
 
 func (e CPointVelocitySensor) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointVelocitySensor) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CRagdollMagnet) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CRagdollMagnet) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CSceneEntity) InputCancel() (bool, error) {
-	return mod.FireInput(e.Handle, "Cancel", nil)
+	return mod.FireInput(e.Handle, "Cancel", nil, nil)
 }
 
 func (e CSceneEntity) InputCancelAtNextInterrupt() (bool, error) {
-	return mod.FireInput(e.Handle, "CancelAtNextInterrupt", nil)
+	return mod.FireInput(e.Handle, "CancelAtNextInterrupt", nil, nil)
 }
 
 func (e CSceneEntity) InputInterjectResponse(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "InterjectResponse", value)
+	return mod.FireInput(e.Handle, "InterjectResponse", value, nil)
 }
 
 func (e CSceneEntity) InputPause() (bool, error) {
-	return mod.FireInput(e.Handle, "Pause", nil)
+	return mod.FireInput(e.Handle, "Pause", nil, nil)
 }
 
 func (e CSceneEntity) InputPauseAtNextInterrupt() (bool, error) {
-	return mod.FireInput(e.Handle, "PauseAtNextInterrupt", nil)
+	return mod.FireInput(e.Handle, "PauseAtNextInterrupt", nil, nil)
 }
 
 func (e CSceneEntity) InputPitchShift(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "PitchShift", value)
+	return mod.FireInput(e.Handle, "PitchShift", value, nil)
 }
 
 func (e CSceneEntity) InputResume() (bool, error) {
-	return mod.FireInput(e.Handle, "Resume", nil)
+	return mod.FireInput(e.Handle, "Resume", nil, nil)
 }
 
 func (e CSceneEntity) InputScriptPlayerDeath() (bool, error) {
-	return mod.FireInput(e.Handle, "ScriptPlayerDeath", nil)
+	return mod.FireInput(e.Handle, "ScriptPlayerDeath", nil, nil)
 }
 
 func (e CSceneEntity) InputSetTarget1(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTarget1", value)
+	return mod.FireInput(e.Handle, "SetTarget1", value, nil)
 }
 
 func (e CSceneEntity) InputSetTarget2(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTarget2", value)
+	return mod.FireInput(e.Handle, "SetTarget2", value, nil)
 }
 
 func (e CSceneEntity) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CSceneEntity) InputStopWaitingForActor() (bool, error) {
-	return mod.FireInput(e.Handle, "StopWaitingForActor", nil)
+	return mod.FireInput(e.Handle, "StopWaitingForActor", nil, nil)
 }
 
 func (e CTankTrainAI) InputTargetEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TargetEntity", value)
+	return mod.FireInput(e.Handle, "TargetEntity", value, nil)
 }
 
 func (e CPointEntityFinder) InputFindEntity() (bool, error) {
-	return mod.FireInput(e.Handle, "FindEntity", nil)
+	return mod.FireInput(e.Handle, "FindEntity", nil, nil)
 }
 
 func (e CPointOrient) InputSetActive(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetActive", value)
+	return mod.FireInput(e.Handle, "SetActive", value, nil)
 }
 
 func (e CPointOrient) InputSetTarget(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTarget", value)
+	return mod.FireInput(e.Handle, "SetTarget", value, nil)
 }
 
 func (e CPointValueRemapper) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPointValueRemapper) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPointValueRemapper) InputSetDisengageistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDisengageistance", value)
+	return mod.FireInput(e.Handle, "SetDisengageistance", value, nil)
 }
 
 func (e CPointValueRemapper) InputSetEngageDistance(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetEngageDistance", value)
+	return mod.FireInput(e.Handle, "SetEngageDistance", value, nil)
 }
 
 func (e CPointValueRemapper) InputSetMomentumModifier(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMomentumModifier", value)
+	return mod.FireInput(e.Handle, "SetMomentumModifier", value, nil)
 }
 
 func (e CPointValueRemapper) InputSetMomentumType(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMomentumType", value)
+	return mod.FireInput(e.Handle, "SetMomentumType", value, nil)
 }
 
 func (e CPointValueRemapper) InputSetSnapValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSnapValue", value)
+	return mod.FireInput(e.Handle, "SetSnapValue", value, nil)
 }
 
 func (e CRagdollManager) InputSetMaxRagdollCount(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxRagdollCount", value)
+	return mod.FireInput(e.Handle, "SetMaxRagdollCount", value, nil)
 }
 
 func (e CScriptedSequence) InputBeginSequence() (bool, error) {
-	return mod.FireInput(e.Handle, "BeginSequence", nil)
+	return mod.FireInput(e.Handle, "BeginSequence", nil, nil)
 }
 
 func (e CScriptedSequence) InputCancelSequence() (bool, error) {
-	return mod.FireInput(e.Handle, "CancelSequence", nil)
+	return mod.FireInput(e.Handle, "CancelSequence", nil, nil)
 }
 
 func (e CScriptedSequence) InputForceTarget(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "ForceTarget", value)
+	return mod.FireInput(e.Handle, "ForceTarget", value, nil)
 }
 
 func (e CScriptedSequence) InputMoveToPosition() (bool, error) {
-	return mod.FireInput(e.Handle, "MoveToPosition", nil)
+	return mod.FireInput(e.Handle, "MoveToPosition", nil, nil)
 }
 
 func (e CScriptedSequence) InputScriptPlayerDeath() (bool, error) {
-	return mod.FireInput(e.Handle, "ScriptPlayerDeath", nil)
+	return mod.FireInput(e.Handle, "ScriptPlayerDeath", nil, nil)
 }
 
 func (e CScriptedSequence) InputSetActionSequence(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetActionSequence", value)
+	return mod.FireInput(e.Handle, "SetActionSequence", value, nil)
 }
 
 func (e CAI_Hint) InputDisableHint() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableHint", nil)
+	return mod.FireInput(e.Handle, "DisableHint", nil, nil)
 }
 
 func (e CAI_Hint) InputEnableHint() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableHint", nil)
+	return mod.FireInput(e.Handle, "EnableHint", nil, nil)
 }
 
 func (e CAI_Hint) InputToggleHint() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleHint", nil)
+	return mod.FireInput(e.Handle, "ToggleHint", nil, nil)
 }
 
 func (e CCitadelEnergyTower) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CCitadelEnergyTower) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CBaseFilter) InputTestActivator() (bool, error) {
-	return mod.FireInput(e.Handle, "TestActivator", nil)
+	return mod.FireInput(e.Handle, "TestActivator", nil, nil)
 }
 
 func (e CEnvFade) InputFade() (bool, error) {
-	return mod.FireInput(e.Handle, "Fade", nil)
+	return mod.FireInput(e.Handle, "Fade", nil, nil)
 }
 
 func (e CEnvGlobal) InputAddToCounter(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "AddToCounter", value)
+	return mod.FireInput(e.Handle, "AddToCounter", value, nil)
 }
 
 func (e CEnvGlobal) InputGetCounter() (bool, error) {
-	return mod.FireInput(e.Handle, "GetCounter", nil)
+	return mod.FireInput(e.Handle, "GetCounter", nil, nil)
 }
 
 func (e CEnvGlobal) InputRemove() (bool, error) {
-	return mod.FireInput(e.Handle, "Remove", nil)
+	return mod.FireInput(e.Handle, "Remove", nil, nil)
 }
 
 func (e CEnvGlobal) InputSetCounter(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetCounter", value)
+	return mod.FireInput(e.Handle, "SetCounter", value, nil)
 }
 
 func (e CEnvGlobal) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CEnvGlobal) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CEnvGlobal) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputClearFollowMoverEntity() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearFollowMoverEntity", nil)
+	return mod.FireInput(e.Handle, "ClearFollowMoverEntity", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputClearStartFollowingClosestMover() (bool, error) {
-	return mod.FireInput(e.Handle, "ClearStartFollowingClosestMover", nil)
+	return mod.FireInput(e.Handle, "ClearStartFollowingClosestMover", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputFireUser1() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser1", nil)
+	return mod.FireInput(e.Handle, "FireUser1", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputFireUser2() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser2", nil)
+	return mod.FireInput(e.Handle, "FireUser2", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputFireUser3() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser3", nil)
+	return mod.FireInput(e.Handle, "FireUser3", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputFireUser4() (bool, error) {
-	return mod.FireInput(e.Handle, "FireUser4", nil)
+	return mod.FireInput(e.Handle, "FireUser4", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputSetMoverIndex(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMoverIndex", value)
+	return mod.FireInput(e.Handle, "SetMoverIndex", value, nil)
 }
 
 func (e CFuncMoverRouter) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 func (e CFuncMoverRouter) InputStart() (bool, error) {
-	return mod.FireInput(e.Handle, "Start", nil)
+	return mod.FireInput(e.Handle, "Start", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputStartForward() (bool, error) {
-	return mod.FireInput(e.Handle, "StartForward", nil)
+	return mod.FireInput(e.Handle, "StartForward", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputStartReverse() (bool, error) {
-	return mod.FireInput(e.Handle, "StartReverse", nil)
+	return mod.FireInput(e.Handle, "StartReverse", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputStop() (bool, error) {
-	return mod.FireInput(e.Handle, "Stop", nil)
+	return mod.FireInput(e.Handle, "Stop", nil, nil)
 }
 
 func (e CFuncMoverRouter) InputStopImmediate() (bool, error) {
-	return mod.FireInput(e.Handle, "StopImmediate", nil)
+	return mod.FireInput(e.Handle, "StopImmediate", nil, nil)
 }
 
 func (e CInfoSpawnGroupLoadUnload) InputActivateSpawnGroup() (bool, error) {
-	return mod.FireInput(e.Handle, "ActivateSpawnGroup", nil)
+	return mod.FireInput(e.Handle, "ActivateSpawnGroup", nil, nil)
 }
 
 func (e CInfoSpawnGroupLoadUnload) InputSetSpawnGroup(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpawnGroup", value)
+	return mod.FireInput(e.Handle, "SetSpawnGroup", value, nil)
 }
 
 func (e CInfoSpawnGroupLoadUnload) InputStartSpawnGroupLoad() (bool, error) {
-	return mod.FireInput(e.Handle, "StartSpawnGroupLoad", nil)
+	return mod.FireInput(e.Handle, "StartSpawnGroupLoad", nil, nil)
 }
 
 func (e CInfoSpawnGroupLoadUnload) InputStartSpawnGroupUnload() (bool, error) {
-	return mod.FireInput(e.Handle, "StartSpawnGroupUnload", nil)
+	return mod.FireInput(e.Handle, "StartSpawnGroupUnload", nil, nil)
 }
 
 func (e CLogicAchievement) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CLogicAchievement) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicAchievement) InputFireEvent() (bool, error) {
-	return mod.FireInput(e.Handle, "FireEvent", nil)
+	return mod.FireInput(e.Handle, "FireEvent", nil, nil)
 }
 
 func (e CLogicAchievement) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CLogicActivityEvent) InputFireEvent() (bool, error) {
-	return mod.FireInput(e.Handle, "FireEvent", nil)
+	return mod.FireInput(e.Handle, "FireEvent", nil, nil)
 }
 
 func (e CLogicAutosave) InputSave() (bool, error) {
-	return mod.FireInput(e.Handle, "Save", nil)
+	return mod.FireInput(e.Handle, "Save", nil, nil)
 }
 
 func (e CLogicAutosave) InputSaveDangerous(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SaveDangerous", value)
+	return mod.FireInput(e.Handle, "SaveDangerous", value, nil)
 }
 
 func (e CLogicAutosave) InputSetMinHitpointsThreshold(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMinHitpointsThreshold", value)
+	return mod.FireInput(e.Handle, "SetMinHitpointsThreshold", value, nil)
 }
 
 func (e CLogicActiveAutosave) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CLogicActiveAutosave) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicBranch) InputSetValue(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetValue", value)
+	return mod.FireInput(e.Handle, "SetValue", value, nil)
 }
 
 func (e CLogicBranch) InputSetValueTest(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetValueTest", value)
+	return mod.FireInput(e.Handle, "SetValueTest", value, nil)
 }
 
 func (e CLogicBranch) InputTest() (bool, error) {
-	return mod.FireInput(e.Handle, "Test", nil)
+	return mod.FireInput(e.Handle, "Test", nil, nil)
 }
 
 func (e CLogicBranch) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CLogicBranch) InputToggleTest() (bool, error) {
-	return mod.FireInput(e.Handle, "ToggleTest", nil)
+	return mod.FireInput(e.Handle, "ToggleTest", nil, nil)
 }
 
 func (e CLogicBranchList) InputTest() (bool, error) {
-	return mod.FireInput(e.Handle, "Test", nil)
+	return mod.FireInput(e.Handle, "Test", nil, nil)
 }
 
 func (e CLogicBranchList) Input_OnLogicBranchChanged() (bool, error) {
-	return mod.FireInput(e.Handle, "_OnLogicBranchChanged", nil)
+	return mod.FireInput(e.Handle, "_OnLogicBranchChanged", nil, nil)
 }
 
 func (e CLogicBranchList) Input_OnLogicBranchRemoved() (bool, error) {
-	return mod.FireInput(e.Handle, "_OnLogicBranchRemoved", nil)
+	return mod.FireInput(e.Handle, "_OnLogicBranchRemoved", nil, nil)
 }
 
 func (e CLogicCase) InputPickRandom() (bool, error) {
-	return mod.FireInput(e.Handle, "PickRandom", nil)
+	return mod.FireInput(e.Handle, "PickRandom", nil, nil)
 }
 
 func (e CLogicCase) InputPickRandomShuffle() (bool, error) {
-	return mod.FireInput(e.Handle, "PickRandomShuffle", nil)
+	return mod.FireInput(e.Handle, "PickRandomShuffle", nil, nil)
 }
 
 func (e CLogicCase) InputResetShuffle() (bool, error) {
-	return mod.FireInput(e.Handle, "ResetShuffle", nil)
+	return mod.FireInput(e.Handle, "ResetShuffle", nil, nil)
 }
 
 func (e CLogicCollisionPair) InputDisableCollisions() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableCollisions", nil)
+	return mod.FireInput(e.Handle, "DisableCollisions", nil, nil)
 }
 
 func (e CLogicCollisionPair) InputDisableCollisionsWith(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "DisableCollisionsWith", value)
+	return mod.FireInput(e.Handle, "DisableCollisionsWith", value, nil)
 }
 
 func (e CLogicCollisionPair) InputEnableCollisions() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableCollisions", nil)
+	return mod.FireInput(e.Handle, "EnableCollisions", nil, nil)
 }
 
 func (e CLogicCompare) InputCompare() (bool, error) {
-	return mod.FireInput(e.Handle, "Compare", nil)
+	return mod.FireInput(e.Handle, "Compare", nil, nil)
 }
 
 func (e CLogicCompare) InputSetCompareValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetCompareValue", value)
+	return mod.FireInput(e.Handle, "SetCompareValue", value, nil)
 }
 
 func (e CLogicCompare) InputSetValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetValue", value)
+	return mod.FireInput(e.Handle, "SetValue", value, nil)
 }
 
 func (e CLogicCompare) InputSetValueCompare(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetValueCompare", value)
+	return mod.FireInput(e.Handle, "SetValueCompare", value, nil)
 }
 
 func (e CLogicDistanceAutosave) InputSave() (bool, error) {
-	return mod.FireInput(e.Handle, "Save", nil)
+	return mod.FireInput(e.Handle, "Save", nil, nil)
 }
 
 func (e CLogicDistanceAutosave) InputSaveDangerous(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SaveDangerous", value)
+	return mod.FireInput(e.Handle, "SaveDangerous", value, nil)
 }
 
 func (e CLogicDistanceCheck) InputCheckDistance() (bool, error) {
-	return mod.FireInput(e.Handle, "CheckDistance", nil)
+	return mod.FireInput(e.Handle, "CheckDistance", nil, nil)
 }
 
 func (e CLogicGameEvent) InputFireEvent() (bool, error) {
-	return mod.FireInput(e.Handle, "FireEvent", nil)
+	return mod.FireInput(e.Handle, "FireEvent", nil, nil)
 }
 
 func (e CLogicGameEventListener) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CLogicGameEventListener) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicGameEventListener) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CLogicMeasureMovement) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CLogicMeasureMovement) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicMeasureMovement) InputSetMeasureReference(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMeasureReference", value)
+	return mod.FireInput(e.Handle, "SetMeasureReference", value, nil)
 }
 
 func (e CLogicMeasureMovement) InputSetMeasureTarget(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMeasureTarget", value)
+	return mod.FireInput(e.Handle, "SetMeasureTarget", value, nil)
 }
 
 func (e CLogicMeasureMovement) InputSetTarget(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTarget", value)
+	return mod.FireInput(e.Handle, "SetTarget", value, nil)
 }
 
 func (e CLogicMeasureMovement) InputSetTargetReference(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTargetReference", value)
+	return mod.FireInput(e.Handle, "SetTargetReference", value, nil)
 }
 
 func (e CLogicMeasureMovement) InputSetTargetScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTargetScale", value)
+	return mod.FireInput(e.Handle, "SetTargetScale", value, nil)
 }
 
 func (e CLogicNavigation) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CLogicNavigation) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CLogicNavigation) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 // InputCancelPending sends CancelPending. Cancel any events fired by this relay
 // that are currently pending in the I/O event queue.
 func (e CLogicRelay) InputCancelPending() (bool, error) {
-	return mod.FireInput(e.Handle, "CancelPending", nil)
+	return mod.FireInput(e.Handle, "CancelPending", nil, nil)
 }
 
 // InputDisable sends Disable. Disable this entity.
 func (e CLogicRelay) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 // InputEnable sends Enable. Enable this entity.
 func (e CLogicRelay) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CLogicRelay) InputEnableRefire() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableRefire", nil)
+	return mod.FireInput(e.Handle, "EnableRefire", nil, nil)
 }
 
 // InputToggle sends Toggle. Toggle the relay between enabled and disabled.
 func (e CLogicRelay) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 // InputTrigger sends Trigger. Trigger the relay, causing its OnTrigger output
 // to fire if it is enabled.
 func (e CLogicRelay) InputTrigger() (bool, error) {
-	return mod.FireInput(e.Handle, "Trigger", nil)
+	return mod.FireInput(e.Handle, "Trigger", nil, nil)
 }
 
 func (e CMathColorBlend) InputInValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "InValue", value)
+	return mod.FireInput(e.Handle, "InValue", value, nil)
 }
 
 func (e CMathCounter) InputAdd(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Add", value)
+	return mod.FireInput(e.Handle, "Add", value, nil)
 }
 
 func (e CMathCounter) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CMathCounter) InputDivide(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Divide", value)
+	return mod.FireInput(e.Handle, "Divide", value, nil)
 }
 
 func (e CMathCounter) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CMathCounter) InputGetValue() (bool, error) {
-	return mod.FireInput(e.Handle, "GetValue", nil)
+	return mod.FireInput(e.Handle, "GetValue", nil, nil)
 }
 
 func (e CMathCounter) InputMultiply(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Multiply", value)
+	return mod.FireInput(e.Handle, "Multiply", value, nil)
 }
 
 func (e CMathCounter) InputSetHitMax(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHitMax", value)
+	return mod.FireInput(e.Handle, "SetHitMax", value, nil)
 }
 
 func (e CMathCounter) InputSetHitMin(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHitMin", value)
+	return mod.FireInput(e.Handle, "SetHitMin", value, nil)
 }
 
 func (e CMathCounter) InputSetValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetValue", value)
+	return mod.FireInput(e.Handle, "SetValue", value, nil)
 }
 
 func (e CMathCounter) InputSetValueNoFire(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetValueNoFire", value)
+	return mod.FireInput(e.Handle, "SetValueNoFire", value, nil)
 }
 
 func (e CMathCounter) InputSubtract(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "Subtract", value)
+	return mod.FireInput(e.Handle, "Subtract", value, nil)
 }
 
 func (e CMathRemap) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CMathRemap) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CMathRemap) InputInValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "InValue", value)
+	return mod.FireInput(e.Handle, "InValue", value, nil)
 }
 
 func (e CMultiLightProxy) InputDisableLights(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "DisableLights", value)
+	return mod.FireInput(e.Handle, "DisableLights", value, nil)
 }
 
 func (e CMultiLightProxy) InputFlickerLights(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "FlickerLights", value)
+	return mod.FireInput(e.Handle, "FlickerLights", value, nil)
 }
 
 func (e CMultiLightProxy) InputSetBrightnessDelta(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetBrightnessDelta", value)
+	return mod.FireInput(e.Handle, "SetBrightnessDelta", value, nil)
 }
 
 func (e CMultiLightProxy) InputSetLightsBrightnessMultiplier(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLightsBrightnessMultiplier", value)
+	return mod.FireInput(e.Handle, "SetLightsBrightnessMultiplier", value, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputForceSpawn() (bool, error) {
-	return mod.FireInput(e.Handle, "ForceSpawn", nil)
+	return mod.FireInput(e.Handle, "ForceSpawn", nil, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputRemoveFromTemplate(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "RemoveFromTemplate", value)
+	return mod.FireInput(e.Handle, "RemoveFromTemplate", value, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputSetPathNodeStart(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetPathNodeStart", value)
+	return mod.FireInput(e.Handle, "SetPathNodeStart", value, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputSpawn() (bool, error) {
-	return mod.FireInput(e.Handle, "Spawn", nil)
+	return mod.FireInput(e.Handle, "Spawn", nil, nil)
 }
 
 func (e CPathMoverEntitySpawner) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CPhysConstraint) InputBreak() (bool, error) {
-	return mod.FireInput(e.Handle, "Break", nil)
+	return mod.FireInput(e.Handle, "Break", nil, nil)
 }
 
 func (e CPhysConstraint) InputConstraintBroken() (bool, error) {
-	return mod.FireInput(e.Handle, "ConstraintBroken", nil)
+	return mod.FireInput(e.Handle, "ConstraintBroken", nil, nil)
 }
 
 func (e CPhysConstraint) InputDisableAngularConstraint() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableAngularConstraint", nil)
+	return mod.FireInput(e.Handle, "DisableAngularConstraint", nil, nil)
 }
 
 func (e CPhysConstraint) InputDisableLinearConstraint() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableLinearConstraint", nil)
+	return mod.FireInput(e.Handle, "DisableLinearConstraint", nil, nil)
 }
 
 func (e CPhysConstraint) InputEnableAngularConstraint() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableAngularConstraint", nil)
+	return mod.FireInput(e.Handle, "EnableAngularConstraint", nil, nil)
 }
 
 func (e CPhysConstraint) InputEnableLinearConstraint() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableLinearConstraint", nil)
+	return mod.FireInput(e.Handle, "EnableLinearConstraint", nil, nil)
 }
 
 func (e CPhysConstraint) InputSetMotorTargetVelocity(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMotorTargetVelocity", value)
+	return mod.FireInput(e.Handle, "SetMotorTargetVelocity", value, nil)
 }
 
 func (e CPhysConstraint) InputSetMotorTorqueFactor(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMotorTorqueFactor", value)
+	return mod.FireInput(e.Handle, "SetMotorTorqueFactor", value, nil)
 }
 
 func (e CPhysConstraint) InputTurnMotorOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnMotorOff", nil)
+	return mod.FireInput(e.Handle, "TurnMotorOff", nil, nil)
 }
 
 func (e CPhysConstraint) InputTurnMotorOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnMotorOn", nil)
+	return mod.FireInput(e.Handle, "TurnMotorOn", nil, nil)
 }
 
 func (e CPhysConstraint) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CPhysConstraint) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularDampingRatioX(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularDampingRatioX", value)
+	return mod.FireInput(e.Handle, "SetAngularDampingRatioX", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularDampingRatioY(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularDampingRatioY", value)
+	return mod.FireInput(e.Handle, "SetAngularDampingRatioY", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularDampingRatioZ(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularDampingRatioZ", value)
+	return mod.FireInput(e.Handle, "SetAngularDampingRatioZ", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularFrequencyX(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularFrequencyX", value)
+	return mod.FireInput(e.Handle, "SetAngularFrequencyX", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularFrequencyY(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularFrequencyY", value)
+	return mod.FireInput(e.Handle, "SetAngularFrequencyY", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularFrequencyZ(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularFrequencyZ", value)
+	return mod.FireInput(e.Handle, "SetAngularFrequencyZ", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularMotionLockedX(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularMotionLockedX", value)
+	return mod.FireInput(e.Handle, "SetAngularMotionLockedX", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularMotionLockedY(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularMotionLockedY", value)
+	return mod.FireInput(e.Handle, "SetAngularMotionLockedY", value, nil)
 }
 
 func (e CGenericConstraint) InputSetAngularMotionLockedZ(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularMotionLockedZ", value)
+	return mod.FireInput(e.Handle, "SetAngularMotionLockedZ", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearDampingRatioX(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearDampingRatioX", value)
+	return mod.FireInput(e.Handle, "SetLinearDampingRatioX", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearDampingRatioY(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearDampingRatioY", value)
+	return mod.FireInput(e.Handle, "SetLinearDampingRatioY", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearDampingRatioZ(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearDampingRatioZ", value)
+	return mod.FireInput(e.Handle, "SetLinearDampingRatioZ", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearFrequencyX(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearFrequencyX", value)
+	return mod.FireInput(e.Handle, "SetLinearFrequencyX", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearFrequencyY(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearFrequencyY", value)
+	return mod.FireInput(e.Handle, "SetLinearFrequencyY", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearFrequencyZ(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearFrequencyZ", value)
+	return mod.FireInput(e.Handle, "SetLinearFrequencyZ", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearMotionLockedX(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearMotionLockedX", value)
+	return mod.FireInput(e.Handle, "SetLinearMotionLockedX", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearMotionLockedY(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearMotionLockedY", value)
+	return mod.FireInput(e.Handle, "SetLinearMotionLockedY", value, nil)
 }
 
 func (e CGenericConstraint) InputSetLinearMotionLockedZ(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearMotionLockedZ", value)
+	return mod.FireInput(e.Handle, "SetLinearMotionLockedZ", value, nil)
 }
 
 func (e CPhysFixed) InputSetAngularDampingRatio(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularDampingRatio", value)
+	return mod.FireInput(e.Handle, "SetAngularDampingRatio", value, nil)
 }
 
 func (e CPhysFixed) InputSetAngularFrequency(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularFrequency", value)
+	return mod.FireInput(e.Handle, "SetAngularFrequency", value, nil)
 }
 
 func (e CPhysFixed) InputSetLinearDampingRatio(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearDampingRatio", value)
+	return mod.FireInput(e.Handle, "SetLinearDampingRatio", value, nil)
 }
 
 func (e CPhysFixed) InputSetLinearFrequency(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetLinearFrequency", value)
+	return mod.FireInput(e.Handle, "SetLinearFrequency", value, nil)
 }
 
 func (e CPhysHinge) InputSetAngularVelocity(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetAngularVelocity", value)
+	return mod.FireInput(e.Handle, "SetAngularVelocity", value, nil)
 }
 
 func (e CPhysHinge) InputSetHingeFriction(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetHingeFriction", value)
+	return mod.FireInput(e.Handle, "SetHingeFriction", value, nil)
 }
 
 func (e CPhysHinge) InputSetMaxLimit(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxLimit", value)
+	return mod.FireInput(e.Handle, "SetMaxLimit", value, nil)
 }
 
 func (e CPhysHinge) InputSetMinLimit(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMinLimit", value)
+	return mod.FireInput(e.Handle, "SetMinLimit", value, nil)
 }
 
 func (e CPhysHinge) InputSetMotorTargetAngle(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMotorTargetAngle", value)
+	return mod.FireInput(e.Handle, "SetMotorTargetAngle", value, nil)
 }
 
 func (e CPhysSlideConstraint) InputSetOffset(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOffset", value)
+	return mod.FireInput(e.Handle, "SetOffset", value, nil)
 }
 
 func (e CPhysSlideConstraint) InputSetSlideFriction(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSlideFriction", value)
+	return mod.FireInput(e.Handle, "SetSlideFriction", value, nil)
 }
 
 func (e CPhysSlideConstraint) InputSetVelocity(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetVelocity", value)
+	return mod.FireInput(e.Handle, "SetVelocity", value, nil)
 }
 
 func (e CPhysWheelConstraint) InputSetMaxSuspensionOffset(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxSuspensionOffset", value)
+	return mod.FireInput(e.Handle, "SetMaxSuspensionOffset", value, nil)
 }
 
 func (e CPhysWheelConstraint) InputSetMinSuspensionOffset(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMinSuspensionOffset", value)
+	return mod.FireInput(e.Handle, "SetMinSuspensionOffset", value, nil)
 }
 
 func (e CPhysWheelConstraint) InputSetSteeringMimicsEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSteeringMimicsEntity", value)
+	return mod.FireInput(e.Handle, "SetSteeringMimicsEntity", value, nil)
 }
 
 func (e CSplineConstraint) InputDisableLimit() (bool, error) {
-	return mod.FireInput(e.Handle, "DisableLimit", nil)
+	return mod.FireInput(e.Handle, "DisableLimit", nil, nil)
 }
 
 func (e CSplineConstraint) InputEnableLimit() (bool, error) {
-	return mod.FireInput(e.Handle, "EnableLimit", nil)
+	return mod.FireInput(e.Handle, "EnableLimit", nil, nil)
 }
 
 func (e CSplineConstraint) InputSetSplineEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSplineEntity", value)
+	return mod.FireInput(e.Handle, "SetSplineEntity", value, nil)
 }
 
 func (e CSplineConstraint) InputSetTransitionTime(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTransitionTime", value)
+	return mod.FireInput(e.Handle, "SetTransitionTime", value, nil)
 }
 
 func (e CPhysMotor) InputSetFriction(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFriction", value)
+	return mod.FireInput(e.Handle, "SetFriction", value, nil)
 }
 
 func (e CPhysMotor) InputSetSpeed(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpeed", value)
+	return mod.FireInput(e.Handle, "SetSpeed", value, nil)
 }
 
 // InputSetSpinDownTime sends SetSpinDownTime. Sets the time the motor takes to
 // spin down to a lesser target speed when it's on.
 func (e CPhysMotor) InputSetSpinDownTime(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpinDownTime", value)
+	return mod.FireInput(e.Handle, "SetSpinDownTime", value, nil)
 }
 
 // InputSetSpinUpTime sends SetSpinUpTime. Sets the time the motor takes to spin
 // up to a greater target speed when it's on.
 func (e CPhysMotor) InputSetSpinUpTime(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpinUpTime", value)
+	return mod.FireInput(e.Handle, "SetSpinUpTime", value, nil)
 }
 
 // InputSetSystemInertiaScale sends SetSystemInertiaScale. Sets the inertia
@@ -3542,166 +3542,166 @@ func (e CPhysMotor) InputSetSpinUpTime(value float32) (bool, error) {
 // generate (this will also affect the actual time the motor takes to spin up or
 // spin down).
 func (e CPhysMotor) InputSetSystemInertiaScale(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSystemInertiaScale", value)
+	return mod.FireInput(e.Handle, "SetSystemInertiaScale", value, nil)
 }
 
 func (e CPhysMotor) InputTurnOff() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOff", nil)
+	return mod.FireInput(e.Handle, "TurnOff", nil, nil)
 }
 
 func (e CPhysMotor) InputTurnOn() (bool, error) {
-	return mod.FireInput(e.Handle, "TurnOn", nil)
+	return mod.FireInput(e.Handle, "TurnOn", nil, nil)
 }
 
 // InputDeleteCreatedSpawnGroups sends DeleteCreatedSpawnGroups. Deletes all
 // spawn groups created by the template. Only works if you use asynchronous
 // spawn and INSERT_INTO_NEWLY_CREATED_SPAWN_GROUP.
 func (e CPointTemplate) InputDeleteCreatedSpawnGroups() (bool, error) {
-	return mod.FireInput(e.Handle, "DeleteCreatedSpawnGroups", nil)
+	return mod.FireInput(e.Handle, "DeleteCreatedSpawnGroups", nil, nil)
 }
 
 // InputForceSpawn sends ForceSpawn. Spawn an instance of the template at the
 // original position.
 func (e CPointTemplate) InputForceSpawn() (bool, error) {
-	return mod.FireInput(e.Handle, "ForceSpawn", nil)
+	return mod.FireInput(e.Handle, "ForceSpawn", nil, nil)
 }
 
 func (e CSceneListManager) InputShutdown() (bool, error) {
-	return mod.FireInput(e.Handle, "Shutdown", nil)
+	return mod.FireInput(e.Handle, "Shutdown", nil, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestBool(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestBool", value)
+	return mod.FireInput(e.Handle, "InternalTestBool", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestColor", value)
+	return mod.FireInput(e.Handle, "InternalTestColor", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestEntityName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestEntityName", value)
+	return mod.FireInput(e.Handle, "InternalTestEntityName", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestFloat(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestFloat", value)
+	return mod.FireInput(e.Handle, "InternalTestFloat", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestInt(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestInt", value)
+	return mod.FireInput(e.Handle, "InternalTestInt", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestString(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestString", value)
+	return mod.FireInput(e.Handle, "InternalTestString", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestVector(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestVector", value)
+	return mod.FireInput(e.Handle, "InternalTestVector", value, nil)
 }
 
 func (e CTestPulseIO) InputInternalTestVoid() (bool, error) {
-	return mod.FireInput(e.Handle, "InternalTestVoid", nil)
+	return mod.FireInput(e.Handle, "InternalTestVoid", nil, nil)
 }
 
 func (e CTestPulseIO) InputVariantBool(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "VariantBool", value)
+	return mod.FireInput(e.Handle, "VariantBool", value, nil)
 }
 
 func (e CTestPulseIO) InputVariantColor(value uint32) (bool, error) {
-	return mod.FireInput(e.Handle, "VariantColor", value)
+	return mod.FireInput(e.Handle, "VariantColor", value, nil)
 }
 
 func (e CTestPulseIO) InputVariantFloat(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "VariantFloat", value)
+	return mod.FireInput(e.Handle, "VariantFloat", value, nil)
 }
 
 func (e CTestPulseIO) InputVariantInt(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "VariantInt", value)
+	return mod.FireInput(e.Handle, "VariantInt", value, nil)
 }
 
 func (e CTestPulseIO) InputVariantString(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "VariantString", value)
+	return mod.FireInput(e.Handle, "VariantString", value, nil)
 }
 
 func (e CTestPulseIO) InputVariantVector(value *mod.Vector) (bool, error) {
-	return mod.FireInput(e.Handle, "VariantVector", value)
+	return mod.FireInput(e.Handle, "VariantVector", value, nil)
 }
 
 func (e CTestPulseIO) InputVariantVoid() (bool, error) {
-	return mod.FireInput(e.Handle, "VariantVoid", nil)
+	return mod.FireInput(e.Handle, "VariantVoid", nil, nil)
 }
 
 func (e CTimerEntity) InputAddToTimer(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "AddToTimer", value)
+	return mod.FireInput(e.Handle, "AddToTimer", value, nil)
 }
 
 func (e CTimerEntity) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CTimerEntity) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CTimerEntity) InputFireTimer() (bool, error) {
-	return mod.FireInput(e.Handle, "FireTimer", nil)
+	return mod.FireInput(e.Handle, "FireTimer", nil, nil)
 }
 
 func (e CTimerEntity) InputLowerRandomBound(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "LowerRandomBound", value)
+	return mod.FireInput(e.Handle, "LowerRandomBound", value, nil)
 }
 
 func (e CTimerEntity) InputPauseAfterFiring(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "PauseAfterFiring", value)
+	return mod.FireInput(e.Handle, "PauseAfterFiring", value, nil)
 }
 
 func (e CTimerEntity) InputPauseTimer() (bool, error) {
-	return mod.FireInput(e.Handle, "PauseTimer", nil)
+	return mod.FireInput(e.Handle, "PauseTimer", nil, nil)
 }
 
 func (e CTimerEntity) InputRefireTime(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "RefireTime", value)
+	return mod.FireInput(e.Handle, "RefireTime", value, nil)
 }
 
 func (e CTimerEntity) InputResetTimer() (bool, error) {
-	return mod.FireInput(e.Handle, "ResetTimer", nil)
+	return mod.FireInput(e.Handle, "ResetTimer", nil, nil)
 }
 
 func (e CTimerEntity) InputSubtractFromTimer(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SubtractFromTimer", value)
+	return mod.FireInput(e.Handle, "SubtractFromTimer", value, nil)
 }
 
 func (e CTimerEntity) InputToggle() (bool, error) {
-	return mod.FireInput(e.Handle, "Toggle", nil)
+	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
 func (e CTimerEntity) InputUnpauseTimer() (bool, error) {
-	return mod.FireInput(e.Handle, "UnpauseTimer", nil)
+	return mod.FireInput(e.Handle, "UnpauseTimer", nil, nil)
 }
 
 func (e CTimerEntity) InputUpperRandomBound(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "UpperRandomBound", value)
+	return mod.FireInput(e.Handle, "UpperRandomBound", value, nil)
 }
 
 func (e CTimerEntity) InputUseRandomTime(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "UseRandomTime", value)
+	return mod.FireInput(e.Handle, "UseRandomTime", value, nil)
 }
 
 // InputSetSpawningEnabled sends SetSpawningEnabled. Enable or disable spawning
 // from this point.
 func (e CInfoTrooperSpawn) InputSetSpawningEnabled(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSpawningEnabled", value)
+	return mod.FireInput(e.Handle, "SetSpawningEnabled", value, nil)
 }
 
 // InputTeleport sends Teleport. Teleport the target entity.
 func (e CPointTeleport) InputTeleport() (bool, error) {
-	return mod.FireInput(e.Handle, "Teleport", nil)
+	return mod.FireInput(e.Handle, "Teleport", nil, nil)
 }
 
 // InputTeleportEntity sends TeleportEntity. Teleport the entity specified by
 // the parameter override. Use this to teleport an entity other than the one
 // specified in the Entity To Teleport field.
 func (e CPointTeleport) InputTeleportEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TeleportEntity", value)
+	return mod.FireInput(e.Handle, "TeleportEntity", value, nil)
 }
 
 // InputTeleportEntityToCurrentPos sends TeleportEntityToCurrentPos. Teleport
@@ -3709,7 +3709,7 @@ func (e CPointTeleport) InputTeleportEntity(value string) (bool, error) {
 // entity is currently. The Teleport input teleports to the current position of
 // the point_teleport.
 func (e CPointTeleport) InputTeleportEntityToCurrentPos(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "TeleportEntityToCurrentPos", value)
+	return mod.FireInput(e.Handle, "TeleportEntityToCurrentPos", value, nil)
 }
 
 // InputTeleportToCurrentPos sends TeleportToCurrentPos. Teleport the target
@@ -3717,161 +3717,161 @@ func (e CPointTeleport) InputTeleportEntityToCurrentPos(value string) (bool, err
 // teleports to the initial position of the point_teleport, so this input was
 // added to avoid breaking old content.
 func (e CPointTeleport) InputTeleportToCurrentPos() (bool, error) {
-	return mod.FireInput(e.Handle, "TeleportToCurrentPos", nil)
+	return mod.FireInput(e.Handle, "TeleportToCurrentPos", nil, nil)
 }
 
 func (e CSkyCamera) InputActivateSkybox() (bool, error) {
-	return mod.FireInput(e.Handle, "ActivateSkybox", nil)
+	return mod.FireInput(e.Handle, "ActivateSkybox", nil, nil)
 }
 
 func (e CSoundAreaEntityBase) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CSoundAreaEntityBase) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CSoundEventEntity) InputPauseSound(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "PauseSound", value)
+	return mod.FireInput(e.Handle, "PauseSound", value, nil)
 }
 
 func (e CSoundEventEntity) InputSetSoundEventName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSoundEventName", value)
+	return mod.FireInput(e.Handle, "SetSoundEventName", value, nil)
 }
 
 func (e CSoundEventEntity) InputSetSourceEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSourceEntity", value)
+	return mod.FireInput(e.Handle, "SetSourceEntity", value, nil)
 }
 
 func (e CSoundEventEntity) InputStartSound(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "StartSound", value)
+	return mod.FireInput(e.Handle, "StartSound", value, nil)
 }
 
 func (e CSoundEventEntity) InputStartSoundOnSingleClient(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "StartSoundOnSingleClient", value)
+	return mod.FireInput(e.Handle, "StartSoundOnSingleClient", value, nil)
 }
 
 func (e CSoundEventEntity) InputStopSound() (bool, error) {
-	return mod.FireInput(e.Handle, "StopSound", nil)
+	return mod.FireInput(e.Handle, "StopSound", nil, nil)
 }
 
 func (e CSoundEventEntity) InputUnPauseSound(value bool) (bool, error) {
-	return mod.FireInput(e.Handle, "UnPauseSound", value)
+	return mod.FireInput(e.Handle, "UnPauseSound", value, nil)
 }
 
 func (e CSoundEventParameter) InputSetFloatValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetFloatValue", value)
+	return mod.FireInput(e.Handle, "SetFloatValue", value, nil)
 }
 
 func (e CSoundEventParameter) InputSetParamName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetParamName", value)
+	return mod.FireInput(e.Handle, "SetParamName", value, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputChangeOpvarValue(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeOpvarValue", value)
+	return mod.FireInput(e.Handle, "ChangeOpvarValue", value, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputChangeOpvarValueAndSet(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "ChangeOpvarValueAndSet", value)
+	return mod.FireInput(e.Handle, "ChangeOpvarValueAndSet", value, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputSetOperatorName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOperatorName", value)
+	return mod.FireInput(e.Handle, "SetOperatorName", value, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputSetOpvar() (bool, error) {
-	return mod.FireInput(e.Handle, "SetOpvar", nil)
+	return mod.FireInput(e.Handle, "SetOpvar", nil, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputSetOpvarIndex(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOpvarIndex", value)
+	return mod.FireInput(e.Handle, "SetOpvarIndex", value, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputSetOpvarName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOpvarName", value)
+	return mod.FireInput(e.Handle, "SetOpvarName", value, nil)
 }
 
 func (e CSoundOpvarSetEntity) InputSetStackName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStackName", value)
+	return mod.FireInput(e.Handle, "SetStackName", value, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputSetOperatorName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOperatorName", value)
+	return mod.FireInput(e.Handle, "SetOperatorName", value, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputSetOpvarIndex(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOpvarIndex", value)
+	return mod.FireInput(e.Handle, "SetOpvarIndex", value, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputSetOpvarName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetOpvarName", value)
+	return mod.FireInput(e.Handle, "SetOpvarName", value, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputSetSourceEntity(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSourceEntity", value)
+	return mod.FireInput(e.Handle, "SetSourceEntity", value, nil)
 }
 
 func (e CSoundOpvarSetPointBase) InputSetStackName(value string) (bool, error) {
-	return mod.FireInput(e.Handle, "SetStackName", value)
+	return mod.FireInput(e.Handle, "SetStackName", value, nil)
 }
 
 func (e CSoundOpvarSetPointEntity) InputSetDisabledValue() (bool, error) {
-	return mod.FireInput(e.Handle, "SetDisabledValue", nil)
+	return mod.FireInput(e.Handle, "SetDisabledValue", nil, nil)
 }
 
 func (e CSoundOpvarSetPointEntity) InputSetDistanceMapMax(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDistanceMapMax", value)
+	return mod.FireInput(e.Handle, "SetDistanceMapMax", value, nil)
 }
 
 func (e CSoundOpvarSetPointEntity) InputSetDistanceMapMin(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetDistanceMapMin", value)
+	return mod.FireInput(e.Handle, "SetDistanceMapMin", value, nil)
 }
 
 func (e CSoundOpvarSetDomeEntity) InputSetSize(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetSize", value)
+	return mod.FireInput(e.Handle, "SetSize", value, nil)
 }
 
 func (e CSoundOpvarSetDomeEntity) InputSetTotalDirections(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTotalDirections", value)
+	return mod.FireInput(e.Handle, "SetTotalDirections", value, nil)
 }
 
 func (e CSoundOpvarSetDomeEntity) InputSetTracesPerFrame(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetTracesPerFrame", value)
+	return mod.FireInput(e.Handle, "SetTracesPerFrame", value, nil)
 }
 
 func (e CSoundOpvarSetPrecipitationEntity) InputSetMode(value int32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMode", value)
+	return mod.FireInput(e.Handle, "SetMode", value, nil)
 }
 
 func (e CTonemapController2) InputDisable() (bool, error) {
-	return mod.FireInput(e.Handle, "Disable", nil)
+	return mod.FireInput(e.Handle, "Disable", nil, nil)
 }
 
 func (e CTonemapController2) InputEnable() (bool, error) {
-	return mod.FireInput(e.Handle, "Enable", nil)
+	return mod.FireInput(e.Handle, "Enable", nil, nil)
 }
 
 func (e CTonemapController2) InputSetExposureAdaptationSpeedDown(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetExposureAdaptationSpeedDown", value)
+	return mod.FireInput(e.Handle, "SetExposureAdaptationSpeedDown", value, nil)
 }
 
 func (e CTonemapController2) InputSetExposureAdaptationSpeedUp(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetExposureAdaptationSpeedUp", value)
+	return mod.FireInput(e.Handle, "SetExposureAdaptationSpeedUp", value, nil)
 }
 
 func (e CTonemapController2) InputSetMaxExposure(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMaxExposure", value)
+	return mod.FireInput(e.Handle, "SetMaxExposure", value, nil)
 }
 
 func (e CTonemapController2) InputSetMinExposure(value float32) (bool, error) {
-	return mod.FireInput(e.Handle, "SetMinExposure", value)
+	return mod.FireInput(e.Handle, "SetMinExposure", value, nil)
 }

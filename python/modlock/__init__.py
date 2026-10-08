@@ -2271,6 +2271,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "entity", "uint32"),
             wire.Field(2, "input", "string"),
             wire.Field(3, "value", "message", optional=True, message="EntityValue"),
+            wire.Field(4, "activator", "uint32", optional=True),
         ],
     ),
     "NpcOptions": (
@@ -2662,12 +2663,12 @@ def create_entity(options: EntityOptions) -> int | None:
     return response["entity"]
 
 
-def fire_input(entity: int, input: str, value: EntityValue | None = None) -> bool:
+def fire_input(entity: int, input: str, value: EntityValue | None = None, activator: int | None = None) -> bool:
     """fire_input sends an input to a live entity, as a map's output would, such
     as Skin with the integer 1. The value must have the type the input reads.
     It reports false once the entity is gone.
     """
-    response = _call("FireInput", "FireInputRequest", {"entity": entity, "input": input, "value": value}, "AliveResponse")
+    response = _call("FireInput", "FireInputRequest", {"entity": entity, "input": input, "value": value, "activator": activator}, "AliveResponse")
     if response is None:
         return False
     return response["alive"]

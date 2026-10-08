@@ -4847,6 +4847,10 @@ type FireInputRequest struct {
 	Input string `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`
 	// Value is the input's parameter, absent for an input that takes none.
 	Value *EntityValue `protobuf:"bytes,3,opt,name=value,proto3,oneof" json:"value,omitempty"`
+	// Activator is the handle of the entity that caused the input, such as a
+	// player's hero. Inputs that act on one player, such as
+	// LocalPlayerAddCSSClass, act on the activator's player.
+	Activator *uint32 `protobuf:"varint,4,opt,name=activator,proto3,oneof" json:"activator,omitempty"`
 }
 
 func (x *FireInputRequest) Reset() {
@@ -4874,6 +4878,13 @@ func (x *FireInputRequest) GetValue() *EntityValue {
 		return x.Value
 	}
 	return nil
+}
+
+func (x *FireInputRequest) GetActivator() uint32 {
+	if x != nil && x.Activator != nil {
+		return *x.Activator
+	}
+	return 0
 }
 
 // NpcOptions describes a unit that is not a player, such as a trooper.
@@ -8467,6 +8478,7 @@ func (m *FireInputRequest) CloneVT() *FireInputRequest {
 	r.Entity = m.Entity
 	r.Input = m.Input
 	r.Value = protobuf_go_lite.CloneVTValue(m.Value)
+	r.Activator = protobuf_go_lite.ClonePtr(m.Activator)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -12083,6 +12095,9 @@ func (this *FireInputRequest) EqualVT(that *FireInputRequest) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Value, that.Value) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Activator, that.Activator) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -20134,6 +20149,11 @@ func (x *FireInputRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("value")
 		x.Value.MarshalProtoJSON(s.WithField("value"))
 	}
+	if x.Activator != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("activator")
+		s.WriteUint32(*x.Activator)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -20164,6 +20184,14 @@ func (x *FireInputRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Value = &EntityValue{}
 			x.Value.UnmarshalProtoJSON(s.WithField("value", true))
+		case "activator":
+			s.AddField("activator")
+			if s.ReadNil() {
+				x.Activator = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Activator = &t
 		}
 	})
 }
@@ -28597,6 +28625,11 @@ func (m *FireInputRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Activator != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Activator))
+		i--
+		dAtA[i] = 0x20
+	}
 	if m.Value != nil {
 		size, err := m.Value.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -32255,6 +32288,7 @@ func (m *FireInputRequest) SizeVT() (n int) {
 		l = m.Value.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Activator)
 	n += len(m.unknownFields)
 	return n
 }
@@ -35252,6 +35286,10 @@ func (x *FireInputRequest) MarshalProtoText() string {
 	if x.Value != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Value)
+	}
+	if x.Activator != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "activator")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Activator)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -44405,6 +44443,16 @@ func (m *FireInputRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Activator", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Activator = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

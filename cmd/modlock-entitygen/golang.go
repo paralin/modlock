@@ -129,7 +129,7 @@ func writeGo(s *schema, classes []*class, e *entities, c *console) map[string][]
 				parameter, argument = "value "+goValues[in.value], "value"
 			}
 			fmt.Fprintf(&out, "func (e %s) %s(%s) (bool, error) {\n", c.name, method, parameter)
-			fmt.Fprintf(&out, "\treturn mod.FireInput(e.Handle, %q, %s)\n}\n", in.name, argument)
+			fmt.Fprintf(&out, "\treturn mod.FireInput(e.Handle, %q, %s, nil)\n}\n", in.name, argument)
 		}
 	}
 	files["entity/inputs.go"] = goSource("entity", out.Bytes(), true)

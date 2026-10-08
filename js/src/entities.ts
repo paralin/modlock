@@ -36,7 +36,8 @@ const classes: Record<string, Class> = {}
  * define installs the field accessors and input methods of make, the class
  * named className. Each field maps to its FieldType, angles, or the class name
  * of the entity its handle names. Each input maps to the case of EntityValue
- * it sends, or to the empty string for none.
+ * it sends, or to the empty string for none. An input method takes its value,
+ * if any, then the optional handle of the entity that caused the input.
  */
 function define(
   make: Class,
@@ -49,11 +50,14 @@ function define(
     Object.defineProperty(make.prototype, field, accessor(className, field, type))
   }
   for (const [input, value] of Object.entries(inputs)) {
-    Object.defineProperty(make.prototype, 'input' + input, {
-      value(this: CEntityInstance, argument?: unknown): boolean {
-        return fireInput(this.handle, input, value ? ({ [value]: argument } as EntityValue) : undefined)
-      },
-    })
+    const send = value
+      ? function (this: CEntityInstance, argument: unknown, activator?: number): boolean {
+          return fireInput(this.handle, input, { [value]: argument } as EntityValue, activator)
+        }
+      : function (this: CEntityInstance, activator?: number): boolean {
+          return fireInput(this.handle, input, undefined, activator)
+        }
+    Object.defineProperty(make.prototype, 'input' + input, { value: send })
   }
 }
 
@@ -157,11 +161,15 @@ type Fields<T> = {
   -readonly [K in keyof T as T[K] extends 'string' ? never : K]: FieldOf<T[K]> | undefined
 } & { readonly [K in keyof T as T[K] extends 'string' ? K : never]: string | undefined }
 
-/** Inputs declares the input methods a table installs. */
+/**
+ * Inputs declares the input methods a table installs. activator is the handle
+ * of the entity that caused the input, such as a player's hero; inputs that
+ * act on one player, such as LocalPlayerAddCSSClass, act on its player.
+ */
 type Inputs<T> = {
   readonly [K in keyof T as `input${K & string}`]: T[K] extends keyof KeyTypes
-    ? (value: KeyTypes[T[K]]) => boolean
-    : () => boolean
+    ? (value: KeyTypes[T[K]], activator?: number) => boolean
+    : (activator?: number) => boolean
 }
 
 /** Typed is the type of the key values a table of key types takes. */

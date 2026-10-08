@@ -1778,7 +1778,10 @@ std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOption
 std::expected<AliveResponse, std::string> Game::FireInput(const FireInputRequest& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
-  return Alive((*world)->FireInput(request.entity(), request.input(), Value(request.value())));
+  std::optional<uint32_t> activator;
+  if (request.has_activator()) activator = request.activator();
+  return Alive(
+      (*world)->FireInput(request.entity(), request.input(), Value(request.value()), activator));
 }
 
 std::expected<AliveResponse, std::string> Game::RemoveEntity(const EntityRequest& request) {

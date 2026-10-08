@@ -2010,6 +2010,7 @@ schema.FireInputRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
 	{ number = 2, name = "input", kind = "string" },
 	{ number = 3, name = "value", kind = "message", optional = true, message = "EntityValue" },
+	{ number = 4, name = "activator", kind = "uint32", optional = true },
 }
 schema.NpcOptions = {
 	{ number = 1, name = "className", kind = "string" },
@@ -2317,8 +2318,8 @@ end
 -- fireInput sends an input to a live entity, as a map's output would, such
 -- as Skin with the integer 1. The value must have the type the input reads.
 -- It reports false once the entity is gone.
-function modlock.fireInput(entity: number, input: string, value: EntityValue?): boolean
-	local response = call("FireInput", "FireInputRequest", { entity = entity, input = input, value = value }, "AliveResponse")
+function modlock.fireInput(entity: number, input: string, value: EntityValue?, activator: number?): boolean
+	local response = call("FireInput", "FireInputRequest", { entity = entity, input = input, value = value, activator = activator }, "AliveResponse")
 	if response == nil then
 		return false
 	end

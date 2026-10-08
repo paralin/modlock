@@ -1860,6 +1860,11 @@ message FireInputRequest {
 
   // Value is the input's parameter, absent for an input that takes none.
   optional EntityValue value = 3;
+
+  // Activator is the handle of the entity that caused the input, such as a
+  // player's hero. Inputs that act on one player, such as
+  // LocalPlayerAddCSSClass, act on the activator's player.
+  optional uint32 activator = 4;
 }
 
 // NpcOptions describes a unit that is not a player, such as a trooper.

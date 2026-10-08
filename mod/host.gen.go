@@ -815,8 +815,8 @@ func CreateEntity(options *EntityOptions) (uint32, error) {
 // FireInput sends an input to a live entity, as a map's output would, such
 // as Skin with the integer 1. The value must have the type the input reads.
 // It reports false once the entity is gone.
-func FireInput(entity uint32, input string, value any) (bool, error) {
-	request := &wasm.FireInputRequest{Entity: entity, Input: input}
+func FireInput(entity uint32, input string, value any, activator *uint32) (bool, error) {
+	request := &wasm.FireInputRequest{Entity: entity, Input: input, Activator: activator}
 	if value != nil {
 		encoded, err := toEntityValue(value)
 		if err != nil {

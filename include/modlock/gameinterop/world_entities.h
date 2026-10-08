@@ -96,11 +96,13 @@ class MODLOCK_API WorldEntities {
                                                     const Prepare& prepare = {});
   // FireInput sends input to one live entity, as a map's output would, with
   // value as its parameter, absent for an input that takes none. The value
-  // must have the type the input reads; the game does not convert it. It
-  // returns false when the entity is gone and an error when the entity
-  // refuses the input.
+  // must have the type the input reads; the game does not convert it. The
+  // activator, a handle, is the entity that caused the input. It returns
+  // false when the entity is gone and an error when the activator is gone or
+  // the entity refuses the input.
   std::expected<bool, std::string> FireInput(uint32_t handle, const std::string& input,
-                                             const std::optional<EntityValue>& value);
+                                             const std::optional<EntityValue>& value,
+                                             std::optional<uint32_t> activator = {});
   // RemoveEntity deletes one live entity through UTIL_Remove without rewards.
   // It returns false when the handle no longer names one.
   std::expected<bool, std::string> RemoveEntity(uint32_t handle);

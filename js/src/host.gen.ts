@@ -2075,8 +2075,8 @@ export function createEntity(options: EntityOptions): number | undefined {
  * as Skin with the integer 1. The value must have the type the input reads.
  * It reports false once the entity is gone.
  */
-export function fireInput(entity: number, input: string, value?: EntityValue): boolean {
-  const reply = call('FireInput', pb.FireInputRequest.toBinary({ entity, input, value: value === undefined ? undefined : toEntityValue(value) }))
+export function fireInput(entity: number, input: string, value?: EntityValue, activator?: number): boolean {
+  const reply = call('FireInput', pb.FireInputRequest.toBinary({ entity, input, value: value === undefined ? undefined : toEntityValue(value), activator }))
   if (reply === undefined) return false
   const response = pb.AliveResponse.fromBinary(reply)
   return response.alive ?? false

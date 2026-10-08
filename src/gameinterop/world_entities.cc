@@ -441,11 +441,17 @@ std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
 }
 
 std::expected<bool, std::string> WorldEntities::FireInput(uint32_t handle, const std::string& input,
-                                                          const std::optional<EntityValue>& value) {
+                                                          const std::optional<EntityValue>& value,
+                                                          std::optional<uint32_t> activator) {
   auto system = ResolveLiveEntitySystem();
   if (!system) return std::unexpected(system.error());
   void* entity = EntityInstance(*system, handle);
   if (!entity) return false;
+  void* cause = nullptr;
+  if (activator) {
+    cause = EntityInstance(*system, *activator);
+    if (!cause) return std::unexpected("the input's activator is gone");
+  }
 
   // The variant borrows a vector from value and text from a terminated copy.
   Variant variant;
@@ -476,7 +482,7 @@ std::expected<bool, std::string> WorldEntities::FireInput(uint32_t handle, const
         },
         *value);
   }
-  if (!calls_.accept_input(entity, input.c_str(), nullptr, nullptr, &variant, 0, nullptr))
+  if (!calls_.accept_input(entity, input.c_str(), cause, nullptr, &variant, 0, nullptr))
     return std::unexpected(DesignerName(entity) + " has no input " + input);
   return true;
 }

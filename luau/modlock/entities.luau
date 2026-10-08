@@ -130,8 +130,13 @@ local function describe(className: string, base: string?, entries: { [string]: s
 			end
 			local input, case = field.input, field.value
 			if input ~= nil then
-				return function(_: any, value: any): boolean
-					return modlock.fireInput(entity.handle, input, if case == nil then nil else { [case] = value } :: any)
+				if case == nil then
+					return function(_: any, activator: number?): boolean
+						return modlock.fireInput(entity.handle, input, nil, activator)
+					end
+				end
+				return function(_: any, value: any, activator: number?): boolean
+					return modlock.fireInput(entity.handle, input, { [case] = value } :: any, activator)
 				end
 			end
 			local value = modlock.readField(entity.handle, owner, name, field.type :: modlock.FieldType)
