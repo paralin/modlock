@@ -3,6 +3,8 @@
 #include <google/protobuf/json/json.h>
 
 #include <algorithm>
+#include <chrono>
+#include <format>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -278,10 +280,13 @@ class WasmPlugin final : public Plugin {
   // Attach takes the first loaded instance and the build it runs.
   void Attach(std::unique_ptr<wasm::Instance> instance, Build build) {
     instance_ = std::move(instance);
+    module_ = std::move(build.module);
     source_ = std::move(build.source);
     manifest_ = std::move(build.manifest);
     collision_ = std::move(build.collision);
     tuned_ = false;
+    restart_at_.reset();
+    stops_ = 0;
   }
 
   // Reload replaces the running instance with build and starts it, or keeps
@@ -343,6 +348,12 @@ class WasmPlugin final : public Plugin {
   // whether it started.
   std::expected<void, std::string> Begin(bool reloaded);
   void Halt();
+  // Recover schedules a stopped mod's restart: the first stop restarts it on
+  // the next frame, and each later stop of the same build waits twice as long
+  // as the one before, from a second up to a minute.
+  void Recover();
+  // Restart starts the stopped mod's build again in a new instance.
+  void Restart();
   void World();
   // SteamId returns the account of the player in slot, or zero for a bot or
   // an empty slot.
@@ -387,7 +398,9 @@ class WasmPlugin final : public Plugin {
   bool check_only_;
   std::vector<std::string> args_;
   std::unique_ptr<wasm::Instance> instance_;
-  // source_ is the running build's interpreted entry, sent at each start.
+  // module_ is the running build's WebAssembly, which a restart instantiates
+  // again; source_ is its interpreted entry, sent at each start.
+  std::vector<uint8_t> module_;
   std::vector<uint8_t> source_;
   // manifest_ and collision_ are the running build's; tuned_ is true once the
   // manifest's ability tuning is written.
@@ -398,6 +411,10 @@ class WasmPlugin final : public Plugin {
   // and waiting_ holds the newest build a reload brought meanwhile.
   bool held_ = false;
   std::optional<Build> waiting_;
+  // restart_at_ is when the stopped instance's build starts again, and stops_
+  // counts the build's stops.
+  std::optional<std::chrono::steady_clock::time_point> restart_at_;
+  int stops_ = 0;
   // movement_ steps every hero while a world is loaded. hero_slots_ maps
   // this frame's heroes to their slots, and floor_known_ is true once the
   // world entity under the heroes is.
@@ -597,6 +614,30 @@ void WasmPlugin::Halt() {
   for (const auto slot : ui_.Clear()) ShowUi(slot, reset);
 }
 
+void WasmPlugin::Recover() {
+  using std::chrono::seconds;
+  ++stops_;
+  const auto wait =
+      stops_ == 1 ? seconds{0} : std::min(seconds{1 << std::min(stops_ - 2, 6)}, seconds{60});
+  restart_at_ = std::chrono::steady_clock::now() + wait;
+  Log(std::format("restarts in {} s", wait.count()));
+}
+
+void WasmPlugin::Restart() {
+  // A build that no longer instantiates waits for its next turn.
+  restart_at_.reset();
+  auto instance = Instantiate(module_);
+  if (!instance) {
+    Failed("did not restart: " + instance.error());
+    Recover();
+    return;
+  }
+
+  // Start it in the running world; Send schedules the next try if it stops.
+  instance_ = std::move(*instance);
+  if (auto started = Begin(true); !started) Log("did not restart: " + started.error());
+}
+
 void WasmPlugin::World() {
   Move();
   floor_known_ = false;
@@ -615,6 +656,7 @@ void WasmPlugin::Tick() {
       Log("the waiting build did not load: " + reloaded.error());
     }
   }
+  if (restart_at_ && std::chrono::steady_clock::now() >= *restart_at_) Restart();
   if (!tuned_ && !check_only_) {
     tuned_ =
         Tune(L"server.dll", "server.dll", manifest_, [this](std::string_view text) { Log(text); });
@@ -640,6 +682,7 @@ void WasmPlugin::Tick() {
 
 void WasmPlugin::Stop() {
   waiting_.reset();
+  restart_at_.reset();
   world_.Reset();
   Halt();
   instance_.reset();
@@ -877,6 +920,7 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
       Failed("stopped: " + reply.error());
       Halt();
       instance_.reset();
+      Recover();
     }
     return reply;
   }

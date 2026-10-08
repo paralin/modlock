@@ -24,15 +24,15 @@ class MODLOCK_API WasmHostObserver {
  public:
   virtual ~WasmHostObserver() = default;
 
-  // Started reports a mod that started; reloaded is true when a new build
-  // replaced a running one.
+  // Started reports a mod that started; reloaded is true when it started
+  // again, for a new build or after it stopped.
   virtual void Started(std::string_view mod, bool reloaded) = 0;
 
   // Logged carries one line the mod logged.
   virtual void Logged(std::string_view mod, std::string_view text) = 0;
 
-  // Failed reports a mod that stopped. A reload that does not load is
-  // reported by Reload's result instead.
+  // Failed reports a mod that stopped, or whose restart failed. A reload that
+  // does not load is reported by Reload's result instead.
   virtual void Failed(std::string_view mod, std::string_view error) = 0;
 
   // Ui carries a change to the interface mod shows the player in slot. A mod
@@ -54,7 +54,9 @@ using WasmExtension = std::function<std::expected<std::string, std::string>(
 // WasmHost runs WebAssembly mods. Each mod runs in its own sandbox and reaches
 // the game only through the host requests in proto/modlock/wasm.proto. A trap
 // or an exhausted time or memory budget stops that mod with a log line; the
-// server keeps running. Mods share one Wasmtime engine, and identical module
+// server keeps running. A stopped mod clears what it placed and showed and
+// starts again: on the next frame after its build's first stop, then after a
+// wait that doubles with each stop, from a second up to a minute. Mods share one Wasmtime engine, and identical module
 // bytes compile once while a mod uses them, so the mods of one interpreted
 // language share one compiled interpreter.
 //

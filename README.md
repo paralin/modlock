@@ -48,7 +48,8 @@ command('hello', (player) => {
   has no files, network or environment, only the calls the schema offers. A
   crash, an endless loop, a runaway allocation or an event that holds the
   server past its time budget stops that mod with a log line and leaves the
-  match running.
+  match running. The stopped mod starts again on the next frame, and waits
+  longer after each later stop.
 - **Any language.** Anything that compiles to WebAssembly can be a mod, with a
   small library per language.
 - **Built once.** A mod is one portable `.wasm` file that runs on any build of
@@ -392,8 +393,10 @@ command('ready', (player) => match.ready(player))
 ```
 
 [`examples/arena`](examples/arena) is laid out this way. Each event runs within
-a 500 ms budget, which counts the game calls it makes, and a mod that overruns
-it stops for the rest of the match with a log line naming its slowest call.
+a 500 ms budget, which counts the game calls it makes. A mod that overruns it
+stops with a log line naming its slowest call, clears what it placed and shows,
+and starts again on the next frame, as a reload does. Each later stop of the
+same build waits twice as long before the restart, from a second up to a minute.
 
 ### 9. Test a whole round
 

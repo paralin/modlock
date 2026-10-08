@@ -1,7 +1,7 @@
 // Contract tests for extension services: the host calls a service a mod
 // serves, the mod calls a service the host provides, and each error reaches
 // the caller. A mod that holds its running build keeps it through a reload
-// until it releases the hold.
+// until it releases the hold. A mod that stops restarts with backoff.
 #include "modlock/wasm_host.h"
 
 #include <cctype>
@@ -100,6 +100,35 @@ TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {
   // Without a hold, a reload applies at once.
   ASSERT_TRUE(host.Reload(EXTENSION_GO_WASM));
   EXPECT_EQ(events.seen.back(), "reloaded");
+  (*plugin)->Stop();
+  host.Unobserve(&events);
+}
+
+TEST(WasmHost, StoppedModRestarts) {
+  WasmHost host({});
+  host.Provide("shout", Shout);
+  Events events;
+  host.Observe(&events);
+  auto plugin = host.Load(EXTENSION_GO_WASM, PluginContext{.check_only = true});
+  ASSERT_TRUE(plugin) << plugin.error();
+  ASSERT_TRUE((*plugin)->Start());
+
+  // The first stop restarts the mod on the next frame, serving again.
+  EXPECT_FALSE(host.Call("extension-go", "crash", "now", ""));
+  EXPECT_FALSE(host.Call("extension-go", "echo", "say", "hi"));
+  (*plugin)->Tick();
+  ASSERT_EQ(events.seen.size(), 3u);
+  EXPECT_TRUE(events.seen[1].starts_with("failed: stopped: "));
+  EXPECT_EQ(events.seen[2], "reloaded");
+  auto answer = host.Call("extension-go", "echo", "say", "hi");
+  ASSERT_TRUE(answer) << answer.error();
+  EXPECT_EQ(*answer, "SAY:HI");
+
+  // A second stop waits a second, so the next frame leaves it stopped.
+  EXPECT_FALSE(host.Call("extension-go", "crash", "now", ""));
+  (*plugin)->Tick();
+  EXPECT_EQ(events.seen.size(), 4u);
+  EXPECT_FALSE(host.Call("extension-go", "echo", "say", "hi"));
   (*plugin)->Stop();
   host.Unobserve(&events);
 }

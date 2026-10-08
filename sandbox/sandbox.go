@@ -300,8 +300,8 @@ func (s *Sandbox) frame(ctx context.Context, elapsed time.Duration) {
 }
 
 // deliver passes one event to a running mod and reports whether it handled
-// the event. A mod that traps or runs out of time stops, as in the host, and
-// waits for its next build.
+// the event. A mod that traps or runs out of time stops and waits for its next
+// build, so its author sees the failure; the host restarts it instead.
 func (s *Sandbox) deliver(ctx context.Context, mod *running, method string, request, response message) bool {
 	// Skip a mod that stopped.
 	if mod.mod == nil {
