@@ -1,5 +1,7 @@
 # Modlock
 
+[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/DCErWrCFvh)
+
 **Modlock** is the best tool for hand-writing the logic of [Deadlock] custom
 game modes. You write a mod in TypeScript, Luau or Python; Modlock builds it
 for WebAssembly, and the game server runs it in a secure sandbox. Every mod
@@ -92,10 +94,6 @@ has no hero. Type `/hello` and press Enter to send it as that player. The
 terminal shows the mod's log and the chat, toasts and announcements it sends.
 Calls that need the game, such as reading a hero's position, return nothing.
 `--sandbox` uses the sandbox even where the game is installed.
-
-With `--json`, a program such as an editor drives the sandbox: it sends each
-line of input as a `modlock.cli.Input` (a command or a button press) and draws
-the interface from the events it reads back.
 
 ### Commands
 
@@ -442,18 +440,12 @@ game's page, and the `github` destination uses them for a new release.
 ## The TypeScript library
 
 A TypeScript or JavaScript mod imports `modlock` and registers its handlers
-when it loads. `main.ts`, or `main.js`, is the entry.
+when it loads. `main.ts`, or `main.js`, is the entry, and the types check as
+you type, with no Node.js or npm to install. A JavaScript mod is checked from
+its JSDoc. [`proto/modlock/wasm.proto`](proto/modlock/wasm.proto) documents
+every call.
 
-`modlock build` installs the `modlock` library into `node_modules/`, checks the
-types with the TypeScript native compiler (downloaded the first time), and
-bundles the mod into `build/mod.js`. A JavaScript mod is checked from its
-JSDoc. No Node.js or npm is needed. The server runs the bundle on
-[QuickJS](https://github.com/quickjs-ng/quickjs), itself compiled to
-WebAssembly, so a script mod has the same sandbox and limits as a compiled one.
-
-Every call is generated from the `Host` service in
-[`proto/modlock/wasm.proto`](proto/modlock/wasm.proto), which documents each
-one. A call that fails logs the failure and returns `false` or `undefined`; it
+A call that fails logs the failure and returns `false` or `undefined`; it
 never stops the mod. Everything a mod places leaves with the world. Stopping or
 reloading the mod also removes it and releases frozen heroes, held modifier
 states and input.
@@ -852,25 +844,37 @@ func init() {
 func main() {}
 ```
 
-`modlock build` runs `go vet` and compiles the package for `wasip1` into
-`build/mod.wasm`. Each call into the game returns an error, which a mod may
-ignore to keep playing. Calls fail outside the game, so code that makes none,
-such as the race rules in the [`race`](examples/race) example, tests with
-plain `go test` on your machine. Go mods do not yet build interfaces.
+Each call into the game returns an error, which a mod may ignore to keep
+playing. Game rules that make no calls, such as those in the
+[`race`](examples/race) example, test with plain `go test`. Go mods do not yet
+build interfaces.
 
-[`mod/entity`](mod/entity) has the typed entity classes. Each field is a
-method whose value gets and sets it, and each input a method that sends it. A
-class has the methods its own class declares; convert it to a base class to
-reach the base's, so
-`entity.CBaseEntity(entity.CCitadelPlayerPawn{Handle: pawn.GetEntity()}).IHealth().Set(500)`
-writes `m_iHealth`. Each designer name is a `Designer`, such as
-`entity.NpcTrooperBoss`, whose `Create` takes its key value struct,
-`entity.CNPC_TrooperBossKeys`.
+Handlers see every hit before the game applies it, and can change or block it:
 
-[`mod/console`](mod/console) has a value per console variable and command,
-named in camel case: `console.CitadelTrooperGoldReward.Set(40)` sets a
-variable, typed as the game declares it, and
-`console.Changelevel.Run("street_test")` runs a command.
+```go
+// Headshots deal double damage.
+mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
+	if hit.GetHitGroup() != 1 {
+		return nil
+	}
+	amount := hit.GetAmount() * 2
+	return &mod.DamageResult{Amount: &amount}
+})
+```
+
+[`mod/entity`](mod/entity) reaches any networked field or input through typed
+classes, and [`mod/console`](mod/console) has a typed value for every console
+variable and command:
+
+```go
+// Set a hero's health.
+hero := entity.CBaseEntity(entity.CCitadelPlayerPawn{Handle: pawn.GetEntity()})
+_ = hero.IHealth().Set(500)
+
+// Raise the trooper bounty and change the map.
+_ = console.CitadelTrooperGoldReward.Set(40)
+_ = console.Changelevel.Run("street_test")
+```
 
 ## Writing a mod in Luau
 
@@ -885,27 +889,35 @@ modlock.command("hello", function(player)
 end)
 ```
 
-`modlock build` installs the library into `.modlock/`, checks the types in
-strict mode with `luau-analyze`, which it downloads the first time, and zips
-the sources into `build/mod.zip`. `.luaurc` declares the library's alias, so
-editors with the Luau language server resolve it too. A module requires
-another by its relative path, such as `require("./round")`, as the
-[`bounty`](examples/bounty) example does. The server runs the sources on
-Luau compiled to WebAssembly, in the same sandbox and limits as every other
-mod.
+The types check in strict mode, and editors with the Luau language server
+resolve the library too. A module requires another by its relative path, such
+as `require("./round")`, as the [`bounty`](examples/bounty) example does.
 
 The library offers the calls of the TypeScript one under the same names, with
 methods called as `player:chat(text)`. A 64-bit id, such as a Steam ID, is a
-decimal string, because a Luau number holds integers exactly only up to
-2^53. `modlock.has(bits, modlock.Buttons.attack)` tests a button or layer bit.
-Luau mods do not yet build interfaces.
+decimal string. Luau mods do not yet build interfaces.
 
-`@modlock/entities` has the typed entity classes; an entity reads a field by
-indexing and writes one by assigning, and sends an input by calling the method
-named after it. `entities.new` addresses an entity as a class, and
-`entities.create` creates one of a designer name, as `create` does in
-TypeScript. Both return `any`, so name the type where you keep the entity, and
-the type of its spawn keys, for the analyzer to check them:
+```luau
+-- Shrug off half of every hit on the holder.
+modlock.onDamage(function(hit)
+	local pawn = holder:pawn()
+	if pawn and hit.victim == pawn.entity then
+		return { amount = hit.amount * 0.5 }
+	end
+	return nil
+end)
+
+-- Answer the attack button.
+modlock.onInput(function(player, pressed)
+	if modlock.has(pressed, modlock.Buttons.attack) then
+		player:centerText("Fire!")
+	end
+end)
+```
+
+`@modlock/entities` reads and writes any networked field and creates entities.
+Name the type where you keep an entity, and the analyzer checks its fields and
+spawn keys:
 
 ```luau
 local entities = require("@modlock/entities")
@@ -927,9 +939,6 @@ console.setBoolean("citadel_allow_purchasing_anywhere", true)
 console.run("changelevel", "street_test")
 ```
 
-A mod that requires the classes or the console carries them in its build; one
-that does not leaves them out.
-
 ## Writing a mod in Python
 
 A Python mod imports `modlock` and registers its handlers with decorators in
@@ -944,23 +953,40 @@ def hello(player: modlock.Player, args: str) -> None:
     player.chat("Hello from Python!")
 ```
 
-`modlock build` installs the library into `.modlock/`, checks the types in
-strict mode with [Pyright](https://github.com/microsoft/pyright), which it
-downloads with the Node.js that runs it the first time, and zips the sources
-into `build/mod.zip`. `pyrightconfig.json` puts the library on the import
-path, so editors with Pyright or Pylance resolve it too. A module imports
-another by name, such as `import round`. The server runs the sources on
-CPython 3.14 compiled to WebAssembly, in the same sandbox and limits as
-every other mod. A mod imports the standard modules a game mod needs, such
-as `dataclasses`, `enum`, `json`, `math`, `random` and `re`; modules that
-reach files, processes or the network are not available.
+The types check in strict mode, and editors with Pyright or Pylance resolve
+the library too. A module imports another by name, such as `import round`.
+Mods run on Python 3.14 with the standard modules a game mod needs, such as
+`dataclasses`, `enum`, `json`, `math`, `random` and `re`.
 
-The library offers the calls of the TypeScript one in snake_case, with
-methods called as `player.chat(text)`. Messages are dataclasses, enums are
-string literals such as `"match_intro"`, and integers, including 64-bit ids,
-are Python integers. `modlock.Buttons` and `modlock.Layers` are flags, so
-`pressed & modlock.Buttons.ATTACK` tests a button. Python mods do not yet
-build interfaces or use typed entity classes.
+The library offers the calls of the TypeScript one in snake_case. Messages are
+dataclasses, enums are string literals such as `"match_intro"`, and 64-bit ids
+are Python integers. Python mods do not yet build interfaces or use typed
+entity classes.
+
+```python
+# Headshots deal double damage.
+@modlock.on_damage
+def headshots(hit: modlock.DamageEvent) -> modlock.DamageResult | None:
+    if hit.hit_group == 1:
+        return modlock.DamageResult(amount=hit.amount * 2)
+    return None
+
+
+# Pay a soul bonus on /bonus.
+@modlock.command("bonus")
+def bonus(player: modlock.Player, args: str) -> None:
+    player.adjust_souls(500)
+    player.announce("Bonus", "500 souls")
+
+
+# Answer the attack button.
+@modlock.on_input
+def fire(
+    player: modlock.Player, pressed: modlock.Buttons, released: modlock.Buttons
+) -> None:
+    if pressed & modlock.Buttons.ATTACK:
+        player.center_text("Fire!")
+```
 
 ## How mods reach the game
 
@@ -1211,3 +1237,5 @@ calling conventions, and startup sequence Modlock learned from. See
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/DCErWrCFvh)
