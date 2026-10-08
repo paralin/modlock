@@ -1,6 +1,23 @@
-# Modlock
+<div align="center">
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/DCErWrCFvh)
+<h1>⚙️ Modlock</h1>
+
+<p><b>Custom game modes for Deadlock, in the language you like.</b></p>
+
+<a href="https://discord.gg/DCErWrCFvh"><img alt="Join the Discord" src="https://img.shields.io/badge/Join_the_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white"></a>
+<a href="https://github.com/paralin/modlock/releases"><img alt="Download" src="https://img.shields.io/badge/Download-2b2b2b?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://hyperline.gg"><img alt="Publish on hyperline.gg" src="https://img.shields.io/badge/Publish_on-hyperline.gg-e4572e?style=for-the-badge"></a>
+
+<p>
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white">
+<img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black">
+<img alt="Luau" src="https://img.shields.io/badge/Luau-00A2FF?style=flat-square&logo=lua&logoColor=white">
+<img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white">
+<img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white">
+<img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green?style=flat-square">
+</p>
+
+</div>
 
 **Modlock** is the best tool for hand-writing the logic of [Deadlock] custom
 game modes. You write a mod in TypeScript, Luau or Python; Modlock builds it
@@ -1238,4 +1255,12 @@ calling conventions, and startup sequence Modlock learned from. See
 
 MIT. See [LICENSE](LICENSE).
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/DCErWrCFvh)
+---
+
+<div align="center">
+
+<b>Questions, ideas or a mod to show off?</b>
+
+<a href="https://discord.gg/DCErWrCFvh"><img alt="Join the Discord" src="https://img.shields.io/badge/Join_the_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white"></a>
+
+</div>
