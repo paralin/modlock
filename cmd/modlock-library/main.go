@@ -1,23 +1,21 @@
 // Command modlock-library builds the TypeScript library and the interface
-// renderer from this checkout into the archive a release publishes:
+// renderer from this checkout into js/built, which the command line built
+// next embeds:
 //
-//	modlock-library dist/modlock-library.tar.gz
+//	go run ./cmd/modlock-library
 package main
 
 import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/paralin/modlock/js"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: modlock-library <archive>")
-		os.Exit(2)
-	}
-	if err := js.Pack(context.Background(), ".", os.Args[1]); err != nil {
+	if err := js.Build(context.Background(), ".", filepath.Join("js", js.Built)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

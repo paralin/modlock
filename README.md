@@ -658,9 +658,10 @@ clears it when the player leaves or the mod stops.
 
 The game draws interfaces with the renderer in [`panorama/`](panorama):
 
-- The layout `panorama/layout/modlock/ui.xml` and its script. Releases publish
-  it as `scripts/modlock/ui.js` in `modlock-library.tar.gz`;
-  `go run ./cmd/modlock-library <archive>` builds it from source.
+- The layout `panorama/layout/modlock/ui.xml` and its script, which a client
+  content package installs as `scripts/modlock/ui.js`. A release's command
+  line carries it built in; `go run ./cmd/modlock-library` builds it from
+  source into `js/built` for the next build of the command line to embed.
 - A client content package keeps the layout loaded through matches, and the
   renderer draws over the HUD.
 - `modlock dev` and `modlock play` serve the local player's interfaces on

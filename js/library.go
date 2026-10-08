@@ -6,33 +6,40 @@
 //
 // Library builds from the Modlock source when it is on disk: a checkout, or
 // the module cache of the build that links this package. A release build has
-// no source on disk and downloads the library built for its release.
+// no source on disk and carries the library it was built with.
 package js
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"embed"
 	"encoding/hex"
 	"io"
 	"io/fs"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"slices"
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
 	"github.com/paralin/modlock/internal/fetch"
 	"github.com/paralin/modlock/internal/npm"
 	"github.com/pkg/errors"
-	"golang.org/x/mod/module"
 )
 
-// Archive is the release asset that holds the built library.
-const Archive = "modlock-library.tar.gz"
+// Built is the directory under js that the release build fills with the
+// built library before it builds the command line, which embeds it.
+const Built = "built"
+
+// built holds the library a release build embeds; in any other build it holds
+// only the directory's .gitignore.
+//
+//go:embed all:built
+var built embed.FS
 
 // Renderer is the built renderer's file name, which a client content package
 // installs as scripts/modlock/ui.js beside the layout in panorama/layout.
@@ -59,30 +66,57 @@ const revision = "4"
 // sources are the paths under the Modlock source that Build reads.
 var sources = []string{"js/src", "js/tsconfig.json", "proto/modlock", "panorama/src"}
 
-// Library returns a directory holding the built library and renderer,
-// building or downloading it into the user cache the first time.
+// Library returns a directory holding the built library and renderer: one
+// built from the Modlock source when it is on disk, or else the one this build
+// embeds, placed in the user cache the first time.
 func Library(ctx context.Context) (string, error) {
 	if source := Source(); source != "" {
 		return buildCached(ctx, source)
 	}
-	version := moduleVersion()
-	if version == "" || module.IsPseudoVersion(version) || strings.HasSuffix(version, "+dirty") {
-		return "", errors.New("this modlock build has neither the Modlock source nor a release; build it from a Modlock checkout")
+	if _, err := fs.Stat(built, path.Join(Built, Renderer)); err == nil {
+		return installEmbedded()
 	}
-	dir, err := fetch.Cache("library", version)
+	return "", errors.New("this modlock build has neither a built-in library nor the Modlock source; download a Modlock release or build it from a Modlock checkout")
+}
+
+// installEmbedded copies the embedded library into the user cache, keyed by
+// its contents, the first time.
+func installEmbedded() (string, error) {
+	// Name the cache directory by the embedded files.
+	library, err := fs.Sub(built, Built)
 	if err != nil {
 		return "", err
 	}
-	err = fetch.Install(dir, func(staging string) error {
-		archive := dir + ".tar.gz"
-		defer os.Remove(archive)
-		if err := fetch.File(ctx, fetch.Release(version, Archive), archive); err != nil {
-			return err
+	sum := sha256.New()
+	names := append(slices.Clone(Files), Renderer)
+	for _, name := range names {
+		data, err := fs.ReadFile(library, name)
+		if err != nil {
+			return "", errors.Wrap(err, "read the built-in modlock library")
 		}
-		return unpack(archive, staging)
+		_, _ = io.WriteString(sum, name+"\x00")
+		_, _ = sum.Write(data)
+	}
+	dir, err := fetch.Cache("library", "built-"+hex.EncodeToString(sum.Sum(nil))[:16])
+	if err != nil {
+		return "", err
+	}
+
+	// Copy the files into place whole.
+	err = fetch.Install(dir, func(staging string) error {
+		for _, name := range names {
+			data, err := fs.ReadFile(library, name)
+			if err != nil {
+				return err
+			}
+			if err := write(filepath.Join(staging, name), data); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 	if err != nil {
-		return "", errors.Wrap(err, "download the modlock library")
+		return "", errors.Wrap(err, "install the built-in modlock library")
 	}
 	return dir, nil
 }
@@ -91,6 +125,7 @@ func Library(ctx context.Context) (string, error) {
 // build has none: the checkout or module cache directory this package was
 // compiled from, or else the module cache entry of the linked version.
 func Source() string {
+	// Gather where the source could be, the compiled checkout first.
 	var candidates []string
 	if _, file, _, ok := runtime.Caller(0); ok && filepath.IsAbs(file) {
 		candidates = append(candidates, filepath.Dir(filepath.Dir(file)))
@@ -98,6 +133,8 @@ func Source() string {
 	if version := moduleVersion(); version != "" {
 		candidates = append(candidates, filepath.Join(moduleCache(), filepath.FromSlash(modulePath)+"@"+version))
 	}
+
+	// Take the first that holds the library's entry point.
 	for _, dir := range candidates {
 		if _, err := os.Stat(filepath.Join(dir, "js", "src", "index.ts")); err == nil {
 			return dir
@@ -109,10 +146,13 @@ func Source() string {
 // moduleVersion returns the version of Modlock linked into this build, or
 // empty for a build of a checkout.
 func moduleVersion() string {
+	// Read the build's module list.
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		return ""
 	}
+
+	// Find Modlock as the main module or an unreplaced dependency.
 	version := ""
 	if info.Main.Path == modulePath {
 		version = info.Main.Version
@@ -144,6 +184,7 @@ func moduleCache() string {
 // buildCached returns the library built from source, keyed by the sources
 // and this build's revision, building it the first time.
 func buildCached(ctx context.Context, source string) (string, error) {
+	// Name the cache directory by the sources and the build's inputs.
 	sum := sha256.New()
 	_, _ = io.WriteString(sum, revision+"\x00"+protobufVersion+"\x00"+npm.TsgoVersion+"\x00")
 	err := walkSources(source, func(name string, data []byte) error {
@@ -158,6 +199,8 @@ func buildCached(ctx context.Context, source string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	// Build into it the first time.
 	if err := fetch.Install(dir, func(staging string) error { return Build(ctx, source, staging) }); err != nil {
 		return "", errors.Wrap(err, "build the modlock library")
 	}
@@ -170,6 +213,7 @@ func walkSources(source string, visit func(name string, data []byte) error) erro
 	root := os.DirFS(source)
 	for _, top := range sources {
 		err := fs.WalkDir(root, top, func(name string, entry fs.DirEntry, err error) error {
+			// Skip directories, tests and the generated Go protobufs.
 			if err != nil || entry.IsDir() {
 				return err
 			}
@@ -221,6 +265,8 @@ func Build(ctx context.Context, source, out string) error {
 	if output, err := declare.CombinedOutput(); err != nil {
 		return errors.Errorf("declare the library: %s", output)
 	}
+
+	// Gather the declarations, with index.d.ts referencing the globals.
 	declared := filepath.Join(types, "js", "src")
 	globals, err := os.ReadFile(filepath.Join(scratch, "js", "src", "globals.d.ts"))
 	if err != nil {
@@ -272,62 +318,10 @@ func Build(ctx context.Context, source, out string) error {
 	return nil
 }
 
-// Pack writes the library and renderer built from source as the gzipped
-// tar archive a release publishes.
-func Pack(ctx context.Context, source, archive string) error {
-	built, err := os.MkdirTemp("", "modlock-library-")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(built)
-	if err := Build(ctx, source, built); err != nil {
-		return err
-	}
-	file, err := os.Create(archive)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	compressed := gzip.NewWriter(file)
-	writer := tar.NewWriter(compressed)
-	for _, name := range append(Files, Renderer) {
-		data, err := os.ReadFile(filepath.Join(built, name))
-		if err != nil {
-			return err
-		}
-		if err := writer.WriteHeader(&tar.Header{Name: name, Mode: 0o644, Size: int64(len(data))}); err != nil {
-			return err
-		}
-		if _, err := writer.Write(data); err != nil {
-			return err
-		}
-	}
-	if err := writer.Close(); err != nil {
-		return err
-	}
-	if err := compressed.Close(); err != nil {
-		return err
-	}
-	return file.Close()
-}
-
-// unpack writes the files of the library archive at archive into dir.
-func unpack(archive, dir string) error {
-	return fetch.WalkTar(archive, func(name string, _ fs.FileMode, body io.Reader) error {
-		if strings.Contains(name, "/") || !filepath.IsLocal(name) {
-			return nil
-		}
-		data, err := io.ReadAll(body)
-		if err != nil {
-			return err
-		}
-		return write(filepath.Join(dir, name), data)
-	})
-}
-
 // copyTree copies the files under from into to.
 func copyTree(from, to string) error {
 	return filepath.WalkDir(from, func(name string, entry fs.DirEntry, err error) error {
+		// Copy each file to the same relative path under to.
 		if err != nil || entry.IsDir() {
 			return err
 		}
