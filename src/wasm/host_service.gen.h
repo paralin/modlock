@@ -118,6 +118,15 @@ class HostService {
     return std::unexpected("this host does not support AddMetric");
   }
 
+  // HoldReload keeps the running build through a reload while held is true,
+  // such as while a player is partway through something a new build would
+  // lose. A reload that arrives meanwhile waits, and the newest one applies
+  // on the first frame after the mod releases the hold. A new build starts
+  // without a hold.
+  virtual std::expected<void, std::string> HoldReload(const HoldReloadRequest& /*request*/) {
+    return std::unexpected("this host does not support HoldReload");
+  }
+
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
   // frame.
@@ -685,6 +694,14 @@ class HostService {
              return detail::Fail("the AddMetric request is malformed");
            }
            return detail::Answer(host.AddMetric(request));
+         }},
+        {"HoldReload",
+         [](HostService& host, const std::string& bytes) {
+           HoldReloadRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the HoldReload request is malformed");
+           }
+           return detail::Answer(host.HoldReload(request));
          }},
         {"SelectHero",
          [](HostService& host, const std::string& bytes) {

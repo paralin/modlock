@@ -417,6 +417,15 @@ func (p Player) AddMetric(name string, value float64, label *string) error {
 	return invoke("AddMetric", &wasm.AddMetricRequest{Player: p.Slot, Name: name, Value: value, Label: label}, nil)
 }
 
+// HoldReload keeps the running build through a reload while held is true,
+// such as while a player is partway through something a new build would
+// lose. A reload that arrives meanwhile waits, and the newest one applies
+// on the first frame after the mod releases the hold. A new build starts
+// without a hold.
+func HoldReload(held bool) error {
+	return invoke("HoldReload", &wasm.HoldReloadRequest{Held: held}, nil)
+}
+
 // SelectHero gives the player a hero on a team, 2 or 3, and returns the
 // hero's identifier as Pawn.hero reports it. The hero appears on a later
 // frame.

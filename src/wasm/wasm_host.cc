@@ -237,6 +237,7 @@ class PluginGame final : public wasm::Game {
   std::expected<void, std::string> SetPlayerSetting(
       const wasm::SetPlayerSettingRequest& request) override;
   std::expected<void, std::string> AddMetric(const wasm::AddMetricRequest& request) override;
+  std::expected<void, std::string> HoldReload(const wasm::HoldReloadRequest& request) override;
   void Impacted(const wasm::ImpactEvent& event) override;
 
   // plugin_ owns the game.
@@ -249,7 +250,8 @@ class PluginGame final : public wasm::Game {
 // commands it does not know, so chat is how players reach a mod. All of them
 // run on the engine thread, as do the mod's host calls. A reload swaps the
 // instance in place and starts it again; what the old instance placed in the
-// game goes with it.
+// game goes with it. While the running instance holds itself, a reload waits
+// for its release.
 class WasmPlugin final : public Plugin {
  public:
   WasmPlugin(Mods& host, std::string name, const PluginContext& context)
@@ -282,8 +284,15 @@ class WasmPlugin final : public Plugin {
     tuned_ = false;
   }
 
-  // Reload replaces the running instance with build and starts it.
+  // Reload replaces the running instance with build and starts it, or keeps
+  // build for the first frame after a held instance releases its hold.
   std::expected<void, std::string> Reload(Build build);
+
+  // Hold keeps the running instance through reloads while held is true.
+  void Hold(bool held);
+
+  // Held reports whether the running instance keeps itself through reloads.
+  bool Held() const { return held_; }
 
   // Press delivers a press on a button the mod shows the player in slot.
   std::expected<void, std::string> Press(int32_t slot, std::string_view node);
@@ -385,6 +394,10 @@ class WasmPlugin final : public Plugin {
   wasm::Manifest manifest_;
   std::vector<uint8_t> collision_;
   bool tuned_ = false;
+  // held_ is true while the running instance keeps itself through reloads,
+  // and waiting_ holds the newest build a reload brought meanwhile.
+  bool held_ = false;
+  std::optional<Build> waiting_;
   // movement_ steps every hero while a world is loaded. hero_slots_ maps
   // this frame's heroes to their slots, and floor_known_ is true once the
   // world entity under the heroes is.
@@ -512,6 +525,12 @@ bool WasmPlugin::Start() {
 }
 
 std::expected<void, std::string> WasmPlugin::Reload(Build build) {
+  if (held_) {
+    waiting_ = std::move(build);
+    Log("the new build waits until the running one releases its hold");
+    return {};
+  }
+
   // Load the new build first, so a broken one leaves the old one running.
   auto instance = Instantiate(build.module);
   if (!instance) return std::unexpected(instance.error());
@@ -558,7 +577,15 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   return {};
 }
 
+void WasmPlugin::Hold(bool held) {
+  if (held == held_) return;
+  held_ = held;
+  host_.Notify([&](WasmHostObserver& observer) { observer.Held(name_, held); });
+}
+
 void WasmPlugin::Halt() {
+  // The hold ends with the instance that took it.
+  Hold(false);
   if (movement_) static_cast<void>(host_.game.StepWith(nullptr));
   movement_.reset();
   hero_slots_.clear();
@@ -579,6 +606,15 @@ void WasmPlugin::World() {
 }
 
 void WasmPlugin::Tick() {
+  // A build that waited for the hold's release replaces the running one
+  // outside the mod's own calls.
+  if (waiting_ && !held_) {
+    auto build = std::move(*waiting_);
+    waiting_.reset();
+    if (auto reloaded = Reload(std::move(build)); !reloaded) {
+      Log("the waiting build did not load: " + reloaded.error());
+    }
+  }
   if (!tuned_ && !check_only_) {
     tuned_ =
         Tune(L"server.dll", "server.dll", manifest_, [this](std::string_view text) { Log(text); });
@@ -603,6 +639,7 @@ void WasmPlugin::Tick() {
 }
 
 void WasmPlugin::Stop() {
+  waiting_.reset();
   world_.Reset();
   Halt();
   instance_.reset();
@@ -880,10 +917,11 @@ void WasmPlugin::Leave(int32_t slot) {
 }
 
 wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
-  // A check runs no game; the mod may still log and reach the host's
-  // services.
+  // A check runs no game; the mod may still log, reach the host's services
+  // and hold its build.
   wasm::Reply reply;
-  if (!check_only_ || call.method() == "Log" || call.method() == "CallService") {
+  if (!check_only_ || call.method() == "Log" || call.method() == "CallService" ||
+      call.method() == "HoldReload") {
     reply = game_.Dispatch(call);
   } else {
     reply.set_error("no game is running");
@@ -1038,6 +1076,11 @@ std::expected<void, std::string> PluginGame::AddMetric(const wasm::AddMetricRequ
   return plugin_.AddMetric(request.player(), request.name(), request.value(), request.label());
 }
 
+std::expected<void, std::string> PluginGame::HoldReload(const wasm::HoldReloadRequest& request) {
+  plugin_.Hold(request.held());
+  return {};
+}
+
 void PluginGame::Impacted(const wasm::ImpactEvent& event) { plugin_.Impacted(event); }
 
 }  // namespace
@@ -1087,6 +1130,11 @@ std::expected<void, std::string> WasmHost::Reload(const std::filesystem::path& p
     return std::unexpected("no running mod is named " + build->name);
   }
   return found->second->Reload(std::move(*build));
+}
+
+bool WasmHost::Held(std::string_view mod) const {
+  const auto found = impl_->plugins.find(mod);
+  return found != impl_->plugins.end() && found->second->Held();
 }
 
 void WasmHost::Provide(std::string service, WasmExtension extension) {

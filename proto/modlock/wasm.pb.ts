@@ -1707,6 +1707,30 @@ export const AddMetricRequest: MessageType<AddMetricRequest> = /* @__PURE__ */ c
 });
 
 /**
+ * HoldReloadRequest holds or releases the mod's running build.
+ *
+ * @generated from message modlock.wasm.HoldReloadRequest
+ */
+export interface HoldReloadRequest {
+  /**
+   * Held is true to keep the running build through a reload, and false to
+   * let a waiting reload apply.
+   *
+   * @generated from field: bool held = 1;
+   */
+  held?: boolean;
+
+};
+
+export const HoldReloadRequest: MessageType<HoldReloadRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.HoldReloadRequest",
+    fields: [
+        { no: 1, name: "held", kind: "scalar", T: ScalarType.BOOL },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * SetPlayerSettingRequest changes one of a player's settings.
  *
  * @generated from message modlock.wasm.SetPlayerSettingRequest

@@ -1738,6 +1738,27 @@ func (x *AddMetricRequest) GetLabel() string {
 	return ""
 }
 
+// HoldReloadRequest holds or releases the mod's running build.
+type HoldReloadRequest struct {
+	unknownFields []byte
+	// Held is true to keep the running build through a reload, and false to
+	// let a waiting reload apply.
+	Held bool `protobuf:"varint,1,opt,name=held,proto3" json:"held,omitempty"`
+}
+
+func (x *HoldReloadRequest) Reset() {
+	*x = HoldReloadRequest{}
+}
+
+func (*HoldReloadRequest) ProtoMessage() {}
+
+func (x *HoldReloadRequest) GetHeld() bool {
+	if x != nil {
+		return x.Held
+	}
+	return false
+}
+
 // SetPlayerSettingRequest changes one of a player's settings.
 type SetPlayerSettingRequest struct {
 	unknownFields []byte
@@ -6835,6 +6856,22 @@ func (m *AddMetricRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *HoldReloadRequest) CloneVT() *HoldReloadRequest {
+	if m == nil {
+		return (*HoldReloadRequest)(nil)
+	}
+	r := new(HoldReloadRequest)
+	r.Held = m.Held
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HoldReloadRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *SetPlayerSettingRequest) CloneVT() *SetPlayerSettingRequest {
 	if m == nil {
 		return (*SetPlayerSettingRequest)(nil)
@@ -9777,6 +9814,25 @@ func (this *AddMetricRequest) EqualVT(that *AddMetricRequest) bool {
 
 func (this *AddMetricRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*AddMetricRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *HoldReloadRequest) EqualVT(that *HoldReloadRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Held != that.Held {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HoldReloadRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HoldReloadRequest)
 	if !ok {
 		return false
 	}
@@ -14899,6 +14955,48 @@ func (x *AddMetricRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the AddMetricRequest from JSON.
 func (x *AddMetricRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the HoldReloadRequest message to JSON.
+func (x *HoldReloadRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Held || s.HasField("held") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("held")
+		s.WriteBool(x.Held)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HoldReloadRequest to JSON.
+func (x *HoldReloadRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HoldReloadRequest message from JSON.
+func (x *HoldReloadRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "held":
+			s.AddField("held")
+			x.Held = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HoldReloadRequest from JSON.
+func (x *HoldReloadRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -24208,6 +24306,43 @@ func (m *AddMetricRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HoldReloadRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HoldReloadRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HoldReloadRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Held {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Held)
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *SetPlayerSettingRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -30503,6 +30638,17 @@ func (m *AddMetricRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *HoldReloadRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Held)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *SetPlayerSettingRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -33046,6 +33192,19 @@ func (x *AddMetricRequest) MarshalProtoText() string {
 }
 
 func (x *AddMetricRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *HoldReloadRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HoldReloadRequest")
+	if x.Held != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "held")
+		protobuf_go_lite.TextWriteBool(&sb, x.Held)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HoldReloadRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *SetPlayerSettingRequest) MarshalProtoText() string {
@@ -37969,6 +38128,58 @@ func (m *AddMetricRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Label = &v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *HoldReloadRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HoldReloadRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HoldReloadRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Held", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Held = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

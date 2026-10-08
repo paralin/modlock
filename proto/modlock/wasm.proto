@@ -96,6 +96,13 @@ service Host {
   // when the player leaves or the mod stops; a bot keeps none.
   rpc AddMetric(AddMetricRequest) returns (Empty);
 
+  // HoldReload keeps the running build through a reload while held is true,
+  // such as while a player is partway through something a new build would
+  // lose. A reload that arrives meanwhile waits, and the newest one applies
+  // on the first frame after the mod releases the hold. A new build starts
+  // without a hold.
+  rpc HoldReload(HoldReloadRequest) returns (Empty);
+
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
   // frame.
@@ -869,6 +876,13 @@ message AddMetricRequest {
   // Label is one of the metric's declared labels, or empty for a metric
   // without labels.
   optional string label = 4;
+}
+
+// HoldReloadRequest holds or releases the mod's running build.
+message HoldReloadRequest {
+  // Held is true to keep the running build through a reload, and false to
+  // let a waiting reload apply.
+  bool held = 1;
 }
 
 // SetPlayerSettingRequest changes one of a player's settings.

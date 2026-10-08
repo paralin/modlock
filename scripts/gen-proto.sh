@@ -44,7 +44,7 @@ GOFLAGS=-mod=mod go run -mod=mod -tags=purego github.com/aperturerobotics/common
 python3 scripts/restore-proto-exports.py
 
 # Each language's mod library and the host's dispatch follow wasm.proto.
-GOFLAGS=-mod=mod go run ./cmd/modlock-sdkgen
+GOFLAGS=-mod=mod go run -tags=purego ./cmd/modlock-sdkgen
 clang-format -i src/wasm/host_service.gen.h
 
-GOFLAGS=-mod=mod go run ./cmd/proto-export
+GOFLAGS=-mod=mod go run -tags=purego ./cmd/proto-export

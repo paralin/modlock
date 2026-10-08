@@ -458,6 +458,11 @@ never stops the mod. Everything a mod places leaves with the world. Stopping or
 reloading the mod also removes it and releases frozen heroes, held modifier
 states and input.
 
+A mod in the middle of something a new build would lose, such as a timed run,
+calls `holdReload(true)`, and `holdReload(false)` once it ends. A reload that
+arrives meanwhile waits, and the newest build replaces the running one on the
+next frame after the release. A mod that stops releases its hold.
+
 ### Events
 
 | Call                                                | Runs the handler                                              |

@@ -38,6 +38,11 @@ class MODLOCK_API WasmHostObserver {
   // Ui carries a change to the interface mod shows the player in slot. A mod
   // that stops, and a player who leaves, end with a reset change.
   virtual void Ui(std::string_view mod, int32_t slot, const ui::Change& change) = 0;
+
+  // Held reports that mod took or released the hold that keeps its running
+  // build through reloads. The mod may still be calling the host, so an
+  // observer that replaces the mod does so after the call returns.
+  virtual void Held(std::string_view /*mod*/, bool /*held*/) {}
 };
 
 // WasmExtension answers mods' calls to one service the host provides. It
@@ -81,7 +86,13 @@ class MODLOCK_API WasmHost {
   // Reload replaces the running mod of the same name with the build at path.
   // The mod keeps its place among the plugins: its old build stops and the
   // new one starts. A build that does not load leaves the old one running.
+  // A mod that holds its running build keeps it, and the newest build
+  // replaces it on the first frame after the mod releases the hold.
   [[nodiscard]] std::expected<void, std::string> Reload(const std::filesystem::path& path);
+
+  // Held reports whether the running mod named mod holds its build through
+  // reloads.
+  [[nodiscard]] bool Held(std::string_view mod) const;
 
   // Provide answers mods' calls to service with extension, replacing the
   // service's earlier extension. An empty extension withdraws the service.

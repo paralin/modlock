@@ -1882,6 +1882,17 @@ export function players(): Connection[] {
 }
 
 /**
+ * holdReload keeps the running build through a reload while held is true,
+ * such as while a player is partway through something a new build would
+ * lose. A reload that arrives meanwhile waits, and the newest one applies
+ * on the first frame after the mod releases the hold. A new build starts
+ * without a hold.
+ */
+export function holdReload(held: boolean): boolean {
+  return call('HoldReload', pb.HoldReloadRequest.toBinary({ held })) !== undefined
+}
+
+/**
  * readField reads one schema field of a live entity, such as the int32
  * m_iHealth of CBaseEntity. The host finds the field by name, so it
  * survives game updates that move it, and refuses an entity that is not of

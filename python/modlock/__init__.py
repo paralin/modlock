@@ -1648,6 +1648,12 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "label", "string", optional=True),
         ],
     ),
+    "HoldReloadRequest": (
+        None,
+        [
+            wire.Field(1, "held", "bool"),
+        ],
+    ),
     "SetPlayerSettingRequest": (
         None,
         [
@@ -2470,6 +2476,16 @@ def players() -> list[Connection]:
     if response is None:
         return []
     return response["players"]
+
+
+def hold_reload(held: bool) -> bool:
+    """hold_reload keeps the running build through a reload while held is true,
+    such as while a player is partway through something a new build would
+    lose. A reload that arrives meanwhile waits, and the newest one applies
+    on the first frame after the mod releases the hold. A new build starts
+    without a hold.
+    """
+    return _call("HoldReload", "HoldReloadRequest", {"held": held}) is not None
 
 
 def read_field(entity: int, class_name: str, field: str, type: FieldType) -> FieldValue | None:

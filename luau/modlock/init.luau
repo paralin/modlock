@@ -1600,6 +1600,9 @@ schema.AddMetricRequest = {
 	{ number = 3, name = "value", kind = "double" },
 	{ number = 4, name = "label", kind = "string", optional = true },
 }
+schema.HoldReloadRequest = {
+	{ number = 1, name = "held", kind = "bool" },
+}
 schema.SetPlayerSettingRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "key", kind = "string" },
@@ -2128,6 +2131,15 @@ function modlock.players(): { Connection }
 		return {}
 	end
 	return response.players
+end
+
+-- holdReload keeps the running build through a reload while held is true,
+-- such as while a player is partway through something a new build would
+-- lose. A reload that arrives meanwhile waits, and the newest one applies
+-- on the first frame after the mod releases the hold. A new build starts
+-- without a hold.
+function modlock.holdReload(held: boolean): boolean
+	return call("HoldReload", "HoldReloadRequest", { held = held }) ~= nil
 end
 
 -- readField reads one schema field of a live entity, such as the int32
