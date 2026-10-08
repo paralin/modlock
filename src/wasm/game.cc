@@ -1278,6 +1278,37 @@ std::expected<void, std::string> Game::Spectate(const PlayerRequest& request) {
                                 **selection);
 }
 
+std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
+  // Find the spectator's observer services, which aim their camera.
+  auto pawn = observer_.SpectatorPawnForSlot(request.player());
+  if (!pawn) return std::unexpected(pawn.error());
+  auto services = services_.Field("CBasePlayerPawn", "m_pObserverServices");
+  if (!services) return std::unexpected(services.error());
+  unsigned char* observer = nullptr;
+  if (!gameinterop::ReadNative(static_cast<unsigned char*>(*pawn) + services->offset, &observer,
+                               sizeof(observer)) ||
+      observer == nullptr) {
+    return std::unexpected("the spectator has no camera services");
+  }
+
+  // Follow the target in its own view, OBS_MODE_IN_EYE, and replicate it.
+  if (auto target = Entity(request.target()); !target) return std::unexpected(target.error());
+  auto target_field = services_.Field("CPlayer_ObserverServices", "m_hObserverTarget");
+  if (!target_field) return std::unexpected(target_field.error());
+  auto mode_field = services_.Field("CPlayer_ObserverServices", "m_iObserverMode");
+  if (!mode_field) return std::unexpected(mode_field.error());
+  const uint32_t handle = request.target();
+  const uint8_t in_eye = 2;
+  if (!gameinterop::WriteNative(observer + target_field->offset, &handle, sizeof(handle)) ||
+      !gameinterop::WriteNative(observer + mode_field->offset, &in_eye, sizeof(in_eye))) {
+    return std::unexpected("cannot aim the spectator's camera");
+  }
+  if (!gameinterop::NotifyEntityStateChanged(*pawn)) {
+    return std::unexpected("cannot replicate the spectator's camera");
+  }
+  return {};
+}
+
 std::expected<void, std::string> Game::Respawn(const PlayerRequest& request) {
   auto respawn = services_.Respawn();
   if (!respawn) return std::unexpected(respawn.error());

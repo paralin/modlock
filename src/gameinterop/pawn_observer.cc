@@ -517,6 +517,38 @@ void PawnObserver::NoteDegradation(const char* reason) {
   }
 }
 
+std::expected<void, std::string> PawnObserver::ResolveLayout() {
+  if (offsets_ok_) return {};
+  if (!seams_.layout) return std::unexpected("player layout unavailable");
+  auto layout = seams_.layout();
+  if (!layout) return std::unexpected(layout.error());
+  layout_ = *layout;
+  offsets_ok_ = true;
+  return {};
+}
+
+std::expected<void*, std::string> PawnObserver::SpectatorPawnForSlot(int32_t slot) {
+  if (slot < 0 || slot >= 64 || !seams_.entity_system)
+    return std::unexpected("native spectator unavailable");
+  if (auto resolved = ResolveLayout(); !resolved) return std::unexpected(resolved.error());
+
+  // The controller's active pawn is the observer pawn while it is on the
+  // spectator team.
+  auto system = seams_.entity_system();
+  if (!system) return std::unexpected(system.error());
+  auto* controller_identity = IdentityOfIndex(EntityListOf(*system), slot + 1);
+  auto* controller = controller_identity ? InstanceOf(controller_identity) : nullptr;
+  if (!controller) return std::unexpected("player controller unavailable");
+  if (static_cast<const unsigned char*>(controller)[layout_.team] != 1)
+    return std::unexpected("the player is not a spectator");
+  uint32_t handle = 0;
+  std::memcpy(&handle, static_cast<const char*>(controller) + layout_.pawn_handle, sizeof(handle));
+  auto* identity = IdentityOfHandle(EntityListOf(*system), handle);
+  auto* pawn = identity ? InstanceOf(identity) : nullptr;
+  if (!pawn) return std::unexpected("the spectator's camera is not ready");
+  return pawn;
+}
+
 std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64_t steam_id,
                                                             uint32_t generation, int32_t team,
                                                             void* definition,
@@ -525,13 +557,7 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
       (team != 1 && (!definition || !calls.create_pawn || !calls.select_hero)) ||
       (team == 1 && !calls.spawn_observer) || !seams_.slot_state || !seams_.entity_system)
     return std::unexpected("player selection unavailable");
-  if (!offsets_ok_) {
-    if (!seams_.layout) return std::unexpected("player layout unavailable");
-    auto layout = seams_.layout();
-    if (!layout) return std::unexpected(layout.error());
-    layout_ = *layout;
-    offsets_ok_ = true;
-  }
+  if (auto resolved = ResolveLayout(); !resolved) return resolved;
   void* expected_controller = nullptr;
   auto borrow = [&]() -> std::expected<std::pair<void*, void*>, std::string> {
     const auto state = seams_.slot_state(slot);
@@ -599,13 +625,7 @@ std::expected<void, std::string> PawnObserver::RespawnPlayer(int32_t slot, uint3
   const auto connection = seams_.slot_state(slot);
   if (!connection.occupied || connection.generation != generation)
     return std::unexpected("player connection changed before respawn");
-  if (!offsets_ok_) {
-    if (!seams_.layout) return std::unexpected("player layout unavailable");
-    auto layout = seams_.layout();
-    if (!layout) return std::unexpected(layout.error());
-    layout_ = *layout;
-    offsets_ok_ = true;
-  }
+  if (auto resolved = ResolveLayout(); !resolved) return resolved;
   if (!layout_.hero_pawn_handle) return std::unexpected("native hero pawn handle unavailable");
   auto system = seams_.entity_system();
   if (!system) return std::unexpected(system.error());

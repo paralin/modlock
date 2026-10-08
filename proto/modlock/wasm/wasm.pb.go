@@ -2177,7 +2177,6 @@ type SelectHeroRequest struct {
 	// Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
-	//
 	//	*SelectHeroRequest_HeroName
 	//	*SelectHeroRequest_HeroId
 	Hero isSelectHeroRequest_Hero `protobuf_oneof:"hero"`
@@ -2257,6 +2256,36 @@ func (*HeroResponse) ProtoMessage() {}
 func (x *HeroResponse) GetHero() uint32 {
 	if x != nil {
 		return x.Hero
+	}
+	return 0
+}
+
+// WatchRequest names a spectator and the hero they follow.
+type WatchRequest struct {
+	unknownFields []byte
+	// Player is the spectator's server slot.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Target is the entity handle of the hero to follow, as Pawn.entity
+	// reports it.
+	Target uint32 `protobuf:"varint,2,opt,name=target,proto3" json:"target,omitempty"`
+}
+
+func (x *WatchRequest) Reset() {
+	*x = WatchRequest{}
+}
+
+func (*WatchRequest) ProtoMessage() {}
+
+func (x *WatchRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *WatchRequest) GetTarget() uint32 {
+	if x != nil {
+		return x.Target
 	}
 	return 0
 }
@@ -3563,7 +3592,6 @@ func (x *FieldResponse) GetValue() *FieldValue {
 type FieldValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
-	//
 	//	*FieldValue_Boolean
 	//	*FieldValue_Number
 	//	*FieldValue_Integer
@@ -4354,7 +4382,6 @@ type BotOptions struct {
 	// as Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
-	//
 	//	*BotOptions_HeroName
 	//	*BotOptions_HeroId
 	Hero isBotOptions_Hero `protobuf_oneof:"hero"`
@@ -4674,7 +4701,6 @@ func (x *KeyValue) GetValue() *EntityValue {
 type EntityValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
-	//
 	//	*EntityValue_Boolean
 	//	*EntityValue_Integer
 	//	*EntityValue_Number
@@ -7103,6 +7129,23 @@ func (m *HeroResponse) CloneVT() *HeroResponse {
 }
 
 func (m *HeroResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *WatchRequest) CloneVT() *WatchRequest {
+	if m == nil {
+		return (*WatchRequest)(nil)
+	}
+	r := new(WatchRequest)
+	r.Player = m.Player
+	r.Target = m.Target
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *WatchRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -10169,6 +10212,28 @@ func (this *HeroResponse) EqualVT(that *HeroResponse) bool {
 
 func (this *HeroResponse) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*HeroResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *WatchRequest) EqualVT(that *WatchRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Target != that.Target {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *WatchRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*WatchRequest)
 	if !ok {
 		return false
 	}
@@ -15765,6 +15830,56 @@ func (x *HeroResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the HeroResponse from JSON.
 func (x *HeroResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the WatchRequest message to JSON.
+func (x *WatchRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Target != 0 || s.HasField("target") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("target")
+		s.WriteUint32(x.Target)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the WatchRequest to JSON.
+func (x *WatchRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the WatchRequest message from JSON.
+func (x *WatchRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "target":
+			s.AddField("target")
+			x.Target = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the WatchRequest from JSON.
+func (x *WatchRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -24959,6 +25074,48 @@ func (m *HeroResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *WatchRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WatchRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *WatchRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Target != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Target))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *FreezeRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -30839,6 +30996,18 @@ func (m *HeroResponse) SizeVT() (n int) {
 	return n
 }
 
+func (m *WatchRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Target)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *FreezeRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -33480,6 +33649,23 @@ func (x *HeroResponse) MarshalProtoText() string {
 }
 
 func (x *HeroResponse) String() string {
+	return x.MarshalProtoText()
+}
+func (x *WatchRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "WatchRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Target != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "target")
+		protobuf_go_lite.TextWriteUint(&sb, x.Target)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *WatchRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *FreezeRequest) MarshalProtoText() string {
@@ -39062,6 +39248,66 @@ func (m *HeroResponse) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Hero = 0
 			m.Hero, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WatchRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WatchRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WatchRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Target", wireType)
+			}
+			m.Target = 0
+			m.Target, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

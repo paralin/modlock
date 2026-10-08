@@ -393,6 +393,11 @@ class MODLOCK_API PawnObserver {
   std::expected<void, std::string> EliminatePlayer(int32_t slot, uint32_t generation,
                                                    const NativeDamage& damage);
 
+  // SpectatorPawnForSlot returns the observer pawn of a player on the
+  // spectator team, whose observer services aim the player's camera. It
+  // fails while the player plays a hero or before the game publishes the pawn.
+  std::expected<void*, std::string> SpectatorPawnForSlot(int32_t slot);
+
   // SetPreparationFrozen holds input, native movement, and damage on the current
   // pawn. Release restores the acquired pawn's movement mode and damage setting.
   std::expected<void, std::string> SetPreparationFrozen(int32_t slot, bool frozen);
@@ -496,6 +501,8 @@ class MODLOCK_API PawnObserver {
   // The loaded server outlives this observer; cache failed bindings as well.
   std::optional<std::expected<SetMoveType, std::string>> preparation_movement_;
   void NoteDegradation(const char* reason);
+  // ResolveLayout resolves the schema layout once per world.
+  std::expected<void, std::string> ResolveLayout();
 
   Seams seams_;
   bool movement_enabled_ = false;

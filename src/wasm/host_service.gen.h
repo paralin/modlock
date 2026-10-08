@@ -141,6 +141,14 @@ class HostService {
     return std::unexpected("this host does not support Spectate");
   }
 
+  // Watch points a spectating player's camera at a hero, through the hero's
+  // own view, as the game's spectator camera follows it. Call it after
+  // Spectate, once the player's spectator camera exists; a hero selection
+  // ends the watch.
+  virtual std::expected<void, std::string> Watch(const WatchRequest& /*request*/) {
+    return std::unexpected("this host does not support Watch");
+  }
+
   // Respawn revives the player's dead hero.
   virtual std::expected<void, std::string> Respawn(const PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Respawn");
@@ -718,6 +726,14 @@ class HostService {
              return detail::Fail("the Spectate request is malformed");
            }
            return detail::Answer(host.Spectate(request));
+         }},
+        {"Watch",
+         [](HostService& host, const std::string& bytes) {
+           WatchRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Watch request is malformed");
+           }
+           return detail::Answer(host.Watch(request));
          }},
         {"Respawn",
          [](HostService& host, const std::string& bytes) {

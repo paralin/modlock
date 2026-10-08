@@ -1505,6 +1505,16 @@ export class Player {
     return call('Spectate', pb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
   }
 
+  /**
+   * watch points a spectating player's camera at a hero, through the hero's
+   * own view, as the game's spectator camera follows it. Call it after
+   * Spectate, once the player's spectator camera exists; a hero selection
+   * ends the watch.
+   */
+  watch(target: number): boolean {
+    return call('Watch', pb.WatchRequest.toBinary({ player: this.slot, target })) !== undefined
+  }
+
   /** respawn revives the player's dead hero. */
   respawn(): boolean {
     return call('Respawn', pb.PlayerRequest.toBinary({ player: this.slot })) !== undefined

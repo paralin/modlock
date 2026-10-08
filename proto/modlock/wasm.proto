@@ -112,6 +112,12 @@ service Host {
   // watches until a hero selection seats them again.
   rpc Spectate(PlayerRequest) returns (Empty);
 
+  // Watch points a spectating player's camera at a hero, through the hero's
+  // own view, as the game's spectator camera follows it. Call it after
+  // Spectate, once the player's spectator camera exists; a hero selection
+  // ends the watch.
+  rpc Watch(WatchRequest) returns (Empty);
+
   // Respawn revives the player's dead hero.
   rpc Respawn(PlayerRequest) returns (Empty);
 
@@ -1031,6 +1037,16 @@ message SelectHeroRequest {
 // HeroResponse identifies the hero SelectHero gave.
 message HeroResponse {
   uint32 hero = 1;
+}
+
+// WatchRequest names a spectator and the hero they follow.
+message WatchRequest {
+  // Player is the spectator's server slot.
+  int32 player = 1;
+
+  // Target is the entity handle of the hero to follow, as Pawn.entity
+  // reports it.
+  uint32 target = 2;
 }
 
 // FreezeRequest holds or releases one player's hero.

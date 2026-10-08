@@ -1108,6 +1108,14 @@ class Player:
         """
         return _call("Spectate", "PlayerRequest", {"player": self}) is not None
 
+    def watch(self, target: int) -> bool:
+        """watch points a spectating player's camera at a hero, through the hero's
+        own view, as the game's spectator camera follows it. Call it after
+        Spectate, once the player's spectator camera exists; a hero selection
+        ends the watch.
+        """
+        return _call("Watch", "WatchRequest", {"player": self, "target": target}) is not None
+
     def respawn(self) -> bool:
         """respawn revives the player's dead hero."""
         return _call("Respawn", "PlayerRequest", {"player": self}) is not None
@@ -1747,6 +1755,13 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "hero", "uint32"),
+        ],
+    ),
+    "WatchRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "target", "uint32"),
         ],
     ),
     "FreezeRequest": (

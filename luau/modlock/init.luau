@@ -916,6 +916,11 @@ export type Player = {
 	-- spectate moves the player to the spectators, without a hero. The player
 	-- watches until a hero selection seats them again.
 	spectate: (self: Player) -> boolean,
+	-- watch points a spectating player's camera at a hero, through the hero's
+	-- own view, as the game's spectator camera follows it. Call it after
+	-- Spectate, once the player's spectator camera exists; a hero selection
+	-- ends the watch.
+	watch: (self: Player, target: number) -> boolean,
 	-- respawn revives the player's dead hero.
 	respawn: (self: Player) -> boolean,
 	-- clearItems removes every item the player's hero owns.
@@ -1080,6 +1085,14 @@ end
 -- watches until a hero selection seats them again.
 function Player.spectate(self: Player): boolean
 	return call("Spectate", "PlayerRequest", { player = self }) ~= nil
+end
+
+-- watch points a spectating player's camera at a hero, through the hero's
+-- own view, as the game's spectator camera follows it. Call it after
+-- Spectate, once the player's spectator camera exists; a hero selection
+-- ends the watch.
+function Player.watch(self: Player, target: number): boolean
+	return call("Watch", "WatchRequest", { player = self, target = target }) ~= nil
 end
 
 -- respawn revives the player's dead hero.
@@ -1664,6 +1677,10 @@ schema.SelectHeroRequest = {
 }
 schema.HeroResponse = {
 	{ number = 1, name = "hero", kind = "uint32" },
+}
+schema.WatchRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "target", kind = "uint32" },
 }
 schema.FreezeRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

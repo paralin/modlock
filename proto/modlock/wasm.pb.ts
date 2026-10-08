@@ -2185,6 +2185,37 @@ export const HeroResponse: MessageType<HeroResponse> = /* @__PURE__ */ createMes
 });
 
 /**
+ * WatchRequest names a spectator and the hero they follow.
+ *
+ * @generated from message modlock.wasm.WatchRequest
+ */
+export interface WatchRequest {
+  /**
+   * Player is the spectator's server slot.
+   *
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Target is the entity handle of the hero to follow, as Pawn.entity
+   * reports it.
+   *
+   * @generated from field: uint32 target = 2;
+   */
+  target?: number;
+
+};
+
+export const WatchRequest: MessageType<WatchRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.WatchRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "target", kind: "scalar", T: ScalarType.UINT32 },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * FreezeRequest holds or releases one player's hero.
  *
  * @generated from message modlock.wasm.FreezeRequest
