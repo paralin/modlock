@@ -37,11 +37,11 @@ command('hello', (player) => {
 })
 ```
 
-> **Early development.** APIs change without notice.
-> [TypeScript, JavaScript](#the-typescript-library),
+> **Early development.** APIs may change without notice between any two
+> releases. [TypeScript, JavaScript](#the-typescript-library),
 > [Luau](#writing-a-mod-in-luau), [Python](#writing-a-mod-in-python) and
 > [Go](#writing-a-mod-in-go) mods, the `modlock` command line and
-> `modlock publish` work today.
+> `modlock publish` all work today.
 
 ## Why WebAssembly
 
@@ -50,10 +50,10 @@ command('hello', (player) => {
   crash, an endless loop, a runaway allocation or an event that holds the
   server past its time budget stops that mod with a log line and leaves the
   match running.
-- **Any language.** Anything that compiles to WebAssembly can be a mod. Each
-  language gets a small library over the generated protobuf types.
-- **Built once.** A mod is a portable `.wasm` file. It does not depend on the
-  compiler or source revision of the server that runs it.
+- **Any language.** Anything that compiles to WebAssembly can be a mod, with a
+  small library per language.
+- **Built once.** A mod is one portable `.wasm` file that runs on any build of
+  the server.
 - **Fast.** Wasmtime compiles mods to machine code with Cranelift, and the
   server calls them in the game frame, so a mod can decide whether to claim a
   command or change a frame as it happens.
@@ -63,15 +63,15 @@ command('hello', (player) => {
 ## Getting started
 
 Download `modlock` for your system from the
-[releases](https://github.com/paralin/modlock/releases). On macOS and Linux,
-install it on your `PATH` as `modlock`, using the name of your download:
+[releases](https://github.com/paralin/modlock/releases), and on macOS or Linux
+install it on your `PATH`:
 
 ```sh
 sudo install -m 755 modlock-darwin-arm64 /usr/local/bin/modlock
 ```
 
-macOS refuses to open an unsigned program that a browser downloaded, so on a
-Mac clear the download's quarantine first with `xattr -c modlock-darwin-arm64`.
+On a Mac, clear the download's quarantine first:
+`xattr -c modlock-darwin-arm64`.
 
 On Windows it runs the game server directly; on Linux it runs it through
 Steam's Proton. It fetches the server that matches its release the first time.
@@ -93,24 +93,24 @@ modlock dev
 | `tsconfig.json` | The compiler options your editor uses to check the code as you type. |
 
 Pass `--language javascript`, `luau`, `python` or `go` for another language.
-Complete game modes to start from include
-[`arena`](examples/arena) in TypeScript, [`bounty`](examples/bounty) in Luau
-and [`race`](examples/race) in Go.
+Complete game modes to start from include [`arena`](examples/arena) in
+TypeScript, [`bounty`](examples/bounty) in Luau and [`race`](examples/race) in
+Go, all in the [`examples`](examples) directory.
 
-`modlock dev` builds the mod, starts a local server with it, and launches
-Deadlock through Steam to join. Each time you save, it rebuilds the mod and
-swaps it into the running server. A build that fails prints its errors and
-keeps the previous build running. The terminal shows the mod's log, reloads
-and player joins; the server console goes to `build/server.log`.
+`modlock dev` builds the mod, starts a local server, and launches Deadlock
+through Steam to join. Each time you save, it rebuilds the mod and swaps it in.
+A failed build prints its errors and keeps the last good build running. The
+terminal shows the mod's log, reloads and player joins; the server console goes
+to `build/server.log`.
 
 ### Without the game
 
 On macOS, or on a computer without Deadlock, `modlock dev` runs the mod in the
-sandbox: the same WebAssembly runtime and limits, with a stand-in player who
-has no hero. Type `/hello` and press Enter to send it as that player. The
-terminal shows the mod's log and the chat, toasts and announcements it sends.
-Calls that need the game, such as reading a hero's position, return nothing.
-`--sandbox` uses the sandbox even where the game is installed.
+sandbox: the same runtime and limits, with a stand-in player who has no hero.
+Type `/hello` and press Enter to send it as that player. The terminal shows the
+mod's log and everything it sends players. Calls that need the game, such as
+reading a hero's position, return nothing in the sandbox. `--sandbox` uses the
+sandbox even where the game is installed.
 
 ### Commands
 
@@ -139,16 +139,15 @@ Calls that need the game, such as reading a hero's position, return nothing.
 
 ## Tutorial
 
-Each step adds a few lines to the project `modlock new` wrote, and you can
-try each one as soon as it saves. Steps 1 to 4 go in `main.ts`; step 5 adds a
-module beside it. Together they build a small brawl with a countdown, a score,
-a HUD and a sign. The [examples](#examples) carry the same ideas into full
-game modes.
+Each step adds a few lines to the project `modlock new` wrote, and you can try
+each one as soon as it saves. Steps 1 to 4 go in `main.ts`; step 5 adds a module
+beside it. Together they build a small brawl with a countdown, a score, a HUD
+and a sign. The [examples](#examples) carry the same ideas into complete game
+modes you can play.
 
 ### 1. Answer a command
 
-`command` runs a handler when a player types `/name` in chat. The handler gets
-the player and the text after the command. `toast` shows the player a short
+`command` runs a handler when a player types `/name` in chat. `toast` shows a
 notice that fades.
 
 ```ts
@@ -165,9 +164,9 @@ Type `/roll 20`.
 
 ### 2. Read the hero
 
-`player.pawn()` returns the player's hero as it is this frame: health, team,
-position, aim and souls. It returns `undefined` until the hero spawns, and a
-hero with no health left is dead.
+`player.pawn()` returns the player's hero as it is this frame: its health, team,
+position, aim direction and souls. It returns `undefined` until the hero spawns,
+and a hero whose health has reached zero is dead.
 
 ```ts
 import { command, toast } from 'modlock'
@@ -188,10 +187,9 @@ command('where', (player) => {
 
 ### 3. Count down on the frame
 
-The server calls `onFrame` once per frame. The frame rate varies, so never
-count frames: store when something should happen and compare it with the game
-clock in `frame.timeSeconds`. `players()` lists who is connected now, bots
-included.
+The server calls `onFrame` once per frame. The frame rate varies, so never count
+frames: store when something is due and compare it with the game clock in
+`frame.timeSeconds`. `players()` lists who is connected, bots included.
 
 ```ts
 import { command, onFrame, players } from 'modlock'
@@ -224,9 +222,9 @@ command('start', () => {
 ### 4. Decide the fights
 
 `onDamage` sees each hit before it lands. Return `{ block: true }` to stop it,
-or `{ amount }` to change it. `onDamaged` reports each hit after it lands,
-with the victim's health before and the health it lost, so a lethal hit is one
-that took all of it. Hits refer to heroes by entity, the same number as
+or `{ amount }` to change it. `onDamaged` reports each hit after it lands, with
+the victim's health before and the health it lost, so a lethal hit is one that
+took all of it. Hits refer to heroes by their entity, the same number as
 `pawn.entity`.
 
 ```ts
@@ -253,16 +251,14 @@ function playerOf(entity: number): Player | undefined {
 }
 ```
 
-Set `live = true` in step 3's frame handler where the round goes live. This
-map keys scores by slot. When
-players come and go, key them by slot and `generation` instead: the generation
-changes when someone new takes the slot.
+Set `live = true` in step 3's frame handler where the round goes live. This map
+keys scores by slot. When players come and go, key them by slot and
+`generation`: the generation changes when someone new takes the slot.
 
 ### 5. Show a HUD
 
-An interface is JSX in a `.tsx` module, built from four elements (`panel`,
-`label`, `image` and `button`) and a fixed set of style properties. Put the
-HUD in `hud.tsx`:
+An interface is JSX in a `.tsx` module. Put this HUD in `hud.tsx` beside
+`main.ts`:
 
 ```tsx
 import { type Player, show } from 'modlock'
@@ -303,17 +299,15 @@ onFrame(() => {
 })
 ```
 
-`show` sends only what changed since its last call, so redraw every player's
-HUD from your state each frame instead of tracking what to update. A
-`<button onPress={(player) => ready(player)}>` calls back into the mod when a
-player presses it.
+`show` sends only what changed since its last call, so redraw every player's HUD
+from your state each frame. A `<button onPress={(player) => ready(player)}>`
+calls back into the mod when a player presses it.
 
 ### 6. Place things in the world
 
-`createText`, `createModel` and `createParticle` place floating text, props
-and effects. Each returns an object you can move, change or remove. A new map
-removes everything, so forget your objects in `onWorld`, which runs each time
-a world loads.
+`createText`, `createModel` and `createParticle` place text, props and effects,
+each an object to move, change or remove. A new map removes everything, so
+forget your objects in `onWorld`, which runs as each world loads.
 
 ```ts
 import { command, createText, onWorld, type WorldObject } from 'modlock'
@@ -345,9 +339,9 @@ they load with the world.
 
 ### 7. Let players choose, and keep score
 
-A setting is a choice each player keeps between matches, such as where the
-score sits. A metric is a total the mod keeps for each player, such as their
-defeats. Declare both in `mod.json`:
+A setting is a choice each player keeps between matches, such as where the score
+sits. A metric is a total the mod keeps for each player, such as their defeats.
+Declare both in `mod.json` under `settings` and `metrics`:
 
 ```json
 "settings": [
@@ -376,10 +370,9 @@ scorer.addMetric('brawl.defeats', 1)
 
 ### 8. Split it into modules
 
-As the mode grows, keep `main.ts` a short list of wiring and keep the game's
-state in one object the handlers call into. Split the rest by concern, such
-as the match rules and the HUD. `modlock build` bundles every module `main.ts`
-imports and checks their types together.
+As the mode grows, keep `main.ts` a short list of wiring and the game's state in
+one object the handlers call into. Split the rest by concern. `modlock build`
+bundles and type-checks every module `main.ts` imports.
 
 ```ts
 import { command, onDamage, onFrame, onStart, onWorld } from 'modlock'
@@ -399,11 +392,9 @@ onFrame((frame) => {
 command('ready', (player) => match.ready(player))
 ```
 
-[`examples/arena`](examples/arena) is laid out this way. Each event runs
-within a 500 ms budget, which counts the game calls it makes, and a mod that
-overruns it stops for the rest of the match with a log line naming its slowest
-call. Keep each frame's work small, and spread a large build over several
-frames.
+[`examples/arena`](examples/arena) is laid out this way. Each event runs within
+a 500 ms budget, which counts the game calls it makes, and a mod that overruns
+it stops for the rest of the match with a log line naming its slowest call.
 
 ### 9. Test a whole round
 
@@ -433,10 +424,9 @@ When the mode plays well, [publish it](#publishing).
 
 ## Publishing
 
-`modlock publish` builds the mod and runs the check every host runs before it
-loads a mod: the module may import only the Modlock and WASI functions, and it
-must start and answer its first event within the time and memory limits. A mod
-that passes goes to the destination `--to` selects:
+`modlock publish` builds the mod and runs the check each host runs: the module
+may import only Modlock and WASI functions, and must start and answer its first
+event within the limits. It then goes where `--to` says:
 
 | `--to`      | Effect                                                                                           |
 | ----------- | ------------------------------------------------------------------------------------------------ |
@@ -445,32 +435,30 @@ that passes goes to the destination `--to` selects:
 | `github`    | Attach that zip to the GitHub release `SLUG-vVERSION`, creating the release if needed.           |
 
 The first upload to hyperline.gg opens the browser to sign in and saves the
-session in your user configuration directory. `--origin` points it at another
-service with the same API. The `github` destination uses the
-[`gh`](https://cli.github.com) command line and its sign-in.
+session. `--origin` points it at another service with the same API. The `github`
+destination uses the [`gh`](https://cli.github.com) command line and its
+sign-in.
 
-A release carries the built `mod.json` and its entry. Hyperline publishes each
-version once, so raise `version` in `mod.json` before publishing again.
-`--notes` says what the release changed: hyperline.gg shows the notes on the
-game's page, and the `github` destination uses them for a new release.
+Hyperline publishes each version once, so raise `version` in `mod.json` before
+publishing again. `--notes` says what changed: hyperline.gg shows it on the
+game's page, and the `github` destination uses it for a new release.
 
 ## The TypeScript library
 
-A TypeScript or JavaScript mod imports `modlock` and registers its handlers
-when it loads. `main.ts`, or `main.js`, is the entry, and the types check as
-you type, with no Node.js or npm to install. A JavaScript mod is checked from
-its JSDoc. [`proto/modlock/wasm.proto`](proto/modlock/wasm.proto) documents
-every call.
+A TypeScript or JavaScript mod imports `modlock` and registers its handlers when
+it loads. `main.ts`, or `main.js`, is the entry, and the types check as you
+type, with no Node.js or npm to install. A JavaScript mod is checked from its
+JSDoc. [`proto/modlock/wasm.proto`](proto/modlock/wasm.proto) documents every
+call, its arguments and its result.
 
-A call that fails logs the failure and returns `false` or `undefined`; it
-never stops the mod. Everything a mod places leaves with the world. Stopping or
-reloading the mod also removes it and releases frozen heroes, held modifier
-states and input.
+A failed call logs why and returns `false` or `undefined`; it never stops the
+mod. Everything a mod places leaves with the world. Stopping or reloading the
+mod removes it and releases frozen heroes, modifier states and input.
 
 A mod in the middle of something a new build would lose, such as a timed run,
 calls `holdReload(true)`, and `holdReload(false)` once it ends. A reload that
-arrives meanwhile waits, and the newest build replaces the running one on the
-next frame after the release. A mod that stops releases its hold.
+arrives meanwhile waits for it, and the newest build replaces the running one on
+the next frame after the release. A mod that stops also releases its hold.
 
 ### Events
 
@@ -524,8 +512,8 @@ next frame after the release. A mod that stops releases its hold.
 
 ### Entity fields
 
-A mod reads and writes any schema field of a live entity by its class and
-field names, the way the game declares them:
+A mod reads and writes any schema field of a live entity by its class and field
+names:
 
 ```ts
 import { readField, writeField } from 'modlock'
@@ -534,15 +522,14 @@ const health = readField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32')
 writeField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32', 500)
 ```
 
-A write changes the field on the server and sends it to the players. The
-host checks that the entity is of the named class or one derived from it, and
-refuses one that is not, such as a trooper named as a `CCitadelPlayerPawn`,
-with a message naming both classes and the entity unchanged.
-`entityClass(entity)` returns an entity's class, such as `CCitadelPlayerPawn`,
-and its designer name, such as `player`.
+A write changes the field on the server and sends it to the players. The host
+checks that the entity is of the named class or one derived from it, and refuses
+one that is not, such as a trooper named as a `CCitadelPlayerPawn`, with a
+message naming both classes. The entity stays unchanged, and the mod keeps
+running.
 
-Some fields matter only while an entity spawns, such as a unit's
-`m_iInitialTeamNum`. `spawnNpc` writes those before the unit spawns:
+Some fields matter only while an entity spawns, such as `m_iInitialTeamNum`.
+`spawnNpc` writes those first:
 
 ```ts
 spawnNpc({
@@ -561,8 +548,8 @@ spawnNpc({
 })
 ```
 
-`modlock/entities` has a typed class for each server entity class, with a
-getter and, for each field but a string, a setter:
+`modlock/entities` types each server entity class, with a getter per field and a
+setter for each but strings:
 
 ```ts
 import { CCitadelPlayerPawn } from 'modlock/entities'
@@ -571,17 +558,16 @@ const hero = new CCitadelPlayerPawn(pawn.entity)
 hero.m_iHealth = (hero.m_iHealth ?? 0) + 50
 ```
 
-A bundle keeps only the classes it uses. The game dump in
-[`data/dump`](data/dump) lists every class, its base and its fields in
-`schemas.json`; the `server` module holds the entity classes.
+A bundle keeps only the classes it uses. [`data/dump`](data/dump) lists every
+class, its base and its fields in `schemas.json`.
 
 ### Entities and inputs
 
 `createEntity` creates any entity the server knows by its designer name, with
 the spawn key values a map would give it and fields written before it spawns.
 `fireInput` sends an entity an input, as a map's output would, and
-`removeEntity` removes one the mod created. The world removes a mod's entities
-when it ends, and so does stopping the mod.
+`removeEntity` removes one the mod created. The world's end, or the mod's,
+removes them.
 
 ```ts
 import { createEntity, fireInput, removeEntity } from 'modlock'
@@ -601,17 +587,16 @@ removeEntity(guardian)
 
 An NPC needs its subclass, the game data entry it reads while it spawns. An
 input reads its value as the type it takes and does not convert text: `Alpha`
-takes an integer, `Color` a color as `0xRRGGBBAA`. `entities.json` in the game
-dump lists each input and the type of its value. A designer name the server
-lacks, or an input the entity lacks, fails that call alone.
+takes an integer, `Color` a color as `0xRRGGBBAA`. `entities.json` lists each
+input's value type. A designer name the server lacks, or an input the entity
+lacks, fails that call alone.
 
 The host resolves the designer name's class before it creates anything. An
 ability, item or weapon, which only a hero holds, is refused with a message
-pointing at `giveItem` and `replaceAbility`, because one created alone takes
-the server down once it thinks or is removed. `spawnNpc` and `createPickup`
-build on the same call, so `spawnNpc` takes any unit class the server has,
-such as `npc_yakuza_gangster`, and refuses a `lane` for a class that walks
-none.
+pointing at `giveItem` and `replaceAbility`, because one created alone takes the
+server down once it thinks or is removed. `spawnNpc` and `createPickup` build on
+the same call, so `spawnNpc` takes any unit class the server has and refuses a
+`lane` for a class that walks none.
 
 `create` in `modlock/entities` types the same call by designer name: it takes
 only that entity's spawn keys, each as the type the entity reads, and returns
@@ -641,8 +626,8 @@ language and what the host checks.
 
 ### Console
 
-`modlock/console` sets the server's console variables and runs its console
-commands by name, each variable taking a value of the type the game declares:
+`modlock/console` sets console variables, each typed as the game declares it,
+and runs commands:
 
 ```ts
 import { run, set } from 'modlock/console'
@@ -663,30 +648,27 @@ vector or a color has no typed setter; set it with `serverCommand`.
 | `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it. |
 | `toast(player, text, seconds?)`         | Show a player a short notice that fades.                 |
 
-An interface is built from `panel`, `label`, `image` and `button`. Its style
-properties are `width`, `height`, `flow`, `horizontalAlign`, `verticalAlign`,
-`margin`, `padding`, `background`, `color`, `fontSize`, `bold`, `textAlign`,
-`borderRadius` and `opacity`.
+Style `panel`, `label`, `image` and `button` with `width`, `height`, `flow`,
+`horizontalAlign`, `verticalAlign`, `margin`, `padding`, `background`, `color`,
+`fontSize`, `bold`, `textAlign`, `borderRadius` and `opacity`.
 
-The interface travels as data, the typed tree in
+An interface travels as the typed tree in
 [`proto/modlock/ui.proto`](proto/modlock/ui.proto). The player's game draws it
-with stock panels and runs no mod code, and a button press comes back to its
-`onPress`. The host clears a player's interface when the player leaves or the
-mod stops.
+and runs no mod code, and a button press comes back to its `onPress`. The host
+clears it when the player leaves or the mod stops.
 
 The game draws interfaces with the renderer in [`panorama/`](panorama):
 
-- The layout `panorama/layout/modlock/ui.xml` and its script. Each release
-  publishes the script in `modlock-library.tar.gz` as `ui.js`, for
-  `scripts/modlock/ui.js`; `go run ./cmd/modlock-library <archive>` builds it
-  from a checkout.
-- A client content package loads the layout into a panel that stays loaded
-  through matches, and the renderer draws over the HUD.
+- The layout `panorama/layout/modlock/ui.xml` and its script. Releases publish
+  it as `scripts/modlock/ui.js` in `modlock-library.tar.gz`;
+  `go run ./cmd/modlock-library <archive>` builds it from source.
+- A client content package keeps the layout loaded through matches, and the
+  renderer draws over the HUD.
 - `modlock dev` and `modlock play` serve the local player's interfaces on
   `127.0.0.1:4320` (`--ui-port`, 0 for none). Deadlock's HTML panels load only
-  https pages, so the renderer reads them through a relay page at the https
-  origin in `--ui-relay`, `https://hyperline.gg` by default. The controller
-  answers only that origin's page in the game's own browser.
+  https pages, so the renderer reads them through a relay page at `--ui-relay`,
+  `https://hyperline.gg` by default. The controller answers only that origin's
+  page.
 - A press runs the console command `modlockpress <mod> <node>` in the player's
   game. `pressCommand` in `panorama/src/draw.ts` builds it, so a host with its
   own renderer presses the same way. The server presses the node for the
@@ -697,16 +679,15 @@ The game draws interfaces with the renderer in [`panorama/`](panorama):
 
 `callService(service, method, payload)` calls a service the host provides, and
 `serve(service, handler)` answers the host's calls to one the mod serves. See
-[How mods reach the game](#how-mods-reach-the-game).
+[How mods reach the game](#how-mods-reach-the-game) for the protocol.
 
 ### Spots
 
-A spot is a base map and the solid objects players placed on it; nothing is
-compiled. [`examples/dropper`](examples/dropper) builds one on Midtown: `/build`
-opens the catalog for any player, and every player drops into the same spot.
-The document in [`proto/modlock/spot/spot.proto`](proto/modlock/spot/spot.proto)
-stores each model path and builder once, so a few hundred objects fit in a few
-kilobytes.
+A spot is a base map and the solid objects players placed on it.
+[`examples/dropper`](examples/dropper) builds one on Midtown: `/build` opens the
+catalog, and every player drops into the same spot. The document in
+[`proto/modlock/spot/spot.proto`](proto/modlock/spot/spot.proto) stores each
+model path and builder once, so a few hundred objects fit in a few kilobytes.
 
 ## The manifest
 
@@ -739,9 +720,8 @@ Every project has a `mod.json` at its root:
 "map": "hl_parry_ball"
 ```
 
-`modlock dev` and `modlock play` start on the first map a loaded mod asks for,
-or on the default map. The map must be installed in the game's `citadel/maps`
-directory.
+`dev` and `play` start on the first map a mod asks for in the game's
+`citadel/maps`, or the default map.
 
 ### Movement
 
@@ -757,7 +737,7 @@ directory.
 
 The player's game predicts the same movement. It leaves out the unpredicted
 buttons, so it predicts no cast or shot the server will not make. Each landing
-calls the mod's `onLanded` handler.
+calls `onLanded` with the player and anyone they landed on.
 
 ### Abilities
 
@@ -839,8 +819,8 @@ session's totals as it ends. Bots keep no totals.
 
 ### The built manifest
 
-The `mod.json` that `modlock build` writes to `build/` adds the `runtime` that
-runs the mod and its `entry` file. `modlock-host --plugin build` loads it.
+The built `mod.json` in `build/` adds the `runtime` and `entry`;
+`modlock-host --plugin build` loads it.
 
 ## Writing a mod in Go
 
@@ -879,9 +859,8 @@ mod.OnDamage(func(hit *mod.DamageEvent) *mod.DamageResult {
 })
 ```
 
-[`mod/entity`](mod/entity) reaches any networked field or input through typed
-classes, and [`mod/console`](mod/console) has a typed value for every console
-variable and command:
+[`mod/entity`](mod/entity) types every entity field and input, and
+[`mod/console`](mod/console) every console variable and command:
 
 ```go
 // Set a hero's health.
@@ -932,9 +911,8 @@ modlock.onInput(function(player, pressed)
 end)
 ```
 
-`@modlock/entities` reads and writes any networked field and creates entities.
-Name the type where you keep an entity, and the analyzer checks its fields and
-spawn keys:
+`@modlock/entities` reads and writes fields and creates entities. Name each
+entity's type so the analyzer checks it:
 
 ```luau
 local entities = require("@modlock/entities")
@@ -946,8 +924,8 @@ local keys: entities.CNPC_TrooperBossKeys = { LaneNum = 2 }
 local boss: entities.CNPC_TrooperBoss? = entities.create("npc_trooper_boss", { position = position, keys = keys })
 ```
 
-`@modlock/console` sets console variables with a setter per value type,
-`setBoolean`, `setNumber` and `setString`, and runs commands with `run`:
+`@modlock/console` sets variables with `setBoolean`, `setNumber` and
+`setString`; `run` runs a command:
 
 ```luau
 local console = require("@modlock/console")
@@ -970,15 +948,13 @@ def hello(player: modlock.Player, args: str) -> None:
     player.chat("Hello from Python!")
 ```
 
-The types check in strict mode, and editors with Pyright or Pylance resolve
-the library too. A module imports another by name, such as `import round`.
-Mods run on Python 3.14 with the standard modules a game mod needs, such as
-`dataclasses`, `enum`, `json`, `math`, `random` and `re`.
+Pyright and Pylance check the types in strict mode. A module imports another by
+name, such as `import round`. Mods run on Python 3.14 with standard modules such
+as `dataclasses`, `enum`, `json`, `math`, `random` and `re`.
 
-The library offers the calls of the TypeScript one in snake_case. Messages are
-dataclasses, enums are string literals such as `"match_intro"`, and 64-bit ids
-are Python integers. Python mods do not yet build interfaces or use typed
-entity classes.
+The library has the TypeScript calls in snake_case. Messages are dataclasses,
+enums are string literals, and 64-bit ids are Python integers. Python mods do
+not yet build interfaces or use typed entity classes.
 
 ```python
 # Headshots deal double damage.
@@ -1019,44 +995,38 @@ one:
 The calls are in [`proto/modlock/wasm.proto`](proto/modlock/wasm.proto). A
 `Call` selects one method of the `Host` service, when a mod calls the game, or
 of the `Mod` service, when the host delivers an event, and carries its encoded
-request. The `Reply` carries the encoded response or an error. A new
-capability is a new method; the functions never change. Each event runs
-within a time budget, and each mod has a memory limit.
+request. The `Reply` carries the encoded response or an error. A new capability
+is a new method; the functions never change. Each event runs within a time budget, which stops a mod that overruns it, and each mod has a memory limit.
 
-A program that embeds the host can offer mods more than the game: an
-extension service, such as a game mode's match rules. The program provides a
-service with `WasmHost::Provide`, and mods call it with the host's
-`CallService` method. It calls a service a mod serves with `WasmHost::Call`,
-which delivers the mod's `Serve` event. Each service defines its methods and
-the encoding of their payloads. A mod cannot be called while it is calling the
-host.
+A program that embeds the host can offer mods more than the game, such as a game
+mode's match rules. The program provides a service with `WasmHost::Provide`, and
+mods call it with the host's `CallService` method. It calls a service a mod
+serves with `WasmHost::Call`, which delivers the mod's `Serve` event. Each
+service defines its methods and the encoding of their payloads. A mod cannot be
+called while it is calling the host.
 
 An interpreted mod's built `mod.json` sets its runtime, such as
 `RUNTIME_QUICKJS`, in place of a module. The host runs the interpreter module
-beside `modlock-host` and hands it the mod's source in the start event; mods
-in one language share the compiled interpreter.
+beside `modlock-host` and hands it the mod's source in the start event.
 
 ## The framework
 
 The WebAssembly host is built on Modlock's C++ framework, which also serves
 [native plugins](#native-plugins):
 
-- **Plugin host.** `modlock-host` launches a listen server or a client, loads
-  mods and plugins, and runs them through a fixed `Load`, `Start`, `Tick`,
-  `Stop` lifecycle.
-- **Engine events.** Subscribe to frames, chat, console commands, combat and
-  damage, connections, respawns, and world start and end through
-  `modlock::EngineHost`.
-- **Entities and rendering.** Create and remove world text, particles, and
-  effects; observe and control player pawns; spawn bots; trace rays.
-- **Engine interop.** Signature scanning, relative call decoding, virtual table
-  slot hooks, schema offsets, and `CEntityKeyValues` construction. Every
-  byte signature lives in one table, and `modlock-sigcheck` checks the table
-  against the game binaries after an update.
-- **Session content.** Precache heroes and resources into the session manifest
-  and advertise content addons to connecting clients.
-- **Protocols.** Protobuf messages for mods, HUD text, announcements, chat,
-  stamina, and camera paths, generated for C++, Go, TypeScript, Luau, and Python.
+- **Plugin host.** `modlock-host` runs a server or client and loads mods and
+  plugins.
+- **Engine events.** `EngineHost` delivers frames, chat, commands, damage,
+  connections, respawns and worlds.
+- **Entities and rendering.** World text, particles and effects; player pawns;
+  bots; ray traces.
+- **Engine interop.** Signature scanning, vtable hooks, schema offsets, and
+  `CEntityKeyValues` construction. Every byte signature lives in one table, and
+  `modlock-sigcheck` checks it against the game binaries.
+- **Session content.** Precache heroes and resources, and advertise content
+  addons to connecting clients.
+- **Protocols.** Protobuf for mods, HUD text, chat and camera paths in C++, Go,
+  TypeScript, Luau and Python.
 - **Portable tests.** Parsing, dispatch, sandbox, and fixture tests run on macOS
   and Linux without the game.
 
@@ -1064,9 +1034,8 @@ The game runtime is Windows x64, including Windows builds under Proton.
 
 ## Building
 
-Requirements: Go (the version in `go.mod`), CMake 3.24 or newer, and a C++23
-compiler. CMake downloads [wasi-sdk](https://github.com/WebAssembly/wasi-sdk)
-to compile the QuickJS and Luau runtimes to WebAssembly.
+Requirements: Go, CMake 3.24+ and a C++23 compiler. CMake downloads
+[wasi-sdk](https://github.com/WebAssembly/wasi-sdk) for QuickJS and Luau.
 
 ```sh
 git submodule update --init --recursive
@@ -1084,7 +1053,8 @@ the build leaves the machine usable.
 
 CMake downloads the [Wasmtime C API](https://docs.wasmtime.dev/c-api/) release
 for the target platform. Pass `-DMODLOCK_WASMTIME_DIR=<extracted release>` to
-build offline. Install puts the Wasmtime library next to `modlock-host`.
+build offline. Install puts the Wasmtime library next to `modlock-host`, where
+the host loads it.
 
 - **Windows:** run `scripts/win-build.ps1` from a Visual Studio developer shell.
 - **macOS or Linux, targeting Windows:** `scripts/proton-build.sh` cross-builds
@@ -1122,9 +1092,9 @@ first. Lint the example mods after
 
 ## Native plugins
 
-Native C++ plugins extend the host itself: new engine hooks, new host calls for
-mods, and framework features. They have full access to the game process and
-none of the sandbox's protection. The installed SDK exports `modlock::sdk` through CMake:
+Native C++ plugins extend the host with engine hooks, host calls for mods and
+framework features. They have full access to the game and no sandbox. The
+installed SDK exports `modlock::sdk` through CMake:
 
 ```cmake
 find_package(Modlock CONFIG REQUIRED)
@@ -1133,8 +1103,8 @@ target_link_libraries(my_plugin PRIVATE modlock::sdk)
 target_compile_features(my_plugin PRIVATE cxx_std_23)
 ```
 
-A plugin implements `modlock::Plugin` and exports three functions. `Load`,
-`Tick`, and `Stop` are optional overrides:
+A plugin implements `modlock::Plugin` and exports three functions; `Load`,
+`Tick` and `Stop` are optional:
 
 ```cpp
 #include "modlock/engine_host.h"
@@ -1170,8 +1140,8 @@ MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin* p) { delete 
 ```
 
 [`examples/hello`](examples/hello) is a complete plugin that creates a world
-text entity, runs a console command, removes the entity before world shutdown,
-and exits. Build and run it against the installed SDK:
+text entity, runs a console command, removes the entity before the world shuts
+down, and then exits. Build and run it against the SDK you installed:
 
 ```sh
 cmake -S examples/hello -B build-hello -DCMAKE_BUILD_TYPE=Release \
@@ -1206,15 +1176,15 @@ library, build mode, and runtime configuration as the host. A plugin loads only
 into the host it was built with, so build and ship the host, SDK, and plugins
 together.
 
-**Engine access.** The host loads the engine modules and installs the native
-hooks. Plugins call the engine through `PluginContext::engine` and keep the
-`Subscription`s it returns. Resetting a subscription removes the callback and
-frees what it captured.
+**Engine access.** The host loads the engine and its hooks. Plugins reach it
+through `PluginContext::engine` and keep the returned `Subscription`s. Resetting
+one removes its callback and frees what it captured.
 
-**Sandboxed mods.** `PluginContext::wasm` lends the host's `WasmHost`. A
-plugin that hosts games of its own, such as game modes published as sandboxed
-mods, loads them there, provides them services with `Provide` and calls theirs
-with `Call`. The plugin drives each mod's `Start`, `Tick` and `Stop` itself.
+**Sandboxed mods.** `PluginContext::wasm` lends the host's `WasmHost`. A plugin
+that hosts games of its own, such as game modes published as sandboxed mods,
+loads them there, provides them services with `Provide` and calls theirs with
+`Call`. The plugin itself drives each of these mods through its `Start`, `Tick`
+and `Stop` calls.
 
 **Dispatch.** Callbacks run on the engine thread in the order they were
 registered. For a command, damage, or respawn decision, the first callback that
@@ -1226,7 +1196,8 @@ began starting stops in reverse order, including the one that failed. Remove
 live entities in `OnWorldEnding`, before the engine tears down the world, and
 drop views of the previous world in `OnWorld`. `Stop` runs after the engine
 returns. Each plugin is destroyed inside its own library before that library
-unloads. Plugins cannot be reloaded while the host runs.
+unloads. Plugins cannot be reloaded while the host runs; restart the host to
+load a new build.
 
 [Engine access](docs/engine-access.md) covers module lookup, signature
 resolution, platform boundaries, and hook lifetime.
@@ -1234,20 +1205,18 @@ resolution, platform boundaries, and hook lifetime.
 ## Protocols
 
 Messages live in [`proto/modlock`](proto/modlock) and keep the `modlock` wire
-package. `bun run gen` regenerates the Go, TypeScript, Luau, Python, and C++ code with the
-pinned protobuf toolchain.
+package. `bun run gen` regenerates all of the Go, TypeScript, Luau, Python, and
+C++ code with the protobuf toolchain the repository pins.
 
-The repository commits no built JavaScript. `modlock build` builds the
-TypeScript library in [`js/`](js) from the Modlock source when the source is
-on disk, in a checkout or the Go module cache, and caches it. A release build
-downloads the library its release publishes instead.
+`modlock build` builds the TypeScript library in [`js/`](js) from the Modlock
+source when the source is on disk, in a checkout or the Go module cache, and
+caches it. A release build downloads the library its release publishes.
 
 ## Acknowledgments
 
-Thank you to the Deadlock modding community, whose shared research made this
-project possible, and especially to [Deadworks], whose signatures, engine
-calling conventions, and startup sequence Modlock learned from. See
-[ATTRIBUTION.md](ATTRIBUTION.md) for details.
+Thanks to the Deadlock modding community, whose research made this possible, and
+to [Deadworks], whose signatures, calling conventions and startup sequence
+taught Modlock. See [ATTRIBUTION.md](ATTRIBUTION.md).
 
 [Deadworks]: https://github.com/Deadworks-net/deadworks
 
