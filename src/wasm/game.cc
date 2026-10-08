@@ -1345,7 +1345,16 @@ std::expected<void, std::string> Game::RestoreStamina(const PlayerRequest& reque
   auto clock = (*server)->ReadClock();
   if (!clock) return std::unexpected(clock.error());
   if (auto sample = Live(request.player()); !sample) return std::unexpected(sample.error());
-  return observer_.RestorePracticeStamina(request.player(), clock->current_time);
+  return observer_.SetPracticeStamina(request.player(), clock->current_time);
+}
+
+std::expected<void, std::string> Game::SetStamina(const SetStaminaRequest& request) {
+  auto server = services_.Server();
+  if (!server) return std::unexpected(server.error());
+  auto clock = (*server)->ReadClock();
+  if (!clock) return std::unexpected(clock.error());
+  if (auto sample = Live(request.player()); !sample) return std::unexpected(sample.error());
+  return observer_.SetPracticeStamina(request.player(), clock->current_time, request.stamina());
 }
 
 std::expected<void, std::string> Game::RefreshAbility(const RefreshAbilityRequest& request) {
@@ -2061,7 +2070,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       if (!server) return log("stamina", server.error());
       auto clock = (*server)->ReadClock();
       if (!clock) return log("stamina", clock.error());
-      if (auto done = observer_.RestorePracticeStamina(slot, clock->current_time); !done) {
+      if (auto done = observer_.SetPracticeStamina(slot, clock->current_time); !done) {
         return log("stamina", done.error());
       }
       pawn = observer_.PawnForSlot(slot);

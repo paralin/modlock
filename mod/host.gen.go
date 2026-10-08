@@ -481,6 +481,12 @@ func (p Player) RestoreStamina() error {
 	return invoke("RestoreStamina", &wasm.PlayerRequest{Player: p.Slot}, nil)
 }
 
+// SetStamina sets the player's stamina, as Pawn.stamina reads it. The game
+// regenerates it as usual afterwards.
+func (p Player) SetStamina(stamina float32) error {
+	return invoke("SetStamina", &wasm.SetStaminaRequest{Player: p.Slot, Stamina: stamina}, nil)
+}
+
 // RefreshAbility ends the cooldown of the hero's ability named ability,
 // such as citadel_ability_melee_parry.
 func (p Player) RefreshAbility(ability string) error {

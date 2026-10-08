@@ -170,6 +170,12 @@ class HostService {
     return std::unexpected("this host does not support RestoreStamina");
   }
 
+  // SetStamina sets the player's stamina, as Pawn.stamina reads it. The game
+  // regenerates it as usual afterwards.
+  virtual std::expected<void, std::string> SetStamina(const SetStaminaRequest& /*request*/) {
+    return std::unexpected("this host does not support SetStamina");
+  }
+
   // RefreshAbility ends the cooldown of the hero's ability named ability,
   // such as citadel_ability_melee_parry.
   virtual std::expected<void, std::string> RefreshAbility(
@@ -766,6 +772,14 @@ class HostService {
              return detail::Fail("the RestoreStamina request is malformed");
            }
            return detail::Answer(host.RestoreStamina(request));
+         }},
+        {"SetStamina",
+         [](HostService& host, const std::string& bytes) {
+           SetStaminaRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SetStamina request is malformed");
+           }
+           return detail::Answer(host.SetStamina(request));
          }},
         {"RefreshAbility",
          [](HostService& host, const std::string& bytes) {

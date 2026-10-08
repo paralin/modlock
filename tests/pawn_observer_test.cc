@@ -1083,7 +1083,7 @@ TEST(PawnObserver, ObservesStaminaOnlyWhenFiniteAndPositive) {
   EXPECT_FALSE(sample->stamina);
 }
 
-TEST(PawnObserver, RestoresStaminaToNativeMaximumWithCallerTime) {
+TEST(PawnObserver, SetsStaminaWithinNativeMaximumWithCallerTime) {
   ItemFixture fixture;
   AttachNotifyTable(fixture);
   PawnObserver observer{StaminaSeams(fixture)};
@@ -1094,7 +1094,7 @@ TEST(PawnObserver, RestoresStaminaToNativeMaximumWithCallerTime) {
   ASSERT_TRUE(observer.Observe());
 
   // A non-finite time is a caller defect before any write or notification.
-  EXPECT_FALSE(observer.RestorePracticeStamina(0, std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_FALSE(observer.SetPracticeStamina(0, std::numeric_limits<float>::quiet_NaN()));
   float current = 0, latch_time = 0, latch_value = 0, max = 0;
   std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
   EXPECT_FLOAT_EQ(current, 10.0f);
@@ -1103,14 +1103,14 @@ TEST(PawnObserver, RestoresStaminaToNativeMaximumWithCallerTime) {
 
   // A stale connection is refused before any write.
   fixture.connection.occupied = false;
-  EXPECT_FALSE(observer.RestorePracticeStamina(0, 500.0f));
+  EXPECT_FALSE(observer.SetPracticeStamina(0, 500.0f));
   std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
   EXPECT_FLOAT_EQ(current, 10.0f);
   fixture.connection.occupied = true;
 
   // The refill mirrors HeroRefresh: current = max, latchValue = max,
   // latchTime = the caller's simulation seconds.
-  auto restored = observer.RestorePracticeStamina(0, 500.0f);
+  auto restored = observer.SetPracticeStamina(0, 500.0f);
   ASSERT_TRUE(restored) << restored.error();
   std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
   std::memcpy(&max, fixture.pawn.data() + kStaminaMaxField, sizeof(max));
@@ -1126,9 +1126,20 @@ TEST(PawnObserver, RestoresStaminaToNativeMaximumWithCallerTime) {
   std::memcpy(&regen, fixture.pawn.data() + kStaminaPrevRegenField, sizeof(regen));
   EXPECT_FLOAT_EQ(regen, 7.25f);
 
+  // A chosen value drains the resource, and one past the maximum fills it.
+  auto drained = observer.SetPracticeStamina(0, 502.0f, 0.0f);
+  ASSERT_TRUE(drained) << drained.error();
+  std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
+  std::memcpy(&latch_value, fixture.pawn.data() + kStaminaLatchValueField, sizeof(latch_value));
+  EXPECT_FLOAT_EQ(current, 0.0f);
+  EXPECT_FLOAT_EQ(latch_value, 0.0f);
+  ASSERT_TRUE(observer.SetPracticeStamina(0, 503.0f, 250.0f));
+  std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
+  EXPECT_FLOAT_EQ(current, 100.0f);
+
   // An unusable native maximum is refused before any write.
   WriteStamina(fixture.pawn, 10.0f, 0.0f, 0, 0);
-  EXPECT_FALSE(observer.RestorePracticeStamina(0, 501.0f));
+  EXPECT_FALSE(observer.SetPracticeStamina(0, 501.0f));
   std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
   EXPECT_FLOAT_EQ(current, 10.0f);
 }
@@ -1153,7 +1164,7 @@ TEST(PawnObserver, StaminaRestoreRejectsPawnReplacedDuringTheNotification) {
   WriteStamina(fixture.pawn, 10.0f, 100.0f, 3.25f, 10.0f);
   ASSERT_TRUE(observer.Observe());
   // The notification swaps the pawn; the write must not report success.
-  EXPECT_FALSE(observer.RestorePracticeStamina(0, 500.0f));
+  EXPECT_FALSE(observer.SetPracticeStamina(0, 500.0f));
 }
 
 TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {

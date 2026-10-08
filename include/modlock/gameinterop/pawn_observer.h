@@ -450,15 +450,17 @@ class MODLOCK_API PawnObserver {
   std::expected<void, std::string> ApplyAbilityTimers(int32_t slot,
                                                       std::span<const Ability> targets);
 
-  // RestorePracticeStamina refills the pawn's native stamina resource to its
-  // current native maximum and latches that value at the caller's simulation
-  // time, mirroring the installed HeroRefresh modifier's field relationships
-  // (current = max, latchValue = max, latchTime = now) without repeating the
-  // modifier's incremental +1 refill. Native max and regen rate are retained.
-  // The explicit practice caller owns the policy; no exact-replay path calls
-  // this. Reborrows the pawn through this frame's observation before writing
-  // and after the replication notification.
-  std::expected<void, std::string> RestorePracticeStamina(int32_t slot, float now);
+  // SetPracticeStamina sets the pawn's native stamina resource to stamina,
+  // clamped to the current native maximum, or to that maximum when stamina is
+  // absent, and latches the value at the caller's simulation time. It mirrors
+  // the installed HeroRefresh modifier's field relationships (current = value,
+  // latchValue = value, latchTime = now) without repeating the modifier's
+  // incremental +1 refill. Native max and regen rate are retained. The
+  // explicit practice caller owns the policy; no exact-replay path calls this.
+  // Reborrows the pawn through this frame's observation before writing and
+  // after the replication notification.
+  std::expected<void, std::string> SetPracticeStamina(int32_t slot, float now,
+                                                      std::optional<float> stamina = {});
 
   // FreshAbilityTargets preserves the owned build, clears cooldown intervals,
   // and obtains full charges from each native ability before any timer write.

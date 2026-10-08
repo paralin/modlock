@@ -1490,9 +1490,11 @@ std::expected<std::vector<PawnObserver::Ability>, std::string> PawnObserver::Fre
   return targets;
 }
 
-std::expected<void, std::string> PawnObserver::RestorePracticeStamina(int32_t slot, float now) {
-  // The engine clock owns "now"; a non-finite time is a caller defect.
+std::expected<void, std::string> PawnObserver::SetPracticeStamina(int32_t slot, float now,
+                                                                  std::optional<float> stamina) {
+  // The engine clock owns "now"; a non-finite time or value is a caller defect.
   if (!std::isfinite(now)) return std::unexpected("stamina latch time is not finite");
+  if (stamina && !std::isfinite(*stamina)) return std::unexpected("stamina is not finite");
   // CurrentAbilitiesForSlot revalidates the frame-scoped pawn, connection and
   // controller identity before any write.
   auto owned = CurrentAbilitiesForSlot(slot);
@@ -1504,15 +1506,15 @@ std::expected<void, std::string> PawnObserver::RestorePracticeStamina(int32_t sl
   float current = 0, max = 0;
   std::memcpy(&current, pawn + st.current, sizeof(current));
   std::memcpy(&max, pawn + st.max, sizeof(max));
-  // The native maximum is the refill target; it must be a real capacity.
+  // The native maximum bounds the target; it must be a real capacity.
   if (!std::isfinite(current) || !std::isfinite(max) || max <= 0)
     return std::unexpected("native stamina resource is not usable");
-  // Mirror the installed HeroRefresh field relationships: current = max,
-  // latchValue = max, latchTime = the caller's simulation time. Native
+  // Mirror the installed HeroRefresh field relationships: current = value,
+  // latchValue = value, latchTime = the caller's simulation time. Native
   // m_flPrevRegenRate is retained untouched.
-  const float full = max;
-  std::memcpy(pawn + st.current, &full, sizeof(full));
-  std::memcpy(pawn + st.latch_value, &full, sizeof(full));
+  const float value = std::clamp(stamina.value_or(max), 0.0f, max);
+  std::memcpy(pawn + st.current, &value, sizeof(value));
+  std::memcpy(pawn + st.latch_value, &value, sizeof(value));
   std::memcpy(pawn + st.latch_time, &now, sizeof(now));
   if (!NotifyEntityStateChanged(pawn))
     return std::unexpected("stamina replication notification is unavailable");
@@ -1524,7 +1526,7 @@ std::expected<void, std::string> PawnObserver::RestorePracticeStamina(int32_t sl
   std::memcpy(&written_current, pawn + st.current, sizeof(written_current));
   std::memcpy(&written_latch_value, pawn + st.latch_value, sizeof(written_latch_value));
   std::memcpy(&written_latch_time, pawn + st.latch_time, sizeof(written_latch_time));
-  if (written_current != full || written_latch_value != full || written_latch_time != now)
+  if (written_current != value || written_latch_value != value || written_latch_time != now)
     return std::unexpected("stamina readback differs after replication notification");
   return {};
 }

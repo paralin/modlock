@@ -1134,6 +1134,12 @@ class Player:
         """restore_stamina refills the player's stamina."""
         return _call("RestoreStamina", "PlayerRequest", {"player": self}) is not None
 
+    def set_stamina(self, stamina: float) -> bool:
+        """set_stamina sets the player's stamina, as Pawn.stamina reads it. The game
+        regenerates it as usual afterwards.
+        """
+        return _call("SetStamina", "SetStaminaRequest", {"player": self, "stamina": stamina}) is not None
+
     def refresh_ability(self, ability: str) -> bool:
         """refresh_ability ends the cooldown of the hero's ability named ability,
         such as citadel_ability_melee_parry.
@@ -1897,6 +1903,13 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "amount", "int32"),
+        ],
+    ),
+    "SetStaminaRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "stamina", "float"),
         ],
     ),
     "SoundRequest": (

@@ -1539,6 +1539,14 @@ export class Player {
   }
 
   /**
+   * setStamina sets the player's stamina, as Pawn.stamina reads it. The game
+   * regenerates it as usual afterwards.
+   */
+  setStamina(stamina: number): boolean {
+    return call('SetStamina', pb.SetStaminaRequest.toBinary({ player: this.slot, stamina })) !== undefined
+  }
+
+  /**
    * refreshAbility ends the cooldown of the hero's ability named ability,
    * such as citadel_ability_melee_parry.
    */

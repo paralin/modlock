@@ -131,6 +131,10 @@ service Host {
   // RestoreStamina refills the player's stamina.
   rpc RestoreStamina(PlayerRequest) returns (Empty);
 
+  // SetStamina sets the player's stamina, as Pawn.stamina reads it. The game
+  // regenerates it as usual afterwards.
+  rpc SetStamina(SetStaminaRequest) returns (Empty);
+
   // RefreshAbility ends the cooldown of the hero's ability named ability,
   // such as citadel_ability_melee_parry.
   rpc RefreshAbility(RefreshAbilityRequest) returns (Empty);
@@ -1247,6 +1251,15 @@ message HealRequest {
 
   // Amount is the health to add; the hero stops at its maximum.
   int32 amount = 2;
+}
+
+// SetStaminaRequest sets one player's stamina.
+message SetStaminaRequest {
+  int32 player = 1;
+
+  // Stamina is the hero's new stamina; the hero stops at zero and at its
+  // maximum.
+  float stamina = 2;
 }
 
 // SoundRequest plays one sound on a player's hero.

@@ -2829,6 +2829,35 @@ export const HealRequest: MessageType<HealRequest> = /* @__PURE__ */ createMessa
 });
 
 /**
+ * SetStaminaRequest sets one player's stamina.
+ *
+ * @generated from message modlock.wasm.SetStaminaRequest
+ */
+export interface SetStaminaRequest {
+  /**
+   * @generated from field: int32 player = 1;
+   */
+  player?: number;
+  /**
+   * Stamina is the hero's new stamina; the hero stops at zero and at its
+   * maximum.
+   *
+   * @generated from field: float stamina = 2;
+   */
+  stamina?: number;
+
+};
+
+export const SetStaminaRequest: MessageType<SetStaminaRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.SetStaminaRequest",
+    fields: [
+        { no: 1, name: "player", kind: "scalar", T: ScalarType.INT32 },
+        { no: 2, name: "stamina", kind: "scalar", T: ScalarType.FLOAT },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
  * SoundRequest plays one sound on a player's hero.
  *
  * @generated from message modlock.wasm.SoundRequest

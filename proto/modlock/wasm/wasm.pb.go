@@ -2177,6 +2177,7 @@ type SelectHeroRequest struct {
 	// Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
+	//
 	//	*SelectHeroRequest_HeroName
 	//	*SelectHeroRequest_HeroId
 	Hero isSelectHeroRequest_Hero `protobuf_oneof:"hero"`
@@ -2951,6 +2952,35 @@ func (x *HealRequest) GetAmount() int32 {
 	return 0
 }
 
+// SetStaminaRequest sets one player's stamina.
+type SetStaminaRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Stamina is the hero's new stamina; the hero stops at zero and at its
+	// maximum.
+	Stamina float32 `protobuf:"fixed32,2,opt,name=stamina,proto3" json:"stamina,omitempty"`
+}
+
+func (x *SetStaminaRequest) Reset() {
+	*x = SetStaminaRequest{}
+}
+
+func (*SetStaminaRequest) ProtoMessage() {}
+
+func (x *SetStaminaRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *SetStaminaRequest) GetStamina() float32 {
+	if x != nil {
+		return x.Stamina
+	}
+	return 0
+}
+
 // SoundRequest plays one sound on a player's hero.
 type SoundRequest struct {
 	unknownFields []byte
@@ -3592,6 +3622,7 @@ func (x *FieldResponse) GetValue() *FieldValue {
 type FieldValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
+	//
 	//	*FieldValue_Boolean
 	//	*FieldValue_Number
 	//	*FieldValue_Integer
@@ -4382,6 +4413,7 @@ type BotOptions struct {
 	// as Pawn.hero reports it.
 	//
 	// Types that are assignable to Hero:
+	//
 	//	*BotOptions_HeroName
 	//	*BotOptions_HeroId
 	Hero isBotOptions_Hero `protobuf_oneof:"hero"`
@@ -4701,6 +4733,7 @@ func (x *KeyValue) GetValue() *EntityValue {
 type EntityValue struct {
 	unknownFields []byte
 	// Types that are assignable to Value:
+	//
 	//	*EntityValue_Boolean
 	//	*EntityValue_Integer
 	//	*EntityValue_Number
@@ -7441,6 +7474,23 @@ func (m *HealRequest) CloneVT() *HealRequest {
 }
 
 func (m *HealRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *SetStaminaRequest) CloneVT() *SetStaminaRequest {
+	if m == nil {
+		return (*SetStaminaRequest)(nil)
+	}
+	r := new(SetStaminaRequest)
+	r.Player = m.Player
+	r.Stamina = m.Stamina
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SetStaminaRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -10655,6 +10705,28 @@ func (this *HealRequest) EqualVT(that *HealRequest) bool {
 
 func (this *HealRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*HealRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SetStaminaRequest) EqualVT(that *SetStaminaRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Stamina != that.Stamina {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SetStaminaRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SetStaminaRequest)
 	if !ok {
 		return false
 	}
@@ -16964,6 +17036,56 @@ func (x *HealRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the HealRequest from JSON.
 func (x *HealRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SetStaminaRequest message to JSON.
+func (x *SetStaminaRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Stamina != 0 || s.HasField("stamina") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("stamina")
+		s.WriteFloat32(x.Stamina)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SetStaminaRequest to JSON.
+func (x *SetStaminaRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SetStaminaRequest message from JSON.
+func (x *SetStaminaRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "stamina":
+			s.AddField("stamina")
+			x.Stamina = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SetStaminaRequest from JSON.
+func (x *SetStaminaRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -25965,6 +26087,48 @@ func (m *HealRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SetStaminaRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetStaminaRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SetStaminaRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Stamina != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Stamina))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *SoundRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -31259,6 +31423,18 @@ func (m *HealRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *SetStaminaRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Stamina)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *SoundRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -34038,6 +34214,23 @@ func (x *HealRequest) MarshalProtoText() string {
 }
 
 func (x *HealRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *SetStaminaRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SetStaminaRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Stamina != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "stamina")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Stamina)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SetStaminaRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *SoundRequest) MarshalProtoText() string {
@@ -40587,6 +40780,69 @@ func (m *HealRequest) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetStaminaRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetStaminaRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetStaminaRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Stamina", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Stamina = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

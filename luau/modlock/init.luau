@@ -930,6 +930,9 @@ export type Player = {
 	freeze: (self: Player, frozen: boolean?) -> boolean,
 	-- restoreStamina refills the player's stamina.
 	restoreStamina: (self: Player) -> boolean,
+	-- setStamina sets the player's stamina, as Pawn.stamina reads it. The game
+	-- regenerates it as usual afterwards.
+	setStamina: (self: Player, stamina: number) -> boolean,
 	-- refreshAbility ends the cooldown of the hero's ability named ability,
 	-- such as citadel_ability_melee_parry.
 	refreshAbility: (self: Player, ability: string) -> boolean,
@@ -1114,6 +1117,12 @@ end
 -- restoreStamina refills the player's stamina.
 function Player.restoreStamina(self: Player): boolean
 	return call("RestoreStamina", "PlayerRequest", { player = self }) ~= nil
+end
+
+-- setStamina sets the player's stamina, as Pawn.stamina reads it. The game
+-- regenerates it as usual afterwards.
+function Player.setStamina(self: Player, stamina: number): boolean
+	return call("SetStamina", "SetStaminaRequest", { player = self, stamina = stamina }) ~= nil
 end
 
 -- refreshAbility ends the cooldown of the hero's ability named ability,
@@ -1768,6 +1777,10 @@ schema.StartingSoulsRequest = {
 schema.HealRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "amount", kind = "int32" },
+}
+schema.SetStaminaRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "stamina", kind = "float" },
 }
 schema.SoundRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
