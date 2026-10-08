@@ -23,8 +23,7 @@
 game modes. You write a mod in TypeScript, Luau or Python; Modlock builds it
 for WebAssembly, and the game server runs it in a secure sandbox. Every mod
 speaks to the game through one common protobuf schema, so each language sees
-the same events and calls. Mods deploy to [hyperline.gg], the default backend and
-marketplace for custom games.
+the same events and calls. Mods deploy to [hyperline.gg], the default backend and platform for custom games.
 
 [Deadlock]: https://store.steampowered.com/app/1422450/Deadlock/
 [hyperline.gg]: https://hyperline.gg
