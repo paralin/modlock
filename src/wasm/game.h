@@ -381,8 +381,10 @@ class Game : public HostService {
       const CreatePickupRequest& request) override;
   std::expected<AliveResponse, std::string> PickupPresent(const PickupRequest& request) override;
   std::expected<AliveResponse, std::string> RemovePickup(const PickupRequest& request) override;
+  std::expected<EntitiesResponse, std::string> FindEntities(
+      const ClassNameRequest& request) override;
   std::expected<CountResponse, std::string> RemoveEntities(
-      const RemoveEntitiesRequest& request) override;
+      const ClassNameRequest& request) override;
   std::expected<void, std::string> ClearMap() override;
   std::expected<void, std::string> Damage(const HitOptions& request) override;
   std::expected<TraceResponse, std::string> Trace(const TraceOptions& request) override;

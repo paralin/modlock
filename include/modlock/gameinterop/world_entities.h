@@ -76,6 +76,9 @@ class MODLOCK_API WorldEntities {
   // UTIL_Remove, without damage, kill rewards or the console cheat gate. It
   // returns how many entities were queued for removal.
   std::expected<size_t, std::string> Remove(std::string_view designer_name);
+  // Find returns the handle of every live entity with this exact designer
+  // name.
+  std::expected<std::vector<uint32_t>, std::string> Find(std::string_view designer_name);
 
   // Spawn adds one NPC beside the existing world through CreateEntity and
   // returns its handle. A health of zero keeps the subclass default. Call
