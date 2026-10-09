@@ -27,8 +27,10 @@ struct Limits {
   // event_budget bounds one event, including the host calls it makes. The
   // engine drops a player whose commands hold its thread for about a second,
   // so the budget is half that, which still fits one slow engine call such as
-  // adding a bot (about 270 ms). It is wall time: a busy machine's preemption
-  // and the interpreter's garbage collection count against it.
+  // adding a bot (about 270 ms). Budgets count the engine thread's processor
+  // time, the interpreter's garbage collection included: a stall in which
+  // the thread waits, such as preemption or paging on a machine short of
+  // memory, spends none of it, since stopping the mod would not end it.
   std::chrono::milliseconds event_budget{500};
 };
 
@@ -78,18 +80,23 @@ class Instance {
                                                             uint32_t size);
   wasmtime::Result<std::monostate, wasmtime::Trap> HostReadImport(wasmtime::Caller caller,
                                                                   uint32_t data, uint32_t size);
-  // Budget is the running call's time limit and how its host calls spent it.
+  // Budget is the running call's processor time limit and how its host calls
+  // spent it. began is the thread's processor time when the call started.
   struct Budget {
     std::string call;
     std::chrono::milliseconds limit{};
-    std::chrono::steady_clock::time_point began;
-    std::chrono::steady_clock::duration host{};
+    std::chrono::nanoseconds began{};
+    std::chrono::nanoseconds host{};
     std::string slowest;
-    std::chrono::steady_clock::duration slowest_time{};
+    std::chrono::nanoseconds slowest_time{};
   };
 
   // SetBudget starts the budget limit for call.
   void SetBudget(std::string call, std::chrono::milliseconds limit);
+  // Left returns the processor time left in budget_, below zero once spent.
+  std::chrono::nanoseconds Left() const;
+  // Ticks returns the epoch ticks that cover left, zero once it is spent.
+  static uint64_t Ticks(std::chrono::nanoseconds left);
   // ArmDeadline sets the epoch deadline to the time left in budget_.
   void ArmDeadline();
   // Stop fails the instance after a trap: an overrun budget, which it

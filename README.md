@@ -393,7 +393,9 @@ command('ready', (player) => match.ready(player))
 ```
 
 [`examples/arena`](examples/arena) is laid out this way. Each event runs within
-a 500 ms budget, which counts the game calls it makes. A mod that overruns it
+a 500 ms budget of processor time, which counts the game calls it makes but
+not a stall in which the server waits, such as paging on a machine short of
+memory. A mod that overruns it
 stops with a log line naming its slowest call, clears what it placed and shows,
 and starts again on the next frame, as a reload does. Each later stop of the
 same build waits twice as long before the restart, from a second up to a minute.

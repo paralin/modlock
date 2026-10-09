@@ -7,8 +7,34 @@
 #include <utility>
 #include <variant>
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#else
+#include <time.h>
+#endif
+
 namespace modlock::wasm {
 namespace {
+
+// ThreadTime returns the processor time the calling thread has used, in user
+// and kernel mode. Time it spends blocked, preempted or waiting for memory
+// paged in from disk is not in it.
+std::chrono::nanoseconds ThreadTime() {
+#if defined(_WIN32)
+  FILETIME creation, exit, kernel, user;
+  GetThreadTimes(GetCurrentThread(), &creation, &exit, &kernel, &user);
+  auto hundreds = [](FILETIME time) {
+    return (uint64_t{time.dwHighDateTime} << 32) | time.dwLowDateTime;
+  };
+  return std::chrono::nanoseconds{(hundreds(kernel) + hundreds(user)) * 100};
+#else
+  timespec now{};
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &now);
+  return std::chrono::seconds{now.tv_sec} + std::chrono::nanoseconds{now.tv_nsec};
+#endif
+}
 
 // Bytes returns the mod memory range [data, data + size), or nullopt when the
 // range leaves memory.
@@ -36,6 +62,17 @@ Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
       host_call_(std::move(host_call)),
       store_(runtime.Engine()) {
   store_.limiter(limits_.memory_bytes, -1, -1, -1, -1);
+
+  // The epoch deadline arrives no sooner than the budget can be spent, since
+  // the thread uses at most one second of processor time per second. A call
+  // with budget left runs on to a new deadline; one without traps.
+  store_.epoch_deadline_callback(
+      [this](wasmtime::Store::Context,
+             uint64_t& delta) -> wasmtime::Result<wasmtime::DeadlineKind> {
+        if (Left() <= Left().zero()) return wasmtime::Error("the time budget is spent");
+        delta = Ticks(Left());
+        return wasmtime::DeadlineKind::Continue;
+      });
 }
 
 Instance::~Instance() = default;
@@ -150,11 +187,11 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
     return wasmtime::Trap("modlock.host_call: invalid Call");
   }
 
-  // Answer it and hold the encoded reply for host_read. The host's time
+  // Answer it and hold the encoded reply for host_read. The host's work
   // counts against the budget; past it, the mod traps on return.
-  const auto entered = std::chrono::steady_clock::now();
+  const auto entered = ThreadTime();
   host_call_(call).SerializeToString(&pending_);
-  const auto spent = std::chrono::steady_clock::now() - entered;
+  const auto spent = ThreadTime() - entered;
   budget_.host += spent;
   if (spent > budget_.slowest_time) {
     budget_.slowest = call.method();
@@ -178,20 +215,24 @@ wasmtime::Result<std::monostate, wasmtime::Trap> Instance::HostReadImport(wasmti
 }
 
 void Instance::SetBudget(std::string call, std::chrono::milliseconds limit) {
-  budget_ = {.call = std::move(call), .limit = limit, .began = std::chrono::steady_clock::now()};
+  budget_ = {.call = std::move(call), .limit = limit, .began = ThreadTime()};
   ArmDeadline();
 }
 
-void Instance::ArmDeadline() {
-  const auto left = std::max(std::chrono::steady_clock::duration::zero(),
-                             budget_.began + budget_.limit - std::chrono::steady_clock::now());
-  store_.context().set_epoch_deadline((left + kEpochTick - std::chrono::nanoseconds{1}) /
-                                      kEpochTick);
+std::chrono::nanoseconds Instance::Left() const {
+  return budget_.limit - (ThreadTime() - budget_.began);
 }
+
+uint64_t Instance::Ticks(std::chrono::nanoseconds left) {
+  if (left <= left.zero()) return 0;
+  return static_cast<uint64_t>((left + kEpochTick - std::chrono::nanoseconds{1}) / kEpochTick);
+}
+
+void Instance::ArmDeadline() { store_.context().set_epoch_deadline(Ticks(Left())); }
 
 std::string Instance::Stop(std::string trap) {
   using std::chrono::milliseconds;
-  const auto spent = std::chrono::steady_clock::now() - budget_.began;
+  const auto spent = ThreadTime() - budget_.began;
   if (spent < budget_.limit) return Fail(std::move(trap));
   auto reason =
       std::format("{} ran past its {} ms budget: {} ms", budget_.call, budget_.limit.count(),
