@@ -141,12 +141,19 @@ class HostService {
     return std::unexpected("this host does not support Spectate");
   }
 
-  // Watch points a spectating player's camera at a hero, through the hero's
-  // own view, as the game's spectator camera follows it. Call it after
-  // Spectate, once the player's spectator camera exists; a hero selection
-  // ends the watch.
+  // Watch points the player's camera at a hero, through the hero's own view,
+  // as the game's spectator camera follows it. A spectator watches through
+  // their spectator camera, once it exists. A player with a hero watches
+  // while the hero stays where it stands, keeping its level, souls and items,
+  // until Unwatch returns them to it.
   virtual std::expected<void, std::string> Watch(const WatchRequest& /*request*/) {
     return std::unexpected("this host does not support Watch");
+  }
+
+  // Unwatch returns a player watching from their hero back to it. Stopping
+  // the mod returns every such player.
+  virtual std::expected<void, std::string> Unwatch(const PlayerRequest& /*request*/) {
+    return std::unexpected("this host does not support Unwatch");
   }
 
   // Respawn revives the player's dead hero.
@@ -740,6 +747,14 @@ class HostService {
              return detail::Fail("the Watch request is malformed");
            }
            return detail::Answer(host.Watch(request));
+         }},
+        {"Unwatch",
+         [](HostService& host, const std::string& bytes) {
+           PlayerRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Unwatch request is malformed");
+           }
+           return detail::Answer(host.Unwatch(request));
          }},
         {"Respawn",
          [](HostService& host, const std::string& bytes) {

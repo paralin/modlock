@@ -1109,12 +1109,19 @@ class Player:
         return _call("Spectate", "PlayerRequest", {"player": self}) is not None
 
     def watch(self, target: int) -> bool:
-        """watch points a spectating player's camera at a hero, through the hero's
-        own view, as the game's spectator camera follows it. Call it after
-        Spectate, once the player's spectator camera exists; a hero selection
-        ends the watch.
+        """watch points the player's camera at a hero, through the hero's own view,
+        as the game's spectator camera follows it. A spectator watches through
+        their spectator camera, once it exists. A player with a hero watches
+        while the hero stays where it stands, keeping its level, souls and items,
+        until Unwatch returns them to it.
         """
         return _call("Watch", "WatchRequest", {"player": self, "target": target}) is not None
+
+    def unwatch(self) -> bool:
+        """unwatch returns a player watching from their hero back to it. Stopping
+        the mod returns every such player.
+        """
+        return _call("Unwatch", "PlayerRequest", {"player": self}) is not None
 
     def respawn(self) -> bool:
         """respawn revives the player's dead hero."""

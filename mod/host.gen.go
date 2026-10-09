@@ -452,12 +452,19 @@ func (p Player) Spectate() error {
 	return invoke("Spectate", &wasm.PlayerRequest{Player: p.Slot}, nil)
 }
 
-// Watch points a spectating player's camera at a hero, through the hero's
-// own view, as the game's spectator camera follows it. Call it after
-// Spectate, once the player's spectator camera exists; a hero selection
-// ends the watch.
+// Watch points the player's camera at a hero, through the hero's own view,
+// as the game's spectator camera follows it. A spectator watches through
+// their spectator camera, once it exists. A player with a hero watches
+// while the hero stays where it stands, keeping its level, souls and items,
+// until Unwatch returns them to it.
 func (p Player) Watch(target uint32) error {
 	return invoke("Watch", &wasm.WatchRequest{Player: p.Slot, Target: target}, nil)
+}
+
+// Unwatch returns a player watching from their hero back to it. Stopping
+// the mod returns every such player.
+func (p Player) Unwatch() error {
+	return invoke("Unwatch", &wasm.PlayerRequest{Player: p.Slot}, nil)
 }
 
 // Respawn revives the player's dead hero.

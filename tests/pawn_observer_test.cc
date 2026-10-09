@@ -1519,6 +1519,97 @@ TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
   EXPECT_EQ(selected, 1);
 }
 
+TEST(PawnObserver, WatchingKeepsTheHeroAndReturnsToIt) {
+  static Fixture* active = nullptr;
+  static void* camera_pawn = nullptr;
+  static void* rebound = nullptr;
+  static int spawns = 0;
+  Fixture fixture;
+  active = &fixture;
+  fixture.occupied = true;
+  fixture.generation = 3;
+  fixture.controller[kTeamField] = 2;
+  Instance hero{}, camera{};
+  camera_pawn = camera.data();
+  fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+  fixture.image.SetIdentity(2, hero.data(), 7, 0);
+  fixture.image.SetIdentity(3, camera.data(), 8, 0);
+  const auto hero_handle = HandleOf(2, 7);
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+
+  // The game binds the camera it spawns, and the hero it is given.
+  modlock::gameinterop::PlayerSelectionCalls calls;
+  spawns = 0;
+  rebound = nullptr;
+  calls.spawn_observer = +[](void*) -> void* {
+    ++spawns;
+    const auto handle = HandleOf(3, 8);
+    std::memcpy(active->controller.data() + kPawnHandleField, &handle, sizeof(handle));
+    return camera_pawn;
+  };
+  calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool, bool) {
+    EXPECT_FALSE(retain_old_pawn_team);
+    rebound = pawn;
+    const auto handle = HandleOf(2, 7);
+    std::memcpy(static_cast<char*>(controller) + kPawnHandleField, &handle, sizeof(handle));
+  };
+
+  // The hero stays the player's hero while a single camera watches.
+  PawnObserver observer{HeroSeamsFor(fixture)};
+  EXPECT_EQ(observer.CameraPawnForSlot(0, calls).value_or(nullptr), camera.data());
+  EXPECT_EQ(observer.CameraPawnForSlot(0, calls).value_or(nullptr), camera.data());
+  EXPECT_EQ(spawns, 1);
+  uint32_t kept = 0;
+  std::memcpy(&kept, fixture.controller.data() + kHeroHandleField, sizeof(kept));
+  EXPECT_EQ(kept, hero_handle);
+  EXPECT_EQ(observer.WatchingSlots(), std::vector<int32_t>{0});
+
+  // Returning binds the hero and hands back the camera to remove, once.
+  EXPECT_EQ(observer.ReturnToHero(0, calls).value_or(0), HandleOf(3, 8));
+  EXPECT_EQ(rebound, hero.data());
+  EXPECT_EQ(observer.ReturnToHero(0, calls).value_or(1), 0u);
+  EXPECT_TRUE(observer.WatchingSlots().empty());
+  active = nullptr;
+}
+
+TEST(PawnObserver, ReturnLeavesTheGamesCameraAfterTheHeroDies) {
+  static Fixture* active = nullptr;
+  static void* camera_pawn = nullptr;
+  Fixture fixture;
+  active = &fixture;
+  fixture.occupied = true;
+  fixture.generation = 3;
+  fixture.controller[kTeamField] = 3;
+  Instance hero{}, camera{}, death{};
+  camera_pawn = camera.data();
+  fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+  fixture.image.SetIdentity(2, hero.data(), 7, 0);
+  fixture.image.SetIdentity(3, camera.data(), 8, 0);
+  fixture.image.SetIdentity(4, death.data(), 9, 0);
+  const auto hero_handle = HandleOf(2, 7);
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+  modlock::gameinterop::PlayerSelectionCalls calls;
+  calls.spawn_observer = +[](void*) -> void* {
+    const auto handle = HandleOf(3, 8);
+    std::memcpy(active->controller.data() + kPawnHandleField, &handle, sizeof(handle));
+    return camera_pawn;
+  };
+  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) { ADD_FAILURE() << "hero is dead"; };
+  PawnObserver observer{HeroSeamsFor(fixture)};
+  ASSERT_TRUE(observer.CameraPawnForSlot(0, calls));
+
+  // The hero dies and the game binds its own camera, which a later watch
+  // reuses; the respawn returns the player to the hero.
+  const auto death_handle = HandleOf(4, 9);
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &death_handle, sizeof(death_handle));
+  EXPECT_EQ(observer.ReturnToHero(0, calls).value_or(0), HandleOf(3, 8));
+  EXPECT_EQ(observer.CameraPawnForSlot(0, calls).value_or(nullptr), death.data());
+  EXPECT_TRUE(observer.WatchingSlots().empty());
+  active = nullptr;
+}
+
 TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   static void* expected_pawn = nullptr;
   static int respawned = 0;

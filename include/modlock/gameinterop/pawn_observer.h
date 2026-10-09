@@ -393,10 +393,20 @@ class MODLOCK_API PawnObserver {
   std::expected<void, std::string> EliminatePlayer(int32_t slot, uint32_t generation,
                                                    const NativeDamage& damage);
 
-  // SpectatorPawnForSlot returns the observer pawn of a player on the
-  // spectator team, whose observer services aim the player's camera. It
-  // fails while the player plays a hero or before the game publishes the pawn.
-  std::expected<void*, std::string> SpectatorPawnForSlot(int32_t slot);
+  // CameraPawnForSlot returns the pawn whose observer services aim the
+  // player's camera. A spectator's camera is its own pawn. A player with a
+  // living hero gets a camera of its own while the hero stays in the world,
+  // until ReturnToHero.
+  std::expected<void*, std::string> CameraPawnForSlot(int32_t slot,
+                                                      const PlayerSelectionCalls& calls);
+
+  // ReturnToHero binds a watching player back to their hero and returns the
+  // handle of the camera to remove, or zero when the player has none.
+  std::expected<uint32_t, std::string> ReturnToHero(int32_t slot,
+                                                    const PlayerSelectionCalls& calls);
+
+  // WatchingSlots lists the players watching through a camera of their own.
+  std::vector<int32_t> WatchingSlots() const;
 
   // SetPreparationFrozen holds input, native movement, and damage on the current
   // pawn. Release restores the acquired pawn's movement mode and damage setting.
@@ -491,6 +501,13 @@ class MODLOCK_API PawnObserver {
     int32_t team;
   };
   std::map<int32_t, PendingSelection> pending_selections_;
+  // A camera belongs to the connection it was made for; a reconnect's
+  // controller never binds the earlier connection's hero.
+  struct Camera {
+    uint32_t handle;
+    uint32_t generation;
+  };
+  std::map<int32_t, Camera> cameras_;
   // Freeze ownership follows the retained pawn, including across a reconnect.
   struct FrozenPawn {
     uint32_t handle;
@@ -505,6 +522,10 @@ class MODLOCK_API PawnObserver {
   void NoteDegradation(const char* reason);
   // ResolveLayout resolves the schema layout once per world.
   std::expected<void, std::string> ResolveLayout();
+  // ControllerOfSlot returns the slot's controller and the entity list that
+  // resolves its handles.
+  std::expected<std::pair<unsigned char*, unsigned char*>, std::string> ControllerOfSlot(
+      int32_t slot);
 
   Seams seams_;
   bool movement_enabled_ = false;

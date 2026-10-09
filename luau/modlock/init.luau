@@ -916,11 +916,15 @@ export type Player = {
 	-- spectate moves the player to the spectators, without a hero. The player
 	-- watches until a hero selection seats them again.
 	spectate: (self: Player) -> boolean,
-	-- watch points a spectating player's camera at a hero, through the hero's
-	-- own view, as the game's spectator camera follows it. Call it after
-	-- Spectate, once the player's spectator camera exists; a hero selection
-	-- ends the watch.
+	-- watch points the player's camera at a hero, through the hero's own view,
+	-- as the game's spectator camera follows it. A spectator watches through
+	-- their spectator camera, once it exists. A player with a hero watches
+	-- while the hero stays where it stands, keeping its level, souls and items,
+	-- until Unwatch returns them to it.
 	watch: (self: Player, target: number) -> boolean,
+	-- unwatch returns a player watching from their hero back to it. Stopping
+	-- the mod returns every such player.
+	unwatch: (self: Player) -> boolean,
 	-- respawn revives the player's dead hero.
 	respawn: (self: Player) -> boolean,
 	-- clearItems removes every item the player's hero owns.
@@ -1090,12 +1094,19 @@ function Player.spectate(self: Player): boolean
 	return call("Spectate", "PlayerRequest", { player = self }) ~= nil
 end
 
--- watch points a spectating player's camera at a hero, through the hero's
--- own view, as the game's spectator camera follows it. Call it after
--- Spectate, once the player's spectator camera exists; a hero selection
--- ends the watch.
+-- watch points the player's camera at a hero, through the hero's own view,
+-- as the game's spectator camera follows it. A spectator watches through
+-- their spectator camera, once it exists. A player with a hero watches
+-- while the hero stays where it stands, keeping its level, souls and items,
+-- until Unwatch returns them to it.
 function Player.watch(self: Player, target: number): boolean
 	return call("Watch", "WatchRequest", { player = self, target = target }) ~= nil
+end
+
+-- unwatch returns a player watching from their hero back to it. Stopping
+-- the mod returns every such player.
+function Player.unwatch(self: Player): boolean
+	return call("Unwatch", "PlayerRequest", { player = self }) ~= nil
 end
 
 -- respawn revives the player's dead hero.
