@@ -13,6 +13,7 @@ std::expected<PlayerSelectionCalls, std::string> PlayerSelectionCalls::Resolve(
       {"controller.create-hero-pawn", reinterpret_cast<void**>(&calls.create_pawn)},
       {"pawn.select-hero-internal", reinterpret_cast<void**>(&calls.select_hero)},
       {"controller.spawn-observer", reinterpret_cast<void**>(&calls.spawn_observer)},
+      {"controller.set-pawn", reinterpret_cast<void**>(&calls.set_pawn)},
   };
   for (const auto& entry : entries) {
     auto address = ResolveSignature(server, entry.id);
