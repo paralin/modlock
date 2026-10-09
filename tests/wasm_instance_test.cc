@@ -375,14 +375,16 @@ TEST(WasmInstance, StartGetsTheStartBudget) {
   EXPECT_FALSE((*instance)->Deliver(Event("Frame", FrameEvent{})));
 }
 
-// A slow host call holds the engine thread as surely as a loop does, so it
-// spends the budget, and the failure names where the time went.
+// A host call that works long holds the engine thread as surely as a loop
+// does, so it spends the budget, and the failure names where the time went.
 TEST(WasmInstance, BudgetCountsHostCalls) {
   Runtime runtime;
   Limits limits;
   limits.event_budget = std::chrono::milliseconds{50};
   auto slow = [](const Call&) {
-    std::this_thread::sleep_for(std::chrono::milliseconds{200});
+    const auto until = std::chrono::steady_clock::now() + std::chrono::milliseconds{200};
+    while (std::chrono::steady_clock::now() < until) {
+    }
     return Reply{};
   };
   auto instance = Instance::Load(runtime, Wat(R"((module
@@ -403,6 +405,30 @@ TEST(WasmInstance, BudgetCountsHostCalls) {
   const auto& failure = *(*instance)->Failure();
   EXPECT_TRUE(failure.starts_with("Frame ran past its 50 ms budget")) << failure;
   EXPECT_TRUE(failure.contains("the slowest Sleep at")) << failure;
+}
+
+// A stall in which the engine thread waits, as when the machine pages, is
+// not the mod's work, so it spends none of the budget.
+TEST(WasmInstance, BudgetSkipsAStall) {
+  Runtime runtime;
+  Limits limits;
+  limits.event_budget = std::chrono::milliseconds{50};
+  auto stalled = [](const Call&) {
+    std::this_thread::sleep_for(std::chrono::milliseconds{200});
+    return Reply{};
+  };
+  auto instance = Instance::Load(runtime, Wat(R"((module
+    (import "modlock" "host_call" (func $call (param i32 i32) (result i32)))
+    (memory (export "memory") 1)
+    (data (i32.const 0) "\0a\05Sleep")
+    (func (export "modlock_event") (param i32) (result i64)
+      (drop (call $call (i32.const 0) (i32.const 7)))
+      i64.const 0)))"),
+                                 limits, stalled);
+  ASSERT_TRUE(instance) << instance.error();
+
+  auto delivered = (*instance)->Deliver(Event("Frame", FrameEvent{}));
+  EXPECT_TRUE(delivered) << delivered.error();
 }
 
 TEST(WasmInstance, MemoryLimitRefusesALargeMod) {
