@@ -1340,21 +1340,32 @@ std::expected<void, std::string> Game::Freeze(const FreezeRequest& request) {
 }
 
 std::expected<void, std::string> Game::RestoreStamina(const PlayerRequest& request) {
-  auto server = services_.Server();
-  if (!server) return std::unexpected(server.error());
-  auto clock = (*server)->ReadClock();
-  if (!clock) return std::unexpected(clock.error());
+  auto now = LatchTime();
+  if (!now) return std::unexpected(now.error());
   if (auto sample = Live(request.player()); !sample) return std::unexpected(sample.error());
-  return observer_.SetPracticeStamina(request.player(), clock->current_time);
+  return observer_.SetPracticeStamina(request.player(), *now);
 }
 
 std::expected<void, std::string> Game::SetStamina(const SetStaminaRequest& request) {
+  auto now = LatchTime();
+  if (!now) return std::unexpected(now.error());
+  if (auto sample = Live(request.player()); !sample) return std::unexpected(sample.error());
+  return observer_.SetPracticeStamina(request.player(), *now, request.stamina());
+}
+
+std::expected<float, std::string> Game::LatchTime() {
+  // The simulation time keeps running through a pause, so a latch written
+  // with it after a pause sits in the future of a clock without the paused
+  // ticks, and the hero shows empty stamina until that clock catches up. A
+  // latch without the paused ticks fills the hero under either clock. Without
+  // game rules no pause has happened, and the two clocks agree.
   auto server = services_.Server();
   if (!server) return std::unexpected(server.error());
-  auto clock = (*server)->ReadClock();
-  if (!clock) return std::unexpected(clock.error());
-  if (auto sample = Live(request.player()); !sample) return std::unexpected(sample.error());
-  return observer_.SetPracticeStamina(request.player(), clock->current_time, request.stamina());
+  auto now = (*server)->ReadClock();
+  if (!now) return std::unexpected(now.error());
+  auto clock = services_.Clock();
+  if (!clock) return now->current_time;
+  return (*clock)->GameTime(now->current_time, now->interval).value_or(now->current_time);
 }
 
 std::expected<void, std::string> Game::RefreshAbility(const RefreshAbilityRequest& request) {

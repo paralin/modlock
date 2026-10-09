@@ -40,24 +40,31 @@ std::expected<void*, std::string> MatchClock::Current() const {
   return rules;
 }
 
-std::expected<float, std::string> MatchClock::Read(float current_time, float interval) const {
+std::expected<float, std::string> MatchClock::GameTime(float current_time, float interval) const {
   if (!std::isfinite(current_time) || !std::isfinite(interval) || interval <= 0)
     return std::unexpected("match clock requires a finite simulation clock");
   auto rules = Current();
   if (!rules) return std::unexpected(rules.error());
   const auto* bytes = static_cast<const unsigned char*>(*rules);
-  float start = 0;
   int32_t paused_ticks = 0;
   int32_t pause_start = 0;
   bool paused = false;
-  std::memcpy(&start, bytes + offsets_[0], sizeof(start));
   std::memcpy(&paused_ticks, bytes + offsets_[1], sizeof(paused_ticks));
   std::memcpy(&paused, bytes + offsets_[2], sizeof(paused));
   std::memcpy(&pause_start, bytes + offsets_[3], sizeof(pause_start));
-  if (!std::isfinite(start) || paused_ticks < 0 || pause_start < 0)
+  if (paused_ticks < 0 || pause_start < 0)
     return std::unexpected("native match clock fields are invalid");
   if (paused && current_time > pause_start * interval) current_time = pause_start * interval;
-  return current_time - paused_ticks * interval - start;
+  return current_time - paused_ticks * interval;
+}
+
+std::expected<float, std::string> MatchClock::Read(float current_time, float interval) const {
+  auto time = GameTime(current_time, interval);
+  if (!time) return std::unexpected(time.error());
+  float start = 0;
+  std::memcpy(&start, static_cast<const unsigned char*>(*Current()) + offsets_[0], sizeof(start));
+  if (!std::isfinite(start)) return std::unexpected("native match clock fields are invalid");
+  return *time - start;
 }
 
 std::expected<void, std::string> MatchClock::Restore(float seconds, float current_time,

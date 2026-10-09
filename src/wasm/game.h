@@ -438,6 +438,10 @@ class Game : public HostService {
   // each frame.
   void HoldClock();
 
+  // LatchTime is the time a hero's stamina latch counts from: the simulation
+  // time without the ticks the game spent paused.
+  std::expected<float, std::string> LatchTime();
+
   // OwnedAbility returns the ability named name of slot's live hero.
   std::expected<gameinterop::PawnObserver::Ability, std::string> OwnedAbility(
       int32_t slot, std::string_view name);

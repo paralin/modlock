@@ -15,6 +15,9 @@ class MODLOCK_API MatchClock {
  public:
   static std::expected<MatchClock, std::string> Resolve(const ModuleImage& server,
                                                         void* schema_system);
+  // GameTime is the simulation time without the ticks the game spent paused,
+  // held at the pause start while paused. Hero resources latch against it.
+  std::expected<float, std::string> GameTime(float current_time, float interval) const;
   std::expected<float, std::string> Read(float current_time, float interval) const;
   std::expected<void, std::string> Restore(float seconds, float current_time, float interval);
 
