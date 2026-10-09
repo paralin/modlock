@@ -971,6 +971,11 @@ void Game::Leave(int32_t slot) {
 }
 
 void Game::Clear() {
+  for (const auto slot : observer_.WatchingSlots()) {
+    PlayerRequest request;
+    request.set_player(slot);
+    static_cast<void>(Unwatch(request));
+  }
   RemoveWorld();
   for (const auto slot : frozen_) {
     if (observer_.Observe(slot)) static_cast<void>(observer_.SetPreparationFrozen(slot, false));
@@ -1279,8 +1284,11 @@ std::expected<void, std::string> Game::Spectate(const PlayerRequest& request) {
 }
 
 std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
-  // Find the spectator's observer services, which aim their camera.
-  auto pawn = observer_.SpectatorPawnForSlot(request.player());
+  // Find the camera's observer services, which aim it.
+  if (auto target = Entity(request.target()); !target) return std::unexpected(target.error());
+  auto selection = services_.Selection();
+  if (!selection) return std::unexpected(selection.error());
+  auto pawn = observer_.CameraPawnForSlot(request.player(), **selection);
   if (!pawn) return std::unexpected(pawn.error());
   auto services = services_.Field("CBasePlayerPawn", "m_pObserverServices");
   if (!services) return std::unexpected(services.error());
@@ -1288,11 +1296,10 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
   if (!gameinterop::ReadNative(static_cast<unsigned char*>(*pawn) + services->offset, &observer,
                                sizeof(observer)) ||
       observer == nullptr) {
-    return std::unexpected("the spectator has no camera services");
+    return std::unexpected("the player's camera has no observer services");
   }
 
   // Follow the target in its own view, OBS_MODE_IN_EYE, and replicate it.
-  if (auto target = Entity(request.target()); !target) return std::unexpected(target.error());
   auto target_field = services_.Field("CPlayer_ObserverServices", "m_hObserverTarget");
   if (!target_field) return std::unexpected(target_field.error());
   auto mode_field = services_.Field("CPlayer_ObserverServices", "m_iObserverMode");
@@ -1306,6 +1313,18 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
   if (!gameinterop::NotifyEntityStateChanged(*pawn)) {
     return std::unexpected("cannot replicate the spectator's camera");
   }
+  return {};
+}
+
+std::expected<void, std::string> Game::Unwatch(const PlayerRequest& request) {
+  auto selection = services_.Selection();
+  if (!selection) return std::unexpected(selection.error());
+  auto camera = observer_.ReturnToHero(request.player(), **selection);
+  if (!camera) return std::unexpected(camera.error());
+  if (!*camera) return {};
+  auto world = World();
+  if (!world) return std::unexpected(world.error());
+  static_cast<void>((*world)->RemoveEntity(*camera));
   return {};
 }
 

@@ -1506,13 +1506,22 @@ export class Player {
   }
 
   /**
-   * watch points a spectating player's camera at a hero, through the hero's
-   * own view, as the game's spectator camera follows it. Call it after
-   * Spectate, once the player's spectator camera exists; a hero selection
-   * ends the watch.
+   * watch points the player's camera at a hero, through the hero's own view,
+   * as the game's spectator camera follows it. A spectator watches through
+   * their spectator camera, once it exists. A player with a hero watches
+   * while the hero stays where it stands, keeping its level, souls and items,
+   * until Unwatch returns them to it.
    */
   watch(target: number): boolean {
     return call('Watch', pb.WatchRequest.toBinary({ player: this.slot, target })) !== undefined
+  }
+
+  /**
+   * unwatch returns a player watching from their hero back to it. Stopping
+   * the mod returns every such player.
+   */
+  unwatch(): boolean {
+    return call('Unwatch', pb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
   }
 
   /** respawn revives the player's dead hero. */

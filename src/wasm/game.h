@@ -319,6 +319,7 @@ class Game : public HostService {
   std::expected<HeroResponse, std::string> SelectHero(const SelectHeroRequest& request) override;
   std::expected<void, std::string> Spectate(const PlayerRequest& request) override;
   std::expected<void, std::string> Watch(const WatchRequest& request) override;
+  std::expected<void, std::string> Unwatch(const PlayerRequest& request) override;
   std::expected<void, std::string> Respawn(const PlayerRequest& request) override;
   std::expected<void, std::string> ClearItems(const PlayerRequest& request) override;
   std::expected<void, std::string> Freeze(const FreezeRequest& request) override;
