@@ -1924,8 +1924,17 @@ std::expected<AliveResponse, std::string> Game::RemovePickup(const PickupRequest
   return RemoveEntity(entity);
 }
 
-std::expected<CountResponse, std::string> Game::RemoveEntities(
-    const RemoveEntitiesRequest& request) {
+std::expected<EntitiesResponse, std::string> Game::FindEntities(const ClassNameRequest& request) {
+  auto world = World();
+  if (!world) return std::unexpected(world.error());
+  auto found = (*world)->Find(request.class_name());
+  if (!found) return std::unexpected(found.error());
+  EntitiesResponse response;
+  response.mutable_entities()->Add(found->begin(), found->end());
+  return response;
+}
+
+std::expected<CountResponse, std::string> Game::RemoveEntities(const ClassNameRequest& request) {
   auto world = World();
   if (!world) return std::unexpected(world.error());
   auto removed = (*world)->Remove(request.class_name());

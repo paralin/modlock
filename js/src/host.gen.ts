@@ -2127,11 +2127,22 @@ export function createPickup(kind: PickupKind, position: Vector): Pickup | undef
 }
 
 /**
+ * findEntities returns the handle of every live entity of a class, such as
+ * zip_line_node.
+ */
+export function findEntities(className: string): number[] {
+  const reply = call('FindEntities', pb.ClassNameRequest.toBinary({ className }))
+  if (reply === undefined) return []
+  const response = pb.EntitiesResponse.fromBinary(reply)
+  return response.entities ?? []
+}
+
+/**
  * removeEntities removes every entity of a class, such as npc_trooper,
  * without rewards, and returns how many it removed.
  */
 export function removeEntities(className: string): number | undefined {
-  const reply = call('RemoveEntities', pb.RemoveEntitiesRequest.toBinary({ className }))
+  const reply = call('RemoveEntities', pb.ClassNameRequest.toBinary({ className }))
   if (reply === undefined) return undefined
   const response = pb.CountResponse.fromBinary(reply)
   return response.count ?? 0

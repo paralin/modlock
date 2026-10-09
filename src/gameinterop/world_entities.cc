@@ -378,6 +378,18 @@ std::expected<size_t, std::string> WorldEntities::Remove(std::string_view design
   return removed;
 }
 
+std::expected<std::vector<uint32_t>, std::string> WorldEntities::Find(
+    std::string_view designer_name) {
+  auto system = calls_.entity_system();
+  if (!system) return std::unexpected(system.error());
+  std::vector<uint32_t> found;
+  for (void* entity : EntityInstances(*system)) {
+    if (DesignerName(entity) != designer_name) continue;
+    if (auto handle = ReferenceHandleOf(entity)) found.push_back(*handle);
+  }
+  return found;
+}
+
 uint32_t WorldEntities::SubclassId(std::string_view vdata_name) {
   return MakeMemberName(vdata_name).hash;
 }

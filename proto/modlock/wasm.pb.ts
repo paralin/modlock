@@ -5012,11 +5012,11 @@ export const PickupRequest: MessageType<PickupRequest> = /* @__PURE__ */ createM
 });
 
 /**
- * RemoveEntitiesRequest names one entity class.
+ * ClassNameRequest names one entity class.
  *
- * @generated from message modlock.wasm.RemoveEntitiesRequest
+ * @generated from message modlock.wasm.ClassNameRequest
  */
-export interface RemoveEntitiesRequest {
+export interface ClassNameRequest {
   /**
    * ClassName is the exact entity class, such as npc_trooper.
    *
@@ -5026,10 +5026,33 @@ export interface RemoveEntitiesRequest {
 
 };
 
-export const RemoveEntitiesRequest: MessageType<RemoveEntitiesRequest> = /* @__PURE__ */ createMessageType({
-    typeName: "modlock.wasm.RemoveEntitiesRequest",
+export const ClassNameRequest: MessageType<ClassNameRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.ClassNameRequest",
     fields: [
         { no: 1, name: "class_name", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * EntitiesResponse lists entities by handle.
+ *
+ * @generated from message modlock.wasm.EntitiesResponse
+ */
+export interface EntitiesResponse {
+  /**
+   * Entities are the entity handles.
+   *
+   * @generated from field: repeated uint32 entities = 1;
+   */
+  entities?: number[];
+
+};
+
+export const EntitiesResponse: MessageType<EntitiesResponse> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.EntitiesResponse",
+    fields: [
+        { no: 1, name: "entities", kind: "scalar", T: ScalarType.UINT32, repeated: true },
     ] satisfies readonly PartialFieldInfo[],
     packedByDefault: true,
 });

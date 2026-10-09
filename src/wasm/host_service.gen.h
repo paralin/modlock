@@ -525,10 +525,17 @@ class HostService {
     return std::unexpected("this host does not support RemovePickup");
   }
 
+  // FindEntities returns the handle of every live entity of a class, such as
+  // zip_line_node.
+  virtual std::expected<EntitiesResponse, std::string> FindEntities(
+      const ClassNameRequest& /*request*/) {
+    return std::unexpected("this host does not support FindEntities");
+  }
+
   // RemoveEntities removes every entity of a class, such as npc_trooper,
   // without rewards, and returns how many it removed.
   virtual std::expected<CountResponse, std::string> RemoveEntities(
-      const RemoveEntitiesRequest& /*request*/) {
+      const ClassNameRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveEntities");
   }
 
@@ -1204,9 +1211,17 @@ class HostService {
            }
            return detail::Answer(host.RemovePickup(request));
          }},
+        {"FindEntities",
+         [](HostService& host, const std::string& bytes) {
+           ClassNameRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the FindEntities request is malformed");
+           }
+           return detail::Answer(host.FindEntities(request));
+         }},
         {"RemoveEntities",
          [](HostService& host, const std::string& bytes) {
-           RemoveEntitiesRequest request;
+           ClassNameRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the RemoveEntities request is malformed");
            }

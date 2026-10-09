@@ -2080,8 +2080,11 @@ schema.PickupResponse = {
 schema.PickupRequest = {
 	{ number = 1, name = "pickup", kind = "uint32", class = Pickup, key = "entity" },
 }
-schema.RemoveEntitiesRequest = {
+schema.ClassNameRequest = {
 	{ number = 1, name = "className", kind = "string" },
+}
+schema.EntitiesResponse = {
+	{ number = 1, name = "entities", kind = "uint32", repeated = true },
 }
 schema.CountResponse = {
 	{ number = 1, name = "count", kind = "int32" },
@@ -2369,10 +2372,20 @@ function modlock.createPickup(kind: PickupKind, position: Vector): Pickup?
 	return response.pickup
 end
 
+-- findEntities returns the handle of every live entity of a class, such as
+-- zip_line_node.
+function modlock.findEntities(className: string): { number }
+	local response = call("FindEntities", "ClassNameRequest", { className = className }, "EntitiesResponse")
+	if response == nil then
+		return {}
+	end
+	return response.entities
+end
+
 -- removeEntities removes every entity of a class, such as npc_trooper,
 -- without rewards, and returns how many it removed.
 function modlock.removeEntities(className: string): number?
-	local response = call("RemoveEntities", "RemoveEntitiesRequest", { className = className }, "CountResponse")
+	local response = call("RemoveEntities", "ClassNameRequest", { className = className }, "CountResponse")
 	if response == nil then
 		return nil
 	end
