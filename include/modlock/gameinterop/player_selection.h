@@ -11,6 +11,9 @@ struct MODLOCK_API PlayerSelectionCalls {
   void* (*create_pawn)(void* controller, int team) = nullptr;
   void (*select_hero)(void* pawn, void* definition) = nullptr;
   void* (*spawn_observer)(void* controller) = nullptr;
+  void (*set_pawn)(void* controller, void* pawn, bool retain_old_pawn_team,
+                   bool copy_movement_state, bool allow_team_mismatch,
+                   bool preserve_movement_state) = nullptr;
   static std::expected<PlayerSelectionCalls, std::string> Resolve(const ModuleImage& server);
 };
 

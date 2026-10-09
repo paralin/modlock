@@ -10,6 +10,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -87,6 +88,7 @@ constexpr size_t kGroundEntityField = 0x90;
 constexpr size_t kHeroField = 0x50;
 constexpr size_t kTeamField = 0x54;
 constexpr size_t kHealthField = 0x58;
+constexpr size_t kHeroHandleField = 0x48;
 // Fake controller-side combat totals: PlayerDataGlobal_t inline in the
 // controller, then its int32 counters. Independent of any production
 // constant on purpose.
@@ -208,6 +210,18 @@ PawnObserver::Seams SeamsFor(Fixture& fixture) {
   return seams;
 }
 
+// HeroSeamsFor also locates the controller's hero handle, which player
+// selection and respawn need.
+PawnObserver::Seams HeroSeamsFor(Fixture& fixture) {
+  auto seams = SeamsFor(fixture);
+  seams.layout = []() -> std::expected<EntityLayout, std::string> {
+    auto layout = FixtureLayout();
+    layout.hero_pawn_handle = kHeroHandleField;
+    return layout;
+  };
+  return seams;
+}
+
 TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets) {
   Fixture fixture;
   fixture.occupied = true;
@@ -280,7 +294,6 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
 }
 
 TEST(PawnObserver, ObservesRetainedDeadHeroAfterActivePawnBecomesSpectator) {
-  constexpr size_t kHeroHandleField = 0x48;
   Fixture fixture;
   fixture.occupied = true;
   fixture.controller = MakeController(HandleOf(3, 8));
@@ -296,13 +309,7 @@ TEST(PawnObserver, ObservesRetainedDeadHeroAfterActivePawnBecomesSpectator) {
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, hero.data(), 7, 0);
   fixture.image.SetIdentity(3, spectator.data(), 8, 0);
-  auto seams = SeamsFor(fixture);
-  seams.layout = [kHeroHandleField]() -> std::expected<EntityLayout, std::string> {
-    auto layout = FixtureLayout();
-    layout.hero_pawn_handle = kHeroHandleField;
-    return layout;
-  };
-  PawnObserver observer{std::move(seams)};
+  PawnObserver observer{HeroSeamsFor(fixture)};
   const auto sample = observer.Observe();
   ASSERT_TRUE(sample);
   EXPECT_EQ(sample->pawn_handle, hero_handle);
@@ -1372,7 +1379,8 @@ TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
     ++observer_spawns;
     return nullptr;
   };
-  PawnObserver observer{SeamsFor(fixture)};
+  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {};
+  PawnObserver observer{HeroSeamsFor(fixture)};
   const auto refused = observer.SelectPlayer(0, fixture.xuid, 7, 1, nullptr, calls);
   ASSERT_FALSE(refused);
   EXPECT_NE(refused.error().find("connection changed"), std::string::npos);
@@ -1401,7 +1409,9 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
     // The engine can return an actor before publishing m_hPawn.
     return active->controller.data();
   };
-  PawnObserver observer{SeamsFor(fixture)};
+  calls.set_pawn =
+      +[](void*, void*, bool, bool, bool, bool) { ADD_FAILURE() << "already on spectator team"; };
+  PawnObserver observer{HeroSeamsFor(fixture)};
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
@@ -1418,12 +1428,61 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   EXPECT_EQ(observer_spawns, 1);
 }
 
+TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
+  static Fixture* active = nullptr;
+  static std::vector<std::string> steps;
+  Fixture fixture;
+  active = &fixture;
+  steps.clear();
+  fixture.occupied = true;
+  fixture.generation = 3;
+  fixture.controller[kTeamField] = 2;
+  Instance hero{};
+  fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+  fixture.image.SetIdentity(2, hero.data(), 7, 0);
+  const auto hero_handle = HandleOf(2, 7);
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+
+  // The controller records each native call in order.
+  std::array<void*, 106> table{};
+  table[28] = reinterpret_cast<void*>(+[](void*, const void*) { steps.push_back("notify"); });
+  table[105] = reinterpret_cast<void*>(+[](void*, int team) {
+    EXPECT_EQ(team, 1);
+    steps.push_back("team");
+  });
+  auto* table_ptr = table.data();
+  std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
+  modlock::gameinterop::PlayerSelectionCalls calls;
+  calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool, bool) {
+    EXPECT_EQ(controller, active->controller.data());
+    EXPECT_EQ(pawn, nullptr);
+    EXPECT_TRUE(retain_old_pawn_team);
+    const uint32_t none = 0xffffffff;
+    std::memcpy(static_cast<char*>(controller) + kPawnHandleField, &none, sizeof(none));
+    steps.push_back("unbind");
+  };
+  calls.spawn_observer = +[](void*) -> void* {
+    steps.push_back("observer");
+    return nullptr;
+  };
+
+  // The hero handle is cleared and published, and the pawn unbound, before
+  // the team changes and the observer spawns.
+  PawnObserver observer{HeroSeamsFor(fixture)};
+  EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
+  uint32_t released = 0;
+  std::memcpy(&released, fixture.controller.data() + kHeroHandleField, sizeof(released));
+  EXPECT_EQ(released, 0xffffffffu);
+  EXPECT_EQ(steps, (std::vector<std::string>{"notify", "unbind", "team", "observer"}));
+  active = nullptr;
+}
+
 TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
   static Fixture* active = nullptr;
   static void* hero_pawn = nullptr;
   static int created = 0;
   static int selected = 0;
-  constexpr size_t hero_handle_field = 0x48;
   Fixture fixture;
   active = &fixture;
   fixture.occupied = true;
@@ -1442,26 +1501,19 @@ TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
   const auto spectator_handle = HandleOf(2, 7);
   std::memcpy(fixture.controller.data() + kPawnHandleField, &spectator_handle,
               sizeof(spectator_handle));
-  auto seams = SeamsFor(fixture);
-  const auto old_layout = seams.layout;
-  seams.layout = [old_layout, hero_handle_field] {
-    auto layout = old_layout();
-    layout->hero_pawn_handle = hero_handle_field;
-    return layout;
-  };
   modlock::gameinterop::PlayerSelectionCalls calls;
   created = selected = 0;
   calls.create_pawn = +[](void*, int) -> void* {
     ++created;
     const auto handle = HandleOf(3, 8);
-    std::memcpy(active->controller.data() + hero_handle_field, &handle, sizeof(handle));
+    std::memcpy(active->controller.data() + kHeroHandleField, &handle, sizeof(handle));
     return hero_pawn;
   };
   calls.select_hero = +[](void* pawn, void*) {
     EXPECT_EQ(pawn, hero_pawn);
     ++selected;
   };
-  PawnObserver observer{seams};
+  PawnObserver observer{HeroSeamsFor(fixture)};
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 2, &fixture, calls));
   EXPECT_EQ(created, 1);
   EXPECT_EQ(selected, 1);
@@ -1470,7 +1522,6 @@ TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
 TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   static void* expected_pawn = nullptr;
   static int respawned = 0;
-  constexpr size_t hero_handle_field = 0x48;
   Fixture fixture;
   fixture.occupied = true;
   fixture.generation = 3;
@@ -1482,14 +1533,8 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   fixture.image.SetIdentity(2, spectator.data(), 7, 0);
   fixture.image.SetIdentity(3, hero.data(), 8, 0);
   auto hero_handle = HandleOf(3, 8);
-  std::memcpy(fixture.controller.data() + hero_handle_field, &hero_handle, sizeof(hero_handle));
-  auto seams = SeamsFor(fixture);
-  seams.layout = [hero_handle_field]() -> std::expected<EntityLayout, std::string> {
-    auto layout = FixtureLayout();
-    layout.hero_pawn_handle = hero_handle_field;
-    return layout;
-  };
-  PawnObserver observer{seams};
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
+  PawnObserver observer{HeroSeamsFor(fixture)};
   auto respawn = +[](void* pawn, bool force) {
     EXPECT_EQ(pawn, expected_pawn);
     EXPECT_TRUE(force);
@@ -1504,7 +1549,7 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   ASSERT_TRUE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
   hero_handle = HandleOf(3, 9);
-  std::memcpy(fixture.controller.data() + hero_handle_field, &hero_handle, sizeof(hero_handle));
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   EXPECT_FALSE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
 }

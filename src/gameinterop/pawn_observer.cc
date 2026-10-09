@@ -555,9 +555,11 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
                                                             const PlayerSelectionCalls& calls) {
   if (slot < 0 || slot >= 64 || !steam_id || team < 1 || team > 3 ||
       (team != 1 && (!definition || !calls.create_pawn || !calls.select_hero)) ||
-      (team == 1 && !calls.spawn_observer) || !seams_.slot_state || !seams_.entity_system)
+      (team == 1 && (!calls.spawn_observer || !calls.set_pawn)) || !seams_.slot_state ||
+      !seams_.entity_system)
     return std::unexpected("player selection unavailable");
   if (auto resolved = ResolveLayout(); !resolved) return resolved;
+  if (!layout_.hero_pawn_handle) return std::unexpected("native hero pawn handle unavailable");
   void* expected_controller = nullptr;
   auto borrow = [&]() -> std::expected<std::pair<void*, void*>, std::string> {
     const auto state = seams_.slot_state(slot);
@@ -576,17 +578,32 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
   auto current = borrow();
   if (!current) return std::unexpected(current.error());
   auto* table = *static_cast<void***>(current->first);
-  // CBasePlayerController::ChangeTeam occupies vtable slot 103.
+  // CBasePlayerController::ChangeTeam occupies vtable slot 105.
   if (!table || !table[105]) return std::unexpected("native team selection unavailable");
   uint8_t current_team = 0;
   std::memcpy(&current_team, static_cast<const char*>(current->first) + layout_.team, 1);
+  if (current_team != team && team == 1) {
+    // The game's own move to the spectators releases the hero before the team
+    // changes: it clears the hero handle and unbinds the pawn. A client whose
+    // hero stays bound reads its hero's data after the change and crashes.
+    auto* controller = static_cast<unsigned char*>(current->first);
+    uint32_t hero = 0;
+    std::memcpy(&hero, controller + *layout_.hero_pawn_handle, sizeof(hero));
+    if (IdentityOfHandle(EntityListOf(current->second), hero)) {
+      hero = kInvalidEHandleIndex;
+      std::memcpy(controller + *layout_.hero_pawn_handle, &hero, sizeof(hero));
+      if (!NotifyEntityStateChanged(controller))
+        return std::unexpected("player hero release unavailable");
+    }
+    calls.set_pawn(controller, nullptr, true, false, false, false);
+    current = borrow();
+    if (!current) return std::unexpected(current.error());
+  }
   if (current_team != team) {
     reinterpret_cast<void (*)(void*, int)>(table[105])(current->first, team);
     current = borrow();
     if (!current) return std::unexpected(current.error());
   }
-  if (team != 1 && !layout_.hero_pawn_handle)
-    return std::unexpected("native hero pawn handle unavailable");
   const size_t pawn_field = team == 1 ? layout_.pawn_handle : *layout_.hero_pawn_handle;
   uint32_t handle = 0;
   std::memcpy(&handle, static_cast<const char*>(current->first) + pawn_field, sizeof(handle));
