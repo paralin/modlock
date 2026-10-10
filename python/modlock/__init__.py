@@ -2374,7 +2374,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "pickup", "uint32", cls=Pickup, key="entity"),
         ],
     ),
-    "ClassNameRequest": (
+    "FindEntitiesRequest": (
+        None,
+        [
+            wire.Field(1, "class_name", "string"),
+        ],
+    ),
+    "RemoveEntitiesRequest": (
         None,
         [
             wire.Field(1, "class_name", "string"),
@@ -2723,7 +2729,7 @@ def find_entities(class_name: str) -> list[int]:
     """find_entities returns the handle of every live entity of a class, such as
     zip_line_node.
     """
-    response = _call("FindEntities", "ClassNameRequest", {"class_name": class_name}, "EntitiesResponse")
+    response = _call("FindEntities", "FindEntitiesRequest", {"class_name": class_name}, "EntitiesResponse")
     if response is None:
         return []
     return response["entities"]
@@ -2733,7 +2739,7 @@ def remove_entities(class_name: str) -> int | None:
     """remove_entities removes every entity of a class, such as npc_trooper,
     without rewards, and returns how many it removed.
     """
-    response = _call("RemoveEntities", "ClassNameRequest", {"class_name": class_name}, "CountResponse")
+    response = _call("RemoveEntities", "RemoveEntitiesRequest", {"class_name": class_name}, "CountResponse")
     if response is None:
         return None
     return response["count"]

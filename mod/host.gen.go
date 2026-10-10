@@ -940,7 +940,7 @@ func (p Pickup) Remove() (bool, error) {
 // FindEntities returns the handle of every live entity of a class, such as
 // zip_line_node.
 func FindEntities(className string) ([]uint32, error) {
-	request := &wasm.ClassNameRequest{ClassName: className}
+	request := &wasm.FindEntitiesRequest{ClassName: className}
 	response := &wasm.EntitiesResponse{}
 	if err := invoke("FindEntities", request, response); err != nil {
 		return nil, err
@@ -951,7 +951,7 @@ func FindEntities(className string) ([]uint32, error) {
 // RemoveEntities removes every entity of a class, such as npc_trooper,
 // without rewards, and returns how many it removed.
 func RemoveEntities(className string) (int32, error) {
-	request := &wasm.ClassNameRequest{ClassName: className}
+	request := &wasm.RemoveEntitiesRequest{ClassName: className}
 	response := &wasm.CountResponse{}
 	if err := invoke("RemoveEntities", request, response); err != nil {
 		return 0, err
