@@ -2131,7 +2131,7 @@ export function createPickup(kind: PickupKind, position: Vector): Pickup | undef
  * zip_line_node.
  */
 export function findEntities(className: string): number[] {
-  const reply = call('FindEntities', pb.ClassNameRequest.toBinary({ className }))
+  const reply = call('FindEntities', pb.FindEntitiesRequest.toBinary({ className }))
   if (reply === undefined) return []
   const response = pb.EntitiesResponse.fromBinary(reply)
   return response.entities ?? []
@@ -2142,7 +2142,7 @@ export function findEntities(className: string): number[] {
  * without rewards, and returns how many it removed.
  */
 export function removeEntities(className: string): number | undefined {
-  const reply = call('RemoveEntities', pb.ClassNameRequest.toBinary({ className }))
+  const reply = call('RemoveEntities', pb.RemoveEntitiesRequest.toBinary({ className }))
   if (reply === undefined) return undefined
   const response = pb.CountResponse.fromBinary(reply)
   return response.count ?? 0

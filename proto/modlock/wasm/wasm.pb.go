@@ -5315,20 +5315,40 @@ func (x *PickupRequest) GetPickup() uint32 {
 	return 0
 }
 
-// ClassNameRequest names one entity class.
-type ClassNameRequest struct {
+// FindEntitiesRequest names the entity class to find.
+type FindEntitiesRequest struct {
+	unknownFields []byte
+	// ClassName is the exact entity class, such as zip_line_node.
+	ClassName string `protobuf:"bytes,1,opt,name=class_name,json=className,proto3" json:"className,omitempty"`
+}
+
+func (x *FindEntitiesRequest) Reset() {
+	*x = FindEntitiesRequest{}
+}
+
+func (*FindEntitiesRequest) ProtoMessage() {}
+
+func (x *FindEntitiesRequest) GetClassName() string {
+	if x != nil {
+		return x.ClassName
+	}
+	return ""
+}
+
+// RemoveEntitiesRequest names the entity class to remove.
+type RemoveEntitiesRequest struct {
 	unknownFields []byte
 	// ClassName is the exact entity class, such as npc_trooper.
 	ClassName string `protobuf:"bytes,1,opt,name=class_name,json=className,proto3" json:"className,omitempty"`
 }
 
-func (x *ClassNameRequest) Reset() {
-	*x = ClassNameRequest{}
+func (x *RemoveEntitiesRequest) Reset() {
+	*x = RemoveEntitiesRequest{}
 }
 
-func (*ClassNameRequest) ProtoMessage() {}
+func (*RemoveEntitiesRequest) ProtoMessage() {}
 
-func (x *ClassNameRequest) GetClassName() string {
+func (x *RemoveEntitiesRequest) GetClassName() string {
 	if x != nil {
 		return x.ClassName
 	}
@@ -8722,11 +8742,11 @@ func (m *PickupRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
-func (m *ClassNameRequest) CloneVT() *ClassNameRequest {
+func (m *FindEntitiesRequest) CloneVT() *FindEntitiesRequest {
 	if m == nil {
-		return (*ClassNameRequest)(nil)
+		return (*FindEntitiesRequest)(nil)
 	}
-	r := new(ClassNameRequest)
+	r := new(FindEntitiesRequest)
 	r.ClassName = m.ClassName
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
@@ -8734,7 +8754,23 @@ func (m *ClassNameRequest) CloneVT() *ClassNameRequest {
 	return r
 }
 
-func (m *ClassNameRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+func (m *FindEntitiesRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *RemoveEntitiesRequest) CloneVT() *RemoveEntitiesRequest {
+	if m == nil {
+		return (*RemoveEntitiesRequest)(nil)
+	}
+	r := new(RemoveEntitiesRequest)
+	r.ClassName = m.ClassName
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *RemoveEntitiesRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -12437,7 +12473,7 @@ func (this *PickupRequest) EqualMessageVT(thatMsg any) bool {
 	}
 	return this.EqualVT(that)
 }
-func (this *ClassNameRequest) EqualVT(that *ClassNameRequest) bool {
+func (this *FindEntitiesRequest) EqualVT(that *FindEntitiesRequest) bool {
 	if this == that {
 		return true
 	} else if this == nil || that == nil {
@@ -12449,8 +12485,27 @@ func (this *ClassNameRequest) EqualVT(that *ClassNameRequest) bool {
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
-func (this *ClassNameRequest) EqualMessageVT(thatMsg any) bool {
-	that, ok := thatMsg.(*ClassNameRequest)
+func (this *FindEntitiesRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*FindEntitiesRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *RemoveEntitiesRequest) EqualVT(that *RemoveEntitiesRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.ClassName != that.ClassName {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *RemoveEntitiesRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*RemoveEntitiesRequest)
 	if !ok {
 		return false
 	}
@@ -21009,8 +21064,8 @@ func (x *PickupRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
-// MarshalProtoJSON marshals the ClassNameRequest message to JSON.
-func (x *ClassNameRequest) MarshalProtoJSON(s *json.MarshalState) {
+// MarshalProtoJSON marshals the FindEntitiesRequest message to JSON.
+func (x *FindEntitiesRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
 		s.WriteNil()
 		return
@@ -21025,13 +21080,13 @@ func (x *ClassNameRequest) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteObjectEnd()
 }
 
-// MarshalJSON marshals the ClassNameRequest to JSON.
-func (x *ClassNameRequest) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshals the FindEntitiesRequest to JSON.
+func (x *FindEntitiesRequest) MarshalJSON() ([]byte, error) {
 	return json.DefaultMarshalerConfig.Marshal(x)
 }
 
-// UnmarshalProtoJSON unmarshals the ClassNameRequest message from JSON.
-func (x *ClassNameRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+// UnmarshalProtoJSON unmarshals the FindEntitiesRequest message from JSON.
+func (x *FindEntitiesRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	if s.ReadNil() {
 		return
 	}
@@ -21046,8 +21101,50 @@ func (x *ClassNameRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	})
 }
 
-// UnmarshalJSON unmarshals the ClassNameRequest from JSON.
-func (x *ClassNameRequest) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON unmarshals the FindEntitiesRequest from JSON.
+func (x *FindEntitiesRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the RemoveEntitiesRequest message to JSON.
+func (x *RemoveEntitiesRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.ClassName != "" || s.HasField("className") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("className")
+		s.WriteString(x.ClassName)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the RemoveEntitiesRequest to JSON.
+func (x *RemoveEntitiesRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the RemoveEntitiesRequest message from JSON.
+func (x *RemoveEntitiesRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "class_name", "className":
+			s.AddField("class_name")
+			x.ClassName = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the RemoveEntitiesRequest from JSON.
+func (x *RemoveEntitiesRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -29360,7 +29457,7 @@ func (m *PickupRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ClassNameRequest) MarshalVT() (dAtA []byte, err error) {
+func (m *FindEntitiesRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -29373,12 +29470,49 @@ func (m *ClassNameRequest) MarshalVT() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClassNameRequest) MarshalToVT(dAtA []byte) (int, error) {
+func (m *FindEntitiesRequest) MarshalToVT(dAtA []byte) (int, error) {
 	size := m.SizeVT()
 	return m.MarshalToSizedBufferVT(dAtA[:size])
 }
 
-func (m *ClassNameRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+func (m *FindEntitiesRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.ClassName) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.ClassName)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RemoveEntitiesRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RemoveEntitiesRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *RemoveEntitiesRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -32617,7 +32751,18 @@ func (m *PickupRequest) SizeVT() (n int) {
 	return n
 }
 
-func (m *ClassNameRequest) SizeVT() (n int) {
+func (m *FindEntitiesRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ClassName)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *RemoveEntitiesRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -35694,9 +35839,9 @@ func (x *PickupRequest) MarshalProtoText() string {
 func (x *PickupRequest) String() string {
 	return x.MarshalProtoText()
 }
-func (x *ClassNameRequest) MarshalProtoText() string {
+func (x *FindEntitiesRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
-	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ClassNameRequest")
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "FindEntitiesRequest")
 	if x.ClassName != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "class_name")
 		protobuf_go_lite.TextWriteString(&sb, x.ClassName)
@@ -35704,7 +35849,20 @@ func (x *ClassNameRequest) MarshalProtoText() string {
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
-func (x *ClassNameRequest) String() string {
+func (x *FindEntitiesRequest) String() string {
+	return x.MarshalProtoText()
+}
+func (x *RemoveEntitiesRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "RemoveEntitiesRequest")
+	if x.ClassName != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "class_name")
+		protobuf_go_lite.TextWriteString(&sb, x.ClassName)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *RemoveEntitiesRequest) String() string {
 	return x.MarshalProtoText()
 }
 func (x *EntitiesResponse) MarshalProtoText() string {
@@ -45519,7 +45677,7 @@ func (m *PickupRequest) UnmarshalVT(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClassNameRequest) UnmarshalVT(dAtA []byte) error {
+func (m *FindEntitiesRequest) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	var err error
@@ -45533,10 +45691,62 @@ func (m *ClassNameRequest) UnmarshalVT(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClassNameRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: FindEntitiesRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClassNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: FindEntitiesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClassName", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.ClassName = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RemoveEntitiesRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RemoveEntitiesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RemoveEntitiesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

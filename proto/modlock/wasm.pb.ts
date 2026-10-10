@@ -5012,11 +5012,34 @@ export const PickupRequest: MessageType<PickupRequest> = /* @__PURE__ */ createM
 });
 
 /**
- * ClassNameRequest names one entity class.
+ * FindEntitiesRequest names the entity class to find.
  *
- * @generated from message modlock.wasm.ClassNameRequest
+ * @generated from message modlock.wasm.FindEntitiesRequest
  */
-export interface ClassNameRequest {
+export interface FindEntitiesRequest {
+  /**
+   * ClassName is the exact entity class, such as zip_line_node.
+   *
+   * @generated from field: string class_name = 1;
+   */
+  className?: string;
+
+};
+
+export const FindEntitiesRequest: MessageType<FindEntitiesRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.FindEntitiesRequest",
+    fields: [
+        { no: 1, name: "class_name", kind: "scalar", T: ScalarType.STRING },
+    ] satisfies readonly PartialFieldInfo[],
+    packedByDefault: true,
+});
+
+/**
+ * RemoveEntitiesRequest names the entity class to remove.
+ *
+ * @generated from message modlock.wasm.RemoveEntitiesRequest
+ */
+export interface RemoveEntitiesRequest {
   /**
    * ClassName is the exact entity class, such as npc_trooper.
    *
@@ -5026,8 +5049,8 @@ export interface ClassNameRequest {
 
 };
 
-export const ClassNameRequest: MessageType<ClassNameRequest> = /* @__PURE__ */ createMessageType({
-    typeName: "modlock.wasm.ClassNameRequest",
+export const RemoveEntitiesRequest: MessageType<RemoveEntitiesRequest> = /* @__PURE__ */ createMessageType({
+    typeName: "modlock.wasm.RemoveEntitiesRequest",
     fields: [
         { no: 1, name: "class_name", kind: "scalar", T: ScalarType.STRING },
     ] satisfies readonly PartialFieldInfo[],
