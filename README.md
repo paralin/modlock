@@ -1082,7 +1082,7 @@ git submodule update --init --recursive
 go mod download github.com/aperturerobotics/protobuf github.com/aperturerobotics/abseil-cpp
 
 jobs=$(( $(getconf _NPROCESSORS_ONLN) / 2 ))
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel "$jobs"
 ctest --test-dir build --output-on-failure
 cmake --install build --prefix "$PWD/build/sdk"
