@@ -2,7 +2,14 @@
 
 namespace modlock::gameinterop {
 
+namespace {
+
+// kData holds the bytes of data/game_signatures.txtpb as of the build.
+constexpr char kData[] = {@MODLOCK_GAME_SIGNATURES@};
+
+}  // namespace
+
 // kBuiltInGameSignatures is data/game_signatures.txtpb as of the build.
-extern const std::string_view kBuiltInGameSignatures = R"modlock(@MODLOCK_GAME_SIGNATURES@)modlock";
+extern const std::string_view kBuiltInGameSignatures(kData, sizeof(kData));
 
 }  // namespace modlock::gameinterop

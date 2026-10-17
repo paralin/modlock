@@ -91,7 +91,9 @@ include(cmake/wasmtime.cmake)
 
 # The SDK embeds the game data file so every program starts with its
 # signatures; modlock-host replaces them with the copy installed beside it.
-file(READ data/game_signatures.txtpb MODLOCK_GAME_SIGNATURES)
+# It goes in as a byte array: MSVC refuses a string literal over 16 KB.
+file(READ data/game_signatures.txtpb MODLOCK_GAME_SIGNATURES HEX)
+string(REGEX REPLACE "(..)" "'\\\\x\\1'," MODLOCK_GAME_SIGNATURES "${MODLOCK_GAME_SIGNATURES}")
 configure_file(cmake/game_signatures_data.cc.in src/gameinterop/game_signatures_data.cc @ONLY)
 configure_file(data/game_signatures.txtpb game_signatures.txtpb COPYONLY)
 
