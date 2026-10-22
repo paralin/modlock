@@ -16,8 +16,10 @@ constexpr int64_t kMaxModifierState = 4096;
 
 std::expected<uint32_t, std::string> ModifierStateIndex(const ModuleImage& image,
                                                         std::string_view name) {
+  // View the image as text.
   const auto bytes = image.image_bytes();
   const std::string_view view(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+
   // The name is a whole NUL-terminated string, not a prefix of a longer one.
   std::string needle;
   needle.reserve(name.size() + 2);
@@ -28,6 +30,8 @@ std::expected<uint32_t, std::string> ModifierStateIndex(const ModuleImage& image
   if (at == std::string_view::npos) {
     return std::unexpected("modifier state " + std::string(name) + " is not in the game module");
   }
+
+  // The enumerator records point at the string's address.
   const uint64_t address = static_cast<uint64_t>(image.base()) + at + 1;
   char pointer[sizeof(address)];
   std::memcpy(pointer, &address, sizeof(address));

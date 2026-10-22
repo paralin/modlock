@@ -79,22 +79,29 @@ class LibraryPlugin final : public Plugin, public TickContextPlugin {
 
 std::expected<std::unique_ptr<Plugin>, std::string> LoadPluginLibrary(
     const std::filesystem::path& path, const PluginContext& context) {
+  // Only an absolute path loads.
   if (!path.is_absolute()) {
     return std::unexpected("plugin path must be absolute: " + path.string());
   }
+
 #if defined(_WIN32)
+  // Load the library beside its own dependencies.
   auto handle = LoadLibraryExW(path.c_str(), nullptr,
                                LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
   if (!handle) {
     return std::unexpected(path.string() + ": LoadLibraryExW error " +
                            std::to_string(GetLastError()));
   }
+
 #else
+  // Other platforms load it with dlopen.
   auto handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
   if (!handle) {
     return std::unexpected(path.string() + ": " + dlerror());
   }
 #endif
+
+  // Find the versioned entry points.
   auto library = std::make_unique<LibraryHandle>(handle);
   auto describe = library->Symbol<PluginManifest (*)()>("ModlockPluginManifest_v1");
   auto create = library->Symbol<Plugin* (*)(const PluginContext*)>("ModlockPluginCreate_v1");
@@ -103,6 +110,7 @@ std::expected<std::unique_ptr<Plugin>, std::string> LoadPluginLibrary(
     return std::unexpected(path.string() + ": missing versioned plugin entry point");
   }
 
+  // The manifest must match this SDK before the plugin is created.
   const auto manifest = describe();
   if (manifest.interface_version != PluginInterfaceVersion || !manifest.sdk_abi ||
       std::strcmp(manifest.sdk_abi, MODLOCK_SDK_ABI) != 0) {

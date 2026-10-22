@@ -1578,7 +1578,6 @@ std::expected<SetMoveType, std::string> ResolvePreparationMovement(const ModuleI
 
 std::expected<void, std::string> PawnObserver::SetPreparationFrozen(int32_t slot, bool frozen) {
 #if defined(_WIN32)
-
   // Drop the freeze of a pawn this player no longer owns.
   const auto sample = Observe(slot);
   if (!sample || !CurrentAbilitiesForSlot(slot)) {
@@ -2661,7 +2660,6 @@ struct UpgradeBonuses {
 
 std::expected<UpgradeBonuses, std::string> UpgradeBonusModifier(void* pawn) {
 #if defined(_WIN32)
-
   // Find the pawn's modifier property.
   if (!pawn) {
     return std::unexpected("upgrade bonuses: pawn unavailable");

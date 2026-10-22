@@ -110,7 +110,6 @@ void* PawnOf(const unsigned char* services, const Layout& layout) {
 
 void Dispatch(Hook& hook, void* services, void* data) {
 #if defined(_WIN32)
-
   // Resolve the layout once; without it movement stays native.
   if (!hook.layout && !hook.layout_failed) {
     auto layout = Resolve(hook.module_name, hook.entity_class, hook.pawn_class);
@@ -228,7 +227,6 @@ MovementHook::~MovementHook() = default;
 
 std::expected<MovementHook, std::string> MovementHook::Install(Module module, Handler handler) {
 #if defined(_WIN32)
-
   // Install once per module.
   auto& hook = g_hooks[module == Module::kServer ? 0 : 1];
   if (hook.handler || !handler) {

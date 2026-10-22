@@ -31,7 +31,6 @@ std::optional<safetyhook::InlineHook> g_shutdown_hook;
 // original would swallow every engine session startup.
 void ClearThunkState() {
 #if defined(_WIN32)
-
   // Unhook shutdown and drop every callback.
   g_shutdown_hook.reset();
 #endif
@@ -134,7 +133,6 @@ std::expected<StartupServerProbe, std::string> StartupServerProbe::Install(
     StartupCallback before_startup, StartupCallback after_startup,
     std::function<void()> before_shutdown, std::function<void(std::string)> on_error) {
 #if defined(_WIN32)
-
   // Find the network server service's startup slot.
   const auto resolved = ResolveEngineInterface(L"engine2.dll", kNetworkServerServiceVersion);
   if (!resolved) {

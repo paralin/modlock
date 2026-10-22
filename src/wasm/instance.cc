@@ -22,7 +22,6 @@ namespace {
 // paged in from disk is not in it.
 std::chrono::nanoseconds ThreadTime() {
 #if defined(_WIN32)
-
   // Read the thread's processor time.
   FILETIME creation, exit, kernel, user;
   GetThreadTimes(GetCurrentThread(), &creation, &exit, &kernel, &user);

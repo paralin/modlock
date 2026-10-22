@@ -38,6 +38,7 @@ class HelloPlugin final : public modlock::Plugin {
 #else
     if (!check_only_) {
       auto world = engine_->OnWorld({}, [this](std::string_view) {
+        // Each world starts unfinished and asks to keep simulating.
         ++worlds_;
         finished_ = false;
         observed_ = false;
@@ -72,6 +73,7 @@ class HelloPlugin final : public modlock::Plugin {
 #endif
   }
   void Tick() override {
+    // A finished or check-only run does nothing more.
     if (finished_) {
       return;
     }
@@ -80,6 +82,8 @@ class HelloPlugin final : public modlock::Plugin {
       std::cout << "hello: lifecycle tick\n";
       return;
     }
+
+    // Wait for the server and its clock.
     auto server = modlock::gameinterop::EngineServer::Resolve();
     if (!server) {
       if (!observed_) {
@@ -96,10 +100,14 @@ class HelloPlugin final : public modlock::Plugin {
       observed_ = true;
       return;
     }
+
+    // Report the first observed tick.
     if (!observed_) {
       std::cout << "hello: observed native tick " << clock->tick << '\n';
     }
     observed_ = true;
+
+    // Create the sample's world text.
     auto image = modlock::gameinterop::MappedModuleImage::ForModule(L"server.dll");
     auto entities = modlock::gameinterop::ResolveLiveEntitySystem();
     if (image && entities) {
@@ -120,11 +128,15 @@ class HelloPlugin final : public modlock::Plugin {
         std::cout << "hello: " << factory.error() << '\n';
       }
     }
+
+    // Without the text, fail and quit.
     if (!text_) {
       failed_ = true;
       finished_ = server->ServerCommand("quit\n");
       return;
     }
+
+    // Echo a command, then reload once or quit.
     if (!server->ServerCommand("echo modlock_sample_native_operation\n")) {
       return;
     }

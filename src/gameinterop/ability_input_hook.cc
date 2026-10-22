@@ -148,7 +148,6 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
     const ModuleImage& server, void* schema_system, Handler handler,
     std::function<void(std::string)> failure, bool include_bots) {
 #if defined(_WIN32)
-
   // Both callbacks are required.
   if (!handler || !failure) {
     return std::unexpected("ability input: missing callbacks");
@@ -209,8 +208,8 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
     return std::unexpected("ability input: cannot enable AbilityThink hook");
   }
   return AbilityInputHook(std::move(impl));
-#else
 
+#else
   // Other platforms have no ability input.
   (void)server;
   (void)schema_system;

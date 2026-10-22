@@ -58,7 +58,6 @@ std::optional<size_t> RarestByte(std::span<const uint8_t> data, const Signature&
 // which Wine implements one byte at a time.
 const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
 #if defined(__SSE2__)
-
   // Scan sixteen bytes at a time, then the tail.
   const __m128i needle = _mm_set1_epi8(static_cast<char>(value));
   for (; end - p >= 16; p += 16) {
@@ -74,8 +73,8 @@ const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
     }
   }
   return end;
-#else
 
+#else
   // Without SSE2, memchr does the scan.
   const auto* found = static_cast<const uint8_t*>(std::memchr(p, value, end - p));
   return found != nullptr ? found : end;

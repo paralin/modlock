@@ -456,7 +456,6 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     const ModuleImage& server, void* schema_system, Handler handler,
     std::function<bool(const DamageContactEvent&)> suppress_damage, AdjustDamage adjust_damage) {
 #if defined(_WIN32)
-
   // Install once, and find both hook targets.
   if (g_hook != nullptr || !handler) {
     return std::unexpected("combat events hook is already installed or handler absent");
@@ -588,8 +587,8 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     return std::unexpected("combat broadcast hook could not be enabled");
   }
   return CombatEventsHook(std::move(impl));
-#else
 
+#else
   // Other platforms have no hook.
   (void)server;
   (void)schema_system;

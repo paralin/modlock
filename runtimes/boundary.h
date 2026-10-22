@@ -179,6 +179,7 @@ static inline int read_zip(const uint8_t* zip, size_t size, zip_file each, void*
 // caller frees. An empty Reply still has a buffer, because the interpreters
 // copy it with memcpy, which needs one.
 static inline uint8_t* exchange(const uint8_t* request, size_t size, uint32_t* response_size) {
+  // Send the request and read the whole response.
   *response_size = host_call(request, (uint32_t)size);
   uint8_t* response = (uint8_t*)malloc(*response_size ? *response_size : 1);
   if (!response) {
@@ -202,16 +203,21 @@ static inline void host_log(const char* text, size_t size) {
   if (!request) {
     __builtin_trap();
   }
+
+  // Write the method and the request's field header.
   memcpy(request, method, sizeof(method));
   size_t at = sizeof(method);
   request[at++] = 0x12;
   at += put_varint(request + at, inner);
+
+  // Write the message field inside it.
   request[at++] = 0x0a;
   memcpy(request + at, prefix, prefix_size);
   at += prefix_size;
   memcpy(request + at, text, size);
   at += size;
 
+  // Send it and drop the response.
   uint32_t response_size;
   free(exchange(request, at, &response_size));
   free(request);

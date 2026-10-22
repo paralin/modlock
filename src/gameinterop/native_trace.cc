@@ -157,7 +157,6 @@ NativeTrace::~NativeTrace() = default;
 
 std::expected<NativeTrace, std::string> NativeTrace::Install(const ModuleImage& server) {
 #if defined(_WIN32)
-
   // Install once, resolving the trace function.
   if (g_hook) {
     return std::unexpected("native trace is already installed");
@@ -208,8 +207,8 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
   if (!ray) {
     return std::unexpected(ray.error());
   }
-#if defined(_WIN32)
 
+#if defined(_WIN32)
   // The physics query must be ready.
   void* physics = g_physics.load(std::memory_order_acquire);
   if (!impl_ || !physics) {

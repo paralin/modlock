@@ -17,6 +17,7 @@ std::expected<AbilityDefinitions, std::string> AbilityDefinitions::Resolve(
 
 std::expected<AbilityDefinitions::Definition, std::string> AbilityDefinitions::Find(
     uint32_t subclass_id) const {
+  // The lookup must hold the subclass.
   if (!lookup_ || !subclass_id) {
     return std::unexpected("ability definition lookup is unavailable");
   }
@@ -24,6 +25,7 @@ std::expected<AbilityDefinitions::Definition, std::string> AbilityDefinitions::F
   if (!definition) {
     return std::unexpected("ability subclass is absent from the current engine");
   }
+
   // CEntitySubclassVDataBase: scope at +8, interned name at +16 and disabled
   // flag at +0x2a. The lookup itself checks scope; repeat it before reading the
   // SDK header so a mismatched registry result is never treated as an ability.

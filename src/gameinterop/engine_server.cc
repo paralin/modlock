@@ -94,7 +94,6 @@ std::expected<EngineServer::SimulationClock, std::string> EngineServer::ReadCloc
 
 bool EngineServer::ServerCommand(const char* command) const {
 #if defined(_WIN32)
-
   // Call the command slot.
   if (instance_ == nullptr || command == nullptr) {
     return false;

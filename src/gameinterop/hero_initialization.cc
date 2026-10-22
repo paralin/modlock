@@ -94,7 +94,6 @@ HeroInitializationHook::~HeroInitializationHook() = default;
 std::expected<HeroInitializationHook, std::string> HeroInitializationHook::Install(
     const ModuleImage& server, Handler handler) {
 #if defined(_WIN32)
-
   // Install once.
   if (g_hook != nullptr) {
     return std::unexpected("hero initialization hook is already installed");
@@ -123,8 +122,8 @@ std::expected<HeroInitializationHook, std::string> HeroInitializationHook::Insta
     return std::unexpected("InitializeHeroOnPawn hook could not be enabled");
   }
   return HeroInitializationHook(std::move(impl));
-#else
 
+#else
   // Other platforms have no native server.
   (void)server;
   (void)handler;

@@ -186,7 +186,6 @@ std::expected<KeyValuesCalls, std::string> ResolveKeyValuesCalls(const ModuleIma
 
 void* AllocateEmptyEntityKeyValues() {
 #if defined(_WIN32)
-
   // Find tier0's allocator.
   HMODULE tier0 = GetModuleHandleW(L"tier0.dll");
   if (tier0 == nullptr) {

@@ -28,11 +28,14 @@ AbilityChargeLimit::Impl* active = nullptr;
 // Limited answers the most charges an ability holds: its limit when it has one,
 // otherwise whatever the table's own entry answers.
 int32_t Limited(void* ability) {
+  // Find the hook for the ability's table.
   auto* table = *static_cast<void***>(ability);
   const auto hook = active->hooks.find(table);
   if (hook == active->hooks.end()) {
     return 0;
   }
+
+  // A limited ability reports its limit; others ask the original.
   if (const auto handle = active->handle_of(ability)) {
     if (const auto limit = active->limits.find(*handle); limit != active->limits.end()) {
       return limit->second;
@@ -45,6 +48,7 @@ int32_t Limited(void* ability) {
 
 std::expected<std::unique_ptr<AbilityChargeLimit>, std::string> AbilityChargeLimit::Create(
     size_t slot, HandleOf handle_of) {
+  // Install one limit at a time.
   if (active != nullptr) {
     return std::unexpected("an ability charge limit is already installed");
   }
@@ -65,6 +69,7 @@ AbilityChargeLimit::~AbilityChargeLimit() {
 
 std::expected<void, std::string> AbilityChargeLimit::Set(void* ability, uint32_t handle,
                                                          int32_t maximum) {
+  // The ability must be live and the maximum in range.
   if (ability == nullptr) {
     return std::unexpected("the ability is not live");
   }
@@ -74,10 +79,14 @@ std::expected<void, std::string> AbilityChargeLimit::Set(void* ability, uint32_t
   if (impl_->handle_of(ability) != handle) {
     return std::unexpected("the ability handle does not match its entity");
   }
+
+  // Zero removes the limit.
   if (maximum == 0) {
     impl_->limits.erase(handle);
     return {};
   }
+
+  // Hook the ability's table once and store the limit.
   auto* table = *static_cast<void***>(ability);
   if (!impl_->hooks.contains(table)) {
     auto hook = VtableSlotHook::Install(ability, impl_->slot, reinterpret_cast<void*>(&Limited));

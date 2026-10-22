@@ -21,7 +21,6 @@ void** TableOf(void* instance) {
 // need no grant.
 bool WriteSlot(void** slot, void* value) {
 #if defined(_WIN32)
-
   // Unprotect the slot and write it.
   DWORD previous = 0;
   if (::VirtualProtect(slot, sizeof(void*), PAGE_READWRITE, &previous) == 0) {
@@ -34,8 +33,8 @@ bool WriteSlot(void** slot, void* value) {
   ::VirtualProtect(slot, sizeof(void*), previous, &restored);
   ::FlushInstructionCache(::GetCurrentProcess(), slot, sizeof(void*));
   return true;
-#else
 
+#else
   // Other platforms write the slot directly.
   *slot = value;
   return true;

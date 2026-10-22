@@ -51,6 +51,7 @@ bool IsLayoutPath(std::string_view path) {
 
 // Check returns why node cannot be drawn, if it cannot.
 std::expected<void, std::string> Check(const ui::Node& node) {
+  // Each field must fit its limit.
   if (node.id().size() > kMaxId) {
     return std::unexpected("a node id is too long");
   }
@@ -67,6 +68,8 @@ std::expected<void, std::string> Check(const ui::Node& node) {
     return std::unexpected("node " + node.id() +
                            ": a layout is a path ending in .xml in the mod's addon");
   }
+
+  // An image must come from the game's content.
   if (!node.image().empty()) {
     bool allowed = false;
     for (const auto root : kImageRoots) {
@@ -82,6 +85,7 @@ std::expected<void, std::string> Check(const ui::Node& node) {
 }  // namespace
 
 std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& change) {
+  // The slot must be a player's; a player who left must reset.
   if (slot < 0 || slot > kMaxSlot) {
     return std::unexpected("no player has slot " + std::to_string(slot));
   }
@@ -108,6 +112,8 @@ std::expected<void, std::string> UiTrees::Apply(int32_t slot, const ui::Change& 
   if (tree.size() > kMaxNodes) {
     return std::unexpected("the interface has too many nodes");
   }
+
+  // Store the tree, dropping an empty one.
   left_.erase(slot);
   if (tree.empty()) {
     trees_.erase(slot);
@@ -135,6 +141,7 @@ bool UiTrees::Drop(int32_t slot) {
 }
 
 std::vector<int32_t> UiTrees::Clear() {
+  // Name each slot that held a tree, then drop them all.
   std::vector<int32_t> slots;
   for (const auto& [slot, tree] : trees_) {
     slots.push_back(slot);

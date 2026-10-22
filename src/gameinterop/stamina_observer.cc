@@ -302,7 +302,6 @@ StaminaObserver::~StaminaObserver() = default;
 
 std::expected<StaminaObserver, std::string> StaminaObserver::Install() {
 #if defined(_WIN32)
-
   // Install once, resolving the event system first.
   std::lock_guard lock(Impl::mutex);
   if (Impl::active) {
@@ -350,7 +349,6 @@ std::expected<StaminaObserver, std::string> StaminaObserver::Install() {
 
 void StaminaObserver::Observe(std::optional<PawnObserver::Sample>& sample) {
 #if defined(_WIN32)
-
   // Evidence is valid only on one frame thread.
   std::lock_guard lock(Impl::mutex);
   auto& state = *impl_;

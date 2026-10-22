@@ -116,8 +116,8 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
   if (auto problem = host_app::Validate(impl_->paths); !problem.empty()) {
     return std::unexpected(std::move(problem));
   }
-#if defined(_WIN32)
 
+#if defined(_WIN32)
   // Search the game's own directories for its modules.
   if (!SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32 |
                                 LOAD_LIBRARY_SEARCH_USER_DIRS)) {

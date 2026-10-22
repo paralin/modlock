@@ -79,7 +79,6 @@ __int64 __fastcall ManifestBuildThunk(void* thisptr, void** original_args) {
 struct GameRulesHooks::Impl {
   ~Impl() {
 #if defined(_WIN32)
-
     // Remove the hook and forget what it registered.
     g_hook.reset();
     g_hero_names.clear();
@@ -365,7 +364,6 @@ std::expected<GameRulesHooks, std::string> GameRulesHooks::Install(
     const ModuleImage& server, std::vector<std::string> precache_heroes,
     std::vector<std::string> resources) {
 #if defined(_WIN32)
-
   // Install only once.
   if (g_hook) {
     return std::unexpected("the session manifest hook is already installed");

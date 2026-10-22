@@ -115,8 +115,8 @@ std::expected<void, std::string> NativeUserMessages::Send(
   if (size == 0 || size > 4096) {
     return std::unexpected("native user message size is invalid");
   }
-#if defined(_WIN32)
 
+#if defined(_WIN32)
   // Find the three engine slots.
   const auto find_slot = ResolveVirtualSlot("network-messages.find-by-id");
   const auto unserialize_slot = ResolveVirtualSlot("network-messages.unserialize");

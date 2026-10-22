@@ -102,7 +102,6 @@ ClientCommandHook::~ClientCommandHook() = default;
 
 std::expected<ClientCommandHook, std::string> ClientCommandHook::Install(Handler handler) {
 #if defined(_WIN32)
-
   // Install once.
   if (g_handler != nullptr || !handler) {
     return std::unexpected("client command hook already installed or handler absent");
@@ -130,8 +129,8 @@ std::expected<ClientCommandHook, std::string> ClientCommandHook::Install(Handler
   impl->owner.emplace(std::move(*hook), &ClearThunkState);
   g_handler = &impl->handler;
   return ClientCommandHook(std::move(impl));
-#else
 
+#else
   // Other platforms have no native server.
   (void)handler;
   return std::unexpected("client command hook requires the Windows host build");

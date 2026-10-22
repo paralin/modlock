@@ -77,7 +77,6 @@ ProjectileImpactHook::~ProjectileImpactHook() = default;
 std::expected<ProjectileImpactHook, std::string> ProjectileImpactHook::Install(
     const ModuleImage& server, Handler handler) {
 #if defined(_WIN32)
-
   // Install once, with a handler.
   if (g_hook || !handler) {
     return std::unexpected("projectile impact hook already installed or empty");
@@ -118,8 +117,8 @@ std::expected<ProjectileImpactHook, std::string> ProjectileImpactHook::Install(
     return std::unexpected("cannot enable native projectile contact hook");
   }
   return ProjectileImpactHook(std::move(impl));
-#else
 
+#else
   // Other platforms have no native server.
   (void)server;
   (void)handler;

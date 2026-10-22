@@ -170,7 +170,6 @@ NativeChatHook::~NativeChatHook() = default;
 
 std::expected<NativeChatHook, std::string> NativeChatHook::Install(Handler handler) {
 #if defined(_WIN32)
-
   // Install once, resolving the event system and the message serializer.
   if (g_handler || !handler) {
     return std::unexpected("native chat hook already installed or empty");

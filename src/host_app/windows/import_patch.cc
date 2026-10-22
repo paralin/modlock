@@ -10,6 +10,7 @@ namespace {
 // calls dll's export name or ordinal, or nullptr when module does not import
 // it.
 void** ImportSlot(HMODULE module, std::string_view dll, std::string_view name, WORD ordinal) {
+  // Find the import directory.
   const auto base = reinterpret_cast<uint8_t*>(module);
   const auto dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
   const auto nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
@@ -18,6 +19,7 @@ void** ImportSlot(HMODULE module, std::string_view dll, std::string_view name, W
     return nullptr;
   }
 
+  // Find the slot by ordinal or name among the named DLL's imports.
   const std::string dll_name(dll);
   auto descriptor =
       reinterpret_cast<const IMAGE_IMPORT_DESCRIPTOR*>(base + directory.VirtualAddress);
@@ -48,11 +50,14 @@ void** ImportSlot(HMODULE module, std::string_view dll, std::string_view name, W
 std::expected<void*, std::string> PatchImport(HMODULE module, std::string_view dll,
                                               std::string_view name, WORD ordinal,
                                               void* replacement) {
+  // The module must import the function.
   void** slot = ImportSlot(module, dll, name, ordinal);
   if (!slot) {
     return std::unexpected("module does not import " + std::string(name) + " from " +
                            std::string(dll));
   }
+
+  // Swap the slot under write access, keeping the original.
   DWORD protection = 0;
   if (!VirtualProtect(slot, sizeof(*slot), PAGE_READWRITE, &protection)) {
     return std::unexpected("VirtualProtect failed with error code " +
