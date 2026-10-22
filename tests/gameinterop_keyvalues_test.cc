@@ -40,6 +40,7 @@ gti::FakeModuleImage BuildImage(std::string_view missing = {}) {
 }
 
 TEST(KeyValuesTest, ResolveFillsEverySlotFromASyntheticImage) {
+  // Each call resolves to its signature's offset.
   const auto image = BuildImage();
   auto resolved = ResolveKeyValuesCalls(image);
   ASSERT_TRUE(resolved.has_value()) << resolved.error();
@@ -52,7 +53,9 @@ TEST(KeyValuesTest, ResolveFillsEverySlotFromASyntheticImage) {
 }
 
 TEST(KeyValuesTest, AllocationResolvesUpdatedBuildAmongSimilarWrappers) {
+  // Build an image holding two similar allocator wrappers.
   gti::FakeModuleImage image;
+
   // Recorded server.dll build 25173285 bytes. The first wrapper is a
   // separate allocator entry; the second is followed by the realloc wrapper.
   image.Add("other-allocator", "48 8B 05 61 1F 86 00 48 8B D1 48 8B 08 48 8B 01 48 FF 60 08");
@@ -63,6 +66,8 @@ TEST(KeyValuesTest, AllocationResolvesUpdatedBuildAmongSimilarWrappers) {
   image.AddSignature("entity-keyvalues.construct");
   image.AddSignature("entity-keyvalues.set-key-value");
   image.Seal(0x50000000);
+
+  // The allocator with the realloc wrapper after it is chosen.
   auto resolved = ResolveKeyValuesCalls(image);
   ASSERT_TRUE(resolved.has_value()) << resolved.error();
   EXPECT_EQ(reinterpret_cast<std::uintptr_t>(resolved->allocate),
@@ -70,6 +75,7 @@ TEST(KeyValuesTest, AllocationResolvesUpdatedBuildAmongSimilarWrappers) {
 }
 
 TEST(KeyValuesTest, AllocationRefusesDuplicateMatches) {
+  // A second allocator match is refused.
   auto image = BuildImage();
   image.AddSignature("entity-keyvalues.allocate");
   image.Seal(0x50000000);
@@ -92,6 +98,7 @@ TEST(KeyValuesTest, MemberNameTranscribesTheStringTokenHash) {
   EXPECT_EQ(name.hash, 0x7a0c84aau);
   EXPECT_EQ(name.symbol, 0xFFFFFFFFu);
   EXPECT_EQ(std::string_view(name.string), "Font_Name");
+
   // Case-insensitive: the hash folds case even though the pointer keeps the
   // caller's spelling.
   EXPECT_EQ(MakeMemberName("FONT_NAME").hash, name.hash);
@@ -135,12 +142,15 @@ void RecordSetColor(void* ekv, const modlock::gameinterop::MemberName* name, std
 }
 
 TEST(KeyValuesTest, BuildAppliesEveryTypedPairThroughItsSetter) {
+  // Record the factory and each setter.
   KeyValuesCalls calls;
   calls.create_key_values = &RecordCreate;
   calls.set_string = &RecordSetString;
   calls.set_bool = &RecordSetBool;
   calls.set_int = &RecordSetInt;
   calls.set_color = &RecordSetColor;
+
+  // Build one pair of each kind.
   const std::vector<EntityKeyValue> pairs = {
       {.key = "message_text", .value = std::string_view("hello")},
       {.key = "enabled", .value = true},
@@ -148,6 +158,8 @@ TEST(KeyValuesTest, BuildAppliesEveryTypedPairThroughItsSetter) {
       {.key = "color",
        .value = modlock::gameinterop::KeyValueColor{.red = 1, .green = 2, .blue = 3, .alpha = 4}},
   };
+
+  // Each setter ran once, in order.
   auto built = BuildEntityKeyValues(calls, pairs);
   ASSERT_TRUE(built.has_value()) << built.error();
   EXPECT_EQ(*built, g_created_key_values);
@@ -155,6 +167,7 @@ TEST(KeyValuesTest, BuildAppliesEveryTypedPairThroughItsSetter) {
   EXPECT_EQ(g_setter_order[0], "set-string:hello");
   EXPECT_EQ(g_setter_order[1], "set-bool:1");
   EXPECT_EQ(g_setter_order[2], "set-int:100");
+
   // Packed little-endian RGBA word: r | g << 8 | b << 16 | a << 24.
   EXPECT_EQ(g_setter_order[3], "set-color:" + std::to_string(0x04030201u));
   EXPECT_EQ(g_last_call.key, "color");
@@ -185,6 +198,7 @@ void* RecordConstruct(void* storage, void* allocator, unsigned char allocator_ty
 
 void* RecordSetKeyValue(void* ekv, const modlock::gameinterop::MemberName*,
                         unsigned char as_attribute) {
+  // Hand out the next fresh member.
   EXPECT_EQ(ekv, g_raw_ekv.data());
   EXPECT_EQ(as_attribute, 0);
   EXPECT_LT(g_raw_member_count, g_raw_members.size());
@@ -193,11 +207,14 @@ void* RecordSetKeyValue(void* ekv, const modlock::gameinterop::MemberName*,
 }
 
 TEST(KeyValuesTest, NativeSurfaceEncodesFreshMembersExactly) {
+  // Record the native fresh member surface.
   g_raw_member_count = 0;
   KeyValuesCalls calls;
   calls.allocate = &RecordAllocate;
   calls.construct_key_values = &RecordConstruct;
   calls.set_key_value = &RecordSetKeyValue;
+
+  // Build one pair of each native kind.
   const std::string message = "CURRENT 1/18";
   const std::vector<EntityKeyValue> pairs = {
       {.key = "message_text", .value = std::string_view(message)},
@@ -207,16 +224,22 @@ TEST(KeyValuesTest, NativeSurfaceEncodesFreshMembersExactly) {
       {.key = "color",
        .value = modlock::gameinterop::KeyValueColor{.red = 1, .green = 2, .blue = 3, .alpha = 255}},
   };
+
+  // Five members were written.
   auto built = BuildEntityKeyValues(calls, pairs);
   ASSERT_TRUE(built.has_value()) << built.error();
   EXPECT_EQ(*built, g_raw_ekv.data());
   ASSERT_EQ(g_raw_member_count, 5u);
+
+  // Read each member's type and subtype from its metadata.
   auto type = [](const RawMember& value) {
     return (value.metadata >> 2) & 0xFF;
   };
   auto subtype = [](const RawMember& value) {
     return (value.metadata >> 10) & 0xFF;
   };
+
+  // Each member carries its kind's type and data.
   EXPECT_EQ(type(g_raw_members[0]), 0x26u);
   EXPECT_EQ(subtype(g_raw_members[0]), 26u);
   EXPECT_EQ(g_raw_members[0].data, reinterpret_cast<std::uintptr_t>(message.c_str()));
@@ -225,9 +248,13 @@ TEST(KeyValuesTest, NativeSurfaceEncodesFreshMembersExactly) {
   EXPECT_EQ(type(g_raw_members[2]), 3u);
   EXPECT_EQ(g_raw_members[2].data, 1u);
   EXPECT_EQ(type(g_raw_members[3]), 5u);
+
+  // The float widens to a double.
   double font_size = 0;
   std::memcpy(&font_size, &g_raw_members[3].data, sizeof(font_size));
   EXPECT_EQ(font_size, 100.0);
+
+  // The color packs its four channels.
   EXPECT_EQ(type(g_raw_members[4]), 0x88u);
   EXPECT_EQ(subtype(g_raw_members[4]), 28u);
   EXPECT_EQ((g_raw_members[4].metadata >> 34) & 0x1F, 3u);
@@ -235,21 +262,28 @@ TEST(KeyValuesTest, NativeSurfaceEncodesFreshMembersExactly) {
 }
 
 TEST(KeyValuesTest, NativeVectorBorrowsAllComponentsThroughQueuedCreation) {
+  // Record the native fresh member surface.
   g_raw_member_count = 0;
   KeyValuesCalls calls;
   calls.allocate = &RecordAllocate;
   calls.construct_key_values = &RecordConstruct;
   calls.set_key_value = &RecordSetKeyValue;
+
+  // Build one vector.
   const EntityKeyValue pairs[] = {
       {.key = "scales", .value = modlock::gameinterop::KeyValueVector{0.22f, 0.3f, 0.4f}}};
   auto built = BuildEntityKeyValues(calls, pairs);
   ASSERT_TRUE(built.has_value()) << built.error();
   ASSERT_EQ(g_raw_member_count, 1u);
+
+  // The vector's metadata names three floats.
   const auto& member = g_raw_members[0];
   EXPECT_EQ((member.metadata >> 2) & 0xFF, 0x48u);
   EXPECT_EQ((member.metadata >> 10) & 0xFF, 24u);
   EXPECT_EQ((member.metadata >> 34) & 0x1F, 3u);
   EXPECT_EQ(member.metadata & (1ull << 1), 0u);
+
+  // Its data points at the caller's vector, which stays readable.
   const auto& vector = std::get<modlock::gameinterop::KeyValueVector>(pairs[0].value);
   EXPECT_EQ(member.data, reinterpret_cast<std::uintptr_t>(&vector.x));
   std::array<float, 3> consumed{};
@@ -261,6 +295,7 @@ TEST(KeyValuesTest, NativeVectorBorrowsAllComponentsThroughQueuedCreation) {
 // bits 18-33 and the array count bits 34-38 (the engine reads shr 0x22 & 0x1f).
 // The count must land there, and the member's cluster element must survive.
 TEST(KeyValuesTest, ArrayCountUsesTheBuild6723MetadataLayout) {
+  // Record the native surface, with arena bits set on each member.
   g_raw_member_count = 0;
   KeyValuesCalls calls;
   calls.allocate = &RecordAllocate;
@@ -271,11 +306,15 @@ TEST(KeyValuesTest, ArrayCountUsesTheBuild6723MetadataLayout) {
     member->metadata |= 0xBEEFull << 18;  // cluster element assigned by the arena
     return member;
   };
+
+  // Build a color and a vector.
   const EntityKeyValue pairs[] = {
       {.key = "rendercolor",
        .value = modlock::gameinterop::KeyValueColor{.red = 9, .green = 8, .blue = 7, .alpha = 6}},
       {.key = "scales", .value = modlock::gameinterop::KeyValueVector{1.f, 2.f, 3.f}},
   };
+
+  // Each count lands in its field without touching the arena bits.
   auto built = BuildEntityKeyValues(calls, pairs);
   ASSERT_TRUE(built.has_value()) << built.error();
   ASSERT_EQ(g_raw_member_count, 2u);
@@ -294,6 +333,7 @@ TEST(KeyValuesTest, BuildNamesTheFirstMissingConstructor) {
 }
 
 TEST(KeyValuesTest, BuildNamesTheMissingSetterForItsKind) {
+  // Record only the factory, then build a vector.
   KeyValuesCalls calls;
   calls.create_key_values = &RecordCreate;
   const std::vector<EntityKeyValue> pairs = {

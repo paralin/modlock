@@ -22,6 +22,7 @@ constexpr size_t kClassInfoSchemaBinding = 0x28;
 // Teleport calls CBaseEntity::Teleport. Null pose pointers preserve placement.
 // An unresolved slot leaves the entity in place.
 void Teleport(void* entity, const float* position, const float* angles, const float* velocity) {
+  // Find the entity's Teleport slot.
   if (entity == nullptr) {
     return;
   }
@@ -29,6 +30,8 @@ void Teleport(void* entity, const float* position, const float* angles, const fl
   if (!slot) {
     return;
   }
+
+  // Call it through the entity's vtable.
   using TeleportFn = void (*)(void*, const float*, const float*, const float*);
   auto** table = *static_cast<void***>(entity);
   reinterpret_cast<TeleportFn>(table[*slot])(entity, position, angles, velocity);
@@ -37,6 +40,7 @@ void Teleport(void* entity, const float* position, const float* angles, const fl
 // NetworkStateNotificationOf resolves the shared replication entry for preflight
 // and publication, so callers never maintain a second copy of its ABI slot.
 void* NetworkStateNotificationOf(void* entity) {
+  // Find the entity's notification slot.
   if (!entity) {
     return nullptr;
   }
@@ -44,6 +48,8 @@ void* NetworkStateNotificationOf(void* entity) {
   if (!slot) {
     return nullptr;
   }
+
+  // Read it from the entity's vtable.
   auto* table = *static_cast<void***>(entity);
   return table ? table[*slot] : nullptr;
 }
@@ -76,6 +82,7 @@ const void* ReadLink(const void* base, size_t offset, const BoundedReader& read)
 std::expected<const schema::ClassInfo*, std::string> SchemaClassInfoOf(void* schema_system,
                                                                        const char* module_name,
                                                                        const char* class_name) {
+  // Find the module's scope and the class declared in it.
   auto scope = FindTypeScopeOf(schema_system, module_name);
   if (!scope) {
     return std::unexpected(scope.error());
@@ -165,10 +172,13 @@ void* IdentityOf(void* entity) {
 }
 
 std::optional<uint32_t> ReferenceHandleOf(void* entity) {
+  // Read the identity, which must point back at the entity.
   auto* identity = static_cast<const uint8_t*>(IdentityOf(entity));
   if (identity == nullptr || ReadPointer(identity, 0) != entity) {
     return std::nullopt;
   }
+
+  // A deleted or deleting entity has no handle.
   uint32_t stored = 0;
   uint32_t flags = 0;
   std::memcpy(&stored, identity + 0x10, sizeof(stored));
@@ -178,6 +188,8 @@ std::optional<uint32_t> ReferenceHandleOf(void* entity) {
   if (stored == 0xFFFFFFFFu || (flags & (kDeleteInProgress | kMarkedForDelete)) != 0) {
     return std::nullopt;
   }
+
+  // Rebuild the handle from the index and the live serial.
   constexpr uint32_t kIndexMask = 0x7FFF;
   constexpr uint32_t kSerialMask = 0x1FFFF;
   constexpr uint32_t kSerialShift = 15;
@@ -228,10 +240,12 @@ std::expected<void*, std::string> EntitySystemFromResourceService(void* resource
 }
 
 std::vector<void*> EntityInstances(void* entity_system) {
+  // An unresolved system has no entities.
   std::vector<void*> instances;
   if (!entity_system) {
     return instances;
   }
+
   // CConcreteEntityList follows the vtable and current resource manifest.
   // Each of its 64 chunks contains 512 CEntityIdentity records of 0x70 bytes.
   const auto* chunks = static_cast<const uint8_t*>(entity_system) + 0x10;
@@ -256,9 +270,12 @@ std::vector<void*> EntityInstances(void* entity_system) {
 }
 
 void* EntityInstance(void* entity_system, uint32_t handle) {
+  // A missing system or invalid handle names no entity.
   if (!entity_system || handle == 0xFFFFFFFFu) {
     return nullptr;
   }
+
+  // Find the handle's chunk.
   const uint32_t index = handle & 0x7FFF;
   const auto* chunks = static_cast<const uint8_t*>(entity_system) + 0x10;
   const auto* chunk =
@@ -266,6 +283,8 @@ void* EntityInstance(void* entity_system, uint32_t handle) {
   if (!chunk) {
     return nullptr;
   }
+
+  // The identity must point at a live entity holding this handle.
   const auto* identity = chunk + (index % 512) * 0x70;
   void* instance = ReadPointer(identity, 0);
   if (!instance || IdentityOf(instance) != identity || ReferenceHandleOf(instance) != handle) {
@@ -275,6 +294,7 @@ void* EntityInstance(void* entity_system, uint32_t handle) {
 }
 
 std::expected<void*, std::string> ResolveLiveEntitySystem() {
+  // Borrow the game resource service.
   const auto resource_service =
       ResolveEngineInterface(L"engine2.dll", kGameResourceServiceServerVersion);
   if (!resource_service) {
@@ -305,6 +325,7 @@ std::expected<void*, std::string> ResolveSchemaSystem() {
 }
 
 std::expected<void*, std::string> FindTypeScopeOf(void* schema_system, const char* module_name) {
+  // Find the scope through the schema system's vtable.
   if (!schema_system) {
     return std::unexpected("the schema system instance is not resolved yet");
   }
@@ -327,6 +348,7 @@ namespace {
 // at FindDeclaredClassOf in the header.
 std::expected<void*, std::string> FindDeclared(void* type_scope, std::string_view slot_id,
                                                const char* kind, const char* name) {
+  // Find the declaration through the scope's vtable.
   if (type_scope == nullptr) {
     return std::unexpected("the schema type scope instance is not resolved yet");
   }
@@ -378,6 +400,7 @@ std::expected<size_t, std::string> SchemaClassSizeOf(void* schema_system, const 
 std::expected<int64_t, std::string> SchemaEnumValueOf(void* schema_system, const char* module_name,
                                                       const char* enum_name,
                                                       const char* value_name) {
+  // Find the enum in the module's scope.
   auto scope = FindTypeScopeOf(schema_system, module_name);
   if (!scope) {
     return std::unexpected(scope.error());
@@ -386,6 +409,8 @@ std::expected<int64_t, std::string> SchemaEnumValueOf(void* schema_system, const
   if (!found) {
     return std::unexpected(found.error());
   }
+
+  // Return the named value.
   const auto* info = static_cast<const schema::EnumInfo*>(*found);
   for (const auto& enumerator : std::span(info->enumerators, info->enumerator_count)) {
     if (std::strcmp(enumerator.name, value_name) == 0) {
@@ -401,10 +426,12 @@ bool CanNotifyEntityStateChanged(void* entity) {
 }
 
 bool NotifyEntityStateChanged(void* entity) {
+  // Find the entity's notification call.
   auto* notification = NetworkStateNotificationOf(entity);
   if (!notification) {
     return false;
   }
+
   // Windows x64 NetworkStateChanged_t full-change form.
   struct alignas(8) FullChange {
     uint32_t flag = 0;

@@ -57,11 +57,14 @@ constexpr size_t kSearchSlack = 96;
 class PeImage final : public ModuleImage {
  public:
   static std::expected<PeImage, std::string> Load(const fs::path& path) {
+    // Read the whole file.
     std::ifstream in(path, std::ios::binary);
     if (!in) {
       return std::unexpected("cannot open " + path.string());
     }
     const std::vector<uint8_t> file{std::istreambuf_iterator<char>(in), {}};
+
+    // Read little-endian words, or nothing past the end.
     auto read32 = [&file](size_t at) -> std::optional<uint32_t> {
       if (at + 4 > file.size()) {
         return std::nullopt;
@@ -79,10 +82,13 @@ class PeImage final : public ModuleImage {
       return value;
     };
 
+    // Find the PE header.
     const auto pe = read32(0x3C);
     if (!pe || read32(*pe) != 0x00004550u) {
       return std::unexpected(path.string() + " is not a PE");
     }
+
+    // Read the COFF and optional header fields.
     const size_t coff = *pe + 4;
     const auto section_count = read16(coff + 2);
     const auto optional_size = read16(coff + 16);
@@ -91,11 +97,14 @@ class PeImage final : public ModuleImage {
     const auto image_base_high = read32(optional + 28);
     const auto image_size = read32(optional + 56);
     const auto header_size = read32(optional + 60);
+
+    // A field past the end of the file is a truncated header.
     if (!section_count || !optional_size || !image_base_low || !image_base_high || !image_size ||
         !header_size) {
       return std::unexpected(path.string() + " has a truncated PE header");
     }
 
+    // Map the headers, then each section at its virtual address.
     PeImage image;
     image.image_base_ = uint64_t{*image_base_high} << 32 | *image_base_low;
     image.bytes_.assign(*image_size, 0);
@@ -182,6 +191,7 @@ std::string Pattern(std::span<const uint8_t> bytes, const std::vector<bool>& wil
 // shortest instruction-aligned prefix that resolves once in current wins.
 std::optional<std::string> Suggest(const GameSignature& signature, const PeImage& old,
                                    const PeImage& current) {
+  // The entry must match exactly once in the old build.
   auto parsed = modlock::gameinterop::ParseSignature(std::string(signature.id), signature.pattern);
   if (!parsed) {
     return std::nullopt;
@@ -198,10 +208,13 @@ std::optional<std::string> Suggest(const GameSignature& signature, const PeImage
           : signature.delta + (signature.target == SignatureTarget::kCall ? 5 : 7);
   const auto window = old.image_bytes().subspan(
       hits.front(), std::min(minimum + kSearchSlack, old.image_bytes().size() - hits.front()));
+
   // Wildcards already in the recorded pattern stay wildcards.
   std::vector<bool> wildcard(window.size(), false);
   std::copy_n(parsed->wildcard.begin(), std::min(parsed->wildcard.size(), wildcard.size()),
               wildcard.begin());
+
+  // Grow the prefix one instruction at a time until it matches once in the new build.
   ZydisDecoder decoder;
   ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
   size_t end = 0;
@@ -252,6 +265,7 @@ constexpr GameModule kModules[] = {GameModule::kServer, GameModule::kClient, Gam
 // LoadInstall maps every module the signature table names and, with slots,
 // every module a virtual slot names.
 std::expected<Install, std::string> LoadInstall(const fs::path& root, bool slots) {
+  // List the modules that signatures and slots name.
   std::vector<std::string> files;
   for (const auto module : kModules) {
     if (std::ranges::any_of(modlock::gameinterop::GameSignatures(),
@@ -265,6 +279,7 @@ std::expected<Install, std::string> LoadInstall(const fs::path& root, bool slots
     }
   }
 
+  // Load each module once.
   Install install{.root = root};
   for (const auto& file : files) {
     if (install.modules.contains(file)) {
@@ -282,6 +297,7 @@ std::expected<Install, std::string> LoadInstall(const fs::path& root, bool slots
 // CheckSlot reports whether exactly one function of slot's table matches its
 // pattern in image.
 bool CheckSlot(const ModuleImage& image, const modlock::gameinterop::VirtualSlot& slot) {
+  // Find the slot's vtable and the functions that match.
   const auto id = std::string(slot.id);
   const auto module = std::string(slot.module);
   const auto table = modlock::gameinterop::FindVtable(image, slot.class_name);
@@ -299,6 +315,7 @@ bool CheckSlot(const ModuleImage& image, const modlock::gameinterop::VirtualSlot
     return true;
   }
 
+  // Explain why the slot does not hold.
   std::string reason;
   if (!matches) {
     reason = matches.error();
@@ -319,6 +336,7 @@ bool CheckSlot(const ModuleImage& image, const modlock::gameinterop::VirtualSlot
 }  // namespace
 
 int main(int argc, char** argv) {
+  // Read the game directory and the options.
   std::optional<fs::path> game;
   std::optional<fs::path> baseline_root;
   std::optional<fs::path> signatures;
@@ -356,6 +374,7 @@ int main(int argc, char** argv) {
     failed = load->skipped.size();
   }
 
+  // Load the current install and the optional baseline.
   auto current = LoadInstall(*game, true);
   if (!current) {
     std::fprintf(stderr, "%s\n", current.error().c_str());
@@ -373,6 +392,7 @@ int main(int argc, char** argv) {
   }
   std::printf("build %s\n", BuildVersion(*game).c_str());
 
+  // Resolve each signature, suggesting a fix from the baseline.
   size_t checked = failed;
   for (const auto& signature : modlock::gameinterop::GameSignatures()) {
     for (const auto module : kModules) {
@@ -405,6 +425,7 @@ int main(int argc, char** argv) {
   }
   std::printf("%zu of %zu signatures resolved\n", checked - failed, checked);
 
+  // Check each virtual slot.
   size_t broken = 0;
   const auto slots = modlock::gameinterop::GameVirtualSlots();
   for (const auto& slot : slots) {

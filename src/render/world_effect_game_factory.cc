@@ -49,6 +49,7 @@ void Teleport(void* entity, const modlock::Vec3& origin, const std::array<float,
 
 std::expected<std::unique_ptr<WorldEffectGameFactory>, std::string>
 WorldEffectGameFactory::TryCreate(const modlock::gameinterop::ModuleImage& server) {
+  // Resolve each engine call by its signature.
   WorldEffectGameCalls calls;
   struct Entry {
     std::string_view id;
@@ -70,6 +71,8 @@ WorldEffectGameFactory::TryCreate(const modlock::gameinterop::ModuleImage& serve
       return std::unexpected(address.error());
     }
   }
+
+  // Resolve the keyvalue calls.
   auto key_values = modlock::gameinterop::ResolveKeyValuesCalls(server);
   if (!key_values) {
     return std::unexpected(key_values.error());
@@ -104,6 +107,7 @@ class GameWorldEffect final : public WorldParticle {
 
   std::expected<void, std::string> Transform(const Vec3& origin,
                                              const std::array<float, 3>& angles) override {
+    // Only a live particle with a finite pose moves.
     if (!entity_) {
       return std::unexpected("particle is no longer live");
     }
@@ -118,6 +122,7 @@ class GameWorldEffect final : public WorldParticle {
   }
 
   std::expected<void, std::string> Tint(const ParticleTint& tint) override {
+    // Only a live particle takes a tint, at a control point the effect has.
     if (!entity_) {
       return std::unexpected("particle is no longer live");
     }
@@ -135,6 +140,7 @@ class GameWorldEffect final : public WorldParticle {
   }
 
   std::expected<void, std::string> Data(const ParticleData& data) override {
+    // Only a live particle takes finite data, at a control point the effect has.
     if (!entity_) {
       return std::unexpected("particle is no longer live");
     }
@@ -153,6 +159,7 @@ class GameWorldEffect final : public WorldParticle {
   }
 
   std::expected<void, std::string> ControlPoint(int index, std::uint32_t handle) override {
+    // Only a live particle takes a control point.
     if (!entity_) {
       return std::unexpected("particle is no longer live");
     }
@@ -160,6 +167,8 @@ class GameWorldEffect final : public WorldParticle {
     if (!fields) {
       return std::unexpected(fields.error());
     }
+
+    // The index must fall inside the native array, and the entity must be live.
     auto field = (*fields)->control_points;
     if (index < 0 || static_cast<size_t>(index) >= field.size / sizeof(handle)) {
       return std::unexpected("particle control point index is outside the native array");
@@ -168,6 +177,8 @@ class GameWorldEffect final : public WorldParticle {
         !gameinterop::EntityInstance(factory_.calls_.entity_system, handle)) {
       return std::unexpected("particle control point entity is no longer live");
     }
+
+    // Write the one handle.
     field.offset += static_cast<size_t>(index) * sizeof(handle);
     field.size = sizeof(handle);
     return Write(field, handle);
@@ -197,6 +208,7 @@ class GameWorldEffect final : public WorldParticle {
   void InvalidateAfterEngineReset() override { entity_ = nullptr; }
 
   std::expected<void, std::string> Spawn() {
+    // Every engine call must be resolved.
     if (factory_.calls_.create_entity_by_name == nullptr) {
       return std::unexpected("effect: create-entity-by-name unresolved");
     }
@@ -208,6 +220,7 @@ class GameWorldEffect final : public WorldParticle {
           "accept-input, or remove)");
     }
 
+    // Create the entity and build its keyvalues.
     entity_ = factory_.calls_.create_entity_by_name(nullptr, "info_particle_system", -1);
     if (entity_ == nullptr) {
       return std::unexpected("create info_particle_system returned null");
@@ -221,6 +234,8 @@ class GameWorldEffect final : public WorldParticle {
       Remove();
       return std::unexpected("effect: " + built.error());
     }
+
+    // Apply the tint, data and control points.
     if (settings_.tint) {
       if (auto applied = Tint(*settings_.tint); !applied) {
         return applied;
@@ -236,12 +251,16 @@ class GameWorldEffect final : public WorldParticle {
         return applied;
       }
     }
+
+    // Place it, then spawn it.
     if (auto moved = Transform(settings_.origin, settings_.angles); !moved) {
       return moved;
     }
     factory_.calls_.queue_spawn_entity(factory_.calls_.entity_system,
                                        modlock::gameinterop::IdentityOf(entity_), *built);
     factory_.calls_.execute_queued_creation(factory_.calls_.entity_system);
+
+    // Start and attach it as configured.
     if (settings_.start_active) {
       if (auto started = Start(); !started) {
         return started;
@@ -270,12 +289,15 @@ class GameWorldEffect final : public WorldParticle {
 
   template <typename T>
   std::expected<void, std::string> Write(const gameinterop::SchemaField& field, const T& value) {
+    // Only a live particle takes a write that fits its field.
     if (!entity_) {
       return std::unexpected("particle is no longer live");
     }
     if (field.size < sizeof(T)) {
       return std::unexpected("particle schema field is too small");
     }
+
+    // Write it, notifying the network when the field is networked.
     std::memcpy(static_cast<std::byte*>(entity_) + field.offset, &value, sizeof(value));
     if (field.networked && !gameinterop::NotifyEntityStateChanged(entity_)) {
       return std::unexpected("particle network state notification unavailable");
@@ -328,10 +350,13 @@ class GameWorldEntity final : public WorldEffect {
 std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory::CreateEntity(
     const char* class_name, const Vec3& origin, const std::array<float, 3>& angles,
     std::span<const gameinterop::EntityKeyValue> properties) {
+  // Every engine call must be resolved.
   if (!calls_.entity_system || !calls_.create_entity_by_name || !calls_.queue_spawn_entity ||
       !calls_.execute_queued_creation || !calls_.util_remove) {
     return std::unexpected("visual entity: native entity creation is unavailable");
   }
+
+  // Build the keyvalues and create the entity.
   auto values = gameinterop::BuildEntityKeyValues(calls_.key_values, properties);
   if (!values) {
     return std::unexpected(std::string(class_name) + ": " + values.error());
@@ -340,6 +365,8 @@ std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory:
   if (!entity) {
     return std::unexpected(std::string("create ") + class_name + " returned null");
   }
+
+  // Place it, then spawn it.
   auto effect = std::make_unique<GameWorldEntity>(*this, entity, angles);
   Teleport(entity, origin, angles);
   calls_.queue_spawn_entity(calls_.entity_system, gameinterop::IdentityOf(entity), *values);
@@ -385,6 +412,7 @@ std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory:
 
 std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory::CreateModel(
     const WorldModelSettings& settings) {
+  // Refuse a resource outside models/ and a bad scale.
   if (!settings.resource.starts_with("models/") || !settings.resource.ends_with(".vmdl") ||
       settings.resource.find("..") != std::string::npos) {
     return std::unexpected("model resource must be a game-relative models/*.vmdl path");
@@ -392,6 +420,8 @@ std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory:
   if (!std::isfinite(settings.scale) || settings.scale <= 0) {
     return std::unexpected("model scale must be finite and positive");
   }
+
+  // Spawn a prop with the model, color and glow.
   const auto rgba = settings.color_rgba;
   const gameinterop::KeyValueColor color{
       static_cast<uint8_t>(rgba), static_cast<uint8_t>(rgba >> 8), static_cast<uint8_t>(rgba >> 16),
@@ -428,6 +458,7 @@ std::expected<std::unique_ptr<WorldEffect>, std::string> WorldEffectGameFactory:
 
 std::expected<std::unique_ptr<WorldParticle>, std::string> WorldEffectGameFactory::CreateParticle(
     const ParticleSettings& settings) {
+  // Refuse a resource outside particles/ or with stray characters.
   const auto& resource = settings.resource;
   if (!resource.starts_with("particles/") || !resource.ends_with(".vpcf") ||
       resource.find("..") != std::string::npos ||
@@ -437,6 +468,8 @@ std::expected<std::unique_ptr<WorldParticle>, std::string> WorldEffectGameFactor
       })) {
     return std::unexpected("particle resource must be a game-relative particles/*.vpcf path");
   }
+
+  // Spawn it, tracing the outcome.
   auto effect = std::make_unique<GameWorldEffect>(*this, settings);
   if (auto spawned = effect->Spawn(); !spawned) {
     TraceFailure(spawned.error());
@@ -447,6 +480,7 @@ std::expected<std::unique_ptr<WorldParticle>, std::string> WorldEffectGameFactor
 }
 
 std::expected<const ParticleFields*, std::string> WorldEffectGameFactory::ResolveParticleFields() {
+  // Resolve the fields once.
   if (particle_fields_) {
     return &*particle_fields_;
   }
@@ -454,6 +488,8 @@ std::expected<const ParticleFields*, std::string> WorldEffectGameFactory::Resolv
   if (!schema) {
     return std::unexpected(schema.error());
   }
+
+  // Look up each particle field.
   ParticleFields fields;
   const std::pair<const char*, gameinterop::SchemaField*> entries[] = {
       {"m_clrTint", &fields.tint},

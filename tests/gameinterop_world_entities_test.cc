@@ -49,6 +49,7 @@ class NativeWorld : public testing::Test {
   }
 
   void SetUp() override {
+    // Clear the entity and its class chain, naming it a trooper.
     entity.fill({});
     entity_class.fill(nullptr);
     class_info.fill(nullptr);
@@ -57,16 +58,22 @@ class NativeWorld : public testing::Test {
     class_info[5] = schema.data();
     schema[0] = schema.data();
     schema[1] = const_cast<char*>("CNPC_Trooper");
+
+    // Clear the identity, system and vtable.
     identity.fill({});
     system.fill(nullptr);
     vtable.fill(nullptr);
     created = spawned = removed = 0;
+
+    // Clear what the last test recorded.
     prepared = 0;
     has_definition = true;
     subclass = 0;
     designer.clear();
     position = {};
     key_values.clear();
+
+    // Link the identity, entity and vtable, with Teleport in slot 163.
     system[2] = identity.data();
     Write(identity.data(), entity.data());
     Write(identity.data() + 0x10, kHandle);
@@ -80,6 +87,7 @@ class NativeWorld : public testing::Test {
   }
 
   static WorldEntities World() {
+    // Find the system and the entity class.
     WorldEntities::Calls calls;
     calls.entity_system = []() -> std::expected<void*, std::string> {
       return system.data();
@@ -88,12 +96,16 @@ class NativeWorld : public testing::Test {
       EXPECT_EQ(world, system.data());
       return entity_class.data();
     };
+
+    // Resolve definitions, recording the subclass token.
     calls.offsets = {0x30, kSubclassOffset, 0, 0, 0, 0, 0};
     calls.definition = [](int32_t type, uint32_t token) -> void* {
       EXPECT_EQ(type, -1);
       subclass = token;
       return has_definition ? definition.data() : nullptr;
     };
+
+    // Record creation and each keyvalue.
     calls.create = [](void*, const char* name, int) -> void* {
       ++created;
       designer = name;
@@ -117,11 +129,15 @@ class NativeWorld : public testing::Test {
                                     float value) {
       key_values[name->string] = value;
     };
+
+    // Queue checks its arguments.
     calls.queue = [](void* world, void* id, void* properties) {
       EXPECT_EQ(world, system.data());
       EXPECT_EQ(id, identity.data());
       EXPECT_NE(properties, nullptr);
     };
+
+    // Spawn checks the subclass and records preparation.
     calls.execute = [](void*) {
       // Native urn Spawn dereferences VData + 0x118 to install its pickup aura.
       // A subclassed entity's token and resolved pointer must both exist
@@ -145,6 +161,7 @@ class NativeWorld : public testing::Test {
 };
 
 TEST_F(NativeWorld, CreateEntityInstallsItsSubclassBeforeNativeSpawn) {
+  // Create a pickup with its subclass.
   schema[1] = const_cast<char*>("CCitadelItemPickupIdol");
   auto world = World();
   WorldEntities::Target target{.designer_name = "citadel_item_pickup_idol",
@@ -152,6 +169,8 @@ TEST_F(NativeWorld, CreateEntityInstallsItsSubclassBeforeNativeSpawn) {
                                .position = {-6579, 0, 144}};
   const auto pickup = world.CreateEntity(target, {});
   ASSERT_TRUE(pickup) << pickup.error();
+
+  // The subclass and position were installed before one spawn.
   EXPECT_EQ(*pickup, kHandle);
   EXPECT_EQ(designer, "citadel_item_pickup_idol");
   EXPECT_EQ(subclass, MakeMemberName("citadel_item_pickup_idol").hash);
@@ -161,6 +180,7 @@ TEST_F(NativeWorld, CreateEntityInstallsItsSubclassBeforeNativeSpawn) {
 }
 
 TEST_F(NativeWorld, MissingDefinitionNeverReachesNativeSpawn) {
+  // Without a definition, nothing is created.
   has_definition = false;
   auto world = World();
   WorldEntities::Target target{
@@ -174,6 +194,7 @@ TEST_F(NativeWorld, MissingDefinitionNeverReachesNativeSpawn) {
 }
 
 TEST_F(NativeWorld, WorldTextPanelGetsStockClientDefaults) {
+  // Create a panel with only a message.
   auto world = World();
   const std::array values{
       EntityKeyValue{.key = "message", .value = std::string_view("TEXT PANEL")},
@@ -181,6 +202,8 @@ TEST_F(NativeWorld, WorldTextPanelGetsStockClientDefaults) {
   const auto panel =
       world.CreateEntity({.designer_name = "point_clientui_world_text_panel"}, values);
   ASSERT_TRUE(panel) << panel.error();
+
+  // Each unset value takes the stock default.
   EXPECT_EQ(std::get<bool>(key_values.at("enabled")), true);
   EXPECT_EQ(std::get<float>(key_values.at("width")), 128.0f);
   EXPECT_EQ(std::get<float>(key_values.at("height")), 32.0f);
@@ -190,6 +213,8 @@ TEST_F(NativeWorld, WorldTextPanelGetsStockClientDefaults) {
   EXPECT_EQ(std::get<std::string>(key_values.at("dialog_layout_name")),
             "file://{resources}/layout/hideout/hideout_in_world_text_label.xml");
   EXPECT_EQ(std::get<int>(key_values.at("owner_context")), 0);
+
+  // It aligns and turns like the stock label, and carries the message.
   EXPECT_EQ(std::get<int>(key_values.at("horizontal_align")), 1);
   EXPECT_EQ(std::get<int>(key_values.at("vertical_align")), 0);
   EXPECT_EQ(std::get<int>(key_values.at("orientation")), 1);
@@ -198,6 +223,7 @@ TEST_F(NativeWorld, WorldTextPanelGetsStockClientDefaults) {
 }
 
 TEST_F(NativeWorld, WorldTextPanelKeepsExplicitSpawnValues) {
+  // Values given at spawn are kept.
   auto world = World();
   const std::array values{
       EntityKeyValue{.key = "message", .value = std::string_view("CUSTOM TEXT")},
@@ -215,6 +241,7 @@ TEST_F(NativeWorld, WorldTextPanelKeepsExplicitSpawnValues) {
 }
 
 TEST_F(NativeWorld, AnAbilityIsRefusedBeforeItExists) {
+  // An ability is refused before anything is created.
   schema[1] = const_cast<char*>("CCitadelBaseAbility");
   auto world = World();
   const auto ability = world.CreateEntity({.designer_name = "upgrade_spellshield"}, {});
@@ -226,6 +253,7 @@ TEST_F(NativeWorld, AnAbilityIsRefusedBeforeItExists) {
 }
 
 TEST_F(NativeWorld, ATextValueTooLongToNetworkIsRefusedBeforeItExists) {
+  // Text one character past the network limit is refused.
   auto world = World();
   const std::string limit(WorldEntities::kMaxKeyValueText, 'a');
   const std::string over(WorldEntities::kMaxKeyValueText + 1, 'a');
@@ -236,12 +264,14 @@ TEST_F(NativeWorld, ATextValueTooLongToNetworkIsRefusedBeforeItExists) {
             "key value panel_id is 65501 characters; at most 65500 can be networked");
   EXPECT_EQ(created, 0);
 
+  // Text at the limit is created.
   const EntityKeyValue at_limit[] = {{"panel_id", std::string_view(limit)}};
   ASSERT_TRUE(world.CreateEntity({.designer_name = "point_clientui_dialog"}, at_limit));
   EXPECT_EQ(created, 1);
 }
 
 TEST_F(NativeWorld, AnEntityThatCrashesAloneIsRefusedBeforeItExists) {
+  // An entity that crashes alone is refused.
   auto world = World();
   const auto sentry = world.CreateEntity({.designer_name = "npc_shielded_sentry"}, {});
   ASSERT_FALSE(sentry);
@@ -252,6 +282,7 @@ TEST_F(NativeWorld, AnEntityThatCrashesAloneIsRefusedBeforeItExists) {
 }
 
 TEST_F(NativeWorld, SpawnPreparesTheUnitBeforeNativeSpawn) {
+  // Preparation runs before the unit spawns.
   auto world = World();
   WorldEntities::Target target{.designer_name = "npc_trooper",
                                .subclass_id = WorldEntities::SubclassId("trooper_melee"),
@@ -266,6 +297,7 @@ TEST_F(NativeWorld, SpawnPreparesTheUnitBeforeNativeSpawn) {
 }
 
 TEST_F(NativeWorld, FailedPreparationRemovesTheUnitUnspawned) {
+  // A failed preparation removes the unit before it spawns.
   auto world = World();
   WorldEntities::Target target{.designer_name = "npc_trooper",
                                .subclass_id = WorldEntities::SubclassId("trooper_melee"),

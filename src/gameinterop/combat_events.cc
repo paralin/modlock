@@ -184,6 +184,7 @@ std::expected<void, std::string> ProcessDamageContact(
     void* event_data, const DamageContactOffsets& offsets, const BoundedReader& read,
     const BoundedWriter& write, const std::function<bool(const DamageContactEvent&)>& suppress,
     const AdjustDamage& adjust) {
+  // Read the victim and the damage descriptor.
   if (!event_data || !read || !write || (!suppress && !adjust)) {
     return std::unexpected("combat contact: missing payload or handler");
   }
@@ -194,6 +195,8 @@ std::expected<void, std::string> ProcessDamageContact(
       !read(bytes + 8, &info, sizeof(info)) || !info) {
     return std::unexpected("combat contact: unreadable native damage descriptor");
   }
+
+  // Read the attacker, flags, hit group, amount, ability and inflictor.
   auto* damage = static_cast<unsigned char*>(info);
   if (!read(damage + offsets.attacker, &event.attacker_handle, sizeof(event.attacker_handle)) ||
       !read(damage + offsets.flags, &event.flags, sizeof(event.flags))) {
@@ -211,6 +214,8 @@ std::expected<void, std::string> ProcessDamageContact(
       !read(damage + *offsets.inflictor, &event.inflictor_handle, sizeof(event.inflictor_handle))) {
     return std::unexpected("combat contact: unreadable damage inflictor");
   }
+
+  // Damage that is not suppressed may be adjusted in place.
   if (!suppress || !suppress(event)) {
     if (!adjust) {
       return {};
@@ -243,12 +248,15 @@ std::expected<void, std::string> ProcessDamageContact(
 std::expected<DamageTakenEvent, std::string> DecodeDamageTaken(const void* event_data,
                                                                const DamageResultOffsets& offsets,
                                                                const BoundedReader& read) {
+  // Refuse a missing payload or reader.
   if (event_data == nullptr) {
     return std::unexpected(std::string("combat event: damage payload pointer is null"));
   }
   if (!read) {
     return std::unexpected(std::string("combat event: no bounded reader is configured"));
   }
+
+  // Read the victim, attacker and ability.
   DamageTakenEvent event{};
   const auto* bytes = static_cast<const unsigned char*>(event_data);
   if (!read(bytes + kDamageVictimOffset, &event.victim_handle, sizeof(event.victim_handle))) {
@@ -264,6 +272,8 @@ std::expected<DamageTakenEvent, std::string> DecodeDamageTaken(const void* event
       return std::unexpected("combat event: unreadable damage ability");
     }
   }
+
+  // Read the damage result's fields, rounding a float damage.
   const void* result = nullptr;
   if (!read(bytes + kDamageResultOffset, &result, sizeof(result))) {
     return std::unexpected(Unreadable(bytes + kDamageResultOffset, "the damage result pointer"));
@@ -287,6 +297,8 @@ std::expected<DamageTakenEvent, std::string> DecodeDamageTaken(const void* event
   } else if (!read(dealt, &event.damage_dealt, sizeof(event.damage_dealt))) {
     return std::unexpected(Unreadable(result, "the damage result fields"));
   }
+
+  // A negative value is refused.
   if (event.health_lost < 0 || event.health_before < 0 || event.damage_dealt < 0) {
     return std::unexpected("combat event: the damage result carries a negative value");
   }
@@ -295,12 +307,15 @@ std::expected<DamageTakenEvent, std::string> DecodeDamageTaken(const void* event
 
 std::expected<HealthTakenEvent, std::string> DecodeHealthTaken(const void* event_data,
                                                                const BoundedReader& read) {
+  // Refuse a missing payload or reader.
   if (event_data == nullptr) {
     return std::unexpected(std::string("combat event: heal payload pointer is null"));
   }
   if (!read) {
     return std::unexpected(std::string("combat event: no bounded reader is configured"));
   }
+
+  // Read the heal, refusing a nonfinite request or negative heal.
   HealthTakenEvent event{};
   const auto* bytes = static_cast<const unsigned char*>(event_data);
   if (!read(bytes + kHealthEntityOffset, &event.entity_handle, sizeof(event.entity_handle)) ||
@@ -319,11 +334,15 @@ std::expected<HealthTakenEvent, std::string> DecodeHealthTaken(const void* event
 
 std::expected<ShieldDamageEvent, std::string> DecodeShieldDamage(const void* event_data,
                                                                  const BoundedReader& read) {
+  // Refuse a missing payload or reader.
   if (!event_data || !read) {
     return std::unexpected("combat event: shield payload unavailable");
   }
+
+  // Read the attacker, victim and absorbed amount.
   ShieldDamageEvent event;
   const auto* bytes = static_cast<const unsigned char*>(event_data);
+
   // The native emitter subtracts absorbed from the shield after broadcasting.
   // The third handle (+8) identifies the shield caster, not the damaged pawn.
   if (!read(bytes, &event.attacker_handle, sizeof(event.attacker_handle)) ||
@@ -339,6 +358,7 @@ std::expected<ShieldDamageEvent, std::string> DecodeShieldDamage(const void* eve
 
 std::expected<AbilityExecutedEvent, std::string> DecodeAbilityExecuted(const void* event_data,
                                                                        const BoundedReader& read) {
+  // Refuse a missing payload or reader.
   if (!event_data) {
     return std::unexpected("combat event: ability payload pointer is null");
   }
@@ -346,6 +366,7 @@ std::expected<AbilityExecutedEvent, std::string> DecodeAbilityExecuted(const voi
     return std::unexpected("combat event: no bounded reader is configured");
   }
 
+  // Read the caster, ability and target.
   AbilityExecutedEvent event;
   const auto* bytes = static_cast<const unsigned char*>(event_data);
   if (!read(bytes + kAbilityCasterOffset, &event.caster_handle, sizeof(event.caster_handle)) ||
@@ -387,8 +408,10 @@ CombatEventsHook::~CombatEventsHook() = default;
 
 std::expected<uint32_t, std::string> ModifierEventIndex(const ModuleImage& image,
                                                         std::string_view name) {
+  // View the module as text.
   const auto bytes = image.image_bytes();
   const std::string_view view(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+
   // The name is a whole NUL-terminated string, not a prefix of a longer one.
   std::string needle;
   needle.reserve(name.size() + 2);
@@ -399,6 +422,8 @@ std::expected<uint32_t, std::string> ModifierEventIndex(const ModuleImage& image
   if (at == std::string_view::npos) {
     return std::unexpected("modifier event " + std::string(name) + " is not in the game module");
   }
+
+  // Find the string's address as a pointer to search for.
   const uint64_t address = static_cast<uint64_t>(image.base()) + at + 1;
   char pointer[sizeof(address)];
   std::memcpy(pointer, &address, sizeof(address));
@@ -431,6 +456,8 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     const ModuleImage& server, void* schema_system, Handler handler,
     std::function<bool(const DamageContactEvent&)> suppress_damage, AdjustDamage adjust_damage) {
 #if defined(_WIN32)
+
+  // Install once, and find both hook targets.
   if (g_hook != nullptr || !handler) {
     return std::unexpected("combat events hook is already installed or handler absent");
   }
@@ -486,12 +513,15 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     *slots[i] = field->offset;
   }
 
+  // Create the hook, disabled.
   auto created =
       safetyhook::create_inline(*target, reinterpret_cast<void*>(&FireModifierEventThunk),
                                 safetyhook::InlineHook::StartDisabled);
   if (!created) {
     return std::unexpected("inline hook on FireModifierEvent failed");
   }
+
+  // Find the damage info fields the contact handlers need.
   auto impl = std::make_unique<Impl>();
   DamageContactOffsets contact;
   if (suppress_damage || adjust_damage) {
@@ -526,23 +556,31 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     contact.hit_group = hit_group->offset;
     offsets.ability = ability->offset;
   }
+
+  // Create the broadcast hook, disabled.
   impl->hook = std::move(created);
   impl->broadcast = safetyhook::create_inline(*broadcast, reinterpret_cast<void*>(&BroadcastThunk),
                                               safetyhook::InlineHook::StartDisabled);
   if (!impl->broadcast) {
     return std::unexpected("combat broadcast hook could not be created");
   }
+
+  // Publish the ids, hooks and offsets to the thunks.
   g_ids = ids;
   g_hook = &impl->hook;
   g_broadcast_hook = &impl->broadcast;
   g_damage_offsets = offsets;
   g_contact_offsets = contact;
+
+  // Keep the handlers and publish them.
   impl->suppress_damage = std::move(suppress_damage);
   g_suppress_damage = &impl->suppress_damage;
   impl->adjust_damage = std::move(adjust_damage);
   g_adjust_damage = &impl->adjust_damage;
   impl->handler = std::move(handler);
   g_handler = &impl->handler;
+
+  // Enable both hooks.
   if (auto enabled = impl->hook.enable(); !enabled) {
     return std::unexpected("FireModifierEvent hook could not be enabled");
   }
@@ -551,6 +589,8 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
   }
   return CombatEventsHook(std::move(impl));
 #else
+
+  // Other platforms have no hook.
   (void)server;
   (void)schema_system;
   (void)handler;

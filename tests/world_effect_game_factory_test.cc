@@ -56,11 +56,14 @@ void Remove(void*) {
 }
 
 WorldEffectGameCalls Calls() {
+  // Build a fake entity with Teleport in slot 163 and a sentinel identity.
   vtable.fill(nullptr);
   vtable[163] = reinterpret_cast<void*>(&Teleport);
   entity.fill(nullptr);
   entity[0] = vtable.data();
   entity[2] = reinterpret_cast<void*>(0x2300);
+
+  // Point each engine call at its recorder.
   WorldEffectGameCalls calls;
   calls.create_entity_by_name = &Create;
   calls.entity_system = reinterpret_cast<void*>(0x2100);
@@ -68,10 +71,14 @@ WorldEffectGameCalls Calls() {
   calls.execute_queued_creation = &Execute;
   calls.accept_input = &Accept;
   calls.util_remove = &Remove;
+
+  // Record each keyvalue setter.
   calls.key_values.create_key_values = &MakeKv;
   calls.key_values.set_key_value = &SetKeyValue;
   calls.key_values.set_string = &SetString;
   calls.key_values.set_bool = &SetBool;
+
+  // Record numbers, colors and vectors by name.
   calls.key_values.set_int = [](void*, const modlock::gameinterop::MemberName* name, int value) {
     steps.emplace_back(std::string("kv:") + name->string + "=" + std::to_string(value));
   };
@@ -102,6 +109,7 @@ class EffectTest : public ::testing::Test {
 };
 
 TEST_F(EffectTest, CreatesMovesAndRemovesOneNativeEffect) {
+  // Create an effect at a point.
   modlock::Vec3 at;
   at.set_x(4);
   at.set_y(5);
@@ -113,6 +121,8 @@ TEST_F(EffectTest, CreatesMovesAndRemovesOneNativeEffect) {
                        "create:info_particle_system", "keyvalues",
                        "kv:effect_name=particles/environment/powerup_spawner_ambient.vpcf",
                        "kv:start_active=1", "teleport:4", "queue", "execute", "input:Start"}));
+
+  // Move it, then remove it once.
   at.set_x(8);
   effect->get()->Move(at, std::nullopt);
   EXPECT_EQ(steps.back(), "teleport:8");
@@ -123,8 +133,11 @@ TEST_F(EffectTest, CreatesMovesAndRemovesOneNativeEffect) {
 
 // The live resolver exposes allocate/construct/member calls, without typed setters.
 TEST_F(EffectTest, UsesTheNativeFreshMemberSurface) {
+  // Keep the fresh member surface's storage alive across calls.
   static std::array<std::uint64_t, 7> storage;
   static std::array<std::uint64_t, 2> member;
+
+  // Swap the recorded keyvalue calls for the fresh member surface.
   auto calls = Calls();
   calls.key_values = {};
   calls.key_values.allocate = [](size_t) -> void* {
@@ -138,6 +151,8 @@ TEST_F(EffectTest, UsesTheNativeFreshMemberSurface) {
     member = {4, 0};
     return member.data();
   };
+
+  // The effect still starts and removes once.
   WorldEffectGameFactory native_factory(calls);
   auto effect = native_factory.Create(modlock::render::ParticleSettings{
       .resource = "particles/environment/powerup_spawner_ambient.vpcf"});
@@ -148,6 +163,7 @@ TEST_F(EffectTest, UsesTheNativeFreshMemberSurface) {
 }
 
 TEST_F(EffectTest, RejectsUnshippedEffectWithoutSpawning) {
+  // An effect the game does not ship is refused before anything spawns.
   auto effect = factory->Create(modlock::render::ParticleSettings{.resource = "custom.vpcf"});
   ASSERT_FALSE(effect);
   EXPECT_NE(effect.error().find("not one of the shipped"), std::string::npos);
@@ -156,6 +172,7 @@ TEST_F(EffectTest, RejectsUnshippedEffectWithoutSpawning) {
 }
 
 TEST_F(EffectTest, FailedStartRemovesCreatedEntity) {
+  // A refused Start removes the entity it created.
   accept_result = false;
   auto effect = factory->Create(modlock::render::ParticleSettings{
       .resource = "particles/generic/generic_ping_ground_arrow.vpcf"});
@@ -165,6 +182,7 @@ TEST_F(EffectTest, FailedStartRemovesCreatedEntity) {
 }
 
 TEST_F(EffectTest, InvalidationNeverCallsEngineRemove) {
+  // Invalidation forgets the entity without removing it.
   auto effect = factory->Create(modlock::render::ParticleSettings{
       .resource = "particles/environment/powerup_spawner_ambient_beam.vpcf"});
   ASSERT_TRUE(effect);
@@ -174,6 +192,7 @@ TEST_F(EffectTest, InvalidationNeverCallsEngineRemove) {
 }
 
 TEST_F(EffectTest, ConfiguredParticleCanStartPausedAndChangePlaybackWithoutRespawning) {
+  // Create a paused, turned particle.
   modlock::render::ParticleSettings settings;
   settings.resource = "particles/generic/generic_ping_ground_arrow.vpcf";
   settings.start_active = false;
@@ -181,12 +200,16 @@ TEST_F(EffectTest, ConfiguredParticleCanStartPausedAndChangePlaybackWithoutRespa
   auto particle = factory->CreateParticle(settings);
   ASSERT_TRUE(particle) << particle.error();
   EXPECT_EQ(steps.back(), "execute");
+
+  // Start, stop and detach each send one input.
   ASSERT_TRUE(particle->get()->Start());
   EXPECT_EQ(steps.back(), "input:Start");
   ASSERT_TRUE(particle->get()->Stop());
   EXPECT_EQ(steps.back(), "input:Stop");
   ASSERT_TRUE(particle->get()->Detach());
   EXPECT_EQ(steps.back(), "input:ClearParent");
+
+  // A removed particle sends nothing more.
   particle->get()->Remove();
   const auto count = steps.size();
   EXPECT_FALSE(particle->get()->Start());
@@ -198,11 +221,14 @@ TEST_F(EffectTest, ConfiguredParticleCanStartPausedAndChangePlaybackWithoutRespa
 }
 
 TEST_F(EffectTest, ConfiguredParticleAcceptsOtherGameResourcesButRejectsPathTraversal) {
+  // Another game resource is accepted.
   modlock::render::ParticleSettings settings;
   settings.resource = "particles/test/another_effect.vpcf";
   auto particle = factory->CreateParticle(settings);
   ASSERT_TRUE(particle) << particle.error();
   particle->reset();
+
+  // A path out of the particles tree is refused.
   steps.clear();
   settings.resource = "particles/../../other.vpcf";
   EXPECT_FALSE(factory->CreateParticle(settings));
@@ -210,6 +236,7 @@ TEST_F(EffectTest, ConfiguredParticleAcceptsOtherGameResourcesButRejectsPathTrav
 }
 
 TEST_F(EffectTest, VisualModelDisablesCollisionAndOwnsItsLifetime) {
+  // Create a glowing model with collision off.
   const modlock::render::WorldModelSettings settings{
       .resource = "models/npc/boss_tier_01_brazier_guardian/boss_tier_01_brazier_guardian.vmdl",
       .scale = 0.22f,
@@ -217,15 +244,21 @@ TEST_F(EffectTest, VisualModelDisablesCollisionAndOwnsItsLifetime) {
       .glow = true};
   auto model = factory->CreateModel(settings);
   ASSERT_TRUE(model) << model.error();
+
+  // Each keyvalue was set before the spawn.
   for (const auto* expected : {"create:prop_dynamic", "kv:solid=0", "kv:spawnflags=1792",
                                "kv:scales=0.220000", "kv:glowstate=3", "kv:glowrange=0"}) {
     EXPECT_NE(std::find(steps.begin(), steps.end(), expected), steps.end()) << expected;
   }
   EXPECT_EQ(steps.back(), "execute");
+
+  // Moving it teleports.
   modlock::Vec3 origin;
   origin.set_x(42);
   model->get()->Move(origin, std::nullopt);
   EXPECT_EQ(steps.back(), "teleport:42");
+
+  // Destruction removes it once; invalidation forgets it.
   model->reset();
   EXPECT_EQ(removes, 1);
   model = factory->CreateModel(settings);
@@ -245,17 +278,22 @@ TEST_F(EffectTest, SolidModelCollidesThroughItsPhysicsShape) {
 }
 
 TEST_F(EffectTest, FogVolumesRemoveOnceAndInvalidateWithTheirWorld) {
+  // Create a fog controller and a volume.
   auto controller = factory->CreateFogController({}, 8192);
   ASSERT_TRUE(controller) << controller.error();
   auto volume = factory->CreateFogVolume({}, {0, 90, 0}, {1600, -8192, -4096}, {8192, 8192, 4096},
                                          4, {12, 85, 55});
   ASSERT_TRUE(volume) << volume.error();
+
+  // Each keyvalue was set.
   for (const auto* expected :
        {"create:env_volumetric_fog_controller", "create:env_volumetric_fog_volume", "kv:IsMaster=1",
         "kv:box_mins=1600.000000", "kv:FogStrength=4.000000", "kv:OverrideTintColor=1",
         "kv:FogSunLightStrength=1.000000"}) {
     EXPECT_NE(std::find(steps.begin(), steps.end(), expected), steps.end()) << expected;
   }
+
+  // The volume removes once; the invalidated controller does not remove.
   volume->get()->Remove();
   volume->reset();
   EXPECT_EQ(removes, 1);

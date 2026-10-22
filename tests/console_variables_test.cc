@@ -29,14 +29,19 @@ struct Fixture {
   }
 
   Fixture() {
+    // Name the variable, flag it hidden and set it true.
     const char* name = "citadel_trooper_spawn_enabled";
     std::memcpy(data.data(), &name, sizeof(name));
     const uint64_t flags = 0x100004012;
     std::memcpy(data.data() + 0x30, &flags, sizeof(flags));
     data[0x58] = 1;
+
+    // Copy it as an unrelated variable.
     unrelated = data;
     const char* other = "other";
     std::memcpy(unrelated.data(), &other, sizeof(other));
+
+    // Build the registry over both, linked in a list.
     registry[0x4a] = 3;
     registry[0x43] = 0x80;  // External-buffer bit is not capacity.
     registry[0x58] = 2;
@@ -45,12 +50,15 @@ struct Fixture {
     Link(2, unrelated.data(), 0xffff, 0);
     Link(0, data.data(), 2, 0xffff);
 
+    // Name a command with its help and flags.
     const char* command = "changelevel";
     const char* help = "Change the map.";
     const uint64_t command_flags = 1ull << 1;
     std::memcpy(commands.data(), &command, sizeof(command));
     std::memcpy(commands.data() + 8, &help, sizeof(help));
     std::memcpy(commands.data() + 0x10, &command_flags, sizeof(command_flags));
+
+    // Leave its links empty and add it to the registry.
     const uint16_t none = 0xffff;
     std::memcpy(commands.data() + 0x30, &none, sizeof(none));
     std::memcpy(commands.data() + 0x32, &none, sizeof(none));
@@ -61,6 +69,7 @@ struct Fixture {
 };
 
 TEST(ConsoleVariables, NamedExposureAndBooleanReadbackRefuseMissingOrWrongData) {
+  // Bind the registry and read the variable.
   Fixture fixture;
   auto variables = ConsoleVariables::Bind(fixture.registry.data());
   ASSERT_TRUE(variables);
@@ -68,11 +77,14 @@ TEST(ConsoleVariables, NamedExposureAndBooleanReadbackRefuseMissingOrWrongData) 
   auto value = variables->ReadBool("citadel_trooper_spawn_enabled");
   ASSERT_TRUE(value);
   EXPECT_TRUE(*value);
+
+  // Exposure clears the hidden flags and leaves the other variable alone.
   ASSERT_TRUE(variables->Expose("citadel_trooper_spawn_enabled"));
   uint64_t flags;
   std::memcpy(&flags, fixture.data.data() + 0x30, sizeof(flags));
   EXPECT_EQ(flags, 0x4000u);
   EXPECT_EQ(fixture.unrelated, untouched);
+
   // Exposure does not set the value; the engine parser owns that operation.
   EXPECT_EQ(fixture.data[0x58], 1);
   fixture.data[0x58] = 0;
@@ -80,27 +92,32 @@ TEST(ConsoleVariables, NamedExposureAndBooleanReadbackRefuseMissingOrWrongData) 
   ASSERT_TRUE(value);
   EXPECT_FALSE(*value);
 
+  // A missing variable is refused.
   auto missing = variables->ReadBool("missing");
   ASSERT_FALSE(missing);
   EXPECT_NE(missing.error().find("not found"), std::string::npos);
   EXPECT_FALSE(variables->Expose("missing"));
   EXPECT_FALSE(variables->Expose(nullptr));
 
+  // A variable of another type is not read as a Boolean.
   const int16_t integer_type = 3;
   std::memcpy(fixture.data.data() + 0x28, &integer_type, sizeof(integer_type));
   auto wrong_type = variables->ReadBool("citadel_trooper_spawn_enabled");
   ASSERT_FALSE(wrong_type);
   EXPECT_NE(wrong_type.error().find("not Boolean"), std::string::npos);
 
+  // A renamed variable is not exposed, and nothing changes.
   const char* other_name = "other";
   std::memcpy(fixture.data.data(), &other_name, sizeof(other_name));
   const auto before = fixture.data;
   EXPECT_FALSE(variables->Expose("citadel_trooper_spawn_enabled"));
   EXPECT_EQ(fixture.data, before);
   EXPECT_FALSE(ConsoleVariables::Bind(nullptr));
+
   // Refuse an out-of-allocation next index before accessing its entry.
   fixture.Link(2, fixture.unrelated.data(), 0xffff, 3);
   EXPECT_FALSE(variables->Expose("missing"));
+
   // A free-list row or cycle cannot be mistaken for a live traversal.
   fixture.Link(2, fixture.unrelated.data(), 0xffff, 2);
   EXPECT_FALSE(variables->Expose("missing"));
@@ -110,12 +127,15 @@ TEST(ConsoleVariables, NamedExposureAndBooleanReadbackRefuseMissingOrWrongData) 
 }
 
 TEST(ConsoleVariables, ServerChangesPreserveReplicationAndOtherVariables) {
+  // Bind the registry and mark the variable replicated.
   Fixture fixture;
   auto variables = ConsoleVariables::Bind(fixture.registry.data());
   ASSERT_TRUE(variables);
   const auto untouched = fixture.unrelated;
   const uint64_t original = 0x100004012 | (1ull << 13);
   std::memcpy(fixture.data.data() + 0x30, &original, sizeof(original));
+
+  // Allowing server changes keeps only the replicated flag.
   ASSERT_TRUE(variables->AllowServerChanges("citadel_trooper_spawn_enabled"));
   uint64_t flags;
   std::memcpy(&flags, fixture.data.data() + 0x30, sizeof(flags));
@@ -126,14 +146,19 @@ TEST(ConsoleVariables, ServerChangesPreserveReplicationAndOtherVariables) {
 }
 
 TEST(ConsoleVariables, TypedWritesRefuseOtherTypes) {
+  // Bind the registry.
   Fixture fixture;
   auto variables = ConsoleVariables::Bind(fixture.registry.data());
   ASSERT_TRUE(variables);
   const auto untouched = fixture.unrelated;
+
+  // A Boolean takes a Boolean and refuses other writes.
   ASSERT_TRUE(variables->SetBool("citadel_trooper_spawn_enabled", false));
   EXPECT_EQ(fixture.data[0x58], 0);
   EXPECT_FALSE(variables->SetFloat("citadel_trooper_spawn_enabled", 1.5f));
   EXPECT_FALSE(variables->SetInt32("citadel_trooper_spawn_enabled", 2));
+
+  // Retype it as a float, which then takes a float.
   const int16_t float_type = 7;
   std::memcpy(fixture.data.data() + 0x28, &float_type, sizeof(float_type));
   ASSERT_TRUE(variables->SetFloat("citadel_trooper_spawn_enabled", 57.5f));
@@ -141,14 +166,20 @@ TEST(ConsoleVariables, TypedWritesRefuseOtherTypes) {
   std::memcpy(&value, fixture.data.data() + 0x58, sizeof(value));
   EXPECT_FLOAT_EQ(value, 57.5f);
   EXPECT_FLOAT_EQ(*variables->ReadFloat("citadel_trooper_spawn_enabled"), 57.5f);
+
+  // Float reads follow, and Boolean access is refused.
   EXPECT_FALSE(variables->ReadBool("citadel_trooper_spawn_enabled"));
   EXPECT_FALSE(variables->SetBool("citadel_trooper_spawn_enabled", true));
+
+  // Retype it as an integer, which then takes an integer.
   const int16_t integer_type = 3;
   std::memcpy(fixture.data.data() + 0x28, &integer_type, sizeof(integer_type));
   ASSERT_TRUE(variables->SetInt32("citadel_trooper_spawn_enabled", -2));
   int32_t integer;
   std::memcpy(&integer, fixture.data.data() + 0x58, sizeof(integer));
   EXPECT_EQ(integer, -2);
+
+  // A missing variable or wrong type is refused.
   EXPECT_FALSE(variables->SetFloat("missing", 1));
   EXPECT_FALSE(variables->ReadFloat("citadel_trooper_spawn_enabled"));
   EXPECT_FALSE(variables->ReadFloat("missing"));
@@ -156,6 +187,7 @@ TEST(ConsoleVariables, TypedWritesRefuseOtherTypes) {
 }
 
 TEST(ConsoleVariables, ListingIncludesDevelopmentEntriesWithFormattedValues) {
+  // Bind the registry and give the variable a float default.
   Fixture fixture;
   auto variables = ConsoleVariables::Bind(fixture.registry.data());
   ASSERT_TRUE(variables);
@@ -164,10 +196,13 @@ TEST(ConsoleVariables, ListingIncludesDevelopmentEntriesWithFormattedValues) {
   const auto* default_value = &fixture.default_value;
   std::memcpy(fixture.data.data() + 0x08, &default_value, sizeof(default_value));
 
+  // Both variables are listed.
   auto listed = variables->Variables();
   ASSERT_TRUE(listed);
   ASSERT_EQ(listed->size(), 2u);
   EXPECT_EQ((*listed)[0].name, "other");
+
+  // The variable carries its type, flags and formatted values.
   const auto& variable = (*listed)[1];
   EXPECT_EQ(variable.name, "citadel_trooper_spawn_enabled");
   EXPECT_EQ(variable.type, 7);
@@ -175,6 +210,7 @@ TEST(ConsoleVariables, ListingIncludesDevelopmentEntriesWithFormattedValues) {
   EXPECT_EQ(variable.default_value, "0.25");
   EXPECT_EQ(variable.min, "");
 
+  // The command is listed with its help and flags.
   auto commands = variables->Commands();
   ASSERT_TRUE(commands);
   ASSERT_EQ(commands->size(), 1u);

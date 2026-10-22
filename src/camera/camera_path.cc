@@ -65,6 +65,7 @@ double WrapAngle(double value) noexcept {
 // UnwrapAngles reduces each angle then accumulates shortest-path deltas. An
 // exactly half-turn delta follows the sign the user explicitly authored.
 std::vector<double> UnwrapAngles(const std::vector<double>& authored) {
+  // Wrap each angle.
   if (authored.empty()) {
     return {};
   }
@@ -73,6 +74,8 @@ std::vector<double> UnwrapAngles(const std::vector<double>& authored) {
   for (double value : authored) {
     wrapped.push_back(WrapAngle(value));
   }
+
+  // Take the short way from each angle to the next; a half turn follows the authored direction.
   std::vector<double> result;
   result.reserve(authored.size());
   result.push_back(wrapped.front());
@@ -91,6 +94,7 @@ std::vector<double> UnwrapAngles(const std::vector<double>& authored) {
 // neighboring interval cannot amplify a long-segment tangent.
 std::vector<double> PositionTangents(const std::vector<double>& times,
                                      const std::vector<double>& values) {
+  // Measure each segment's slope; two keys share one.
   std::vector<double> slopes;
   slopes.reserve(times.size() - 1);
   for (std::size_t i = 0; i + 1 < times.size(); ++i) {
@@ -99,6 +103,8 @@ std::vector<double> PositionTangents(const std::vector<double>& times,
   if (times.size() == 2) {
     return {slopes[0], slopes[0]};
   }
+
+  // Inner keys take the slope across their neighbors; the ends take their segment's.
   std::vector<double> derivatives;
   derivatives.reserve(times.size());
   derivatives.push_back(slopes[0]);
@@ -113,6 +119,7 @@ std::vector<double> PositionTangents(const std::vector<double>& times,
 // sample times so the curve cannot overshoot neighboring keys.
 std::vector<double> MonotoneTangents(const std::vector<double>& times,
                                      const std::vector<double>& values) {
+  // Measure each segment's spacing and slope; two keys share one.
   const std::size_t n = times.size();
   std::vector<double> spacing(n - 1);
   std::vector<double> slopes(n - 1);
@@ -123,6 +130,8 @@ std::vector<double> MonotoneTangents(const std::vector<double>& times,
   if (n == 2) {
     return {slopes[0], slopes[0]};
   }
+
+  // Inner tangents take the weighted harmonic mean, zero at an extremum.
   std::vector<double> derivatives(n, 0.0);
   for (std::size_t i = 1; i + 1 < n; ++i) {
     double left = slopes[i - 1], right = slopes[i];
@@ -133,6 +142,8 @@ std::vector<double> MonotoneTangents(const std::vector<double>& times,
     double w2 = spacing[i] + 2 * spacing[i - 1];
     derivatives[i] = (w1 + w2) / (w1 / left + w2 / right);
   }
+
+  // The ends take the three point slope, clamped to keep the curve monotone.
   auto endpoint = [](double here_h, double next_h, double here_s, double next_s) {
     double derivative = ((2 * here_h + next_h) * here_s - here_h * next_s) / (here_h + next_h);
     if (here_s == 0 || (derivative > 0) != (here_s > 0)) {
@@ -152,12 +163,14 @@ std::vector<double> MonotoneTangents(const std::vector<double>& times,
 // position channels use unbounded Hermite tangents instead.
 double SampleChannel(const std::vector<double>& times, const std::vector<double>& values,
                      double time, modlock::Interpolation interpolation, bool monotone) {
+  // Before the first key and after the last, hold the end value.
   if (time <= times.front() || times.size() == 1) {
     return values.front();
   }
   if (time >= times.back()) {
     return values.back();
   }
+
   // Left is the last key at or before time; times are strictly increasing.
   std::size_t left =
       static_cast<std::size_t>(std::upper_bound(times.begin(), times.end(), time) - times.begin()) -
@@ -170,6 +183,7 @@ double SampleChannel(const std::vector<double>& times, const std::vector<double>
   if (interpolation == modlock::INTERPOLATION_LINEAR || times.size() == 2) {
     return (1 - fraction) * values[left] + fraction * values[left + 1];
   }
+
   // Division by zero yields inf rather than a trap: extremely close
   // timestamps can exceed floating-point derivative precision, and a linear
   // segment remains finite and honors both keys.
@@ -185,6 +199,8 @@ double SampleChannel(const std::vector<double>& times, const std::vector<double>
   if (!finite) {
     return (1 - fraction) * values[left] + fraction * values[left + 1];
   }
+
+  // Evaluate the Hermite segment, falling back to linear on overflow.
   const double u2 = fraction * fraction;
   const double u3 = u2 * fraction;
   double value = (2 * u3 - 3 * u2 + 1) * values[left] +
@@ -237,6 +253,7 @@ std::expected<void, std::string> ValidatePath(const modlock::CameraPath& path) {
 
 std::expected<modlock::CameraPose, std::string> EvaluatePath(const modlock::CameraPath& path,
                                                              double time) {
+  // Refuse an empty or invalid path, or a nonfinite time.
   if (path.keys_size() == 0) {
     return std::unexpected("add a camera keyframe before evaluating the path");
   }
@@ -247,6 +264,7 @@ std::expected<modlock::CameraPose, std::string> EvaluatePath(const modlock::Came
     return std::unexpected(validated.error());
   }
 
+  // Collect the key times.
   std::vector<double> times;
   times.reserve(static_cast<std::size_t>(path.keys_size()));
   for (const auto& key : path.keys()) {
@@ -271,6 +289,7 @@ std::expected<modlock::CameraPose, std::string> EvaluatePath(const modlock::Came
       {6, true, false, path.lens_interpolation()},  // aspect ratio
   }};
 
+  // Sample each channel into the pose.
   modlock::CameraPose result;
   for (const auto& channel : channels) {
     std::vector<double> values = ChannelValues(path, channel.field);
@@ -308,20 +327,26 @@ std::expected<modlock::CameraPose, std::string> EvaluatePath(const modlock::Came
 
 void IntegrateFlight(modlock::CameraPose& pose, const FlightInput& input, double dt, double speed,
                      double sensitivity, bool invert_y) {
+  // Discard a backlog step and cap the rest.
   if (!Finite(dt) || dt < 0 || dt > .1) {
     return;  // discard suspension/Alt-Tab backlog
   }
   dt = std::min(dt, .05);
   const double rad = kPi / 180;
+
+  // Pitch by the keys and the mouse, short of straight up or down.
   pose.mutable_angles()->set_pitch(std::clamp(pose.angles().pitch() + input.pitch * 75 * dt +
                                                   input.mouse_y * sensitivity * (invert_y ? -1 : 1),
                                               -89.9, 89.9));
+
   // std::remainder gives the result in [-180, 180] with the correct sign for
   // negatives, matching Dolly's use of std::remainder for flight angles.
   pose.mutable_angles()->set_yaw(std::remainder(
       pose.angles().yaw() + input.yaw * 75 * dt - input.mouse_x * sensitivity, 360.0));
   pose.mutable_angles()->set_roll(
       std::remainder(pose.angles().roll() + input.roll * 60 * dt, 360.0));
+
+  // Move along the view, no faster on a diagonal.
   const double pitch = pose.angles().pitch() * rad;
   const double yaw = pose.angles().yaw() * rad;
   double x = std::cos(pitch) * std::cos(yaw) * input.forward + std::sin(yaw) * input.right;
@@ -333,6 +358,8 @@ void IntegrateFlight(modlock::CameraPose& pose, const FlightInput& input, double
     y /= norm;
     z /= norm;
   }
+
+  // Step the position.
   pose.mutable_position()->set_x(pose.position().x() + x * speed * dt);
   pose.mutable_position()->set_y(pose.position().y() + y * speed * dt);
   pose.mutable_position()->set_z(pose.position().z() + z * speed * dt);

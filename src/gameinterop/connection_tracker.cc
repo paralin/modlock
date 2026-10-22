@@ -121,13 +121,16 @@ ConnectionTracker::~ConnectionTracker() {
 }
 
 void ConnectionTracker::Reset() {
+  // Only an installed tracker restores.
   if (!active_) {
     return;
   }
+
   // Drop the sink before restoring the dispatch entries. A concurrent thunk
   // can therefore never call an object after its installed tracker releases it.
   std::atomic_store_explicit(&g_event_sink, std::shared_ptr<ConnectionEventSink>{},
                              std::memory_order_release);
+
   // VtableSlotHook::Restore has no success result. Keep displaced originals
   // callable if a thunk remains installed after a failed protection/write.
   put_in_server_.Restore();
@@ -157,10 +160,13 @@ void ConnectionTracker::DispatchPutInServer(int32_t slot, uint64_t xuid, bool is
 }
 
 void ConnectionTracker::DispatchFullyConnect(int32_t slot, const EngineCallback& original) {
+  // Run the engine's call, noting the client before and after.
   const auto before = StateForSlot(slot);
   if (original) {
     original();
   }
+
+  // Mark it fully connected only if the same client stayed.
   const auto after = StateForSlot(slot);
   if (!before.occupied || !after.occupied || before.generation != after.generation) {
     return;
@@ -175,10 +181,14 @@ void ConnectionTracker::DispatchFullyConnect(int32_t slot, const EngineCallback&
 
 void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& original,
                                            std::shared_ptr<ConnectionEventSink> sink) {
+  // Trace the disconnect.
   if (InteropTraceEnabled()) {
     std::fprintf(stderr, "[modlock] interop trace: ClientDisconnect slot %d\n", slot);
     std::fflush(stderr);
   }
+
+  // A slot with no client runs the engine call, clearing the slot unless a client arrived
+  // meanwhile.
   const SlotState state = StateForSlot(slot);
   if (!state.occupied || !ValidSlot(slot)) {
     const uint64_t generation =
@@ -192,6 +202,7 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& o
     return;
   }
 
+  // Only the outer dispatch of a nested disconnect proceeds.
   bool expected = false;
   if (!g_disconnect_claimed[slot].compare_exchange_strong(expected, true, std::memory_order_acq_rel,
                                                           std::memory_order_acquire)) {
@@ -200,6 +211,7 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& o
     return;
   }
 
+  // Tell the sink, then run the engine's call.
   const uint64_t generation = g_generation[slot].load(std::memory_order_acquire);
   if (sink != nullptr) {
     sink->OnDisconnecting(slot, state.xuid);
@@ -207,6 +219,7 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& o
   if (original) {
     original();
   }
+
   // A reconnect during the sink callback is a new generation. Do not erase
   // that replacement client's occupied state when the old disconnect returns.
   if (g_generation[slot].load(std::memory_order_acquire) == generation) {
@@ -217,6 +230,7 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& o
 
 void ConnectionTracker::ApplyPutInServer(int32_t slot, uint64_t xuid, bool is_bot,
                                          const char* name) {
+  // Record the client in its slot.
   if (!ValidSlot(slot)) {
     return;
   }
@@ -225,6 +239,7 @@ void ConnectionTracker::ApplyPutInServer(int32_t slot, uint64_t xuid, bool is_bo
   g_fully_connected[slot].store(is_bot, std::memory_order_relaxed);
   g_name[slot] = (name != nullptr) ? std::string(name) : std::string();
   g_generation[slot].fetch_add(1, std::memory_order_acq_rel);
+
   // A reconnect starts a new disconnect lifecycle, even when it occurs from
   // the previous generation's OnDisconnecting callback. Publish this claim
   // reset before occupied=true so a new disconnect cannot miss the generation.
@@ -260,14 +275,19 @@ ConnectionTracker::SlotState ConnectionTracker::StateForSlot(int32_t slot) {
 
 std::expected<ConnectionTracker, std::string> ConnectionTracker::Install(
     std::shared_ptr<ConnectionEventSink> sink) {
+  // Refuse a missing sink.
   if (sink == nullptr) {
     return std::unexpected("connection tracker requires an event sink");
   }
+
+  // Find the game clients interface.
   const auto resolved = ResolveEngineInterface(L"server.dll", kSource2GameClientsVersion);
   if (!resolved) {
     return std::unexpected(resolved.error());
   }
   void* clients = *resolved;
+
+  // Find its three slots.
   const auto put_in_server_slot = ResolveVirtualSlot("game-clients.put-in-server");
   const auto fully_connect_slot = ResolveVirtualSlot("game-clients.fully-connect");
   const auto disconnect_slot = ResolveVirtualSlot("game-clients.disconnect");
@@ -281,6 +301,7 @@ std::expected<ConnectionTracker, std::string> ConnectionTracker::Install(
     return std::unexpected(disconnect_slot.error());
   }
 
+  // Hook each slot.
   auto put_in_server = VtableSlotHook::Install(clients, *put_in_server_slot,
                                                reinterpret_cast<void*>(&PutInServerThunk));
   if (!put_in_server) {
@@ -296,6 +317,8 @@ std::expected<ConnectionTracker, std::string> ConnectionTracker::Install(
   if (!disconnect) {
     return std::unexpected(disconnect.error());
   }
+
+  // Publish the originals and the sink to the thunks.
   g_put_in_server_original.store(put_in_server->Original(), std::memory_order_release);
   g_fully_connect_original.store(fully_connect->Original(), std::memory_order_release);
   g_disconnect_original.store(disconnect->Original(), std::memory_order_release);
