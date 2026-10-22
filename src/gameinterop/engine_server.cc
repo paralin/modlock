@@ -27,6 +27,7 @@ std::expected<EngineServer, std::string> EngineServer::Resolve() {
 }
 
 std::expected<EngineServer, std::string> EngineServer::Bind(void* instance) {
+  // Resolve the command slot from the instance's table.
   if (!instance) {
     return std::unexpected("engine server interface is null");
   }
@@ -38,6 +39,8 @@ std::expected<EngineServer, std::string> EngineServer::Bind(void* instance) {
   if (!table || !table[*slot]) {
     return std::unexpected("engine server command slot is unavailable");
   }
+
+  // Keep the instance and slot.
   EngineServer server;
   server.instance_ = instance;
   server.command_slot_ = *slot;
@@ -45,6 +48,7 @@ std::expected<EngineServer, std::string> EngineServer::Bind(void* instance) {
 }
 
 std::expected<EngineServer::SimulationClock, std::string> EngineServer::ReadClock() const {
+  // Find the globals slot in the instance's table.
   if (!instance_) {
     return std::unexpected("engine server interface is unavailable");
   }
@@ -56,12 +60,15 @@ std::expected<EngineServer::SimulationClock, std::string> EngineServer::ReadCloc
   if (!table || !table[*slot]) {
     return std::unexpected("server globals slot is unavailable");
   }
+
+  // Call it.
   using GetGlobals = const void* (*)(void*);
   const auto* globals =
       static_cast<const unsigned char*>(reinterpret_cast<GetGlobals>(table[*slot])(instance_));
   if (!globals) {
     return std::unexpected("server simulation globals are unavailable");
   }
+
   // CGlobalVarsBase x64 layout from the pinned SDK's globalvars_base.h:
   // curtime +0x30, tickcount +0x44, interval_per_tick +0x54. The callback's
   // engine frame owns the globals storage and all three values.
@@ -73,6 +80,7 @@ std::expected<EngineServer::SimulationClock, std::string> EngineServer::ReadCloc
       !std::isfinite(clock.interval) || clock.interval <= 0 || clock.interval > 1) {
     return std::unexpected("invalid server simulation clock");
   }
+
   // Reject an inconsistent ABI read, allowing two simulation ticks and float
   // rounding at long uptimes. This is not a replacement or synthesized clock.
   const double tolerance =
@@ -86,6 +94,8 @@ std::expected<EngineServer::SimulationClock, std::string> EngineServer::ReadCloc
 
 bool EngineServer::ServerCommand(const char* command) const {
 #if defined(_WIN32)
+
+  // Call the command slot.
   if (instance_ == nullptr || command == nullptr) {
     return false;
   }

@@ -22,6 +22,8 @@ namespace {
 // paged in from disk is not in it.
 std::chrono::nanoseconds ThreadTime() {
 #if defined(_WIN32)
+
+  // Read the thread's processor time.
   FILETIME creation, exit, kernel, user;
   GetThreadTimes(GetCurrentThread(), &creation, &exit, &kernel, &user);
   auto hundreds = [](FILETIME time) {
@@ -48,6 +50,7 @@ std::optional<std::span<uint8_t>> Bytes(wasmtime::Span<uint8_t> memory, uint32_t
 // CallerBytes resolves a range of the calling mod's exported memory.
 std::optional<std::span<uint8_t>> CallerBytes(wasmtime::Caller& caller, uint32_t data,
                                               uint32_t size) {
+  // Find the caller's exported memory.
   auto exported = caller.get_export("memory");
   if (!exported) {
     return std::nullopt;
@@ -157,6 +160,7 @@ std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> 
 }
 
 std::expected<void, std::string> Instance::DefineImports(wasmtime::Linker& linker) {
+  // Define the host call and host read imports.
   auto call = linker.func_wrap("modlock", "host_call",
                                [this](wasmtime::Caller caller, uint32_t data, uint32_t size) {
                                  return HostCallImport(caller, data, size);
@@ -175,6 +179,7 @@ std::expected<void, std::string> Instance::DefineImports(wasmtime::Linker& linke
 }
 
 std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
+  // Handle one event at a time, and none after a failure.
   if (failure_) {
     return std::unexpected(*failure_);
   }
@@ -187,6 +192,8 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
   if (!typed) {
     return std::unexpected(Fail("modlock_event must take i32 and return i64"));
   }
+
+  // Pass the call, timing the mod within its budget.
   call.SerializeToString(&pending_);
   SetBudget(call.method(), call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
   busy_ = true;
@@ -244,6 +251,7 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
 wasmtime::Result<std::monostate, wasmtime::Trap> Instance::HostReadImport(wasmtime::Caller caller,
                                                                           uint32_t data,
                                                                           uint32_t size) {
+  // Copy the pending call into the mod's buffer.
   if (size != pending_.size()) {
     return wasmtime::Trap("modlock.host_read: the size differs from the pending message");
   }
@@ -281,6 +289,7 @@ std::string Instance::Report() const {
 }
 
 std::string Instance::Spent() const {
+  // Report the time spent and the host calls' share.
   using std::chrono::duration_cast;
   using std::chrono::milliseconds;
   auto text = std::format("{} ms", duration_cast<milliseconds>(budget_.spent).count());

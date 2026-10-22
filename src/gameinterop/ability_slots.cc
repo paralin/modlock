@@ -10,6 +10,7 @@ namespace modlock::gameinterop {
 
 std::expected<AbilitySlots, std::string> AbilitySlots::Resolve(const ModuleImage& server,
                                                                void* schema) {
+  // Resolve the ability component's schema fields.
   const auto component =
       SchemaFieldOf(schema, "server.dll", "CCitadelPlayerPawn", "m_CCitadelAbilityComponent");
   const auto abilities =
@@ -19,6 +20,8 @@ std::expected<AbilitySlots, std::string> AbilitySlots::Resolve(const ModuleImage
   if (!component || !abilities) {
     return std::unexpected("native ability slot schema unavailable");
   }
+
+  // Resolve the slot calls.
   auto find = ResolveSignature(server, "ability.find-slot");
   auto detach = ResolveSignature(server, "ability.detach-slot");
   auto remove = ResolveSignature(server, "entity.remove");
@@ -31,6 +34,8 @@ std::expected<AbilitySlots, std::string> AbilitySlots::Resolve(const ModuleImage
   if (!remove) {
     return std::unexpected(remove.error());
   }
+
+  // Keep the offsets and calls.
   AbilitySlots result;
   result.component_ = component->offset;
   result.vectors_ = {abilities->offset, thinkable ? thinkable->offset : 0};
@@ -45,6 +50,7 @@ std::expected<void, std::string> AbilitySlots::Replace(PawnObserver& observer, i
                                                        uint16_t slot, uint32_t subclass,
                                                        const AbilityDefinitions& definitions,
                                                        CreateAbility create) const {
+  // Find the ability in the slot; a match needs no change.
   if (!observer.Observe(player)) {
     return std::unexpected("native ability pawn unavailable");
   }
@@ -56,6 +62,8 @@ std::expected<void, std::string> AbilitySlots::Replace(PawnObserver& observer, i
   if (current != owned->end() && current->subclass_id == subclass) {
     return {};
   }
+
+  // Remove the old ability and create the new one.
   auto definition = definitions.Find(subclass);
   if (!definition) {
     return std::unexpected(definition.error());
@@ -68,6 +76,8 @@ std::expected<void, std::string> AbilitySlots::Replace(PawnObserver& observer, i
     return std::unexpected("native ability creation unavailable");
   }
   create(pawn + component_, definition->native_definition_pointer, slot, 0, true, nullptr);
+
+  // Read back the new ownership.
   owned = observer.CurrentAbilitiesForSlot(player);
   if (!owned) {
     return std::unexpected(owned.error());
@@ -81,6 +91,7 @@ std::expected<void, std::string> AbilitySlots::Replace(PawnObserver& observer, i
 
 std::expected<void, std::string> AbilitySlots::Remove(PawnObserver& observer, int32_t player,
                                                       uint16_t slot) const {
+  // Find the ability in the slot; an empty slot needs no change.
   if (!observer.Observe(player)) {
     return std::unexpected("native ability pawn unavailable");
   }
@@ -92,6 +103,8 @@ std::expected<void, std::string> AbilitySlots::Remove(PawnObserver& observer, in
   if (current == owned->end()) {
     return {};
   }
+
+  // Find the pawn's component and the ability's entity.
   auto* pawn = static_cast<unsigned char*>(observer.PawnForSlot(player));
   if (!pawn) {
     return std::unexpected("native ability pawn unavailable");
@@ -105,6 +118,7 @@ std::expected<void, std::string> AbilitySlots::Remove(PawnObserver& observer, in
   if (!ability) {
     return std::unexpected("native ability entity unavailable");
   }
+
   // CUtlVector<uint32_t> and OnAbilityRemoved's slot table are the native
   // indexes used by Deadworks RemoveAbilityImpl. Validate before detaching.
   struct Handles {
@@ -124,11 +138,15 @@ std::expected<void, std::string> AbilitySlots::Remove(PawnObserver& observer, in
       return std::unexpected("native ability vector is invalid");
     }
   }
+
+  // Detach the slot table entry.
   const int32_t entry = find_(component + 0x30, &slot);
   if (entry < 0) {
     return std::unexpected("native ability slot table entry unavailable");
   }
   detach_(component + 0x30, entry);
+
+  // Drop the handle from each vector, replicate, and remove the entity.
   for (size_t i = 0; i < vector_count_; ++i) {
     auto& vector = vectors[i];
     for (int32_t index = 0; index < vector.count; ++index) {

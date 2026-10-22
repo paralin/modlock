@@ -33,6 +33,7 @@ bool g_failed = false;
 // Consume passes the input through each owner in installation order. Each
 // owner sees the buttons earlier owners remapped; the consumed bits combine.
 uint64_t Consume(AbilityInputHook::Input& input) {
+  // Name the slot's player and let each owner block buttons.
   const auto connection = ConnectionTracker::StateForSlot(input.slot);
   if (!connection.occupied) {
     return 0;
@@ -50,6 +51,7 @@ uint64_t Consume(AbilityInputHook::Input& input) {
 }
 
 void Filter(void* pawn) {
+  // Filter until a read fails.
   if (g_failed) {
     return;
   }
@@ -77,6 +79,7 @@ std::expected<void, std::string> AbilityInputHook::Process(void* pawn, const Lay
                                                            const BoundedReader& read,
                                                            const BoundedWriter& write,
                                                            const Handler& handler) {
+  // Find the player's slot from the pawn's controller.
   if (!pawn || !read || !write || !handler) {
     return std::unexpected("ability input: missing pawn or memory callback");
   }
@@ -93,6 +96,7 @@ std::expected<void, std::string> AbilityInputHook::Process(void* pawn, const Lay
     return {};
   }
 
+  // Read the movement services' button states.
   unsigned char* movement = nullptr;
   if (!read(bytes + layout.movement, &movement, sizeof(movement))) {
     return std::unexpected("ability input: cannot read movement services");
@@ -104,6 +108,8 @@ std::expected<void, std::string> AbilityInputHook::Process(void* pawn, const Lay
   if (!read(target, input.buttons.data(), sizeof(input.buttons))) {
     return std::unexpected("ability input: cannot read button states");
   }
+
+  // Clear the blocked buttons and write back any change.
   const auto original = input.buttons;
   const uint64_t blocked = handler(input);
   for (auto& state : input.buttons) {
@@ -142,6 +148,8 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
     const ModuleImage& server, void* schema_system, Handler handler,
     std::function<void(std::string)> failure, bool include_bots) {
 #if defined(_WIN32)
+
+  // Both callbacks are required.
   if (!handler || !failure) {
     return std::unexpected("ability input: missing callbacks");
   }
@@ -167,6 +175,8 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
       SchemaFieldOf(schema_system, "server.dll", "CPlayer_MovementServices", "m_nButtons");
   const auto states =
       SchemaFieldOf(schema_system, "server.dll", "CInButtonState", "m_pButtonStates");
+
+  // Every field must resolve, with room for its value.
   if (!controller) {
     return std::unexpected(controller.error());
   }
@@ -191,6 +201,8 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
   if (!g_hook) {
     return std::unexpected("ability input: cannot create AbilityThink hook");
   }
+
+  // Join the owner and enable the detour.
   g_failed = false;
   g_owners.push_back(&impl->owner);
   if (!g_hook.enable()) {
@@ -198,6 +210,8 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
   }
   return AbilityInputHook(std::move(impl));
 #else
+
+  // Other platforms have no ability input.
   (void)server;
   (void)schema_system;
   (void)handler;

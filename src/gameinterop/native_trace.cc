@@ -56,6 +56,7 @@ bool Finite(const TraceVector& value) {
 }
 
 std::expected<Ray, std::string> BuildRay(const TraceShape& shape) {
+  // Copy the shape into the ray and check its values.
   Ray ray;
   ray.type = static_cast<std::uint8_t>(shape.index());
   bool valid = std::visit(
@@ -115,6 +116,7 @@ void TraceThunk(void* physics, Ray* ray, TraceVector* start, TraceVector* end, F
 void FilterDestructor(Filter*, std::uint8_t) {}
 
 std::uint8_t ShouldHitEntity(Filter* filter, void* entity) {
+  // Hit every entity except the two ignored ones.
   if (!entity) {
     return 0;
   }
@@ -155,6 +157,8 @@ NativeTrace::~NativeTrace() = default;
 
 std::expected<NativeTrace, std::string> NativeTrace::Install(const ModuleImage& server) {
 #if defined(_WIN32)
+
+  // Install once, resolving the trace function.
   if (g_hook) {
     return std::unexpected("native trace is already installed");
   }
@@ -162,11 +166,15 @@ std::expected<NativeTrace, std::string> NativeTrace::Install(const ModuleImage& 
   if (!target) {
     return std::unexpected(target.error());
   }
+
+  // Detour it.
   auto hook = safetyhook::create_inline(*target, reinterpret_cast<void*>(&TraceThunk),
                                         safetyhook::InlineHook::StartDisabled);
   if (!hook) {
     return std::unexpected("native trace hook creation failed");
   }
+
+  // Own the detour and enable it.
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(hook);
   g_hook = &impl->hook;
@@ -192,6 +200,7 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
                                                            const TraceVector& end,
                                                            const TraceShape& shape,
                                                            const TraceOptions& options) const {
+  // The endpoints and shape must be valid.
   if (!Finite(start) || !Finite(end)) {
     return std::unexpected("trace endpoints are not finite");
   }
@@ -200,10 +209,14 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
     return std::unexpected(ray.error());
   }
 #if defined(_WIN32)
+
+  // The physics query must be ready.
   void* physics = g_physics.load(std::memory_order_acquire);
   if (!impl_ || !physics) {
     return std::unexpected("native physics query is not ready");
   }
+
+  // Build the filter from the options.
   Filter filter;
   filter.vtable = &kFilterVtable;
   auto& attributes = filter.attributes;
@@ -218,6 +231,8 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
         options.ignored_owners[i] == UINT32_MAX ? UINT32_MAX : options.ignored_owners[i] & 0x7fff;
     attributes.hierarchies[i] = options.ignored_hierarchies[i];
   }
+
+  // Set the layers, groups and flags.
   attributes.detail_layers = options.included_detail_layers;
   attributes.detail = options.target_detail_layer;
   attributes.objects = options.object_set;
@@ -227,6 +242,8 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
                      (options.ignore_disabled_pairs << 3) | (options.ignore_shared_hitboxes << 4) |
                      (options.force_hit_everything << 5);
   filter.iterate = options.iterate_entities;
+
+  // Trace with the native query.
   GameTrace native;
   const float one = 1;
   std::memcpy(native.transform + 12, &one, sizeof(one));
@@ -237,6 +254,8 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
       !Finite(native.normal)) {
     return std::unexpected("native trace returned invalid hit data");
   }
+
+  // Interpolate the hit position.
   auto result = ReadGameTrace(native);
   for (size_t i = 0; i < 3; ++i) {
     result.position[i] = start[i] + (end[i] - start[i]) * native.fraction;
@@ -252,6 +271,7 @@ std::expected<TraceResult, std::string> NativeTrace::RayAngles(const TraceVector
                                                                const TraceVector& angles,
                                                                float distance,
                                                                const TraceOptions& options) const {
+  // Trace a line along the angles for the distance.
   if (!Finite(angles) || !std::isfinite(distance) || distance <= 0) {
     return std::unexpected("trace angles or distance are invalid");
   }

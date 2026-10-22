@@ -56,6 +56,7 @@ int Keep(void*, const char* name, size_t name_size, const uint8_t* data, size_t 
 // Traceback is the error handler of every protected call: it appends the
 // stack to the error message.
 int Traceback(lua_State* L) {
+  // Append the stack trace to the error message.
   const char* message = lua_tostring(L, 1);
   std::string text = message ? message : "an error without a message";
   text += '\n';
@@ -67,6 +68,7 @@ int Traceback(lua_State* L) {
 // Call calls the function below nargs arguments on L with Traceback, and
 // logs the error under what when it fails.
 bool Call(lua_State* L, int nargs, int nresults, std::string_view what) {
+  // Call under the traceback handler, logging a failure.
   const int function = lua_gettop(L) - nargs;
   lua_pushcfunction(L, Traceback, "traceback");
   lua_insert(L, function);
@@ -84,6 +86,7 @@ bool Call(lua_State* L, int nargs, int nresults, std::string_view what) {
 // HostCall is __modlock.hostCall(call: string): string, which exchanges an
 // encoded Call for the host's encoded Reply.
 int HostCall(lua_State* L) {
+  // Pass the request to the host and return its response.
   size_t size;
   const char* request = luaL_checklstring(L, 1, &size);
   uint32_t response_size;
@@ -115,6 +118,7 @@ int Source(lua_State* L) {
 // Load is __modlock.load(path: string): (function?, string?), the compiled
 // module at path in the mod's zip, or nil and why it does not compile.
 int Load(lua_State* L) {
+  // Find the named source.
   const std::string path = luaL_checkstring(L, 1);
   const auto found = sources.find(path);
   if (found == sources.end()) {
@@ -122,11 +126,15 @@ int Load(lua_State* L) {
     lua_pushstring(L, ("the mod has no " + path).c_str());
     return 2;
   }
+
+  // Compile it.
   lua_CompileOptions options{};
   options.optimizationLevel = 1;
   options.debugLevel = 1;
   size_t size;
   char* bytecode = luau_compile(found->second.data(), found->second.size(), &options, &size);
+
+  // Load it, returning nil and the error on failure.
   const int status = luau_load(L, ("@" + path).c_str(), bytecode, size, 0);
   free(bytecode);
   if (status != 0) {
@@ -167,6 +175,7 @@ int Print(lua_State* L) {
 // Start reads the mod's sources from the start event, builds the sandbox and
 // runs the prelude.
 bool Start(const uint8_t* event, size_t size) {
+  // Keep the mod's sources from the start event.
   const uint8_t* zip;
   size_t zip_size;
   if (!start_source(event, size, &zip, &zip_size)) {
@@ -185,6 +194,8 @@ bool Start(const uint8_t* event, size_t size) {
   lua_pushcfunction(state, Print, "print");
   lua_setglobal(state, "print");
   luaL_sandbox(state);
+
+  // Run the mod on a thread with sandboxed globals of its own.
   thread = lua_newthread(state);
   lua_ref(state, -1);
   lua_pop(state, 1);
@@ -198,6 +209,8 @@ bool Start(const uint8_t* event, size_t size) {
   char* bytecode = luau_compile(prelude, sizeof(prelude), &options, &bytecode_size);
   const int status = luau_load(thread, "=prelude", bytecode, bytecode_size, 0);
   free(bytecode);
+
+  // Hand the prelude the bridge table and run it.
   if (status != 0) {
     Log(lua_tostring(thread, -1));
     return false;

@@ -22,6 +22,7 @@ T Read(std::span<const std::uint8_t> bytes, std::size_t offset) {
 }  // namespace
 
 std::expected<BspWorld, std::string> BspWorld::Decode(std::span<const std::uint8_t> bytes) {
+  // Check the header and slice the lumps, rejecting partial records.
   if (bytes.size() < 124 || Read<int32_t>(bytes, 0) != 29) {
     return std::unexpected("Quake collision requires a version 29 BSP header");
   }
@@ -39,6 +40,7 @@ std::expected<BspWorld, std::string> BspWorld::Decode(std::span<const std::uint8
     return std::unexpected("Quake BSP collision lump has a partial record");
   }
 
+  // Read the planes.
   BspWorld world;
   for (std::size_t offset = 0; offset < lumps[1].size(); offset += 20) {
     Plane plane{.normal = {Read<float>(lumps[1], offset), Read<float>(lumps[1], offset + 4),
@@ -52,6 +54,7 @@ std::expected<BspWorld, std::string> BspWorld::Decode(std::span<const std::uint8
     world.planes_.push_back(plane);
   }
 
+  // Read the point hull's nodes, mapping leaves to their contents.
   for (std::size_t offset = 0; offset < lumps[5].size(); offset += 24) {
     Node node{.plane = Read<int32_t>(lumps[5], offset)};
     for (std::size_t side = 0; side < 2; ++side) {
@@ -70,11 +73,15 @@ std::expected<BspWorld, std::string> BspWorld::Decode(std::span<const std::uint8
     }
     world.hulls_[0].nodes.push_back(node);
   }
+
+  // Read the clip hull's nodes.
   for (std::size_t offset = 0; offset < lumps[9].size(); offset += 8) {
     world.hulls_[1].nodes.push_back(
         {.plane = Read<int32_t>(lumps[9], offset),
          .children = {Read<int16_t>(lumps[9], offset + 4), Read<int16_t>(lumps[9], offset + 6)}});
   }
+
+  // Each hull's root comes from the first model, and its tree must be valid.
   for (std::size_t index = 0; index < world.hulls_.size(); ++index) {
     auto& hull = world.hulls_[index];
     hull.root = Read<int32_t>(lumps[14], 36 + index * 4);
@@ -86,12 +93,15 @@ std::expected<BspWorld, std::string> BspWorld::Decode(std::span<const std::uint8
 }
 
 std::expected<void, std::string> BspWorld::Validate(const Hull& hull) const {
+  // Walk the tree, marking nodes in progress and recording heights.
   std::vector<std::uint8_t> visited(hull.nodes.size());
   std::vector<int> height(hull.nodes.size());
   std::function<bool(int, int)> visit = [&](int index, int depth) {
+    // A leaf holds valid contents.
     if (index < 0) {
       return index >= -6;
     }
+
     // Bounded depth protects recursive sweeps from corrupt cyclic or excessively
     // deep trees. Ordinary compiled Quake maps have much shallower BSP trees.
     if (static_cast<std::size_t>(index) >= hull.nodes.size() || depth > 512) {
@@ -107,6 +117,8 @@ std::expected<void, std::string> BspWorld::Validate(const Hull& hull) const {
     if (node.plane < 0 || static_cast<std::size_t>(node.plane) >= planes_.size()) {
       return false;
     }
+
+    // Visit both children, then record this node's height.
     visited[index] = 1;
     if (!visit(node.children[0], depth + 1) || !visit(node.children[1], depth + 1)) {
       return false;
