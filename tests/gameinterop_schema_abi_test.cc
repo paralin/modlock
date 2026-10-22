@@ -23,11 +23,13 @@ const size_t kFindDeclaredClass = FindVirtualSlot("schema-type-scope.find-declar
 const size_t kFindTypeScope = FindVirtualSlot("schema-system.find-type-scope")->index;
 
 TEST(NotifyEntityStateChanged, PublishesFullChangeThroughTheCurrentEntityAbi) {
+  // An entity is its vtable and whether it was notified.
   struct Entity {
     void** vtable;
     bool notified = false;
   };
   std::vector<void*> table(kNetworkStateChanged + 1);
+
   // The installed server's old slot returns RequiredEdictIndex through RDX.
   table[27] = reinterpret_cast<void*>(+[](void*, void* result) {
     const int32_t invalid_index = -1;
@@ -36,6 +38,8 @@ TEST(NotifyEntityStateChanged, PublishesFullChangeThroughTheCurrentEntityAbi) {
   Entity entity{table.data()};
   EXPECT_FALSE(modlock::gameinterop::CanNotifyEntityStateChanged(&entity));
   EXPECT_FALSE(modlock::gameinterop::NotifyEntityStateChanged(&entity));
+
+  // The current slot publishes a full change.
   table[kNetworkStateChanged] = reinterpret_cast<void*>(+[](void* self, const void* changed) {
     uint32_t change_type = 1;
     std::memcpy(&change_type, changed, sizeof(change_type));
@@ -74,17 +78,21 @@ void FindDeclaredClassEntry(void* self, void* out_handle, const char* class_name
 }
 
 TEST(FindDeclaredClassOf, UsesTheHiddenReturnAbiAndReturnsTheOutSlot) {
+  // Install the find entry in a type scope's table.
   alignas(16) void* table[3];
   std::memset(table, 0, sizeof(table));
   table[kFindDeclaredClass] = reinterpret_cast<void*>(&FindDeclaredClassEntry);
   FakeTypeScope type_scope{table};
 
+  // Resolve a class through it.
   void* class_info = reinterpret_cast<void*>(0x12345678);
   g_find_call.result = class_info;
   auto resolved = modlock::gameinterop::FindDeclaredClassOf(&type_scope, "CBasePlayerController");
 
+  // It returns the out slot's class.
   ASSERT_TRUE(resolved.has_value());
   EXPECT_EQ(resolved.value(), class_info);
+
   // The hidden-return ABI: out slot in argument two, class name in argument
   // three. The pre-fix call shape passed (this, name, null), so these
   // assertions fail against it.
@@ -94,11 +102,13 @@ TEST(FindDeclaredClassOf, UsesTheHiddenReturnAbiAndReturnsTheOutSlot) {
 }
 
 TEST(FindDeclaredClassOf, NullHandleReportsANamedErrorWithoutDereference) {
+  // Install the find entry in a type scope's table.
   alignas(16) void* table[3];
   std::memset(table, 0, sizeof(table));
   table[kFindDeclaredClass] = reinterpret_cast<void*>(&FindDeclaredClassEntry);
   FakeTypeScope type_scope{table};
 
+  // A null class reports the name it looked for.
   g_find_call.result = nullptr;
   auto resolved = modlock::gameinterop::FindDeclaredClassOf(&type_scope, "CBasePlayerWeapon");
   ASSERT_FALSE(resolved.has_value());
@@ -142,6 +152,7 @@ void* SystemFindTypeScopeEntry(void* /*self*/, const char* /*module*/, const cha
 }
 
 TEST(SchemaLayout, FieldWalkResolvesOffsetAndNetworkedFlag) {
+  // Name the class and the field.
   LayoutBuffers buffers;
   const char* class_name = "CBasePlayerController";
   const char* field_name = "m_hPawn";
@@ -154,11 +165,14 @@ TEST(SchemaLayout, FieldWalkResolvesOffsetAndNetworkedFlag) {
   std::memcpy(buffers.fields.data() + 0 * kFieldStride + kFieldOffsetField, &decoy_offset,
               sizeof(decoy_offset));
 
+  // Second, the target, at its offset.
   std::memcpy(buffers.fields.data() + 1 * kFieldStride + kFieldNameOffset, &field_name,
               sizeof(field_name));
   const int pawn_offset = 0x5d8;
   std::memcpy(buffers.fields.data() + 1 * kFieldStride + kFieldOffsetField, &pawn_offset,
               sizeof(pawn_offset));
+
+  // It carries MNetworkEnable metadata.
   const int networked_count = 1;
   std::memcpy(buffers.fields.data() + 1 * kFieldStride + kFieldMetadataCount, &networked_count,
               sizeof(networked_count));
@@ -169,6 +183,7 @@ TEST(SchemaLayout, FieldWalkResolvesOffsetAndNetworkedFlag) {
   std::memcpy(buffers.fields.data() + 1 * kFieldStride + kFieldMetadata, &metadata_base,
               sizeof(metadata_base));
 
+  // The class has its size and both fields.
   const int class_size = 0x600;
   constexpr size_t kInfoSize = 0x20;  // SchemaClassInfoData_t::m_nSize
   std::memcpy(buffers.info.data() + kInfoSize, &class_size, sizeof(class_size));
@@ -178,6 +193,7 @@ TEST(SchemaLayout, FieldWalkResolvesOffsetAndNetworkedFlag) {
   unsigned char* fields_base = buffers.fields.data();
   std::memcpy(buffers.info.data() + kInfoFields, &fields_base, sizeof(fields_base));
 
+  // A type scope finds the class, and a schema system finds the scope.
   alignas(16) void* scope_table[3];
   std::memset(scope_table, 0, sizeof(scope_table));
   scope_table[kFindDeclaredClass] = reinterpret_cast<void*>(&ScopeFindDeclaredClassEntry);
@@ -187,19 +203,28 @@ TEST(SchemaLayout, FieldWalkResolvesOffsetAndNetworkedFlag) {
   system_table[kFindTypeScope] = reinterpret_cast<void*>(&SystemFindTypeScopeEntry);
   FakeTypeScope system{system_table};
 
+  // Resolve the field through the walk.
   g_persistent_scope = &type_scope;
   g_class_info = buffers.info.data();
   auto field = modlock::gameinterop::SchemaFieldOf(&system, "server.dll", class_name, field_name);
+
+  // It reads its offset, its span to the class end and the networked flag.
   ASSERT_TRUE(field.has_value()) << field.error();
   EXPECT_EQ(field->offset, static_cast<size_t>(pawn_offset));
   EXPECT_EQ(field->size, static_cast<size_t>(class_size - pawn_offset));
   EXPECT_TRUE(field->networked);
+
+  // The class size reads too.
   auto size = modlock::gameinterop::SchemaClassSizeOf(&system, "server.dll", class_name);
   ASSERT_TRUE(size) << size.error();
   EXPECT_EQ(*size, static_cast<size_t>(class_size));
+
+  // An invalid size is refused.
   const int invalid_size = -1;
   std::memcpy(buffers.info.data() + kInfoSize, &invalid_size, sizeof(invalid_size));
   EXPECT_FALSE(modlock::gameinterop::SchemaClassSizeOf(&system, "server.dll", class_name));
+
+  // Clear the globals.
   g_persistent_scope = nullptr;
   g_class_info = nullptr;
 }
@@ -250,10 +275,12 @@ void MakeMissingScopeSystem(void** table) {
 }
 
 TEST(SchemaFieldOfPaths, ClosedTypeScopeNamesTheModule) {
+  // A schema system whose type scope is missing.
   alignas(16) void* system_table[16];
   MakeMissingScopeSystem(system_table);
   FakeTypeScope system{system_table};
 
+  // The error names the module.
   auto field = modlock::gameinterop::SchemaFieldOf(&system, "server.dll", "CCitadelPlayerPawn",
                                                    "m_nSolidType");
   ASSERT_FALSE(field.has_value());
@@ -261,6 +288,7 @@ TEST(SchemaFieldOfPaths, ClosedTypeScopeNamesTheModule) {
 }
 
 TEST(SchemaFieldOfPaths, MissingClassNamesTheClass) {
+  // A schema system finds a type scope whose class lookup finds nothing.
   alignas(16) void* system_table[16];
   std::memset(system_table, 0, sizeof(system_table));
   system_table[kFindTypeScope] = reinterpret_cast<void*>(&SystemFindTypeScopeEntry);
@@ -270,6 +298,7 @@ TEST(SchemaFieldOfPaths, MissingClassNamesTheClass) {
   scope_table[kFindDeclaredClass] = reinterpret_cast<void*>(&ScopeEntry);
   FakeTypeScope type_scope{scope_table};
 
+  // The error names the class.
   g_persistent_scope = &type_scope;
   g_class_info = nullptr;  // FindDeclaredClass finds nothing.
   auto field = modlock::gameinterop::SchemaFieldOf(&system, "server.dll", "CCitadelPlayerPawn",
@@ -280,6 +309,7 @@ TEST(SchemaFieldOfPaths, MissingClassNamesTheClass) {
 }
 
 TEST(SchemaFieldOfPaths, MissingFieldNamesTheField) {
+  // A class with only a decoy field.
   ClassInfoBuffers buffers;
   buffers.set_class_size(0x7F0);
   buffers.set_field_count(1);
@@ -288,6 +318,7 @@ TEST(SchemaFieldOfPaths, MissingFieldNamesTheField) {
   unsigned char* fields_base = buffers.fields.data();
   buffers.set_fields_pointer(fields_base);
 
+  // A schema system finds the class's scope.
   alignas(16) void* system_table[16];
   std::memset(system_table, 0, sizeof(system_table));
   system_table[kFindTypeScope] = reinterpret_cast<void*>(&SystemFindTypeScopeEntry);
@@ -297,6 +328,7 @@ TEST(SchemaFieldOfPaths, MissingFieldNamesTheField) {
   scope_table[kFindDeclaredClass] = reinterpret_cast<void*>(&ScopeEntry);
   FakeTypeScope type_scope{scope_table};
 
+  // The error names the missing field.
   g_persistent_scope = &type_scope;
   g_class_info = buffers.info.data();
   auto field = modlock::gameinterop::SchemaFieldOf(&system, "server.dll", "CCitadelPlayerPawn",
@@ -308,6 +340,7 @@ TEST(SchemaFieldOfPaths, MissingFieldNamesTheField) {
 }
 
 TEST(SchemaFieldOfPaths, FieldOnTheBaseClassResolvesThroughTheWalk) {
+  // A derived class with one base.
   ClassInfoBuffers derived;
   ClassInfoBuffers base;
   std::array<unsigned char, 16> bases{};
@@ -320,6 +353,7 @@ TEST(SchemaFieldOfPaths, FieldOnTheBaseClassResolvesThroughTheWalk) {
   derived.set_base_count(1);
   unsigned char* derived_fields = derived.fields.data();
   derived.set_fields_pointer(derived_fields);
+
   // SchemaBaseClasses[i] = { unsigned offset; CSchemaClassInfo* class; }.
   auto* base_info = base.info.data();
   std::memcpy(bases.data() + sizeof(void*), &base_info, sizeof(base_info));
@@ -333,6 +367,7 @@ TEST(SchemaFieldOfPaths, FieldOnTheBaseClassResolvesThroughTheWalk) {
   unsigned char* base_fields = base.fields.data();
   base.set_fields_pointer(base_fields);
 
+  // A schema system finds the derived class's scope.
   alignas(16) void* system_table[16];
   std::memset(system_table, 0, sizeof(system_table));
   system_table[kFindTypeScope] = reinterpret_cast<void*>(&SystemFindTypeScopeEntry);
@@ -342,21 +377,27 @@ TEST(SchemaFieldOfPaths, FieldOnTheBaseClassResolvesThroughTheWalk) {
   scope_table[kFindDeclaredClass] = reinterpret_cast<void*>(&ScopeEntry);
   FakeTypeScope type_scope{scope_table};
 
+  // Resolve the field.
   g_persistent_scope = &type_scope;
   g_class_info = derived.info.data();
   auto field = modlock::gameinterop::SchemaFieldOf(&system, "server.dll", "CCitadelPlayerPawn",
                                                    "m_takedamage");
   g_persistent_scope = nullptr;
   g_class_info = nullptr;
+
+  // It resolves on the base class.
   ASSERT_TRUE(field.has_value()) << field.error();
   EXPECT_EQ(field->offset, static_cast<size_t>(0x7EC));
   EXPECT_EQ(field->size, static_cast<size_t>(0x7F0 - 0x7EC));
+
   // Without MNetworkDisable a field may be networked.
   EXPECT_TRUE(field->networked);
 }
 
 TEST(SchemaFieldOfPaths, ZeroSizedStorageSpanIsAnError) {
+  // A class whose only field sits at its end.
   ClassInfoBuffers buffers;
+
   // The field offset sits at the class size, so the computed storage span is
   // empty and resolution must refuse rather than return a zero-width write.
   buffers.set_class_size(0x200);
@@ -366,6 +407,7 @@ TEST(SchemaFieldOfPaths, ZeroSizedStorageSpanIsAnError) {
   unsigned char* fields_base = buffers.fields.data();
   buffers.set_fields_pointer(fields_base);
 
+  // A schema system finds the class's scope.
   alignas(16) void* system_table[16];
   std::memset(system_table, 0, sizeof(system_table));
   system_table[kFindTypeScope] = reinterpret_cast<void*>(&SystemFindTypeScopeEntry);
@@ -375,6 +417,7 @@ TEST(SchemaFieldOfPaths, ZeroSizedStorageSpanIsAnError) {
   scope_table[kFindDeclaredClass] = reinterpret_cast<void*>(&ScopeEntry);
   FakeTypeScope type_scope{scope_table};
 
+  // Resolution refuses the empty span.
   g_persistent_scope = &type_scope;
   g_class_info = buffers.info.data();
   auto field = modlock::gameinterop::SchemaFieldOf(&system, "server.dll", "CCitadelPlayerPawn",
@@ -392,12 +435,15 @@ struct SchemaClass {
   std::array<void*, 2> bases{};
 
   SchemaClass(const char* name, SchemaClass* base) {
+    // The info names itself and the class.
     void* self = info.data();
     std::memcpy(info.data(), &self, sizeof(self));
     std::memcpy(info.data() + 0x08, &name, sizeof(name));
     if (base == nullptr) {
       return;
     }
+
+    // A derived class lists its one base.
     info[0x29] = 1;
     bases[1] = base->info.data();
     void* table = bases.data();
@@ -415,6 +461,7 @@ struct ClassedEntity {
   std::array<void*, 6> class_info{};
 
   explicit ClassedEntity(SchemaClass& schema) {
+    // Link the entity through its identity and class to the schema.
     entity[2] = identity.data();
     identity[0] = entity.data();
     identity[1] = entity_class.data();
@@ -430,11 +477,13 @@ bool CopyMemory(const void* source, void* out, size_t size) {
 }
 
 TEST(SchemaClassOfEntity, ReadsTheBoundClassAndItsFirstBaseChain) {
+  // A pawn and a trooper both derive from the base entity.
   SchemaClass base("CBaseEntity", nullptr);
   SchemaClass pawn("CCitadelPlayerPawn", &base);
   SchemaClass trooper("CNPC_Trooper", &base);
   ClassedEntity entity(pawn);
 
+  // The pawn's class and its base chain read back.
   auto schema = modlock::gameinterop::SchemaClassOfEntity(entity.entity.data(), CopyMemory);
   ASSERT_TRUE(schema) << schema.error();
   EXPECT_EQ(modlock::gameinterop::SchemaClassNameOf(*schema), "CCitadelPlayerPawn");
@@ -446,6 +495,7 @@ TEST(SchemaClassOfEntity, ReadsTheBoundClassAndItsFirstBaseChain) {
 }
 
 TEST(SchemaClassOfEntity, RefusesALinkThatIsNotAClassBinding) {
+  // Bind an entity to a pawn class.
   SchemaClass pawn("CCitadelPlayerPawn", nullptr);
   ClassedEntity entity(pawn);
 

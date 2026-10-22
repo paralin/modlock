@@ -55,6 +55,7 @@ class RegionReader {
 // MemoryReader serves reads from one contiguous buffer.
 BoundedReader MemoryReader(const void* base, size_t size) {
   return [base, size](const void* source, void* out, size_t bytes) {
+    // Copy only from inside the region.
     const auto* begin = static_cast<const unsigned char*>(base);
     const auto* from = static_cast<const unsigned char*>(source);
     if (from < begin || from + bytes > begin + size) {
@@ -83,6 +84,7 @@ TEST(DecodeDamageTaken, DecodesTheDocumentedLayout) {
   std::memcpy(result + 12, &health_before, sizeof(health_before));
   std::memcpy(result + 16, &damage_dealt, sizeof(damage_dealt));
 
+  // The payload holds the victim, the attacker and the result pointer.
   unsigned char payload[28] = {};
   const uint32_t victim = 0x0123'4567;
   const uint32_t attacker = 0x89ab'cdef;
@@ -91,6 +93,7 @@ TEST(DecodeDamageTaken, DecodesTheDocumentedLayout) {
   const void* result_ptr = result;
   std::memcpy(payload + 16, &result_ptr, sizeof(result_ptr));
 
+  // Decoding reads every field through the reader.
   RegionReader reader({{payload, sizeof(payload)}, {result, sizeof(result)}});
   auto event = DecodeDamageTaken(payload, kOffsets, [&reader](const void* s, void* o, size_t n) {
     return reader.Read(s, o, n);
@@ -104,10 +107,12 @@ TEST(DecodeDamageTaken, DecodesTheDocumentedLayout) {
 }
 
 TEST(DecodeDamageTaken, CarriesAnAbsentAttackerRawInsteadOfFabricatingOne) {
+  // The result records the health lost.
   unsigned char result[32] = {};
   const int32_t health_lost = 10;
   std::memcpy(result + 8, &health_lost, sizeof(health_lost));
 
+  // The payload names no attacker.
   unsigned char payload[28] = {};
   const uint32_t victim = 0x0123'4567;
   const uint32_t absent_attacker = 0xffffffff;  // the game's invalid handle
@@ -116,6 +121,7 @@ TEST(DecodeDamageTaken, CarriesAnAbsentAttackerRawInsteadOfFabricatingOne) {
   const void* result_ptr = result;
   std::memcpy(payload + 16, &result_ptr, sizeof(result_ptr));
 
+  // The attacker decodes as the raw invalid handle.
   RegionReader reader({{payload, sizeof(payload)}, {result, sizeof(result)}});
   auto event = DecodeDamageTaken(payload, kOffsets, [&reader](const void* s, void* o, size_t n) {
     return reader.Read(s, o, n);
@@ -125,30 +131,36 @@ TEST(DecodeDamageTaken, CarriesAnAbsentAttackerRawInsteadOfFabricatingOne) {
 }
 
 TEST(DecodeDamageTaken, SurfacesANullResultInsteadOfZeroSuccess) {
+  // The payload's result pointer is null.
   unsigned char payload[28] = {};
   const void* result_ptr = nullptr;
   std::memcpy(payload + 16, &result_ptr, sizeof(result_ptr));
 
+  // Decoding reports it.
   auto event = DecodeDamageTaken(payload, kOffsets, MemoryReader(payload, sizeof(payload)));
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("null"), std::string::npos) << event.error();
 }
 
 TEST(DecodeDamageTaken, SurfacesAFaultingResultPointerAsADecodeFailure) {
+  // The payload's result pointer is unreadable.
   unsigned char payload[28] = {};
   const void* result_ptr = reinterpret_cast<const void*>(0xdead'beef'0000'0010);
   std::memcpy(payload + 16, &result_ptr, sizeof(result_ptr));
 
+  // Decoding reports it as unreadable.
   auto event = DecodeDamageTaken(payload, kOffsets, MemoryReader(payload, sizeof(payload)));
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("cannot read"), std::string::npos) << event.error();
 }
 
 TEST(DecodeDamageTaken, SurfacesAnUnreadablePayloadInsteadOfZeroSuccess) {
+  // A null payload is reported.
   auto event = DecodeDamageTaken(nullptr, kOffsets, FailReader());
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("null"), std::string::npos) << event.error();
 
+  // So is one the reader cannot read.
   unsigned char payload[28] = {};
   auto unreadable = DecodeDamageTaken(payload, kOffsets, FailReader());
   ASSERT_FALSE(unreadable.has_value());
@@ -156,6 +168,7 @@ TEST(DecodeDamageTaken, SurfacesAnUnreadablePayloadInsteadOfZeroSuccess) {
 }
 
 TEST(DecodeHealthTaken, PreservesRequestedVersusAppliedForOverhealDiagnostics) {
+  // The payload holds the entity, the requested heal and the applied heal.
   unsigned char payload[12] = {};
   const uint32_t entity = 0x0123'4567;
   const float requested = 150.0f;
@@ -164,6 +177,7 @@ TEST(DecodeHealthTaken, PreservesRequestedVersusAppliedForOverhealDiagnostics) {
   std::memcpy(payload + 4, &requested, sizeof(requested));
   std::memcpy(payload + 8, &applied, sizeof(applied));
 
+  // Both amounts decode as written.
   auto event = DecodeHealthTaken(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_TRUE(event.has_value()) << event.error();
   EXPECT_EQ(event->entity_handle, entity);
@@ -172,20 +186,24 @@ TEST(DecodeHealthTaken, PreservesRequestedVersusAppliedForOverhealDiagnostics) {
 }
 
 TEST(DecodeHealthTaken, RejectsANonfiniteRequest) {
+  // The payload requests an infinite heal.
   unsigned char payload[12] = {};
   const float requested = 3.4e38f * 2.0f;  // overflow to infinity
   std::memcpy(payload + 4, &requested, sizeof(requested));
 
+  // Decoding refuses it.
   auto event = DecodeHealthTaken(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("nonfinite"), std::string::npos) << event.error();
 }
 
 TEST(DecodeHealthTaken, RejectsANegativeAppliedValue) {
+  // The payload applies a negative heal.
   unsigned char payload[12] = {};
   const int32_t applied = -5;
   std::memcpy(payload + 8, &applied, sizeof(applied));
 
+  // Decoding refuses it.
   auto event = DecodeHealthTaken(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_FALSE(event.has_value());
   EXPECT_NE(event.error().find("negative"), std::string::npos) << event.error();
@@ -198,17 +216,22 @@ TEST(DecodeHealthTaken, SurfacesAnUnreadablePayloadInsteadOfZeroSuccess) {
 }
 
 TEST(DecodeShieldDamage, CreditsOwnerRatherThanShieldCasterAndPreservesFraction) {
+  // The payload holds three handles and a fractional amount.
   const uint32_t handles[] = {51, 72, 93};
   unsigned char payload[17] = {};
   std::memcpy(payload, handles, sizeof(handles));
   const float amount = 18.25f;
   std::memcpy(payload + 12, &amount, sizeof(amount));
+
+  // The owner is the attacker, and the fraction survives.
   auto value =
       modlock::gameinterop::DecodeShieldDamage(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_TRUE(value) << value.error();
   EXPECT_EQ(value->attacker_handle, 51u);
   EXPECT_EQ(value->victim_handle, 72u);
   EXPECT_EQ(value->absorbed, amount);
+
+  // An amount that is not a number, or a short payload, is refused.
   const float invalid = std::numeric_limits<float>::quiet_NaN();
   std::memcpy(payload + 12, &invalid, sizeof(invalid));
   EXPECT_FALSE(
@@ -217,6 +240,7 @@ TEST(DecodeShieldDamage, CreditsOwnerRatherThanShieldCasterAndPreservesFraction)
 }
 
 TEST(DecodeAbilityExecuted, PreservesCasterAbilityAndUntargetedExecution) {
+  // The payload holds the caster, the ability and the target.
   unsigned char payload[12] = {};
   const uint32_t caster = 0x0123'4567;
   const uint32_t ability = 0x89ab'cdef;
@@ -225,12 +249,14 @@ TEST(DecodeAbilityExecuted, PreservesCasterAbilityAndUntargetedExecution) {
   std::memcpy(payload + 4, &ability, sizeof(ability));
   std::memcpy(payload + 8, &target, sizeof(target));
 
+  // All three decode.
   auto event = DecodeAbilityExecuted(payload, MemoryReader(payload, sizeof(payload)));
   ASSERT_TRUE(event) << event.error();
   EXPECT_EQ(event->caster_handle, caster);
   EXPECT_EQ(event->ability_handle, ability);
   EXPECT_EQ(event->target_handle, target);
 
+  // An absent target decodes as the raw invalid handle.
   const uint32_t absent_target = 0xffffffff;
   std::memcpy(payload + 8, &absent_target, sizeof(absent_target));
   event = DecodeAbilityExecuted(payload, MemoryReader(payload, sizeof(payload)));
@@ -239,6 +265,7 @@ TEST(DecodeAbilityExecuted, PreservesCasterAbilityAndUntargetedExecution) {
 }
 
 TEST(DecodeAbilityExecuted, RejectsMissingOrUnreadablePayload) {
+  // No payload, no reader, a failed reader or a short read is refused.
   unsigned char payload[12] = {};
   EXPECT_FALSE(DecodeAbilityExecuted(nullptr, FailReader()));
   EXPECT_FALSE(DecodeAbilityExecuted(payload, {}));
@@ -251,6 +278,7 @@ TEST(DecodeAbilityExecuted, RejectsMissingOrUnreadablePayload) {
 }
 
 TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
+  // The hit's descriptor and payload sit in readable regions.
   using namespace modlock::gameinterop;
   struct Info {
     uint32_t attacker = 11;
@@ -266,10 +294,13 @@ TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
     Info* info;
   } payload{12, 11, &info};
   RegionReader regions({{&payload, sizeof(payload)}, {&info, sizeof(info)}});
+
+  // Read and write only inside them.
   const auto read = [&](const void* source, void* out, size_t size) {
     return regions.Read(source, out, size);
   };
   const auto write = [&](void* target, const void* source, size_t size) {
+    // Write only inside the descriptor.
     auto* bytes = static_cast<unsigned char*>(target);
     auto* begin = reinterpret_cast<unsigned char*>(&info);
     if (bytes < begin || bytes + size > begin + sizeof(info)) {
@@ -278,11 +309,14 @@ TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
     std::memcpy(target, source, size);
     return true;
   };
+
+  // Adjustment sees the whole hit and doubles its amount.
   const DamageContactOffsets offsets{offsetof(Info, attacker),  offsetof(Info, flags),
                                      offsetof(Info, amount),    offsetof(Info, ability),
                                      offsetof(Info, inflictor), offsetof(Info, hit_group)};
   int calls = 0;
   const auto adjust = [&](const DamageContactEvent& event, float& amount) {
+    // It sees the whole hit.
     EXPECT_EQ(event.attacker_handle, 11);
     EXPECT_EQ(event.victim_handle, 12);
     EXPECT_EQ(event.ability_handle, 23);
@@ -290,12 +324,17 @@ TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
     EXPECT_EQ(event.hit_group, 1);
     EXPECT_EQ(event.flags, kDamageHeavyMelee);
     EXPECT_EQ(event.amount, amount);
+
+    // Count it and double the amount.
     ++calls;
     amount *= 2;
   };
+
+  // The doubled amount is written back.
   ASSERT_TRUE(ProcessDamageContact(&payload, offsets, read, write, {}, adjust));
   EXPECT_EQ(info.amount, 200);
   EXPECT_EQ(info.flags, kDamageHeavyMelee);
+
   // Suppression sees the whole hit, including what delivered it.
   const auto suppress = [](const DamageContactEvent& event) {
     EXPECT_EQ(event.inflictor_handle, 0x12340027);
@@ -310,6 +349,7 @@ TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
 }
 
 TEST(DecodeDamageTaken, RetainsSourceAbilityFromTheNativeDescriptor) {
+  // The descriptor names the source ability.
   struct Info {
     uint32_t ability = 47;
   } info;
@@ -338,6 +378,7 @@ class EnumImage : public modlock::gameinterop::ModuleImage {
   static constexpr std::uintptr_t kBase = 0x180000000;
 
   void Add(const std::string& name, int64_t value) {
+    // Append the name and a record that points at it.
     const size_t at = bytes_.size() + 1;
     bytes_.push_back(0);
     bytes_.insert(bytes_.end(), name.begin(), name.end());
@@ -367,12 +408,16 @@ class EnumImage : public modlock::gameinterop::ModuleImage {
 };
 
 TEST(ModifierEventIndex, ReadsTheRunningGamesValueByName) {
+  // Build an enum image.
   EnumImage image;
+
   // A longer name sharing the prefix must not match.
   image.Add("MODIFIER_EVENT_MELEE_ATTACK_STARTED_LATE", 0x70);
   image.Add("MODIFIER_EVENT_MELEE_ATTACK_STARTED", 0x59);
   image.Add("MODIFIER_EVENT_DAMAGE_TAKEN", 0x18);
   image.Seal();
+
+  // Each name reads its own value; a missing name is refused.
   auto melee =
       modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_MELEE_ATTACK_STARTED");
   ASSERT_TRUE(melee) << melee.error();
@@ -384,8 +429,10 @@ TEST(ModifierEventIndex, ReadsTheRunningGamesValueByName) {
 }
 
 TEST(ModifierEventIndex, RefusesANameWithoutARecord) {
+  // An image names a slide event.
   EnumImage image;
   image.Add("MODIFIER_EVENT_SLIDE", 0x3f);
+
   // The name exists but no record points at it.
   EnumImage bare;
   bare.Seal();

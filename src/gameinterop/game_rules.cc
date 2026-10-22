@@ -40,6 +40,7 @@ struct ResourceContext {
 };
 
 void PrecacheIntoCurrentManifest(void** original_args) {
+  // Nothing is added without heroes or the precache pair.
   if (g_hero_names.empty()) {
     return;
   }
@@ -48,6 +49,8 @@ void PrecacheIntoCurrentManifest(void** original_args) {
                  "carries no heroes\n";
     return;
   }
+
+  // Precache each hero into the session manifest.
   ResourceContext ctx{0, 0, original_args != nullptr ? *original_args : nullptr};
   int count = 0;
   for (const auto& name : g_hero_names) {
@@ -61,6 +64,7 @@ void PrecacheIntoCurrentManifest(void** original_args) {
 }
 
 __int64 __fastcall ManifestBuildThunk(void* thisptr, void** original_args) {
+  // Build the manifest, then add the heroes and resources to it.
   const __int64 result = g_hook.call<__int64>(thisptr, original_args);
   PrecacheIntoCurrentManifest(original_args);
   void* manifest = original_args ? *original_args : nullptr;
@@ -75,6 +79,8 @@ __int64 __fastcall ManifestBuildThunk(void* thisptr, void** original_args) {
 struct GameRulesHooks::Impl {
   ~Impl() {
 #if defined(_WIN32)
+
+    // Remove the hook and forget what it registered.
     g_hook.reset();
     g_hero_names.clear();
     g_resource_names.clear();
@@ -135,10 +141,12 @@ std::expected<void* const*, std::string> ResolveCurrentGameRules(const ModuleIma
 
 std::expected<GamePause, std::string> GamePause::Resolve(const ModuleImage& server,
                                                          void* schema_system) {
+  // Find the current rules.
   auto current = ResolveCurrentGameRules(server);
   if (!current) {
     return std::unexpected(current.error());
   }
+
   // citadel_toggle_server_pause reads the current rules, toggles the replicated
   // server-pause field and runs the ordinary pause-modifier reconciliation.
   auto toggle = ResolveSignature(server, "game-rules.toggle-server-pause");
@@ -154,6 +162,7 @@ std::expected<GamePause, std::string> GamePause::Resolve(const ModuleImage& serv
       refresh_address - server.base() >= server.image_bytes().size()) {
     return std::unexpected("native pause refresh leaves server module");
   }
+
   // The toggle's leading cmp reads m_bServerPaused; its displacement must
   // agree with the live schema before the field is read or the toggle runs.
   auto field = SchemaFieldOf(schema_system, "server.dll", "CCitadelGameRules", "m_bServerPaused");
@@ -169,6 +178,8 @@ std::expected<GamePause, std::string> GamePause::Resolve(const ModuleImage& serv
   if (field->offset != compared_offset || field->size < sizeof(uint8_t)) {
     return std::unexpected("native server-pause field changed");
   }
+
+  // Keep what was resolved.
   GamePause pause;
   pause.current_ = *current;
   pause.toggle_ = reinterpret_cast<void (*)()>(*toggle);
@@ -178,6 +189,7 @@ std::expected<GamePause, std::string> GamePause::Resolve(const ModuleImage& serv
 }
 
 std::expected<void, std::string> GamePause::Set(bool paused) const {
+  // Read the active rules.
   void* rules = nullptr;
   if (current_) {
     std::memcpy(&rules, current_, sizeof(rules));
@@ -185,6 +197,8 @@ std::expected<void, std::string> GamePause::Set(bool paused) const {
   if (!rules || !toggle_ || !refresh_) {
     return std::unexpected("game-pause rules unavailable");
   }
+
+  // Toggle when the state differs; refresh a pause that holds.
   auto* value = static_cast<const uint8_t*>(rules) + paused_offset_;
   if (*value > 1) {
     return std::unexpected("invalid native server-pause state");
@@ -194,6 +208,8 @@ std::expected<void, std::string> GamePause::Set(bool paused) const {
   } else if (paused) {
     refresh_(rules);
   }
+
+  // Read the state back.
   void* after = nullptr;
   std::memcpy(&after, current_, sizeof(after));
   if (after != rules || (*value != 0) != paused) {
@@ -204,6 +220,7 @@ std::expected<void, std::string> GamePause::Set(bool paused) const {
 
 std::expected<KothRules, std::string> KothRules::Resolve(const ModuleImage& server,
                                                          void* schema_system) {
+  // Find the current rules and the server module's bounds.
   auto current = ResolveCurrentGameRules(server);
   if (!current) {
     return std::unexpected(current.error());
@@ -212,6 +229,7 @@ std::expected<KothRules, std::string> KothRules::Resolve(const ModuleImage& serv
   reader.current_ = *current;
   reader.module_begin_ = server.base();
   reader.module_size_ = server.image_bytes().size();
+
   // The native force-spawn callback sets the next location and calls the
   // ordinary warning/spawn routine at +cb (E8, sole RCX argument is rules).
   auto start = ResolveSignature(server, "game-rules.start-koth");
@@ -223,6 +241,8 @@ std::expected<KothRules, std::string> KothRules::Resolve(const ModuleImage& serv
     return std::unexpected("native KOTH start leaves server module");
   }
   reader.start_ = reinterpret_cast<void (*)(void*)>(*start);
+
+  // Find where the next location is written.
   auto position =
       SchemaFieldOf(schema_system, "server.dll", "CCitadelGameRules", "m_vNextKothLocation");
   if (!position) {
@@ -232,6 +252,8 @@ std::expected<KothRules, std::string> KothRules::Resolve(const ModuleImage& serv
     return std::unexpected("KOTH location storage too short");
   }
   reader.next_position_offset_ = position->offset;
+
+  // Find each timer field.
   constexpr const char* names[] = {"m_nKothScoringTeam",      "m_timeKothScoring",
                                    "m_timeKothCashInStarted", "m_timeKothGiveUp",
                                    "m_timeNextKothSpawn",     "m_timeNextKothSpawnWindowTime"};
@@ -249,6 +271,7 @@ std::expected<KothRules, std::string> KothRules::Resolve(const ModuleImage& serv
 }
 
 std::expected<void*, std::string> KothRules::Current() const {
+  // Read the active rules and check their vtable.
   if (!current_) {
     return std::unexpected("native game rules reader is unresolved");
   }
@@ -266,11 +289,14 @@ std::expected<void*, std::string> KothRules::Current() const {
 }
 
 std::expected<void, std::string> KothRules::StartAt(const std::array<float, 3>& position) {
+  // Refuse a nonfinite location.
   for (float value : position) {
     if (!std::isfinite(value)) {
       return std::unexpected("KOTH location is nonfinite");
     }
   }
+
+  // Read the rules and the objective's state.
   auto rules = Current();
   if (!rules) {
     return std::unexpected(rules.error());
@@ -286,6 +312,7 @@ std::expected<void, std::string> KothRules::StartAt(const std::array<float, 3>& 
       (started_after_scoring_ && state->scoring_time <= *started_after_scoring_)) {
     return std::unexpected("previous native KOTH objective has not ended");
   }
+
   // The native force-spawn callback writes this vector directly before the
   // same call; notification and objective creation remain native-owned.
   std::memcpy(static_cast<unsigned char*>(*rules) + next_position_offset_, position.data(),
@@ -296,10 +323,13 @@ std::expected<void, std::string> KothRules::StartAt(const std::array<float, 3>& 
 }
 
 std::expected<void, std::string> KothRules::Reset() {
+  // Read the active rules.
   auto rules = Current();
   if (!rules) {
     return std::unexpected(rules.error());
   }
+
+  // Zero every timer.
   auto* bytes = static_cast<unsigned char*>(*rules);
   const uint32_t zero = 0;
   for (const auto offset : offsets_) {
@@ -310,10 +340,13 @@ std::expected<void, std::string> KothRules::Reset() {
 }
 
 std::expected<KothState, std::string> KothRules::Read() const {
+  // Read the active rules.
   auto rules = Current();
   if (!rules) {
     return std::unexpected(rules.error());
   }
+
+  // Copy each field, refusing a nonfinite time.
   const auto* bytes = static_cast<const unsigned char*>(*rules);
   KothState state{};
   std::memcpy(&state.scoring_team, bytes + offsets_[0], sizeof(state.scoring_team));
@@ -332,9 +365,12 @@ std::expected<GameRulesHooks, std::string> GameRulesHooks::Install(
     const ModuleImage& server, std::vector<std::string> precache_heroes,
     std::vector<std::string> resources) {
 #if defined(_WIN32)
+
+  // Install only once.
   if (g_hook) {
     return std::unexpected("the session manifest hook is already installed");
   }
+
   // Stage 1: locate the manifest builder. Zero or multiple matches fail loud:
   // an engine update that shifts the pattern must stop here, not mis-hook.
   auto builder = ResolveSignature(server, "game-rules.manifest-builder");
@@ -365,6 +401,7 @@ std::expected<GameRulesHooks, std::string> GameRulesHooks::Install(
   }
   g_hook = std::move(created);
 
+  // Keep the resolved calls and register the heroes.
   g_precache_global = *global;
   g_add_resource = reinterpret_cast<GameRulesHooks::AddResourceFn>(*add_resource);
   void* fn_addr = *fn;
@@ -372,6 +409,7 @@ std::expected<GameRulesHooks, std::string> GameRulesHooks::Install(
   GameRulesHooks owner(std::make_unique<Impl>());
   owner.AddPrecache(std::move(precache_heroes), std::move(resources));
 
+  // Log where the hook landed.
   std::cout << "[modlock] game rules: manifest hook installed at +0x" << std::hex
             << builder_addr - server.base() << std::dec << "; " << g_hero_names.size()
             << " hero(es) registered\n";

@@ -51,6 +51,7 @@ class Step {
       : result_{.state = state}, state_(result_.state), world_(world), profile_(profile) {}
 
   MovementResult Run(const MovementCommand& command) {
+    // Split a long command into two halves.
     if (command.milliseconds > 50) {
       auto half = command;
       half.milliseconds = std::floor(command.milliseconds / 2);
@@ -63,6 +64,7 @@ class Step {
       return result_;
     }
 
+    // Orient the command; a spectator flies freely.
     dt_ = static_cast<float>(command.milliseconds * 0.001);
     Axes(command.angles);
     if (state_.spectator) {
@@ -70,6 +72,7 @@ class Step {
       return result_;
     }
 
+    // Settle the player and handle water jumps and jumping.
     Nudge();
     Categorize();
     if (state_.water_level == 2) {
@@ -83,6 +86,8 @@ class Step {
     } else {
       state_.jump_held = false;
     }
+
+    // Apply friction, move, and settle again.
     Friction();
     if (state_.water_level >= 2) {
       Swim(command);
@@ -95,6 +100,7 @@ class Step {
 
  private:
   void Axes(const Vector& angles) {
+    // Take the sines and cosines of the view angles.
     const auto radians = [](float degrees) {
       return static_cast<float>(degrees * (std::numbers::pi * 2 / 360));
     };
@@ -104,6 +110,8 @@ class Step {
     const float cp = std::cos(static_cast<double>(radians(angles[0])));
     const float sr = std::sin(static_cast<double>(radians(angles[2])));
     const float cr = std::cos(static_cast<double>(radians(angles[2])));
+
+    // Build the forward and right axes.
     forward_ = {cp * cy, cp * sy, -sp};
     right_ = {-sr * sp * cy + cr * sy, -sr * sp * sy - cr * cy, -sr * cp};
   }
@@ -132,6 +140,7 @@ class Step {
   }
 
   void Categorize() {
+    // Find the ground below the player, unless they rise fast.
     auto below = state_.origin;
     below[2] -= 1;
     state_.ground_entity = -1;
@@ -151,6 +160,7 @@ class Step {
       }
     }
 
+    // Sample the contents at the player's feet.
     state_.water_level = 0;
     state_.water_type = Contents::kEmpty;
     auto point = state_.origin;
@@ -159,12 +169,16 @@ class Step {
     if (!Liquid(contents)) {
       return;
     }
+
+    // Feet in liquid; check the waist.
     state_.water_type = contents;
     state_.water_level = 1;
     point[2] = state_.origin[2] + (kPlayerMins[2] + kPlayerMaxs[2]) * 0.5f;
     if (!Liquid(world_.At(point))) {
       return;
     }
+
+    // Waist in liquid; check the eyes.
     state_.water_level = 2;
     point[2] = state_.origin[2] + 22;
     if (Liquid(world_.At(point))) {
@@ -173,9 +187,12 @@ class Step {
   }
 
   void WaterJump() {
+    // Only a player not already jumping out, nor falling fast, jumps.
     if (state_.water_jump_seconds != 0 || state_.velocity[2] < -180) {
       return;
     }
+
+    // Look for a wall ahead at the feet with open space above it.
     Vector forward{forward_[0], forward_[1], 0};
     Normalize(forward);
     auto point = AddScaled(state_.origin, forward, 24);
@@ -187,6 +204,8 @@ class Step {
     if (world_.At(point) != Contents::kEmpty) {
       return;
     }
+
+    // Jump out of the water.
     state_.velocity = AddScaled({}, forward, 50);
     state_.velocity[2] = 310;
     state_.water_jump_seconds = 2;
@@ -194,14 +213,19 @@ class Step {
   }
 
   void Jump() {
+    // A dead player holds the jump.
     if (state_.dead) {
       state_.jump_held = true;
       return;
     }
+
+    // A water jump counts down.
     if (state_.water_jump_seconds != 0) {
       state_.water_jump_seconds = std::max(0.f, state_.water_jump_seconds - dt_);
       return;
     }
+
+    // In water, swim up.
     if (state_.water_level >= 2) {
       state_.ground_entity = -1;
       state_.velocity[2] = state_.water_type == Contents::kWater   ? 100.f
@@ -209,6 +233,8 @@ class Step {
                                                                    : 50.f;
       return;
     }
+
+    // Jump only from the ground on a fresh press.
     if (state_.ground_entity == -1 || state_.jump_held) {
       return;
     }
@@ -218,6 +244,7 @@ class Step {
   }
 
   void Friction() {
+    // Water jumps keep their speed; a slow player stops.
     if (state_.water_jump_seconds != 0) {
       return;
     }
@@ -226,6 +253,8 @@ class Step {
       state_.velocity[0] = state_.velocity[1] = 0;
       return;
     }
+
+    // Double friction at a ledge ahead.
     float friction = profile_.friction;
     if (state_.ground_entity != -1) {
       Vector start{state_.origin[0] + state_.velocity[0] / speed * 16,
@@ -237,6 +266,8 @@ class Step {
         friction *= 2;
       }
     }
+
+    // Drop speed by water or ground friction.
     float drop = 0;
     if (state_.water_level >= 2) {
       drop = speed * profile_.water_friction * state_.water_level * dt_;
@@ -250,6 +281,7 @@ class Step {
   }
 
   void Accelerate(const Vector& direction, float speed, float acceleration, bool air) {
+    // Accelerate toward the direction up to the wish speed, capped in the air.
     if (state_.dead || state_.water_jump_seconds != 0) {
       return;
     }
@@ -264,6 +296,7 @@ class Step {
   }
 
   void Slide() {
+    // Move along the velocity, clipping it against up to four planes.
     const auto initial_velocity = state_.velocity;
     const auto original_velocity = state_.velocity;
     std::array<Vector, 5> planes{};
@@ -318,25 +351,34 @@ class Step {
         break;
       }
     }
+
+    // A water jump keeps its velocity.
     if (state_.water_jump_seconds != 0) {
       state_.velocity = initial_velocity;
     }
   }
 
   void Ground() {
+    // Walk on the ground; a player standing still stays.
     state_.velocity[2] = 0;
     if (state_.velocity[0] == 0 && state_.velocity[1] == 0) {
       return;
     }
+
+    // Move straight when nothing is in the way.
     const auto direct = Sweep(state_.origin, AddScaled(state_.origin, state_.velocity, dt_));
     if (direct.fraction == 1) {
       state_.origin = direct.end;
       return;
     }
+
+    // Otherwise slide at the original height.
     const auto start = state_.origin;
     const auto velocity = state_.velocity;
     Slide();
     const auto lower = state_;
+
+    // Then step up 18 units and slide again.
     state_.origin = start;
     state_.velocity = velocity;
     auto end = start;
@@ -346,6 +388,8 @@ class Step {
       state_.origin = up.end;
     }
     Slide();
+
+    // Step back down.
     end = state_.origin;
     end[2] -= 18;
     const auto down = Sweep(state_.origin, end);
@@ -356,6 +400,8 @@ class Step {
     if (!down.start_solid && !down.all_solid) {
       state_.origin = down.end;
     }
+
+    // Keep whichever move went further.
     const auto distance = [&start](const Vector& position) {
       const float x = position[0] - start[0];
       const float y = position[1] - start[1];
@@ -369,12 +415,15 @@ class Step {
   }
 
   void WalkOrFly(const MovementCommand& command) {
+    // Wish along the level forward and right axes.
     forward_[2] = right_[2] = 0;
     Normalize(forward_);
     Normalize(right_);
     auto wish = AddScaled(AddScaled({}, forward_, command.forward), right_, command.side);
     wish[2] = 0;
     const float speed = std::min(Normalize(wish), profile_.max_speed);
+
+    // Accelerate, fall, and move.
     const bool grounded = state_.ground_entity != -1;
     if (grounded) {
       state_.velocity[2] = 0;
@@ -389,6 +438,7 @@ class Step {
   }
 
   void Swim(const MovementCommand& command) {
+    // Wish toward the command, sinking when idle.
     auto wish = AddScaled(AddScaled({}, forward_, command.forward), right_, command.side);
     if (command.forward == 0 && command.side == 0 && command.up == 0) {
       wish[2] -= 60;
@@ -397,6 +447,8 @@ class Step {
     }
     const float speed = std::min(Normalize(wish), profile_.max_speed) * 0.7f;
     Accelerate(wish, speed, profile_.water_acceleration, false);
+
+    // Move, stepping over the surface when possible.
     const auto destination = AddScaled(state_.origin, state_.velocity, dt_);
     auto above = destination;
     above[2] += 19;
@@ -409,6 +461,7 @@ class Step {
   }
 
   void Spectator(const MovementCommand& command) {
+    // Slow with spectator friction.
     const float speed = std::sqrt(Dot(state_.velocity, state_.velocity));
     if (speed < 1) {
       state_.velocity = {};
@@ -419,10 +472,14 @@ class Step {
         component *= scale;
       }
     }
+
+    // Wish along the view axes.
     Normalize(forward_);
     Normalize(right_);
     auto wish = AddScaled(AddScaled({}, forward_, command.forward), right_, command.side);
     wish[2] += command.up;
+
+    // Accelerate toward the wish and fly.
     const float wish_speed = std::min(Normalize(wish), profile_.spectator_speed);
     const float remaining = wish_speed - Dot(state_.velocity, wish);
     if (remaining <= 0) {

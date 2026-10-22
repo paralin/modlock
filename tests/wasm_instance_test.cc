@@ -75,6 +75,8 @@ std::string Zip(const std::vector<std::pair<std::string, std::string>>& files) {
   // End with the directory and the record that locates it.
   const auto start = static_cast<uint32_t>(zip.size());
   zip += directory;
+
+  // Close with the record that locates the directory.
   little(zip, 0x06054b50, 4);
   little(zip, 0, 2 + 2);
   little(zip, files.size(), 2);
@@ -135,6 +137,7 @@ Message Parse(const std::string& bytes) {
 }
 
 TEST(WasmInstance, GoModAnswersEvents) {
+  // Load the Go example.
   Runtime runtime;
   Recorder recorder;
   auto instance = Instance::Load(runtime, ReadFile(HELLO_GO_WASM), Limits{}, recorder.Answer());
@@ -163,7 +166,11 @@ TEST(WasmInstance, GoModAnswersEvents) {
   tick.set_tick(7);
   const auto frame = Event("Frame", tick);
   ASSERT_TRUE((*instance)->Deliver(frame));
+
+  // A second frame does not greet again.
   ASSERT_TRUE((*instance)->Deliver(frame));
+
+  // The greeting is a chat, then a log line.
   ASSERT_EQ(recorder.calls.size(), 2);
   EXPECT_EQ(recorder.calls[0].method(), "Chat");
   const auto chat = Parse<ChatRequest>(recorder.calls[0].request());
@@ -174,6 +181,7 @@ TEST(WasmInstance, GoModAnswersEvents) {
 }
 
 TEST(WasmInstance, LuauModAnswersEvents) {
+  // Load the Luau example.
   Runtime runtime;
   Recorder recorder;
   auto instance = Instance::Load(runtime, ReadFile(LUAU_WASM), Limits{}, recorder.Answer());
@@ -210,7 +218,11 @@ TEST(WasmInstance, LuauModAnswersEvents) {
   tick.set_tick(7);
   const auto frame = Event("Frame", tick);
   ASSERT_TRUE((*instance)->Deliver(frame));
+
+  // A second frame does not greet again.
   ASSERT_TRUE((*instance)->Deliver(frame));
+
+  // The greeting is a chat, then a log line.
   ASSERT_EQ(recorder.calls.size(), 2);
   EXPECT_EQ(recorder.calls[0].method(), "Chat");
   const auto chat = Parse<ChatRequest>(recorder.calls[0].request());
@@ -281,6 +293,7 @@ end)
 }
 
 TEST(WasmInstance, PythonModAnswersEvents) {
+  // Load the Python example.
   Runtime runtime;
   Recorder recorder;
   auto instance = Instance::Load(runtime, ReadFile(PYTHON_WASM), Limits{}, recorder.Answer());
@@ -317,7 +330,11 @@ TEST(WasmInstance, PythonModAnswersEvents) {
   tick.set_tick(7);
   const auto frame = Event("Frame", tick);
   ASSERT_TRUE((*instance)->Deliver(frame));
+
+  // A second frame does not greet again.
   ASSERT_TRUE((*instance)->Deliver(frame));
+
+  // The greeting is a chat, then a log line.
   ASSERT_EQ(recorder.calls.size(), 2);
   EXPECT_EQ(recorder.calls[0].method(), "Chat");
   const auto chat = Parse<ChatRequest>(recorder.calls[0].request());
@@ -328,6 +345,7 @@ TEST(WasmInstance, PythonModAnswersEvents) {
 }
 
 TEST(WasmInstance, TrapStopsTheMod) {
+  // Load a mod whose handler traps.
   Runtime runtime;
   Recorder recorder;
   auto instance = Instance::Load(runtime, Wat(R"((module
@@ -336,6 +354,7 @@ TEST(WasmInstance, TrapStopsTheMod) {
                                  Limits{}, recorder.Answer());
   ASSERT_TRUE(instance) << instance.error();
 
+  // The trap fails the event and every later one.
   const auto frame = Event("Frame", FrameEvent{});
   EXPECT_FALSE((*instance)->Deliver(frame));
   ASSERT_TRUE((*instance)->Failure());
@@ -343,6 +362,7 @@ TEST(WasmInstance, TrapStopsTheMod) {
 }
 
 TEST(WasmInstance, BudgetStopsARunawayLoop) {
+  // Load a mod whose handler never returns.
   Runtime runtime;
   Recorder recorder;
   Limits limits;
@@ -353,6 +373,7 @@ TEST(WasmInstance, BudgetStopsARunawayLoop) {
                                  limits, recorder.Answer());
   ASSERT_TRUE(instance) << instance.error();
 
+  // The budget stops the loop well inside two seconds.
   const auto frame = Event("Frame", FrameEvent{});
   const auto began = std::chrono::steady_clock::now();
   EXPECT_FALSE((*instance)->Deliver(frame));
@@ -363,6 +384,7 @@ TEST(WasmInstance, BudgetStopsARunawayLoop) {
 // A script mod evaluates its whole script in Start, which takes longer than
 // one event may.
 TEST(WasmInstance, StartGetsTheStartBudget) {
+  // Load a mod that counts far past the event budget.
   Runtime runtime;
   Recorder recorder;
   Limits limits;
@@ -377,6 +399,7 @@ TEST(WasmInstance, StartGetsTheStartBudget) {
                                  limits, recorder.Answer());
   ASSERT_TRUE(instance) << instance.error();
 
+  // Start finishes under its own budget; a frame does not.
   auto started = (*instance)->Deliver(Event("Start", StartEvent{}));
   EXPECT_TRUE(started) << started.error();
   EXPECT_FALSE((*instance)->Deliver(Event("Frame", FrameEvent{})));
@@ -386,6 +409,7 @@ TEST(WasmInstance, StartGetsTheStartBudget) {
 // does, so it makes the event slow, and the report names where the time went.
 // The slow event still finishes.
 TEST(WasmInstance, SlowEventCountsHostCalls) {
+  // Load a mod that calls a slow host function, then loops.
   Runtime runtime;
   Limits limits;
   limits.slow_event = std::chrono::milliseconds{50};
@@ -408,6 +432,7 @@ TEST(WasmInstance, SlowEventCountsHostCalls) {
                                  limits, slow);
   ASSERT_TRUE(instance) << instance.error();
 
+  // The slow event runs, and its report names the slowest call.
   auto delivered = (*instance)->Deliver(Event("Frame", FrameEvent{}));
   EXPECT_TRUE(delivered) << delivered.error();
   EXPECT_FALSE((*instance)->Failure());
@@ -420,6 +445,7 @@ TEST(WasmInstance, SlowEventCountsHostCalls) {
 // A stall in which the engine thread waits, as when the machine pages, is
 // not the mod's work, so it spends none of the budget.
 TEST(WasmInstance, BudgetSkipsAStall) {
+  // Load a mod whose host call stalls past the budget.
   Runtime runtime;
   Limits limits;
   limits.event_budget = std::chrono::milliseconds{50};
@@ -437,11 +463,13 @@ TEST(WasmInstance, BudgetSkipsAStall) {
                                  limits, stalled);
   ASSERT_TRUE(instance) << instance.error();
 
+  // A stall inside a host call is waited out.
   auto delivered = (*instance)->Deliver(Event("Frame", FrameEvent{}));
   EXPECT_TRUE(delivered) << delivered.error();
 }
 
 TEST(WasmInstance, MemoryLimitRefusesALargeMod) {
+  // A mod that asks for 64 pages is refused under a one megabyte limit.
   Runtime runtime;
   Recorder recorder;
   Limits limits;
@@ -454,6 +482,7 @@ TEST(WasmInstance, MemoryLimitRefusesALargeMod) {
 }
 
 TEST(WasmInstance, RequestOutsideMemoryStopsTheMod) {
+  // Load a mod whose request runs off the end of memory.
   Runtime runtime;
   Recorder recorder;
   auto instance = Instance::Load(runtime, Wat(R"((module
@@ -465,6 +494,7 @@ TEST(WasmInstance, RequestOutsideMemoryStopsTheMod) {
                                  Limits{}, recorder.Answer());
   ASSERT_TRUE(instance) << instance.error();
 
+  // The request fails without a host call.
   const auto frame = Event("Frame", FrameEvent{});
   auto delivered = (*instance)->Deliver(frame);
   ASSERT_FALSE(delivered);
@@ -473,6 +503,7 @@ TEST(WasmInstance, RequestOutsideMemoryStopsTheMod) {
 }
 
 TEST(WasmRuntime, SharesACompiledModuleWhileItIsHeld) {
+  // Compile one empty module.
   Runtime runtime;
   const auto bytes = Wat("(module)");
 

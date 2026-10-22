@@ -31,6 +31,7 @@ void Put(std::vector<uint8_t>& bytes, size_t offset, T value) {
 // six axial planes; leaving through any one is solid. Hull one is the point
 // hull grown by the standing player's box.
 std::vector<uint8_t> BoxRoom() {
+  // Describe the room's six walls for points, and inset by the player's clearance.
   struct Wall {
     int axis;
     float distance;
@@ -48,6 +49,7 @@ std::vector<uint8_t> BoxRoom() {
   const auto player = walls({-kHalfWidth + 16, -kHalfWidth + 16, 24},
                             {kHalfWidth - 16, kHalfWidth - 16, kHeight - 32});
 
+  // Lay out the lumps after the header.
   constexpr size_t kHeader = 4 + 15 * 8;
   const size_t planes = kHeader;
   const size_t nodes = planes + 12 * 20;
@@ -55,6 +57,8 @@ std::vector<uint8_t> BoxRoom() {
   const size_t leafs = clips + 6 * 8;
   const size_t models = leafs + 2 * 28;
   std::vector<uint8_t> bytes(models + 64);
+
+  // Write the version and each lump's place.
   Put<int32_t>(bytes, 0, 29);
   const auto lump = [&](int index, size_t offset, size_t length) {
     Put<uint32_t>(bytes, 4 + index * 8, uint32_t(offset));
@@ -99,10 +103,13 @@ class EmptyWorld final : public CollisionWorld {
 };
 
 TEST(QuakeCollision, CompiledRoomRetainsPlayerClearanceAndSolidContents) {
+  // The room decodes, solid below the floor and empty inside.
   const auto world = BspWorld::Decode(BoxRoom());
   ASSERT_TRUE(world) << world.error();
   EXPECT_EQ(world->At({0, 0, -8}), Contents::kSolid);
   EXPECT_EQ(world->At({0, 0, 100}), Contents::kEmpty);
+
+  // A player falling to the floor stops at its clearance.
   const auto trace = world->Sweep({0, 0, 100}, {0, 0, 0}, kPlayerMins, kPlayerMaxs);
   EXPECT_EQ(trace.normal, (Vector{0, 0, 1}));
   EXPECT_FLOAT_EQ(trace.end[2], 24.03125f);
@@ -111,14 +118,19 @@ TEST(QuakeCollision, CompiledRoomRetainsPlayerClearanceAndSolidContents) {
 }
 
 TEST(QuakeCollision, RejectsTruncatedAndCyclicCollisionDataBeforeMovement) {
+  // A truncated room is refused.
   auto bytes = BoxRoom();
   EXPECT_FALSE(BspWorld::Decode(std::span(bytes).first(124)));
+
+  // Find the player hull's root node.
   int32_t models = 0;
   int32_t clips = 0;
   int32_t root = 0;
   std::memcpy(&models, bytes.data() + 4 + 14 * 8, sizeof(models));
   std::memcpy(&clips, bytes.data() + 4 + 9 * 8, sizeof(clips));
   std::memcpy(&root, bytes.data() + models + 40, sizeof(root));
+
+  // Point it at itself; the cycle is refused.
   const auto child = static_cast<int16_t>(root);
   std::memcpy(bytes.data() + clips + root * 8 + 4, &child, sizeof(child));
   EXPECT_FALSE(BspWorld::Decode(bytes));
@@ -134,6 +146,7 @@ TEST(QuakeMovement, AirProjectionCapsAccelerationWithoutCappingRetainedSpeed) {
 }
 
 TEST(QuakeMovement, LongOddCommandUsesReferenceSubdivision) {
+  // One long odd command matches two halves.
   const MovementState initial{.origin = {0, 0, 200}, .velocity = {400, 0, 0}};
   const MovementCommand half{.forward = 320, .milliseconds = 25};
   const auto first = Move(initial, half, EmptyWorld{}).state;
@@ -182,6 +195,7 @@ float Speed(const MovementCall& call) {
 }
 
 TEST(PlayerMovement, RunsAtQuakeSpeedOnTheFloor) {
+  // Run forward on the floor for a second.
   auto movement = Create(PlayerMovement::Side::kServer);
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 64; ++number) {
@@ -217,12 +231,14 @@ TEST(PlayerMovement, ServerAndClientSplitTheSameCommandsAt77Hz) {
 }
 
 TEST(PlayerMovement, JumpsOnceUntilTheButtonIsReleased) {
+  // Hold jump for 160 commands.
   auto movement = Create(PlayerMovement::Side::kServer);
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 160; ++number) {
     commands.push_back(Command(number, 0, true));
   }
   const auto held = Simulate(movement, commands, {0, 0, 0}, {});
+
   // Quake adds 270 upward; gravity then removes one 16 ms step.
   EXPECT_NEAR(held[0].velocity[2], (270 - 800 * 0.015625f) * kScale, 0.01f);
   EXPECT_EQ(held[0].ground_entity, MovementHook::kNoGround);
@@ -237,6 +253,7 @@ TEST(PlayerMovement, JumpsOnceUntilTheButtonIsReleased) {
 }
 
 TEST(PlayerMovement, TheMantleKeyJumps) {
+  // Hold the mantle key for 120 commands.
   auto movement = Create(PlayerMovement::Side::kClient);
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 120; ++number) {
@@ -245,6 +262,8 @@ TEST(PlayerMovement, TheMantleKeyJumps) {
     commands.push_back(call);
   }
   const auto held = Simulate(movement, commands, {0, 0, 0}, {});
+
+  // It jumps once.
   EXPECT_NEAR(held[0].velocity[2], (270 - 800 * 0.015625f) * kScale, 0.01f);
   EXPECT_EQ(held[0].ground_entity, MovementHook::kNoGround);
   int takeoffs = 0;
@@ -255,6 +274,7 @@ TEST(PlayerMovement, TheMantleKeyJumps) {
 }
 
 TEST(PlayerMovement, LaunchedPlayersSlideDownTheWalls) {
+  // Launch a player at the wall.
   auto movement = Create(PlayerMovement::Side::kServer);
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 96; ++number) {
@@ -262,6 +282,7 @@ TEST(PlayerMovement, LaunchedPlayersSlideDownTheWalls) {
   }
   const auto flight =
       Simulate(movement, commands, {0, 0, 900}, {900, 0, 0}, MovementHook::kNoGround);
+
   // Player collision stops at the wall minus the 16-unit half-width.
   constexpr float kWall = (kHalfWidth - 16) * kScale;
   for (const auto& step : flight) {
@@ -273,8 +294,10 @@ TEST(PlayerMovement, LaunchedPlayersSlideDownTheWalls) {
 }
 
 TEST(PlayerMovement, SubdividedCommandsMatchTheServer) {
+  // Build both sides.
   auto server = Create(PlayerMovement::Side::kServer);
   auto client = Create(PlayerMovement::Side::kClient);
+
   // Hold jump across commands, splitting each one at its midpoint as the
   // engine does when input changes within a tick.
   std::vector<MovementCall> commands;
@@ -300,6 +323,7 @@ TEST(PlayerMovement, SubdividedCommandsMatchTheServer) {
 }
 
 TEST(PlayerMovement, PlayersStandOnHeadsAndReportLandings) {
+  // Stack two players, dropping the upper one from a height.
   auto movement = Create(PlayerMovement::Side::kServer);
   int jumper = 0, below = 0;
   movement.SetPlayers({{.pawn = &jumper, .handle = 11, .feet = {0, 0, 200}},
@@ -331,6 +355,8 @@ TEST(PlayerMovement, PlayersStandOnHeadsAndReportLandings) {
   auto client = Create(PlayerMovement::Side::kClient);
   client.SetPlayers({{.pawn = &jumper, .handle = 11, .feet = {0, 0, 200}},
                      {.pawn = &below, .handle = 22, .feet = {0, 0, 0}}});
+
+  // Drop the upper one onto the head in one command.
   auto call = Command(1, 0, false);
   call.pawn = &jumper;
   call.origin = {0, 0, 71};
@@ -341,6 +367,7 @@ TEST(PlayerMovement, PlayersStandOnHeadsAndReportLandings) {
 }
 
 TEST(PlayerMovement, LeavesFrozenPawnsToNativeMovement) {
+  // A frozen pawn's command is left to the game.
   auto movement = Create(PlayerMovement::Side::kServer);
   auto frozen = Command(1, 1, true);
   frozen.move_type = 0;
@@ -350,6 +377,7 @@ TEST(PlayerMovement, LeavesFrozenPawnsToNativeMovement) {
 }
 
 TEST(PlayerMovement, ClientReplayReproducesPredictedCommands) {
+  // Predict a run of commands with jumps.
   auto predicted = Create(PlayerMovement::Side::kClient);
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 96; ++number) {

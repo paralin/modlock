@@ -139,6 +139,7 @@ std::vector<EntityKeyValue> WithWorldTextPanelDefaults(std::span<const EntityKey
 // which keeps it for the life of the map, or returns empty when the name is
 // unreadable. Scans compare it in place, without copying every entity's name.
 std::string_view DesignerName(void* entity) {
+  // Read the identity's designer name, accepting only a short lowercase identifier.
   auto* identity = IdentityOf(entity);
   if (!identity) {
     return {};
@@ -171,14 +172,19 @@ float DistanceSquared(const std::array<float, 3>& a, const std::array<float, 3>&
 
 std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleImage& server,
                                                                  void* schema_system) {
+  // Start from the live entity system and the schema.
   WorldEntities world({});
   world.calls_.entity_system = &ResolveLiveEntitySystem;
   world.calls_.schema = schema_system;
+
+  // Resolve the key values calls.
   auto key_values = ResolveKeyValuesCalls(server);
   if (!key_values) {
     return std::unexpected(key_values.error());
   }
   world.calls_.key_values = *key_values;
+
+  // Resolve each native call by its signature.
   struct Entry {
     std::string_view id;
     void** slot;
@@ -200,6 +206,8 @@ std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleIma
     }
     *entry.slot = *address;
   }
+
+  // Resolve each field the NPCs read and write, with its minimum width.
   struct Field {
     const char* owner;
     const char* name;
@@ -230,6 +238,7 @@ std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleIma
 
 std::expected<WorldEntities::Sample, std::string> WorldEntities::ReadEntity(
     void* entity, std::string name) const {
+  // Read the entity's identity, body and scene.
   const auto handle = ReferenceHandleOf(entity);
   if (!handle) {
     return std::unexpected("NPC identity is no longer live");
@@ -242,11 +251,15 @@ std::expected<WorldEntities::Sample, std::string> WorldEntities::ReadEntity(
   if (!scene) {
     return std::unexpected("NPC scene is absent");
   }
+
+  // Read its class, team and position.
   Target state{};
   state.designer_name = std::move(name);
   state.subclass_id = ReadAt<uint32_t>(entity, calls_.offsets[1]);
   state.team = ReadAt<uint8_t>(entity, calls_.offsets[0]);
   state.position = ReadAt<std::array<float, 3>>(scene, calls_.offsets[6]);
+
+  // Read its health and lane.
   state.health = ReadAt<int32_t>(entity, calls_.offsets[2]);
   state.max_health = ReadAt<int32_t>(entity, calls_.offsets[3]);
   if (const auto lane = LaneOffset(entity)) {
@@ -256,6 +269,7 @@ std::expected<WorldEntities::Sample, std::string> WorldEntities::ReadEntity(
 }
 
 std::optional<size_t> WorldEntities::LaneOffset(void* entity) const {
+  // Read the entity's class; each class's lane field resolves once.
   auto schema = SchemaClassOfEntity(entity, ReadLive);
   if (!schema) {
     return std::nullopt;
@@ -263,6 +277,8 @@ std::optional<size_t> WorldEntities::LaneOffset(void* entity) const {
   if (auto found = lanes_.find(*schema); found != lanes_.end()) {
     return found->second;
   }
+
+  // Resolve the class's lane field and remember it.
   const std::string name(SchemaClassNameOf(*schema));
   auto lane = SchemaFieldOf(calls_.schema, "server.dll", name.c_str(), "m_iLane");
   std::optional<size_t> offset;
@@ -274,6 +290,7 @@ std::optional<size_t> WorldEntities::LaneOffset(void* entity) const {
 }
 
 std::expected<std::vector<WorldEntities::Sample>, std::string> WorldEntities::Read() const {
+  // Sample every living restored NPC.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
@@ -309,6 +326,7 @@ std::expected<void, std::string> WorldEntities::Apply(void* entity, const Target
 std::expected<void*, std::string> WorldEntities::Create(const Target& target,
                                                         std::span<const EntityKeyValue> key_values,
                                                         const Prepare& prepare) {
+  // Resolve the entity system and the subclass definition.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
@@ -317,16 +335,21 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
   if (target.subclass_id && !definition) {
     return std::unexpected("entity subclass is absent from this game build");
   }
+
+  // Create the entity.
   void* entity = calls_.create(nullptr, target.designer_name.c_str(), -1);
   if (!entity) {
     return std::unexpected("the server cannot create " + target.designer_name);
   }
+
   // Native CBaseEntity::CreateByDesignerName installs this subclass pair before
   // Spawn. The VData pointer follows the four-byte schema token without padding.
   if (target.subclass_id) {
     WriteAt(entity, calls_.offsets[1], target.subclass_id);
     WriteAt(entity, calls_.offsets[1] + sizeof(uint32_t), definition);
   }
+
+  // Set its team, its lane and the caller's preparation.
   WriteAt(entity, calls_.offsets[0], static_cast<uint8_t>(target.team));
   if (target.lane) {
     const auto lane = LaneOffset(entity);
@@ -342,12 +365,16 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
       return std::unexpected(prepared.error());
     }
   }
+
+  // Place it and read its identity.
   TeleportEntity(entity, target.position, target.facing, target.velocity);
   const auto handle = ReferenceHandleOf(entity);
   if (!handle) {
     calls_.remove(entity);
     return std::unexpected(target.designer_name + " has no native identity");
   }
+
+  // Build its key values, with a world text panel's defaults.
   std::vector<EntityKeyValue> panel_values;
   if (target.designer_name == kWorldTextPanel) {
     panel_values = WithWorldTextPanelDefaults(key_values);
@@ -358,6 +385,7 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
     calls_.remove(entity);
     return std::unexpected(target.designer_name + " key values: " + built.error());
   }
+
   // Queued creation retains and consumes a native object even without properties.
   calls_.queue(*system, IdentityOf(entity), *built);
   calls_.execute(*system);
@@ -369,7 +397,9 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
 }
 
 std::expected<void, std::string> WorldEntities::Restore(std::span<const Target> targets) {
+  // Forget the last restore.
   pending_.clear();
+
   // Validate every target and definition before removing any existing world state.
   for (const auto& target : targets) {
     if (!IsRestoredNpc(target.designer_name) || !target.subclass_id || target.health <= 0 ||
@@ -385,6 +415,8 @@ std::expected<void, std::string> WorldEntities::Restore(std::span<const Target> 
       }
     }
   }
+
+  // Remove every restored NPC but a living structure that matches a target.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
@@ -416,6 +448,8 @@ std::expected<void, std::string> WorldEntities::Restore(std::span<const Target> 
       calls_.remove(entity);
     }
   }
+
+  // Create the missing targets and place every one.
   for (size_t i = 0; i < targets.size(); ++i) {
     void* entity = retained[i] ? EntityInstance(*system, *retained[i]) : nullptr;
     if (!entity) {
@@ -439,6 +473,7 @@ std::expected<void, std::string> WorldEntities::Restore(std::span<const Target> 
 }
 
 std::expected<void, std::string> WorldEntities::FinishRestore() {
+  // Place each pending NPC again after its initialization.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
@@ -458,6 +493,7 @@ std::expected<void, std::string> WorldEntities::FinishRestore() {
 }
 
 std::expected<void, std::string> WorldEntities::ClearAuthored(const NativeDamage& damage) {
+  // Collect the authored actors.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
@@ -473,6 +509,7 @@ std::expected<void, std::string> WorldEntities::ClearAuthored(const NativeDamage
       actors.push_back(*handle);
     }
   }
+
   // Native death can remove other actors. Reborrow each serial-fenced identity
   // after every mutation instead of retaining the original instance pointers.
   for (const auto handle : actors) {
@@ -493,10 +530,12 @@ std::expected<void, std::string> WorldEntities::ClearAuthored(const NativeDamage
 }
 
 std::expected<size_t, std::string> WorldEntities::Remove(std::string_view designer_name) {
+  // Resolve the entity system.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
   }
+
   // UTIL_Remove defers deletion, so the instance snapshot stays valid.
   size_t removed = 0;
   for (void* entity : EntityInstances(*system)) {
@@ -511,6 +550,7 @@ std::expected<size_t, std::string> WorldEntities::Remove(std::string_view design
 
 std::expected<std::vector<uint32_t>, std::string> WorldEntities::Find(
     std::string_view designer_name) {
+  // Collect the handle of every entity with the name.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
@@ -533,6 +573,7 @@ uint32_t WorldEntities::SubclassId(std::string_view vdata_name) {
 
 std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target,
                                                           const Prepare& prepare) {
+  // Create the NPC with valid health.
   if (target.health < 0 || target.max_health < target.health) {
     return std::unexpected("NPC health is invalid");
   }
@@ -560,6 +601,7 @@ std::expected<uint32_t, std::string> WorldEntities::Spawn(const Target& target,
 
 std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
     const Target& target, std::span<const EntityKeyValue> key_values, const Prepare& prepare) {
+  // Refuse an unnamed or misplaced entity.
   if (target.designer_name.empty()) {
     return std::unexpected("an entity needs a designer name");
   }
@@ -609,6 +651,8 @@ std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
                            " is an ability, which only a hero holds: give it with GiveItem or "
                            "ReplaceAbility");
   }
+
+  // Create it and read its handle.
   auto created = Create(target, key_values, prepare);
   if (!created) {
     return std::unexpected(created.error());
@@ -624,6 +668,7 @@ std::expected<uint32_t, std::string> WorldEntities::CreateEntity(
 std::expected<bool, std::string> WorldEntities::FireInput(uint32_t handle, const std::string& input,
                                                           const std::optional<EntityValue>& value,
                                                           std::optional<uint32_t> activator) {
+  // Find the entity and its activator.
   auto system = ResolveLiveEntitySystem();
   if (!system) {
     return std::unexpected(system.error());
@@ -700,6 +745,7 @@ std::expected<bool, std::string> WorldEntities::TransmitAlways(uint32_t handle) 
 }
 
 std::expected<bool, std::string> WorldEntities::RemoveEntity(uint32_t handle) {
+  // Remove the entity if it still exists.
   auto system = ResolveLiveEntitySystem();
   if (!system) {
     return std::unexpected(system.error());
@@ -742,6 +788,7 @@ std::expected<bool, std::string> WorldEntities::Exists(uint32_t handle) const {
 
 std::expected<std::optional<WorldEntities::Sample>, std::string> WorldEntities::ReadNpc(
     uint32_t handle) const {
+  // Sample the NPC if it still lives.
   auto system = ResolveLiveEntitySystem();
   if (!system) {
     return std::unexpected(system.error());
@@ -762,6 +809,7 @@ std::expected<std::optional<WorldEntities::Sample>, std::string> WorldEntities::
 
 std::expected<bool, std::string> WorldEntities::SetHealth(uint32_t handle, int32_t health,
                                                           int32_t max_health) {
+  // Set the health of a live NPC.
   if (health <= 0 || max_health < health) {
     return std::unexpected("NPC health is invalid");
   }
@@ -783,6 +831,7 @@ std::expected<bool, std::string> WorldEntities::Move(uint32_t handle,
                                                      const std::array<float, 3>& position,
                                                      const std::array<float, 3>& facing,
                                                      const std::array<float, 3>& velocity) {
+  // Teleport the entity if it still exists.
   auto system = ResolveLiveEntitySystem();
   if (!system) {
     return std::unexpected(system.error());

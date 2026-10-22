@@ -90,6 +90,7 @@ class CallbackSink final : public ConnectionEventSink {
 };
 
 TEST(ConnectionTracker, PutInServerRecordsThenNotifiesSink) {
+  // Seat a player whose engine callback still sees the slot empty.
   std::vector<std::string> events;
   auto sink = std::make_shared<RecordingSink>(events);
   ConnectionTracker::DispatchPutInServer(
@@ -100,6 +101,7 @@ TEST(ConnectionTracker, PutInServerRecordsThenNotifiesSink) {
       },
       sink);
 
+  // The slot records the player, then the sink hears of it.
   EXPECT_TRUE(ConnectionTracker::StateForSlot(0).occupied);
   EXPECT_EQ(ConnectionTracker::StateForSlot(0).xuid, 76561198000000001ULL);
   EXPECT_GT(ConnectionTracker::StateForSlot(0).generation, 0u);
@@ -108,6 +110,7 @@ TEST(ConnectionTracker, PutInServerRecordsThenNotifiesSink) {
 }
 
 TEST(ConnectionTracker, DisconnectNotifiesOnceBeforeOriginalAndClearsAfter) {
+  // Seat a player whose entity the engine callback removes.
   ConnectionTracker::ApplyPutInServer(3, 42, false, "p3");
   std::vector<std::string> events;
   bool entity_live = true;
@@ -122,6 +125,7 @@ TEST(ConnectionTracker, DisconnectNotifiesOnceBeforeOriginalAndClearsAfter) {
       },
       sink);
 
+  // The sink hears first, and the slot clears after.
   EXPECT_EQ(events, (std::vector<std::string>{"disconnecting:3:42", "original"}));
   EXPECT_FALSE(ConnectionTracker::StateForSlot(3).occupied);
 
@@ -134,11 +138,13 @@ TEST(ConnectionTracker, DisconnectNotifiesOnceBeforeOriginalAndClearsAfter) {
 }
 
 TEST(ConnectionTracker, DisconnectSinkCleansEntityBeforeEngineOriginal) {
+  // Seat a player and a sink that removes their entity.
   ConnectionTracker::ApplyPutInServer(7, 77, false, "p7");
   bool entity_live = true;
   auto sink = std::make_shared<CleanupSink>(entity_live);
   int originals = 0;
 
+  // The engine callback runs after the cleanup.
   ConnectionTracker::DispatchDisconnect(
       7,
       [&] {
@@ -147,12 +153,14 @@ TEST(ConnectionTracker, DisconnectSinkCleansEntityBeforeEngineOriginal) {
       },
       sink);
 
+  // It runs once, and the slot clears.
   EXPECT_EQ(originals, 1);
   EXPECT_FALSE(entity_live);
   EXPECT_FALSE(ConnectionTracker::StateForSlot(7).occupied);
 }
 
 TEST(ConnectionTracker, DispatchRetainsSinkThroughEngineCallback) {
+  // Seat a player and drop the caller's sink during the callback.
   ConnectionTracker::ApplyPutInServer(4, 44, false, "p4");
   std::vector<std::string> events;
   auto sink = std::make_shared<RecordingSink>(events);
@@ -165,10 +173,12 @@ TEST(ConnectionTracker, DispatchRetainsSinkThroughEngineCallback) {
       },
       sink);
 
+  // Dispatch held the sink until it returned.
   EXPECT_TRUE(weak_sink.expired());
 }
 
 TEST(ConnectionTracker, ReentrantDisconnectDispatchesOnce) {
+  // Seat a player whose sink disconnects them again.
   ConnectionTracker::ApplyPutInServer(5, 55, false, "p5");
   int connected = 0;
   int disconnecting = 0;
@@ -178,8 +188,10 @@ TEST(ConnectionTracker, ReentrantDisconnectDispatchesOnce) {
     ConnectionTracker::DispatchDisconnect(5, [&] { ++originals; }, sink);
   });
 
+  // Disconnect them.
   ConnectionTracker::DispatchDisconnect(5, [&] { ++originals; }, sink);
 
+  // The sink hears once and the engine once.
   EXPECT_EQ(connected, 0);
   EXPECT_EQ(disconnecting, 1);
   EXPECT_EQ(originals, 1);
@@ -187,6 +199,7 @@ TEST(ConnectionTracker, ReentrantDisconnectDispatchesOnce) {
 }
 
 TEST(ConnectionTracker, ReconnectGenerationMayDisconnectBeforeOldCompletion) {
+  // Seat a player whose sink reconnects them once, then disconnects again.
   ConnectionTracker::ApplyPutInServer(8, 88, false, "p8");
   int connected = 0;
   int disconnecting = 0;
@@ -204,8 +217,10 @@ TEST(ConnectionTracker, ReconnectGenerationMayDisconnectBeforeOldCompletion) {
       },
       [&] { ConnectionTracker::DispatchDisconnect(8, [&] { ++originals; }, sink); });
 
+  // Disconnect them.
   ConnectionTracker::DispatchDisconnect(8, [&] { ++originals; }, sink);
 
+  // Each generation's events arrive, and the slot ends empty.
   EXPECT_EQ(connected, 1);
   EXPECT_EQ(disconnecting, 2);
   EXPECT_EQ(originals, 3);
@@ -213,6 +228,7 @@ TEST(ConnectionTracker, ReconnectGenerationMayDisconnectBeforeOldCompletion) {
 }
 
 TEST(ConnectionTracker, ReconnectDuringDisconnectSinkSurvivesOuterCompletion) {
+  // Seat a player whose sink reconnects them.
   ConnectionTracker::ApplyPutInServer(6, 66, false, "p6");
   int connected = 0;
   int disconnecting = 0;
@@ -220,8 +236,10 @@ TEST(ConnectionTracker, ReconnectDuringDisconnectSinkSurvivesOuterCompletion) {
   auto sink = std::make_shared<CallbackSink>(
       connected, disconnecting, [&] { ConnectionTracker::ApplyPutInServer(6, 67, false, "p6b"); });
 
+  // Disconnect them.
   ConnectionTracker::DispatchDisconnect(6, [&] { ++originals; }, sink);
 
+  // The reconnect survives the outer disconnect.
   EXPECT_EQ(disconnecting, 1);
   EXPECT_EQ(originals, 1);
   const auto state = ConnectionTracker::StateForSlot(6);
@@ -236,6 +254,7 @@ TEST(ConnectionTracker, InstallRequiresRetainedSink) {
 }
 
 TEST(ConnectionTracker, SameXuidReconnectAdvancesGeneration) {
+  // Seat, disconnect and reseat the same player.
   ConnectionTracker::ApplyPutInServer(9, 99, false, "p9");
   const auto first = ConnectionTracker::StateForSlot(9);
   ConnectionTracker::ApplyDisconnect(9);
@@ -247,6 +266,7 @@ TEST(ConnectionTracker, SameXuidReconnectAdvancesGeneration) {
 }
 
 TEST(ConnectionTracker, UnoccupiedDisconnectCannotEraseReconnectFromOriginal) {
+  // A callback for an empty slot may seat a player.
   ConnectionTracker::ApplyDisconnect(10);
   ConnectionTracker::DispatchDisconnect(
       10, [] { ConnectionTracker::ApplyPutInServer(10, 1010, false, "p10"); }, nullptr);
@@ -256,8 +276,10 @@ TEST(ConnectionTracker, UnoccupiedDisconnectCannotEraseReconnectFromOriginal) {
 }
 
 TEST(ConnectionTracker, UnknownSlotsStayUnoccupied) {
+  // Slots out of range read as empty.
   EXPECT_FALSE(ConnectionTracker::StateForSlot(-1).occupied);
   EXPECT_FALSE(ConnectionTracker::StateForSlot(64).occupied);
+
   // Out-of-range lifecycle events are dropped, not recorded into neighbors.
   ConnectionTracker::ApplyPutInServer(-1, 1, false, nullptr);
   ConnectionTracker::ApplyPutInServer(64, 1, false, nullptr);
@@ -268,34 +290,47 @@ TEST(ConnectionTracker, UnknownSlotsStayUnoccupied) {
 }
 
 TEST(ConnectionTracker, FullSignonBelongsToTheCurrentConnectionGeneration) {
+  // A player signs on after the engine callback.
   ConnectionTracker::ApplyPutInServer(20, 200, false, "human");
   EXPECT_FALSE(ConnectionTracker::StateForSlot(20).fully_connected);
   ConnectionTracker::DispatchFullyConnect(
       20, [] { EXPECT_FALSE(ConnectionTracker::StateForSlot(20).fully_connected); });
   EXPECT_TRUE(ConnectionTracker::StateForSlot(20).fully_connected);
+
+  // A reseat clears the signon.
   ConnectionTracker::ApplyPutInServer(20, 200, false, "human");
   EXPECT_FALSE(ConnectionTracker::StateForSlot(20).fully_connected);
+
+  // A signon whose callback replaces or removes the player does not count.
   ConnectionTracker::DispatchFullyConnect(
       20, [] { ConnectionTracker::ApplyPutInServer(20, 201, false, "replacement"); });
   EXPECT_FALSE(ConnectionTracker::StateForSlot(20).fully_connected);
   ConnectionTracker::DispatchFullyConnect(20, [] { ConnectionTracker::ApplyDisconnect(20); });
   EXPECT_FALSE(ConnectionTracker::StateForSlot(20).fully_connected);
+
+  // A bot is signed on at once.
   ConnectionTracker::ApplyPutInServer(20, 0, true, "bot");
   EXPECT_TRUE(ConnectionTracker::StateForSlot(20).fully_connected);
   ConnectionTracker::ApplyDisconnect(20);
 }
 
 TEST(ConnectionTracker, RevisionChangesWithEachJoinSignonAndLeave) {
+  // A join changes the revision.
   const auto start = ConnectionTracker::Revision();
   ConnectionTracker::ApplyPutInServer(21, 210, false, "human");
   const auto joined = ConnectionTracker::Revision();
   EXPECT_NE(joined, start);
+
+  // A signon changes it once.
   ConnectionTracker::DispatchFullyConnect(21, nullptr);
   const auto ready = ConnectionTracker::Revision();
   EXPECT_NE(ready, joined);
   EXPECT_EQ(ConnectionTracker::Revision(), ready);
+
+  // A leave changes it.
   ConnectionTracker::ApplyDisconnect(21);
   EXPECT_NE(ConnectionTracker::Revision(), ready);
+
   // An event for no slot changes nothing a reader sees.
   const auto left = ConnectionTracker::Revision();
   ConnectionTracker::ApplyPutInServer(64, 1, false, nullptr);
@@ -305,6 +340,7 @@ TEST(ConnectionTracker, RevisionChangesWithEachJoinSignonAndLeave) {
 }  // namespace
 
 TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
+  // Turn tracing on, keeping the prior setting.
   const auto* prior = std::getenv("MODLOCK_INTEROP_TRACE");
   const bool had_prior = prior != nullptr;
   const std::string prior_value = prior ? prior : "";
@@ -313,6 +349,8 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
 #else
   setenv("MODLOCK_INTEROP_TRACE", "1", 1);
 #endif
+
+  // Capture two rounds of a full roster joining and leaving.
   testing::internal::CaptureStderr();
   for (int round = 0; round < 2; ++round) {
     for (int slot = 0; slot < 12; ++slot) {
@@ -320,6 +358,8 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
       ConnectionTracker::DispatchDisconnect(slot, {}, {});
     }
   }
+
+  // Take the trace and restore the prior setting.
   const auto trace = testing::internal::GetCapturedStderr();
 #if defined(_WIN32)
   _putenv_s("MODLOCK_INTEROP_TRACE", prior_value.c_str());
@@ -330,6 +370,8 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
     unsetenv("MODLOCK_INTEROP_TRACE");
   }
 #endif
+
+  // Every slot's join appears in both rounds, and its leave.
   for (int slot = 0; slot < 12; ++slot) {
     const auto receipt = "ClientPutInServer slot " + std::to_string(slot) + " xuid 0";
     const auto first = trace.find(receipt);
