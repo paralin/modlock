@@ -66,7 +66,9 @@ TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   // A change that grows the tree past its bound applies none of its nodes.
   Change large;
   large.set_reset(true);
-  for (int i = 0; i <= 512; ++i) large.add_set()->set_id(std::to_string(i));
+  for (int i = 0; i <= 512; ++i) {
+    large.add_set()->set_id(std::to_string(i));
+  }
   EXPECT_FALSE(trees.Apply(0, large));
   EXPECT_TRUE(trees.IsButton(0, "ready"));
 }

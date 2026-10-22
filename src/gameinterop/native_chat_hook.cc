@@ -65,14 +65,17 @@ void ClearThunkState() {
 }
 
 std::optional<NativeChatHook::Message> ReadChat(void* serializer, const void* native_message) {
-  if (!serializer || !native_message || !g_messages) return {};
+  if (!serializer || !native_message || !g_messages) {
+    return {};
+  }
   int32_t id = 0;
   SIZE_T copied = 0;
   if (!ReadProcessMemory(GetCurrentProcess(),
                          static_cast<const uint8_t*>(serializer) + kSerializerMessageIdOffset, &id,
                          sizeof(id), &copied) ||
-      copied != sizeof(id) || (id != kPlayerChatMessageId && id != kChatMessageId))
+      copied != sizeof(id) || (id != kPlayerChatMessageId && id != kChatMessageId)) {
     return {};
+  }
   std::array<uint8_t, 4096> bytes{};
   BitWriter writer{bytes.data(), static_cast<int32_t>(bytes.size()),
                    static_cast<int32_t>(bytes.size() * 8)};
@@ -95,10 +98,13 @@ void PostThunk(void* self, int32_t split_screen, bool local_only, int32_t client
       g_handler && GetCurrentThreadId() == g_thread ? ReadChat(serializer, message) : std::nullopt;
   g_original(self, split_screen, local_only, clients, recipients, serializer, message, size,
              buffer);
-  if (!chat) return;
+  if (!chat) {
+    return;
+  }
   const auto sender = ConnectionTracker::StateForSlot(chat->slot);
-  if (sender.occupied && sender.fully_connected && !sender.is_bot && sender.xuid && g_handler)
+  if (sender.occupied && sender.fully_connected && !sender.is_bot && sender.xuid && g_handler) {
     (*g_handler)(chat->slot, chat->text);
+  }
 }
 #endif
 
@@ -107,30 +113,39 @@ void PostThunk(void* self, int32_t split_screen, bool local_only, int32_t client
 std::optional<NativeChatHook::Message> NativeChatHook::Decode(int16_t message_id,
                                                               std::span<const uint8_t> serialized) {
   if ((message_id != kPlayerChatMessageId && message_id != kChatMessageId) || serialized.empty() ||
-      serialized.size() > 4096)
+      serialized.size() > 4096) {
     return std::nullopt;
+  }
   google::protobuf::io::CodedInputStream input(serialized.data(),
                                                static_cast<int>(serialized.size()));
   uint32_t size = 0;
   if (!input.ReadVarint32(&size) || size > serialized.size() ||
-      size != serialized.size() - input.CurrentPosition())
+      size != serialized.size() - input.CurrentPosition()) {
     return std::nullopt;
+  }
   const auto* payload = serialized.data() + input.CurrentPosition();
   if (message_id == kChatMessageId) {
     engine::ChatMessage message;
     if (!message.ParseFromArray(payload, static_cast<int>(size)) || !message.has_text() ||
-        message.player_slot() < 0 || message.player_slot() >= 64)
+        message.player_slot() < 0 || message.player_slot() >= 64) {
       return std::nullopt;
+    }
     return Message{message.player_slot(), message.text()};
   }
   engine::PlayerChatMessage message;
-  if (!message.ParseFromArray(payload, static_cast<int>(size))) return std::nullopt;
-  if (!message.chat() || message.entity_index() < 1 || message.entity_index() > 64)
+  if (!message.ParseFromArray(payload, static_cast<int>(size))) {
     return std::nullopt;
+  }
+  if (!message.chat() || message.entity_index() < 1 || message.entity_index() > 64) {
+    return std::nullopt;
+  }
   std::string_view audience = message.message_name();
-  if (audience.starts_with('#')) audience.remove_prefix(1);
-  if (std::ranges::find(kPlayerChatAudiences, audience) == kPlayerChatAudiences.end())
+  if (audience.starts_with('#')) {
+    audience.remove_prefix(1);
+  }
+  if (std::ranges::find(kPlayerChatAudiences, audience) == kPlayerChatAudiences.end()) {
     return std::nullopt;
+  }
   return Message{message.entity_index() - 1, message.text()};
 }
 
@@ -147,20 +162,32 @@ NativeChatHook::~NativeChatHook() = default;
 
 std::expected<NativeChatHook, std::string> NativeChatHook::Install(Handler handler) {
 #if defined(_WIN32)
-  if (g_handler || !handler) return std::unexpected("native chat hook already installed or empty");
+  if (g_handler || !handler) {
+    return std::unexpected("native chat hook already installed or empty");
+  }
   const auto resolved = ResolveEngineInterface(L"engine2.dll", "GameEventSystemServerV001");
-  if (!resolved) return std::unexpected(resolved.error());
+  if (!resolved) {
+    return std::unexpected(resolved.error());
+  }
   void* events = *resolved;
   const auto messages = ResolveEngineInterface(L"networksystem.dll", "NetworkMessagesVersion001");
-  if (!messages) return std::unexpected(messages.error());
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
   const auto post_slot = ResolveVirtualSlot("game-event-system.post-event");
   const auto serialize_slot = ResolveVirtualSlot("network-messages.serialize");
-  if (!post_slot) return std::unexpected(post_slot.error());
-  if (!serialize_slot) return std::unexpected(serialize_slot.error());
+  if (!post_slot) {
+    return std::unexpected(post_slot.error());
+  }
+  if (!serialize_slot) {
+    return std::unexpected(serialize_slot.error());
+  }
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
   auto hook = VtableSlotHook::Install(events, *post_slot, reinterpret_cast<void*>(&PostThunk));
-  if (!hook) return std::unexpected(hook.error());
+  if (!hook) {
+    return std::unexpected(hook.error());
+  }
   g_original = reinterpret_cast<Post>(hook->Original());
   g_messages = *messages;
   g_serialize_slot = *serialize_slot;

@@ -22,14 +22,20 @@ struct FakeAbility {
   uint32_t handle;
 };
 
-int32_t NativeThree(void*) { return 3; }
-int32_t NativeTwo(void*) { return 2; }
+int32_t NativeThree(void*) {
+  return 3;
+}
+int32_t NativeTwo(void*) {
+  return 2;
+}
 
 // leaving makes every ability look as if it is being deleted.
 bool leaving = false;
 
 std::optional<uint32_t> HandleOf(void* ability) {
-  if (leaving) return std::nullopt;
+  if (leaving) {
+    return std::nullopt;
+  }
   return static_cast<FakeAbility*>(ability)->handle;
 }
 

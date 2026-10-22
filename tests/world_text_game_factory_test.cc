@@ -149,7 +149,9 @@ void RecordKvSetColor(void*, const modlock::gameinterop::MemberName* name, std::
                                                        std::to_string((packed >> 24) & 0xFF));
 }
 
-void RecordUtilRemove(void*) { g_removed_count++; }
+void RecordUtilRemove(void*) {
+  g_removed_count++;
+}
 
 WorldTextGameCalls RecordingCalls() {
   WorldTextGameCalls calls;

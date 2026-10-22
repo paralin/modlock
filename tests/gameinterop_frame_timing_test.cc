@@ -20,7 +20,9 @@ using std::chrono::milliseconds;
 std::optional<FrameTimingSummary> RunFrames(FrameTiming& timing, FrameTiming::Clock::time_point& at,
                                             microseconds interval, microseconds work, int frames) {
   for (int frame = 0; frame < frames; ++frame) {
-    if (auto summary = timing.Record(at, at + work)) return summary;
+    if (auto summary = timing.Record(at, at + work)) {
+      return summary;
+    }
     at += interval;
   }
   return std::nullopt;

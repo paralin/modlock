@@ -38,7 +38,9 @@ std::atomic<void*> g_fully_connect_original{nullptr};
 std::atomic<void*> g_disconnect_original{nullptr};
 std::shared_ptr<ConnectionEventSink> g_event_sink;
 
-bool ValidSlot(int32_t slot) { return slot >= 0 && slot < kMaxSlots; }
+bool ValidSlot(int32_t slot) {
+  return slot >= 0 && slot < kMaxSlots;
+}
 
 // Thunk signatures follow sourcesdk public/eiface.h: CPlayerSlot is a single-
 // int POD, so the x64 ABI passes it as an int register argument.
@@ -63,7 +65,9 @@ void PutInServerThunk(void* self, int32_t slot, const char* name, int type, uint
 void FullyConnectThunk(void* self, int32_t slot) {
   void* original = g_fully_connect_original.load(std::memory_order_acquire);
   ConnectionTracker::DispatchFullyConnect(slot, [=] {
-    if (original) reinterpret_cast<FullyConnectFn>(original)(self, slot);
+    if (original) {
+      reinterpret_cast<FullyConnectFn>(original)(self, slot);
+    }
   });
 }
 
@@ -112,7 +116,9 @@ ConnectionTracker& ConnectionTracker::operator=(ConnectionTracker&& other) noexc
   return *this;
 }
 
-ConnectionTracker::~ConnectionTracker() { Reset(); }
+ConnectionTracker::~ConnectionTracker() {
+  Reset();
+}
 
 void ConnectionTracker::Reset() {
   if (!active_) {
@@ -152,9 +158,13 @@ void ConnectionTracker::DispatchPutInServer(int32_t slot, uint64_t xuid, bool is
 
 void ConnectionTracker::DispatchFullyConnect(int32_t slot, const EngineCallback& original) {
   const auto before = StateForSlot(slot);
-  if (original) original();
+  if (original) {
+    original();
+  }
   const auto after = StateForSlot(slot);
-  if (!before.occupied || !after.occupied || before.generation != after.generation) return;
+  if (!before.occupied || !after.occupied || before.generation != after.generation) {
+    return;
+  }
   g_fully_connected[slot].store(true, std::memory_order_release);
   g_revision.fetch_add(1, std::memory_order_release);
   if (InteropTraceEnabled()) {
@@ -231,7 +241,9 @@ void ConnectionTracker::ApplyDisconnect(int32_t slot) {
   g_revision.fetch_add(1, std::memory_order_release);
 }
 
-uint64_t ConnectionTracker::Revision() { return g_revision.load(std::memory_order_acquire); }
+uint64_t ConnectionTracker::Revision() {
+  return g_revision.load(std::memory_order_acquire);
+}
 
 ConnectionTracker::SlotState ConnectionTracker::StateForSlot(int32_t slot) {
   if (!ValidSlot(slot) || !g_occupied[slot].load(std::memory_order_acquire)) {
@@ -248,26 +260,42 @@ ConnectionTracker::SlotState ConnectionTracker::StateForSlot(int32_t slot) {
 
 std::expected<ConnectionTracker, std::string> ConnectionTracker::Install(
     std::shared_ptr<ConnectionEventSink> sink) {
-  if (sink == nullptr) return std::unexpected("connection tracker requires an event sink");
+  if (sink == nullptr) {
+    return std::unexpected("connection tracker requires an event sink");
+  }
   const auto resolved = ResolveEngineInterface(L"server.dll", kSource2GameClientsVersion);
-  if (!resolved) return std::unexpected(resolved.error());
+  if (!resolved) {
+    return std::unexpected(resolved.error());
+  }
   void* clients = *resolved;
   const auto put_in_server_slot = ResolveVirtualSlot("game-clients.put-in-server");
   const auto fully_connect_slot = ResolveVirtualSlot("game-clients.fully-connect");
   const auto disconnect_slot = ResolveVirtualSlot("game-clients.disconnect");
-  if (!put_in_server_slot) return std::unexpected(put_in_server_slot.error());
-  if (!fully_connect_slot) return std::unexpected(fully_connect_slot.error());
-  if (!disconnect_slot) return std::unexpected(disconnect_slot.error());
+  if (!put_in_server_slot) {
+    return std::unexpected(put_in_server_slot.error());
+  }
+  if (!fully_connect_slot) {
+    return std::unexpected(fully_connect_slot.error());
+  }
+  if (!disconnect_slot) {
+    return std::unexpected(disconnect_slot.error());
+  }
 
   auto put_in_server = VtableSlotHook::Install(clients, *put_in_server_slot,
                                                reinterpret_cast<void*>(&PutInServerThunk));
-  if (!put_in_server) return std::unexpected(put_in_server.error());
+  if (!put_in_server) {
+    return std::unexpected(put_in_server.error());
+  }
   auto fully_connect = VtableSlotHook::Install(clients, *fully_connect_slot,
                                                reinterpret_cast<void*>(&FullyConnectThunk));
-  if (!fully_connect) return std::unexpected(fully_connect.error());
+  if (!fully_connect) {
+    return std::unexpected(fully_connect.error());
+  }
   auto disconnect =
       VtableSlotHook::Install(clients, *disconnect_slot, reinterpret_cast<void*>(&DisconnectThunk));
-  if (!disconnect) return std::unexpected(disconnect.error());
+  if (!disconnect) {
+    return std::unexpected(disconnect.error());
+  }
   g_put_in_server_original.store(put_in_server->Original(), std::memory_order_release);
   g_fully_connect_original.store(fully_connect->Original(), std::memory_order_release);
   g_disconnect_original.store(disconnect->Original(), std::memory_order_release);

@@ -57,7 +57,9 @@ BoundedReader MemoryReader(const void* base, size_t size) {
   return [base, size](const void* source, void* out, size_t bytes) {
     const auto* begin = static_cast<const unsigned char*>(base);
     const auto* from = static_cast<const unsigned char*>(source);
-    if (from < begin || from + bytes > begin + size) return false;
+    if (from < begin || from + bytes > begin + size) {
+      return false;
+    }
     std::memcpy(out, from, bytes);
     return true;
   };
@@ -65,7 +67,9 @@ BoundedReader MemoryReader(const void* base, size_t size) {
 
 // FailReader rejects every read: the decoder must surface that, not zeros.
 BoundedReader FailReader() {
-  return [](const void*, void*, size_t) { return false; };
+  return [](const void*, void*, size_t) {
+    return false;
+  };
 }
 
 TEST(DecodeDamageTaken, DecodesTheDocumentedLayout) {
@@ -268,7 +272,9 @@ TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {
   const auto write = [&](void* target, const void* source, size_t size) {
     auto* bytes = static_cast<unsigned char*>(target);
     auto* begin = reinterpret_cast<unsigned char*>(&info);
-    if (bytes < begin || bytes + size > begin + sizeof(info)) return false;
+    if (bytes < begin || bytes + size > begin + sizeof(info)) {
+      return false;
+    }
     std::memcpy(target, source, size);
     return true;
   };
@@ -341,7 +347,9 @@ class EnumImage : public modlock::gameinterop::ModuleImage {
 
   // Seal appends the aligned records after the names.
   void Seal() {
-    while (bytes_.size() % 8 != 0) bytes_.push_back(0xCC);
+    while (bytes_.size() % 8 != 0) {
+      bytes_.push_back(0xCC);
+    }
     for (const auto& [pointer, value] : records_) {
       const size_t at = bytes_.size();
       bytes_.resize(at + 16);
@@ -365,7 +373,8 @@ TEST(ModifierEventIndex, ReadsTheRunningGamesValueByName) {
   image.Add("MODIFIER_EVENT_MELEE_ATTACK_STARTED", 0x59);
   image.Add("MODIFIER_EVENT_DAMAGE_TAKEN", 0x18);
   image.Seal();
-  auto melee = modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_MELEE_ATTACK_STARTED");
+  auto melee =
+      modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_MELEE_ATTACK_STARTED");
   ASSERT_TRUE(melee) << melee.error();
   EXPECT_EQ(*melee, 0x59u);
   auto damage = modlock::gameinterop::ModifierEventIndex(image, "MODIFIER_EVENT_DAMAGE_TAKEN");

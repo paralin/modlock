@@ -25,8 +25,12 @@ void* Create(void*, const char* name, int) {
 void Teleport(void*, const float* p, const float*, const float*) {
   steps.emplace_back("teleport:" + std::to_string(static_cast<int>(p[0])));
 }
-void Queue(void*, void*, void*) { steps.emplace_back("queue"); }
-void Execute(void*) { steps.emplace_back("execute"); }
+void Queue(void*, void*, void*) {
+  steps.emplace_back("queue");
+}
+void Execute(void*) {
+  steps.emplace_back("execute");
+}
 bool Accept(void*, const char* input, void*, void*, void* value, int, void*) {
   const auto* variant = static_cast<const char*>(value);
   (void)variant;
@@ -123,7 +127,9 @@ TEST_F(EffectTest, UsesTheNativeFreshMemberSurface) {
   static std::array<std::uint64_t, 2> member;
   auto calls = Calls();
   calls.key_values = {};
-  calls.key_values.allocate = [](size_t) -> void* { return storage.data(); };
+  calls.key_values.allocate = [](size_t) -> void* {
+    return storage.data();
+  };
   calls.key_values.construct_key_values = [](void* memory, void*, unsigned char) -> void* {
     return memory;
   };

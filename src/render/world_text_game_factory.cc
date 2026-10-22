@@ -32,10 +32,14 @@ bool WriteWorldTextMessage(void* entity, const char* message) {
     return false;
   }
   const auto schema = modlock::gameinterop::ResolveSchemaSystem();
-  if (!schema) return false;
+  if (!schema) {
+    return false;
+  }
   const auto field = modlock::gameinterop::SchemaFieldOf(*schema, "server.dll", "CPointWorldText",
                                                          "m_messageText");
-  if (!field) return false;
+  if (!field) {
+    return false;
+  }
   constexpr size_t kMinimumInlineTextCapacity = 64;
   constexpr size_t kMaximumInlineTextCapacity = 4096;
   if (field->size < kMinimumInlineTextCapacity || field->size > kMaximumInlineTextCapacity) {

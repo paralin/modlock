@@ -34,10 +34,14 @@ int WSAAPI SharedBind(SOCKET socket, const sockaddr* address, int length) {
   setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse),
              sizeof(reuse));
   const int result = original_bind(socket, address, length);
-  if (result == 0 || WSAGetLastError() != WSAEADDRINUSE) return result;
+  if (result == 0 || WSAGetLastError() != WSAEADDRINUSE) {
+    return result;
+  }
 
   sockaddr_storage retry{};
-  if (length <= 0 || static_cast<size_t>(length) > sizeof(retry)) return result;
+  if (length <= 0 || static_cast<size_t>(length) > sizeof(retry)) {
+    return result;
+  }
   std::memcpy(&retry, address, length);
   if (retry.ss_family == AF_INET) {
     reinterpret_cast<sockaddr_in&>(retry).sin_port = 0;
@@ -65,7 +69,9 @@ std::expected<void, std::string> ShareVConsolePort(const std::filesystem::path& 
   }
   auto original =
       PatchImport(module, "ws2_32.dll", "bind", kBindOrdinal, reinterpret_cast<void*>(&SharedBind));
-  if (!original) return std::unexpected("VConsole port sharing: vconcomm.dll: " + original.error());
+  if (!original) {
+    return std::unexpected("VConsole port sharing: vconcomm.dll: " + original.error());
+  }
   original_bind = reinterpret_cast<BindFn>(*original);
   return {};
 }

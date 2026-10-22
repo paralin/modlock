@@ -33,7 +33,9 @@ void RecordTeleport(void* self, const float* position, const float* angles, cons
   auto* entity = static_cast<FakeEntity*>(self);
   std::memcpy(entity->teleport.position, position, sizeof(entity->teleport.position));
   std::memcpy(entity->teleport.angles, angles, sizeof(entity->teleport.angles));
-  if (velocity) std::memcpy(entity->teleport.velocity, velocity, sizeof(entity->teleport.velocity));
+  if (velocity) {
+    std::memcpy(entity->teleport.velocity, velocity, sizeof(entity->teleport.velocity));
+  }
   entity->teleport.calls++;
 }
 
@@ -88,7 +90,9 @@ TEST(TeleportEntity, EmptyVelocityStopsAMovingPawn) {
                                        {});
 
   ASSERT_EQ(entity.teleport.calls, 1);
-  for (float component : entity.teleport.velocity) EXPECT_FLOAT_EQ(component, 0.0f);
+  for (float component : entity.teleport.velocity) {
+    EXPECT_FLOAT_EQ(component, 0.0f);
+  }
 }
 
 }  // namespace

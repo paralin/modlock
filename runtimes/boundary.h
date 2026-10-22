@@ -62,17 +62,25 @@ static inline int find_field(const uint8_t* data, size_t size, uint32_t number, 
   while (at < end) {
     uint64_t key;
     uint64_t value;
-    if (!get_varint(&at, end, &key)) return 0;
+    if (!get_varint(&at, end, &key)) {
+      return 0;
+    }
     switch (key & 7) {
       case 0:
-        if (!get_varint(&at, end, &value)) return 0;
+        if (!get_varint(&at, end, &value)) {
+          return 0;
+        }
         break;
       case 1:
-        if (end - at < 8) return 0;
+        if (end - at < 8) {
+          return 0;
+        }
         at += 8;
         break;
       case 2:
-        if (!get_varint(&at, end, &value) || value > (uint64_t)(end - at)) return 0;
+        if (!get_varint(&at, end, &value) || value > (uint64_t)(end - at)) {
+          return 0;
+        }
         if (key >> 3 == number) {
           *out = at;
           *out_size = (size_t)value;
@@ -81,7 +89,9 @@ static inline int find_field(const uint8_t* data, size_t size, uint32_t number, 
         at += value;
         break;
       case 5:
-        if (end - at < 4) return 0;
+        if (end - at < 4) {
+          return 0;
+        }
         at += 4;
         break;
       default:
@@ -104,7 +114,9 @@ static inline int start_source(const uint8_t* call, size_t size, const uint8_t**
 // little reads a little-endian integer of size bytes at data.
 static inline uint32_t little(const uint8_t* data, int size) {
   uint32_t value = 0;
-  for (int i = size - 1; i >= 0; --i) value = value << 8 | data[i];
+  for (int i = size - 1; i >= 0; --i) {
+    value = value << 8 | data[i];
+  }
   return value;
 }
 
@@ -119,10 +131,14 @@ static inline int read_zip(const uint8_t* zip, size_t size, zip_file each, void*
   // Find the end of central directory record, which ends the archive before
   // a comment of at most 64 KiB.
   const size_t end_size = 22;
-  if (size < end_size) return 0;
+  if (size < end_size) {
+    return 0;
+  }
   size_t end = size - end_size;
   while (little(zip + end, 4) != 0x06054b50) {
-    if (end == 0 || size - end > end_size + 0xffff) return 0;
+    if (end == 0 || size - end > end_size + 0xffff) {
+      return 0;
+    }
     --end;
   }
   size_t entries = little(zip + end + 10, 2);
@@ -130,19 +146,31 @@ static inline int read_zip(const uint8_t* zip, size_t size, zip_file each, void*
 
   // Read each file through its local header, skipping directories.
   for (size_t i = 0; i < entries; ++i) {
-    if (at + 46 > size || little(zip + at, 4) != 0x02014b50) return 0;
+    if (at + 46 > size || little(zip + at, 4) != 0x02014b50) {
+      return 0;
+    }
     uint32_t method = little(zip + at + 10, 2);
     size_t stored = little(zip + at + 20, 4);
     size_t name_size = little(zip + at + 28, 2);
     size_t local = little(zip + at + 42, 4);
     const char* name = (const char*)(zip + at + 46);
-    if (at + 46 + name_size > size) return 0;
+    if (at + 46 + name_size > size) {
+      return 0;
+    }
     at += 46 + name_size + little(zip + at + 30, 2) + little(zip + at + 32, 2);
-    if (name_size && name[name_size - 1] == '/') continue;
-    if (method != 0) return 0;
-    if (local + 30 > size || little(zip + local, 4) != 0x04034b50) return 0;
+    if (name_size && name[name_size - 1] == '/') {
+      continue;
+    }
+    if (method != 0) {
+      return 0;
+    }
+    if (local + 30 > size || little(zip + local, 4) != 0x04034b50) {
+      return 0;
+    }
     size_t data = local + 30 + little(zip + local + 26, 2) + little(zip + local + 28, 2);
-    if (data + stored > size || !each(context, name, name_size, zip + data, stored)) return 0;
+    if (data + stored > size || !each(context, name, name_size, zip + data, stored)) {
+      return 0;
+    }
   }
   return 1;
 }
@@ -153,8 +181,12 @@ static inline int read_zip(const uint8_t* zip, size_t size, zip_file each, void*
 static inline uint8_t* exchange(const uint8_t* request, size_t size, uint32_t* response_size) {
   *response_size = host_call(request, (uint32_t)size);
   uint8_t* response = (uint8_t*)malloc(*response_size ? *response_size : 1);
-  if (!response) __builtin_trap();
-  if (*response_size) host_read(response, *response_size);
+  if (!response) {
+    __builtin_trap();
+  }
+  if (*response_size) {
+    host_read(response, *response_size);
+  }
   return response;
 }
 
@@ -167,7 +199,9 @@ static inline void host_log(const char* text, size_t size) {
   size_t prefix_size = put_varint(prefix, size);
   size_t inner = 1 + prefix_size + size;
   uint8_t* request = (uint8_t*)malloc(sizeof(method) + inner + 11);
-  if (!request) __builtin_trap();
+  if (!request) {
+    __builtin_trap();
+  }
   memcpy(request, method, sizeof(method));
   size_t at = sizeof(method);
   request[at++] = 0x12;

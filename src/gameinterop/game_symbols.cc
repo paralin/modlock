@@ -13,10 +13,16 @@ std::expected<size_t, std::string> UniqueOffset(const ModuleImage& image,
                                                 const GameSignature& signature) {
   const std::string id(signature.id);
   auto parsed = ParseSignature(id, signature.pattern);
-  if (!parsed) return std::unexpected(parsed.error());
-  if (parsed->bytes.empty()) return std::unexpected("signature '" + id + "' has no pattern");
+  if (!parsed) {
+    return std::unexpected(parsed.error());
+  }
+  if (parsed->bytes.empty()) {
+    return std::unexpected("signature '" + id + "' has no pattern");
+  }
   const auto hits = SignatureScan(image.image_bytes(), *parsed);
-  if (hits.empty()) return std::unexpected("signature '" + id + "' not found in the module image");
+  if (hits.empty()) {
+    return std::unexpected("signature '" + id + "' not found in the module image");
+  }
   if (hits.size() > 1) {
     return std::unexpected("signature '" + id + "' matched " + std::to_string(hits.size()) +
                            " times in the module image");
@@ -56,9 +62,12 @@ const GameSignature* FindGameSignature(std::string_view id) {
 std::expected<void*, std::string> ResolveSignature(const ModuleImage& image,
                                                    const GameSignature& signature) {
   const auto offset = UniqueOffset(image, signature);
-  if (!offset) return std::unexpected(offset.error());
-  if (signature.target == SignatureTarget::kMatch)
+  if (!offset) {
+    return std::unexpected(offset.error());
+  }
+  if (signature.target == SignatureTarget::kMatch) {
     return reinterpret_cast<void*>(image.base() + *offset);
+  }
 
   // Validate the complete instruction before adding the delta, so even a
   // wrapping delta cannot escape the image.
@@ -92,8 +101,9 @@ std::expected<void*, std::string> ResolveSignature(const ModuleImage& image,
 
 std::expected<void*, std::string> ResolveSignature(const ModuleImage& image, std::string_view id) {
   const auto* signature = FindGameSignature(id);
-  if (signature == nullptr)
+  if (signature == nullptr) {
     return std::unexpected("signature '" + std::string(id) + "' is not recorded");
+  }
   return ResolveSignature(image, *signature);
 }
 

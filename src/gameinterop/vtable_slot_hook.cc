@@ -11,7 +11,9 @@ namespace {
 
 // TableOf reads the dispatch table an object points at. The vptr is the first
 // word of the object.
-void** TableOf(void* instance) { return *static_cast<void***>(instance); }
+void** TableOf(void* instance) {
+  return *static_cast<void***>(instance);
+}
 
 // WriteSlot stores one entry into a live dispatch table. A module's table sits
 // in read-only image memory, so Windows grants write access for the store and
@@ -36,10 +38,14 @@ bool WriteSlot(void** slot, void* value) {
 
 }  // namespace
 
-VtableSlotHook::VtableSlotHook(VtableSlotHook&& other) noexcept { *this = std::move(other); }
+VtableSlotHook::VtableSlotHook(VtableSlotHook&& other) noexcept {
+  *this = std::move(other);
+}
 
 VtableSlotHook& VtableSlotHook::operator=(VtableSlotHook&& other) noexcept {
-  if (this == &other) return *this;
+  if (this == &other) {
+    return *this;
+  }
   Restore();
   slot_ = other.slot_;
   original_ = other.original_;
@@ -48,7 +54,9 @@ VtableSlotHook& VtableSlotHook::operator=(VtableSlotHook&& other) noexcept {
   return *this;
 }
 
-VtableSlotHook::~VtableSlotHook() { Restore(); }
+VtableSlotHook::~VtableSlotHook() {
+  Restore();
+}
 
 std::expected<VtableSlotHook, std::string> VtableSlotHook::Install(void* instance, size_t slot,
                                                                    void* replacement) {

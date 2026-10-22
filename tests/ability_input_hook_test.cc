@@ -60,8 +60,11 @@ TEST(AbilityInputHook, ConsumesOnlySelectedBitsInEveryNativeButtonState) {
         return true;
       },
       [](AbilityInputHook::Input& input) {
-        for (auto& state : input.buttons)
-          if (state & 2) state = (state & ~uint64_t{2}) | (uint64_t{1} << 33);
+        for (auto& state : input.buttons) {
+          if (state & 2) {
+            state = (state & ~uint64_t{2}) | (uint64_t{1} << 33);
+          }
+        }
         return uint64_t{0};
       }));
   std::memcpy(remaining.data(), movement.data() + 8, sizeof(remaining));

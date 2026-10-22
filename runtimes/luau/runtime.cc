@@ -42,7 +42,9 @@ int handler = LUA_NOREF;
 std::string result;
 
 // Log writes text to the server log.
-void Log(std::string_view text) { host_log(text.data(), text.size()); }
+void Log(std::string_view text) {
+  host_log(text.data(), text.size());
+}
 
 // Keep adds one file of the mod's zip to sources.
 int Keep(void*, const char* name, size_t name_size, const uint8_t* data, size_t size) {
@@ -103,7 +105,9 @@ int HostLog(lua_State* L) {
 // the mod's zip.
 int Source(lua_State* L) {
   const auto found = sources.find(std::string_view(luaL_checkstring(L, 1)));
-  if (found == sources.end()) return 0;
+  if (found == sources.end()) {
+    return 0;
+  }
   lua_pushlstring(L, found->second.data(), found->second.size());
   return 1;
 }
@@ -137,7 +141,9 @@ int Load(lua_State* L) {
 // registers the function every event goes to.
 int Handle(lua_State* L) {
   luaL_checktype(L, 1, LUA_TFUNCTION);
-  if (handler != LUA_NOREF) lua_unref(L, handler);
+  if (handler != LUA_NOREF) {
+    lua_unref(L, handler);
+  }
   handler = lua_ref(L, 1);
   return 0;
 }
@@ -148,7 +154,9 @@ int Print(lua_State* L) {
   for (int i = 1; i <= lua_gettop(L); ++i) {
     size_t size;
     const char* text = luaL_tolstring(L, i, &size);
-    if (i > 1) line += '\t';
+    if (i > 1) {
+      line += '\t';
+    }
     line.append(text, size);
     lua_pop(L, 1);
   }
@@ -230,7 +238,9 @@ extern "C" __attribute__((export_name("modlock_event"))) uint64_t modlock_event(
   lua_pushlstring(thread, event.data(), event.size());
   result.clear();
   if (!Call(thread, 1, 1, "event")) {
-    if (starting) __builtin_trap();
+    if (starting) {
+      __builtin_trap();
+    }
     return 0;
   }
   size_t answer_size;
@@ -238,6 +248,8 @@ extern "C" __attribute__((export_name("modlock_event"))) uint64_t modlock_event(
     result.assign(answer, answer_size);
   }
   lua_pop(thread, 1);
-  if (result.empty()) return 0;
+  if (result.empty()) {
+    return 0;
+  }
   return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(result.data())) << 32 | result.size();
 }

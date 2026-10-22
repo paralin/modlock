@@ -10,7 +10,9 @@ std::expected<NativeSound, std::string> NativeSound::TryCreate(const ModuleImage
 #if defined(_WIN32)
   // Resolve the native CBaseEntity::EmitSoundParams entry point.
   auto target = ResolveSignature(server, "entity.emit-sound");
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   return NativeSound(reinterpret_cast<EmitFunction>(*target));
 #else
   (void)server;

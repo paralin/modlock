@@ -1,5 +1,3 @@
-#include "modlock/wasm_settings.h"
-
 #include <google/protobuf/json/json.h>
 
 #include <fstream>
@@ -7,13 +5,19 @@
 #include <iterator>
 #include <system_error>
 
+#include "modlock/wasm_settings.h"
+
 namespace modlock {
 
 FileSettings::FileSettings(std::filesystem::path path) : path_(std::move(path)) {
   // Start empty without a file, or with one that does not read.
-  if (path_.empty()) return;
+  if (path_.empty()) {
+    return;
+  }
   std::ifstream file(path_, std::ios::binary);
-  if (!file) return;
+  if (!file) {
+    return;
+  }
   const std::string text{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
   google::protobuf::json::ParseOptions options;
   options.ignore_unknown_fields = true;
@@ -54,7 +58,9 @@ void FileSettings::Store(std::string_view mod, uint64_t steam_id, std::string_vi
   found->set_value(value);
 
   // Rewrite the file whole through a staged copy.
-  if (path_.empty()) return;
+  if (path_.empty()) {
+    return;
+  }
   std::string text;
   google::protobuf::json::PrintOptions options;
   options.add_whitespace = true;
@@ -76,7 +82,9 @@ void FileSettings::Store(std::string_view mod, uint64_t steam_id, std::string_vi
     }
   }
   std::filesystem::rename(staged, path_, error);
-  if (error) std::cerr << "settings: cannot write " << path_.string() << ": " << error.message() << '\n';
+  if (error) {
+    std::cerr << "settings: cannot write " << path_.string() << ": " << error.message() << '\n';
+  }
 }
 
 }  // namespace modlock

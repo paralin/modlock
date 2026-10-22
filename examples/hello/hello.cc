@@ -18,7 +18,9 @@ class HelloPlugin final : public modlock::Plugin {
   explicit HelloPlugin(const modlock::PluginContext& context)
       : check_only_(context.check_only), engine_(context.engine) {
     for (int i = 1; i < context.argc; ++i) {
-      if (std::string_view(context.argv[i]) == "--reload") reload_ = true;
+      if (std::string_view(context.argv[i]) == "--reload") {
+        reload_ = true;
+      }
     }
   }
   ~HelloPlugin() override { std::cout << "hello: destroyed\n"; }
@@ -57,16 +59,22 @@ class HelloPlugin final : public modlock::Plugin {
           std::cout << "hello: native entity removed before shutdown\n";
         }
         auto server = modlock::gameinterop::EngineServer::Resolve();
-        if (server && server->ReadClock()) std::cout << "hello: world cleanup before shutdown\n";
+        if (server && server->ReadClock()) {
+          std::cout << "hello: world cleanup before shutdown\n";
+        }
       });
-      if (!ending) return false;
+      if (!ending) {
+        return false;
+      }
       world_.Add(std::move(*ending));
     }
     return true;
 #endif
   }
   void Tick() override {
-    if (finished_) return;
+    if (finished_) {
+      return;
+    }
     if (check_only_) {
       finished_ = true;
       std::cout << "hello: lifecycle tick\n";
@@ -74,17 +82,23 @@ class HelloPlugin final : public modlock::Plugin {
     }
     auto server = modlock::gameinterop::EngineServer::Resolve();
     if (!server) {
-      if (!observed_) std::cout << "hello: " << server.error() << '\n';
+      if (!observed_) {
+        std::cout << "hello: " << server.error() << '\n';
+      }
       observed_ = true;
       return;
     }
     auto clock = server->ReadClock();
     if (!clock) {
-      if (!observed_) std::cout << "hello: " << clock.error() << '\n';
+      if (!observed_) {
+        std::cout << "hello: " << clock.error() << '\n';
+      }
       observed_ = true;
       return;
     }
-    if (!observed_) std::cout << "hello: observed native tick " << clock->tick << '\n';
+    if (!observed_) {
+      std::cout << "hello: observed native tick " << clock->tick << '\n';
+    }
     observed_ = true;
     auto image = modlock::gameinterop::MappedModuleImage::ForModule(L"server.dll");
     auto entities = modlock::gameinterop::ResolveLiveEntitySystem();
@@ -111,7 +125,9 @@ class HelloPlugin final : public modlock::Plugin {
       finished_ = server->ServerCommand("quit\n");
       return;
     }
-    if (!server->ServerCommand("echo modlock_sample_native_operation\n")) return;
+    if (!server->ServerCommand("echo modlock_sample_native_operation\n")) {
+      return;
+    }
     std::cout << "hello: native frame " << clock->tick << ", command accepted\n";
     finished_ =
         server->ServerCommand(reload_ && worlds_ == 1 ? "changelevel dl_midtown\n" : "quit\n");
@@ -155,8 +171,12 @@ MODLOCK_PLUGIN_EXPORT modlock::PluginManifest ModlockPluginManifest_v1() {
 
 MODLOCK_PLUGIN_EXPORT modlock::Plugin* ModlockPluginCreate_v1(
     const modlock::PluginContext* context) {
-  if (!context) return nullptr;
+  if (!context) {
+    return nullptr;
+  }
   return new HelloPlugin(*context);
 }
 
-MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin* plugin) { delete plugin; }
+MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin* plugin) {
+  delete plugin;
+}

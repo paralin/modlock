@@ -27,7 +27,9 @@ FrameTiming::Clock::duration FrameTiming::Histogram::Percentile(double fraction)
   uint32_t seen = 0;
   for (size_t bucket = 0; bucket < kBuckets; ++bucket) {
     seen += counts[bucket];
-    if (seen >= rank && seen > 0) return std::min<Clock::duration>(max, kBucket * (bucket + 1));
+    if (seen >= rank && seen > 0) {
+      return std::min<Clock::duration>(max, kBucket * (bucket + 1));
+    }
   }
   return max;
 }
@@ -43,12 +45,18 @@ uint32_t FrameTiming::Histogram::CountAbove(Clock::duration duration) const {
 
 std::optional<FrameTimingSummary> FrameTiming::Record(Clock::time_point start,
                                                       Clock::time_point end) {
-  if (frames_ == 0) window_start_ = start;
-  if (previous_start_) intervals_.Add(start - *previous_start_);
+  if (frames_ == 0) {
+    window_start_ = start;
+  }
+  if (previous_start_) {
+    intervals_.Add(start - *previous_start_);
+  }
   previous_start_ = start;
   work_.Add(end - start);
   ++frames_;
-  if (end - window_start_ < kWindow) return std::nullopt;
+  if (end - window_start_ < kWindow) {
+    return std::nullopt;
+  }
 
   const FrameTimingSummary summary = Summarize(end);
   frames_ = 0;

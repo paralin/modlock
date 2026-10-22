@@ -13,7 +13,9 @@ constexpr float kReach = 16;
 
 float DistanceSquared(const std::array<float, 3>& a, const std::array<float, 3>& b) {
   float sum = 0;
-  for (size_t axis = 0; axis < a.size(); ++axis) sum += (a[axis] - b[axis]) * (a[axis] - b[axis]);
+  for (size_t axis = 0; axis < a.size(); ++axis) {
+    sum += (a[axis] - b[axis]) * (a[axis] - b[axis]);
+  }
   return sum;
 }
 
@@ -45,19 +47,27 @@ NpcRestore::NpcRestore(std::vector<Target> targets, Engine engine)
 NpcRestore::Result NpcRestore::Tick() {
   switch (phase_) {
     case Phase::kRestore:
-      if (auto done = engine_.restore(targets_); !done) return done;
+      if (auto done = engine_.restore(targets_); !done) {
+        return done;
+      }
       phase_ = Phase::kFinish;
       return std::nullopt;
     case Phase::kFinish:
-      if (auto done = engine_.finish(); !done) return done;
+      if (auto done = engine_.finish(); !done) {
+        return done;
+      }
       phase_ = Phase::kVerify;
       return std::nullopt;
     case Phase::kVerify:
       break;
   }
   auto samples = engine_.read();
-  if (!samples) return std::unexpected(samples.error());
-  if (auto mismatch = Match(targets_, *samples)) return std::unexpected(*mismatch);
+  if (!samples) {
+    return std::unexpected(samples.error());
+  }
+  if (auto mismatch = Match(targets_, *samples)) {
+    return std::unexpected(*mismatch);
+  }
   return std::expected<void, std::string>();
 }
 
@@ -104,7 +114,9 @@ std::optional<std::string> NpcRestore::Match(std::span<const Target> targets,
     }
     if (!found) {
       auto error = "no unit matches " + Describe(target);
-      if (nearest) error += "; the nearest is " + Describe(nearest->state);
+      if (nearest) {
+        error += "; the nearest is " + Describe(nearest->state);
+      }
       return error;
     }
   }

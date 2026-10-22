@@ -50,11 +50,17 @@ EngineFrameHook::EngineFrameHook(ThunkOwner owner) : owner_(std::move(owner)) {}
 
 std::expected<EngineFrameHook, std::string> EngineFrameHook::Install(FrameCallback on_frame) {
   const auto server = ResolveEngineInterface(L"server.dll", kServerInterfaceVersion);
-  if (!server) return std::unexpected(server.error());
+  if (!server) {
+    return std::unexpected(server.error());
+  }
   const auto slot = ResolveVirtualSlot("game-server.game-frame");
-  if (!slot) return std::unexpected(slot.error());
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
   auto hook = VtableSlotHook::Install(*server, *slot, reinterpret_cast<void*>(&GameFrameThunk));
-  if (!hook) return std::unexpected(hook.error());
+  if (!hook) {
+    return std::unexpected(hook.error());
+  }
   g_game_frame_original = hook->Original();
   g_on_frame = std::move(on_frame);
   return EngineFrameHook(ThunkOwner(std::move(*hook), &ClearThunkState));

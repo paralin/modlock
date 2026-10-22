@@ -15,7 +15,9 @@ safetyhook::InlineHook* g_hook = nullptr;
 RespawnGuard::Blocked* g_blocked = nullptr;
 
 void RespawnThunk(void* pawn, bool force) {
-  if (const auto handle = ReferenceHandleOf(pawn); handle && (*g_blocked)(*handle)) return;
+  if (const auto handle = ReferenceHandleOf(pawn); handle && (*g_blocked)(*handle)) {
+    return;
+  }
   g_hook->call<void>(pawn, force);
 }
 #endif
@@ -28,7 +30,9 @@ struct RespawnGuard::Impl {
   Blocked blocked;
 
   ~Impl() {
-    if (g_hook != &hook) return;
+    if (g_hook != &hook) {
+      return;
+    }
     hook.reset();
     g_hook = nullptr;
     g_blocked = nullptr;
@@ -44,20 +48,27 @@ RespawnGuard::~RespawnGuard() = default;
 std::expected<RespawnGuard, std::string> RespawnGuard::Install(const ModuleImage& server,
                                                                Blocked blocked) {
 #if defined(_WIN32)
-  if (g_hook || !blocked) return std::unexpected("respawn guard is already installed or unbound");
+  if (g_hook || !blocked) {
+    return std::unexpected("respawn guard is already installed or unbound");
+  }
   auto target = ResolveRespawnPawn(server);
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   auto hook = safetyhook::create_inline(reinterpret_cast<void*>(*target),
                                         reinterpret_cast<void*>(&RespawnThunk),
                                         safetyhook::InlineHook::StartDisabled);
-  if (!hook) return std::unexpected("respawn guard hook creation failed");
+  if (!hook) {
+    return std::unexpected("respawn guard hook creation failed");
+  }
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(hook);
   impl->blocked = std::move(blocked);
   g_hook = &impl->hook;
   g_blocked = &impl->blocked;
-  if (auto enabled = impl->hook.enable(); !enabled)
+  if (auto enabled = impl->hook.enable(); !enabled) {
     return std::unexpected("respawn guard hook activation failed");
+  }
   return RespawnGuard(std::move(impl));
 #else
   (void)server;

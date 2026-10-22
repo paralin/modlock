@@ -41,9 +41,13 @@ static_assert(sizeof(BitReader) == 40);
 
 std::expected<NativeUserMessages, std::string> NativeUserMessages::TryCreate() {
   const auto messages = ResolveEngineInterface(L"networksystem.dll", "NetworkMessagesVersion001");
-  if (!messages) return std::unexpected(messages.error());
+  if (!messages) {
+    return std::unexpected(messages.error());
+  }
   const auto events = ResolveEngineInterface(L"engine2.dll", "GameEventSystemServerV001");
-  if (!events) return std::unexpected(events.error());
+  if (!events) {
+    return std::unexpected(events.error());
+  }
   return NativeUserMessages(*messages, *events);
 }
 
@@ -97,29 +101,45 @@ std::expected<void, std::string> NativeUserMessages::ClearScreenEffect(
 
 std::expected<void, std::string> NativeUserMessages::Send(
     int32_t slot, int32_t id, const google::protobuf::MessageLite& message) const {
-  if (slot < 0 || slot >= 64) return std::unexpected("native user recipient slot is invalid");
+  if (slot < 0 || slot >= 64) {
+    return std::unexpected("native user recipient slot is invalid");
+  }
   const auto size = message.ByteSizeLong();
-  if (size == 0 || size > 4096) return std::unexpected("native user message size is invalid");
+  if (size == 0 || size > 4096) {
+    return std::unexpected("native user message size is invalid");
+  }
 #if defined(_WIN32)
   const auto find_slot = ResolveVirtualSlot("network-messages.find-by-id");
   const auto unserialize_slot = ResolveVirtualSlot("network-messages.unserialize");
   const auto post_slot = ResolveVirtualSlot("game-event-system.post-event");
-  if (!find_slot) return std::unexpected(find_slot.error());
-  if (!unserialize_slot) return std::unexpected(unserialize_slot.error());
-  if (!post_slot) return std::unexpected(post_slot.error());
+  if (!find_slot) {
+    return std::unexpected(find_slot.error());
+  }
+  if (!unserialize_slot) {
+    return std::unexpected(unserialize_slot.error());
+  }
+  if (!post_slot) {
+    return std::unexpected(post_slot.error());
+  }
 
   // The installed engine compares all 32 bits of the message ID. A 16-bit
   // declaration leaves the upper argument bits unspecified on Windows x64.
   using Find = void* (*)(void*, int32_t);
   auto* serializer = NetworkMessagesMethod<Find>(messages_, *find_slot)(messages_, id);
-  if (!serializer) return std::unexpected("native user message serializer unavailable");
+  if (!serializer) {
+    return std::unexpected("native user message serializer unavailable");
+  }
   using Allocate = void* (*)();
   Allocate allocate = nullptr;
   std::memcpy(&allocate, static_cast<std::byte*>(serializer) + kSerializerAllocateOffset,
               sizeof(allocate));
-  if (!allocate) return std::unexpected("native user message allocator unavailable");
+  if (!allocate) {
+    return std::unexpected("native user message allocator unavailable");
+  }
   auto* native_message = allocate();
-  if (!native_message) return std::unexpected("native user message allocation failed");
+  if (!native_message) {
+    return std::unexpected("native user message allocation failed");
+  }
   // The message's scalar deleting destructor frees it with the game's allocator.
   const auto release = [](void* value) {
     using Destroy = void* (*)(void*, uint32_t);
@@ -132,8 +152,9 @@ std::expected<void, std::string> NativeUserMessages::Send(
     google::protobuf::io::StringOutputStream output(&encoded);
     google::protobuf::io::CodedOutputStream coded(&output);
     coded.WriteVarint32(static_cast<uint32_t>(size));
-    if (!message.SerializeToCodedStream(&coded) || coded.HadError())
+    if (!message.SerializeToCodedStream(&coded) || coded.HadError()) {
       return std::unexpected("native user message serialization failed");
+    }
   }
   // The bit reader can fetch the final word; padding is addressable but is not
   // part of the declared stream length.
@@ -144,8 +165,9 @@ std::expected<void, std::string> NativeUserMessages::Send(
   using Unserialize = bool (*)(void*, BitReader&, void*, void*);
   if (!NetworkMessagesMethod<Unserialize>(messages_, *unserialize_slot)(messages_, reader,
                                                                         native_message, nullptr) ||
-      reader.overflow || reader.cursor != reader.bits)
+      reader.overflow || reader.cursor != reader.bits) {
     return std::unexpected("native user message decoding failed");
+  }
 
   const uint64_t recipients = uint64_t{1} << slot;
   const auto event_methods = *static_cast<void***>(events_);

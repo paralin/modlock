@@ -8,10 +8,14 @@
 namespace modlock::quake {
 namespace {
 
-float Dot(const Vector& a, const Vector& b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+float Dot(const Vector& a, const Vector& b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
 
 Vector AddScaled(Vector a, const Vector& b, float scale) {
-  for (std::size_t axis = 0; axis < a.size(); ++axis) a[axis] += b[axis] * scale;
+  for (std::size_t axis = 0; axis < a.size(); ++axis) {
+    a[axis] += b[axis] * scale;
+  }
   return a;
 }
 
@@ -19,7 +23,9 @@ float Normalize(Vector& value) {
   const float length = std::sqrt(Dot(value, value));
   if (length != 0) {
     const float inverse = 1.f / length;
-    for (auto& component : value) component *= inverse;
+    for (auto& component : value) {
+      component *= inverse;
+    }
   }
   return length;
 }
@@ -27,12 +33,16 @@ float Normalize(Vector& value) {
 Vector Clip(const Vector& velocity, const Vector& normal) {
   Vector result = AddScaled(velocity, normal, -Dot(velocity, normal));
   for (auto& component : result) {
-    if (component > -0.1f && component < 0.1f) component = 0;
+    if (component > -0.1f && component < 0.1f) {
+      component = 0;
+    }
   }
   return result;
 }
 
-bool Liquid(Contents contents) { return contents >= Contents::kWater; }
+bool Liquid(Contents contents) {
+  return contents >= Contents::kWater;
+}
 
 // Step borrows its world and profile for one synchronous command, including subdivisions.
 class Step {
@@ -47,7 +57,9 @@ class Step {
       result_ = Step(state_, world_, profile_).Run(half);
       const auto second = Step(state_, world_, profile_).Run(half);
       state_ = second.state;
-      for (std::size_t i = 0; i < second.contact_count; ++i) Touch(second.contacts[i]);
+      for (std::size_t i = 0; i < second.contact_count; ++i) {
+        Touch(second.contacts[i]);
+      }
       return result_;
     }
 
@@ -60,17 +72,23 @@ class Step {
 
     Nudge();
     Categorize();
-    if (state_.water_level == 2) WaterJump();
-    if (state_.velocity[2] < 0) state_.water_jump_seconds = 0;
-    if (command.jump)
+    if (state_.water_level == 2) {
+      WaterJump();
+    }
+    if (state_.velocity[2] < 0) {
+      state_.water_jump_seconds = 0;
+    }
+    if (command.jump) {
       Jump();
-    else
+    } else {
       state_.jump_held = false;
+    }
     Friction();
-    if (state_.water_level >= 2)
+    if (state_.water_level >= 2) {
       Swim(command);
-    else
+    } else {
       WalkOrFly(command);
+    }
     Categorize();
     return result_;
   }
@@ -119,12 +137,18 @@ class Step {
     state_.ground_entity = -1;
     if (state_.velocity[2] <= 180) {
       const auto trace = Sweep(state_.origin, below);
-      if (trace.normal[2] >= 0.7f) state_.ground_entity = trace.entity;
+      if (trace.normal[2] >= 0.7f) {
+        state_.ground_entity = trace.entity;
+      }
       if (state_.ground_entity != -1) {
         state_.water_jump_seconds = 0;
-        if (!trace.start_solid && !trace.all_solid) state_.origin = trace.end;
+        if (!trace.start_solid && !trace.all_solid) {
+          state_.origin = trace.end;
+        }
       }
-      if (trace.entity > 0) Touch(trace.entity);
+      if (trace.entity > 0) {
+        Touch(trace.entity);
+      }
     }
 
     state_.water_level = 0;
@@ -132,25 +156,37 @@ class Step {
     auto point = state_.origin;
     point[2] += kPlayerMins[2] + 1;
     const auto contents = world_.At(point);
-    if (!Liquid(contents)) return;
+    if (!Liquid(contents)) {
+      return;
+    }
     state_.water_type = contents;
     state_.water_level = 1;
     point[2] = state_.origin[2] + (kPlayerMins[2] + kPlayerMaxs[2]) * 0.5f;
-    if (!Liquid(world_.At(point))) return;
+    if (!Liquid(world_.At(point))) {
+      return;
+    }
     state_.water_level = 2;
     point[2] = state_.origin[2] + 22;
-    if (Liquid(world_.At(point))) state_.water_level = 3;
+    if (Liquid(world_.At(point))) {
+      state_.water_level = 3;
+    }
   }
 
   void WaterJump() {
-    if (state_.water_jump_seconds != 0 || state_.velocity[2] < -180) return;
+    if (state_.water_jump_seconds != 0 || state_.velocity[2] < -180) {
+      return;
+    }
     Vector forward{forward_[0], forward_[1], 0};
     Normalize(forward);
     auto point = AddScaled(state_.origin, forward, 24);
     point[2] += 8;
-    if (world_.At(point) != Contents::kSolid) return;
+    if (world_.At(point) != Contents::kSolid) {
+      return;
+    }
     point[2] += 24;
-    if (world_.At(point) != Contents::kEmpty) return;
+    if (world_.At(point) != Contents::kEmpty) {
+      return;
+    }
     state_.velocity = AddScaled({}, forward, 50);
     state_.velocity[2] = 310;
     state_.water_jump_seconds = 2;
@@ -173,14 +209,18 @@ class Step {
                                                                    : 50.f;
       return;
     }
-    if (state_.ground_entity == -1 || state_.jump_held) return;
+    if (state_.ground_entity == -1 || state_.jump_held) {
+      return;
+    }
     state_.ground_entity = -1;
     state_.velocity[2] += 270;
     state_.jump_held = true;
   }
 
   void Friction() {
-    if (state_.water_jump_seconds != 0) return;
+    if (state_.water_jump_seconds != 0) {
+      return;
+    }
     const float speed = std::sqrt(Dot(state_.velocity, state_.velocity));
     if (speed < 1) {
       state_.velocity[0] = state_.velocity[1] = 0;
@@ -193,22 +233,31 @@ class Step {
                    state_.origin[2] + kPlayerMins[2]};
       auto end = start;
       end[2] -= 34;
-      if (Sweep(start, end).fraction == 1) friction *= 2;
+      if (Sweep(start, end).fraction == 1) {
+        friction *= 2;
+      }
     }
     float drop = 0;
-    if (state_.water_level >= 2)
+    if (state_.water_level >= 2) {
       drop = speed * profile_.water_friction * state_.water_level * dt_;
-    else if (state_.ground_entity != -1)
+    } else if (state_.ground_entity != -1) {
       drop = std::max(speed, profile_.stop_speed) * friction * dt_;
+    }
     const float scale = std::max(0.f, speed - drop) / speed;
-    for (auto& component : state_.velocity) component *= scale;
+    for (auto& component : state_.velocity) {
+      component *= scale;
+    }
   }
 
   void Accelerate(const Vector& direction, float speed, float acceleration, bool air) {
-    if (state_.dead || state_.water_jump_seconds != 0) return;
+    if (state_.dead || state_.water_jump_seconds != 0) {
+      return;
+    }
     const float projection = air ? std::min(speed, 30.f) : speed;
     const float remaining = projection - Dot(state_.velocity, direction);
-    if (remaining <= 0) return;
+    if (remaining <= 0) {
+      return;
+    }
     const float amount =
         std::min(remaining, air ? acceleration * speed * dt_ : acceleration * dt_ * speed);
     state_.velocity = AddScaled(state_.velocity, direction, amount);
@@ -230,7 +279,9 @@ class Step {
         state_.origin = trace.end;
         count = 0;
       }
-      if (trace.fraction == 1) break;
+      if (trace.fraction == 1) {
+        break;
+      }
       Touch(trace.entity);
       remaining -= remaining * trace.fraction;
       if (count == planes.size()) {
@@ -248,7 +299,9 @@ class Step {
             break;
           }
         }
-        if (accepted) break;
+        if (accepted) {
+          break;
+        }
       }
       if (!accepted) {
         if (count != 2) {
@@ -265,12 +318,16 @@ class Step {
         break;
       }
     }
-    if (state_.water_jump_seconds != 0) state_.velocity = initial_velocity;
+    if (state_.water_jump_seconds != 0) {
+      state_.velocity = initial_velocity;
+    }
   }
 
   void Ground() {
     state_.velocity[2] = 0;
-    if (state_.velocity[0] == 0 && state_.velocity[1] == 0) return;
+    if (state_.velocity[0] == 0 && state_.velocity[1] == 0) {
+      return;
+    }
     const auto direct = Sweep(state_.origin, AddScaled(state_.origin, state_.velocity, dt_));
     if (direct.fraction == 1) {
       state_.origin = direct.end;
@@ -285,7 +342,9 @@ class Step {
     auto end = start;
     end[2] += 18;
     const auto up = Sweep(start, end);
-    if (!up.start_solid && !up.all_solid) state_.origin = up.end;
+    if (!up.start_solid && !up.all_solid) {
+      state_.origin = up.end;
+    }
     Slide();
     end = state_.origin;
     end[2] -= 18;
@@ -294,16 +353,19 @@ class Step {
       state_ = lower;
       return;
     }
-    if (!down.start_solid && !down.all_solid) state_.origin = down.end;
+    if (!down.start_solid && !down.all_solid) {
+      state_.origin = down.end;
+    }
     const auto distance = [&start](const Vector& position) {
       const float x = position[0] - start[0];
       const float y = position[1] - start[1];
       return x * x + y * y;
     };
-    if (distance(lower.origin) > distance(state_.origin))
+    if (distance(lower.origin) > distance(state_.origin)) {
       state_ = lower;
-    else
+    } else {
       state_.velocity[2] = lower.velocity[2];
+    }
   }
 
   void WalkOrFly(const MovementCommand& command) {
@@ -314,41 +376,48 @@ class Step {
     wish[2] = 0;
     const float speed = std::min(Normalize(wish), profile_.max_speed);
     const bool grounded = state_.ground_entity != -1;
-    if (grounded) state_.velocity[2] = 0;
+    if (grounded) {
+      state_.velocity[2] = 0;
+    }
     Accelerate(wish, speed, profile_.acceleration, !grounded);
     state_.velocity[2] -= profile_.entity_gravity * profile_.gravity * dt_;
-    if (grounded)
+    if (grounded) {
       Ground();
-    else
+    } else {
       Slide();
+    }
   }
 
   void Swim(const MovementCommand& command) {
     auto wish = AddScaled(AddScaled({}, forward_, command.forward), right_, command.side);
-    if (command.forward == 0 && command.side == 0 && command.up == 0)
+    if (command.forward == 0 && command.side == 0 && command.up == 0) {
       wish[2] -= 60;
-    else
+    } else {
       wish[2] += command.up;
+    }
     const float speed = std::min(Normalize(wish), profile_.max_speed) * 0.7f;
     Accelerate(wish, speed, profile_.water_acceleration, false);
     const auto destination = AddScaled(state_.origin, state_.velocity, dt_);
     auto above = destination;
     above[2] += 19;
     const auto trace = Sweep(above, destination);
-    if (!trace.start_solid && !trace.all_solid)
+    if (!trace.start_solid && !trace.all_solid) {
       state_.origin = trace.end;
-    else
+    } else {
       Slide();
+    }
   }
 
   void Spectator(const MovementCommand& command) {
     const float speed = std::sqrt(Dot(state_.velocity, state_.velocity));
-    if (speed < 1)
+    if (speed < 1) {
       state_.velocity = {};
-    else {
+    } else {
       const float drop = std::max(speed, profile_.stop_speed) * profile_.friction * 1.5f * dt_;
       const float scale = std::max(0.f, speed - drop) / speed;
-      for (auto& component : state_.velocity) component *= scale;
+      for (auto& component : state_.velocity) {
+        component *= scale;
+      }
     }
     Normalize(forward_);
     Normalize(right_);
@@ -356,7 +425,9 @@ class Step {
     wish[2] += command.up;
     const float wish_speed = std::min(Normalize(wish), profile_.spectator_speed);
     const float remaining = wish_speed - Dot(state_.velocity, wish);
-    if (remaining <= 0) return;
+    if (remaining <= 0) {
+      return;
+    }
     state_.velocity = AddScaled(state_.velocity, wish,
                                 std::min(remaining, profile_.acceleration * dt_ * wish_speed));
     state_.origin = AddScaled(state_.origin, state_.velocity, dt_);

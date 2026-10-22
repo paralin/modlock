@@ -41,7 +41,9 @@ struct ServerAddonsHook::Impl {
 #endif
   ~Impl() {
 #if defined(_WIN32)
-    if (g_detour != &detour) return;
+    if (g_detour != &detour) {
+      return;
+    }
     detour.reset();
     g_detour = nullptr;
     g_addons = nullptr;
@@ -56,19 +58,29 @@ ServerAddonsHook::~ServerAddonsHook() = default;
 
 std::expected<ServerAddonsHook, std::string> ServerAddonsHook::Install(std::string addons) {
 #if defined(_WIN32)
-  if (g_detour != nullptr) return std::unexpected("server addons hook already installed");
+  if (g_detour != nullptr) {
+    return std::unexpected("server addons hook already installed");
+  }
   const auto image = MappedModuleImage::ForModule(L"engine2.dll");
-  if (!image) return std::unexpected(image.error());
+  if (!image) {
+    return std::unexpected(image.error());
+  }
   auto target = ResolveSignature(*image, "server.reply-connection");
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   auto impl = std::make_unique<Impl>();
   impl->addons = std::move(addons);
   impl->detour = safetyhook::create_inline(*target, reinterpret_cast<void*>(&ReplyThunk),
                                            safetyhook::InlineHook::StartDisabled);
-  if (!impl->detour) return std::unexpected("cannot create server addons hook");
+  if (!impl->detour) {
+    return std::unexpected("cannot create server addons hook");
+  }
   g_addons = impl->addons.c_str();
   g_detour = &impl->detour;
-  if (!impl->detour.enable()) return std::unexpected("cannot enable server addons hook");
+  if (!impl->detour.enable()) {
+    return std::unexpected("cannot enable server addons hook");
+  }
   return ServerAddonsHook(std::move(impl));
 #else
   (void)addons;

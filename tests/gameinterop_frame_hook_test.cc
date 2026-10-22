@@ -18,14 +18,18 @@ void TargetA() {}
 void TargetB() {}
 void Replacement() {}
 
-void* Ptr(void (*fn)()) { return reinterpret_cast<void*>(fn); }
+void* Ptr(void (*fn)()) {
+  return reinterpret_cast<void*>(fn);
+}
 
 // Fixture: one object whose vptr selects a table the test owns.
 struct FakeObject {
   void* vptr;
 };
 
-void** DispatchTableOf(FakeObject& object) { return *reinterpret_cast<void***>(&object); }
+void** DispatchTableOf(FakeObject& object) {
+  return *reinterpret_cast<void***>(&object);
+}
 
 TEST(VtableSlotHook, RedirectsSlotAndPreservesOriginal) {
   void* table[3] = {Ptr(TargetA), Ptr(TargetB), Ptr(TargetA)};

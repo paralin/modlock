@@ -22,9 +22,13 @@ constexpr size_t kClassInfoSchemaBinding = 0x28;
 // Teleport calls CBaseEntity::Teleport. Null pose pointers preserve placement.
 // An unresolved slot leaves the entity in place.
 void Teleport(void* entity, const float* position, const float* angles, const float* velocity) {
-  if (entity == nullptr) return;
+  if (entity == nullptr) {
+    return;
+  }
   const auto slot = ResolveVirtualSlot("entity.teleport");
-  if (!slot) return;
+  if (!slot) {
+    return;
+  }
   using TeleportFn = void (*)(void*, const float*, const float*, const float*);
   auto** table = *static_cast<void***>(entity);
   reinterpret_cast<TeleportFn>(table[*slot])(entity, position, angles, velocity);
@@ -33,9 +37,13 @@ void Teleport(void* entity, const float* position, const float* angles, const fl
 // NetworkStateNotificationOf resolves the shared replication entry for preflight
 // and publication, so callers never maintain a second copy of its ABI slot.
 void* NetworkStateNotificationOf(void* entity) {
-  if (!entity) return nullptr;
+  if (!entity) {
+    return nullptr;
+  }
   const auto slot = ResolveVirtualSlot("entity.network-state-changed");
-  if (!slot) return nullptr;
+  if (!slot) {
+    return nullptr;
+  }
   auto* table = *static_cast<void***>(entity);
   return table ? table[*slot] : nullptr;
 }
@@ -58,8 +66,9 @@ Fn VtableCall(void* instance, size_t slot) {
 // when read fails or base is null.
 const void* ReadLink(const void* base, size_t offset, const BoundedReader& read) {
   const void* value = nullptr;
-  if (base == nullptr || !read(static_cast<const uint8_t*>(base) + offset, &value, sizeof(value)))
+  if (base == nullptr || !read(static_cast<const uint8_t*>(base) + offset, &value, sizeof(value))) {
     return nullptr;
+  }
   return value;
 }
 
@@ -68,9 +77,13 @@ std::expected<const schema::ClassInfo*, std::string> SchemaClassInfoOf(void* sch
                                                                        const char* module_name,
                                                                        const char* class_name) {
   auto scope = FindTypeScopeOf(schema_system, module_name);
-  if (!scope) return std::unexpected(scope.error());
+  if (!scope) {
+    return std::unexpected(scope.error());
+  }
   auto info = FindDeclaredClassOf(*scope, class_name);
-  if (!info) return std::unexpected(info.error());
+  if (!info) {
+    return std::unexpected(info.error());
+  }
   return static_cast<const schema::ClassInfo*>(*info);
 }
 
@@ -81,7 +94,9 @@ std::expected<const schema::ClassInfo*, std::string> SchemaClassInfoOf(void* sch
 bool IsFieldNetworked(const schema::Field& field) {
   for (int32_t i = 0; i < field.metadata_count; ++i) {
     const char* name = field.metadata[i].name;
-    if (name != nullptr && std::strcmp(name, "MNetworkDisable") == 0) return false;
+    if (name != nullptr && std::strcmp(name, "MNetworkDisable") == 0) {
+      return false;
+    }
   }
   return true;
 }
@@ -100,14 +115,18 @@ std::expected<SchemaField, std::string> FieldInClassInfo(const schema::ClassInfo
   for (; info != nullptr; info = FirstBaseOf(info)) {
     const std::span fields(info->fields, info->field_count);
     for (const auto& field : fields) {
-      if (field.name == nullptr || std::strcmp(field.name, field_name) != 0) continue;
+      if (field.name == nullptr || std::strcmp(field.name, field_name) != 0) {
+        continue;
+      }
       int32_t boundary = info->size;
       for (const auto& next : fields) {
-        if (next.offset > field.offset && (boundary <= field.offset || next.offset < boundary))
+        if (next.offset > field.offset && (boundary <= field.offset || next.offset < boundary)) {
           boundary = next.offset;
+        }
       }
-      if (field.offset < 0 || boundary <= field.offset)
+      if (field.offset < 0 || boundary <= field.offset) {
         return std::unexpected("schema field storage span is invalid");
+      }
       return SchemaField{static_cast<size_t>(field.offset),
                          static_cast<size_t>(boundary - field.offset), IsFieldNetworked(field)};
     }
@@ -170,8 +189,9 @@ std::optional<uint32_t> ReferenceHandleOf(void* entity) {
 std::expected<const void*, std::string> SchemaClassOfEntity(void* entity,
                                                             const BoundedReader& read) {
   const void* identity = ReadLink(entity, kIdentityOffset, read);
-  if (identity == nullptr || ReadLink(identity, 0, read) != entity)
+  if (identity == nullptr || ReadLink(identity, 0, read) != entity) {
     return std::unexpected("the entity has no live identity");
+  }
   return SchemaClassOfEntityClass(ReadLink(identity, kIdentityClass, read), read);
 }
 
@@ -179,8 +199,9 @@ std::expected<const void*, std::string> SchemaClassOfEntityClass(const void* ent
                                                                  const BoundedReader& read) {
   const void* binding =
       ReadLink(ReadLink(entity_class, kEntityClassInfo, read), kClassInfoSchemaBinding, read);
-  if (binding == nullptr || ReadLink(binding, 0, read) != binding)
+  if (binding == nullptr || ReadLink(binding, 0, read) != binding) {
     return std::unexpected("the entity's schema class is unreadable");
+  }
   return binding;
 }
 
@@ -192,7 +213,9 @@ std::string_view SchemaClassNameOf(const void* class_info) {
 bool SchemaClassDerivesFrom(const void* class_info, std::string_view class_name) {
   for (auto* info = static_cast<const schema::ClassInfo*>(class_info); info != nullptr;
        info = FirstBaseOf(info)) {
-    if (SchemaClassNameOf(info) == class_name) return true;
+    if (SchemaClassNameOf(info) == class_name) {
+      return true;
+    }
   }
   return false;
 }
@@ -206,42 +229,57 @@ std::expected<void*, std::string> EntitySystemFromResourceService(void* resource
 
 std::vector<void*> EntityInstances(void* entity_system) {
   std::vector<void*> instances;
-  if (!entity_system) return instances;
+  if (!entity_system) {
+    return instances;
+  }
   // CConcreteEntityList follows the vtable and current resource manifest.
   // Each of its 64 chunks contains 512 CEntityIdentity records of 0x70 bytes.
   const auto* chunks = static_cast<const uint8_t*>(entity_system) + 0x10;
   for (uint32_t chunk = 0; chunk < 64; ++chunk) {
     const auto* entries = static_cast<const uint8_t*>(ReadPointer(chunks, chunk * sizeof(void*)));
-    if (!entries) continue;
+    if (!entries) {
+      continue;
+    }
     for (uint32_t index = 0; index < 512; ++index) {
       const auto* identity = entries + index * 0x70;
       void* instance = ReadPointer(identity, 0);
-      if (!instance || IdentityOf(instance) != identity) continue;
+      if (!instance || IdentityOf(instance) != identity) {
+        continue;
+      }
       auto handle = ReferenceHandleOf(instance);
-      if (handle && (*handle & 0x7FFF) == chunk * 512 + index) instances.push_back(instance);
+      if (handle && (*handle & 0x7FFF) == chunk * 512 + index) {
+        instances.push_back(instance);
+      }
     }
   }
   return instances;
 }
 
 void* EntityInstance(void* entity_system, uint32_t handle) {
-  if (!entity_system || handle == 0xFFFFFFFFu) return nullptr;
+  if (!entity_system || handle == 0xFFFFFFFFu) {
+    return nullptr;
+  }
   const uint32_t index = handle & 0x7FFF;
   const auto* chunks = static_cast<const uint8_t*>(entity_system) + 0x10;
   const auto* chunk =
       static_cast<const uint8_t*>(ReadPointer(chunks, (index / 512) * sizeof(void*)));
-  if (!chunk) return nullptr;
+  if (!chunk) {
+    return nullptr;
+  }
   const auto* identity = chunk + (index % 512) * 0x70;
   void* instance = ReadPointer(identity, 0);
-  if (!instance || IdentityOf(instance) != identity || ReferenceHandleOf(instance) != handle)
+  if (!instance || IdentityOf(instance) != identity || ReferenceHandleOf(instance) != handle) {
     return nullptr;
+  }
   return instance;
 }
 
 std::expected<void*, std::string> ResolveLiveEntitySystem() {
   const auto resource_service =
       ResolveEngineInterface(L"engine2.dll", kGameResourceServiceServerVersion);
-  if (!resource_service) return std::unexpected(resource_service.error());
+  if (!resource_service) {
+    return std::unexpected(resource_service.error());
+  }
 
   // Print the borrowed service once when diagnosing a shifted native layout.
   static const bool trace = InteropTraceEnabled();
@@ -267,14 +305,19 @@ std::expected<void*, std::string> ResolveSchemaSystem() {
 }
 
 std::expected<void*, std::string> FindTypeScopeOf(void* schema_system, const char* module_name) {
-  if (!schema_system) return std::unexpected("the schema system instance is not resolved yet");
+  if (!schema_system) {
+    return std::unexpected("the schema system instance is not resolved yet");
+  }
   const auto slot = ResolveVirtualSlot("schema-system.find-type-scope");
-  if (!slot) return std::unexpected(slot.error());
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
   using FindTypeScope = void* (*)(void*, const char*, const char**);
   auto* scope =
       VtableCall<FindTypeScope>(schema_system, *slot)(schema_system, module_name, nullptr);
-  if (!scope)
+  if (!scope) {
     return std::unexpected("schema type scope '" + std::string(module_name) + "' is not open");
+  }
   return scope;
 }
 
@@ -284,15 +327,19 @@ namespace {
 // at FindDeclaredClassOf in the header.
 std::expected<void*, std::string> FindDeclared(void* type_scope, std::string_view slot_id,
                                                const char* kind, const char* name) {
-  if (type_scope == nullptr)
+  if (type_scope == nullptr) {
     return std::unexpected("the schema type scope instance is not resolved yet");
+  }
   const auto slot = ResolveVirtualSlot(slot_id);
-  if (!slot) return std::unexpected(slot.error());
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
   using FindFn = void (*)(void* type_scope, void* out_handle, const char* name);
   void* info = nullptr;
   VtableCall<FindFn>(type_scope, *slot)(type_scope, &info, name);
-  if (info == nullptr)
+  if (info == nullptr) {
     return std::unexpected(std::string("schema ") + kind + " '" + name + "' is not declared");
+  }
   return info;
 }
 
@@ -310,15 +357,21 @@ std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const
                                                       const char* class_name,
                                                       const char* field_name) {
   auto info = SchemaClassInfoOf(schema_system, module_name, class_name);
-  if (!info) return std::unexpected(info.error());
+  if (!info) {
+    return std::unexpected(info.error());
+  }
   return FieldInClassInfo(*info, field_name);
 }
 
 std::expected<size_t, std::string> SchemaClassSizeOf(void* schema_system, const char* module_name,
                                                      const char* class_name) {
   auto info = SchemaClassInfoOf(schema_system, module_name, class_name);
-  if (!info) return std::unexpected(info.error());
-  if ((*info)->size <= 0) return std::unexpected("schema class allocation size is invalid");
+  if (!info) {
+    return std::unexpected(info.error());
+  }
+  if ((*info)->size <= 0) {
+    return std::unexpected("schema class allocation size is invalid");
+  }
   return static_cast<size_t>((*info)->size);
 }
 
@@ -326,12 +379,18 @@ std::expected<int64_t, std::string> SchemaEnumValueOf(void* schema_system, const
                                                       const char* enum_name,
                                                       const char* value_name) {
   auto scope = FindTypeScopeOf(schema_system, module_name);
-  if (!scope) return std::unexpected(scope.error());
+  if (!scope) {
+    return std::unexpected(scope.error());
+  }
   auto found = FindDeclaredEnumOf(*scope, enum_name);
-  if (!found) return std::unexpected(found.error());
+  if (!found) {
+    return std::unexpected(found.error());
+  }
   const auto* info = static_cast<const schema::EnumInfo*>(*found);
   for (const auto& enumerator : std::span(info->enumerators, info->enumerator_count)) {
-    if (std::strcmp(enumerator.name, value_name) == 0) return enumerator.value;
+    if (std::strcmp(enumerator.name, value_name) == 0) {
+      return enumerator.value;
+    }
   }
   return std::unexpected("schema enum value '" + std::string(enum_name) + "." + value_name +
                          "' is not declared");
@@ -343,7 +402,9 @@ bool CanNotifyEntityStateChanged(void* entity) {
 
 bool NotifyEntityStateChanged(void* entity) {
   auto* notification = NetworkStateNotificationOf(entity);
-  if (!notification) return false;
+  if (!notification) {
+    return false;
+  }
   // Windows x64 NetworkStateChanged_t full-change form.
   struct alignas(8) FullChange {
     uint32_t flag = 0;

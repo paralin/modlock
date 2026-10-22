@@ -18,7 +18,9 @@ std::string NumberText(double number) {
 
 const Setting* FindSetting(const Manifest& manifest, std::string_view key) {
   for (const auto& setting : manifest.settings()) {
-    if (setting.key() == key) return &setting;
+    if (setting.key() == key) {
+      return &setting;
+    }
   }
   return nullptr;
 }
@@ -27,11 +29,15 @@ std::optional<std::string> Canonical(const Setting& setting, std::string_view va
   switch (setting.kind()) {
     case Setting::KIND_CHOICE:
       for (const auto& choice : setting.choices()) {
-        if (choice.value() == value) return std::string(value);
+        if (choice.value() == value) {
+          return std::string(value);
+        }
       }
       return std::nullopt;
     case Setting::KIND_SWITCH:
-      if (value == "true" || value == "false") return std::string(value);
+      if (value == "true" || value == "false") {
+        return std::string(value);
+      }
       return std::nullopt;
     case Setting::KIND_NUMBER: {
       // Accept a number within the bounds and on a step.
@@ -44,7 +50,9 @@ std::optional<std::string> Canonical(const Setting& setting, std::string_view va
       }
       if (const double step = setting.step(); step > 0) {
         const double steps = (number - setting.min()) / step;
-        if (std::abs(steps - std::round(steps)) > 1e-9) return std::nullopt;
+        if (std::abs(steps - std::round(steps)) > 1e-9) {
+          return std::nullopt;
+        }
       }
       return NumberText(number);
     }
@@ -54,7 +62,9 @@ std::optional<std::string> Canonical(const Setting& setting, std::string_view va
 }
 
 std::string DefaultValue(const Setting& setting) {
-  if (auto value = Canonical(setting, setting.default_value())) return *value;
+  if (auto value = Canonical(setting, setting.default_value())) {
+    return *value;
+  }
   switch (setting.kind()) {
     case Setting::KIND_CHOICE:
       return setting.choices().empty() ? std::string() : setting.choices(0).value();

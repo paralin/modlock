@@ -324,17 +324,19 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
 #if defined(_WIN32)
   _putenv_s("MODLOCK_INTEROP_TRACE", prior_value.c_str());
 #else
-  if (had_prior)
+  if (had_prior) {
     setenv("MODLOCK_INTEROP_TRACE", prior_value.c_str(), 1);
-  else
+  } else {
     unsetenv("MODLOCK_INTEROP_TRACE");
+  }
 #endif
   for (int slot = 0; slot < 12; ++slot) {
     const auto receipt = "ClientPutInServer slot " + std::to_string(slot) + " xuid 0";
     const auto first = trace.find(receipt);
     EXPECT_NE(first, std::string::npos);
-    if (first != std::string::npos)
+    if (first != std::string::npos) {
       EXPECT_NE(trace.find(receipt, first + receipt.size()), std::string::npos);
+    }
     EXPECT_NE(trace.find("ClientDisconnect slot " + std::to_string(slot) + "\n"),
               std::string::npos);
   }

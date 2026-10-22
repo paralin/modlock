@@ -1,11 +1,12 @@
 // Contract tests for players' mod settings: each kind accepts only its own
 // values in canonical form, a missing or refused default falls back to the
 // kind's first value, and a settings file keeps values across hosts.
+#include "modlock/wasm_settings.h"
+
 #include <filesystem>
 #include <string>
 
 #include "gtest/gtest.h"
-#include "modlock/wasm_settings.h"
 #include "wasm/settings.h"
 
 namespace {

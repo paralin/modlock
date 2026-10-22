@@ -34,25 +34,35 @@ bool g_failed = false;
 // owner sees the buttons earlier owners remapped; the consumed bits combine.
 uint64_t Consume(AbilityInputHook::Input& input) {
   const auto connection = ConnectionTracker::StateForSlot(input.slot);
-  if (!connection.occupied) return 0;
+  if (!connection.occupied) {
+    return 0;
+  }
   input.steam_id = connection.xuid;
   input.session_generation = connection.generation;
   uint64_t blocked = 0;
   for (size_t i = 0; i < g_owners.size(); ++i) {
-    if (connection.is_bot && !g_owners[i]->include_bots) continue;
+    if (connection.is_bot && !g_owners[i]->include_bots) {
+      continue;
+    }
     blocked |= g_owners[i]->handler(input);
   }
   return blocked;
 }
 
 void Filter(void* pawn) {
-  if (g_failed) return;
+  if (g_failed) {
+    return;
+  }
   auto result = AbilityInputHook::Process(pawn, g_offsets, ReadNative, WriteNative, Consume);
-  if (result) return;
+  if (result) {
+    return;
+  }
 
   // A layout that cannot be read stays unreadable, so the detour stops filtering.
   g_failed = true;
-  for (size_t i = 0; i < g_owners.size(); ++i) g_owners[i]->failure(result.error());
+  for (size_t i = 0; i < g_owners.size(); ++i) {
+    g_owners[i]->failure(result.error());
+  }
 }
 
 void __fastcall AbilityThinkThunk(void* pawn) {
@@ -67,29 +77,44 @@ std::expected<void, std::string> AbilityInputHook::Process(void* pawn, const Lay
                                                            const BoundedReader& read,
                                                            const BoundedWriter& write,
                                                            const Handler& handler) {
-  if (!pawn || !read || !write || !handler)
+  if (!pawn || !read || !write || !handler) {
     return std::unexpected("ability input: missing pawn or memory callback");
+  }
   auto* bytes = static_cast<unsigned char*>(pawn);
   Input input;
-  if (!read(bytes + layout.controller, &input.controller_handle, sizeof(input.controller_handle)))
+  if (!read(bytes + layout.controller, &input.controller_handle, sizeof(input.controller_handle))) {
     return std::unexpected("ability input: cannot read pawn controller");
-  if (input.controller_handle == UINT32_MAX || input.controller_handle == UINT32_MAX - 1) return {};
+  }
+  if (input.controller_handle == UINT32_MAX || input.controller_handle == UINT32_MAX - 1) {
+    return {};
+  }
   input.slot = static_cast<int32_t>(input.controller_handle & 0x7fff) - 1;
-  if (input.slot < 0 || input.slot >= 64) return {};
+  if (input.slot < 0 || input.slot >= 64) {
+    return {};
+  }
 
   unsigned char* movement = nullptr;
-  if (!read(bytes + layout.movement, &movement, sizeof(movement)))
+  if (!read(bytes + layout.movement, &movement, sizeof(movement))) {
     return std::unexpected("ability input: cannot read movement services");
-  if (!movement) return {};
+  }
+  if (!movement) {
+    return {};
+  }
   auto* target = movement + layout.buttons;
-  if (!read(target, input.buttons.data(), sizeof(input.buttons)))
+  if (!read(target, input.buttons.data(), sizeof(input.buttons))) {
     return std::unexpected("ability input: cannot read button states");
+  }
   const auto original = input.buttons;
   const uint64_t blocked = handler(input);
-  for (auto& state : input.buttons) state &= ~blocked;
-  if (input.buttons == original) return {};
-  if (!write(target, input.buttons.data(), sizeof(input.buttons)))
+  for (auto& state : input.buttons) {
+    state &= ~blocked;
+  }
+  if (input.buttons == original) {
+    return {};
+  }
+  if (!write(target, input.buttons.data(), sizeof(input.buttons))) {
     return std::unexpected("ability input: cannot write filtered buttons");
+  }
   return {};
 }
 
@@ -99,7 +124,9 @@ struct AbilityInputHook::Impl {
 #if defined(_WIN32)
   ~Impl() {
     std::erase(g_owners, &owner);
-    if (!g_owners.empty()) return;
+    if (!g_owners.empty()) {
+      return;
+    }
     g_hook.reset();
     g_failed = false;
   }
@@ -115,7 +142,9 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
     const ModuleImage& server, void* schema_system, Handler handler,
     std::function<void(std::string)> failure, bool include_bots) {
 #if defined(_WIN32)
-  if (!handler || !failure) return std::unexpected("ability input: missing callbacks");
+  if (!handler || !failure) {
+    return std::unexpected("ability input: missing callbacks");
+  }
   auto impl = std::make_unique<Impl>();
   impl->owner = {std::move(handler), std::move(failure), include_bots};
 
@@ -127,7 +156,9 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
 
   // Resolve AbilityThink before binding its schema-derived input layout.
   auto target = ResolveSignature(server, "ability.think");
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   const auto controller =
       SchemaFieldOf(schema_system, "server.dll", "CBasePlayerPawn", "m_hController");
   const auto movement =
@@ -136,22 +167,35 @@ std::expected<AbilityInputHook, std::string> AbilityInputHook::Install(
       SchemaFieldOf(schema_system, "server.dll", "CPlayer_MovementServices", "m_nButtons");
   const auto states =
       SchemaFieldOf(schema_system, "server.dll", "CInButtonState", "m_pButtonStates");
-  if (!controller) return std::unexpected(controller.error());
-  if (!movement) return std::unexpected(movement.error());
-  if (!buttons) return std::unexpected(buttons.error());
-  if (!states) return std::unexpected(states.error());
+  if (!controller) {
+    return std::unexpected(controller.error());
+  }
+  if (!movement) {
+    return std::unexpected(movement.error());
+  }
+  if (!buttons) {
+    return std::unexpected(buttons.error());
+  }
+  if (!states) {
+    return std::unexpected(states.error());
+  }
   if (controller->size < sizeof(uint32_t) || movement->size < sizeof(void*) ||
-      states->size < sizeof(std::array<uint64_t, 3>))
+      states->size < sizeof(std::array<uint64_t, 3>)) {
     return std::unexpected("ability input: native field storage is too short");
+  }
 
   // The first owner creates the detour; a failed enable removes it again.
   g_offsets = {controller->offset, movement->offset, buttons->offset + states->offset};
   g_hook = safetyhook::create_inline(*target, reinterpret_cast<void*>(&AbilityThinkThunk),
                                      safetyhook::InlineHook::StartDisabled);
-  if (!g_hook) return std::unexpected("ability input: cannot create AbilityThink hook");
+  if (!g_hook) {
+    return std::unexpected("ability input: cannot create AbilityThink hook");
+  }
   g_failed = false;
   g_owners.push_back(&impl->owner);
-  if (!g_hook.enable()) return std::unexpected("ability input: cannot enable AbilityThink hook");
+  if (!g_hook.enable()) {
+    return std::unexpected("ability input: cannot enable AbilityThink hook");
+  }
   return AbilityInputHook(std::move(impl));
 #else
   (void)server;

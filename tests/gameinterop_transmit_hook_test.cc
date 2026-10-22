@@ -51,7 +51,9 @@ TEST(TransmitSet, IgnoresAnIndexPastTheSet) {
   TransmitSet set(info.bytes.data());
 
   set.Withhold(TransmitSet::kEntityCount + 1);
-  for (uint32_t word : info.bits) EXPECT_EQ(word, ~uint32_t{0});
+  for (uint32_t word : info.bits) {
+    EXPECT_EQ(word, ~uint32_t{0});
+  }
 }
 
 TEST(TransmitSet, SendsAListedEntityOnlyToItsPlayers) {

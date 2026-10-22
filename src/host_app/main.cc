@@ -63,9 +63,13 @@ void LoadSignatures(std::initializer_list<std::filesystem::path> paths) {
   std::expected<modlock::gameinterop::GameSignatureLoad, std::string> load =
       std::unexpected("no game data file");
   for (const auto& path : paths) {
-    if (path.empty()) continue;
+    if (path.empty()) {
+      continue;
+    }
     load = modlock::gameinterop::LoadGameSignatures(path);
-    if (load) break;
+    if (load) {
+      break;
+    }
     std::cerr << "[modlock] " << load.error() << '\n';
   }
   if (!load) {
@@ -88,7 +92,9 @@ class FailureRecorder final : public modlock::WasmHostObserver {
   void Started(std::string_view, bool) override {}
   void Logged(std::string_view, std::string_view) override {}
   void Failed(std::string_view mod, std::string_view why) override {
-    if (error.empty()) error = std::string(mod) + ": " + std::string(why);
+    if (error.empty()) {
+      error = std::string(mod) + ": " + std::string(why);
+    }
   }
   void Ui(std::string_view, int32_t, const modlock::ui::Change&) override {}
 };
@@ -108,7 +114,9 @@ int main(int argc, char** argv) {
   bool check_only = false;
   int plugin_argc = 0;
   const char* const* plugin_argv = nullptr;
-  if (const char* environment = std::getenv("DEADLOCK_DIR")) game_dir = environment;
+  if (const char* environment = std::getenv("DEADLOCK_DIR")) {
+    game_dir = environment;
+  }
   if (const char* environment = std::getenv("MODLOCK_HOST_PORT")) {
     auto port = Port(environment);
     if (!port) {
@@ -148,12 +156,24 @@ int main(int argc, char** argv) {
       return 2;
     }
     const std::string_view value(argv[index]);
-    if (argument == "--plugin") libraries.emplace_back(value);
-    if (argument == "--engine-args") launch.engine_arguments = value;
-    if (argument == "--control") control = value;
-    if (argument == "--settings") settings_file = value;
-    if (argument == "--dump") dump_directory = value;
-    if (argument == "--game-data") game_data = value;
+    if (argument == "--plugin") {
+      libraries.emplace_back(value);
+    }
+    if (argument == "--engine-args") {
+      launch.engine_arguments = value;
+    }
+    if (argument == "--control") {
+      control = value;
+    }
+    if (argument == "--settings") {
+      settings_file = value;
+    }
+    if (argument == "--dump") {
+      dump_directory = value;
+    }
+    if (argument == "--game-data") {
+      game_data = value;
+    }
     if (argument == "--connect") {
       if (value.empty() ||
           value.find_first_not_of(
@@ -164,7 +184,9 @@ int main(int argc, char** argv) {
       }
       launch.connect = value;
     }
-    if (argument == "--game-dir") game_dir = value;
+    if (argument == "--game-dir") {
+      game_dir = value;
+    }
     if (argument == "--map") {
       if (value.empty() ||
           value.find_first_not_of(
@@ -210,7 +232,9 @@ int main(int argc, char** argv) {
   // outlives the mods that keep players' settings in it.
   std::optional<modlock::FileSettings> settings;
   modlock::WasmHost mods(directory);
-  if (!settings_file.empty()) mods.KeepSettings(&settings.emplace(settings_file));
+  if (!settings_file.empty()) {
+    mods.KeepSettings(&settings.emplace(settings_file));
+  }
   FailureRecorder failures;
   mods.Observe(&failures);
   std::unique_ptr<modlock::host_app::ControlLink> link;
@@ -271,15 +295,20 @@ int main(int argc, char** argv) {
   modlock::Subscription dump_world;
   if (!dump_directory.empty()) {
     auto subscribed = engine.OnWorld({}, [&](std::string_view) {
-      if (dumped || !dump_error.empty()) return;
+      if (dumped || !dump_error.empty()) {
+        return;
+      }
       auto written = modlock::host_app::WriteGameDump(engine.Paths(),
                                                       std::filesystem::absolute(dump_directory));
-      if (written)
+      if (written) {
         dumped = *written;
-      else
+      } else {
         dump_error = written.error();
+      }
       auto server = modlock::gameinterop::EngineServer::Resolve();
-      if (server) static_cast<void>(server->ServerCommand("quit\n"));
+      if (server) {
+        static_cast<void>(server->ServerCommand("quit\n"));
+      }
     });
     if (!subscribed) {
       std::cerr << subscribed.error() << '\n';
@@ -288,7 +317,9 @@ int main(int argc, char** argv) {
     dump_world = std::move(*subscribed);
   }
   auto frames = engine.OnFrame([&plugins, &mods, &link] {
-    if (link) link->RunRequests(mods);
+    if (link) {
+      link->RunRequests(mods);
+    }
     plugins.TickAll();
   });
   if (!frames) {

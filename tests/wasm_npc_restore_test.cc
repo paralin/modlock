@@ -67,7 +67,9 @@ struct Map {
 
   NpcRestore::Result Run(NpcRestore& restore) {
     for (int frame = 0; frame < 3; ++frame) {
-      if (auto result = restore.Tick()) return result;
+      if (auto result = restore.Tick()) {
+        return result;
+      }
     }
     return std::nullopt;
   }

@@ -71,7 +71,9 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
   std::string command_line =
       config.connect.empty() ? BuildDedicatedCommandLine(config) : BuildClientCommandLine(config);
   command_line += " -game \"" + (game_dir / "citadel").string() + "\"";
-  if (!config.engine_arguments.empty()) command_line += " " + config.engine_arguments;
+  if (!config.engine_arguments.empty()) {
+    command_line += " " + config.engine_arguments;
+  }
   // Stage 4: the game directory must exist; the engine resolves citadel
   // content relative to it.
   if (!std::filesystem::directory_entry(game_dir).exists()) {

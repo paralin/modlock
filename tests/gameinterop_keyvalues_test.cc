@@ -31,7 +31,9 @@ constexpr std::string_view kSignatureIds[] = {
 gti::FakeModuleImage BuildImage(std::string_view missing = {}) {
   gti::FakeModuleImage image;
   for (const auto id : kSignatureIds) {
-    if (id != missing) image.AddSignature(id);
+    if (id != missing) {
+      image.AddSignature(id);
+    }
   }
   image.Seal(0x50000000);
   return image;
@@ -104,7 +106,9 @@ void* g_created_key_values = reinterpret_cast<void*>(0x2000);
 std::vector<std::string> g_setter_order;
 RecordedSetterCall g_last_call;
 
-void* RecordCreate() { return g_created_key_values; }
+void* RecordCreate() {
+  return g_created_key_values;
+}
 
 void RecordSetString(void* ekv, const modlock::gameinterop::MemberName* name, const char* value) {
   EXPECT_EQ(ekv, g_created_key_values);
@@ -207,8 +211,12 @@ TEST(KeyValuesTest, NativeSurfaceEncodesFreshMembersExactly) {
   ASSERT_TRUE(built.has_value()) << built.error();
   EXPECT_EQ(*built, g_raw_ekv.data());
   ASSERT_EQ(g_raw_member_count, 5u);
-  auto type = [](const RawMember& value) { return (value.metadata >> 2) & 0xFF; };
-  auto subtype = [](const RawMember& value) { return (value.metadata >> 10) & 0xFF; };
+  auto type = [](const RawMember& value) {
+    return (value.metadata >> 2) & 0xFF;
+  };
+  auto subtype = [](const RawMember& value) {
+    return (value.metadata >> 10) & 0xFF;
+  };
   EXPECT_EQ(type(g_raw_members[0]), 0x26u);
   EXPECT_EQ(subtype(g_raw_members[0]), 26u);
   EXPECT_EQ(g_raw_members[0].data, reinterpret_cast<std::uintptr_t>(message.c_str()));

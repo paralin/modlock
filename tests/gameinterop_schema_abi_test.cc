@@ -395,7 +395,9 @@ struct SchemaClass {
     void* self = info.data();
     std::memcpy(info.data(), &self, sizeof(self));
     std::memcpy(info.data() + 0x08, &name, sizeof(name));
-    if (base == nullptr) return;
+    if (base == nullptr) {
+      return;
+    }
     info[0x29] = 1;
     bases[1] = base->info.data();
     void* table = bases.data();

@@ -34,7 +34,9 @@ class Image final : public ModuleImage {
   std::array<uint8_t, 32> bytes{};
 };
 
-GameSignature Match(std::string_view pattern) { return {.id = "target", .pattern = pattern}; }
+GameSignature Match(std::string_view pattern) {
+  return {.id = "target", .pattern = pattern};
+}
 
 GameSignature Relative(std::string_view pattern, SignatureTarget target, size_t delta) {
   return {.id = "relative", .pattern = pattern, .target = target, .delta = delta};
@@ -54,14 +56,18 @@ TEST(GameSignatures, TableIsSortedUniqueAndParses) {
   ASSERT_FALSE(signatures.empty());
   for (size_t i = 0; i < signatures.size(); ++i) {
     const auto& signature = signatures[i];
-    if (i > 0) EXPECT_LT(signatures[i - 1].id, signature.id) << "sort and dedupe the table";
+    if (i > 0) {
+      EXPECT_LT(signatures[i - 1].id, signature.id) << "sort and dedupe the table";
+    }
     EXPECT_NE(signature.modules, 0) << signature.id;
     EXPECT_FALSE(signature.shape.empty()) << signature.id;
     const auto parsed =
         modlock::gameinterop::ParseSignature(std::string(signature.id), signature.pattern);
     ASSERT_TRUE(parsed) << parsed.error();
     EXPECT_FALSE(parsed->bytes.empty()) << signature.id;
-    if (signature.target == SignatureTarget::kMatch) EXPECT_EQ(signature.delta, 0) << signature.id;
+    if (signature.target == SignatureTarget::kMatch) {
+      EXPECT_EQ(signature.delta, 0) << signature.id;
+    }
     EXPECT_EQ(FindGameSignature(signature.id), &signature);
   }
   EXPECT_EQ(FindGameSignature("not.recorded"), nullptr);

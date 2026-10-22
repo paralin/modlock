@@ -33,7 +33,9 @@ modlock::CameraPath MakePath(std::initializer_list<modlock::CameraKeyframe> keys
   path.set_interpolation(interpolation);
   path.set_rotation_mode(rotation);
   path.set_lens_interpolation(lens);
-  for (const auto& key : keys) *path.add_keys() = key;
+  for (const auto& key : keys) {
+    *path.add_keys() = key;
+  }
   return path;
 }
 
@@ -141,7 +143,9 @@ TEST(CameraPathTest, ShortestAnglesStayContinuousAcrossSeamsAndRewinds) {
     ASSERT_TRUE(evaluated.has_value());
     const auto angle_delta = [](double evaluated, double authored) {
       double shifted = std::fmod(evaluated - authored + 180.0, 360.0);
-      if (shifted < 0) shifted += 360.0;
+      if (shifted < 0) {
+        shifted += 360.0;
+      }
       return shifted - 180.0;
     };
     const double yaw_delta = angle_delta(evaluated->angles().yaw(), key.angles().yaw());
@@ -240,7 +244,9 @@ TEST(IntegrateFlightTest, MovesForwardAlongYawAndClampsPitch) {
   ExpectClose(pose.position().y(), 0, 1e-6);
   FlightInput look_down;
   look_down.pitch = 1;  // positive pitch looks down
-  for (int i = 0; i < 1000; ++i) IntegrateFlight(pose, look_down, 0.05, 320, 0.12);
+  for (int i = 0; i < 1000; ++i) {
+    IntegrateFlight(pose, look_down, 0.05, 320, 0.12);
+  }
   ExpectClose(pose.angles().pitch(), 89.9, 1e-6);
 }
 

@@ -99,7 +99,9 @@ uint32_t HandleOf(uint32_t index, uint32_t serial) {
   return (index & 0x7FFF) | ((serial & 0x1FFFF) << 15);
 }
 
-void WritePointer(void* at, void* value) { std::memcpy(at, &value, sizeof(value)); }
+void WritePointer(void* at, void* value) {
+  std::memcpy(at, &value, sizeof(value));
+}
 
 // EntityImage builds the layout one live CGameEntitySystem carries:
 // m_EntityList sits at +0x10 with its m_pIdentityChunks[64] table inline, and
@@ -186,8 +188,12 @@ EntityLayout FixtureLayout() {
 EntityLayout MovementFixtureLayout(bool velocity = true, bool ground = true) {
   EntityLayout layout = FixtureLayout();
   MovementLayout movement;
-  if (velocity) movement.abs_velocity = kAbsVelocityField;
-  if (ground) movement.ground_entity = kGroundEntityField;
+  if (velocity) {
+    movement.abs_velocity = kAbsVelocityField;
+  }
+  if (ground) {
+    movement.ground_entity = kGroundEntityField;
+  }
   layout.movement = movement;
   return layout;
 }
@@ -204,7 +210,9 @@ PawnObserver::Seams SeamsFor(Fixture& fixture) {
     return modlock::gameinterop::ConnectionTracker::SlotState{
         .occupied = true, .xuid = fixture.xuid, .generation = fixture.generation};
   };
-  seams.layout = []() -> std::expected<EntityLayout, std::string> { return FixtureLayout(); };
+  seams.layout = []() -> std::expected<EntityLayout, std::string> {
+    return FixtureLayout();
+  };
   return seams;
 }
 
@@ -230,7 +238,9 @@ TEST(PawnObserver, PrepareResolvesBeforeAnyPlayerArrives) {
     ++layouts;
     return FixtureLayout();
   };
-  seams.prepare = [&prepared] { ++prepared; };
+  seams.prepare = [&prepared] {
+    ++prepared;
+  };
   PawnObserver observer(seams);
   observer.Prepare();
   EXPECT_EQ(layouts, 1);
@@ -742,7 +752,9 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   };
   auto changed = observer.ApplyAbilityUpgrades(0, targets, replace_pawn);
   EXPECT_FALSE(changed);
-  if (!changed) EXPECT_EQ(changed.error(), "controller pawn changed during this frame");
+  if (!changed) {
+    EXPECT_EQ(changed.error(), "controller pawn changed during this frame");
+  }
   std::memcpy(fixture.controller.data() + kPawnHandleField, &pawn_handle, sizeof(pawn_handle));
   changing_controller = nullptr;
 
@@ -847,7 +859,9 @@ struct ItemFixture {
                        : id == 200 ? "upgrade_old"
                        : id == 201 ? "upgrade_new"
                                    : nullptr;
-    if (!name) return nullptr;
+    if (!name) {
+      return nullptr;
+    }
     std::memcpy(current->definition.data() + 8, &scope, 4);
     std::memcpy(current->definition.data() + 16, &name, sizeof(name));
     return current->definition.data();
@@ -877,13 +891,19 @@ struct ItemFixture {
               EXPECT_EQ(item, f.item.data());
               EXPECT_EQ(flag, 0);
               ++f.removes;
-              if (f.apply) f.SetCount(1);
-              if (f.disconnect_on_remove) ++f.connection.generation;
+              if (f.apply) {
+                f.SetCount(1);
+              }
+              if (f.disconnect_on_remove) {
+                ++f.connection.generation;
+              }
             },
             +[](void* item, uint32_t bits) {
               auto& f = *current;
               ++f.writes;
-              if (f.apply) std::memcpy(static_cast<unsigned char*>(item) + 0x3e, &bits, 2);
+              if (f.apply) {
+                std::memcpy(static_cast<unsigned char*>(item) + 0x3e, &bits, 2);
+              }
             }};
   }
 };
@@ -1239,7 +1259,9 @@ TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
   fixture.connection.occupied = true;
   ASSERT_TRUE(observer.Observe());
   table[28] = reinterpret_cast<void*>(+[](void* entity, const void*) {
-    if (entity != ItemFixture::current->item.data()) return;
+    if (entity != ItemFixture::current->item.data()) {
+      return;
+    }
     const float overwritten = 0;
     std::memcpy(ItemFixture::current->hero.data() + 0x44, &overwritten, sizeof(overwritten));
   });
@@ -1260,14 +1282,17 @@ TEST(PawnObserver, ReconcilesActiveItemSlotsThroughEngineSwap) {
     auto& f = *ItemFixture::current;
     EXPECT_EQ(component, f.pawn.data() + 0x48);
     ++f.writes;
-    if (!f.apply) return;
+    if (!f.apply) {
+      return;
+    }
     for (auto* item : {&f.hero, &f.item}) {
       uint16_t slot;
       std::memcpy(&slot, item->data() + 0x38, sizeof(slot));
-      if (slot == first)
+      if (slot == first) {
         slot = second;
-      else if (slot == second)
+      } else if (slot == second) {
         slot = first;
+      }
       std::memcpy(item->data() + 0x38, &slot, sizeof(slot));
     }
   };
@@ -1296,7 +1321,9 @@ TEST(PawnObserver, ReconcilesActiveItemSlotsThroughEngineSwap) {
 TEST(PawnObserver, FreshAbilityTargetsFullChargesAndClearedTimers) {
   ItemFixture fixture;
   auto seams = fixture.Seams();
-  seams.max_charges = [](void*) -> std::expected<int32_t, std::string> { return 5; };
+  seams.max_charges = [](void*) -> std::expected<int32_t, std::string> {
+    return 5;
+  };
   PawnObserver observer{seams};
   ASSERT_TRUE(observer.Observe());
 
@@ -1323,14 +1350,18 @@ TEST(PawnObserver, FreshAbilityTargetsFullChargesAndClearedTimers) {
   EXPECT_EQ(fixture.writes, 0);
   const auto unchanged = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(unchanged);
-  for (const auto& ability : *unchanged) EXPECT_EQ(ability.charges, reduced_charges);
+  for (const auto& ability : *unchanged) {
+    EXPECT_EQ(ability.charges, reduced_charges);
+  }
 }
 
 TEST(PawnObserver, FreshAbilityTargetsHonorsExplicitZeroAndRejectsReadFailure) {
   ItemFixture fixture;
   auto seams = fixture.Seams();
   // Native chargeless ability: the seam reports an explicit 0, not absence.
-  seams.max_charges = [](void*) -> std::expected<int32_t, std::string> { return 0; };
+  seams.max_charges = [](void*) -> std::expected<int32_t, std::string> {
+    return 0;
+  };
   PawnObserver observer{seams};
   ASSERT_TRUE(observer.Observe());
   auto targets = observer.FreshAbilityTargets(0);
@@ -1386,7 +1417,8 @@ TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
     ++observer_spawns;
     return nullptr;
   };
-  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {};
+  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
+  };
   PawnObserver observer{HeroSeamsFor(fixture)};
   const auto refused = observer.SelectPlayer(0, fixture.xuid, 7, 1, nullptr, calls);
   ASSERT_FALSE(refused);
@@ -1416,8 +1448,9 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
     // The engine can return an actor before publishing m_hPawn.
     return active->controller.data();
   };
-  calls.set_pawn =
-      +[](void*, void*, bool, bool, bool, bool) { ADD_FAILURE() << "already on spectator team"; };
+  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
+    ADD_FAILURE() << "already on spectator team";
+  };
   PawnObserver observer{HeroSeamsFor(fixture)};
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
@@ -1490,7 +1523,9 @@ PawnObserver::Seams SeatingSeamsFor(Fixture& fixture, bool play_state = true) {
   seams.layout = [play_state]() -> std::expected<EntityLayout, std::string> {
     auto layout = FixtureLayout();
     layout.hero_pawn_handle = kHeroHandleField;
-    if (play_state) layout.play_state = kPlayStateField;
+    if (play_state) {
+      layout.play_state = kPlayStateField;
+    }
     return layout;
   };
   return seams;
@@ -1556,7 +1591,9 @@ TEST(PawnObserver, SeatingRefusesWithoutThePlayStateAndLeavesTheTeamScreen) {
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   modlock::gameinterop::PlayerSelectionCalls calls;
-  calls.create_pawn = +[](void*, int) -> void* { return nullptr; };
+  calls.create_pawn = +[](void*, int) -> void* {
+    return nullptr;
+  };
 
   PawnObserver observer{SeatingSeamsFor(fixture, false)};
   const auto refused = observer.SeatForChoice(0, fixture.xuid, 3, 2, calls);
@@ -1697,7 +1734,9 @@ TEST(PawnObserver, ReturnLeavesTheGamesCameraAfterTheHeroDies) {
     std::memcpy(active->controller.data() + kPawnHandleField, &handle, sizeof(handle));
     return camera_pawn;
   };
-  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) { ADD_FAILURE() << "hero is dead"; };
+  calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
+    ADD_FAILURE() << "hero is dead";
+  };
   PawnObserver observer{HeroSeamsFor(fixture)};
   ASSERT_TRUE(observer.CameraPawnForSlot(0, calls));
 

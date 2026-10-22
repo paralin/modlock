@@ -177,12 +177,16 @@ std::vector<MovementCall> Simulate(PlayerMovement& movement, std::vector<Movemen
   return commands;
 }
 
-float Speed(const MovementCall& call) { return std::hypot(call.velocity[0], call.velocity[1]); }
+float Speed(const MovementCall& call) {
+  return std::hypot(call.velocity[0], call.velocity[1]);
+}
 
 TEST(PlayerMovement, RunsAtQuakeSpeedOnTheFloor) {
   auto movement = Create(PlayerMovement::Side::kServer);
   std::vector<MovementCall> commands;
-  for (int32_t number = 1; number <= 64; ++number) commands.push_back(Command(number, 1, false));
+  for (int32_t number = 1; number <= 64; ++number) {
+    commands.push_back(Command(number, 1, false));
+  }
   const auto moved = Simulate(movement, commands, {-200, 0, 0}, {});
   EXPECT_NEAR(moved.back().origin[2], 0, 0.05f);
   EXPECT_EQ(moved.back().ground_entity, 0u) << "a grounded pawn keeps the learned world handle";
@@ -215,7 +219,9 @@ TEST(PlayerMovement, ServerAndClientSplitTheSameCommandsAt77Hz) {
 TEST(PlayerMovement, JumpsOnceUntilTheButtonIsReleased) {
   auto movement = Create(PlayerMovement::Side::kServer);
   std::vector<MovementCall> commands;
-  for (int32_t number = 1; number <= 160; ++number) commands.push_back(Command(number, 0, true));
+  for (int32_t number = 1; number <= 160; ++number) {
+    commands.push_back(Command(number, 0, true));
+  }
   const auto held = Simulate(movement, commands, {0, 0, 0}, {});
   // Quake adds 270 upward; gravity then removes one 16 ms step.
   EXPECT_NEAR(held[0].velocity[2], (270 - 800 * 0.015625f) * kScale, 0.01f);
@@ -242,20 +248,25 @@ TEST(PlayerMovement, TheMantleKeyJumps) {
   EXPECT_NEAR(held[0].velocity[2], (270 - 800 * 0.015625f) * kScale, 0.01f);
   EXPECT_EQ(held[0].ground_entity, MovementHook::kNoGround);
   int takeoffs = 0;
-  for (size_t i = 1; i < held.size(); ++i)
+  for (size_t i = 1; i < held.size(); ++i) {
     takeoffs += held[i].velocity[2] > 300 && held[i - 1].velocity[2] <= 0;
+  }
   EXPECT_EQ(takeoffs, 0) << "holding the key through the landing must not jump again";
 }
 
 TEST(PlayerMovement, LaunchedPlayersSlideDownTheWalls) {
   auto movement = Create(PlayerMovement::Side::kServer);
   std::vector<MovementCall> commands;
-  for (int32_t number = 1; number <= 96; ++number) commands.push_back(Command(number, 0, false));
+  for (int32_t number = 1; number <= 96; ++number) {
+    commands.push_back(Command(number, 0, false));
+  }
   const auto flight =
       Simulate(movement, commands, {0, 0, 900}, {900, 0, 0}, MovementHook::kNoGround);
   // Player collision stops at the wall minus the 16-unit half-width.
   constexpr float kWall = (kHalfWidth - 16) * kScale;
-  for (const auto& step : flight) EXPECT_LE(step.origin[0], kWall + 0.05f);
+  for (const auto& step : flight) {
+    EXPECT_LE(step.origin[0], kWall + 0.05f);
+  }
   EXPECT_NEAR(flight.back().origin[0], kWall, 0.05f);
   EXPECT_NEAR(flight.back().velocity[0], 0, 0.01f) << "the wall absorbs the outward speed";
   EXPECT_LT(flight.back().origin[2], 900) << "the player keeps falling along the wall";
@@ -277,7 +288,9 @@ TEST(PlayerMovement, SubdividedCommandsMatchTheServer) {
 
   // The server's command field holds the previously processed number.
   auto on_server = commands;
-  for (auto& call : on_server) --call.command;
+  for (auto& call : on_server) {
+    --call.command;
+  }
   const auto authority = Simulate(server, on_server, {0, 0, 0}, {});
   const auto predicted = Simulate(client, commands, {0, 0, 0}, {});
   for (size_t i = 0; i < commands.size(); ++i) {
@@ -348,9 +361,8 @@ TEST(PlayerMovement, ClientReplayReproducesPredictedCommands) {
   // Replay from an acknowledged command, restoring its authoritative state.
   const size_t acknowledged = 51;
   const std::vector replayed_commands(commands.begin() + acknowledged + 1, commands.end());
-  const auto replayed =
-      Simulate(predicted, replayed_commands, first[acknowledged].origin,
-               first[acknowledged].velocity, first[acknowledged].ground_entity);
+  const auto replayed = Simulate(predicted, replayed_commands, first[acknowledged].origin,
+                                 first[acknowledged].velocity, first[acknowledged].ground_entity);
   for (size_t i = 0; i < replayed.size(); ++i) {
     EXPECT_EQ(replayed[i].origin, first[acknowledged + 1 + i].origin) << "command " << i;
     EXPECT_EQ(replayed[i].velocity, first[acknowledged + 1 + i].velocity) << "command " << i;

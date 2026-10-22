@@ -163,11 +163,17 @@ struct Image {
   // Name returns the printable string at text when it lies in this image,
   // or nothing. Schema and entity records keep their names beside them.
   std::string_view Name(const char* text) const {
-    if (!Contains(text)) return {};
+    if (!Contains(text)) {
+      return {};
+    }
     const auto* end = reinterpret_cast<const char*>(bytes.data() + bytes.size());
     for (const char* at = text; at < end && at - text < 512; ++at) {
-      if (*at == '\0') return {text, size_t(at - text)};
-      if (*at < 0x20 || *at > 0x7e) return {};
+      if (*at == '\0') {
+        return {text, size_t(at - text)};
+      }
+      if (*at < 0x20 || *at > 0x7e) {
+        return {};
+      }
     }
     return {};
   }
@@ -175,7 +181,9 @@ struct Image {
   // FileHeader returns the PE file header, which the PE32+ optional header
   // follows, or null when the image has none.
   const uint8_t* FileHeader() const {
-    if (bytes.size() < 0x40) return nullptr;
+    if (bytes.size() < 0x40) {
+      return nullptr;
+    }
     const auto offset = size_t(Load<uint32_t>(bytes.data() + 0x3c)) + 4;
     return offset + 20 + 240 <= bytes.size() ? bytes.data() + offset : nullptr;
   }
@@ -185,9 +193,13 @@ struct Image {
   uintptr_t Export(std::string_view name) const {
     // Find the export directory through the optional header's data directory.
     const auto* file_header = FileHeader();
-    if (!file_header) return 0;
+    if (!file_header) {
+      return 0;
+    }
     const auto directory = Load<uint32_t>(file_header + 20 + 112);
-    if (!directory || size_t(directory) + 40 > bytes.size()) return 0;
+    if (!directory || size_t(directory) + 40 > bytes.size()) {
+      return 0;
+    }
 
     // Match the name, then map its ordinal to the function's address.
     const auto* exports = bytes.data() + directory;
@@ -197,7 +209,9 @@ struct Image {
     for (uint32_t i = 0, count = Load<uint32_t>(exports + 24); i < count; ++i) {
       const auto* text =
           reinterpret_cast<const char*>(bytes.data() + Load<uint32_t>(names + 4 * i));
-      if (Name(text) != name) continue;
+      if (Name(text) != name) {
+        continue;
+      }
       const auto ordinal = Load<uint16_t>(ordinals + 2 * i);
       return reinterpret_cast<uintptr_t>(bytes.data() + Load<uint32_t>(functions + 4 * ordinal));
     }
@@ -209,16 +223,21 @@ struct Image {
   std::vector<std::span<const uint8_t>> WritableSections() const {
     std::vector<std::span<const uint8_t>> sections;
     const auto* file_header = FileHeader();
-    if (!file_header) return sections;
+    if (!file_header) {
+      return sections;
+    }
     const auto count = Load<uint16_t>(file_header + 2);
     const auto* section = file_header + 20 + Load<uint16_t>(file_header + 16);
     for (uint16_t i = 0; i < count; ++i, section += 40) {
-      if (section + 40 > bytes.data() + bytes.size()) break;
+      if (section + 40 > bytes.data() + bytes.size()) {
+        break;
+      }
       const auto size = Load<uint32_t>(section + 8);
       const auto address = Load<uint32_t>(section + 12);
       const bool writable = Load<uint32_t>(section + 36) & 0x80000000u;
-      if (writable && size_t(address) + size <= bytes.size())
+      if (writable && size_t(address) + size <= bytes.size()) {
         sections.push_back(bytes.subspan(address, size));
+      }
     }
     return sections;
   }
@@ -230,12 +249,17 @@ std::vector<Image> LoadedModules(const GamePaths& paths) {
   for (const auto& directory : {paths.engine2_dll.parent_path(), paths.server_dll.parent_path()}) {
     std::error_code error;
     for (const auto& entry : fs::directory_iterator(directory, error)) {
-      if (entry.path().extension() != ".dll") continue;
+      if (entry.path().extension() != ".dll") {
+        continue;
+      }
       const auto file = entry.path().filename();
       auto image = gameinterop::MappedModuleImage::ForModule(file.wstring());
-      if (!image) continue;
-      if (std::ranges::any_of(images, [&](const Image& seen) { return seen.file == file; }))
+      if (!image) {
         continue;
+      }
+      if (std::ranges::any_of(images, [&](const Image& seen) { return seen.file == file; })) {
+        continue;
+      }
       images.push_back({file.string(), image->image_bytes()});
     }
   }
@@ -249,31 +273,42 @@ std::pair<std::vector<const schema::ClassInfo*>, std::vector<const schema::EnumI
 SchemaRecords(void* schema_system, const Image& image) {
   std::pair<std::vector<const schema::ClassInfo*>, std::vector<const schema::EnumInfo*>> records;
   auto scope = gameinterop::FindTypeScopeOf(schema_system, image.file.c_str());
-  if (!scope) return records;
+  if (!scope) {
+    return records;
+  }
   for (const auto section : image.WritableSections()) {
     for (size_t offset = 0; offset + sizeof(schema::EnumInfo) <= section.size(); offset += 8) {
       const auto* record = section.data() + offset;
-      if (Load<const void*>(record) != record) continue;
+      if (Load<const void*>(record) != record) {
+        continue;
+      }
       const auto* info = reinterpret_cast<const schema::ClassInfo*>(record);
-      if (image.Name(info->name).empty() || image.Name(info->project).empty()) continue;
+      if (image.Name(info->name).empty() || image.Name(info->project).empty()) {
+        continue;
+      }
       if (auto found = gameinterop::FindDeclaredClassOf(*scope, info->name);
-          found && *found == info)
+          found && *found == info) {
         records.first.push_back(info);
-      else if (auto found = gameinterop::FindDeclaredEnumOf(*scope, info->name);
-               found && *found == record)
+      } else if (auto found = gameinterop::FindDeclaredEnumOf(*scope, info->name);
+                 found && *found == record) {
         records.second.push_back(reinterpret_cast<const schema::EnumInfo*>(record));
+      }
     }
   }
   return records;
 }
 
 // Text copies a game string that may be null.
-std::string Text(const char* text) { return text ? text : ""; }
+std::string Text(const char* text) {
+  return text ? text : "";
+}
 
 // AddMetadata adds the names of a schema record's metadata entries.
 template <typename Repeated>
 void AddMetadata(const schema::MetadataEntry* entries, int32_t count, Repeated* names) {
-  for (int32_t i = 0; i < count; ++i) names->Add(Text(entries[i].name));
+  for (int32_t i = 0; i < count; ++i) {
+    names->Add(Text(entries[i].name));
+  }
 }
 
 // ByModuleAndName orders schema records by declaring module, then name.
@@ -309,7 +344,9 @@ void AddClass(const schema::ClassInfo& info, dump::SchemaClass& out) {
   // Name its metadata and the flags a dump reports.
   AddMetadata(info.metadata, info.metadata_count, out.mutable_metadata());
   for (const auto& [bit, name] : kClassFlags) {
-    if (info.flags & bit) out.add_flags(std::string(name));
+    if (info.flags & bit) {
+      out.add_flags(std::string(name));
+    }
   }
 }
 
@@ -336,11 +373,17 @@ std::vector<const EntityClassInfo*> EntityClasses(
   for (const auto section : server.WritableSections()) {
     for (size_t offset = 0; offset + sizeof(EntityClassInfo) <= section.size(); offset += 8) {
       const auto* info = reinterpret_cast<const EntityClassInfo*>(section.data() + offset);
-      if (!server_classes.contains(info->schema_binding)) continue;
+      if (!server_classes.contains(info->schema_binding)) {
+        continue;
+      }
       const auto class_name = server.Name(info->class_name);
       const auto designer_name = server.Name(info->designer_name);
-      if (designer_name.empty() || class_name != info->schema_binding->name) continue;
-      if (designer_names.insert(designer_name).second) classes.push_back(info);
+      if (designer_name.empty() || class_name != info->schema_binding->name) {
+        continue;
+      }
+      if (designer_names.insert(designer_name).second) {
+        classes.push_back(info);
+      }
     }
   }
   std::ranges::sort(classes, {}, [](const EntityClassInfo* info) {
@@ -352,9 +395,13 @@ std::vector<const EntityClassInfo*> EntityClasses(
 // CollectDataMaps adds map, its base chain and its embedded maps by name.
 void CollectDataMaps(const DataMap* map, std::map<std::string_view, const DataMap*>& maps) {
   for (; map != nullptr && map->name != nullptr; map = map->base) {
-    if (!maps.emplace(map->name, map).second) return;
+    if (!maps.emplace(map->name, map).second) {
+      return;
+    }
     for (const auto& field : std::span(map->fields, size_t(std::max(map->field_count, 0)))) {
-      if (field.type == kEmbeddedType) CollectDataMaps(field.embedded, maps);
+      if (field.type == kEmbeddedType) {
+        CollectDataMaps(field.embedded, maps);
+      }
     }
   }
 }
@@ -362,7 +409,9 @@ void CollectDataMaps(const DataMap* map, std::map<std::string_view, const DataMa
 // AddDataMap describes a data map's spawn key values and embedded maps.
 void AddDataMap(const DataMap& map, dump::DataMap& out) {
   out.set_name(map.name);
-  if (map.base && map.base->name) out.set_base(map.base->name);
+  if (map.base && map.base->name) {
+    out.set_base(map.base->name);
+  }
   for (const auto& field : std::span(map.fields, size_t(std::max(map.field_count, 0)))) {
     if (field.flags & kKeyFlag) {
       auto& key = *out.add_key_values();
@@ -396,10 +445,11 @@ std::string QuoteNonFinite(std::string_view json) {
     const char c = json[i];
     if (in_string) {
       out += c;
-      if (c == '\\' && i + 1 < json.size())
+      if (c == '\\' && i + 1 < json.size()) {
         out += json[++i];
-      else if (c == '"')
+      } else if (c == '"') {
         in_string = false;
+      }
       continue;
     }
     const auto word = std::ranges::find_if(
@@ -427,31 +477,38 @@ std::expected<google::protobuf::Struct, std::string> ModuleMetadata(const Image&
   using Save = bool (*)(const void*, UtlString*, UtlString*);
   const auto extract = reinterpret_cast<Extract>(module.Export("ExtractModuleMetadata"));
   const auto save = reinterpret_cast<Save>(tier0.Export(kSaveKV3AsJSON));
-  if (!extract || !save) return std::unexpected("module metadata exports are missing");
+  if (!extract || !save) {
+    return std::unexpected("module metadata exports are missing");
+  }
 
   // Build the metadata and write it as JSON.
   UtlString info;
   const void* metadata = extract(info);
-  if (!metadata)
+  if (!metadata) {
     return std::unexpected(module.file + " metadata failed to build: " + Text(info.text));
+  }
   UtlString error;
   UtlString json;
-  if (!save(metadata, &error, &json) || !json.text)
+  if (!save(metadata, &error, &json) || !json.text) {
     return std::unexpected("cannot write " + module.file + " metadata: " + Text(error.text));
+  }
 
   // Parse the JSON once its non-finite numbers are quoted.
   google::protobuf::Struct parsed;
   if (auto status = google::protobuf::json::JsonStringToMessage(QuoteNonFinite(json.text), &parsed);
-      !status.ok())
+      !status.ok()) {
     return std::unexpected("cannot read " + module.file +
                            " metadata: " + std::string(status.message()));
+  }
   return parsed;
 }
 
 // Member returns the named member of an object value, or null.
 const google::protobuf::Value* Member(const google::protobuf::Value* value,
                                       const std::string& name) {
-  if (!value || !value->has_struct_value()) return nullptr;
+  if (!value || !value->has_struct_value()) {
+    return nullptr;
+  }
   const auto& fields = value->struct_value().fields();
   const auto found = fields.find(name);
   return found == fields.end() ? nullptr : &found->second;
@@ -463,15 +520,21 @@ std::string String(const google::protobuf::Value* value) {
 }
 
 // Bool reports whether value is true.
-bool Bool(const google::protobuf::Value* value) { return value && value->bool_value(); }
+bool Bool(const google::protobuf::Value* value) {
+  return value && value->bool_value();
+}
 
 // AddParameters adds the members of a Pulse parameter list except the target
 // entity, sorted by name since the parsed object keeps no order.
 template <typename Repeated>
 void AddParameters(const google::protobuf::Value* list, const std::string& target, Repeated* out) {
-  if (!list || !list->has_struct_value()) return;
+  if (!list || !list->has_struct_value()) {
+    return;
+  }
   for (const auto& [name, parameter] : list->struct_value().fields()) {
-    if (name == target) continue;
+    if (name == target) {
+      continue;
+    }
     auto& added = *out->Add();
     added.set_name(name);
     added.set_type(String(Member(&parameter, "type")));
@@ -487,21 +550,29 @@ void AddPulseBindings(const google::protobuf::Struct& metadata, dump::Entities& 
   google::protobuf::Value root;
   *root.mutable_struct_value() = metadata;
   const auto* bindings = Member(Member(Member(&root, "pulse_bindings"), "gamedata"), "m_Classes");
-  if (!bindings || !bindings->has_struct_value()) return;
+  if (!bindings || !bindings->has_struct_value()) {
+    return;
+  }
 
   // Add each binding that targets an entity as an input or an output.
   constexpr std::string_view kEntityHandle = "PVAL_EHANDLE";
   for (const auto& [key, binding] : bindings->struct_value().fields()) {
     const auto* meta = Member(&binding, "m_MetaData");
     const bool input = Bool(Member(meta, "is_pulse_target_method"));
-    if (!input && !Bool(Member(meta, "is_pulse_target_output"))) continue;
+    if (!input && !Bool(Member(meta, "is_pulse_target_output"))) {
+      continue;
+    }
     const auto target = String(Member(meta, "target_arg_name"));
     const auto* parameters = Member(meta, input ? "pulse_inparams" : "pulse_outparams");
     const auto target_type = String(Member(Member(parameters, target), "type"));
     std::string_view type = target_type;
-    if (!type.starts_with(kEntityHandle)) continue;
+    if (!type.starts_with(kEntityHandle)) {
+      continue;
+    }
     type.remove_prefix(kEntityHandle.size());
-    if (!type.empty() && !type.starts_with(':')) continue;
+    if (!type.empty() && !type.starts_with(':')) {
+      continue;
+    }
     const auto entity = std::string(type.empty() ? type : type.substr(1));
     const auto name = key.substr(key.rfind(':') + 1);
     const auto description = String(Member(&binding, "m_Description"));
@@ -534,11 +605,14 @@ void AddPulseBindings(const google::protobuf::Struct& metadata, dump::Entities& 
 template <typename Repeated>
 void AddConsoleFlags(uint64_t flags, Repeated* names) {
   for (size_t bit = 0; bit < 64; ++bit) {
-    if (!(flags & (1ull << bit))) continue;
-    if (bit < std::size(kConsoleFlags) && !kConsoleFlags[bit].empty())
+    if (!(flags & (1ull << bit))) {
+      continue;
+    }
+    if (bit < std::size(kConsoleFlags) && !kConsoleFlags[bit].empty()) {
       names->Add(std::string(kConsoleFlags[bit]));
-    else
+    } else {
       names->Add("flag_" + std::to_string(bit));
+    }
   }
 }
 
@@ -547,7 +621,9 @@ std::string Build(const GamePaths& paths) {
   std::ifstream in(paths.server_dll.parent_path().parent_path().parent_path() / "steam.inf");
   std::string line;
   while (std::getline(in, line)) {
-    if (line.starts_with("ClientVersion=")) return line.substr(14);
+    if (line.starts_with("ClientVersion=")) {
+      return line.substr(14);
+    }
   }
   return "unknown";
 }
@@ -560,11 +636,14 @@ std::expected<void, std::string> WriteJson(const google::protobuf::Message& mess
   options.add_whitespace = true;
   options.preserve_proto_field_names = true;
   if (auto printed = google::protobuf::json::MessageToJsonString(message, &text, options);
-      !printed.ok())
+      !printed.ok()) {
     return std::unexpected(path.filename().string() + ": " + std::string(printed.message()));
+  }
   std::ofstream out(path, std::ios::binary);
   out << text;
-  if (!out) return std::unexpected("cannot write " + path.string());
+  if (!out) {
+    return std::unexpected("cannot write " + path.string());
+  }
   return {};
 }
 
@@ -574,12 +653,18 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
                                                          const fs::path& directory) {
   // Resolve the schema system and the console, and make the directory.
   auto schema_system = gameinterop::ResolveSchemaSystem();
-  if (!schema_system) return std::unexpected(schema_system.error());
+  if (!schema_system) {
+    return std::unexpected(schema_system.error());
+  }
   auto console = gameinterop::ConsoleVariables::Resolve();
-  if (!console) return std::unexpected(console.error());
+  if (!console) {
+    return std::unexpected(console.error());
+  }
   std::error_code error;
   fs::create_directories(directory, error);
-  if (error) return std::unexpected("cannot create " + directory.string() + ": " + error.message());
+  if (error) {
+    return std::unexpected("cannot create " + directory.string() + ": " + error.message());
+  }
 
   const auto build = Build(paths);
   GameDumpCounts counts;
@@ -597,23 +682,32 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
       server = &image;
       server_classes.insert(module_classes.begin(), module_classes.end());
     }
-    if (image.file == "tier0.dll") tier0 = &image;
+    if (image.file == "tier0.dll") {
+      tier0 = &image;
+    }
     classes.insert(classes.end(), module_classes.begin(), module_classes.end());
     enums.insert(enums.end(), module_enums.begin(), module_enums.end());
   }
-  if (!server || !tier0) return std::unexpected("server.dll or tier0.dll is not loaded");
+  if (!server || !tier0) {
+    return std::unexpected("server.dll or tier0.dll is not loaded");
+  }
 
   // Write the schemas ordered by module and name.
   std::ranges::sort(classes, ByModuleAndName<schema::ClassInfo>);
   std::ranges::sort(enums, ByModuleAndName<schema::EnumInfo>);
   dump::Schemas schemas;
   schemas.set_build(build);
-  for (const auto* info : classes) AddClass(*info, *schemas.add_classes());
-  for (const auto* info : enums) AddEnum(*info, *schemas.add_enums());
+  for (const auto* info : classes) {
+    AddClass(*info, *schemas.add_classes());
+  }
+  for (const auto* info : enums) {
+    AddEnum(*info, *schemas.add_enums());
+  }
   counts.classes = classes.size();
   counts.enums = enums.size();
-  if (auto written = WriteJson(schemas, directory / "schemas.json"); !written)
+  if (auto written = WriteJson(schemas, directory / "schemas.json"); !written) {
     return std::unexpected(written.error());
+  }
 
   // Describe the entity classes and the data maps they reach.
   dump::Entities entities;
@@ -626,33 +720,50 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
     auto& added = *entities.add_classes();
     added.set_designer_name(info->designer_name);
     added.set_class_name(info->class_name);
-    if (server->Contains(info->description)) added.set_description(info->description);
-    if (info->data_map && info->data_map->name) added.set_data_map(info->data_map->name);
+    if (server->Contains(info->description)) {
+      added.set_description(info->description);
+    }
+    if (info->data_map && info->data_map->name) {
+      added.set_data_map(info->data_map->name);
+    }
     // Abstract records without a designer name sit between listed classes.
     const auto* base = info->base;
-    while (base && !listed.contains(base)) base = base->base;
-    if (base) added.set_base(base->designer_name);
+    while (base && !listed.contains(base)) {
+      base = base->base;
+    }
+    if (base) {
+      added.set_base(base->designer_name);
+    }
     CollectDataMaps(info->data_map, data_maps);
   }
-  for (const auto& [name, map] : data_maps) AddDataMap(*map, *entities.add_data_maps());
+  for (const auto& [name, map] : data_maps) {
+    AddDataMap(*map, *entities.add_data_maps());
+  }
 
   // Add the inputs and outputs from the server's Pulse bindings and write the
   // entities.
   auto metadata = ModuleMetadata(*server, *tier0);
-  if (!metadata) return std::unexpected(metadata.error());
+  if (!metadata) {
+    return std::unexpected(metadata.error());
+  }
   AddPulseBindings(*metadata, entities);
   counts.designer_names = size_t(entities.classes_size());
   counts.data_maps = data_maps.size();
   counts.inputs = size_t(entities.inputs_size());
   counts.outputs = size_t(entities.outputs_size());
-  if (auto written = WriteJson(entities, directory / "entities.json"); !written)
+  if (auto written = WriteJson(entities, directory / "entities.json"); !written) {
     return std::unexpected(written.error());
+  }
 
   // Write the console variables and commands ordered by name.
   auto variables = console->Variables();
-  if (!variables) return std::unexpected(variables.error());
+  if (!variables) {
+    return std::unexpected(variables.error());
+  }
   auto commands = console->Commands();
-  if (!commands) return std::unexpected(commands.error());
+  if (!commands) {
+    return std::unexpected(commands.error());
+  }
   std::ranges::sort(*variables, {}, &gameinterop::ConsoleVariableInfo::name);
   std::ranges::sort(*commands, {}, &gameinterop::ConsoleCommandInfo::name);
   dump::Console listing;
@@ -675,8 +786,9 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
   }
   counts.variables = variables->size();
   counts.commands = commands->size();
-  if (auto written = WriteJson(listing, directory / "console.json"); !written)
+  if (auto written = WriteJson(listing, directory / "console.json"); !written) {
     return std::unexpected(written.error());
+  }
   return counts;
 }
 

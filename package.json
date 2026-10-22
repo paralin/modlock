@@ -13,6 +13,7 @@
     "lint:fix": "oxlint . --fix",
     "lint:cc": "bun scripts/lint-cc.ts",
     "format": "oxfmt",
+    "format:cc": "git ls-files -z '*.cc' '*.h' ':!:third_party' ':!:*.pb.*' | xargs -0 clang-format -i",
     "test": "bun test --timeout 30000 ./panorama/ ./js/test/"
   },
   "devDependencies": {

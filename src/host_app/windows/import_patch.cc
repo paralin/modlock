@@ -14,7 +14,9 @@ void** ImportSlot(HMODULE module, std::string_view dll, std::string_view name, W
   const auto dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
   const auto nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
   const auto& directory = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-  if (!directory.VirtualAddress) return nullptr;
+  if (!directory.VirtualAddress) {
+    return nullptr;
+  }
 
   const std::string dll_name(dll);
   auto descriptor =

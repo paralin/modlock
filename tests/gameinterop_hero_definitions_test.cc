@@ -27,7 +27,9 @@ int g_hero_id_pointer_count = 0;
 
 // ManagerGetter stands in for the TLS-guarded CHeroDefinitionManager getter
 // decoded from the recorded anchor.
-void* ManagerGetter() { return g_manager_sentinel; }
+void* ManagerGetter() {
+  return g_manager_sentinel;
+}
 
 // RecordHeroNameToId mirrors the native ABI: HeroNameToId returns a
 // pointer and the lookup only reads *out_id, never the returned pointer.
@@ -86,7 +88,9 @@ constexpr std::string_view kSignatureIds[] = {
 gti::FakeModuleImage ImageWithout(std::string_view missing) {
   gti::FakeModuleImage image;
   for (const auto id : kSignatureIds) {
-    if (id != missing) image.AddSignature(id);
+    if (id != missing) {
+      image.AddSignature(id);
+    }
   }
   image.Seal(reinterpret_cast<std::uintptr_t>(&ManagerGetter));
   image.PatchRelativeCall("hero-definition-manager.get-manager", 0xE,

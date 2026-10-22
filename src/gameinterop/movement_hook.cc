@@ -48,7 +48,9 @@ struct Layout {
 std::expected<Layout, std::string> Resolve(const char* module, const char* entity,
                                            const char* pawn) {
   auto schema = ResolveSchemaSystem();
-  if (!schema) return std::unexpected(schema.error());
+  if (!schema) {
+    return std::unexpected(schema.error());
+  }
   Layout layout;
   struct Field {
     const char* type;
@@ -63,8 +65,9 @@ std::expected<Layout, std::string> Resolve(const char* module, const char* entit
         Field{entity, "m_hGroundEntity", &layout.ground},
         Field{entity, "m_MoveType", &layout.move_type}}) {
     auto resolved = SchemaFieldOf(*schema, module, field.type, field.name);
-    if (!resolved)
+    if (!resolved) {
       return std::unexpected(std::string(field.type) + "." + field.name + ": " + resolved.error());
+    }
     *field.offset = resolved->offset;
   }
   return layout;
@@ -95,7 +98,9 @@ std::array<Hook, 2> g_hooks{Hook{.module_name = "server.dll",
 void* PawnOf(const unsigned char* services, const Layout& layout) {
   void* pawn = nullptr;
   Read(services, layout.chain, pawn);
-  if (!pawn) return nullptr;
+  if (!pawn) {
+    return nullptr;
+  }
   const void* owned = nullptr;
   Read(static_cast<const unsigned char*>(pawn), layout.services, owned);
   return owned == services ? pawn : nullptr;
@@ -105,14 +110,19 @@ void Dispatch(Hook& hook, void* services, void* data) {
 #if defined(_WIN32)
   if (!hook.layout && !hook.layout_failed) {
     auto layout = Resolve(hook.module_name, hook.entity_class, hook.pawn_class);
-    if (layout) hook.layout = *layout;
+    if (layout) {
+      hook.layout = *layout;
+    }
     hook.layout_failed = !layout;
-    if (!layout)
+    if (!layout) {
       std::fprintf(stderr,
                    "[modlock] %s movement layout unavailable (%s); native movement retained\n",
                    hook.module_name, layout.error().c_str());
+    }
   }
-  if (!hook.layout) return hook.detour->call<void>(services, data);
+  if (!hook.layout) {
+    return hook.detour->call<void>(services, data);
+  }
 
   const auto* owner = static_cast<const unsigned char*>(services);
   auto* move = static_cast<unsigned char*>(data);
@@ -140,21 +150,29 @@ void Dispatch(Hook& hook, void* services, void* data) {
   // native step always runs for its per-command bookkeeping, which client
   // prediction requires; a replacement result then overwrites its motion.
   const bool replaced = (*hook.handler)(call);
-  if (call.buttons != buttons)
+  if (call.buttons != buttons) {
     std::memcpy(static_cast<unsigned char*>(services) + hook.layout->buttons + kButtonStates,
                 call.buttons.data(), sizeof(call.buttons));
+  }
   // Rewritten angles and movement axes steer the native step itself, so its
   // movement state and animation follow the replaced command.
-  if (call.angles != angles) std::memcpy(move + kMoveAngles, call.angles.data(), sizeof(call.angles));
+  if (call.angles != angles) {
+    std::memcpy(move + kMoveAngles, call.angles.data(), sizeof(call.angles));
+  }
   const std::array<float, 3> axes{call.forward, call.left, call.up};
-  if (axes != input) std::memcpy(move + kMoveInput, axes.data(), sizeof(axes));
+  if (axes != input) {
+    std::memcpy(move + kMoveInput, axes.data(), sizeof(axes));
+  }
   hook.detour->call<void>(services, data);
-  if (!replaced) return;
+  if (!replaced) {
+    return;
+  }
   std::memcpy(move + kMoveOrigin, call.origin.data(), sizeof(call.origin));
   std::memcpy(move + kMoveVelocity, call.velocity.data(), sizeof(call.velocity));
-  if (call.pawn)
+  if (call.pawn) {
     std::memcpy(static_cast<unsigned char*>(call.pawn) + hook.layout->ground, &call.ground_entity,
                 sizeof(call.ground_entity));
+  }
 #else
   (void)hook;
   (void)services;
@@ -162,8 +180,12 @@ void Dispatch(Hook& hook, void* services, void* data) {
 #endif
 }
 
-void ServerThunk(void* services, void* data) { Dispatch(g_hooks[0], services, data); }
-void ClientThunk(void* services, void* data) { Dispatch(g_hooks[1], services, data); }
+void ServerThunk(void* services, void* data) {
+  Dispatch(g_hooks[0], services, data);
+}
+void ClientThunk(void* services, void* data) {
+  Dispatch(g_hooks[1], services, data);
+}
 
 }  // namespace
 
@@ -174,7 +196,9 @@ struct MovementHook::Impl {
   safetyhook::InlineHook detour;
 #endif
   ~Impl() {
-    if (!hook) return;
+    if (!hook) {
+      return;
+    }
 #if defined(_WIN32)
     detour.reset();
 #endif
@@ -192,22 +216,32 @@ MovementHook::~MovementHook() = default;
 std::expected<MovementHook, std::string> MovementHook::Install(Module module, Handler handler) {
 #if defined(_WIN32)
   auto& hook = g_hooks[module == Module::kServer ? 0 : 1];
-  if (hook.handler || !handler) return std::unexpected("movement hook already installed or empty");
+  if (hook.handler || !handler) {
+    return std::unexpected("movement hook already installed or empty");
+  }
   const auto image =
       MappedModuleImage::ForModule(module == Module::kServer ? L"server.dll" : L"client.dll");
-  if (!image) return std::unexpected(image.error());
+  if (!image) {
+    return std::unexpected(image.error());
+  }
   auto target = ResolveSignature(*image, "movement.process");
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
   const auto thunk = module == Module::kServer ? &ServerThunk : &ClientThunk;
   impl->detour = safetyhook::create_inline(*target, reinterpret_cast<void*>(thunk),
                                            safetyhook::InlineHook::StartDisabled);
-  if (!impl->detour) return std::unexpected("cannot create native movement hook");
+  if (!impl->detour) {
+    return std::unexpected("cannot create native movement hook");
+  }
   hook.handler = &impl->handler;
   hook.detour = &impl->detour;
   impl->hook = &hook;
-  if (!impl->detour.enable()) return std::unexpected("cannot enable native movement hook");
+  if (!impl->detour.enable()) {
+    return std::unexpected("cannot enable native movement hook");
+  }
   return MovementHook(std::move(impl));
 #else
   (void)module;

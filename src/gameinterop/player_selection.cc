@@ -17,7 +17,9 @@ std::expected<PlayerSelectionCalls, std::string> PlayerSelectionCalls::Resolve(
   };
   for (const auto& entry : entries) {
     auto address = ResolveSignature(server, entry.id);
-    if (!address) return std::unexpected(address.error());
+    if (!address) {
+      return std::unexpected(address.error());
+    }
     *entry.slot = *address;
   }
   return calls;
@@ -25,14 +27,18 @@ std::expected<PlayerSelectionCalls, std::string> PlayerSelectionCalls::Resolve(
 
 std::expected<ResetHeroPawn, std::string> ResolveResetHeroPawn(const ModuleImage& server) {
   auto target = ResolveSignature(server, "pawn.reset-hero");
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   return reinterpret_cast<ResetHeroPawn>(*target);
 }
 
 std::expected<RespawnPawn, std::string> ResolveRespawnPawn(const ModuleImage& server) {
   // CCitadelPlayerController's respawn command calls this on m_hHeroPawn with true.
   auto target = ResolveSignature(server, "pawn.respawn");
-  if (!target) return std::unexpected(target.error());
+  if (!target) {
+    return std::unexpected(target.error());
+  }
   return reinterpret_cast<RespawnPawn>(*target);
 }
 

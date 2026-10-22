@@ -32,8 +32,9 @@ struct EnumSchema {
     std::memcpy(info.data() + 32, &entries, sizeof(entries));
     const std::array<const char*, 2> names{"MODIFIER_STATE_PARRY_DISABLED",
                                            "MODIFIER_STATE_PARRY_ACTIVE"};
-    for (size_t i = 0; i < names.size(); ++i)
+    for (size_t i = 0; i < names.size(); ++i) {
       std::memcpy(values.data() + i * 32, &names[i], sizeof(names[i]));
+    }
     const int64_t disabled = 0x6c;
     std::memcpy(values.data() + 8, &disabled, sizeof(disabled));
   }

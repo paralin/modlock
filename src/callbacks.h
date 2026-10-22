@@ -19,7 +19,9 @@ class Callbacks<Result(Args...)> {
  public:
   using Callback = std::function<Result(Args...)>;
   Subscription Add(Callback callback) {
-    if (!callback) return {};
+    if (!callback) {
+      return {};
+    }
     auto registration = std::make_shared<Callback>(std::move(callback));
     callbacks_.push_back(registration);
     return Subscription(std::move(registration));
@@ -31,13 +33,17 @@ class Callbacks<Result(Args...)> {
     for (const auto& weak : current) {
       if (auto callback = weak.lock()) {
         if constexpr (std::is_same_v<Result, bool>) {
-          if ((*callback)(args...)) return true;
+          if ((*callback)(args...)) {
+            return true;
+          }
         } else {
           (*callback)(args...);
         }
       }
     }
-    if constexpr (std::is_same_v<Result, bool>) return false;
+    if constexpr (std::is_same_v<Result, bool>) {
+      return false;
+    }
   }
 
  private:

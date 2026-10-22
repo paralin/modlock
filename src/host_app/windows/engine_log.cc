@@ -38,7 +38,9 @@ ResetFn original_reset = nullptr;
 // starts empty; a copied state already holds the listener.
 void PushLoggingState(bool thread_local_state, bool clear_state) {
   original_push(thread_local_state, clear_state);
-  if (clear_state) register_listener(&engine_log);
+  if (clear_state) {
+    register_listener(&engine_log);
+  }
 }
 
 // ResetCurrentLoggingState empties the current state and rejoins it.
@@ -51,7 +53,9 @@ void ResetCurrentLoggingState() {
 
 std::expected<void, std::string> ListenEngineLog(HMODULE engine2) {
   HMODULE tier0 = GetModuleHandleW(L"tier0.dll");
-  if (!tier0) return std::unexpected("engine log: tier0.dll is not mapped");
+  if (!tier0) {
+    return std::unexpected("engine log: tier0.dll is not mapped");
+  }
   register_listener = reinterpret_cast<RegisterFn>(
       reinterpret_cast<void*>(GetProcAddress(tier0, "LoggingSystem_RegisterLoggingListener")));
   if (!register_listener) {
@@ -61,11 +65,15 @@ std::expected<void, std::string> ListenEngineLog(HMODULE engine2) {
 
   auto push = PatchImport(engine2, "tier0.dll", "LoggingSystem_PushLoggingState", 0,
                           reinterpret_cast<void*>(&PushLoggingState));
-  if (!push) return std::unexpected("engine log: engine2.dll: " + push.error());
+  if (!push) {
+    return std::unexpected("engine log: engine2.dll: " + push.error());
+  }
   original_push = reinterpret_cast<PushFn>(*push);
   auto reset = PatchImport(engine2, "tier0.dll", "LoggingSystem_ResetCurrentLoggingState", 0,
                            reinterpret_cast<void*>(&ResetCurrentLoggingState));
-  if (!reset) return std::unexpected("engine log: engine2.dll: " + reset.error());
+  if (!reset) {
+    return std::unexpected("engine log: engine2.dll: " + reset.error());
+  }
   original_reset = reinterpret_cast<ResetFn>(*reset);
   return {};
 }

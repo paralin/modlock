@@ -30,15 +30,18 @@ class Image final : public ModuleImage {
 
     // The first and third functions share their entry bytes.
     const std::array<uint8_t, 2> entries[] = {{0xAA, 0xBB}, {0xCC, 0xDD}, {0xAA, 0xBB}};
-    for (size_t i = 0; i < 3; ++i)
+    for (size_t i = 0; i < 3; ++i) {
       std::memcpy(bytes.data() + 0x100 + i * 0x10, entries[i].data(), 2);
+    }
 
     const char name[] = ".?AVCThing@@";
     std::memcpy(bytes.data() + 0x210, name, sizeof(name));
     const uint32_t locator[] = {1, 0, 0, 0x200};
     std::memcpy(bytes.data() + 0x240, locator, sizeof(locator));
     Put<uint64_t>(kTable - 8, kBase + 0x240);
-    for (size_t i = 0; i < 3; ++i) Put<uint64_t>(kTable + i * 8, kBase + 0x100 + i * 0x10);
+    for (size_t i = 0; i < 3; ++i) {
+      Put<uint64_t>(kTable + i * 8, kBase + 0x100 + i * 0x10);
+    }
   }
 
   std::uintptr_t base() const override { return kBase; }

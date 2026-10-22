@@ -39,9 +39,13 @@ class Events final : public WasmHostObserver {
 // method "refuse".
 std::expected<std::string, std::string> Shout(std::string_view mod, std::string_view method,
                                               std::string_view payload) {
-  if (method == "refuse") return std::unexpected(std::string(mod) + " may not refuse");
+  if (method == "refuse") {
+    return std::unexpected(std::string(mod) + " may not refuse");
+  }
   std::string answer = std::string(method) + ":" + std::string(payload);
-  for (auto& c : answer) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+  for (auto& c : answer) {
+    c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+  }
   return answer;
 }
 

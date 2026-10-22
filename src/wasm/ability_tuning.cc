@@ -19,7 +19,9 @@ using gameinterop::SchemaField;
 // property record's size, which sets the map's node stride.
 void SetProperties(unsigned char* definition, void* schema, const char* module,
                    std::map<std::string, float> values, std::vector<std::string>& problems) {
-  if (values.empty()) return;
+  if (values.empty()) {
+    return;
+  }
   auto properties =
       gameinterop::SchemaFieldOf(schema, module, "CitadelAbilityVData", "m_mapAbilityProperties");
   auto size = gameinterop::SchemaClassSizeOf(schema, module, "CitadelAbilityProperty_t");
@@ -46,12 +48,18 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
     auto* node = nodes + i * (24 + *size);
     int32_t left = 0;
     std::memcpy(&left, node, sizeof(left));
-    if (left == i) continue;
+    if (left == i) {
+      continue;
+    }
     const char* key = nullptr;
     std::memcpy(&key, node + 16, sizeof(key));
-    if (!key) continue;
+    if (!key) {
+      continue;
+    }
     auto found = values.find(key);
-    if (found == values.end()) continue;
+    if (found == values.end()) {
+      continue;
+    }
 
     // The parsed cache follows the value string's pointer: the value and its
     // street brawl variant.
@@ -59,7 +67,9 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
     std::memcpy(node + 24 + cache->offset + sizeof(void*), parsed.data(), sizeof(parsed));
     values.erase(found);
   }
-  for (const auto& [name, value] : values) problems.push_back("no ability property " + name);
+  for (const auto& [name, value] : values) {
+    problems.push_back("no ability property " + name);
+  }
 }
 
 // ResolvePath sums the offsets along a path of class.field steps separated by
@@ -74,11 +84,15 @@ std::expected<SchemaField, std::string> ResolvePath(void* schema, const char* mo
     const auto step = path.substr(0, slash);
     path = slash == std::string_view::npos ? std::string_view{} : path.substr(slash + 1);
     const auto dot = step.find('.');
-    if (dot == std::string_view::npos) return std::unexpected("field path step lacks a class");
+    if (dot == std::string_view::npos) {
+      return std::unexpected("field path step lacks a class");
+    }
     const std::string type(step.substr(0, dot));
     const std::string name(step.substr(dot + 1));
     auto field = gameinterop::SchemaFieldOf(schema, module, type.c_str(), name.c_str());
-    if (!field) return std::unexpected(field.error());
+    if (!field) {
+      return std::unexpected(field.error());
+    }
     offset += field->offset;
     result = *field;
   }
@@ -92,15 +106,18 @@ std::expected<std::vector<std::string>, std::string> TuneAbilities(
     const gameinterop::ModuleImage& module, void* schema, const char* module_name,
     const google::protobuf::RepeatedPtrField<AbilityTuning>& abilities) {
   auto definitions = gameinterop::AbilityDefinitions::Resolve(module);
-  if (!definitions) return std::unexpected(definitions.error());
+  if (!definitions) {
+    return std::unexpected(definitions.error());
+  }
 
   // Find every ability first, so a module still loading its data takes no
   // partial tuning.
   std::vector<unsigned char*> found;
   for (const auto& ability : abilities) {
-    auto definition =
-        definitions->Find(gameinterop::MakeMemberName(ability.ability()).hash);
-    if (!definition) return std::unexpected(ability.ability() + ": " + definition.error());
+    auto definition = definitions->Find(gameinterop::MakeMemberName(ability.ability()).hash);
+    if (!definition) {
+      return std::unexpected(ability.ability() + ": " + definition.error());
+    }
     found.push_back(static_cast<unsigned char*>(definition->native_definition_pointer));
   }
 
@@ -128,7 +145,9 @@ std::expected<std::vector<std::string>, std::string> TuneAbilities(
       }
       std::memmove(definition + to->offset, definition + from->offset, to->size);
     }
-    for (auto& problem : own) problems.push_back(ability.ability() + ": " + problem);
+    for (auto& problem : own) {
+      problems.push_back(ability.ability() + ": " + problem);
+    }
   }
   return problems;
 }

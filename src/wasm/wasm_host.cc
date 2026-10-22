@@ -58,7 +58,9 @@ struct Mods {
   // from its callback.
   template <typename Report>
   void Notify(const Report& report) {
-    for (auto* observer : std::vector(observers)) report(*observer);
+    for (auto* observer : std::vector(observers)) {
+      report(*observer);
+    }
   }
 };
 
@@ -80,7 +82,9 @@ struct Build {
 // ReadFile returns the bytes of path.
 std::expected<std::vector<uint8_t>, std::string> ReadFile(const std::filesystem::path& path) {
   std::ifstream file(path, std::ios::binary);
-  if (!file) return std::unexpected("cannot read " + path.string());
+  if (!file) {
+    return std::unexpected("cannot read " + path.string());
+  }
   return std::vector<uint8_t>(std::istreambuf_iterator<char>(file),
                               std::istreambuf_iterator<char>());
 }
@@ -106,14 +110,18 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
                                             const std::filesystem::path& interpreters) {
   if (!std::filesystem::is_directory(path)) {
     auto module = ReadFile(path);
-    if (!module) return std::unexpected(module.error());
+    if (!module) {
+      return std::unexpected(module.error());
+    }
     return Build{.name = path.stem().string(), .module = std::move(*module)};
   }
 
   // Parse the manifest, tolerating fields a newer command line writes.
   const auto manifest_path = path / "mod.json";
   auto text = ReadFile(manifest_path);
-  if (!text) return std::unexpected(text.error());
+  if (!text) {
+    return std::unexpected(text.error());
+  }
   wasm::Manifest manifest;
   google::protobuf::json::ParseOptions options;
   options.ignore_unknown_fields = true;
@@ -126,13 +134,19 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
 
   // Read the entry the manifest names, the interpreter that runs it and the
   // collision its movement model needs.
-  if (manifest.slug().empty()) return std::unexpected(manifest_path.string() + ": no slug");
+  if (manifest.slug().empty()) {
+    return std::unexpected(manifest_path.string() + ": no slug");
+  }
   auto entry = ReadFile(path / manifest.entry());
-  if (!entry) return std::unexpected(entry.error());
+  if (!entry) {
+    return std::unexpected(entry.error());
+  }
   Build build{.name = manifest.slug()};
   if (manifest.movement().model() == wasm::Movement::MODEL_QUAKEWORLD) {
     auto collision = ReadFile(path / "maps" / (manifest.map() + ".bsp"));
-    if (!collision) return std::unexpected(collision.error());
+    if (!collision) {
+      return std::unexpected(collision.error());
+    }
     build.collision = std::move(*collision);
   }
   if (manifest.runtime() == wasm::Manifest::RUNTIME_WASM) {
@@ -143,7 +157,9 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
       return std::unexpected(manifest_path.string() + ": this host does not know the runtime");
     }
     auto module = ReadFile(interpreters / interpreter);
-    if (!module) return std::unexpected(module.error());
+    if (!module) {
+      return std::unexpected(module.error());
+    }
     build.module = std::move(*module);
     build.source = std::move(*entry);
   }
@@ -156,13 +172,21 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
 // yet is tried again on a later call.
 bool Tune(std::wstring_view module, const char* module_name, const wasm::Manifest& manifest,
           const std::function<void(std::string_view)>& log) {
-  if (manifest.abilities().empty()) return true;
+  if (manifest.abilities().empty()) {
+    return true;
+  }
   auto image = gameinterop::MappedModuleImage::ForModule(module);
   auto schema = gameinterop::ResolveSchemaSystem();
-  if (!image || !schema) return false;
+  if (!image || !schema) {
+    return false;
+  }
   auto problems = wasm::TuneAbilities(*image, *schema, module_name, manifest.abilities());
-  if (!problems) return false;
-  for (const auto& problem : *problems) log("ability tuning: " + problem);
+  if (!problems) {
+    return false;
+  }
+  for (const auto& problem : *problems) {
+    log("ability tuning: " + problem);
+  }
   return true;
 }
 
@@ -178,7 +202,9 @@ class ClientMod final : public Plugin {
 
   bool Start() override {
     const auto& movement = build_.manifest.movement();
-    if (movement.model() != wasm::Movement::MODEL_QUAKEWORLD) return true;
+    if (movement.model() != wasm::Movement::MODEL_QUAKEWORLD) {
+      return true;
+    }
     auto created = quake::PlayerMovement::Create(quake::PlayerMovement::Side::kClient,
                                                  build_.collision, movement.scale());
     if (!created) {
@@ -190,8 +216,9 @@ class ClientMod final : public Plugin {
         gameinterop::MovementHook::Module::kClient, [this](gameinterop::MovementCall& call) {
           // The client's ability data loads before its first predicted command.
           Tick();
-          for (auto& state : call.buttons)
+          for (auto& state : call.buttons) {
             state &= ~build_.manifest.movement().unpredicted_buttons();
+          }
           return movement_->Step(call);
         });
     if (!hook) {
@@ -204,7 +231,9 @@ class ClientMod final : public Plugin {
   }
 
   void Tick() override {
-    if (!tuned_) tuned_ = Tune(L"client.dll", "client.dll", build_.manifest, Log);
+    if (!tuned_) {
+      tuned_ = Tune(L"client.dll", "client.dll", build_.manifest, Log);
+    }
   }
 
   void Stop() override {
@@ -263,7 +292,9 @@ class WasmPlugin final : public Plugin {
         check_only_(context.check_only),
         mod_([this](const wasm::Call& call) { return Send(call); }),
         game_(*this, host, context.engine) {
-    for (int i = 1; i < context.argc; ++i) args_.emplace_back(context.argv[i]);
+    for (int i = 1; i < context.argc; ++i) {
+      args_.emplace_back(context.argv[i]);
+    }
   }
 
   ~WasmPlugin() override {
@@ -303,7 +334,9 @@ class WasmPlugin final : public Plugin {
   // frame, while the plugin offers that: after the instance stopped or ran a
   // slow event. It reports whether the restart was offered.
   bool AskRestart() {
-    if (!stopped_ && std::chrono::steady_clock::now() >= offer_until_) return false;
+    if (!stopped_ && std::chrono::steady_clock::now() >= offer_until_) {
+      return false;
+    }
     restart_ = true;
     return true;
   }
@@ -343,7 +376,9 @@ class WasmPlugin final : public Plugin {
 
   // Impacted delivers a watched projectile's impact to the mod.
   void Impacted(const wasm::ImpactEvent& event) {
-    if (instance_) static_cast<void>(mod_.Impact(event));
+    if (instance_) {
+      static_cast<void>(mod_.Impact(event));
+    }
   }
 
   uint32_t InterfaceVersion() const override { return PluginInterfaceVersion; }
@@ -593,8 +628,12 @@ std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instanti
 bool WasmPlugin::Start() {
   // The mod starts before it hears of any world: a world that is already
   // ready reaches it while it subscribes. Send has logged a failed start.
-  if (!Begin(false)) return false;
-  if (check_only_) return true;
+  if (!Begin(false)) {
+    return false;
+  }
+  if (check_only_) {
+    return true;
+  }
 
   // Player commands need the network system, which loads with the first world.
   auto world = engine_->OnWorld([this](std::string_view) { host_.game.WorldStarting(); },
@@ -629,7 +668,9 @@ std::expected<void, std::string> WasmPlugin::Reload(Build build) {
 
   // Load the new build first, so a broken one leaves the old one running.
   auto instance = Instantiate(build.module);
-  if (!instance) return std::unexpected(instance.error());
+  if (!instance) {
+    return std::unexpected(instance.error());
+  }
 
   return Succeed(std::move(*instance), std::move(build));
 }
@@ -647,7 +688,9 @@ std::expected<void, std::string> WasmPlugin::Succeed(std::unique_ptr<wasm::Insta
 
 std::expected<void, std::string> WasmPlugin::Arrive() {
   if (game_.Departing()) {
-    if (std::chrono::steady_clock::now() < starting_until_) return {};
+    if (std::chrono::steady_clock::now() < starting_until_) {
+      return {};
+    }
     Log("starts while a bot it removed has not left yet");
   }
   auto successor = std::move(*successor_);
@@ -661,7 +704,9 @@ std::expected<void, std::string> WasmPlugin::Arrive() {
 }
 
 std::expected<void, std::string> WasmPlugin::Press(int32_t slot, std::string_view node) {
-  if (!instance_) return std::unexpected(name_ + " is not running");
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
   if (!ui_.IsButton(slot, node)) {
     return std::unexpected(name_ + " shows no button " + std::string(node));
   }
@@ -674,20 +719,26 @@ std::expected<void, std::string> WasmPlugin::Press(int32_t slot, std::string_vie
 
 std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCall& call) {
   auto reply = mod_.Serve(call);
-  if (!reply) return std::unexpected(reply.error());
+  if (!reply) {
+    return std::unexpected(reply.error());
+  }
   return std::move(*reply->mutable_payload());
 }
 
 std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   // Start the mod and learn which events it consumes.
   wasm::StartEvent event;
-  for (const auto& arg : args_) event.add_args(arg);
+  for (const auto& arg : args_) {
+    event.add_args(arg);
+  }
   event.set_check_only(check_only_);
   event.set_source(source_.data(), source_.size());
   reported_.reset();
   game_.StartFreeForAll(manifest_.free_for_all());
   auto started = mod_.Start(event);
-  if (!started) return std::unexpected(started.error());
+  if (!started) {
+    return std::unexpected(started.error());
+  }
   wants_ = std::move(*started);
   host_.Notify([&](WasmHostObserver& observer) { observer.Started(name_, reloaded); });
   if (map_) {
@@ -699,7 +750,9 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
 }
 
 void WasmPlugin::Hold(bool held) {
-  if (held == held_) return;
+  if (held == held_) {
+    return;
+  }
   held_ = held;
   host_.Notify([&](WasmHostObserver& observer) { observer.Held(name_, held); });
 }
@@ -707,7 +760,9 @@ void WasmPlugin::Hold(bool held) {
 void WasmPlugin::Halt() {
   // The hold ends with the instance that took it.
   Hold(false);
-  if (movement_) static_cast<void>(host_.game.StepWith(nullptr));
+  if (movement_) {
+    static_cast<void>(host_.game.StepWith(nullptr));
+  }
   movement_.reset();
   hero_slots_.clear();
   Unsubscribe();
@@ -715,21 +770,33 @@ void WasmPlugin::Halt() {
   game_.Clear();
   ui::Change reset;
   reset.set_reset(true);
-  for (const auto slot : ui_.Clear()) ShowUi(slot, reset);
+  for (const auto slot : ui_.Clear()) {
+    ShowUi(slot, reset);
+  }
 }
 
 void WasmPlugin::ListenForRestart() {
   // Hear "/restartmod" or "/restartmod <mod>", with the prefixes the mod's
   // own commands take.
-  if (restartable_) return;
+  if (restartable_) {
+    return;
+  }
   auto chats = engine_->OnChat([this](int32_t, std::string_view text) {
-    if (text.empty() || !std::string_view("/.+-").contains(text.front())) return;
+    if (text.empty() || !std::string_view("/.+-").contains(text.front())) {
+      return;
+    }
     text.remove_prefix(1);
-    if (!text.starts_with(kRestartCommand)) return;
+    if (!text.starts_with(kRestartCommand)) {
+      return;
+    }
     text.remove_prefix(kRestartCommand.size());
-    if (!text.empty() && text.front() != ' ') return;
+    if (!text.empty() && text.front() != ' ') {
+      return;
+    }
     const auto named = text.find_first_not_of(' ');
-    if (named == std::string_view::npos || text.substr(named) == name_) AskRestart();
+    if (named == std::string_view::npos || text.substr(named) == name_) {
+      AskRestart();
+    }
   });
   if (!chats) {
     Log("the restart command is unavailable: " + chats.error());
@@ -764,14 +831,20 @@ void WasmPlugin::Stopped() {
 void WasmPlugin::Warn(std::string_view what) {
   // Address each player, since the game's chat goes to one slot at a time.
   warned_at_ = std::chrono::steady_clock::now();
-  if (check_only_) return;
+  if (check_only_) {
+    return;
+  }
   auto messages = host_.game.Messages();
-  if (!messages) return;
+  if (!messages) {
+    return;
+  }
   const auto& title = manifest_.name().empty() ? name_ : manifest_.name();
   const auto text = std::format("{} {}", title, what);
   for (int32_t slot = 0; slot < wasm::kMaxPlayers; ++slot) {
     const auto player = gameinterop::ConnectionTracker::StateForSlot(slot);
-    if (player.occupied && !player.is_bot) static_cast<void>((*messages)->Chat(slot, text));
+    if (player.occupied && !player.is_bot) {
+      static_cast<void>((*messages)->Chat(slot, text));
+    }
   }
 }
 
@@ -784,7 +857,9 @@ void WasmPlugin::Withdraw() {
 void WasmPlugin::Restart() {
   // A successor already on its way is the restart.
   Withdraw();
-  if (successor_) return;
+  if (successor_) {
+    return;
+  }
 
   // A build that no longer instantiates stays stopped, still offered, and
   // clears what a running instance placed and shows, as a reload does.
@@ -824,7 +899,9 @@ void WasmPlugin::Tick() {
     }
   }
   if (successor_) {
-    if (auto started = Arrive(); !started) Log("did not start: " + started.error());
+    if (auto started = Arrive(); !started) {
+      Log("did not start: " + started.error());
+    }
   }
   if (restart_) {
     Restart();
@@ -839,7 +916,9 @@ void WasmPlugin::Tick() {
   Steer();
   DeliverDamaged();
   DeliverGameEvents();
-  if (!wants_.frames() || !instance_) return;
+  if (!wants_.frames() || !instance_) {
+    return;
+  }
 
   // A mod that ran a slow frame skips frames until as much time passed, so
   // it keeps at most half of the engine thread and no player times out. A mod
@@ -863,7 +942,9 @@ void WasmPlugin::Tick() {
         Log("the server clock is unreadable: " + clock_error_);
       }
     }
-    if (map_ && game_.Moving()) ListenToCombat();
+    if (map_ && game_.Moving()) {
+      ListenToCombat();
+    }
     Sample(frame);
   }
   static_cast<void>(mod_.Frame(frame));
@@ -877,7 +958,9 @@ void WasmPlugin::Tick() {
     slowest_ = spent;
     slowest_report_ = instance_->Report();
   }
-  if (spent > kFrameAllowance) frames_resume_ = ended + spent;
+  if (spent > kFrameAllowance) {
+    frames_resume_ = ended + spent;
+  }
 
   // Log the skipped frames at most once a minute.
   if (skipped_ > 0 && ended - shed_logged_ >= std::chrono::minutes(1)) {
@@ -899,7 +982,9 @@ void WasmPlugin::Stop() {
   world_.Reset();
   Halt();
   instance_.reset();
-  while (!tallies_.empty()) HandOn(tallies_.begin()->first);
+  while (!tallies_.empty()) {
+    HandOn(tallies_.begin()->first);
+  }
 }
 
 void WasmPlugin::Move() {
@@ -915,7 +1000,9 @@ void WasmPlugin::Move() {
   movement_ = std::move(*movement);
   auto stepping = host_.game.StepWith([this](gameinterop::MovementCall& call) {
     const auto ground = call.ground_entity;
-    if (!movement_->Step(call)) return false;
+    if (!movement_->Step(call)) {
+      return false;
+    }
     // The hook does not replicate the step, so a changed ground goes out
     // here.
     if (call.ground_entity != ground) {
@@ -930,17 +1017,23 @@ void WasmPlugin::Move() {
 }
 
 void WasmPlugin::Steer() {
-  if (!movement_) return;
+  if (!movement_) {
+    return;
+  }
   for (const auto& landing : movement_->TakeLandings()) {
     const auto player = hero_slots_.find(landing.player);
-    if (player == hero_slots_.end()) continue;
+    if (player == hero_slots_.end()) {
+      continue;
+    }
     const auto on = landing.on == 0 ? hero_slots_.end() : hero_slots_.find(landing.on);
     wasm::LandedEvent event;
     event.set_player(player->second);
     event.set_on(on == hero_slots_.end() ? -1 : on->second);
     event.set_speed(landing.speed);
     static_cast<void>(mod_.Landed(event));
-    if (!movement_) return;
+    if (!movement_) {
+      return;
+    }
   }
 
   std::vector<quake::PlayerMovement::Player> players;
@@ -950,29 +1043,38 @@ void WasmPlugin::Steer() {
     hero_slots_.emplace(hero.handle, hero.slot);
   }
   movement_->SetPlayers(std::move(players));
-  if (floor_known_) return;
+  if (floor_known_) {
+    return;
+  }
 
   // Heroes spawn in the air, so a trace down names the world entity they land
   // on before any has.
   auto trace = engine_->Trace();
-  if (!trace || !(*trace)->IsReady()) return;
+  if (!trace || !(*trace)->IsReady()) {
+    return;
+  }
   gameinterop::TraceOptions options;
   options.interacts_with = gameinterop::TraceMask(gameinterop::TraceLayer::kSolid);
   auto floor = (*trace)->Query({0, 0, 100}, {0, 0, -100}, gameinterop::TraceLine{}, options);
-  if (floor && floor->entity_handle) movement_->SetWorld(*floor->entity_handle);
+  if (floor && floor->entity_handle) {
+    movement_->SetWorld(*floor->entity_handle);
+  }
   floor_known_ = true;
 }
 
 void WasmPlugin::ListenToPlayers() {
-  if (listening_ || !instance_) return;
+  if (listening_ || !instance_) {
+    return;
+  }
 
   // Offer the mod every player command: "/hello there" in chat arrives as
   // "hello there", as does the console command of the same line. Chat also
   // accepts ".", "+" or "-" in place of the slash, for players whose chat
   // keeps a slash line to itself.
   auto chats = engine_->OnChat([this](int32_t slot, std::string_view text) {
-    if (!text.empty() && std::string_view("/.+-").contains(text.front()))
+    if (!text.empty() && std::string_view("/.+-").contains(text.front())) {
       Command(slot, text.substr(1));
+    }
   });
   if (!chats) {
     Log(std::string("player commands are unavailable: ") + chats.error());
@@ -1002,9 +1104,13 @@ void WasmPlugin::ListenToCombat() {
   std::function<bool(const gameinterop::DamageContactEvent&)> suppress;
   gameinterop::AdjustDamage adjust;
   if (wants_.damage()) {
-    suppress = [this](const gameinterop::DamageContactEvent& contact) { return Hit(contact); };
+    suppress = [this](const gameinterop::DamageContactEvent& contact) {
+      return Hit(contact);
+    };
     adjust = [this](const gameinterop::DamageContactEvent&, float& amount) {
-      if (adjusted_) amount = *std::exchange(adjusted_, std::nullopt);
+      if (adjusted_) {
+        amount = *std::exchange(adjusted_, std::nullopt);
+      }
     };
   }
   auto combat =
@@ -1033,9 +1139,15 @@ bool WasmPlugin::Hit(const gameinterop::DamageContactEvent& contact) {
   // A hit the mod's own damage request causes arrives while the mod runs, and
   // the instance refuses it; the hit goes through unchanged.
   auto result = mod_.Damage(event);
-  if (!result) return false;
-  if (result->block()) return true;
-  if (result->has_amount()) adjusted_ = result->amount();
+  if (!result) {
+    return false;
+  }
+  if (result->block()) {
+    return true;
+  }
+  if (result->has_amount()) {
+    adjusted_ = result->amount();
+  }
   return false;
 }
 
@@ -1044,7 +1156,9 @@ void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool damaged) {
   if (event.damage && damaged && damaged_.size() < kMaxDamaged) {
     damaged_.push_back(*event.damage);
   }
-  if (facts_.size() >= kMaxDamaged) return;
+  if (facts_.size() >= kMaxDamaged) {
+    return;
+  }
   if (event.movement) {
     facts_.push_back({event.movement->pawn_handle, MovementActionOf(event.movement->execution)});
   }
@@ -1055,15 +1169,21 @@ void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool damaged) {
 }
 
 void WasmPlugin::Sample(wasm::FrameEvent& frame) {
-  if (frame.tick() == sampled_) return;
+  if (frame.tick() == sampled_) {
+    return;
+  }
   sampled_ = frame.tick();
   std::vector<wasm::Game::MovementFact> facts;
   {
     std::lock_guard lock(damaged_lock_);
     facts.swap(facts_);
   }
-  if (!game_.Moving()) return;
-  for (auto& sample : game_.Movement(facts)) *frame.add_movement() = std::move(sample);
+  if (!game_.Moving()) {
+    return;
+  }
+  for (auto& sample : game_.Movement(facts)) {
+    *frame.add_movement() = std::move(sample);
+  }
 }
 
 void WasmPlugin::DeliverDamaged() {
@@ -1073,7 +1193,9 @@ void WasmPlugin::DeliverDamaged() {
     hits.swap(damaged_);
   }
   for (const auto& hit : hits) {
-    if (!instance_) return;
+    if (!instance_) {
+      return;
+    }
     wasm::DamagedEvent event;
     event.set_victim(hit.victim_handle);
     event.set_attacker(hit.attacker_handle);
@@ -1087,7 +1209,9 @@ void WasmPlugin::DeliverDamaged() {
 
 void WasmPlugin::DeliverGameEvents() {
   for (const auto& change : game_.TakeButtonChanges()) {
-    if (!instance_) return;
+    if (!instance_) {
+      return;
+    }
     wasm::InputEvent event;
     event.set_player(change.slot);
     event.set_pressed(change.pressed);
@@ -1095,11 +1219,15 @@ void WasmPlugin::DeliverGameEvents() {
     static_cast<void>(mod_.Input(event));
   }
   for (const auto& launch : game_.TakeLaunches()) {
-    if (!instance_) return;
+    if (!instance_) {
+      return;
+    }
     static_cast<void>(mod_.Launch(launch));
   }
   for (const auto& restored : game_.TakeRestored()) {
-    if (!instance_) return;
+    if (!instance_) {
+      return;
+    }
     wasm::RestoredEvent event;
     event.set_player(restored.slot);
     event.set_error(restored.error);
@@ -1127,8 +1255,12 @@ void WasmPlugin::Unsubscribe() {
 std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call) {
   // Every event after Start sees the current players, which the report
   // before it carries; a nested event is refused, so it reports nothing.
-  if (!sending_ && call.method() != "Start" && call.method() != "PlayersChanged") ReportPlayers();
-  if (!instance_) return std::unexpected(name_ + " is not running");
+  if (!sending_ && call.method() != "Start" && call.method() != "PlayersChanged") {
+    ReportPlayers();
+  }
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
   const bool nested = std::exchange(sending_, true);
   auto reply = instance_->Deliver(call);
   sending_ = nested;
@@ -1149,20 +1281,28 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
   if (!reply->error().empty() && call.method() != "Serve" && call.method() != "PlayersChanged") {
     Log(reply->error());
   }
-  if (instance_->Slow()) Slowed(instance_->Report());
+  if (instance_->Slow()) {
+    Slowed(instance_->Report());
+  }
   return reply;
 }
 
 void WasmPlugin::ReportPlayers() {
-  if (check_only_ || !instance_) return;
+  if (check_only_ || !instance_) {
+    return;
+  }
   const auto revision = gameinterop::ConnectionTracker::Revision();
-  if (reported_ == revision) return;
+  if (reported_ == revision) {
+    return;
+  }
   // Mark it heard first, so a build that refuses the report gets it once
   // per change rather than before every event.
   reported_ = revision;
   // The report lists the players as the mod's Players call does.
   auto players = static_cast<wasm::HostService&>(game_).Players();
-  if (!players) return;
+  if (!players) {
+    return;
+  }
   wasm::PlayersChangedEvent event;
   *event.mutable_players() = std::move(*players->mutable_players());
   static_cast<void>(mod_.PlayersChanged(event));
@@ -1173,12 +1313,18 @@ bool WasmPlugin::Command(int32_t slot, std::string_view line) {
   if (line.starts_with(kPressCommand)) {
     const auto pressed = line.substr(kPressCommand.size());
     const auto space = pressed.find(' ');
-    if (space == std::string_view::npos || pressed.substr(0, space) != name_) return false;
-    if (auto refused = Press(slot, pressed.substr(space + 1)); !refused) Log(refused.error());
+    if (space == std::string_view::npos || pressed.substr(0, space) != name_) {
+      return false;
+    }
+    if (auto refused = Press(slot, pressed.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
     return true;
   }
 
-  if (game_.FreeForAllCommand(line)) return true;
+  if (game_.FreeForAllCommand(line)) {
+    return true;
+  }
   wasm::CommandEvent event;
   event.set_player(slot);
   event.set_line(std::string(line));
@@ -1193,7 +1339,9 @@ void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {
 void WasmPlugin::Leave(int32_t slot) {
   HandOn(slot);
   game_.Leave(slot);
-  if (!ui_.Drop(slot)) return;
+  if (!ui_.Drop(slot)) {
+    return;
+  }
   ui::Change reset;
   reset.set_reset(true);
   ShowUi(slot, reset);
@@ -1211,12 +1359,16 @@ wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
   }
 
   // Report a failed call in the server log too.
-  if (!reply.error().empty()) Log(reply.error());
+  if (!reply.error().empty()) {
+    Log(reply.error());
+  }
   return reply;
 }
 
 std::expected<void, std::string> WasmPlugin::ApplyUi(const wasm::UiRequest& request) {
-  if (auto applied = ui_.Apply(request.player(), request.change()); !applied) return applied;
+  if (auto applied = ui_.Apply(request.player(), request.change()); !applied) {
+    return applied;
+  }
   ShowUi(request.player(), request.change());
   return {};
 }
@@ -1228,7 +1380,9 @@ std::expected<wasm::ServiceReply, std::string> WasmPlugin::CallService(
     return std::unexpected("this host provides no service " + call.service());
   }
   auto answer = found->second(name_, call.method(), call.payload());
-  if (!answer) return std::unexpected(answer.error());
+  if (!answer) {
+    return std::unexpected(answer.error());
+  }
   wasm::ServiceReply reply;
   reply.set_payload(std::move(*answer));
   return reply;
@@ -1237,10 +1391,14 @@ std::expected<wasm::ServiceReply, std::string> WasmPlugin::CallService(
 std::expected<std::string, std::string> WasmPlugin::PlayerSetting(int32_t slot,
                                                                   std::string_view key) {
   const auto* setting = wasm::FindSetting(manifest_, key);
-  if (!setting) return std::unexpected("mod.json declares no setting " + std::string(key));
+  if (!setting) {
+    return std::unexpected("mod.json declares no setting " + std::string(key));
+  }
   if (const auto steam_id = SteamId(slot); steam_id != 0) {
     if (auto kept = host_.settings->Value(name_, steam_id, key)) {
-      if (auto value = wasm::Canonical(*setting, *kept)) return *value;
+      if (auto value = wasm::Canonical(*setting, *kept)) {
+        return *value;
+      }
     }
   }
   return wasm::DefaultValue(*setting);
@@ -1250,7 +1408,9 @@ std::expected<void, std::string> WasmPlugin::SetPlayerSetting(int32_t slot, std:
                                                               std::string_view value) {
   // Keep only a value the manifest declares, for a player with an account.
   const auto* setting = wasm::FindSetting(manifest_, key);
-  if (!setting) return std::unexpected("mod.json declares no setting " + std::string(key));
+  if (!setting) {
+    return std::unexpected("mod.json declares no setting " + std::string(key));
+  }
   const auto canonical = wasm::Canonical(*setting, value);
   if (!canonical) {
     return std::unexpected(std::string(value) + " is not a value of setting " + std::string(key));
@@ -1264,13 +1424,19 @@ std::expected<void, std::string> WasmPlugin::SetPlayerSetting(int32_t slot, std:
 void WasmPlugin::SettingChanged(uint64_t steam_id, std::string_view key, std::string_view value) {
   // Deliver only a declared value to a running mod.
   const auto* setting = wasm::FindSetting(manifest_, key);
-  if (!instance_ || !setting || steam_id == 0) return;
+  if (!instance_ || !setting || steam_id == 0) {
+    return;
+  }
   const auto canonical = wasm::Canonical(*setting, value);
-  if (!canonical) return;
+  if (!canonical) {
+    return;
+  }
 
   // Tell the mod for each slot the player holds.
   for (int32_t slot = 0; slot < wasm::kMaxPlayers; ++slot) {
-    if (SteamId(slot) != steam_id) continue;
+    if (SteamId(slot) != steam_id) {
+      continue;
+    }
     wasm::SettingChangedEvent event;
     event.set_player(slot);
     event.set_key(std::string(key));
@@ -1283,16 +1449,22 @@ std::expected<void, std::string> WasmPlugin::AddMetric(int32_t slot, std::string
                                                        double value, std::string_view label) {
   // Count only a declared metric and label, for a player with an account.
   const auto* metric = wasm::FindMetric(manifest_, name);
-  if (!metric) return std::unexpected("mod.json declares no metric " + std::string(name));
+  if (!metric) {
+    return std::unexpected("mod.json declares no metric " + std::string(name));
+  }
   if (!wasm::Labeled(*metric, label)) {
     return std::unexpected(std::string(label) + " is not a label of metric " + std::string(name));
   }
   const auto steam_id = SteamId(slot);
-  if (steam_id == 0) return {};
+  if (steam_id == 0) {
+    return {};
+  }
 
   // A new player in the slot starts their own totals.
-  if (auto found = tallies_.find(slot); found != tallies_.end() && found->second.first != steam_id)
+  if (auto found = tallies_.find(slot);
+      found != tallies_.end() && found->second.first != steam_id) {
     HandOn(slot);
+  }
   auto& [account, tally] = tallies_[slot];
   account = steam_id;
   tally.Add(*metric, label, value);
@@ -1301,10 +1473,14 @@ std::expected<void, std::string> WasmPlugin::AddMetric(int32_t slot, std::string
 
 void WasmPlugin::HandOn(int32_t slot) {
   auto found = tallies_.find(slot);
-  if (found == tallies_.end()) return;
+  if (found == tallies_.end()) {
+    return;
+  }
   auto [steam_id, tally] = std::move(found->second);
   tallies_.erase(found);
-  if (tally.Empty()) return;
+  if (tally.Empty()) {
+    return;
+  }
   if (host_.metrics) {
     host_.metrics->Keep(name_, steam_id, tally.Totals());
   } else {
@@ -1344,7 +1520,9 @@ std::expected<wasm::ServiceReply, std::string> PluginGame::CallService(
 std::expected<wasm::SettingResponse, std::string> PluginGame::PlayerSetting(
     const wasm::PlayerSettingRequest& request) {
   auto value = plugin_.PlayerSetting(request.player(), request.key());
-  if (!value) return std::unexpected(value.error());
+  if (!value) {
+    return std::unexpected(value.error());
+  }
   wasm::SettingResponse response;
   response.set_value(std::move(*value));
   return response;
@@ -1364,7 +1542,9 @@ std::expected<void, std::string> PluginGame::HoldReload(const wasm::HoldReloadRe
   return {};
 }
 
-void PluginGame::Impacted(const wasm::ImpactEvent& event) { plugin_.Impacted(event); }
+void PluginGame::Impacted(const wasm::ImpactEvent& event) {
+  plugin_.Impacted(event);
+}
 
 }  // namespace
 
@@ -1383,12 +1563,16 @@ void WasmHost::Observe(WasmHostObserver* observer) {
   }
 }
 
-void WasmHost::Unobserve(WasmHostObserver* observer) { std::erase(impl_->observers, observer); }
+void WasmHost::Unobserve(WasmHostObserver* observer) {
+  std::erase(impl_->observers, observer);
+}
 
 std::expected<std::unique_ptr<Plugin>, std::string> WasmHost::Load(
     const std::filesystem::path& path, const PluginContext& context) {
   auto build = ReadBuild(path, impl_->interpreters);
-  if (!build) return std::unexpected(build.error());
+  if (!build) {
+    return std::unexpected(build.error());
+  }
   if (context.launch != nullptr && !context.launch->connect.empty()) {
     return std::make_unique<ClientMod>(std::move(*build));
   }
@@ -1399,7 +1583,9 @@ std::expected<std::unique_ptr<Plugin>, std::string> WasmHost::Load(
   // Load the mod into a sandbox that answers through the plugin.
   auto plugin = std::make_unique<WasmPlugin>(*impl_, build->name, context);
   auto instance = plugin->Instantiate(build->module);
-  if (!instance) return std::unexpected(build->name + ": " + instance.error());
+  if (!instance) {
+    return std::unexpected(build->name + ": " + instance.error());
+  }
   impl_->plugins.emplace(build->name, plugin.get());
   plugin->Attach(std::move(*instance), std::move(*build));
   return plugin;
@@ -1407,7 +1593,9 @@ std::expected<std::unique_ptr<Plugin>, std::string> WasmHost::Load(
 
 std::expected<void, std::string> WasmHost::Reload(const std::filesystem::path& path) {
   auto build = ReadBuild(path, impl_->interpreters);
-  if (!build) return std::unexpected(build.error());
+  if (!build) {
+    return std::unexpected(build.error());
+  }
   auto found = impl_->plugins.find(build->name);
   if (found == impl_->plugins.end()) {
     return std::unexpected("no running mod is named " + build->name);
@@ -1432,7 +1620,9 @@ void WasmHost::KeepSettings(WasmSettings* settings) {
   impl_->settings = settings ? settings : &impl_->kept;
 }
 
-void WasmHost::KeepMetrics(WasmMetrics* metrics) { impl_->metrics = metrics; }
+void WasmHost::KeepMetrics(WasmMetrics* metrics) {
+  impl_->metrics = metrics;
+}
 
 void WasmHost::SettingChanged(std::string_view mod, uint64_t steam_id, std::string_view key,
                               std::string_view value) {
@@ -1446,8 +1636,9 @@ std::expected<std::string, std::string> WasmHost::Call(std::string_view mod,
                                                        std::string_view method,
                                                        std::string_view payload) {
   auto found = impl_->plugins.find(mod);
-  if (found == impl_->plugins.end())
+  if (found == impl_->plugins.end()) {
     return std::unexpected("no running mod is named " + std::string(mod));
+  }
   wasm::ServiceCall call;
   call.set_service(std::string(service));
   call.set_method(std::string(method));

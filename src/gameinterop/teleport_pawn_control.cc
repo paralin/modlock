@@ -24,23 +24,33 @@ std::array<float, 3> Position(const Vec3& position) {
 
 bool TeleportPawnControl::TeleportToPosition(int32_t slot, const Vec3& position) {
   const auto target = Position(position);
-  if (!Finite(target)) return false;
+  if (!Finite(target)) {
+    return false;
+  }
   void* pawn = observer_.PawnForSlot(slot);
-  if (!pawn) return false;
+  if (!pawn) {
+    return false;
+  }
   TeleportEntity(pawn, target[0], target[1], target[2]);
   return true;
 }
 
 bool TeleportPawnControl::ResetToPose(int32_t slot, const Vec3& position,
                                       const EulerAngles& angles) {
-  if (!reset_camera_) return false;
+  if (!reset_camera_) {
+    return false;
+  }
   const auto target = Position(position);
   const std::array<float, 3> view{static_cast<float>(angles.pitch()),
                                   static_cast<float>(angles.yaw()),
                                   static_cast<float>(angles.roll())};
-  if (!Finite(target) || !Finite(view)) return false;
+  if (!Finite(target) || !Finite(view)) {
+    return false;
+  }
   void* pawn = observer_.PawnForSlot(slot);
-  if (!pawn) return false;
+  if (!pawn) {
+    return false;
+  }
   reset_camera_(nullptr, pawn, target.data(), view.data());
   return true;
 }

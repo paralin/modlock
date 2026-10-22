@@ -62,7 +62,9 @@ T Load(const std::byte* bytes, size_t index = 0) {
 }
 
 // Text copies a game string that may be null.
-std::string Text(const char* text) { return text ? text : ""; }
+std::string Text(const char* text) {
+  return text ? text : "";
+}
 
 // Walk calls visit with each entry's data in registry order. It returns the
 // first entry visit accepts, or null after the last entry.
@@ -70,7 +72,9 @@ template <typename Visit>
 std::expected<std::byte*, std::string> Walk(const void* instance, const Registry& registry,
                                             Visit visit) {
   // Read the registry's capacity, entry array and head.
-  if (!instance) return std::unexpected("console variables: interface is unavailable");
+  if (!instance) {
+    return std::unexpected("console variables: interface is unavailable");
+  }
   const auto* base = static_cast<const std::byte*>(instance);
   const auto capacity = static_cast<uint16_t>(Load<uint16_t>(base + registry.capacity) & 0x7fff);
   const auto* entries = Load<const std::byte*>(base + registry.entries);
@@ -79,13 +83,17 @@ std::expected<std::byte*, std::string> Walk(const void* instance, const Registry
   // Follow the links, checking each entry's bounds and back link.
   uint16_t previous = kInvalidIndex;
   for (size_t visited = 0; index != kInvalidIndex; ++visited) {
-    if (!entries || index >= capacity || visited >= capacity)
+    if (!entries || index >= capacity || visited >= capacity) {
       return std::unexpected("console variables: invalid registry bounds or cycle");
+    }
     const auto* entry = entries + size_t(index) * registry.stride;
     auto* data = registry.indirect ? Load<std::byte*>(entry) : const_cast<std::byte*>(entry);
-    if (Load<uint16_t>(entry + registry.links) != previous || !data || !Load<const char*>(data))
+    if (Load<uint16_t>(entry + registry.links) != previous || !data || !Load<const char*>(data)) {
       return std::unexpected("console variables: invalid registry link or data");
-    if (visit(data)) return data;
+    }
+    if (visit(data)) {
+      return data;
+    }
     previous = index;
     index = Load<uint16_t>(entry + registry.links + 2);
   }
@@ -104,7 +112,9 @@ std::string Decimal(T value) {
 std::string Floats(const std::byte* value, size_t count) {
   std::string text = "[";
   for (size_t i = 0; i < count; ++i) {
-    if (i) text += ", ";
+    if (i) {
+      text += ", ";
+    }
     text += Decimal(Load<float>(value, i));
   }
   return text + "]";
@@ -113,7 +123,9 @@ std::string Floats(const std::byte* value, size_t count) {
 // FormatValue prints a CVValue_t of the given EConVarType as the console
 // does, or nothing when the value is absent.
 std::string FormatValue(int16_t type, const std::byte* value) {
-  if (!value) return {};
+  if (!value) {
+    return {};
+  }
   switch (type) {
     case 0:
       return Load<uint8_t>(value) ? "true" : "false";
@@ -138,7 +150,9 @@ std::string FormatValue(int16_t type, const std::byte* value) {
     case 10: {
       std::string text = "[";
       for (size_t i = 0; i < 4; ++i) {
-        if (i) text += ", ";
+        if (i) {
+          text += ", ";
+        }
         text += std::to_string(Load<uint8_t>(value, i));
       }
       return text + "]";
@@ -160,39 +174,52 @@ std::string FormatValue(int16_t type, const std::byte* value) {
 
 std::expected<ConsoleVariables, std::string> ConsoleVariables::Resolve() {
   const auto instance = ResolveEngineInterface(L"tier0.dll", "VEngineCvar007");
-  if (!instance) return std::unexpected(instance.error());
+  if (!instance) {
+    return std::unexpected(instance.error());
+  }
   return Bind(*instance);
 }
 
 std::expected<ConsoleVariables, std::string> ConsoleVariables::Bind(void* instance) {
-  if (!instance) return std::unexpected("console variables: interface is null");
+  if (!instance) {
+    return std::unexpected("console variables: interface is null");
+  }
   ConsoleVariables variables;
   variables.instance_ = instance;
   return variables;
 }
 
 std::expected<std::byte*, std::string> ConsoleVariables::Find(const char* name) const {
-  if (!name || !*name) return std::unexpected("console variables: empty name");
+  if (!name || !*name) {
+    return std::unexpected("console variables: empty name");
+  }
   auto data = Walk(instance_, kVariables, [name](const std::byte* data) {
     return std::strcmp(Load<const char*>(data), name) == 0;
   });
-  if (data && !*data) return std::unexpected(std::string("console variable not found: ") + name);
+  if (data && !*data) {
+    return std::unexpected(std::string("console variable not found: ") + name);
+  }
   return data;
 }
 
 std::expected<std::byte*, std::string> ConsoleVariables::Value(const char* name, int16_t type,
                                                                const char* kind) const {
   auto data = Find(name);
-  if (!data) return std::unexpected(data.error());
-  if (Load<int16_t>(*data + kTypeOffset) != type)
+  if (!data) {
+    return std::unexpected(data.error());
+  }
+  if (Load<int16_t>(*data + kTypeOffset) != type) {
     return std::unexpected(std::string("console variable is not ") + kind + ": " + name);
+  }
   return *data + kValueOffset;
 }
 
 std::expected<void, std::string> ConsoleVariables::ClearFlags(const char* name,
                                                               uint64_t flags) const {
   auto data = Find(name);
-  if (!data) return std::unexpected(data.error());
+  if (!data) {
+    return std::unexpected(data.error());
+  }
   const auto kept = Load<uint64_t>(*data + kFlagsOffset) & ~flags;
   std::memcpy(*data + kFlagsOffset, &kept, sizeof(kept));
   return {};
@@ -208,33 +235,43 @@ std::expected<void, std::string> ConsoleVariables::AllowServerChanges(const char
 
 std::expected<bool, std::string> ConsoleVariables::ReadBool(const char* name) const {
   auto value = Value(name, kBoolType, "Boolean");
-  if (!value) return std::unexpected(value.error());
+  if (!value) {
+    return std::unexpected(value.error());
+  }
   return Load<uint8_t>(*value) != 0;
 }
 
 std::expected<float, std::string> ConsoleVariables::ReadFloat(const char* name) const {
   auto value = Value(name, kFloat32Type, "a float");
-  if (!value) return std::unexpected(value.error());
+  if (!value) {
+    return std::unexpected(value.error());
+  }
   return Load<float>(*value);
 }
 
 std::expected<void, std::string> ConsoleVariables::SetBool(const char* name, bool value) const {
   auto slot = Value(name, kBoolType, "Boolean");
-  if (!slot) return std::unexpected(slot.error());
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
   **slot = std::byte{value};
   return {};
 }
 
 std::expected<void, std::string> ConsoleVariables::SetFloat(const char* name, float value) const {
   auto slot = Value(name, kFloat32Type, "a float");
-  if (!slot) return std::unexpected(slot.error());
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
   std::memcpy(*slot, &value, sizeof(value));
   return {};
 }
 
 std::expected<void, std::string> ConsoleVariables::SetInt32(const char* name, int32_t value) const {
   auto slot = Value(name, kInt32Type, "a 32-bit integer");
-  if (!slot) return std::unexpected(slot.error());
+  if (!slot) {
+    return std::unexpected(slot.error());
+  }
   std::memcpy(*slot, &value, sizeof(value));
   return {};
 }
@@ -254,7 +291,9 @@ std::expected<std::vector<ConsoleVariableInfo>, std::string> ConsoleVariables::V
     });
     return false;
   });
-  if (!walked) return std::unexpected(walked.error());
+  if (!walked) {
+    return std::unexpected(walked.error());
+  }
   return variables;
 }
 
@@ -268,7 +307,9 @@ std::expected<std::vector<ConsoleCommandInfo>, std::string> ConsoleVariables::Co
     });
     return false;
   });
-  if (!walked) return std::unexpected(walked.error());
+  if (!walked) {
+    return std::unexpected(walked.error());
+  }
   return commands;
 }
 

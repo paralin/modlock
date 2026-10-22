@@ -171,7 +171,9 @@ std::expected<KeyValuesCalls, std::string> ResolveKeyValuesCalls(const ModuleIma
   };
   for (const auto& entry : entries) {
     auto address = ResolveSignature(image, entry.id);
-    if (!address) return std::unexpected(address.error());
+    if (!address) {
+      return std::unexpected(address.error());
+    }
     *entry.slot = *address;
   }
   return calls;

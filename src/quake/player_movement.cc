@@ -29,7 +29,9 @@ constexpr double kTickMilliseconds = 1000.0 / 64;
 // second, keyed by command number so the server and the predicting client
 // split the same commands.
 int Steps(int32_t command) {
-  const auto at = [](int64_t number) { return number * 6 / 5; };
+  const auto at = [](int64_t number) {
+    return number * 6 / 5;
+  };
   const int64_t number = command < 0 ? 0 : command;
   return int(at(number + 1) - at(number));
 }
@@ -44,7 +46,9 @@ float Milliseconds(const gameinterop::MovementCall& call) {
 std::expected<PlayerMovement, std::string> PlayerMovement::Create(
     Side side, std::span<const uint8_t> collision, float scale) {
   auto world = BspWorld::Decode(collision);
-  if (!world) return std::unexpected("Quake collision: " + world.error());
+  if (!world) {
+    return std::unexpected("Quake collision: " + world.error());
+  }
   return PlayerMovement(side, std::move(*world), scale > 0 ? scale : 1);
 }
 
@@ -79,7 +83,9 @@ void PlayerMovement::Land(uint32_t player, const MovementState& state,
 }
 
 bool PlayerMovement::Step(MovementCall& call) {
-  if (call.move_type != MovementHook::kWalking) return false;
+  if (call.move_type != MovementHook::kWalking) {
+    return false;
+  }
   MovementState state;
   for (size_t axis = 0; axis < 3; ++axis) {
     state.origin[axis] = call.origin[axis] / scale_;
@@ -109,7 +115,9 @@ bool PlayerMovement::Step(MovementCall& call) {
       continue;
     }
     CollisionBody body{.entity = int(bodies.size()) + 1};
-    for (size_t axis = 0; axis < 3; ++axis) body.origin[axis] = player.feet[axis] / scale_;
+    for (size_t axis = 0; axis < 3; ++axis) {
+      body.origin[axis] = player.feet[axis] / scale_;
+    }
     body.origin[2] += kOriginHeight;
     bodies.push_back(body);
     handles.push_back(player.handle);
@@ -119,21 +127,28 @@ bool PlayerMovement::Step(MovementCall& call) {
   // A landing compares the ground with the fall speed before this move.
   const float fall = state.velocity[2];
   auto next = state;
-  for (int step = 0; step < steps; ++step) next = Move(next, command, scene).state;
+  for (int step = 0; step < steps; ++step) {
+    next = Move(next, command, scene).state;
+  }
   RetainJumpHeld(call, next.jump_held);
   if (side_ == Side::kServer) {
     auto& pawn = server_pawns_[call.services];
     const bool grounded = next.ground_entity >= 0;
-    if (grounded && !pawn.grounded && self && fall < 0) Land(*self, next, handles, fall);
+    if (grounded && !pawn.grounded && self && fall < 0) {
+      Land(*self, next, handles, fall);
+    }
     pawn.grounded = grounded;
   }
 
   // Standing on a player is grounded; the pawn keeps the world as its ground.
-  if (call.ground_entity != MovementHook::kNoGround) world_ = call.ground_entity;
-  if (next.ground_entity < 0)
+  if (call.ground_entity != MovementHook::kNoGround) {
+    world_ = call.ground_entity;
+  }
+  if (next.ground_entity < 0) {
     call.ground_entity = MovementHook::kNoGround;
-  else if (world_ != MovementHook::kNoGround)
+  } else if (world_ != MovementHook::kNoGround) {
     call.ground_entity = world_;
+  }
 
   for (size_t axis = 0; axis < 3; ++axis) {
     call.origin[axis] = next.origin[axis] * scale_;

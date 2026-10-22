@@ -19,7 +19,9 @@ void TargetA() {}
 void TargetB() {}
 void Replacement() {}
 
-void* Ptr(void (*fn)()) { return reinterpret_cast<void*>(fn); }
+void* Ptr(void (*fn)()) {
+  return reinterpret_cast<void*>(fn);
+}
 
 struct FakeObject {
   void* vptr;

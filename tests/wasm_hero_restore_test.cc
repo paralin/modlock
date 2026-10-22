@@ -71,7 +71,9 @@ struct World {
                              std::span<const Ability> timers) -> std::expected<void, std::string> {
           for (const auto& timer : timers) {
             for (auto& ability : owned) {
-              if (ability.handle == timer.handle) ability = timer;
+              if (ability.handle == timer.handle) {
+                ability = timer;
+              }
             }
           }
           return {};
@@ -92,7 +94,9 @@ struct World {
   bool Apply(const RestoreTarget& target, HeroRestore::Stage stage) {
     if (stage == HeroRestore::Stage::kBuild) {
       ++builds;
-      if (target.level) sample.level = *target.level;
+      if (target.level) {
+        sample.level = *target.level;
+      }
       for (const auto& upgrade : target.abilities) {
         for (auto& ability : owned) {
           if (ability.subclass_id == upgrade.subclass_id) {
@@ -100,15 +104,21 @@ struct World {
           }
         }
       }
-      if (target.upgrade_bonuses) sample.upgrade_bonuses = target.upgrade_bonuses;
+      if (target.upgrade_bonuses) {
+        sample.upgrade_bonuses = target.upgrade_bonuses;
+      }
       return true;
     }
     if (stage == HeroRestore::Stage::kPawn) {
       if (target.fresh) {
         sample.stamina->current = sample.stamina->max;
-        if (health_sticks) sample.health = *sample.effective_max_health;
+        if (health_sticks) {
+          sample.health = *sample.effective_max_health;
+        }
       } else {
-        if (health_sticks) sample.health = target.health;
+        if (health_sticks) {
+          sample.health = target.health;
+        }
         sample.max_health = target.max_health;
       }
     }
@@ -122,7 +132,9 @@ struct World {
   // Run ticks restore until it ends or frames run out.
   HeroRestore::Result Run(HeroRestore& restore, int frames) {
     for (int frame = 0; frame < frames; ++frame) {
-      if (auto result = restore.Tick(sample, static_cast<uint64_t>(tick))) return result;
+      if (auto result = restore.Tick(sample, static_cast<uint64_t>(tick))) {
+        return result;
+      }
       time += 1.0f / 64;
       ++tick;
       sample.z -= fall;

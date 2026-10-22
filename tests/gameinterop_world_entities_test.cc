@@ -81,7 +81,9 @@ class NativeWorld : public testing::Test {
 
   static WorldEntities World() {
     WorldEntities::Calls calls;
-    calls.entity_system = []() -> std::expected<void*, std::string> { return system.data(); };
+    calls.entity_system = []() -> std::expected<void*, std::string> {
+      return system.data();
+    };
     calls.find_class = [](void* world, const char*, void*) -> void* {
       EXPECT_EQ(world, system.data());
       return entity_class.data();
@@ -97,18 +99,24 @@ class NativeWorld : public testing::Test {
       designer = name;
       return entity.data();
     };
-    calls.key_values.create_key_values = []() -> void* { return definition.data(); };
+    calls.key_values.create_key_values = []() -> void* {
+      return definition.data();
+    };
     calls.key_values.set_string = [](void*, const modlock::gameinterop::MemberName* name,
                                      const char* value) {
       key_values[name->string] = std::string(value);
     };
     calls.key_values.set_bool = [](void*, const modlock::gameinterop::MemberName* name,
-                                   unsigned char value) { key_values[name->string] = value != 0; };
+                                   unsigned char value) {
+      key_values[name->string] = value != 0;
+    };
     calls.key_values.set_int = [](void*, const modlock::gameinterop::MemberName* name, int value) {
       key_values[name->string] = value;
     };
     calls.key_values.set_float = [](void*, const modlock::gameinterop::MemberName* name,
-                                    float value) { key_values[name->string] = value; };
+                                    float value) {
+      key_values[name->string] = value;
+    };
     calls.queue = [](void* world, void* id, void* properties) {
       EXPECT_EQ(world, system.data());
       EXPECT_EQ(id, identity.data());
@@ -129,7 +137,9 @@ class NativeWorld : public testing::Test {
       std::memcpy(&prepared, entity.data() + kPreparedOffset, sizeof(prepared));
       ++spawned;
     };
-    calls.remove = [](void*) { ++removed; };
+    calls.remove = [](void*) {
+      ++removed;
+    };
     return WorldEntities(calls);
   }
 };
@@ -222,7 +232,8 @@ TEST_F(NativeWorld, ATextValueTooLongToNetworkIsRefusedBeforeItExists) {
   const EntityKeyValue too_long[] = {{"panel_id", std::string_view(over)}};
   const auto dialog = world.CreateEntity({.designer_name = "point_clientui_dialog"}, too_long);
   ASSERT_FALSE(dialog);
-  EXPECT_EQ(dialog.error(), "key value panel_id is 65501 characters; at most 65500 can be networked");
+  EXPECT_EQ(dialog.error(),
+            "key value panel_id is 65501 characters; at most 65500 can be networked");
   EXPECT_EQ(created, 0);
 
   const EntityKeyValue at_limit[] = {{"panel_id", std::string_view(limit)}};

@@ -9,8 +9,12 @@ Trace CollisionScene::Sweep(const Vector& start, const Vector& end, const Vector
   auto closest = world_.Sweep(start, end, mins, maxs);
   const bool point = mins == Vector{} && maxs == Vector{};
   for (const auto& body : bodies_) {
-    if (point && closest.all_solid) break;
-    if (body.entity == ignored_entity_) continue;
+    if (point && closest.all_solid) {
+      break;
+    }
+    if (body.entity == ignored_entity_) {
+      continue;
+    }
     std::array<CollisionHull::Plane, 6> planes;
     std::array<CollisionHull::Node, 6> nodes;
     for (int index = 0; index < 6; ++index) {
@@ -30,7 +34,9 @@ Trace CollisionScene::Sweep(const Vector& start, const Vector& end, const Vector
                    point ? CollisionHull::TraceKind::kEntity : CollisionHull::TraceKind::kPlayer);
     if (trace.fraction < closest.fraction || (point && (trace.all_solid || trace.start_solid))) {
       trace.entity = body.entity;
-      if (point && closest.start_solid) trace.start_solid = true;
+      if (point && closest.start_solid) {
+        trace.start_solid = true;
+      }
       closest = trace;
     }
   }

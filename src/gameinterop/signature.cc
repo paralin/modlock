@@ -15,9 +15,15 @@ namespace {
 
 // NibbleValue decodes one hex digit, or nullopt for anything else.
 std::optional<int> NibbleValue(char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+  if (c >= '0' && c <= '9') {
+    return c - '0';
+  }
+  if (c >= 'a' && c <= 'f') {
+    return c - 'a' + 10;
+  }
+  if (c >= 'A' && c <= 'F') {
+    return c - 'A' + 10;
+  }
   return std::nullopt;
 }
 
@@ -29,11 +35,17 @@ constexpr size_t kSampleStride = 61;
 // in a sample of data, or nullopt when every byte is a wildcard.
 std::optional<size_t> RarestByte(std::span<const uint8_t> data, const Signature& sig) {
   std::array<uint32_t, 256> counts{};
-  for (size_t i = 0; i < data.size(); i += kSampleStride) counts[data[i]]++;
+  for (size_t i = 0; i < data.size(); i += kSampleStride) {
+    counts[data[i]]++;
+  }
   std::optional<size_t> rarest;
   for (size_t k = 0; k < sig.bytes.size(); k++) {
-    if (sig.wildcard[k]) continue;
-    if (!rarest || counts[sig.bytes[k]] < counts[sig.bytes[*rarest]]) rarest = k;
+    if (sig.wildcard[k]) {
+      continue;
+    }
+    if (!rarest || counts[sig.bytes[k]] < counts[sig.bytes[*rarest]]) {
+      rarest = k;
+    }
   }
   return rarest;
 }
@@ -47,10 +59,14 @@ const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
   for (; end - p >= 16; p += 16) {
     const __m128i block = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
     const auto mask = static_cast<unsigned>(_mm_movemask_epi8(_mm_cmpeq_epi8(block, needle)));
-    if (mask != 0) return p + std::countr_zero(mask);
+    if (mask != 0) {
+      return p + std::countr_zero(mask);
+    }
   }
   for (; p < end; p++) {
-    if (*p == value) return p;
+    if (*p == value) {
+      return p;
+    }
   }
   return end;
 #else
@@ -62,7 +78,9 @@ const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
 // Matches reports whether sig matches data at start, which leaves room for it.
 bool Matches(std::span<const uint8_t> data, size_t start, const Signature& sig) {
   for (size_t k = 0; k < sig.bytes.size(); k++) {
-    if (!sig.wildcard[k] && data[start + k] != sig.bytes[k]) return false;
+    if (!sig.wildcard[k] && data[start + k] != sig.bytes[k]) {
+      return false;
+    }
   }
   return true;
 }
@@ -105,14 +123,18 @@ std::expected<Signature, std::string> ParseSignature(std::string id, std::string
 
 std::vector<size_t> SignatureScan(std::span<const uint8_t> data, const Signature& sig) {
   std::vector<size_t> hits;
-  if (sig.bytes.empty() || sig.bytes.size() > data.size()) return hits;
+  if (sig.bytes.empty() || sig.bytes.size() > data.size()) {
+    return hits;
+  }
   const size_t last_start = data.size() - sig.bytes.size();
 
   const auto pivot = RarestByte(data, sig);
   if (!pivot) {
     // A pattern of wildcards alone matches everywhere it fits.
     hits.resize(last_start + 1);
-    for (size_t start = 0; start <= last_start; start++) hits[start] = start;
+    for (size_t start = 0; start <= last_start; start++) {
+      hits[start] = start;
+    }
     return hits;
   }
 
@@ -122,7 +144,9 @@ std::vector<size_t> SignatureScan(std::span<const uint8_t> data, const Signature
   for (const uint8_t* p = FindByte(first, end, sig.bytes[*pivot]); p != end;
        p = FindByte(p + 1, end, sig.bytes[*pivot])) {
     const auto start = static_cast<size_t>(p - first);
-    if (Matches(data, start, sig)) hits.push_back(start);
+    if (Matches(data, start, sig)) {
+      hits.push_back(start);
+    }
   }
   return hits;
 }

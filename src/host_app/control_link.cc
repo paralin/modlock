@@ -26,15 +26,23 @@ constexpr size_t kMaxEvents = 10'000;
 #if defined(_WIN32)
 constexpr intptr_t kNoSocket = static_cast<intptr_t>(INVALID_SOCKET);
 
-void CloseSocket(intptr_t socket) { closesocket(static_cast<SOCKET>(socket)); }
+void CloseSocket(intptr_t socket) {
+  closesocket(static_cast<SOCKET>(socket));
+}
 
-void ShutdownSocket(intptr_t socket) { shutdown(static_cast<SOCKET>(socket), SD_BOTH); }
+void ShutdownSocket(intptr_t socket) {
+  shutdown(static_cast<SOCKET>(socket), SD_BOTH);
+}
 #else
 constexpr intptr_t kNoSocket = -1;
 
-void CloseSocket(intptr_t socket) { close(static_cast<int>(socket)); }
+void CloseSocket(intptr_t socket) {
+  close(static_cast<int>(socket));
+}
 
-void ShutdownSocket(intptr_t socket) { shutdown(static_cast<int>(socket), SHUT_RDWR); }
+void ShutdownSocket(intptr_t socket) {
+  shutdown(static_cast<int>(socket), SHUT_RDWR);
+}
 #endif
 
 // SendAll writes every byte of data, or returns false when the connection
@@ -46,7 +54,9 @@ bool SendAll(intptr_t socket, const char* data, size_t size) {
 #else
     const ssize_t sent = send(static_cast<int>(socket), data, size, MSG_NOSIGNAL);
 #endif
-    if (sent <= 0) return false;
+    if (sent <= 0) {
+      return false;
+    }
     data += sent;
     size -= static_cast<size_t>(sent);
   }
@@ -62,7 +72,9 @@ bool ReceiveAll(intptr_t socket, char* data, size_t size) {
 #else
     const ssize_t received = recv(static_cast<int>(socket), data, size, 0);
 #endif
-    if (received <= 0) return false;
+    if (received <= 0) {
+      return false;
+    }
     data += received;
     size -= static_cast<size_t>(received);
   }
@@ -79,7 +91,9 @@ std::expected<intptr_t, std::string> Connect(std::string_view address) {
   const std::string port(address.substr(colon + 1));
 #if defined(_WIN32)
   WSADATA data;
-  if (WSAStartup(MAKEWORD(2, 2), &data) != 0) return std::unexpected("cannot start Winsock");
+  if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
+    return std::unexpected("cannot start Winsock");
+  }
 #endif
 
   // Try each address the name resolves to.
@@ -95,7 +109,9 @@ std::expected<intptr_t, std::string> Connect(std::string_view address) {
        candidate = candidate->ai_next) {
     const auto socket = static_cast<intptr_t>(
         ::socket(candidate->ai_family, candidate->ai_socktype, candidate->ai_protocol));
-    if (socket == kNoSocket) continue;
+    if (socket == kNoSocket) {
+      continue;
+    }
     if (connect(socket, candidate->ai_addr, static_cast<int>(candidate->ai_addrlen)) == 0) {
       connected = socket;
     } else {
@@ -128,7 +144,9 @@ ControlLink::~ControlLink() {
 std::expected<std::unique_ptr<ControlLink>, std::string> ControlLink::Dial(
     std::string_view address) {
   auto socket = Connect(address);
-  if (!socket) return std::unexpected(socket.error());
+  if (!socket) {
+    return std::unexpected(socket.error());
+  }
   return std::unique_ptr<ControlLink>(new ControlLink(*socket));
 }
 
@@ -138,7 +156,9 @@ std::expected<void, std::string> ControlLink::Watch(EngineHost& engine) {
     control::HostEvent event;
     event.mutable_ready()->set_map(std::string(map));
     Push(std::move(event));
-    if (joining_) return;
+    if (joining_) {
+      return;
+    }
     // The link owns this subscription, so the sink does not own the link.
     auto connections = engine.OnConnection(
         std::shared_ptr<gameinterop::ConnectionEventSink>(std::shared_ptr<void>(), this));
@@ -149,13 +169,17 @@ std::expected<void, std::string> ControlLink::Watch(EngineHost& engine) {
     connections_ = std::move(*connections);
     joining_ = true;
   });
-  if (!world) return std::unexpected(world.error());
+  if (!world) {
+    return std::unexpected(world.error());
+  }
   world_ = std::move(*world);
   return {};
 }
 
 void ControlLink::RunRequests(WasmHost& mods) {
-  if (!pending_.load(std::memory_order_acquire)) return;
+  if (!pending_.load(std::memory_order_acquire)) {
+    return;
+  }
   std::vector<control::ControlRequest> requests;
   {
     std::lock_guard lock(mu_);
@@ -214,7 +238,9 @@ void ControlLink::Ui(std::string_view mod, int32_t slot, const ui::Change& chang
 }
 
 void ControlLink::OnConnected(int32_t slot, uint64_t xuid, bool bot, const char* name) {
-  if (bot) return;
+  if (bot) {
+    return;
+  }
   control::HostEvent event;
   auto* joined = event.mutable_joined();
   joined->set_slot(slot);
@@ -232,7 +258,9 @@ void ControlLink::OnDisconnecting(int32_t slot, uint64_t) {
 void ControlLink::Push(control::HostEvent event) {
   {
     std::lock_guard lock(mu_);
-    if (closed_ || events_.size() >= kMaxEvents) return;
+    if (closed_ || events_.size() >= kMaxEvents) {
+      return;
+    }
     events_.push_back(std::move(event));
   }
   wake_.notify_one();
@@ -241,8 +269,7 @@ void ControlLink::Push(control::HostEvent event) {
 void ControlLink::Send(std::stop_token stop) {
   // Send events in order until the link closes or the host stops.
   std::unique_lock lock(mu_);
-  while (wake_.wait(lock, stop, [this] { return !events_.empty() || closed_; }) &&
-         !closed_) {
+  while (wake_.wait(lock, stop, [this] { return !events_.empty() || closed_; }) && !closed_) {
     auto event = std::move(events_.front());
     events_.pop_front();
     lock.unlock();
@@ -253,7 +280,9 @@ void ControlLink::Send(std::stop_token stop) {
     const bool sent = SendAll(socket_, header.data(), header.size()) &&
                       SendAll(socket_, data.data(), data.size());
     lock.lock();
-    if (!sent) closed_ = true;
+    if (!sent) {
+      closed_ = true;
+    }
   }
   events_.clear();
 }
@@ -263,15 +292,23 @@ void ControlLink::Read() {
   std::string packet;
   for (;;) {
     std::array<unsigned char, 4> header{};
-    if (!ReceiveAll(socket_, reinterpret_cast<char*>(header.data()), header.size())) break;
+    if (!ReceiveAll(socket_, reinterpret_cast<char*>(header.data()), header.size())) {
+      break;
+    }
     const uint32_t size = static_cast<uint32_t>(header[0]) | static_cast<uint32_t>(header[1]) << 8 |
                           static_cast<uint32_t>(header[2]) << 16 |
                           static_cast<uint32_t>(header[3]) << 24;
-    if (size > kMaxPacket) break;
+    if (size > kMaxPacket) {
+      break;
+    }
     packet.resize(size);
-    if (!ReceiveAll(socket_, packet.data(), packet.size())) break;
+    if (!ReceiveAll(socket_, packet.data(), packet.size())) {
+      break;
+    }
     control::ControlRequest request;
-    if (!request.ParseFromString(packet)) break;
+    if (!request.ParseFromString(packet)) {
+      break;
+    }
     std::lock_guard lock(mu_);
     requests_.push_back(std::move(request));
     pending_.store(true, std::memory_order_release);

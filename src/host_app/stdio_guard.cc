@@ -30,7 +30,9 @@ std::FILE* StreamFile(StdioStream stream) {
   return nullptr;
 }
 
-const char* StreamMode(StdioStream stream) { return stream == StdioStream::kInput ? "r" : "w"; }
+const char* StreamMode(StdioStream stream) {
+  return stream == StdioStream::kInput ? "r" : "w";
+}
 
 void RepairStream(StdioStream stream, StdioHandleCheck check) {
   if (check(stream)) {

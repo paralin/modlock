@@ -16,7 +16,9 @@ std::expected<HeroDefinitions, std::string> HeroDefinitions::Resolve(const Modul
   };
   for (const auto& entry : entries) {
     auto address = ResolveSignature(server, entry.id);
-    if (!address) return std::unexpected(address.error());
+    if (!address) {
+      return std::unexpected(address.error());
+    }
     *entry.slot = *address;
   }
   return HeroDefinitions(calls);

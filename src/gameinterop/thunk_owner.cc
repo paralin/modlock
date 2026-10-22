@@ -20,12 +20,16 @@ ThunkOwner& ThunkOwner::operator=(ThunkOwner&& other) noexcept {
   return *this;
 }
 
-ThunkOwner::~ThunkOwner() { Reset(); }
+ThunkOwner::~ThunkOwner() {
+  Reset();
+}
 
 void ThunkOwner::Reset() {
   // Stop dispatch into the thunk before releasing the state it borrows.
   slot_hook_.Restore();
-  if (const auto clear = std::exchange(clear_thunk_, nullptr)) clear();
+  if (const auto clear = std::exchange(clear_thunk_, nullptr)) {
+    clear();
+  }
 }
 
 }  // namespace modlock::gameinterop

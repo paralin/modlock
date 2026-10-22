@@ -7,13 +7,17 @@ namespace modlock::wasm {
 
 const Metric* FindMetric(const Manifest& manifest, std::string_view name) {
   for (const auto& metric : manifest.metrics()) {
-    if (metric.name() == name) return &metric;
+    if (metric.name() == name) {
+      return &metric;
+    }
   }
   return nullptr;
 }
 
 bool Labeled(const Metric& metric, std::string_view label) {
-  if (metric.labels().empty()) return label.empty();
+  if (metric.labels().empty()) {
+    return label.empty();
+  }
   return std::ranges::find(metric.labels(), label) != metric.labels().end();
 }
 
@@ -48,9 +52,13 @@ MetricTotals Tally::Totals() const {
 std::string Tally::Text() const {
   std::string text;
   for (const auto& [key, value] : totals_) {
-    if (!text.empty()) text += ", ";
+    if (!text.empty()) {
+      text += ", ";
+    }
     text += key.first;
-    if (!key.second.empty()) text += "[" + key.second + "]";
+    if (!key.second.empty()) {
+      text += "[" + key.second + "]";
+    }
     text += std::format(" {}", value);
   }
   return text;
