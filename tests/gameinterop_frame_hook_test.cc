@@ -32,6 +32,7 @@ void** DispatchTableOf(FakeObject& object) {
 }
 
 TEST(VtableSlotHook, RedirectsSlotAndPreservesOriginal) {
+  // Hook slot 1 of a three slot table.
   void* table[3] = {Ptr(TargetA), Ptr(TargetB), Ptr(TargetA)};
   FakeObject object{table};
   auto hook = VtableSlotHook::Install(&object, 1, Ptr(Replacement));
@@ -42,10 +43,12 @@ TEST(VtableSlotHook, RedirectsSlotAndPreservesOriginal) {
   EXPECT_EQ(DispatchTableOf(object), table);
   EXPECT_EQ(table[1], Ptr(Replacement));
   EXPECT_EQ(hook->Original(), Ptr(TargetB));
+
   // Every other slot keeps its target.
   EXPECT_EQ(table[0], Ptr(TargetA));
   EXPECT_EQ(table[2], Ptr(TargetA));
 
+  // Restoring puts the original back.
   hook->Restore();
   EXPECT_EQ(table[1], Ptr(TargetB));
 }
@@ -57,10 +60,12 @@ TEST(VtableSlotHook, RedirectsSlotAndPreservesOriginal) {
 // copy and into heap bytes. The table the object dispatches through must stay
 // the module's own, whatever its length.
 TEST(VtableSlotHook, LeavesUnnamedSlotsDispatchableThroughTheModuleTable) {
+  // Hook the frame slot of a full sized table.
   constexpr size_t kSlots = 128;
   const size_t kHookedSlot = modlock::gameinterop::FindVirtualSlot("game-server.game-frame")->index;
   constexpr size_t kEngineSlot = 0x300 / sizeof(void*);
 
+  // Fill the table, with a distinct engine function at 0x300.
   void* table[kSlots];
   for (void*& entry : table) {
     entry = Ptr(TargetA);
@@ -68,16 +73,20 @@ TEST(VtableSlotHook, LeavesUnnamedSlotsDispatchableThroughTheModuleTable) {
   table[kEngineSlot] = Ptr(TargetB);
   FakeObject object{table};
 
+  // Hook the frame slot.
   auto hook = VtableSlotHook::Install(&object, kHookedSlot, Ptr(Replacement));
   ASSERT_TRUE(hook.has_value());
 
+  // The engine's slot still reaches the module's function.
   void** dispatch = DispatchTableOf(object);
   EXPECT_EQ(dispatch, table);
   EXPECT_EQ(dispatch[kHookedSlot], Ptr(Replacement));
   ASSERT_EQ(dispatch[kEngineSlot], Ptr(TargetB));
+
   // The engine's own call through that slot must reach the module's function.
   reinterpret_cast<void (*)()>(dispatch[kEngineSlot])();
 
+  // Restoring puts the original back.
   hook->Restore();
   EXPECT_EQ(table[kHookedSlot], Ptr(TargetA));
 }
@@ -94,6 +103,7 @@ TEST(VtableSlotHook, DestructionRestoresTheOriginalSlotTarget) {
 }
 
 TEST(VtableSlotHook, MoveTransfersTheRestoreDuty) {
+  // A moved hook restores the slot.
   void* table[2] = {Ptr(TargetA), Ptr(TargetB)};
   FakeObject object{table};
   auto hook = VtableSlotHook::Install(&object, 1, Ptr(Replacement));
@@ -104,12 +114,15 @@ TEST(VtableSlotHook, MoveTransfersTheRestoreDuty) {
 }
 
 TEST(VtableSlotHook, SelfMoveKeepsTheSlotPatched) {
+  // A hook moved onto itself keeps the slot patched and restores once.
   void* table[] = {Ptr(TargetA)};
   FakeObject object{table};
   auto hook = VtableSlotHook::Install(&object, 0, Ptr(Replacement));
   ASSERT_TRUE(hook);
   auto& same_hook = *hook;
   *hook = std::move(same_hook);
+
+  // The slot still holds the replacement until restored.
   EXPECT_EQ(table[0], Ptr(Replacement));
   EXPECT_EQ(hook->Original(), Ptr(TargetA));
   hook->Restore();

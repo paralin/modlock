@@ -61,11 +61,13 @@ uint8_t Module(int module) {
 
 // Entry checks one file entry and views it as a GameSignature.
 std::expected<GameSignature, std::string> Entry(const gamedata::GameSignature& entry) {
+  // Every entry needs an id.
   if (entry.id().empty()) {
     return std::unexpected("an entry has no id");
   }
   const std::string named = "signature '" + entry.id() + "'";
 
+  // Collect the modules the signature searches.
   GameSignature signature{
       .id = entry.id(), .modules = 0, .pattern = entry.pattern(), .shape = entry.shape()};
   for (const int module : entry.modules()) {
@@ -79,6 +81,7 @@ std::expected<GameSignature, std::string> Entry(const gamedata::GameSignature& e
     return std::unexpected(named + " names no module");
   }
 
+  // Record what a match points at.
   switch (entry.target_case()) {
     case gamedata::GameSignature::kCallAt:
       signature.target = SignatureTarget::kCall;
@@ -92,6 +95,7 @@ std::expected<GameSignature, std::string> Entry(const gamedata::GameSignature& e
       break;
   }
 
+  // The pattern must parse.
   if (auto parsed = ParseSignature(entry.id(), entry.pattern()); !parsed) {
     return std::unexpected(parsed.error());
   }
@@ -100,6 +104,7 @@ std::expected<GameSignature, std::string> Entry(const gamedata::GameSignature& e
 
 // Slot checks one file entry and views it as a VirtualSlot.
 std::expected<VirtualSlot, std::string> Slot(const gamedata::VirtualSlot& entry) {
+  // A slot needs an id, a module, a class and a valid pattern.
   if (entry.id().empty()) {
     return std::unexpected("a slot has no id");
   }
@@ -122,6 +127,7 @@ std::expected<VirtualSlot, std::string> Slot(const gamedata::VirtualSlot& entry)
 // every repeat of an id.
 std::expected<std::unique_ptr<const Table>, std::string> Parse(std::string_view text,
                                                                GameSignatureLoad& load) {
+  // Parse the text format, keeping the first error.
   auto table = std::make_unique<Table>();
   FirstError error;
   google::protobuf::TextFormat::Parser parser;
@@ -130,6 +136,7 @@ std::expected<std::unique_ptr<const Table>, std::string> Parse(std::string_view 
     return std::unexpected(error.text);
   }
 
+  // Record each valid signature once, skipping the rest.
   for (const auto& entry : table->file.signatures()) {
     auto signature = Entry(entry);
     if (!signature) {
@@ -145,6 +152,7 @@ std::expected<std::unique_ptr<const Table>, std::string> Parse(std::string_view 
   }
   std::ranges::sort(table->entries, {}, &GameSignature::id);
 
+  // Record each valid slot once, skipping the rest.
   for (const auto& entry : table->file.slots()) {
     auto slot = Slot(entry);
     if (!slot) {
@@ -159,6 +167,7 @@ std::expected<std::unique_ptr<const Table>, std::string> Parse(std::string_view 
   }
   std::ranges::sort(table->slots, {}, &VirtualSlot::id);
 
+  // Report the counts.
   load.loaded = table->entries.size();
   load.slots = table->slots.size();
   return table;
@@ -192,12 +201,14 @@ const VirtualSlot* FindVirtualSlot(std::string_view id) {
 
 std::expected<GameSignatureLoad, std::string> LoadGameSignatures(
     const std::filesystem::path& path) {
+  // Read the whole file.
   std::ifstream file(path, std::ios::binary);
   if (!file) {
     return std::unexpected("game signatures: cannot read " + path.string());
   }
   const std::string text{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
 
+  // Parse it and replace the recorded tables.
   GameSignatureLoad load;
   auto table = Parse(text, load);
   if (!table) {

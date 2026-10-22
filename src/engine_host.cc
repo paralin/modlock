@@ -108,6 +108,7 @@ const std::expected<int, std::string>& EngineHost::Result() const {
 
 std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& game_dir,
                                                   const net::LaunchConfig& launch) {
+  // Open once, after the game install checks out.
   if (impl_->opened || !impl_->modules.empty()) {
     return std::unexpected("game modules already opened");
   }
@@ -116,6 +117,8 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     return std::unexpected(std::move(problem));
   }
 #if defined(_WIN32)
+
+  // Search the game's own directories for its modules.
   if (!SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32 |
                                 LOAD_LIBRARY_SEARCH_USER_DIRS)) {
     return std::unexpected("SetDefaultDllDirectories failed: " + std::to_string(GetLastError()));
@@ -128,6 +131,7 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     }
     impl_->directories.push_back(cookie);
   }
+
   // Without the shared port a second engine on this machine exits at startup;
   // a failure leaves only that second-process case unsupported.
   if (auto shared =
@@ -135,6 +139,7 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
       !shared) {
     std::cerr << "[modlock] " << shared.error() << '\n';
   }
+
   // A failed engine assertion opens a modal dialog that holds the engine
   // thread until someone answers it, which no one does on a server. tier0
   // skips the dialog when this variable is set. Its runtime copies the
@@ -143,6 +148,8 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     std::cerr << "[modlock] engine assertions may open dialogs: error " << GetLastError() << '\n';
   }
 #endif
+
+  // Load the game modules, adding the client when connecting.
   auto planned = host_app::PlanModuleLoads(impl_->paths);
   if (!launch.connect.empty()) {
     planned.push_back({.name = "client.dll", .path = impl_->paths.client_dll});
@@ -159,11 +166,14 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
 }
 
 std::expected<int, std::string> EngineHost::Run(const net::LaunchConfig& launch) {
+  // Run the engine once on an opened host.
   if (!impl_->opened || impl_->ran) {
     return std::unexpected("engine run requires an opened, unused host");
   }
   impl_->ran = true;
   impl_->result = net::RunEngine(launch, impl_->paths.engine2_dll.parent_path());
+
+  // Report a world failure over the engine's result.
   if (impl_->trace) {
     impl_->trace->InvalidateAfterEngineReset();
   }
@@ -222,6 +232,7 @@ std::expected<Subscription, std::string> EngineHost::OnCombat(
     gameinterop::CombatEventsHook::Handler callback,
     std::function<bool(const gameinterop::DamageContactEvent&)> suppress_damage,
     gameinterop::AdjustDamage adjust_damage) {
+  // Install the combat hook on first use.
   if (!impl_->combat_hook) {
     auto image = gameinterop::MappedModuleImage::ForModule(L"server.dll");
     if (!image) {
@@ -240,6 +251,8 @@ std::expected<Subscription, std::string> EngineHost::OnCombat(
     }
     impl_->combat_hook.emplace(std::move(*hook));
   }
+
+  // Subscribe the callback and the optional damage handlers.
   auto subscription = impl_->combat.Add(std::move(callback));
   if (suppress_damage) {
     subscription.Add(impl_->damage.Add(std::move(suppress_damage)));
@@ -252,12 +265,15 @@ std::expected<Subscription, std::string> EngineHost::OnCombat(
 
 std::expected<Subscription, std::string> EngineHost::OnConnection(
     std::shared_ptr<gameinterop::ConnectionEventSink> sink) {
+  // Install the connection hook for a valid sink.
   if (!sink) {
     return std::unexpected("connection subscriber is null");
   }
   if (auto tracked = EnsureConnectionHook(); !tracked) {
     return std::unexpected(tracked.error());
   }
+
+  // Forward connects and disconnects to the sink.
   auto subscription = impl_->connections->connected.Add(
       [sink](int32_t slot, uint64_t xuid, bool bot, const char* name) {
         sink->OnConnected(slot, xuid, bot, name);
@@ -324,6 +340,7 @@ std::expected<Subscription, std::string> EngineHost::OnWorldEnding(std::function
 
 std::expected<Subscription, std::string> EngineHost::OnWorld(
     std::function<void(std::string_view)> before, std::function<void(std::string_view)> after) {
+  // Install the world hook and subscribe the before callback.
   if (auto ready = EnsureWorldHook(); !ready) {
     return std::unexpected(ready.error());
   }
@@ -334,6 +351,7 @@ std::expected<Subscription, std::string> EngineHost::OnWorld(
   if (!after) {
     return subscription;
   }
+
   // A subscriber that arrives while a world is ready learns of it at once.
   if (impl_->world_map) {
     after(*impl_->world_map);
@@ -393,6 +411,7 @@ std::expected<gameinterop::NativeTrace*, std::string> EngineHost::Trace() {
 }
 
 std::expected<void, std::string> EngineHost::ObservePawnAssignment() {
+  // Install the pawn assignment observation once.
   if (impl_->pawn_assignment) {
     return {};
   }
@@ -421,10 +440,13 @@ std::expected<gameinterop::StaminaObserver*, std::string> EngineHost::Stamina() 
 
 std::expected<void, std::string> EngineHost::Precache(std::vector<std::string> heroes,
                                                       std::vector<std::string> resources) {
+  // Add to the precache lists once the hooks exist.
   if (impl_->rules) {
     impl_->rules->AddPrecache(std::move(heroes), std::move(resources));
     return {};
   }
+
+  // Otherwise install the game rules hooks with these lists.
   auto image = gameinterop::MappedModuleImage::ForModule(L"server.dll");
   if (!image) {
     return std::unexpected(image.error());
@@ -439,6 +461,7 @@ std::expected<void, std::string> EngineHost::Precache(std::vector<std::string> h
 }
 
 std::expected<void, std::string> EngineHost::AdvertiseAddons(std::string addons) {
+  // Advertise the addons once.
   if (impl_->addons) {
     return std::unexpected("content addons already advertised");
   }

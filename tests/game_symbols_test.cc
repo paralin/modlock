@@ -74,6 +74,7 @@ TEST(GameSignatures, TableIsSortedUniqueAndParses) {
 }
 
 TEST(GameSignatures, ModulesNameTheirFiles) {
+  // Each module names its file, and a signature may span modules.
   EXPECT_EQ(modlock::gameinterop::GameModuleFile(GameModule::kServer), "server.dll");
   EXPECT_EQ(modlock::gameinterop::GameModuleFile(GameModule::kClient), "client.dll");
   EXPECT_EQ(modlock::gameinterop::GameModuleFile(GameModule::kEngine), "engine2.dll");
@@ -83,18 +84,22 @@ TEST(GameSignatures, ModulesNameTheirFiles) {
 }
 
 TEST(GameSymbols, EveryTargetRequiresOneMatch) {
+  // A pattern that matches once resolves.
   Image image;
   image.bytes[4] = 0xcc;
   auto symbol = ResolveSignature(image, Match("CC"));
   ASSERT_TRUE(symbol) << symbol.error();
   EXPECT_EQ(*symbol, reinterpret_cast<void*>(0x1004));
 
+  // A pattern that matches twice, never or badly is refused for every target.
   image.bytes[16] = 0xcc;
   for (const auto pattern : {"CC", "FF", "", "ZZ"}) {
     EXPECT_FALSE(ResolveSignature(image, Match(pattern)));
     EXPECT_FALSE(ResolveSignature(image, Relative(pattern, SignatureTarget::kCall, 0)));
     EXPECT_FALSE(ResolveSignature(image, Relative(pattern, SignatureTarget::kRipRelative, 0)));
   }
+
+  // An unrecorded id is refused by name.
   const auto unknown = ResolveSignature(image, "not.recorded");
   ASSERT_FALSE(unknown);
   EXPECT_NE(unknown.error().find("not.recorded"), std::string::npos);
@@ -121,12 +126,15 @@ TEST(GameSymbols, RelativeInstructionsPreserveSignedDisplacements) {
 }
 
 TEST(GameSymbols, RelativeInstructionsRejectTruncationAndWrappingOffsets) {
+  // A relative operand past the image or a wrapping delta is refused.
   Image image;
   image.bytes[4] = 0xcc;
   for (const size_t delta : {size_t{28}, std::numeric_limits<size_t>::max()}) {
     EXPECT_FALSE(ResolveSignature(image, Relative("CC", SignatureTarget::kCall, delta)));
     EXPECT_FALSE(ResolveSignature(image, Relative("CC", SignatureTarget::kRipRelative, delta)));
   }
+
+  // An instruction cut off at the image's end is refused.
   image.bytes[30] = 0xe8;
   EXPECT_FALSE(ResolveSignature(image, Relative("E8", SignatureTarget::kCall, 0)));
   EXPECT_FALSE(ResolveSignature(image, Relative("E8", SignatureTarget::kRipRelative, 0)));
@@ -134,6 +142,7 @@ TEST(GameSymbols, RelativeInstructionsRejectTruncationAndWrappingOffsets) {
 }
 
 TEST(GameSymbols, RelativeInstructionsRejectOtherOpcodesAndOutsideTargets) {
+  // A rip relative load must be a lea or mov the resolver knows.
   Image image;
   image.bytes[4] = 0xcc;
   image.bytes[5] = 0x41;
@@ -141,6 +150,7 @@ TEST(GameSymbols, RelativeInstructionsRejectOtherOpcodesAndOutsideTargets) {
   image.bytes[7] = 0xc5;
   EXPECT_FALSE(ResolveSignature(image, Relative("CC 41 8B C5", SignatureTarget::kRipRelative, 1)));
 
+  // A target outside the image is refused; one inside resolves.
   image.bytes[5] = 0x4c;
   image.bytes[6] = 0x8d;
   image.bytes[7] = 0x0d;
@@ -158,6 +168,7 @@ TEST(GameSymbols, RelativeInstructionsRejectOtherOpcodesAndOutsideTargets) {
 // shipped game data file.
 
 TEST(GameSignatureLoad, BrokenEntriesAreSkippedAlone) {
+  // Load a file with two good signatures, one good slot and six broken entries.
   const auto load = LoadGameSignatures(GameDataFile(R"(
 signatures {
   id: "b.call"
@@ -186,16 +197,20 @@ slots { id: "s.no-class" module: "a.dll" index: 3 pattern: "CC" }
     })) << id;
   }
 
+  // The good signatures are recorded in order.
   const auto signatures = GameSignatures();
   ASSERT_EQ(signatures.size(), 2);
   EXPECT_EQ(signatures[0].id, "a.match");
   EXPECT_EQ(signatures[0].pattern, "CC");
   EXPECT_EQ(signatures[0].target, SignatureTarget::kMatch);
+
+  // The second spans two modules, and a missing id finds nothing.
   EXPECT_EQ(signatures[1].id, "b.call");
   EXPECT_EQ(signatures[1].modules, GameModule::kClient | GameModule::kEngine);
   EXPECT_EQ(signatures[1].target, SignatureTarget::kCall);
   EXPECT_EQ(FindGameSignature("pawn.respawn"), nullptr);
 
+  // The good slot is recorded.
   ASSERT_EQ(GameVirtualSlots().size(), 1);
   const auto* slot = FindVirtualSlot("s.kept");
   ASSERT_NE(slot, nullptr);
@@ -205,6 +220,7 @@ slots { id: "s.no-class" module: "a.dll" index: 3 pattern: "CC" }
 }
 
 TEST(GameSignatureLoad, UnreadableFilesKeepTheSignatures) {
+  // A broken or missing file keeps the loaded signatures.
   ASSERT_TRUE(LoadGameSignatures(
       GameDataFile(R"(signatures { id: "kept" modules: GAME_MODULE_SERVER pattern: "CC" })")));
   const auto broken = LoadGameSignatures(GameDataFile("signatures {"));
@@ -216,6 +232,7 @@ TEST(GameSignatureLoad, UnreadableFilesKeepTheSignatures) {
 }
 
 TEST(GameSignatureLoad, ShippedFileLoadsWhole) {
+  // The shipped file loads without a skip.
   const auto load = LoadGameSignatures(MODLOCK_GAME_SIGNATURES_FILE);
   ASSERT_TRUE(load) << load.error();
   EXPECT_TRUE(load->skipped.empty()) << load->skipped.front();
