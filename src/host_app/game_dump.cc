@@ -221,6 +221,7 @@ struct Image {
   // WritableSections returns the PE sections a module's static records live
   // in once their constructors have run.
   std::vector<std::span<const uint8_t>> WritableSections() const {
+    // Read the section table from the file header.
     std::vector<std::span<const uint8_t>> sections;
     const auto* file_header = FileHeader();
     if (!file_header) {
@@ -228,6 +229,8 @@ struct Image {
     }
     const auto count = Load<uint16_t>(file_header + 2);
     const auto* section = file_header + 20 + Load<uint16_t>(file_header + 16);
+
+    // Keep each writable section that lies inside the image.
     for (uint16_t i = 0; i < count; ++i, section += 40) {
       if (section + 40 > bytes.data() + bytes.size()) {
         break;
@@ -271,11 +274,14 @@ std::vector<Image> LoadedModules(const GamePaths& paths) {
 // module's type scope confirms each candidate by finding it by name.
 std::pair<std::vector<const schema::ClassInfo*>, std::vector<const schema::EnumInfo*>>
 SchemaRecords(void* schema_system, const Image& image) {
+  // Find the module's type scope.
   std::pair<std::vector<const schema::ClassInfo*>, std::vector<const schema::EnumInfo*>> records;
   auto scope = gameinterop::FindTypeScopeOf(schema_system, image.file.c_str());
   if (!scope) {
     return records;
   }
+
+  // A record that points to itself and is declared in the scope is a class or an enum.
   for (const auto section : image.WritableSections()) {
     for (size_t offset = 0; offset + sizeof(schema::EnumInfo) <= section.size(); offset += 8) {
       const auto* record = section.data() + offset;
@@ -352,6 +358,7 @@ void AddClass(const schema::ClassInfo& info, dump::SchemaClass& out) {
 
 // AddEnum describes a schema enum and its enumerators.
 void AddEnum(const schema::EnumInfo& info, dump::SchemaEnum& out) {
+  // Copy the enum's name, size, enumerators and metadata.
   out.set_name(info.name);
   out.set_module(info.project);
   out.set_size(info.size);
@@ -368,6 +375,7 @@ void AddEnum(const schema::EnumInfo& info, dump::SchemaEnum& out) {
 // name.
 std::vector<const EntityClassInfo*> EntityClasses(
     const Image& server, const std::unordered_set<const void*>& server_classes) {
+  // Keep each named entity class bound to a server schema class, once per designer name.
   std::vector<const EntityClassInfo*> classes;
   std::unordered_set<std::string_view> designer_names;
   for (const auto section : server.WritableSections()) {
@@ -386,6 +394,8 @@ std::vector<const EntityClassInfo*> EntityClasses(
       }
     }
   }
+
+  // Order them by designer name.
   std::ranges::sort(classes, {}, [](const EntityClassInfo* info) {
     return std::string_view(info->designer_name);
   });
@@ -437,6 +447,7 @@ struct UtlString {
 // non-finite floats, which JSON cannot spell. -nan precedes nan so its sign
 // stays inside the quotes.
 std::string QuoteNonFinite(std::string_view json) {
+  // Copy the text, quoting nan and inf outside strings.
   constexpr std::string_view kWords[] = {"-nan", "nan", "-inf", "inf"};
   std::string out;
   out.reserve(json.size());
@@ -631,6 +642,7 @@ std::string Build(const GamePaths& paths) {
 // WriteJson writes message to path as indented JSON with proto field names.
 std::expected<void, std::string> WriteJson(const google::protobuf::Message& message,
                                            const fs::path& path) {
+  // Print the message as indented JSON.
   std::string text;
   google::protobuf::json::PrintOptions options;
   options.add_whitespace = true;
@@ -639,6 +651,8 @@ std::expected<void, std::string> WriteJson(const google::protobuf::Message& mess
       !printed.ok()) {
     return std::unexpected(path.filename().string() + ": " + std::string(printed.message()));
   }
+
+  // Write it to the file.
   std::ofstream out(path, std::ios::binary);
   out << text;
   if (!out) {
@@ -666,6 +680,7 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
     return std::unexpected("cannot create " + directory.string() + ": " + error.message());
   }
 
+  // Every listing carries the game build.
   const auto build = Build(paths);
   GameDumpCounts counts;
 
@@ -703,6 +718,8 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
   for (const auto* info : enums) {
     AddEnum(*info, *schemas.add_enums());
   }
+
+  // Count and write them.
   counts.classes = classes.size();
   counts.enums = enums.size();
   if (auto written = WriteJson(schemas, directory / "schemas.json"); !written) {
@@ -764,6 +781,8 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
   if (!commands) {
     return std::unexpected(commands.error());
   }
+
+  // Sort them and list each with its flags.
   std::ranges::sort(*variables, {}, &gameinterop::ConsoleVariableInfo::name);
   std::ranges::sort(*commands, {}, &gameinterop::ConsoleCommandInfo::name);
   dump::Console listing;
@@ -784,6 +803,8 @@ std::expected<GameDumpCounts, std::string> WriteGameDump(const GamePaths& paths,
     added.set_help(command.help);
     AddConsoleFlags(command.flags, added.mutable_flags());
   }
+
+  // Count and write the listing.
   counts.variables = variables->size();
   counts.commands = commands->size();
   if (auto written = WriteJson(listing, directory / "console.json"); !written) {

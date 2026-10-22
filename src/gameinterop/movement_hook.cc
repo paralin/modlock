@@ -47,6 +47,7 @@ struct Layout {
 // client module prefixes its entity classes with C_.
 std::expected<Layout, std::string> Resolve(const char* module, const char* entity,
                                            const char* pawn) {
+  // Resolve each movement field's offset through the schema.
   auto schema = ResolveSchemaSystem();
   if (!schema) {
     return std::unexpected(schema.error());
@@ -96,6 +97,7 @@ std::array<Hook, 2> g_hooks{Hook{.module_name = "server.dll",
 // PawnOf returns the component's owner only when that pawn points back to the
 // same movement services, so a stale or foreign chain never receives writes.
 void* PawnOf(const unsigned char* services, const Layout& layout) {
+  // The pawn owns these services when its services point back to them.
   void* pawn = nullptr;
   Read(services, layout.chain, pawn);
   if (!pawn) {
@@ -108,6 +110,8 @@ void* PawnOf(const unsigned char* services, const Layout& layout) {
 
 void Dispatch(Hook& hook, void* services, void* data) {
 #if defined(_WIN32)
+
+  // Resolve the layout once; without it movement stays native.
   if (!hook.layout && !hook.layout_failed) {
     auto layout = Resolve(hook.module_name, hook.entity_class, hook.pawn_class);
     if (layout) {
@@ -124,6 +128,7 @@ void Dispatch(Hook& hook, void* services, void* data) {
     return hook.detour->call<void>(services, data);
   }
 
+  // Find the pawn and read the command's buttons.
   const auto* owner = static_cast<const unsigned char*>(services);
   auto* move = static_cast<unsigned char*>(data);
   MovementCall call{.services = services};
@@ -131,6 +136,8 @@ void Dispatch(Hook& hook, void* services, void* data) {
   Read(owner, hook.layout->command, call.command);
   Read(owner, hook.layout->buttons + kButtonStates, call.buttons);
   const auto buttons = call.buttons;
+
+  // Read the angles and movement axes.
   Read(move, kMoveAngles, call.angles);
   const auto angles = call.angles;
   std::array<float, 3> input;
@@ -138,6 +145,8 @@ void Dispatch(Hook& hook, void* services, void* data) {
   call.forward = input[0];
   call.left = input[1];
   call.up = input[2];
+
+  // Read the move's timing, position and ground.
   Read(move, kMoveTicks, call.ticks);
   Read(move, kMoveFractions, call.fractions);
   Read(move, kMoveOrigin, call.origin);
@@ -146,6 +155,7 @@ void Dispatch(Hook& hook, void* services, void* data) {
     Read(static_cast<const unsigned char*>(call.pawn), hook.layout->ground, call.ground_entity);
     Read(static_cast<const unsigned char*>(call.pawn), hook.layout->move_type, call.move_type);
   }
+
   // The handler may rewrite buttons even when it leaves movement native. The
   // native step always runs for its per-command bookkeeping, which client
   // prediction requires; a replacement result then overwrites its motion.
@@ -154,6 +164,7 @@ void Dispatch(Hook& hook, void* services, void* data) {
     std::memcpy(static_cast<unsigned char*>(services) + hook.layout->buttons + kButtonStates,
                 call.buttons.data(), sizeof(call.buttons));
   }
+
   // Rewritten angles and movement axes steer the native step itself, so its
   // movement state and animation follow the replaced command.
   if (call.angles != angles) {
@@ -163,6 +174,8 @@ void Dispatch(Hook& hook, void* services, void* data) {
   if (axes != input) {
     std::memcpy(move + kMoveInput, axes.data(), sizeof(axes));
   }
+
+  // Run the native step, then write a replacement's motion over it.
   hook.detour->call<void>(services, data);
   if (!replaced) {
     return;
@@ -215,10 +228,14 @@ MovementHook::~MovementHook() = default;
 
 std::expected<MovementHook, std::string> MovementHook::Install(Module module, Handler handler) {
 #if defined(_WIN32)
+
+  // Install once per module.
   auto& hook = g_hooks[module == Module::kServer ? 0 : 1];
   if (hook.handler || !handler) {
     return std::unexpected("movement hook already installed or empty");
   }
+
+  // Resolve the native movement step.
   const auto image =
       MappedModuleImage::ForModule(module == Module::kServer ? L"server.dll" : L"client.dll");
   if (!image) {
@@ -228,6 +245,8 @@ std::expected<MovementHook, std::string> MovementHook::Install(Module module, Ha
   if (!target) {
     return std::unexpected(target.error());
   }
+
+  // Detour it through the module's thunk, disabled until wired.
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
   const auto thunk = module == Module::kServer ? &ServerThunk : &ClientThunk;
@@ -236,6 +255,8 @@ std::expected<MovementHook, std::string> MovementHook::Install(Module module, Ha
   if (!impl->detour) {
     return std::unexpected("cannot create native movement hook");
   }
+
+  // Wire the hook, then enable it.
   hook.handler = &impl->handler;
   hook.detour = &impl->detour;
   impl->hook = &hook;

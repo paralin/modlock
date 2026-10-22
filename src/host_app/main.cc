@@ -60,6 +60,7 @@ std::optional<uint16_t> Port(std::string_view value) {
 // only the features that resolve it. With none readable, the built-in game data
 // stays.
 void LoadSignatures(std::initializer_list<std::filesystem::path> paths) {
+  // Load the first readable game data file and report what it skipped.
   std::expected<modlock::gameinterop::GameSignatureLoad, std::string> load =
       std::unexpected("no game data file");
   for (const auto& path : paths) {
@@ -102,18 +103,25 @@ class FailureRecorder final : public modlock::WasmHostObserver {
 }  // namespace
 
 int main(int argc, char** argv) {
+  // Guard stdio and unbuffer the output.
   modlock::host_app::InstallStdioGuard();
   std::cout << std::unitbuf;
+
+  // The paths and the control address the options name.
   std::vector<std::filesystem::path> libraries;
   std::filesystem::path game_dir;
   std::string_view control;
   std::filesystem::path settings_file;
   std::filesystem::path dump_directory;
   std::filesystem::path game_data;
+
+  // The launch and plugin options.
   modlock::net::LaunchConfig launch;
   bool check_only = false;
   int plugin_argc = 0;
   const char* const* plugin_argv = nullptr;
+
+  // Read the environment, then the command line.
   if (const char* environment = std::getenv("DEADLOCK_DIR")) {
     game_dir = environment;
   }
@@ -206,15 +214,19 @@ int main(int argc, char** argv) {
       launch.host_port = *port;
     }
   }
+
+  // A plugin or a dump is required.
   if (libraries.empty() && dump_directory.empty()) {
     std::cerr << "Select a plugin with --plugin PATH. Use --help for usage.\n";
     return 2;
   }
+
   // The game data file and the interpreter modules ship beside the executable;
   // a newer game data file may come from the launcher.
   const auto directory = std::filesystem::absolute(argv[0]).parent_path();
   LoadSignatures({game_data, directory / "game_signatures.txtpb"});
 
+  // Open the game unless only checking the plugin.
   modlock::EngineHost engine;
   if (!check_only) {
     if (game_dir.empty()) {
@@ -273,6 +285,8 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
+
+  // Start the plugins; a check ticks and stops them once.
   std::string error;
   if (!plugins.StartAll(error)) {
     std::cerr << error << '\n';
@@ -288,6 +302,7 @@ int main(int argc, char** argv) {
     std::cout << "Plugin compatibility and lifecycle check passed. No game was started.\n";
     return 0;
   }
+
   // A dump runs once the world is ready, when every module has registered its
   // schema, entity classes and console entries, then quits the server.
   std::optional<modlock::host_app::GameDumpCounts> dumped;
@@ -295,6 +310,7 @@ int main(int argc, char** argv) {
   modlock::Subscription dump_world;
   if (!dump_directory.empty()) {
     auto subscribed = engine.OnWorld({}, [&](std::string_view) {
+      // Write the dump once, then quit the server.
       if (dumped || !dump_error.empty()) {
         return;
       }
@@ -316,6 +332,8 @@ int main(int argc, char** argv) {
     }
     dump_world = std::move(*subscribed);
   }
+
+  // Tick the mods each frame.
   auto frames = engine.OnFrame([&plugins, &mods, &link] {
     if (link) {
       link->RunRequests(mods);
@@ -326,6 +344,8 @@ int main(int argc, char** argv) {
     std::cerr << frames.error() << '\n';
     return 1;
   }
+
+  // Run the engine, then stop the plugins and report the result.
   auto result = engine.Run(launch);
   frames->Reset();
   dump_world.Reset();

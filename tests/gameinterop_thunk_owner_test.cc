@@ -54,6 +54,7 @@ void ClearActiveRecorder() {
 }
 
 TEST(ThunkOwner, MovedFromOwnerDestructionLeavesTheHookLive) {
+  // Hook a slot and record clears.
   void* table[2] = {Ptr(TargetA), Ptr(TargetB)};
   FakeObject object{table};
   auto hook = VtableSlotHook::Install(&object, 1, Ptr(Replacement));
@@ -77,6 +78,7 @@ TEST(ThunkOwner, MovedFromOwnerDestructionLeavesTheHookLive) {
 }
 
 TEST(ThunkOwner, FinalOwnerRestoresBeforeClearingThunkState) {
+  // Hook a slot and record the order of restore and clear.
   void* table[2] = {Ptr(TargetA), Ptr(TargetB)};
   FakeObject object{table};
   auto hook = VtableSlotHook::Install(&object, 1, Ptr(Replacement));
@@ -85,6 +87,8 @@ TEST(ThunkOwner, FinalOwnerRestoresBeforeClearingThunkState) {
   recorder.slot = &table[1];
   recorder.original = Ptr(TargetB);
   g_active_recorder = &recorder;
+
+  // The last owner restores the slot, then clears the thunk state.
   {
     ThunkOwner active(std::move(*hook), &ClearActiveRecorder);
     EXPECT_EQ(table[1], Ptr(Replacement));
@@ -96,24 +100,29 @@ TEST(ThunkOwner, FinalOwnerRestoresBeforeClearingThunkState) {
 }
 
 TEST(ThunkOwner, MoveAssignmentTearsDownOldDutyBeforeTakeover) {
+  // Two objects, each with its own table.
   void* old_table[2] = {Ptr(TargetA), Ptr(TargetB)};
   FakeObject old_object{old_table};
   void* new_table[2] = {Ptr(TargetA), Ptr(TargetB)};
   FakeObject new_object{new_table};
 
+  // Hook the old object and record its restore.
   Recorder old_recorder;
   auto old_hook = VtableSlotHook::Install(&old_object, 1, Ptr(Replacement));
   ASSERT_TRUE(old_hook.has_value());
   old_recorder.slot = &old_table[1];
   old_recorder.original = Ptr(TargetB);
 
+  // Hook the new object.
   Recorder next_recorder;
   auto next_hook = VtableSlotHook::Install(&new_object, 1, Ptr(Replacement));
   ASSERT_TRUE(next_hook.has_value());
 
+  // Give each hook an owner.
   ThunkOwner* active = new ThunkOwner(std::move(*old_hook), &ClearActiveRecorder);
   ThunkOwner successor(std::move(*next_hook), &ClearActiveRecorder);
 
+  // Move the successor over the active owner.
   g_active_recorder = &old_recorder;
   *active = std::move(successor);
   g_active_recorder = nullptr;

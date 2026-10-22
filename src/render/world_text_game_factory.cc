@@ -28,6 +28,7 @@ void PlaceEntity(void* entity, const modlock::Vec3& origin, const modlock::Euler
 using CreateEntityByNameFn = void* (*)(void*, const char*, int);
 
 bool WriteWorldTextMessage(void* entity, const char* message) {
+  // Find the entity's inline message field through the schema.
   if (entity == nullptr || message == nullptr) {
     return false;
   }
@@ -40,6 +41,8 @@ bool WriteWorldTextMessage(void* entity, const char* message) {
   if (!field) {
     return false;
   }
+
+  // Write the message into a field of plausible size.
   constexpr size_t kMinimumInlineTextCapacity = 64;
   constexpr size_t kMaximumInlineTextCapacity = 4096;
   if (field->size < kMinimumInlineTextCapacity || field->size > kMaximumInlineTextCapacity) {
@@ -55,6 +58,7 @@ bool WriteWorldTextMessage(void* entity, const char* message) {
 
 std::expected<std::unique_ptr<WorldTextGameFactory>, std::string> WorldTextGameFactory::TryCreate(
     const modlock::gameinterop::ModuleImage& server) {
+  // Resolve each creation call by signature.
   WorldTextGameCalls calls;
   struct Entry {
     std::string_view id;
@@ -76,6 +80,8 @@ std::expected<std::unique_ptr<WorldTextGameFactory>, std::string> WorldTextGameF
       return std::unexpected(address.error());
     }
   }
+
+  // Add the keyvalue calls and the message writer.
   auto key_values = modlock::gameinterop::ResolveKeyValuesCalls(server);
   if (!key_values.has_value()) {
     return std::unexpected(key_values.error());
@@ -129,6 +135,8 @@ class GameWorldTextEntity final : public WorldTextEntity {
       // Log-and-continue: keep the stale text rather than losing the label.
       return;
     }
+
+    // Take the rebuilt entity in place of this one.
     auto* replacement = static_cast<GameWorldTextEntity*>(rebuilt->get());
     rebuilt->release();
     Remove();
@@ -170,6 +178,7 @@ class GameWorldTextEntity final : public WorldTextEntity {
   // QueueSpawnEntity, ExecuteQueuedCreation. Returns an error naming the
   // failed game step.
   [[nodiscard]] std::expected<void, std::string> Spawn() {
+    // Every creation call must be resolved.
     if (factory_.calls_.create_entity_by_name == nullptr) {
       return std::unexpected("world text: create-entity-by-name unresolved");
     }
@@ -189,24 +198,30 @@ class GameWorldTextEntity final : public WorldTextEntity {
     if (!key_values_ready) {
       return std::unexpected("world text: keyvalues construction is unresolved");
     }
+
+    // Create the entity.
     void* entity = factory_.calls_.create_entity_by_name(nullptr, "point_worldtext", -1);
     if (entity == nullptr) {
       return std::unexpected("create point_worldtext returned null");
     }
     entity_ = entity;
 
+    // Apply its keyvalues.
     if (auto applied = ApplyKeyValues(); !applied) {
       Remove();
       return std::unexpected(applied.error());
     }
 
+    // Place it.
     PlaceEntity(entity_, origin_, angles_);
 
+    // Spawn it.
     factory_.calls_.queue_spawn_entity(factory_.calls_.entity_system, IdentityOf(entity_),
                                        key_values_);
     key_values_ = nullptr;
     factory_.calls_.execute_queued_creation(factory_.calls_.entity_system);
 
+    // Write its message and enable it.
     if (!factory_.calls_.write_message(entity_, message_.c_str())) {
       return std::unexpected("point_worldtext message field was not writable after spawn");
     }
@@ -220,6 +235,7 @@ class GameWorldTextEntity final : public WorldTextEntity {
  private:
   // ApplyKeyValues sets enabled, fullbright text with the requested style.
   [[nodiscard]] std::expected<void, std::string> ApplyKeyValues() {
+    // Build the entity's keyvalues from the style.
     const modlock::gameinterop::KeyValueColor color{
         .red = static_cast<std::uint8_t>(style_.color_abgr & 0xFF),
         .green = static_cast<std::uint8_t>((style_.color_abgr >> 8) & 0xFF),

@@ -33,6 +33,7 @@ std::optional<T> Read(std::span<const uint8_t> bytes, size_t at) {
 // Find returns the offset of needle's only occurrence in bytes.
 std::expected<size_t, std::string> Find(std::span<const uint8_t> bytes,
                                         std::span<const uint8_t> needle, std::string_view what) {
+  // The needle must appear exactly once.
   const std::boyer_moore_horspool_searcher searcher(needle.begin(), needle.end());
   const auto first = std::search(bytes.begin(), bytes.end(), searcher);
   if (first == bytes.end()) {
@@ -47,6 +48,7 @@ std::expected<size_t, std::string> Find(std::span<const uint8_t> bytes,
 // Executable reports whether offset falls in a section the PE headers mark
 // executable.
 bool Executable(std::span<const uint8_t> bytes, size_t offset) {
+  // Find the section table.
   const auto pe = Read<uint32_t>(bytes, 0x3C);
   if (!pe) {
     return false;
@@ -57,6 +59,8 @@ bool Executable(std::span<const uint8_t> bytes, size_t offset) {
     return false;
   }
   const size_t sections = *pe + 24 + *optional_size;
+
+  // The offset is executable when the section holding it is.
   for (size_t i = 0; i < *count; ++i) {
     const size_t header = sections + i * 40;
     const auto size = Read<uint32_t>(bytes, header + 8);
@@ -82,6 +86,7 @@ std::span<const uint8_t> Bytes(const T& value) {
 
 std::expected<size_t, std::string> FindVtable(const ModuleImage& image,
                                               std::string_view class_name) {
+  // Read the image and name the class for errors.
   const auto bytes = image.image_bytes();
   const std::string named = "class " + std::string(class_name);
 
@@ -133,6 +138,7 @@ std::vector<size_t> VtableEntries(const ModuleImage& image, size_t table) {
 std::expected<std::vector<size_t>, std::string> MatchingSlots(const ModuleImage& image,
                                                               size_t table,
                                                               const VirtualSlot& slot) {
+  // Parse the slot's pattern.
   const auto pattern = ParseSignature(std::string(slot.id), slot.pattern);
   if (!pattern) {
     return std::unexpected(pattern.error());
@@ -169,17 +175,20 @@ namespace {
 class Resolver {
  public:
   std::expected<size_t, std::string> Resolve(const VirtualSlot& slot) {
+    // Answer a slot already resolved.
     const std::lock_guard lock(mutex_);
     if (const auto found = slots_.find(slot.id); found != slots_.end()) {
       return found->second;
     }
 
+    // Map the slot's module.
     const std::wstring module(slot.module.begin(), slot.module.end());
     const auto image = MappedModuleImage::ForModule(module);
     if (!image) {
       return std::unexpected("slot '" + std::string(slot.id) + "': " + image.error());
     }
 
+    // Locate every recorded slot of the class at once, sharing its table.
     const auto table = FindVtable(*image, slot.class_name);
     for (const auto& sibling : GameVirtualSlots()) {
       if (sibling.module != slot.module || sibling.class_name != slot.class_name) {
@@ -194,11 +203,13 @@ class Resolver {
   static std::expected<size_t, std::string> Locate(const ModuleImage& image,
                                                    const std::expected<size_t, std::string>& table,
                                                    const VirtualSlot& slot) {
+    // A slot needs its class's table.
     const std::string named = "slot '" + std::string(slot.id) + "'";
     if (!table) {
       return std::unexpected(named + ": " + table.error());
     }
 
+    // The pattern must match exactly one function; a moved index is logged.
     const auto matches = MatchingSlots(image, *table, slot);
     if (!matches) {
       return std::unexpected(named + ": " + matches.error());
@@ -222,6 +233,7 @@ class Resolver {
 #endif
 
 std::expected<size_t, std::string> ResolveVirtualSlot(std::string_view id) {
+  // Look up the recorded slot, and on Windows resolve it in its module.
   const auto* slot = FindVirtualSlot(id);
   if (!slot) {
     return std::unexpected("slot '" + std::string(id) + "' is not recorded");

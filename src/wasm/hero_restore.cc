@@ -46,6 +46,7 @@ bool Finite(const std::array<float, 3>& values) {
 
 std::expected<HeroRestore, std::string> HeroRestore::Create(const Sample& pawn,
                                                             RestoreTarget target, Engine engine) {
+  // The pawn must be alive and the target well formed.
   if (pawn.health <= 0) {
     return std::unexpected("the player has no live hero");
   }
@@ -87,6 +88,7 @@ HeroRestore::HeroRestore(const Sample& pawn, RestoreTarget target, Engine engine
       max_health_(target_.max_health) {}
 
 HeroRestore::Result HeroRestore::Tick(const std::optional<Sample>& sample, uint64_t tick) {
+  // A live, unchanged hero within the deadline runs the current phase.
   if (!sample || !SamePawn(*sample, pawn_) || sample->health <= 0) {
     return std::unexpected("the hero died or changed during the restore");
   }
@@ -170,6 +172,7 @@ HeroRestore::Result HeroRestore::WriteTimers(const Sample& sample, uint64_t tick
 }
 
 HeroRestore::Result HeroRestore::Verify(const Sample& sample, uint64_t tick) {
+  // Note whether the pose, health and aim have held.
   const bool held = Beside(sample, target_.position);
   healthy_ = healthy_ || std::abs(sample.health - health_) <= 1 || (target_.fresh && held);
   aimed_ = aimed_ || sample.is_bot || Aimed(sample, target_.angles);
@@ -180,10 +183,13 @@ HeroRestore::Result HeroRestore::Verify(const Sample& sample, uint64_t tick) {
     return std::unexpected("the pose could not be written again");
   }
 
+  // A bot that grew its build settles again.
   const bool upgrades = UpgradesMatch(sample.slot);
   if (!upgrades && AdoptGrowth(sample, tick)) {
     return std::nullopt;
   }
+
+  // Compare every part of the hero with the target.
   const bool items = ItemsMatch(sample.slot);
   const bool stamina =
       !target_.fresh ||
@@ -199,6 +205,8 @@ HeroRestore::Result HeroRestore::Verify(const Sample& sample, uint64_t tick) {
   const bool pawn = (held || (!target_.fresh && placed_)) && health && stamina &&
                     (target_.fresh || aimed_) && level && bonuses && upgrades && items;
   const bool timers = TimersMatch(sample.slot);
+
+  // Accept after a stable second, or wait out the grace period.
   if (pawn && timers) {
     placed_ = true;
     if (++stable_frames_ < kSecond) {
@@ -231,11 +239,15 @@ HeroRestore::Result HeroRestore::Verify(const Sample& sample, uint64_t tick) {
 }
 
 std::expected<void, std::string> HeroRestore::RestoreTimers(int32_t slot) {
+  // Write nothing when an exact target has no timers.
   written_.clear();
   written_clock_.reset();
   if (!target_.fresh && target_.timers.empty()) {
     return {};
   }
+
+  // Build the timers against the current clock: ready ones for a fresh target, rebased ones for an
+  // exact one.
   auto clock = engine_.clock();
   if (!clock) {
     return std::unexpected(clock.error());
@@ -302,9 +314,12 @@ std::expected<void, std::string> HeroRestore::RestoreTimers(int32_t slot) {
 }
 
 bool HeroRestore::TimersMatch(int32_t slot) {
+  // Nothing written leaves nothing to check.
   if (written_.empty()) {
     return true;
   }
+
+  // Read the timers on a later tick than the write.
   auto clock = engine_.clock();
   if (!clock || !written_clock_ || clock->tick <= written_clock_->tick ||
       clock->current_time <= written_clock_->current_time) {
@@ -318,6 +333,8 @@ bool HeroRestore::TimersMatch(int32_t slot) {
     return (start == actual_start && end == actual_end) ||
            (end <= clock->current_time && actual_start == 0 && actual_end == 0);
   };
+
+  // Every written timer holds or has expired.
   for (const auto& target : written_) {
     const auto found = std::ranges::find_if(*owned, [&](const Ability& a) {
       return a.handle == target.handle && a.subclass_id == target.subclass_id &&
@@ -356,6 +373,7 @@ bool HeroRestore::UpgradesMatch(int32_t slot) const {
 }
 
 bool HeroRestore::ItemsMatch(int32_t slot) const {
+  // Read the owned abilities when the target names items.
   if (!target_.items) {
     return true;
   }
@@ -395,6 +413,7 @@ bool HeroRestore::ItemsMatch(int32_t slot) const {
 }
 
 bool HeroRestore::AdoptGrowth(const Sample& sample, uint64_t tick) {
+  // Only a fresh bot whose items match can grow.
   if (!sample.is_bot || !target_.fresh || !ItemsMatch(sample.slot)) {
     return false;
   }
@@ -402,6 +421,8 @@ bool HeroRestore::AdoptGrowth(const Sample& sample, uint64_t tick) {
   if (!owned) {
     return false;
   }
+
+  // Adopt each ability's added upgrades.
   auto abilities = target_.abilities;
   for (auto& target : abilities) {
     const auto matches = [&](const Ability& a) {
