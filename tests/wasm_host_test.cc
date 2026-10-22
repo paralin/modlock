@@ -50,6 +50,7 @@ std::expected<std::string, std::string> Shout(std::string_view mod, std::string_
 }
 
 TEST(WasmHost, ModsAndHostCallEachOthersServices) {
+  // Load the test mod with the shout service.
   WasmHost host({});
   host.Provide("shout", Shout);
   auto plugin = host.Load(EXTENSION_GO_WASM, PluginContext{.check_only = true});
@@ -81,6 +82,7 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
 }
 
 TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {
+  // Load the test mod, watching its events.
   WasmHost host({});
   Events events;
   host.Observe(&events);
@@ -110,6 +112,7 @@ TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {
 }
 
 TEST(WasmHost, StoppedModWaitsForRestart) {
+  // Load the test mod with the shout service, watching its events.
   WasmHost host({});
   host.Provide("shout", Shout);
   Events events;

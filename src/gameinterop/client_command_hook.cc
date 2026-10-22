@@ -36,6 +36,7 @@ void ClearThunkState() {
 // Copy through the OS so an incompatible command layout is forwarded untouched
 // instead of dereferenced.
 std::string ReadCommand(void* args) {
+  // Read the argument count and buffer.
   if (args == nullptr) {
     return {};
   }
@@ -46,6 +47,8 @@ std::string ReadCommand(void* args) {
       !ReadNative(base + 16, &data, sizeof(data)) || data == nullptr) {
     return {};
   }
+
+  // Copy the text and cut it at its terminator.
   std::array<char, 512> text{};
   if (!ReadNative(data, text.data(), count)) {
     return {};
@@ -99,9 +102,13 @@ ClientCommandHook::~ClientCommandHook() = default;
 
 std::expected<ClientCommandHook, std::string> ClientCommandHook::Install(Handler handler) {
 #if defined(_WIN32)
+
+  // Install once.
   if (g_handler != nullptr || !handler) {
     return std::unexpected("client command hook already installed or handler absent");
   }
+
+  // Find the game clients interface and the command slot.
   const auto resolved = ResolveEngineInterface(L"server.dll", "Source2GameClients001");
   if (!resolved) {
     return std::unexpected(resolved.error());
@@ -111,6 +118,8 @@ std::expected<ClientCommandHook, std::string> ClientCommandHook::Install(Handler
   if (!slot) {
     return std::unexpected(slot.error());
   }
+
+  // Swap the slot and publish the thunk state.
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
   auto hook = VtableSlotHook::Install(clients, *slot, reinterpret_cast<void*>(&CommandThunk));
@@ -122,6 +131,8 @@ std::expected<ClientCommandHook, std::string> ClientCommandHook::Install(Handler
   g_handler = &impl->handler;
   return ClientCommandHook(std::move(impl));
 #else
+
+  // Other platforms have no native server.
   (void)handler;
   return std::unexpected("client command hook requires the Windows host build");
 #endif

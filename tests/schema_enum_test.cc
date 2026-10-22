@@ -23,9 +23,12 @@ struct EnumSchema {
   }
 
   EnumSchema() {
+    // Route the type scope lookup to the fake enum.
     system_methods[FindVirtualSlot("schema-system.find-type-scope")->index] =
         reinterpret_cast<void*>(&Scope);
     scope_methods[3] = reinterpret_cast<void*>(&Enum);
+
+    // Lay out two values and their names.
     const uint16_t count = 2;
     std::memcpy(info.data() + 28, &count, sizeof(count));
     auto* entries = values.data();
@@ -35,6 +38,8 @@ struct EnumSchema {
     for (size_t i = 0; i < names.size(); ++i) {
       std::memcpy(values.data() + i * 32, &names[i], sizeof(names[i]));
     }
+
+    // Set the first value.
     const int64_t disabled = 0x6c;
     std::memcpy(values.data() + 8, &disabled, sizeof(disabled));
   }
@@ -48,6 +53,7 @@ struct EnumSchema {
 };
 
 TEST(SchemaEnum, ReadsTheInstalledValueInsteadOfPinningAnOldModifierNumber) {
+  // The installed value is read for each build.
   EnumSchema schema;
   for (const int64_t active : {0xdb, 0xdd, 0x123}) {
     std::memcpy(schema.values.data() + 40, &active, sizeof(active));
@@ -56,9 +62,13 @@ TEST(SchemaEnum, ReadsTheInstalledValueInsteadOfPinningAnOldModifierNumber) {
     ASSERT_TRUE(value) << value.error();
     EXPECT_EQ(*value, active);
   }
+
+  // An unknown name is refused.
   const auto absent = SchemaEnumValueOf(&schema.system, "server.dll", "EModifierState", "MISSING");
   ASSERT_FALSE(absent);
   EXPECT_NE(absent.error().find("MISSING"), std::string::npos);
+
+  // Without a scope, nothing is read.
   schema.scope.result = nullptr;
   EXPECT_FALSE(SchemaEnumValueOf(&schema.system, "server.dll", "EModifierState",
                                  "MODIFIER_STATE_PARRY_ACTIVE"));

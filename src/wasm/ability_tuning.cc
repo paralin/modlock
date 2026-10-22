@@ -19,9 +19,12 @@ using gameinterop::SchemaField;
 // property record's size, which sets the map's node stride.
 void SetProperties(unsigned char* definition, void* schema, const char* module,
                    std::map<std::string, float> values, std::vector<std::string>& problems) {
+  // An empty request touches nothing.
   if (values.empty()) {
     return;
   }
+
+  // Find the property map and the property layout.
   auto properties =
       gameinterop::SchemaFieldOf(schema, module, "CitadelAbilityVData", "m_mapAbilityProperties");
   auto size = gameinterop::SchemaClassSizeOf(schema, module, "CitadelAbilityProperty_t");
@@ -44,6 +47,8 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
     problems.push_back("ability property map is invalid");
     return;
   }
+
+  // Set each requested property that the map holds.
   for (int32_t i = 0; i < count; ++i) {
     auto* node = nodes + i * (24 + *size);
     int32_t left = 0;
@@ -67,6 +72,8 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
     std::memcpy(node + 24 + cache->offset + sizeof(void*), parsed.data(), sizeof(parsed));
     values.erase(found);
   }
+
+  // Report the properties the map lacks.
   for (const auto& [name, value] : values) {
     problems.push_back("no ability property " + name);
   }
@@ -77,6 +84,7 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
 // and returns the last step's field.
 std::expected<SchemaField, std::string> ResolvePath(void* schema, const char* module,
                                                     std::string_view path) {
+  // Add up each step's offset; the last step names the field.
   SchemaField result{};
   size_t offset = 0;
   while (!path.empty()) {
@@ -105,6 +113,7 @@ std::expected<SchemaField, std::string> ResolvePath(void* schema, const char* mo
 std::expected<std::vector<std::string>, std::string> TuneAbilities(
     const gameinterop::ModuleImage& module, void* schema, const char* module_name,
     const google::protobuf::RepeatedPtrField<AbilityTuning>& abilities) {
+  // Resolve the definition lookup.
   auto definitions = gameinterop::AbilityDefinitions::Resolve(module);
   if (!definitions) {
     return std::unexpected(definitions.error());
@@ -121,6 +130,7 @@ std::expected<std::vector<std::string>, std::string> TuneAbilities(
     found.push_back(static_cast<unsigned char*>(definition->native_definition_pointer));
   }
 
+  // Tune each ability, naming it in its problems.
   std::vector<std::string> problems;
   for (int index = 0; index < abilities.size(); ++index) {
     const auto& ability = abilities[index];

@@ -36,6 +36,7 @@ Contents CollisionHull::At(const Vector& point) const {
 
 bool CollisionHull::TraceBranch(int node, float begin, float finish, const Vector& start,
                                 const Vector& end, Trace& trace) const {
+  // A leaf ends the branch; a solid leaf marks the start solid.
   if (node < 0) {
     if (node == -2) {
       trace.start_solid = true;
@@ -44,6 +45,8 @@ bool CollisionHull::TraceBranch(int node, float begin, float finish, const Vecto
     }
     return true;
   }
+
+  // A segment on one side of the plane descends that side.
   const auto& branch = nodes_[node];
   const auto& plane = planes_[branch.plane];
   const float from = plane.Distance(start);
@@ -55,6 +58,7 @@ bool CollisionHull::TraceBranch(int node, float begin, float finish, const Vecto
     return TraceBranch(branch.children[1], begin, finish, start, end, trace);
   }
 
+  // Split the segment at the plane, nudged to the near side, and trace the near half.
   const int near = from < 0;
   float fraction =
       std::clamp(static_cast<float>((from + (near ? 0.03125 : -0.03125)) / (from - to)), 0.f, 1.f);
@@ -70,6 +74,7 @@ bool CollisionHull::TraceBranch(int node, float begin, float finish, const Vecto
     return false;
   }
 
+  // The far side is solid: take the plane's normal and back off until clear.
   for (std::size_t axis = 0; axis < trace.normal.size(); ++axis) {
     trace.normal[axis] = near ? -plane.normal[axis] : plane.normal[axis];
   }
@@ -88,6 +93,7 @@ bool CollisionHull::TraceBranch(int node, float begin, float finish, const Vecto
 
 Trace CollisionHull::Sweep(const Vector& start, const Vector& end, const Vector& origin,
                            TraceKind kind) const {
+  // Trace in the hull's local space.
   Vector local_start{}, local_end{};
   for (std::size_t axis = 0; axis < origin.size(); ++axis) {
     local_start[axis] = start[axis] - origin[axis];
@@ -95,6 +101,8 @@ Trace CollisionHull::Sweep(const Vector& start, const Vector& end, const Vector&
   }
   Trace trace{.end = end, .all_solid = true};
   TraceBranch(root_, 0, 1, local_start, local_end, trace);
+
+  // A player trace that starts in solid does not move.
   if (kind == TraceKind::kPlayer) {
     if (trace.all_solid) {
       trace.start_solid = true;
@@ -103,6 +111,8 @@ Trace CollisionHull::Sweep(const Vector& start, const Vector& end, const Vector&
       trace.fraction = 0;
     }
   }
+
+  // Return a hit to world space; only a hit names the entity.
   if (trace.fraction < 1) {
     for (std::size_t axis = 0; axis < origin.size(); ++axis) {
       trace.end[axis] += origin[axis];

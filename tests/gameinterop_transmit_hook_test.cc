@@ -36,6 +36,7 @@ TEST(TransmitSet, ReadsThePlayerSlot) {
 }
 
 TEST(TransmitSet, WithholdsOnlyTheHandlesEntity) {
+  // Point a set at a fresh info.
   FakeInfo info(0);
   TransmitSet set(info.bytes.data());
 
@@ -57,12 +58,14 @@ TEST(TransmitSet, IgnoresAnIndexPastTheSet) {
 }
 
 TEST(TransmitSet, SendsAListedEntityOnlyToItsPlayers) {
+  // A listed entity sends to a listed player.
   const uint64_t slots = (uint64_t{1} << 3) | (uint64_t{1} << 9);
   FakeInfo listed(3);
   TransmitSet listed_set(listed.bytes.data());
   listed_set.WithholdUnlessIn(300, slots);
   EXPECT_TRUE(listed.Sends(300));
 
+  // An unlisted player does not see it.
   FakeInfo other(4);
   TransmitSet other_set(other.bytes.data());
   other_set.WithholdUnlessIn(300, slots);

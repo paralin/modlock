@@ -34,10 +34,13 @@ constexpr size_t kSampleStride = 61;
 // RarestByte returns the index of sig's literal byte that occurs least often
 // in a sample of data, or nullopt when every byte is a wildcard.
 std::optional<size_t> RarestByte(std::span<const uint8_t> data, const Signature& sig) {
+  // Count a sample of the data's bytes.
   std::array<uint32_t, 256> counts{};
   for (size_t i = 0; i < data.size(); i += kSampleStride) {
     counts[data[i]]++;
   }
+
+  // Pick the pattern's rarest fixed byte.
   std::optional<size_t> rarest;
   for (size_t k = 0; k < sig.bytes.size(); k++) {
     if (sig.wildcard[k]) {
@@ -55,6 +58,8 @@ std::optional<size_t> RarestByte(std::span<const uint8_t> data, const Signature&
 // which Wine implements one byte at a time.
 const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
 #if defined(__SSE2__)
+
+  // Scan sixteen bytes at a time, then the tail.
   const __m128i needle = _mm_set1_epi8(static_cast<char>(value));
   for (; end - p >= 16; p += 16) {
     const __m128i block = _mm_loadu_si128(reinterpret_cast<const __m128i*>(p));
@@ -70,6 +75,8 @@ const uint8_t* FindByte(const uint8_t* p, const uint8_t* end, uint8_t value) {
   }
   return end;
 #else
+
+  // Without SSE2, memchr does the scan.
   const auto* found = static_cast<const uint8_t*>(std::memchr(p, value, end - p));
   return found != nullptr ? found : end;
 #endif
@@ -122,12 +129,14 @@ std::expected<Signature, std::string> ParseSignature(std::string id, std::string
 }
 
 std::vector<size_t> SignatureScan(std::span<const uint8_t> data, const Signature& sig) {
+  // A pattern longer than the data matches nowhere.
   std::vector<size_t> hits;
   if (sig.bytes.empty() || sig.bytes.size() > data.size()) {
     return hits;
   }
   const size_t last_start = data.size() - sig.bytes.size();
 
+  // Choose the byte to search for.
   const auto pivot = RarestByte(data, sig);
   if (!pivot) {
     // A pattern of wildcards alone matches everywhere it fits.

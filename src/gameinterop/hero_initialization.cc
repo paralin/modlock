@@ -30,6 +30,7 @@ __int64 __fastcall InitializeHeroThunk(void* pawn, char wipe_items) {
 }  // namespace
 
 bool HeroReadiness::Publish(void* pawn, ConnectionTracker::SlotState slot_state) {
+  // Only a connected player's pawn signals.
   if (!slot_state.occupied || slot_state.xuid == 0) {
     return false;
   }
@@ -37,6 +38,8 @@ bool HeroReadiness::Publish(void* pawn, ConnectionTracker::SlotState slot_state)
   if (!handle.has_value()) {
     return false;
   }
+
+  // Drop the player's tokens from older connections and queue this one.
   std::lock_guard lock(mutex_);
   std::erase_if(pending_, [&](const HeroReadinessToken& token) {
     return token.steam_id == slot_state.xuid &&
@@ -45,6 +48,8 @@ bool HeroReadiness::Publish(void* pawn, ConnectionTracker::SlotState slot_state)
   pending_.push_back(HeroReadinessToken{.pawn_handle = *handle,
                                         .steam_id = slot_state.xuid,
                                         .connection_generation = slot_state.generation});
+
+  // Keep only the newest signals.
   constexpr size_t kMaxPendingSignals = 16;
   if (pending_.size() > kMaxPendingSignals) {
     pending_.pop_front();
@@ -89,9 +94,13 @@ HeroInitializationHook::~HeroInitializationHook() = default;
 std::expected<HeroInitializationHook, std::string> HeroInitializationHook::Install(
     const ModuleImage& server, Handler handler) {
 #if defined(_WIN32)
+
+  // Install once.
   if (g_hook != nullptr) {
     return std::unexpected("hero initialization hook is already installed");
   }
+
+  // Resolve the target and create the hook disabled.
   auto target = ResolveSignature(server, "pawn.initialize-hero");
   if (!target.has_value()) {
     return std::unexpected(target.error());
@@ -101,6 +110,8 @@ std::expected<HeroInitializationHook, std::string> HeroInitializationHook::Insta
   if (!created) {
     return std::unexpected("inline hook on InitializeHeroOnPawn failed");
   }
+
+  // Publish the thunk state and enable.
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(created);
   g_hook = &impl->hook;
@@ -113,6 +124,8 @@ std::expected<HeroInitializationHook, std::string> HeroInitializationHook::Insta
   }
   return HeroInitializationHook(std::move(impl));
 #else
+
+  // Other platforms have no native server.
   (void)server;
   (void)handler;
   return std::unexpected("the hero initialization hook requires the Windows host build");

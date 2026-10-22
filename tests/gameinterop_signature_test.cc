@@ -34,12 +34,15 @@ Signature ParseOrDie(std::string id, std::string_view pattern) {
 }
 
 TEST(SignatureTest, ParseConcreteAndWildcardTokens) {
+  // Each byte parses; a wildcard reads as zero.
   const auto sig = ParseOrDie("test", "48 8B ?? ?? 74");
   EXPECT_EQ(sig.id, "test");
   ASSERT_EQ(sig.bytes.size(), 5u);
   EXPECT_EQ(sig.bytes[0], 0x48);
   EXPECT_EQ(sig.bytes[1], 0x8b);
   EXPECT_EQ(sig.bytes[2], 0x00);
+
+  // Only the wildcards are marked.
   EXPECT_FALSE(sig.wildcard[0]);
   EXPECT_TRUE(sig.wildcard[2]);
   EXPECT_TRUE(sig.wildcard[3]);
@@ -88,6 +91,7 @@ TEST(SignatureTest, BoundarySpanningCandidateDoesNotMatch) {
   const auto hits = SignatureScan({kText, sizeof(kText)}, truncated);
   EXPECT_TRUE(hits.empty());
 
+  // A pattern that ends at the blob's end matches.
   const auto shorter = ParseOrDie("tail-short", "05 AA BB CC DD");
   EXPECT_EQ(SignatureScan({kText, sizeof(kText)}, shorter), (std::vector<size_t>{12}));
 }

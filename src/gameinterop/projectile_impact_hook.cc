@@ -23,6 +23,7 @@ Contact g_contact{};
 
 uintptr_t ContactThunk(void* projectile, void* entity, const GameTrace* contact,
                        const TraceVector* velocity, bool trigger) {
+  // Hold this contact for the impact the original raises, then restore the outer one.
   const auto previous = g_contact;
   g_contact = {projectile, contact};
   const auto result =
@@ -54,6 +55,7 @@ struct ProjectileImpactHook::Impl {
   safetyhook::InlineHook hook;
   safetyhook::InlineHook contact_hook;
   ~Impl() {
+    // Only the installed hook clears the shared state.
     if (g_hook != &hook) {
       return;
     }
@@ -75,9 +77,13 @@ ProjectileImpactHook::~ProjectileImpactHook() = default;
 std::expected<ProjectileImpactHook, std::string> ProjectileImpactHook::Install(
     const ModuleImage& server, Handler handler) {
 #if defined(_WIN32)
+
+  // Install once, with a handler.
   if (g_hook || !handler) {
     return std::unexpected("projectile impact hook already installed or empty");
   }
+
+  // Resolve both targets.
   auto target = ResolveSignature(server, "projectile.impact");
   if (!target) {
     return std::unexpected(target.error());
@@ -86,6 +92,8 @@ std::expected<ProjectileImpactHook, std::string> ProjectileImpactHook::Install(
   if (!contact) {
     return std::unexpected(contact.error());
   }
+
+  // Create both hooks disabled.
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
   impl->hook = safetyhook::create_inline(*target, reinterpret_cast<void*>(&ImpactThunk),
@@ -98,6 +106,8 @@ std::expected<ProjectileImpactHook, std::string> ProjectileImpactHook::Install(
   if (!impl->contact_hook) {
     return std::unexpected("cannot create native projectile contact hook");
   }
+
+  // Publish the state the thunks read, then enable.
   g_handler = &impl->handler;
   g_hook = &impl->hook;
   g_contact_hook = &impl->contact_hook;
@@ -109,6 +119,8 @@ std::expected<ProjectileImpactHook, std::string> ProjectileImpactHook::Install(
   }
   return ProjectileImpactHook(std::move(impl));
 #else
+
+  // Other platforms have no native server.
   (void)server;
   (void)handler;
   return std::unexpected("native projectile impact observation requires Windows");

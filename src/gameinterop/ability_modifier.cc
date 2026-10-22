@@ -23,6 +23,8 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Modul
   if (!add) {
     return std::unexpected(add.error());
   }
+
+  // Find the modifier property layout.
   const auto property = SchemaFieldOf(schema, "server.dll", "CBaseEntity", "m_pModifierProp");
   const auto modifiers = SchemaFieldOf(schema, "server.dll", "CModifierProperty", "m_vecModifiers");
   const auto predicted =
@@ -31,14 +33,20 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Modul
   if (!property || !modifiers || !predicted || !lifetime) {
     return std::unexpected("modifier property schema unavailable");
   }
+
+  // Find the modifier's definition.
   const auto find = reinterpret_cast<AbilityDefinitions::Lookup>(*lookup);
   auto* definition = static_cast<unsigned char*>(find(2, MakeMemberName(key).hash));
   if (!definition) {
     return std::unexpected("modifier definition " + std::string(key) + " unavailable");
   }
+
+  // Swap in the duration, keeping the original to restore.
   AbilityModifier modifier;
   std::memcpy(&modifier.previous_, definition + lifetime->offset, sizeof(modifier.previous_));
   std::memcpy(definition + lifetime->offset, &duration, sizeof(duration));
+
+  // Record the call and the offsets.
   modifier.add_ = reinterpret_cast<AddModifier>(*add);
   modifier.definition_ = definition;
   modifier.duration_ = lifetime->offset;
@@ -50,6 +58,7 @@ std::expected<AbilityModifier, std::string> AbilityModifier::Resolve(const Modul
 
 std::expected<void, std::string> AbilityModifier::Attach(PawnObserver& observer, int32_t slot,
                                                          uint32_t ability) const {
+  // The pawn must own the source ability.
   auto property = Property(observer, slot);
   if (!property) {
     return std::unexpected(property.error());
@@ -79,6 +88,7 @@ std::expected<void, std::string> AbilityModifier::Attach(PawnObserver& observer,
 
 std::expected<bool, std::string> AbilityModifier::Attached(PawnObserver& observer,
                                                            int32_t slot) const {
+  // Read the pawn's modifier vector.
   auto property = Property(observer, slot);
   if (!property) {
     return std::unexpected(property.error());
@@ -95,6 +105,8 @@ std::expected<bool, std::string> AbilityModifier::Attached(PawnObserver& observe
       (rows.count && !rows.data)) {
     return std::unexpected("modifier vector is invalid");
   }
+
+  // Look for this definition among the modifiers.
   for (int32_t index = 0; index < rows.count; ++index) {
     if (!rows.data[index]) {
       continue;
@@ -116,6 +128,7 @@ void AbilityModifier::Restore() const {
 
 std::expected<unsigned char*, std::string> AbilityModifier::Property(PawnObserver& observer,
                                                                      int32_t slot) const {
+  // A live pawn holds the property.
   const auto sample = observer.Observe(slot);
   auto* pawn = static_cast<unsigned char*>(observer.PawnForSlot(slot));
   if (!sample || sample->health <= 0 || !pawn) {

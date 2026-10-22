@@ -41,6 +41,7 @@ void OverflowMarker() {
 
 // LogLine writes one bounded evidence line to durable stderr.
 void LogLine(const char* text) {
+  // Emit lines up to the budget, then one overflow marker.
   if (g_overflow_logged) {
     return;
   }
@@ -74,7 +75,9 @@ void __fastcall SetPawnThunk(void* controller, void* pawn, uint8_t retain_old_pa
   // SetPawn; it resolves to a caller RVA in a static disassembly of server.dll.
   void* ret = MODLOCK_RETURN_ADDRESS;
 
+  // Format the observation and log it.
   char line[192];
+
   // Hex fields are explicit 0x%llx, not %p: the documented contract names
   // 0x-prefixed hex, and %p renders differently on MSVC (zero-padded) than on
   // glibc, which would make the same evidence line platform-dependent.
@@ -131,6 +134,8 @@ std::expected<SetPawnObservation, std::string> SetPawnObservation::Install(
   if (!created) {
     return std::unexpected("inline hook on SetPawn failed");
   }
+
+  // Arm the thunk state and enable the hook.
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(created);
   g_hook = &impl->hook;
@@ -139,6 +144,8 @@ std::expected<SetPawnObservation, std::string> SetPawnObservation::Install(
     g_hook = nullptr;
     return std::unexpected("SetPawn observation hook could not be enabled");
   }
+
+  // Report where the hook armed.
   std::fprintf(stderr, "[modlock] setpawn observe: armed on server.dll+0x%zx; logging every call\n",
                reinterpret_cast<std::uintptr_t>(*target) - server.base());
   std::fflush(stderr);
