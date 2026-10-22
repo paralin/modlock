@@ -52,6 +52,7 @@ void ResetCurrentLoggingState() {
 }  // namespace
 
 std::expected<void, std::string> ListenEngineLog(HMODULE engine2) {
+  // Register the listener with tier0.
   HMODULE tier0 = GetModuleHandleW(L"tier0.dll");
   if (!tier0) {
     return std::unexpected("engine log: tier0.dll is not mapped");
@@ -63,6 +64,7 @@ std::expected<void, std::string> ListenEngineLog(HMODULE engine2) {
   }
   register_listener(&engine_log);
 
+  // Route engine2's logging state calls through the hooks.
   auto push = PatchImport(engine2, "tier0.dll", "LoggingSystem_PushLoggingState", 0,
                           reinterpret_cast<void*>(&PushLoggingState));
   if (!push) {

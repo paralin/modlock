@@ -4,6 +4,7 @@ namespace modlock::gameinterop {
 
 std::expected<PlayerSelectionCalls, std::string> PlayerSelectionCalls::Resolve(
     const ModuleImage& server) {
+  // Resolve each call by signature into its slot.
   PlayerSelectionCalls calls;
   struct Entry {
     std::string_view id;

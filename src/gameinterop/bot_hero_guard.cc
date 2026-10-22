@@ -51,9 +51,12 @@ BotHeroGuard::~BotHeroGuard() = default;
 
 std::expected<BotHeroGuard, std::string> BotHeroGuard::Install(const ModuleImage& server) {
 #if defined(_WIN32)
+  // Install once.
   if (g_hook) {
     return std::unexpected("bot hero guard is already installed");
   }
+
+  // Resolve the variables and the check, and create the hook disabled.
   auto variables = ConsoleVariables::Resolve();
   if (!variables) {
     return std::unexpected(variables.error());
@@ -66,6 +69,8 @@ std::expected<BotHeroGuard, std::string> BotHeroGuard::Install(const ModuleImage
   if (!hook) {
     return std::unexpected("bot hero guard hook creation failed");
   }
+
+  // Publish the thunk state and enable.
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(hook);
   impl->variables = *variables;
@@ -75,7 +80,9 @@ std::expected<BotHeroGuard, std::string> BotHeroGuard::Install(const ModuleImage
     return std::unexpected("bot hero guard hook activation failed");
   }
   return BotHeroGuard(std::move(impl));
+
 #else
+  // Other platforms have no native server.
   (void)server;
   return std::unexpected("the bot hero guard requires the Windows host");
 #endif

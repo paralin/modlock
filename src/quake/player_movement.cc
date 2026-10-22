@@ -83,6 +83,7 @@ void PlayerMovement::Land(uint32_t player, const MovementState& state,
 }
 
 bool PlayerMovement::Step(MovementCall& call) {
+  // Only a walking pawn moves; read its state in movement units.
   if (call.move_type != MovementHook::kWalking) {
     return false;
   }
@@ -150,6 +151,7 @@ bool PlayerMovement::Step(MovementCall& call) {
     call.ground_entity = world_;
   }
 
+  // Return the move in the game's units.
   for (size_t axis = 0; axis < 3; ++axis) {
     call.origin[axis] = next.origin[axis] * scale_;
     call.velocity[axis] = next.velocity[axis] * scale_;

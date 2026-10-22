@@ -21,6 +21,7 @@ std::expected<BotCreation, std::string> BotCreation::Resolve(const ModuleImage& 
 
 std::expected<int32_t, std::string> BotCreation::Create(
     const char* name, int32_t team, uint32_t hero_id, const std::array<float, 3>& position) const {
+  // Validate the request.
   if (!create_ || !name || !*name || team < 2 || team > 3 || !hero_id) {
     return std::unexpected("native bot creation requires a name, team and hero");
   }
@@ -29,10 +30,14 @@ std::expected<int32_t, std::string> BotCreation::Create(
       return std::unexpected("native bot position is not finite");
     }
   }
+
+  // Note each slot's connection before creating the bot.
   std::array<ConnectionTracker::SlotState, 64> before;
   for (int32_t slot = 0; slot < 64; ++slot) {
     before[slot] = ConnectionTracker::StateForSlot(slot);
   }
+
+  // Create the bot and find the slot its new connection took.
   create_(name, team, hero_id, position.data());
   for (int32_t slot = 0; slot < 64; ++slot) {
     const auto state = ConnectionTracker::StateForSlot(slot);

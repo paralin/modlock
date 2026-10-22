@@ -48,6 +48,7 @@ TEST(PreparationMovement, ResolvesRelocatedInstructionWindows) {
 }
 
 TEST(PreparationMovement, RejectsChangedOrAmbiguousContracts) {
+  // A changed byte at any contract breaks the match.
   for (const size_t changed : {32, 96, 160}) {
     Image image;
     image.Place(32);
@@ -55,6 +56,7 @@ TEST(PreparationMovement, RejectsChangedOrAmbiguousContracts) {
     EXPECT_FALSE(ResolvePreparationMovement(image));
   }
 
+  // Two matches are ambiguous.
   Image image;
   image.Place(32);
   image.Place(384);

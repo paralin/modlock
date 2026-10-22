@@ -15,6 +15,7 @@ namespace {
 // interpreter and mod without compiling it again. Without a usable cache
 // directory every start compiles, as before.
 wasmtime::Engine EpochEngine() {
+  // Interrupt by epoch and cache compiled modules.
   wasmtime::Config config;
   config.epoch_interruption(true);
   config.wasm_exceptions(true);
@@ -27,6 +28,7 @@ wasmtime::Engine EpochEngine() {
 Runtime::Runtime() : engine_(EpochEngine()) {
   // Advance the epoch so a running call meets its deadline.
   ticker_ = std::jthread([engine = engine_](std::stop_token stop) mutable {
+    // Tick the epoch until the host stops.
     std::mutex mu;
     std::condition_variable_any wake;
     std::unique_lock lock(mu);

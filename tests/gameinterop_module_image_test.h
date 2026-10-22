@@ -47,6 +47,7 @@ class FakeModuleImage : public ModuleImage {
   // PatchRelativeLea writes a seven-byte REX.W LEA at id's offset + lea_delta
   // whose disp32 decodes to exactly `target` for this image's base.
   void PatchRelativeLea(std::string_view id, size_t lea_delta, void* target) {
+    // Encode a RIP-relative LEA from the site to the target.
     const size_t site = offsets_[std::string(id)] + lea_delta;
     const auto rel = static_cast<std::int32_t>(reinterpret_cast<std::uintptr_t>(target) -
                                                (base_ + static_cast<std::uintptr_t>(site) + 7));

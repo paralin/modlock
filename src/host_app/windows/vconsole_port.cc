@@ -30,6 +30,7 @@ BindFn original_bind = nullptr;
 // listen, where the port can no longer change; clearing it makes bind report the
 // conflict.
 int WSAAPI SharedBind(SOCKET socket, const sockaddr* address, int length) {
+  // Bind without address reuse, so a second host cannot share the port.
   const BOOL reuse = FALSE;
   setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuse),
              sizeof(reuse));
@@ -38,6 +39,7 @@ int WSAAPI SharedBind(SOCKET socket, const sockaddr* address, int length) {
     return result;
   }
 
+  // Retry an address in use on an ephemeral port.
   sockaddr_storage retry{};
   if (length <= 0 || static_cast<size_t>(length) > sizeof(retry)) {
     return result;

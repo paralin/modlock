@@ -57,10 +57,13 @@ void DiscardInvalidParameter(const wchar_t*, const wchar_t*, const wchar_t*, uns
 
 bool DefaultStdioHandleCheck(const StdioStream stream) {
 #if defined(_WIN32)
+  // A stream is usable when the process has its standard handle.
   static constexpr unsigned kHandleIds[] = {STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, STD_ERROR_HANDLE};
   const HANDLE handle = ::GetStdHandle(kHandleIds[static_cast<int>(stream)]);
   return handle != nullptr && handle != INVALID_HANDLE_VALUE;
+
 #else
+  // Other platforms always have their streams.
   (void)stream;
   return true;
 #endif

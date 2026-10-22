@@ -23,6 +23,7 @@ std::array<float, 3> Position(const Vec3& position) {
 }  // namespace
 
 bool TeleportPawnControl::TeleportToPosition(int32_t slot, const Vec3& position) {
+  // Teleport a live pawn to a finite position.
   const auto target = Position(position);
   if (!Finite(target)) {
     return false;
@@ -37,6 +38,7 @@ bool TeleportPawnControl::TeleportToPosition(int32_t slot, const Vec3& position)
 
 bool TeleportPawnControl::ResetToPose(int32_t slot, const Vec3& position,
                                       const EulerAngles& angles) {
+  // Reset a live pawn's camera to a finite pose.
   if (!reset_camera_) {
     return false;
   }

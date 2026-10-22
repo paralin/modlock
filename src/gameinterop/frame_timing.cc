@@ -45,6 +45,7 @@ uint32_t FrameTiming::Histogram::CountAbove(Clock::duration duration) const {
 
 std::optional<FrameTimingSummary> FrameTiming::Record(Clock::time_point start,
                                                       Clock::time_point end) {
+  // Add the frame to the window.
   if (frames_ == 0) {
     window_start_ = start;
   }
@@ -58,6 +59,7 @@ std::optional<FrameTimingSummary> FrameTiming::Record(Clock::time_point start,
     return std::nullopt;
   }
 
+  // Summarize a full window and start the next.
   const FrameTimingSummary summary = Summarize(end);
   frames_ = 0;
   intervals_ = {};

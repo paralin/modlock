@@ -216,6 +216,7 @@ std::expected<std::byte*, std::string> ConsoleVariables::Value(const char* name,
 
 std::expected<void, std::string> ConsoleVariables::ClearFlags(const char* name,
                                                               uint64_t flags) const {
+  // Clear the flags in the variable's data.
   auto data = Find(name);
   if (!data) {
     return std::unexpected(data.error());

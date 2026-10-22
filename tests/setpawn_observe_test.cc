@@ -19,6 +19,7 @@ TEST(SetPawnObserveTest, PayloadFormatMatchesTheDocumentedContract) {
   // The live capture classifies the flag truth table from these exact fields:
   // controller pointer, pawn pointer, four flag bytes, caller return address.
   char line[192];
+
   // The contract's hex is explicit 0x%llx, matching the production renderer;
   // %p renders differently on MSVC (zero-padded) than on glibc.
   std::snprintf(line, sizeof(line),
@@ -26,6 +27,8 @@ TEST(SetPawnObserveTest, PayloadFormatMatchesTheDocumentedContract) {
                 "caller=0x%llx",
                 static_cast<unsigned long long>(0x1), static_cast<unsigned long long>(0x2), 0u, 1u,
                 0u, 1u, static_cast<unsigned long long>(0x3));
+
+  // Each field reads as the contract names it.
   const std::string rendered = line;
   EXPECT_NE(rendered.find("controller=0x1"), std::string::npos) << rendered;
   EXPECT_NE(rendered.find("pawn=0x2"), std::string::npos) << rendered;

@@ -21,6 +21,7 @@ TEST(EntitySystemFromResourceService, ReadsTheLiveOffsetNotTheStaleMirrorOne) {
   std::memcpy(service.data() + kStaleMirrorOffset, &stale, sizeof(stale));
   std::memcpy(service.data() + kLiveOffset, &entity_system, sizeof(entity_system));
 
+  // The live offset resolves.
   auto resolved = modlock::gameinterop::EntitySystemFromResourceService(service.data());
   ASSERT_TRUE(resolved.has_value()) << resolved.error();
   EXPECT_EQ(resolved.value(), entity_system);

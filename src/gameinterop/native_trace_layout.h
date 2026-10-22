@@ -38,6 +38,7 @@ static_assert(offsetof(GameTrace, fraction) == 0xac);
 static_assert(offsetof(GameTrace, start_solid) == 0xbb);
 
 inline TraceResult ReadGameTrace(const GameTrace& native) {
+  // Copy the trace's geometry.
   TraceResult result;
   result.position = native.end;
   result.normal = native.normal;
@@ -45,6 +46,8 @@ inline TraceResult ReadGameTrace(const GameTrace& native) {
   result.end = native.end;
   result.exact_position = native.point;
   result.fraction = native.fraction;
+
+  // Copy what it hit.
   result.hit_offset = native.offset;
   result.contents = native.contents;
   result.entity_handle = ReferenceHandleOf(native.entity);

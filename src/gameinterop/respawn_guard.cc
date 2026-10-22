@@ -48,9 +48,12 @@ RespawnGuard::~RespawnGuard() = default;
 std::expected<RespawnGuard, std::string> RespawnGuard::Install(const ModuleImage& server,
                                                                Blocked blocked) {
 #if defined(_WIN32)
+  // Install once.
   if (g_hook || !blocked) {
     return std::unexpected("respawn guard is already installed or unbound");
   }
+
+  // Resolve the target and create the hook disabled.
   auto target = ResolveRespawnPawn(server);
   if (!target) {
     return std::unexpected(target.error());
@@ -61,6 +64,8 @@ std::expected<RespawnGuard, std::string> RespawnGuard::Install(const ModuleImage
   if (!hook) {
     return std::unexpected("respawn guard hook creation failed");
   }
+
+  // Publish the thunk state and enable.
   auto impl = std::make_unique<Impl>();
   impl->hook = std::move(hook);
   impl->blocked = std::move(blocked);
@@ -70,7 +75,9 @@ std::expected<RespawnGuard, std::string> RespawnGuard::Install(const ModuleImage
     return std::unexpected("respawn guard hook activation failed");
   }
   return RespawnGuard(std::move(impl));
+
 #else
+  // Other platforms have no native server.
   (void)server;
   (void)blocked;
   return std::unexpected("native respawn control requires the Windows host");

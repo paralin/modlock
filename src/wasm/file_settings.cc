@@ -69,6 +69,8 @@ void FileSettings::Store(std::string_view mod, uint64_t steam_id, std::string_vi
     std::cerr << "settings: " << printed.message() << '\n';
     return;
   }
+
+  // Stage the text and rename it over the file.
   std::error_code error;
   std::filesystem::create_directories(path_.parent_path(), error);
   auto staged = path_;

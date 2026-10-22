@@ -33,6 +33,7 @@ std::expected<std::unique_ptr<LoadedModule>, std::string> WindowsModuleLoader::L
     const DWORD code = GetLastError();
     return std::unexpected("LoadLibraryExW failed with error code " + std::to_string(code));
   }
+
   // Pin the module to process lifetime (GET_MODULE_HANDLE_EX_FLAG_PIN keeps
   // it loaded until process termination regardless of any FreeLibrary, and
   // FROM_ADDRESS identifies the module by an address inside it). The wrapper
@@ -45,6 +46,7 @@ std::expected<std::unique_ptr<LoadedModule>, std::string> WindowsModuleLoader::L
     return std::unexpected("GetModuleHandleExW pin failed for " + path.string() +
                            " with error code " + std::to_string(code));
   }
+
   // Release ownership to the caller; the module stays mapped for process
   // lifetime even after the wrapper's reference is released.
   std::unique_ptr<LoadedModule> owned = std::make_unique<WindowsLoadedModule>(module);

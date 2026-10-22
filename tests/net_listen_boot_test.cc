@@ -26,6 +26,7 @@ TEST(NetListenBoot, CommandLineCarriesReferenceStagingPrefix) {
 }
 
 TEST(NetListenBoot, CommandLineStartsDedicatedServer) {
+  // The line starts an insecure dedicated server on the default port and map.
   const std::string line = modlock::net::BuildDedicatedCommandLine({});
   EXPECT_NE(line.find("-dedicated"), std::string::npos);
   EXPECT_NE(line.find("-insecure"), std::string::npos);
@@ -42,6 +43,7 @@ TEST(NetListenBoot, CommandLineCarriesOverrides) {
 }
 
 TEST(NetListenBoot, ClientCommandLineJoinsWithoutServerFlags) {
+  // The line connects without server flags.
   const std::string line = modlock::net::BuildClientCommandLine({.connect = "127.0.0.1:27079"});
   EXPECT_NE(line.find("+connect 127.0.0.1:27079"), std::string::npos);
   EXPECT_NE(line.find("-insecure"), std::string::npos);

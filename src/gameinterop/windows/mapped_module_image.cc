@@ -8,6 +8,7 @@
 namespace modlock::gameinterop {
 
 std::expected<MappedModuleImage, std::string> MappedModuleImage::ForModule(std::wstring_view name) {
+  // Read the loaded module's image extent.
   const std::wstring terminated(name);
   auto module = GetModuleHandleW(terminated.c_str());
   MODULEINFO info{};
@@ -24,6 +25,7 @@ std::expected<MappedModuleImage, std::string> MappedModuleImage::ForModule(std::
 
 std::expected<void*, std::string> ResolveEngineInterface(std::wstring_view module_name,
                                                          std::string_view interface_name) {
+  // Map the module's image.
   const std::string name(interface_name);
   const auto image = MappedModuleImage::ForModule(module_name);
   if (!image) {

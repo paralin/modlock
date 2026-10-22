@@ -49,6 +49,7 @@ void GameFrameThunk(void* self, bool simulating, bool first_tick, bool last_tick
 EngineFrameHook::EngineFrameHook(ThunkOwner owner) : owner_(std::move(owner)) {}
 
 std::expected<EngineFrameHook, std::string> EngineFrameHook::Install(FrameCallback on_frame) {
+  // Find the game server's frame slot.
   const auto server = ResolveEngineInterface(L"server.dll", kServerInterfaceVersion);
   if (!server) {
     return std::unexpected(server.error());
@@ -57,6 +58,8 @@ std::expected<EngineFrameHook, std::string> EngineFrameHook::Install(FrameCallba
   if (!slot) {
     return std::unexpected(slot.error());
   }
+
+  // Swap the slot and publish the callback.
   auto hook = VtableSlotHook::Install(*server, *slot, reinterpret_cast<void*>(&GameFrameThunk));
   if (!hook) {
     return std::unexpected(hook.error());

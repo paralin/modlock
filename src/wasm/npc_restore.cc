@@ -45,6 +45,7 @@ NpcRestore::NpcRestore(std::vector<Target> targets, Engine engine)
     : targets_(std::move(targets)), engine_(std::move(engine)) {}
 
 NpcRestore::Result NpcRestore::Tick() {
+  // Restore, then finish, one phase a tick.
   switch (phase_) {
     case Phase::kRestore:
       if (auto done = engine_.restore(targets_); !done) {
@@ -61,6 +62,8 @@ NpcRestore::Result NpcRestore::Tick() {
     case Phase::kVerify:
       break;
   }
+
+  // Verify the samples match the targets.
   auto samples = engine_.read();
   if (!samples) {
     return std::unexpected(samples.error());
