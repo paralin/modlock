@@ -88,10 +88,13 @@ void SetVector(Vec3* out, const std::array<float, 3>& vector) {
 // DesignerName returns an entity's designer name, such as player, or an
 // empty view.
 std::string_view DesignerName(void* entity) {
+  // Find the entity's identity, which holds its names.
   const auto* identity = static_cast<const unsigned char*>(gameinterop::IdentityOf(entity));
   if (identity == nullptr) {
     return {};
   }
+
+  // Read the designer name pointer out of the identity.
   const char* name = nullptr;
   std::memcpy(&name, identity + kDesignerNameOffset, sizeof(name));
   return name == nullptr ? std::string_view() : std::string_view(name);
@@ -208,17 +211,21 @@ std::expected<FieldValue, std::string> Decode(FieldType type, const unsigned cha
 // points to memory the game owns.
 std::expected<std::array<unsigned char, 12>, std::string> Encode(FieldType type,
                                                                  const FieldValue& value) {
-  std::array<unsigned char, 12> bytes{};
   // Copy a scalar of type T into the field's bytes.
+  std::array<unsigned char, 12> bytes{};
   auto put = [&bytes]<typename T>(T scalar) {
     std::memcpy(bytes.data(), &scalar, sizeof(scalar));
   };
+
+  // Check that the value takes the form the field type reads as.
   auto expect = [&value](FieldValue::ValueCase form) -> std::expected<void, std::string> {
     if (value.value_case() != form) {
       return std::unexpected("the value does not fit the field type");
     }
     return {};
   };
+
+  // Encode the value as the field type's bytes.
   std::expected<void, std::string> fits;
   const double number = value.number();
   switch (type) {
@@ -407,15 +414,19 @@ std::expected<const gameinterop::NativeUserMessages*, std::string> GameServices:
 }
 
 std::expected<void, std::string> GameServices::ServerCommand(std::string command) {
+  // Hold the line until the world starts.
   command += '\n';
   if (!started_) {
     pending_commands_.push_back(std::move(command));
     return {};
   }
+
+  // Resolve the engine server that runs console lines.
   auto server = Server();
   if (!server) {
     return std::unexpected(server.error());
   }
+
   // A line that sets a variable may name a development-only or cheat-protected
   // one, which the console otherwise refuses. Exposing the first word of any
   // other line finds no variable and changes nothing.
@@ -423,6 +434,8 @@ std::expected<void, std::string> GameServices::ServerCommand(std::string command
     const auto name = command.substr(0, command.find_first_of(" \t\n"));
     static_cast<void>(variables->AllowServerChanges(name.c_str()));
   }
+
+  // Run the line on the server console.
   if (!(*server)->ServerCommand(command.c_str())) {
     return std::unexpected("the server console is unavailable");
   }
@@ -645,6 +658,7 @@ std::expected<const gameinterop::BotCreation*, std::string> GameServices::Bots()
 }
 
 std::expected<render::WorldTextGameFactory*, std::string> GameServices::Text() {
+  // Build the text factory once from the server module.
   if (!text_) {
     auto image = Image();
     if (!image) {
@@ -667,6 +681,7 @@ std::expected<render::WorldTextGameFactory*, std::string> GameServices::Text() {
 }
 
 std::expected<render::WorldEffectGameFactory*, std::string> GameServices::Effects() {
+  // Build the effect factory once from the server module.
   if (!effects_) {
     auto image = Image();
     if (!image) {
@@ -678,6 +693,8 @@ std::expected<render::WorldEffectGameFactory*, std::string> GameServices::Effect
     }
     effects_ = std::move(*effects);
   }
+
+  // Each world has its own entity system.
   auto entities = gameinterop::ResolveLiveEntitySystem();
   if (!entities) {
     return std::unexpected(entities.error());
@@ -774,10 +791,13 @@ std::expected<gameinterop::MatchClock*, std::string> GameServices::Clock() {
 }
 
 std::expected<void*, std::string> GameServices::Rules() {
+  // Resolve the server module the rules must live in.
   auto image = Image();
   if (!image) {
     return std::unexpected(image.error());
   }
+
+  // Find the game's pointer to its current rules once.
   if (!rules_) {
     auto current = gameinterop::ResolveCurrentGameRules(**image);
     if (!current) {
@@ -785,11 +805,15 @@ std::expected<void*, std::string> GameServices::Rules() {
     }
     rules_ = *current;
   }
+
+  // Read the rules through that pointer.
   void* rules = nullptr;
   std::memcpy(&rules, rules_, sizeof(rules));
   if (!rules) {
     return std::unexpected("the game rules are not active");
   }
+
+  // A rules object whose table leaves the server module is stale.
   uintptr_t table = 0;
   std::memcpy(&table, rules, sizeof(table));
   if (table < (*image)->base() || table - (*image)->base() >= (*image)->image_bytes().size()) {
@@ -819,10 +843,13 @@ std::expected<gameinterop::KothRules*, std::string> GameServices::Rift() {
 
 std::expected<gameinterop::SchemaField, std::string> GameServices::Field(
     const std::string& class_name, const std::string& field) {
+  // Answer a field resolved before from the cache.
   FieldKey key{class_name, field};
   if (auto found = fields_.find(key); found != fields_.end()) {
     return found->second;
   }
+
+  // Resolve the field in the server's schema and cache it.
   auto schema = Schema();
   if (!schema) {
     return std::unexpected(schema.error());
@@ -837,19 +864,25 @@ std::expected<gameinterop::SchemaField, std::string> GameServices::Field(
 }
 
 bool GameServices::Derives(const void* class_info, const std::string& class_name) {
+  // Answer a class resolved before from the cache.
   auto key = std::pair{class_info, class_name};
   if (auto found = derives_.find(key); found != derives_.end()) {
     return found->second;
   }
+
+  // Walk the class's bases and cache the answer.
   const bool derives = gameinterop::SchemaClassDerivesFrom(class_info, class_name);
   derives_.emplace(std::move(key), derives);
   return derives;
 }
 
 std::expected<GameServices::ModifierLayout, std::string> GameServices::Modifiers() {
+  // Answer the layout resolved before.
   if (modifiers_) {
     return *modifiers_;
   }
+
+  // Resolve the modifier property and its two state masks.
   auto property = Field("CBaseEntity", "m_pModifierProp");
   if (!property) {
     return std::unexpected(property.error());
@@ -862,6 +895,8 @@ std::expected<GameServices::ModifierLayout, std::string> GameServices::Modifiers
   if (!predicted) {
     return std::unexpected(predicted.error());
   }
+
+  // Cache the offsets every modifier state read uses.
   modifiers_ = ModifierLayout{
       .property = property->offset,
       .mask = mask->offset,
@@ -872,9 +907,12 @@ std::expected<GameServices::ModifierLayout, std::string> GameServices::Modifiers
 }
 
 std::expected<int64_t, std::string> GameServices::ModifierState(const std::string& name) {
+  // Answer a state resolved before from the cache.
   if (auto found = modifier_states_.find(name); found != modifier_states_.end()) {
     return found->second;
   }
+
+  // Resolve the state in the server's enum and cache it.
   auto schema = Schema();
   if (!schema) {
     return std::unexpected(schema.error());
@@ -889,10 +927,13 @@ std::expected<int64_t, std::string> GameServices::ModifierState(const std::strin
 }
 
 void GameServices::Input() {
+  // Install the hook once the world is ready to take input.
   input_wanted_ = true;
   if (input_ || !world_ready_) {
     return;
   }
+
+  // Resolve the server module and schema the hook needs.
   auto image = Image();
   auto schema = Schema();
   if (!image || !schema) {
@@ -944,14 +985,19 @@ uint64_t GameServices::Filter(gameinterop::AbilityInputHook::Input& input) {
 }
 
 void GameServices::Projectiles() {
+  // Install the hook once the world is ready for impacts.
   impacts_wanted_ = true;
   if (impacts_ || !world_ready_) {
     return;
   }
+
+  // Resolve the server module the hook patches.
   auto image = Image();
   if (!image) {
     return;
   }
+
+  // Hook impacts, keeping the hook only when it installs.
   auto hook = gameinterop::ProjectileImpactHook::Install(
       **image, [this](void* entity, const auto& contact, const auto& native) {
         Impact(entity, contact, native);
@@ -964,6 +1010,7 @@ void GameServices::Projectiles() {
 }
 
 std::expected<void, std::string> GameServices::Transmit() {
+  // Install the transmit hook once.
   if (transmit_) {
     return {};
   }
@@ -1007,6 +1054,7 @@ void GameServices::Withhold(gameinterop::TransmitSet& set) {
 
 void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
                           const gameinterop::ProjectileImpactHook::NativeImpact& native) {
+  // Collect the games that watch this projectile.
   std::vector<std::pair<Game*, ImpactEvent>> watching;
   bool keep = false;
   for (auto* game : games_) {
@@ -1034,6 +1082,8 @@ void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
       gameinterop::SetEntityVelocity(hero.pawn, *hero.velocity);
     }
   }
+
+  // Tell each watching game, if it is still loaded.
   for (auto& [game, event] : watching) {
     if (games_.contains(game)) {
       game->Impacted(event);
@@ -1042,10 +1092,13 @@ void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,
 }
 
 std::expected<void, std::string> GameServices::StepWith(gameinterop::MovementHook::Handler step) {
+  // Allow one mod's movement handler at a time.
   if (step && step_) {
     return std::unexpected("another mod's movement runs");
   }
   step_ = std::move(step);
+
+  // Install or remove the movement hook to match.
   auto steps = Steps();
   if (!steps) {
     step_ = nullptr;
@@ -1054,6 +1107,7 @@ std::expected<void, std::string> GameServices::StepWith(gameinterop::MovementHoo
 }
 
 std::expected<void, std::string> GameServices::Steps() {
+  // Keep the hook only while a mod or a steered bot moves heroes.
   const bool needed = step_ || std::ranges::any_of(games_, [](const Game* game) {
                         return game->Moving() || !game->steers_.empty();
                       });
@@ -1062,6 +1116,8 @@ std::expected<void, std::string> GameServices::Steps() {
     commands_.clear();
     return {};
   }
+
+  // Install the hook the first time a mover needs it.
   if (steps_) {
     return {};
   }
@@ -1076,10 +1132,13 @@ std::expected<void, std::string> GameServices::Steps() {
 }
 
 bool GameServices::Step(gameinterop::MovementCall& call) {
+  // Note the ground the last step stood on.
   using gameinterop::MovementHook;
   if (call.ground_entity != MovementHook::kNoGround) {
     ground_ = call.ground_entity;
   }
+
+  // Record the pawn's command for the mod to read.
   if (call.pawn) {
     // The tick's first command fixes its starting ground; later commands add
     // their presses and leave the last buttons and axes.
@@ -1095,6 +1154,7 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
     command.set_up(call.up);
   }
 
+  // Steer a bot that replays a recorded command.
   for (auto* game : games_) {
     for (auto& [slot, steered] : game->steers_) {
       if (steered.pawn != call.pawn) {
@@ -1143,10 +1203,13 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
 }
 
 std::optional<MovementCommand> GameServices::Command(const void* pawn) {
+  // Find the pawn's command for this tick.
   const auto found = commands_.find(pawn);
   if (found == commands_.end()) {
     return std::nullopt;
   }
+
+  // Hand it over, keeping the held buttons and clearing the presses.
   auto& [command, stepped] = found->second;
   auto taken = command;
   command.set_changed(0);
@@ -1170,12 +1233,15 @@ Game::~Game() {
 }
 
 void Game::Frame() {
+  // Apply the per-frame state each feature keeps.
   ApplyFreeForAll();
   ApplyHolds();
   HoldClock();
   TickRestores();
   TrackProjectiles();
   PruneAudiences();
+
+  // Finish the entities spawned this frame together.
   if (!spawned_ || !world_) {
     return;
   }
@@ -1192,14 +1258,19 @@ void Game::ApplyHolds() {
 }
 
 std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::string& key) {
+  // Find the modifier the slot holds.
   const auto modifier = modifiers_.find(key);
   if (modifier == modifiers_.end()) {
     return std::unexpected("the modifier is not held");
   }
+
+  // A dead hero has no modifiers to renew.
   const auto sample = observer_.Observe(slot);
   if (!sample || sample->health <= 0) {
     return {};
   }
+
+  // Attach the modifier again if the game removed it.
   auto attached = modifier->second.Attached(observer_, slot);
   if (!attached) {
     return std::unexpected(attached.error());
@@ -1212,9 +1283,12 @@ std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::st
 }
 
 void Game::ReleaseModifier(int32_t slot, const std::string& key) {
+  // Drop the slot's hold.
   if (held_modifiers_.erase({slot, key}) == 0) {
     return;
   }
+
+  // Restore the modifier once no slot holds it.
   if (std::ranges::any_of(held_modifiers_, [&](const auto& hold) { return hold.second == key; })) {
     return;
   }
@@ -1255,23 +1329,31 @@ void Game::WorldReady() {
 }
 
 void Game::WorldEnding() {
+  // Remove the world's objects and forget its entities.
   RemoveWorld();
   world_.reset();
   spawned_ = false;
+
+  // Drop the per-world player state.
   frozen_.clear();
   steers_.clear();
   held_.clear();
   ffa_held_.clear();
+
+  // Release what the mod held in the world.
   ReleaseModifiers();
   presses_.clear();
   restores_.clear();
   npc_restore_.reset();
   held_clock_.reset();
+
+  // Forget the paused clock and the observer's cached pawns.
   paused_ = false;
   observer_.Invalidate();
 }
 
 void Game::Leave(int32_t slot) {
+  // Forget the slot's movement, input and visibility.
   ffa_failed_.erase(slot);
   frozen_.erase(slot);
   movers_.erase(slot);
@@ -1280,12 +1362,15 @@ void Game::Leave(int32_t slot) {
   slot_blocked_.erase(slot);
   presses_.erase(slot);
   hidden_.erase(slot);
+
   // Whoever takes the slot next is a different player, who was never listed.
   if (slot >= 0 && slot < 64) {
     for (auto& [entity, slots] : audiences_) {
       slots &= ~(uint64_t{1} << slot);
     }
   }
+
+  // Release the modifiers the slot held.
   std::vector<std::string> keys;
   for (const auto& [held, key] : held_modifiers_) {
     if (held == slot) {
@@ -1298,22 +1383,30 @@ void Game::Leave(int32_t slot) {
 }
 
 void Game::Clear() {
+  // Stop watching every player.
   for (const auto slot : observer_.WatchingSlots()) {
     PlayerRequest request;
     request.set_player(slot);
     static_cast<void>(Unwatch(request));
   }
+
+  // Remove the world's objects and unfreeze the frozen heroes.
   RemoveWorld();
   for (const auto slot : frozen_) {
     if (observer_.Observe(slot)) {
       static_cast<void>(observer_.SetPreparationFrozen(slot, false));
     }
   }
+
+  // Stop moving and steering heroes.
   frozen_.clear();
   movers_.clear();
   steers_.clear();
+
   // Releasing the movement hook cannot fail.
   static_cast<void>(services_.Steps());
+
+  // Release held modifier states and the free-for-all.
   for (const auto& [entity, state] : held_) {
     static_cast<void>(SetModifierState(entity, state, false));
   }
@@ -1322,16 +1415,22 @@ void Game::Clear() {
   ffa_held_.clear();
   ffa_failed_.clear();
   ReleaseModifiers();
+
+  // Release the input the mod blocked, remapped or watched.
   blocked_ = 0;
   slot_blocked_.clear();
   remap_.Clear();
   presses_.clear();
   watched_ = 0;
   changes_.clear();
+
+  // Drop pending restores and their reports.
   restores_.clear();
   restored_.clear();
   npc_restore_.reset();
   npcs_restored_.reset();
+
+  // Resume the clock and stop watching projectiles.
   held_clock_.reset();
   if (paused_) {
     static_cast<void>(SetPaused(false));
@@ -1340,6 +1439,7 @@ void Game::Clear() {
 }
 
 void Game::RemoveWorld() {
+  // Remove the text, effect and fog objects.
   for (auto& [id, object] : objects_) {
     std::visit([](auto& handle) { handle->Remove(); }, object);
   }
@@ -1349,6 +1449,8 @@ void Game::RemoveWorld() {
     fog_->Remove();
     fog_.reset();
   }
+
+  // Remove the entities the mod created.
   if (world_) {
     for (const auto entity : created_) {
       static_cast<void>(world_->RemoveEntity(entity));
@@ -1427,22 +1529,29 @@ std::expected<PlayersResponse, std::string> Game::Players() {
 }
 
 std::expected<PawnResponse, std::string> Game::Pawn(const PlayerRequest& request) {
+  // Sample the player's pawn; a slot without one answers no pawn.
   PawnResponse response;
   const auto sample = observer_.Observe(request.player());
   if (!sample) {
     return response;
   }
+
+  // Copy the pawn's identity and health.
   auto* pawn = response.mutable_pawn();
   pawn->set_entity(sample->pawn_handle);
   pawn->set_hero(sample->hero_id);
   pawn->set_team(sample->team);
   pawn->set_health(sample->health);
   pawn->set_max_health(sample->max_health);
+
+  // Copy the pawn's position and view.
   pawn->mutable_position()->set_x(sample->x);
   pawn->mutable_position()->set_y(sample->y);
   pawn->mutable_position()->set_z(sample->z);
   SetAngles(pawn->mutable_eye_angles(), sample->eye_angles);
   SetAngles(pawn->mutable_camera_angles(), sample->camera_angles);
+
+  // Copy the optional readings the sample carries.
   if (sample->stamina) {
     pawn->set_stamina(sample->stamina->current);
     pawn->set_max_stamina(sample->stamina->max);
@@ -1451,12 +1560,16 @@ std::expected<PawnResponse, std::string> Game::Pawn(const PlayerRequest& request
   if (sample->currencies) {
     pawn->set_souls((*sample->currencies)[0]);
   }
+
+  // Copy the pawn's eye and velocity when the sample has them.
   if (sample->eye_position) {
     SetVector(pawn->mutable_eye_position(), *sample->eye_position);
   }
   if (sample->movement && sample->movement->abs_velocity) {
     SetVector(pawn->mutable_velocity(), *sample->movement->abs_velocity);
   }
+
+  // Copy the hero's scoreboard line.
   if (sample->score) {
     auto* score = pawn->mutable_score();
     score->set_kills(sample->score->kills);
@@ -1483,6 +1596,7 @@ std::expected<unsigned char*, std::string> Game::FieldAddress(void* entity,
                                                               const std::string& class_name,
                                                               const std::string& field,
                                                               size_t size) {
+  // Resolve the field's offset and check it holds the requested type.
   auto found = services_.Field(class_name, field);
   if (!found) {
     return std::unexpected(found.error());
@@ -1517,6 +1631,7 @@ std::expected<unsigned char*, std::string> Game::FieldAddress(void* entity,
 std::expected<void, std::string> Game::StoreField(void* entity, const std::string& class_name,
                                                   const std::string& field, FieldType type,
                                                   const FieldValue& value) {
+  // Encode the value and find the field it goes to.
   auto bytes = Encode(type, value);
   if (!bytes) {
     return std::unexpected(bytes.error());
@@ -1525,6 +1640,8 @@ std::expected<void, std::string> Game::StoreField(void* entity, const std::strin
   if (!address) {
     return std::unexpected(address.error());
   }
+
+  // Write the bytes into the entity.
   if (!gameinterop::WriteNative(*address, bytes->data(), Size(type))) {
     return std::unexpected("cannot write " + class_name + "." + field);
   }
@@ -1532,6 +1649,7 @@ std::expected<void, std::string> Game::StoreField(void* entity, const std::strin
 }
 
 std::expected<FieldResponse, std::string> Game::ReadField(const ReadFieldRequest& request) {
+  // Find the entity and the field's address.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1561,6 +1679,7 @@ std::expected<FieldResponse, std::string> Game::ReadField(const ReadFieldRequest
 }
 
 std::expected<void, std::string> Game::WriteField(const WriteFieldRequest& request) {
+  // Find the entity and store the value in its field.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1570,6 +1689,8 @@ std::expected<void, std::string> Game::WriteField(const WriteFieldRequest& reque
   if (!stored) {
     return stored;
   }
+
+  // Tell the engine to send the changed field.
   if (!gameinterop::NotifyEntityStateChanged(*entity)) {
     return std::unexpected("cannot replicate " + request.class_name() + "." + request.field());
   }
@@ -1577,6 +1698,7 @@ std::expected<void, std::string> Game::WriteField(const WriteFieldRequest& reque
 }
 
 std::expected<FieldListResponse, std::string> Game::ReadFieldList(const ReadFieldRequest& request) {
+  // Find the entity, the list field's address and its header.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1611,6 +1733,7 @@ std::expected<FieldListResponse, std::string> Game::ReadFieldList(const ReadFiel
 }
 
 std::expected<void, std::string> Game::WriteFieldList(const WriteFieldListRequest& request) {
+  // Find the entity and encode every value.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1630,6 +1753,8 @@ std::expected<void, std::string> Game::WriteFieldList(const WriteFieldListReques
     }
     bytes.insert(bytes.end(), encoded->begin(), encoded->begin() + stride);
   }
+
+  // Find the list field's address and its header.
   auto address = FieldAddress(*entity, request.class_name(), request.field(), sizeof(ListHeader));
   if (!address) {
     return std::unexpected(address.error());
@@ -1670,6 +1795,7 @@ std::expected<void, std::string> Game::WriteFieldList(const WriteFieldListReques
 }
 
 std::expected<EntityClassResponse, std::string> Game::EntityClass(const EntityRequest& request) {
+  // Find the entity and its schema class.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1678,6 +1804,8 @@ std::expected<EntityClassResponse, std::string> Game::EntityClass(const EntityRe
   if (!schema) {
     return std::unexpected(schema.error());
   }
+
+  // Answer the class and designer names.
   EntityClassResponse response;
   auto* name = response.mutable_name();
   name->set_class_name(std::string(gameinterop::SchemaClassNameOf(*schema)));
@@ -1687,6 +1815,7 @@ std::expected<EntityClassResponse, std::string> Game::EntityClass(const EntityRe
 
 std::expected<ActiveResponse, std::string> Game::ModifierState(
     const ModifierStateRequest& request) {
+  // Find the entity and the mask word that holds the state.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1713,6 +1842,7 @@ std::expected<ActiveResponse, std::string> Game::ModifierState(
 }
 
 std::expected<void, std::string> Game::HoldModifierState(const HoldModifierStateRequest& request) {
+  // Releasing a hold clears the state the hold set.
   auto hold = std::pair(request.entity(), request.state());
   if (request.has_active() && !request.active()) {
     if (held_.erase(hold) == 0) {
@@ -1720,6 +1850,8 @@ std::expected<void, std::string> Game::HoldModifierState(const HoldModifierState
     }
     return SetModifierState(request.entity(), request.state(), false);
   }
+
+  // Holding sets the state now and every frame after.
   if (auto set = SetModifierState(request.entity(), request.state(), true); !set) {
     return set;
   }
@@ -1739,6 +1871,7 @@ std::expected<void, std::string> Game::SetFreeForAll(const SetFreeForAllRequest&
 }
 
 bool Game::FreeForAllCommand(std::string_view line) const {
+  // Only changeteam is blocked, and only in free-for-all.
   if (!free_for_all_) {
     return false;
   }
@@ -1747,6 +1880,7 @@ bool Game::FreeForAllCommand(std::string_view line) const {
 }
 
 void Game::ApplyFreeForAll() {
+  // Seat players and hold friendly fire only in free-for-all.
   if (!free_for_all_) {
     return;
   }
@@ -1816,6 +1950,7 @@ void Game::ReleaseFreeForAll() {
 
 std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifierWord(
     void* entity, const std::string& state) {
+  // Resolve the mask layout and the state's bit.
   auto layout = services_.Modifiers();
   if (!layout) {
     return std::unexpected(layout.error());
@@ -1827,6 +1962,8 @@ std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifier
   if (*value < 0 || static_cast<size_t>(*value) >= layout->mask_size * 8) {
     return std::unexpected(state + " is outside the modifier state masks");
   }
+
+  // Read the entity's modifier property.
   unsigned char* property = nullptr;
   if (!gameinterop::ReadNative(static_cast<const unsigned char*>(entity) + layout->property,
                                &property, sizeof(property))) {
@@ -1835,6 +1972,8 @@ std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifier
   if (property == nullptr) {
     return std::nullopt;
   }
+
+  // Point at the word that holds the state in each mask.
   const auto word = static_cast<size_t>(*value / 32) * sizeof(uint32_t);
   return ModifierWord{
       .ordinary = property + layout->mask + word,
@@ -1845,6 +1984,7 @@ std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifier
 
 std::expected<void, std::string> Game::SetModifierState(uint32_t handle, const std::string& state,
                                                         bool active) {
+  // Find the entity and the mask word that holds the state.
   auto entity = Entity(handle);
   if (!entity) {
     return std::unexpected(entity.error());
@@ -1856,6 +1996,8 @@ std::expected<void, std::string> Game::SetModifierState(uint32_t handle, const s
   if (!*word) {
     return std::unexpected("the entity has no modifiers");
   }
+
+  // Read the ordinary mask and set or clear the state's bit.
   uint32_t current = 0;
   if (!gameinterop::ReadNative((*word)->ordinary, &current, sizeof(current))) {
     return std::unexpected("cannot read the entity's modifier states");
@@ -1864,6 +2006,8 @@ std::expected<void, std::string> Game::SetModifierState(uint32_t handle, const s
   if (desired == current) {
     return {};
   }
+
+  // Write the mask back and send it.
   if (!gameinterop::WriteNative((*word)->ordinary, &desired, sizeof(desired))) {
     return std::unexpected("cannot write the entity's modifier states");
   }
@@ -1874,6 +2018,7 @@ std::expected<void, std::string> Game::SetModifierState(uint32_t handle, const s
 }
 
 std::expected<HeroResponse, std::string> Game::SelectHero(const SelectHeroRequest& request) {
+  // Resolve the hero and the selection service.
   auto heroes = services_.Heroes();
   if (!heroes) {
     return std::unexpected(heroes.error());
@@ -1886,6 +2031,8 @@ std::expected<HeroResponse, std::string> Game::SelectHero(const SelectHeroReques
   if (!selection) {
     return std::unexpected(selection.error());
   }
+
+  // Select the hero for the player in that slot.
   const auto state = gameinterop::ConnectionTracker::StateForSlot(request.player());
   if (!state.occupied) {
     return std::unexpected("no player is in that slot");
@@ -1896,12 +2043,15 @@ std::expected<HeroResponse, std::string> Game::SelectHero(const SelectHeroReques
   if (!selected) {
     return std::unexpected(selected.error());
   }
+
+  // Answer the hero selected.
   HeroResponse response;
   response.set_hero(static_cast<uint32_t>(hero->id));
   return response;
 }
 
 std::expected<void, std::string> Game::Spectate(const PlayerRequest& request) {
+  // Resolve the selection service and the player in that slot.
   auto selection = services_.Selection();
   if (!selection) {
     return std::unexpected(selection.error());
@@ -1910,6 +2060,7 @@ std::expected<void, std::string> Game::Spectate(const PlayerRequest& request) {
   if (!state.occupied) {
     return std::unexpected("no player is in that slot");
   }
+
   return observer_.SelectPlayer(request.player(), state.xuid, state.generation, 1, nullptr,
                                 **selection);
 }
@@ -1919,6 +2070,8 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
   if (auto target = Entity(request.target()); !target) {
     return std::unexpected(target.error());
   }
+
+  // Find the camera pawn of the player's slot.
   auto selection = services_.Selection();
   if (!selection) {
     return std::unexpected(selection.error());
@@ -1927,6 +2080,8 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
   if (!pawn) {
     return std::unexpected(pawn.error());
   }
+
+  // Read the pawn's observer services.
   auto services = services_.Field("CBasePlayerPawn", "m_pObserverServices");
   if (!services) {
     return std::unexpected(services.error());
@@ -1938,7 +2093,7 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
     return std::unexpected("the player's camera has no observer services");
   }
 
-  // Follow the target in its own view, OBS_MODE_IN_EYE, and replicate it.
+  // Resolve the observer target and mode fields.
   auto target_field = services_.Field("CPlayer_ObserverServices", "m_hObserverTarget");
   if (!target_field) {
     return std::unexpected(target_field.error());
@@ -1947,6 +2102,8 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
   if (!mode_field) {
     return std::unexpected(mode_field.error());
   }
+
+  // Follow the target in its own view, OBS_MODE_IN_EYE, and replicate it.
   const uint32_t handle = request.target();
   const uint8_t in_eye = 2;
   if (!gameinterop::WriteNative(observer + target_field->offset, &handle, sizeof(handle)) ||
@@ -1960,6 +2117,7 @@ std::expected<void, std::string> Game::Watch(const WatchRequest& request) {
 }
 
 std::expected<void, std::string> Game::Unwatch(const PlayerRequest& request) {
+  // Return the player's camera to their hero.
   auto selection = services_.Selection();
   if (!selection) {
     return std::unexpected(selection.error());
@@ -1971,6 +2129,8 @@ std::expected<void, std::string> Game::Unwatch(const PlayerRequest& request) {
   if (!*camera) {
     return {};
   }
+
+  // Remove the camera entity the player watched through.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -1980,6 +2140,7 @@ std::expected<void, std::string> Game::Unwatch(const PlayerRequest& request) {
 }
 
 std::expected<void, std::string> Game::Respawn(const PlayerRequest& request) {
+  // Resolve the respawn call and the player's live pawn.
   auto respawn = services_.Respawn();
   if (!respawn) {
     return std::unexpected(respawn.error());
@@ -1992,6 +2153,7 @@ std::expected<void, std::string> Game::Respawn(const PlayerRequest& request) {
 }
 
 std::expected<void, std::string> Game::ClearItems(const PlayerRequest& request) {
+  // Resolve the item tables and the player's live pawn.
   auto abilities = services_.Abilities();
   if (!abilities) {
     return std::unexpected(abilities.error());
@@ -2007,6 +2169,7 @@ std::expected<void, std::string> Game::ClearItems(const PlayerRequest& request) 
 }
 
 std::expected<void, std::string> Game::Freeze(const FreezeRequest& request) {
+  // Check the player's hero is live, then freeze or release it.
   const auto slot = request.player();
   const bool frozen = !request.has_frozen() || request.frozen();
   if (auto sample = Live(slot); !sample) {
@@ -2015,6 +2178,8 @@ std::expected<void, std::string> Game::Freeze(const FreezeRequest& request) {
   if (auto done = observer_.SetPreparationFrozen(slot, frozen); !done) {
     return done;
   }
+
+  // Remember the frozen heroes, so Clear can release them.
   if (frozen) {
     frozen_.insert(slot);
   } else {
@@ -2055,10 +2220,14 @@ std::expected<float, std::string> Game::LatchTime() {
   if (!server) {
     return std::unexpected(server.error());
   }
+
+  // Read the server clock.
   auto now = (*server)->ReadClock();
   if (!now) {
     return std::unexpected(now.error());
   }
+
+  // Without a match clock, the server time is the game time.
   auto clock = services_.Clock();
   if (!clock) {
     return now->current_time;
@@ -2067,6 +2236,7 @@ std::expected<float, std::string> Game::LatchTime() {
 }
 
 std::expected<void, std::string> Game::RefreshAbility(const RefreshAbilityRequest& request) {
+  // Find the player's ability and clear its cooldown.
   auto ability = OwnedAbility(request.player(), request.ability());
   if (!ability) {
     return std::unexpected(ability.error());
@@ -2077,6 +2247,7 @@ std::expected<void, std::string> Game::RefreshAbility(const RefreshAbilityReques
 }
 
 std::expected<AbilitiesResponse, std::string> Game::Abilities(const PlayerRequest& request) {
+  // Resolve the ability table and the player's live abilities.
   const auto slot = request.player();
   auto definitions = services_.Abilities();
   if (!definitions) {
@@ -2089,6 +2260,8 @@ std::expected<AbilitiesResponse, std::string> Game::Abilities(const PlayerReques
   if (!abilities) {
     return std::unexpected(abilities.error());
   }
+
+  // Answer each ability's name, slot and timers.
   AbilitiesResponse response;
   for (const auto& ability : *abilities) {
     auto* out = response.add_abilities();
@@ -2110,10 +2283,13 @@ std::expected<AbilitiesResponse, std::string> Game::Abilities(const PlayerReques
 }
 
 std::expected<void, std::string> Game::SetAbility(const AbilityOptions& request) {
+  // Find the player's ability.
   auto ability = OwnedAbility(request.player(), request.ability());
   if (!ability) {
     return std::unexpected(ability.error());
   }
+
+  // Apply the requested upgrades.
   if (request.has_upgrades()) {
     auto items = services_.Items();
     if (!items) {
@@ -2130,12 +2306,16 @@ std::expected<void, std::string> Game::SetAbility(const AbilityOptions& request)
       return applied;
     }
   }
+
+  // Limit the ability's charges.
   if (request.has_max_charges()) {
     if (auto limited = LimitCharges(request.player(), ability->handle, request.max_charges());
         !limited) {
       return limited;
     }
   }
+
+  // Stop when no timer was asked for.
   if (!request.has_charges() && !request.has_cooldown_end() && !request.has_recharge_end()) {
     return {};
   }
@@ -2159,6 +2339,7 @@ std::expected<void, std::string> Game::SetAbility(const AbilityOptions& request)
 
 std::expected<void, std::string> Game::LimitCharges(int32_t slot, uint32_t handle,
                                                     int32_t maximum) {
+  // Create the charge limit once from the server module.
   if (!charge_limit_) {
     auto image = services_.Image();
     if (!image) {
@@ -2174,6 +2355,8 @@ std::expected<void, std::string> Game::LimitCharges(int32_t slot, uint32_t handl
     }
     charge_limit_ = std::move(*created);
   }
+
+  // Limit the live ability.
   auto* ability = observer_.AbilityInstance(slot, handle);
   if (ability == nullptr) {
     return std::unexpected("the ability is not live");
@@ -2182,6 +2365,7 @@ std::expected<void, std::string> Game::LimitCharges(int32_t slot, uint32_t handl
 }
 
 std::expected<void, std::string> Game::GiveItem(const GiveItemRequest& request) {
+  // Resolve the item tables and the player's live pawn.
   auto definitions = services_.Abilities();
   if (!definitions) {
     return std::unexpected(definitions.error());
@@ -2193,6 +2377,8 @@ std::expected<void, std::string> Game::GiveItem(const GiveItemRequest& request) 
   if (auto sample = Live(request.player()); !sample) {
     return std::unexpected(sample.error());
   }
+
+  // Grant the item to the player's hero.
   auto item = observer_.GrantItem(
       request.player(), gameinterop::MakeMemberName(request.item()).hash, **definitions, **items);
   if (!item) {
@@ -2202,6 +2388,7 @@ std::expected<void, std::string> Game::GiveItem(const GiveItemRequest& request) 
 }
 
 std::expected<void, std::string> Game::ReplaceAbility(const ReplaceAbilityRequest& request) {
+  // Check the slot and resolve the ability tables.
   if (request.index() > UINT16_MAX) {
     return std::unexpected("the ability slot is out of range");
   }
@@ -2217,6 +2404,8 @@ std::expected<void, std::string> Game::ReplaceAbility(const ReplaceAbilityReques
   if (!create) {
     return std::unexpected(create.error());
   }
+
+  // Replace the ability on the player's live hero.
   if (auto sample = Live(request.player()); !sample) {
     return std::unexpected(sample.error());
   }
@@ -2226,14 +2415,19 @@ std::expected<void, std::string> Game::ReplaceAbility(const ReplaceAbilityReques
 }
 
 std::expected<void, std::string> Game::HoldModifier(const HoldModifierRequest& request) {
+  // Releasing a hold drops the slot's claim on the modifier.
   const auto& key = request.modifier();
   if (request.has_active() && !request.active()) {
     ReleaseModifier(request.player(), key);
     return {};
   }
+
+  // A held modifier is named by its ability and its own name.
   if (key.find('/') == std::string::npos) {
     return std::unexpected("name the modifier as <ability>/<modifier>");
   }
+
+  // Resolve the modifier once for every slot that holds it.
   if (!modifiers_.contains(key)) {
     auto image = services_.Image();
     if (!image) {
@@ -2260,11 +2454,14 @@ std::expected<void, std::string> Game::HoldModifier(const HoldModifierRequest& r
 }
 
 std::expected<void, std::string> Game::GiveModifier(const GiveModifierRequest& request) {
+  // Split the modifier's name at its ability.
   const auto& key = request.modifier();
   const auto slash = key.find('/');
   if (slash == std::string::npos) {
     return std::unexpected("name the modifier as <ability>/<modifier>");
   }
+
+  // Resolve the server module, the schema and the hero's abilities.
   auto image = services_.Image();
   if (!image) {
     return std::unexpected(image.error());
@@ -2306,6 +2503,7 @@ std::expected<void, std::string> Game::GiveModifier(const GiveModifierRequest& r
 
 std::expected<gameinterop::PawnObserver::Ability, std::string> Game::OwnedAbility(
     int32_t slot, std::string_view name) {
+  // Resolve the ability table and the player's live abilities.
   auto definitions = services_.Abilities();
   if (!definitions) {
     return std::unexpected(definitions.error());
@@ -2317,6 +2515,8 @@ std::expected<gameinterop::PawnObserver::Ability, std::string> Game::OwnedAbilit
   if (!abilities) {
     return std::unexpected(abilities.error());
   }
+
+  // Find the owned ability with that name.
   for (const auto& ability : *abilities) {
     const auto definition = (*definitions)->Find(ability.subclass_id);
     if (definition && definition->name == name) {
@@ -2327,6 +2527,7 @@ std::expected<gameinterop::PawnObserver::Ability, std::string> Game::OwnedAbilit
 }
 
 std::expected<void, std::string> Game::Teleport(const TeleportRequest& request) {
+  // Resolve the teleport call and the player's live hero.
   auto teleport = services_.Teleport();
   if (!teleport) {
     return std::unexpected(teleport.error());
@@ -2334,6 +2535,8 @@ std::expected<void, std::string> Game::Teleport(const TeleportRequest& request) 
   if (auto sample = Live(request.player()); !sample) {
     return std::unexpected(sample.error());
   }
+
+  // Teleport the hero, with a velocity when the request sets one.
   const auto position = Floats(request.position());
   const auto angles = Floats(request.facing());
   auto* pawn = observer_.PawnForSlot(request.player());
@@ -2349,6 +2552,7 @@ std::expected<void, std::string> Game::Teleport(const TeleportRequest& request) 
 }
 
 std::expected<void, std::string> Game::MovePlayer(const MovePlayerRequest& request) {
+  // Resolve the motion setters and the player's live hero.
   auto motion = services_.Motion();
   if (!motion) {
     return std::unexpected(motion.error());
@@ -2357,6 +2561,8 @@ std::expected<void, std::string> Game::MovePlayer(const MovePlayerRequest& reque
   if (auto sample = Live(slot); !sample) {
     return std::unexpected(sample.error());
   }
+
+  // Convert the requested pose to the game's floats.
   const auto position = Floats(request.position());
   const auto facing = Floats(request.facing());
   const auto velocity = Floats(request.velocity());
@@ -2375,11 +2581,14 @@ std::expected<void, std::string> Game::MovePlayer(const MovePlayerRequest& reque
 }
 
 std::expected<void, std::string> Game::Steer(const SteerRequest& request) {
+  // Without steering, the slot's bot goes back to its own commands.
   const auto slot = request.player();
   if (!request.has_steering()) {
     steers_.erase(slot);
     return services_.Steps();
   }
+
+  // Steer the live hero, and drop the steering if the movement hook fails.
   if (auto sample = Live(slot); !sample) {
     return std::unexpected(sample.error());
   }
@@ -2393,10 +2602,13 @@ std::expected<void, std::string> Game::Steer(const SteerRequest& request) {
 }
 
 std::expected<ObjectResponse, std::string> Game::CreateModel(const ModelOptions& request) {
+  // Resolve the effect factory.
   auto effects = services_.Effects();
   if (!effects) {
     return std::unexpected(effects.error());
   }
+
+  // Create the model and keep it as one of the mod's objects.
   render::WorldModelSettings settings{
       .resource = request.resource(),
       .origin = request.position(),
@@ -2415,10 +2627,13 @@ std::expected<ObjectResponse, std::string> Game::CreateModel(const ModelOptions&
 }
 
 std::expected<ObjectResponse, std::string> Game::CreateText(const TextOptions& request) {
+  // Resolve the text factory.
   auto text = services_.Text();
   if (!text) {
     return std::unexpected(text.error());
   }
+
+  // Create the text and keep it as one of the mod's objects.
   render::WorldTextStyle style{
       .font_size = request.font_size() == 0 ? 100 : request.font_size(),
       // The entity takes its color as 0xAABBGGRR.
@@ -2452,6 +2667,7 @@ std::expected<void, std::string> Game::MoveObject(const MoveObjectRequest& reque
 }
 
 std::expected<void, std::string> Game::SetText(const SetTextRequest& request) {
+  // Find the object and check it is text.
   auto found = objects_.find(request.object());
   if (found == objects_.end()) {
     return std::unexpected("no object has that identifier");
@@ -2460,11 +2676,14 @@ std::expected<void, std::string> Game::SetText(const SetTextRequest& request) {
   if (text == nullptr) {
     return std::unexpected("the object is not text");
   }
+
+  // Replace the words.
   (*text)->SetMessage(request.text());
   return {};
 }
 
 std::expected<void, std::string> Game::SetObjectHidden(const SetObjectHiddenRequest& request) {
+  // Showing the object again drops it from the player's hidden set.
   if (!objects_.contains(request.object())) {
     return std::unexpected("no object has that identifier");
   }
@@ -2490,10 +2709,13 @@ std::expected<void, std::string> Game::SetObjectHidden(const SetObjectHiddenRequ
 }
 
 std::expected<void, std::string> Game::RemoveObject(const ObjectRequest& request) {
+  // Find the object.
   auto found = objects_.find(request.object());
   if (found == objects_.end()) {
     return std::unexpected("no object has that identifier");
   }
+
+  // Remove it from the world and from every hidden set.
   std::visit([](auto& handle) { handle->Remove(); }, found->second);
   objects_.erase(found);
   for (auto& [slot, objects] : hidden_) {
@@ -2503,6 +2725,7 @@ std::expected<void, std::string> Game::RemoveObject(const ObjectRequest& request
 }
 
 std::expected<EntityResponse, std::string> Game::ObjectEntity(const ObjectRequest& request) {
+  // Find the object and check it is a model.
   auto found = objects_.find(request.object());
   if (found == objects_.end()) {
     return std::unexpected("no object has that identifier");
@@ -2511,6 +2734,8 @@ std::expected<EntityResponse, std::string> Game::ObjectEntity(const ObjectReques
   if (model == nullptr) {
     return std::unexpected("the object is text, which has no entity");
   }
+
+  // Answer the model's live entity.
   auto handle = (*model)->Handle();
   if (!handle) {
     return std::unexpected("the object is no longer live");
@@ -2521,6 +2746,7 @@ std::expected<EntityResponse, std::string> Game::ObjectEntity(const ObjectReques
 }
 
 std::expected<BotResponse, std::string> Game::AddBot(const BotOptions& request) {
+  // Resolve the hero and the bot service.
   auto heroes = services_.Heroes();
   if (!heroes) {
     return std::unexpected(heroes.error());
@@ -2533,6 +2759,8 @@ std::expected<BotResponse, std::string> Game::AddBot(const BotOptions& request) 
   if (!bots) {
     return std::unexpected(bots.error());
   }
+
+  // Create the bot and remember it, so Clear can kick it.
   auto slot = (*bots)->Create(request.name().c_str(), request.team(),
                               static_cast<uint32_t>(hero->id), Floats(request.position()));
   if (!slot) {
@@ -2545,10 +2773,13 @@ std::expected<BotResponse, std::string> Game::AddBot(const BotOptions& request) 
 }
 
 std::expected<void, std::string> Game::RemoveBot(const PlayerRequest& request) {
+  // Find the bot the mod added in that slot.
   auto found = bots_.find(request.player());
   if (found == bots_.end()) {
     return std::unexpected("the mod added no bot in that slot");
   }
+
+  // Kick the bot through the server console.
   auto server = services_.Server();
   if (!server) {
     return std::unexpected(server.error());
@@ -2618,6 +2849,7 @@ gameinterop::WorldEntities::Prepare Game::WriteBeforeSpawn(
 }
 
 std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOptions& request) {
+  // Resolve the world and the requested key values.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -2626,6 +2858,8 @@ std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOption
   if (!key_values) {
     return std::unexpected(key_values.error());
   }
+
+  // Describe the entity to create.
   const auto subclass =
       request.subclass().empty() ? 0 : gameinterop::WorldEntities::SubclassId(request.subclass());
   gameinterop::WorldEntities::Target target{
@@ -2639,6 +2873,8 @@ std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOption
       .max_health = 0,
       .lane = std::nullopt,
   };
+
+  // Create the entity, sent to every client when asked.
   auto entity = (*world)->CreateEntity(target, *key_values, WriteBeforeSpawn(request.fields()));
   if (!entity) {
     return std::unexpected(entity.error());
@@ -2651,6 +2887,8 @@ std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOption
                                   : sent.error());
     }
   }
+
+  // Remember the entity as the mod's own and return it.
   created_.insert(*entity);
   EntityResponse response;
   response.set_entity(*entity);
@@ -2658,6 +2896,7 @@ std::expected<EntityResponse, std::string> Game::CreateEntity(const EntityOption
 }
 
 std::expected<AliveResponse, std::string> Game::FireInput(const FireInputRequest& request) {
+  // Fire the input on the entity, from its activator when given.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -2671,10 +2910,12 @@ std::expected<AliveResponse, std::string> Game::FireInput(const FireInputRequest
 }
 
 std::expected<AliveResponse, std::string> Game::RemoveEntity(const EntityRequest& request) {
+  // Resolve the world.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
   }
+
   // Only the mod's own entities are removed, so a stale or mistaken handle
   // cannot take a player or the map's entities out of the world.
   if (!created_.erase(request.entity())) {
@@ -2728,10 +2969,13 @@ void Game::PruneAudiences() {
 }
 
 std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request) {
+  // Resolve the world.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
   }
+
+  // Describe the NPC, defaulting its maximum health to its health.
   const int32_t max_health = request.max_health() == 0 ? request.health() : request.max_health();
   gameinterop::WorldEntities::Target target{
       .designer_name = request.class_name(),
@@ -2745,6 +2989,8 @@ std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request
       .max_health = max_health,
       .lane = request.has_lane() ? std::optional(request.lane()) : std::nullopt,
   };
+
+  // Spawn the NPC and remember it as the mod's own.
   auto entity = (*world)->Spawn(target, WriteBeforeSpawn(request.fields()));
   if (!entity) {
     return std::unexpected(entity.error());
@@ -2757,6 +3003,7 @@ std::expected<NpcResponse, std::string> Game::SpawnNpc(const NpcOptions& request
 }
 
 std::expected<NpcStateResponse, std::string> Game::ReadNpc(const NpcRequest& request) {
+  // Read the NPC's state.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -2765,10 +3012,14 @@ std::expected<NpcStateResponse, std::string> Game::ReadNpc(const NpcRequest& req
   if (!sample) {
     return std::unexpected(sample.error());
   }
+
+  // An NPC that is gone reads as an empty state.
   NpcStateResponse response;
   if (!*sample) {
     return response;
   }
+
+  // Copy the NPC's state into the response.
   const auto& state = (*sample)->state;
   auto* npc = response.mutable_state();
   SetVector(npc->mutable_position(), state.position);
@@ -2804,10 +3055,12 @@ std::expected<AliveResponse, std::string> Game::RemoveNpc(const NpcRequest& requ
 }
 
 std::expected<PickupResponse, std::string> Game::CreatePickup(const CreatePickupRequest& request) {
+  // Resolve the world.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
   }
+
   // A pickup reads its aura from its game data entry. The urn's entry shares
   // its designer name; a movement buff names the movement pickup entry.
   const bool urn = request.kind() == PICKUP_KIND_URN;
@@ -2823,6 +3076,8 @@ std::expected<PickupResponse, std::string> Game::CreatePickup(const CreatePickup
       .max_health = 0,
       .lane = std::nullopt,
   };
+
+  // Create the pickup and remember it as the mod's own.
   auto entity = (*world)->CreateEntity(target, {});
   if (!entity) {
     return std::unexpected(entity.error());
@@ -2849,6 +3104,7 @@ std::expected<AliveResponse, std::string> Game::RemovePickup(const PickupRequest
 
 std::expected<EntitiesResponse, std::string> Game::FindEntities(
     const FindEntitiesRequest& request) {
+  // Find the entities of the class.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -2864,6 +3120,7 @@ std::expected<EntitiesResponse, std::string> Game::FindEntities(
 
 std::expected<CountResponse, std::string> Game::RemoveEntities(
     const RemoveEntitiesRequest& request) {
+  // Remove the world's entities of the class and count them.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -2878,6 +3135,7 @@ std::expected<CountResponse, std::string> Game::RemoveEntities(
 }
 
 std::expected<void, std::string> Game::ClearMap() {
+  // Remove everything the mod authored in the world.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -2890,6 +3148,7 @@ std::expected<void, std::string> Game::ClearMap() {
 }
 
 std::expected<void, std::string> Game::Damage(const HitOptions& request) {
+  // Resolve the damage service and the victim.
   auto damage = services_.Damage();
   if (!damage) {
     return std::unexpected(damage.error());
@@ -2898,6 +3157,7 @@ std::expected<void, std::string> Game::Damage(const HitOptions& request) {
   if (!victim) {
     return std::unexpected(victim.error());
   }
+
   // Only heroes and units take hits: the client crashes on a damage event for
   // the world, a prop or a building.
   auto victim_class = gameinterop::SchemaClassOfEntity(*victim, gameinterop::ReadNative);
@@ -2909,10 +3169,13 @@ std::expected<void, std::string> Game::Damage(const HitOptions& request) {
                            std::string(gameinterop::SchemaClassNameOf(*victim_class)) +
                            ", not a hero or unit");
   }
+
   // A hit nobody dealt is a hazard: it may kill and credits no one.
   if (request.attacker() == 0) {
     return (*damage)->Hazard(*victim, request.amount());
   }
+
+  // Resolve who dealt the hit and with what.
   auto attacker = Entity(request.attacker());
   if (!attacker) {
     return std::unexpected(attacker.error());
@@ -2934,6 +3197,7 @@ std::expected<void, std::string> Game::Damage(const HitOptions& request) {
 }
 
 std::expected<void, std::string> Game::AdjustSouls(const AdjustSoulsRequest& request) {
+  // Adjust the live player's souls.
   auto currency = services_.Currency();
   if (!currency) {
     return std::unexpected(currency.error());
@@ -2950,6 +3214,7 @@ std::expected<void, std::string> Game::AdjustSouls(const AdjustSoulsRequest& req
 }
 
 std::expected<void, std::string> Game::StartingSouls(const StartingSoulsRequest& request) {
+  // Set the live player's starting souls.
   auto currency = services_.Currency();
   if (!currency) {
     return std::unexpected(currency.error());
@@ -2965,6 +3230,7 @@ std::expected<void, std::string> Game::StartingSouls(const StartingSoulsRequest&
 }
 
 std::expected<void, std::string> Game::ResetHero(const ResetHeroRequest& request) {
+  // Reset the live player's hero to fresh starting souls.
   auto currency = services_.Currency();
   if (!currency) {
     return std::unexpected(currency.error());
@@ -2984,6 +3250,7 @@ std::expected<void, std::string> Game::ResetHero(const ResetHeroRequest& request
 }
 
 std::expected<void, std::string> Game::RestoreHero(const RestoreHeroRequest& request) {
+  // Build the restore target from the request.
   const auto& source = request.target();
   RestoreTarget target{
       .position = Floats(source.position()),
@@ -3030,6 +3297,7 @@ std::expected<void, std::string> Game::RestoreHero(const RestoreHeroRequest& req
                              .recharge = {timer.recharge_start(), timer.recharge_end()}});
   }
 
+  // Resolve the live pawn and the engine services.
   auto sample = Live(request.player());
   if (!sample) {
     return std::unexpected(sample.error());
@@ -3042,6 +3310,8 @@ std::expected<void, std::string> Game::RestoreHero(const RestoreHeroRequest& req
   if (!server) {
     return std::unexpected(server.error());
   }
+
+  // Bind the restore to the engine and start it.
   const auto* abilities = *definitions;
   const auto* engine = *server;
   HeroRestore::Engine access{
@@ -3066,12 +3336,15 @@ std::expected<void, std::string> Game::RestoreHero(const RestoreHeroRequest& req
 
 bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& target,
                         HeroRestore::Stage stage) {
+  // Log a step that fails, and borrow the player's pawn.
   const auto log = [](std::string_view what, const std::string& error) {
     std::cerr << "[modlock] hero restore: " << what << ": " << error << "\n";
     return false;
   };
   const auto slot = sample.slot;
   void* pawn = observer_.PawnForSlot(slot);
+
+  // The build stage restores the level, items, abilities and upgrade bonuses.
   if (stage == HeroRestore::Stage::kBuild) {
     if (target.level && !gameinterop::RestorePawnLevel(pawn, *target.level)) {
       return false;
@@ -3116,6 +3389,7 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
     return true;
   }
 
+  // The pawn stage restores health, and full stamina for a fresh hero.
   if (stage == HeroRestore::Stage::kPawn) {
     if (target.fresh) {
       if (!sample.effective_max_health || *sample.effective_max_health <= 0) {
@@ -3186,6 +3460,7 @@ void Game::TickRestores() {
 }
 
 std::expected<void, std::string> Game::RestoreNpcs(const RestoreNpcsRequest& request) {
+  // Describe each NPC to restore.
   std::vector<NpcRestore::Target> targets;
   for (const auto& npc : request.npcs()) {
     targets.push_back({
@@ -3200,6 +3475,8 @@ std::expected<void, std::string> Game::RestoreNpcs(const RestoreNpcsRequest& req
         .lane = npc.has_lane() ? std::optional(npc.lane()) : std::nullopt,
     });
   }
+
+  // Restore the NPCs into the world over the coming frames.
   auto world = World();
   if (!world) {
     return std::unexpected(world.error());
@@ -3226,6 +3503,7 @@ std::expected<void, std::string> Game::Pause(const PauseRequest& request) {
 }
 
 std::expected<void, std::string> Game::SetPaused(bool paused) {
+  // Pause or resume the game, and remember it.
   auto pause = services_.Pause();
   if (!pause) {
     return std::unexpected(pause.error());
@@ -3238,6 +3516,7 @@ std::expected<void, std::string> Game::SetPaused(bool paused) {
 }
 
 std::expected<MatchClockResponse, std::string> Game::MatchClock() {
+  // Resolve the match clock and the server's time.
   auto clock = services_.Clock();
   if (!clock) {
     return std::unexpected(clock.error());
@@ -3250,6 +3529,8 @@ std::expected<MatchClockResponse, std::string> Game::MatchClock() {
   if (!now) {
     return std::unexpected(now.error());
   }
+
+  // Read the match clock in seconds.
   auto seconds = (*clock)->Read(now->current_time, now->interval);
   if (!seconds) {
     return std::unexpected(seconds.error());
@@ -3260,10 +3541,13 @@ std::expected<MatchClockResponse, std::string> Game::MatchClock() {
 }
 
 std::expected<void, std::string> Game::HoldMatchClock(const HoldMatchClockRequest& request) {
+  // No seconds releases the hold.
   if (!request.has_seconds()) {
     held_clock_.reset();
     return {};
   }
+
+  // Hold the clock at the requested seconds.
   if (auto clock = services_.Clock(); !clock) {
     return std::unexpected(clock.error());
   }
@@ -3273,6 +3557,7 @@ std::expected<void, std::string> Game::HoldMatchClock(const HoldMatchClockReques
 }
 
 void Game::HoldClock() {
+  // Read the clock while a hold is set.
   if (!held_clock_) {
     return;
   }
@@ -3324,6 +3609,7 @@ std::expected<void, std::string> Game::ReplicateClock() {
 }
 
 std::expected<RiftResponse, std::string> Game::Rift() {
+  // Read the rift's state.
   auto rift = services_.Rift();
   if (!rift) {
     return std::unexpected(rift.error());
@@ -3332,11 +3618,15 @@ std::expected<RiftResponse, std::string> Game::Rift() {
   if (!state) {
     return std::unexpected(state.error());
   }
+
+  // Copy the scoring state into the response.
   RiftResponse response;
   auto* out = response.mutable_state();
   out->set_scoring_team(state->scoring_team);
   out->set_scoring_time(state->scoring_time);
   out->set_cash_in_started(state->cash_in_started);
+
+  // Copy the spawn timing.
   out->set_give_up_time(state->give_up_time);
   out->set_next_spawn(state->next_spawn);
   out->set_spawn_window(state->spawn_window);
@@ -3352,6 +3642,7 @@ std::expected<void, std::string> Game::StartRift(const StartRiftRequest& request
 }
 
 std::expected<void, std::string> Game::MoveEntity(const MoveEntityRequest& request) {
+  // Move the entity, keeping its facing and velocity unless given.
   auto entity = Entity(request.entity());
   if (!entity) {
     return std::unexpected(entity.error());
@@ -3366,6 +3657,7 @@ std::expected<void, std::string> Game::MoveEntity(const MoveEntityRequest& reque
 }
 
 std::expected<void, std::string> Game::EmitSound(const EmitSoundRequest& request) {
+  // Play the sound on the entity.
   auto sound = services_.Sound();
   if (!sound) {
     return std::unexpected(sound.error());
@@ -3381,6 +3673,7 @@ std::expected<void, std::string> Game::EmitSound(const EmitSoundRequest& request
 }
 
 std::expected<void, std::string> Game::Kill(const PlayerRequest& request) {
+  // Kill the live player's hero unless it is already dead.
   auto damage = services_.Damage();
   if (!damage) {
     return std::unexpected(damage.error());
@@ -3405,6 +3698,7 @@ std::expected<void, std::string> Game::SetVelocity(const SetVelocityRequest& req
 }
 
 std::expected<ButtonsResponse, std::string> Game::Buttons(const PlayerRequest& request) {
+  // Resolve the controller's pawn fields.
   auto pawn_field = services_.Field("CBasePlayerController", "m_hPawn");
   if (!pawn_field) {
     return std::unexpected(pawn_field.error());
@@ -3413,6 +3707,8 @@ std::expected<ButtonsResponse, std::string> Game::Buttons(const PlayerRequest& r
   if (!hero_field) {
     return std::unexpected(hero_field.error());
   }
+
+  // Resolve the button fields and the live entity system.
   auto movement = services_.Field("CBasePlayerPawn", "m_pMovementServices");
   if (!movement) {
     return std::unexpected(movement.error());
@@ -3556,10 +3852,13 @@ std::vector<Game::Hero> Game::Heroes() {
 }
 
 void Game::TrackProjectiles() {
+  // With no projectile watched, forget the ones seen.
   if (projectiles_.names().empty()) {
     projectiles_seen_.clear();
     return;
   }
+
+  // Note each watched projectile and report the new ones as launches.
   auto entities = gameinterop::ResolveLiveEntitySystem();
   if (!entities) {
     return;
@@ -3593,16 +3892,21 @@ void Game::TrackProjectiles() {
 }
 
 std::optional<ImpactEvent> Game::Watching(void* entity, const gameinterop::TraceResult& contact) {
+  // Only a watched projectile reports an impact.
   const auto name = DesignerName(entity);
   if (!Watches(projectiles_, name)) {
     return std::nullopt;
   }
+
+  // Name the projectile and its owner.
   ImpactEvent event;
   event.set_entity(gameinterop::ReferenceHandleOf(entity).value_or(0));
   event.set_name(std::string(name));
   const auto [owner, player] = Owner(entity);
   event.set_owner(owner);
   event.set_player(player);
+
+  // Add the contact's path and what it hit.
   SetVector(event.mutable_start(), contact.start);
   SetVector(event.mutable_end(), contact.end);
   SetVector(event.mutable_position(), contact.position);
@@ -3611,6 +3915,7 @@ std::optional<ImpactEvent> Game::Watching(void* entity, const gameinterop::Trace
 }
 
 std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
+  // Read the entity's owner handle.
   auto field = services_.Field("CBaseEntity", "m_hOwnerEntity");
   if (!field) {
     return {0, -1};
@@ -3620,6 +3925,8 @@ std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
   if (owner == UINT32_MAX) {
     return {0, -1};
   }
+
+  // Find the player whose pawn owns it.
   for (int32_t slot = 0; slot < kMaxPlayers; ++slot) {
     const auto sample = observer_.Observe(slot);
     if (sample && sample->pawn_handle == owner) {
@@ -3630,12 +3937,15 @@ std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
 }
 
 std::optional<std::array<float, 3>> Game::Origin(void* entity) {
+  // Resolve the scene node fields.
   auto body = services_.Field("CBaseEntity", "m_CBodyComponent");
   auto node = services_.Field("CBodyComponent", "m_pSceneNode");
   auto origin = services_.Field("CGameSceneNode", "m_vecAbsOrigin");
   if (!body || !node || !origin) {
     return std::nullopt;
   }
+
+  // Follow the body component to its scene node.
   unsigned char* component = nullptr;
   std::memcpy(&component, static_cast<unsigned char*>(entity) + body->offset, sizeof(component));
   if (component == nullptr) {
@@ -3646,12 +3956,15 @@ std::optional<std::array<float, 3>> Game::Origin(void* entity) {
   if (scene == nullptr) {
     return std::nullopt;
   }
+
+  // Read the node's absolute origin.
   std::array<float, 3> position{};
   std::memcpy(position.data(), scene + origin->offset, sizeof(position));
   return position;
 }
 
 std::expected<TraceResponse, std::string> Game::Trace(const TraceOptions& request) {
+  // Resolve the world's collision.
   auto trace = engine_->Trace();
   if (!trace) {
     return std::unexpected(trace.error());
@@ -3659,21 +3972,28 @@ std::expected<TraceResponse, std::string> Game::Trace(const TraceOptions& reques
   if (!(*trace)->IsReady()) {
     return std::unexpected("the world's collision is not ready");
   }
+
+  // Set the layers to hit and to exclude.
   gameinterop::TraceOptions options;
   if (request.layers() != 0) {
     options.interacts_with = request.layers();
   }
   options.interacts_exclude = request.exclude();
+
   // The game's trace skips at most two entities.
   if (request.ignore_size() > static_cast<int>(options.ignored_entities.size())) {
     return std::unexpected("a trace ignores at most two entities");
   }
   std::ranges::copy(request.ignore(), options.ignored_entities.begin());
+
+  // Trace the line.
   auto result = (*trace)->Query(Floats(request.start()), Floats(request.end()),
                                 gameinterop::TraceLine{}, options);
   if (!result) {
     return std::unexpected(result.error());
   }
+
+  // Report the hit, if any.
   TraceResponse response;
   if (!result->DidHit()) {
     return response;
@@ -3687,10 +4007,13 @@ std::expected<TraceResponse, std::string> Game::Trace(const TraceOptions& reques
 }
 
 std::expected<ObjectResponse, std::string> Game::CreateParticle(const ParticleOptions& request) {
+  // Resolve the effects service.
   auto effects = services_.Effects();
   if (!effects) {
     return std::unexpected(effects.error());
   }
+
+  // Describe the particle with its optional tint, data and parent.
   render::ParticleSettings settings{
       .resource = request.resource(),
       .origin = request.position(),
@@ -3708,6 +4031,8 @@ std::expected<ObjectResponse, std::string> Game::CreateParticle(const ParticleOp
   if (request.parent() != 0) {
     settings.parent = request.parent();
   }
+
+  // Create the particle and keep it.
   auto particle = (*effects)->CreateParticle(settings);
   if (!particle) {
     return std::unexpected(particle.error());
@@ -3722,6 +4047,8 @@ std::expected<ObjectResponse, std::string> Game::CreateFog(const FogOptions& req
   if (!effects) {
     return std::unexpected(effects.error());
   }
+
+  // Create the map's fog controller once.
   if (!fog_) {
     auto controller = (*effects)->CreateFogController(request.position(), kDrawDistance);
     if (!controller) {
@@ -3729,6 +4056,8 @@ std::expected<ObjectResponse, std::string> Game::CreateFog(const FogOptions& req
     }
     fog_ = std::move(*controller);
   }
+
+  // Create the fog volume with the color's tint.
   const uint32_t color = request.color();
   const std::array<uint8_t, 3> tint{static_cast<uint8_t>(color >> 24),
                                     static_cast<uint8_t>(color >> 16),
@@ -3743,6 +4072,7 @@ std::expected<ObjectResponse, std::string> Game::CreateFog(const FogOptions& req
 }
 
 std::expected<void, std::string> Game::Heal(const HealRequest& request) {
+  // Read the live hero.
   auto sample = Live(request.player());
   if (!sample) {
     return std::unexpected(sample.error());
@@ -3750,6 +4080,8 @@ std::expected<void, std::string> Game::Heal(const HealRequest& request) {
   if (sample->health <= 0) {
     return std::unexpected("the player's hero is dead");
   }
+
+  // Raise its health, at most to its maximum.
   const int32_t maximum = sample->effective_max_health.value_or(sample->max_health);
   const int32_t health = std::min(maximum, sample->health + request.amount());
   if (health <= sample->health) {
@@ -3763,6 +4095,7 @@ std::expected<void, std::string> Game::Heal(const HealRequest& request) {
 }
 
 std::expected<void, std::string> Game::ScreenEffect(const ScreenEffectRequest& request) {
+  // Resolve the messages, the screen's owner and the effect.
   auto messages = services_.Messages();
   if (!messages) {
     return std::unexpected(messages.error());
@@ -3775,6 +4108,8 @@ std::expected<void, std::string> Game::ScreenEffect(const ScreenEffectRequest& r
   if (!state) {
     return std::unexpected(state.error());
   }
+
+  // Show the effect with its timing.
   const auto& timing = request.timing();
   return (*messages)->ScreenEffect(request.player(), *owner, *state,
                                    {.delay = timing.delay(),
@@ -3784,6 +4119,7 @@ std::expected<void, std::string> Game::ScreenEffect(const ScreenEffectRequest& r
 }
 
 std::expected<void, std::string> Game::ClearScreenEffect(const ClearScreenEffectRequest& request) {
+  // Resolve the messages, the screen's owner and the effect.
   auto messages = services_.Messages();
   if (!messages) {
     return std::unexpected(messages.error());
@@ -3810,6 +4146,7 @@ std::expected<int32_t, std::string> Game::ScreenOwner(int32_t slot) {
 }
 
 std::expected<void, std::string> Game::Sound(const SoundRequest& request) {
+  // Play the sound on the live player's hero.
   auto sound = services_.Sound();
   if (!sound) {
     return std::unexpected(sound.error());
@@ -3851,6 +4188,7 @@ std::expected<gameinterop::PawnObserver::Sample, std::string> Game::Live(int32_t
 }
 
 std::expected<void*, std::string> Game::Entity(uint32_t handle) const {
+  // Find the live entity with that handle.
   auto entities = gameinterop::ResolveLiveEntitySystem();
   if (!entities) {
     return std::unexpected(entities.error());
@@ -3863,6 +4201,7 @@ std::expected<void*, std::string> Game::Entity(uint32_t handle) const {
 }
 
 ObjectResponse Game::Keep(Object object) {
+  // Store the object under the next id and return the id.
   const auto id = next_object_++;
   objects_.emplace(id, std::move(object));
   ObjectResponse response;

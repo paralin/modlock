@@ -51,6 +51,7 @@ TEST(PawnObserver, ChargeQueriesFollowTheNativeRefreshCallsAcrossBuilds) {
 }
 
 TEST(PawnObserver, LiveHealthUsesThePawnVirtualFunction) {
+  // Give a fake pawn a maximum health override at the slot the game uses.
   struct Pawn {
     void** table;
     int32_t maximum;
@@ -59,6 +60,8 @@ TEST(PawnObserver, LiveHealthUsesThePawnVirtualFunction) {
   table[181] =
       reinterpret_cast<void*>(+[](void* pawn) { return static_cast<Pawn*>(pawn)->maximum; });
   Pawn pawn{table.data(), 730};
+
+  // The live seam reads whatever the override returns.
   const auto read = PawnObserver::LiveSeams().effective_max_health;
   EXPECT_EQ(read(&pawn), 730);
   pawn.maximum = 1317;
@@ -122,6 +125,7 @@ class EntityImage {
   // SetIdentity plants an identity record at entity index pointing back at
   // instance through m_pEntity.
   unsigned char* SetIdentity(uint32_t index, void* instance, uint32_t serial, uint32_t flags) {
+    // Write the identity's instance, handle and flags, and point the instance back at it.
     unsigned char* identity = chunk_.get() + index * kIdentityStride;
     WritePointer(identity + kIdentityInstanceOffset, instance);
     const uint32_t ehandle = HandleOf(index, serial);
@@ -186,6 +190,7 @@ EntityLayout FixtureLayout() {
 }
 
 EntityLayout MovementFixtureLayout(bool velocity = true, bool ground = true) {
+  // Add the requested movement fields to the fixture layout.
   EntityLayout layout = FixtureLayout();
   MovementLayout movement;
   if (velocity) {
@@ -199,6 +204,7 @@ EntityLayout MovementFixtureLayout(bool velocity = true, bool ground = true) {
 }
 
 PawnObserver::Seams SeamsFor(Fixture& fixture) {
+  // Serve the fixture's entity system, slot and layout.
   PawnObserver::Seams seams;
   seams.entity_system = [&fixture]() -> std::expected<void*, std::string> {
     return fixture.image.System();
@@ -229,6 +235,7 @@ PawnObserver::Seams HeroSeamsFor(Fixture& fixture) {
 }
 
 TEST(PawnObserver, PrepareResolvesBeforeAnyPlayerArrives) {
+  // Count layout resolutions and preparations with no player present.
   Fixture fixture;
   fixture.occupied = false;
   auto seams = SeamsFor(fixture);
@@ -241,6 +248,8 @@ TEST(PawnObserver, PrepareResolvesBeforeAnyPlayerArrives) {
   seams.prepare = [&prepared] {
     ++prepared;
   };
+
+  // Prepare resolves the layout once.
   PawnObserver observer(seams);
   observer.Prepare();
   EXPECT_EQ(layouts, 1);
@@ -253,17 +262,22 @@ TEST(PawnObserver, PrepareResolvesBeforeAnyPlayerArrives) {
 }
 
 TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets) {
+  // Seat a player with a controller and a hero pawn.
   Fixture fixture;
   fixture.occupied = true;
   fixture.controller = MakeController(HandleOf(2, 7));
   Instance pawn{}, body{}, scene{};
   WritePointer(pawn.data() + kBodyComponentField, body.data());
   WritePointer(body.data() + kSceneNodeField, scene.data());
+
+  // Give the pawn a hero and a team, and register both entities.
   const uint32_t hero = 14;
   std::memcpy(pawn.data() + kHeroField, &hero, sizeof(hero));
   pawn[kTeamField] = 2;
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
+
+  // Observe the pawn's wallet and abilities.
   auto seams = SeamsFor(fixture);
   seams.layout = []() -> std::expected<EntityLayout, std::string> {
     auto layout = FixtureLayout();
@@ -274,9 +288,12 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
     return modlock::gameinterop::AbilityLayout{};
   };
   PawnObserver observer{std::move(seams)};
+
+  // A reset leaves 500 souls, and each grant follows its reset.
   static unsigned resets, grants;
   resets = grants = 0;
   const auto reset = +[](void* entity, bool abilities) -> int64_t {
+    // Reset the wallet to 500 souls.
     EXPECT_TRUE(abilities);
     ++resets;
     const std::array<int32_t, 3> starting{500, 0, 0};
@@ -285,18 +302,23 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
   };
   const auto grant = +[](void* entity, uint32_t type, int32_t amount, uint32_t source,
                          uint8_t silent, uint8_t force, uint8_t spend, void*, void*) {
+    // Each grant follows its reset and is a silent, forced cheat grant.
     EXPECT_EQ(resets, ++grants);
     EXPECT_EQ(type, 0u);
     EXPECT_EQ(source, 7u);
     EXPECT_EQ(silent, 1);
     EXPECT_EQ(force, 1);
     EXPECT_EQ(spend, 0);
+
+    // Apply the amount to the balance.
     auto* address = static_cast<unsigned char*>(entity) + 0x80;
     int32_t balance;
     std::memcpy(&balance, address, sizeof(balance));
     balance += amount;
     std::memcpy(address, &balance, sizeof(balance));
   };
+
+  // Each budget resets the wallet, then grants up to it.
   for (int32_t souls : {20000, 40000, 10000, 0}) {
     auto result = observer.ResetStartingSouls(0, souls, grant, reset);
     ASSERT_TRUE(result) << result.error();
@@ -305,6 +327,8 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
   }
   EXPECT_FALSE(observer.ResetStartingSouls(0, -1, grant, reset));
   EXPECT_EQ(resets, 4u);
+
+  // A reset that changes the hero is refused before any grant.
   const auto changed_hero = +[](void* entity, bool) -> int64_t {
     const uint32_t hero = 15;
     std::memcpy(static_cast<unsigned char*>(entity) + kHeroField, &hero, sizeof(hero));
@@ -312,6 +336,8 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
   };
   EXPECT_FALSE(observer.ResetStartingSouls(0, 20000, grant, changed_hero));
   EXPECT_EQ(grants, 4u);
+
+  // So is a reset that reconnects the player.
   static Fixture* active_fixture;
   active_fixture = &fixture;
   const auto reconnect = +[](void*, bool) -> int64_t {
@@ -324,22 +350,29 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
 }
 
 TEST(PawnObserver, ObservesRetainedDeadHeroAfterActivePawnBecomesSpectator) {
+  // The controller's active pawn is a spectator while its hero handle names a dead hero.
   Fixture fixture;
   fixture.occupied = true;
   fixture.controller = MakeController(HandleOf(3, 8));
   fixture.controller[kTeamField] = 2;
   const auto hero_handle = HandleOf(2, 7);
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
+
+  // Build the hero and the spectator.
   Instance hero{}, body{}, scene{}, spectator{};
   WritePointer(hero.data() + kBodyComponentField, body.data());
   WritePointer(body.data() + kSceneNodeField, scene.data());
   const uint32_t hero_id = 15;
   std::memcpy(hero.data() + kHeroField, &hero_id, sizeof(hero_id));
   hero[kTeamField] = 2;
+
+  // Register the controller, hero and spectator.
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, hero.data(), 7, 0);
   fixture.image.SetIdentity(3, spectator.data(), 8, 0);
   PawnObserver observer{HeroSeamsFor(fixture)};
+
+  // The observation reads the dead hero, not the spectator.
   const auto sample = observer.Observe();
   ASSERT_TRUE(sample);
   EXPECT_EQ(sample->pawn_handle, hero_handle);
@@ -348,11 +381,15 @@ TEST(PawnObserver, ObservesRetainedDeadHeroAfterActivePawnBecomesSpectator) {
 }
 
 TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
+  // Seat the player in slot zero.
   Fixture fixture;
+
   // The human's chain: controller at index 1, its pawn at index 2 serial 7.
   constexpr uint32_t kPawnSerial = 7;
   const uint32_t pawn_handle = HandleOf(2, kPawnSerial);
   fixture.controller = MakeController(pawn_handle);
+
+  // Give the pawn an origin through its body and scene node.
   Instance pawn_body{};
   Instance pawn_scene{};
   Instance pawn{};
@@ -361,10 +398,13 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   std::memcpy(pawn_scene.data() + kAbsOriginField, origin, sizeof(origin));
   WritePointer(pawn.data() + kBodyComponentField, pawn_body.data());
 
+  // Give the pawn a hero and a team.
   uint32_t hero = 14;
   int32_t health = 800;
   std::memcpy(pawn.data() + kHeroField, &hero, sizeof(hero));
   pawn[kTeamField] = 2;
+
+  // Set its angles and health.
   const std::array<float, 3> eye_angles{3.8671875f, 268.2422f, 0};
   std::memcpy(pawn.data() + 0x68, eye_angles.data(), sizeof(eye_angles));
   const std::array<float, 3> camera_angles{4.21875f, 270, 0};
@@ -376,6 +416,8 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   Instance decoy{};
   const uint32_t decoy_handle = HandleOf(9, 3);
   std::memcpy(decoy.data() + kPawnHandleField, &decoy_handle, sizeof(decoy_handle));
+
+  // Give the decoy its own origin.
   const float decoy_origin[3] = {999.0f, 888.0f, 777.0f};
   Instance decoy_body{};
   Instance decoy_scene{};
@@ -383,16 +425,21 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   std::memcpy(decoy_scene.data() + kAbsOriginField, decoy_origin, sizeof(decoy_origin));
   WritePointer(decoy.data() + kBodyComponentField, decoy_body.data());
 
+  // Register the controller, pawn and decoy.
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), kPawnSerial, 0);
   fixture.image.SetIdentity(4, decoy.data(), 3, 0);
 
+  // Give the pawn a wallet.
   const std::array<int32_t, 3> currencies{20000, 17, 2};
   std::memcpy(pawn.data() + 0x80, currencies.data(), sizeof(currencies));
+
   // The scoreboard lives on the owning controller at index 1, not on the
   // pawn; the fixture lays its counters out in ScoreTotals order.
   const modlock::gameinterop::ScoreTotals totals{45230, 8120, 3980, 21, 9, 17, 112, 14, 23650};
   std::memcpy(fixture.controller.data() + kPlayerDataGlobalField, &totals, sizeof(totals));
+
+  // Observe through a layout with the wallet and scoreboard, and a max health getter that can fail.
   bool getter_available = true;
   auto seams = SeamsFor(fixture);
   seams.layout = []() -> std::expected<EntityLayout, std::string> {
@@ -409,16 +456,21 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
     return getter_available ? std::optional<int32_t>{1317} : std::nullopt;
   };
   PawnObserver observer{std::move(seams)};
+
+  // The first observation reads the wallet.
   fixture.occupied = true;
   auto sample = observer.Observe();
   ASSERT_TRUE(sample.has_value());
   ASSERT_TRUE(sample->currencies);
   EXPECT_EQ(*sample->currencies, currencies);
+
+  // Count the starting grants.
   static unsigned currency_calls;
   currency_calls = 0;
   const auto grant =
       +[](void* entity, uint32_t type, int32_t amount, uint32_t source, uint8_t silent,
           uint8_t force_gain, uint8_t spend_only, void* ability, void* source_entity) {
+        // Each grant is a silent, forced cheat grant of souls.
         ++currency_calls;
         EXPECT_EQ(type, 0u);
         EXPECT_EQ(source, 7u);
@@ -427,12 +479,16 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
         EXPECT_EQ(spend_only, 0);
         EXPECT_EQ(ability, nullptr);
         EXPECT_EQ(source_entity, nullptr);
+
+        // Apply the amount to the balance.
         auto* address = static_cast<unsigned char*>(entity) + 0x80;
         int32_t current;
         std::memcpy(&current, address, sizeof(current));
         current += amount;
         std::memcpy(address, &current, sizeof(current));
       };
+
+  // A wallet at the starting souls takes no grant; one below takes one.
   ASSERT_TRUE(observer.PrepareStartingSouls(0, 20000, grant));
   EXPECT_EQ(currency_calls, 0u);
   int32_t balance = 18000;
@@ -440,18 +496,25 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   ASSERT_TRUE(observer.PrepareStartingSouls(0, 20000, grant));
   EXPECT_EQ(currency_calls, 1u);
   EXPECT_EQ((*observer.Observe()->currencies)[0], 20000);
+
+  // A wallet above the starting souls keeps its balance.
   balance = 30000;
   std::memcpy(pawn.data() + 0x80, &balance, sizeof(balance));
   ASSERT_TRUE(observer.PrepareStartingSouls(0, 20000, grant));
   EXPECT_EQ(currency_calls, 1u);
   EXPECT_EQ((*observer.Observe()->currencies)[0], 30000);
+
+  // An empty wallet takes one grant, and a second call none.
   balance = 0;
   std::memcpy(pawn.data() + 0x80, &balance, sizeof(balance));
   ASSERT_TRUE(observer.PrepareStartingSouls(0, 20000, grant));
   ASSERT_TRUE(observer.PrepareStartingSouls(0, 20000, grant));
   EXPECT_EQ(currency_calls, 2u);
+
+  // Ability points and unlocks come from their own grants, once.
   const auto ability_grant = +[](void* entity, uint32_t type, int32_t amount, uint32_t source,
                                  uint8_t, uint8_t, uint8_t, void*, void*) {
+    // Apply an ability point or unlock grant to its balance.
     EXPECT_TRUE(type == 1u || type == 2u);
     EXPECT_EQ(source, 7u);
     auto* address = static_cast<unsigned char*>(entity) + 0x80 + sizeof(int32_t) * type;
@@ -467,6 +530,7 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_EQ((*prepared->currencies)[2], 4);
   ASSERT_TRUE(observer.PrepareAbilityPoints(0, ability_grant));
 
+  // The sample carries the score, identity and health.
   ASSERT_TRUE(sample->score);
   EXPECT_EQ(*sample->score, totals);
   EXPECT_EQ(sample->slot, 0);
@@ -475,11 +539,15 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_EQ(sample->health, 800);
   EXPECT_EQ(sample->effective_max_health, 1317);
   EXPECT_EQ(sample->max_health, 0);
+
+  // A failed max health getter leaves the effective maximum absent.
   getter_available = false;
   auto unavailable = observer.Observe();
   ASSERT_TRUE(unavailable);
   EXPECT_FALSE(unavailable->effective_max_health);
   getter_available = true;
+
+  // The sample carries the pose and the connection.
   EXPECT_EQ(sample->eye_angles, eye_angles);
   EXPECT_EQ(sample->camera_angles, camera_angles);
   EXPECT_EQ(sample->steam_id, fixture.xuid);
@@ -487,6 +555,8 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_EQ(sample->x, 1.5);
   EXPECT_EQ(sample->y, -2.25);
   EXPECT_EQ(sample->z, 300.0);
+
+  // The frame's pawn and origin belong to slot zero only.
   EXPECT_EQ(observer.PawnForSlot(0), pawn.data());
   EXPECT_EQ(observer.PawnForSlot(1), nullptr);
   auto current = observer.CurrentOriginForSlot(0);
@@ -501,6 +571,8 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   origin[1] = -17.0f;
   origin[2] = 9.0f;
   std::memcpy(pawn_scene.data() + kAbsOriginField, origin, sizeof(origin));
+
+  // The accessor reads the new origin.
   current = observer.CurrentOriginForSlot(0);
   ASSERT_TRUE(current.has_value());
   EXPECT_FLOAT_EQ((*current)[0], 42.0f);
@@ -516,6 +588,7 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   ASSERT_TRUE(sample);
   EXPECT_EQ(sample->slot, 7);
   EXPECT_EQ(sample->steam_id, fixture.xuid);
+
   // The totals follow the same owned controller/pawn identity as the pose.
   ASSERT_TRUE(sample->score);
   EXPECT_EQ(*sample->score, totals);
@@ -526,10 +599,13 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
 }
 
 TEST(PawnObserver, MissingScoreSchemaLeavesScoreAbsentAndPoseIntact) {
+  // Seat a player with a controller.
   Fixture fixture;
   fixture.occupied = true;
   const uint32_t pawn_handle = HandleOf(2, 7);
   fixture.controller = MakeController(pawn_handle);
+
+  // Give the pawn an origin and register both entities.
   Instance pawn{}, body{}, scene{};
   const float origin[3] = {5.0f, 6.0f, 7.0f};
   WritePointer(pawn.data() + kBodyComponentField, body.data());
@@ -550,11 +626,15 @@ TEST(PawnObserver, MissingScoreSchemaLeavesScoreAbsentAndPoseIntact) {
 }
 
 TEST(PawnObserver, OccupancyComesFromTheGameClientsSeamNotEntityBytes) {
+  // Seat the player in slot zero.
   Fixture fixture;
+
   // Full controller and pawn chains exist, but the game clients seam reports
   // the slot empty: nothing may be selected from raw entity bytes alone.
   const uint32_t pawn_handle = HandleOf(2, 7);
   fixture.controller = MakeController(pawn_handle);
+
+  // Give the pawn an origin.
   Instance pawn{};
   Instance pawn_body{};
   Instance pawn_scene{};
@@ -562,31 +642,40 @@ TEST(PawnObserver, OccupancyComesFromTheGameClientsSeamNotEntityBytes) {
   WritePointer(pawn_body.data() + kSceneNodeField, pawn_scene.data());
   std::memcpy(pawn_scene.data() + kAbsOriginField, origin, sizeof(origin));
   WritePointer(pawn.data() + kBodyComponentField, pawn_body.data());
+
+  // Register both entities.
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
 
+  // Observing selects nothing.
   PawnObserver observer{SeamsFor(fixture)};
   EXPECT_FALSE(observer.Observe().has_value());
   EXPECT_EQ(observer.PawnForSlot(0), nullptr);
 }
 
 TEST(PawnObserver, SerialProofRejectsAMismatchedPawnHandle) {
+  // Seat the player in slot zero.
   Fixture fixture;
+
   // The controller names pawn index 2 serial 8; the identity stores serial 7.
   fixture.controller = MakeController(HandleOf(2, 8));
   Instance pawn{};
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
 
+  // Observing rejects the pawn.
   PawnObserver observer{SeamsFor(fixture)};
   fixture.occupied = true;
   EXPECT_FALSE(observer.Observe().has_value());
 }
 
 TEST(PawnObserver, MissedFramesDoNotRearmDisconnectAndNewIdentityDo) {
+  // Seat a player with a controller.
   Fixture fixture;
   const uint32_t pawn_handle = HandleOf(2, 7);
   fixture.controller = MakeController(pawn_handle);
+
+  // Give the pawn an origin.
   Instance pawn{};
   Instance pawn_body{};
   Instance pawn_scene{};
@@ -594,12 +683,16 @@ TEST(PawnObserver, MissedFramesDoNotRearmDisconnectAndNewIdentityDo) {
   WritePointer(pawn_body.data() + kSceneNodeField, pawn_scene.data());
   std::memcpy(pawn_scene.data() + kAbsOriginField, origin, sizeof(origin));
   WritePointer(pawn.data() + kBodyComponentField, pawn_body.data());
+
+  // Register both entities.
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
 
+  // Observe an occupied slot.
   PawnObserver observer{SeamsFor(fixture)};
   fixture.occupied = true;
 
+  // The first observation starts at generation zero.
   auto first = observer.Observe();
   ASSERT_TRUE(first.has_value());
   EXPECT_EQ(first->session_generation, 0u);
@@ -633,6 +726,7 @@ TEST(PawnObserver, MissedFramesDoNotRearmDisconnectAndNewIdentityDo) {
 }
 
 TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
+  // Seat a player with a controller and a pawn.
   Fixture fixture;
   fixture.occupied = true;
   const uint32_t pawn_handle = HandleOf(2, 7);
@@ -640,9 +734,13 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   Instance pawn{}, body{}, scene{}, ability{};
   WritePointer(pawn.data() + kBodyComponentField, body.data());
   WritePointer(body.data() + kSceneNodeField, scene.data());
+
+  // Register the controller, pawn and ability.
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
   fixture.image.SetIdentity(3, ability.data(), 9, 0);
+
+  // Give the pawn a handle vector whose live entry is the ability, which it owns.
   const uint32_t ability_handle = HandleOf(3, 9);
   uint32_t handles[] = {0xFFFFFFFF, ability_handle, ability_handle};
   const int32_t count = 2;
@@ -651,21 +749,29 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   WritePointer(pawn.data() + 0xc8, handles);
   std::memcpy(pawn.data() + 0xd0, &capacity, sizeof(capacity));
   std::memcpy(ability.data() + 0x30, &pawn_handle, sizeof(pawn_handle));
+
+  // Give the ability its subclass, slot and wall jump count.
   const uint32_t subclass = 0xf1234567;
   const uint16_t slot = 12;
   ability[0x3A] = 2;
   std::memcpy(ability.data() + 0x34, &subclass, sizeof(subclass));
   std::memcpy(ability.data() + 0x38, &slot, sizeof(slot));
+
+  // Choose its upgrades, charges and timers.
   const uint32_t upgrade_info = 0x70001;
   const int32_t charges = 2;
   const float cooldown = 123.25f;
   const float cooldown_start = 100.5f, recharge_start = 105.75f, recharge_end = 110.25f;
+
+  // Write them into the ability.
   std::memcpy(ability.data() + 0x48, &cooldown_start, sizeof(cooldown_start));
   std::memcpy(ability.data() + 0x4c, &recharge_start, sizeof(recharge_start));
   std::memcpy(ability.data() + 0x50, &recharge_end, sizeof(recharge_end));
   std::memcpy(ability.data() + 0x3c, &upgrade_info, sizeof(upgrade_info));
   std::memcpy(ability.data() + 0x40, &charges, sizeof(charges));
   std::memcpy(ability.data() + 0x44, &cooldown, sizeof(cooldown));
+
+  // Observe through the ability layout and the movement layout.
   auto seams = SeamsFor(fixture);
   seams.ability_layout = []() -> std::expected<modlock::gameinterop::AbilityLayout, std::string> {
     return modlock::gameinterop::AbilityLayout{.handles = 0xc0,
@@ -684,12 +790,16 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
     return MovementFixtureLayout();
   };
   PawnObserver observer{std::move(seams), true};
+
+  // Abilities read only after an observation, and movement reads the jump ability.
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   const auto observed = observer.Observe();
   ASSERT_TRUE(observed);
   ASSERT_TRUE(observed->movement);
   EXPECT_EQ(observed->movement->jump_ability_handle, ability_handle);
   EXPECT_EQ(observed->movement->consecutive_wall_jumps, 2);
+
+  // The loadout holds the one live ability.
   auto actual = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(actual) << actual.error();
   ASSERT_EQ(actual->size(), 1u);
@@ -697,11 +807,15 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   EXPECT_EQ(actual->front().subclass_id, subclass);
   EXPECT_EQ(actual->front().slot, slot);
   EXPECT_EQ(actual->front().consecutive_wall_jumps, 2);
+
+  // An invalid wall jump count reads as absent.
   ability[0x3A] = 0xFF;
   const auto invalid_count = observer.Observe();
   ASSERT_TRUE(invalid_count);
   EXPECT_FALSE(invalid_count->movement->consecutive_wall_jumps);
   ability[0x3A] = 0;
+
+  // The ability carries its upgrades and timers, and only for its own slot.
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(1));
   EXPECT_EQ(actual->front().upgrade_info, upgrade_info);
   EXPECT_EQ(actual->front().charges, charges);
@@ -709,6 +823,8 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   EXPECT_EQ(actual->front().cooldown_start, cooldown_start);
   EXPECT_EQ(actual->front().charge_recharge_start, recharge_start);
   EXPECT_EQ(actual->front().charge_recharge_end, recharge_end);
+
+  // A timer that is not finite rejects the loadout.
   for (const auto offset : {0x48, 0x4c, 0x50}) {
     float saved;
     std::memcpy(&saved, ability.data() + offset, sizeof(saved));
@@ -722,21 +838,29 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   std::memcpy(ability.data() + 0x44, &cooldown, sizeof(cooldown));
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(1));
+
+  // Count the upgrade bits writes.
   static int writes = 0;
   writes = 0;
   const auto set_bits = +[](void* entity, uint32_t bits) {
     ++writes;
     std::memcpy(static_cast<unsigned char*>(entity) + 0x3e, &bits, sizeof(uint16_t));
   };
+
+  // An invalid batch writes nothing.
   const modlock::gameinterop::AbilityUpgrade target{subclass, slot, 0xf0001};
   const std::array invalid_targets{target, modlock::gameinterop::AbilityUpgrade{123, 2, 0x10001}};
   EXPECT_FALSE(observer.ApplyAbilityUpgrades(0, invalid_targets, set_bits));
   EXPECT_EQ(writes, 0);  // Validate the whole request before touching the first ability.
+
+  // A valid one writes once, then never again.
   const std::array targets{target};
   ASSERT_TRUE(observer.ApplyAbilityUpgrades(0, targets, set_bits));
   EXPECT_EQ(writes, 1);
   ASSERT_TRUE(observer.ApplyAbilityUpgrades(0, targets, set_bits));
   EXPECT_EQ(writes, 1);  // An already restored mask has no second engine side effect.
+
+  // A different low word cannot be restored.
   const std::array wrong_low_word{modlock::gameinterop::AbilityUpgrade{subclass, slot, 0xf0002}};
   EXPECT_FALSE(observer.ApplyAbilityUpgrades(0, wrong_low_word, set_bits));
   EXPECT_EQ(writes, 1);
@@ -755,9 +879,12 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   if (!changed) {
     EXPECT_EQ(changed.error(), "controller pawn changed during this frame");
   }
+
+  // Restore the pawn.
   std::memcpy(fixture.controller.data() + kPawnHandleField, &pawn_handle, sizeof(pawn_handle));
   changing_controller = nullptr;
 
+  // A reconnect expires the frame until the next observation.
   ++fixture.generation;
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   ASSERT_TRUE(observer.Observe());
@@ -769,13 +896,19 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   fixture.image.SetIdentity(3, nullptr, 9, 0);
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   fixture.image.SetIdentity(3, ability.data(), 9, 0);
+
+  // An ability owned by another pawn rejects the loadout.
   const uint32_t wrong_owner = HandleOf(2, 6);
   std::memcpy(ability.data() + 0x30, &wrong_owner, sizeof(wrong_owner));
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
   std::memcpy(ability.data() + 0x30, &pawn_handle, sizeof(pawn_handle));
+
+  // So does a vector that names the ability twice.
   const int32_t duplicate_count = 3;
   std::memcpy(pawn.data() + 0xc0, &duplicate_count, sizeof(duplicate_count));
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
+
+  // Two jump abilities leave the movement's jump ability ambiguous.
   Instance second_ability = ability;
   fixture.image.SetIdentity(4, second_ability.data(), 10, 0);
   handles[2] = HandleOf(4, 10);
@@ -784,6 +917,8 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   ASSERT_TRUE(ambiguous->movement);
   EXPECT_FALSE(ambiguous->movement->jump_ability_handle);
   EXPECT_FALSE(ambiguous->movement->consecutive_wall_jumps);
+
+  // An oversized vector is rejected; an empty one reads as no abilities.
   const int32_t oversized_count = 257;
   std::memcpy(pawn.data() + 0xc0, &oversized_count, sizeof(oversized_count));
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
@@ -792,6 +927,8 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   actual = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(actual);
   EXPECT_TRUE(actual->empty());
+
+  // An empty slot has no frame.
   fixture.occupied = false;
   EXPECT_FALSE(observer.Observe());
   EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
@@ -809,15 +946,20 @@ struct ItemFixture {
   static ItemFixture* current;
 
   ItemFixture() {
+    // Seat the controller and give the pawn its body and scene.
     current = this;
     connection.occupied = true;
     connection.controller = MakeController(HandleOf(2, 7));
     WritePointer(pawn.data() + kBodyComponentField, body.data());
     WritePointer(body.data() + kSceneNodeField, scene.data());
+
+    // Register the controller, the pawn and both abilities.
     connection.image.SetIdentity(1, connection.controller.data(), 1, 0);
     connection.image.SetIdentity(2, pawn.data(), 7, 0);
     connection.image.SetIdentity(3, hero.data(), 9, 0);
     connection.image.SetIdentity(4, item.data(), 10, 0);
+
+    // Give the pawn a hero ability and an item, in a vector with room for four.
     InitAbility(hero, 100, 0);
     InitAbility(item, 200, 23);
     handles[0] = HandleOf(3, 9);
@@ -830,6 +972,7 @@ struct ItemFixture {
   ~ItemFixture() { current = nullptr; }
   void SetCount(int32_t count) { std::memcpy(pawn.data() + 0xc0, &count, sizeof(count)); }
   void InitAbility(Instance& entity, uint32_t id, uint16_t slot) {
+    // Owned by the pawn, with its subclass, slot and packed upgrade.
     const uint32_t owner = HandleOf(2, 7), packed = 1;
     std::memcpy(entity.data() + 0x30, &owner, 4);
     std::memcpy(entity.data() + 0x34, &id, 4);
@@ -854,6 +997,7 @@ struct ItemFixture {
     return seams;
   }
   static void* Lookup(int32_t scope, uint32_t id) {
+    // Name the three known subclasses in scope 4.
     EXPECT_EQ(scope, 4);
     const char* name = id == 100   ? "bull_heal"
                        : id == 200 ? "upgrade_old"
@@ -868,6 +1012,7 @@ struct ItemFixture {
   }
   static modlock::gameinterop::ItemFunctions Functions() {
     return {+[](void* pawn, const char* name, uint64_t upgrade, void* extra) -> void* {
+              // Check the grant's arguments, count it, and apply it when asked.
               auto& f = *current;
               EXPECT_EQ(pawn, f.pawn.data());
               EXPECT_STREQ(name, "upgrade_new");
@@ -886,6 +1031,7 @@ struct ItemFixture {
               return f.item.data();
             },
             +[](void* component, void* item, uint8_t flag) {
+              // Check the removal's arguments, count it, and apply it when asked.
               auto& f = *current;
               EXPECT_EQ(component, f.pawn.data() + 0x48);
               EXPECT_EQ(item, f.item.data());
@@ -910,27 +1056,37 @@ struct ItemFixture {
 ItemFixture* ItemFixture::current = nullptr;
 
 TEST(PawnObserver, GrantsAnItemOnceAndPreservesTheExistingLoadout) {
+  // Observe a pawn that has room for a granted item.
   ItemFixture fixture;
   fixture.connection.image.SetIdentity(5, fixture.granted_item.data(), 11, 0);
   PawnObserver observer(fixture.Seams());
   ASSERT_TRUE(observer.Observe());
   modlock::gameinterop::AbilityDefinitions definitions(ItemFixture::Lookup);
   auto functions = ItemFixture::Functions();
+
+  // The engine grants the item into the third handle.
   functions.add = +[](void* pawn, const char* name, uint64_t upgrade, void* extra) -> void* {
+    // Check the grant's arguments.
     auto& fixture = *ItemFixture::current;
     EXPECT_EQ(pawn, fixture.pawn.data());
     EXPECT_STREQ(name, "upgrade_new");
     EXPECT_EQ(upgrade, 0u);
     EXPECT_EQ(extra, nullptr);
+
+    // Count it and append the granted item.
     ++fixture.adds;
     fixture.InitAbility(fixture.granted_item, 201, 4);
     fixture.handles[2] = HandleOf(5, 11);
     fixture.SetCount(3);
     return fixture.granted_item.data();
   };
+
+  // Unknown and non-item subclasses grant nothing.
   EXPECT_FALSE(observer.GrantItem(0, 999, definitions, functions));
   EXPECT_FALSE(observer.GrantItem(0, 100, definitions, functions));
   EXPECT_EQ(fixture.adds, 0);
+
+  // A valid item grants once, into its slot.
   const auto item = observer.GrantItem(0, 201, definitions, functions);
   ASSERT_TRUE(item) << item.error();
   EXPECT_EQ(item->slot, 4);
@@ -938,6 +1094,8 @@ TEST(PawnObserver, GrantsAnItemOnceAndPreservesTheExistingLoadout) {
   ASSERT_TRUE(observer.GrantItem(0, 201, definitions, functions));
   EXPECT_EQ(fixture.adds, 1);
   EXPECT_EQ(fixture.removes, 0);
+
+  // The existing loadout stays in front.
   const auto owned = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(owned);
   ASSERT_EQ(owned->size(), 3);
@@ -946,16 +1104,21 @@ TEST(PawnObserver, GrantsAnItemOnceAndPreservesTheExistingLoadout) {
 }
 
 TEST(PawnObserver, ReconcilesItemsIdempotentlyWithoutRemovingHeroAbilities) {
+  // Observe the fixture's loadout.
   ItemFixture fixture;
   PawnObserver observer(fixture.Seams());
   ASSERT_TRUE(observer.Observe());
   modlock::gameinterop::AbilityDefinitions definitions(ItemFixture::Lookup);
   const std::array targets{modlock::gameinterop::ItemTarget{201, 0x10001}};
   const auto functions = ItemFixture::Functions();
+
+  // A batch with an unknown item changes nothing.
   const std::array invalid{targets[0], modlock::gameinterop::ItemTarget{999, 0x10001}};
   EXPECT_FALSE(observer.ReconcileItems(0, invalid, definitions, functions));
   EXPECT_EQ(fixture.removes, 0);
   EXPECT_EQ(fixture.adds, 0);
+
+  // Reconciling replaces the item once, then does nothing.
   ASSERT_TRUE(observer.ReconcileItems(0, targets, definitions, functions));
   EXPECT_EQ(fixture.removes, 1);
   EXPECT_EQ(fixture.adds, 1);
@@ -963,6 +1126,8 @@ TEST(PawnObserver, ReconcilesItemsIdempotentlyWithoutRemovingHeroAbilities) {
   EXPECT_EQ(fixture.removes, 1);
   EXPECT_EQ(fixture.adds, 1);
   EXPECT_EQ(fixture.writes, 0);
+
+  // The hero ability survives.
   auto owned = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(owned);
   ASSERT_EQ(owned->size(), 2u);
@@ -970,18 +1135,25 @@ TEST(PawnObserver, ReconcilesItemsIdempotentlyWithoutRemovingHeroAbilities) {
 }
 
 TEST(PawnObserver, RejectsFalseItemDispatchAndLostConnection) {
+  // Observe the fixture's loadout.
   ItemFixture fixture;
   PawnObserver observer(fixture.Seams());
   ASSERT_TRUE(observer.Observe());
   modlock::gameinterop::AbilityDefinitions definitions(ItemFixture::Lookup);
   const std::array targets{modlock::gameinterop::ItemTarget{201, 0x10001}};
+
+  // A grant the engine does not apply fails after the removal.
   fixture.apply = false;
   EXPECT_FALSE(observer.ReconcileItems(0, targets, definitions, ItemFixture::Functions()));
   EXPECT_EQ(fixture.removes, 1);
   EXPECT_EQ(fixture.adds, 0);
+
+  // A grant that does not appear in the vector fails too.
   fixture.SetCount(1);
   EXPECT_FALSE(observer.ReconcileItems(0, targets, definitions, ItemFixture::Functions()));
   EXPECT_EQ(fixture.adds, 1);  // A non-null returned pointer cannot certify a grant.
+
+  // A disconnect during the removal stops before the grant.
   fixture.apply = true;
   fixture.SetCount(2);
   fixture.disconnect_on_remove = true;
@@ -1018,14 +1190,18 @@ PawnObserver::Seams StaminaSeams(ItemFixture& fixture) {
 }
 
 TEST(PawnObserver, ReconcilesMissingAuxiliaryAbilityThroughItsNativeOwner) {
+  // Observe a pawn with no abilities.
   ItemFixture fixture;
   fixture.SetCount(0);
   PawnObserver observer{fixture.Seams()};
   ASSERT_TRUE(observer.Observe());
   modlock::gameinterop::AbilityDefinitions definitions(ItemFixture::Lookup);
   const std::array targets{modlock::gameinterop::AbilityUpgrade{100, 8, 65537}};
+
+  // The native owner creates the hero ability in its slot.
   const auto create = +[](void* component, void* definition, uint16_t slot, uint64_t upgrade,
                           bool flag, void* extra) -> void* {
+    // Check the creation's arguments.
     auto& fixture = *ItemFixture::current;
     EXPECT_EQ(component, fixture.pawn.data() + 0x48);
     EXPECT_EQ(definition, fixture.definition.data());
@@ -1033,6 +1209,8 @@ TEST(PawnObserver, ReconcilesMissingAuxiliaryAbilityThroughItsNativeOwner) {
     EXPECT_EQ(upgrade, 0u);
     EXPECT_TRUE(flag);
     EXPECT_EQ(extra, nullptr);
+
+    // Count it and create the ability when asked.
     ++fixture.adds;
     if (fixture.apply) {
       fixture.InitAbility(fixture.hero, 100, slot);
@@ -1040,23 +1218,35 @@ TEST(PawnObserver, ReconcilesMissingAuxiliaryAbilityThroughItsNativeOwner) {
     }
     return fixture.hero.data();
   };
+
+  // A creation the engine does not apply fails.
   const auto set_bits = ItemFixture::Functions().set_bits;
   fixture.apply = false;
   EXPECT_FALSE(observer.ReconcileAbilities(0, targets, definitions, create, set_bits));
+
+  // An applied creation restores the ability.
   fixture.apply = true;
   auto restored = observer.ReconcileAbilities(0, targets, definitions, create, set_bits);
   ASSERT_TRUE(restored) << restored.error();
+
+  // It sits in its slot with its upgrade, after two attempts.
   const auto abilities = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(abilities);
   ASSERT_EQ(abilities->size(), 1u);
   EXPECT_EQ(abilities->front().slot, 8);
   EXPECT_EQ(abilities->front().upgrade_info, 65537u);
   EXPECT_EQ(fixture.adds, 2);
+
+  // A second reconcile creates nothing.
   EXPECT_TRUE(observer.ReconcileAbilities(0, targets, definitions, create, set_bits));
   EXPECT_EQ(fixture.adds, 2);
+
+  // A different subclass in the slot is refused.
   const std::array conflict{modlock::gameinterop::AbilityUpgrade{201, 8, 65537}};
   EXPECT_FALSE(observer.ReconcileAbilities(0, conflict, definitions, create, set_bits));
   EXPECT_EQ(fixture.adds, 2);
+
+  // Abilities that share an unbound slot are left alone.
   fixture.InitAbility(fixture.hero, 100, 23);
   fixture.InitAbility(fixture.item, 101, 23);
   fixture.SetCount(2);
@@ -1085,10 +1275,13 @@ void WriteStamina(Instance& pawn, float current, float max, float latch_time, fl
 }  // namespace
 
 TEST(PawnObserver, ObservesStaminaOnlyWhenFiniteAndPositive) {
+  // Observe finite, positive stamina.
   ItemFixture fixture;
   PawnObserver observer{StaminaSeams(fixture)};
   fixture.connection.occupied = true;
   WriteStamina(fixture.pawn, 40.5f, 100.0f, 12.0f, 40.5f);
+
+  // It reads back as written.
   auto sample = observer.Observe();
   ASSERT_TRUE(sample);
   ASSERT_TRUE(sample->stamina);
@@ -1100,10 +1293,14 @@ TEST(PawnObserver, ObservesStaminaOnlyWhenFiniteAndPositive) {
   sample = observer.Observe();
   ASSERT_TRUE(sample);
   EXPECT_FALSE(sample->stamina);
+
+  // So does an infinite maximum.
   WriteStamina(fixture.pawn, 40.5f, std::numeric_limits<float>::infinity(), 0, 0);
   sample = observer.Observe();
   ASSERT_TRUE(sample);
   EXPECT_FALSE(sample->stamina);
+
+  // And a zero maximum.
   WriteStamina(fixture.pawn, 40.5f, 0.0f, 0, 0);
   sample = observer.Observe();
   ASSERT_TRUE(sample);
@@ -1118,6 +1315,7 @@ TEST(PawnObserver, ObservesStaminaOnlyWhenFiniteAndPositive) {
 }
 
 TEST(PawnObserver, SetsStaminaWithinNativeMaximumWithCallerTime) {
+  // Observe a pawn with stamina and seeded regen bookkeeping.
   ItemFixture fixture;
   AttachNotifyTable(fixture);
   PawnObserver observer{StaminaSeams(fixture)};
@@ -1150,11 +1348,15 @@ TEST(PawnObserver, SetsStaminaWithinNativeMaximumWithCallerTime) {
   std::memcpy(&max, fixture.pawn.data() + kStaminaMaxField, sizeof(max));
   std::memcpy(&latch_value, fixture.pawn.data() + kStaminaLatchValueField, sizeof(latch_value));
   std::memcpy(&latch_time, fixture.pawn.data() + kStaminaLatchTimeField, sizeof(latch_time));
+
+  // Current and latch value reach the maximum at the caller's time.
   EXPECT_FLOAT_EQ(current, 100.0f);
   EXPECT_FLOAT_EQ(latch_value, 100.0f);
   EXPECT_FLOAT_EQ(latch_time, 500.0f);
+
   // The native maximum itself is never rewritten.
   EXPECT_FLOAT_EQ(max, 100.0f);
+
   // The engine's regen bookkeeping survives the refill untouched.
   float regen = 0;
   std::memcpy(&regen, fixture.pawn.data() + kStaminaPrevRegenField, sizeof(regen));
@@ -1167,6 +1369,8 @@ TEST(PawnObserver, SetsStaminaWithinNativeMaximumWithCallerTime) {
   std::memcpy(&latch_value, fixture.pawn.data() + kStaminaLatchValueField, sizeof(latch_value));
   EXPECT_FLOAT_EQ(current, 0.0f);
   EXPECT_FLOAT_EQ(latch_value, 0.0f);
+
+  // A value past the maximum fills it.
   ASSERT_TRUE(observer.SetPracticeStamina(0, 503.0f, 250.0f));
   std::memcpy(&current, fixture.pawn.data() + kStaminaCurrentField, sizeof(current));
   EXPECT_FLOAT_EQ(current, 100.0f);
@@ -1181,10 +1385,12 @@ TEST(PawnObserver, SetsStaminaWithinNativeMaximumWithCallerTime) {
 // The notification can replace the pawn: the controller adopts a different
 // pawn handle and the image plants the new pawn at a fresh identity.
 TEST(PawnObserver, StaminaRestoreRejectsPawnReplacedDuringTheNotification) {
+  // Give the pawn a notification that replaces it with another pawn.
   ItemFixture fixture;
   auto seams = StaminaSeams(fixture);
   std::array<void*, 29> table{};
   table[28] = reinterpret_cast<void*>(+[](void*, const void*) {
+    // Bind the controller to a new pawn handle.
     auto& f = *ItemFixture::current;
     const uint32_t replacement = HandleOf(9, 3);
     f.connection.controller = MakeController(replacement);
@@ -1193,20 +1399,26 @@ TEST(PawnObserver, StaminaRestoreRejectsPawnReplacedDuringTheNotification) {
                 sizeof(replacement));
   });
   WritePointer(fixture.pawn.data(), table.data());
+
+  // Observe the pawn's stamina.
   PawnObserver observer{seams};
   fixture.connection.occupied = true;
   WriteStamina(fixture.pawn, 10.0f, 100.0f, 3.25f, 10.0f);
   ASSERT_TRUE(observer.Observe());
+
   // The notification swaps the pawn; the write must not report success.
   EXPECT_FALSE(observer.SetPracticeStamina(0, 500.0f));
 }
 
 TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
+  // Count each replication notification on both abilities.
   ItemFixture fixture;
   std::array<void*, 29> table{};
   table[28] = reinterpret_cast<void*>(+[](void*, const void*) { ++ItemFixture::current->writes; });
   WritePointer(fixture.hero.data(), table.data());
   WritePointer(fixture.item.data(), table.data());
+
+  // Observe the loadout and give each ability new timers.
   PawnObserver observer{fixture.Seams()};
   ASSERT_TRUE(observer.Observe());
   auto owned = observer.CurrentAbilitiesForSlot(0);
@@ -1219,21 +1431,31 @@ TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
     target.charge_recharge_start = 105;
     target.charge_recharge_end = 115;
   }
+
+  // A wrong handle writes nothing.
   auto invalid = targets;
   invalid.back().handle += 1;
   EXPECT_FALSE(observer.ApplyAbilityTimers(0, invalid));
   EXPECT_EQ(fixture.writes, 0);
+
+  // Neither does an infinite timer.
   invalid = targets;
   invalid.back().cooldown_end = std::numeric_limits<float>::infinity();
   EXPECT_FALSE(observer.ApplyAbilityTimers(0, invalid));
   EXPECT_EQ(fixture.writes, 0);
+
+  // Nor a duplicate ability.
   invalid = {targets.front(), targets.front()};
   EXPECT_FALSE(observer.ApplyAbilityTimers(0, invalid));
   EXPECT_EQ(fixture.writes, 0);
+
+  // A valid batch notifies each ability once, then nothing.
   ASSERT_TRUE(observer.ApplyAbilityTimers(0, targets));
   EXPECT_EQ(fixture.writes, 2);
   ASSERT_TRUE(observer.ApplyAbilityTimers(0, targets));
   EXPECT_EQ(fixture.writes, 2);
+
+  // The timers read back.
   owned = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(owned);
   EXPECT_EQ(owned->front().charges, 2);
@@ -1241,6 +1463,7 @@ TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
   EXPECT_EQ(owned->back().charge_recharge_end, 115);
   EXPECT_EQ(owned->back().upgrade_info, 1u);
 
+  // A notification that overwrites a timer fails the readback.
   table[28] = reinterpret_cast<void*>(+[](void* entity, const void*) {
     ++ItemFixture::current->writes;
     const float overwritten = 0;
@@ -1249,6 +1472,8 @@ TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
   targets.front().cooldown_end = 130;
   EXPECT_FALSE(observer.ApplyAbilityTimers(0, targets));
   EXPECT_EQ(fixture.writes, 3);
+
+  // So does one that disconnects the player.
   table[28] = reinterpret_cast<void*>(+[](void*, const void*) {
     ++ItemFixture::current->writes;
     ItemFixture::current->connection.occupied = false;
@@ -1256,6 +1481,7 @@ TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
   EXPECT_FALSE(observer.ApplyAbilityTimers(0, targets));
   EXPECT_EQ(fixture.writes, 4);
 
+  // After a reconnect, a notification that changes another ability's timer fails too.
   fixture.connection.occupied = true;
   ASSERT_TRUE(observer.Observe());
   table[28] = reinterpret_cast<void*>(+[](void* entity, const void*) {
@@ -1271,6 +1497,7 @@ TEST(PawnObserver, RestoresOwnedTimersWithReplicationAndReadback) {
 }
 
 TEST(PawnObserver, ReconcilesActiveItemSlotsThroughEngineSwap) {
+  // Observe a hero ability in slot 7 and an item in slot 4.
   ItemFixture fixture;
   fixture.InitAbility(fixture.hero, 201, 7);
   fixture.InitAbility(fixture.item, 200, 4);
@@ -1278,7 +1505,10 @@ TEST(PawnObserver, ReconcilesActiveItemSlotsThroughEngineSwap) {
   ASSERT_TRUE(observer.Observe());
   modlock::gameinterop::AbilityDefinitions definitions(ItemFixture::Lookup);
   auto functions = ItemFixture::Functions();
+
+  // The engine swaps two slots when asked.
   functions.swap_slots = +[](void* component, uint16_t first, uint16_t second) {
+    // Check and count the swap, then exchange the two slots when asked.
     auto& f = *ItemFixture::current;
     EXPECT_EQ(component, f.pawn.data() + 0x48);
     ++f.writes;
@@ -1296,20 +1526,28 @@ TEST(PawnObserver, ReconcilesActiveItemSlotsThroughEngineSwap) {
       std::memcpy(item->data() + 0x38, &slot, sizeof(slot));
     }
   };
+
+  // A target list with a duplicate slot writes nothing.
   const std::array targets{modlock::gameinterop::ItemTarget{200, 1, 7},
                            modlock::gameinterop::ItemTarget{201, 1, 4}};
   auto duplicate = targets;
   duplicate.back().slot = 7;
   EXPECT_FALSE(observer.ReconcileItems(0, duplicate, definitions, functions));
   EXPECT_EQ(fixture.writes, 0);
+
+  // Reconciling swaps once, then does nothing.
   ASSERT_TRUE(observer.ReconcileItems(0, targets, definitions, functions));
   EXPECT_EQ(fixture.writes, 1);
   ASSERT_TRUE(observer.ReconcileItems(0, targets, definitions, functions));
   EXPECT_EQ(fixture.writes, 1);
+
+  // The slots read back swapped.
   const auto owned = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(owned);
   EXPECT_EQ(owned->front().slot, 4);
   EXPECT_EQ(owned->back().slot, 7);
+
+  // A swap the engine does not apply fails.
   auto reversed = targets;
   reversed.front().slot = 4;
   reversed.back().slot = 7;
@@ -1319,6 +1557,7 @@ TEST(PawnObserver, ReconcilesActiveItemSlotsThroughEngineSwap) {
 }
 
 TEST(PawnObserver, FreshAbilityTargetsFullChargesAndClearedTimers) {
+  // Observe a pawn whose abilities hold five charges.
   ItemFixture fixture;
   auto seams = fixture.Seams();
   seams.max_charges = [](void*) -> std::expected<int32_t, std::string> {
@@ -1335,6 +1574,7 @@ TEST(PawnObserver, FreshAbilityTargetsFullChargesAndClearedTimers) {
   std::memcpy(fixture.hero.data() + 0x44, &cooldown, sizeof(cooldown));
   std::memcpy(fixture.item.data() + 0x44, &recharge, sizeof(recharge));
 
+  // Fresh targets hold full charges and no timers.
   auto targets = observer.FreshAbilityTargets(0);
   ASSERT_TRUE(targets) << targets.error();
   ASSERT_EQ(targets->size(), 2u);
@@ -1348,6 +1588,8 @@ TEST(PawnObserver, FreshAbilityTargetsFullChargesAndClearedTimers) {
   EXPECT_EQ((*targets)[0].subclass_id, 100u);
   EXPECT_EQ((*targets)[1].subclass_id, 200u);
   EXPECT_EQ(fixture.writes, 0);
+
+  // The abilities themselves are unchanged.
   const auto unchanged = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(unchanged);
   for (const auto& ability : *unchanged) {
@@ -1356,8 +1598,10 @@ TEST(PawnObserver, FreshAbilityTargetsFullChargesAndClearedTimers) {
 }
 
 TEST(PawnObserver, FreshAbilityTargetsHonorsExplicitZeroAndRejectsReadFailure) {
+  // Start from the fixture's seams.
   ItemFixture fixture;
   auto seams = fixture.Seams();
+
   // Native chargeless ability: the seam reports an explicit 0, not absence.
   seams.max_charges = [](void*) -> std::expected<int32_t, std::string> {
     return 0;
@@ -1386,8 +1630,10 @@ TEST(PawnObserver, FreshAbilityTargetsHonorsExplicitZeroAndRejectsReadFailure) {
 }
 
 TEST(PawnObserver, FreshAbilityTargetsRefusesWhenGetterMutatesOwnership) {
+  // Start from the fixture's seams.
   ItemFixture fixture;
   auto seams = fixture.Seams();
+
   // A getter that changes the connection generation must poison the batch.
   seams.max_charges = [](void*) -> std::expected<int32_t, std::string> {
     ++ItemFixture::current->connection.generation;
@@ -1400,6 +1646,7 @@ TEST(PawnObserver, FreshAbilityTargetsRefusesWhenGetterMutatesOwnership) {
 }
 
 TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
+  // Seat a player whose team change bumps the connection generation.
   static Fixture* active = nullptr;
   static int observer_spawns = 0;
   Fixture fixture;
@@ -1407,11 +1654,15 @@ TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
   fixture.generation = 7;
   active = &fixture;
   observer_spawns = 0;
+
+  // Install the team change in the controller's table.
   std::array<void*, 106> table{};
   table[105] = reinterpret_cast<void*>(+[](void*, int) { ++active->generation; });
   auto* table_ptr = table.data();
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+
+  // Count observer spawns.
   modlock::gameinterop::PlayerSelectionCalls calls;
   calls.spawn_observer = +[](void*) -> void* {
     ++observer_spawns;
@@ -1419,6 +1670,8 @@ TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
   };
   calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
   };
+
+  // Selection stops when the team change loses the connection.
   PawnObserver observer{HeroSeamsFor(fixture)};
   const auto refused = observer.SelectPlayer(0, fixture.xuid, 7, 1, nullptr, calls);
   ASSERT_FALSE(refused);
@@ -1428,6 +1681,7 @@ TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
 }
 
 TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
+  // Seat a player already on the spectator team.
   static int observer_spawns = 0;
   static Fixture* active = nullptr;
   observer_spawns = 0;
@@ -1436,12 +1690,16 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   fixture.occupied = true;
   fixture.generation = 3;
   fixture.controller[kTeamField] = 1;
+
+  // Fail on any team change.
   std::array<void*, 106> table{};
   table[105] =
       reinterpret_cast<void*>(+[](void*, int) { ADD_FAILURE() << "already on spectator team"; });
   auto* table_ptr = table.data();
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+
+  // Spawn the observer without publishing a pawn, and fail on any pawn bind.
   modlock::gameinterop::PlayerSelectionCalls calls;
   calls.spawn_observer = +[](void*) -> void* {
     ++observer_spawns;
@@ -1451,10 +1709,13 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
     ADD_FAILURE() << "already on spectator team";
   };
+
+  // Selection waits for the pawn and spawns once.
   PawnObserver observer{HeroSeamsFor(fixture)};
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
+
   // Once the same connection publishes a pawn, selection becomes ready and
   // later observer checks must reuse it rather than creating another actor.
   auto pawn = MakeController(0);
@@ -1464,11 +1725,14 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
+
+  // Another player's identity is refused.
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid + 1, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
 }
 
 TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
+  // Seat a player on team 2.
   static Fixture* active = nullptr;
   static std::vector<std::string> steps;
   Fixture fixture;
@@ -1477,6 +1741,8 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   fixture.occupied = true;
   fixture.generation = 3;
   fixture.controller[kTeamField] = 2;
+
+  // Bind them to a hero.
   Instance hero{};
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, hero.data(), 7, 0);
@@ -1495,6 +1761,7 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
   modlock::gameinterop::PlayerSelectionCalls calls;
   calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool, bool) {
+    // Unbind the pawn and keep its team.
     EXPECT_EQ(controller, active->controller.data());
     EXPECT_EQ(pawn, nullptr);
     EXPECT_TRUE(retain_old_pawn_team);
@@ -1532,6 +1799,7 @@ PawnObserver::Seams SeatingSeamsFor(Fixture& fixture, bool play_state = true) {
 }
 
 TEST(PawnObserver, SeatingJoinsATeamlessPlayerAndLeavesThemChoosingAHero) {
+  // Seat a teamless player.
   static Fixture* active = nullptr;
   static std::vector<std::string> steps;
   Fixture fixture;
@@ -1539,6 +1807,8 @@ TEST(PawnObserver, SeatingJoinsATeamlessPlayerAndLeavesThemChoosingAHero) {
   steps.clear();
   fixture.occupied = true;
   fixture.generation = 3;
+
+  // Record each notification's play state and each team change.
   std::array<void*, 106> table{};
   table[28] = reinterpret_cast<void*>(+[](void*, const void*) {
     int32_t state = 0;
@@ -1552,6 +1822,8 @@ TEST(PawnObserver, SeatingJoinsATeamlessPlayerAndLeavesThemChoosingAHero) {
   auto* table_ptr = table.data();
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+
+  // The player has no hero, and creating one records its team.
   const uint32_t none = 0xffffffff;
   std::memcpy(fixture.controller.data() + kHeroHandleField, &none, sizeof(none));
   modlock::gameinterop::PlayerSelectionCalls calls;
@@ -1560,11 +1832,13 @@ TEST(PawnObserver, SeatingJoinsATeamlessPlayerAndLeavesThemChoosingAHero) {
     return nullptr;
   };
 
+  // Seating joins the team.
   PawnObserver observer{SeatingSeamsFor(fixture)};
   EXPECT_EQ(observer.ControllerTeam(0), 0);
   const auto seated = observer.SeatForChoice(0, fixture.xuid, 3, 3, calls);
   ASSERT_TRUE(seated) << seated.error();
   EXPECT_TRUE(*seated);
+
   // The game's own join: the team, the hero pawn, then the play state, which
   // is EPlayerChoosingHero when it replicates.
   EXPECT_EQ(steps, (std::vector<std::string>{"team:3", "pawn:3", "notify:2"}));
@@ -1580,11 +1854,14 @@ TEST(PawnObserver, SeatingJoinsATeamlessPlayerAndLeavesThemChoosingAHero) {
 }
 
 TEST(PawnObserver, SeatingRefusesWithoutThePlayStateAndLeavesTheTeamScreen) {
+  // Seat a teamless player.
   static Fixture* active = nullptr;
   Fixture fixture;
   active = &fixture;
   fixture.occupied = true;
   fixture.generation = 3;
+
+  // Fail on any team change.
   std::array<void*, 106> table{};
   table[105] = reinterpret_cast<void*>(+[](void*, int) { ADD_FAILURE() << "team changed"; });
   auto* table_ptr = table.data();
@@ -1595,6 +1872,7 @@ TEST(PawnObserver, SeatingRefusesWithoutThePlayStateAndLeavesTheTeamScreen) {
     return nullptr;
   };
 
+  // Without the play state seating is refused and the team stays.
   PawnObserver observer{SeatingSeamsFor(fixture, false)};
   const auto refused = observer.SeatForChoice(0, fixture.xuid, 3, 2, calls);
   ASSERT_FALSE(refused);
@@ -1605,20 +1883,27 @@ TEST(PawnObserver, SeatingRefusesWithoutThePlayStateAndLeavesTheTeamScreen) {
 }
 
 TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
+  // Track the hero pawn and the native calls.
   static Fixture* active = nullptr;
   static void* hero_pawn = nullptr;
   static int created = 0;
   static int selected = 0;
+
+  // Seat a player on team 2.
   Fixture fixture;
   active = &fixture;
   fixture.occupied = true;
   fixture.generation = 3;
   fixture.controller[kTeamField] = 2;
+
+  // Fail on any team change.
   std::array<void*, 106> table{};
   table[105] = reinterpret_cast<void*>(+[](void*, int) { ADD_FAILURE(); });
   auto* table_ptr = table.data();
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+
+  // Bind the player to a spectator pawn; the hero pawn is separate.
   auto spectator = MakeController(0);
   auto hero = MakeController(0);
   hero_pawn = hero.data();
@@ -1627,6 +1912,8 @@ TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
   const auto spectator_handle = HandleOf(2, 7);
   std::memcpy(fixture.controller.data() + kPawnHandleField, &spectator_handle,
               sizeof(spectator_handle));
+
+  // Creating the hero publishes its handle, and selection checks it.
   modlock::gameinterop::PlayerSelectionCalls calls;
   created = selected = 0;
   calls.create_pawn = +[](void*, int) -> void* {
@@ -1639,6 +1926,8 @@ TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
     EXPECT_EQ(pawn, hero_pawn);
     ++selected;
   };
+
+  // Selection creates and selects the hero once.
   PawnObserver observer{HeroSeamsFor(fixture)};
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 2, &fixture, calls));
   EXPECT_EQ(created, 1);
@@ -1646,19 +1935,26 @@ TEST(PawnObserver, HeroSelectionDoesNotTreatObserverPawnAsHeroPawn) {
 }
 
 TEST(PawnObserver, WatchingKeepsTheHeroAndReturnsToIt) {
+  // Track the camera, the rebound pawn and the spawns.
   static Fixture* active = nullptr;
   static void* camera_pawn = nullptr;
   static void* rebound = nullptr;
   static int spawns = 0;
+
+  // Seat a player on team 2.
   Fixture fixture;
   active = &fixture;
   fixture.occupied = true;
   fixture.generation = 3;
   fixture.controller[kTeamField] = 2;
+
+  // Give them a living hero and a camera.
   Instance hero{}, camera{};
   camera_pawn = camera.data();
   const int32_t health = 800;
   std::memcpy(hero.data() + kHealthField, &health, sizeof(health));
+
+  // Register them and bind the hero.
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, hero.data(), 7, 0);
   fixture.image.SetIdentity(3, camera.data(), 8, 0);
@@ -1712,6 +2008,7 @@ TEST(PawnObserver, WatchingKeepsTheHeroAndReturnsToIt) {
 }
 
 TEST(PawnObserver, ReturnLeavesTheGamesCameraAfterTheHeroDies) {
+  // Track the camera and seat a player on team 3.
   static Fixture* active = nullptr;
   static void* camera_pawn = nullptr;
   Fixture fixture;
@@ -1719,15 +2016,21 @@ TEST(PawnObserver, ReturnLeavesTheGamesCameraAfterTheHeroDies) {
   fixture.occupied = true;
   fixture.generation = 3;
   fixture.controller[kTeamField] = 3;
+
+  // Give them a hero, a camera and a death camera.
   Instance hero{}, camera{}, death{};
   camera_pawn = camera.data();
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, hero.data(), 7, 0);
   fixture.image.SetIdentity(3, camera.data(), 8, 0);
   fixture.image.SetIdentity(4, death.data(), 9, 0);
+
+  // Bind the hero.
   const auto hero_handle = HandleOf(2, 7);
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+
+  // Spawning binds the camera; the dead hero cannot be bound.
   modlock::gameinterop::PlayerSelectionCalls calls;
   calls.spawn_observer = +[](void*) -> void* {
     const auto handle = HandleOf(3, 8);
@@ -1737,6 +2040,8 @@ TEST(PawnObserver, ReturnLeavesTheGamesCameraAfterTheHeroDies) {
   calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
     ADD_FAILURE() << "hero is dead";
   };
+
+  // Watch through the camera.
   PawnObserver observer{HeroSeamsFor(fixture)};
   ASSERT_TRUE(observer.CameraPawnForSlot(0, calls));
 
@@ -1751,8 +2056,11 @@ TEST(PawnObserver, ReturnLeavesTheGamesCameraAfterTheHeroDies) {
 }
 
 TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
+  // Track the respawned pawn and the respawns.
   static void* expected_pawn = nullptr;
   static int respawned = 0;
+
+  // Seat a player on team 3 with a spectator and a hero.
   Fixture fixture;
   fixture.occupied = true;
   fixture.generation = 3;
@@ -1760,25 +2068,36 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   Instance spectator{}, hero{};
   expected_pawn = hero.data();
   respawned = 0;
+
+  // Register them and name the hero.
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
   fixture.image.SetIdentity(2, spectator.data(), 7, 0);
   fixture.image.SetIdentity(3, hero.data(), 8, 0);
   auto hero_handle = HandleOf(3, 8);
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   PawnObserver observer{HeroSeamsFor(fixture)};
+
+  // Respawning restores the hero's health.
   auto respawn = +[](void* pawn, bool force) {
+    // Check the respawn and give the pawn health.
     EXPECT_EQ(pawn, expected_pawn);
     EXPECT_TRUE(force);
     ++respawned;
     const int32_t health = 100;
     std::memcpy(static_cast<char*>(pawn) + kHealthField, &health, sizeof(health));
   };
+
+  // The wrong team respawns nothing.
   EXPECT_FALSE(observer.RespawnPlayer(0, 2, respawn));
   EXPECT_EQ(respawned, 0);
+
+  // The dead hero respawns once.
   ASSERT_TRUE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
   ASSERT_TRUE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
+
+  // A stale hero handle is refused.
   hero_handle = HandleOf(3, 9);
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   EXPECT_FALSE(observer.RespawnPlayer(0, 3, respawn));
@@ -1786,10 +2105,13 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
 }
 
 TEST(PawnObserver, DirectMovementFieldsAreFiniteAndGroundProvenanceIsExplicit) {
+  // Seat a player with a pawn and modifiers.
   Fixture fixture;
   fixture.controller = MakeController(HandleOf(2, 7));
   Instance pawn{}, body{}, scene{}, modifiers{};
   WritePointer(pawn.data() + 0xa0, modifiers.data());
+
+  // Give the pawn a position, a velocity and no ground.
   const float origin[3] = {1, 2, 3};
   const float velocity[3] = {100, -2, 0.5f};
   const uint32_t ground = 0xffffffff;
@@ -1798,6 +2120,8 @@ TEST(PawnObserver, DirectMovementFieldsAreFiniteAndGroundProvenanceIsExplicit) {
   WritePointer(pawn.data() + kBodyComponentField, body.data());
   std::memcpy(pawn.data() + kAbsVelocityField, velocity, sizeof(velocity));
   std::memcpy(pawn.data() + kGroundEntityField, &ground, sizeof(ground));
+
+  // Register them and observe movement with dash modifiers.
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
   fixture.occupied = true;
@@ -1809,16 +2133,21 @@ TEST(PawnObserver, DirectMovementFieldsAreFiniteAndGroundProvenanceIsExplicit) {
     return layout;
   };
   PawnObserver observer{std::move(seams), true};
+
+  // The velocity reads back.
   auto sample = observer.Observe();
   ASSERT_TRUE(sample.has_value());
   ASSERT_TRUE(sample->movement.has_value());
   ASSERT_TRUE(sample->movement->abs_velocity.has_value());
   EXPECT_FLOAT_EQ((*sample->movement->abs_velocity)[0], 100);
+
+  // The ground is explicitly none.
   ASSERT_TRUE(sample->movement->ground_entity_handle.has_value());
   ASSERT_TRUE(sample->movement->grounded_by_handle.has_value());
   EXPECT_EQ(*sample->movement->ground_entity_handle, 0xffffffffu);
   EXPECT_FALSE(*sample->movement->grounded_by_handle);
 
+  // Each dash modifier but 0x23 reads as dashing.
   for (uint32_t flag : {0x23u, 0x25u, 0x29u}) {
     const uint32_t mask = uint32_t{1} << (flag % 32);
     std::memcpy(modifiers.data() + 4, &mask, sizeof(mask));
@@ -1841,15 +2170,20 @@ TEST(PawnObserver, DirectMovementFieldsAreFiniteAndGroundProvenanceIsExplicit) {
 }
 
 TEST(PawnObserver, NonfiniteVelocityIsAbsentRatherThanReconstructed) {
+  // Seat a player with a pawn.
   Fixture fixture;
   fixture.controller = MakeController(HandleOf(2, 7));
   Instance pawn{}, body{}, scene{};
+
+  // Give the pawn a position and a velocity that is not finite.
   const float origin[3] = {1, 2, 3};
   const float velocity[3] = {100, std::numeric_limits<float>::quiet_NaN(), 0.5f};
   WritePointer(body.data() + kSceneNodeField, scene.data());
   std::memcpy(scene.data() + kAbsOriginField, origin, sizeof(origin));
   WritePointer(pawn.data() + kBodyComponentField, body.data());
   std::memcpy(pawn.data() + kAbsVelocityField, velocity, sizeof(velocity));
+
+  // Register them and observe movement.
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
   fixture.occupied = true;
@@ -1858,6 +2192,8 @@ TEST(PawnObserver, NonfiniteVelocityIsAbsentRatherThanReconstructed) {
     return MovementFixtureLayout();
   };
   PawnObserver observer{std::move(seams), true};
+
+  // The velocity is absent.
   auto sample = observer.Observe();
   ASSERT_TRUE(sample.has_value());
   ASSERT_TRUE(sample->movement.has_value());
@@ -1865,6 +2201,7 @@ TEST(PawnObserver, NonfiniteVelocityIsAbsentRatherThanReconstructed) {
 }
 
 TEST(PawnObserver, MissingMovementFieldsRemainAbsentWithoutHidingIdentity) {
+  // Seat a player with a positioned pawn.
   Fixture fixture;
   fixture.controller = MakeController(HandleOf(2, 7));
   Instance pawn{}, body{}, scene{};
@@ -1872,6 +2209,8 @@ TEST(PawnObserver, MissingMovementFieldsRemainAbsentWithoutHidingIdentity) {
   WritePointer(body.data() + kSceneNodeField, scene.data());
   std::memcpy(scene.data() + kAbsOriginField, origin, sizeof(origin));
   WritePointer(pawn.data() + kBodyComponentField, body.data());
+
+  // Observe through a layout without velocity or ground.
   fixture.image.SetIdentity(1, fixture.controller.data(), 5, 0);
   fixture.image.SetIdentity(2, pawn.data(), 7, 0);
   fixture.occupied = true;
@@ -1880,6 +2219,8 @@ TEST(PawnObserver, MissingMovementFieldsRemainAbsentWithoutHidingIdentity) {
     return MovementFixtureLayout(false, false);
   };
   PawnObserver observer{std::move(seams), true};
+
+  // Identity reads while the movement fields are absent.
   auto sample = observer.Observe();
   ASSERT_TRUE(sample.has_value());
   EXPECT_EQ(sample->steam_id, fixture.xuid);
