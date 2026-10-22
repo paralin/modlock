@@ -14,6 +14,7 @@ using modlock::wasm::UiTrees;
 
 // Set returns a change that sets one node.
 Change Set(std::string id, Kind kind, bool reset = false) {
+  // Build a change that sets one node.
   Change change;
   change.set_reset(reset);
   auto* node = change.add_set();
@@ -23,6 +24,7 @@ Change Set(std::string id, Kind kind, bool reset = false) {
 }
 
 TEST(UiTrees, TracksButtons) {
+  // A button is tracked per slot.
   UiTrees trees;
   ASSERT_TRUE(trees.Apply(3, Set("ready", modlock::ui::KIND_BUTTON)));
   ASSERT_TRUE(trees.Apply(3, Set("score", modlock::ui::KIND_LABEL)));
@@ -41,9 +43,11 @@ TEST(UiTrees, TracksButtons) {
 }
 
 TEST(UiTrees, RefusesWhatCannotBeDrawn) {
+  // Track a button.
   UiTrees trees;
   ASSERT_TRUE(trees.Apply(0, Set("ready", modlock::ui::KIND_BUTTON)));
 
+  // Images come only from the game, and ids and slots are bounded.
   auto web = Set("logo", modlock::ui::KIND_IMAGE);
   web.mutable_set(0)->set_image("https://example.com/logo.png");
   EXPECT_FALSE(trees.Apply(0, web));
@@ -74,6 +78,7 @@ TEST(UiTrees, RefusesWhatCannotBeDrawn) {
 }
 
 TEST(UiTrees, ForgetsPlayers) {
+  // Two players, and the first departs.
   UiTrees trees;
   ASSERT_TRUE(trees.Apply(1, Set("a", modlock::ui::KIND_BUTTON)));
   ASSERT_TRUE(trees.Apply(2, Set("b", modlock::ui::KIND_BUTTON)));

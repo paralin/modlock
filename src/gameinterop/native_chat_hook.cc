@@ -65,6 +65,7 @@ void ClearThunkState() {
 }
 
 std::optional<NativeChatHook::Message> ReadChat(void* serializer, const void* native_message) {
+  // Read the message id from the serializer; only chat is read.
   if (!serializer || !native_message || !g_messages) {
     return {};
   }
@@ -76,6 +77,8 @@ std::optional<NativeChatHook::Message> ReadChat(void* serializer, const void* na
       copied != sizeof(id) || (id != kPlayerChatMessageId && id != kChatMessageId)) {
     return {};
   }
+
+  // Serialize the message and decode it.
   std::array<uint8_t, 4096> bytes{};
   BitWriter writer{bytes.data(), static_cast<int32_t>(bytes.size()),
                    static_cast<int32_t>(bytes.size() * 8)};
@@ -112,6 +115,7 @@ void PostThunk(void* self, int32_t split_screen, bool local_only, int32_t client
 
 std::optional<NativeChatHook::Message> NativeChatHook::Decode(int16_t message_id,
                                                               std::span<const uint8_t> serialized) {
+  // Read the length prefix of one chat message.
   if ((message_id != kPlayerChatMessageId && message_id != kChatMessageId) || serialized.empty() ||
       serialized.size() > 4096) {
     return std::nullopt;
@@ -124,6 +128,8 @@ std::optional<NativeChatHook::Message> NativeChatHook::Decode(int16_t message_id
     return std::nullopt;
   }
   const auto* payload = serialized.data() + input.CurrentPosition();
+
+  // A server chat message names its sender's slot.
   if (message_id == kChatMessageId) {
     engine::ChatMessage message;
     if (!message.ParseFromArray(payload, static_cast<int>(size)) || !message.has_text() ||
@@ -132,6 +138,8 @@ std::optional<NativeChatHook::Message> NativeChatHook::Decode(int16_t message_id
     }
     return Message{message.player_slot(), message.text()};
   }
+
+  // A player chat message must be chat to a known audience.
   engine::PlayerChatMessage message;
   if (!message.ParseFromArray(payload, static_cast<int>(size))) {
     return std::nullopt;
@@ -162,6 +170,8 @@ NativeChatHook::~NativeChatHook() = default;
 
 std::expected<NativeChatHook, std::string> NativeChatHook::Install(Handler handler) {
 #if defined(_WIN32)
+
+  // Install once, resolving the event system and the message serializer.
   if (g_handler || !handler) {
     return std::unexpected("native chat hook already installed or empty");
   }
@@ -174,6 +184,8 @@ std::expected<NativeChatHook, std::string> NativeChatHook::Install(Handler handl
   if (!messages) {
     return std::unexpected(messages.error());
   }
+
+  // Resolve the post and serialize slots.
   const auto post_slot = ResolveVirtualSlot("game-event-system.post-event");
   const auto serialize_slot = ResolveVirtualSlot("network-messages.serialize");
   if (!post_slot) {
@@ -182,16 +194,22 @@ std::expected<NativeChatHook, std::string> NativeChatHook::Install(Handler handl
   if (!serialize_slot) {
     return std::unexpected(serialize_slot.error());
   }
+
+  // Hook the post slot.
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
   auto hook = VtableSlotHook::Install(events, *post_slot, reinterpret_cast<void*>(&PostThunk));
   if (!hook) {
     return std::unexpected(hook.error());
   }
+
+  // Keep what the thunk needs.
   g_original = reinterpret_cast<Post>(hook->Original());
   g_messages = *messages;
   g_serialize_slot = *serialize_slot;
   impl->owner.emplace(std::move(*hook), &ClearThunkState);
+
+  // Route chat on this thread to the handler.
   g_thread = GetCurrentThreadId();
   g_handler = &impl->handler;
   return NativeChatHook(std::move(impl));

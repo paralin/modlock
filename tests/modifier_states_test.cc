@@ -30,15 +30,19 @@ struct FakeImage final : modlock::gameinterop::ModuleImage {
 };
 
 TEST(ModifierStates, ReadsEachValueBesideItsNamePointer) {
+  // Record two states.
   FakeImage image;
   const auto draw = image.Name(9, "MODIFIER_STATE_DO_NOT_DRAW_MODEL");
   const auto quiet = image.Name(60, "MODIFIER_STATE_DO_NOT_DRAW_MODEL_SHADOW");
   image.Record(128, draw, 189);
   image.Record(144, quiet, 190);
+
+  // Each value is read beside its name.
   auto value = modlock::gameinterop::ModifierStateIndex(image, "MODIFIER_STATE_DO_NOT_DRAW_MODEL");
   ASSERT_TRUE(value) << value.error();
   EXPECT_EQ(*value, 189u);
 
+  // Several names resolve in order.
   constexpr std::array<std::string_view, 2> names = {"MODIFIER_STATE_DO_NOT_DRAW_MODEL_SHADOW",
                                                      "MODIFIER_STATE_DO_NOT_DRAW_MODEL"};
   auto both = modlock::gameinterop::ModifierStateIndices(image, names);
@@ -47,9 +51,11 @@ TEST(ModifierStates, ReadsEachValueBesideItsNamePointer) {
 }
 
 TEST(ModifierStates, RefusesMissingAndConflictingNames) {
+  // An unknown name is refused.
   FakeImage image;
   const auto draw = image.Name(9, "MODIFIER_STATE_DO_NOT_DRAW_MODEL");
   EXPECT_FALSE(modlock::gameinterop::ModifierStateIndex(image, "MODIFIER_STATE_UNKNOWN"));
+
   // A string without an enumerator record is not a state.
   EXPECT_FALSE(modlock::gameinterop::ModifierStateIndex(image, "MODIFIER_STATE_DO_NOT_DRAW_MODEL"));
   image.Record(128, draw, 189);

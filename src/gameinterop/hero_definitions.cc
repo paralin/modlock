@@ -4,6 +4,7 @@
 
 namespace modlock::gameinterop {
 std::expected<HeroDefinitions, std::string> HeroDefinitions::Resolve(const ModuleImage& server) {
+  // Resolve each call by signature.
   HeroDefinitionCalls calls;
   struct Entry {
     std::string_view id;
@@ -38,12 +39,14 @@ std::expected<HeroDefinition, std::string> HeroDefinitions::Find(std::string_vie
   if (calls_.get_hero_by_id == nullptr) {
     return std::unexpected("hero definition calls: get-hero-by-id is unresolved");
   }
+
   // The manager is re-resolved on every call: it is TLS-guarded and dies
   // with the world that created it.
   void* manager = calls_.manager_getter();
   if (manager == nullptr) {
     return std::unexpected("hero definition manager is not live yet");
   }
+
   // HeroNameToId returns a pointer; success is judged
   // from an initialized out_id alone. Never dereference or log the returned
   // pointer.
@@ -57,6 +60,7 @@ std::expected<HeroDefinition, std::string> HeroDefinitions::Find(std::string_vie
 }
 
 std::expected<HeroDefinition, std::string> HeroDefinitions::Find(uint32_t hero_id) const {
+  // The id must fit and the calls must resolve.
   if (hero_id > std::numeric_limits<int>::max()) {
     return std::unexpected("hero id is outside the native identifier range");
   }
@@ -66,6 +70,8 @@ std::expected<HeroDefinition, std::string> HeroDefinitions::Find(uint32_t hero_i
   if (calls_.get_hero_by_id == nullptr) {
     return std::unexpected("hero definition calls: get-hero-by-id is unresolved");
   }
+
+  // Look the id up in the live manager.
   void* manager = calls_.manager_getter();
   if (manager == nullptr) {
     return std::unexpected("hero definition manager is not live yet");

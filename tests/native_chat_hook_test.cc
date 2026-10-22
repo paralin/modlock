@@ -21,6 +21,7 @@ constexpr std::array<uint8_t, 40> kHumanReady{
     0x2a, 0x06, 0x2f, 0x72, 0x65, 0x61, 0x64, 0x79, 0x32, 0x00, 0x3a, 0x00};
 
 std::vector<uint8_t> EncodeChat(const google::protobuf::MessageLite& message) {
+  // Frame the message with its length, as the serializer does.
   const auto size = message.ByteSizeLong();
   std::vector<uint8_t> bytes(size + 5);
   size_t written = 0;
@@ -36,6 +37,7 @@ std::vector<uint8_t> EncodeChat(const google::protobuf::MessageLite& message) {
 }
 
 TEST(NativeChatHook, DecodesRecordedHumanAllChatToItsClientSlot) {
+  // A recorded all chat names its sender's slot; another id refuses it.
   const auto chat = NativeChatHook::Decode(118, kHumanReady);
   ASSERT_TRUE(chat);
   EXPECT_EQ(chat->slot, 0);
@@ -61,6 +63,7 @@ TEST(NativeChatHook, DecodesGlobalAndTeamGameChatToTheSenderSlot) {
 }
 
 TEST(NativeChatHook, DecodesConsoleTeamChatWhileAliveOrDead) {
+  // Every team and spectator audience decodes, with or without its prefix.
   engine::PlayerChatMessage message;
   message.set_entity_index(2);
   message.set_chat(true);
@@ -79,6 +82,7 @@ TEST(NativeChatHook, DecodesConsoleTeamChatWhileAliveOrDead) {
 }
 
 TEST(NativeChatHook, RejectsInvalidGameChatSendersAndIncompleteMessages) {
+  // A sender outside the slots is refused.
   engine::ChatMessage message;
   message.set_text("/ready");
   message.set_all_chat(false);
@@ -86,15 +90,20 @@ TEST(NativeChatHook, RejectsInvalidGameChatSendersAndIncompleteMessages) {
     message.set_player_slot(slot);
     EXPECT_FALSE(NativeChatHook::Decode(314, EncodeChat(message)));
   }
+
+  // A truncated message is refused.
   message.set_player_slot(0);
   const auto bytes = EncodeChat(message);
   EXPECT_FALSE(NativeChatHook::Decode(314, std::span(bytes).first(bytes.size() - 1)));
 }
 
 TEST(NativeChatHook, RejectsServerChatOtherAudiencesAndIncompleteMessages) {
+  // A server sender is refused.
   auto server = kHumanReady;
   server[2] = 0;
   EXPECT_FALSE(NativeChatHook::Decode(118, server));
+
+  // An unknown audience or a truncated message is refused.
   auto audience = kHumanReady;
   audience[20] = 'X';
   EXPECT_FALSE(NativeChatHook::Decode(118, audience));

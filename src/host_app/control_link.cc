@@ -83,6 +83,7 @@ bool ReceiveAll(intptr_t socket, char* data, size_t size) {
 
 // Connect opens a TCP connection to address, a host and port.
 std::expected<intptr_t, std::string> Connect(std::string_view address) {
+  // Split the address into host and port, and start Winsock.
   const auto colon = address.rfind(':');
   if (colon == std::string_view::npos) {
     return std::unexpected("the control address must be a host and port");
@@ -104,6 +105,8 @@ std::expected<intptr_t, std::string> Connect(std::string_view address) {
   if (getaddrinfo(host.c_str(), port.c_str(), &hints, &found) != 0) {
     return std::unexpected("cannot resolve the control address " + std::string(address));
   }
+
+  // Connect to the first that accepts.
   intptr_t connected = kNoSocket;
   for (auto* candidate = found; candidate && connected == kNoSocket;
        candidate = candidate->ai_next) {
@@ -153,12 +156,14 @@ std::expected<std::unique_ptr<ControlLink>, std::string> ControlLink::Dial(
 std::expected<void, std::string> ControlLink::Watch(EngineHost& engine) {
   // Player joins need the network system, which loads with the first world.
   auto world = engine.OnWorld(nullptr, [this, &engine](std::string_view map) {
+    // Report the ready world.
     control::HostEvent event;
     event.mutable_ready()->set_map(std::string(map));
     Push(std::move(event));
     if (joining_) {
       return;
     }
+
     // The link owns this subscription, so the sink does not own the link.
     auto connections = engine.OnConnection(
         std::shared_ptr<gameinterop::ConnectionEventSink>(std::shared_ptr<void>(), this));
@@ -229,6 +234,7 @@ void ControlLink::Failed(std::string_view mod, std::string_view error) {
 }
 
 void ControlLink::Ui(std::string_view mod, int32_t slot, const ui::Change& change) {
+  // Report the mod's interface change.
   control::HostEvent event;
   auto* ui = event.mutable_ui();
   ui->set_mod(std::string(mod));
@@ -238,6 +244,7 @@ void ControlLink::Ui(std::string_view mod, int32_t slot, const ui::Change& chang
 }
 
 void ControlLink::OnConnected(int32_t slot, uint64_t xuid, bool bot, const char* name) {
+  // Report a human's join.
   if (bot) {
     return;
   }

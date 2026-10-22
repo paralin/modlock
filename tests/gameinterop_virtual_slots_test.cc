@@ -23,6 +23,7 @@ constexpr size_t kTable = 0x288;
 class Image final : public ModuleImage {
  public:
   Image() {
+    // Write a file header with a code section and a data section.
     Put<uint32_t>(0x3C, 0x40);
     Put<uint16_t>(0x40 + 6, 2);
     Section(0, 0x100, 0x100, 0x60000020);
@@ -34,6 +35,7 @@ class Image final : public ModuleImage {
       std::memcpy(bytes.data() + 0x100 + i * 0x10, entries[i].data(), 2);
     }
 
+    // Write the type name, its locator and the table.
     const char name[] = ".?AVCThing@@";
     std::memcpy(bytes.data() + 0x210, name, sizeof(name));
     const uint32_t locator[] = {1, 0, 0, 0x200};
@@ -73,6 +75,7 @@ VirtualSlot Slot(std::string_view class_name, size_t index, std::string_view pat
 }
 
 TEST(VirtualSlots, FindsTableThroughTypeInformation) {
+  // The table is found through its type information.
   const Image image;
   const auto table = FindVtable(image, "CThing");
   ASSERT_TRUE(table) << table.error();
@@ -87,11 +90,13 @@ TEST(VirtualSlots, MissingClassIsAnError) {
 }
 
 TEST(VirtualSlots, ReportsEveryMatchingIndex) {
+  // A unique pattern matches one index.
   const Image image;
   const auto unique = MatchingSlots(image, kTable, Slot("CThing", 1, "CC DD"));
   ASSERT_TRUE(unique) << unique.error();
   EXPECT_EQ(*unique, (std::vector<size_t>{1}));
 
+  // A shared one matches each.
   const auto shared = MatchingSlots(image, kTable, Slot("CThing", 0, "AA ??"));
   ASSERT_TRUE(shared) << shared.error();
   EXPECT_EQ(*shared, (std::vector<size_t>{0, 2}));

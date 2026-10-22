@@ -31,6 +31,8 @@ std::optional<safetyhook::InlineHook> g_shutdown_hook;
 // original would swallow every engine session startup.
 void ClearThunkState() {
 #if defined(_WIN32)
+
+  // Unhook shutdown and drop every callback.
   g_shutdown_hook.reset();
 #endif
   g_before_shutdown = {};
@@ -54,6 +56,7 @@ void ShutdownServerThunk(void* self) {
 }
 
 std::expected<void, std::string> ArmShutdown(void* service) {
+  // Resolve the server service's slots.
   const auto game_server_slot = ResolveVirtualSlot("network-server-service.game-server");
   const auto shutdown_slot = ResolveVirtualSlot("network-game-server.shutdown");
   if (!game_server_slot) {
@@ -62,6 +65,8 @@ std::expected<void, std::string> ArmShutdown(void* service) {
   if (!shutdown_slot) {
     return std::unexpected(shutdown_slot.error());
   }
+
+  // Find the network game server.
   auto table = *static_cast<void***>(service);
   auto server = reinterpret_cast<void* (*)(void*)>(table[*game_server_slot])(service);
   if (!server) {
@@ -69,6 +74,7 @@ std::expected<void, std::string> ArmShutdown(void* service) {
   }
   g_shutdown_hook.reset();
   auto server_table = *static_cast<void***>(server);
+
   // The engine calls this implementation directly during normal quit, so an
   // inline hook is required; replacing only the virtual slot misses teardown.
   auto hook = safetyhook::create_inline(server_table[*shutdown_slot],
@@ -128,6 +134,8 @@ std::expected<StartupServerProbe, std::string> StartupServerProbe::Install(
     StartupCallback before_startup, StartupCallback after_startup,
     std::function<void()> before_shutdown, std::function<void(std::string)> on_error) {
 #if defined(_WIN32)
+
+  // Find the network server service's startup slot.
   const auto resolved = ResolveEngineInterface(L"engine2.dll", kNetworkServerServiceVersion);
   if (!resolved) {
     return std::unexpected(resolved.error());
@@ -137,10 +145,14 @@ std::expected<StartupServerProbe, std::string> StartupServerProbe::Install(
   if (!slot) {
     return std::unexpected(slot.error());
   }
+
+  // Hook the slot.
   auto hook = VtableSlotHook::Install(service, *slot, reinterpret_cast<void*>(&StartupServerThunk));
   if (!hook) {
     return std::unexpected(hook.error());
   }
+
+  // Keep the original and the callbacks for the thunk.
   g_startup_server_original = hook->Original();
   g_before_startup = std::move(before_startup);
   g_after_startup = std::move(after_startup);

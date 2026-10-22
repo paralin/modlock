@@ -29,10 +29,12 @@ std::optional<FrameTimingSummary> RunFrames(FrameTiming& timing, FrameTiming::Cl
 }
 
 TEST(FrameTiming, SummarizesOneSteadyWindow) {
+  // Run a minute of steady frames.
   FrameTiming timing;
   FrameTiming::Clock::time_point at{};
   const auto summary = RunFrames(timing, at, microseconds(16'667), microseconds(3'050), 4000);
 
+  // One window summarizes them.
   ASSERT_TRUE(summary);
   EXPECT_EQ(summary->frames, 3601u);
   EXPECT_NEAR(summary->seconds, 60.0, 0.01);
@@ -43,6 +45,7 @@ TEST(FrameTiming, SummarizesOneSteadyWindow) {
 }
 
 TEST(FrameTiming, CountsLateFramesAndKeepsTheExactMaximum) {
+  // Run frames with one 300 ms stall.
   FrameTiming timing;
   FrameTiming::Clock::time_point at{};
   ASSERT_FALSE(RunFrames(timing, at, microseconds(16'667), microseconds(2'000), 100));
@@ -50,18 +53,21 @@ TEST(FrameTiming, CountsLateFramesAndKeepsTheExactMaximum) {
   ASSERT_FALSE(RunFrames(timing, at, microseconds(16'667), microseconds(2'000), 1));
   const auto summary = RunFrames(timing, at, microseconds(16'667), microseconds(2'000), 4000);
 
+  // The stall is late, and its interval is the maximum.
   ASSERT_TRUE(summary);
   EXPECT_EQ(summary->late, 1u);
   EXPECT_NEAR(summary->interval_max_ms, 316.667, 1e-9);
 }
 
 TEST(FrameTiming, StartsTheNextWindowAfterASummary) {
+  // Finish one window and run another.
   FrameTiming timing;
   FrameTiming::Clock::time_point at{};
   ASSERT_TRUE(RunFrames(timing, at, microseconds(16'667), microseconds(1'000), 4000));
   at += microseconds(16'667);
   const auto next = RunFrames(timing, at, microseconds(16'667), microseconds(1'000), 4000);
 
+  // The next window counts its own frames.
   ASSERT_TRUE(next);
   EXPECT_EQ(next->frames, 3601u);
   EXPECT_NEAR(next->interval_p50_ms, 16.667, 1e-9);

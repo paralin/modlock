@@ -31,6 +31,7 @@ struct RecordingCheck {
 };
 
 TEST(StdioGuard, ConsultsTheCheckForEveryStandardStream) {
+  // The guard probes all three streams.
   auto& recorder = RecordingCheck::Instance();
   recorder.probed.clear();
   recorder.invalid_streams.clear();
@@ -40,6 +41,7 @@ TEST(StdioGuard, ConsultsTheCheckForEveryStandardStream) {
 }
 
 TEST(StdioGuard, ValidHandlesLeaveTheStreamsUntouched) {
+  // Valid streams keep their descriptors.
   auto& recorder = RecordingCheck::Instance();
   recorder.invalid_streams.clear();
   const int in_before = fileno(stdin);
@@ -50,10 +52,12 @@ TEST(StdioGuard, ValidHandlesLeaveTheStreamsUntouched) {
 }
 
 TEST(StdioGuard, InvalidHandlesReopenStreamsToAHarmlessDevice) {
+  // Mark input and error invalid and install the guard.
   auto& recorder = RecordingCheck::Instance();
   recorder.probed.clear();
   recorder.invalid_streams = {StdioStream::kInput, StdioStream::kError};
   InstallStdioGuard(&RecordingCheck::Entry);
+
   // Each reopened stream stays usable: reads end the stream and writes are
   // discarded instead of raising the invalid-parameter condition.
   EXPECT_EQ(fgetc(stdin), EOF);

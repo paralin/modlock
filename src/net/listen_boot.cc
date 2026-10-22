@@ -33,6 +33,7 @@ constexpr std::string_view kDedicatedFlags =
 }  // namespace
 
 std::string BuildDedicatedCommandLine(const LaunchConfig& config) {
+  // Build the dedicated server's command line.
   std::string line(kDedicatedFlags);
   line += " +hostport " + std::to_string(config.host_port);
   line += " +ip 0.0.0.0";
@@ -57,6 +58,7 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
         "stage engine-module: engine2.dll is not mapped; the game modules "
         "must load before the engine handoff");
   }
+
   // Stage 2: resolve the exported entry point.
   const auto source2_main = reinterpret_cast<Source2MainFn>(
       reinterpret_cast<void*>(::GetProcAddress(engine, "Source2Main")));
@@ -64,6 +66,7 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
     return std::unexpected(
         "stage entry-point: Source2Main export not found in the mapped engine2.dll");
   }
+
   // Stage 3: render the staged command line. The game directory, the parent
   // of bin/win64, holds citadel and core; the -game argument names the mod
   // directory inside it, as stock dedicated servers do.
@@ -74,11 +77,13 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
   if (!config.engine_arguments.empty()) {
     command_line += " " + config.engine_arguments;
   }
+
   // Stage 4: the game directory must exist; the engine resolves citadel
   // content relative to it.
   if (!std::filesystem::directory_entry(game_dir).exists()) {
     return std::unexpected("stage base-dir: directory does not exist: " + game_dir.string());
   }
+
   // Stage 5: handoff. Blocking by design: Source2Main runs the server or
   // client frame loop until shutdown. A client owns a visible game window; a
   // dedicated server has no console, so its messages reach stdout.
