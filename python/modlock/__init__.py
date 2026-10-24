@@ -443,6 +443,16 @@ class EntityClassName:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class EntityPlacement:
+    """EntityPlacement is an entity's place in the world."""
+
+    # position is the entity's absolute origin.
+    position: Vector
+    # facing is the entity's absolute angles.
+    facing: Angles
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class EntityOptions:
     """EntityOptions describes an entity to create."""
 
@@ -2038,6 +2048,19 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "designer_name", "string"),
         ],
     ),
+    "EntityPositionResponse": (
+        None,
+        [
+            wire.Field(1, "placement", "message", optional=True, message="EntityPlacement"),
+        ],
+    ),
+    "EntityPlacement": (
+        EntityPlacement,
+        [
+            wire.Field(1, "position", "message", message="Vec3"),
+            wire.Field(2, "facing", "message", message="EulerAngles"),
+        ],
+    ),
     "EntityResponse": (
         None,
         [
@@ -3082,6 +3105,17 @@ def entity_class(entity: int) -> EntityClassName | None:
     if response is None:
         return None
     return response["name"]
+
+
+def entity_position(entity: int) -> EntityPlacement | None:
+    """entity_position returns where a live entity stands, its absolute origin
+    and angles, as MoveEntity places it. Any entity with a place in the
+    world has one, such as one of the map's boxes.
+    """
+    response = _call("EntityPosition", "EntityRequest", {"entity": entity}, "EntityPositionResponse")
+    if response is None:
+        return None
+    return response["placement"]
 
 
 def modifier_state(entity: int, state: str) -> bool:

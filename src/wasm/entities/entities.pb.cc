@@ -371,6 +371,32 @@ struct EntityValueDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EntityValueDefaultTypeInternal _EntityValue_default_instance_;
 
+inline constexpr EntityPlacement::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        position_{nullptr},
+        facing_{nullptr} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR EntityPlacement::EntityPlacement(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(EntityPlacement_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct EntityPlacementDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR EntityPlacementDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~EntityPlacementDefaultTypeInternal() {}
+  union {
+    EntityPlacement _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EntityPlacementDefaultTypeInternal _EntityPlacement_default_instance_;
+
 inline constexpr EntityClassResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -480,6 +506,31 @@ struct FireInputRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FireInputRequestDefaultTypeInternal _FireInputRequest_default_instance_;
 
+inline constexpr EntityPositionResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        placement_{nullptr} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR EntityPositionResponse::EntityPositionResponse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(EntityPositionResponse_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct EntityPositionResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR EntityPositionResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~EntityPositionResponseDefaultTypeInternal() {}
+  union {
+    EntityPositionResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EntityPositionResponseDefaultTypeInternal _EntityPositionResponse_default_instance_;
+
 inline constexpr EntityOptions::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -551,6 +602,18 @@ const ::uint32_t
         5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityClassName, _impl_.class_name_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityClassName, _impl_.designer_name_),
+        0,
+        1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityPositionResponse, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityPositionResponse, _impl_.placement_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityPlacement, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityPlacement, _impl_.position_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityPlacement, _impl_.facing_),
         0,
         1,
         0x081, // bitmap
@@ -661,26 +724,30 @@ static const ::_pbi::MigrationSchema
         {11, sizeof(::modlock::wasm::entities::EntityRequest)},
         {16, sizeof(::modlock::wasm::entities::EntityClassResponse)},
         {21, sizeof(::modlock::wasm::entities::EntityClassName)},
-        {28, sizeof(::modlock::wasm::entities::EntityResponse)},
-        {33, sizeof(::modlock::wasm::entities::EntityOptions)},
-        {52, sizeof(::modlock::wasm::entities::KeyValue)},
-        {59, sizeof(::modlock::wasm::entities::EntityValue)},
-        {68, sizeof(::modlock::wasm::entities::ShowEntityOnlyToRequest)},
-        {75, sizeof(::modlock::wasm::entities::FireInputRequest)},
-        {86, sizeof(::modlock::wasm::entities::AliveResponse)},
-        {91, sizeof(::modlock::wasm::entities::CreatePickupRequest)},
-        {98, sizeof(::modlock::wasm::entities::PickupResponse)},
-        {103, sizeof(::modlock::wasm::entities::PickupRequest)},
-        {108, sizeof(::modlock::wasm::entities::FindEntitiesRequest)},
-        {113, sizeof(::modlock::wasm::entities::RemoveEntitiesRequest)},
-        {118, sizeof(::modlock::wasm::entities::EntitiesResponse)},
-        {123, sizeof(::modlock::wasm::entities::CountResponse)},
+        {28, sizeof(::modlock::wasm::entities::EntityPositionResponse)},
+        {33, sizeof(::modlock::wasm::entities::EntityPlacement)},
+        {40, sizeof(::modlock::wasm::entities::EntityResponse)},
+        {45, sizeof(::modlock::wasm::entities::EntityOptions)},
+        {64, sizeof(::modlock::wasm::entities::KeyValue)},
+        {71, sizeof(::modlock::wasm::entities::EntityValue)},
+        {80, sizeof(::modlock::wasm::entities::ShowEntityOnlyToRequest)},
+        {87, sizeof(::modlock::wasm::entities::FireInputRequest)},
+        {98, sizeof(::modlock::wasm::entities::AliveResponse)},
+        {103, sizeof(::modlock::wasm::entities::CreatePickupRequest)},
+        {110, sizeof(::modlock::wasm::entities::PickupResponse)},
+        {115, sizeof(::modlock::wasm::entities::PickupRequest)},
+        {120, sizeof(::modlock::wasm::entities::FindEntitiesRequest)},
+        {125, sizeof(::modlock::wasm::entities::RemoveEntitiesRequest)},
+        {130, sizeof(::modlock::wasm::entities::EntitiesResponse)},
+        {135, sizeof(::modlock::wasm::entities::CountResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::entities::_MoveEntityRequest_default_instance_._instance,
     &::modlock::wasm::entities::_EntityRequest_default_instance_._instance,
     &::modlock::wasm::entities::_EntityClassResponse_default_instance_._instance,
     &::modlock::wasm::entities::_EntityClassName_default_instance_._instance,
+    &::modlock::wasm::entities::_EntityPositionResponse_default_instance_._instance,
+    &::modlock::wasm::entities::_EntityPlacement_default_instance_._instance,
     &::modlock::wasm::entities::_EntityResponse_default_instance_._instance,
     &::modlock::wasm::entities::_EntityOptions_default_instance_._instance,
     &::modlock::wasm::entities::_KeyValue_default_instance_._instance,
@@ -712,40 +779,44 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "ityClassResponse\0224\n\004name\030\001 \001(\0132&.modlock"
     ".wasm.entities.EntityClassName\"<\n\017Entity"
     "ClassName\022\022\n\nclass_name\030\001 \001(\t\022\025\n\rdesigne"
-    "r_name\030\002 \001(\t\" \n\016EntityResponse\022\016\n\006entity"
-    "\030\001 \001(\r\"\307\002\n\rEntityOptions\022\025\n\rdesigner_nam"
-    "e\030\001 \001(\t\022\020\n\010subclass\030\002 \001(\t\022\014\n\004team\030\003 \001(\005\022"
-    "(\n\010position\030\004 \001(\0132\026.modlock.geometry.Vec"
-    "3\0222\n\006facing\030\005 \001(\0132\035.modlock.geometry.Eul"
-    "erAnglesH\000\210\001\001\0223\n\nkey_values\030\006 \003(\0132\037.modl"
-    "ock.wasm.entities.KeyValue\022/\n\006fields\030\007 \003"
-    "(\0132\037.modlock.wasm.fields.FieldWrite\022\034\n\017t"
-    "ransmit_always\030\010 \001(\010H\001\210\001\001B\t\n\007_facingB\022\n\020"
-    "_transmit_always\"J\n\010KeyValue\022\013\n\003key\030\001 \001("
-    "\t\0221\n\005value\030\002 \001(\0132\".modlock.wasm.entities"
-    ".EntityValue\"\231\001\n\013EntityValue\022\021\n\007boolean\030"
-    "\001 \001(\010H\000\022\021\n\007integer\030\002 \001(\005H\000\022\020\n\006number\030\003 \001"
-    "(\002H\000\022\016\n\004text\030\004 \001(\tH\000\022(\n\006vector\030\005 \001(\0132\026.m"
-    "odlock.geometry.Vec3H\000\022\017\n\005color\030\006 \001(\007H\000B"
-    "\007\n\005value\":\n\027ShowEntityOnlyToRequest\022\016\n\006e"
-    "ntity\030\001 \001(\r\022\017\n\007players\030\002 \003(\005\"\231\001\n\020FireInp"
-    "utRequest\022\016\n\006entity\030\001 \001(\r\022\r\n\005input\030\002 \001(\t"
-    "\0226\n\005value\030\003 \001(\0132\".modlock.wasm.entities."
-    "EntityValueH\000\210\001\001\022\026\n\tactivator\030\004 \001(\rH\001\210\001\001"
-    "B\010\n\006_valueB\014\n\n_activator\"\036\n\rAliveRespons"
-    "e\022\r\n\005alive\030\001 \001(\010\"p\n\023CreatePickupRequest\022"
-    "/\n\004kind\030\001 \001(\0162!.modlock.wasm.entities.Pi"
-    "ckupKind\022(\n\010position\030\002 \001(\0132\026.modlock.geo"
-    "metry.Vec3\" \n\016PickupResponse\022\016\n\006pickup\030\001"
-    " \001(\r\"\037\n\rPickupRequest\022\016\n\006pickup\030\001 \001(\r\")\n"
-    "\023FindEntitiesRequest\022\022\n\nclass_name\030\001 \001(\t"
-    "\"+\n\025RemoveEntitiesRequest\022\022\n\nclass_name\030"
-    "\001 \001(\t\"$\n\020EntitiesResponse\022\020\n\010entities\030\001 "
-    "\003(\r\"\036\n\rCountResponse\022\r\n\005count\030\001 \001(\005*@\n\nP"
-    "ickupKind\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PICKUP"
-    "_KIND_MOVEMENT_BUFF\020\001B7Z5github.com/para"
-    "lin/modlock/src/wasm/entities;entitiesb\006"
-    "proto3"
+    "r_name\030\002 \001(\t\"S\n\026EntityPositionResponse\0229"
+    "\n\tplacement\030\001 \001(\0132&.modlock.wasm.entitie"
+    "s.EntityPlacement\"j\n\017EntityPlacement\022(\n\010"
+    "position\030\001 \001(\0132\026.modlock.geometry.Vec3\022-"
+    "\n\006facing\030\002 \001(\0132\035.modlock.geometry.EulerA"
+    "ngles\" \n\016EntityResponse\022\016\n\006entity\030\001 \001(\r\""
+    "\307\002\n\rEntityOptions\022\025\n\rdesigner_name\030\001 \001(\t"
+    "\022\020\n\010subclass\030\002 \001(\t\022\014\n\004team\030\003 \001(\005\022(\n\010posi"
+    "tion\030\004 \001(\0132\026.modlock.geometry.Vec3\0222\n\006fa"
+    "cing\030\005 \001(\0132\035.modlock.geometry.EulerAngle"
+    "sH\000\210\001\001\0223\n\nkey_values\030\006 \003(\0132\037.modlock.was"
+    "m.entities.KeyValue\022/\n\006fields\030\007 \003(\0132\037.mo"
+    "dlock.wasm.fields.FieldWrite\022\034\n\017transmit"
+    "_always\030\010 \001(\010H\001\210\001\001B\t\n\007_facingB\022\n\020_transm"
+    "it_always\"J\n\010KeyValue\022\013\n\003key\030\001 \001(\t\0221\n\005va"
+    "lue\030\002 \001(\0132\".modlock.wasm.entities.Entity"
+    "Value\"\231\001\n\013EntityValue\022\021\n\007boolean\030\001 \001(\010H\000"
+    "\022\021\n\007integer\030\002 \001(\005H\000\022\020\n\006number\030\003 \001(\002H\000\022\016\n"
+    "\004text\030\004 \001(\tH\000\022(\n\006vector\030\005 \001(\0132\026.modlock."
+    "geometry.Vec3H\000\022\017\n\005color\030\006 \001(\007H\000B\007\n\005valu"
+    "e\":\n\027ShowEntityOnlyToRequest\022\016\n\006entity\030\001"
+    " \001(\r\022\017\n\007players\030\002 \003(\005\"\231\001\n\020FireInputReque"
+    "st\022\016\n\006entity\030\001 \001(\r\022\r\n\005input\030\002 \001(\t\0226\n\005val"
+    "ue\030\003 \001(\0132\".modlock.wasm.entities.EntityV"
+    "alueH\000\210\001\001\022\026\n\tactivator\030\004 \001(\rH\001\210\001\001B\010\n\006_va"
+    "lueB\014\n\n_activator\"\036\n\rAliveResponse\022\r\n\005al"
+    "ive\030\001 \001(\010\"p\n\023CreatePickupRequest\022/\n\004kind"
+    "\030\001 \001(\0162!.modlock.wasm.entities.PickupKin"
+    "d\022(\n\010position\030\002 \001(\0132\026.modlock.geometry.V"
+    "ec3\" \n\016PickupResponse\022\016\n\006pickup\030\001 \001(\r\"\037\n"
+    "\rPickupRequest\022\016\n\006pickup\030\001 \001(\r\")\n\023FindEn"
+    "titiesRequest\022\022\n\nclass_name\030\001 \001(\t\"+\n\025Rem"
+    "oveEntitiesRequest\022\022\n\nclass_name\030\001 \001(\t\"$"
+    "\n\020EntitiesResponse\022\020\n\010entities\030\001 \003(\r\"\036\n\r"
+    "CountResponse\022\r\n\005count\030\001 \001(\005*@\n\nPickupKi"
+    "nd\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PICKUP_KIND_M"
+    "OVEMENT_BUFF\020\001B7Z5github.com/paralin/mod"
+    "lock/src/wasm/entities;entitiesb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto_deps[2] = {
@@ -756,13 +827,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto = {
     false,
     false,
-    1886,
+    2079,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto,
     "github.com/paralin/modlock/src/wasm/entities/entities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto_deps,
     2,
-    18,
+    20,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto::offsets,
@@ -2018,6 +2089,610 @@ void EntityClassName::InternalSwap(EntityClassName* PROTOBUF_RESTRICT PROTOBUF_N
 }
 
 ::google::protobuf::Metadata EntityClassName::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class EntityPositionResponse::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<EntityPositionResponse>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(EntityPositionResponse, _impl_._has_bits_);
+};
+
+EntityPositionResponse::EntityPositionResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, EntityPositionResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.entities.EntityPositionResponse)
+}
+PROTOBUF_NDEBUG_INLINE EntityPositionResponse::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::entities::EntityPositionResponse& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+EntityPositionResponse::EntityPositionResponse(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const EntityPositionResponse& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, EntityPositionResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  EntityPositionResponse* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.placement_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.placement_)
+                : nullptr;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.entities.EntityPositionResponse)
+}
+PROTOBUF_NDEBUG_INLINE EntityPositionResponse::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void EntityPositionResponse::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.placement_ = {};
+}
+EntityPositionResponse::~EntityPositionResponse() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.entities.EntityPositionResponse)
+  SharedDtor(*this);
+}
+inline void EntityPositionResponse::SharedDtor(MessageLite& self) {
+  EntityPositionResponse& this_ = static_cast<EntityPositionResponse&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.placement_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL EntityPositionResponse::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) EntityPositionResponse(arena);
+}
+constexpr auto EntityPositionResponse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(EntityPositionResponse),
+                                            alignof(EntityPositionResponse));
+}
+constexpr auto EntityPositionResponse::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_EntityPositionResponse_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &EntityPositionResponse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<EntityPositionResponse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &EntityPositionResponse::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<EntityPositionResponse>(), &EntityPositionResponse::ByteSizeLong,
+              &EntityPositionResponse::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(EntityPositionResponse, _impl_._cached_size_),
+          false,
+      },
+      &EntityPositionResponse::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull EntityPositionResponse_class_data_ =
+        EntityPositionResponse::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+EntityPositionResponse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&EntityPositionResponse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(EntityPositionResponse_class_data_.tc_table);
+  return EntityPositionResponse_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 1, 0, 2>
+EntityPositionResponse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(EntityPositionResponse, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    EntityPositionResponse_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::entities::EntityPositionResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .modlock.wasm.entities.EntityPlacement placement = 1;
+    {::_pbi::TcParser::FastMtS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(EntityPositionResponse, _impl_.placement_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .modlock.wasm.entities.EntityPlacement placement = 1;
+    {PROTOBUF_FIELD_OFFSET(EntityPositionResponse, _impl_.placement_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::entities::EntityPlacement>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void EntityPositionResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.entities.EntityPositionResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    ABSL_DCHECK(_impl_.placement_ != nullptr);
+    _impl_.placement_->Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL EntityPositionResponse::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const EntityPositionResponse& this_ = static_cast<const EntityPositionResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL EntityPositionResponse::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const EntityPositionResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.entities.EntityPositionResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .modlock.wasm.entities.EntityPlacement placement = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        1, *this_._impl_.placement_, this_._impl_.placement_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.entities.EntityPositionResponse)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t EntityPositionResponse::ByteSizeLong(const MessageLite& base) {
+  const EntityPositionResponse& this_ = static_cast<const EntityPositionResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t EntityPositionResponse::ByteSizeLong() const {
+  const EntityPositionResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.entities.EntityPositionResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // .modlock.wasm.entities.EntityPlacement placement = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.placement_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void EntityPositionResponse::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<EntityPositionResponse*>(&to_msg);
+  auto& from = static_cast<const EntityPositionResponse&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.entities.EntityPositionResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    ABSL_DCHECK(from._impl_.placement_ != nullptr);
+    if (_this->_impl_.placement_ == nullptr) {
+      _this->_impl_.placement_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.placement_);
+    } else {
+      _this->_impl_.placement_->MergeFrom(*from._impl_.placement_);
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void EntityPositionResponse::CopyFrom(const EntityPositionResponse& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.entities.EntityPositionResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void EntityPositionResponse::InternalSwap(EntityPositionResponse* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_impl_.placement_, other->_impl_.placement_);
+}
+
+::google::protobuf::Metadata EntityPositionResponse::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class EntityPlacement::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<EntityPlacement>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_._has_bits_);
+};
+
+void EntityPlacement::clear_position() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.position_ != nullptr) _impl_.position_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+void EntityPlacement::clear_facing() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.facing_ != nullptr) _impl_.facing_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+EntityPlacement::EntityPlacement(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, EntityPlacement_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.entities.EntityPlacement)
+}
+PROTOBUF_NDEBUG_INLINE EntityPlacement::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::entities::EntityPlacement& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+EntityPlacement::EntityPlacement(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const EntityPlacement& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, EntityPlacement_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  EntityPlacement* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.position_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_)
+                : nullptr;
+  _impl_.facing_ = (CheckHasBit(cached_has_bits, 0x00000002U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.facing_)
+                : nullptr;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.entities.EntityPlacement)
+}
+PROTOBUF_NDEBUG_INLINE EntityPlacement::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void EntityPlacement::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, position_),
+           0,
+           offsetof(Impl_, facing_) -
+               offsetof(Impl_, position_) +
+               sizeof(Impl_::facing_));
+}
+EntityPlacement::~EntityPlacement() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.entities.EntityPlacement)
+  SharedDtor(*this);
+}
+inline void EntityPlacement::SharedDtor(MessageLite& self) {
+  EntityPlacement& this_ = static_cast<EntityPlacement&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.position_;
+  delete this_._impl_.facing_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL EntityPlacement::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) EntityPlacement(arena);
+}
+constexpr auto EntityPlacement::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(EntityPlacement),
+                                            alignof(EntityPlacement));
+}
+constexpr auto EntityPlacement::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_EntityPlacement_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &EntityPlacement::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<EntityPlacement>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &EntityPlacement::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<EntityPlacement>(), &EntityPlacement::ByteSizeLong,
+              &EntityPlacement::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_._cached_size_),
+          false,
+      },
+      &EntityPlacement::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull EntityPlacement_class_data_ =
+        EntityPlacement::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+EntityPlacement::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&EntityPlacement_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(EntityPlacement_class_data_.tc_table);
+  return EntityPlacement_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 2, 0, 2>
+EntityPlacement::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    2,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    EntityPlacement_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::entities::EntityPlacement>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .modlock.geometry.EulerAngles facing = 2;
+    {::_pbi::TcParser::FastMtS1,
+     {18, 1, 1,
+      PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_.facing_)}},
+    // .modlock.geometry.Vec3 position = 1;
+    {::_pbi::TcParser::FastMtS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_.position_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .modlock.geometry.Vec3 position = 1;
+    {PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_.position_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .modlock.geometry.EulerAngles facing = 2;
+    {PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_.facing_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
+      {::_pbi::TcParser::GetTable<::modlock::geometry::EulerAngles>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void EntityPlacement::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.entities.EntityPlacement)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      ABSL_DCHECK(_impl_.position_ != nullptr);
+      _impl_.position_->Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(_impl_.facing_ != nullptr);
+      _impl_.facing_->Clear();
+    }
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL EntityPlacement::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const EntityPlacement& this_ = static_cast<const EntityPlacement&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL EntityPlacement::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const EntityPlacement& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.entities.EntityPlacement)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .modlock.geometry.Vec3 position = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        1, *this_._impl_.position_, this_._impl_.position_->GetCachedSize(), target,
+        stream);
+  }
+
+  // .modlock.geometry.EulerAngles facing = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        2, *this_._impl_.facing_, this_._impl_.facing_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.entities.EntityPlacement)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t EntityPlacement::ByteSizeLong(const MessageLite& base) {
+  const EntityPlacement& this_ = static_cast<const EntityPlacement&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t EntityPlacement::ByteSizeLong() const {
+  const EntityPlacement& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.entities.EntityPlacement)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // .modlock.geometry.Vec3 position = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.position_);
+    }
+    // .modlock.geometry.EulerAngles facing = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.facing_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void EntityPlacement::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<EntityPlacement*>(&to_msg);
+  auto& from = static_cast<const EntityPlacement&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.entities.EntityPlacement)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      ABSL_DCHECK(from._impl_.position_ != nullptr);
+      if (_this->_impl_.position_ == nullptr) {
+        _this->_impl_.position_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_);
+      } else {
+        _this->_impl_.position_->MergeFrom(*from._impl_.position_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(from._impl_.facing_ != nullptr);
+      if (_this->_impl_.facing_ == nullptr) {
+        _this->_impl_.facing_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.facing_);
+      } else {
+        _this->_impl_.facing_->MergeFrom(*from._impl_.facing_);
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void EntityPlacement::CopyFrom(const EntityPlacement& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.entities.EntityPlacement)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void EntityPlacement::InternalSwap(EntityPlacement* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_.facing_)
+      + sizeof(EntityPlacement::_impl_.facing_)
+      - PROTOBUF_FIELD_OFFSET(EntityPlacement, _impl_.position_)>(
+          reinterpret_cast<char*>(&_impl_.position_),
+          reinterpret_cast<char*>(&other->_impl_.position_));
+}
+
+::google::protobuf::Metadata EntityPlacement::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

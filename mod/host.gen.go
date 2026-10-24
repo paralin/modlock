@@ -168,6 +168,9 @@ type FieldWrite = fieldspb.FieldWrite
 // EntityClassName names one entity's class two ways.
 type EntityClassName = entitiespb.EntityClassName
 
+// EntityPlacement is an entity's place in the world.
+type EntityPlacement = entitiespb.EntityPlacement
+
 // EntityOptions describes an entity to create.
 type EntityOptions = entitiespb.EntityOptions
 
@@ -853,6 +856,18 @@ func EntityClass(entity uint32) (*EntityClassName, error) {
 		return nil, err
 	}
 	return response.GetName(), nil
+}
+
+// EntityPosition returns where a live entity stands, its absolute origin
+// and angles, as MoveEntity places it. Any entity with a place in the
+// world has one, such as one of the map's boxes.
+func EntityPosition(entity uint32) (*EntityPlacement, error) {
+	request := &entitiespb.EntityRequest{Entity: entity}
+	response := &entitiespb.EntityPositionResponse{}
+	if err := invoke("EntityPosition", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetPlacement(), nil
 }
 
 // ModifierState reports whether an entity has a modifier state, such as

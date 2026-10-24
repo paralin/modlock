@@ -263,6 +263,109 @@ export const EntityClassName: MessageType<EntityClassName> =
   )
 
 /**
+ * EntityPositionResponse is where one live entity stands.
+ *
+ * @generated from message modlock.wasm.entities.EntityPositionResponse
+ */
+export interface EntityPositionResponse {
+  placement?: EntityPlacement
+}
+
+export const EntityPositionResponse: MessageType<EntityPositionResponse> =
+  /* @__PURE__ */ createMessageType<EntityPositionResponse>(
+    'modlock.wasm.entities.EntityPositionResponse',
+    () => [[1, 'placement', 11, 0, EntityPlacement.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: EntityPositionResponse,
+      ): EntityPositionResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.placement = EntityPlacement.decode(
+                r,
+                r.delimited(),
+                m.placement ?? {},
+              )
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: EntityPositionResponse, w: Writer): void => {
+        {
+          const v = m.placement
+          if (v != null) EntityPlacement.writeField(w, 1, v)
+        }
+      },
+    },
+  )
+
+/**
+ * EntityPlacement is an entity's place in the world.
+ *
+ * @generated from message modlock.wasm.entities.EntityPlacement
+ */
+export interface EntityPlacement {
+  /**
+   * Position is the entity's absolute origin.
+   */
+  position?: Vec3
+  /**
+   * Facing is the entity's absolute angles.
+   */
+  facing?: EulerAngles
+}
+
+export const EntityPlacement: MessageType<EntityPlacement> =
+  /* @__PURE__ */ createMessageType<EntityPlacement>(
+    'modlock.wasm.entities.EntityPlacement',
+    () => [
+      [1, 'position', 11, 0, Vec3.codec],
+      [2, 'facing', 11, 0, EulerAngles.codec],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: EntityPlacement,
+      ): EntityPlacement => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.position = Vec3.decode(r, r.delimited(), m.position ?? {})
+              break
+            case 2:
+              m.facing = EulerAngles.decode(r, r.delimited(), m.facing ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: EntityPlacement, w: Writer): void => {
+        {
+          const v = m.position
+          if (v != null) Vec3.writeField(w, 1, v)
+        }
+        {
+          const v = m.facing
+          if (v != null) EulerAngles.writeField(w, 2, v)
+        }
+      },
+    },
+  )
+
+/**
  * EntityResponse holds one entity handle.
  *
  * @generated from message modlock.wasm.entities.EntityResponse

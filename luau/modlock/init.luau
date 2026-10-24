@@ -373,6 +373,14 @@ export type EntityClassName = {
 	designerName: string,
 }
 
+-- EntityPlacement is an entity's place in the world.
+export type EntityPlacement = {
+	-- position is the entity's absolute origin.
+	position: Vector,
+	-- facing is the entity's absolute angles.
+	facing: Angles,
+}
+
 -- EntityOptions describes an entity to create.
 export type EntityOptions = {
 	-- designerName is the entity's designer name, such as npc_trooper_boss.
@@ -1949,6 +1957,13 @@ schema.EntityClassName = {
 	{ number = 1, name = "className", kind = "string" },
 	{ number = 2, name = "designerName", kind = "string" },
 }
+schema.EntityPositionResponse = {
+	{ number = 1, name = "placement", kind = "message", optional = true, message = "EntityPlacement" },
+}
+schema.EntityPlacement = {
+	{ number = 1, name = "position", kind = "message", message = "Vec3" },
+	{ number = 2, name = "facing", kind = "message", message = "EulerAngles" },
+}
 schema.EntityResponse = {
 	{ number = 1, name = "entity", kind = "uint32" },
 }
@@ -2649,6 +2664,17 @@ function modlock.entityClass(entity: number): EntityClassName?
 		return nil
 	end
 	return response.name
+end
+
+-- entityPosition returns where a live entity stands, its absolute origin
+-- and angles, as MoveEntity places it. Any entity with a place in the
+-- world has one, such as one of the map's boxes.
+function modlock.entityPosition(entity: number): EntityPlacement?
+	local response = call("EntityPosition", "EntityRequest", { entity = entity }, "EntityPositionResponse")
+	if response == nil then
+		return nil
+	end
+	return response.placement
 end
 
 -- modifierState reports whether an entity has a modifier state, such as

@@ -314,6 +314,11 @@ service Host {
   // CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
   rpc EntityClass(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityClassResponse);
 
+  // EntityPosition returns where a live entity stands, its absolute origin
+  // and angles, as MoveEntity places it. Any entity with a place in the
+  // world has one, such as one of the map's boxes.
+  rpc EntityPosition(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityPositionResponse);
+
   // ModifierState reports whether an entity has a modifier state, such as
   // MODIFIER_STATE_PARRY_ACTIVE.
   rpc ModifierState(modlock.wasm.abilities.ModifierStateRequest) returns (modlock.wasm.abilities.ActiveResponse);

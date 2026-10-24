@@ -430,6 +430,14 @@ class HostService {
     return std::unexpected("this host does not support EntityClass");
   }
 
+  // EntityPosition returns where a live entity stands, its absolute origin
+  // and angles, as MoveEntity places it. Any entity with a place in the
+  // world has one, such as one of the map's boxes.
+  virtual std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
+      const entities::EntityRequest& /*request*/) {
+    return std::unexpected("this host does not support EntityPosition");
+  }
+
   // ModifierState reports whether an entity has a modifier state, such as
   // MODIFIER_STATE_PARRY_ACTIVE.
   virtual std::expected<abilities::ActiveResponse, std::string> ModifierState(
@@ -1201,6 +1209,14 @@ class HostService {
              return detail::Fail("the EntityClass request is malformed");
            }
            return detail::Answer(host.EntityClass(request));
+         }},
+        {"EntityPosition",
+         [](HostService& host, const std::string& bytes) {
+           entities::EntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the EntityPosition request is malformed");
+           }
+           return detail::Answer(host.EntityPosition(request));
          }},
         {"ModifierState",
          [](HostService& host, const std::string& bytes) {

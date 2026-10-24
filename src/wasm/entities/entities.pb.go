@@ -168,6 +168,54 @@ func (x *EntityClassName) GetDesignerName() string {
 	return ""
 }
 
+// EntityPositionResponse is where one live entity stands.
+type EntityPositionResponse struct {
+	unknownFields []byte
+	Placement     *EntityPlacement `protobuf:"bytes,1,opt,name=placement,proto3" json:"placement,omitempty"`
+}
+
+func (x *EntityPositionResponse) Reset() {
+	*x = EntityPositionResponse{}
+}
+
+func (*EntityPositionResponse) ProtoMessage() {}
+
+func (x *EntityPositionResponse) GetPlacement() *EntityPlacement {
+	if x != nil {
+		return x.Placement
+	}
+	return nil
+}
+
+// EntityPlacement is an entity's place in the world.
+type EntityPlacement struct {
+	unknownFields []byte
+	// Position is the entity's absolute origin.
+	Position *geometry.Vec3 `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	// Facing is the entity's absolute angles.
+	Facing *geometry.EulerAngles `protobuf:"bytes,2,opt,name=facing,proto3" json:"facing,omitempty"`
+}
+
+func (x *EntityPlacement) Reset() {
+	*x = EntityPlacement{}
+}
+
+func (*EntityPlacement) ProtoMessage() {}
+
+func (x *EntityPlacement) GetPosition() *geometry.Vec3 {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *EntityPlacement) GetFacing() *geometry.EulerAngles {
+	if x != nil {
+		return x.Facing
+	}
+	return nil
+}
+
 // EntityResponse holds one entity handle.
 type EntityResponse struct {
 	unknownFields []byte
@@ -728,6 +776,39 @@ func (m *EntityClassName) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *EntityPositionResponse) CloneVT() *EntityPositionResponse {
+	if m == nil {
+		return (*EntityPositionResponse)(nil)
+	}
+	r := new(EntityPositionResponse)
+	r.Placement = protobuf_go_lite.CloneVTValue(m.Placement)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *EntityPositionResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *EntityPlacement) CloneVT() *EntityPlacement {
+	if m == nil {
+		return (*EntityPlacement)(nil)
+	}
+	r := new(EntityPlacement)
+	r.Position = protobuf_go_lite.CloneVTValue(m.Position)
+	r.Facing = protobuf_go_lite.CloneVTValue(m.Facing)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *EntityPlacement) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *EntityResponse) CloneVT() *EntityResponse {
 	if m == nil {
 		return (*EntityResponse)(nil)
@@ -1131,6 +1212,49 @@ func (this *EntityClassName) EqualVT(that *EntityClassName) bool {
 
 func (this *EntityClassName) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*EntityClassName)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *EntityPositionResponse) EqualVT(that *EntityPositionResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Placement, that.Placement) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *EntityPositionResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*EntityPositionResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *EntityPlacement) EqualVT(that *EntityPlacement) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Position, that.Position) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Facing, that.Facing) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *EntityPlacement) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*EntityPlacement)
 	if !ok {
 		return false
 	}
@@ -1820,6 +1944,110 @@ func (x *EntityClassName) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the EntityClassName from JSON.
 func (x *EntityClassName) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the EntityPositionResponse message to JSON.
+func (x *EntityPositionResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Placement != nil || s.HasField("placement") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("placement")
+		x.Placement.MarshalProtoJSON(s.WithField("placement"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the EntityPositionResponse to JSON.
+func (x *EntityPositionResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the EntityPositionResponse message from JSON.
+func (x *EntityPositionResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "placement":
+			if s.ReadNil() {
+				x.Placement = nil
+				return
+			}
+			x.Placement = &EntityPlacement{}
+			x.Placement.UnmarshalProtoJSON(s.WithField("placement", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the EntityPositionResponse from JSON.
+func (x *EntityPositionResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the EntityPlacement message to JSON.
+func (x *EntityPlacement) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Position != nil || s.HasField("position") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("position")
+		x.Position.MarshalProtoJSON(s.WithField("position"))
+	}
+	if x.Facing != nil || s.HasField("facing") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("facing")
+		x.Facing.MarshalProtoJSON(s.WithField("facing"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the EntityPlacement to JSON.
+func (x *EntityPlacement) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the EntityPlacement message from JSON.
+func (x *EntityPlacement) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "position":
+			if s.ReadNil() {
+				x.Position = nil
+				return
+			}
+			x.Position = &geometry.Vec3{}
+			x.Position.UnmarshalProtoJSON(s.WithField("position", true))
+		case "facing":
+			if s.ReadNil() {
+				x.Facing = nil
+				return
+			}
+			x.Facing = &geometry.EulerAngles{}
+			x.Facing.UnmarshalProtoJSON(s.WithField("facing", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the EntityPlacement from JSON.
+func (x *EntityPlacement) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2837,6 +3065,100 @@ func (m *EntityClassName) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *EntityPositionResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EntityPositionResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *EntityPositionResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Placement != nil {
+		size, err := m.Placement.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EntityPlacement) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EntityPlacement) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *EntityPlacement) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Facing != nil {
+		size, err := m.Facing.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Position != nil {
+		size, err := m.Position.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *EntityResponse) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3612,6 +3934,38 @@ func (m *EntityClassName) SizeVT() (n int) {
 	return n
 }
 
+func (m *EntityPositionResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Placement != nil {
+		l = m.Placement.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *EntityPlacement) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Position != nil {
+		l = m.Position.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Facing != nil {
+		l = m.Facing.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *EntityResponse) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3940,6 +4294,38 @@ func (x *EntityClassName) MarshalProtoText() string {
 }
 
 func (x *EntityClassName) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *EntityPositionResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityPositionResponse")
+	if x.Placement != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "placement")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Placement)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *EntityPositionResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *EntityPlacement) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityPlacement")
+	if x.Position != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "position")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Position)
+	}
+	if x.Facing != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "facing")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Facing)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *EntityPlacement) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4482,6 +4868,137 @@ func (m *EntityClassName) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.DesignerName = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *EntityPositionResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EntityPositionResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EntityPositionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Placement", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Placement == nil {
+				m.Placement = &EntityPlacement{}
+			}
+			if err := m.Placement.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *EntityPlacement) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EntityPlacement: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EntityPlacement: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Position", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Position == nil {
+				m.Position = &geometry.Vec3{}
+			}
+			if err := m.Position.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Facing", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Facing == nil {
+				m.Facing = &geometry.EulerAngles{}
+			}
+			if err := m.Facing.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

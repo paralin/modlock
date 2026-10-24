@@ -433,6 +433,8 @@ class Game : public HostService {
       const fields::WriteFieldListRequest& request) override;
   std::expected<entities::EntityClassResponse, std::string> EntityClass(
       const entities::EntityRequest& request) override;
+  std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
+      const entities::EntityRequest& request) override;
   std::expected<abilities::ActiveResponse, std::string> ModifierState(
       const abilities::ModifierStateRequest& request) override;
   std::expected<void, std::string> HoldModifierState(
@@ -649,8 +651,16 @@ class Game : public HostService {
   // whose hero it is, or -1.
   std::pair<uint32_t, int32_t> Owner(void* entity);
 
+  // SceneNode returns an entity's scene node, or null for an entity with no
+  // place in the world.
+  unsigned char* SceneNode(void* entity);
+
   // Origin returns where an entity is.
   std::optional<std::array<float, 3>> Origin(void* entity);
+
+  // SceneVector reads a three-float field of an entity's scene node, such as
+  // m_vecAbsOrigin or m_angAbsRotation.
+  std::optional<std::array<float, 3>> SceneVector(void* entity, const std::string& field);
 
   // RemoveWorld removes the objects and units and kicks the bots.
   void RemoveWorld();

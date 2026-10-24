@@ -582,6 +582,22 @@ function fromEntityClassName(message: entitiesPb.EntityClassName): EntityClassNa
   }
 }
 
+/** EntityPlacement is an entity's place in the world. */
+export interface EntityPlacement {
+  /** position is the entity's absolute origin. */
+  readonly position: Vector
+  /** facing is the entity's absolute angles. */
+  readonly facing: Angles
+}
+
+/** fromEntityPlacement decodes an EntityPlacement. */
+function fromEntityPlacement(message: entitiesPb.EntityPlacement): EntityPlacement {
+  return {
+    position: vector(message.position),
+    facing: angles(message.facing),
+  }
+}
+
 /** EntityOptions describes an entity to create. */
 export interface EntityOptions {
   /** designerName is the entity's designer name, such as npc_trooper_boss. */
@@ -2434,6 +2450,18 @@ export function entityClass(entity: number): EntityClassName | undefined {
   if (reply === undefined) return undefined
   const response = entitiesPb.EntityClassResponse.fromBinary(reply)
   return response.name === undefined ? undefined : fromEntityClassName(response.name)
+}
+
+/**
+ * entityPosition returns where a live entity stands, its absolute origin
+ * and angles, as MoveEntity places it. Any entity with a place in the
+ * world has one, such as one of the map's boxes.
+ */
+export function entityPosition(entity: number): EntityPlacement | undefined {
+  const reply = call('EntityPosition', entitiesPb.EntityRequest.toBinary({ entity }))
+  if (reply === undefined) return undefined
+  const response = entitiesPb.EntityPositionResponse.fromBinary(reply)
+  return response.placement === undefined ? undefined : fromEntityPlacement(response.placement)
 }
 
 /**

@@ -42,6 +42,20 @@ message EntityClassName {
   string designer_name = 2;
 }
 
+// EntityPositionResponse is where one live entity stands.
+message EntityPositionResponse {
+  EntityPlacement placement = 1;
+}
+
+// EntityPlacement is an entity's place in the world.
+message EntityPlacement {
+  // Position is the entity's absolute origin.
+  modlock.geometry.Vec3 position = 1;
+
+  // Facing is the entity's absolute angles.
+  modlock.geometry.EulerAngles facing = 2;
+}
+
 // EntityResponse holds one entity handle.
 message EntityResponse {
   uint32 entity = 1;

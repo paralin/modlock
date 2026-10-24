@@ -611,6 +611,26 @@ std::expected<entities::EntityClassResponse, std::string> Game::EntityClass(
   return response;
 }
 
+std::expected<entities::EntityPositionResponse, std::string> Game::EntityPosition(
+    const entities::EntityRequest& request) {
+  // Find the entity and read its scene node's origin and angles.
+  auto entity = Entity(request.entity());
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+  const auto origin = SceneVector(*entity, "m_vecAbsOrigin");
+  const auto angles = SceneVector(*entity, "m_angAbsRotation");
+  if (!origin || !angles) {
+    return std::unexpected("the entity has no place in the world");
+  }
+
+  // Answer them.
+  entities::EntityPositionResponse response;
+  SetVector(response.mutable_placement()->mutable_position(), *origin);
+  SetAngles(response.mutable_placement()->mutable_facing(), *angles);
+  return response;
+}
+
 std::expected<abilities::ActiveResponse, std::string> Game::ModifierState(
     const abilities::ModifierStateRequest& request) {
   // Find the entity and the mask word that holds the state.

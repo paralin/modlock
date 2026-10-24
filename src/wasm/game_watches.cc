@@ -335,31 +335,41 @@ std::pair<uint32_t, int32_t> Game::Owner(void* entity) {
   return {owner, -1};
 }
 
-std::optional<std::array<float, 3>> Game::Origin(void* entity) {
-  // Resolve the scene node fields.
+unsigned char* Game::SceneNode(void* entity) {
+  // Resolve the body component's fields.
   auto body = services_.Field("CBaseEntity", "m_CBodyComponent");
   auto node = services_.Field("CBodyComponent", "m_pSceneNode");
-  auto origin = services_.Field("CGameSceneNode", "m_vecAbsOrigin");
-  if (!body || !node || !origin) {
-    return std::nullopt;
+  if (!body || !node) {
+    return nullptr;
   }
 
   // Follow the body component to its scene node.
   unsigned char* component = nullptr;
   std::memcpy(&component, static_cast<unsigned char*>(entity) + body->offset, sizeof(component));
   if (component == nullptr) {
-    return std::nullopt;
+    return nullptr;
   }
   unsigned char* scene = nullptr;
   std::memcpy(&scene, component + node->offset, sizeof(scene));
-  if (scene == nullptr) {
+  return scene;
+}
+
+std::optional<std::array<float, 3>> Game::Origin(void* entity) {
+  return SceneVector(entity, "m_vecAbsOrigin");
+}
+
+std::optional<std::array<float, 3>> Game::SceneVector(void* entity, const std::string& field) {
+  // Find the scene node and the field.
+  auto* scene = SceneNode(entity);
+  auto at = services_.Field("CGameSceneNode", field);
+  if (scene == nullptr || !at) {
     return std::nullopt;
   }
 
-  // Read the node's absolute origin.
-  std::array<float, 3> position{};
-  std::memcpy(position.data(), scene + origin->offset, sizeof(position));
-  return position;
+  // Read the node's three floats.
+  std::array<float, 3> value{};
+  std::memcpy(value.data(), scene + at->offset, sizeof(value));
+  return value;
 }
 
 }  // namespace modlock::wasm
