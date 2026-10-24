@@ -299,12 +299,6 @@ class Game : public HostService {
   // next player there starts clear.
   void Leave(int32_t slot);
 
-  // Disconnect marks the hero of the player in slot, who is leaving the
-  // server, for removal once the engine finishes the disconnect. The engine
-  // leaves a departed player's hero standing without an owner, and a player
-  // who returns gets a new one.
-  void Disconnect(int32_t slot);
-
   // Clear removes everything the mod placed, releases its frozen heroes,
   // held modifiers, input changes and match clock hold, resumes a game it
   // paused and stops watching projectiles.
@@ -664,10 +658,6 @@ class Game : public HostService {
   // Depart records that the bot in slot was kicked.
   void Depart(int32_t slot);
 
-  // RemoveDeparted removes each hero Disconnect marked whose slot the engine
-  // has released.
-  void RemoveDeparted();
-
   // services_ outlives the game.
   GameServices& services_;
   // engine_ outlives the game; the host owns it.
@@ -694,14 +684,6 @@ class Game : public HostService {
   // departing_ maps each kicked bot's slot to its connection generation
   // until the slot empties or another connection takes it.
   std::map<int32_t, uint32_t> departing_;
-  // Departed is a departed player's hero and the connection generation of
-  // the slot it belonged to.
-  struct Departed {
-    uint32_t hero;
-    int32_t slot;
-    uint32_t generation;
-  };
-  std::vector<Departed> departed_;
   std::set<int32_t> frozen_;
   // movers_ is the players whose movement the mod watches.
   std::set<int32_t> movers_;

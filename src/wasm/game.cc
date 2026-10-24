@@ -35,7 +35,6 @@ void Game::Frame() {
   TickRestores();
   TrackProjectiles();
   PruneAudiences();
-  RemoveDeparted();
   if (services_.effects_) {
     services_.effects_->Sweep(std::chrono::steady_clock::now());
   }
@@ -279,32 +278,6 @@ void Game::RemoveWorld() {
 
 void Game::Depart(int32_t slot) {
   departing_[slot] = gameinterop::ConnectionTracker::StateForSlot(slot).generation;
-}
-
-void Game::Disconnect(int32_t slot) {
-  // The slot and its hero are still valid while the engine disconnects.
-  const auto sample = observer_.Observe(slot);
-  if (!sample || sample->pawn_handle == 0) {
-    return;
-  }
-  departed_.push_back({.hero = sample->pawn_handle,
-                       .slot = slot,
-                       .generation = gameinterop::ConnectionTracker::StateForSlot(slot).generation});
-}
-
-void Game::RemoveDeparted() {
-  // Removing a hero during the engine's teardown would pull it from under
-  // the controller, so wait until the slot is released.
-  std::erase_if(departed_, [this](const Departed& departed) {
-    const auto state = gameinterop::ConnectionTracker::StateForSlot(departed.slot);
-    if (state.occupied && state.generation == departed.generation) {
-      return false;
-    }
-    if (auto world = World()) {
-      static_cast<void>((*world)->RemoveEntity(departed.hero));
-    }
-    return true;
-  });
 }
 
 bool Game::Departing() {

@@ -175,10 +175,7 @@ void WasmPlugin::ListenToPlayers() {
     Log(std::string("console commands are unavailable: ") + commands.error());
   }
   if (auto departures = engine_->OnConnection(
-          std::make_shared<Departures>([this](int32_t slot) {
-            game_.Disconnect(slot);
-            Leave(slot);
-          }))) {
+          std::make_shared<Departures>([this](int32_t slot) { Leave(slot); }))) {
     players_.Add(std::move(*departures));
   } else {
     Log(std::string("interfaces may outlive their players: ") + departures.error());

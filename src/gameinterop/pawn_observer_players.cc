@@ -148,8 +148,8 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
   // Check the request and the layout.
   if (!IsPlayerSlot(slot) || !steam_id || team < 1 || team > 3 ||
       (team != 1 && (!definition || !calls.create_pawn || !calls.select_hero)) ||
-      (team == 1 && (!calls.spawn_observer || !calls.set_pawn || !calls.remove)) ||
-      !seams_.slot_state || !seams_.entity_system) {
+      (team == 1 && (!calls.spawn_observer || !calls.set_pawn)) || !seams_.slot_state ||
+      !seams_.entity_system) {
     return std::unexpected("player selection unavailable");
   }
   if (auto resolved = ResolveLayout(); !resolved) {
@@ -210,8 +210,7 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
     auto* controller = static_cast<unsigned char*>(current->first);
     uint32_t hero = 0;
     std::memcpy(&hero, controller + *layout_.hero_pawn_handle, sizeof(hero));
-    auto* released = IdentityOfHandle(EntityListOf(current->second), hero);
-    if (released) {
+    if (IdentityOfHandle(EntityListOf(current->second), hero)) {
       hero = kInvalidEHandleIndex;
       std::memcpy(controller + *layout_.hero_pawn_handle, &hero, sizeof(hero));
       if (!NotifyEntityStateChanged(controller)) {
@@ -222,13 +221,6 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
     current = borrow();
     if (!current) {
       return std::unexpected(current.error());
-    }
-
-    // The released hero no longer belongs to anyone, so remove it rather than
-    // leave its body standing in the world. UTIL_Remove defers the deletion
-    // to the end of the frame, after the client has unbound it.
-    if (released) {
-      calls.remove(InstanceOf(released));
     }
   }
   if (current_team != team) {

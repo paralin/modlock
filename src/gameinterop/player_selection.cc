@@ -13,7 +13,6 @@ std::expected<PlayerSelectionCalls, std::string> PlayerSelectionCalls::Resolve(
       {"pawn.select-hero-internal", &calls.select_hero},
       {"controller.spawn-observer", &calls.spawn_observer},
       {"controller.set-pawn", &calls.set_pawn},
-      {"entity.remove", &calls.remove},
   };
   auto resolved = ResolveSignatures(server, signatures);
   if (!resolved) {
