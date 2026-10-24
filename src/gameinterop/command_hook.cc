@@ -7,6 +7,7 @@
 
 #include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/entity_abi.h"
+#include "modlock/gameinterop/virtual_slots.h"
 
 #if defined(_WIN32)
 #include <safetyhook.hpp>
@@ -38,8 +39,13 @@ constexpr size_t kBaseAngles = 0x40;
 constexpr size_t kBaseForward = 0x58;
 constexpr size_t kBaseLeft = 0x5c;
 constexpr uint32_t kBaseAxesBits = 0x40 | 0x80;
-// CMsgQAngle holds x, y and z from +0x18.
+// Has-bit 0x4 marks the view message. CMsgQAngle holds has-bits at +0x10 and
+// x, y and z from +0x18, in 0x28 bytes.
+constexpr uint32_t kBaseAnglesBit = 0x4;
+constexpr size_t kAnglesHasBits = 0x10;
+constexpr uint32_t kAnglesXyzBits = 0x7;
 constexpr size_t kAnglesXyz = 0x18;
+constexpr size_t kAnglesSize = 0x28;
 // The command's InButtonState sits at +0x70, its held, changed and scroll
 // masks after the vtable.
 constexpr size_t kCommandButtons = 0x78;
@@ -52,6 +58,10 @@ std::array<uint64_t, kMaxPlayerSlots> g_held{};
 // g_cameras is each slot's camera position in its latest commands.
 std::array<std::optional<std::array<float, 3>>, kMaxPlayerSlots> g_cameras{};
 bool g_reported_bare = false;
+// A bot's command carries no view message, so a driven bot's borrows g_lent,
+// built on the message's vtable, for one call.
+const void* g_angles_vtable = nullptr;
+alignas(8) std::array<std::byte, kAnglesSize> g_lent{};
 
 template <typename T>
 T Load(const std::byte* base, size_t offset) {
@@ -68,7 +78,8 @@ void Store(std::byte* base, size_t offset, const T& value) {
 // Write puts the drive's controls in one command. A bot's brain builds its
 // base message on its first tick; a command without one keeps its own axes and
 // view this tick.
-void Write(std::byte* command, const CommandHook::Command& drive, uint64_t& last_held) {
+void Write(std::byte* command, const CommandHook::Command& drive, uint64_t& last_held,
+           std::byte* lent) {
   // Write the held and pressed buttons.
   const uint64_t held = drive.held | drive.pressed;
   const std::array<uint64_t, 3> buttons{held, (held ^ last_held) | drive.pressed, 0};
@@ -87,7 +98,14 @@ void Write(std::byte* command, const CommandHook::Command& drive, uint64_t& last
   Store(base, kBaseHasBits, Load<uint32_t>(base, kBaseHasBits) | kBaseAxesBits);
   Store(base, kBaseForward, drive.forward);
   Store(base, kBaseLeft, drive.left);
-  if (auto* angles = Load<std::byte*>(base, kBaseAngles)) {
+  auto* angles = Load<std::byte*>(base, kBaseAngles);
+  if (!angles && lent) {
+    angles = lent;
+    Store(base, kBaseAngles, angles);
+    Store(base, kBaseHasBits, Load<uint32_t>(base, kBaseHasBits) | kBaseAnglesBit);
+  }
+  if (angles) {
+    Store(angles, kAnglesHasBits, Load<uint32_t>(angles, kAnglesHasBits) | kAnglesXyzBits);
     Store(angles, kAnglesXyz, drive.angles);
   }
 }
@@ -109,11 +127,17 @@ std::optional<std::array<float, 3>> Camera(const std::byte* commands, int count)
 int ProcessThunk(void* controller, std::byte* commands, int count, bool paused, float margin) {
   const auto handle = controller ? ReferenceHandleOf(controller) : std::nullopt;
   const int32_t slot = handle ? static_cast<int32_t>(EntityIndexOf(*handle)) - 1 : -1;
+  std::byte* lent = nullptr;
   if (IsPlayerSlot(slot) && commands && count > 0) {
     g_cameras[slot] = Camera(commands, count);
     if (auto drive = (*g_decide)(slot)) {
+      if (g_angles_vtable) {
+        lent = g_lent.data();
+        g_lent.fill(std::byte{});
+        Store(lent, 0, g_angles_vtable);
+      }
       for (int i = 0; i < count; ++i) {
-        Write(commands + static_cast<size_t>(i) * kCommandStride, *drive, g_held[slot]);
+        Write(commands + static_cast<size_t>(i) * kCommandStride, *drive, g_held[slot], lent);
         // A press counts once, in the batch's first command.
         drive->pressed = 0;
       }
@@ -121,7 +145,18 @@ int ProcessThunk(void* controller, std::byte* commands, int count, bool paused, 
       g_held[slot] = 0;
     }
   }
-  return g_hook->call<int>(controller, commands, count, paused, margin);
+  const int result = g_hook->call<int>(controller, commands, count, paused, margin);
+
+  // Take the lent view message back out, so the game never frees it.
+  for (int i = 0; lent && i < count; ++i) {
+    const auto* command = commands + static_cast<size_t>(i) * kCommandStride;
+    auto* base = Load<std::byte*>(command, kCommandBase);
+    if (base && Load<std::byte*>(base, kBaseAngles) == lent) {
+      Store(base, kBaseAngles, static_cast<std::byte*>(nullptr));
+      Store(base, kBaseHasBits, Load<uint32_t>(base, kBaseHasBits) & ~kBaseAnglesBit);
+    }
+  }
+  return result;
 }
 #endif
 
@@ -142,6 +177,7 @@ struct CommandHook::Impl {
     g_decide = nullptr;
     g_held = {};
     g_cameras = {};
+    g_angles_vtable = nullptr;
   }
 #endif
 };
@@ -176,6 +212,8 @@ std::expected<CommandHook, std::string> CommandHook::Install(const ModuleImage& 
   impl->decide = std::move(decide);
   g_hook = &impl->hook;
   g_decide = &impl->decide;
+  const auto table = FindVtable(server, "CMsgQAngle");
+  g_angles_vtable = table ? reinterpret_cast<const void*>(server.base() + *table) : nullptr;
   if (auto enabled = impl->hook.enable(); !enabled) {
     return std::unexpected("command hook activation failed");
   }

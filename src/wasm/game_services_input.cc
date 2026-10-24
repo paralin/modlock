@@ -207,6 +207,17 @@ std::optional<gameinterop::CommandHook::Command> GameServices::Driven(int32_t sl
     found->second.pressed = 0;
     return command;
   }
+  for (auto* game : games_) {
+    auto steered = game->steers_.find(slot);
+    if (steered != game->steers_.end() &&
+        gameinterop::ConnectionTracker::StateForSlot(slot).is_bot) {
+      const auto& steering = steered->second;
+      return gameinterop::CommandHook::Command{.angles = Floats(steering.facing()),
+                                                .forward = steering.command().forward(),
+                                                .left = steering.command().left(),
+                                                .held = steering.command().held()};
+    }
+  }
   return std::nullopt;
 }
 
