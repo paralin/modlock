@@ -3,8 +3,8 @@
 // runtime, the entity classes as a second module that imports the first, and
 // their declarations. Beside them it keeps the library's TypeScript source
 // and the protobuf runtime's, which scriptc compiles with a mod. It also
-// bundles the renderer that draws mods' interfaces in the player's game, and
-// the preview page that draws them in a browser.
+// bundles the renderer that draws mods' interfaces in the player's game, the
+// preview page that draws them in a browser, and Modlock Studio's page.
 //
 // A script project installs only the declarations, so editors and the type
 // checker see one modlock package and neither compiler mistakes it for an
@@ -63,6 +63,19 @@ const LayoutLibrary = "layout.js"
 // modlock dev serves.
 const Preview = "preview"
 
+// Studio is the directory of the built library that holds Modlock Studio's
+// page, which modlock studio serves.
+const Studio = "studio"
+
+// studioPackages are the npm packages Studio's page bundles, by name, at the
+// versions the repository's package.json pins for type checking.
+var studioPackages = map[string]string{
+	"react":     "19.2.0",
+	"react-dom": "19.2.0",
+	"scheduler": "0.27.0",
+	"three":     "0.186.1",
+}
+
 // jsxRuntime and jsxTypes are the library's JSX runtime, which the compiler
 // and the bundler import as modlock/jsx-runtime.
 const (
@@ -90,7 +103,7 @@ const banner = "/*! Includes protobuf-es-lite under the Apache License 2.0: http
 
 // sources are the paths under the Modlock source that Build reads. Under the
 // message roots it reads only the generated TypeScript messages.
-var sources = append([]string{"js/src", "js/tsconfig.json", "panorama/src", "panorama/browser"}, messageRoots...)
+var sources = append([]string{"js/src", "js/tsconfig.json", "panorama/src", "panorama/browser", "studio/web", "studio/studio.pb.ts"}, messageRoots...)
 
 // messageRoots are the directories whose generated messages the library and
 // renderer import.
@@ -112,9 +125,15 @@ func underMessageRoot(name string) bool {
 	return false
 }
 
-// pageFiles are the preview page's files that Build copies as they are, by
-// their names under panorama/browser.
-var pageFiles = []string{"index.html", "preview.css", "panels.css"}
+// pageFiles are the pages' files that Build copies as they are, by their
+// paths under the source and the built library.
+var pageFiles = map[string]string{
+	"panorama/browser/index.html":  Preview + "/index.html",
+	"panorama/browser/preview.css": Preview + "/preview.css",
+	"panorama/browser/panels.css":  Preview + "/panels.css",
+	"studio/web/index.html":        Studio + "/index.html",
+	"studio/web/studio.css":        Studio + "/studio.css",
+}
 
 // Library returns a directory holding the built library and renderer: one
 // built from the Modlock source when it is on disk, or else the one this build
@@ -322,6 +341,15 @@ func Build(ctx context.Context, source, out string) error {
 	if err := copyTree(protobuf, filepath.Join(scratch, "node_modules", "@aptre", "protobuf-es-lite")); err != nil {
 		return err
 	}
+	for name, version := range studioPackages {
+		dir, err := npm.Package(ctx, name, version)
+		if err != nil {
+			return err
+		}
+		if err := copyTree(dir, filepath.Join(scratch, "node_modules", name)); err != nil {
+			return err
+		}
+	}
 
 	// Declare the library.
 	tsgo, err := npm.Tsgo(ctx)
@@ -364,7 +392,8 @@ func Build(ctx context.Context, source, out string) error {
 		}
 	}
 
-	// Bundle the library, the entity classes, the console and the renderer.
+	// Bundle the library, the entity classes, the console, the renderer and
+	// the pages.
 	bundles := []struct {
 		name    string
 		options api.BuildOptions
@@ -375,6 +404,11 @@ func Build(ctx context.Context, source, out string) error {
 		{Renderer, api.BuildOptions{EntryPoints: []string{"panorama/src/main.ts"}, Format: api.FormatIIFE, Target: api.ES2020, MinifyWhitespace: true, MinifyIdentifiers: true, MinifySyntax: true}},
 		{LayoutLibrary, api.BuildOptions{EntryPoints: []string{"panorama/src/layout.ts"}, Format: api.FormatIIFE, GlobalName: "Modlock", Target: api.ES2020, MinifySyntax: true}},
 		{Preview + "/preview.js", api.BuildOptions{EntryPoints: []string{"panorama/browser/preview.ts"}, Format: api.FormatIIFE, Target: api.ES2022, MinifySyntax: true}},
+		{Studio + "/studio.js", api.BuildOptions{
+			EntryPoints: []string{"studio/web/main.tsx"}, Format: api.FormatIIFE, Target: api.ES2022,
+			JSX: api.JSXAutomatic, Define: map[string]string{"process.env.NODE_ENV": `"production"`},
+			MinifyWhitespace: true, MinifyIdentifiers: true, MinifySyntax: true,
+		}},
 	}
 	for _, bundle := range bundles {
 		options := bundle.options
@@ -390,8 +424,8 @@ func Build(ctx context.Context, source, out string) error {
 		}
 		files[bundle.name] = result.OutputFiles[0].Contents
 	}
-	for _, name := range pageFiles {
-		if files[Preview+"/"+name], err = os.ReadFile(filepath.Join(scratch, "panorama", "browser", name)); err != nil {
+	for from, to := range pageFiles {
+		if files[to], err = os.ReadFile(filepath.Join(scratch, filepath.FromSlash(from))); err != nil {
 			return err
 		}
 	}

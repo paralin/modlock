@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package modlock.studio;
+
+option go_package = "github.com/paralin/modlock/studio;studio";
+
+// Modlock Studio's server answers the page in these messages, in the protobuf
+// binary encoding. Every asset comes from the player's own install; the
+// messages describe it and the page fetches its raw buffers and mips by
+// position.
+
+// Listing is every file in the game's archive, grouped by directory so each
+// directory's path is sent once.
+message Listing {
+  // Dirs are the archive's directories, sorted, such as "models/heroes_wip".
+  // The archive's root is the empty string.
+  repeated string dirs = 1;
+
+  // Files are the archive's files, sorted by directory and then by name.
+  repeated File files = 2;
+}
+
+// File is one file of the archive.
+message File {
+  // Dir is the file's directory, by its position in Listing.dirs.
+  uint32 dir = 1;
+
+  // Name is the file's name within its directory, such as "archer.vmdl_c".
+  string name = 2;
+
+  // Size is the file's size in bytes.
+  uint64 size = 3;
+}
+
+// Model is a compiled model: every mesh it holds, in every mesh group and
+// level of detail, and the materials its draw calls name.
+message Model {
+  // Meshes are the model's meshes in the order the buffer route numbers them.
+  repeated Mesh meshes = 1;
+
+  // Groups names the model's mesh groups, by bit of Mesh.group_mask.
+  repeated string groups = 2;
+
+  // DefaultGroups is the mask of mesh groups the game draws by default; zero
+  // means every group.
+  uint64 default_groups = 3;
+
+  // Lods is how many levels of detail the model has, at least one.
+  uint32 lods = 4;
+
+  // Materials holds each material the draw calls name, by its name.
+  map<string, Material> materials = 5;
+}
+
+// Mesh is one mesh of a model.
+message Mesh {
+  // Name is the mesh's name, often empty.
+  string name = 1;
+
+  // VertexBuffers are the mesh's vertex buffers, by draw call buffer index.
+  repeated Buffer vertex_buffers = 2;
+
+  // IndexBuffers are the mesh's index buffers, by draw call buffer index.
+  repeated Buffer index_buffers = 3;
+
+  // DrawCalls are the mesh's draw calls across its scene objects.
+  repeated DrawCall draw_calls = 4;
+
+  // LodMask has bit n set when the mesh draws at level of detail n.
+  uint64 lod_mask = 5;
+
+  // GroupMask has bit n set when the mesh belongs to mesh group n.
+  uint64 group_mask = 6;
+}
+
+// Buffer describes one vertex or index buffer. The buffer route answers its
+// bytes, meshopt-encoded when meshopt is set.
+message Buffer {
+  // Count is the number of vertices or indices.
+  uint32 count = 1;
+
+  // Stride is the size of one vertex or index in bytes.
+  uint32 stride = 2;
+
+  // Meshopt reports that the bytes are meshopt-encoded.
+  bool meshopt = 3;
+
+  // Fields are a vertex buffer's attributes; an index buffer has none.
+  repeated Field fields = 4;
+}
+
+// Field is one vertex attribute.
+message Field {
+  // Semantic is the attribute's semantic in upper case, such as "POSITION".
+  string semantic = 1;
+
+  // Index tells apart attributes of one semantic, such as two TEXCOORDs.
+  uint32 index = 2;
+
+  // Format is the attribute's DXGI format.
+  uint32 format = 3;
+
+  // Offset is the attribute's byte offset within a vertex.
+  uint32 offset = 4;
+}
+
+// DrawCall is one draw of a mesh: a range of one index buffer over one vertex
+// buffer, with one material.
+message DrawCall {
+  // Material is the material's resource name, without the _c suffix.
+  string material = 1;
+
+  // VertexBuffer is the vertex buffer's index in Mesh.vertex_buffers.
+  uint32 vertex_buffer = 2;
+
+  // IndexBuffer is the index buffer's index in Mesh.index_buffers.
+  uint32 index_buffer = 3;
+
+  // StartIndex is the first index the call draws.
+  uint32 start_index = 4;
+
+  // IndexCount is how many indices the call draws.
+  uint32 index_count = 5;
+
+  // BaseVertex is added to every index.
+  int32 base_vertex = 6;
+}
+
+// Material is a material's shader and textures.
+message Material {
+  // Shader is the shader's name, such as "pbr.vfx".
+  string shader = 1;
+
+  // Textures maps each texture parameter, such as "g_tColor", to the
+  // compiled texture's archive path.
+  map<string, string> textures = 2;
+}
+
+// Texture is a compiled texture's header.
+message Texture {
+  // Width is the largest mip's width in texels.
+  uint32 width = 1;
+
+  // Height is the largest mip's height in texels.
+  uint32 height = 2;
+
+  // Depth is the largest mip's depth; one for a flat texture.
+  uint32 depth = 3;
+
+  // Format is the texture's stored format, as the game numbers it.
+  uint32 format = 4;
+
+  // Mips is how many mips the file holds.
+  uint32 mips = 5;
+
+  // Cube reports a cube map, whose mips hold six faces.
+  bool cube = 6;
+
+  // Served reports that the mip route can answer this format's mips.
+  bool served = 7;
+}
+
+// Resource is any compiled resource's blocks.
+message Resource {
+  // Blocks are the resource's block tags in file order, such as "DATA".
+  repeated string blocks = 1;
+
+  // Json holds each KeyValues3 block decoded, as one JSON object keyed by
+  // block tag.
+  string json = 2;
+}

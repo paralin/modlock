@@ -59,6 +59,7 @@ func main() {
 			panoramaCommand(out),
 			vpkCommand(out),
 			kv3Command(),
+			studioCommand(out),
 			updateCommand(out),
 			configCommand(out),
 			daemonCommand(out),
