@@ -33,6 +33,12 @@ export enum HudPart {
    * icons and crosshair stay.
    */
   OWN_HEALTH = 2,
+
+  /**
+   * HUD_PART_TOP_BAR is the bar across the top of the screen: the team
+   * scores, the hero portraits and the match clock. Chat stays.
+   */
+  TOP_BAR = 3,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -41,6 +47,7 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [0, 'HUD_PART_UNKNOWN'],
     [1, 'HUD_PART_LEVEL_UP'],
     [2, 'HUD_PART_OWN_HEALTH'],
+    [3, 'HUD_PART_TOP_BAR'],
   ],
 )
 

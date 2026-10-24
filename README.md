@@ -776,7 +776,13 @@ an authored pose without restarting it:
 ```ts
 fireInput(prop, 'SetAnimation', { text: 'hand_pose_aligned' })
 fireInput(prop, 'SetPlaybackRate', { number: 0 })
-writeField(prop, 'CBaseAnimGraphController', 'm_flSeqFixedCycle', 'float32', 1 / 6)
+writeField(
+  prop,
+  'CBaseAnimGraphController',
+  'm_flSeqFixedCycle',
+  'float32',
+  1 / 6,
+)
 ```
 
 Choose the sequence and cycle for that model. A cycle write changes its pose;
@@ -920,12 +926,12 @@ vector or a color has no typed setter; set it with `serverCommand`.
 
 ### Interfaces
 
-| Call                                    | Effect                                                    |
-| --------------------------------------- | --------------------------------------------------------- |
-| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.  |
-| `toast(player, text, seconds?)`         | Show a player a short notice that fades.                  |
-| `hideHud(player, parts)`                | Hide `'levelUp'` notices or `'ownHealth'`; `[]` restores. |
-| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.        |
+| Call                                    | Effect                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------- |
+| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                  |
+| `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                  |
+| `hideHud(player, parts)`                | Hide `'levelUp'` notices, `'ownHealth'` or the `'topBar'`; `[]` restores. |
+| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                        |
 
 Style `panel`, `label`, `image`, `button` and `layout` with `width`,
 `height`, `flow`, `horizontalAlign`, `verticalAlign`, `margin`, `padding`,

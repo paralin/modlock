@@ -11,6 +11,9 @@ export interface HudPanel {
   readonly style: Record<string, string | null>
   FindChildTraverse(id: string): HudPanel | null
   FindChildrenWithClassTraverse(name: string): HudPanel[]
+  GetChildCount(): number
+  GetChild(index: number): HudPanel | null
+  BHasClass(name: string): boolean
 }
 
 /** Schedule runs callback once after seconds, as $.Schedule does. */
@@ -33,6 +36,17 @@ const finders: Partial<Record<HudPart, (hud: HudPanel) => HudPanel[]>> = {
     return ['HudShieldsContainer', 'hud_health_bars', 'HealthRegenAndTotal']
       .map((id) => health?.FindChildTraverse(id) ?? null)
       .filter((panel) => panel !== null)
+  },
+  [HudPart.TOP_BAR]: (hud) => {
+    const bar = hud.FindChildTraverse('TopBar')
+    const parts: HudPanel[] = []
+    for (let index = 0; index < (bar?.GetChildCount() ?? 0); index++) {
+      const part = bar!.GetChild(index)
+      if (part && !part.BHasClass('ChatContainer')) {
+        parts.push(part)
+      }
+    }
+    return parts
   },
 }
 

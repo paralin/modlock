@@ -74,6 +74,10 @@ enum HudPart {
   // regeneration, beside their abilities. The abilities, held items, status
   // icons and crosshair stay.
   HUD_PART_OWN_HEALTH = 2;
+
+  // HUD_PART_TOP_BAR is the bar across the top of the screen: the team
+  // scores, the hero portraits and the match clock. Chat stays.
+  HUD_PART_TOP_BAR = 3;
 }
 
 // Kind selects the panel a node draws.

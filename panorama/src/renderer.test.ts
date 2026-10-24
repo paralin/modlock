@@ -73,6 +73,9 @@ class FakePanel {
   FindChildrenWithClassTraverse(name: string) {
     return this.descendants().filter((panel) => panel.classes.includes(name))
   }
+  BHasClass(name: string) {
+    return this.classes.includes(name)
+  }
   descendants(): FakePanel[] {
     return this.children.flatMap((child) => [child, ...child.descendants()])
   }
@@ -321,6 +324,11 @@ test("hides the game's HUD parts while a root lists them", () => {
   const announcements = add(game, 'CitadelHudGameAnnouncements')
   const boon = add(announcements, '', 'LevelUpBlock', 'AbilityUnlockBlock')
 
+  // Lay out the top bar, whose chat stays.
+  const topBar = add(game, 'TopBar')
+  const scores = add(topBar, 'TeamScores')
+  const chat = add(topBar, 'Chat', 'ChatContainer')
+
   // Sweep through the fake $.Schedule.
   const hud = new Hud(game, (_, callback) => $.Schedule(0, callback))
 
@@ -336,14 +344,26 @@ test("hides the game's HUD parts while a root lists them", () => {
     screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP'] }),
   )
   expect(boon.style.visibility).toBe('collapse')
+  expect(scores.style.visibility).toBeUndefined()
   const later = add(announcements, '', 'LevelUpBlock', 'PowerIncreaseBlock')
   expect(scheduled.size).toBe(1)
   runScheduled()
   expect(later.style.visibility).toBe('collapse')
 
+  // The top bar collapses all but its chat.
+  hud.draw(
+    screen({
+      id: '',
+      hideHud: ['HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP', 'HUD_PART_TOP_BAR'],
+    }),
+  )
+  expect(scores.style.visibility).toBe('collapse')
+  expect(chat.style.visibility).toBeUndefined()
+
   // Once no root lists them, the parts show again and the sweeps stop.
   hud.draw(screen({ id: '', hideHud: ['HUD_PART_LEVEL_UP'] }))
   expect(bars.style.visibility).toBeNull()
+  expect(scores.style.visibility).toBeNull()
   expect(later.style.visibility).toBe('collapse')
   hud.draw(null)
   expect(later.style.visibility).toBeNull()

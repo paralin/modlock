@@ -545,23 +545,24 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "wasm.ui.Tree\",\n\014UiPressEvent\022\016\n\006player\030\001"
     " \001(\005\022\014\n\004node\030\002 \001(\t\"D\n\tUiRequest\022\016\n\006playe"
     "r\030\001 \001(\005\022\'\n\006change\030\002 \001(\0132\027.modlock.wasm.u"
-    "i.Change*O\n\007HudPart\022\024\n\020HUD_PART_UNKNOWN\020"
+    "i.Change*e\n\007HudPart\022\024\n\020HUD_PART_UNKNOWN\020"
     "\000\022\025\n\021HUD_PART_LEVEL_UP\020\001\022\027\n\023HUD_PART_OWN"
-    "_HEALTH\020\002*h\n\004Kind\022\016\n\nKIND_PANEL\020\000\022\016\n\nKIN"
-    "D_LABEL\020\001\022\016\n\nKIND_IMAGE\020\002\022\017\n\013KIND_BUTTON"
-    "\020\003\022\017\n\013KIND_LAYOUT\020\004\022\016\n\nKIND_ROUTE\020\005*G\n\004F"
-    "ace\022\020\n\014FACE_DEFAULT\020\000\022\r\n\tFACE_BODY\020\001\022\016\n\n"
-    "FACE_BLOCK\020\002\022\016\n\nFACE_SERIF\020\003*4\n\004Flow\022\r\n\t"
-    "FLOW_NONE\020\000\022\r\n\tFLOW_DOWN\020\001\022\016\n\nFLOW_RIGHT"
-    "\020\002*9\n\005Align\022\017\n\013ALIGN_START\020\000\022\020\n\014ALIGN_CE"
-    "NTER\020\001\022\r\n\tALIGN_END\020\002B+Z)github.com/para"
-    "lin/modlock/src/wasm/ui;uib\006proto3"
+    "_HEALTH\020\002\022\024\n\020HUD_PART_TOP_BAR\020\003*h\n\004Kind\022"
+    "\016\n\nKIND_PANEL\020\000\022\016\n\nKIND_LABEL\020\001\022\016\n\nKIND_"
+    "IMAGE\020\002\022\017\n\013KIND_BUTTON\020\003\022\017\n\013KIND_LAYOUT\020"
+    "\004\022\016\n\nKIND_ROUTE\020\005*G\n\004Face\022\020\n\014FACE_DEFAUL"
+    "T\020\000\022\r\n\tFACE_BODY\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n\nFA"
+    "CE_SERIF\020\003*4\n\004Flow\022\r\n\tFLOW_NONE\020\000\022\r\n\tFLO"
+    "W_DOWN\020\001\022\016\n\nFLOW_RIGHT\020\002*9\n\005Align\022\017\n\013ALI"
+    "GN_START\020\000\022\020\n\014ALIGN_CENTER\020\001\022\r\n\tALIGN_EN"
+    "D\020\002B+Z)github.com/paralin/modlock/src/wa"
+    "sm/ui;uib\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto = {
     false,
     false,
-    1914,
+    1936,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
     "github.com/paralin/modlock/src/wasm/ui/ui.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once,
@@ -582,7 +583,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL HudPart_descriptor() 
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t HudPart_internal_data_[] = {
-    196608u, 0u, };
+    262144u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Kind_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto);
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto[1];

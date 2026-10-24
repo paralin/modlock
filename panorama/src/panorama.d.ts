@@ -25,6 +25,7 @@ interface Panel {
   ): boolean
   FindChildTraverse(id: string): Panel | null
   FindChildrenWithClassTraverse(name: string): Panel[]
+  BHasClass(name: string): boolean
   DeleteAsync(seconds: number): void
 }
 
