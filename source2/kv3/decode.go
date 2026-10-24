@@ -135,7 +135,7 @@ func Decode(data []byte) (any, error) {
 	d.blobs = second[typesAt+typeCount : endAt]
 
 	// Read the root value from the main lanes.
-	d.current, d.other = &main, &auxiliary
+	d.current, d.main, d.auxiliary = &main, &main, &auxiliary
 	value := d.value(d.kind(), 0)
 	if d.err != nil {
 		return nil, d.err
@@ -205,7 +205,7 @@ func decode4(data []byte) (any, error) {
 	d.blobs = buffer[typesEnd:endAt]
 
 	// Read the root value; version 4 has no auxiliary lanes.
-	d.current, d.other = &main, &main
+	d.current, d.main, d.auxiliary = &main, &main, &main
 	value := d.value(d.kind(), 0)
 	if d.err != nil {
 		return nil, d.err
