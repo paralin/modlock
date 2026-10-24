@@ -192,6 +192,7 @@ tools installed.
 | `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                              |
 | `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive; equal directories pack to equal bytes.                        |
 | `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON; `--blocks` lists its blocks.               |
+| `modlock studio`                           | Open Modlock Studio, a page that browses the game's archive and draws its models and textures.  |
 
 `panorama compile` keeps every other file in `DIR` as it is, so compiled
 resources such as images ship beside the layouts; `-o` names another archive,
@@ -203,6 +204,13 @@ to read `FILE` from inside an archive, including the game's split
 ```sh
 modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c
 ```
+
+`modlock studio` prints a local address to open in a browser. Modlock Studio
+lists every file in the installed game's archive, draws models with their
+levels of detail, mesh groups and materials, shows textures as the GPU stores
+them, and shows any other resource's KeyValues3. It reads each file from your
+own install as you open it; Modlock ships none of the game's files. `--port`
+moves it, and `DEADLOCK_DIR` points it at a game outside the Steam libraries.
 
 A mod that tracks large files, such as VPKs, with Git LFS can keep them out of
 its Git remote. Run `modlock lfs setup` in the repository once, after
