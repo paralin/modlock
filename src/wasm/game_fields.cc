@@ -31,10 +31,11 @@ bool IsRulesClass(const std::string& class_name) {
 
 // IsModelClass reports whether class_name is a part of an entity's model that
 // its body component holds: the scene node, a model entity's skeleton
-// instance, or the model state within it. The entity sends their fields.
+// instance, model state, or legacy animation controller. The entity sends
+// their fields.
 bool IsModelClass(const std::string& class_name) {
   return class_name == "CGameSceneNode" || class_name == "CSkeletonInstance" ||
-         class_name == "CModelState";
+         class_name == "CModelState" || class_name == "CBaseAnimGraphController";
 }
 
 // ListHeader is the layout of a list field: a CUtlVector, which the game's
@@ -329,6 +330,11 @@ std::expected<unsigned char*, std::string> Game::FieldAddress(void* entity,
 
 std::expected<unsigned char*, std::string> Game::ModelPart(void* entity, const void* actual,
                                                            const std::string& class_name) {
+  // An animated model owns the legacy controller in its specialized body component.
+  if (class_name == "CBaseAnimGraphController" && !services_.Derives(actual, "CBaseAnimGraph")) {
+    return std::unexpected("the entity has no animation controller");
+  }
+
   // Only a model entity's scene node is a skeleton instance holding a model
   // state; any entity has a scene node.
   if (class_name != "CGameSceneNode" && !services_.Derives(actual, "CBaseModelEntity")) {
@@ -340,19 +346,28 @@ std::expected<unsigned char*, std::string> Game::ModelPart(void* entity, const v
   if (!body) {
     return std::unexpected(body.error());
   }
+  // Resolve the live body component before selecting its embedded controller or scene node.
+  unsigned char* component = nullptr;
+  if (!gameinterop::ReadNative(static_cast<unsigned char*>(entity) + body->offset, &component,
+                               sizeof(component)) ||
+      component == nullptr) {
+    return std::unexpected("the entity has no body component");
+  }
+  if (class_name == "CBaseAnimGraphController") {
+    auto controller = services_.Field("CBodyComponentBaseAnimGraph", "m_animationController");
+    if (!controller) {
+      return std::unexpected(controller.error());
+    }
+    return component + controller->offset;
+  }
+
+  // Scene, skeleton and model state fields use the body's scene node.
   auto node = services_.Field("CBodyComponent", "m_pSceneNode");
   if (!node) {
     return std::unexpected(node.error());
   }
-
-  // Follow the body component to the scene node.
-  unsigned char* component = nullptr;
   unsigned char* scene = nullptr;
-  if (!gameinterop::ReadNative(static_cast<unsigned char*>(entity) + body->offset, &component,
-                               sizeof(component)) ||
-      component == nullptr ||
-      !gameinterop::ReadNative(component + node->offset, &scene, sizeof(scene)) ||
-      scene == nullptr) {
+  if (!gameinterop::ReadNative(component + node->offset, &scene, sizeof(scene)) || scene == nullptr) {
     return std::unexpected("the entity has no scene node");
   }
   if (class_name != "CModelState") {

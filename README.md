@@ -769,6 +769,19 @@ const health = readField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32')
 writeField(pawn.entity, 'CBaseEntity', 'm_iHealth', 'int32', 500)
 ```
 
+An animated prop's `CBaseAnimGraphController` fields resolve through its body
+component. A mod can stop native playback and hold a non-animgraph sequence at
+an authored pose without restarting it:
+
+```ts
+fireInput(prop, 'SetAnimation', { text: 'hand_pose_aligned' })
+fireInput(prop, 'SetPlaybackRate', { number: 0 })
+writeField(prop, 'CBaseAnimGraphController', 'm_flSeqFixedCycle', 'float32', 1 / 6)
+```
+
+Choose the sequence and cycle for that model. A cycle write changes its pose;
+the model's existing transform stays in place. Nonanimated entities are refused.
+
 A write changes the field on the server and sends it to the players. The host
 checks that the entity is of the named class or one derived from it, and refuses
 one that is not, such as a trooper named as a `CCitadelPlayerPawn`, with a

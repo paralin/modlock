@@ -522,7 +522,8 @@ class Game : public HostService {
                                                           const std::string& class_name,
                                                           const std::string& field, size_t size);
   // ModelPart returns the address of the part of entity's model that
-  // class_name names, as IsModelClass lists, through its body component.
+  // class_name names, as IsModelClass lists, through its body component,
+  // including CBaseAnimGraphController for animated model entities.
   // actual is the entity's schema class.
   std::expected<unsigned char*, std::string> ModelPart(void* entity, const void* actual,
                                                        const std::string& class_name);
