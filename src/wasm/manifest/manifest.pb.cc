@@ -57,94 +57,95 @@ struct MovementDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MovementDefaultTypeInternal _Movement_default_instance_;
 template <typename>
-PROTOBUF_CONSTEXPR AbilityTuning_PropertiesEntry_DoNotUse::AbilityTuning_PropertiesEntry_DoNotUse(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR Definition_PropertiesEntry_DoNotUse::Definition_PropertiesEntry_DoNotUse(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : AbilityTuning_PropertiesEntry_DoNotUse::MapEntry(AbilityTuning_PropertiesEntry_DoNotUse_class_data_.base()){}
+    : Definition_PropertiesEntry_DoNotUse::MapEntry(Definition_PropertiesEntry_DoNotUse_class_data_.base()){}
 #else   // PROTOBUF_CUSTOM_VTABLE
-    : AbilityTuning_PropertiesEntry_DoNotUse::MapEntry() {
+    : Definition_PropertiesEntry_DoNotUse::MapEntry() {
 }
 #endif  // PROTOBUF_CUSTOM_VTABLE
-struct AbilityTuning_PropertiesEntry_DoNotUseDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR AbilityTuning_PropertiesEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~AbilityTuning_PropertiesEntry_DoNotUseDefaultTypeInternal() {}
+struct Definition_PropertiesEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Definition_PropertiesEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Definition_PropertiesEntry_DoNotUseDefaultTypeInternal() {}
   union {
-    AbilityTuning_PropertiesEntry_DoNotUse _instance;
+    Definition_PropertiesEntry_DoNotUse _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AbilityTuning_PropertiesEntry_DoNotUseDefaultTypeInternal _AbilityTuning_PropertiesEntry_DoNotUse_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Definition_PropertiesEntry_DoNotUseDefaultTypeInternal _Definition_PropertiesEntry_DoNotUse_default_instance_;
 template <typename>
-PROTOBUF_CONSTEXPR AbilityTuning_FieldsEntry_DoNotUse::AbilityTuning_FieldsEntry_DoNotUse(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR Definition_FieldsEntry_DoNotUse::Definition_FieldsEntry_DoNotUse(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : AbilityTuning_FieldsEntry_DoNotUse::MapEntry(AbilityTuning_FieldsEntry_DoNotUse_class_data_.base()){}
+    : Definition_FieldsEntry_DoNotUse::MapEntry(Definition_FieldsEntry_DoNotUse_class_data_.base()){}
 #else   // PROTOBUF_CUSTOM_VTABLE
-    : AbilityTuning_FieldsEntry_DoNotUse::MapEntry() {
+    : Definition_FieldsEntry_DoNotUse::MapEntry() {
 }
 #endif  // PROTOBUF_CUSTOM_VTABLE
-struct AbilityTuning_FieldsEntry_DoNotUseDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR AbilityTuning_FieldsEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~AbilityTuning_FieldsEntry_DoNotUseDefaultTypeInternal() {}
+struct Definition_FieldsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Definition_FieldsEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Definition_FieldsEntry_DoNotUseDefaultTypeInternal() {}
   union {
-    AbilityTuning_FieldsEntry_DoNotUse _instance;
+    Definition_FieldsEntry_DoNotUse _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AbilityTuning_FieldsEntry_DoNotUseDefaultTypeInternal _AbilityTuning_FieldsEntry_DoNotUse_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Definition_FieldsEntry_DoNotUseDefaultTypeInternal _Definition_FieldsEntry_DoNotUse_default_instance_;
 template <typename>
-PROTOBUF_CONSTEXPR AbilityTuning_CopyFieldsEntry_DoNotUse::AbilityTuning_CopyFieldsEntry_DoNotUse(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR Definition_CopyFieldsEntry_DoNotUse::Definition_CopyFieldsEntry_DoNotUse(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : AbilityTuning_CopyFieldsEntry_DoNotUse::MapEntry(AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_.base()){}
+    : Definition_CopyFieldsEntry_DoNotUse::MapEntry(Definition_CopyFieldsEntry_DoNotUse_class_data_.base()){}
 #else   // PROTOBUF_CUSTOM_VTABLE
-    : AbilityTuning_CopyFieldsEntry_DoNotUse::MapEntry() {
+    : Definition_CopyFieldsEntry_DoNotUse::MapEntry() {
 }
 #endif  // PROTOBUF_CUSTOM_VTABLE
-struct AbilityTuning_CopyFieldsEntry_DoNotUseDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR AbilityTuning_CopyFieldsEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~AbilityTuning_CopyFieldsEntry_DoNotUseDefaultTypeInternal() {}
+struct Definition_CopyFieldsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Definition_CopyFieldsEntry_DoNotUseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Definition_CopyFieldsEntry_DoNotUseDefaultTypeInternal() {}
   union {
-    AbilityTuning_CopyFieldsEntry_DoNotUse _instance;
+    Definition_CopyFieldsEntry_DoNotUse _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AbilityTuning_CopyFieldsEntry_DoNotUseDefaultTypeInternal _AbilityTuning_CopyFieldsEntry_DoNotUse_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Definition_CopyFieldsEntry_DoNotUseDefaultTypeInternal _Definition_CopyFieldsEntry_DoNotUse_default_instance_;
 
-inline constexpr AbilityTuning::Impl_::Impl_(
+inline constexpr Definition::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        ability_(
+        entry_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        file_{static_cast< ::modlock::wasm::manifest::Definition_File >(0)},
         properties_{},
         fields_{},
         copy_fields_{} {}
 
 template <typename>
-PROTOBUF_CONSTEXPR AbilityTuning::AbilityTuning(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR Definition::Definition(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(AbilityTuning_class_data_.base()),
+    : ::google::protobuf::Message(Definition_class_data_.base()),
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(),
 #endif  // PROTOBUF_CUSTOM_VTABLE
       _impl_(::_pbi::ConstantInitialized()) {
 }
-struct AbilityTuningDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR AbilityTuningDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~AbilityTuningDefaultTypeInternal() {}
+struct DefinitionDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR DefinitionDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~DefinitionDefaultTypeInternal() {}
   union {
-    AbilityTuning _instance;
+    Definition _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AbilityTuningDefaultTypeInternal _AbilityTuning_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 DefinitionDefaultTypeInternal _Definition_default_instance_;
 
 inline constexpr Manifest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        abilities_{},
+        definitions_{},
         settings_{},
         metrics_{},
         slug_(
@@ -190,7 +191,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace wasm
 }  // namespace modlock
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto[3];
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto[4];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto = nullptr;
 const ::uint32_t
@@ -207,7 +208,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.entry_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.map_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.movement_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.abilities_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.definitions_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.settings_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.metrics_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.free_for_all_),
@@ -233,55 +234,57 @@ const ::uint32_t
         1,
         2,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_PropertiesEntry_DoNotUse, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse, _impl_._has_bits_),
         5, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_PropertiesEntry_DoNotUse, _impl_.key_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_PropertiesEntry_DoNotUse, _impl_.value_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse, _impl_.value_),
         0,
         1,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_FieldsEntry_DoNotUse, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse, _impl_._has_bits_),
         5, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_FieldsEntry_DoNotUse, _impl_.key_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_FieldsEntry_DoNotUse, _impl_.value_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse, _impl_.value_),
         0,
         1,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse, _impl_._has_bits_),
         5, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_.key_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_.value_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse, _impl_.key_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse, _impl_.value_),
         0,
         1,
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning, _impl_._has_bits_),
-        7, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning, _impl_.ability_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning, _impl_.properties_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning, _impl_.fields_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::AbilityTuning, _impl_.copy_fields_),
-        0,
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition, _impl_._has_bits_),
+        8, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition, _impl_.file_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition, _impl_.entry_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition, _impl_.properties_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition, _impl_.fields_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition, _impl_.copy_fields_),
         1,
+        0,
         2,
         3,
+        4,
 };
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::manifest::Manifest)},
         {27, sizeof(::modlock::wasm::manifest::Movement)},
-        {36, sizeof(::modlock::wasm::manifest::AbilityTuning_PropertiesEntry_DoNotUse)},
-        {43, sizeof(::modlock::wasm::manifest::AbilityTuning_FieldsEntry_DoNotUse)},
-        {50, sizeof(::modlock::wasm::manifest::AbilityTuning_CopyFieldsEntry_DoNotUse)},
-        {57, sizeof(::modlock::wasm::manifest::AbilityTuning)},
+        {36, sizeof(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse)},
+        {43, sizeof(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse)},
+        {50, sizeof(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse)},
+        {57, sizeof(::modlock::wasm::manifest::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::manifest::_Manifest_default_instance_._instance,
     &::modlock::wasm::manifest::_Movement_default_instance_._instance,
-    &::modlock::wasm::manifest::_AbilityTuning_PropertiesEntry_DoNotUse_default_instance_._instance,
-    &::modlock::wasm::manifest::_AbilityTuning_FieldsEntry_DoNotUse_default_instance_._instance,
-    &::modlock::wasm::manifest::_AbilityTuning_CopyFieldsEntry_DoNotUse_default_instance_._instance,
-    &::modlock::wasm::manifest::_AbilityTuning_default_instance_._instance,
+    &::modlock::wasm::manifest::_Definition_PropertiesEntry_DoNotUse_default_instance_._instance,
+    &::modlock::wasm::manifest::_Definition_FieldsEntry_DoNotUse_default_instance_._instance,
+    &::modlock::wasm::manifest::_Definition_CopyFieldsEntry_DoNotUse_default_instance_._instance,
+    &::modlock::wasm::manifest::_Definition_default_instance_._instance,
 };
 const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
@@ -290,39 +293,41 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "fest\0329github.com/paralin/modlock/src/was"
     "m/metrics/metrics.proto\032;github.com/para"
     "lin/modlock/src/wasm/settings/settings.p"
-    "roto\"\247\005\n\010Manifest\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030"
+    "roto\"\246\005\n\010Manifest\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030"
     "\002 \001(\t\022\017\n\007version\030\003 \001(\t\022:\n\010language\030\004 \001(\016"
     "2(.modlock.wasm.manifest.Manifest.Langua"
     "ge\0228\n\007runtime\030\005 \001(\0162\'.modlock.wasm.manif"
     "est.Manifest.Runtime\022\r\n\005entry\030\006 \001(\t\022\013\n\003m"
     "ap\030\007 \001(\t\0221\n\010movement\030\010 \001(\0132\037.modlock.was"
-    "m.manifest.Movement\0227\n\tabilities\030\t \003(\0132$"
-    ".modlock.wasm.manifest.AbilityTuning\0220\n\010"
-    "settings\030\n \003(\0132\036.modlock.wasm.settings.S"
-    "etting\022-\n\007metrics\030\013 \003(\0132\034.modlock.wasm.m"
-    "etrics.Metric\022\024\n\014free_for_all\030\014 \001(\010\"k\n\007R"
-    "untime\022\023\n\017RUNTIME_UNKNOWN\020\000\022\020\n\014RUNTIME_W"
-    "ASM\020\001\022\023\n\017RUNTIME_QUICKJS\020\002\022\020\n\014RUNTIME_LU"
-    "AU\020\003\022\022\n\016RUNTIME_PYTHON\020\004\"\213\001\n\010Language\022\024\n"
-    "\020LANGUAGE_UNKNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023"
-    "LANGUAGE_TYPESCRIPT\020\002\022\027\n\023LANGUAGE_JAVASC"
-    "RIPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004\022\023\n\017LANGUAGE_PY"
-    "THON\020\005\"\235\001\n\010Movement\0224\n\005model\030\001 \001(\0162%.mod"
-    "lock.wasm.manifest.Movement.Model\022\r\n\005sca"
-    "le\030\002 \001(\002\022\033\n\023unpredicted_buttons\030\003 \001(\004\"/\n"
-    "\005Model\022\020\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEW"
-    "ORLD\020\001\"\214\003\n\rAbilityTuning\022\017\n\007ability\030\001 \001("
-    "\t\022H\n\nproperties\030\002 \003(\01324.modlock.wasm.man"
-    "ifest.AbilityTuning.PropertiesEntry\022@\n\006f"
-    "ields\030\003 \003(\01320.modlock.wasm.manifest.Abil"
-    "ityTuning.FieldsEntry\022I\n\013copy_fields\030\004 \003"
-    "(\01324.modlock.wasm.manifest.AbilityTuning"
-    ".CopyFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003k"
-    "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEnt"
-    "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017Co"
-    "pyFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001("
-    "\t:\0028\001B7Z5github.com/paralin/modlock/src/"
-    "wasm/manifest;manifestb\006proto3"
+    "m.manifest.Movement\0226\n\013definitions\030\t \003(\013"
+    "2!.modlock.wasm.manifest.Definition\0220\n\010s"
+    "ettings\030\n \003(\0132\036.modlock.wasm.settings.Se"
+    "tting\022-\n\007metrics\030\013 \003(\0132\034.modlock.wasm.me"
+    "trics.Metric\022\024\n\014free_for_all\030\014 \001(\010\"k\n\007Ru"
+    "ntime\022\023\n\017RUNTIME_UNKNOWN\020\000\022\020\n\014RUNTIME_WA"
+    "SM\020\001\022\023\n\017RUNTIME_QUICKJS\020\002\022\020\n\014RUNTIME_LUA"
+    "U\020\003\022\022\n\016RUNTIME_PYTHON\020\004\"\213\001\n\010Language\022\024\n\020"
+    "LANGUAGE_UNKNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023L"
+    "ANGUAGE_TYPESCRIPT\020\002\022\027\n\023LANGUAGE_JAVASCR"
+    "IPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004\022\023\n\017LANGUAGE_PYT"
+    "HON\020\005\"\235\001\n\010Movement\0224\n\005model\030\001 \001(\0162%.modl"
+    "ock.wasm.manifest.Movement.Model\022\r\n\005scal"
+    "e\030\002 \001(\002\022\033\n\023unpredicted_buttons\030\003 \001(\004\"/\n\005"
+    "Model\022\020\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWO"
+    "RLD\020\001\"\341\003\n\nDefinition\0224\n\004file\030\001 \001(\0162&.mod"
+    "lock.wasm.manifest.Definition.File\022\r\n\005en"
+    "try\030\002 \001(\t\022E\n\nproperties\030\003 \003(\01321.modlock."
+    "wasm.manifest.Definition.PropertiesEntry"
+    "\022=\n\006fields\030\004 \003(\0132-.modlock.wasm.manifest"
+    ".Definition.FieldsEntry\022F\n\013copy_fields\030\005"
+    " \003(\01321.modlock.wasm.manifest.Definition."
+    "CopyFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003ke"
+    "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntr"
+    "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017Cop"
+    "yFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t"
+    ":\0028\001\"+\n\004File\022\022\n\016FILE_ABILITIES\020\000\022\017\n\013FILE"
+    "_HEROES\020\001B7Z5github.com/paralin/modlock/"
+    "src/wasm/manifest;manifestb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto_deps[2] = {
@@ -333,7 +338,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto = {
     false,
     false,
-    1510,
+    1594,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto_once,
@@ -366,6 +371,12 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Movement_Model_descri
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto[2];
 }
 PROTOBUF_CONSTINIT const uint32_t Movement_Model_internal_data_[] = {
+    131072u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Definition_File_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto[3];
+}
+PROTOBUF_CONSTINIT const uint32_t Definition_File_internal_data_[] = {
     131072u, 0u, };
 // ===================================================================
 
@@ -404,7 +415,7 @@ PROTOBUF_NDEBUG_INLINE Manifest::Impl_::Impl_(
     [[maybe_unused]] const ::modlock::wasm::manifest::Manifest& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        abilities_{visibility, arena, from.abilities_},
+        definitions_{visibility, arena, from.definitions_},
         settings_{visibility, arena, from.settings_},
         metrics_{visibility, arena, from.metrics_},
         slug_(arena, from.slug_),
@@ -444,7 +455,7 @@ PROTOBUF_NDEBUG_INLINE Manifest::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        abilities_{visibility, arena},
+        definitions_{visibility, arena},
         settings_{visibility, arena},
         metrics_{visibility, arena},
         slug_(arena),
@@ -489,8 +500,8 @@ inline void* PROTOBUF_NONNULL Manifest::PlacementNew_(
 }
 constexpr auto Manifest::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
-      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.abilities_) +
-          decltype(Manifest::_impl_.abilities_)::
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.definitions_) +
+          decltype(Manifest::_impl_.definitions_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.settings_) +
@@ -597,10 +608,10 @@ Manifest::_table_ = {
     {::_pbi::TcParser::FastMtS1,
      {66, 8, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_)}},
-    // repeated .modlock.wasm.manifest.AbilityTuning abilities = 9;
+    // repeated .modlock.wasm.manifest.Definition definitions = 9;
     {::_pbi::TcParser::FastMtR1,
      {74, 0, 1,
-      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.abilities_)}},
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.definitions_)}},
     // repeated .modlock.wasm.settings.Setting settings = 10;
     {::_pbi::TcParser::FastMtR1,
      {82, 1, 2,
@@ -635,8 +646,8 @@ Manifest::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.map_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .modlock.wasm.manifest.Movement movement = 8;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-    // repeated .modlock.wasm.manifest.AbilityTuning abilities = 9;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.abilities_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .modlock.wasm.manifest.Definition definitions = 9;
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.definitions_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.settings.Setting settings = 10;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.settings_), _Internal::kHasBitsOffset + 1, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.metrics.Metric metrics = 11;
@@ -646,7 +657,7 @@ Manifest::_table_ = {
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Movement>()},
-      {::_pbi::TcParser::GetTable<::modlock::wasm::manifest::AbilityTuning>()},
+      {::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Definition>()},
       {::_pbi::TcParser::GetTable<::modlock::wasm::settings::Setting>()},
       {::_pbi::TcParser::GetTable<::modlock::wasm::metrics::Metric>()},
   }},
@@ -670,7 +681,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   cached_has_bits = _impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-      _impl_.abilities_.Clear();
+      _impl_.definitions_.Clear();
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _impl_.settings_.Clear();
@@ -801,12 +812,12 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
         stream);
   }
 
-  // repeated .modlock.wasm.manifest.AbilityTuning abilities = 9;
+  // repeated .modlock.wasm.manifest.Definition definitions = 9;
   if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_abilities_size());
+                             this_._internal_definitions_size());
          i < n; i++) {
-      const auto& repfield = this_._internal_abilities().Get(i);
+      const auto& repfield = this_._internal_definitions().Get(i);
       target =
           ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
               9, repfield, repfield.GetCachedSize(),
@@ -875,10 +886,10 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
-    // repeated .modlock.wasm.manifest.AbilityTuning abilities = 9;
+    // repeated .modlock.wasm.manifest.Definition definitions = 9;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-      total_size += 1UL * this_._internal_abilities_size();
-      for (const auto& msg : this_._internal_abilities()) {
+      total_size += 1UL * this_._internal_definitions_size();
+      for (const auto& msg : this_._internal_definitions()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -980,9 +991,9 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   cached_has_bits = from._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-      _this->_internal_mutable_abilities()->InternalMergeFromWithArena(
+      _this->_internal_mutable_definitions()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_abilities());
+          from._internal_definitions());
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _this->_internal_mutable_settings()->InternalMergeFromWithArena(
@@ -1084,7 +1095,7 @@ void Manifest::InternalSwap(Manifest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  _impl_.abilities_.InternalSwap(&other->_impl_.abilities_);
+  _impl_.definitions_.InternalSwap(&other->_impl_.definitions_);
   _impl_.settings_.InternalSwap(&other->_impl_.settings_);
   _impl_.metrics_.InternalSwap(&other->_impl_.metrics_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.slug_, &other->_impl_.slug_, arena);
@@ -1426,62 +1437,62 @@ void Movement::InternalSwap(Movement* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
 // ===================================================================
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-AbilityTuning_PropertiesEntry_DoNotUse::AbilityTuning_PropertiesEntry_DoNotUse()
-    : SuperType(AbilityTuning_PropertiesEntry_DoNotUse_class_data_.base()) {}
-AbilityTuning_PropertiesEntry_DoNotUse::AbilityTuning_PropertiesEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-    : SuperType(arena, AbilityTuning_PropertiesEntry_DoNotUse_class_data_.base()) {}
+Definition_PropertiesEntry_DoNotUse::Definition_PropertiesEntry_DoNotUse()
+    : SuperType(Definition_PropertiesEntry_DoNotUse_class_data_.base()) {}
+Definition_PropertiesEntry_DoNotUse::Definition_PropertiesEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+    : SuperType(arena, Definition_PropertiesEntry_DoNotUse_class_data_.base()) {}
 #else   // PROTOBUF_CUSTOM_VTABLE
-AbilityTuning_PropertiesEntry_DoNotUse::AbilityTuning_PropertiesEntry_DoNotUse() : SuperType() {}
-AbilityTuning_PropertiesEntry_DoNotUse::AbilityTuning_PropertiesEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
+Definition_PropertiesEntry_DoNotUse::Definition_PropertiesEntry_DoNotUse() : SuperType() {}
+Definition_PropertiesEntry_DoNotUse::Definition_PropertiesEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
 #endif  // PROTOBUF_CUSTOM_VTABLE
-inline void* PROTOBUF_NONNULL AbilityTuning_PropertiesEntry_DoNotUse::PlacementNew_(
+inline void* PROTOBUF_NONNULL Definition_PropertiesEntry_DoNotUse::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) AbilityTuning_PropertiesEntry_DoNotUse(arena);
+  return ::new (mem) Definition_PropertiesEntry_DoNotUse(arena);
 }
-constexpr auto AbilityTuning_PropertiesEntry_DoNotUse::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(AbilityTuning_PropertiesEntry_DoNotUse),
-                                            alignof(AbilityTuning_PropertiesEntry_DoNotUse));
+constexpr auto Definition_PropertiesEntry_DoNotUse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Definition_PropertiesEntry_DoNotUse),
+                                            alignof(Definition_PropertiesEntry_DoNotUse));
 }
-constexpr auto AbilityTuning_PropertiesEntry_DoNotUse::InternalGenerateClassData_() {
+constexpr auto Definition_PropertiesEntry_DoNotUse::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_AbilityTuning_PropertiesEntry_DoNotUse_default_instance_._instance,
+          &_Definition_PropertiesEntry_DoNotUse_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &AbilityTuning_PropertiesEntry_DoNotUse::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<AbilityTuning_PropertiesEntry_DoNotUse>(),
+          &Definition_PropertiesEntry_DoNotUse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Definition_PropertiesEntry_DoNotUse>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &AbilityTuning_PropertiesEntry_DoNotUse::SharedDtor,
-          static_cast<void (::google::protobuf::MessageLite::*)()>(&AbilityTuning_PropertiesEntry_DoNotUse::ClearImpl),
+          &Definition_PropertiesEntry_DoNotUse::SharedDtor,
+          static_cast<void (::google::protobuf::MessageLite::*)()>(&Definition_PropertiesEntry_DoNotUse::ClearImpl),
               ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
               ,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(AbilityTuning_PropertiesEntry_DoNotUse, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(Definition_PropertiesEntry_DoNotUse, _impl_._cached_size_),
           false,
       },
-      &AbilityTuning_PropertiesEntry_DoNotUse::kDescriptorMethods,
+      &Definition_PropertiesEntry_DoNotUse::kDescriptorMethods,
       &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull AbilityTuning_PropertiesEntry_DoNotUse_class_data_ =
-        AbilityTuning_PropertiesEntry_DoNotUse::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull Definition_PropertiesEntry_DoNotUse_class_data_ =
+        Definition_PropertiesEntry_DoNotUse::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-AbilityTuning_PropertiesEntry_DoNotUse::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&AbilityTuning_PropertiesEntry_DoNotUse_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(AbilityTuning_PropertiesEntry_DoNotUse_class_data_.tc_table);
-  return AbilityTuning_PropertiesEntry_DoNotUse_class_data_.base();
+Definition_PropertiesEntry_DoNotUse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Definition_PropertiesEntry_DoNotUse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Definition_PropertiesEntry_DoNotUse_class_data_.tc_table);
+  return Definition_PropertiesEntry_DoNotUse_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 63, 2>
-AbilityTuning_PropertiesEntry_DoNotUse::_table_ = {
+const ::_pbi::TcParseTable<1, 2, 0, 60, 2>
+Definition_PropertiesEntry_DoNotUse::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(AbilityTuning_PropertiesEntry_DoNotUse, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(Definition_PropertiesEntry_DoNotUse, _impl_._has_bits_),
     0, // no _extensions_
     2, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
@@ -1490,95 +1501,95 @@ AbilityTuning_PropertiesEntry_DoNotUse::_table_ = {
     2,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
-    AbilityTuning_PropertiesEntry_DoNotUse_class_data_.base(),
+    Definition_PropertiesEntry_DoNotUse_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::AbilityTuning_PropertiesEntry_DoNotUse>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     // float value = 2;
     {::_pbi::TcParser::FastF32S1,
      {21, 1, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning_PropertiesEntry_DoNotUse, _impl_.value_)}},
+      PROTOBUF_FIELD_OFFSET(Definition_PropertiesEntry_DoNotUse, _impl_.value_)}},
     // string key = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning_PropertiesEntry_DoNotUse, _impl_.key_)}},
+      PROTOBUF_FIELD_OFFSET(Definition_PropertiesEntry_DoNotUse, _impl_.key_)}},
   }}, {{
     65535, 65535
   }}, {{
     // string key = 1;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning_PropertiesEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Definition_PropertiesEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // float value = 2;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning_PropertiesEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    {PROTOBUF_FIELD_OFFSET(Definition_PropertiesEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
   }},
   // no aux_entries
   {{
-    "\63\3\0\0\0\0\0\0"
-    "modlock.wasm.manifest.AbilityTuning.PropertiesEntry"
+    "\60\3\0\0\0\0\0\0"
+    "modlock.wasm.manifest.Definition.PropertiesEntry"
     "key"
   }},
 };
 // ===================================================================
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-AbilityTuning_FieldsEntry_DoNotUse::AbilityTuning_FieldsEntry_DoNotUse()
-    : SuperType(AbilityTuning_FieldsEntry_DoNotUse_class_data_.base()) {}
-AbilityTuning_FieldsEntry_DoNotUse::AbilityTuning_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-    : SuperType(arena, AbilityTuning_FieldsEntry_DoNotUse_class_data_.base()) {}
+Definition_FieldsEntry_DoNotUse::Definition_FieldsEntry_DoNotUse()
+    : SuperType(Definition_FieldsEntry_DoNotUse_class_data_.base()) {}
+Definition_FieldsEntry_DoNotUse::Definition_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+    : SuperType(arena, Definition_FieldsEntry_DoNotUse_class_data_.base()) {}
 #else   // PROTOBUF_CUSTOM_VTABLE
-AbilityTuning_FieldsEntry_DoNotUse::AbilityTuning_FieldsEntry_DoNotUse() : SuperType() {}
-AbilityTuning_FieldsEntry_DoNotUse::AbilityTuning_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
+Definition_FieldsEntry_DoNotUse::Definition_FieldsEntry_DoNotUse() : SuperType() {}
+Definition_FieldsEntry_DoNotUse::Definition_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
 #endif  // PROTOBUF_CUSTOM_VTABLE
-inline void* PROTOBUF_NONNULL AbilityTuning_FieldsEntry_DoNotUse::PlacementNew_(
+inline void* PROTOBUF_NONNULL Definition_FieldsEntry_DoNotUse::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) AbilityTuning_FieldsEntry_DoNotUse(arena);
+  return ::new (mem) Definition_FieldsEntry_DoNotUse(arena);
 }
-constexpr auto AbilityTuning_FieldsEntry_DoNotUse::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(AbilityTuning_FieldsEntry_DoNotUse),
-                                            alignof(AbilityTuning_FieldsEntry_DoNotUse));
+constexpr auto Definition_FieldsEntry_DoNotUse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Definition_FieldsEntry_DoNotUse),
+                                            alignof(Definition_FieldsEntry_DoNotUse));
 }
-constexpr auto AbilityTuning_FieldsEntry_DoNotUse::InternalGenerateClassData_() {
+constexpr auto Definition_FieldsEntry_DoNotUse::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_AbilityTuning_FieldsEntry_DoNotUse_default_instance_._instance,
+          &_Definition_FieldsEntry_DoNotUse_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &AbilityTuning_FieldsEntry_DoNotUse::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<AbilityTuning_FieldsEntry_DoNotUse>(),
+          &Definition_FieldsEntry_DoNotUse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Definition_FieldsEntry_DoNotUse>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &AbilityTuning_FieldsEntry_DoNotUse::SharedDtor,
-          static_cast<void (::google::protobuf::MessageLite::*)()>(&AbilityTuning_FieldsEntry_DoNotUse::ClearImpl),
+          &Definition_FieldsEntry_DoNotUse::SharedDtor,
+          static_cast<void (::google::protobuf::MessageLite::*)()>(&Definition_FieldsEntry_DoNotUse::ClearImpl),
               ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
               ,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(AbilityTuning_FieldsEntry_DoNotUse, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(Definition_FieldsEntry_DoNotUse, _impl_._cached_size_),
           false,
       },
-      &AbilityTuning_FieldsEntry_DoNotUse::kDescriptorMethods,
+      &Definition_FieldsEntry_DoNotUse::kDescriptorMethods,
       &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull AbilityTuning_FieldsEntry_DoNotUse_class_data_ =
-        AbilityTuning_FieldsEntry_DoNotUse::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull Definition_FieldsEntry_DoNotUse_class_data_ =
+        Definition_FieldsEntry_DoNotUse::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-AbilityTuning_FieldsEntry_DoNotUse::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&AbilityTuning_FieldsEntry_DoNotUse_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(AbilityTuning_FieldsEntry_DoNotUse_class_data_.tc_table);
-  return AbilityTuning_FieldsEntry_DoNotUse_class_data_.base();
+Definition_FieldsEntry_DoNotUse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Definition_FieldsEntry_DoNotUse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Definition_FieldsEntry_DoNotUse_class_data_.tc_table);
+  return Definition_FieldsEntry_DoNotUse_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 59, 2>
-AbilityTuning_FieldsEntry_DoNotUse::_table_ = {
+const ::_pbi::TcParseTable<1, 2, 0, 56, 2>
+Definition_FieldsEntry_DoNotUse::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(AbilityTuning_FieldsEntry_DoNotUse, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(Definition_FieldsEntry_DoNotUse, _impl_._has_bits_),
     0, // no _extensions_
     2, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
@@ -1587,95 +1598,95 @@ AbilityTuning_FieldsEntry_DoNotUse::_table_ = {
     2,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
-    AbilityTuning_FieldsEntry_DoNotUse_class_data_.base(),
+    Definition_FieldsEntry_DoNotUse_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::AbilityTuning_FieldsEntry_DoNotUse>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     // float value = 2;
     {::_pbi::TcParser::FastF32S1,
      {21, 1, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning_FieldsEntry_DoNotUse, _impl_.value_)}},
+      PROTOBUF_FIELD_OFFSET(Definition_FieldsEntry_DoNotUse, _impl_.value_)}},
     // string key = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning_FieldsEntry_DoNotUse, _impl_.key_)}},
+      PROTOBUF_FIELD_OFFSET(Definition_FieldsEntry_DoNotUse, _impl_.key_)}},
   }}, {{
     65535, 65535
   }}, {{
     // string key = 1;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning_FieldsEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Definition_FieldsEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // float value = 2;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning_FieldsEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    {PROTOBUF_FIELD_OFFSET(Definition_FieldsEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
   }},
   // no aux_entries
   {{
-    "\57\3\0\0\0\0\0\0"
-    "modlock.wasm.manifest.AbilityTuning.FieldsEntry"
+    "\54\3\0\0\0\0\0\0"
+    "modlock.wasm.manifest.Definition.FieldsEntry"
     "key"
   }},
 };
 // ===================================================================
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-AbilityTuning_CopyFieldsEntry_DoNotUse::AbilityTuning_CopyFieldsEntry_DoNotUse()
-    : SuperType(AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_.base()) {}
-AbilityTuning_CopyFieldsEntry_DoNotUse::AbilityTuning_CopyFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-    : SuperType(arena, AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_.base()) {}
+Definition_CopyFieldsEntry_DoNotUse::Definition_CopyFieldsEntry_DoNotUse()
+    : SuperType(Definition_CopyFieldsEntry_DoNotUse_class_data_.base()) {}
+Definition_CopyFieldsEntry_DoNotUse::Definition_CopyFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+    : SuperType(arena, Definition_CopyFieldsEntry_DoNotUse_class_data_.base()) {}
 #else   // PROTOBUF_CUSTOM_VTABLE
-AbilityTuning_CopyFieldsEntry_DoNotUse::AbilityTuning_CopyFieldsEntry_DoNotUse() : SuperType() {}
-AbilityTuning_CopyFieldsEntry_DoNotUse::AbilityTuning_CopyFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
+Definition_CopyFieldsEntry_DoNotUse::Definition_CopyFieldsEntry_DoNotUse() : SuperType() {}
+Definition_CopyFieldsEntry_DoNotUse::Definition_CopyFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena) : SuperType(arena) {}
 #endif  // PROTOBUF_CUSTOM_VTABLE
-inline void* PROTOBUF_NONNULL AbilityTuning_CopyFieldsEntry_DoNotUse::PlacementNew_(
+inline void* PROTOBUF_NONNULL Definition_CopyFieldsEntry_DoNotUse::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) AbilityTuning_CopyFieldsEntry_DoNotUse(arena);
+  return ::new (mem) Definition_CopyFieldsEntry_DoNotUse(arena);
 }
-constexpr auto AbilityTuning_CopyFieldsEntry_DoNotUse::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(AbilityTuning_CopyFieldsEntry_DoNotUse),
-                                            alignof(AbilityTuning_CopyFieldsEntry_DoNotUse));
+constexpr auto Definition_CopyFieldsEntry_DoNotUse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Definition_CopyFieldsEntry_DoNotUse),
+                                            alignof(Definition_CopyFieldsEntry_DoNotUse));
 }
-constexpr auto AbilityTuning_CopyFieldsEntry_DoNotUse::InternalGenerateClassData_() {
+constexpr auto Definition_CopyFieldsEntry_DoNotUse::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_AbilityTuning_CopyFieldsEntry_DoNotUse_default_instance_._instance,
+          &_Definition_CopyFieldsEntry_DoNotUse_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &AbilityTuning_CopyFieldsEntry_DoNotUse::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<AbilityTuning_CopyFieldsEntry_DoNotUse>(),
+          &Definition_CopyFieldsEntry_DoNotUse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Definition_CopyFieldsEntry_DoNotUse>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &AbilityTuning_CopyFieldsEntry_DoNotUse::SharedDtor,
-          static_cast<void (::google::protobuf::MessageLite::*)()>(&AbilityTuning_CopyFieldsEntry_DoNotUse::ClearImpl),
+          &Definition_CopyFieldsEntry_DoNotUse::SharedDtor,
+          static_cast<void (::google::protobuf::MessageLite::*)()>(&Definition_CopyFieldsEntry_DoNotUse::ClearImpl),
               ::google::protobuf::Message::ByteSizeLongImpl, ::google::protobuf::Message::_InternalSerializeImpl
               ,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(Definition_CopyFieldsEntry_DoNotUse, _impl_._cached_size_),
           false,
       },
-      &AbilityTuning_CopyFieldsEntry_DoNotUse::kDescriptorMethods,
+      &Definition_CopyFieldsEntry_DoNotUse::kDescriptorMethods,
       &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_ =
-        AbilityTuning_CopyFieldsEntry_DoNotUse::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull Definition_CopyFieldsEntry_DoNotUse_class_data_ =
+        Definition_CopyFieldsEntry_DoNotUse::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-AbilityTuning_CopyFieldsEntry_DoNotUse::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_.tc_table);
-  return AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_.base();
+Definition_CopyFieldsEntry_DoNotUse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Definition_CopyFieldsEntry_DoNotUse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Definition_CopyFieldsEntry_DoNotUse_class_data_.tc_table);
+  return Definition_CopyFieldsEntry_DoNotUse_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 68, 2>
-AbilityTuning_CopyFieldsEntry_DoNotUse::_table_ = {
+const ::_pbi::TcParseTable<1, 2, 0, 65, 2>
+Definition_CopyFieldsEntry_DoNotUse::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(Definition_CopyFieldsEntry_DoNotUse, _impl_._has_bits_),
     0, // no _extensions_
     2, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
@@ -1684,207 +1695,215 @@ AbilityTuning_CopyFieldsEntry_DoNotUse::_table_ = {
     2,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
-    AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_.base(),
+    Definition_CopyFieldsEntry_DoNotUse_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::DiscardEverythingFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::AbilityTuning_CopyFieldsEntry_DoNotUse>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     // string value = 2;
     {::_pbi::TcParser::FastUS1,
      {18, 1, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_.value_)}},
+      PROTOBUF_FIELD_OFFSET(Definition_CopyFieldsEntry_DoNotUse, _impl_.value_)}},
     // string key = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_.key_)}},
+      PROTOBUF_FIELD_OFFSET(Definition_CopyFieldsEntry_DoNotUse, _impl_.key_)}},
   }}, {{
     65535, 65535
   }}, {{
     // string key = 1;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Definition_CopyFieldsEntry_DoNotUse, _impl_.key_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string value = 2;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning_CopyFieldsEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Definition_CopyFieldsEntry_DoNotUse, _impl_.value_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   // no aux_entries
   {{
-    "\63\3\5\0\0\0\0\0"
-    "modlock.wasm.manifest.AbilityTuning.CopyFieldsEntry"
+    "\60\3\5\0\0\0\0\0"
+    "modlock.wasm.manifest.Definition.CopyFieldsEntry"
     "key"
     "value"
   }},
 };
 // ===================================================================
 
-class AbilityTuning::_Internal {
+class Definition::_Internal {
  public:
   using HasBits =
-      decltype(::std::declval<AbilityTuning>()._impl_._has_bits_);
+      decltype(::std::declval<Definition>()._impl_._has_bits_);
   static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_._has_bits_);
+      8 * PROTOBUF_FIELD_OFFSET(Definition, _impl_._has_bits_);
 };
 
-AbilityTuning::AbilityTuning(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+Definition::Definition(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, AbilityTuning_class_data_.base()) {
+    : ::google::protobuf::Message(arena, Definition_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.manifest.Definition)
 }
-PROTOBUF_NDEBUG_INLINE AbilityTuning::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE Definition::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    [[maybe_unused]] const ::modlock::wasm::manifest::AbilityTuning& from_msg)
+    [[maybe_unused]] const ::modlock::wasm::manifest::Definition& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        ability_(arena, from.ability_),
+        entry_(arena, from.entry_),
         properties_{visibility, arena, from.properties_},
         fields_{visibility, arena, from.fields_},
         copy_fields_{visibility, arena, from.copy_fields_} {}
 
-AbilityTuning::AbilityTuning(
+Definition::Definition(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
-    const AbilityTuning& from)
+    const Definition& from)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, AbilityTuning_class_data_.base()) {
+    : ::google::protobuf::Message(arena, Definition_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  AbilityTuning* const _this = this;
+  Definition* const _this = this;
   (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  _impl_.file_ = from._impl_.file_;
 
-  // @@protoc_insertion_point(copy_constructor:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.manifest.Definition)
 }
-PROTOBUF_NDEBUG_INLINE AbilityTuning::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE Definition::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        ability_(arena),
+        entry_(arena),
         properties_{visibility, arena},
         fields_{visibility, arena},
         copy_fields_{visibility, arena} {}
 
-inline void AbilityTuning::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+inline void Definition::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.file_ = {};
 }
-AbilityTuning::~AbilityTuning() {
-  // @@protoc_insertion_point(destructor:modlock.wasm.manifest.AbilityTuning)
+Definition::~Definition() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.manifest.Definition)
   SharedDtor(*this);
 }
-inline void AbilityTuning::SharedDtor(MessageLite& self) {
-  AbilityTuning& this_ = static_cast<AbilityTuning&>(self);
+inline void Definition::SharedDtor(MessageLite& self) {
+  Definition& this_ = static_cast<Definition&>(self);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.ability_.Destroy();
+  this_._impl_.entry_.Destroy();
   this_._impl_.~Impl_();
 }
 
-inline void* PROTOBUF_NONNULL AbilityTuning::PlacementNew_(
+inline void* PROTOBUF_NONNULL Definition::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) AbilityTuning(arena);
+  return ::new (mem) Definition(arena);
 }
-constexpr auto AbilityTuning::InternalNewImpl_() {
+constexpr auto Definition::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
-      PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.properties_) +
-          decltype(AbilityTuning::_impl_.properties_)::
+      PROTOBUF_FIELD_OFFSET(Definition, _impl_.properties_) +
+          decltype(Definition::_impl_.properties_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.fields_) +
-          decltype(AbilityTuning::_impl_.fields_)::
+      PROTOBUF_FIELD_OFFSET(Definition, _impl_.fields_) +
+          decltype(Definition::_impl_.fields_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.copy_fields_) +
-          decltype(AbilityTuning::_impl_.copy_fields_)::
+      PROTOBUF_FIELD_OFFSET(Definition, _impl_.copy_fields_) +
+          decltype(Definition::_impl_.copy_fields_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
   if (arena_bits.has_value()) {
     return ::google::protobuf::internal::MessageCreator::CopyInit(
-        sizeof(AbilityTuning), alignof(AbilityTuning), *arena_bits);
+        sizeof(Definition), alignof(Definition), *arena_bits);
   } else {
-    return ::google::protobuf::internal::MessageCreator(&AbilityTuning::PlacementNew_,
-                                 sizeof(AbilityTuning),
-                                 alignof(AbilityTuning));
+    return ::google::protobuf::internal::MessageCreator(&Definition::PlacementNew_,
+                                 sizeof(Definition),
+                                 alignof(Definition));
   }
 }
-constexpr auto AbilityTuning::InternalGenerateClassData_() {
+constexpr auto Definition::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_AbilityTuning_default_instance_._instance,
+          &_Definition_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &AbilityTuning::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<AbilityTuning>(),
+          &Definition::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Definition>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &AbilityTuning::SharedDtor,
-          ::google::protobuf::Message::GetClearImpl<AbilityTuning>(), &AbilityTuning::ByteSizeLong,
-              &AbilityTuning::_InternalSerialize,
+          &Definition::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<Definition>(), &Definition::ByteSizeLong,
+              &Definition::_InternalSerialize,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(Definition, _impl_._cached_size_),
           false,
       },
-      &AbilityTuning::kDescriptorMethods,
+      &Definition::kDescriptorMethods,
       &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull AbilityTuning_class_data_ =
-        AbilityTuning::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull Definition_class_data_ =
+        Definition::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-AbilityTuning::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&AbilityTuning_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(AbilityTuning_class_data_.tc_table);
-  return AbilityTuning_class_data_.base();
+Definition::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Definition_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Definition_class_data_.tc_table);
+  return Definition_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 4, 3, 78, 2>
-AbilityTuning::_table_ = {
+const ::_pbi::TcParseTable<1, 5, 3, 73, 2>
+Definition::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(Definition, _impl_._has_bits_),
     0, // no _extensions_
-    4, 0,  // max_field_number, fast_idx_mask
+    5, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967264,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    5,  // num_field_entries
     3,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
-    AbilityTuning_class_data_.base(),
+    Definition_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::AbilityTuning>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Definition>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string ability = 1;
+    // string entry = 2;
     {::_pbi::TcParser::FastUS1,
-     {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.ability_)}},
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Definition, _impl_.entry_)}},
+    // .modlock.wasm.manifest.Definition.File file = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Definition, _impl_.file_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(Definition, _impl_.file_)}},
   }}, {{
     65535, 65535
   }}, {{
-    // string ability = 1;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.ability_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // map<string, float> properties = 2;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.properties_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
-    // map<string, float> fields = 3;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.fields_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
-    // map<string, string> copy_fields = 4;
-    {PROTOBUF_FIELD_OFFSET(AbilityTuning, _impl_.copy_fields_), _Internal::kHasBitsOffset + 3, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+    // .modlock.wasm.manifest.Definition.File file = 1;
+    {PROTOBUF_FIELD_OFFSET(Definition, _impl_.file_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    // string entry = 2;
+    {PROTOBUF_FIELD_OFFSET(Definition, _impl_.entry_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // map<string, float> properties = 3;
+    {PROTOBUF_FIELD_OFFSET(Definition, _impl_.properties_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+    // map<string, float> fields = 4;
+    {PROTOBUF_FIELD_OFFSET(Definition, _impl_.fields_), _Internal::kHasBitsOffset + 3, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
+    // map<string, string> copy_fields = 5;
+    {PROTOBUF_FIELD_OFFSET(Definition, _impl_.copy_fields_), _Internal::kHasBitsOffset + 4, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMap)},
   }},
   {{
       {::_pbi::TcParser::GetMapAuxInfo(
@@ -1895,33 +1914,34 @@ AbilityTuning::_table_ = {
           1, 0, 9, 9, 0)},
   }},
   {{
-    "\43\7\12\6\13\0\0\0"
-    "modlock.wasm.manifest.AbilityTuning"
-    "ability"
+    "\40\0\5\12\6\13\0\0"
+    "modlock.wasm.manifest.Definition"
+    "entry"
     "properties"
     "fields"
     "copy_fields"
   }},
 };
-PROTOBUF_NOINLINE void AbilityTuning::Clear() {
-// @@protoc_insertion_point(message_clear_start:modlock.wasm.manifest.AbilityTuning)
+PROTOBUF_NOINLINE void Definition::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.manifest.Definition)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      _impl_.ability_.ClearNonDefaultToEmpty();
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.entry_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001eU)) {
+    _impl_.file_ = 0;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
       _impl_.properties_.Clear();
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
       _impl_.fields_.Clear();
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
       _impl_.copy_fields_.Clear();
     }
   }
@@ -1930,36 +1950,45 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL AbilityTuning::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL Definition::_InternalSerialize(
     const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const AbilityTuning& this_ = static_cast<const AbilityTuning&>(base);
+  const Definition& this_ = static_cast<const Definition&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL AbilityTuning::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL Definition::_InternalSerialize(
     ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const AbilityTuning& this_ = *this;
+  const Definition& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
-  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.manifest.Definition)
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // string ability = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    if (!this_._internal_ability().empty()) {
-      const ::std::string& _s = this_._internal_ability();
-      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.ability");
-      target = stream->WriteStringMaybeAliased(1, _s, target);
+  // .modlock.wasm.manifest.Definition.File file = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_file() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          1, this_._internal_file(), target);
     }
   }
 
-  // map<string, float> properties = 2;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+  // string entry = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_entry().empty()) {
+      const ::std::string& _s = this_._internal_entry();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.entry");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // map<string, float> properties = 3;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
     if (!this_._internal_properties().empty()) {
       using MapType = ::google::protobuf::Map<::std::string, float>;
       using WireHelper = _pbi::MapEntryFuncs<::std::string, float,
@@ -1970,25 +1999,25 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
       if (stream->IsSerializationDeterministic() && field.size() > 1) {
         for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
           target = WireHelper::InternalSerialize(
-              2, entry.first, entry.second, target, stream);
+              3, entry.first, entry.second, target, stream);
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.properties");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.properties");
         }
       } else {
         for (const auto& entry : field) {
           target = WireHelper::InternalSerialize(
-              2, entry.first, entry.second, target, stream);
+              3, entry.first, entry.second, target, stream);
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.properties");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.properties");
         }
       }
     }
   }
 
-  // map<string, float> fields = 3;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+  // map<string, float> fields = 4;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
     if (!this_._internal_fields().empty()) {
       using MapType = ::google::protobuf::Map<::std::string, float>;
       using WireHelper = _pbi::MapEntryFuncs<::std::string, float,
@@ -1999,25 +2028,25 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
       if (stream->IsSerializationDeterministic() && field.size() > 1) {
         for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
           target = WireHelper::InternalSerialize(
-              3, entry.first, entry.second, target, stream);
+              4, entry.first, entry.second, target, stream);
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.fields");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.fields");
         }
       } else {
         for (const auto& entry : field) {
           target = WireHelper::InternalSerialize(
-              3, entry.first, entry.second, target, stream);
+              4, entry.first, entry.second, target, stream);
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.fields");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.fields");
         }
       }
     }
   }
 
-  // map<string, string> copy_fields = 4;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+  // map<string, string> copy_fields = 5;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
     if (!this_._internal_copy_fields().empty()) {
       using MapType = ::google::protobuf::Map<::std::string, ::std::string>;
       using WireHelper = _pbi::MapEntryFuncs<::std::string, ::std::string,
@@ -2028,24 +2057,24 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
       if (stream->IsSerializationDeterministic() && field.size() > 1) {
         for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
           target = WireHelper::InternalSerialize(
-              4, entry.first, entry.second, target, stream);
+              5, entry.first, entry.second, target, stream);
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.copy_fields");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.copy_fields");
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.second.data(), static_cast<int>(entry.second.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.copy_fields");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.copy_fields");
         }
       } else {
         for (const auto& entry : field) {
           target = WireHelper::InternalSerialize(
-              4, entry.first, entry.second, target, stream);
+              5, entry.first, entry.second, target, stream);
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.copy_fields");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.copy_fields");
           ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               entry.second.data(), static_cast<int>(entry.second.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.AbilityTuning.copy_fields");
+ ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Definition.copy_fields");
         }
       }
     }
@@ -2056,18 +2085,18 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.manifest.Definition)
   return target;
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t AbilityTuning::ByteSizeLong(const MessageLite& base) {
-  const AbilityTuning& this_ = static_cast<const AbilityTuning&>(base);
+::size_t Definition::ByteSizeLong(const MessageLite& base) {
+  const Definition& this_ = static_cast<const Definition&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::size_t AbilityTuning::ByteSizeLong() const {
-  const AbilityTuning& this_ = *this;
+::size_t Definition::ByteSizeLong() const {
+  const Definition& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.manifest.Definition)
   ::size_t total_size = 0;
 
   ::uint32_t cached_has_bits = 0;
@@ -2076,16 +2105,23 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // string ability = 1;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+    // string entry = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      if (!this_._internal_ability().empty()) {
+      if (!this_._internal_entry().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_ability());
+                                        this_._internal_entry());
       }
     }
-    // map<string, float> properties = 2;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+    // .modlock.wasm.manifest.Definition.File file = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_file() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_file());
+      }
+    }
+    // map<string, float> properties = 3;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
       total_size +=
           1 * ::google::protobuf::internal::FromIntSize(this_._internal_properties_size());
       for (const auto& entry : this_._internal_properties()) {
@@ -2094,8 +2130,8 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
                                        _pbi::WireFormatLite::TYPE_FLOAT>::ByteSizeLong(entry.first, entry.second);
       }
     }
-    // map<string, float> fields = 3;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+    // map<string, float> fields = 4;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
       total_size +=
           1 * ::google::protobuf::internal::FromIntSize(this_._internal_fields_size());
       for (const auto& entry : this_._internal_fields()) {
@@ -2104,8 +2140,8 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
                                        _pbi::WireFormatLite::TYPE_FLOAT>::ByteSizeLong(entry.first, entry.second);
       }
     }
-    // map<string, string> copy_fields = 4;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    // map<string, string> copy_fields = 5;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
       total_size +=
           1 * ::google::protobuf::internal::FromIntSize(this_._internal_copy_fields_size());
       for (const auto& entry : this_._internal_copy_fields()) {
@@ -2119,37 +2155,42 @@ PROTOBUF_NOINLINE void AbilityTuning::Clear() {
                                              &this_._impl_._cached_size_);
 }
 
-void AbilityTuning::MergeImpl(::google::protobuf::MessageLite& to_msg,
+void Definition::MergeImpl(::google::protobuf::MessageLite& to_msg,
                             const ::google::protobuf::MessageLite& from_msg) {
    auto* const _this =
-      static_cast<AbilityTuning*>(&to_msg);
-  auto& from = static_cast<const AbilityTuning&>(from_msg);
+      static_cast<Definition*>(&to_msg);
+  auto& from = static_cast<const Definition&>(from_msg);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     from.CheckHasBitConsistency();
   }
-  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.manifest.Definition)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      if (!from._internal_ability().empty()) {
-        _this->_internal_set_ability(from._internal_ability());
+      if (!from._internal_entry().empty()) {
+        _this->_internal_set_entry(from._internal_entry());
       } else {
-        if (_this->_impl_.ability_.IsDefault()) {
-          _this->_internal_set_ability("");
+        if (_this->_impl_.entry_.IsDefault()) {
+          _this->_internal_set_entry("");
         }
       }
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
-      _this->_impl_.properties_.MergeFrom(from._impl_.properties_);
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_file() != 0) {
+        _this->_impl_.file_ = from._impl_.file_;
+      }
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
-      _this->_impl_.fields_.MergeFrom(from._impl_.fields_);
+      _this->_impl_.properties_.MergeFrom(from._impl_.properties_);
     }
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      _this->_impl_.fields_.MergeFrom(from._impl_.fields_);
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000010U)) {
       _this->_impl_.copy_fields_.MergeFrom(from._impl_.copy_fields_);
     }
   }
@@ -2158,27 +2199,28 @@ void AbilityTuning::MergeImpl(::google::protobuf::MessageLite& to_msg,
       from._internal_metadata_);
 }
 
-void AbilityTuning::CopyFrom(const AbilityTuning& from) {
-  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.manifest.AbilityTuning)
+void Definition::CopyFrom(const Definition& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.manifest.Definition)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 
-void AbilityTuning::InternalSwap(AbilityTuning* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+void Definition::InternalSwap(Definition* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
   auto* arena = GetArena();
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.ability_, &other->_impl_.ability_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.entry_, &other->_impl_.entry_, arena);
+  swap(_impl_.file_, other->_impl_.file_);
   _impl_.properties_.InternalSwap(&other->_impl_.properties_);
   _impl_.fields_.InternalSwap(&other->_impl_.fields_);
   _impl_.copy_fields_.InternalSwap(&other->_impl_.copy_fields_);
 }
 
-::google::protobuf::Metadata AbilityTuning::GetMetadata() const {
+::google::protobuf::Metadata Definition::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

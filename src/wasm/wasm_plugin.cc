@@ -36,10 +36,11 @@ constexpr auto kDepartWait = std::chrono::seconds(5);
 
 }  // namespace
 
-bool Tune(std::wstring_view module, const char* module_name, const wasm::manifest::Manifest& manifest,
+bool Tune(std::wstring_view module, const char* module_name,
+          const wasm::manifest::Manifest& manifest,
           const std::function<void(std::string_view)>& log) {
-  // A manifest without abilities needs no tuning.
-  if (manifest.abilities().empty()) {
+  // A manifest without definition changes needs no tuning.
+  if (manifest.definitions().empty()) {
     return true;
   }
 
@@ -50,13 +51,13 @@ bool Tune(std::wstring_view module, const char* module_name, const wasm::manifes
     return false;
   }
 
-  // Tune the abilities and log each problem.
-  auto problems = wasm::TuneAbilities(*image, *schema, module_name, manifest.abilities());
+  // Change the definitions and log each problem.
+  auto problems = wasm::ChangeDefinitions(*image, *schema, module_name, manifest.definitions());
   if (!problems) {
     return false;
   }
   for (const auto& problem : *problems) {
-    log("ability tuning: " + problem);
+    log("definition change: " + problem);
   }
   return true;
 }
@@ -81,7 +82,10 @@ bool WasmPlugin::Start() {
   auto world = engine_->OnWorld([this](std::string_view) { host_.game.WorldStarting(); },
                                 [this](std::string_view map) {
                                   // Record the map and start everything that waits for a world.
+                                  // Hero definitions belong to the world, so the definition
+                                  // changes are written again.
                                   map_ = std::string(map);
+                                  tuned_ = false;
                                   host_.game.WorldReady();
                                   game_.WorldReady();
                                   ListenForRestart();
@@ -369,7 +373,7 @@ void WasmPlugin::Tick() {
     Warn(std::format("stopped. Type /{} to start it again.", kRestartCommand));
   }
 
-  // Tune the server once.
+  // Change the server's definitions once per world.
   if (!tuned_ && !check_only_) {
     tuned_ =
         Tune(L"server.dll", "server.dll", manifest_, [this](std::string_view text) { Log(text); });

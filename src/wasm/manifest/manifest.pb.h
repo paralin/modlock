@@ -64,28 +64,30 @@ MODLOCK_API extern const ::google::protobuf::internal::DescriptorTable descripto
 namespace modlock {
 namespace wasm {
 namespace manifest {
+enum Definition_File : int;
+extern const uint32_t Definition_File_internal_data_[];
 enum Manifest_Language : int;
 extern const uint32_t Manifest_Language_internal_data_[];
 enum Manifest_Runtime : int;
 extern const uint32_t Manifest_Runtime_internal_data_[];
 enum Movement_Model : int;
 extern const uint32_t Movement_Model_internal_data_[];
-class AbilityTuning;
-struct AbilityTuningDefaultTypeInternal;
-MODLOCK_API extern AbilityTuningDefaultTypeInternal _AbilityTuning_default_instance_;
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_class_data_;
-class AbilityTuning_CopyFieldsEntry_DoNotUse;
-struct AbilityTuning_CopyFieldsEntry_DoNotUseDefaultTypeInternal;
-MODLOCK_API extern AbilityTuning_CopyFieldsEntry_DoNotUseDefaultTypeInternal _AbilityTuning_CopyFieldsEntry_DoNotUse_default_instance_;
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_;
-class AbilityTuning_FieldsEntry_DoNotUse;
-struct AbilityTuning_FieldsEntry_DoNotUseDefaultTypeInternal;
-MODLOCK_API extern AbilityTuning_FieldsEntry_DoNotUseDefaultTypeInternal _AbilityTuning_FieldsEntry_DoNotUse_default_instance_;
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_FieldsEntry_DoNotUse_class_data_;
-class AbilityTuning_PropertiesEntry_DoNotUse;
-struct AbilityTuning_PropertiesEntry_DoNotUseDefaultTypeInternal;
-MODLOCK_API extern AbilityTuning_PropertiesEntry_DoNotUseDefaultTypeInternal _AbilityTuning_PropertiesEntry_DoNotUse_default_instance_;
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_PropertiesEntry_DoNotUse_class_data_;
+class Definition;
+struct DefinitionDefaultTypeInternal;
+MODLOCK_API extern DefinitionDefaultTypeInternal _Definition_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_class_data_;
+class Definition_CopyFieldsEntry_DoNotUse;
+struct Definition_CopyFieldsEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern Definition_CopyFieldsEntry_DoNotUseDefaultTypeInternal _Definition_CopyFieldsEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_CopyFieldsEntry_DoNotUse_class_data_;
+class Definition_FieldsEntry_DoNotUse;
+struct Definition_FieldsEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern Definition_FieldsEntry_DoNotUseDefaultTypeInternal _Definition_FieldsEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_FieldsEntry_DoNotUse_class_data_;
+class Definition_PropertiesEntry_DoNotUse;
+struct Definition_PropertiesEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern Definition_PropertiesEntry_DoNotUseDefaultTypeInternal _Definition_PropertiesEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_PropertiesEntry_DoNotUse_class_data_;
 class Manifest;
 struct ManifestDefaultTypeInternal;
 MODLOCK_API extern ManifestDefaultTypeInternal _Manifest_default_instance_;
@@ -99,6 +101,9 @@ MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Movement_cl
 }  // namespace modlock
 namespace google {
 namespace protobuf {
+template <>
+internal::EnumTraitsT<::modlock::wasm::manifest::Definition_File_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::manifest::Definition_File>;
 template <>
 internal::EnumTraitsT<::modlock::wasm::manifest::Manifest_Language_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::manifest::Manifest_Language>;
@@ -227,6 +232,42 @@ inline const ::std::string& Movement_Model_Name(Movement_Model value) {
 inline bool Movement_Model_Parse(
     ::absl::string_view name, Movement_Model* PROTOBUF_NONNULL value) {
   return ::google::protobuf::internal::ParseNamedEnum<Movement_Model>(Movement_Model_descriptor(), name,
+                                           value);
+}
+enum Definition_File : int {
+  Definition_File_FILE_ABILITIES = 0,
+  Definition_File_FILE_HEROES = 1,
+  Definition_File_Definition_File_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  Definition_File_Definition_File_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t Definition_File_internal_data_[];
+inline constexpr Definition_File Definition_File_File_MIN =
+    static_cast<Definition_File>(0);
+inline constexpr Definition_File Definition_File_File_MAX =
+    static_cast<Definition_File>(1);
+inline bool Definition_File_IsValid(int value) {
+  return 0 <= value && value <= 1;
+}
+inline constexpr int Definition_File_File_ARRAYSIZE = 1 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Definition_File_descriptor();
+template <typename T>
+const ::std::string& Definition_File_Name(T value) {
+  static_assert(::std::is_same<T, Definition_File>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to File_Name().");
+  return Definition_File_Name(static_cast<Definition_File>(value));
+}
+template <>
+inline const ::std::string& Definition_File_Name(Definition_File value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<Definition_File_descriptor, 0, 1>(
+      static_cast<int>(value));
+}
+inline bool Definition_File_Parse(
+    ::absl::string_view name, Definition_File* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Definition_File>(Definition_File_descriptor(), name,
                                            value);
 }
 
@@ -469,7 +510,7 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Movement_class_data_;
 // -------------------------------------------------------------------
 
-class AbilityTuning_PropertiesEntry_DoNotUse final
+class Definition_PropertiesEntry_DoNotUse final
     : public ::google::protobuf::internal::MapEntry<::std::string, float,
                              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                              ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT> {
@@ -478,12 +519,12 @@ class AbilityTuning_PropertiesEntry_DoNotUse final
       ::google::protobuf::internal::MapEntry<::std::string, float,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>;
-  AbilityTuning_PropertiesEntry_DoNotUse();
+  Definition_PropertiesEntry_DoNotUse();
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR AbilityTuning_PropertiesEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
-  explicit AbilityTuning_PropertiesEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  explicit PROTOBUF_CONSTEXPR Definition_PropertiesEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit Definition_PropertiesEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
-    return &_AbilityTuning_PropertiesEntry_DoNotUse_default_instance_;
+    return &_Definition_PropertiesEntry_DoNotUse_default_instance_;
   }
 
 
@@ -495,7 +536,7 @@ class AbilityTuning_PropertiesEntry_DoNotUse final
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 63,
+                                   0, 60,
                                    2>
       _table_;
 
@@ -505,10 +546,10 @@ class AbilityTuning_PropertiesEntry_DoNotUse final
       ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static constexpr auto InternalNewImpl_();
 };
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_PropertiesEntry_DoNotUse_class_data_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_PropertiesEntry_DoNotUse_class_data_;
 // -------------------------------------------------------------------
 
-class AbilityTuning_FieldsEntry_DoNotUse final
+class Definition_FieldsEntry_DoNotUse final
     : public ::google::protobuf::internal::MapEntry<::std::string, float,
                              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                              ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT> {
@@ -517,12 +558,12 @@ class AbilityTuning_FieldsEntry_DoNotUse final
       ::google::protobuf::internal::MapEntry<::std::string, float,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>;
-  AbilityTuning_FieldsEntry_DoNotUse();
+  Definition_FieldsEntry_DoNotUse();
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR AbilityTuning_FieldsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
-  explicit AbilityTuning_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  explicit PROTOBUF_CONSTEXPR Definition_FieldsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit Definition_FieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
-    return &_AbilityTuning_FieldsEntry_DoNotUse_default_instance_;
+    return &_Definition_FieldsEntry_DoNotUse_default_instance_;
   }
 
 
@@ -534,7 +575,7 @@ class AbilityTuning_FieldsEntry_DoNotUse final
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 59,
+                                   0, 56,
                                    2>
       _table_;
 
@@ -544,10 +585,10 @@ class AbilityTuning_FieldsEntry_DoNotUse final
       ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static constexpr auto InternalNewImpl_();
 };
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_FieldsEntry_DoNotUse_class_data_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_FieldsEntry_DoNotUse_class_data_;
 // -------------------------------------------------------------------
 
-class AbilityTuning_CopyFieldsEntry_DoNotUse final
+class Definition_CopyFieldsEntry_DoNotUse final
     : public ::google::protobuf::internal::MapEntry<::std::string, ::std::string,
                              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                              ::google::protobuf::internal::WireFormatLite::TYPE_STRING> {
@@ -556,12 +597,12 @@ class AbilityTuning_CopyFieldsEntry_DoNotUse final
       ::google::protobuf::internal::MapEntry<::std::string, ::std::string,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING>;
-  AbilityTuning_CopyFieldsEntry_DoNotUse();
+  Definition_CopyFieldsEntry_DoNotUse();
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR AbilityTuning_CopyFieldsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
-  explicit AbilityTuning_CopyFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  explicit PROTOBUF_CONSTEXPR Definition_CopyFieldsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit Definition_CopyFieldsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
-    return &_AbilityTuning_CopyFieldsEntry_DoNotUse_default_instance_;
+    return &_Definition_CopyFieldsEntry_DoNotUse_default_instance_;
   }
 
 
@@ -573,7 +614,7 @@ class AbilityTuning_CopyFieldsEntry_DoNotUse final
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   0, 68,
+                                   0, 65,
                                    2>
       _table_;
 
@@ -583,33 +624,33 @@ class AbilityTuning_CopyFieldsEntry_DoNotUse final
       ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static constexpr auto InternalNewImpl_();
 };
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_CopyFieldsEntry_DoNotUse_class_data_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_CopyFieldsEntry_DoNotUse_class_data_;
 // -------------------------------------------------------------------
 
-class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:modlock.wasm.manifest.AbilityTuning) */ {
+class MODLOCK_API Definition final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.manifest.Definition) */ {
  public:
-  inline AbilityTuning() : AbilityTuning(nullptr) {}
-  ~AbilityTuning() PROTOBUF_FINAL;
+  inline Definition() : Definition(nullptr) {}
+  ~Definition() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(AbilityTuning* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+  void operator delete(Definition* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(AbilityTuning));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Definition));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR AbilityTuning(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR Definition(::google::protobuf::internal::ConstantInitialized);
 
-  inline AbilityTuning(const AbilityTuning& from) : AbilityTuning(nullptr, from) {}
-  inline AbilityTuning(AbilityTuning&& from) noexcept
-      : AbilityTuning(nullptr, ::std::move(from)) {}
-  inline AbilityTuning& operator=(const AbilityTuning& from) {
+  inline Definition(const Definition& from) : Definition(nullptr, from) {}
+  inline Definition(Definition&& from) noexcept
+      : Definition(nullptr, ::std::move(from)) {}
+  inline Definition& operator=(const Definition& from) {
     CopyFrom(from);
     return *this;
   }
-  inline AbilityTuning& operator=(AbilityTuning&& from) noexcept {
+  inline Definition& operator=(Definition&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -637,13 +678,13 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const AbilityTuning& default_instance() {
-    return *reinterpret_cast<const AbilityTuning*>(
-        &_AbilityTuning_default_instance_);
+  static const Definition& default_instance() {
+    return *reinterpret_cast<const Definition*>(
+        &_Definition_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 5;
-  friend void swap(AbilityTuning& a, AbilityTuning& b) { a.Swap(&b); }
-  inline void Swap(AbilityTuning* PROTOBUF_NONNULL other) {
+  friend void swap(Definition& a, Definition& b) { a.Swap(&b); }
+  inline void Swap(Definition* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -651,7 +692,7 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(AbilityTuning* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(Definition* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -659,13 +700,13 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  AbilityTuning* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<AbilityTuning>(arena);
+  Definition* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Definition>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const AbilityTuning& from);
+  void CopyFrom(const Definition& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const AbilityTuning& from) { AbilityTuning::MergeImpl(*this, from); }
+  void MergeFrom(const Definition& from) { Definition::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -701,17 +742,17 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(AbilityTuning* PROTOBUF_NONNULL other);
+  void InternalSwap(Definition* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "modlock.wasm.manifest.AbilityTuning"; }
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.manifest.Definition"; }
 
-  explicit AbilityTuning(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  AbilityTuning(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const AbilityTuning& from);
-  AbilityTuning(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, AbilityTuning&& from) noexcept
-      : AbilityTuning(arena) {
+  explicit Definition(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Definition(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Definition& from);
+  Definition(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Definition&& from) noexcept
+      : Definition(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -725,30 +766,61 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
 
   ::google::protobuf::Metadata GetMetadata() const;
   // nested types ----------------------------------------------------
+  using File = Definition_File;
+  static constexpr File FILE_ABILITIES = Definition_File_FILE_ABILITIES;
+  static constexpr File FILE_HEROES = Definition_File_FILE_HEROES;
+  static inline bool File_IsValid(int value) {
+    return Definition_File_IsValid(value);
+  }
+  static constexpr File File_MIN = Definition_File_File_MIN;
+  static constexpr File File_MAX = Definition_File_File_MAX;
+  static constexpr int File_ARRAYSIZE = Definition_File_File_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL File_descriptor() {
+    return Definition_File_descriptor();
+  }
+  template <typename T>
+  static inline const ::std::string& File_Name(T value) {
+    return Definition_File_Name(value);
+  }
+  static inline bool File_Parse(
+      ::absl::string_view name, File* PROTOBUF_NONNULL value) {
+    return Definition_File_Parse(name, value);
+  }
 
   // accessors -------------------------------------------------------
   enum : int {
-    kAbilityFieldNumber = 1,
-    kPropertiesFieldNumber = 2,
-    kFieldsFieldNumber = 3,
-    kCopyFieldsFieldNumber = 4,
+    kEntryFieldNumber = 2,
+    kFileFieldNumber = 1,
+    kPropertiesFieldNumber = 3,
+    kFieldsFieldNumber = 4,
+    kCopyFieldsFieldNumber = 5,
   };
-  // string ability = 1;
-  void clear_ability() ;
-  const ::std::string& ability() const;
+  // string entry = 2;
+  void clear_entry() ;
+  const ::std::string& entry() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_ability(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_ability();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_ability();
-  void set_allocated_ability(::std::string* PROTOBUF_NULLABLE value);
+  void set_entry(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_entry();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_entry();
+  void set_allocated_entry(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_ability() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_ability(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_ability();
+  const ::std::string& _internal_entry() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_entry(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_entry();
 
   public:
-  // map<string, float> properties = 2;
+  // .modlock.wasm.manifest.Definition.File file = 1;
+  void clear_file() ;
+  ::modlock::wasm::manifest::Definition_File file() const;
+  void set_file(::modlock::wasm::manifest::Definition_File value);
+
+  private:
+  ::modlock::wasm::manifest::Definition_File _internal_file() const;
+  void _internal_set_file(::modlock::wasm::manifest::Definition_File value);
+
+  public:
+  // map<string, float> properties = 3;
   int properties_size() const;
   private:
   int _internal_properties_size() const;
@@ -763,7 +835,7 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
   ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL _internal_mutable_properties();
 
   public:
-  // map<string, float> fields = 3;
+  // map<string, float> fields = 4;
   int fields_size() const;
   private:
   int _internal_fields_size() const;
@@ -778,7 +850,7 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
   ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL _internal_mutable_fields();
 
   public:
-  // map<string, string> copy_fields = 4;
+  // map<string, string> copy_fields = 5;
   int copy_fields_size() const;
   private:
   int _internal_copy_fields_size() const;
@@ -793,12 +865,12 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
   ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL _internal_mutable_copy_fields();
 
   public:
-  // @@protoc_insertion_point(class_scope:modlock.wasm.manifest.AbilityTuning)
+  // @@protoc_insertion_point(class_scope:modlock.wasm.manifest.Definition)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 4,
-                                   3, 78,
+  static const ::google::protobuf::internal::TcParseTable<1, 5,
+                                   3, 73,
                                    2>
       _table_;
 
@@ -816,19 +888,20 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const AbilityTuning& from_msg);
+        const Definition& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr ability_;
-    ::google::protobuf::internal::MapField<AbilityTuning_PropertiesEntry_DoNotUse, ::std::string, float,
+    ::google::protobuf::internal::ArenaStringPtr entry_;
+    int file_;
+    ::google::protobuf::internal::MapField<Definition_PropertiesEntry_DoNotUse, ::std::string, float,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>
         properties_;
-    ::google::protobuf::internal::MapField<AbilityTuning_FieldsEntry_DoNotUse, ::std::string, float,
+    ::google::protobuf::internal::MapField<Definition_FieldsEntry_DoNotUse, ::std::string, float,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>
         fields_;
-    ::google::protobuf::internal::MapField<AbilityTuning_CopyFieldsEntry_DoNotUse, ::std::string, ::std::string,
+    ::google::protobuf::internal::MapField<Definition_CopyFieldsEntry_DoNotUse, ::std::string, ::std::string,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING>
         copy_fields_;
@@ -838,7 +911,7 @@ class MODLOCK_API AbilityTuning final : public ::google::protobuf::Message
   friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto;
 };
 
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AbilityTuning_class_data_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Definition_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API Manifest final : public ::google::protobuf::Message
@@ -1030,7 +1103,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kAbilitiesFieldNumber = 9,
+    kDefinitionsFieldNumber = 9,
     kSettingsFieldNumber = 10,
     kMetricsFieldNumber = 11,
     kSlugFieldNumber = 1,
@@ -1043,23 +1116,23 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
     kRuntimeFieldNumber = 5,
     kFreeForAllFieldNumber = 12,
   };
-  // repeated .modlock.wasm.manifest.AbilityTuning abilities = 9;
-  int abilities_size() const;
+  // repeated .modlock.wasm.manifest.Definition definitions = 9;
+  int definitions_size() const;
   private:
-  int _internal_abilities_size() const;
+  int _internal_definitions_size() const;
 
   public:
-  void clear_abilities() ;
-  ::modlock::wasm::manifest::AbilityTuning* PROTOBUF_NONNULL mutable_abilities(int index);
-  ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>* PROTOBUF_NONNULL mutable_abilities();
+  void clear_definitions() ;
+  ::modlock::wasm::manifest::Definition* PROTOBUF_NONNULL mutable_definitions(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>* PROTOBUF_NONNULL mutable_definitions();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>& _internal_abilities() const;
-  ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>* PROTOBUF_NONNULL _internal_mutable_abilities();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>& _internal_definitions() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>* PROTOBUF_NONNULL _internal_mutable_definitions();
   public:
-  const ::modlock::wasm::manifest::AbilityTuning& abilities(int index) const;
-  ::modlock::wasm::manifest::AbilityTuning* PROTOBUF_NONNULL add_abilities();
-  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>& abilities() const;
+  const ::modlock::wasm::manifest::Definition& definitions(int index) const;
+  ::modlock::wasm::manifest::Definition* PROTOBUF_NONNULL add_definitions();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>& definitions() const;
   // repeated .modlock.wasm.settings.Setting settings = 10;
   int settings_size() const;
   private:
@@ -1240,7 +1313,7 @@ class MODLOCK_API Manifest final : public ::google::protobuf::Message
         const Manifest& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::manifest::AbilityTuning > abilities_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::manifest::Definition > definitions_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::settings::Setting > settings_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::metrics::Metric > metrics_;
     ::google::protobuf::internal::ArenaStringPtr slug_;
@@ -1750,60 +1823,60 @@ inline void Manifest::set_allocated_movement(::modlock::wasm::manifest::Movement
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.manifest.Manifest.movement)
 }
 
-// repeated .modlock.wasm.manifest.AbilityTuning abilities = 9;
-inline int Manifest::_internal_abilities_size() const {
-  return _internal_abilities().size();
+// repeated .modlock.wasm.manifest.Definition definitions = 9;
+inline int Manifest::_internal_definitions_size() const {
+  return _internal_definitions().size();
 }
-inline int Manifest::abilities_size() const {
-  return _internal_abilities_size();
+inline int Manifest::definitions_size() const {
+  return _internal_definitions_size();
 }
-inline void Manifest::clear_abilities() {
+inline void Manifest::clear_definitions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.abilities_.Clear();
+  _impl_.definitions_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000001U);
 }
-inline ::modlock::wasm::manifest::AbilityTuning* PROTOBUF_NONNULL Manifest::mutable_abilities(int index)
+inline ::modlock::wasm::manifest::Definition* PROTOBUF_NONNULL Manifest::mutable_definitions(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:modlock.wasm.manifest.Manifest.abilities)
-  return _internal_mutable_abilities()->Mutable(index);
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.manifest.Manifest.definitions)
+  return _internal_mutable_definitions()->Mutable(index);
 }
-inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>* PROTOBUF_NONNULL Manifest::mutable_abilities()
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>* PROTOBUF_NONNULL Manifest::mutable_definitions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.manifest.Manifest.abilities)
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.manifest.Manifest.definitions)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_abilities();
+  return _internal_mutable_definitions();
 }
-inline const ::modlock::wasm::manifest::AbilityTuning& Manifest::abilities(int index) const
+inline const ::modlock::wasm::manifest::Definition& Manifest::definitions(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:modlock.wasm.manifest.Manifest.abilities)
-  return _internal_abilities().Get(index);
+  // @@protoc_insertion_point(field_get:modlock.wasm.manifest.Manifest.definitions)
+  return _internal_definitions().Get(index);
 }
-inline ::modlock::wasm::manifest::AbilityTuning* PROTOBUF_NONNULL Manifest::add_abilities()
+inline ::modlock::wasm::manifest::Definition* PROTOBUF_NONNULL Manifest::add_definitions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::modlock::wasm::manifest::AbilityTuning* _add =
-      _internal_mutable_abilities()->InternalAddWithArena(
+  ::modlock::wasm::manifest::Definition* _add =
+      _internal_mutable_definitions()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_add:modlock.wasm.manifest.Manifest.abilities)
+  // @@protoc_insertion_point(field_add:modlock.wasm.manifest.Manifest.definitions)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>& Manifest::abilities() const
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>& Manifest::definitions() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:modlock.wasm.manifest.Manifest.abilities)
-  return _internal_abilities();
+  // @@protoc_insertion_point(field_list:modlock.wasm.manifest.Manifest.definitions)
+  return _internal_definitions();
 }
-inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>&
-Manifest::_internal_abilities() const {
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>&
+Manifest::_internal_definitions() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.abilities_;
+  return _impl_.definitions_;
 }
-inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::AbilityTuning>* PROTOBUF_NONNULL
-Manifest::_internal_mutable_abilities() {
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::manifest::Definition>* PROTOBUF_NONNULL
+Manifest::_internal_mutable_definitions() {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.abilities_;
+  return &_impl_.definitions_;
 }
 
 // repeated .modlock.wasm.settings.Setting settings = 10;
@@ -2018,166 +2091,191 @@ inline void Movement::_internal_set_unpredicted_buttons(::uint64_t value) {
 
 // -------------------------------------------------------------------
 
-// AbilityTuning
+// Definition
 
-// string ability = 1;
-inline void AbilityTuning::clear_ability() {
+// .modlock.wasm.manifest.Definition.File file = 1;
+inline void Definition::clear_file() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.ability_.ClearToEmpty();
+  _impl_.file_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::modlock::wasm::manifest::Definition_File Definition::file() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.manifest.Definition.file)
+  return _internal_file();
+}
+inline void Definition::set_file(::modlock::wasm::manifest::Definition_File value) {
+  _internal_set_file(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.manifest.Definition.file)
+}
+inline ::modlock::wasm::manifest::Definition_File Definition::_internal_file() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::manifest::Definition_File>(_impl_.file_);
+}
+inline void Definition::_internal_set_file(::modlock::wasm::manifest::Definition_File value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.file_ = value;
+}
+
+// string entry = 2;
+inline void Definition::clear_entry() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entry_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000001U);
 }
-inline const ::std::string& AbilityTuning::ability() const
+inline const ::std::string& Definition::entry() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:modlock.wasm.manifest.AbilityTuning.ability)
-  return _internal_ability();
+  // @@protoc_insertion_point(field_get:modlock.wasm.manifest.Definition.entry)
+  return _internal_entry();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void AbilityTuning::set_ability(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void Definition::set_entry(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  _impl_.ability_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:modlock.wasm.manifest.AbilityTuning.ability)
+  _impl_.entry_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.manifest.Definition.entry)
 }
-inline ::std::string* PROTOBUF_NONNULL AbilityTuning::mutable_ability()
+inline ::std::string* PROTOBUF_NONNULL Definition::mutable_entry()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::std::string* _s = _internal_mutable_ability();
-  // @@protoc_insertion_point(field_mutable:modlock.wasm.manifest.AbilityTuning.ability)
+  ::std::string* _s = _internal_mutable_entry();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.manifest.Definition.entry)
   return _s;
 }
-inline const ::std::string& AbilityTuning::_internal_ability() const {
+inline const ::std::string& Definition::_internal_entry() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.ability_.Get();
+  return _impl_.entry_.Get();
 }
-inline void AbilityTuning::_internal_set_ability(const ::std::string& value) {
+inline void Definition::_internal_set_entry(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.ability_.Set(value, GetArena());
+  _impl_.entry_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL AbilityTuning::_internal_mutable_ability() {
+inline ::std::string* PROTOBUF_NONNULL Definition::_internal_mutable_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.ability_.Mutable( GetArena());
+  return _impl_.entry_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE AbilityTuning::release_ability() {
+inline ::std::string* PROTOBUF_NULLABLE Definition::release_entry() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:modlock.wasm.manifest.AbilityTuning.ability)
+  // @@protoc_insertion_point(field_release:modlock.wasm.manifest.Definition.entry)
   if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
     return nullptr;
   }
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  auto* released = _impl_.ability_.Release();
+  auto* released = _impl_.entry_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.ability_.Set("", GetArena());
+    _impl_.entry_.Set("", GetArena());
   }
   return released;
 }
-inline void AbilityTuning::set_allocated_ability(::std::string* PROTOBUF_NULLABLE value) {
+inline void Definition::set_allocated_entry(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   } else {
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
-  _impl_.ability_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.ability_.IsDefault()) {
-    _impl_.ability_.Set("", GetArena());
+  _impl_.entry_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.entry_.IsDefault()) {
+    _impl_.entry_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.manifest.AbilityTuning.ability)
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.manifest.Definition.entry)
 }
 
-// map<string, float> properties = 2;
-inline int AbilityTuning::_internal_properties_size() const {
+// map<string, float> properties = 3;
+inline int Definition::_internal_properties_size() const {
   return _internal_properties().size();
 }
-inline int AbilityTuning::properties_size() const {
+inline int Definition::properties_size() const {
   return _internal_properties_size();
 }
-inline void AbilityTuning::clear_properties() {
+inline void Definition::clear_properties() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.properties_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
-inline const ::google::protobuf::Map<::std::string, float>& AbilityTuning::_internal_properties() const {
+inline const ::google::protobuf::Map<::std::string, float>& Definition::_internal_properties() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.properties_.GetMap();
 }
-inline const ::google::protobuf::Map<::std::string, float>& AbilityTuning::properties() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_map:modlock.wasm.manifest.AbilityTuning.properties)
+inline const ::google::protobuf::Map<::std::string, float>& Definition::properties() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.manifest.Definition.properties)
   return _internal_properties();
 }
-inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL AbilityTuning::_internal_mutable_properties() {
+inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL Definition::_internal_mutable_properties() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _impl_.properties_.MutableMap();
 }
-inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL AbilityTuning::mutable_properties()
+inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL Definition::mutable_properties()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
-  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.manifest.AbilityTuning.properties)
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.manifest.Definition.properties)
   return _internal_mutable_properties();
 }
 
-// map<string, float> fields = 3;
-inline int AbilityTuning::_internal_fields_size() const {
+// map<string, float> fields = 4;
+inline int Definition::_internal_fields_size() const {
   return _internal_fields().size();
 }
-inline int AbilityTuning::fields_size() const {
+inline int Definition::fields_size() const {
   return _internal_fields_size();
 }
-inline void AbilityTuning::clear_fields() {
+inline void Definition::clear_fields() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.fields_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
-inline const ::google::protobuf::Map<::std::string, float>& AbilityTuning::_internal_fields() const {
+inline const ::google::protobuf::Map<::std::string, float>& Definition::_internal_fields() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.fields_.GetMap();
 }
-inline const ::google::protobuf::Map<::std::string, float>& AbilityTuning::fields() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_map:modlock.wasm.manifest.AbilityTuning.fields)
+inline const ::google::protobuf::Map<::std::string, float>& Definition::fields() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.manifest.Definition.fields)
   return _internal_fields();
 }
-inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL AbilityTuning::_internal_mutable_fields() {
+inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL Definition::_internal_mutable_fields() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _impl_.fields_.MutableMap();
 }
-inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL AbilityTuning::mutable_fields()
+inline ::google::protobuf::Map<::std::string, float>* PROTOBUF_NONNULL Definition::mutable_fields()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.manifest.AbilityTuning.fields)
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.manifest.Definition.fields)
   return _internal_mutable_fields();
 }
 
-// map<string, string> copy_fields = 4;
-inline int AbilityTuning::_internal_copy_fields_size() const {
+// map<string, string> copy_fields = 5;
+inline int Definition::_internal_copy_fields_size() const {
   return _internal_copy_fields().size();
 }
-inline int AbilityTuning::copy_fields_size() const {
+inline int Definition::copy_fields_size() const {
   return _internal_copy_fields_size();
 }
-inline void AbilityTuning::clear_copy_fields() {
+inline void Definition::clear_copy_fields() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.copy_fields_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
-inline const ::google::protobuf::Map<::std::string, ::std::string>& AbilityTuning::_internal_copy_fields() const {
+inline const ::google::protobuf::Map<::std::string, ::std::string>& Definition::_internal_copy_fields() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.copy_fields_.GetMap();
 }
-inline const ::google::protobuf::Map<::std::string, ::std::string>& AbilityTuning::copy_fields() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_map:modlock.wasm.manifest.AbilityTuning.copy_fields)
+inline const ::google::protobuf::Map<::std::string, ::std::string>& Definition::copy_fields() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.manifest.Definition.copy_fields)
   return _internal_copy_fields();
 }
-inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL AbilityTuning::_internal_mutable_copy_fields() {
+inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Definition::_internal_mutable_copy_fields() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _impl_.copy_fields_.MutableMap();
 }
-inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL AbilityTuning::mutable_copy_fields()
+inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Definition::mutable_copy_fields()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.manifest.AbilityTuning.copy_fields)
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.manifest.Definition.copy_fields)
   return _internal_mutable_copy_fields();
 }
 
@@ -2211,6 +2309,12 @@ struct is_proto_enum<::modlock::wasm::manifest::Movement_Model> : std::true_type
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::manifest::Movement_Model>() {
   return ::modlock::wasm::manifest::Movement_Model_descriptor();
+}
+template <>
+struct is_proto_enum<::modlock::wasm::manifest::Definition_File> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::manifest::Definition_File>() {
+  return ::modlock::wasm::manifest::Definition_File_descriptor();
 }
 
 }  // namespace protobuf

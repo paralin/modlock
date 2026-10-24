@@ -56,10 +56,10 @@ export interface Manifest {
    */
   movement?: Movement
   /**
-   * Abilities change abilities' data on the server and in each player's
-   * game.
+   * Definitions change entries of the game's definition files on the server
+   * and in each player's game.
    */
-  abilities?: AbilityTuning[]
+  definitions?: Definition[]
   /**
    * Settings are the choices each player makes about the mod, which the mod
    * reads with PlayerSetting.
@@ -91,7 +91,7 @@ export const Manifest: MessageType<Manifest> =
       [6, 'entry', 9],
       [7, 'map', 9],
       [8, 'movement', 11, 0, Movement.codec],
-      [9, 'abilities', 11, 1, AbilityTuning.codec],
+      [9, 'definitions', 11, 1, Definition.codec],
       [10, 'settings', 11, 1, Setting.codec],
       [11, 'metrics', 11, 1, Metric.codec],
       [12, 'free_for_all', 8],
@@ -127,8 +127,8 @@ export const Manifest: MessageType<Manifest> =
               m.movement = Movement.decode(r, r.delimited(), m.movement ?? {})
               break
             case 9:
-              ;(m.abilities ??= []).push(
-                AbilityTuning.decode(r, r.delimited(), {}),
+              ;(m.definitions ??= []).push(
+                Definition.decode(r, r.delimited(), {}),
               )
               break
             case 10:
@@ -180,8 +180,8 @@ export const Manifest: MessageType<Manifest> =
           if (v != null) Movement.writeField(w, 8, v)
         }
         {
-          const a = m.abilities
-          if (a != null) for (const e of a) AbilityTuning.writeField(w, 9, e)
+          const a = m.definitions
+          if (a != null) for (const e of a) Definition.writeField(w, 9, e)
         }
         {
           const a = m.settings
@@ -384,24 +384,32 @@ export const Movement_Model_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
- * AbilityTuning changes one ability's data where the game keeps it parsed.
+ * Definition changes one entry of a game definition file where the game keeps
+ * it parsed.
  *
- * @generated from message modlock.wasm.manifest.AbilityTuning
+ * @generated from message modlock.wasm.manifest.Definition
  */
-export interface AbilityTuning {
+export interface Definition {
   /**
-   * Ability is the ability's name, such as gunslinger_rocket_launcher.
+   * File is the definition file that holds the entry.
    */
-  ability?: string
+  file?: Definition_File
   /**
-   * Properties replaces the values of the ability's named properties, such
-   * as AbilityCooldown.
+   * Entry is the entry's name, such as hero_priest or
+   * gunslinger_rocket_launcher.
+   */
+  entry?: string
+  /**
+   * Properties replaces the values of an ability's named properties, such as
+   * AbilityCooldown. Only abilities have properties.
    */
   properties?: { [key: string]: number }
   /**
-   * Fields writes float schema fields, named as a path of class.field steps
-   * from the ability's data, such as
-   * CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed.
+   * Fields writes float schema fields, named as a path of Class.field steps
+   * from the entry's data, such as
+   * CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
+   * step may name one value of an enum-keyed map, such as
+   * CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth].
    */
   fields?: { [key: string]: number }
   /**
@@ -411,29 +419,29 @@ export interface AbilityTuning {
   copyFields?: { [key: string]: string }
 }
 
-export const AbilityTuning: MessageType<AbilityTuning> =
-  /* @__PURE__ */ createMessageType<AbilityTuning>(
-    'modlock.wasm.manifest.AbilityTuning',
+export const Definition: MessageType<Definition> =
+  /* @__PURE__ */ createMessageType<Definition>(
+    'modlock.wasm.manifest.Definition',
     () => [
-      [1, 'ability', 9],
-      [2, 'properties', 2, 584],
-      [3, 'fields', 2, 584],
-      [4, 'copy_fields', 9, 584],
+      [1, 'file', 14, 0, Definition_File_Enum],
+      [2, 'entry', 9],
+      [3, 'properties', 2, 584],
+      [4, 'fields', 2, 584],
+      [5, 'copy_fields', 9, 584],
     ],
     {
-      decode: (
-        r: BinaryReader,
-        end: number,
-        m: AbilityTuning,
-      ): AbilityTuning => {
+      decode: (r: BinaryReader, end: number, m: Definition): Definition => {
         while (r.pos < end) {
           const t = r.tag()
           if ((t & 7) === 4) return m
           switch (t >>> 3) {
             case 1:
-              m.ability = r.string()
+              m.file = r.int32()
               break
-            case 2: {
+            case 2:
+              m.entry = r.string()
+              break
+            case 3: {
               const [k, v] = r.entry(
                 (r) => r.string(),
                 (r) => r.float(),
@@ -444,7 +452,7 @@ export const AbilityTuning: MessageType<AbilityTuning> =
               m.properties[k] = v
               break
             }
-            case 3: {
+            case 4: {
               const [k, v] = r.entry(
                 (r) => r.string(),
                 (r) => r.float(),
@@ -455,7 +463,7 @@ export const AbilityTuning: MessageType<AbilityTuning> =
               m.fields[k] = v
               break
             }
-            case 4: {
+            case 5: {
               const [k, v] = r.entry(
                 (r) => r.string(),
                 (r) => r.string(),
@@ -472,23 +480,17 @@ export const AbilityTuning: MessageType<AbilityTuning> =
         }
         return m
       },
-      encode: (m: AbilityTuning, w: Writer): void => {
+      encode: (m: Definition, w: Writer): void => {
         {
-          const v = m.ability
-          if (v) w.uint32(10).string(v)
+          const v = m.file
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.entry
+          if (v) w.uint32(18).string(v)
         }
         {
           const o = m.properties
-          if (o != null)
-            for (const [k, v] of Object.entries(o)) {
-              const s = w.uint32(18).fork()
-              w.uint32(10).string(k)
-              w.uint32(21).float(v)
-              w.join(s)
-            }
-        }
-        {
-          const o = m.fields
           if (o != null)
             for (const [k, v] of Object.entries(o)) {
               const s = w.uint32(26).fork()
@@ -498,10 +500,20 @@ export const AbilityTuning: MessageType<AbilityTuning> =
             }
         }
         {
-          const o = m.copyFields
+          const o = m.fields
           if (o != null)
             for (const [k, v] of Object.entries(o)) {
               const s = w.uint32(34).fork()
+              w.uint32(10).string(k)
+              w.uint32(21).float(v)
+              w.join(s)
+            }
+        }
+        {
+          const o = m.copyFields
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(42).fork()
               w.uint32(10).string(k)
               w.uint32(18).string(v)
               w.join(s)
@@ -510,3 +522,28 @@ export const AbilityTuning: MessageType<AbilityTuning> =
       },
     },
   )
+
+/**
+ * File names a definition file.
+ *
+ * @generated from enum modlock.wasm.manifest.Definition.File
+ */
+export enum Definition_File {
+  /**
+   * FILE_ABILITIES is scripts/abilities.vdata, the abilities and items.
+   */
+  ABILITIES = 0,
+
+  /**
+   * FILE_HEROES is scripts/heroes.vdata, the heroes.
+   */
+  HEROES = 1,
+}
+
+export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.manifest.Definition.File',
+  [
+    [0, 'FILE_ABILITIES'],
+    [1, 'FILE_HEROES'],
+  ],
+)

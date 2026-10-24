@@ -77,9 +77,9 @@ message Manifest {
   // game.
   Movement movement = 8;
 
-  // Abilities change abilities' data on the server and in each player's
-  // game.
-  repeated AbilityTuning abilities = 9;
+  // Definitions change entries of the game's definition files on the server
+  // and in each player's game.
+  repeated Definition definitions = 9;
 
   // Settings are the choices each player makes about the mod, which the mod
   // reads with PlayerSetting.
@@ -120,21 +120,37 @@ message Movement {
   uint64 unpredicted_buttons = 3;
 }
 
-// AbilityTuning changes one ability's data where the game keeps it parsed.
-message AbilityTuning {
-  // Ability is the ability's name, such as gunslinger_rocket_launcher.
-  string ability = 1;
+// Definition changes one entry of a game definition file where the game keeps
+// it parsed.
+message Definition {
+  // File names a definition file.
+  enum File {
+    // FILE_ABILITIES is scripts/abilities.vdata, the abilities and items.
+    FILE_ABILITIES = 0;
 
-  // Properties replaces the values of the ability's named properties, such
-  // as AbilityCooldown.
-  map<string, float> properties = 2;
+    // FILE_HEROES is scripts/heroes.vdata, the heroes.
+    FILE_HEROES = 1;
+  }
 
-  // Fields writes float schema fields, named as a path of class.field steps
-  // from the ability's data, such as
-  // CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed.
-  map<string, float> fields = 3;
+  // File is the definition file that holds the entry.
+  File file = 1;
+
+  // Entry is the entry's name, such as hero_priest or
+  // gunslinger_rocket_launcher.
+  string entry = 2;
+
+  // Properties replaces the values of an ability's named properties, such as
+  // AbilityCooldown. Only abilities have properties.
+  map<string, float> properties = 3;
+
+  // Fields writes float schema fields, named as a path of Class.field steps
+  // from the entry's data, such as
+  // CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
+  // step may name one value of an enum-keyed map, such as
+  // CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth].
+  map<string, float> fields = 4;
 
   // CopyFields copies the field at each value's path over the field at its
   // key's path; both must be the same size.
-  map<string, string> copy_fields = 4;
+  map<string, string> copy_fields = 5;
 }

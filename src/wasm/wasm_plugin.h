@@ -64,8 +64,8 @@ struct Mods {
   }
 };
 
-// Tune writes manifest's ability tuning into the loaded game module and
-// returns whether that is done. A module whose ability data has not loaded
+// Tune writes manifest's definition changes into the loaded game module and
+// returns whether that is done. A module whose definitions have not loaded
 // yet is tried again on a later call.
 bool Tune(std::wstring_view module, const char* module_name,
           const wasm::manifest::Manifest& manifest,
@@ -308,7 +308,7 @@ class WasmPlugin final : public Plugin {
   std::vector<uint8_t> module_;
   std::vector<uint8_t> source_;
   // manifest_ and collision_ are the running build's; tuned_ is true once the
-  // manifest's ability tuning is written.
+  // manifest's definition changes are written in the current world.
   wasm::manifest::Manifest manifest_;
   std::vector<uint8_t> collision_;
   bool tuned_ = false;

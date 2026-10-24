@@ -156,6 +156,42 @@ func (x Movement_Model) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// File names a definition file.
+type Definition_File int32
+
+const (
+	// FILE_ABILITIES is scripts/abilities.vdata, the abilities and items.
+	Definition_FILE_ABILITIES Definition_File = 0
+	// FILE_HEROES is scripts/heroes.vdata, the heroes.
+	Definition_FILE_HEROES Definition_File = 1
+)
+
+// Enum value maps for Definition_File.
+var (
+	Definition_File_name = map[int32]string{
+		0: "FILE_ABILITIES",
+		1: "FILE_HEROES",
+	}
+	Definition_File_value = map[string]int32{
+		"FILE_ABILITIES": 0,
+		"FILE_HEROES":    1,
+	}
+)
+
+func (x Definition_File) Enum() *Definition_File {
+	p := new(Definition_File)
+	*p = x
+	return p
+}
+
+func (x Definition_File) String() string {
+	name, valid := Definition_File_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // Manifest describes a mod in its mod.json. A source project's manifest names
 // its language; modlock build writes a built mod's manifest beside the entry,
 // naming its runtime and entry instead.
@@ -180,9 +216,9 @@ type Manifest struct {
 	// Movement replaces how heroes move on the server and in each player's
 	// game.
 	Movement *Movement `protobuf:"bytes,8,opt,name=movement,proto3" json:"movement,omitempty"`
-	// Abilities change abilities' data on the server and in each player's
-	// game.
-	Abilities []*AbilityTuning `protobuf:"bytes,9,rep,name=abilities,proto3" json:"abilities,omitempty"`
+	// Definitions change entries of the game's definition files on the server
+	// and in each player's game.
+	Definitions []*Definition `protobuf:"bytes,9,rep,name=definitions,proto3" json:"definitions,omitempty"`
 	// Settings are the choices each player makes about the mod, which the mod
 	// reads with PlayerSetting.
 	Settings []*settings.Setting `protobuf:"bytes,10,rep,name=settings,proto3" json:"settings,omitempty"`
@@ -258,9 +294,9 @@ func (x *Manifest) GetMovement() *Movement {
 	return nil
 }
 
-func (x *Manifest) GetAbilities() []*AbilityTuning {
+func (x *Manifest) GetDefinitions() []*Definition {
 	if x != nil {
-		return x.Abilities
+		return x.Definitions
 	}
 	return nil
 }
@@ -325,129 +361,142 @@ func (x *Movement) GetUnpredictedButtons() uint64 {
 	return 0
 }
 
-// AbilityTuning changes one ability's data where the game keeps it parsed.
-type AbilityTuning struct {
+// Definition changes one entry of a game definition file where the game keeps
+// it parsed.
+type Definition struct {
 	unknownFields []byte
-	// Ability is the ability's name, such as gunslinger_rocket_launcher.
-	Ability string `protobuf:"bytes,1,opt,name=ability,proto3" json:"ability,omitempty"`
-	// Properties replaces the values of the ability's named properties, such
-	// as AbilityCooldown.
-	Properties map[string]float32 `protobuf:"bytes,2,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
-	// Fields writes float schema fields, named as a path of class.field steps
-	// from the ability's data, such as
-	// CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed.
-	Fields map[string]float32 `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
+	// File is the definition file that holds the entry.
+	File Definition_File `protobuf:"varint,1,opt,name=file,proto3" json:"file,omitempty"`
+	// Entry is the entry's name, such as hero_priest or
+	// gunslinger_rocket_launcher.
+	Entry string `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	// Properties replaces the values of an ability's named properties, such as
+	// AbilityCooldown. Only abilities have properties.
+	Properties map[string]float32 `protobuf:"bytes,3,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
+	// Fields writes float schema fields, named as a path of Class.field steps
+	// from the entry's data, such as
+	// CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed. A last
+	// step may name one value of an enum-keyed map, such as
+	// CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth].
+	Fields map[string]float32 `protobuf:"bytes,4,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
 	// CopyFields copies the field at each value's path over the field at its
 	// key's path; both must be the same size.
-	CopyFields map[string]string `protobuf:"bytes,4,rep,name=copy_fields,json=copyFields,proto3" json:"copyFields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	CopyFields map[string]string `protobuf:"bytes,5,rep,name=copy_fields,json=copyFields,proto3" json:"copyFields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
-func (x *AbilityTuning) Reset() {
-	*x = AbilityTuning{}
+func (x *Definition) Reset() {
+	*x = Definition{}
 }
 
-func (*AbilityTuning) ProtoMessage() {}
+func (*Definition) ProtoMessage() {}
 
-func (x *AbilityTuning) GetAbility() string {
+func (x *Definition) GetFile() Definition_File {
 	if x != nil {
-		return x.Ability
+		return x.File
+	}
+	return Definition_FILE_ABILITIES
+}
+
+func (x *Definition) GetEntry() string {
+	if x != nil {
+		return x.Entry
 	}
 	return ""
 }
 
-func (x *AbilityTuning) GetProperties() map[string]float32 {
+func (x *Definition) GetProperties() map[string]float32 {
 	if x != nil {
 		return x.Properties
 	}
 	return nil
 }
 
-func (x *AbilityTuning) GetFields() map[string]float32 {
+func (x *Definition) GetFields() map[string]float32 {
 	if x != nil {
 		return x.Fields
 	}
 	return nil
 }
 
-func (x *AbilityTuning) GetCopyFields() map[string]string {
+func (x *Definition) GetCopyFields() map[string]string {
 	if x != nil {
 		return x.CopyFields
 	}
 	return nil
 }
 
-type AbilityTuning_PropertiesEntry struct {
+type Definition_PropertiesEntry struct {
 	unknownFields []byte
 	Key           string  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value         float32 `protobuf:"fixed32,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (x *AbilityTuning_PropertiesEntry) Reset() {
-	*x = AbilityTuning_PropertiesEntry{}
+func (x *Definition_PropertiesEntry) Reset() {
+	*x = Definition_PropertiesEntry{}
 }
 
-func (*AbilityTuning_PropertiesEntry) ProtoMessage() {}
+func (*Definition_PropertiesEntry) ProtoMessage() {}
 
-func (x *AbilityTuning_PropertiesEntry) GetKey() string {
+func (x *Definition_PropertiesEntry) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *AbilityTuning_PropertiesEntry) GetValue() float32 {
+func (x *Definition_PropertiesEntry) GetValue() float32 {
 	if x != nil {
 		return x.Value
 	}
 	return 0
 }
 
-type AbilityTuning_FieldsEntry struct {
+type Definition_FieldsEntry struct {
 	unknownFields []byte
 	Key           string  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value         float32 `protobuf:"fixed32,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (x *AbilityTuning_FieldsEntry) Reset() {
-	*x = AbilityTuning_FieldsEntry{}
+func (x *Definition_FieldsEntry) Reset() {
+	*x = Definition_FieldsEntry{}
 }
 
-func (*AbilityTuning_FieldsEntry) ProtoMessage() {}
+func (*Definition_FieldsEntry) ProtoMessage() {}
 
-func (x *AbilityTuning_FieldsEntry) GetKey() string {
+func (x *Definition_FieldsEntry) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *AbilityTuning_FieldsEntry) GetValue() float32 {
+func (x *Definition_FieldsEntry) GetValue() float32 {
 	if x != nil {
 		return x.Value
 	}
 	return 0
 }
 
-type AbilityTuning_CopyFieldsEntry struct {
+type Definition_CopyFieldsEntry struct {
 	unknownFields []byte
 	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (x *AbilityTuning_CopyFieldsEntry) Reset() {
-	*x = AbilityTuning_CopyFieldsEntry{}
+func (x *Definition_CopyFieldsEntry) Reset() {
+	*x = Definition_CopyFieldsEntry{}
 }
 
-func (*AbilityTuning_CopyFieldsEntry) ProtoMessage() {}
+func (*Definition_CopyFieldsEntry) ProtoMessage() {}
 
-func (x *AbilityTuning_CopyFieldsEntry) GetKey() string {
+func (x *Definition_CopyFieldsEntry) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *AbilityTuning_CopyFieldsEntry) GetValue() string {
+func (x *Definition_CopyFieldsEntry) GetValue() string {
 	if x != nil {
 		return x.Value
 	}
@@ -468,7 +517,7 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Map = m.Map
 	r.FreeForAll = m.FreeForAll
 	r.Movement = protobuf_go_lite.CloneVTValue(m.Movement)
-	r.Abilities = protobuf_go_lite.CloneVTSlice(m.Abilities)
+	r.Definitions = protobuf_go_lite.CloneVTSlice(m.Definitions)
 	r.Settings = protobuf_go_lite.CloneVTSlice(m.Settings)
 	r.Metrics = protobuf_go_lite.CloneVTSlice(m.Metrics)
 	if len(m.unknownFields) > 0 {
@@ -499,12 +548,13 @@ func (m *Movement) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
-func (m *AbilityTuning) CloneVT() *AbilityTuning {
+func (m *Definition) CloneVT() *Definition {
 	if m == nil {
-		return (*AbilityTuning)(nil)
+		return (*Definition)(nil)
 	}
-	r := new(AbilityTuning)
-	r.Ability = m.Ability
+	r := new(Definition)
+	r.File = m.File
+	r.Entry = m.Entry
 	r.Properties = protobuf_go_lite.CloneMap(m.Properties)
 	r.Fields = protobuf_go_lite.CloneMap(m.Fields)
 	r.CopyFields = protobuf_go_lite.CloneMap(m.CopyFields)
@@ -514,7 +564,7 @@ func (m *AbilityTuning) CloneVT() *AbilityTuning {
 	return r
 }
 
-func (m *AbilityTuning) CloneMessageVT() protobuf_go_lite.CloneMessage {
+func (m *Definition) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -548,7 +598,7 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 	if !protobuf_go_lite.IsEqualVT(this.Movement, that.Movement) {
 		return false
 	}
-	if !protobuf_go_lite.EqualVTSliceImplicit(this.Abilities, that.Abilities, func() *AbilityTuning { return &AbilityTuning{} }) {
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Definitions, that.Definitions, func() *Definition { return &Definition{} }) {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Settings, that.Settings, func() *settings.Setting { return &settings.Setting{} }) {
@@ -597,13 +647,16 @@ func (this *Movement) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
-func (this *AbilityTuning) EqualVT(that *AbilityTuning) bool {
+func (this *Definition) EqualVT(that *Definition) bool {
 	if this == that {
 		return true
 	} else if this == nil || that == nil {
 		return false
 	}
-	if this.Ability != that.Ability {
+	if this.File != that.File {
+		return false
+	}
+	if this.Entry != that.Entry {
 		return false
 	}
 	if !protobuf_go_lite.EqualMap(this.Properties, that.Properties) {
@@ -618,8 +671,8 @@ func (this *AbilityTuning) EqualVT(that *AbilityTuning) bool {
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
-func (this *AbilityTuning) EqualMessageVT(thatMsg any) bool {
-	that, ok := thatMsg.(*AbilityTuning)
+func (this *Definition) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Definition)
 	if !ok {
 		return false
 	}
@@ -754,14 +807,14 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("movement")
 		x.Movement.MarshalProtoJSON(s.WithField("movement"))
 	}
-	if len(x.Abilities) > 0 || s.HasField("abilities") {
+	if len(x.Definitions) > 0 || s.HasField("definitions") {
 		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("abilities")
+		s.WriteObjectField("definitions")
 		s.WriteArrayStart()
 		var wroteElement bool
-		for _, element := range x.Abilities {
+		for _, element := range x.Definitions {
 			s.WriteMoreIf(&wroteElement)
-			element.MarshalProtoJSON(s.WithField("abilities"))
+			element.MarshalProtoJSON(s.WithField("definitions"))
 		}
 		s.WriteArrayEnd()
 	}
@@ -837,23 +890,23 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Movement = &Movement{}
 			x.Movement.UnmarshalProtoJSON(s.WithField("movement", true))
-		case "abilities":
-			s.AddField("abilities")
+		case "definitions":
+			s.AddField("definitions")
 			if s.ReadNil() {
-				x.Abilities = nil
+				x.Definitions = nil
 				return
 			}
 			s.ReadArray(func() {
 				if s.ReadNil() {
-					x.Abilities = append(x.Abilities, nil)
+					x.Definitions = append(x.Definitions, nil)
 					return
 				}
-				v := &AbilityTuning{}
-				v.UnmarshalProtoJSON(s.WithField("abilities", false))
+				v := &Definition{}
+				v.UnmarshalProtoJSON(s.WithField("definitions", false))
 				if s.Err() != nil {
 					return
 				}
-				x.Abilities = append(x.Abilities, v)
+				x.Definitions = append(x.Definitions, v)
 			})
 		case "settings":
 			s.AddField("settings")
@@ -1001,8 +1054,48 @@ func (x *Movement) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
-// MarshalProtoJSON marshals the AbilityTuning_PropertiesEntry message to JSON.
-func (x *AbilityTuning_PropertiesEntry) MarshalProtoJSON(s *json.MarshalState) {
+// MarshalProtoJSON marshals the Definition_File to JSON.
+func (x Definition_File) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Definition_File_name)
+}
+
+// MarshalText marshals the Definition_File to text.
+func (x Definition_File) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Definition_File_name)), nil
+}
+
+// MarshalJSON marshals the Definition_File to JSON.
+func (x Definition_File) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Definition_File from JSON.
+func (x *Definition_File) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Definition_File_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read File enum: %v", err)
+		return
+	}
+	*x = Definition_File(v)
+}
+
+// UnmarshalText unmarshals the Definition_File from text.
+func (x *Definition_File) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Definition_File_value)
+	if err != nil {
+		return err
+	}
+	*x = Definition_File(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Definition_File from JSON.
+func (x *Definition_File) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Definition_PropertiesEntry message to JSON.
+func (x *Definition_PropertiesEntry) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
 		s.WriteNil()
 		return
@@ -1022,13 +1115,13 @@ func (x *AbilityTuning_PropertiesEntry) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteObjectEnd()
 }
 
-// MarshalJSON marshals the AbilityTuning_PropertiesEntry to JSON.
-func (x *AbilityTuning_PropertiesEntry) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshals the Definition_PropertiesEntry to JSON.
+func (x *Definition_PropertiesEntry) MarshalJSON() ([]byte, error) {
 	return json.DefaultMarshalerConfig.Marshal(x)
 }
 
-// UnmarshalProtoJSON unmarshals the AbilityTuning_PropertiesEntry message from JSON.
-func (x *AbilityTuning_PropertiesEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+// UnmarshalProtoJSON unmarshals the Definition_PropertiesEntry message from JSON.
+func (x *Definition_PropertiesEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	if s.ReadNil() {
 		return
 	}
@@ -1046,13 +1139,13 @@ func (x *AbilityTuning_PropertiesEntry) UnmarshalProtoJSON(s *json.UnmarshalStat
 	})
 }
 
-// UnmarshalJSON unmarshals the AbilityTuning_PropertiesEntry from JSON.
-func (x *AbilityTuning_PropertiesEntry) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON unmarshals the Definition_PropertiesEntry from JSON.
+func (x *Definition_PropertiesEntry) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
-// MarshalProtoJSON marshals the AbilityTuning_FieldsEntry message to JSON.
-func (x *AbilityTuning_FieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
+// MarshalProtoJSON marshals the Definition_FieldsEntry message to JSON.
+func (x *Definition_FieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
 		s.WriteNil()
 		return
@@ -1072,13 +1165,13 @@ func (x *AbilityTuning_FieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteObjectEnd()
 }
 
-// MarshalJSON marshals the AbilityTuning_FieldsEntry to JSON.
-func (x *AbilityTuning_FieldsEntry) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshals the Definition_FieldsEntry to JSON.
+func (x *Definition_FieldsEntry) MarshalJSON() ([]byte, error) {
 	return json.DefaultMarshalerConfig.Marshal(x)
 }
 
-// UnmarshalProtoJSON unmarshals the AbilityTuning_FieldsEntry message from JSON.
-func (x *AbilityTuning_FieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+// UnmarshalProtoJSON unmarshals the Definition_FieldsEntry message from JSON.
+func (x *Definition_FieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	if s.ReadNil() {
 		return
 	}
@@ -1096,13 +1189,13 @@ func (x *AbilityTuning_FieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	})
 }
 
-// UnmarshalJSON unmarshals the AbilityTuning_FieldsEntry from JSON.
-func (x *AbilityTuning_FieldsEntry) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON unmarshals the Definition_FieldsEntry from JSON.
+func (x *Definition_FieldsEntry) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
-// MarshalProtoJSON marshals the AbilityTuning_CopyFieldsEntry message to JSON.
-func (x *AbilityTuning_CopyFieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
+// MarshalProtoJSON marshals the Definition_CopyFieldsEntry message to JSON.
+func (x *Definition_CopyFieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
 		s.WriteNil()
 		return
@@ -1122,13 +1215,13 @@ func (x *AbilityTuning_CopyFieldsEntry) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteObjectEnd()
 }
 
-// MarshalJSON marshals the AbilityTuning_CopyFieldsEntry to JSON.
-func (x *AbilityTuning_CopyFieldsEntry) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshals the Definition_CopyFieldsEntry to JSON.
+func (x *Definition_CopyFieldsEntry) MarshalJSON() ([]byte, error) {
 	return json.DefaultMarshalerConfig.Marshal(x)
 }
 
-// UnmarshalProtoJSON unmarshals the AbilityTuning_CopyFieldsEntry message from JSON.
-func (x *AbilityTuning_CopyFieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+// UnmarshalProtoJSON unmarshals the Definition_CopyFieldsEntry message from JSON.
+func (x *Definition_CopyFieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	if s.ReadNil() {
 		return
 	}
@@ -1146,23 +1239,28 @@ func (x *AbilityTuning_CopyFieldsEntry) UnmarshalProtoJSON(s *json.UnmarshalStat
 	})
 }
 
-// UnmarshalJSON unmarshals the AbilityTuning_CopyFieldsEntry from JSON.
-func (x *AbilityTuning_CopyFieldsEntry) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON unmarshals the Definition_CopyFieldsEntry from JSON.
+func (x *Definition_CopyFieldsEntry) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
-// MarshalProtoJSON marshals the AbilityTuning message to JSON.
-func (x *AbilityTuning) MarshalProtoJSON(s *json.MarshalState) {
+// MarshalProtoJSON marshals the Definition message to JSON.
+func (x *Definition) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
 		s.WriteNil()
 		return
 	}
 	s.WriteObjectStart()
 	var wroteField bool
-	if x.Ability != "" || s.HasField("ability") {
+	if x.File != 0 || s.HasField("file") {
 		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("ability")
-		s.WriteString(x.Ability)
+		s.WriteObjectField("file")
+		x.File.MarshalProtoJSON(s)
+	}
+	if x.Entry != "" || s.HasField("entry") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entry")
+		s.WriteString(x.Entry)
 	}
 	if x.Properties != nil || s.HasField("properties") {
 		s.WriteMoreIf(&wroteField)
@@ -1206,13 +1304,13 @@ func (x *AbilityTuning) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteObjectEnd()
 }
 
-// MarshalJSON marshals the AbilityTuning to JSON.
-func (x *AbilityTuning) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshals the Definition to JSON.
+func (x *Definition) MarshalJSON() ([]byte, error) {
 	return json.DefaultMarshalerConfig.Marshal(x)
 }
 
-// UnmarshalProtoJSON unmarshals the AbilityTuning message from JSON.
-func (x *AbilityTuning) UnmarshalProtoJSON(s *json.UnmarshalState) {
+// UnmarshalProtoJSON unmarshals the Definition message from JSON.
+func (x *Definition) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	if s.ReadNil() {
 		return
 	}
@@ -1220,9 +1318,12 @@ func (x *AbilityTuning) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		switch key {
 		default:
 			s.Skip() // ignore unknown field
-		case "ability":
-			s.AddField("ability")
-			x.Ability = s.ReadString()
+		case "file":
+			s.AddField("file")
+			x.File.UnmarshalProtoJSON(s)
+		case "entry":
+			s.AddField("entry")
+			x.Entry = s.ReadString()
 		case "properties":
 			s.AddField("properties")
 			if s.ReadNil() {
@@ -1257,8 +1358,8 @@ func (x *AbilityTuning) UnmarshalProtoJSON(s *json.UnmarshalState) {
 	})
 }
 
-// UnmarshalJSON unmarshals the AbilityTuning from JSON.
-func (x *AbilityTuning) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON unmarshals the Definition from JSON.
+func (x *Definition) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1320,9 +1421,9 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0x52
 		}
 	}
-	if len(m.Abilities) > 0 {
-		for iNdEx := len(m.Abilities) - 1; iNdEx >= 0; iNdEx-- {
-			size, err := m.Abilities[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+	if len(m.Definitions) > 0 {
+		for iNdEx := len(m.Definitions) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Definitions[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1427,7 +1528,7 @@ func (m *Movement) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *AbilityTuning) MarshalVT() (dAtA []byte, err error) {
+func (m *Definition) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -1440,12 +1541,12 @@ func (m *AbilityTuning) MarshalVT() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AbilityTuning) MarshalToVT(dAtA []byte) (int, error) {
+func (m *Definition) MarshalToVT(dAtA []byte) (int, error) {
 	size := m.SizeVT()
 	return m.MarshalToSizedBufferVT(dAtA[:size])
 }
 
-func (m *AbilityTuning) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+func (m *Definition) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -1468,7 +1569,7 @@ func (m *AbilityTuning) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0xa
 			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
 			i--
-			dAtA[i] = 0x22
+			dAtA[i] = 0x2a
 		}
 	}
 	if len(m.Fields) > 0 {
@@ -1483,7 +1584,7 @@ func (m *AbilityTuning) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0xa
 			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
 			i--
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x22
 		}
 	}
 	if len(m.Properties) > 0 {
@@ -1498,13 +1599,18 @@ func (m *AbilityTuning) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			dAtA[i] = 0xa
 			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0x1a
 		}
 	}
-	if len(m.Ability) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Ability)
+	if len(m.Entry) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Entry)
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
+	}
+	if m.File != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.File))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -1526,7 +1632,7 @@ func (m *Manifest) SizeVT() (n int) {
 		l = m.Movement.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
-	for _, e := range m.Abilities {
+	for _, e := range m.Definitions {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
@@ -1556,13 +1662,14 @@ func (m *Movement) SizeVT() (n int) {
 	return n
 }
 
-func (m *AbilityTuning) SizeVT() (n int) {
+func (m *Definition) SizeVT() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Ability)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.File)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Entry)
 	for k, v := range m.Properties {
 		_ = k
 		_ = v
@@ -1628,12 +1735,12 @@ func (x *Manifest) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "movement")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Movement)
 	}
-	if len(x.Abilities) > 0 {
-		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "abilities")
-		for i, v := range x.Abilities {
+	if len(x.Definitions) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "definitions")
+		for i, v := range x.Definitions {
 			protobuf_go_lite.TextWriteListSeparator(&sb, i)
 			if v == nil {
-				protobuf_go_lite.TextWriteTextMarshaler(&sb, &AbilityTuning{})
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Definition{})
 			} else {
 				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
 			}
@@ -1701,7 +1808,11 @@ func (x *Movement) String() string {
 	return x.MarshalProtoText()
 }
 
-func (x *AbilityTuning_PropertiesEntry) MarshalProtoText() string {
+func (x Definition_File) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x *Definition_PropertiesEntry) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PropertiesEntry")
 	if x.Key != "" {
@@ -1715,11 +1826,11 @@ func (x *AbilityTuning_PropertiesEntry) MarshalProtoText() string {
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
-func (x *AbilityTuning_PropertiesEntry) String() string {
+func (x *Definition_PropertiesEntry) String() string {
 	return x.MarshalProtoText()
 }
 
-func (x *AbilityTuning_FieldsEntry) MarshalProtoText() string {
+func (x *Definition_FieldsEntry) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "FieldsEntry")
 	if x.Key != "" {
@@ -1733,11 +1844,11 @@ func (x *AbilityTuning_FieldsEntry) MarshalProtoText() string {
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
-func (x *AbilityTuning_FieldsEntry) String() string {
+func (x *Definition_FieldsEntry) String() string {
 	return x.MarshalProtoText()
 }
 
-func (x *AbilityTuning_CopyFieldsEntry) MarshalProtoText() string {
+func (x *Definition_CopyFieldsEntry) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "CopyFieldsEntry")
 	if x.Key != "" {
@@ -1751,16 +1862,20 @@ func (x *AbilityTuning_CopyFieldsEntry) MarshalProtoText() string {
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
-func (x *AbilityTuning_CopyFieldsEntry) String() string {
+func (x *Definition_CopyFieldsEntry) String() string {
 	return x.MarshalProtoText()
 }
 
-func (x *AbilityTuning) MarshalProtoText() string {
+func (x *Definition) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
-	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AbilityTuning")
-	if x.Ability != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
-		protobuf_go_lite.TextWriteString(&sb, x.Ability)
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Definition")
+	if x.File != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "file")
+		protobuf_go_lite.TextWriteStringer(&sb, Definition_File(x.File))
+	}
+	if x.Entry != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entry")
+		protobuf_go_lite.TextWriteString(&sb, x.Entry)
 	}
 	if len(x.Properties) > 0 {
 		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "properties")
@@ -1798,7 +1913,7 @@ func (x *AbilityTuning) MarshalProtoText() string {
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
-func (x *AbilityTuning) String() string {
+func (x *Definition) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -1911,14 +2026,14 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 			iNdEx = postIndex
 		case 9:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Abilities", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Definitions", wireType)
 			}
 			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
-			m.Abilities = append(m.Abilities, &AbilityTuning{})
-			if err := m.Abilities[len(m.Abilities)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+			m.Definitions = append(m.Definitions, &Definition{})
+			if err := m.Definitions[len(m.Definitions)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2056,7 +2171,7 @@ func (m *Movement) UnmarshalVT(dAtA []byte) error {
 	return nil
 }
 
-func (m *AbilityTuning) UnmarshalVT(dAtA []byte) error {
+func (m *Definition) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	var err error
@@ -2070,23 +2185,34 @@ func (m *AbilityTuning) UnmarshalVT(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AbilityTuning: wiretype end group for non-group")
+			return fmt.Errorf("proto: Definition: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AbilityTuning: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Definition: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field File", wireType)
+			}
+			m.File = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.File = Definition_File(_v)
+			if err != nil {
+				return err
+			}
+		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Entry", wireType)
 			}
 			var v string
 			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
-			m.Ability = v
-		case 2:
+			m.Entry = v
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Properties", wireType)
 			}
@@ -2132,7 +2258,7 @@ func (m *AbilityTuning) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Properties[mapkey] = mapvalue
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Fields", wireType)
 			}
@@ -2178,7 +2304,7 @@ func (m *AbilityTuning) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Fields[mapkey] = mapvalue
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CopyFields", wireType)
 			}
