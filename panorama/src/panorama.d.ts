@@ -39,5 +39,6 @@ declare const $: {
   ): void
   Schedule(seconds: number, callback: () => void): number
   CancelScheduled(handle: number): void
+  RegisterKeyBind(panel: Panel, key: string, handler: () => void): void
   DispatchEvent(event: string, ...args: string[]): void
 }

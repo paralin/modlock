@@ -41,3 +41,26 @@ new Bridge(
     stock.draw(screen)
   },
 )
+
+// A temporary probe: log which key bind names the mouse wheel answers to.
+for (const key of [
+  'key_MWHEELUP',
+  'key_MWHEELDOWN',
+  'MWHEELUP',
+  'MWHEELDOWN',
+  'key_mwheelup',
+  'key_mwheeldown',
+  'mwheelup',
+  'mwheeldown',
+  'key_MOUSE_WHEEL_UP',
+  'key_MOUSE_WHEEL_DOWN',
+  'mouse_wheel_up',
+  'mouse_wheel_down',
+]) {
+  try {
+    $.RegisterKeyBind(context, key, () => $.Msg(`[Modlock probe] ${key}`))
+    $.Msg(`[Modlock probe] bound ${key}`)
+  } catch (error) {
+    $.Msg(`[Modlock probe] refused ${key}: ${String(error)}`)
+  }
+}
