@@ -14,6 +14,9 @@ struct MODLOCK_API PlayerSelectionCalls {
   void (*set_pawn)(void* controller, void* pawn, bool retain_old_pawn_team,
                    bool copy_movement_state, bool allow_team_mismatch,
                    bool preserve_movement_state) = nullptr;
+  // remove deletes the hero pawn a move to the spectators released, through
+  // UTIL_Remove, so no body stays in the world without a player.
+  void (*remove)(void* entity) = nullptr;
   static std::expected<PlayerSelectionCalls, std::string> Resolve(const ModuleImage& server);
 };
 
