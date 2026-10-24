@@ -18,8 +18,9 @@ import (
 const (
 	// limit bounds how many settings a mod declares.
 	limit = 32
-	// choiceLimit bounds the choices of one setting.
-	choiceLimit = 16
+	// choiceLimit bounds the choices of one setting, enough for a choice of
+	// every hero.
+	choiceLimit = 64
 	// labelLimit bounds a setting or choice label, in bytes.
 	labelLimit = 64
 )
