@@ -54,7 +54,7 @@ type Renderer struct {
 // load it only when they start. The session holds the mount live until it
 // unmounts, so another program clears the block only after a session that did
 // not end cleanly, and the next session replaces such a block too.
-func mountRenderer(gameDir string, renderer *Renderer, mods []string) (func() error, error) {
+func mountRenderer(gameDir string, renderer *Renderer, content fstest.MapFS) (func() error, error) {
 	// Build the package from the renderer and the mods' content.
 	citadel := filepath.Join(gameDir, "game", "citadel")
 	files := fstest.MapFS{}
@@ -65,11 +65,7 @@ func mountRenderer(gameDir string, renderer *Renderer, mods []string) (func() er
 		}
 		maps.Copy(files, compiled)
 	}
-	for _, mod := range mods {
-		if err := addContent(files, mod); err != nil {
-			return nil, err
-		}
-	}
+	maps.Copy(files, content)
 	if len(files) == 0 {
 		return func() error { return nil }, nil
 	}
@@ -132,8 +128,19 @@ func rendererFiles(citadel string, renderer *Renderer) (fstest.MapFS, error) {
 	})
 }
 
-// addContent adds the content addon of the mod built at dir to files: its
-// compiled Panorama content and assets, each already under the addon's name.
+// ReadContent returns the content addons of the mods built at mods: their
+// compiled Panorama content and assets, each already under its addon's name.
+func ReadContent(mods []string) (fstest.MapFS, error) {
+	files := fstest.MapFS{}
+	for _, mod := range mods {
+		if err := addContent(files, mod); err != nil {
+			return nil, err
+		}
+	}
+	return files, nil
+}
+
+// addContent adds the content addon of the mod built at dir to files.
 func addContent(files fstest.MapFS, dir string) error {
 	built := os.DirFS(dir)
 	for _, kind := range check.AddonDirs() {

@@ -3,6 +3,7 @@ package session
 import (
 	"net"
 	"net/http"
+	"testing/fstest"
 
 	"github.com/paralin/modlock/devmount"
 	"github.com/paralin/modlock/src/host_app/control"
@@ -20,8 +21,9 @@ type Interface struct {
 	// Renderer is the built renderer; nil leaves the game without it, so the
 	// interfaces show only in the browser preview.
 	Renderer *Renderer
-	// Mods are the built mods whose content addons the game loads.
-	Mods []string
+	// Content is the mods' content addons the game loads, as ReadContent
+	// returns them.
+	Content fstest.MapFS
 	// GameDir is the Deadlock installation the renderer mounts in.
 	GameDir string
 	// Screen is the player's screen.
@@ -42,7 +44,7 @@ func StartInterface(config Interface) (stop func()) {
 	// A block left in gameinfo.gi outranks every package the game loads after
 	// the session, so report a failure to remove it.
 	unmount := func() {}
-	if mounted, err := mountRenderer(config.GameDir, config.Renderer, config.Mods); err != nil {
+	if mounted, err := mountRenderer(config.GameDir, config.Renderer, config.Content); err != nil {
 		config.fail(errors.Wrap(err, "the game shows no mod interfaces or content"))
 	} else {
 		unmount = func() {

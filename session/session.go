@@ -68,7 +68,10 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	// Mount the mods' interfaces and content before the host starts, so the
 	// server loads the content too.
 	screens := NewScreens(steam.Account())
-	iface := Interface{GameDir: gameDir, Mods: config.Mods, Screen: screens.Screen, Events: config.Events}
+	iface := Interface{GameDir: gameDir, Screen: screens.Screen, Events: config.Events}
+	if iface.Content, err = ReadContent(config.Mods); err != nil {
+		iface.fail(errors.Wrap(err, "the game shows no mod content"))
+	}
 	if config.Interface != "" {
 		iface.Address, iface.Relay, iface.Renderer = config.Interface, config.Relay, config.Renderer
 	}

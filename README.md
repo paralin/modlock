@@ -113,9 +113,11 @@ to `build/server.log`.
 
 `modlock host` runs the mod like `modlock dev --watch` and prints a join code.
 On another PC, `modlock join CODE` links to the host, launches Deadlock and
-joins the host's server, so both players play each reload. The guest's game
-shows the mod's interface for the guest's own player, which the host streams to
-it over the same link. The two PCs find each other through hyperline.gg's
+joins the host's server, so both players play each reload. Before the game
+starts, the guest takes the mod's content from the host and mounts it, so it
+draws the mod's models and particles; content changed after that loads when the
+guest joins again. The guest's game shows the mod's interface for the guest's
+own player, which the host streams to it over the same link. The two PCs find each other through hyperline.gg's
 signaling, which needs `modlock login` on both (`modlock publish` saves the
 same sign-in), and then link directly over WebRTC. The code carries the
 session's secret: anyone holding it can join until the host stops.
@@ -572,7 +574,8 @@ createModel({ resource: 'models/{addon}/pawn.vmdl', position })
 ```
 
 `modlock dev` and `modlock play` mount each mod's content in the game before
-the server starts, so the server and the player's game both load it. The game
+the server starts, so the server and the player's game both load it, and
+`modlock join` mounts the host's before the guest's game starts. The game
 reads the package only when it starts, so restart it after changing content. A
 path inside a compiled resource is not rewritten: point it at the game's own
 resources, or at the addon's name for the version you build.

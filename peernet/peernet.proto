@@ -33,6 +33,11 @@ service Session {
   // screen first and then only what changed, and each chat line said from
   // the call on.
   rpc Watch(WatchRequest) returns (stream SessionEvent);
+
+  // Content streams the content addons of the hosted mods, which the guest
+  // mounts before its game starts so it draws the mods' models, materials,
+  // particles and layouts.
+  rpc Content(ContentRequest) returns (stream ContentPart);
 }
 
 // AdmissionState is where a peer stands with the signaling service, which
@@ -100,6 +105,9 @@ message HostRequest {
   // lobby asks the signaling service for a dev lobby running the session's
   // mod, which the creator's friends join; unset hosts by join code alone.
   LobbyRequest lobby = 2;
+  // mods are the directories of the built mods the server runs, on this PC,
+  // whose content addons the daemon serves to guests.
+  repeated string mods = 3;
 }
 
 // LobbyRequest names the mod a dev lobby runs.
@@ -165,7 +173,26 @@ message JoinEvent {
     ScreenFrame screen = 3;
     // chat is a line a player said in the game.
     modlock.host_app.control.PlayerChat chat = 4;
+    // content is part of the hosted mods' content, all of it sent before
+    // address so the game mounts it before it starts.
+    ContentPart content = 5;
   }
+}
+
+// ContentRequest names the session whose mods' content to stream.
+message ContentRequest {
+  // session is the join code's secret.
+  fixed64 session = 1;
+}
+
+// ContentPart is part of one file of a content addon. A file larger than one
+// part arrives as consecutive parts with the same path, appended in order.
+message ContentPart {
+  // path is the file's path in the game, under its addon's name, such as
+  // models/chess-0.1.0/pawn.vmdl_c.
+  string path = 1;
+  // data is the next bytes of the file.
+  bytes data = 2;
 }
 
 // WatchRequest names the guest whose session to stream.

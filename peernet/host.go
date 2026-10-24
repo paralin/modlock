@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/binary"
+	"io"
+	"maps"
 	"math"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -222,7 +225,7 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 	// Answer guests, sending each change in order.
 	events := make(chan *HostEvent, 16)
 	events <- &HostEvent{Body: &HostEvent_JoinCode{JoinCode: code.String()}}
-	guests := &sessionServer{session: code.Session, screens: screens, chat: chat}
+	guests := &sessionServer{session: code.Session, mods: start.GetStart().GetMods(), screens: screens, chat: chat}
 	h, err := s.newHosting(ctx, int(port), guests, func(event *HostEvent) {
 		select {
 		case events <- event:
@@ -288,6 +291,8 @@ func (s *Service) newHosting(ctx context.Context, port int, guests *sessionServe
 type sessionServer struct {
 	// session is the join code's secret.
 	session uint64
+	// mods are the directories of the built mods the server runs.
+	mods []string
 	// screens holds every player's screen.
 	screens *session.Screens
 	// chat holds the newest lines said.
@@ -332,6 +337,36 @@ func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) e
 	}
 }
 
+// contentPart is the most of a file one ContentPart carries, well under the
+// largest message a stream takes.
+const contentPart = 1 << 20
+
+// Content streams the hosted mods' content addons, read from their build
+// directories on each call so a guest gets the newest build.
+func (s *sessionServer) Content(req *ContentRequest, strm SRPCSession_ContentStream) error {
+	// Refuse a guest without the join code.
+	if req.GetSession() != s.session {
+		return errors.New("the join code names another session")
+	}
+	files, err := session.ReadContent(s.mods)
+	if err != nil {
+		return err
+	}
+
+	// Send each file in parts, in path order.
+	for _, path := range slices.Sorted(maps.Keys(files)) {
+		data := files[path].Data
+		for first := true; first || len(data) != 0; first = false {
+			n := min(len(data), contentPart)
+			if err := strm.Send(&ContentPart{Path: path, Data: data[:n]}); err != nil {
+				return err
+			}
+			data = data[n:]
+		}
+	}
+	return nil
+}
+
 // waitFrame waits for changed or spoken, then for the gap between frames, and
 // reports whether ctx is still open.
 func waitFrame(ctx context.Context, changed, spoken <-chan struct{}) bool {
@@ -374,6 +409,16 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 		defer sending.Unlock()
 		return strm.Send(event)
 	}
+
+	// Send the mods' content, then the address, so the game mounts the
+	// content before it starts. Without the content the game still plays,
+	// drawing the mods' resources as errors.
+	host := NewSRPCSessionClient(srpc.NewClient(stream_srpc.NewOpenStreamFunc(s.node.GetBus(), SessionProtocolID, s.local, code.Host, 0)))
+	for _, part := range fetchContent(ctx, host, code.Session) {
+		if err := send(&JoinEvent{Body: &JoinEvent_Content{Content: part}}); err != nil {
+			return err
+		}
+	}
 	if err := send(&JoinEvent{Body: &JoinEvent_Address{Address: client.Address()}}); err != nil {
 		return err
 	}
@@ -382,7 +427,6 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 	if req.GetSteamId() != 0 {
 		watch, cancel := context.WithCancel(ctx)
 		defer cancel()
-		host := NewSRPCSessionClient(srpc.NewClient(stream_srpc.NewOpenStreamFunc(s.node.GetBus(), SessionProtocolID, s.local, code.Host, 0)))
 		go s.watch(watch, host, &WatchRequest{Session: code.Session, SteamId: req.GetSteamId()}, send)
 	}
 
@@ -398,6 +442,33 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 		return err
 	}
 	return nil
+}
+
+// contentWait bounds fetching a session's content, so a host that never
+// answers delays the game only this long.
+const contentWait = 2 * time.Minute
+
+// fetchContent returns every part of the session's content, or nothing when
+// the host cannot send all of it, since a partial file would break the
+// package.
+func fetchContent(ctx context.Context, host SRPCSessionClient, session uint64) []*ContentPart {
+	ctx, cancel := context.WithTimeout(ctx, contentWait)
+	defer cancel()
+	parts, err := host.Content(ctx, &ContentRequest{Session: session})
+	if err != nil {
+		return nil
+	}
+	var all []*ContentPart
+	for {
+		part, err := parts.Recv()
+		switch {
+		case errors.Is(err, io.EOF):
+			return all
+		case err != nil:
+			return nil
+		}
+		all = append(all, part)
+	}
 }
 
 // watch forwards what the player sees from the host until ctx ends, watching

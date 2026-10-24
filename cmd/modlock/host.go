@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"testing/fstest"
 
 	"github.com/aperturerobotics/cli"
 	modcli "github.com/paralin/modlock/cli"
@@ -46,12 +47,13 @@ func hostCommand(out *printer) *cli.Command {
 }
 
 // hostSession serves running to guests until the command ends, and sends the
-// daemon each player's interface and chat from feed. With lobby set it puts
+// daemon each player's interface and chat from feed, and the content addons
+// of the mods built at mods, which guests mount. With lobby set it puts
 // the session on hyperline.gg as a dev lobby and prints its link, falling back
 // to the join code when no lobby opens; with lobby nil it prints the join code.
 // The server itself reports each player who joins or leaves. Hosting is
 // optional: when it cannot start, the session keeps running for this PC alone.
-func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, lobby *peernet.LobbyRequest) {
+func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, lobby *peernet.LobbyRequest, mods []string) {
 	// Only a game server can take guests.
 	if _, sandboxed := running.(*sandbox.Sandbox); sandboxed {
 		out.mark("!", yellow, "guests join only a game server, not the sandbox")
@@ -67,7 +69,7 @@ func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, l
 	defer client.Close()
 	stream, err := peernet.NewSRPCPeerNetClient(client.RPC()).Host(c.Context)
 	if err == nil {
-		start := &peernet.HostRequest{Port: uint32(c.Uint("port")), Lobby: lobby}
+		start := &peernet.HostRequest{Port: uint32(c.Uint("port")), Lobby: lobby, Mods: mods}
 		err = stream.Send(&peernet.HostInput{Body: &peernet.HostInput_Start{Start: start}})
 	}
 	if err != nil {
@@ -265,12 +267,12 @@ func joinCommand(out *printer) *cli.Command {
 				return err
 			}
 
-			// Serve this player's interfaces before the game starts.
-			mirror := session.NewMirror()
-			account, stop := serveGuestInterface(c, out, mirror)
-			defer stop()
-
 			// Ask the daemon to join, streaming this player's screen.
+			steam, steamErr := session.FindSteam()
+			var account uint64
+			if steamErr == nil && c.Uint("ui-port") != 0 {
+				account = steam.Account()
+			}
 			client, err := connectDaemon(c.Context)
 			if err != nil {
 				return err
@@ -281,8 +283,12 @@ func joinCommand(out *printer) *cli.Command {
 				return err
 			}
 
-			// Launch the game at the endpoint, and hold until it leaves.
+			// Take the mods' content, then mount it with this player's
+			// interfaces and launch the game at the endpoint, and hold
+			// until it leaves.
 			out.mark("…", dim, "joining…")
+			mirror := session.NewMirror()
+			content := fstest.MapFS{}
 			for {
 				event, err := stream.Recv()
 				switch {
@@ -295,7 +301,17 @@ func joinCommand(out *printer) *cli.Command {
 					return err
 				}
 				switch body := event.GetBody().(type) {
+				case *peernet.JoinEvent_Content:
+					file := content[body.Content.GetPath()]
+					if file == nil {
+						file = &fstest.MapFile{Mode: 0o644}
+						content[body.Content.GetPath()] = file
+					}
+					file.Data = append(file.Data, body.Content.GetData()...)
 				case *peernet.JoinEvent_Address:
+					if steamErr == nil {
+						defer mountGuest(c, out, steam, mirror, content)()
+					}
 					launchGuest(c, out, body.Address)
 				case *peernet.JoinEvent_Arrived:
 					out.mark("✓", green, "joined")
@@ -358,36 +374,24 @@ func launchGuest(c *cli.Context, out *printer, address string) {
 	}
 }
 
-// serveGuestInterface serves mirror to the game and mounts the renderer, and
-// returns the player's Steam ID and the call that stops serving. Without
-// Steam or with the interfaces off it serves nothing and returns zero, so the
-// host sends no screen.
-func serveGuestInterface(c *cli.Context, out *printer, mirror *session.Mirror) (uint64, func()) {
-	// Find the player and their game.
-	port := c.Uint("ui-port")
-	steam, err := session.FindSteam()
-	if port == 0 || err != nil || steam.Account() == 0 {
-		return 0, func() {}
-	}
+// mountGuest mounts the host's mods' content in the player's game and serves
+// mirror to it as their interfaces, and returns the call that stops both.
+// With the interfaces off it mounts only the content. A game already running
+// loads neither until it restarts.
+func mountGuest(c *cli.Context, out *printer, steam *session.Steam, mirror *session.Mirror, content fstest.MapFS) func() {
 	gameDir, err := steam.Deadlock()
 	if err != nil {
-		out.mark("!", yellow, "mod interfaces are off: "+err.Error())
-		return 0, func() {}
+		out.mark("!", yellow, "mod content and interfaces are off: "+err.Error())
+		return func() {}
 	}
-
-	// Serve the screen through the relay page.
-	renderer, err := readRenderer(c.Context)
-	if err != nil {
-		out.mark("!", yellow, "mod interfaces are off: "+err.Error())
-		return 0, func() {}
+	iface := session.Interface{GameDir: gameDir, Content: content, Screen: mirror.Screen, Events: out.host}
+	if port := c.Uint("ui-port"); port != 0 {
+		renderer, err := readRenderer(c.Context)
+		if err != nil {
+			out.mark("!", yellow, "mod interfaces are off: "+err.Error())
+		} else {
+			iface.Address, iface.Relay, iface.Renderer = "127.0.0.1:"+strconv.Itoa(int(port)), c.String("ui-relay"), renderer
+		}
 	}
-	stop := session.StartInterface(session.Interface{
-		Address:  "127.0.0.1:" + strconv.Itoa(int(port)),
-		Relay:    c.String("ui-relay"),
-		Renderer: renderer,
-		GameDir:  gameDir,
-		Screen:   mirror.Screen,
-		Events:   out.host,
-	})
-	return steam.Account(), stop
+	return session.StartInterface(iface)
 }

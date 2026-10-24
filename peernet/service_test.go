@@ -1,12 +1,14 @@
 package peernet
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
@@ -327,6 +329,16 @@ func joinSession(ctx context.Context, t *testing.T, host, guest *Service, signal
 	defer server.Close()
 	server.SetDeadline(time.Now().Add(10 * time.Second))
 
+	// The mod's build carries a model larger than one content part.
+	built := t.TempDir()
+	model := bytes.Repeat([]byte("pawn"), contentPart/2+1)
+	if err := os.MkdirAll(filepath.Join(built, "models", "chess-0.1.0"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(built, "models", "chess-0.1.0", "pawn.vmdl_c"), model, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
 	// Host it on its port.
 	hostCtx, endHost := context.WithCancel(ctx)
 	defer endHost()
@@ -336,7 +348,7 @@ func joinSession(ctx context.Context, t *testing.T, host, guest *Service, signal
 		t.Fatal(err)
 	}
 	lobby := &LobbyRequest{ModName: "Chess", Version: "0.1.0"}
-	start := &HostRequest{Port: uint32(server.LocalAddr().(*net.UDPAddr).Port), Lobby: lobby}
+	start := &HostRequest{Port: uint32(server.LocalAddr().(*net.UDPAddr).Port), Lobby: lobby, Mods: []string{built}}
 	if err := hosted.Send(&HostInput{Body: &HostInput_Start{Start: start}}); err != nil {
 		t.Fatal(err)
 	}
@@ -404,14 +416,30 @@ func joinSession(ctx context.Context, t *testing.T, host, guest *Service, signal
 		}
 	}
 
-	// The guest joins and the host reports it.
+	// The guest joins, receiving the mod's content whole before the address,
+	// and the host reports it.
 	joined, err := guestClient.Join(ctx, &JoinRequest{Code: code.String(), SteamId: guestSteamID})
 	if err != nil {
 		t.Fatal(err)
 	}
-	endpoint, err := joined.Recv()
-	if err != nil {
-		t.Fatal(err)
+	var endpoint *JoinEvent
+	var received []byte
+	for endpoint == nil {
+		event, err := joined.Recv()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if part := event.GetContent(); part != nil {
+			if part.GetPath() != "models/chess-0.1.0/pawn.vmdl_c" {
+				t.Fatalf("content part %q", part.GetPath())
+			}
+			received = append(received, part.GetData()...)
+		} else if event.GetAddress() != "" {
+			endpoint = event
+		}
+	}
+	if !bytes.Equal(received, model) {
+		t.Fatalf("received %d bytes of content, want %d", len(received), len(model))
 	}
 	if event, err := hosted.Recv(); err != nil || event.GetJoined() != guest.local.String() {
 		t.Fatalf("host event %v: %v", event, err)

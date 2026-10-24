@@ -326,6 +326,10 @@ type SRPCSessionClient interface {
 	// screen first and then only what changed, and each chat line said from
 	// the call on.
 	Watch(ctx context.Context, in *WatchRequest) (SRPCSession_WatchClient, error)
+	// Content streams the content addons of the hosted mods, which the guest
+	// mounts before its game starts so it draws the mods' models, materials,
+	// particles and layouts.
+	Content(ctx context.Context, in *ContentRequest) (SRPCSession_ContentClient, error)
 }
 
 type srpcSessionClient struct {
@@ -379,11 +383,48 @@ func (x *srpcSession_WatchClient) RecvTo(m *SessionEvent) error {
 	return x.MsgRecv(m)
 }
 
+func (c *srpcSessionClient) Content(ctx context.Context, in *ContentRequest) (SRPCSession_ContentClient, error) {
+	stream, err := c.cc.NewStream(ctx, c.serviceID, "Content", in)
+	if err != nil {
+		return nil, err
+	}
+	strm := &srpcSession_ContentClient{stream}
+	// A failed half-close means the call ended; MsgRecv reports its outcome.
+	_ = strm.CloseSend()
+	return strm, nil
+}
+
+type SRPCSession_ContentClient interface {
+	srpc.Stream
+	Recv() (*ContentPart, error)
+	RecvTo(*ContentPart) error
+}
+
+type srpcSession_ContentClient struct {
+	srpc.Stream
+}
+
+func (x *srpcSession_ContentClient) Recv() (*ContentPart, error) {
+	m := new(ContentPart)
+	if err := x.MsgRecv(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (x *srpcSession_ContentClient) RecvTo(m *ContentPart) error {
+	return x.MsgRecv(m)
+}
+
 type SRPCSessionServer interface {
 	// Watch streams what the guest sees: what the mods show them, the whole
 	// screen first and then only what changed, and each chat line said from
 	// the call on.
 	Watch(*WatchRequest, SRPCSession_WatchStream) error
+	// Content streams the content addons of the hosted mods, which the guest
+	// mounts before its game starts so it draws the mods' models, materials,
+	// particles and layouts.
+	Content(*ContentRequest, SRPCSession_ContentStream) error
 }
 
 const SRPCSessionServiceID = "modlock.peernet.Session"
@@ -413,6 +454,7 @@ func (d *SRPCSessionHandler) GetServiceID() string { return d.serviceID }
 func (SRPCSessionHandler) GetMethodIDs() []string {
 	return []string{
 		"Watch",
+		"Content",
 	}
 }
 
@@ -427,6 +469,8 @@ func (d *SRPCSessionHandler) InvokeMethod(
 	switch methodID {
 	case "Watch":
 		return true, d.InvokeMethod_Watch(d.impl, strm)
+	case "Content":
+		return true, d.InvokeMethod_Content(d.impl, strm)
 	default:
 		return false, nil
 	}
@@ -439,6 +483,15 @@ func (SRPCSessionHandler) InvokeMethod_Watch(impl SRPCSessionServer, strm srpc.S
 	}
 	serverStrm := &srpcSession_WatchStream{strm}
 	return impl.Watch(req, serverStrm)
+}
+
+func (SRPCSessionHandler) InvokeMethod_Content(impl SRPCSessionServer, strm srpc.Stream) error {
+	req := new(ContentRequest)
+	if err := strm.MsgRecv(req); err != nil {
+		return err
+	}
+	serverStrm := &srpcSession_ContentStream{strm}
+	return impl.Content(req, serverStrm)
 }
 
 type SRPCSession_WatchStream interface {
@@ -456,6 +509,29 @@ func (x *srpcSession_WatchStream) Send(m *SessionEvent) error {
 }
 
 func (x *srpcSession_WatchStream) SendAndClose(m *SessionEvent) error {
+	if m != nil {
+		if err := x.MsgSend(m); err != nil {
+			return err
+		}
+	}
+	return x.CloseSend()
+}
+
+type SRPCSession_ContentStream interface {
+	srpc.Stream
+	Send(*ContentPart) error
+	SendAndClose(*ContentPart) error
+}
+
+type srpcSession_ContentStream struct {
+	srpc.Stream
+}
+
+func (x *srpcSession_ContentStream) Send(m *ContentPart) error {
+	return x.MsgSend(m)
+}
+
+func (x *srpcSession_ContentStream) SendAndClose(m *ContentPart) error {
 	if m != nil {
 		if err := x.MsgSend(m); err != nil {
 			return err
