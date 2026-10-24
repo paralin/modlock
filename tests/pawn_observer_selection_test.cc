@@ -345,7 +345,7 @@ TEST(PawnObserver, WatchingKeepsTheHeroAndReturnsToIt) {
   calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool, bool) {
     EXPECT_FALSE(retain_old_pawn_team);
     rebound = pawn;
-    const auto handle = HandleOf(2, 7);
+    const auto handle = pawn == camera_pawn ? HandleOf(3, 8) : HandleOf(2, 7);
     std::memcpy(static_cast<char*>(controller) + kPawnHandleField, &handle, sizeof(handle));
   };
 
@@ -358,6 +358,13 @@ TEST(PawnObserver, WatchingKeepsTheHeroAndReturnsToIt) {
   std::memcpy(&kept, fixture.controller.data() + kHeroHandleField, sizeof(kept));
   EXPECT_EQ(kept, hero_handle);
   EXPECT_EQ(observer.WatchingSlots(), std::vector<int32_t>{0});
+
+  // When the game turns the camera back to the hero, the next watch binds
+  // the same camera again instead of spawning another.
+  std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+  EXPECT_EQ(observer.CameraPawnForSlot(0, calls).value_or(nullptr), camera.data());
+  EXPECT_EQ(rebound, camera.data());
+  EXPECT_EQ(spawns, 1);
 
   // Returning binds the hero and hands back the camera to remove, once.
   EXPECT_EQ(observer.ReturnToHero(0, calls).value_or(0), HandleOf(3, 8));

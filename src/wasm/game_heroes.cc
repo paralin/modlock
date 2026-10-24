@@ -105,7 +105,15 @@ std::expected<void*, std::string> Game::ObserveFrom(int32_t slot, uint8_t mode, 
     return std::unexpected(mode_field.error());
   }
 
-  // Set the mode and target, and replicate them.
+  // Set the mode and target, and replicate them. A watch repeats every frame,
+  // so a camera already aimed this way sends nothing.
+  uint32_t aimed = 0;
+  uint8_t observing = 0;
+  if (gameinterop::ReadNative(observer + target_field->offset, &aimed, sizeof(aimed)) &&
+      gameinterop::ReadNative(observer + mode_field->offset, &observing, sizeof(observing)) &&
+      aimed == target && observing == mode) {
+    return *pawn;
+  }
   if (!gameinterop::WriteNative(observer + target_field->offset, &target, sizeof(target)) ||
       !gameinterop::WriteNative(observer + mode_field->offset, &mode, sizeof(mode))) {
     return std::unexpected("cannot aim the spectator's camera");

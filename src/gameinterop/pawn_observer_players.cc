@@ -62,6 +62,22 @@ std::expected<void*, std::string> PawnObserver::CameraPawnForSlot(
     return pawn;
   }
 
+  // The game turns a living hero's camera back to the hero, so a watch that
+  // asks every frame binds the camera it recorded again. Spawning another
+  // each time would leave the one before it in the world.
+  if (const auto earlier = cameras_.find(slot); earlier != cameras_.end() && calls.set_pawn) {
+    auto* recorded = IdentityOfHandle(list, earlier->second);
+    if (void* camera = recorded ? InstanceOf(recorded) : nullptr) {
+      calls.set_pawn(controller, camera, false, false, false, false);
+      std::memcpy(&handle, controller + layout_.pawn_handle, sizeof(handle));
+      if (handle == earlier->second) {
+        return camera;
+      }
+    } else {
+      cameras_.erase(earlier);
+    }
+  }
+
   // A player with a hero watches through a camera of its own while the hero
   // stays where it stands, as the game binds one when the hero dies. Record
   // whatever camera the spawn bound, even one the watch then refuses, so
