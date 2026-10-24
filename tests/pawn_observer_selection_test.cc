@@ -40,7 +40,8 @@ TEST(PawnObserver, PlayerSelectionStopsAfterTeamCallbackLosesConnection) {
   };
   calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
   };
-  calls.remove = +[](void*) {};
+  calls.remove = +[](void*) {
+  };
 
   // Selection stops when the team change loses the connection.
   PawnObserver observer{HeroSeamsFor(fixture)};
@@ -80,7 +81,9 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   calls.set_pawn = +[](void*, void*, bool, bool, bool, bool) {
     ADD_FAILURE() << "already on spectator team";
   };
-  calls.remove = +[](void*) { ADD_FAILURE() << "no hero to remove"; };
+  calls.remove = +[](void*) {
+    ADD_FAILURE() << "no hero to remove";
+  };
 
   // Selection waits for the pawn and spawns once.
   PawnObserver observer{HeroSeamsFor(fixture)};
@@ -159,8 +162,7 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   uint32_t released = 0;
   std::memcpy(&released, fixture.controller.data() + kHeroHandleField, sizeof(released));
   EXPECT_EQ(released, 0xffffffffu);
-  EXPECT_EQ(steps,
-            (std::vector<std::string>{"notify", "unbind", "remove", "team", "observer"}));
+  EXPECT_EQ(steps, (std::vector<std::string>{"notify", "unbind", "remove", "team", "observer"}));
   EXPECT_EQ(removed, hero.data());
   active = nullptr;
 }

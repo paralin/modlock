@@ -149,8 +149,7 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
   if (!IsPlayerSlot(slot) || !steam_id || team < 1 || team > 3 ||
       (team != 1 && (!definition || !calls.create_pawn || !calls.select_hero)) ||
       (team == 1 && (!calls.spawn_observer || !calls.set_pawn || !calls.remove)) ||
-      !seams_.slot_state ||
-      !seams_.entity_system) {
+      !seams_.slot_state || !seams_.entity_system) {
     return std::unexpected("player selection unavailable");
   }
   if (auto resolved = ResolveLayout(); !resolved) {
