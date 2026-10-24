@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/paralin/modlock/check"
+	"github.com/paralin/modlock/internal/filelock"
 	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/wasm/manifest"
@@ -39,10 +40,26 @@ const (
 	Dev
 )
 
+// buildLock is the file in Output that a build holds exclusively, so two
+// builds of one project, such as a watch's and an explicit modlock build,
+// take turns instead of erasing each other's staged files.
+const buildLock = ".build.lock"
+
 // Build checks the project and writes the built mod to Output. Check and
 // compiler errors go to output and fail the build with a *CheckError that
 // locates them; a failed build leaves the previous built mod in place.
+// Builds of one project run one at a time; a second waits for the first.
 func (p *Project) Build(ctx context.Context, output io.Writer, mode Mode) error {
+	// Wait for any other build of this project to finish.
+	if err := os.MkdirAll(p.Output(), 0o755); err != nil {
+		return errors.Wrap(err, "create the build directory")
+	}
+	held, err := filelock.Lock(filepath.Join(p.Output(), buildLock), true, true)
+	if err != nil {
+		return errors.Wrap(err, "wait for the other build")
+	}
+	defer held.Close()
+
 	// Check the declarations, and ship the map and client content, before
 	// compiling.
 	if err := settings.Validate(p.Manifest); err != nil {
@@ -104,9 +121,6 @@ func (p *Project) buildGo(ctx context.Context, output io.Writer) error {
 		return err
 	}
 	staged := filepath.Join(p.Output(), Entry+".tmp")
-	if err := os.MkdirAll(p.Output(), 0o755); err != nil {
-		return errors.Wrap(err, "create the build directory")
-	}
 	if err := run("go build", "build", "-buildmode=c-shared", "-o", staged, "."); err != nil {
 		_ = os.Remove(staged)
 		return err
