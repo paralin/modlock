@@ -49,8 +49,11 @@ func StartHost(ctx context.Context, config HostConfig) (*Host, error) {
 		"--game-dir", path(config.GameDir),
 		"--hostport", strconv.Itoa(int(config.Port)),
 		// An empty server hibernates and runs no frames, so mods would wait
-		// for the first player.
-		"--engine-args", "+sv_hibernate_when_empty 0",
+		// for the first player. A joining player's last signon message spawns
+		// their hero, which on a cold host can take longer than the 200 ms
+		// burst the engine allows a client's messages before it drops them;
+		// a session serves only the players it invited, so allow a second.
+		"--engine-args", "+sv_hibernate_when_empty 0 +net_limit_sv_message_process_time_ms_drop_burst 1000",
 	}
 	if config.Map != "" {
 		arguments = append(arguments, "--map", config.Map)
