@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  The host passes paths as UTF-8 strings, from its command line, its control
+  link and its mods. Windows converts a narrow string with the process code
+  page, which is the system's legacy one unless this manifest sets UTF-8, so a
+  path under a user directory with letters outside it, such as Cyrillic,
+  names a file that does not exist.
+-->
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>
