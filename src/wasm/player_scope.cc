@@ -13,10 +13,11 @@ namespace modlock::wasm {
 namespace {
 
 // kServerWide names the host requests that change the game for every player,
-// which a limited mod may not make.
-constexpr std::array<std::string_view, 9> kServerWide = {
+// which a limited mod may not make. A bot it added would join the whole
+// server, outside its players.
+constexpr std::array<std::string_view, 10> kServerWide = {
     "ServerCommand", "SetFreeForAll", "BlockInput",     "Pause",       "HoldMatchClock",
-    "StartRift",     "ClearMap",      "RemoveEntities", "RestoreNpcs",
+    "StartRift",     "ClearMap",      "RemoveEntities", "RestoreNpcs", "AddBot",
 };
 
 // RequestType returns the request message type of method in the named
