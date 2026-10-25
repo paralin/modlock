@@ -249,19 +249,29 @@ export class Cast<M> {
           : heroes[Math.floor(Math.random() * heroes.length)]?.name
     }
     if (pick !== undefined) {
-      seat.connection.player.selectHero(pick, want.team ?? this.side(pawn))
+      seat.connection.player.selectHero(pick, want.team ?? this.side(seat))
     }
   }
 
-  /** side is the team a member joins: their hero's, or the one with fewer members. */
-  private side(pawn: Pawn | undefined): number {
-    // A hero on a team keeps it; otherwise count the members on each side.
-    if (pawn?.team === 2 || pawn?.team === 3) return pawn.team
+  /** side is the team a member joins: their hero's, or the one with fewer heroes. */
+  private side(seat: Seat<M>): number {
+    // A hero keeps its team. The game puts each connecting player on a team
+    // before they have a hero, so a member without one is counted afresh.
+    const { pawn } = seat
+    if (
+      pawn !== undefined &&
+      pawn.hero !== 0 &&
+      (pawn.team === 2 || pawn.team === 3)
+    ) {
+      return pawn.team
+    }
     let amber = 0
     let sapphire = 0
-    for (const { pawn: other } of this.seats.values()) {
-      if (other?.team === 2) amber++
-      if (other?.team === 3) sapphire++
+    for (const other of this.seats.values()) {
+      if (other === seat || other.pawn === undefined || other.pawn.hero === 0)
+        continue
+      if (other.pawn.team === 2) amber++
+      if (other.pawn.team === 3) sapphire++
     }
     return sapphire < amber ? 3 : 2
   }

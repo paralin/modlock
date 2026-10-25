@@ -159,11 +159,12 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   expect(frame(16)).toEqual([])
   expect(cast.pawn(member!.player)?.hero).toBe(9)
 
-  // A hero still missing once the change should have finished gets a seat.
+  // A hero still missing once the change should have finished gets a seat,
+  // on the side with fewer heroes rather than the team the game left her on.
   heroes.set(1, { hero: 0, team: 3, health: 0 })
   expect(frame(17)).toEqual([])
   expect(frame(19.9)).toEqual([])
-  expect(frame(20)).toEqual(['SelectHero 1 6 3'])
+  expect(frame(20)).toEqual(['SelectHero 1 6 2'])
 
   // A reconnect is a leave and a join; a leave ends the member.
   events.length = 0
