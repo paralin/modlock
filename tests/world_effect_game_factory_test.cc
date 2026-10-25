@@ -31,6 +31,10 @@ void Teleport(void*, const float* p, const float*, const float*) {
   steps.emplace_back("teleport:" + std::to_string(static_cast<int>(p[0])));
 }
 
+void SetOrigin(void*, const float* p) {
+  steps.emplace_back("move:" + std::to_string(static_cast<int>(p[0])));
+}
+
 void Queue(void*, void*, void*) {
   steps.emplace_back("queue");
 }
@@ -84,6 +88,9 @@ WorldEffectGameCalls Calls() {
   calls.execute_queued_creation = &Execute;
   calls.accept_input = &Accept;
   calls.util_remove = &Remove;
+  calls.set_abs_origin = &SetOrigin;
+  calls.set_abs_angles = [](void*, const float*) {
+  };
 
   // Record each keyvalue setter.
   calls.key_values.create_key_values = &MakeKv;
@@ -278,11 +285,11 @@ TEST_F(EffectTest, VisualModelDisablesCollisionAndOwnsItsLifetime) {
   }
   EXPECT_EQ(steps.back(), "execute");
 
-  // Moving it teleports.
+  // Moving it sets its origin without a warp.
   modlock::geometry::Vec3 origin;
   origin.set_x(42);
   model->get()->Move(origin, std::nullopt);
-  EXPECT_EQ(steps.back(), "teleport:42");
+  EXPECT_EQ(steps.back(), "move:42");
 
   // Destruction removes it once; invalidation forgets it.
   model->reset();

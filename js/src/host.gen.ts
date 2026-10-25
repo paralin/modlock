@@ -2202,7 +2202,12 @@ export class WorldObject {
     this.id = id
   }
 
-  /** move places the object at position, turning it to facing. */
+  /**
+   * move places the object at position, turning it to facing. The
+   * physics step pulls a solid model to its new place over one tick, so a
+   * model moved each frame strikes physics props such as the Hideout ball
+   * with its speed instead of passing through them.
+   */
   move(position: Vector, facing?: Angles): boolean {
     return call('MoveObject', objectsPb.MoveObjectRequest.toBinary({ object: this.id, position, facing })) !== undefined
   }

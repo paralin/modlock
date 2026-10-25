@@ -505,7 +505,10 @@ class HostService {
     return std::unexpected("this host does not support CreateFog");
   }
 
-  // MoveObject places the object at position, turning it to facing.
+  // MoveObject places the object at position, turning it to facing. The
+  // physics step pulls a solid model to its new place over one tick, so a
+  // model moved each frame strikes physics props such as the Hideout ball
+  // with its speed instead of passing through them.
   virtual std::expected<void, std::string> MoveObject(
       const objects::MoveObjectRequest& /*request*/) {
     return std::unexpected("this host does not support MoveObject");

@@ -62,6 +62,8 @@ WorldEffectGameFactory::TryCreate(const modlock::gameinterop::ModuleImage& serve
       {"entity-system.execute-queued-creation", &calls.execute_queued_creation},
       {"entity-instance.accept-input", &calls.accept_input},
       {"entity.remove", &calls.util_remove},
+      {"entity.set-abs-origin", &calls.set_abs_origin},
+      {"entity.set-abs-angles", &calls.set_abs_angles},
   };
   auto resolved = modlock::gameinterop::ResolveSignatures(server, signatures);
   if (!resolved) {
@@ -366,7 +368,10 @@ class GameWorldEntity final : public WorldEffect {
     if (angles) {
       angles_ = *angles;
     }
-    Teleport(entity, origin, angles_);
+    const float position[] = {static_cast<float>(origin.x()), static_cast<float>(origin.y()),
+                              static_cast<float>(origin.z())};
+    factory_.calls_.set_abs_origin(entity, position);
+    factory_.calls_.set_abs_angles(entity, angles_.data());
   }
 
   std::optional<std::uint32_t> Handle() const override { return entity_.Handle(); }

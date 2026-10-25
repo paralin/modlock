@@ -31,6 +31,11 @@ struct MODLOCK_API WorldEffectGameCalls {
                        void* value, int output_id, void* unknown) = nullptr;
   modlock::gameinterop::KeyValuesCalls key_values;
   void (*util_remove)(void* entity) = nullptr;
+  // set_abs_origin and set_abs_angles move a spawned entity without a warp:
+  // the physics step pulls a body the game does not simulate to its new place
+  // over one tick, so a solid model moved this way strikes with its speed.
+  void (*set_abs_origin)(void* entity, const float* origin) = nullptr;
+  void (*set_abs_angles)(void* entity, const float* angles) = nullptr;
 };
 
 // ParticleFields resolves the five schema fields used by native particles.

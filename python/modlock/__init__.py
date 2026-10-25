@@ -1583,7 +1583,11 @@ class WorldObject:
     id: int
 
     def move(self, position: Vector, facing: Angles | None = None) -> bool:
-        """move places the object at position, turning it to facing."""
+        """move places the object at position, turning it to facing. The
+        physics step pulls a solid model to its new place over one tick, so a
+        model moved each frame strikes physics props such as the Hideout ball
+        with its speed instead of passing through them.
+        """
         return _call("MoveObject", "MoveObjectRequest", {"object": self, "position": position, "facing": facing}) is not None
 
     def set_text(self, text: str) -> bool:

@@ -950,7 +950,10 @@ func CreateFog(options *FogOptions) (WorldObject, error) {
 	return WorldObject{ID: response.GetObject()}, nil
 }
 
-// Move places the object at position, turning it to facing.
+// Move places the object at position, turning it to facing. The
+// physics step pulls a solid model to its new place over one tick, so a
+// model moved each frame strikes physics props such as the Hideout ball
+// with its speed instead of passing through them.
 func (w WorldObject) Move(position *Vector, facing *Angles) error {
 	return invoke("MoveObject", &objectspb.MoveObjectRequest{Object: w.ID, Position: position, Facing: facing}, nil)
 }
