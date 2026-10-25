@@ -140,6 +140,8 @@ type Model struct {
 	Lods uint32 `protobuf:"varint,4,opt,name=lods,proto3" json:"lods,omitempty"`
 	// Materials holds each material the draw calls name, by its name.
 	Materials map[string]*Material `protobuf:"bytes,5,rep,name=materials,proto3" json:"materials,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Collision is the model's collision shapes, empty for a model without.
+	Collision *Collision `protobuf:"bytes,6,opt,name=collision,proto3" json:"collision,omitempty"`
 }
 
 func (x *Model) Reset() {
@@ -181,6 +183,54 @@ func (x *Model) GetMaterials() map[string]*Material {
 		return x.Materials
 	}
 	return nil
+}
+
+func (x *Model) GetCollision() *Collision {
+	if x != nil {
+		return x.Collision
+	}
+	return nil
+}
+
+// Collision is every collision shape of a model as one triangle mesh in the
+// model's space: hulls and meshes as stored, spheres and capsules
+// tessellated.
+type Collision struct {
+	unknownFields []byte
+	// Positions holds each vertex as three little-endian 32-bit floats.
+	Positions []byte `protobuf:"bytes,1,opt,name=positions,proto3" json:"positions,omitempty"`
+	// Indices holds each triangle's three vertices as little-endian 32-bit
+	// indexes into positions.
+	Indices []byte `protobuf:"bytes,2,opt,name=indices,proto3" json:"indices,omitempty"`
+	// Shapes counts the spheres, capsules, hulls and meshes drawn.
+	Shapes uint32 `protobuf:"varint,3,opt,name=shapes,proto3" json:"shapes,omitempty"`
+}
+
+func (x *Collision) Reset() {
+	*x = Collision{}
+}
+
+func (*Collision) ProtoMessage() {}
+
+func (x *Collision) GetPositions() []byte {
+	if x != nil {
+		return x.Positions
+	}
+	return nil
+}
+
+func (x *Collision) GetIndices() []byte {
+	if x != nil {
+		return x.Indices
+	}
+	return nil
+}
+
+func (x *Collision) GetShapes() uint32 {
+	if x != nil {
+		return x.Shapes
+	}
+	return 0
 }
 
 // Mesh is one mesh of a model.
@@ -1139,6 +1189,7 @@ func (m *Model) CloneVT() *Model {
 	r.Meshes = protobuf_go_lite.CloneVTSlice(m.Meshes)
 	r.Groups = protobuf_go_lite.CloneSlice(m.Groups)
 	r.Materials = protobuf_go_lite.CloneVTMap(m.Materials)
+	r.Collision = protobuf_go_lite.CloneVTValue(m.Collision)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1146,6 +1197,24 @@ func (m *Model) CloneVT() *Model {
 }
 
 func (m *Model) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Collision) CloneVT() *Collision {
+	if m == nil {
+		return (*Collision)(nil)
+	}
+	r := new(Collision)
+	r.Shapes = m.Shapes
+	r.Positions = protobuf_go_lite.CloneBytes(m.Positions)
+	r.Indices = protobuf_go_lite.CloneBytes(m.Indices)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Collision) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1477,11 +1546,40 @@ func (this *Model) EqualVT(that *Model) bool {
 	if !protobuf_go_lite.EqualVTMapImplicit(this.Materials, that.Materials, func() *Material { return &Material{} }) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Collision, that.Collision) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Model) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Model)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Collision) EqualVT(that *Collision) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Positions, that.Positions) {
+		return false
+	}
+	if !protobuf_go_lite.EqualBytes(this.Indices, that.Indices) {
+		return false
+	}
+	if this.Shapes != that.Shapes {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Collision) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Collision)
 	if !ok {
 		return false
 	}
@@ -2132,6 +2230,11 @@ func (x *Model) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteObjectEnd()
 	}
+	if x.Collision != nil || s.HasField("collision") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("collision")
+		x.Collision.MarshalProtoJSON(s.WithField("collision"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2192,12 +2295,77 @@ func (x *Model) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				v.UnmarshalProtoJSON(s)
 				x.Materials[key] = &v
 			})
+		case "collision":
+			if s.ReadNil() {
+				x.Collision = nil
+				return
+			}
+			x.Collision = &Collision{}
+			x.Collision.UnmarshalProtoJSON(s.WithField("collision", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Model from JSON.
 func (x *Model) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Collision message to JSON.
+func (x *Collision) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Positions) > 0 || s.HasField("positions") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("positions")
+		s.WriteBytes(x.Positions)
+	}
+	if len(x.Indices) > 0 || s.HasField("indices") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("indices")
+		s.WriteBytes(x.Indices)
+	}
+	if x.Shapes != 0 || s.HasField("shapes") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("shapes")
+		s.WriteUint32(x.Shapes)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Collision to JSON.
+func (x *Collision) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Collision message from JSON.
+func (x *Collision) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "positions":
+			s.AddField("positions")
+			x.Positions = s.ReadBytes()
+		case "indices":
+			s.AddField("indices")
+			x.Indices = s.ReadBytes()
+		case "shapes":
+			s.AddField("shapes")
+			x.Shapes = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Collision from JSON.
+func (x *Collision) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3911,6 +4079,16 @@ func (m *Model) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Collision != nil {
+		size, err := m.Collision.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x32
+	}
 	if len(m.Materials) > 0 {
 		for k := range m.Materials {
 			v := m.Materials[k]
@@ -3959,6 +4137,53 @@ func (m *Model) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0xa
 		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Collision) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Collision) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Collision) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Shapes != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Shapes))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Indices) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Indices)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Positions) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.Positions)
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -4905,6 +5130,23 @@ func (m *Model) SizeVT() (n int) {
 		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeMessage(1, l)
 		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
 	}
+	if m.Collision != nil {
+		l = m.Collision.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Collision) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Positions)
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.Indices)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Shapes)
 	n += len(m.unknownFields)
 	return n
 }
@@ -5280,10 +5522,36 @@ func (x *Model) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteMapEnd(&sb)
 	}
+	if x.Collision != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "collision")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Collision)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Model) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Collision) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Collision")
+	if len(x.Positions) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "positions")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Positions)
+	}
+	if len(x.Indices) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "indices")
+		protobuf_go_lite.TextWriteBytes(&sb, x.Indices)
+	}
+	if x.Shapes != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "shapes")
+		protobuf_go_lite.TextWriteUint(&sb, x.Shapes)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Collision) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -6176,6 +6444,89 @@ func (m *Model) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Materials[mapkey] = mapvalue
 			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Collision", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Collision == nil {
+				m.Collision = &Collision{}
+			}
+			if err := m.Collision.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Collision) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Collision: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Collision: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Positions", wireType)
+			}
+			m.Positions, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Positions, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Indices", wireType)
+			}
+			m.Indices, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.Indices, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Shapes", wireType)
+			}
+			m.Shapes = 0
+			m.Shapes, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

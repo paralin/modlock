@@ -73,6 +73,43 @@ export interface Call {
   call: DrawCall
 }
 
+// hasMeshes reports whether a model has any draw call to draw.
+export const hasMeshes = (model: Model) =>
+  (model.meshes ?? []).some((mesh) => (mesh.drawCalls?.length ?? 0) > 0)
+
+// hasCollision reports whether a model has collision shapes.
+export const hasCollision = (model: Model) => (model.collision?.shapes ?? 0) > 0
+
+// collisionCounts counts a model's collision shapes and their triangles.
+export const collisionCounts = (model: Model) => ({
+  shapes: model.collision?.shapes ?? 0,
+  triangles: (model.collision?.indices?.length ?? 0) / 12,
+})
+
+// collisionGeometry builds a model's collision triangles, or returns null
+// for a model without.
+export function collisionGeometry(model: Model): THREE.BufferGeometry | null {
+  // A model without collision has no geometry.
+  const { positions, indices } = model.collision ?? {}
+  if (!positions?.length || !indices?.length) return null
+
+  // Copy the bytes out, since a decoded field may start unaligned.
+  const geometry = new THREE.BufferGeometry()
+  const floats = new Float32Array(
+    positions.slice().buffer,
+    0,
+    positions.length / 4,
+  )
+  geometry.setAttribute('position', new THREE.BufferAttribute(floats, 3))
+  geometry.setIndex(
+    new THREE.BufferAttribute(
+      new Uint32Array(indices.slice().buffer, 0, indices.length / 4),
+      1,
+    ),
+  )
+  return geometry
+}
+
 // calls lists a model's draw calls in mesh order.
 export function calls(model: Model): Call[] {
   const out: Call[] = []

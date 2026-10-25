@@ -7,7 +7,13 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import type { Model, Texture, World } from '../studio.pb.js'
-import { calls, Materials, Parts } from './models.js'
+import {
+  calls,
+  collisionGeometry,
+  hasMeshes,
+  Materials,
+  Parts,
+} from './models.js'
 import { loadTexture, TextureCache } from './textures.js'
 import { buildWorld, type WorldStats } from './world.js'
 
@@ -31,12 +37,15 @@ export interface Selection {
   groups: bigint | null
 }
 
-// LoadedModel is the model the viewport holds and the draw calls it has
-// shown so far, by index across its meshes.
+// LoadedModel is the model the viewport holds, the draw calls it has shown
+// so far, by index across its meshes, and its collision shapes. A model
+// with no draw calls always shows its collision.
 interface LoadedModel {
   parts: Parts
   signal: AbortSignal
   shown: Map<number, Promise<THREE.Mesh | null>>
+  collision: THREE.Mesh | null
+  collisionOnly: boolean
   framed: boolean
 }
 
@@ -58,6 +67,24 @@ const wire = new THREE.MeshStandardMaterial({
   wireframe: true,
 })
 
+// Collision shapes draw faceted from both sides in their own color, in any
+// shading: see through over a model's meshes and solid on their own.
+const overlay = new THREE.MeshStandardMaterial({
+  color: 0x4fb0e0,
+  roughness: 0.9,
+  flatShading: true,
+  side: THREE.DoubleSide,
+  transparent: true,
+  opacity: 0.45,
+  depthWrite: false,
+})
+const shapes = new THREE.MeshStandardMaterial({
+  color: 0x4fb0e0,
+  roughness: 0.9,
+  flatShading: true,
+  side: THREE.DoubleSide,
+})
+
 // Viewer owns one canvas, its renderer and the asset drawn in it.
 export class Viewer {
   private renderer: THREE.WebGLRenderer
@@ -67,6 +94,7 @@ export class Viewer {
   private content = new THREE.Group()
   private grid: THREE.GridHelper | null = null
   private gridShown = true
+  private collisionShown = false
   private shading: Shading = 'material'
   private loaded: LoadedModel | null = null
   private materials: Materials | null = null
@@ -180,6 +208,13 @@ export class Viewer {
     this.content.add(mesh)
   }
 
+  // setCollision shows or hides a model's collision shapes over its meshes.
+  setCollision(shown: boolean) {
+    this.collisionShown = shown
+    const collision = this.loaded?.collision
+    if (collision) collision.visible = shown || this.loaded!.collisionOnly
+  }
+
   // setGrid shows or hides the floor grid.
   setGrid(shown: boolean) {
     this.gridShown = shown
@@ -256,12 +291,28 @@ export class Viewer {
   // loadModel replaces what is drawn with a model, drawing nothing until
   // showModel picks its meshes. signal ends every load the model starts.
   loadModel(name: string, model: Model, signal: AbortSignal) {
+    // Build the collision shapes, solid when they are all the model has.
     this.replace(modelTextureLimit, signal)
+    const geometry = collisionGeometry(model)
+    const collisionOnly = !hasMeshes(model)
+    const collision = geometry
+      ? new THREE.Mesh(geometry, collisionOnly ? shapes : overlay)
+      : null
+
+    // Hold the model, and show its collision when asked or when alone.
     this.loaded = {
       parts: new Parts(name, model, signal),
       signal,
       shown: new Map(),
+      collision,
+      collisionOnly,
       framed: false,
+    }
+    if (collision) {
+      collision.name = 'Collision'
+      collision.renderOrder = 1
+      collision.visible = this.collisionShown || collisionOnly
+      this.content.add(collision)
     }
   }
 
@@ -311,7 +362,7 @@ export class Viewer {
     }
 
     // Frame the first view and put the grid under it.
-    if (!loaded.framed && stats.drawCalls > 0) {
+    if (!loaded.framed && (stats.drawCalls > 0 || loaded.collision?.visible)) {
       loaded.framed = true
       this.frame()
       this.setGridSize(new THREE.Box3().setFromObject(this.content))

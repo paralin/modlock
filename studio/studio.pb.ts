@@ -159,6 +159,10 @@ export interface Model {
    * Materials holds each material the draw calls name, by its name.
    */
   materials?: { [key: string]: Material }
+  /**
+   * Collision is the model's collision shapes, empty for a model without.
+   */
+  collision?: Collision
 }
 
 export const Model: MessageType<Model> =
@@ -170,6 +174,7 @@ export const Model: MessageType<Model> =
       [3, 'default_groups', 4],
       [4, 'lods', 13],
       [5, 'materials', 11, 584, Material.codec],
+      [6, 'collision', 11, 0, Collision.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Model): Model => {
@@ -200,6 +205,13 @@ export const Model: MessageType<Model> =
               m.materials[k] = v
               break
             }
+            case 6:
+              m.collision = Collision.decode(
+                r,
+                r.delimited(),
+                m.collision ?? {},
+              )
+              break
             default:
               r.skip(t)
           }
@@ -232,6 +244,79 @@ export const Model: MessageType<Model> =
               Material.writeField(w, 2, v)
               w.join(s)
             }
+        }
+        {
+          const v = m.collision
+          if (v != null) Collision.writeField(w, 6, v)
+        }
+      },
+    },
+  )
+
+/**
+ * Collision is every collision shape of a model as one triangle mesh in the
+ * model's space: hulls and meshes as stored, spheres and capsules
+ * tessellated.
+ *
+ * @generated from message modlock.studio.Collision
+ */
+export interface Collision {
+  /**
+   * Positions holds each vertex as three little-endian 32-bit floats.
+   */
+  positions?: Uint8Array
+  /**
+   * Indices holds each triangle's three vertices as little-endian 32-bit
+   * indexes into positions.
+   */
+  indices?: Uint8Array
+  /**
+   * Shapes counts the spheres, capsules, hulls and meshes drawn.
+   */
+  shapes?: number
+}
+
+export const Collision: MessageType<Collision> =
+  /* @__PURE__ */ createMessageType<Collision>(
+    'modlock.studio.Collision',
+    () => [
+      [1, 'positions', 12],
+      [2, 'indices', 12],
+      [3, 'shapes', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Collision): Collision => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.positions = r.bytes()
+              break
+            case 2:
+              m.indices = r.bytes()
+              break
+            case 3:
+              m.shapes = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Collision, w: Writer): void => {
+        {
+          const v = m.positions
+          if (v != null && v.length !== 0) w.uint32(10).bytes(v)
+        }
+        {
+          const v = m.indices
+          if (v != null && v.length !== 0) w.uint32(18).bytes(v)
+        }
+        {
+          const v = m.shapes
+          if (v) w.uint32(24).uint32(v)
         }
       },
     },

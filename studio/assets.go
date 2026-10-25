@@ -213,10 +213,14 @@ type storedBuffer struct {
 }
 
 // meshes reads every mesh of a model, in every level of detail and mesh
-// group, with the masks that select them. A mesh it cannot read is left out.
+// group, with the masks that select them. A mesh it cannot read is left out,
+// and a model with only collision has none.
 func meshes(blocks []resource.Block) ([]mesh, error) {
 	ctrl, err := decodeTag(blocks, "CTRL")
 	if err != nil {
+		if !slices.ContainsFunc(blocks, func(b resource.Block) bool { return b.Tag == "CTRL" }) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	// DATA holds each mesh's level of detail and mesh group masks, by mesh
@@ -498,6 +502,7 @@ func (a *Assets) model(w http.ResponseWriter, r *http.Request) {
 		out.Meshes = append(out.Meshes, m.desc)
 		out.Lods = max(out.Lods, uint32(bits.Len64(m.desc.LodMask)))
 	}
+	out.Collision = collision(blocks)
 
 	// Read each material the draw calls name once.
 	for _, m := range found {

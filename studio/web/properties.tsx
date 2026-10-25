@@ -1,6 +1,7 @@
 // The properties editor: what the selected file is, and the controls that
 // change how the viewport draws it.
 import type { Dispatch, ReactNode } from 'react'
+import { collisionCounts, hasCollision } from './models.js'
 import { formatName } from './scene.js'
 import type { Asset, Event } from './state.js'
 
@@ -93,6 +94,16 @@ function ModelProperties(props: {
             : '…'}
         </Field>
       </Section>
+      {hasCollision(asset.model) && (
+        <Section title="Collision">
+          <Field label="Shapes">
+            {collisionCounts(asset.model).shapes.toLocaleString()}
+          </Field>
+          <Field label="Triangles">
+            {collisionCounts(asset.model).triangles.toLocaleString()}
+          </Field>
+        </Section>
+      )}
       {lods > 1 && (
         <Section title="Level of detail">
           <div className="segmented" role="group" aria-label="Level of detail">
@@ -123,21 +134,23 @@ function ModelProperties(props: {
         </Section>
       )}
       <Missing missing={asset.missing} onSelect={props.onSelect} />
-      <Section title="Materials">
-        {materials.map(([name, material]) => (
-          <div key={name} className="material">
-            <Link name={`${name}_c`} onSelect={props.onSelect} />
-            <span className="dim">{material.shader}</span>
-            {Object.entries(material.textures ?? {})
-              .sort(byKey)
-              .map(([param, texture]) => (
-                <Field key={param} label={param}>
-                  <Link name={texture} onSelect={props.onSelect} />
-                </Field>
-              ))}
-          </div>
-        ))}
-      </Section>
+      {materials.length > 0 && (
+        <Section title="Materials">
+          {materials.map(([name, material]) => (
+            <div key={name} className="material">
+              <Link name={`${name}_c`} onSelect={props.onSelect} />
+              <span className="dim">{material.shader}</span>
+              {Object.entries(material.textures ?? {})
+                .sort(byKey)
+                .map(([param, texture]) => (
+                  <Field key={param} label={param}>
+                    <Link name={texture} onSelect={props.onSelect} />
+                  </Field>
+                ))}
+            </div>
+          ))}
+        </Section>
+      )}
     </>
   )
 }

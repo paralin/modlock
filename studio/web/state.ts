@@ -68,6 +68,9 @@ export interface Studio {
   asset: Asset
   shading: Shading
   grid: boolean
+  // collision shows a model's collision shapes over its meshes; a model
+  // with only collision always shows it.
+  collision: boolean
   // reset is the file the GPU last reset while drawing, so a second reset
   // on it fails instead of loading it again forever.
   reset: string
@@ -80,6 +83,7 @@ export const initial: Studio = {
   asset: { state: 'idle' },
   shading: 'material',
   grid: true,
+  collision: false,
   reset: '',
 }
 
@@ -107,6 +111,7 @@ export type Event =
   | { type: 'failed'; name: string; message: string }
   | { type: 'shading'; shading: Shading }
   | { type: 'grid' }
+  | { type: 'collision' }
   | { type: 'lost' }
   | { type: 'restored' }
 
@@ -137,6 +142,8 @@ export function reduce(studio: Studio, event: Event): Studio {
       return { ...studio, shading: event.shading }
     case 'grid':
       return { ...studio, grid: !studio.grid }
+    case 'collision':
+      return { ...studio, collision: !studio.collision }
     case 'lod':
     case 'group':
       return { ...studio, asset: reduceView(studio.asset, event) }

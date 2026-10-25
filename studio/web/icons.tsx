@@ -35,6 +35,7 @@ export type IconName =
   | 'wireframe'
   | 'frame'
   | 'grid'
+  | 'collision'
 
 // paths are each glyph's strokes.
 const paths: Record<IconName, ReactNode> = {
@@ -92,6 +93,12 @@ const paths: Record<IconName, ReactNode> = {
     </>
   ),
   grid: <path d="M2.5 5.5h11M2.5 10.5h11M5.5 2.5v11M10.5 2.5v11" />,
+  collision: (
+    <>
+      <path d="M8 2l5.5 3v6L8 14l-5.5-3V5z" strokeDasharray="2 1.5" />
+      <path d="M5.5 6.5l2.5 1.5 2.5-1.5M8 8v3" />
+    </>
+  ),
 }
 
 // Icon draws one glyph.

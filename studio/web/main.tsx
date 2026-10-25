@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { Listing, Model, Resource, Texture, World } from '../studio.pb.js'
 import { fetchMessage, kindOf, route } from './api.js'
 import { Icon } from './icons.js'
+import { collisionCounts, hasCollision, hasMeshes } from './models.js'
 import { Outliner } from './outliner.js'
 import { Properties } from './properties.js'
 import { formatName, Unavailable, Viewer, type Shading } from './scene.js'
@@ -176,6 +177,10 @@ function App() {
   // Apply the viewport's display options.
   useEffect(() => viewer.current?.setShading(studio.shading), [studio.shading])
   useEffect(() => viewer.current?.setGrid(studio.grid), [studio.grid])
+  useEffect(
+    () => viewer.current?.setCollision(studio.collision),
+    [studio.collision],
+  )
 
   // F frames the asset, as in other 3D tools, unless a field has focus.
   useEffect(() => {
@@ -277,6 +282,7 @@ function ViewportHeader(props: {
   const { asset } = studio
   const model = asset.state === 'model'
   const shaded = model || asset.state === 'map'
+  const overlay = model && hasMeshes(asset.model) && hasCollision(asset.model)
   const drawn = drawsInViewport(asset)
   return (
     <header className="viewport-head">
@@ -312,6 +318,17 @@ function ViewportHeader(props: {
           Grid
         </button>
       )}
+      {overlay && (
+        <button
+          className="tool"
+          aria-pressed={studio.collision}
+          title="Show the collision shapes"
+          onClick={() => dispatch({ type: 'collision' })}
+        >
+          <Icon name="collision" />
+          Collision
+        </button>
+      )}
       {drawn && (
         <button
           className="tool"
@@ -337,6 +354,14 @@ function StageNote(props: { asset: Asset }) {
   if (asset.state === 'lost')
     note = 'The graphics card reset. Drawing resumes when it is back.'
   if (asset.state === 'texture' && asset.unavailable) note = asset.unavailable
+
+  // A model with nothing to draw says so.
+  if (
+    asset.state === 'model' &&
+    !hasMeshes(asset.model) &&
+    !hasCollision(asset.model)
+  )
+    note = 'This model has no meshes or collision shapes'
   if (!note) return null
   return <p className="stage-note">{note}</p>
 }
@@ -354,7 +379,10 @@ function StatusBar(props: { studio: Studio }) {
   // The right side counts what the viewport draws.
   let right = ''
   if (asset.state === 'loading') right = `Loading ${asset.name}`
-  if (asset.state === 'model' && asset.stats) {
+  if (asset.state === 'model' && !hasMeshes(asset.model)) {
+    const { shapes, triangles } = collisionCounts(asset.model)
+    right = `${shapes.toLocaleString()} collision shapes · ${triangles.toLocaleString()} triangles`
+  } else if (asset.state === 'model' && asset.stats) {
     const { drawCalls, vertices, triangles } = asset.stats
     right = `${drawCalls} draw calls · ${vertices.toLocaleString()} vertices · ${Math.round(triangles).toLocaleString()} triangles`
     if (asset.missing.length)

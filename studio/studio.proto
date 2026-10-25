@@ -50,6 +50,24 @@ message Model {
 
   // Materials holds each material the draw calls name, by its name.
   map<string, Material> materials = 5;
+
+  // Collision is the model's collision shapes, empty for a model without.
+  Collision collision = 6;
+}
+
+// Collision is every collision shape of a model as one triangle mesh in the
+// model's space: hulls and meshes as stored, spheres and capsules
+// tessellated.
+message Collision {
+  // Positions holds each vertex as three little-endian 32-bit floats.
+  bytes positions = 1;
+
+  // Indices holds each triangle's three vertices as little-endian 32-bit
+  // indexes into positions.
+  bytes indices = 2;
+
+  // Shapes counts the spheres, capsules, hulls and meshes drawn.
+  uint32 shapes = 3;
 }
 
 // Mesh is one mesh of a model.
