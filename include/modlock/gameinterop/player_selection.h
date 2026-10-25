@@ -25,4 +25,10 @@ MODLOCK_API std::expected<ResetHeroPawn, std::string> ResolveResetHeroPawn(
 using RespawnPawn = void (*)(void* pawn, bool force);
 MODLOCK_API std::expected<RespawnPawn, std::string> ResolveRespawnPawn(const ModuleImage& server);
 
+// ChangeTeamKeepingHero moves a controller to another team with its hero pawn,
+// which keeps its hero, abilities, items, health and place.
+using ChangeTeamKeepingHero = void (*)(void* controller, int team);
+MODLOCK_API std::expected<ChangeTeamKeepingHero, std::string> ResolveChangeTeamKeepingHero(
+    const ModuleImage& server);
+
 }  // namespace modlock::gameinterop

@@ -356,6 +356,14 @@ message ClearCameraRequest {
   optional string context = 2;
 }
 
+// ChangeTeamRequest moves one player's hero to another team.
+message ChangeTeamRequest {
+  int32 player = 1;
+
+  // Team is the team number to move to: 2 or 3.
+  int32 team = 2;
+}
+
 // FreezeRequest holds or releases one player's hero.
 message FreezeRequest {
   int32 player = 1;

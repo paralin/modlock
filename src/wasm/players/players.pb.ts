@@ -1791,6 +1791,61 @@ export const ClearCameraRequest: MessageType<ClearCameraRequest> =
   )
 
 /**
+ * ChangeTeamRequest moves one player's hero to another team.
+ *
+ * @generated from message modlock.wasm.players.ChangeTeamRequest
+ */
+export interface ChangeTeamRequest {
+  player?: number
+  /**
+   * Team is the team number to move to: 2 or 3.
+   */
+  team?: number
+}
+
+export const ChangeTeamRequest: MessageType<ChangeTeamRequest> =
+  /* @__PURE__ */ createMessageType<ChangeTeamRequest>(
+    'modlock.wasm.players.ChangeTeamRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'team', 5],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ChangeTeamRequest,
+      ): ChangeTeamRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.team = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ChangeTeamRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.team
+          if (v) w.uint32(16).int32(v)
+        }
+      },
+    },
+  )
+
+/**
  * FreezeRequest holds or releases one player's hero.
  *
  * @generated from message modlock.wasm.players.FreezeRequest

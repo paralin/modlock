@@ -38,4 +38,13 @@ std::expected<RespawnPawn, std::string> ResolveRespawnPawn(const ModuleImage& se
   return reinterpret_cast<RespawnPawn>(*target);
 }
 
+std::expected<ChangeTeamKeepingHero, std::string> ResolveChangeTeamKeepingHero(
+    const ModuleImage& server) {
+  auto target = ResolveSignature(server, "controller.change-team-keeping-hero");
+  if (!target) {
+    return std::unexpected(target.error());
+  }
+  return reinterpret_cast<ChangeTeamKeepingHero>(*target);
+}
+
 }  // namespace modlock::gameinterop

@@ -608,6 +608,17 @@ func (p Player) Respawn() error {
 	return invoke("Respawn", &playerspb.PlayerRequest{Player: p.Slot}, nil)
 }
 
+// ChangeTeam moves the player's hero, living or dead, to team 2 or 3 where
+// it stands, for a human or a bot alike. The hero keeps its hero,
+// abilities, items and health, and the player keeps their connection; a
+// dead hero respawns on its new team, on its timer or through Respawn. A
+// living hero moved inside the other team's base dies to the base's
+// defense. A player without a hero joins a team through SelectHero
+// instead.
+func (p Player) ChangeTeam(team int32) error {
+	return invoke("ChangeTeam", &playerspb.ChangeTeamRequest{Player: p.Slot, Team: team}, nil)
+}
+
 // ClearItems removes every item the player's hero owns.
 func (p Player) ClearItems() error {
 	return invoke("ClearItems", &playerspb.PlayerRequest{Player: p.Slot}, nil)

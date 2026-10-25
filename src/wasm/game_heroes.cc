@@ -380,6 +380,19 @@ std::expected<void, std::string> Game::Respawn(const players::PlayerRequest& req
   return observer_.RespawnPlayer(request.player(), sample->session_generation, *respawn);
 }
 
+std::expected<void, std::string> Game::ChangeTeam(const players::ChangeTeamRequest& request) {
+  // Resolve the team change and the player's connection.
+  auto change_team = services_.ChangeTeam();
+  if (!change_team) {
+    return std::unexpected(change_team.error());
+  }
+  const auto state = gameinterop::ConnectionTracker::StateForSlot(request.player());
+  if (!state.occupied) {
+    return std::unexpected("no player is in that slot");
+  }
+  return observer_.MovePlayer(request.player(), state.generation, request.team(), *change_team);
+}
+
 std::expected<void, std::string> Game::ClearItems(const players::PlayerRequest& request) {
   // Resolve the item tables and the player's live pawn.
   auto abilities = services_.Abilities();

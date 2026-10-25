@@ -122,6 +122,16 @@ signatures {
   shape: "CCitadelPlayerPawn* CreateHeroPawn(CCitadelPlayerController*, int team)"
 }
 
+# The game's keep-hero team change: it clears the controller's flag that has
+# CCitadelPlayerPawn::OnTeamChanged strip the hero, abilities and items, runs
+# ChangeTeam (slot 105) and sets the flag again.
+signatures {
+  id: "controller.change-team-keeping-hero"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 48 83 EC ?? 48 8B 01 48 8B D9 C6 81 ?? ?? ?? ?? 00 FF 90 ?? ?? ?? ?? C6 83 ?? ?? ?? ?? 01 48 83 C4 ?? 5B C3"
+  shape: "void ChangeTeamKeepingHero(CCitadelPlayerController*, int team)"
+}
+
 # Every hero's input reaches movement here: the network's commands for a
 # player, and the one command a bot's brain or scripted path builds each tick
 # in CCitadelPlayerBot::PhysicsSimulate. Each CUserCmd is 0xa8 bytes.

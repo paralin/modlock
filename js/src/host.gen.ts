@@ -1955,6 +1955,19 @@ export class Player {
     return call('Respawn', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
   }
 
+  /**
+   * changeTeam moves the player's hero, living or dead, to team 2 or 3 where
+   * it stands, for a human or a bot alike. The hero keeps its hero,
+   * abilities, items and health, and the player keeps their connection; a
+   * dead hero respawns on its new team, on its timer or through Respawn. A
+   * living hero moved inside the other team's base dies to the base's
+   * defense. A player without a hero joins a team through SelectHero
+   * instead.
+   */
+  changeTeam(team: number): boolean {
+    return call('ChangeTeam', playersPb.ChangeTeamRequest.toBinary({ player: this.slot, team })) !== undefined
+  }
+
   /** clearItems removes every item the player's hero owns. */
   clearItems(): boolean {
     return call('ClearItems', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined

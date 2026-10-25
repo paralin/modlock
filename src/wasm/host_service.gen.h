@@ -208,6 +208,18 @@ class HostService {
     return std::unexpected("this host does not support Respawn");
   }
 
+  // ChangeTeam moves the player's hero, living or dead, to team 2 or 3 where
+  // it stands, for a human or a bot alike. The hero keeps its hero,
+  // abilities, items and health, and the player keeps their connection; a
+  // dead hero respawns on its new team, on its timer or through Respawn. A
+  // living hero moved inside the other team's base dies to the base's
+  // defense. A player without a hero joins a team through SelectHero
+  // instead.
+  virtual std::expected<void, std::string> ChangeTeam(
+      const players::ChangeTeamRequest& /*request*/) {
+    return std::unexpected("this host does not support ChangeTeam");
+  }
+
   // ClearItems removes every item the player's hero owns.
   virtual std::expected<void, std::string> ClearItems(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support ClearItems");
@@ -1029,6 +1041,14 @@ class HostService {
              return detail::Fail("the Respawn request is malformed");
            }
            return detail::Answer(host.Respawn(request));
+         }},
+        {"ChangeTeam",
+         [](HostService& host, const std::string& bytes) {
+           players::ChangeTeamRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the ChangeTeam request is malformed");
+           }
+           return detail::Answer(host.ChangeTeam(request));
          }},
         {"ClearItems",
          [](HostService& host, const std::string& bytes) {

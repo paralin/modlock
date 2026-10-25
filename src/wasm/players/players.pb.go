@@ -1179,6 +1179,34 @@ func (x *ClearCameraRequest) GetContext() string {
 	return ""
 }
 
+// ChangeTeamRequest moves one player's hero to another team.
+type ChangeTeamRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Team is the team number to move to: 2 or 3.
+	Team int32 `protobuf:"varint,2,opt,name=team,proto3" json:"team,omitempty"`
+}
+
+func (x *ChangeTeamRequest) Reset() {
+	*x = ChangeTeamRequest{}
+}
+
+func (*ChangeTeamRequest) ProtoMessage() {}
+
+func (x *ChangeTeamRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ChangeTeamRequest) GetTeam() int32 {
+	if x != nil {
+		return x.Team
+	}
+	return 0
+}
+
 // FreezeRequest holds or releases one player's hero.
 type FreezeRequest struct {
 	unknownFields []byte
@@ -2226,6 +2254,23 @@ func (m *ClearCameraRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *ChangeTeamRequest) CloneVT() *ChangeTeamRequest {
+	if m == nil {
+		return (*ChangeTeamRequest)(nil)
+	}
+	r := new(ChangeTeamRequest)
+	r.Player = m.Player
+	r.Team = m.Team
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ChangeTeamRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *FreezeRequest) CloneVT() *FreezeRequest {
 	if m == nil {
 		return (*FreezeRequest)(nil)
@@ -3248,6 +3293,29 @@ func (this *ClearCameraRequest) EqualVT(that *ClearCameraRequest) bool {
 
 func (this *ClearCameraRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ClearCameraRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ChangeTeamRequest) EqualVT(that *ChangeTeamRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Team != that.Team {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ChangeTeamRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ChangeTeamRequest)
 	if !ok {
 		return false
 	}
@@ -5353,6 +5421,56 @@ func (x *ClearCameraRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ClearCameraRequest from JSON.
 func (x *ClearCameraRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ChangeTeamRequest message to JSON.
+func (x *ChangeTeamRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Team != 0 || s.HasField("team") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("team")
+		s.WriteInt32(x.Team)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ChangeTeamRequest to JSON.
+func (x *ChangeTeamRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ChangeTeamRequest message from JSON.
+func (x *ChangeTeamRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "team":
+			s.AddField("team")
+			x.Team = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ChangeTeamRequest from JSON.
+func (x *ChangeTeamRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -7606,6 +7724,48 @@ func (m *ClearCameraRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ChangeTeamRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ChangeTeamRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ChangeTeamRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Team != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Team))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *FreezeRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -8733,6 +8893,18 @@ func (m *ClearCameraRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *ChangeTeamRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Team)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *FreezeRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -9532,6 +9704,24 @@ func (x *ClearCameraRequest) MarshalProtoText() string {
 }
 
 func (x *ClearCameraRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ChangeTeamRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ChangeTeamRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Team != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "team")
+		protobuf_go_lite.TextWriteInt(&sb, x.Team)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ChangeTeamRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -11773,6 +11963,67 @@ func (m *ClearCameraRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Context = &v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ChangeTeamRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ChangeTeamRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ChangeTeamRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Team", wireType)
+			}
+			m.Team = 0
+			m.Team, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

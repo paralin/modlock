@@ -111,6 +111,7 @@ class GameServices {
   std::expected<const gameinterop::AbilitySlots*, std::string> Slots();
   std::expected<gameinterop::CreateAbility, std::string> CreateAbility();
   std::expected<gameinterop::RespawnPawn, std::string> Respawn();
+  std::expected<gameinterop::ChangeTeamKeepingHero, std::string> ChangeTeam();
   std::expected<gameinterop::ResetHeroPawn, std::string> ResetHero();
   std::expected<gameinterop::TeleportClientCamera, std::string> Teleport();
   std::expected<const gameinterop::PawnMotion*, std::string> Motion();
@@ -195,6 +196,7 @@ class GameServices {
   std::optional<gameinterop::AbilitySlots> slots_;
   gameinterop::CreateAbility create_ability_ = nullptr;
   gameinterop::RespawnPawn respawn_ = nullptr;
+  gameinterop::ChangeTeamKeepingHero change_team_ = nullptr;
   gameinterop::ResetHeroPawn reset_hero_ = nullptr;
   gameinterop::TeleportClientCamera teleport_ = nullptr;
   std::optional<gameinterop::PawnMotion> motion_;
@@ -402,6 +404,7 @@ class Game : public HostService {
   std::expected<void, std::string> ClearCamera(const players::ClearCameraRequest& request) override;
   std::expected<void, std::string> Unwatch(const players::PlayerRequest& request) override;
   std::expected<void, std::string> Respawn(const players::PlayerRequest& request) override;
+  std::expected<void, std::string> ChangeTeam(const players::ChangeTeamRequest& request) override;
   std::expected<void, std::string> ClearItems(const players::PlayerRequest& request) override;
   std::expected<void, std::string> Freeze(const players::FreezeRequest& request) override;
   std::expected<void, std::string> RestoreStamina(const players::PlayerRequest& request) override;

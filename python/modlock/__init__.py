@@ -1387,6 +1387,17 @@ class Player:
         """respawn revives the player's dead hero."""
         return _call("Respawn", "PlayerRequest", {"player": self}) is not None
 
+    def change_team(self, team: int) -> bool:
+        """change_team moves the player's hero, living or dead, to team 2 or 3 where
+        it stands, for a human or a bot alike. The hero keeps its hero,
+        abilities, items and health, and the player keeps their connection; a
+        dead hero respawns on its new team, on its timer or through Respawn. A
+        living hero moved inside the other team's base dies to the base's
+        defense. A player without a hero joins a team through SelectHero
+        instead.
+        """
+        return _call("ChangeTeam", "ChangeTeamRequest", {"player": self, "team": team}) is not None
+
     def clear_items(self) -> bool:
         """clear_items removes every item the player's hero owns."""
         return _call("ClearItems", "PlayerRequest", {"player": self}) is not None
@@ -2804,6 +2815,13 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "context", "string", optional=True),
+        ],
+    ),
+    "ChangeTeamRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "team", "int32"),
         ],
     ),
     "FreezeRequest": (

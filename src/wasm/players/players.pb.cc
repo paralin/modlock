@@ -442,6 +442,32 @@ struct ClearCameraRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClearCameraRequestDefaultTypeInternal _ClearCameraRequest_default_instance_;
 
+inline constexpr ChangeTeamRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        player_{0},
+        team_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ChangeTeamRequest::ChangeTeamRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ChangeTeamRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ChangeTeamRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ChangeTeamRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ChangeTeamRequestDefaultTypeInternal() {}
+  union {
+    ChangeTeamRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChangeTeamRequestDefaultTypeInternal _ChangeTeamRequest_default_instance_;
+
 inline constexpr CameraLag::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -1199,6 +1225,13 @@ const ::uint32_t
         1,
         0,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ChangeTeamRequest, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ChangeTeamRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ChangeTeamRequest, _impl_.team_),
+        0,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::FreezeRequest, _impl_._has_bits_),
         5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::FreezeRequest, _impl_.player_),
@@ -1343,18 +1376,19 @@ static const ::_pbi::MigrationSchema
         {191, sizeof(::modlock::wasm::players::CameraLag)},
         {204, sizeof(::modlock::wasm::players::CameraOptions)},
         {225, sizeof(::modlock::wasm::players::ClearCameraRequest)},
-        {232, sizeof(::modlock::wasm::players::FreezeRequest)},
-        {239, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
-        {248, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
-        {255, sizeof(::modlock::wasm::players::ResetHeroRequest)},
-        {262, sizeof(::modlock::wasm::players::HealRequest)},
-        {269, sizeof(::modlock::wasm::players::SetStaminaRequest)},
-        {276, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
-        {283, sizeof(::modlock::wasm::players::HeroTarget)},
-        {308, sizeof(::modlock::wasm::players::EquipmentTarget)},
-        {317, sizeof(::modlock::wasm::players::TimerTarget)},
-        {332, sizeof(::modlock::wasm::players::BotOptions)},
-        {347, sizeof(::modlock::wasm::players::BotResponse)},
+        {232, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
+        {239, sizeof(::modlock::wasm::players::FreezeRequest)},
+        {246, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
+        {255, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
+        {262, sizeof(::modlock::wasm::players::ResetHeroRequest)},
+        {269, sizeof(::modlock::wasm::players::HealRequest)},
+        {276, sizeof(::modlock::wasm::players::SetStaminaRequest)},
+        {283, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
+        {290, sizeof(::modlock::wasm::players::HeroTarget)},
+        {315, sizeof(::modlock::wasm::players::EquipmentTarget)},
+        {324, sizeof(::modlock::wasm::players::TimerTarget)},
+        {339, sizeof(::modlock::wasm::players::BotOptions)},
+        {354, sizeof(::modlock::wasm::players::BotResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::players::_RestoredEvent_default_instance_._instance,
@@ -1378,6 +1412,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::players::_CameraLag_default_instance_._instance,
     &::modlock::wasm::players::_CameraOptions_default_instance_._instance,
     &::modlock::wasm::players::_ClearCameraRequest_default_instance_._instance,
+    &::modlock::wasm::players::_ChangeTeamRequest_default_instance_._instance,
     &::modlock::wasm::players::_FreezeRequest_default_instance_._instance,
     &::modlock::wasm::players::_AdjustSoulsRequest_default_instance_._instance,
     &::modlock::wasm::players::_StartingSoulsRequest_default_instance_._instance,
@@ -1478,47 +1513,49 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "elayB\013\n\t_relativeB\013\n\t_priorityB\t\n\007_share"
     "dB\t\n\007_target\"F\n\022ClearCameraRequest\022\016\n\006pl"
     "ayer\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001B\n\n\010_con"
-    "text\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005\022\023\n"
-    "\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"S\n\022AdjustS"
-    "oulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005delta\030\002 \001"
-    "(\005\022\023\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024St"
-    "artingSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005so"
-    "uls\030\002 \001(\005\"1\n\020ResetHeroRequest\022\016\n\006player\030"
-    "\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealRequest\022\016\n\006p"
-    "layer\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4\n\021SetStamin"
-    "aRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007stamina\030\002 \001("
-    "\002\"V\n\022RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\022"
-    "0\n\006target\030\002 \001(\0132 .modlock.wasm.players.H"
-    "eroTarget\"\323\003\n\nHeroTarget\022(\n\010position\030\001 \001"
-    "(\0132\026.modlock.geometry.Vec3\022-\n\006facing\030\002 \001"
-    "(\0132\035.modlock.geometry.EulerAngles\022\022\n\005fre"
-    "sh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210\001\001\022\023\n\006hea"
-    "lth\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 \001(\005H\003\210\001\001\022"
-    "\027\n\017upgrade_bonuses\030\007 \003(\002\0228\n\tabilities\030\010 "
-    "\003(\0132%.modlock.wasm.players.EquipmentTarg"
-    "et\0224\n\005items\030\t \003(\0132%.modlock.wasm.players"
-    ".EquipmentTarget\022\032\n\rreplace_items\030\n \001(\010H"
-    "\004\210\001\001\0221\n\006timers\030\013 \003(\0132!.modlock.wasm.play"
-    "ers.TimerTargetB\010\n\006_freshB\010\n\006_levelB\t\n\007_"
-    "healthB\r\n\013_max_healthB\020\n\016_replace_items\""
-    "H\n\017EquipmentTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002"
-    " \001(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013Ti"
-    "merTarget\022\n\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033"
-    "\n\016cooldown_start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_"
-    "end\030\004 \001(\002H\001\210\001\001\022\033\n\016recharge_start\030\005 \001(\002H\002"
-    "\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_coold"
-    "own_startB\017\n\r_cooldown_endB\021\n\017_recharge_"
-    "startB\017\n\r_recharge_end\"\224\001\n\nBotOptions\022\014\n"
-    "\004name\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name\030\003"
-    " \001(\tH\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010position\030\005 "
-    "\001(\0132\026.modlock.geometry.Vec3H\001\210\001\001B\006\n\004hero"
-    "B\013\n\t_position\"\035\n\013BotResponse\022\016\n\006player\030\001"
-    " \001(\005*\247\001\n\013CameraParam\022\031\n\025CAMERA_PARAM_DIS"
-    "TANCE\020\000\022\036\n\032CAMERA_PARAM_FIELD_OF_VIEW\020\001\022"
-    "\027\n\023CAMERA_PARAM_TARGET\020\002\022 \n\034CAMERA_PARAM"
-    "_VERTICAL_OFFSET\020\003\022\"\n\036CAMERA_PARAM_HORIZ"
-    "ONTAL_OFFSET\020\004B5Z3github.com/paralin/mod"
-    "lock/src/wasm/players;playersb\006proto3"
+    "text\"1\n\021ChangeTeamRequest\022\016\n\006player\030\001 \001("
+    "\005\022\014\n\004team\030\002 \001(\005\"\?\n\rFreezeRequest\022\016\n\006play"
+    "er\030\001 \001(\005\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen"
+    "\"S\n\022AdjustSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r"
+    "\n\005delta\030\002 \001(\005\022\023\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_s"
+    "ilent\"5\n\024StartingSoulsRequest\022\016\n\006player\030"
+    "\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"1\n\020ResetHeroRequest"
+    "\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealR"
+    "equest\022\016\n\006player\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4"
+    "\n\021SetStaminaRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007s"
+    "tamina\030\002 \001(\002\"V\n\022RestoreHeroRequest\022\016\n\006pl"
+    "ayer\030\001 \001(\005\0220\n\006target\030\002 \001(\0132 .modlock.was"
+    "m.players.HeroTarget\"\323\003\n\nHeroTarget\022(\n\010p"
+    "osition\030\001 \001(\0132\026.modlock.geometry.Vec3\022-\n"
+    "\006facing\030\002 \001(\0132\035.modlock.geometry.EulerAn"
+    "gles\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H"
+    "\001\210\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030"
+    "\006 \001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses\030\007 \003(\002\0228\n\ta"
+    "bilities\030\010 \003(\0132%.modlock.wasm.players.Eq"
+    "uipmentTarget\0224\n\005items\030\t \003(\0132%.modlock.w"
+    "asm.players.EquipmentTarget\022\032\n\rreplace_i"
+    "tems\030\n \001(\010H\004\210\001\001\0221\n\006timers\030\013 \003(\0132!.modloc"
+    "k.wasm.players.TimerTargetB\010\n\006_freshB\010\n\006"
+    "_levelB\t\n\007_healthB\r\n\013_max_healthB\020\n\016_rep"
+    "lace_items\"H\n\017EquipmentTarget\022\n\n\002id\030\001 \001("
+    "\r\022\021\n\004slot\030\002 \001(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_"
+    "slot\"\342\001\n\013TimerTarget\022\n\n\002id\030\001 \001(\r\022\017\n\007char"
+    "ges\030\002 \001(\005\022\033\n\016cooldown_start\030\003 \001(\002H\000\210\001\001\022\031"
+    "\n\014cooldown_end\030\004 \001(\002H\001\210\001\001\022\033\n\016recharge_st"
+    "art\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001"
+    "\001B\021\n\017_cooldown_startB\017\n\r_cooldown_endB\021\n"
+    "\017_recharge_startB\017\n\r_recharge_end\"\224\001\n\nBo"
+    "tOptions\022\014\n\004name\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\t"
+    "hero_name\030\003 \001(\tH\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010"
+    "position\030\005 \001(\0132\026.modlock.geometry.Vec3H\001"
+    "\210\001\001B\006\n\004heroB\013\n\t_position\"\035\n\013BotResponse\022"
+    "\016\n\006player\030\001 \001(\005*\247\001\n\013CameraParam\022\031\n\025CAMER"
+    "A_PARAM_DISTANCE\020\000\022\036\n\032CAMERA_PARAM_FIELD"
+    "_OF_VIEW\020\001\022\027\n\023CAMERA_PARAM_TARGET\020\002\022 \n\034C"
+    "AMERA_PARAM_VERTICAL_OFFSET\020\003\022\"\n\036CAMERA_"
+    "PARAM_HORIZONTAL_OFFSET\020\004B5Z3github.com/"
+    "paralin/modlock/src/wasm/players;players"
+    "b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps[1] = {
@@ -1528,13 +1565,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto = {
     false,
     false,
-    5037,
+    5088,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
     "github.com/paralin/modlock/src/wasm/players/players.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps,
     1,
-    33,
+    34,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto::offsets,
@@ -9303,6 +9340,299 @@ void ClearCameraRequest::InternalSwap(ClearCameraRequest* PROTOBUF_RESTRICT PROT
 }
 
 ::google::protobuf::Metadata ClearCameraRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ChangeTeamRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ChangeTeamRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_._has_bits_);
+};
+
+ChangeTeamRequest::ChangeTeamRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ChangeTeamRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.players.ChangeTeamRequest)
+}
+ChangeTeamRequest::ChangeTeamRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ChangeTeamRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ChangeTeamRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE ChangeTeamRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ChangeTeamRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           0,
+           offsetof(Impl_, team_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::team_));
+}
+ChangeTeamRequest::~ChangeTeamRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.players.ChangeTeamRequest)
+  SharedDtor(*this);
+}
+inline void ChangeTeamRequest::SharedDtor(MessageLite& self) {
+  ChangeTeamRequest& this_ = static_cast<ChangeTeamRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ChangeTeamRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ChangeTeamRequest(arena);
+}
+constexpr auto ChangeTeamRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ChangeTeamRequest),
+                                            alignof(ChangeTeamRequest));
+}
+constexpr auto ChangeTeamRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ChangeTeamRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ChangeTeamRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ChangeTeamRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ChangeTeamRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ChangeTeamRequest>(), &ChangeTeamRequest::ByteSizeLong,
+              &ChangeTeamRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_._cached_size_),
+          false,
+      },
+      &ChangeTeamRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ChangeTeamRequest_class_data_ =
+        ChangeTeamRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ChangeTeamRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ChangeTeamRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ChangeTeamRequest_class_data_.tc_table);
+  return ChangeTeamRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+ChangeTeamRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ChangeTeamRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::players::ChangeTeamRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // int32 team = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ChangeTeamRequest, _impl_.team_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_.team_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ChangeTeamRequest, _impl_.player_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_.player_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_.player_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // int32 team = 2;
+    {PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_.team_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ChangeTeamRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.players.ChangeTeamRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.team_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.team_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ChangeTeamRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ChangeTeamRequest& this_ = static_cast<const ChangeTeamRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ChangeTeamRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ChangeTeamRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.players.ChangeTeamRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // int32 team = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_team() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_team(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.players.ChangeTeamRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ChangeTeamRequest::ByteSizeLong(const MessageLite& base) {
+  const ChangeTeamRequest& this_ = static_cast<const ChangeTeamRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ChangeTeamRequest::ByteSizeLong() const {
+  const ChangeTeamRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.players.ChangeTeamRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // int32 team = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_team() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_team());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ChangeTeamRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<ChangeTeamRequest*>(&to_msg);
+  auto& from = static_cast<const ChangeTeamRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.players.ChangeTeamRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_team() != 0) {
+        _this->_impl_.team_ = from._impl_.team_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void ChangeTeamRequest::CopyFrom(const ChangeTeamRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.players.ChangeTeamRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ChangeTeamRequest::InternalSwap(ChangeTeamRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_.team_)
+      + sizeof(ChangeTeamRequest::_impl_.team_)
+      - PROTOBUF_FIELD_OFFSET(ChangeTeamRequest, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
+}
+
+::google::protobuf::Metadata ChangeTeamRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

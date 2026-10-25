@@ -189,6 +189,13 @@ std::expected<gameinterop::RespawnPawn, std::string> GameServices::Respawn() {
   return respawn_;
 }
 
+std::expected<gameinterop::ChangeTeamKeepingHero, std::string> GameServices::ChangeTeam() {
+  if (auto cached = Cache(change_team_, &gameinterop::ResolveChangeTeamKeepingHero); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return change_team_;
+}
+
 std::expected<gameinterop::ResetHeroPawn, std::string> GameServices::ResetHero() {
   if (auto cached = Cache(reset_hero_, &gameinterop::ResolveResetHeroPawn); !cached) {
     return std::unexpected(cached.error());

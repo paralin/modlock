@@ -1140,6 +1140,14 @@ export type Player = {
 	unwatch: (self: Player) -> boolean,
 	-- respawn revives the player's dead hero.
 	respawn: (self: Player) -> boolean,
+	-- changeTeam moves the player's hero, living or dead, to team 2 or 3 where
+	-- it stands, for a human or a bot alike. The hero keeps its hero,
+	-- abilities, items and health, and the player keeps their connection; a
+	-- dead hero respawns on its new team, on its timer or through Respawn. A
+	-- living hero moved inside the other team's base dies to the base's
+	-- defense. A player without a hero joins a team through SelectHero
+	-- instead.
+	changeTeam: (self: Player, team: number) -> boolean,
 	-- clearItems removes every item the player's hero owns.
 	clearItems: (self: Player) -> boolean,
 	-- freeze holds the player's hero in place, without input or damage, until
@@ -1360,6 +1368,17 @@ end
 -- respawn revives the player's dead hero.
 function Player.respawn(self: Player): boolean
 	return call("Respawn", "PlayerRequest", { player = self }) ~= nil
+end
+
+-- changeTeam moves the player's hero, living or dead, to team 2 or 3 where
+-- it stands, for a human or a bot alike. The hero keeps its hero,
+-- abilities, items and health, and the player keeps their connection; a
+-- dead hero respawns on its new team, on its timer or through Respawn. A
+-- living hero moved inside the other team's base dies to the base's
+-- defense. A player without a hero joins a team through SelectHero
+-- instead.
+function Player.changeTeam(self: Player, team: number): boolean
+	return call("ChangeTeam", "ChangeTeamRequest", { player = self, team = team }) ~= nil
 end
 
 -- clearItems removes every item the player's hero owns.
@@ -2470,6 +2489,10 @@ schema.CameraOptions = {
 schema.ClearCameraRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "context", kind = "string", optional = true },
+}
+schema.ChangeTeamRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "team", kind = "int32" },
 }
 schema.FreezeRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

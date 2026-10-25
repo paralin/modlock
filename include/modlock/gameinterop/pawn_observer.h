@@ -446,6 +446,12 @@ class MODLOCK_API PawnObserver {
   std::expected<void, std::string> RespawnPlayer(int32_t slot, uint32_t generation,
                                                  RespawnPawn respawn);
 
+  // MovePlayer moves this connection's hero, living or dead, to team 2 or 3
+  // in place. The hero keeps its hero, abilities, items, health and place; a
+  // dead hero stays dead until it respawns on the new team.
+  std::expected<void, std::string> MovePlayer(int32_t slot, uint32_t generation, int32_t team,
+                                              ChangeTeamKeepingHero change_team);
+
   // EliminatePlayer requests native death on the currently observed connection.
   // The session retains round eligibility independently of native respawn state.
   std::expected<void, std::string> EliminatePlayer(int32_t slot, uint32_t generation,

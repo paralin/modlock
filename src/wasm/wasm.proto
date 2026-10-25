@@ -170,6 +170,15 @@ service Host {
   // Respawn revives the player's dead hero.
   rpc Respawn(modlock.wasm.players.PlayerRequest) returns (Empty);
 
+  // ChangeTeam moves the player's hero, living or dead, to team 2 or 3 where
+  // it stands, for a human or a bot alike. The hero keeps its hero,
+  // abilities, items and health, and the player keeps their connection; a
+  // dead hero respawns on its new team, on its timer or through Respawn. A
+  // living hero moved inside the other team's base dies to the base's
+  // defense. A player without a hero joins a team through SelectHero
+  // instead.
+  rpc ChangeTeam(modlock.wasm.players.ChangeTeamRequest) returns (Empty);
+
   // ClearItems removes every item the player's hero owns.
   rpc ClearItems(modlock.wasm.players.PlayerRequest) returns (Empty);
 

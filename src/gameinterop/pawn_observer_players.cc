@@ -451,6 +451,38 @@ std::expected<void, std::string> PawnObserver::RespawnPlayer(int32_t slot, uint3
   return {};
 }
 
+std::expected<void, std::string> PawnObserver::MovePlayer(int32_t slot, uint32_t generation,
+                                                          int32_t team,
+                                                          ChangeTeamKeepingHero change_team) {
+  // Check the request and the connection.
+  if (team < 2 || team > 3 || !change_team || !seams_.slot_state) {
+    return std::unexpected("player team change unavailable");
+  }
+  const auto connection = seams_.slot_state(slot);
+  if (!connection.occupied || connection.generation != generation) {
+    return std::unexpected("player connection changed before team change");
+  }
+  auto current = ControllerOfSlot(slot);
+  if (!current) {
+    return std::unexpected(current.error());
+  }
+  auto [controller, list] = *current;
+
+  // Only a hero changes sides; a player with none joins through hero selection.
+  uint32_t hero = 0;
+  std::memcpy(&hero, controller + *layout_.hero_pawn_handle, sizeof(hero));
+  const uint8_t from = controller[layout_.team];
+  if (from < 2 || !IdentityOfHandle(list, hero)) {
+    return std::unexpected("player has no hero to move; select one on the team instead");
+  }
+  if (from != team) {
+    std::fprintf(stderr, "[modlock] player team change: slot=%d generation=%u team=%u->%d\n", slot,
+                 generation, from, team);
+    change_team(controller, team);
+  }
+  return {};
+}
+
 std::expected<void, std::string> PawnObserver::EliminatePlayer(int32_t slot, uint32_t generation,
                                                                const NativeDamage& damage) {
   // Kill the hero of this connection and confirm it died.
