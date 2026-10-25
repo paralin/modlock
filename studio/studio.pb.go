@@ -10,10 +10,51 @@ import (
 	maps "maps"
 	math "math"
 	slices "slices"
+	strconv "strconv"
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 )
+
+// Kind is how a light spreads.
+type Light_Kind int32
+
+const (
+	// KIND_SUN shines along direction from infinitely far away.
+	Light_KIND_SUN Light_Kind = 0
+	// KIND_POINT shines every way from origin.
+	Light_KIND_POINT Light_Kind = 1
+	// KIND_SPOT shines from origin into the half space along direction.
+	Light_KIND_SPOT Light_Kind = 2
+)
+
+// Enum value maps for Light_Kind.
+var (
+	Light_Kind_name = map[int32]string{
+		0: "KIND_SUN",
+		1: "KIND_POINT",
+		2: "KIND_SPOT",
+	}
+	Light_Kind_value = map[string]int32{
+		"KIND_SUN":   0,
+		"KIND_POINT": 1,
+		"KIND_SPOT":  2,
+	}
+)
+
+func (x Light_Kind) Enum() *Light_Kind {
+	p := new(Light_Kind)
+	*p = x
+	return p
+}
+
+func (x Light_Kind) String() string {
+	name, valid := Light_Kind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
 
 // Listing is every file in the game's archive, grouped by directory so each
 // directory's path is sent once.
@@ -588,6 +629,8 @@ type World struct {
 	// Materials holds each material a placement puts in place of a model's
 	// own, by its name.
 	Materials map[string]*Material `protobuf:"bytes,3,rep,name=materials,proto3" json:"materials,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Lighting is the map's baked light, absent for a map built without it.
+	Lighting *Lighting `protobuf:"bytes,4,opt,name=lighting,proto3" json:"lighting,omitempty"`
 }
 
 func (x *World) Reset() {
@@ -615,6 +658,159 @@ func (x *World) GetMaterials() map[string]*Material {
 		return x.Materials
 	}
 	return nil
+}
+
+func (x *World) GetLighting() *Lighting {
+	if x != nil {
+		return x.Lighting
+	}
+	return nil
+}
+
+// Lighting is a map's baked light. Its lightmaps cover the world meshes,
+// which sample them at their lightmap coordinates scaled by uv_scale. The
+// irradiance and direction maps hold the light that bounces and the lights
+// baked whole; the stationary lights are drawn at runtime over it, each
+// masked by one channel of the shadow map.
+type Lighting struct {
+	unknownFields []byte
+	// Irradiance is the archive path of the irradiance's constant term, linear
+	// HDR color.
+	Irradiance string `protobuf:"bytes,1,opt,name=irradiance,proto3" json:"irradiance,omitempty"`
+	// Direction is the archive path of the irradiance's luminance direction,
+	// each component centered on one half.
+	Direction string `protobuf:"bytes,2,opt,name=direction,proto3" json:"direction,omitempty"`
+	// Shadows is the archive path of the stationary lights' baked shadows, one
+	// light per channel.
+	Shadows string `protobuf:"bytes,3,opt,name=shadows,proto3" json:"shadows,omitempty"`
+	// UvScale scales a vertex's lightmap coordinates onto the lightmaps.
+	UvScale []float32 `protobuf:"fixed32,4,rep,packed,name=uv_scale,json=uvScale,proto3" json:"uvScale,omitempty"`
+	// Lights are the stationary lights.
+	Lights []*Light `protobuf:"bytes,5,rep,name=lights,proto3" json:"lights,omitempty"`
+}
+
+func (x *Lighting) Reset() {
+	*x = Lighting{}
+}
+
+func (*Lighting) ProtoMessage() {}
+
+func (x *Lighting) GetIrradiance() string {
+	if x != nil {
+		return x.Irradiance
+	}
+	return ""
+}
+
+func (x *Lighting) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *Lighting) GetShadows() string {
+	if x != nil {
+		return x.Shadows
+	}
+	return ""
+}
+
+func (x *Lighting) GetUvScale() []float32 {
+	if x != nil {
+		return x.UvScale
+	}
+	return nil
+}
+
+func (x *Lighting) GetLights() []*Light {
+	if x != nil {
+		return x.Lights
+	}
+	return nil
+}
+
+// Light is one stationary light, in the world's coordinates.
+type Light struct {
+	unknownFields []byte
+	Kind          Light_Kind `protobuf:"varint,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Origin is where a point or spot light sits.
+	Origin []float32 `protobuf:"fixed32,2,rep,packed,name=origin,proto3" json:"origin,omitempty"`
+	// Direction is the unit vector a sun or spot light shines along.
+	Direction []float32 `protobuf:"fixed32,3,rep,packed,name=direction,proto3" json:"direction,omitempty"`
+	// Color is the linear color times the brightness.
+	Color []float32 `protobuf:"fixed32,4,rep,packed,name=color,proto3" json:"color,omitempty"`
+	// Range is the distance at which a point or spot light fades out.
+	Range float32 `protobuf:"fixed32,5,opt,name=range,proto3" json:"range,omitempty"`
+	// Shadow is the light's channel in Lighting.shadows.
+	Shadow uint32 `protobuf:"varint,6,opt,name=shadow,proto3" json:"shadow,omitempty"`
+	// Inner and outer are the half angles, in degrees, of a point light's
+	// cone around direction: full brightness inside inner, fading to none at
+	// outer. An outer of 180 shines every way.
+	Inner float32 `protobuf:"fixed32,7,opt,name=inner,proto3" json:"inner,omitempty"`
+	Outer float32 `protobuf:"fixed32,8,opt,name=outer,proto3" json:"outer,omitempty"`
+}
+
+func (x *Light) Reset() {
+	*x = Light{}
+}
+
+func (*Light) ProtoMessage() {}
+
+func (x *Light) GetKind() Light_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return Light_KIND_SUN
+}
+
+func (x *Light) GetOrigin() []float32 {
+	if x != nil {
+		return x.Origin
+	}
+	return nil
+}
+
+func (x *Light) GetDirection() []float32 {
+	if x != nil {
+		return x.Direction
+	}
+	return nil
+}
+
+func (x *Light) GetColor() []float32 {
+	if x != nil {
+		return x.Color
+	}
+	return nil
+}
+
+func (x *Light) GetRange() float32 {
+	if x != nil {
+		return x.Range
+	}
+	return 0
+}
+
+func (x *Light) GetShadow() uint32 {
+	if x != nil {
+		return x.Shadow
+	}
+	return 0
+}
+
+func (x *Light) GetInner() float32 {
+	if x != nil {
+		return x.Inner
+	}
+	return 0
+}
+
+func (x *Light) GetOuter() float32 {
+	if x != nil {
+		return x.Outer
+	}
+	return 0
 }
 
 // Placement draws one model of World.models into the world.
@@ -1119,6 +1315,7 @@ func (m *World) CloneVT() *World {
 	r.Models = protobuf_go_lite.CloneSlice(m.Models)
 	r.Placements = protobuf_go_lite.CloneVTSlice(m.Placements)
 	r.Materials = protobuf_go_lite.CloneVTMap(m.Materials)
+	r.Lighting = protobuf_go_lite.CloneVTValue(m.Lighting)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1126,6 +1323,49 @@ func (m *World) CloneVT() *World {
 }
 
 func (m *World) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Lighting) CloneVT() *Lighting {
+	if m == nil {
+		return (*Lighting)(nil)
+	}
+	r := new(Lighting)
+	r.Irradiance = m.Irradiance
+	r.Direction = m.Direction
+	r.Shadows = m.Shadows
+	r.UvScale = protobuf_go_lite.CloneSlice(m.UvScale)
+	r.Lights = protobuf_go_lite.CloneVTSlice(m.Lights)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Lighting) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Light) CloneVT() *Light {
+	if m == nil {
+		return (*Light)(nil)
+	}
+	r := new(Light)
+	r.Kind = m.Kind
+	r.Range = m.Range
+	r.Shadow = m.Shadow
+	r.Inner = m.Inner
+	r.Outer = m.Outer
+	r.Origin = protobuf_go_lite.CloneSlice(m.Origin)
+	r.Direction = protobuf_go_lite.CloneSlice(m.Direction)
+	r.Color = protobuf_go_lite.CloneSlice(m.Color)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Light) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1513,11 +1753,87 @@ func (this *World) EqualVT(that *World) bool {
 	if !protobuf_go_lite.EqualVTMapImplicit(this.Materials, that.Materials, func() *Material { return &Material{} }) {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Lighting, that.Lighting) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *World) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*World)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Lighting) EqualVT(that *Lighting) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Irradiance != that.Irradiance {
+		return false
+	}
+	if this.Direction != that.Direction {
+		return false
+	}
+	if this.Shadows != that.Shadows {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.UvScale, that.UvScale) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Lights, that.Lights, func() *Light { return &Light{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Lighting) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Lighting)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Light) EqualVT(that *Light) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Kind != that.Kind {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Origin, that.Origin) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Direction, that.Direction) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Color, that.Color) {
+		return false
+	}
+	if this.Range != that.Range {
+		return false
+	}
+	if this.Shadow != that.Shadow {
+		return false
+	}
+	if this.Inner != that.Inner {
+		return false
+	}
+	if this.Outer != that.Outer {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Light) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Light)
 	if !ok {
 		return false
 	}
@@ -2910,6 +3226,11 @@ func (x *World) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteObjectEnd()
 	}
+	if x.Lighting != nil || s.HasField("lighting") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("lighting")
+		x.Lighting.MarshalProtoJSON(s.WithField("lighting"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2964,12 +3285,268 @@ func (x *World) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				v.UnmarshalProtoJSON(s)
 				x.Materials[key] = &v
 			})
+		case "lighting":
+			if s.ReadNil() {
+				x.Lighting = nil
+				return
+			}
+			x.Lighting = &Lighting{}
+			x.Lighting.UnmarshalProtoJSON(s.WithField("lighting", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the World from JSON.
 func (x *World) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Lighting message to JSON.
+func (x *Lighting) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Irradiance != "" || s.HasField("irradiance") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("irradiance")
+		s.WriteString(x.Irradiance)
+	}
+	if x.Direction != "" || s.HasField("direction") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("direction")
+		s.WriteString(x.Direction)
+	}
+	if x.Shadows != "" || s.HasField("shadows") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("shadows")
+		s.WriteString(x.Shadows)
+	}
+	if len(x.UvScale) > 0 || s.HasField("uvScale") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("uvScale")
+		s.WriteFloat32Array(x.UvScale)
+	}
+	if len(x.Lights) > 0 || s.HasField("lights") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("lights")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Lights {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("lights"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Lighting to JSON.
+func (x *Lighting) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Lighting message from JSON.
+func (x *Lighting) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "irradiance":
+			s.AddField("irradiance")
+			x.Irradiance = s.ReadString()
+		case "direction":
+			s.AddField("direction")
+			x.Direction = s.ReadString()
+		case "shadows":
+			s.AddField("shadows")
+			x.Shadows = s.ReadString()
+		case "uv_scale", "uvScale":
+			s.AddField("uv_scale")
+			if s.ReadNil() {
+				x.UvScale = nil
+				return
+			}
+			x.UvScale = s.ReadFloat32Array()
+		case "lights":
+			s.AddField("lights")
+			if s.ReadNil() {
+				x.Lights = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Lights = append(x.Lights, nil)
+					return
+				}
+				v := &Light{}
+				v.UnmarshalProtoJSON(s.WithField("lights", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Lights = append(x.Lights, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Lighting from JSON.
+func (x *Lighting) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Light_Kind to JSON.
+func (x Light_Kind) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Light_Kind_name)
+}
+
+// MarshalText marshals the Light_Kind to text.
+func (x Light_Kind) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Light_Kind_name)), nil
+}
+
+// MarshalJSON marshals the Light_Kind to JSON.
+func (x Light_Kind) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Light_Kind from JSON.
+func (x *Light_Kind) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Light_Kind_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Kind enum: %v", err)
+		return
+	}
+	*x = Light_Kind(v)
+}
+
+// UnmarshalText unmarshals the Light_Kind from text.
+func (x *Light_Kind) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Light_Kind_value)
+	if err != nil {
+		return err
+	}
+	*x = Light_Kind(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Light_Kind from JSON.
+func (x *Light_Kind) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Light message to JSON.
+func (x *Light) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Kind != 0 || s.HasField("kind") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kind")
+		x.Kind.MarshalProtoJSON(s)
+	}
+	if len(x.Origin) > 0 || s.HasField("origin") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("origin")
+		s.WriteFloat32Array(x.Origin)
+	}
+	if len(x.Direction) > 0 || s.HasField("direction") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("direction")
+		s.WriteFloat32Array(x.Direction)
+	}
+	if len(x.Color) > 0 || s.HasField("color") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("color")
+		s.WriteFloat32Array(x.Color)
+	}
+	if x.Range != 0 || s.HasField("range") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("range")
+		s.WriteFloat32(x.Range)
+	}
+	if x.Shadow != 0 || s.HasField("shadow") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("shadow")
+		s.WriteUint32(x.Shadow)
+	}
+	if x.Inner != 0 || s.HasField("inner") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("inner")
+		s.WriteFloat32(x.Inner)
+	}
+	if x.Outer != 0 || s.HasField("outer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("outer")
+		s.WriteFloat32(x.Outer)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Light to JSON.
+func (x *Light) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Light message from JSON.
+func (x *Light) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "kind":
+			s.AddField("kind")
+			x.Kind.UnmarshalProtoJSON(s)
+		case "origin":
+			s.AddField("origin")
+			if s.ReadNil() {
+				x.Origin = nil
+				return
+			}
+			x.Origin = s.ReadFloat32Array()
+		case "direction":
+			s.AddField("direction")
+			if s.ReadNil() {
+				x.Direction = nil
+				return
+			}
+			x.Direction = s.ReadFloat32Array()
+		case "color":
+			s.AddField("color")
+			if s.ReadNil() {
+				x.Color = nil
+				return
+			}
+			x.Color = s.ReadFloat32Array()
+		case "range":
+			s.AddField("range")
+			x.Range = s.ReadFloat32()
+		case "shadow":
+			s.AddField("shadow")
+			x.Shadow = s.ReadUint32()
+		case "inner":
+			s.AddField("inner")
+			x.Inner = s.ReadFloat32()
+		case "outer":
+			s.AddField("outer")
+			x.Outer = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Light from JSON.
+func (x *Light) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3936,6 +4513,16 @@ func (m *World) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Lighting != nil {
+		size, err := m.Lighting.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Materials) > 0 {
 		for k := range m.Materials {
 			v := m.Materials[k]
@@ -3974,6 +4561,158 @@ func (m *World) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0xa
 		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Lighting) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Lighting) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Lighting) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Lights) > 0 {
+		for iNdEx := len(m.Lights) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Lights[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.UvScale) > 0 {
+		for iNdEx := len(m.UvScale) - 1; iNdEx >= 0; iNdEx-- {
+			f1 := math.Float32bits(float32(m.UvScale[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f1))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.UvScale)*4))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Shadows) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Shadows)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Direction) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Direction)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Irradiance) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Irradiance)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Light) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Light) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Light) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Outer != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Outer))))
+		i--
+		dAtA[i] = 0x45
+	}
+	if m.Inner != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Inner))))
+		i--
+		dAtA[i] = 0x3d
+	}
+	if m.Shadow != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Shadow))
+		i--
+		dAtA[i] = 0x30
+	}
+	if m.Range != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Range))))
+		i--
+		dAtA[i] = 0x2d
+	}
+	if len(m.Color) > 0 {
+		for iNdEx := len(m.Color) - 1; iNdEx >= 0; iNdEx-- {
+			f1 := math.Float32bits(float32(m.Color[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f1))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Color)*4))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Direction) > 0 {
+		for iNdEx := len(m.Direction) - 1; iNdEx >= 0; iNdEx-- {
+			f2 := math.Float32bits(float32(m.Direction[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f2))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Direction)*4))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Origin) > 0 {
+		for iNdEx := len(m.Origin) - 1; iNdEx >= 0; iNdEx-- {
+			f3 := math.Float32bits(float32(m.Origin[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f3))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Origin)*4))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Kind != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Kind))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -4345,6 +5084,46 @@ func (m *World) SizeVT() (n int) {
 		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeMessage(1, l)
 		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
 	}
+	if m.Lighting != nil {
+		l = m.Lighting.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Lighting) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Irradiance)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Direction)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Shadows)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.UvScale)
+	for _, e := range m.Lights {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Light) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Kind)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Origin)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Direction)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Color)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Range)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Shadow)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Inner)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Outer)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4940,10 +5719,114 @@ func (x *World) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteMapEnd(&sb)
 	}
+	if x.Lighting != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "lighting")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Lighting)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *World) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Lighting) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Lighting")
+	if x.Irradiance != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "irradiance")
+		protobuf_go_lite.TextWriteString(&sb, x.Irradiance)
+	}
+	if x.Direction != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "direction")
+		protobuf_go_lite.TextWriteString(&sb, x.Direction)
+	}
+	if x.Shadows != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "shadows")
+		protobuf_go_lite.TextWriteString(&sb, x.Shadows)
+	}
+	if len(x.UvScale) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "uv_scale")
+		for i, v := range x.UvScale {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Lights) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "lights")
+		for i, v := range x.Lights {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Light{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Lighting) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x Light_Kind) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x *Light) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Light")
+	if x.Kind != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kind")
+		protobuf_go_lite.TextWriteStringer(&sb, Light_Kind(x.Kind))
+	}
+	if len(x.Origin) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "origin")
+		for i, v := range x.Origin {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Direction) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "direction")
+		for i, v := range x.Direction {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Color) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "color")
+		for i, v := range x.Color {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Range != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "range")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Range)
+	}
+	if x.Shadow != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "shadow")
+		protobuf_go_lite.TextWriteUint(&sb, x.Shadow)
+	}
+	if x.Inner != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "inner")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Inner)
+	}
+	if x.Outer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "outer")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Outer)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Light) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -6291,6 +7174,350 @@ func (m *World) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Materials[mapkey] = mapvalue
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lighting", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Lighting == nil {
+				m.Lighting = &Lighting{}
+			}
+			if err := m.Lighting.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Lighting) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Lighting: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Lighting: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Irradiance", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Irradiance = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Direction", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Direction = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Shadows", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Shadows = v
+		case 4:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.UvScale = append(m.UvScale, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.UvScale) == 0 {
+					m.UvScale = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.UvScale = append(m.UvScale, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field UvScale", wireType)
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lights", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Lights = append(m.Lights, &Light{})
+			if err := m.Lights[len(m.Lights)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Light) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Light: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Light: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kind", wireType)
+			}
+			m.Kind = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Kind = Light_Kind(_v)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Origin = append(m.Origin, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Origin) == 0 {
+					m.Origin = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Origin = append(m.Origin, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Origin", wireType)
+			}
+		case 3:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Direction = append(m.Direction, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Direction) == 0 {
+					m.Direction = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Direction = append(m.Direction, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Direction", wireType)
+			}
+		case 4:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Color = append(m.Color, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Color) == 0 {
+					m.Color = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Color = append(m.Color, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Color", wireType)
+			}
+		case 5:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Range", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Range = float32(math.Float32frombits(v))
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Shadow", wireType)
+			}
+			m.Shadow = 0
+			m.Shadow, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 7:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Inner", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Inner = float32(math.Float32frombits(v))
+		case 8:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Outer", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Outer = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

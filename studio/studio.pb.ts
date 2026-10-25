@@ -8,6 +8,7 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
+import { createEnumType } from '@aptre/protobuf-es-lite/enum'
 
 /**
  * Listing is every file in the game's archive, grouped by directory so each
@@ -1009,6 +1010,10 @@ export interface World {
    * own, by its name.
    */
   materials?: { [key: string]: Material }
+  /**
+   * Lighting is the map's baked light, absent for a map built without it.
+   */
+  lighting?: Lighting
 }
 
 export const World: MessageType<World> =
@@ -1018,6 +1023,7 @@ export const World: MessageType<World> =
       [1, 'models', 9, 1],
       [2, 'placements', 11, 1, Placement.codec],
       [3, 'materials', 11, 584, Material.codec],
+      [4, 'lighting', 11, 0, Lighting.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: World): World => {
@@ -1044,6 +1050,9 @@ export const World: MessageType<World> =
               m.materials[k] = v
               break
             }
+            case 4:
+              m.lighting = Lighting.decode(r, r.delimited(), m.lighting ?? {})
+              break
             default:
               r.skip(t)
           }
@@ -1069,9 +1078,283 @@ export const World: MessageType<World> =
               w.join(s)
             }
         }
+        {
+          const v = m.lighting
+          if (v != null) Lighting.writeField(w, 4, v)
+        }
       },
     },
   )
+
+/**
+ * Lighting is a map's baked light. Its lightmaps cover the world meshes,
+ * which sample them at their lightmap coordinates scaled by uv_scale. The
+ * irradiance and direction maps hold the light that bounces and the lights
+ * baked whole; the stationary lights are drawn at runtime over it, each
+ * masked by one channel of the shadow map.
+ *
+ * @generated from message modlock.studio.Lighting
+ */
+export interface Lighting {
+  /**
+   * Irradiance is the archive path of the irradiance's constant term, linear
+   * HDR color.
+   */
+  irradiance?: string
+  /**
+   * Direction is the archive path of the irradiance's luminance direction,
+   * each component centered on one half.
+   */
+  direction?: string
+  /**
+   * Shadows is the archive path of the stationary lights' baked shadows, one
+   * light per channel.
+   */
+  shadows?: string
+  /**
+   * UvScale scales a vertex's lightmap coordinates onto the lightmaps.
+   */
+  uvScale?: number[]
+  /**
+   * Lights are the stationary lights.
+   */
+  lights?: Light[]
+}
+
+export const Lighting: MessageType<Lighting> =
+  /* @__PURE__ */ createMessageType<Lighting>(
+    'modlock.studio.Lighting',
+    () => [
+      [1, 'irradiance', 9],
+      [2, 'direction', 9],
+      [3, 'shadows', 9],
+      [4, 'uv_scale', 2, 3],
+      [5, 'lights', 11, 1, Light.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Lighting): Lighting => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.irradiance = r.string()
+              break
+            case 2:
+              m.direction = r.string()
+              break
+            case 3:
+              m.shadows = r.string()
+              break
+            case 4:
+              for (const e = r.run(t), a = (m.uvScale ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 5:
+              ;(m.lights ??= []).push(Light.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Lighting, w: Writer): void => {
+        {
+          const v = m.irradiance
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.direction
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.shadows
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const a = m.uvScale
+          if (a != null && a.length > 0) {
+            const s = w.uint32(34).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const a = m.lights
+          if (a != null) for (const e of a) Light.writeField(w, 5, e)
+        }
+      },
+    },
+  )
+
+/**
+ * Light is one stationary light, in the world's coordinates.
+ *
+ * @generated from message modlock.studio.Light
+ */
+export interface Light {
+  kind?: Light_Kind
+  /**
+   * Origin is where a point or spot light sits.
+   */
+  origin?: number[]
+  /**
+   * Direction is the unit vector a sun or spot light shines along.
+   */
+  direction?: number[]
+  /**
+   * Color is the linear color times the brightness.
+   */
+  color?: number[]
+  /**
+   * Range is the distance at which a point or spot light fades out.
+   */
+  range?: number
+  /**
+   * Shadow is the light's channel in Lighting.shadows.
+   */
+  shadow?: number
+  /**
+   * Inner and outer are the half angles, in degrees, of a point light's
+   * cone around direction: full brightness inside inner, fading to none at
+   * outer. An outer of 180 shines every way.
+   */
+  inner?: number
+  outer?: number
+}
+
+export const Light: MessageType<Light> =
+  /* @__PURE__ */ createMessageType<Light>(
+    'modlock.studio.Light',
+    () => [
+      [1, 'kind', 14, 0, Light_Kind_Enum],
+      [2, 'origin', 2, 3],
+      [3, 'direction', 2, 3],
+      [4, 'color', 2, 3],
+      [5, 'range', 2],
+      [6, 'shadow', 13],
+      [7, 'inner', 2],
+      [8, 'outer', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Light): Light => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.kind = r.int32()
+              break
+            case 2:
+              for (const e = r.run(t), a = (m.origin ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 3:
+              for (const e = r.run(t), a = (m.direction ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 4:
+              for (const e = r.run(t), a = (m.color ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 5:
+              m.range = r.float()
+              break
+            case 6:
+              m.shadow = r.uint32()
+              break
+            case 7:
+              m.inner = r.float()
+              break
+            case 8:
+              m.outer = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Light, w: Writer): void => {
+        {
+          const v = m.kind
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const a = m.origin
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const a = m.direction
+          if (a != null && a.length > 0) {
+            const s = w.uint32(26).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const a = m.color
+          if (a != null && a.length > 0) {
+            const s = w.uint32(34).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const v = m.range
+          if (v != null && v !== 0) w.uint32(45).float(v)
+        }
+        {
+          const v = m.shadow
+          if (v) w.uint32(48).uint32(v)
+        }
+        {
+          const v = m.inner
+          if (v != null && v !== 0) w.uint32(61).float(v)
+        }
+        {
+          const v = m.outer
+          if (v != null && v !== 0) w.uint32(69).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Kind is how a light spreads.
+ *
+ * @generated from enum modlock.studio.Light.Kind
+ */
+export enum Light_Kind {
+  /**
+   * KIND_SUN shines along direction from infinitely far away.
+   */
+  SUN = 0,
+
+  /**
+   * KIND_POINT shines every way from origin.
+   */
+  POINT = 1,
+
+  /**
+   * KIND_SPOT shines from origin into the half space along direction.
+   */
+  SPOT = 2,
+}
+
+export const Light_Kind_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.studio.Light.Kind',
+  [
+    [0, 'KIND_SUN'],
+    [1, 'KIND_POINT'],
+    [2, 'KIND_SPOT'],
+  ],
+)
 
 /**
  * Placement draws one model of World.models into the world.

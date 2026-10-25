@@ -2,7 +2,13 @@
 // built once from buffers shared between calls, and each material, made
 // once per asset.
 import * as THREE from 'three'
-import type { Buffer, DrawCall, Material, Model } from '../studio.pb.js'
+import type {
+  Buffer,
+  DrawCall,
+  Lighting,
+  Material,
+  Model,
+} from '../studio.pb.js'
 import { route } from './api.js'
 import {
   buildGeometry,
@@ -10,6 +16,7 @@ import {
   readVertices,
   type Vertices,
 } from './geometry.js'
+import { BakedLighting } from './lighting.js'
 import { createMaterial } from './material.js'
 import type { TextureCache } from './textures.js'
 
@@ -17,15 +24,32 @@ import type { TextureCache } from './textures.js'
 export class Materials {
   private made = new Map<string, THREE.MeshStandardMaterial>()
 
+  // baked is the map's baked lighting, or null for an asset without.
+  private baked: BakedLighting | null = null
+
   constructor(readonly textures: TextureCache) {}
 
+  // bake lights every lightmapped material made after it with a map's baked
+  // lighting; world is the group that places the map.
+  bake(lighting: Lighting, world: THREE.Object3D) {
+    this.baked = new BakedLighting(lighting, this.textures, world)
+  }
+
   // get returns the draw material for a game material, in the variant that
-  // reads vertex colors when the geometry has them.
-  get(name: string, material: Material | undefined, colored: boolean) {
-    const key = `${colored ? 'c' : 'p'}:${name}`
+  // reads vertex colors when the geometry has them and the baked lighting
+  // when it has lightmap coordinates.
+  get(
+    name: string,
+    material: Material | undefined,
+    colored: boolean,
+    lightmapped = false,
+  ) {
+    // Make each variant once and share it.
+    const baked = lightmapped ? this.baked : null
+    const key = `${colored ? 'c' : 'p'}${baked ? 'l' : ''}:${name}`
     let made = this.made.get(key)
     if (!made) {
-      made = createMaterial(material, this.textures)
+      made = createMaterial(material, this.textures, baked)
       made.vertexColors = colored
       this.made.set(key, made)
     }

@@ -151,6 +151,7 @@ export async function buildWorld(
           world.materials?.[batch.material] ??
             model.materials?.[batch.material],
           geometry.hasAttribute('color'),
+          geometry.hasAttribute('lightmapUv'),
         )
 
         // Place and tint every instance.

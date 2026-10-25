@@ -38,6 +38,7 @@ func (a *Assets) world(w http.ResponseWriter, r *http.Request) {
 			b.node(nodeData)
 		}
 	}
+	b.out.Lighting = a.lighting(data)
 	writeMessage(w, b.out)
 }
 
