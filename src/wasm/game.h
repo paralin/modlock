@@ -176,6 +176,10 @@ class GameServices {
   // step_ otherwise; it reports whether it replaced the step's motion.
   bool Step(gameinterop::MovementCall& call);
 
+  // Face points a bot's step and hero along angles in place of the view its
+  // own command set: the step's view, the hero's aim, and the body's yaw.
+  void Face(Game& game, gameinterop::MovementCall& call, const std::array<float, 3>& angles);
+
   // Command takes the commands pawn ran since the previous call, folded.
   std::optional<movement::MovementCommand> Command(const void* pawn);
 

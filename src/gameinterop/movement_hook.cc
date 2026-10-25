@@ -20,7 +20,10 @@ namespace {
 // solver output against schema-resolved pawn state. The step copies the
 // command's axes to the last impulses at +0x20, but the walk reads the move
 // axes at +0x2c (build 6819 CCitadelPlayer_MovementServices::ProcessMovement).
+// Likewise the view sits at +0x08, but the walk and air steps turn the axes by
+// the wish angles at +0xe8 (build 6819 FUN_180b14340).
 constexpr size_t kMoveAngles = 0x08;
+constexpr size_t kMoveWishAngles = 0xe8;
 constexpr size_t kMoveImpulses = 0x20;
 constexpr size_t kMoveAxes = 0x2c;
 constexpr size_t kMoveVelocity = 0x38;
@@ -175,6 +178,7 @@ void Dispatch(Hook& hook, void* services, void* data) {
   // movement state and animation follow the replaced command.
   if (call.angles != angles) {
     std::memcpy(move + kMoveAngles, call.angles.data(), sizeof(call.angles));
+    std::memcpy(move + kMoveWishAngles, call.angles.data(), sizeof(call.angles));
   }
   const std::array<float, 3> axes{call.forward, call.left, call.up};
   if (axes != input) {

@@ -325,9 +325,9 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
     ground_ = call.ground_entity;
   }
 
-  // A driven bot's axes reach movement here: the game rebuilds them, and the
-  // movement keys, from its own state after ProcessUsercmds, which keeps the
-  // buttons and view the drive wrote there. The step stays native.
+  // A driven bot's axes and view reach movement here: the game rebuilds them,
+  // and the movement keys, from the bot's own state after ProcessUsercmds,
+  // which keeps only the buttons the drive wrote there. The step stays native.
   const auto driven = std::ranges::find_if(
       games_, [&](const Game* game) { return game->drives_.contains(call.slot); });
   if (driven != games_.end()) {
@@ -335,6 +335,7 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
     call.forward = drive.forward;
     call.left = drive.left;
     call.buttons[0] = (call.buttons[0] & ~kMoveKeys) | MoveKeys(drive.forward, drive.left);
+    Face(**driven, call, drive.angles);
   }
 
   // Record the pawn's command for the mod to read.
@@ -369,16 +370,8 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
       call.left = command.left();
       call.up = command.up();
 
-      // The recorded view steers the step and becomes the hero's aim; its yaw
-      // turns the body, as Game::MovePlayer does. The bot's own command set
-      // both before this step, and the eye angles alone leave the body at the
-      // bot's yaw, so the hero would run sideways.
-      call.angles = Floats(steering.facing());
-      static_cast<void>(game->observer_.SetEyeAngles(call.pawn, call.angles));
-      if (auto motion = Motion()) {
-        const std::array<float, 3> body{0, call.angles[1], 0};
-        (*motion)->set_angles(call.pawn, body.data());
-      }
+      // The recorded view steers the step and becomes the hero's aim.
+      Face(*game, call, Floats(steering.facing()));
 
       // A press counts once, though the command stays for the ticks after.
       command.set_changed(0);
@@ -402,6 +395,19 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
   }
 
   return step_ && step_(call);
+}
+
+void GameServices::Face(Game& game, gameinterop::MovementCall& call,
+                        const std::array<float, 3>& angles) {
+  // The yaw turns the body, as Game::MovePlayer does. The bot's own command
+  // set the view and the body before this step, and the eye angles alone
+  // leave the body at the bot's yaw, so the hero would run sideways.
+  call.angles = angles;
+  static_cast<void>(game.observer_.SetEyeAngles(call.pawn, call.angles));
+  if (auto motion = Motion()) {
+    const std::array<float, 3> body{0, call.angles[1], 0};
+    (*motion)->set_angles(call.pawn, body.data());
+  }
 }
 
 std::optional<movement::MovementCommand> GameServices::Command(const void* pawn) {
