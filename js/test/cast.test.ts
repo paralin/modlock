@@ -150,13 +150,28 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   expect(frame(14)).toEqual(['Respawn 1'])
   expect(frame(14.5)).toEqual([])
 
+  // With any hero, the game's own Change Hero leaves her without one for a
+  // moment; Cast waits for the game's pick rather than seating her on another.
+  member!.want = { hero: 'any', respawn: 3 }
+  heroes.set(1, { hero: 0, team: 3, health: 0 })
+  expect(frame(15)).toEqual([])
+  heroes.set(1, { hero: 9, team: 3, health: 600 })
+  expect(frame(16)).toEqual([])
+  expect(cast.pawn(member!.player)?.hero).toBe(9)
+
+  // A hero still missing once the change should have finished gets a seat.
+  heroes.set(1, { hero: 0, team: 3, health: 0 })
+  expect(frame(17)).toEqual([])
+  expect(frame(19.9)).toEqual([])
+  expect(frame(20)).toEqual(['SelectHero 1 6 3'])
+
   // A reconnect is a leave and a join; a leave ends the member.
   events.length = 0
   report([{ ...ada, ready: true, generation: 2 }])
-  frame(20)
+  frame(30)
   expect(events).toEqual(['leave Ada', 'join Ada'])
   report([])
-  frame(21)
+  frame(31)
   expect(events).toEqual(['leave Ada', 'join Ada', 'leave Ada'])
   expect(cast.size).toBe(0)
 })

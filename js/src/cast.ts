@@ -41,6 +41,13 @@ export interface Want {
   readonly respawn?: number
 }
 
+/**
+ * changeSeconds is how long Cast leaves a member without a hero after they
+ * had one. The game's own Change Hero removes the hero before it spawns the
+ * new one, and seating the member in that gap would override their pick.
+ */
+const changeSeconds = 3
+
 /** noWant leaves a member's hero free. */
 const noWant: Want = {}
 
@@ -73,6 +80,10 @@ interface Seat<M> {
   alive: boolean
   /** fellAt is when Cast last saw the hero fall. */
   fellAt: number
+  /** hero is the member's hero last frame, or 0 without one. */
+  hero: number
+  /** heroLostAt is when the member last went from a hero to none. */
+  heroLostAt: number
   /** askedAt is when Cast last asked the game for the want. */
   askedAt: number
 }
@@ -153,6 +164,8 @@ export class Cast<M> {
         pawn: undefined,
         alive: false,
         fellAt: -Infinity,
+        hero: 0,
+        heroLostAt: -Infinity,
         askedAt: -Infinity,
       })
     }
@@ -175,8 +188,15 @@ export class Cast<M> {
     seat.pawn = pawn
     seat.alive = alive
 
+    // Note when a member who had a hero is left without one, so a hero change
+    // the game is making finishes before Cast seats them again.
+    const had = pawn?.hero ?? 0
+    if (had === 0 && seat.hero !== 0) seat.heroLostAt = now
+    seat.hero = had
+    const changing = had === 0 && now - seat.heroLostAt < changeSeconds
+
     // Ask at most once a second, first for the seat, then for the hero back.
-    if (now - seat.askedAt < 1) return
+    if (now - seat.askedAt < 1 || changing) return
     const want = this.wantOf(seat)
     const { hero, respawn } = want
     if (hero !== undefined && !this.seated(seat, want, hero)) {
