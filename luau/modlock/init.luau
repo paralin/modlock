@@ -1166,8 +1166,8 @@ export type Player = {
 	-- ability slot index, as Ability.slot, removing the ability there. An
 	-- ability from another hero loads its models and particles only if
 	-- Precache named that hero and those resources before the world loaded;
-	-- otherwise its first effect stalls the game on a blocking load and the game reports an
-	-- assertion.
+	-- otherwise its first effect stalls the game on a blocking load and the
+	-- game reports an assertion.
 	replaceAbility: (self: Player, index: number, ability: string) -> boolean,
 	-- holdModifier keeps an ability's modifier, named "<ability>/<modifier>",
 	-- on the hero with no expiry, giving it back whenever the game removes it
@@ -1416,8 +1416,8 @@ end
 -- ability slot index, as Ability.slot, removing the ability there. An
 -- ability from another hero loads its models and particles only if
 -- Precache named that hero and those resources before the world loaded;
--- otherwise its first effect stalls the game on a blocking load and the game reports an
--- assertion.
+-- otherwise its first effect stalls the game on a blocking load and the
+-- game reports an assertion.
 function Player.replaceAbility(self: Player, index: number, ability: string): boolean
 	return call("ReplaceAbility", "ReplaceAbilityRequest", { player = self, index = index, ability = ability }) ~= nil
 end

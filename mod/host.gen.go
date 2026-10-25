@@ -668,8 +668,8 @@ func (p Player) GiveItem(item string) error {
 // ability slot index, as Ability.slot, removing the ability there. An
 // ability from another hero loads its models and particles only if
 // Precache named that hero and those resources before the world loaded;
-// otherwise its first effect stalls the game on a blocking load and the game reports an
-// assertion.
+// otherwise its first effect stalls the game on a blocking load and the
+// game reports an assertion.
 func (p Player) ReplaceAbility(index uint32, ability string) error {
 	return invoke("ReplaceAbility", &abilitiespb.ReplaceAbilityRequest{Player: p.Slot, Index: index, Ability: ability}, nil)
 }

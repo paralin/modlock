@@ -1439,8 +1439,8 @@ class Player:
         ability slot index, as Ability.slot, removing the ability there. An
         ability from another hero loads its models and particles only if
         Precache named that hero and those resources before the world loaded;
-        otherwise its first effect stalls the game on a blocking load, which a
-        development build reports as an assertion.
+        otherwise its first effect stalls the game on a blocking load and the
+        game reports an assertion.
         """
         return _call("ReplaceAbility", "ReplaceAbilityRequest", {"player": self, "index": index, "ability": ability}) is not None
 

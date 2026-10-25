@@ -204,8 +204,8 @@ service Host {
   // ability slot index, as Ability.slot, removing the ability there. An
   // ability from another hero loads its models and particles only if
   // Precache named that hero and those resources before the world loaded;
-  // otherwise its first effect stalls the game on a blocking load and the game reports an
-  // assertion.
+  // otherwise its first effect stalls the game on a blocking load and the
+  // game reports an assertion.
   rpc ReplaceAbility(modlock.wasm.abilities.ReplaceAbilityRequest) returns (Empty);
 
   // HoldModifier keeps an ability's modifier, named "<ability>/<modifier>",

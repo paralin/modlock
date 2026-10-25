@@ -263,8 +263,8 @@ class HostService {
   // ability slot index, as Ability.slot, removing the ability there. An
   // ability from another hero loads its models and particles only if
   // Precache named that hero and those resources before the world loaded;
-  // otherwise its first effect stalls the game on a blocking load and the game reports an
-  // assertion.
+  // otherwise its first effect stalls the game on a blocking load and the
+  // game reports an assertion.
   virtual std::expected<void, std::string> ReplaceAbility(
       const abilities::ReplaceAbilityRequest& /*request*/) {
     return std::unexpected("this host does not support ReplaceAbility");
