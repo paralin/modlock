@@ -7,6 +7,7 @@ require (
 	github.com/aperturerobotics/cli v1.1.1-0.20261008170756-47089de94fb3
 	github.com/aperturerobotics/common v0.36.4
 	github.com/aperturerobotics/controllerbus v0.53.6-0.20261021005226-3d7ed787e11b
+	github.com/aperturerobotics/fastjson v0.1.2-0.20260705010846-94f343f5bb34
 	github.com/aperturerobotics/go-protoc-wasi v0.0.0-20260808023521-7b1595380c3f
 	github.com/aperturerobotics/go-websocket v1.8.15-0.20260910142736-349504d079da
 	github.com/aperturerobotics/protobuf v0.0.0-20260203024654-8201686529c4
@@ -31,7 +32,6 @@ require (
 	github.com/ProtonMail/go-crypto v1.5.2 // indirect
 	github.com/aperturerobotics/bbolt v0.0.0-20261006081945-09141165d72c // indirect
 	github.com/aperturerobotics/cayley v0.15.1-0.20261021230328-e1c6a005d6ac // indirect
-	github.com/aperturerobotics/fastjson v0.1.2-0.20260705010846-94f343f5bb34 // indirect
 	github.com/aperturerobotics/fsnotify v1.9.1-0.20261007093243-45a75ed654f0 // indirect
 	github.com/aperturerobotics/go-brotli-decoder v1.2.2 // indirect
 	github.com/aperturerobotics/go-multiaddr v0.17.1-0.20260514224402-c193991c3ce5 // indirect

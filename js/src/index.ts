@@ -49,6 +49,42 @@ export {
   setOrbitCamera,
 } from './camera.js'
 export * as curve from './curve.js'
+export {
+  findHero,
+  findTitled,
+  type Hero,
+  heroes,
+  type Titled,
+} from './heroes.js'
+export {
+  Hook,
+  type HookAbility,
+  hookAbility,
+  type HookPlayer,
+  type HookRead,
+  hookUpgrades,
+  type ReadHandle,
+} from './hook.js'
+export {
+  Banner,
+  type BannerProps,
+  type BoxProps,
+  clip,
+  Pill,
+  Pips,
+  type PipsProps,
+  Plate,
+  Score,
+  type ScoreProps,
+  Tag,
+  type TagProps,
+  Text,
+  type TextProps,
+  TopStrip,
+  type TopStripProps,
+} from './hud.js'
+export * as theme from './theme.js'
+export type { Face, PipShape, TextRole, Tone } from './theme.js'
 export * from './host.gen.js'
 export { players } from './players.js'
 export {

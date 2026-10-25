@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aperturerobotics/fastjson"
 	"github.com/aperturerobotics/protobuf-go-lite/json"
 	"github.com/paralin/modlock/check"
 	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
@@ -57,6 +58,7 @@ func Open(dir string) (*Project, error) {
 
 // ReadManifest reads the mod.json in dir, a project or a built mod.
 func ReadManifest(dir string) (*manifestpb.Manifest, error) {
+	// Read and parse the file.
 	data, err := os.ReadFile(filepath.Join(dir, ManifestFile))
 	if err != nil {
 		return nil, errors.Wrap(err, "read mod.json")
@@ -80,6 +82,54 @@ func WriteManifest(path string, manifest *manifestpb.Manifest) error {
 	if err != nil {
 		return errors.Wrap(err, "encode mod.json")
 	}
+	return writeJSON(path, data)
+}
+
+// writeBuiltManifest writes the built mod's mod.json: the project's mod.json
+// naming the runtime and entry in place of the language. Fields Modlock does
+// not read, such as a store's description of the mod, pass through
+// unchanged, so the store a mod publishes to reads them from the built mod.
+func (p *Project) writeBuiltManifest(runtime manifestpb.Manifest_Runtime, entry string) error {
+	// Encode the manifest's fields, naming the runtime and the entry.
+	built := p.Manifest.CloneVT()
+	built.Language = manifestpb.Manifest_LANGUAGE_UNKNOWN
+	built.Runtime = runtime
+	built.Entry = entry
+	data, err := json.MarshalerConfig{}.Marshal(built)
+	if err != nil {
+		return errors.Wrap(err, "encode mod.json")
+	}
+	fields, err := fastjson.ParseBytes(data)
+	if err != nil {
+		return errors.Wrap(err, "encode mod.json")
+	}
+
+	// Read the project's mod.json.
+	source, err := os.ReadFile(filepath.Join(p.Dir, ManifestFile))
+	if err != nil {
+		return errors.Wrap(err, "read mod.json")
+	}
+	merged, err := fastjson.ParseBytes(source)
+	if err != nil {
+		return errors.Wrap(err, "parse mod.json")
+	}
+
+	// Lay the fields over it, without its language.
+	merged.Del("language")
+	object, err := fields.Object()
+	if err != nil {
+		return errors.Wrap(err, "encode mod.json")
+	}
+	object.Visit(func(key []byte, value *fastjson.Value) {
+		merged.Set(string(key), value)
+	})
+	return writeJSON(filepath.Join(p.Output(), ManifestFile), merged.MarshalTo(nil))
+}
+
+// writeJSON writes data to path indented, one field per line, replacing path
+// whole.
+func writeJSON(path string, data []byte) error {
+	// Indent the data, then replace path through a staged copy.
 	var buf bytes.Buffer
 	if err := stdjson.Indent(&buf, data, "", "  "); err != nil {
 		return errors.Wrap(err, "encode mod.json")

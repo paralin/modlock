@@ -133,17 +133,6 @@ func (p *Project) buildGo(ctx context.Context, output io.Writer) error {
 	return p.writeBuiltManifest(manifest.Manifest_RUNTIME_WASM, Entry)
 }
 
-// writeBuiltManifest writes the built mod's mod.json: the project's manifest,
-// naming the runtime and entry in place of the language.
-func (p *Project) writeBuiltManifest(runtime manifest.Manifest_Runtime, entry string) error {
-	// Copy the manifest, naming the runtime and the entry.
-	built := p.Manifest.CloneVT()
-	built.Language = manifest.Manifest_LANGUAGE_UNKNOWN
-	built.Runtime = runtime
-	built.Entry = entry
-	return WriteManifest(filepath.Join(p.Output(), ManifestFile), built)
-}
-
 // shipMap copies the map files the manifest names from the project's maps
 // directory into the built mod. A mod that plays a stock map has none.
 func (p *Project) shipMap() error {

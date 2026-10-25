@@ -526,6 +526,9 @@ upload signs in the same way when no session is saved. Publishing there needs ac
 another service with the same API. The `github` destination uses the
 [`gh`](https://cli.github.com) command line and its sign-in.
 
+The built `mod.json` keeps every field of yours that Modlock does not read,
+such as a store's description, so the destination reads them.
+
 Hyperline publishes each version once, so raise `version` in `mod.json` before
 publishing again. `--notes` says what changed: hyperline.gg shows it on the
 game's page, and the `github` destination uses it for a new release.
@@ -679,6 +682,13 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 | `playCamera(player, options)`, `cameraPulse`, `cameraShake`                            | Play curves on the camera; see [Camera moves](#camera-moves).   |
 | `setOrbitCamera(player, enabled)`                                                      | Switch the hero to the hideout's zoom camera and HUD, or back.  |
 | `addBot(options)`, `player.removeBot()`                                                | Add or remove a bot player.                                     |
+
+`heroes` lists the released heroes by title, each with its game name, such as
+`hero_atlas`, and fixed id. `findHero(typed)` matches what a player typed,
+such as `geist`, `Lady Geist` or `hero_ghost`, and `findTitled(list, typed)`
+does the same over a list of your own with `name` and `title`. A `Hook` watches
+one Bebop's hook: `update(player, now)` each frame reports the hero it holds
+and each new throw, keeps it fully upgraded and sets its cooldown.
 
 `replaceAbility(index, name)` honors an explicit main slot, 0 to 3, including
 an ultimate placed on another ability key. The same definition can occupy
@@ -949,6 +959,13 @@ Style `panel`, `label`, `image`, `button` and `layout` with `width`,
 `background`, `color`, `fontSize`, `bold`, `textAlign`, `borderRadius`,
 `opacity`, `face` (the game's `body`, `block` or `serif` typeface), `uppercase`,
 `letterSpacing`, `shadow`, `borderWidth` and `borderColor`.
+
+The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
+sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
+counts as the round counter does, `<Tag>` names a status, `<Banner>`
+announces a moment, and `<TopStrip>` with a `<Score>` in it fills the top of
+the screen. `theme` holds the tokens, such as `theme.tones` and
+`theme.sizes`, for a mod's own panels.
 
 An interface travels as the typed tree in
 [`src/wasm/ui/ui.proto`](src/wasm/ui/ui.proto). The player's game draws it

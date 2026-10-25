@@ -3,13 +3,15 @@ package project
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/paralin/modlock/src/wasm/manifest"
 )
 
 // TestManifestRoundTrip checks that Open reads what WriteManifest writes,
-// including enums by name, quoted text and nested messages.
+// including enums by name, quoted text and nested messages, and that the
+// built manifest keeps the fields Modlock does not read.
 func TestManifestRoundTrip(t *testing.T) {
 	// Write a source manifest.
 	dir := t.TempDir()
@@ -39,5 +41,30 @@ func TestManifestRoundTrip(t *testing.T) {
 	want := "{\n  \"slug\": \"parry-ball\",\n  \"name\": \"Parry \\\"Ball\\\"\",\n  \"version\": \"0.1.0\",\n  \"language\": \"LANGUAGE_GO\",\n  \"movement\": {\n    \"model\": \"MODEL_QUAKEWORLD\",\n    \"scale\": 1.25\n  }\n}\n"
 	if string(data) != want {
 		t.Fatalf("wrote %q, want %q", data, want)
+	}
+
+	// A store's field in the project's mod.json passes into the built one,
+	// which names the runtime and entry in place of the language.
+	source := strings.Replace(want, "{\n", "{\n  \"summary\": \"A ring duel.\",\n", 1)
+	if err := os.WriteFile(filepath.Join(dir, ManifestFile), []byte(source), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(opened.Output(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.writeBuiltManifest(manifest.Manifest_RUNTIME_WASM, Entry); err != nil {
+		t.Fatal(err)
+	}
+	built, err := os.ReadFile(filepath.Join(opened.Output(), ManifestFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range []string{`"summary": "A ring duel."`, `"runtime": "RUNTIME_WASM"`, `"entry": "mod.wasm"`} {
+		if !strings.Contains(string(built), line) {
+			t.Fatalf("built %s, want %s in it", built, line)
+		}
+	}
+	if strings.Contains(string(built), "language") {
+		t.Fatalf("built %s names the language", built)
 	}
 }
