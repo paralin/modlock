@@ -7,6 +7,7 @@ package kv3
 
 import (
 	"encoding/binary"
+	"strconv"
 
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v4"
@@ -30,6 +31,10 @@ const headerSize = 120
 // end is the marker that follows the types of a KeyValues3 buffer.
 const end = 0xffeedd00
 
+// maxWindow bounds the Zstandard window a buffer may ask for beyond its own
+// size.
+const maxWindow = 1 << 27
+
 // maxDepth bounds how deeply values may nest.
 const maxDepth = 256
 
@@ -50,8 +55,20 @@ const (
 // errTruncated reports a buffer whose values run past its lanes.
 var errTruncated = errors.New("KeyValues3 data is truncated")
 
-// Blob is a binary blob's size in bytes; the reader skips its payload.
-type Blob int
+// Blob is a binary blob: its bytes, or only its size when the payload
+// could not be read.
+type Blob struct {
+	// Size is the blob's length in bytes.
+	Size int
+	// Data is the blob's bytes, nil when the payload was unreadable.
+	Data []byte
+}
+
+// MarshalJSON writes a blob as its size, so a dump of a resource stays
+// readable.
+func (b Blob) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Itoa(b.Size)), nil
+}
 
 // Decode reads binary KeyValues3 data. Objects decode as map[string]any and
 // arrays as []any; the scalars as nil, bool, int64, uint64, float64, string
@@ -75,7 +92,8 @@ func Decode(data []byte) (any, error) {
 	compression := field(20)
 	counts1 := [4]int{field(28), field(64), field(32), field(36)}
 	typeCount := field(40)
-	blobs := field(56)
+	frame := int(binary.LittleEndian.Uint16(data[26:]))
+	blobs, blobSize := field(56), field(60)
 	size1, packed1, size2, packed2 := field(72), field(76), field(80), field(84)
 	counts2 := [4]int{field(88), field(92), field(96), field(100)}
 	objectCount := field(108)
@@ -134,6 +152,12 @@ func Decode(data []byte) (any, error) {
 	d.types = second[typesAt : typesAt+typeCount]
 	d.blobs = second[typesAt+typeCount : endAt]
 
+	// The blobs' bytes follow both buffers; an LZ4 payload's block sizes
+	// follow the end marker.
+	if blobs > 0 {
+		d.payload = blobPayload(compression, data[headerSize+packed1+packed2:], blobSize, frame, second[endAt+4:])
+	}
+
 	// Read the root value from the main lanes.
 	d.current, d.main, d.auxiliary = &main, &main, &auxiliary
 	value := d.value(d.kind(), 0)
@@ -159,17 +183,24 @@ func decode4(data []byte) (any, error) {
 	counts := [4]int{field(28), field(64), field(32), field(36)}
 	tail := field(40)
 	size, packed := field(48), field(52)
-	blobs := field(56)
+	frame := int(binary.LittleEndian.Uint16(data[26:]))
+	blobs, blobSize := field(56), field(60)
 	if compression == compressionNone {
 		packed = size
 	}
 	if packed < 0 || header4Size+packed > len(data) {
 		return nil, errTruncated
 	}
-	buffer, err := unpack(compression, data[header4Size:header4Size+packed], size)
+	// A Zstandard frame holds the blobs' bytes right after the buffer.
+	whole := size
+	if compression == compressionZstd && blobSize > 0 {
+		whole += blobSize
+	}
+	buffer, err := unpack(compression, data[header4Size:header4Size+packed], whole)
 	if err != nil {
 		return nil, err
 	}
+	buffer, payload := buffer[:size], buffer[size:]
 
 	// The 4-byte lane starts with the string count, and the strings follow
 	// the lanes at an 8-byte boundary, even when the 8-byte lane is empty.
@@ -204,6 +235,12 @@ func decode4(data []byte) (any, error) {
 	d.types = buffer[typesAt:typesEnd]
 	d.blobs = buffer[typesEnd:endAt]
 
+	// Otherwise the blobs' bytes follow the buffer, as in version 5.
+	d.payload = payload
+	if blobs > 0 && compression != compressionZstd {
+		d.payload = blobPayload(compression, data[header4Size+packed:], blobSize, frame, buffer[endAt+4:])
+	}
+
 	// Read the root value; version 4 has no auxiliary lanes.
 	d.current, d.main, d.auxiliary = &main, &main, &main
 	value := d.value(d.kind(), 0)
@@ -211,6 +248,52 @@ func decode4(data []byte) (any, error) {
 		return nil, d.err
 	}
 	return value, nil
+}
+
+// blobPayload unpacks every blob's bytes, size in all, from packed, which
+// ends with an end marker: stored as they are, as one Zstandard frame, or as
+// LZ4 blocks of at most frame bytes each whose packed sizes are the 2-byte
+// entries of chunks. Each LZ4 block may refer back into the bytes before it.
+// It returns nil when the payload cannot be read, so the blobs keep only
+// their sizes.
+func blobPayload(compression int, packed []byte, size, frame int, chunks []byte) []byte {
+	// Stored and Zstandard payloads unpack like a buffer.
+	if len(packed) >= 4 && binary.LittleEndian.Uint32(packed[len(packed)-4:]) == end {
+		packed = packed[:len(packed)-4]
+	}
+	if compression != compressionLZ4 {
+		out, err := unpack(compression, packed, size)
+		if err != nil || len(out) < size {
+			return nil
+		}
+		return out[:size]
+	}
+
+	// LZ4 blocks follow one another, each decoded with up to 64 KiB of the
+	// bytes before it as its dictionary.
+	if size < 0 || size > 1<<30 {
+		return nil
+	}
+	if frame <= 0 {
+		frame = size
+	}
+	out := make([]byte, 0, size)
+	for ; len(chunks) >= 2; chunks = chunks[2:] {
+		n := int(binary.LittleEndian.Uint16(chunks))
+		if n > len(packed) {
+			return nil
+		}
+		dict := out[max(0, len(out)-64<<10):]
+		got, err := lz4.UncompressBlockWithDict(packed[:n], out[len(out):min(size, len(out)+frame)], dict)
+		if err != nil {
+			return nil
+		}
+		out, packed = out[:len(out)+got], packed[n:]
+	}
+	if len(out) != size {
+		return nil
+	}
+	return out
 }
 
 // unpack decompresses one buffer into size bytes.
@@ -233,7 +316,9 @@ func unpack(compression int, packed []byte, size int) ([]byte, error) {
 		}
 		return out, nil
 	case compressionZstd:
-		decoder, err := zstd.NewReader(nil, zstd.WithDecoderMaxMemory(uint64(size)))
+		// The window may be larger than a small buffer, so the limit leaves
+		// room for it; the length check below still bounds the output.
+		decoder, err := zstd.NewReader(nil, zstd.WithDecoderMaxMemory(uint64(size)+maxWindow))
 		if err != nil {
 			return nil, err
 		}

@@ -31,6 +31,9 @@ type decoder struct {
 	types []byte
 	// blobs are the remaining blob sizes.
 	blobs []byte
+	// payload is the remaining blob bytes, in the order the blobs are read,
+	// or nil when they could not be read.
+	payload []byte
 	// budget is how many more values the buffer may hold.
 	budget int
 	// err is the first error the walk met.
@@ -125,6 +128,17 @@ func (d *decoder) pop(table *[]byte) int {
 	return size
 }
 
+// blob reads the next blob's size and takes its bytes from the payload.
+func (d *decoder) blob() Blob {
+	size := d.pop(&d.blobs)
+	if size < 0 || size > len(d.payload) {
+		return Blob{Size: size}
+	}
+	data := d.payload[:size:size]
+	d.payload = d.payload[size:]
+	return Blob{Size: size, Data: data}
+}
+
 // kind reads the next type, skipping its flag and reserved bytes.
 func (d *decoder) kind() byte {
 	// Each type is one byte; a set high bit adds a flag byte and the next
@@ -191,7 +205,7 @@ func (d *decoder) value(kind byte, depth int) any {
 	case 6:
 		return d.text(int32(d.length(false)))
 	case 7:
-		return Blob(d.pop(&d.blobs))
+		return d.blob()
 	case 8:
 		return d.items(d.length(false), 0, depth, d.main)
 	case 9:
