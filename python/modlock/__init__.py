@@ -1436,7 +1436,11 @@ class Player:
 
     def replace_ability(self, index: int, ability: str) -> bool:
         """replace_ability puts the ability named ability, untrained, in the hero's
-        ability slot index, as Ability.slot, removing the ability there.
+        ability slot index, as Ability.slot, removing the ability there. An
+        ability from another hero loads its models and particles only if
+        Precache named that hero and those resources before the world loaded;
+        otherwise its first effect stalls the game on a blocking load, which a
+        development build reports as an assertion.
         """
         return _call("ReplaceAbility", "ReplaceAbilityRequest", {"player": self, "index": index, "ability": ability}) is not None
 
@@ -3048,7 +3052,9 @@ def server_command(command: str) -> bool:
 
 def precache(options: PrecacheOptions) -> bool:
     """precache loads heroes and resources with the next world. Call it during
-    start, before the first world loads.
+    start, before the first world loads; a call after that, such as from a
+    reload, prepares only the world after the next map change. Name every
+    hero whose abilities ReplaceAbility gives, with their particles.
     """
     return _call("Precache", "PrecacheOptions", options) is not None
 

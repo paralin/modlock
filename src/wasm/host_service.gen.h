@@ -81,7 +81,9 @@ class HostService {
   }
 
   // Precache loads heroes and resources with the next world. Call it during
-  // start, before the first world loads.
+  // start, before the first world loads; a call after that, such as from a
+  // reload, prepares only the world after the next map change. Name every
+  // hero whose abilities ReplaceAbility gives, with their particles.
   virtual std::expected<void, std::string> Precache(const PrecacheOptions& /*request*/) {
     return std::unexpected("this host does not support Precache");
   }
@@ -258,7 +260,11 @@ class HostService {
   }
 
   // ReplaceAbility puts the ability named ability, untrained, in the hero's
-  // ability slot index, as Ability.slot, removing the ability there.
+  // ability slot index, as Ability.slot, removing the ability there. An
+  // ability from another hero loads its models and particles only if
+  // Precache named that hero and those resources before the world loaded;
+  // otherwise its first effect stalls the game on a blocking load and the game reports an
+  // assertion.
   virtual std::expected<void, std::string> ReplaceAbility(
       const abilities::ReplaceAbilityRequest& /*request*/) {
     return std::unexpected("this host does not support ReplaceAbility");

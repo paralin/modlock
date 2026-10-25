@@ -1163,7 +1163,11 @@ export type Player = {
 	-- keeps its one copy.
 	giveItem: (self: Player, item: string) -> boolean,
 	-- replaceAbility puts the ability named ability, untrained, in the hero's
-	-- ability slot index, as Ability.slot, removing the ability there.
+	-- ability slot index, as Ability.slot, removing the ability there. An
+	-- ability from another hero loads its models and particles only if
+	-- Precache named that hero and those resources before the world loaded;
+	-- otherwise its first effect stalls the game on a blocking load and the game reports an
+	-- assertion.
 	replaceAbility: (self: Player, index: number, ability: string) -> boolean,
 	-- holdModifier keeps an ability's modifier, named "<ability>/<modifier>",
 	-- on the hero with no expiry, giving it back whenever the game removes it
@@ -1409,7 +1413,11 @@ function Player.giveItem(self: Player, item: string): boolean
 end
 
 -- replaceAbility puts the ability named ability, untrained, in the hero's
--- ability slot index, as Ability.slot, removing the ability there.
+-- ability slot index, as Ability.slot, removing the ability there. An
+-- ability from another hero loads its models and particles only if
+-- Precache named that hero and those resources before the world loaded;
+-- otherwise its first effect stalls the game on a blocking load and the game reports an
+-- assertion.
 function Player.replaceAbility(self: Player, index: number, ability: string): boolean
 	return call("ReplaceAbility", "ReplaceAbilityRequest", { player = self, index = index, ability = ability }) ~= nil
 end
@@ -2615,7 +2623,9 @@ function modlock.serverCommand(command: string): boolean
 end
 
 -- precache loads heroes and resources with the next world. Call it during
--- start, before the first world loads.
+-- start, before the first world loads; a call after that, such as from a
+-- reload, prepares only the world after the next map change. Name every
+-- hero whose abilities ReplaceAbility gives, with their particles.
 function modlock.precache(options: PrecacheOptions): boolean
 	return call("Precache", "PrecacheOptions", options) ~= nil
 end
