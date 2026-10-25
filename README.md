@@ -751,6 +751,28 @@ const cast = new Cast({
 onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 ```
 
+### Time your frames
+
+`frameClock` shows how much of a slow server's frame is your mod's, and which
+part spends it. Call `begin` as a frame starts, `lap` with a name after each
+part, and `end` with the frame's tick. Once a minute it logs the median and
+slowest frame, each part's mean and slowest milliseconds, and the parts that
+cost the most in the minute's slowest frame, which a part that spikes once a
+minute needs to show up at all.
+
+```ts
+import { frameClock, onFrame } from 'modlock'
+
+onFrame((frame) => {
+  frameClock.begin()
+  moveBots()
+  frameClock.lap('bots')
+  drawHud()
+  frameClock.lap('hud')
+  frameClock.end(frame.tick)
+})
+```
+
 ### Camera moves
 
 `playCamera` plays a curve on each camera param it names (`distance`,

@@ -88,6 +88,7 @@ export * as theme from './theme.js'
 export type { Face, PipShape, TextRole, Tone } from './theme.js'
 export * from './host.gen.js'
 export { Cast, type CastOptions, type Want } from './cast.js'
+export { frameClock } from './frameclock.js'
 export { players } from './players.js'
 export { type Check, ProbeRun } from './probe.js'
 export {
