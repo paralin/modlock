@@ -35,17 +35,6 @@ function element(
   return { type, props: { style, children }, key }
 }
 
-/**
- * clip shortens text to at most width characters, at a word break where one
- * falls in the cut, and marks the cut with an ellipsis.
- */
-export function clip(text: string, width: number): string {
-  if (text.length <= width) return text
-  const cut = text.slice(0, width - 1)
-  const space = cut.lastIndexOf(' ')
-  return `${(space > 0 ? cut.slice(0, space) : cut).trimEnd()}…`
-}
-
 /** TextProps set one label in a type role and tone. */
 export interface TextProps {
   role: TextRole

@@ -1,6 +1,7 @@
 // The arena's rules: who fights, the phases of a match, and the score.
 import {
   addBot,
+  Cast,
   type Connection,
   type DamagedEvent,
   type DamageEvent,
@@ -8,7 +9,6 @@ import {
   holdModifierState,
   log,
   type Player,
-  players,
   toast,
 } from 'modlock'
 import { apply, arena } from 'modlock/console'
@@ -43,8 +43,6 @@ export type Phase = 'waiting' | 'countdown' | 'live' | 'results'
 /** Fighter is one connected player's place and score in the arena. */
 export interface Fighter {
   player: Player
-  /** generation is the connection the fighter belongs to. */
-  generation: number
   name: string
   /** entered is true once the player types /ready, until /leave. */
   entered: boolean
@@ -54,10 +52,6 @@ export interface Fighter {
   kills: number
   deaths: number
   streak: number
-  /** diedAt is when the hero last fell. */
-  diedAt: number
-  /** revivedAt is when the mod last asked for the hero back. */
-  revivedAt: number
   /** protectedUntil blocks the hits on a returning hero until then. */
   protectedUntil: number
 }
@@ -75,8 +69,15 @@ export class Match {
   now = 0
   /** result is the last match's outcome. */
   result = ''
-  /** fighters holds each connected player's fighter by slot. */
-  readonly fighters = new Map<number, Fighter>()
+  /**
+   * fighters holds a fighter for each player and practice bot, which come
+   * back respawnSeconds after they fall.
+   */
+  readonly fighters = new Cast<Fighter>({
+    join: (connection) => this.join(connection),
+    want: { respawn: respawnSeconds },
+    bots: 'join',
+  })
   /** bots holds the practice bots the mod added. */
   private readonly bots: Player[] = []
 
@@ -88,30 +89,20 @@ export class Match {
     apply(arena)
   }
 
-  /** world forgets the previous world's fighters and bots; it removed them. */
+  /** world forgets the previous world's bots; it removed them. */
   world(): void {
-    this.fighters.clear()
     this.bots.length = 0
     this.phase = 'waiting'
   }
 
   /** frame follows every player's hero and advances the match. */
   frame(seconds: number): void {
-    // Follow the hero of every player who has finished joining.
+    // Follow the hero of every player who has finished joining, then step
+    // the match.
     this.now = seconds
-    const present = new Set<number>()
-    for (const connection of players()) {
-      if (connection.ready) {
-        present.add(connection.player.slot)
-        this.follow(this.fighterOf(connection))
-      }
-    }
-
-    // Forget the players who left, then step the match.
-    for (const slot of this.fighters.keys()) {
-      if (!present.has(slot)) {
-        this.fighters.delete(slot)
-      }
+    this.fighters.frame(seconds)
+    for (const fighter of this.fighters.members()) {
+      this.follow(fighter)
     }
     this.advance()
   }
@@ -167,7 +158,7 @@ export class Match {
   /** ready enters player in the current or the next match. */
   ready(player: Player): void {
     // Only a player in the arena can enter, and only once.
-    const fighter = this.fighters.get(player.slot)
+    const fighter = this.fighters.get(player)
     if (fighter === undefined) {
       return
     }
@@ -184,7 +175,7 @@ export class Match {
 
   /** leave withdraws player to watch. */
   leave(player: Player): void {
-    const fighter = this.fighters.get(player.slot)
+    const fighter = this.fighters.get(player)
     if (fighter?.entered) {
       fighter.entered = false
       fighter.player.freeze(false)
@@ -202,9 +193,8 @@ export class Match {
       return 'The bot could not join.'
     }
 
-    // The bot enters once its connection shows up in the next frame.
+    // The bot enters once its connection shows up.
     this.bots.push(bot)
-    this.fighters.set(bot.slot, this.fresh(bot, -1, name, true))
     return `${name} joins the arena.`
   }
 
@@ -212,7 +202,6 @@ export class Match {
   removeBots(): string {
     for (const bot of this.bots) {
       bot.removeBot()
-      this.fighters.delete(bot.slot)
     }
     const count = this.bots.length
     this.bots.length = 0
@@ -221,7 +210,7 @@ export class Match {
 
   /** entrants lists the fighters who typed /ready. */
   entrants(): Fighter[] {
-    return [...this.fighters.values()].filter((fighter) => fighter.entered)
+    return this.fighters.members().filter((fighter) => fighter.entered)
   }
 
   /** fighterAt returns the fighter whose hero is the entity pawn. */
@@ -229,71 +218,40 @@ export class Match {
     if (pawn === 0) {
       return undefined
     }
-    return [...this.fighters.values()].find((fighter) => fighter.pawn === pawn)
+    return this.fighters.members().find((fighter) => fighter.pawn === pawn)
   }
 
   /**
-   * fighterOf returns the fighter of connection, starting a fresh one when
-   * someone new takes the slot.
+   * join makes the fighter of a new connection. A practice bot enters at
+   * once; a person hears the rules and types /ready.
    */
-  private fighterOf(connection: Connection): Fighter {
-    // A bot's fighter was made when it was added; adopt its connection.
-    const { player } = connection
-    let fighter = this.fighters.get(player.slot)
-    if (fighter?.generation === -1) {
-      fighter.generation = connection.generation
-    }
-
-    // Anyone else new to the slot starts fresh, and a person hears the rules.
-    if (fighter === undefined || fighter.generation !== connection.generation) {
-      fighter = this.fresh(
-        player,
-        connection.generation,
-        connection.name,
-        false,
+  private join({ player, name, bot }: Connection): Fighter {
+    if (!bot) {
+      player.announce(
+        'ARENA',
+        `Every hero is an opponent. First to ${killTarget} defeats wins. Type /ready to fight.`,
       )
-      this.fighters.set(player.slot, fighter)
-      if (!connection.bot) {
-        player.announce(
-          'ARENA',
-          `Every hero is an opponent. First to ${killTarget} defeats wins. Type /ready to fight.`,
-        )
-      }
     }
-    fighter.name = connection.name
-    return fighter
-  }
-
-  /** fresh returns a new fighter for player, entered at once when asked. */
-  private fresh(
-    player: Player,
-    generation: number,
-    name: string,
-    entered: boolean,
-  ): Fighter {
     return {
       player,
-      generation,
       name,
-      entered,
+      entered: bot,
       pawn: 0,
       alive: false,
       kills: 0,
       deaths: 0,
       streak: 0,
-      diedAt: 0,
-      revivedAt: 0,
       protectedUntil: 0,
     }
   }
 
   /**
-   * follow notes whether fighter's hero lives, shields it as it returns, and
-   * brings a fallen hero back after the respawn delay.
+   * follow notes whether fighter's hero lives and shields it as it returns.
+   * The cast brings a fallen hero back.
    */
   private follow(fighter: Fighter): void {
     // A player without a hero has nothing to follow yet.
-    const pawn = fighter.player.pawn()
+    const pawn = this.fighters.pawn(fighter.player)
     if (pawn === undefined) {
       fighter.alive = false
       return
@@ -306,19 +264,8 @@ export class Match {
       holdModifierState(pawn.entity, friendlyFire)
       fighter.protectedUntil = this.now + protectionSeconds
     }
-    if (!alive && fighter.alive) {
-      fighter.diedAt = this.now
-    }
     fighter.pawn = pawn.entity
     fighter.alive = alive
-
-    // Ask for a fallen hero back once a second after the delay, until it
-    // returns.
-    const due = this.now - fighter.diedAt >= respawnSeconds
-    if (!alive && due && this.now - fighter.revivedAt >= 1) {
-      fighter.revivedAt = this.now
-      fighter.player.respawn()
-    }
   }
 
   /** advance moves the match through its phases on the game clock. */
@@ -355,7 +302,7 @@ export class Match {
     // Start the clock with every score at zero.
     this.phase = 'countdown'
     this.deadline = this.now + countdownSeconds
-    for (const fighter of this.fighters.values()) {
+    for (const fighter of this.fighters.members()) {
       Object.assign(fighter, { kills: 0, deaths: 0, streak: 0 })
     }
 
@@ -406,14 +353,14 @@ export class Match {
 
   /** announce shows a title and a line to every player. */
   private announce(title: string, text: string): void {
-    for (const fighter of this.fighters.values()) {
+    for (const fighter of this.fighters.members()) {
       fighter.player.announce(title, text)
     }
   }
 
   /** tell shows every player a short notice. */
   private tell(text: string): void {
-    for (const fighter of this.fighters.values()) {
+    for (const fighter of this.fighters.members()) {
       toast(fighter.player, text)
     }
   }

@@ -15,7 +15,7 @@ export function drawScoreboards(match: Match): void {
     .sort((a, b) => b.kills - a.kills || a.deaths - b.deaths)
 
   // show sends only what changed, so redrawing every frame costs little.
-  for (const fighter of match.fighters.values()) {
+  for (const fighter of match.fighters.members()) {
     show(
       fighter.player,
       <Scoreboard match={match} ranked={ranked} viewer={fighter} />,

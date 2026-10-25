@@ -8,9 +8,26 @@ import { call } from './host.js'
 /** roster is the player list the host last reported, if any. */
 let roster: Connection[] | undefined = undefined
 
-/** keepPlayers keeps the player list the host reported. */
+/** watchers hear each player list the host reports. */
+const watchers: ((players: readonly Connection[]) => void)[] = []
+
+/** keepPlayers keeps the player list the host reported and tells the watchers. */
 export function keepPlayers(players: Connection[]): void {
   roster = players
+  for (const watcher of watchers) {
+    watcher(players)
+  }
+}
+
+/**
+ * watchPlayers calls watcher with each player list the host reports, and at
+ * once with the last one when a report already arrived.
+ */
+export function watchPlayers(
+  watcher: (players: readonly Connection[]) => void,
+): void {
+  watchers.push(watcher)
+  if (roster !== undefined) watcher(roster)
 }
 
 /**

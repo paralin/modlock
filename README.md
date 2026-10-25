@@ -680,6 +680,7 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 | Call                                                                                   | Effect                                                          |
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `players()`                                                                            | List the connected players and bots.                            |
+| `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`             | Keep one member per human and get them the hero they want.      |
 | `player.pawn()`                                                                        | Read the hero: health, team, position, aim and stamina.         |
 | `player.chat`, `centerText`, `announce`                                                | Show text to one player.                                        |
 | `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`            | Move the hero through the match.                                |
@@ -718,7 +719,39 @@ and the arithmetic helpers place things; `yawToward`, `level`, `aimAt` and
 `format` writes the numbers a HUD shows the way players read them, since the
 game's scripts have no locale data: `clock(65)` is `1:05`, `stopwatch(64.37)`
 is `1:04.37`, `percent(3, 4)` is `75%`, `grouped(4210)` is `4,210`,
-`ordinal(2)` is `2nd` and `count(3, 'kill')` is `3 kills`.
+`ordinal(2)` is `2nd`, `count(3, 'kill')` is `3 kills` and
+`clip('Lady Geist wins', 10)` is `Lady…`.
+
+### Keep the players with Cast
+
+`Cast` keeps one member per human who finished joining. It calls your `join`
+when someone arrives and `leave` when they go, and treats a reconnect as a
+leave and a join, so a member never carries the last player's state. It learns
+of joins from the host's player reports, so a frame where nobody came or went
+walks no player list. Bots are left out, or kicked with `bots: 'kick'`.
+
+A member can want a hero, a team and a respawn delay. `cast.frame` reads each
+member's hero once and asks the game, at most once a second, for whatever the
+hero does not show yet, until it does. Read the hero back with `cast.pawn`
+instead of asking the game again.
+
+```ts
+import { Cast, onFrame } from 'modlock'
+
+const cast = new Cast({
+  join: ({ player, name }) => {
+    player.announce('ARENA', `Welcome, ${name}.`)
+    return { player, kills: 0 }
+  },
+})
+
+onFrame(({ timeSeconds }) => {
+  cast.frame(timeSeconds)
+  for (const fighter of cast.members()) {
+    cast.want(fighter.player, { hero: 'any', respawn: 3 })
+  }
+})
+```
 
 ### Camera moves
 
