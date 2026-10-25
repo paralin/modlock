@@ -732,8 +732,10 @@ walks no player list. Bots are left out, or kicked with `bots: 'kick'`.
 
 A member can want a hero, a team and a respawn delay. `cast.frame` reads each
 member's hero once and asks the game, at most once a second, for whatever the
-hero does not show yet, until it does. Read the hero back with `cast.pawn`
-instead of asking the game again.
+hero does not show yet, until it does. Give `want` one want for everyone, or a
+function of the member, such as `(fighter) => fighter.want`, that Cast reads
+each frame. Read the hero back with `cast.pawn` instead of asking the game
+again.
 
 ```ts
 import { Cast, onFrame } from 'modlock'
@@ -743,14 +745,10 @@ const cast = new Cast({
     player.announce('ARENA', `Welcome, ${name}.`)
     return { player, kills: 0 }
   },
+  want: { hero: 'any', respawn: 3 },
 })
 
-onFrame(({ timeSeconds }) => {
-  cast.frame(timeSeconds)
-  for (const fighter of cast.members()) {
-    cast.want(fighter.player, { hero: 'any', respawn: 3 })
-  }
-})
+onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 ```
 
 ### Camera moves

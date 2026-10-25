@@ -15,7 +15,7 @@ import {
   ServerCommandRequest,
 } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
-import { Cast, type Connection, onFrame } from '../src/index.js'
+import { Cast, type Connection, onFrame, type Want } from '../src/index.js'
 
 /** Hero is the stand-in game's hero for one slot. */
 interface Hero {
@@ -97,23 +97,20 @@ function frame(seconds: number): string[] {
 }
 
 test('a cast keeps one member per human and gets them the hero they want', () => {
-  // A mode keeps a member per human, on hero 7 for team 3, back 3 seconds
-  // after a fall; it kicks bots.
+  // A mode keeps a member per human, each carrying its want: hero 7 for
+  // team 3, back 3 seconds after a fall. It kicks bots.
   const events: string[] = []
   const cast = new Cast({
     join: (c: Connection) => {
       events.push(`join ${c.name}`)
-      return { name: c.name, player: c.player }
+      const want: Want = { hero: 7, team: 3 }
+      return { name: c.name, player: c.player, want }
     },
     leave: (member) => events.push(`leave ${member.name}`),
+    want: (member) => member.want,
     bots: 'kick',
   })
-  onFrame(({ timeSeconds }) => {
-    cast.frame(timeSeconds)
-    for (const member of cast.members()) {
-      cast.want(member.player, { hero: 7, team: 3, respawn: 3 })
-    }
-  })
+  onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 
   // A human still joining is no member; a bot is kicked once.
   const ada = {
@@ -130,13 +127,11 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   report([ada, bot])
   expect(frame(1.1)).toEqual([])
 
-  // Ada joins; the frame after makes her want known.
+  // Ada joins and is asked for her seat on the same frame. The first seat is
+  // lost, so Cast asks again a second later, not sooner.
   report([{ ...ada, ready: true }, bot])
-  expect(frame(2)).toEqual([])
+  expect(frame(2)).toEqual(['SelectHero 1 7 3'])
   expect(events).toEqual(['join Ada'])
-
-  // The first seat is lost, so Cast asks again a second later, not sooner.
-  expect(frame(2.1)).toEqual(['SelectHero 1 7 3'])
   expect(frame(2.5)).toEqual([])
   expect(frame(3.1)).toEqual(['SelectHero 1 7 3'])
 
@@ -146,7 +141,9 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   const [member] = cast.members()
   expect(cast.pawn(member!.player)?.hero).toBe(7)
 
-  // A fallen hero is asked back once its delay passes, once a second.
+  // Her want changes to come back 3 seconds after a fall, read on the next
+  // frame. A fallen hero is asked back once its delay passes, once a second.
+  member!.want = { hero: 7, team: 3, respawn: 3 }
   heroes.get(1)!.health = 0
   expect(frame(11)).toEqual([])
   expect(frame(13.9)).toEqual([])

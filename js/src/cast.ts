@@ -6,7 +6,9 @@
 // nothing changed.
 //
 // A member may carry a want: to sit on a hero and team, and to come back a
-// while after its hero falls. Each frame Cast compares the want with what the
+// while after its hero falls. The mode gives one want for every member or a
+// function that reads it from the member each frame, so a want follows the
+// member's own state. Each frame Cast compares the want with what the
 // member's hero shows, asks the game again at most once a second while they
 // differ, and stops asking once they match. That is a reconciliation loop: a
 // lost or refused ask is only asked again, never reported as a failure.
@@ -39,14 +41,21 @@ export interface Want {
   readonly respawn?: number
 }
 
+/** noWant leaves a member's hero free. */
+const noWant: Want = {}
+
 /** CastOptions are a mode's answers to its players coming and going. */
 export interface CastOptions<M> {
   /** join makes the member for a human who finished joining. */
   join(connection: Connection): M
   /** leave ends a member whose connection left the slot. */
   leave?(member: M, connection: Connection): void
-  /** want is what a new member wants until the mode changes it. */
-  want?: Want
+  /**
+   * want is what every member wants, or a function that returns what one
+   * member wants now. Cast calls it once per member each frame, so it should
+   * return a want it keeps rather than make a new one.
+   */
+  want?: Want | ((member: M) => Want)
   /**
    * bots says what to do with a bot: skip leaves it out of the cast, join
    * makes it a member as a human is, and kick asks the server to remove it,
@@ -59,7 +68,6 @@ export interface CastOptions<M> {
 interface Seat<M> {
   readonly connection: Connection
   readonly member: M
-  want: Want
   /** pawn is the member's hero this frame. */
   pawn: Pawn | undefined
   alive: boolean
@@ -103,12 +111,6 @@ export class Cast<M> {
     return this.seats.get(player.slot)?.pawn
   }
 
-  /** want sets what the member in player's slot should be, replacing the last want. */
-  want(player: Player, want: Want): void {
-    const seat = this.seats.get(player.slot)
-    if (seat !== undefined) seat.want = want
-  }
-
   /**
    * frame settles the joins and leaves reported since the last frame, reads
    * each member's hero, and asks the game once a second for any want it does
@@ -148,7 +150,6 @@ export class Cast<M> {
       this.seats.set(slot, {
         connection,
         member: this.options.join(connection),
-        want: this.options.want ?? {},
         pawn: undefined,
         alive: false,
         fellAt: -Infinity,
@@ -176,10 +177,11 @@ export class Cast<M> {
 
     // Ask at most once a second, first for the seat, then for the hero back.
     if (now - seat.askedAt < 1) return
-    const { hero, respawn } = seat.want
-    if (hero !== undefined && !this.seated(seat, hero)) {
+    const want = this.wantOf(seat)
+    const { hero, respawn } = want
+    if (hero !== undefined && !this.seated(seat, want, hero)) {
       seat.askedAt = now
-      this.seat(seat, hero)
+      this.seat(seat, want, hero)
     } else if (
       respawn !== undefined &&
       pawn !== undefined &&
@@ -192,10 +194,16 @@ export class Cast<M> {
     }
   }
 
+  /** wantOf is what the member in seat wants now. */
+  private wantOf(seat: Seat<M>): Want {
+    const { want = noWant } = this.options
+    return typeof want === 'function' ? want(seat.member) : want
+  }
+
   /** seated reports whether the member's hero shows the hero and team they want. */
-  private seated(seat: Seat<M>, hero: string | number): boolean {
+  private seated(seat: Seat<M>, want: Want, hero: string | number): boolean {
     // A member needs a hero on the team they want before the hero counts.
-    const { pawn, want } = seat
+    const { pawn } = seat
     if (pawn === undefined || pawn.hero === 0) return false
     if (want.team !== undefined && pawn.team !== want.team) return false
     if (hero === 'any') return true
@@ -210,9 +218,9 @@ export class Cast<M> {
   }
 
   /** seat asks the game to put the member on hero and their team. */
-  private seat(seat: Seat<M>, hero: string | number): void {
+  private seat(seat: Seat<M>, want: Want, hero: string | number): void {
     // Any hero keeps the one the member has, or else takes a random one.
-    const { pawn, want } = seat
+    const { pawn } = seat
     let pick: string | number | undefined = hero
     if (hero === 'any') {
       pick =
