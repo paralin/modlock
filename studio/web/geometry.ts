@@ -54,6 +54,10 @@ const layouts: Record<number, Layout> = {
 // packedFrame is the R32_UINT format of a vertex's whole tangent frame.
 const packedFrame = 42
 
+// lightmapIndex is the texture coordinate index of a map's lightmap
+// coordinates.
+const lightmapIndex = 3
+
 // rgba8 is the R8G8B8A8_UNORM format of a vertex color.
 const rgba8 = 28
 
@@ -86,14 +90,14 @@ export interface Vertices {
 }
 
 // readVertices copies out the attributes the page draws from a draw call's
-// streams: positions, the first texture coordinates, the vertex color and
-// the stored tangent frame. Each attribute may sit in any stream.
+// streams: positions, the first texture coordinates and the lightmap's, the
+// vertex color and the stored tangent frame. Each attribute may sit in any stream.
 export function readVertices(streams: Stream[]): Vertices {
-  // Find a semantic's first field and the stream that holds it.
-  const field = (semantic: string): Field | null => {
+  // Find a semantic's field and the stream that holds it.
+  const field = (semantic: string, index = 0): Field | null => {
     for (const { buffer, data } of streams) {
       const found = buffer.fields?.find(
-        (f) => f.semantic === semantic && (f.index ?? 0) === 0,
+        (f) => f.semantic === semantic && (f.index ?? 0) === index,
       )
       if (!found) continue
       return {
@@ -110,9 +114,9 @@ export function readVertices(streams: Stream[]): Vertices {
 
   // Copy each attribute out of its stream in its stored format.
   const attributes: Record<string, THREE.BufferAttribute> = {}
-  const copy = (semantic: string, target: string) => {
+  const copy = (semantic: string, target: string, index = 0) => {
     // Skip a field the mesh lacks or stores in an unknown format.
-    const f = field(semantic)
+    const f = field(semantic, index)
     const layout = f && layouts[f.format]
     if (!f || !layout) return
 
@@ -133,6 +137,7 @@ export function readVertices(streams: Stream[]): Vertices {
   }
   copy('POSITION', 'position')
   copy('TEXCOORD', 'uv')
+  copy('TEXCOORD', 'lightmapUv', lightmapIndex)
 
   // Read the vertex color, stored as sRGB bytes, as a linear color.
   const color = field('COLOR')

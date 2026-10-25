@@ -5,6 +5,11 @@
 // illumination.
 import * as THREE from 'three'
 import type { Material } from '../studio.pb.js'
+import {
+  type BakedLighting,
+  lightmapFragment,
+  lightmapVertex,
+} from './lighting.js'
 import type { TextureCache } from './textures.js'
 
 // Params reads a material's parameters, by the name with or without the
@@ -126,15 +131,35 @@ const declarations = /* glsl */ `
   uniform float s2IllumScale;
 `
 
-// patch rewrites a standard material's fragment shader into the game's.
-function patch(shader: THREE.WebGLProgramParametersWithUniforms) {
-  let code = shader.fragmentShader.replace(
-    'void main() {',
-    `${declarations}\nvoid main() {`,
-  )
-  for (const [chunk, replacement] of Object.entries(fragment))
+// inject adds declarations before a shader's main and replaces each chunk
+// it names.
+function inject(
+  code: string,
+  { declarations, ...chunks }: Record<string, string>,
+) {
+  code = code.replace('void main() {', `${declarations}\nvoid main() {`)
+  for (const [chunk, replacement] of Object.entries(chunks))
     code = code.replace(`#include <${chunk}>`, replacement)
-  shader.fragmentShader = code
+  return code
+}
+
+// patch rewrites a standard material's shaders into the game's, lit by a
+// map's baked lighting when it has one.
+function patch(
+  shader: THREE.WebGLProgramParametersWithUniforms,
+  baked: BakedLighting | null,
+) {
+  // Draw the game's surface shader.
+  shader.fragmentShader = inject(shader.fragmentShader, {
+    declarations,
+    ...fragment,
+  })
+
+  // Light it from the lightmaps and the stationary lights.
+  if (!baked) return
+  Object.assign(shader.uniforms, baked.uniforms)
+  shader.vertexShader = inject(shader.vertexShader, lightmapVertex)
+  shader.fragmentShader = inject(shader.fragmentShader, lightmapFragment)
 }
 
 // tintScale is how much each texture tint mode scales the tint: the game's
@@ -147,6 +172,7 @@ const tintScale = [1, 1, 2]
 export function createMaterial(
   material: Material | undefined,
   textures: TextureCache,
+  baked: BakedLighting | null = null,
 ): THREE.MeshStandardMaterial {
   // Read the shader's features.
   const p = new Params(material)
@@ -198,9 +224,10 @@ export function createMaterial(
   drawn.defines = {}
   if (selfIllum) drawn.defines.S2_SELF_ILLUM = ''
   if (metalnessTexture) drawn.defines.S2_METALNESS_TEXTURE = ''
+  if (baked) Object.assign(drawn.defines, baked.defines)
   drawn.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms)
-    patch(shader)
+    patch(shader, baked)
   }
 
   // Cut out or blend by the color's alpha.

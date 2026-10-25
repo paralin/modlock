@@ -204,6 +204,69 @@ message World {
   // Materials holds each material a placement puts in place of a model's
   // own, by its name.
   map<string, Material> materials = 3;
+
+  // Lighting is the map's baked light, absent for a map built without it.
+  Lighting lighting = 4;
+}
+
+// Lighting is a map's baked light. Its lightmaps cover the world meshes,
+// which sample them at their lightmap coordinates scaled by uv_scale. The
+// irradiance and direction maps hold the light that bounces and the lights
+// baked whole; the stationary lights are drawn at runtime over it, each
+// masked by one channel of the shadow map.
+message Lighting {
+  // Irradiance is the archive path of the irradiance's constant term, linear
+  // HDR color.
+  string irradiance = 1;
+
+  // Direction is the archive path of the irradiance's luminance direction,
+  // each component centered on one half.
+  string direction = 2;
+
+  // Shadows is the archive path of the stationary lights' baked shadows, one
+  // light per channel.
+  string shadows = 3;
+
+  // UvScale scales a vertex's lightmap coordinates onto the lightmaps.
+  repeated float uv_scale = 4;
+
+  // Lights are the stationary lights.
+  repeated Light lights = 5;
+}
+
+// Light is one stationary light, in the world's coordinates.
+message Light {
+  // Kind is how a light spreads.
+  enum Kind {
+    // KIND_SUN shines along direction from infinitely far away.
+    KIND_SUN = 0;
+    // KIND_POINT shines every way from origin.
+    KIND_POINT = 1;
+    // KIND_SPOT shines from origin into the half space along direction.
+    KIND_SPOT = 2;
+  }
+  Kind kind = 1;
+
+  // Origin is where a point or spot light sits.
+  repeated float origin = 2;
+
+  // Direction is the unit vector a sun or spot light shines along.
+  repeated float direction = 3;
+
+  // Color is the linear color times the brightness.
+  repeated float color = 4;
+
+  // Range is the distance at which a point or spot light fades out.
+  float range = 5;
+
+  // Shadow is the light's channel in Lighting.shadows.
+  uint32 shadow = 6;
+
+  // Inner and outer are the half angles, in degrees, of a point light's
+  // cone around direction: full brightness inside inner, fading to none at
+  // outer. An outer of 180 shines every way.
+  float inner = 7;
+  float outer = 8;
 }
 
 // Placement draws one model of World.models into the world.

@@ -44,6 +44,9 @@ interface LoadedModel {
 const modelTextureLimit = 2048
 const worldTextureLimit = 512
 
+// bakedExposure is the exposure a map with baked lighting draws at.
+const bakedExposure = 2
+
 // The solid and wireframe shadings draw every surface in one material.
 const solid = new THREE.MeshStandardMaterial({
   color: 0xc9c1b4,
@@ -67,6 +70,7 @@ export class Viewer {
   private shading: Shading = 'material'
   private loaded: LoadedModel | null = null
   private materials: Materials | null = null
+  private sun = new THREE.DirectionalLight(0xfff4e6, 1.8)
   private resize: ResizeObserver
 
   // onMissing hears each texture of the drawn asset that cannot be drawn.
@@ -93,9 +97,8 @@ export class Viewer {
     ).texture
     this.scene.environmentIntensity = 0.55
     pmrem.dispose()
-    const sun = new THREE.DirectionalLight(0xfff4e6, 1.8)
-    sun.position.set(1.2, 1.4, 0.8)
-    this.scene.add(sun, this.content)
+    this.sun.position.set(1.2, 1.4, 0.8)
+    this.scene.add(this.sun, this.content)
 
     // Orbit with the pointer, follow the canvas's size and draw every frame.
     this.controls = new OrbitControls(this.camera, canvas)
@@ -145,6 +148,10 @@ export class Viewer {
     this.materials = null
     this.content.clear()
     this.content.rotation.set(0, 0, 0)
+
+    // Restore the default lighting and the empty stage.
+    this.sun.visible = true
+    this.renderer.toneMappingExposure = 1
     this.loaded = null
     this.setGridSize(null)
   }
@@ -349,8 +356,14 @@ export class Viewer {
     signal: AbortSignal,
     onProgress: (loaded: number) => void,
   ): Promise<WorldStats> {
-    // Draw each batch as it is built.
+    // A map with baked lighting brings its own sun, and its interiors read
+    // at the game's brightness a stop above the default exposure.
     const materials = this.replace(worldTextureLimit, signal)
+    if (world.lighting) materials.bake(world.lighting, this.content)
+    this.sun.visible = !world.lighting
+    this.renderer.toneMappingExposure = world.lighting ? bakedExposure : 1
+
+    // Draw each batch as it is built, framing the map once a few have.
     const above = new THREE.Vector3(0.4, 1, 0.6)
     let loaded = 0
     const stats = await buildWorld(
