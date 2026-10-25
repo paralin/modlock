@@ -82,6 +82,10 @@ class SetFreeForAllRequest;
 struct SetFreeForAllRequestDefaultTypeInternal;
 MODLOCK_API extern SetFreeForAllRequestDefaultTypeInternal _SetFreeForAllRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SetFreeForAllRequest_class_data_;
+class SetTeamSeatingRequest;
+struct SetTeamSeatingRequestDefaultTypeInternal;
+MODLOCK_API extern SetTeamSeatingRequestDefaultTypeInternal _SetTeamSeatingRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SetTeamSeatingRequest_class_data_;
 class StartRiftRequest;
 struct StartRiftRequestDefaultTypeInternal;
 MODLOCK_API extern StartRiftRequestDefaultTypeInternal _StartRiftRequest_default_instance_;
@@ -101,6 +105,196 @@ namespace match {
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class MODLOCK_API SetTeamSeatingRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.match.SetTeamSeatingRequest) */ {
+ public:
+  inline SetTeamSeatingRequest() : SetTeamSeatingRequest(nullptr) {}
+  ~SetTeamSeatingRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(SetTeamSeatingRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(SetTeamSeatingRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR SetTeamSeatingRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline SetTeamSeatingRequest(const SetTeamSeatingRequest& from) : SetTeamSeatingRequest(nullptr, from) {}
+  inline SetTeamSeatingRequest(SetTeamSeatingRequest&& from) noexcept
+      : SetTeamSeatingRequest(nullptr, ::std::move(from)) {}
+  inline SetTeamSeatingRequest& operator=(const SetTeamSeatingRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SetTeamSeatingRequest& operator=(SetTeamSeatingRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SetTeamSeatingRequest& default_instance() {
+    return *reinterpret_cast<const SetTeamSeatingRequest*>(
+        &_SetTeamSeatingRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(SetTeamSeatingRequest& a, SetTeamSeatingRequest& b) { a.Swap(&b); }
+  inline void Swap(SetTeamSeatingRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SetTeamSeatingRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SetTeamSeatingRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<SetTeamSeatingRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const SetTeamSeatingRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const SetTeamSeatingRequest& from) { SetTeamSeatingRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(SetTeamSeatingRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.match.SetTeamSeatingRequest"; }
+
+  explicit SetTeamSeatingRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  SetTeamSeatingRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const SetTeamSeatingRequest& from);
+  SetTeamSeatingRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, SetTeamSeatingRequest&& from) noexcept
+      : SetTeamSeatingRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kEnabledFieldNumber = 1,
+  };
+  // bool enabled = 1;
+  void clear_enabled() ;
+  bool enabled() const;
+  void set_enabled(bool value);
+
+  private:
+  bool _internal_enabled() const;
+  void _internal_set_enabled(bool value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.match.SetTeamSeatingRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const SetTeamSeatingRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    bool enabled_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmatch_2fmatch_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SetTeamSeatingRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API SetFreeForAllRequest final : public ::google::protobuf::Message
@@ -348,7 +542,7 @@ class MODLOCK_API RiftState final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftState*>(
         &_RiftState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(RiftState& a, RiftState& b) { a.Swap(&b); }
   inline void Swap(RiftState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -598,7 +792,7 @@ class MODLOCK_API PauseRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PauseRequest*>(
         &_PauseRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(PauseRequest& a, PauseRequest& b) { a.Swap(&b); }
   inline void Swap(PauseRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -788,7 +982,7 @@ class MODLOCK_API MatchClockResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const MatchClockResponse*>(
         &_MatchClockResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(MatchClockResponse& a, MatchClockResponse& b) { a.Swap(&b); }
   inline void Swap(MatchClockResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -978,7 +1172,7 @@ class MODLOCK_API HoldMatchClockRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const HoldMatchClockRequest*>(
         &_HoldMatchClockRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(HoldMatchClockRequest& a, HoldMatchClockRequest& b) { a.Swap(&b); }
   inline void Swap(HoldMatchClockRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1169,7 +1363,7 @@ class MODLOCK_API StartRiftRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const StartRiftRequest*>(
         &_StartRiftRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(StartRiftRequest& a, StartRiftRequest& b) { a.Swap(&b); }
   inline void Swap(StartRiftRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1364,7 +1558,7 @@ class MODLOCK_API RiftResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftResponse*>(
         &_RiftResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(RiftResponse& a, RiftResponse& b) { a.Swap(&b); }
   inline void Swap(RiftResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1540,6 +1734,35 @@ inline bool SetFreeForAllRequest::_internal_enabled() const {
   return _impl_.enabled_;
 }
 inline void SetFreeForAllRequest::_internal_set_enabled(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.enabled_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// SetTeamSeatingRequest
+
+// bool enabled = 1;
+inline void SetTeamSeatingRequest::clear_enabled() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.enabled_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline bool SetTeamSeatingRequest::enabled() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.match.SetTeamSeatingRequest.enabled)
+  return _internal_enabled();
+}
+inline void SetTeamSeatingRequest::set_enabled(bool value) {
+  _internal_set_enabled(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.match.SetTeamSeatingRequest.enabled)
+}
+inline bool SetTeamSeatingRequest::_internal_enabled() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.enabled_;
+}
+inline void SetTeamSeatingRequest::_internal_set_enabled(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.enabled_ = value;
 }

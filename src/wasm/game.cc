@@ -29,6 +29,7 @@ Game::~Game() {
 
 void Game::Frame() {
   // Apply the per-frame state each feature keeps.
+  SeatPlayers();
   ApplyFreeForAll();
   ApplyHolds();
   HoldClock();
@@ -156,7 +157,7 @@ void Game::WorldEnding() {
 
 void Game::Leave(int32_t slot) {
   // Forget the slot's movement, input and visibility.
-  ffa_failed_.erase(slot);
+  seat_failed_.erase(slot);
   frozen_.erase(slot);
   movers_.erase(slot);
   steers_.erase(slot);
@@ -222,7 +223,7 @@ void Game::Clear() {
   held_.clear();
   free_for_all_ = false;
   ffa_held_.clear();
-  ffa_failed_.clear();
+  seat_failed_.clear();
   ReleaseModifiers();
 
   // Release the input the mod blocked, remapped or watched.

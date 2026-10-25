@@ -55,6 +55,50 @@ export const SetFreeForAllRequest: MessageType<SetFreeForAllRequest> =
   )
 
 /**
+ * SetTeamSeatingRequest turns team seating on or off.
+ *
+ * @generated from message modlock.wasm.match.SetTeamSeatingRequest
+ */
+export interface SetTeamSeatingRequest {
+  /**
+   * Enabled turns team seating on when true and off when false.
+   */
+  enabled?: boolean
+}
+
+export const SetTeamSeatingRequest: MessageType<SetTeamSeatingRequest> =
+  /* @__PURE__ */ createMessageType<SetTeamSeatingRequest>(
+    'modlock.wasm.match.SetTeamSeatingRequest',
+    () => [[1, 'enabled', 8]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: SetTeamSeatingRequest,
+      ): SetTeamSeatingRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.enabled = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SetTeamSeatingRequest, w: Writer): void => {
+        {
+          const v = m.enabled
+          if (v) w.uint32(8).bool(v)
+        }
+      },
+    },
+  )
+
+/**
  * PauseRequest pauses or resumes the game.
  *
  * @generated from message modlock.wasm.match.PauseRequest

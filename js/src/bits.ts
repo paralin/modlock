@@ -4,6 +4,16 @@
 export const Buttons = {
   /** attack is the primary fire button. */
   attack: 1n,
+  /**
+   * jump is the jump key, Space by default (IN_MANTLE). Blocking it stops the
+   * native jump and mantle; the jumping client still predicts the jump and is
+   * corrected.
+   */
+  jump: 1n << 48n,
+  /** crouch is the crouch key, Ctrl by default. */
+  crouch: 1n << 2n,
+  /** dash is the dash key, Shift by default. */
+  dash: 1n << 16n,
   /** use is the interact key. */
   use: 1n << 5n,
   /** altFire is the zoom and alternate fire button, right mouse by default. */

@@ -23,12 +23,22 @@ class Buttons(enum.IntFlag):
 
     # ATTACK is the primary fire button.
     ATTACK = 1
+    # JUMP is the jump key, Space by default (IN_MANTLE). Blocking it stops
+    # the native jump and mantle; the jumping client still predicts the jump
+    # and is corrected.
+    JUMP = 1 << 48
+    # CROUCH is the crouch key, Ctrl by default.
+    CROUCH = 1 << 2
+    # DASH is the dash key, Shift by default.
+    DASH = 1 << 16
     # USE is the interact key.
     USE = 1 << 5
-    # MELEE is the light melee button.
-    MELEE = 1 << 11
+    # ALT_FIRE is the zoom and alternate fire button, right mouse by default.
+    ALT_FIRE = 1 << 11
     # RELOAD is the reload key.
     RELOAD = 1 << 13
+    # MELEE is the light melee key, Q by default.
+    MELEE = 1 << 32
     # ABILITY1 to ABILITY3 are the hero's first three ability keys.
     ABILITY1 = 1 << 33
     ABILITY2 = 1 << 34

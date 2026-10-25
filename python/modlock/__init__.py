@@ -2240,6 +2240,12 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "enabled", "bool"),
         ],
     ),
+    "SetTeamSeatingRequest": (
+        None,
+        [
+            wire.Field(1, "enabled", "bool"),
+        ],
+    ),
     "PauseRequest": (
         None,
         [
@@ -3170,6 +3176,16 @@ def set_free_for_all(enabled: bool) -> bool:
     return _call("SetFreeForAll", "SetFreeForAllRequest", {"enabled": enabled}) is not None
 
 
+def set_team_seating(enabled: bool) -> bool:
+    """set_team_seating turns team seating on or off for the running mod. While
+    on, the host seats each player who joins with no team on the smaller
+    team and opens the hero picker with no team screen; friendly fire and
+    changeteam stay as the game has them. Free-for-all seats players this
+    way whatever this says. Turning it off leaves players on their teams.
+    """
+    return _call("SetTeamSeating", "SetTeamSeatingRequest", {"enabled": enabled}) is not None
+
+
 def create_model(options: ModelOptions) -> WorldObject | None:
     """create_model places a model in the world, solid when the options ask.
     The world removes it when the world ends; stopping the mod removes it
@@ -3503,12 +3519,22 @@ class Buttons(enum.IntFlag):
 
     # ATTACK is the primary fire button.
     ATTACK = 1
+    # JUMP is the jump key, Space by default (IN_MANTLE). Blocking it stops
+    # the native jump and mantle; the jumping client still predicts the jump
+    # and is corrected.
+    JUMP = 1 << 48
+    # CROUCH is the crouch key, Ctrl by default.
+    CROUCH = 1 << 2
+    # DASH is the dash key, Shift by default.
+    DASH = 1 << 16
     # USE is the interact key.
     USE = 1 << 5
-    # MELEE is the light melee button.
-    MELEE = 1 << 11
+    # ALT_FIRE is the zoom and alternate fire button, right mouse by default.
+    ALT_FIRE = 1 << 11
     # RELOAD is the reload key.
     RELOAD = 1 << 13
+    # MELEE is the light melee key, Q by default.
+    MELEE = 1 << 32
     # ABILITY1 to ABILITY3 are the hero's first three ability keys.
     ABILITY1 = 1 << 33
     ABILITY2 = 1 << 34

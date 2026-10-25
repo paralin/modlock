@@ -12,6 +12,12 @@ message SetFreeForAllRequest {
   bool enabled = 1;
 }
 
+// SetTeamSeatingRequest turns team seating on or off.
+message SetTeamSeatingRequest {
+  // Enabled turns team seating on when true and off when false.
+  bool enabled = 1;
+}
+
 // PauseRequest pauses or resumes the game.
 message PauseRequest {
   bool paused = 1;

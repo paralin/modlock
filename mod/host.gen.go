@@ -897,6 +897,15 @@ func SetFreeForAll(enabled bool) error {
 	return invoke("SetFreeForAll", &matchpb.SetFreeForAllRequest{Enabled: enabled}, nil)
 }
 
+// SetTeamSeating turns team seating on or off for the running mod. While
+// on, the host seats each player who joins with no team on the smaller
+// team and opens the hero picker with no team screen; friendly fire and
+// changeteam stay as the game has them. Free-for-all seats players this
+// way whatever this says. Turning it off leaves players on their teams.
+func SetTeamSeating(enabled bool) error {
+	return invoke("SetTeamSeating", &matchpb.SetTeamSeatingRequest{Enabled: enabled}, nil)
+}
+
 // CreateModel places a model in the world, solid when the options ask.
 // The world removes it when the world ends; stopping the mod removes it
 // too.

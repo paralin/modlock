@@ -35,6 +35,26 @@ func (x *SetFreeForAllRequest) GetEnabled() bool {
 	return false
 }
 
+// SetTeamSeatingRequest turns team seating on or off.
+type SetTeamSeatingRequest struct {
+	unknownFields []byte
+	// Enabled turns team seating on when true and off when false.
+	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+}
+
+func (x *SetTeamSeatingRequest) Reset() {
+	*x = SetTeamSeatingRequest{}
+}
+
+func (*SetTeamSeatingRequest) ProtoMessage() {}
+
+func (x *SetTeamSeatingRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
 // PauseRequest pauses or resumes the game.
 type PauseRequest struct {
 	unknownFields []byte
@@ -209,6 +229,22 @@ func (m *SetFreeForAllRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *SetTeamSeatingRequest) CloneVT() *SetTeamSeatingRequest {
+	if m == nil {
+		return (*SetTeamSeatingRequest)(nil)
+	}
+	r := new(SetTeamSeatingRequest)
+	r.Enabled = m.Enabled
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *SetTeamSeatingRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *PauseRequest) CloneVT() *PauseRequest {
 	if m == nil {
 		return (*PauseRequest)(nil)
@@ -324,6 +360,26 @@ func (this *SetFreeForAllRequest) EqualVT(that *SetFreeForAllRequest) bool {
 
 func (this *SetFreeForAllRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*SetFreeForAllRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *SetTeamSeatingRequest) EqualVT(that *SetTeamSeatingRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Enabled != that.Enabled {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SetTeamSeatingRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*SetTeamSeatingRequest)
 	if !ok {
 		return false
 	}
@@ -504,6 +560,48 @@ func (x *SetFreeForAllRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the SetFreeForAllRequest from JSON.
 func (x *SetFreeForAllRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the SetTeamSeatingRequest message to JSON.
+func (x *SetTeamSeatingRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Enabled || s.HasField("enabled") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("enabled")
+		s.WriteBool(x.Enabled)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the SetTeamSeatingRequest to JSON.
+func (x *SetTeamSeatingRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the SetTeamSeatingRequest message from JSON.
+func (x *SetTeamSeatingRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "enabled":
+			s.AddField("enabled")
+			x.Enabled = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the SetTeamSeatingRequest from JSON.
+func (x *SetTeamSeatingRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -849,6 +947,43 @@ func (m *SetFreeForAllRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *SetTeamSeatingRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetTeamSeatingRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SetTeamSeatingRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Enabled {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Enabled)
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *PauseRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1117,6 +1252,17 @@ func (m *SetFreeForAllRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *SetTeamSeatingRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Enabled)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *PauseRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -1205,6 +1351,20 @@ func (x *SetFreeForAllRequest) MarshalProtoText() string {
 }
 
 func (x *SetFreeForAllRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *SetTeamSeatingRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "SetTeamSeatingRequest")
+	if x.Enabled != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "enabled")
+		protobuf_go_lite.TextWriteBool(&sb, x.Enabled)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *SetTeamSeatingRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -1330,6 +1490,59 @@ func (m *SetFreeForAllRequest) UnmarshalVT(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: SetFreeForAllRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Enabled", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Enabled = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *SetTeamSeatingRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetTeamSeatingRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetTeamSeatingRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

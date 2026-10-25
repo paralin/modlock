@@ -463,6 +463,16 @@ class HostService {
     return std::unexpected("this host does not support SetFreeForAll");
   }
 
+  // SetTeamSeating turns team seating on or off for the running mod. While
+  // on, the host seats each player who joins with no team on the smaller
+  // team and opens the hero picker with no team screen; friendly fire and
+  // changeteam stay as the game has them. Free-for-all seats players this
+  // way whatever this says. Turning it off leaves players on their teams.
+  virtual std::expected<void, std::string> SetTeamSeating(
+      const match::SetTeamSeatingRequest& /*request*/) {
+    return std::unexpected("this host does not support SetTeamSeating");
+  }
+
   // CreateModel places a model in the world, solid when the options ask.
   // The world removes it when the world ends; stopping the mod removes it
   // too.
@@ -1260,6 +1270,14 @@ class HostService {
              return detail::Fail("the SetFreeForAll request is malformed");
            }
            return detail::Answer(host.SetFreeForAll(request));
+         }},
+        {"SetTeamSeating",
+         [](HostService& host, const std::string& bytes) {
+           match::SetTeamSeatingRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the SetTeamSeating request is malformed");
+           }
+           return detail::Answer(host.SetTeamSeating(request));
          }},
         {"CreateModel",
          [](HostService& host, const std::string& bytes) {

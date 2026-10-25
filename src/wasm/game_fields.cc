@@ -689,6 +689,12 @@ std::expected<void, std::string> Game::SetFreeForAll(const match::SetFreeForAllR
   return {};
 }
 
+std::expected<void, std::string> Game::SetTeamSeating(
+    const match::SetTeamSeatingRequest& request) {
+  team_seating_ = request.enabled();
+  return {};
+}
+
 bool Game::FreeForAllCommand(std::string_view line) const {
   // Only changeteam is blocked, and only in free-for-all.
   if (!free_for_all_) {
@@ -698,12 +704,11 @@ bool Game::FreeForAllCommand(std::string_view line) const {
   return name == "changeteam";
 }
 
-void Game::ApplyFreeForAll() {
-  // Seat players and hold friendly fire only in free-for-all.
-  if (!free_for_all_) {
+void Game::SeatPlayers() {
+  // Seat players only while seating or free-for-all is on.
+  if (!free_for_all_ && !team_seating_) {
     return;
   }
-  static constexpr const char* kFriendlyFire = "MODIFIER_STATE_FRIENDLY_FIRE_ENABLED";
   auto selection = services_.Selection();
   if (selection) {
     // Seat each player with no team on the side with fewer players.
@@ -731,14 +736,22 @@ void Game::ApplyFreeForAll() {
       auto seated = observer_.SeatForChoice(slot, state.xuid, state.generation, team, **selection);
       if (seated && *seated) {
         ++sides[team];
-        ffa_failed_.erase(slot);
-      } else if (!seated && ffa_failed_.insert(slot).second) {
-        std::cerr << "free-for-all: " << seated.error() << '\n';
+        seat_failed_.erase(slot);
+      } else if (!seated && seat_failed_.insert(slot).second) {
+        std::cerr << "team seating: " << seated.error() << '\n';
       }
     }
-  } else if (ffa_failed_.insert(-1).second) {
-    std::cerr << "free-for-all: " << selection.error() << '\n';
+  } else if (seat_failed_.insert(-1).second) {
+    std::cerr << "team seating: " << selection.error() << '\n';
   }
+}
+
+void Game::ApplyFreeForAll() {
+  // Hold friendly fire only in free-for-all.
+  if (!free_for_all_) {
+    return;
+  }
+  static constexpr const char* kFriendlyFire = "MODIFIER_STATE_FRIENDLY_FIRE_ENABLED";
 
   // Hold friendly fire on each living hero, and let a gone hero's hold go.
   std::set<uint32_t> living;
@@ -765,7 +778,7 @@ void Game::ReleaseFreeForAll() {
     }
   }
   ffa_held_.clear();
-  ffa_failed_.clear();
+  seat_failed_.clear();
 }
 
 std::expected<std::optional<Game::ModifierWord>, std::string> Game::FindModifierWord(

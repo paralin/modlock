@@ -4,6 +4,14 @@ package mod
 const (
 	// ButtonAttack is the primary fire button.
 	ButtonAttack uint64 = 1
+	// ButtonJump is the jump key, Space by default (IN_MANTLE). Blocking it
+	// stops the native jump and mantle; the jumping client still predicts
+	// the jump and is corrected.
+	ButtonJump uint64 = 1 << 48
+	// ButtonCrouch is the crouch key, Ctrl by default.
+	ButtonCrouch uint64 = 1 << 2
+	// ButtonDash is the dash key, Shift by default.
+	ButtonDash uint64 = 1 << 16
 	// ButtonUse is the interact key.
 	ButtonUse uint64 = 1 << 5
 	// ButtonAltFire is the zoom and alternate fire button, right mouse by
@@ -18,6 +26,8 @@ const (
 	ButtonAbility1 uint64 = 1 << 33
 	ButtonAbility2 uint64 = 1 << 34
 	ButtonAbility3 uint64 = 1 << 35
+	// ButtonUltimate is the hero's ultimate ability key, the fourth.
+	ButtonUltimate uint64 = 1 << 36
 	// ButtonParry is the melee parry button.
 	ButtonParry uint64 = 1 << 42
 )

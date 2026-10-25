@@ -20,12 +20,22 @@
 modlock.Buttons = {
 	-- attack is the primary fire button.
 	attack = 1,
+	-- jump is the jump key, Space by default (IN_MANTLE). Blocking it stops the
+	-- native jump and mantle; the jumping client still predicts the jump and is
+	-- corrected.
+	jump = 2 ^ 48,
+	-- crouch is the crouch key, Ctrl by default.
+	crouch = 2 ^ 2,
+	-- dash is the dash key, Shift by default.
+	dash = 2 ^ 16,
 	-- use is the interact key.
 	use = 2 ^ 5,
-	-- melee is the light melee button.
-	melee = 2 ^ 11,
+	-- altFire is the zoom and alternate fire button, right mouse by default.
+	altFire = 2 ^ 11,
 	-- reload is the reload key.
 	reload = 2 ^ 13,
+	-- melee is the light melee key, Q by default.
+	melee = 2 ^ 32,
 	-- ability1 to ability3 are the hero's first three ability keys.
 	ability1 = 2 ^ 33,
 	ability2 = 2 ^ 34,

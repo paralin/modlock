@@ -2085,6 +2085,9 @@ schema.RemapInputRequest = {
 schema.SetFreeForAllRequest = {
 	{ number = 1, name = "enabled", kind = "bool" },
 }
+schema.SetTeamSeatingRequest = {
+	{ number = 1, name = "enabled", kind = "bool" },
+}
 schema.PauseRequest = {
 	{ number = 1, name = "paused", kind = "bool" },
 }
@@ -2735,6 +2738,15 @@ function modlock.setFreeForAll(enabled: boolean): boolean
 	return call("SetFreeForAll", "SetFreeForAllRequest", { enabled = enabled }) ~= nil
 end
 
+-- setTeamSeating turns team seating on or off for the running mod. While
+-- on, the host seats each player who joins with no team on the smaller
+-- team and opens the hero picker with no team screen; friendly fire and
+-- changeteam stay as the game has them. Free-for-all seats players this
+-- way whatever this says. Turning it off leaves players on their teams.
+function modlock.setTeamSeating(enabled: boolean): boolean
+	return call("SetTeamSeating", "SetTeamSeatingRequest", { enabled = enabled }) ~= nil
+end
+
 -- createModel places a model in the world, solid when the options ask.
 -- The world removes it when the world ends; stopping the mod removes it
 -- too.
@@ -3107,12 +3119,22 @@ end
 modlock.Buttons = {
 	-- attack is the primary fire button.
 	attack = 1,
+	-- jump is the jump key, Space by default (IN_MANTLE). Blocking it stops the
+	-- native jump and mantle; the jumping client still predicts the jump and is
+	-- corrected.
+	jump = 2 ^ 48,
+	-- crouch is the crouch key, Ctrl by default.
+	crouch = 2 ^ 2,
+	-- dash is the dash key, Shift by default.
+	dash = 2 ^ 16,
 	-- use is the interact key.
 	use = 2 ^ 5,
-	-- melee is the light melee button.
-	melee = 2 ^ 11,
+	-- altFire is the zoom and alternate fire button, right mouse by default.
+	altFire = 2 ^ 11,
 	-- reload is the reload key.
 	reload = 2 ^ 13,
+	-- melee is the light melee key, Q by default.
+	melee = 2 ^ 32,
 	-- ability1 to ability3 are the hero's first three ability keys.
 	ability1 = 2 ^ 33,
 	ability2 = 2 ^ 34,

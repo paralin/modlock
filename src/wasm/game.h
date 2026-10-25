@@ -328,8 +328,12 @@ class Game : public HostService {
   std::vector<Hero> Heroes();
 
   // StartFreeForAll sets whether free-for-all is on as a mod starts, from its
-  // manifest. SetFreeForAll changes it while the mod runs.
-  void StartFreeForAll(bool enabled) { free_for_all_ = enabled; }
+  // manifest, and turns team seating off. SetFreeForAll and SetTeamSeating
+  // change them while the mod runs.
+  void StartFreeForAll(bool enabled) {
+    free_for_all_ = enabled;
+    team_seating_ = false;
+  }
 
   // StartContentAddon names the content addon of the mod that starts, which
   // CreateEntity writes in place of {addon} in a text key value, and
@@ -445,6 +449,8 @@ class Game : public HostService {
       const abilities::HoldModifierStateRequest& request) override;
   std::expected<void, std::string> SetFreeForAll(
       const match::SetFreeForAllRequest& request) override;
+  std::expected<void, std::string> SetTeamSeating(
+      const match::SetTeamSeatingRequest& request) override;
   std::expected<objects::ObjectResponse, std::string> CreateModel(
       const objects::ModelOptions& request) override;
   std::expected<objects::ObjectResponse, std::string> CreateText(
@@ -610,9 +616,11 @@ class Game : public HostService {
   // them.
   void ApplyHolds();
 
-  // ApplyFreeForAll seats each player who has no team on the smaller side, in
-  // the hero picker, and holds friendly fire on every living hero. A host that
-  // cannot seat a player leaves the game's own team screen to them.
+  // SeatPlayers seats each player who has no team on the smaller side, in the
+  // hero picker, while team seating or free-for-all is on. A host that cannot
+  // seat a player leaves the game's own team screen to them.
+  void SeatPlayers();
+  // ApplyFreeForAll holds friendly fire on every living hero in free-for-all.
   void ApplyFreeForAll();
   // ReleaseFreeForAll gives back the friendly fire holds free-for-all took.
   void ReleaseFreeForAll();
@@ -716,14 +724,16 @@ class Game : public HostService {
   // held_ is the modifier states the mod holds, by entity handle and name;
   // ApplyHolds sets them again.
   std::set<std::pair<uint32_t, std::string>> held_;
-  // free_for_all_ is true while the host seats players and holds friendly fire;
-  // ffa_held_ is the hero pawns it holds friendly fire on, and ffa_failed_ the
-  // players it could not seat, so each failure is logged once.
+  // free_for_all_ is true while the host seats players and holds friendly fire,
+  // and team_seating_ while it only seats them; ffa_held_ is the hero pawns it
+  // holds friendly fire on, and seat_failed_ the players it could not seat, so
+  // each failure is logged once.
   bool free_for_all_ = false;
+  bool team_seating_ = false;
   // addon_ is the running mod's content addon.
   std::string addon_;
   std::set<uint32_t> ffa_held_;
-  std::set<int32_t> ffa_failed_;
+  std::set<int32_t> seat_failed_;
   // held_modifiers_ is the modifiers the mod holds, by player slot and
   // "<ability>/<modifier>" key; modifiers_ resolves each held key.
   std::set<std::pair<int32_t, std::string>> held_modifiers_;
