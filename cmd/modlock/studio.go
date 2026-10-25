@@ -38,7 +38,7 @@ func studioCommand(out *printer) *cli.Command {
 			dir, err := deadlockDir()
 			assets := studio.Unavailable(err)
 			if err == nil {
-				assets = studio.OpenAssets(filepath.Join(dir, "game", "citadel", "pak01_dir.vpk"))
+				assets = studio.OpenAssets(filepath.Join(dir, "game", "citadel"))
 				err = assets.Err()
 			}
 			if err != nil {

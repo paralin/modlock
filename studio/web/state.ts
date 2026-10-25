@@ -1,7 +1,7 @@
 // Studio's state machine: the archive, the outliner, the selected asset and
 // the viewport's display options, moved only by the events below.
-import type { Model, Resource, Texture } from '../studio.pb.js'
-import type { Shading, Stats } from './scene.js'
+import type { Model, Resource, Texture, World } from '../studio.pb.js'
+import type { Shading, Stats, WorldStats } from './scene.js'
 import { ancestors, type Filter, type Tree } from './tree.js'
 
 // Archive is the game archive's file list as it loads.
@@ -28,6 +28,16 @@ export type Asset =
       missing: { texture: string; reason: string }[]
     }
   | {
+      state: 'map'
+      name: string
+      world: World
+      // loaded counts the models drawn so far.
+      loaded: number
+      // stats are what the map draws, null until every model has loaded.
+      stats: WorldStats | null
+      missing: { texture: string; reason: string }[]
+    }
+  | {
       state: 'texture'
       name: string
       texture: Texture
@@ -38,6 +48,9 @@ export type Asset =
     }
   | { state: 'data'; name: string; resource: Resource }
   | { state: 'failed'; name: string; message: string }
+  // lost is a file whose drawing the browser dropped when the GPU reset; it
+  // loads again once the GPU is back.
+  | { state: 'lost'; name: string }
 
 // Outliner is the outliner's search, filter and open folders.
 export interface Outliner {
@@ -55,6 +68,9 @@ export interface Studio {
   asset: Asset
   shading: Shading
   grid: boolean
+  // reset is the file the GPU last reset while drawing, so a second reset
+  // on it fails instead of loading it again forever.
+  reset: string
 }
 
 // initial is the page's state before anything loads.
@@ -64,6 +80,7 @@ export const initial: Studio = {
   asset: { state: 'idle' },
   shading: 'material',
   grid: true,
+  reset: '',
 }
 
 // Event moves the state.
@@ -77,6 +94,9 @@ export type Event =
   | { type: 'select'; name: string }
   | { type: 'model'; name: string; model: Model }
   | { type: 'drawn'; name: string; stats: Stats }
+  | { type: 'map'; name: string; world: World }
+  | { type: 'progress'; name: string; loaded: number }
+  | { type: 'built'; name: string; stats: WorldStats }
   | { type: 'missing'; name: string; texture: string; reason: string }
   | { type: 'lod'; lod: number }
   | { type: 'group'; bit: number }
@@ -87,6 +107,8 @@ export type Event =
   | { type: 'failed'; name: string; message: string }
   | { type: 'shading'; shading: Shading }
   | { type: 'grid' }
+  | { type: 'lost' }
+  | { type: 'restored' }
 
 // reduce applies an event. A load's result for a file no longer selected is
 // dropped.
@@ -105,6 +127,7 @@ export function reduce(studio: Studio, event: Event): Studio {
       return {
         ...studio,
         asset: { state: 'loading', name: event.name },
+        reset: '',
         outliner: reduceOutliner(studio.outliner, {
           type: 'reveal',
           path: event.name,
@@ -117,6 +140,21 @@ export function reduce(studio: Studio, event: Event): Studio {
     case 'lod':
     case 'group':
       return { ...studio, asset: reduceView(studio.asset, event) }
+    case 'lost': {
+      const { asset } = studio
+      if (asset.state === 'idle') return studio
+      const { name } = asset
+      if (studio.reset === name) {
+        const message = 'The graphics card reset twice drawing this file.'
+        return { ...studio, asset: { state: 'failed', name, message } }
+      }
+      return { ...studio, asset: { state: 'lost', name }, reset: name }
+    }
+    case 'restored': {
+      const { asset } = studio
+      if (asset.state !== 'lost') return studio
+      return { ...studio, asset: { state: 'loading', name: asset.name } }
+    }
   }
   return { ...studio, asset: reduceAsset(studio.asset, event) }
 }
@@ -179,8 +217,21 @@ function reduceAsset(asset: Asset, event: Event): Asset {
       }
     case 'drawn':
       return asset.state === 'model' ? { ...asset, stats: event.stats } : asset
+    case 'map':
+      return {
+        state: 'map',
+        name,
+        world: event.world,
+        loaded: 0,
+        stats: null,
+        missing: [],
+      }
+    case 'progress':
+      return asset.state === 'map' ? { ...asset, loaded: event.loaded } : asset
+    case 'built':
+      return asset.state === 'map' ? { ...asset, stats: event.stats } : asset
     case 'missing':
-      return asset.state === 'model'
+      return asset.state === 'model' || asset.state === 'map'
         ? {
             ...asset,
             missing: [

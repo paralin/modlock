@@ -506,9 +506,10 @@ export interface DrawCall {
    */
   material?: string
   /**
-   * VertexBuffer is the vertex buffer's index in Mesh.vertex_buffers.
+   * VertexBuffers are the indexes in Mesh.vertex_buffers of the streams the
+   * call reads its vertices from; each stream holds some of the attributes.
    */
-  vertexBuffer?: number
+  vertexBuffers?: number[]
   /**
    * IndexBuffer is the index buffer's index in Mesh.index_buffers.
    */
@@ -532,7 +533,7 @@ export const DrawCall: MessageType<DrawCall> =
     'modlock.studio.DrawCall',
     () => [
       [1, 'material', 9],
-      [2, 'vertex_buffer', 13],
+      [2, 'vertex_buffers', 13, 3],
       [3, 'index_buffer', 13],
       [4, 'start_index', 13],
       [5, 'index_count', 13],
@@ -548,7 +549,8 @@ export const DrawCall: MessageType<DrawCall> =
               m.material = r.string()
               break
             case 2:
-              m.vertexBuffer = r.uint32()
+              for (const e = r.run(t), a = (m.vertexBuffers ??= []); r.pos < e;)
+                a.push(r.uint32())
               break
             case 3:
               m.indexBuffer = r.uint32()
@@ -574,8 +576,12 @@ export const DrawCall: MessageType<DrawCall> =
           if (v) w.uint32(10).string(v)
         }
         {
-          const v = m.vertexBuffer
-          if (v) w.uint32(16).uint32(v)
+          const a = m.vertexBuffers
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.uint32(e)
+            w.join(s)
+          }
         }
         {
           const v = m.indexBuffer
@@ -598,7 +604,7 @@ export const DrawCall: MessageType<DrawCall> =
   )
 
 /**
- * Material is a material's shader and textures.
+ * Material is a material's shader and the parameters it sets.
  *
  * @generated from message modlock.studio.Material
  */
@@ -612,6 +618,21 @@ export interface Material {
    * compiled texture's archive path.
    */
   textures?: { [key: string]: string }
+  /**
+   * Ints maps each integer parameter, such as the feature "F_SELF_ILLUM",
+   * to its value.
+   */
+  ints?: { [key: string]: bigint }
+  /**
+   * Floats maps each float parameter, such as "g_flSelfIllumScale1", to its
+   * value.
+   */
+  floats?: { [key: string]: number }
+  /**
+   * Vectors maps each vector parameter, such as "g_vColorTint1", to its
+   * value.
+   */
+  vectors?: { [key: string]: Vector }
 }
 
 export const Material: MessageType<Material> =
@@ -620,6 +641,9 @@ export const Material: MessageType<Material> =
     () => [
       [1, 'shader', 9],
       [2, 'textures', 9, 584],
+      [3, 'ints', 3, 584],
+      [4, 'floats', 2, 584],
+      [5, 'vectors', 11, 584, Vector.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Material): Material => {
@@ -639,6 +663,39 @@ export const Material: MessageType<Material> =
               )
               m.textures ??= newMap()
               m.textures[k] = v
+              break
+            }
+            case 3: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => r.int64(),
+                '',
+                0n,
+              )
+              m.ints ??= newMap()
+              m.ints[k] = v
+              break
+            }
+            case 4: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => r.float(),
+                '',
+                0,
+              )
+              m.floats ??= newMap()
+              m.floats[k] = v
+              break
+            }
+            case 5: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => Vector.decode(r, r.delimited(), {}),
+                '',
+                {},
+              )
+              m.vectors ??= newMap()
+              m.vectors[k] = v
               break
             }
             default:
@@ -661,6 +718,102 @@ export const Material: MessageType<Material> =
               w.uint32(18).string(v)
               w.join(s)
             }
+        }
+        {
+          const o = m.ints
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(26).fork()
+              w.uint32(10).string(k)
+              w.uint32(16).int64(v)
+              w.join(s)
+            }
+        }
+        {
+          const o = m.floats
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(34).fork()
+              w.uint32(10).string(k)
+              w.uint32(21).float(v)
+              w.join(s)
+            }
+        }
+        {
+          const o = m.vectors
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(42).fork()
+              w.uint32(10).string(k)
+              Vector.writeField(w, 2, v)
+              w.join(s)
+            }
+        }
+      },
+    },
+  )
+
+/**
+ * Vector is a four component material parameter.
+ *
+ * @generated from message modlock.studio.Vector
+ */
+export interface Vector {
+  x?: number
+  y?: number
+  z?: number
+  w?: number
+}
+
+export const Vector: MessageType<Vector> =
+  /* @__PURE__ */ createMessageType<Vector>(
+    'modlock.studio.Vector',
+    () => [
+      [1, 'x', 2],
+      [2, 'y', 2],
+      [3, 'z', 2],
+      [4, 'w', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Vector): Vector => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.x = r.float()
+              break
+            case 2:
+              m.y = r.float()
+              break
+            case 3:
+              m.z = r.float()
+              break
+            case 4:
+              m.w = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Vector, w: Writer): void => {
+        {
+          const v = m.x
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.y
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.z
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.w
+          if (v != null && v !== 0) w.uint32(37).float(v)
         }
       },
     },
@@ -697,7 +850,7 @@ export interface Texture {
    */
   cube?: boolean
   /**
-   * Served reports that the mip route can answer this format's mips.
+   * Served reports that the mips route can answer this format's mips.
    */
   served?: boolean
 }
@@ -830,6 +983,286 @@ export const Resource: MessageType<Resource> =
         {
           const v = m.json
           if (v) w.uint32(18).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * World is a compiled map's static geometry: every model its world nodes
+ * place, and where. Entities, such as doors and moving props, are not part
+ * of it.
+ *
+ * @generated from message modlock.studio.World
+ */
+export interface World {
+  /**
+   * Models are the archive paths of the models the placements draw.
+   */
+  models?: string[]
+  /**
+   * Placements are the world's scene objects and aggregates.
+   */
+  placements?: Placement[]
+  /**
+   * Materials holds each material a placement puts in place of a model's
+   * own, by its name.
+   */
+  materials?: { [key: string]: Material }
+}
+
+export const World: MessageType<World> =
+  /* @__PURE__ */ createMessageType<World>(
+    'modlock.studio.World',
+    () => [
+      [1, 'models', 9, 1],
+      [2, 'placements', 11, 1, Placement.codec],
+      [3, 'materials', 11, 584, Material.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: World): World => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.models ??= []).push(r.string())
+              break
+            case 2:
+              ;(m.placements ??= []).push(
+                Placement.decode(r, r.delimited(), {}),
+              )
+              break
+            case 3: {
+              const [k, v] = r.entry(
+                (r) => r.string(),
+                (r) => Material.decode(r, r.delimited(), {}),
+                '',
+                {},
+              )
+              m.materials ??= newMap()
+              m.materials[k] = v
+              break
+            }
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: World, w: Writer): void => {
+        {
+          const a = m.models
+          if (a != null) for (const e of a) w.uint32(10).string(e)
+        }
+        {
+          const a = m.placements
+          if (a != null) for (const e of a) Placement.writeField(w, 2, e)
+        }
+        {
+          const o = m.materials
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(26).fork()
+              w.uint32(10).string(k)
+              Material.writeField(w, 2, v)
+              w.join(s)
+            }
+        }
+      },
+    },
+  )
+
+/**
+ * Placement draws one model of World.models into the world.
+ *
+ * @generated from message modlock.studio.Placement
+ */
+export interface Placement {
+  /**
+   * Model is the model's index in World.models.
+   */
+  model?: number
+  /**
+   * Transform is the model's 3x4 row-major transform into the world; empty
+   * means the identity.
+   */
+  transform?: number[]
+  /**
+   * Tint is the placement's sRGB color and alpha tint; empty means white.
+   */
+  tint?: number[]
+  /**
+   * Fragments are an aggregate's draws, each one draw call of the model's
+   * finest level of detail. A placement without fragments draws the whole
+   * model at its finest level of detail.
+   */
+  fragments?: Fragment[]
+  /**
+   * Materials replaces the material of a draw call, by its index across the
+   * model's meshes, with one of World.materials.
+   */
+  materials?: { [key: number]: string }
+}
+
+export const Placement: MessageType<Placement> =
+  /* @__PURE__ */ createMessageType<Placement>(
+    'modlock.studio.Placement',
+    () => [
+      [1, 'model', 13],
+      [2, 'transform', 2, 3],
+      [3, 'tint', 2, 3],
+      [4, 'fragments', 11, 1, Fragment.codec],
+      [5, 'materials', 9, 840],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Placement): Placement => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.model = r.uint32()
+              break
+            case 2:
+              for (const e = r.run(t), a = (m.transform ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 3:
+              for (const e = r.run(t), a = (m.tint ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 4:
+              ;(m.fragments ??= []).push(Fragment.decode(r, r.delimited(), {}))
+              break
+            case 5: {
+              const [k, v] = r.entry(
+                (r) => r.uint32(),
+                (r) => r.string(),
+                0,
+                '',
+              )
+              m.materials ??= newMap()
+              m.materials[k] = v
+              break
+            }
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Placement, w: Writer): void => {
+        {
+          const v = m.model
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const a = m.transform
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const a = m.tint
+          if (a != null && a.length > 0) {
+            const s = w.uint32(26).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const a = m.fragments
+          if (a != null) for (const e of a) Fragment.writeField(w, 4, e)
+        }
+        {
+          const o = m.materials
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(42).fork()
+              w.uint32(8).uint32(Number(k))
+              w.uint32(18).string(v)
+              w.join(s)
+            }
+        }
+      },
+    },
+  )
+
+/**
+ * Fragment is one draw call of an aggregate.
+ *
+ * @generated from message modlock.studio.Fragment
+ */
+export interface Fragment {
+  /**
+   * DrawCall is the draw call's index across the model's meshes.
+   */
+  drawCall?: number
+  /**
+   * Transform is the fragment's own 3x4 row-major transform into the world;
+   * empty means the placement's.
+   */
+  transform?: number[]
+  /**
+   * Tint is the fragment's sRGB color tint; empty means the placement's.
+   */
+  tint?: number[]
+}
+
+export const Fragment: MessageType<Fragment> =
+  /* @__PURE__ */ createMessageType<Fragment>(
+    'modlock.studio.Fragment',
+    () => [
+      [1, 'draw_call', 13],
+      [2, 'transform', 2, 3],
+      [3, 'tint', 2, 3],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Fragment): Fragment => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.drawCall = r.uint32()
+              break
+            case 2:
+              for (const e = r.run(t), a = (m.transform ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            case 3:
+              for (const e = r.run(t), a = (m.tint ??= []); r.pos < e;)
+                a.push(r.float())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Fragment, w: Writer): void => {
+        {
+          const v = m.drawCall
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const a = m.transform
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
+        }
+        {
+          const a = m.tint
+          if (a != null && a.length > 0) {
+            const s = w.uint32(26).fork()
+            for (const e of a) w.float(e)
+            w.join(s)
+          }
         }
       },
     },

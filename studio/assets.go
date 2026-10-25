@@ -8,6 +8,7 @@ import (
 	"math/bits"
 	"net/http"
 	"path"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -25,30 +26,52 @@ import (
 // decodes vertex and index buffers and uploads textures in their stored GPU
 // formats, so the server does no pixel or vertex work.
 type Assets struct {
-	// archive is the game's pak01_dir.vpk, or nil when err says why it could
-	// not be opened.
-	archive *vpk.Archive
-	err     error
+	// archives are the game's pak01_dir.vpk and then each map's own archive,
+	// or none when err says why the game's could not be opened. Every map
+	// keeps its files under maps/<map>/, so no two archives share a name.
+	archives []*vpk.Archive
+	err      error
 
 	// listing is the gzipped Listing, built on the first request.
 	listing func() ([]byte, error)
 
-	// mu guards last, the meshes of the model read last, which its buffer
-	// requests read again one after another.
-	mu   sync.Mutex
-	last struct {
-		name   string
-		meshes []mesh
-	}
+	// mu guards recent, the meshes of the models read last, newest first. A
+	// model's buffer requests follow its model request, and a world's
+	// several models load at once.
+	mu     sync.Mutex
+	recent []recentModel
 }
 
-// OpenAssets opens the archive at pak, such as
-// game/citadel/pak01_dir.vpk in the Deadlock install. When it cannot, every
-// asset route answers why, so the page can say it.
-func OpenAssets(pak string) *Assets {
-	archive, err := vpk.OpenArchive(pak)
-	a := &Assets{archive: archive, err: err}
+// recentModel is one model's meshes, kept for its buffer requests.
+type recentModel struct {
+	name   string
+	meshes []mesh
+}
+
+// recentModels is how many models Assets keeps meshes for: more than the
+// page loads at once.
+const recentModels = 16
+
+// OpenAssets opens the game's archives in game, the install's game/citadel
+// directory: pak01_dir.vpk and every map's archive in maps/. When pak01
+// cannot be opened, every asset route answers why, so the page can say it; a
+// map archive that cannot be opened is left out.
+func OpenAssets(game string) *Assets {
+	// Open the game's own archive first; its names win.
+	pak, err := vpk.OpenArchive(filepath.Join(game, "pak01_dir.vpk"))
+	if err != nil {
+		return Unavailable(err)
+	}
+	a := &Assets{archives: []*vpk.Archive{pak}}
 	a.listing = sync.OnceValues(a.buildListing)
+
+	// Then each map's, which holds the map's world and its own models.
+	maps, _ := filepath.Glob(filepath.Join(game, "maps", "*.vpk"))
+	for _, path := range maps {
+		if archive, err := vpk.OpenArchive(path); err == nil {
+			a.archives = append(a.archives, archive)
+		}
+	}
 	return a
 }
 
@@ -75,8 +98,9 @@ func (a *Assets) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/assets/model/{name...}", a.model)
 	mux.HandleFunc("GET /api/assets/buffer/{mesh}/{kind}/{index}/{name...}", a.buffer)
 	mux.HandleFunc("GET /api/assets/texture/{name...}", a.texture)
-	mux.HandleFunc("GET /api/assets/mip/{mip}/{name...}", a.mip)
+	mux.HandleFunc("GET /api/assets/mips/{from}/{name...}", a.mips)
 	mux.HandleFunc("GET /api/assets/resource/{name...}", a.resource)
+	mux.HandleFunc("GET /api/assets/world/{name...}", a.world)
 }
 
 // list answers the archive's Listing, gzipped.
@@ -90,12 +114,16 @@ func (a *Assets) list(w http.ResponseWriter, r *http.Request) {
 	writeBytes(w, "application/x-protobuf", data)
 }
 
-// buildListing encodes and gzips the archive's file list, grouped by
+// buildListing encodes and gzips the archives' file list, grouped by
 // directory.
 func (a *Assets) buildListing() ([]byte, error) {
 	// Sort the names so each directory's files are adjacent.
-	names := a.archive.Names()
+	var names []string
+	for _, archive := range a.archives {
+		names = append(names, archive.Names()...)
+	}
 	slices.Sort(names)
+	names = slices.Compact(names)
 	listing := &Listing{Files: make([]*File, 0, len(names))}
 	dirs := map[string]uint32{}
 	for _, name := range names {
@@ -107,7 +135,7 @@ func (a *Assets) buildListing() ([]byte, error) {
 			dirs[dir] = index
 			listing.Dirs = append(listing.Dirs, dir)
 		}
-		size, _ := a.archive.Size(name)
+		size, _ := a.archiveOf(name).Size(name)
 		listing.Files = append(listing.Files, &File{Dir: index, Name: base, Size: uint64(size)})
 	}
 
@@ -125,9 +153,21 @@ func (a *Assets) buildListing() ([]byte, error) {
 	return out.Bytes(), nil
 }
 
+// archiveOf returns the archive holding name, or the game's own when none
+// does, which then reports the file missing.
+func (a *Assets) archiveOf(name string) *vpk.Archive {
+	name = strings.ToLower(name)
+	for _, archive := range a.archives {
+		if _, ok := archive.Size(name); ok {
+			return archive
+		}
+	}
+	return a.archives[0]
+}
+
 // read reads a compiled resource's blocks.
 func (a *Assets) read(name string) ([]byte, []resource.Block, error) {
-	data, err := a.archive.ReadFile(name)
+	data, err := a.archiveOf(name).ReadFile(name)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -249,19 +289,19 @@ func drawCalls(mdat map[string]any) []*DrawCall {
 		for _, item := range list(calls["m_drawCalls"]) {
 			call, _ := item.(map[string]any)
 			material, _ := call["m_material"].(string)
-			var vertex any
-			if buffers := list(call["m_vertexBuffers"]); len(buffers) != 0 {
-				first, _ := buffers[0].(map[string]any)
-				vertex = first["m_hBuffer"]
+			var vertex []uint32
+			for _, b := range list(call["m_vertexBuffers"]) {
+				buffer, _ := b.(map[string]any)
+				vertex = append(vertex, uint32(number(buffer["m_hBuffer"])))
 			}
 			index, _ := call["m_indexBuffer"].(map[string]any)
 			out = append(out, &DrawCall{
-				Material:     material,
-				VertexBuffer: uint32(number(vertex)),
-				IndexBuffer:  uint32(number(index["m_hBuffer"])),
-				StartIndex:   uint32(number(call["m_nStartIndex"])),
-				IndexCount:   uint32(number(call["m_nIndexCount"])),
-				BaseVertex:   int32(number(call["m_nBaseVertex"])),
+				Material:      material,
+				VertexBuffers: vertex,
+				IndexBuffer:   uint32(number(index["m_hBuffer"])),
+				StartIndex:    uint32(number(call["m_nStartIndex"])),
+				IndexCount:    uint32(number(call["m_nIndexCount"])),
+				BaseVertex:    int32(number(call["m_nBaseVertex"])),
 			})
 		}
 	}
@@ -390,14 +430,15 @@ func vbibEntry(b []byte, entry int, v [6]int) (*Buffer, storedBuffer, error) {
 }
 
 // modelMeshes returns a model's meshes, reading the model only when it is
-// not the one read last.
+// not one of those read last.
 func (a *Assets) modelMeshes(name string) ([]mesh, error) {
-	// Answer a buffer request from the model read last.
+	// Answer a buffer request from the models read last.
 	a.mu.Lock()
-	if a.last.name == name {
-		found := a.last.meshes
-		a.mu.Unlock()
-		return found, nil
+	for _, model := range a.recent {
+		if model.name == name {
+			a.mu.Unlock()
+			return model.meshes, nil
+		}
 	}
 	a.mu.Unlock()
 
@@ -414,11 +455,14 @@ func (a *Assets) modelMeshes(name string) ([]mesh, error) {
 	return found, nil
 }
 
-// remember keeps a model's meshes as the model read last.
+// remember keeps a model's meshes as the newest of those read last,
+// forgetting the oldest beyond recentModels.
 func (a *Assets) remember(name string, found []mesh) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	a.last.name, a.last.meshes = name, found
+	a.recent = slices.DeleteFunc(a.recent, func(m recentModel) bool { return m.name == name })
+	a.recent = slices.Insert(a.recent, 0, recentModel{name, found})
+	a.recent = a.recent[:min(len(a.recent), recentModels)]
 }
 
 // model answers a model's meshes, mesh groups, levels of detail and the
@@ -466,10 +510,15 @@ func (a *Assets) model(w http.ResponseWriter, r *http.Request) {
 	writeMessage(w, out)
 }
 
-// material returns a material's shader and texture parameters, or an empty
-// material when it cannot be read.
+// material returns a material's shader and parameters, or an empty material
+// when it cannot be read.
 func (a *Assets) material(name string) *Material {
-	out := &Material{Textures: map[string]string{}}
+	out := &Material{
+		Textures: map[string]string{},
+		Ints:     map[string]int64{},
+		Floats:   map[string]float32{},
+		Vectors:  map[string]*Vector{},
+	}
 	_, blocks, err := a.read(name + "_c")
 	if err != nil {
 		return out
@@ -486,6 +535,28 @@ func (a *Assets) material(name string) *Material {
 			out.Textures[key] = value + "_c"
 		}
 	}
+
+	// Read its features and numbers.
+	params := func(field string, set func(key string, param map[string]any)) {
+		for _, item := range list(data[field]) {
+			param, _ := item.(map[string]any)
+			if key, _ := param["m_name"].(string); key != "" {
+				set(key, param)
+			}
+		}
+	}
+	params("m_intParams", func(key string, p map[string]any) { out.Ints[key] = int64(number(p["m_nValue"])) })
+	params("m_floatParams", func(key string, p map[string]any) { out.Floats[key] = float32(number(p["m_flValue"])) })
+	params("m_vectorParams", func(key string, p map[string]any) {
+		v := list(p["m_value"])
+		at := func(i int) float32 {
+			if i < len(v) {
+				return float32(number(v[i]))
+			}
+			return 0
+		}
+		out.Vectors[key] = &Vector{X: at(0), Y: at(1), Z: at(2), W: at(3)}
+	})
 	return out
 }
 
@@ -609,36 +680,37 @@ func mipSize(header textureHeader, mip int) (int, bool) {
 	}
 }
 
-// mip answers one mip's stored bytes, a range of the file read in place.
-func (a *Assets) mip(w http.ResponseWriter, r *http.Request) {
+// mips answers the stored bytes of every mip from the given one down to the
+// smallest, smallest first as the file stores them: one range of the file,
+// read in place.
+func (a *Assets) mips(w http.ResponseWriter, r *http.Request) {
 	// Read the header and check the mip and its format.
-	mip, _ := strconv.Atoi(r.PathValue("mip"))
+	from, _ := strconv.Atoi(r.PathValue("from"))
 	data, header, err := a.readTexture(r.PathValue("name"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	if mip < 0 || mip >= header.mips {
+	if from < 0 || from >= header.mips {
 		http.Error(w, "no such mip", http.StatusNotFound)
 		return
 	}
-	size, ok := mipSize(header, mip)
-	if !ok {
+	if _, ok := mipSize(header, from); !ok {
 		http.Error(w, "format "+strconv.Itoa(header.format)+" is not served yet", http.StatusUnprocessableEntity)
 		return
 	}
 
-	// The mips are stored smallest first.
-	at := header.pixels
-	for smaller := header.mips - 1; smaller > mip; smaller-- {
-		s, _ := mipSize(header, smaller)
-		at += s
+	// The mips are stored smallest first, so the range starts at the pixels.
+	size := 0
+	for mip := from; mip < header.mips; mip++ {
+		s, _ := mipSize(header, mip)
+		size += s
 	}
-	if at+size > len(data) {
+	if header.pixels+size > len(data) {
 		http.Error(w, "the texture is shorter than its mips", http.StatusUnprocessableEntity)
 		return
 	}
-	writeBytes(w, "application/octet-stream", data[at:at+size])
+	writeBytes(w, "application/octet-stream", data[header.pixels:header.pixels+size])
 }
 
 // resource answers a resource's block tags and its KeyValues3 blocks as

@@ -2,7 +2,7 @@
 // asset in the viewport, its properties on the right, and a status bar.
 import { useEffect, useReducer, useRef, type Dispatch } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Listing, Model, Resource, Texture } from '../studio.pb.js'
+import { Listing, Model, Resource, Texture, World } from '../studio.pb.js'
 import { fetchMessage, kindOf, route } from './api.js'
 import { Icon } from './icons.js'
 import { Outliner } from './outliner.js'
@@ -39,12 +39,24 @@ function load(
     else dispatch({ type: 'failed', name, message: error.message })
   }
 
-  // Models and textures draw in the viewport; anything else shows its data.
+  // Maps, models and textures draw in the viewport; anything else shows its
+  // data.
   switch (kindOf(name)) {
+    case 'map':
+      void fetchMessage(World, route('world', name), signal)
+        .then(async (world) => {
+          dispatch({ type: 'map', name, world })
+          const stats = await viewer.loadWorld(world, signal, (loaded) =>
+            dispatch({ type: 'progress', name, loaded }),
+          )
+          dispatch({ type: 'built', name, stats })
+        })
+        .catch(fail)
+      return
     case 'model':
       void fetchMessage(Model, route('model', name), signal)
-        .then(async (model) => {
-          await viewer.loadModel(name, model, signal)
+        .then((model) => {
+          viewer.loadModel(name, model, signal)
           dispatch({ type: 'model', name, model })
         })
         .catch(fail)
@@ -70,7 +82,7 @@ function load(
 
 // drawsInViewport reports whether the viewport's canvas shows for an asset.
 function drawsInViewport(asset: Asset): boolean {
-  if (asset.state === 'model') return true
+  if (asset.state === 'model' || asset.state === 'map') return true
   if (asset.state === 'texture') return asset.unavailable === null
   return asset.state === 'loading' && kindOf(asset.name) !== 'data'
 }
@@ -126,6 +138,25 @@ function App() {
     current.current = abort
     load(loading, viewer.current!, dispatch, abort.signal)
   }, [loading])
+
+  // When the GPU resets, drop the load in flight and draw the file again
+  // once the context is back, since the GPU kept none of it.
+  useEffect(() => {
+    // Listen for the canvas losing and regaining its context.
+    const target = canvas.current!
+    const lost = () => {
+      current.current?.abort()
+      viewer.current?.clear()
+      dispatch({ type: 'lost' })
+    }
+    const restored = () => dispatch({ type: 'restored' })
+    target.addEventListener('webglcontextlost', lost)
+    target.addEventListener('webglcontextrestored', restored)
+    return () => {
+      target.removeEventListener('webglcontextlost', lost)
+      target.removeEventListener('webglcontextrestored', restored)
+    }
+  }, [])
 
   // Draw the model's chosen level of detail and mesh groups.
   const lod = asset.state === 'model' ? asset.lod : -1
@@ -240,10 +271,12 @@ function ViewportHeader(props: {
   dispatch: Dispatch<Event>
   onFrame: () => void
 }) {
-  // Model options show only for a model; Frame for anything drawn.
+  // Shading shows for a model or a map, the grid for a model, and Frame for
+  // anything drawn.
   const { studio, dispatch } = props
   const { asset } = studio
   const model = asset.state === 'model'
+  const shaded = model || asset.state === 'map'
   const drawn = drawsInViewport(asset)
   return (
     <header className="viewport-head">
@@ -253,7 +286,7 @@ function ViewportHeader(props: {
           ? 'Viewport'
           : asset.name.slice(asset.name.lastIndexOf('/') + 1)}
       </span>
-      {model && (
+      {shaded && (
         <div className="segmented" role="group" aria-label="Shading">
           {shadings.map((s) => (
             <button
@@ -299,8 +332,10 @@ function StageNote(props: { asset: Asset }) {
   const { asset } = props
   let note = ''
   if (asset.state === 'idle')
-    note = 'Choose a model, texture or material in the outliner'
+    note = 'Choose a map, model, texture or material in the outliner'
   if (asset.state === 'failed') note = asset.message
+  if (asset.state === 'lost')
+    note = 'The graphics card reset. Drawing resumes when it is back.'
   if (asset.state === 'texture' && asset.unavailable) note = asset.unavailable
   if (!note) return null
   return <p className="stage-note">{note}</p>
@@ -322,6 +357,14 @@ function StatusBar(props: { studio: Studio }) {
   if (asset.state === 'model' && asset.stats) {
     const { drawCalls, vertices, triangles } = asset.stats
     right = `${drawCalls} draw calls · ${vertices.toLocaleString()} vertices · ${Math.round(triangles).toLocaleString()} triangles`
+    if (asset.missing.length)
+      right += ` · ${asset.missing.length} textures not drawn`
+  }
+  if (asset.state === 'map') {
+    const models = asset.world.models?.length ?? 0
+    right = asset.stats
+      ? `${asset.stats.drawCalls.toLocaleString()} draw calls · ${Math.round(asset.stats.triangles).toLocaleString()} triangles`
+      : `Loading models ${asset.loaded.toLocaleString()} of ${models.toLocaleString()}`
     if (asset.missing.length)
       right += ` · ${asset.missing.length} textures not drawn`
   }

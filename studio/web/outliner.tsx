@@ -21,6 +21,7 @@ import {
 
 // filters are the outliner's kind choices.
 const filters: { filter: Filter; label: string }[] = [
+  { filter: 'map', label: 'Maps' },
   { filter: 'model', label: 'Models' },
   { filter: 'texture', label: 'Textures' },
   { filter: 'material', label: 'Materials' },

@@ -20,6 +20,9 @@ export function Properties(props: {
       {asset.state === 'failed' && (
         <p className="panel-note">This file could not be read.</p>
       )}
+      {asset.state === 'map' && (
+        <MapProperties asset={asset} onSelect={props.onSelect} />
+      )}
       {asset.state === 'model' && <ModelProperties {...props} asset={asset} />}
       {asset.state === 'texture' && <TextureProperties asset={asset} />}
       {asset.state === 'data' && (
@@ -119,16 +122,7 @@ function ModelProperties(props: {
           ))}
         </Section>
       )}
-      {asset.missing.length > 0 && (
-        <Section title="Textures not drawn">
-          {asset.missing.map((m) => (
-            <div key={m.texture} className="missing">
-              <Link name={m.texture} onSelect={props.onSelect} />
-              <span className="dim">{m.reason}</span>
-            </div>
-          ))}
-        </Section>
-      )}
+      <Missing missing={asset.missing} onSelect={props.onSelect} />
       <Section title="Materials">
         {materials.map(([name, material]) => (
           <div key={name} className="material">
@@ -145,6 +139,54 @@ function ModelProperties(props: {
         ))}
       </Section>
     </>
+  )
+}
+
+// MapProperties shows what a map places and how much of it has loaded.
+function MapProperties(props: {
+  asset: Extract<Asset, { state: 'map' }>
+  onSelect: (name: string) => void
+}) {
+  const { world, loaded, stats } = props.asset
+  const models = world.models?.length ?? 0
+  return (
+    <>
+      <Section title="Statistics">
+        <Field label="Models">
+          {stats
+            ? models.toLocaleString()
+            : `${loaded.toLocaleString()} of ${models.toLocaleString()}`}
+        </Field>
+        <Field label="Placements">
+          {(world.placements?.length ?? 0).toLocaleString()}
+        </Field>
+        <Field label="Draw calls">
+          {stats?.drawCalls.toLocaleString() ?? '…'}
+        </Field>
+        <Field label="Triangles">
+          {stats ? Math.round(stats.triangles).toLocaleString() : '…'}
+        </Field>
+      </Section>
+      <Missing missing={props.asset.missing} onSelect={props.onSelect} />
+    </>
+  )
+}
+
+// Missing lists the textures that cannot be drawn, with why.
+function Missing(props: {
+  missing: { texture: string; reason: string }[]
+  onSelect: (name: string) => void
+}) {
+  if (props.missing.length === 0) return null
+  return (
+    <Section title="Textures not drawn">
+      {props.missing.map((m) => (
+        <div key={m.texture} className="missing">
+          <Link name={m.texture} onSelect={props.onSelect} />
+          <span className="dim">{m.reason}</span>
+        </div>
+      ))}
+    </Section>
   )
 }
 

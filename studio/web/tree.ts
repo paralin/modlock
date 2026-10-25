@@ -32,6 +32,7 @@ export interface Tree {
 // emptyCounts returns zero counts for every filter.
 const emptyCounts = (): Record<Filter, number> => ({
   all: 0,
+  map: 0,
   model: 0,
   texture: 0,
   material: 0,
