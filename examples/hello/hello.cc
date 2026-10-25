@@ -184,22 +184,10 @@ class HelloPlugin final : public modlock::Plugin {
 
 }  // namespace
 
-MODLOCK_PLUGIN_EXPORT modlock::PluginManifest ModlockPluginManifest_v1() {
+// The incompatible test build claims an SDK the host was not built with.
 #if defined(SAMPLE_ABI_MISMATCH)
-  return {modlock::PluginInterfaceVersion, "incompatible-test-sdk"};
-#else
-  return {modlock::PluginInterfaceVersion, MODLOCK_SDK_ABI};
+#undef MODLOCK_SDK_ABI
+#define MODLOCK_SDK_ABI "incompatible-test-sdk"
 #endif
-}
 
-MODLOCK_PLUGIN_EXPORT modlock::Plugin* ModlockPluginCreate_v1(
-    const modlock::PluginContext* context) {
-  if (!context) {
-    return nullptr;
-  }
-  return new HelloPlugin(*context);
-}
-
-MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin* plugin) {
-  delete plugin;
-}
+MODLOCK_PLUGIN(HelloPlugin)

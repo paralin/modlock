@@ -57,3 +57,17 @@ struct PluginManifest {
 MODLOCK_PLUGIN_EXPORT modlock::PluginManifest ModlockPluginManifest_v1();
 MODLOCK_PLUGIN_EXPORT modlock::Plugin* ModlockPluginCreate_v1(const modlock::PluginContext*);
 MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin*);
+
+// MODLOCK_PLUGIN defines the three symbols for Type, a modlock::Plugin built
+// from a const PluginContext&. Use it once, at namespace scope, in one source.
+#define MODLOCK_PLUGIN(Type)                                                    \
+  MODLOCK_PLUGIN_EXPORT modlock::PluginManifest ModlockPluginManifest_v1() {    \
+    return {modlock::PluginInterfaceVersion, MODLOCK_SDK_ABI};                  \
+  }                                                                             \
+  MODLOCK_PLUGIN_EXPORT modlock::Plugin* ModlockPluginCreate_v1(                \
+      const modlock::PluginContext* context) {                                  \
+    return context ? new Type(*context) : nullptr;                              \
+  }                                                                             \
+  MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin* plugin) { \
+    delete plugin;                                                              \
+  }

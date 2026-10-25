@@ -1473,40 +1473,47 @@ target_link_libraries(my_plugin PRIVATE modlock::sdk)
 target_compile_features(my_plugin PRIVATE cxx_std_23)
 ```
 
-A plugin implements `modlock::Plugin` and exports three functions; `Load`,
-`Tick` and `Stop` are optional:
+A plugin implements `modlock::Plugin`, and `MODLOCK_PLUGIN` exports it to the
+host. `Load`, `Tick` and `Stop` are optional:
 
 ```cpp
+#include <print>
+#include <string_view>
+
 #include "modlock/engine_host.h"
 #include "modlock/plugin_library.h"
 
-class MyPlugin final : public modlock::Plugin {
+// Greeter answers the console command "hello".
+class Greeter final : public modlock::Plugin {
  public:
-  explicit MyPlugin(const modlock::PluginContext& context) : engine_(context.engine) {}
+  explicit Greeter(const modlock::PluginContext& context) : engine_(*context.engine) {}
+
   uint32_t InterfaceVersion() const override { return modlock::PluginInterfaceVersion; }
-  const char* Name() const override { return "my-plugin"; }
+  const char* Name() const override { return "greeter"; }
+
   bool Start() override {
-    auto command = engine_->OnCommand([](int32_t, std::string_view text) {
-      return text == "hello";  // true claims the command
+    auto command = engine_.OnCommand([](int32_t slot, std::string_view text) {
+      if (text != "hello") {
+        return false;  // leave the command to the next handler
+      }
+      std::println("hello, player {}", slot);
+      return true;
     });
-    if (!command) return false;
+    if (!command) {
+      return false;
+    }
     command_ = std::move(*command);
     return true;
   }
+
   void Stop() override { command_.Reset(); }
 
  private:
-  modlock::EngineHost* engine_;
+  modlock::EngineHost& engine_;
   modlock::Subscription command_;
 };
 
-MODLOCK_PLUGIN_EXPORT modlock::PluginManifest ModlockPluginManifest_v1() {
-  return {modlock::PluginInterfaceVersion, MODLOCK_SDK_ABI};
-}
-MODLOCK_PLUGIN_EXPORT modlock::Plugin* ModlockPluginCreate_v1(const modlock::PluginContext* c) {
-  return c ? new MyPlugin(*c) : nullptr;
-}
-MODLOCK_PLUGIN_EXPORT void ModlockPluginDestroy_v1(modlock::Plugin* p) { delete p; }
+MODLOCK_PLUGIN(Greeter)
 ```
 
 [`examples/hello`](examples/hello) is a complete plugin that creates a world
