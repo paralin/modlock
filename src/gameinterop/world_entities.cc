@@ -35,6 +35,29 @@ constexpr EntityKeyValue kWorldTextPanelDefaults[] = {
     {.key = "ignore_parent_orientation", .value = true},
 };
 
+// Subclassed names entities that read a game data entry while spawning and
+// fault on a null one, where no entry carries the class's own name. Example
+// is one entry each works with. Classes whose entry has their own name, such
+// as citadel_hideout_ball, get it by default instead.
+struct Subclassed {
+  std::string_view name;
+  std::string_view example;
+};
+
+constexpr Subclassed kSubclassed[] = {
+    {"citadel_breakable_prop", "citadel_breakable_prop_vase"},
+    {"citadel_capture_point_escort", "capture_point_escort"},
+    {"citadel_chesspiece_entity", "citadel_chesspiece_bishop"},
+    {"citadel_item_powerup_spawner", "citadel_item_powerup_spawner_bounty_runes"},
+    {"citadel_pickup_spawner", "citadel_pickup_floating_apple"},
+    {"item_xp", "xp_orb"},
+    {"npc_escort", "shield_escort"},
+    {"npc_neutral_sinners_sacrifice", "neutral_sinners_sacrifice"},
+    {"npc_trooper", "trooper_normal"},
+    {"npc_trooper_boss", "npc_boss_tier1"},
+    {"npc_trooper_neutral", "neutral_trooper_weak"},
+};
+
 // WithWorldTextPanelDefaults returns values followed by each stock default
 // whose key values does not set.
 std::vector<EntityKeyValue> WithWorldTextPanelDefaults(std::span<const EntityKeyValue> values) {
@@ -195,9 +218,23 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
   if (!system) {
     return std::unexpected(system.error());
   }
-  void* definition = target.subclass_id ? calls_.definition(-1, target.subclass_id) : nullptr;
-  if (target.subclass_id && !definition) {
-    return std::unexpected("entity subclass is absent from this game build");
+  // Without a subclass, use the game data entry named for the class when one
+  // exists: classes such as citadel_hideout_ball read theirs while spawning
+  // and fault on a null entry.
+  uint32_t subclass_id = target.subclass_id ? target.subclass_id : SubclassId(target.designer_name);
+  void* definition = calls_.definition(-1, subclass_id);
+  if (!definition) {
+    if (target.subclass_id) {
+      return std::unexpected("entity subclass is absent from this game build");
+    }
+    const auto* subclassed =
+        std::ranges::find(kSubclassed, target.designer_name, &Subclassed::name);
+    if (subclassed != std::end(kSubclassed)) {
+      return std::unexpected(target.designer_name +
+                             " crashes the server without a subclass, such as " +
+                             std::string(subclassed->example));
+    }
+    subclass_id = 0;
   }
 
   // Create the entity.
@@ -208,8 +245,8 @@ std::expected<void*, std::string> WorldEntities::Create(const Target& target,
 
   // Native CBaseEntity::CreateByDesignerName installs this subclass pair before
   // Spawn. The VData pointer follows the four-byte schema token without padding.
-  if (target.subclass_id) {
-    WriteAt(entity, calls_.offsets.subclass, target.subclass_id);
+  if (subclass_id) {
+    WriteAt(entity, calls_.offsets.subclass, subclass_id);
     WriteAt(entity, calls_.offsets.subclass + sizeof(uint32_t), definition);
   }
 

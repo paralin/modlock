@@ -459,8 +459,10 @@ class EntityOptions:
     # designer_name is the entity's designer name, such as npc_trooper_boss.
     designer_name: str = ""
     # subclass names the entity's game data entry, such as npc_boss_tier1 for
-    # the lane Guardian, for an entity that reads one while spawning. An NPC
-    # needs one.
+    # the lane Guardian, for an entity that reads one while spawning. Without
+    # one, the entity uses the entry named for its class when the game has one,
+    # and a class whose entries all have other names, such as npc_trooper, is
+    # refused.
     subclass: str = ""
     # team is the entity's team number; 4 is neutral.
     team: int = 0

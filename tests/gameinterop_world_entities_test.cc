@@ -271,7 +271,7 @@ TEST_F(NativeWorld, ATextValueTooLongToNetworkIsRefusedBeforeItExists) {
   EXPECT_EQ(created, 1);
 }
 
-TEST_F(NativeWorld, AnEntityThatCrashesAloneIsRefusedBeforeItExists) {
+TEST_F(NativeWorld, AnEntityThatCrashesAloneIsRefusedOrCompletedBeforeItExists) {
   // An entity that crashes alone is refused.
   auto world = World();
   const auto sentry = world.CreateEntity({.designer_name = "npc_shielded_sentry"}, {});
@@ -280,6 +280,20 @@ TEST_F(NativeWorld, AnEntityThatCrashesAloneIsRefusedBeforeItExists) {
             "npc_shielded_sentry crashes the server when created alone: it needs the hero who "
             "owns it");
   EXPECT_EQ(created, 0);
+
+  // A class that reads game data gets the entry named for it by default.
+  const auto ball = world.CreateEntity({.designer_name = "citadel_hideout_ball"}, {});
+  ASSERT_TRUE(ball) << ball.error();
+  EXPECT_EQ(subclass, WorldEntities::SubclassId("citadel_hideout_ball"));
+  EXPECT_EQ(spawned, 1);
+
+  // One whose entries have other names is refused without a subclass.
+  has_definition = false;
+  const auto trooper = world.CreateEntity({.designer_name = "npc_trooper"}, {});
+  ASSERT_FALSE(trooper);
+  EXPECT_EQ(trooper.error(),
+            "npc_trooper crashes the server without a subclass, such as trooper_normal");
+  EXPECT_EQ(spawned, 1);
 }
 
 TEST_F(NativeWorld, SpawnPreparesTheUnitBeforeNativeSpawn) {

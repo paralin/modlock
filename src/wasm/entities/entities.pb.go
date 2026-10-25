@@ -241,8 +241,10 @@ type EntityOptions struct {
 	// DesignerName is the entity's designer name, such as npc_trooper_boss.
 	DesignerName string `protobuf:"bytes,1,opt,name=designer_name,json=designerName,proto3" json:"designerName,omitempty"`
 	// Subclass names the entity's game data entry, such as npc_boss_tier1 for
-	// the lane Guardian, for an entity that reads one while spawning. An NPC
-	// needs one.
+	// the lane Guardian, for an entity that reads one while spawning. Without
+	// one, the entity uses the entry named for its class when the game has one,
+	// and a class whose entries all have other names, such as npc_trooper, is
+	// refused.
 	Subclass string `protobuf:"bytes,2,opt,name=subclass,proto3" json:"subclass,omitempty"`
 	// Team is the entity's team number; 4 is neutral.
 	Team int32 `protobuf:"varint,3,opt,name=team,proto3" json:"team,omitempty"`
