@@ -18,6 +18,12 @@ import (
 // plays the mod.
 const ContentDir = "panorama"
 
+// MapsDir is the directory of a project, and of its built mod, that holds the
+// map the mod plays on when the mod ships its own: maps/<map>.vpk, which the
+// session mounts beside the content addon, and maps/<map>.bsp for the Quake
+// collision its movement model walks on.
+const MapsDir = "maps"
+
 // AssetDirs are the built mod's directories of compiled game resources that
 // its content addon carries beside the Panorama content, each under the
 // addon's name, as models/<addon>/pawn.vmdl_c. A mod names them with {addon}

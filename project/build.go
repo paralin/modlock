@@ -20,11 +20,6 @@ import (
 // Entry is the built WebAssembly module's file name in a built mod.
 const Entry = "mod.wasm"
 
-// MapsDir is the directory of a project, and of its built mod, that holds the
-// map the mod plays on when the mod ships its own: maps/<map>.vpk, and
-// maps/<map>.bsp for the Quake collision its movement model walks on.
-const MapsDir = "maps"
-
 // Mode chooses what a script mod's build favors.
 type Mode int
 
@@ -183,7 +178,7 @@ func (p *Project) shipMapFile(name string) error {
 	if p.Manifest.GetMap() == "" || !filepath.IsLocal(name) {
 		return nil
 	}
-	source, err := os.Open(filepath.Join(p.Dir, MapsDir, name))
+	source, err := os.Open(filepath.Join(p.Dir, check.MapsDir, name))
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
@@ -193,7 +188,7 @@ func (p *Project) shipMapFile(name string) error {
 	defer source.Close()
 
 	// Stage the copy so a failed one leaves the previous map in place.
-	dir := filepath.Join(p.Output(), MapsDir)
+	dir := filepath.Join(p.Output(), check.MapsDir)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return errors.Wrap(err, "create the maps directory")
 	}

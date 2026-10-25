@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"maps"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing/fstest"
@@ -47,7 +48,10 @@ type Renderer struct {
 // mountRenderer mounts a package in the Deadlock installation at gameDir that
 // draws the mods' interfaces in the player's game and carries each mod's
 // content addon, and returns the call that unmounts it. renderer is the built
-// renderer, or nil to leave the interfaces out, and mods are the built mods.
+// renderer, or nil to leave the interfaces out, and content is the mods'
+// content addons. A map archive in content, maps/<map>.vpk, is written beside
+// the package instead of into it, since the game opens each map as its own
+// archive on the search path, as it does the stock maps.
 // The renderer shadows the stock news layout, read from the installed game so
 // it follows game updates, with one script added. The package outranks every
 // other mounted package while the session runs, and the server and the game
@@ -66,7 +70,14 @@ func mountRenderer(gameDir string, renderer *Renderer, content fstest.MapFS) (fu
 		maps.Copy(files, compiled)
 	}
 	maps.Copy(files, content)
-	if len(files) == 0 {
+	archives := fstest.MapFS{}
+	for name, file := range files {
+		if isMapArchive(name) {
+			archives[name] = file
+			delete(files, name)
+		}
+	}
+	if len(files) == 0 && len(archives) == 0 {
 		return func() error { return nil }, nil
 	}
 
@@ -92,11 +103,50 @@ func mountRenderer(gameDir string, renderer *Renderer, content fstest.MapFS) (fu
 			return nil, err
 		}
 	}
+	if err := writeMapArchives(devmount.Path(gameDir), archives); err != nil {
+		_ = held.Close()
+		return nil, err
+	}
 	if err := devmount.Mount(gameDir); err != nil {
 		_ = held.Close()
 		return nil, err
 	}
 	return unmount, nil
+}
+
+// isMapArchive reports whether name in a content addon is a map's archive.
+func isMapArchive(name string) bool {
+	return path.Dir(name) == check.MapsDir && path.Ext(name) == ".vpk"
+}
+
+// writeMapArchives makes the maps directory of the package directory dir hold
+// archives: it writes each changed one and removes the ones a previous session
+// left. A running game holds a map it loaded open on Windows, so an unchanged
+// archive stays as it is and a stale one it holds stays until the game exits.
+func writeMapArchives(dir string, archives fstest.MapFS) error {
+	dir = filepath.Join(dir, check.MapsDir)
+	stale, _ := filepath.Glob(filepath.Join(dir, "*.vpk"))
+	for _, name := range stale {
+		if _, ok := archives[path.Join(check.MapsDir, filepath.Base(name))]; !ok {
+			_ = os.Remove(name)
+		}
+	}
+	if len(archives) == 0 {
+		return nil
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return errors.Wrap(err, "write the mods' maps")
+	}
+	for name, file := range archives {
+		target := filepath.Join(dir, path.Base(name))
+		if current, err := os.ReadFile(target); err == nil && bytes.Equal(current, file.Data) {
+			continue
+		}
+		if err := os.WriteFile(target, file.Data, 0o644); err != nil {
+			return errors.Wrap(err, "write the mods' maps")
+		}
+	}
+	return nil
 }
 
 // rendererFiles compiles the renderer's files: the installed news layout
@@ -129,7 +179,8 @@ func rendererFiles(citadel string, renderer *Renderer) (fstest.MapFS, error) {
 }
 
 // ReadContent returns the content addons of the mods built at mods: their
-// compiled Panorama content and assets, each already under its addon's name.
+// compiled Panorama content and assets, each already under its addon's name,
+// and the archive of each map a mod ships, as maps/<map>.vpk.
 func ReadContent(mods []string) (fstest.MapFS, error) {
 	files := fstest.MapFS{}
 	for _, mod := range mods {
@@ -161,6 +212,14 @@ func addContent(files fstest.MapFS, dir string) error {
 		if err != nil {
 			return errors.Wrap(err, "read the mod's content")
 		}
+	}
+	archives, _ := fs.Glob(built, path.Join(check.MapsDir, "*.vpk"))
+	for _, name := range archives {
+		data, err := fs.ReadFile(built, name)
+		if err != nil {
+			return errors.Wrap(err, "read the mod's map")
+		}
+		files[name] = &fstest.MapFile{Data: data, Mode: 0o644}
 	}
 	return nil
 }
