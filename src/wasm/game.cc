@@ -222,8 +222,7 @@ void Game::Clear() {
   }
   held_.clear();
   free_for_all_ = false;
-  ffa_held_.clear();
-  seat_failed_.clear();
+  ReleaseFreeForAll();
   ReleaseModifiers();
 
   // Release the input the mod blocked, remapped or watched.

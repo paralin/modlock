@@ -367,7 +367,8 @@ std::expected<unsigned char*, std::string> Game::ModelPart(void* entity, const v
     return std::unexpected(node.error());
   }
   unsigned char* scene = nullptr;
-  if (!gameinterop::ReadNative(component + node->offset, &scene, sizeof(scene)) || scene == nullptr) {
+  if (!gameinterop::ReadNative(component + node->offset, &scene, sizeof(scene)) ||
+      scene == nullptr) {
     return std::unexpected("the entity has no scene node");
   }
   if (class_name != "CModelState") {
@@ -684,19 +685,37 @@ std::expected<void, std::string> Game::HoldModifierState(
   return {};
 }
 
+void Game::StartFreeForAll(bool enabled) {
+  free_for_all_ = enabled;
+  team_seating_ = false;
+  if (free_for_all_) {
+    EnableRelations();
+  }
+}
+
+void Game::EnableRelations() {
+  // Without the relations only bullets reach teammates; the match still runs.
+  if (auto relations = services_.Relations()) {
+    (*relations)->SetEnabled(true);
+  } else {
+    std::cerr << "free-for-all relations: " << relations.error() << '\n';
+  }
+}
+
 std::expected<void, std::string> Game::SetFreeForAll(const match::SetFreeForAllRequest& request) {
   if (free_for_all_ == request.enabled()) {
     return {};
   }
   free_for_all_ = request.enabled();
-  if (!free_for_all_) {
+  if (free_for_all_) {
+    EnableRelations();
+  } else {
     ReleaseFreeForAll();
   }
   return {};
 }
 
-std::expected<void, std::string> Game::SetTeamSeating(
-    const match::SetTeamSeatingRequest& request) {
+std::expected<void, std::string> Game::SetTeamSeating(const match::SetTeamSeatingRequest& request) {
   team_seating_ = request.enabled();
   return {};
 }
@@ -777,6 +796,9 @@ void Game::ApplyFreeForAll() {
 }
 
 void Game::ReleaseFreeForAll() {
+  if (services_.relations_) {
+    services_.relations_->SetEnabled(false);
+  }
   static constexpr const char* kFriendlyFire = "MODIFIER_STATE_FRIENDLY_FIRE_ENABLED";
   for (const auto handle : ffa_held_) {
     if (held_.erase({handle, kFriendlyFire}) != 0) {

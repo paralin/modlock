@@ -26,6 +26,7 @@
 #include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/entity_dynamics.h"
+#include "modlock/gameinterop/free_for_all_relations.h"
 #include "modlock/gameinterop/game_rules.h"
 #include "modlock/gameinterop/hero_definitions.h"
 #include "modlock/gameinterop/mapped_module_image.h"
@@ -117,6 +118,7 @@ class GameServices {
   std::expected<const gameinterop::PawnMotion*, std::string> Motion();
   std::expected<const gameinterop::EntityDynamics*, std::string> Dynamics();
   std::expected<const gameinterop::BotCreation*, std::string> Bots();
+  std::expected<gameinterop::FreeForAllRelations*, std::string> Relations();
   std::expected<render::WorldTextGameFactory*, std::string> Text();
   std::expected<render::WorldEffectGameFactory*, std::string> Effects();
   std::expected<const gameinterop::NativeDamage*, std::string> Damage();
@@ -204,6 +206,8 @@ class GameServices {
   std::optional<gameinterop::BotCreation> bots_;
   // bot_heroes_ lets bots keep a human's hero once a mod adds one.
   std::optional<gameinterop::BotHeroGuard> bot_heroes_;
+  // relations_ makes teammates enemies while a mod runs a free-for-all.
+  std::optional<gameinterop::FreeForAllRelations> relations_;
   std::unique_ptr<render::WorldTextGameFactory> text_;
   std::unique_ptr<render::WorldEffectGameFactory> effects_;
   std::optional<gameinterop::NativeDamage> damage_;
@@ -335,10 +339,7 @@ class Game : public HostService {
   // StartFreeForAll sets whether free-for-all is on as a mod starts, from its
   // manifest, and turns team seating off. SetFreeForAll and SetTeamSeating
   // change them while the mod runs.
-  void StartFreeForAll(bool enabled) {
-    free_for_all_ = enabled;
-    team_seating_ = false;
-  }
+  void StartFreeForAll(bool enabled);
 
   // StartContentAddon names the content addon of the mod that starts, which
   // CreateEntity writes in place of {addon} in a text key value, and
@@ -629,7 +630,11 @@ class Game : public HostService {
   void SeatPlayers();
   // ApplyFreeForAll holds friendly fire on every living hero in free-for-all.
   void ApplyFreeForAll();
-  // ReleaseFreeForAll gives back the friendly fire holds free-for-all took.
+  // EnableRelations makes teammates enemies to abilities and projectiles,
+  // installing the relations on first use.
+  void EnableRelations();
+  // ReleaseFreeForAll gives back the friendly fire holds free-for-all took
+  // and restores the stock team relations.
   void ReleaseFreeForAll();
 
   // RenewModifier gives slot's living hero the held modifier when it lacks

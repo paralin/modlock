@@ -248,6 +248,13 @@ std::expected<const gameinterop::BotCreation*, std::string> GameServices::Bots()
   return &*bots_;
 }
 
+std::expected<gameinterop::FreeForAllRelations*, std::string> GameServices::Relations() {
+  if (auto cached = Cache(relations_, &gameinterop::FreeForAllRelations::Install); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*relations_;
+}
+
 std::expected<render::WorldTextGameFactory*, std::string> GameServices::Text() {
   // Build the text factory once from the server module.
   if (auto cached = Cache(text_, &render::WorldTextGameFactory::TryCreate); !cached) {
