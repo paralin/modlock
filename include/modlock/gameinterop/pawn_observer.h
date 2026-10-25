@@ -583,6 +583,10 @@ class MODLOCK_API PawnObserver {
   void NoteDegradation(const char* reason);
   // ResolveLayout resolves the schema layout once per world.
   std::expected<void, std::string> ResolveLayout();
+  // ObservedPawnHandle returns the handle of the pawn a frame observes for
+  // controller: the hero, which stays the player's while the active pawn is a
+  // camera, or the active pawn of a spectator.
+  uint32_t ObservedPawnHandle(const void* controller) const;
   // ControllerOfSlot returns the slot's controller and the entity list that
   // resolves its handles.
   std::expected<std::pair<unsigned char*, unsigned char*>, std::string> ControllerOfSlot(

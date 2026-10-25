@@ -412,6 +412,18 @@ void PawnObserver::Prepare() {
   }
 }
 
+uint32_t PawnObserver::ObservedPawnHandle(const void* controller) const {
+  // Death or a watch can switch the active pawn to a spectator or a camera
+  // while the hero remains available for observation and round restoration.
+  const auto* bytes = static_cast<const unsigned char*>(controller);
+  const size_t field = bytes[layout_.team] == 1
+                           ? layout_.pawn_handle
+                           : layout_.hero_pawn_handle.value_or(layout_.pawn_handle);
+  uint32_t handle = 0;
+  std::memcpy(&handle, bytes + field, sizeof(handle));
+  return handle;
+}
+
 std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
   // Forget the previous frame's pawn.
   frame_pawn_ = nullptr;
@@ -494,17 +506,7 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
     return std::nullopt;
   }
 
-  // Read the active pawn's handle.
-  uint32_t pawn_handle = 0;
-
-  // Death can switch the active pawn to a spectator while the hero remains
-  // available for combat observation and round restoration.
-  const auto controller_team = static_cast<const unsigned char*>(controller)[layout_.team];
-  const size_t pawn_field = controller_team == 1
-                                ? layout_.pawn_handle
-                                : layout_.hero_pawn_handle.value_or(layout_.pawn_handle);
-  std::memcpy(&pawn_handle, static_cast<const unsigned char*>(controller) + pawn_field,
-              sizeof(pawn_handle));
+  const uint32_t pawn_handle = ObservedPawnHandle(controller);
   if (trace_now) {
     ++traced_frames;
     std::fprintf(

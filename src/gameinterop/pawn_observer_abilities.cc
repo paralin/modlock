@@ -242,12 +242,7 @@ PawnObserver::CurrentAbilitiesForSlot(int32_t slot) {
   if (!pawn_identity || InstanceOf(pawn_identity) != frame_pawn_ || !controller_identity) {
     return std::unexpected("pawn identity changed during this frame");
   }
-  uint32_t current_pawn_handle = 0;
-  std::memcpy(
-      &current_pawn_handle,
-      static_cast<const unsigned char*>(InstanceOf(controller_identity)) + layout_.pawn_handle,
-      sizeof(current_pawn_handle));
-  if (current_pawn_handle != frame_pawn_handle_) {
+  if (ObservedPawnHandle(InstanceOf(controller_identity)) != frame_pawn_handle_) {
     return std::unexpected("controller pawn changed during this frame");
   }
 
