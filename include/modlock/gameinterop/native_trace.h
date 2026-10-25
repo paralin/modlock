@@ -162,11 +162,9 @@ struct MODLOCK_API TraceResult {
   bool DidHit() const { return fraction < 1 || start_in_solid; }
 };
 
-// NativeTrace binds the VPhys2 query and captures the current physics context.
-// Query and invalidation run on the engine frame thread. Install before engine
-// startup, retain through RunEngine, and destroy after the engine stops.
-// One installation may exist. A world replacement requires invalidation before
-// another query; a subsequent engine trace supplies the new physics context.
+// NativeTrace calls the server's VPhys2 shape query on the loaded world.
+// Install resolves it from the server module; Query runs on the engine frame
+// thread and works whenever a world is loaded.
 class MODLOCK_API NativeTrace {
  public:
   static std::expected<NativeTrace, std::string> Install(const ModuleImage& server);
@@ -178,14 +176,12 @@ class MODLOCK_API NativeTrace {
   std::expected<TraceResult, std::string> Query(const TraceVector& start, const TraceVector& end,
                                                 const TraceShape& shape = TraceLine{},
                                                 const TraceOptions& options = {}) const;
-  // IsReady reports whether Query can run: the trace is installed and the
-  // engine physics context from the last native trace is still present.
+  // IsReady reports whether Query can run: a world is loaded.
   [[nodiscard]] bool IsReady() const;
   std::expected<TraceResult, std::string> RayAngles(const TraceVector& start,
                                                     const TraceVector& angles,
                                                     float distance = 8192,
                                                     const TraceOptions& options = {}) const;
-  void InvalidateAfterEngineReset();
 
  private:
   struct Impl;

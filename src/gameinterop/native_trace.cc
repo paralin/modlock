@@ -3,12 +3,7 @@
 #include "modlock/gameinterop/entity_abi.h"
 #include "native_trace_layout.h"
 
-#if defined(_WIN32)
-#include <safetyhook.hpp>
-#endif
-
 #include <algorithm>
-#include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -124,14 +119,14 @@ std::expected<Ray, std::string> BuildRay(const TraceShape& shape) {
 }
 
 #if defined(_WIN32)
-safetyhook::InlineHook* g_hook = nullptr;
-std::atomic<void*> g_physics = nullptr;
+// CGamePhysicsQueryInterface: its first field is the loaded world's physics
+// scene, null while no world is loaded.
+struct PhysicsQuery {
+  void* world;
+};
 
-void TraceThunk(void* physics, Ray* ray, TraceVector* start, TraceVector* end, Filter* filter,
-                GameTrace* result) {
-  g_physics.store(physics, std::memory_order_release);
-  g_hook->call<void>(physics, ray, start, end, filter, result);
-}
+using TraceShapeFn = bool (*)(PhysicsQuery*, Ray*, TraceVector*, TraceVector*, Filter*,
+                              GameTrace*);
 
 void FilterDestructor(Filter*, std::uint8_t) {}
 
@@ -160,14 +155,13 @@ const FilterVtable kFilterVtable{FilterDestructor, ShouldHitEntity};
 
 struct NativeTrace::Impl {
 #if defined(_WIN32)
-  safetyhook::InlineHook hook;
+  PhysicsQuery* const* query = nullptr;
+  TraceShapeFn trace_shape = nullptr;
 
-  ~Impl() {
-    if (g_hook == &hook) {
-      hook.reset();
-      g_hook = nullptr;
-      g_physics.store(nullptr, std::memory_order_release);
-    }
+  // Physics returns the server's query interface while a world is loaded.
+  PhysicsQuery* Physics() const {
+    PhysicsQuery* physics = *query;
+    return physics && physics->world ? physics : nullptr;
   }
 #endif
 };
@@ -180,29 +174,18 @@ NativeTrace::~NativeTrace() = default;
 
 std::expected<NativeTrace, std::string> NativeTrace::Install(const ModuleImage& server) {
 #if defined(_WIN32)
-  // Install once, resolving the trace function.
-  if (g_hook) {
-    return std::unexpected("native trace is already installed");
+  // Resolve the trace function and the query interface global it runs on.
+  auto trace_shape = ResolveSignature(server, "physics.trace-shape");
+  if (!trace_shape) {
+    return std::unexpected(trace_shape.error());
   }
-  auto target = ResolveSignature(server, "physics.trace-shape");
-  if (!target) {
-    return std::unexpected(target.error());
+  auto query = ResolveSignature(server, "physics.query");
+  if (!query) {
+    return std::unexpected(query.error());
   }
-
-  // Detour it.
-  auto hook = safetyhook::create_inline(*target, reinterpret_cast<void*>(&TraceThunk),
-                                        safetyhook::InlineHook::StartDisabled);
-  if (!hook) {
-    return std::unexpected("native trace hook creation failed");
-  }
-
-  // Own the detour and enable it.
   auto impl = std::make_unique<Impl>();
-  impl->hook = std::move(hook);
-  g_hook = &impl->hook;
-  if (auto enabled = impl->hook.enable(); !enabled) {
-    return std::unexpected("native trace hook activation failed");
-  }
+  impl->query = static_cast<PhysicsQuery* const*>(*query);
+  impl->trace_shape = reinterpret_cast<TraceShapeFn>(*trace_shape);
   return NativeTrace(std::move(impl));
 #else
   (void)server;
@@ -212,7 +195,7 @@ std::expected<NativeTrace, std::string> NativeTrace::Install(const ModuleImage& 
 
 bool NativeTrace::IsReady() const {
 #if defined(_WIN32)
-  return impl_ && g_physics.load(std::memory_order_acquire) != nullptr;
+  return impl_ && impl_->Physics();
 #else
   return false;
 #endif
@@ -232,10 +215,10 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
   }
 
 #if defined(_WIN32)
-  // The physics query must be ready.
-  void* physics = g_physics.load(std::memory_order_acquire);
-  if (!impl_ || !physics) {
-    return std::unexpected("native physics query is not ready");
+  // A world must be loaded.
+  PhysicsQuery* physics = impl_ ? impl_->Physics() : nullptr;
+  if (!physics) {
+    return std::unexpected("no world is loaded to trace");
   }
 
   // Build the filter from the options.
@@ -274,7 +257,7 @@ std::expected<TraceResult, std::string> NativeTrace::Query(const TraceVector& st
   std::memcpy(native.transform + 12, &one, sizeof(one));
   auto from = start;
   auto to = end;
-  impl_->hook.call<void>(physics, &*ray, &from, &to, &filter, &native);
+  impl_->trace_shape(physics, &*ray, &from, &to, &filter, &native);
   if (!std::isfinite(native.fraction) || native.fraction < 0 || native.fraction > 1 ||
       !Finite(native.normal)) {
     return std::unexpected("native trace returned invalid hit data");
@@ -306,14 +289,6 @@ std::expected<TraceResult, std::string> NativeTrace::RayAngles(const TraceVector
                         start[1] + std::cos(pitch) * std::sin(yaw) * distance,
                         start[2] - std::sin(pitch) * distance};
   return Query(start, end, TraceLine{}, options);
-}
-
-void NativeTrace::InvalidateAfterEngineReset() {
-#if defined(_WIN32)
-  if (impl_) {
-    g_physics.store(nullptr, std::memory_order_release);
-  }
-#endif
 }
 
 }  // namespace modlock::gameinterop

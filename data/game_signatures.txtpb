@@ -452,6 +452,15 @@ signatures {
   shape: "TraceShape(physics, Ray_t*, Vector* start, Vector* end, CTraceFilter*, CGameTrace*)"
 }
 
+# A trace caller: mov [rsp+20],rcx; lea rdx,[rbp+90]; mov rcx,[rip+disp32]; call TraceShape.
+signatures {
+  id: "physics.query"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 4C 24 20 48 8D 95 90 00 00 00 48 8B 0D ?? ?? ?? ?? E8"
+  rip_relative_at: 12
+  shape: "CGamePhysicsQueryInterface* global passed to TraceShape"
+}
+
 signatures {
   id: "preparation.damage-gate"
   modules: GAME_MODULE_SERVER

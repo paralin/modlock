@@ -179,9 +179,6 @@ std::expected<int, std::string> EngineHost::Run(const net::LaunchConfig& launch)
   impl_->result = net::RunEngine(launch, impl_->paths.engine2_dll.parent_path());
 
   // Report a world failure over the engine's result.
-  if (impl_->trace) {
-    impl_->trace->InvalidateAfterEngineReset();
-  }
   if (!impl_->world_error.empty()) {
     impl_->result = std::unexpected(impl_->world_error);
   }
@@ -303,12 +300,7 @@ std::expected<void, std::string> EngineHost::EnsureConnectionHook() {
 std::expected<void, std::string> EngineHost::EnsureWorldHook() {
   if (!impl_->world_hook) {
     auto hook = gameinterop::StartupServerProbe::Install(
-        [this](std::string_view map) {
-          impl_->before_world.Dispatch(map);
-          if (impl_->trace) {
-            impl_->trace->InvalidateAfterEngineReset();
-          }
-        },
+        [this](std::string_view map) { impl_->before_world.Dispatch(map); },
         [this](std::string_view map) {
           impl_->world_map = std::string(map);
           impl_->after_world.Dispatch(map);
@@ -318,9 +310,6 @@ std::expected<void, std::string> EngineHost::EnsureWorldHook() {
             return;
           }
           impl_->ending_world.Dispatch();
-          if (impl_->trace) {
-            impl_->trace->InvalidateAfterEngineReset();
-          }
         },
         [this](std::string error) {
           impl_->world_error = std::move(error);
