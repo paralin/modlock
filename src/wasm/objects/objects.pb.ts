@@ -880,3 +880,63 @@ export const SetObjectHiddenRequest: MessageType<SetObjectHiddenRequest> =
       },
     },
   )
+
+/**
+ * ShowObjectOnlyToRequest names the only players who receive an object.
+ *
+ * @generated from message modlock.wasm.objects.ShowObjectOnlyToRequest
+ */
+export interface ShowObjectOnlyToRequest {
+  object?: number
+  /**
+   * Players are the server slots of the players who see the object.
+   */
+  players?: number[]
+}
+
+export const ShowObjectOnlyToRequest: MessageType<ShowObjectOnlyToRequest> =
+  /* @__PURE__ */ createMessageType<ShowObjectOnlyToRequest>(
+    'modlock.wasm.objects.ShowObjectOnlyToRequest',
+    () => [
+      [1, 'object', 13],
+      [2, 'players', 5, 3],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ShowObjectOnlyToRequest,
+      ): ShowObjectOnlyToRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.object = r.uint32()
+              break
+            case 2:
+              for (const e = r.run(t), a = (m.players ??= []); r.pos < e;)
+                a.push(r.int32())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ShowObjectOnlyToRequest, w: Writer): void => {
+        {
+          const v = m.object
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const a = m.players
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )

@@ -954,6 +954,23 @@ func (w WorldObject) SetHidden(player Player, hidden bool) error {
 	return invoke("SetObjectHidden", &objectspb.SetObjectHiddenRequest{Object: w.ID, Player: player.Slot, Hidden: hidden}, nil)
 }
 
+// ShowOnlyTo sends the object only to the players with the listed
+// server slots; every other client drops it, or never receives it when the
+// call follows its creation in the same frame. With no players no client
+// receives it. The list replaces any earlier one and follows the object
+// when its entity changes. A player who leaves is taken off every list, so
+// whoever joins in their slot does not receive the object. A removed object
+// reaches no client while the engine retires its entity.
+func (w WorldObject) ShowOnlyTo(players []int32) error {
+	return invoke("ShowObjectOnlyTo", &objectspb.ShowObjectOnlyToRequest{Object: w.ID, Players: players}, nil)
+}
+
+// ShowToAll sends the object to every player again, undoing
+// ShowObjectOnlyTo.
+func (w WorldObject) ShowToAll() error {
+	return invoke("ShowObjectToAll", &objectspb.ObjectRequest{Object: w.ID}, nil)
+}
+
 // Remove takes the object out of the world.
 func (w WorldObject) Remove() error {
 	return invoke("RemoveObject", &objectspb.ObjectRequest{Object: w.ID}, nil)

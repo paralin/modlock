@@ -1595,6 +1595,23 @@ class WorldObject:
         """
         return _call("SetObjectHidden", "SetObjectHiddenRequest", {"object": self, "player": player, "hidden": hidden}) is not None
 
+    def show_only_to(self, players: list[int] | None = None) -> bool:
+        """show_only_to sends the object only to the players with the listed
+        server slots; every other client drops it, or never receives it when the
+        call follows its creation in the same frame. With no players no client
+        receives it. The list replaces any earlier one and follows the object
+        when its entity changes. A player who leaves is taken off every list, so
+        whoever joins in their slot does not receive the object. A removed object
+        reaches no client while the engine retires its entity.
+        """
+        return _call("ShowObjectOnlyTo", "ShowObjectOnlyToRequest", {"object": self, "players": players}) is not None
+
+    def show_to_all(self) -> bool:
+        """show_to_all sends the object to every player again, undoing
+        ShowObjectOnlyTo.
+        """
+        return _call("ShowObjectToAll", "ObjectRequest", {"object": self}) is not None
+
     def remove(self) -> bool:
         """remove takes the object out of the world."""
         return _call("RemoveObject", "ObjectRequest", {"object": self}) is not None
@@ -2566,6 +2583,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "object", "uint32", cls=WorldObject, key="id"),
             wire.Field(2, "player", "int32", cls=Player, key="slot"),
             wire.Field(3, "hidden", "bool"),
+        ],
+    ),
+    "ShowObjectOnlyToRequest": (
+        None,
+        [
+            wire.Field(1, "object", "uint32", cls=WorldObject, key="id"),
+            wire.Field(2, "players", "int32", repeated=True),
         ],
     ),
     "RestoredEvent": (

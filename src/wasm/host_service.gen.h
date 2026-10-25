@@ -510,6 +510,25 @@ class HostService {
     return std::unexpected("this host does not support SetObjectHidden");
   }
 
+  // ShowObjectOnlyTo sends the object only to the players with the listed
+  // server slots; every other client drops it, or never receives it when the
+  // call follows its creation in the same frame. With no players no client
+  // receives it. The list replaces any earlier one and follows the object
+  // when its entity changes. A player who leaves is taken off every list, so
+  // whoever joins in their slot does not receive the object. A removed object
+  // reaches no client while the engine retires its entity.
+  virtual std::expected<void, std::string> ShowObjectOnlyTo(
+      const objects::ShowObjectOnlyToRequest& /*request*/) {
+    return std::unexpected("this host does not support ShowObjectOnlyTo");
+  }
+
+  // ShowObjectToAll sends the object to every player again, undoing
+  // ShowObjectOnlyTo.
+  virtual std::expected<void, std::string> ShowObjectToAll(
+      const objects::ObjectRequest& /*request*/) {
+    return std::unexpected("this host does not support ShowObjectToAll");
+  }
+
   // RemoveObject takes the object out of the world.
   virtual std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& /*request*/) {
     return std::unexpected("this host does not support RemoveObject");
@@ -1297,6 +1316,22 @@ class HostService {
              return detail::Fail("the SetObjectHidden request is malformed");
            }
            return detail::Answer(host.SetObjectHidden(request));
+         }},
+        {"ShowObjectOnlyTo",
+         [](HostService& host, const std::string& bytes) {
+           objects::ShowObjectOnlyToRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the ShowObjectOnlyTo request is malformed");
+           }
+           return detail::Answer(host.ShowObjectOnlyTo(request));
+         }},
+        {"ShowObjectToAll",
+         [](HostService& host, const std::string& bytes) {
+           objects::ObjectRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the ShowObjectToAll request is malformed");
+           }
+           return detail::Answer(host.ShowObjectToAll(request));
          }},
         {"RemoveObject",
          [](HostService& host, const std::string& bytes) {

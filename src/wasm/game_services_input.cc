@@ -213,9 +213,9 @@ std::optional<gameinterop::CommandHook::Command> GameServices::Driven(int32_t sl
         gameinterop::ConnectionTracker::StateForSlot(slot).is_bot) {
       const auto& steering = steered->second;
       return gameinterop::CommandHook::Command{.angles = Floats(steering.facing()),
-                                                .forward = steering.command().forward(),
-                                                .left = steering.command().left(),
-                                                .held = steering.command().held()};
+                                               .forward = steering.command().forward(),
+                                               .left = steering.command().left(),
+                                               .held = steering.command().held()};
     }
   }
   return std::nullopt;
@@ -246,6 +246,16 @@ void GameServices::Withhold(gameinterop::TransmitSet& set) {
   for (auto* game : games_) {
     for (const auto& [entity, slots] : game->audiences_) {
       set.WithholdUnlessIn(entity, slots);
+    }
+    for (const auto& [id, slots] : game->object_audiences_) {
+      auto found = game->objects_.find(id);
+      if (found == game->objects_.end()) {
+        continue;
+      }
+      auto handle = std::visit([](const auto& object) { return object->Handle(); }, found->second);
+      if (handle) {
+        set.WithholdUnlessIn(*handle, slots);
+      }
     }
   }
 }

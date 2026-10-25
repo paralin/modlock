@@ -526,6 +526,34 @@ func (x *SetObjectHiddenRequest) GetHidden() bool {
 	return false
 }
 
+// ShowObjectOnlyToRequest names the only players who receive an object.
+type ShowObjectOnlyToRequest struct {
+	unknownFields []byte
+	Object        uint32 `protobuf:"varint,1,opt,name=object,proto3" json:"object,omitempty"`
+	// Players are the server slots of the players who see the object.
+	Players []int32 `protobuf:"varint,2,rep,packed,name=players,proto3" json:"players,omitempty"`
+}
+
+func (x *ShowObjectOnlyToRequest) Reset() {
+	*x = ShowObjectOnlyToRequest{}
+}
+
+func (*ShowObjectOnlyToRequest) ProtoMessage() {}
+
+func (x *ShowObjectOnlyToRequest) GetObject() uint32 {
+	if x != nil {
+		return x.Object
+	}
+	return 0
+}
+
+func (x *ShowObjectOnlyToRequest) GetPlayers() []int32 {
+	if x != nil {
+		return x.Players
+	}
+	return nil
+}
+
 func (m *ModelOptions) CloneVT() *ModelOptions {
 	if m == nil {
 		return (*ModelOptions)(nil)
@@ -731,6 +759,23 @@ func (m *SetObjectHiddenRequest) CloneVT() *SetObjectHiddenRequest {
 }
 
 func (m *SetObjectHiddenRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ShowObjectOnlyToRequest) CloneVT() *ShowObjectOnlyToRequest {
+	if m == nil {
+		return (*ShowObjectOnlyToRequest)(nil)
+	}
+	r := new(ShowObjectOnlyToRequest)
+	r.Object = m.Object
+	r.Players = protobuf_go_lite.CloneSlice(m.Players)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ShowObjectOnlyToRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1044,6 +1089,29 @@ func (this *SetObjectHiddenRequest) EqualVT(that *SetObjectHiddenRequest) bool {
 
 func (this *SetObjectHiddenRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*SetObjectHiddenRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ShowObjectOnlyToRequest) EqualVT(that *ShowObjectOnlyToRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Object != that.Object {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Players, that.Players) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ShowObjectOnlyToRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ShowObjectOnlyToRequest)
 	if !ok {
 		return false
 	}
@@ -1905,6 +1973,60 @@ func (x *SetObjectHiddenRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the ShowObjectOnlyToRequest message to JSON.
+func (x *ShowObjectOnlyToRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Object != 0 || s.HasField("object") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("object")
+		s.WriteUint32(x.Object)
+	}
+	if len(x.Players) > 0 || s.HasField("players") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("players")
+		s.WriteInt32Array(x.Players)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ShowObjectOnlyToRequest to JSON.
+func (x *ShowObjectOnlyToRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ShowObjectOnlyToRequest message from JSON.
+func (x *ShowObjectOnlyToRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "object":
+			s.AddField("object")
+			x.Object = s.ReadUint32()
+		case "players":
+			s.AddField("players")
+			if s.ReadNil() {
+				x.Players = nil
+				return
+			}
+			x.Players = s.ReadInt32Array()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ShowObjectOnlyToRequest from JSON.
+func (x *ShowObjectOnlyToRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *ModelOptions) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2549,6 +2671,48 @@ func (m *SetObjectHiddenRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *ShowObjectOnlyToRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ShowObjectOnlyToRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ShowObjectOnlyToRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Players) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Players)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Object != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Object))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ModelOptions) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2743,6 +2907,18 @@ func (m *SetObjectHiddenRequest) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Object)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Hidden)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ShowObjectOnlyToRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Object)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Players)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3034,6 +3210,28 @@ func (x *SetObjectHiddenRequest) MarshalProtoText() string {
 }
 
 func (x *SetObjectHiddenRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ShowObjectOnlyToRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ShowObjectOnlyToRequest")
+	if x.Object != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "object")
+		protobuf_go_lite.TextWriteUint(&sb, x.Object)
+	}
+	if len(x.Players) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "players")
+		for i, v := range x.Players {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteInt(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ShowObjectOnlyToRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4003,6 +4201,88 @@ func (m *SetObjectHiddenRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Hidden = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ShowObjectOnlyToRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ShowObjectOnlyToRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ShowObjectOnlyToRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Object", wireType)
+			}
+			m.Object = 0
+			m.Object, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType == 0 {
+				var v int32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.Players = append(m.Players, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Players) == 0 {
+					m.Players = make([]int32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v int32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.Players = append(m.Players, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Players", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

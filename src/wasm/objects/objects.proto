@@ -170,3 +170,11 @@ message SetObjectHiddenRequest {
   // Hidden is true to hide the object and false to show it.
   bool hidden = 3;
 }
+
+// ShowObjectOnlyToRequest names the only players who receive an object.
+message ShowObjectOnlyToRequest {
+  uint32 object = 1;
+
+  // Players are the server slots of the players who see the object.
+  repeated int32 players = 2;
+}

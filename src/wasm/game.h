@@ -457,6 +457,9 @@ class Game : public HostService {
   std::expected<void, std::string> SetText(const objects::SetTextRequest& request) override;
   std::expected<void, std::string> SetObjectHidden(
       const objects::SetObjectHiddenRequest& request) override;
+  std::expected<void, std::string> ShowObjectOnlyTo(
+      const objects::ShowObjectOnlyToRequest& request) override;
+  std::expected<void, std::string> ShowObjectToAll(const objects::ObjectRequest& request) override;
   std::expected<void, std::string> RemoveObject(const objects::ObjectRequest& request) override;
   std::expected<entities::EntityResponse, std::string> ObjectEntity(
       const objects::ObjectRequest& request) override;
@@ -564,7 +567,8 @@ class Game : public HostService {
   void TickRestores();
 
   // PruneAudiences drops the audience of each entity that is gone, so a new
-  // entity that takes its index reaches every player.
+  // entity that takes its index reaches every player. A removed object's
+  // entity waits here, sent to nobody, until the engine retires it.
   void PruneAudiences();
 
   // HoldClock sets the held match clock again, since the game advances it
@@ -680,6 +684,9 @@ class Game : public HostService {
   std::map<uint32_t, Object> objects_;
   // hidden_ maps each player's slot to the objects hidden from them.
   std::map<int32_t, std::set<uint32_t>> hidden_;
+  // object_audiences_ maps each object a mod shows only to some players to
+  // the bits of their slots.
+  std::map<uint32_t, uint64_t> object_audiences_;
   // fog_ is the world's fog controller, which the fog objects need; it is
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;

@@ -1566,6 +1566,17 @@ export type WorldObject = {
 	-- Other players still see it. A player who leaves sees every object when
 	-- they return.
 	setHidden: (self: WorldObject, player: Player, hidden: boolean) -> boolean,
+	-- showOnlyTo sends the object only to the players with the listed
+	-- server slots; every other client drops it, or never receives it when the
+	-- call follows its creation in the same frame. With no players no client
+	-- receives it. The list replaces any earlier one and follows the object
+	-- when its entity changes. A player who leaves is taken off every list, so
+	-- whoever joins in their slot does not receive the object. A removed object
+	-- reaches no client while the engine retires its entity.
+	showOnlyTo: (self: WorldObject, players: { number }?) -> boolean,
+	-- showToAll sends the object to every player again, undoing
+	-- ShowObjectOnlyTo.
+	showToAll: (self: WorldObject) -> boolean,
 	-- remove takes the object out of the world.
 	remove: (self: WorldObject) -> boolean,
 	-- entity returns the entity handle of a model or particle, as traces
@@ -1595,6 +1606,23 @@ end
 -- they return.
 function WorldObject.setHidden(self: WorldObject, player: Player, hidden: boolean): boolean
 	return call("SetObjectHidden", "SetObjectHiddenRequest", { object = self, player = player, hidden = hidden }) ~= nil
+end
+
+-- showOnlyTo sends the object only to the players with the listed
+-- server slots; every other client drops it, or never receives it when the
+-- call follows its creation in the same frame. With no players no client
+-- receives it. The list replaces any earlier one and follows the object
+-- when its entity changes. A player who leaves is taken off every list, so
+-- whoever joins in their slot does not receive the object. A removed object
+-- reaches no client while the engine retires its entity.
+function WorldObject.showOnlyTo(self: WorldObject, players: { number }?): boolean
+	return call("ShowObjectOnlyTo", "ShowObjectOnlyToRequest", { object = self, players = players }) ~= nil
+end
+
+-- showToAll sends the object to every player again, undoing
+-- ShowObjectOnlyTo.
+function WorldObject.showToAll(self: WorldObject): boolean
+	return call("ShowObjectToAll", "ObjectRequest", { object = self }) ~= nil
 end
 
 -- remove takes the object out of the world.
@@ -2284,6 +2312,10 @@ schema.SetObjectHiddenRequest = {
 	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
 	{ number = 2, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 3, name = "hidden", kind = "bool" },
+}
+schema.ShowObjectOnlyToRequest = {
+	{ number = 1, name = "object", kind = "uint32", class = WorldObject, key = "id" },
+	{ number = 2, name = "players", kind = "int32", repeated = true },
 }
 schema.RestoredEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

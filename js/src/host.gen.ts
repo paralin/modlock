@@ -2219,6 +2219,27 @@ export class WorldObject {
     return call('SetObjectHidden', objectsPb.SetObjectHiddenRequest.toBinary({ object: this.id, player: player.slot, hidden })) !== undefined
   }
 
+  /**
+   * showOnlyTo sends the object only to the players with the listed
+   * server slots; every other client drops it, or never receives it when the
+   * call follows its creation in the same frame. With no players no client
+   * receives it. The list replaces any earlier one and follows the object
+   * when its entity changes. A player who leaves is taken off every list, so
+   * whoever joins in their slot does not receive the object. A removed object
+   * reaches no client while the engine retires its entity.
+   */
+  showOnlyTo(players?: readonly number[]): boolean {
+    return call('ShowObjectOnlyTo', objectsPb.ShowObjectOnlyToRequest.toBinary({ object: this.id, players: players?.slice() })) !== undefined
+  }
+
+  /**
+   * showToAll sends the object to every player again, undoing
+   * ShowObjectOnlyTo.
+   */
+  showToAll(): boolean {
+    return call('ShowObjectToAll', objectsPb.ObjectRequest.toBinary({ object: this.id })) !== undefined
+  }
+
   /** remove takes the object out of the world. */
   remove(): boolean {
     return call('RemoveObject', objectsPb.ObjectRequest.toBinary({ object: this.id })) !== undefined

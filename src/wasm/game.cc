@@ -173,6 +173,9 @@ void Game::Leave(int32_t slot) {
     for (auto& [entity, slots] : audiences_) {
       slots &= ~(uint64_t{1} << slot);
     }
+    for (auto& [object, slots] : object_audiences_) {
+      slots &= ~(uint64_t{1} << slot);
+    }
   }
 
   // Release the modifiers the slot held.
@@ -251,6 +254,7 @@ void Game::RemoveWorld() {
   }
   objects_.clear();
   hidden_.clear();
+  object_audiences_.clear();
   if (fog_) {
     fog_->Remove();
     fog_.reset();

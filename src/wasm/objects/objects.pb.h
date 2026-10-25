@@ -98,6 +98,10 @@ class SetTextRequest;
 struct SetTextRequestDefaultTypeInternal;
 MODLOCK_API extern SetTextRequestDefaultTypeInternal _SetTextRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull SetTextRequest_class_data_;
+class ShowObjectOnlyToRequest;
+struct ShowObjectOnlyToRequestDefaultTypeInternal;
+MODLOCK_API extern ShowObjectOnlyToRequestDefaultTypeInternal _ShowObjectOnlyToRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ShowObjectOnlyToRequest_class_data_;
 class TextOptions;
 struct TextOptionsDefaultTypeInternal;
 MODLOCK_API extern TextOptionsDefaultTypeInternal _TextOptions_default_instance_;
@@ -117,6 +121,217 @@ namespace objects {
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class MODLOCK_API ShowObjectOnlyToRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.objects.ShowObjectOnlyToRequest) */ {
+ public:
+  inline ShowObjectOnlyToRequest() : ShowObjectOnlyToRequest(nullptr) {}
+  ~ShowObjectOnlyToRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ShowObjectOnlyToRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ShowObjectOnlyToRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ShowObjectOnlyToRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline ShowObjectOnlyToRequest(const ShowObjectOnlyToRequest& from) : ShowObjectOnlyToRequest(nullptr, from) {}
+  inline ShowObjectOnlyToRequest(ShowObjectOnlyToRequest&& from) noexcept
+      : ShowObjectOnlyToRequest(nullptr, ::std::move(from)) {}
+  inline ShowObjectOnlyToRequest& operator=(const ShowObjectOnlyToRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ShowObjectOnlyToRequest& operator=(ShowObjectOnlyToRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ShowObjectOnlyToRequest& default_instance() {
+    return *reinterpret_cast<const ShowObjectOnlyToRequest*>(
+        &_ShowObjectOnlyToRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 11;
+  friend void swap(ShowObjectOnlyToRequest& a, ShowObjectOnlyToRequest& b) { a.Swap(&b); }
+  inline void Swap(ShowObjectOnlyToRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ShowObjectOnlyToRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ShowObjectOnlyToRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ShowObjectOnlyToRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ShowObjectOnlyToRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ShowObjectOnlyToRequest& from) { ShowObjectOnlyToRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ShowObjectOnlyToRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.objects.ShowObjectOnlyToRequest"; }
+
+  explicit ShowObjectOnlyToRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ShowObjectOnlyToRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ShowObjectOnlyToRequest& from);
+  ShowObjectOnlyToRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ShowObjectOnlyToRequest&& from) noexcept
+      : ShowObjectOnlyToRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayersFieldNumber = 2,
+    kObjectFieldNumber = 1,
+  };
+  // repeated int32 players = 2;
+  int players_size() const;
+  private:
+  int _internal_players_size() const;
+
+  public:
+  void clear_players() ;
+  ::int32_t players(int index) const;
+  void set_players(int index, ::int32_t value);
+  void add_players(::int32_t value);
+  const ::google::protobuf::RepeatedField<::int32_t>& players() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL mutable_players();
+
+  private:
+  const ::google::protobuf::RepeatedField<::int32_t>& _internal_players() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_players();
+
+  public:
+  // uint32 object = 1;
+  void clear_object() ;
+  ::uint32_t object() const;
+  void set_object(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_object() const;
+  void _internal_set_object(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.objects.ShowObjectOnlyToRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ShowObjectOnlyToRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<::int32_t> players_;
+    ::google::protobuf::internal::CachedSize _players_cached_byte_size_;
+    ::uint32_t object_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ShowObjectOnlyToRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API SetTextRequest final : public ::google::protobuf::Message
@@ -5027,6 +5242,85 @@ inline bool SetObjectHiddenRequest::_internal_hidden() const {
 inline void SetObjectHiddenRequest::_internal_set_hidden(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.hidden_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ShowObjectOnlyToRequest
+
+// uint32 object = 1;
+inline void ShowObjectOnlyToRequest::clear_object() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.object_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t ShowObjectOnlyToRequest::object() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.objects.ShowObjectOnlyToRequest.object)
+  return _internal_object();
+}
+inline void ShowObjectOnlyToRequest::set_object(::uint32_t value) {
+  _internal_set_object(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.objects.ShowObjectOnlyToRequest.object)
+}
+inline ::uint32_t ShowObjectOnlyToRequest::_internal_object() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.object_;
+}
+inline void ShowObjectOnlyToRequest::_internal_set_object(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.object_ = value;
+}
+
+// repeated int32 players = 2;
+inline int ShowObjectOnlyToRequest::_internal_players_size() const {
+  return _internal_players().size();
+}
+inline int ShowObjectOnlyToRequest::players_size() const {
+  return _internal_players_size();
+}
+inline void ShowObjectOnlyToRequest::clear_players() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.players_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t ShowObjectOnlyToRequest::players(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.objects.ShowObjectOnlyToRequest.players)
+  return _internal_players().Get(index);
+}
+inline void ShowObjectOnlyToRequest::set_players(int index, ::int32_t value) {
+  _internal_mutable_players()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.objects.ShowObjectOnlyToRequest.players)
+}
+inline void ShowObjectOnlyToRequest::add_players(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_players()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.objects.ShowObjectOnlyToRequest.players)
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>& ShowObjectOnlyToRequest::players() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.objects.ShowObjectOnlyToRequest.players)
+  return _internal_players();
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL ShowObjectOnlyToRequest::mutable_players()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.objects.ShowObjectOnlyToRequest.players)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_players();
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>&
+ShowObjectOnlyToRequest::_internal_players() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.players_;
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
+ShowObjectOnlyToRequest::_internal_mutable_players() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.players_;
 }
 
 #ifdef __GNUC__
