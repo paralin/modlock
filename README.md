@@ -1096,17 +1096,17 @@ Every project has a `mod.json` at its root:
 }
 ```
 
-| Field       | Required | Value                                                                                              |
-| ----------- | -------- | -------------------------------------------------------------------------------------------------- |
-| `slug`      | yes      | The mod's identifier: lowercase letters, digits and hyphens.                                       |
-| `name`      | yes      | The name players see.                                                                              |
-| `version`   | yes      | A semantic version of up to 64 letters, digits, `.`, `+` and `-`. Raise it for each publication.   |
-| `language`  | yes      | `LANGUAGE_TYPESCRIPT`, `LANGUAGE_JAVASCRIPT`, `LANGUAGE_LUAU`, `LANGUAGE_PYTHON` or `LANGUAGE_GO`. |
-| `map`       |          | The [map](#map) the mod plays on.                                                                  |
-| `movement`  |          | A [movement model](#movement) that replaces how heroes move.                                       |
-| `abilities` |          | [Ability changes](#abilities) for the server and each player's game.                               |
-| `settings`  |          | [Choices](#settings) each player makes about the mod.                                              |
-| `metrics`   |          | [Totals](#metrics) the mod keeps for each player.                                                  |
+| Field         | Required | Value                                                                                              |
+| ------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `slug`        | yes      | The mod's identifier: lowercase letters, digits and hyphens.                                       |
+| `name`        | yes      | The name players see.                                                                              |
+| `version`     | yes      | A semantic version of up to 64 letters, digits, `.`, `+` and `-`. Raise it for each publication.   |
+| `language`    | yes      | `LANGUAGE_TYPESCRIPT`, `LANGUAGE_JAVASCRIPT`, `LANGUAGE_LUAU`, `LANGUAGE_PYTHON` or `LANGUAGE_GO`. |
+| `map`         |          | The [map](#map) the mod plays on.                                                                  |
+| `movement`    |          | A [movement model](#movement) that replaces how heroes move.                                       |
+| `definitions` |          | [Definition changes](#definitions) to heroes and abilities.                                        |
+| `settings`    |          | [Choices](#settings) each player makes about the mod.                                              |
+| `metrics`     |          | [Totals](#metrics) the mod keeps for each player.                                                  |
 
 ### Map
 
@@ -1134,12 +1134,17 @@ The player's game predicts the same movement. It leaves out the unpredicted
 buttons, so it predicts no cast or shot the server will not make. Each landing
 calls `onLanded` with the player and anyone they landed on.
 
-### Abilities
+### Definitions
 
 ```json
-"abilities": [
+"definitions": [
   {
-    "ability": "gunslinger_rocket_launcher",
+    "file": "FILE_HEROES",
+    "entry": "hero_priest",
+    "fields": { "CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth]": 10000 }
+  },
+  {
+    "entry": "gunslinger_rocket_launcher",
     "properties": { "AbilityCooldown": 0.8, "Damage": 120 },
     "fields": { "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250 },
     "copyFields": {
@@ -1149,14 +1154,20 @@ calls `onLanded` with the player and anyone they landed on.
 ]
 ```
 
-Each entry retunes one stock ability on the server and in each player's game.
+Each entry changes one stock definition on the server. A player's game that
+`modlock-host --connect` starts takes the ability changes too.
 
-| Field        | Value                                                                            |
-| ------------ | -------------------------------------------------------------------------------- |
-| `ability`    | The ability to change.                                                           |
-| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.             |
-| `fields`     | Float schema fields by `Class.m_field/Class.m_field` path, and their new values. |
-| `copyFields` | Copy the field at each value's path over the field at its key's path.            |
+| Field        | Value                                                                                |
+| ------------ | ------------------------------------------------------------------------------------ |
+| `file`       | `FILE_ABILITIES`, the default, for abilities and items, or `FILE_HEROES` for heroes. |
+| `entry`      | The entry to change, such as `hero_priest` or `gunslinger_rocket_launcher`.          |
+| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                 |
+| `fields`     | Float schema fields by `Class.m_field/Class.m_field` path, and their new values.     |
+| `copyFields` | Copy the field at each value's path over the field at its key's path.                |
+
+A path's last step can end in `[Enum.Value]` to name one value of a map keyed
+by an enum, such as a hero's starting stats. The server writes the changes when
+it loads the definitions and again in each new map.
 
 ### Settings
 
