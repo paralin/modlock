@@ -1,8 +1,9 @@
-// Hud hides parts of the game's own HUD while a mod's root lists them, and
-// shows them again once no root does. The game builds some of those panels
-// later, such as a notice for each level up, and rebuilds the HUD on its own,
-// and Panorama has no event for a new panel, so while any part is hidden the
-// hud looks for its panels again every sweepSeconds.
+// Hud hides parts of the game's own HUD while its host lists them, such as
+// the parts mods' roots list, and shows them again once the host stops. The
+// game builds some of those panels later, such as a notice for each level up,
+// and rebuilds the HUD on its own, and Panorama has no event for a new panel,
+// so while any part is hidden the hud looks for its panels again every
+// sweepSeconds.
 
 import { HudPart, type Screen } from '../../src/wasm/ui/ui.pb.js'
 
@@ -62,7 +63,17 @@ const finders: Partial<Record<HudPart, (hud: HudPanel) => HudPanel[]>> = {
   },
 }
 
-/** Hud collapses the parts of the game's HUD that the screen's roots list. */
+/** hiddenParts lists the parts of the game's HUD that screen's roots hide. */
+export function hiddenParts(screen: Screen | null): HudPart[] {
+  const parts: HudPart[] = []
+  for (const tree of screen?.trees ?? []) {
+    const root = tree.nodes?.find((node) => (node.id ?? '') === '')
+    parts.push(...(root?.hideHud ?? []))
+  }
+  return parts
+}
+
+/** Hud collapses the parts of the game's HUD it is told to hide. */
 export class Hud {
   /** hidden holds the parts some root lists. */
   private hidden = new Set<HudPart>()
@@ -75,20 +86,17 @@ export class Hud {
     private readonly schedule: Schedule,
   ) {}
 
-  /** draw hides the parts screen's roots list and shows the rest again. */
-  draw(screen: Screen | null): void {
-    // Gather the parts every mod's root lists.
+  /** draw hides parts and shows every other part it hid again. */
+  draw(parts: Iterable<HudPart>): void {
+    // Keep the parts the hud knows how to find.
     const hidden = new Set<HudPart>()
-    for (const tree of screen?.trees ?? []) {
-      const root = tree.nodes?.find((node) => (node.id ?? '') === '')
-      for (const part of root?.hideHud ?? []) {
-        if (finders[part]) {
-          hidden.add(part)
-        }
+    for (const part of parts) {
+      if (finders[part]) {
+        hidden.add(part)
       }
     }
 
-    // Show the parts no root lists any more, then hide the rest.
+    // Show the parts no longer listed, then hide the rest.
     for (const part of this.hidden) {
       if (!hidden.has(part)) {
         for (const panel of finders[part]!(this.hud)) {

@@ -6,7 +6,7 @@
 
 import { Bridge } from './bridge.js'
 import { Drawing, pressCommand } from './draw.js'
-import { Hud } from './hud.js'
+import { Hud, hiddenParts } from './hud.js'
 
 /** relay is the origin of the relay page, as the controller's default. */
 const relay = 'https://hyperline.gg'
@@ -38,6 +38,6 @@ new Bridge(
   `${relay}/app/relay/bridge.html`,
   (screen) => {
     drawing.draw(screen)
-    stock.draw(screen)
+    stock.draw(hiddenParts(screen))
   },
 )

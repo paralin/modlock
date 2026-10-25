@@ -4,7 +4,7 @@ import { beforeEach, expect, test } from 'bun:test'
 import { Screen } from '../../src/wasm/ui/ui.pb.js'
 import { Bridge } from './bridge.js'
 import { Drawing, layoutDataChanged } from './draw.js'
-import { Hud } from './hud.js'
+import { Hud, hiddenParts } from './hud.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -338,7 +338,7 @@ test("hides the game's HUD parts while a root lists them", () => {
   const hud = new Hud(game, (_, callback) => $.Schedule(0, callback))
 
   // Hiding the player's health collapses its panels and keeps the rest.
-  hud.draw(screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH'] }))
+  hud.draw(hiddenParts(screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH'] })))
   expect(bars.style.visibility).toBe('collapse')
   expect(shields.style.visibility).toBe('collapse')
   expect(held.style.visibility).toBeUndefined()
@@ -346,7 +346,9 @@ test("hides the game's HUD parts while a root lists them", () => {
 
   // A level-up notice the game shows later collapses on the next sweep.
   hud.draw(
-    screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP'] }),
+    hiddenParts(
+      screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP'] }),
+    ),
   )
   expect(boon.style.visibility).toBe('collapse')
   expect(scores.style.visibility).toBeUndefined()
@@ -357,20 +359,28 @@ test("hides the game's HUD parts while a root lists them", () => {
 
   // The top bar collapses all but its chat.
   hud.draw(
-    screen({
-      id: '',
-      hideHud: ['HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP', 'HUD_PART_TOP_BAR'],
-    }),
+    hiddenParts(
+      screen({
+        id: '',
+        hideHud: [
+          'HUD_PART_OWN_HEALTH',
+          'HUD_PART_LEVEL_UP',
+          'HUD_PART_TOP_BAR',
+        ],
+      }),
+    ),
   )
   expect(scores.style.visibility).toBe('collapse')
   expect(clip.style.visibility).toBeUndefined()
 
   // Ammo collapses only its own panels, not the crosshair.
   hud.draw(
-    screen({
-      id: '',
-      hideHud: ['HUD_PART_LEVEL_UP', 'HUD_PART_AMMO'],
-    }),
+    hiddenParts(
+      screen({
+        id: '',
+        hideHud: ['HUD_PART_LEVEL_UP', 'HUD_PART_AMMO'],
+      }),
+    ),
   )
   expect(clip.style.visibility).toBe('collapse')
   expect(lowAmmo.style.visibility).toBe('collapse')
@@ -379,11 +389,11 @@ test("hides the game's HUD parts while a root lists them", () => {
   expect(chat.style.visibility).toBeUndefined()
 
   // Once no root lists them, the parts show again and the sweeps stop.
-  hud.draw(screen({ id: '', hideHud: ['HUD_PART_LEVEL_UP'] }))
+  hud.draw(hiddenParts(screen({ id: '', hideHud: ['HUD_PART_LEVEL_UP'] })))
   expect(bars.style.visibility).toBeNull()
   expect(scores.style.visibility).toBeNull()
   expect(later.style.visibility).toBe('collapse')
-  hud.draw(null)
+  hud.draw([])
   expect(later.style.visibility).toBeNull()
   runScheduled()
   expect(scheduled.size).toBe(0)
