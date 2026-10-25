@@ -35,6 +35,7 @@ import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { advance, after } from './timer.js'
 import { press, tick } from './ui.js'
+export * as vector from './vector.js'
 
 export { Buttons, Layers } from './bits.js'
 export { after, every, sequence, type Timer } from './timer.js'
@@ -49,6 +50,7 @@ export {
   setOrbitCamera,
 } from './camera.js'
 export * as curve from './curve.js'
+export * as format from './format.js'
 export {
   findHero,
   findTitled,
@@ -87,6 +89,7 @@ export * as theme from './theme.js'
 export type { Face, PipShape, TextRole, Tone } from './theme.js'
 export * from './host.gen.js'
 export { players } from './players.js'
+export { type Check, ProbeRun } from './probe.js'
 export {
   poseAt,
   type Pose,

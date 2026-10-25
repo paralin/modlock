@@ -9,9 +9,9 @@ import {
   log,
   type Player,
   players,
-  serverCommand,
   toast,
 } from 'modlock'
+import { apply, arena } from 'modlock/console'
 
 /** killTarget is the number of defeats that wins a match. */
 export const killTarget = 10
@@ -33,17 +33,6 @@ const resultSeconds = 8
 
 /** friendlyFire lets every hero hurt every other, whatever its team. */
 const friendlyFire = 'MODIFIER_STATE_FRIENDLY_FIRE_ENABLED'
-
-/**
- * serverConfig empties the lanes so only heroes fight. A server that
- * hibernates when empty runs no frames, so the mod could not start a match.
- */
-const serverConfig = [
-  'sv_hibernate_when_empty 0',
-  'citadel_trooper_spawn_enabled 0',
-  'citadel_neutral_spawn_enabled 0',
-  'citadel_spawn_practice_bots 0',
-]
 
 /** botHero is the hero practice bots play. */
 const botHero = 'hero_wraith'
@@ -91,11 +80,12 @@ export class Match {
   /** bots holds the practice bots the mod added. */
   private readonly bots: Player[] = []
 
-  /** start configures the server for the arena. */
+  /**
+   * start empties the lanes so only heroes fight. The preset also keeps the
+   * server running while it is empty, so the mod can start a match.
+   */
   start(): void {
-    for (const line of serverConfig) {
-      serverCommand(line)
-    }
+    apply(arena)
   }
 
   /** world forgets the previous world's fighters and bots; it removed them. */

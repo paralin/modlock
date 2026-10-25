@@ -1,5 +1,13 @@
 import { expect, test } from 'bun:test'
 
+import {
+  clock,
+  count,
+  grouped,
+  ordinal,
+  percent,
+  stopwatch,
+} from '../src/format.js'
 import { findHero, heroes } from '../src/heroes.js'
 import { Pips, Score, Tag, Text, TopStrip } from '../src/hud.js'
 import {
@@ -9,6 +17,13 @@ import {
   tones,
 } from '../src/theme.js'
 import type { UiElement } from '../src/ui.js'
+import {
+  aimAt,
+  distance,
+  flatDistance,
+  forward,
+  toward,
+} from '../src/vector.js'
 
 /** kids lists an element's children without the empty ones. */
 function kids(element: UiElement): UiElement[] {
@@ -91,4 +106,56 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     heroes.find((h) => h.name === 'hero_bebop')!.id,
   )
   expect(findHero('!!')).toBeUndefined()
+
+  // HUD numbers read as players read them, without the missing locale data.
+  expect([clock(-1), clock(0.2), clock(247), stopwatch(64.379)]).toEqual([
+    '0:00',
+    '0:01',
+    '4:07',
+    '1:04.37',
+  ])
+  expect([percent(1, 3), percent(5, 4), percent(1, 0)]).toEqual([
+    '33%',
+    '100%',
+    '-',
+  ])
+  expect([grouped(4210.4), grouped(-1234567), grouped(999)]).toEqual([
+    '4,210',
+    '-1,234,567',
+    '999',
+  ])
+  expect([1, 2, 3, 4, 11, 12, 13, 21, 112].map(ordinal)).toEqual([
+    '1st',
+    '2nd',
+    '3rd',
+    '4th',
+    '11th',
+    '12th',
+    '13th',
+    '21st',
+    '112th',
+  ])
+  expect([
+    count(1, 'kill'),
+    count(1200, 'kill'),
+    count(2, 'ally', 'allies'),
+  ]).toEqual(['1 kill', '1,200 kills', '2 allies'])
+
+  // A view aimed at a point looks along the direction to it.
+  const eye = { x: 0, y: 0, z: 64 }
+  const target = { x: 100, y: 100, z: 0 }
+  const look = forward(aimAt(eye, target))
+  const along = toward(eye, target)
+  expect(look.x).toBeCloseTo(along.x)
+  expect(look.y).toBeCloseTo(along.y)
+  expect(look.z).toBeCloseTo(along.z)
+
+  // Aiming down at a point to the northeast turns to 45 degrees and looks down.
+  expect(aimAt(eye, target).yaw).toBeCloseTo(45)
+  expect(aimAt(eye, target).pitch).toBeGreaterThan(0)
+
+  // Distances ignore height when flat, and a point is no step from itself.
+  expect(flatDistance(eye, target)).toBeCloseTo(Math.SQRT2 * 100)
+  expect(distance(eye, eye)).toBe(0)
+  expect(toward(eye, eye)).toEqual({ x: 0, y: 0, z: 0 })
 })

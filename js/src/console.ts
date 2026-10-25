@@ -27,6 +27,42 @@ export function run(name: keyof Commands, ...args: string[]): boolean {
   return serverCommand([name, ...args].join(' '))
 }
 
+/** Settings holds values for some console variables. */
+export type Settings = { [Name in keyof Variables]?: Variables[Name] }
+
+/**
+ * apply sets each variable in settings, in order, and returns the names the
+ * host refused, so a mod can log them and play on. Each variable is one host
+ * call: apply settings when the mod starts or a world loads, not every frame.
+ */
+export function apply(settings: Settings): (keyof Variables)[] {
+  const refused: (keyof Variables)[] = []
+  for (const [name, value] of Object.entries(settings)) {
+    if (value !== undefined && !serverCommand(name + ' ' + format(value))) {
+      refused.push(name as keyof Variables)
+    }
+  }
+  return refused
+}
+
+/**
+ * arena empties a map for a mode of its own: the server runs frames with no
+ * one connected, which it otherwise skips, and no solo bot match, King of
+ * the Hill, troopers, jungle camps or practice bots start, nor does a player
+ * start on a zipline. A mode applies it with its own settings after it:
+ *
+ *   apply({ ...arena, citadel_allow_duplicate_heroes: true })
+ */
+export const arena: Settings = {
+  sv_hibernate_when_empty: false,
+  citadel_solo_bot_match: false,
+  citadel_koth_enabled: false,
+  citadel_trooper_spawn_enabled: false,
+  citadel_neutral_spawn_enabled: false,
+  citadel_spawn_practice_bots: false,
+  citadel_start_players_on_zipline: false,
+}
+
 /** Variables maps each console variable to the type of its value. */
 export interface Variables {
   adsp_alley_min: number

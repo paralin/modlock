@@ -46,6 +46,14 @@ const Built = "built"
 //go:embed all:built
 var built embed.FS
 
+// Sources holds the library modules that import nothing, so a Go module that
+// vendors Modlock keeps them and its browser pages can import them beside its
+// own TypeScript: the HUD kit's tokens, the hero table and the HUD text
+// helpers, which a page drawn in the game's look shares with its mods.
+//
+//go:embed src/theme.ts src/heroes.ts src/format.ts
+var Sources embed.FS
+
 // Renderer is the built renderer's file name, which a client content package
 // installs as scripts/modlock/ui.js beside the layout in panorama/layout. It
 // is not ui.js, since the library's declarations include ui.d.ts: a mod that

@@ -11,6 +11,7 @@
     "noEmit": true,
     "paths": {
       "modlock": ["../../js/src/index.ts"],
+      "modlock/console": ["../../js/src/console.ts"],
       "modlock/jsx-runtime": ["../../js/src/index.ts"]
     }
   },

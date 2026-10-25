@@ -488,6 +488,18 @@ with `modlock play --arg probe`, it seats bots with `addBot`, plays the round,
 checks the outcome, logs PASS or FAIL and quits with `serverCommand('quit')`.
 [`examples/arena`](examples/arena/probe.ts) does this.
 
+`ProbeRun` does the bookkeeping. Call `tick` each frame with the step the
+probe waits on and a check that returns `true` to pass, a message to fail, or
+`false` to wait. It logs each new step once, fails the run after its timeout,
+then logs `<name> probe PASS` or `FAIL` and quits:
+
+```ts
+const run = new ProbeRun('Duel', 120)
+onFrame((frame) => {
+  run.tick(frame.timeSeconds, 'two fighters', () => fighters() >= 2)
+})
+```
+
 When the mode plays well, [publish it](#publishing).
 
 ## Examples
@@ -695,6 +707,18 @@ an ultimate placed on another ability key. The same definition can occupy
 several main slots as separate native ability entities. Replacements start
 untrained. Use `restoreHero` ability targets with their definition ID and slot
 to train each copy; `setAbility` addresses the first matching name.
+
+### Vectors and HUD text
+
+`vector` works in world units with z up and view angles in degrees, pitch
+positive looking down. `vector.distance`, `flatDistance`, `toward`, `lerp`
+and the arithmetic helpers place things; `yawToward`, `level`, `aimAt` and
+`forward` turn a hero to face a point or read where it looks.
+
+`format` writes the numbers a HUD shows the way players read them, since the
+game's scripts have no locale data: `clock(65)` is `1:05`, `stopwatch(64.37)`
+is `1:04.37`, `percent(3, 4)` is `75%`, `grouped(4210)` is `4,210`,
+`ordinal(2)` is `2nd` and `count(3, 'kill')` is `3 kills`.
 
 ### Camera moves
 
@@ -944,6 +968,17 @@ run('changelevel', 'street_test')
 Each call runs one line through `serverCommand`, which may set a
 development-only or cheat-protected variable. A variable whose value is a
 vector or a color has no typed setter; set it with `serverCommand`.
+
+`apply(settings)` sets several variables in order and returns the names the
+server refused. `arena` empties the map for a custom mode: the server keeps
+running with no one connected, and no troopers, neutrals, practice bots or
+zipline starts appear. Spread it and add the mode's own:
+
+```ts
+import { apply, arena } from 'modlock/console'
+
+apply({ ...arena, citadel_allow_duplicate_heroes: true })
+```
 
 ### Interfaces
 
