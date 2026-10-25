@@ -1,9 +1,11 @@
 // Loads game textures into three.js as stored: block-compressed formats go
-// to the GPU unchanged with their whole mip chain, so the browser never
-// decodes a texel.
+// to the GPU unchanged with their whole mip chain. Only a GPU without a
+// format's extension, such as BC7 on many Macs, gets them decoded in the
+// page.
 import * as THREE from 'three'
 import { Texture } from '../studio.pb.js'
 import { fetchBytes, fetchMessage, route } from './api.js'
+import { canDecode, decode } from './bc.js'
 
 // Unavailable is a texture this browser or server cannot draw, as opposed to
 // one that failed to load.
@@ -64,7 +66,10 @@ export async function loadTexture(
   const block = compressed[format]
   if (!header.served)
     throw new Unavailable(`${formatName(format)} textures are not served yet`)
-  if (block && !renderer.getContext().getExtension(block[1]))
+
+  // A GPU without the format's extension gets the texels decoded here.
+  const native = !block || !!renderer.getContext().getExtension(block[1])
+  if (!native && !canDecode(format))
     throw new Unavailable(
       `This browser's GPU cannot draw ${formatName(format)} textures`,
     )
@@ -97,12 +102,21 @@ export async function loadTexture(
   }
   const { width, height } = levels[0]!
 
-  // Upload block formats as stored and swizzle BGRA into RGBA.
+  // Upload block formats as stored, or decoded when the GPU cannot draw
+  // them, and swizzle BGRA into RGBA.
   let texture: THREE.Texture
-  if (block) {
+  if (block && native) {
     texture = new THREE.CompressedTexture(levels, width, height, block[0])
   } else {
-    if (format === 28) {
+    if (block) {
+      for (const level of levels)
+        level.data = decode(
+          format,
+          level.data as Uint8Array,
+          level.width,
+          level.height,
+        )
+    } else if (format === 28) {
       for (let i = 0; i < data.length; i += 4)
         [data[i], data[i + 2]] = [data[i + 2]!, data[i]!]
     }
