@@ -31,6 +31,9 @@ const (
 	// HUD_PART_TOP_BAR is the bar across the top of the screen: the team
 	// scores, the hero portraits and the match clock. Chat stays.
 	HudPart_HUD_PART_TOP_BAR HudPart = 3
+	// HUD_PART_AMMO is the player's ammo: the clip ring and count around the
+	// crosshair and the low and out of ammo warnings. The crosshair stays.
+	HudPart_HUD_PART_AMMO HudPart = 4
 )
 
 // Enum value maps for HudPart.
@@ -40,12 +43,14 @@ var (
 		1: "HUD_PART_LEVEL_UP",
 		2: "HUD_PART_OWN_HEALTH",
 		3: "HUD_PART_TOP_BAR",
+		4: "HUD_PART_AMMO",
 	}
 	HudPart_value = map[string]int32{
 		"HUD_PART_UNKNOWN":    0,
 		"HUD_PART_LEVEL_UP":   1,
 		"HUD_PART_OWN_HEALTH": 2,
 		"HUD_PART_TOP_BAR":    3,
+		"HUD_PART_AMMO":       4,
 	}
 )
 

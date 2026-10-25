@@ -329,6 +329,11 @@ test("hides the game's HUD parts while a root lists them", () => {
   const scores = add(topBar, 'TeamScores')
   const chat = add(topBar, 'Chat', 'ChatContainer')
 
+  // Lay out the ammo at the crosshair.
+  const crosshair = add(game, 'crosshair')
+  const clip = add(crosshair, 'ammo_panel')
+  const lowAmmo = add(game, 'low_ammo_label')
+
   // Sweep through the fake $.Schedule.
   const hud = new Hud(game, (_, callback) => $.Schedule(0, callback))
 
@@ -358,6 +363,19 @@ test("hides the game's HUD parts while a root lists them", () => {
     }),
   )
   expect(scores.style.visibility).toBe('collapse')
+  expect(clip.style.visibility).toBeUndefined()
+
+  // Ammo collapses only its own panels, not the crosshair.
+  hud.draw(
+    screen({
+      id: '',
+      hideHud: ['HUD_PART_LEVEL_UP', 'HUD_PART_AMMO'],
+    }),
+  )
+  expect(clip.style.visibility).toBe('collapse')
+  expect(lowAmmo.style.visibility).toBe('collapse')
+  expect(crosshair.style.visibility).toBeUndefined()
+  expect(scores.style.visibility).toBeNull()
   expect(chat.style.visibility).toBeUndefined()
 
   // Once no root lists them, the parts show again and the sweeps stop.

@@ -48,6 +48,18 @@ const finders: Partial<Record<HudPart, (hud: HudPanel) => HudPanel[]>> = {
     }
     return parts
   },
+  [HudPart.AMMO]: (hud) => {
+    const ammo = ['out_of_ammo_label', 'low_ammo_label'].map((id) =>
+      hud.FindChildTraverse(id),
+    )
+    const crosshair = hud.FindChildTraverse('crosshair')
+    ammo.push(
+      ...['clip_status', 'ammo_panel'].map(
+        (id) => crosshair?.FindChildTraverse(id) ?? null,
+      ),
+    )
+    return ammo.filter((panel) => panel !== null)
+  },
 }
 
 /** Hud collapses the parts of the game's HUD that the screen's roots list. */

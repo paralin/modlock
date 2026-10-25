@@ -103,10 +103,10 @@ export interface Style {
  * HudPart is a part of the game's own HUD: 'levelUp' the notice for each boon,
  * ability point and power increase, 'ownHealth' the player's health bar with
  * its shields and regeneration, 'topBar' the bar of team scores, portraits
- * and clock across the top. The abilities, items, status icons, crosshair
- * and chat stay.
+ * and clock across the top, 'ammo' the clip ring, count and ammo warnings at
+ * the crosshair. The abilities, items, status icons, crosshair and chat stay.
  */
-export type HudPart = 'levelUp' | 'ownHealth' | 'topBar'
+export type HudPart = 'levelUp' | 'ownHealth' | 'topBar' | 'ammo'
 
 /** Child is anything an element may hold. Text becomes a label. */
 export type Child =
@@ -650,6 +650,7 @@ const hudParts = {
   levelUp: WireHudPart.LEVEL_UP,
   ownHealth: WireHudPart.OWN_HEALTH,
   topBar: WireHudPart.TOP_BAR,
+  ammo: WireHudPart.AMMO,
 } as const
 
 /** faces maps each typeface to its wire value. */

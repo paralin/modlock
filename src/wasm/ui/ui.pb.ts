@@ -39,6 +39,12 @@ export enum HudPart {
    * scores, the hero portraits and the match clock. Chat stays.
    */
   TOP_BAR = 3,
+
+  /**
+   * HUD_PART_AMMO is the player's ammo: the clip ring and count around the
+   * crosshair and the low and out of ammo warnings. The crosshair stays.
+   */
+  AMMO = 4,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -48,6 +54,7 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [1, 'HUD_PART_LEVEL_UP'],
     [2, 'HUD_PART_OWN_HEALTH'],
     [3, 'HUD_PART_TOP_BAR'],
+    [4, 'HUD_PART_AMMO'],
   ],
 )
 
