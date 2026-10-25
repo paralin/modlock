@@ -7,19 +7,33 @@ option go_package = "github.com/paralin/modlock/src/wasm/entities;entities";
 import "github.com/paralin/modlock/src/geometry/geometry.proto";
 import "github.com/paralin/modlock/src/wasm/fields/fields.proto";
 
-// MoveEntityRequest places one entity.
+// MoveEntityRequest places one entity, or changes only its facing or motion.
 message MoveEntityRequest {
   // Entity is the entity's handle.
   uint32 entity = 1;
 
-  // Position is the entity's new origin.
-  modlock.geometry.Vec3 position = 2;
+  // Position replaces the entity's origin when present.
+  optional modlock.geometry.Vec3 position = 2;
 
   // Facing replaces the entity's angles when present.
   optional modlock.geometry.EulerAngles facing = 3;
 
   // Velocity replaces the entity's motion when present.
   optional modlock.geometry.Vec3 velocity = 4;
+}
+
+// PushEntityRequest adds motion to one entity.
+message PushEntityRequest {
+  // Entity is the entity's handle.
+  uint32 entity = 1;
+
+  // Velocity is added to the entity's motion, in units per second in world
+  // axes.
+  modlock.geometry.Vec3 velocity = 2;
+
+  // Spin is added to the entity's angular velocity when present, in degrees
+  // per second about its own x, y and z axes.
+  optional modlock.geometry.Vec3 spin = 3;
 }
 
 // EntityRequest addresses one live entity.
@@ -54,6 +68,10 @@ message EntityPlacement {
 
   // Facing is the entity's absolute angles.
   modlock.geometry.EulerAngles facing = 2;
+
+  // Velocity is the entity's motion in units per second. For a body the
+  // physics simulates, such as a prop_physics, it is the body's.
+  optional modlock.geometry.Vec3 velocity = 3;
 }
 
 // EntityResponse holds one entity handle.

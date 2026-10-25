@@ -450,6 +450,9 @@ class EntityPlacement:
     position: Vector
     # facing is the entity's absolute angles.
     facing: Angles
+    # velocity is the entity's motion in units per second. For a body the
+    # physics simulates, such as a prop_physics, it is the body's.
+    velocity: Vector | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2047,9 +2050,17 @@ _SCHEMA: wire.Schema = {
         None,
         [
             wire.Field(1, "entity", "uint32"),
-            wire.Field(2, "position", "message", message="Vec3"),
+            wire.Field(2, "position", "message", optional=True, message="Vec3"),
             wire.Field(3, "facing", "message", optional=True, message="EulerAngles"),
             wire.Field(4, "velocity", "message", optional=True, message="Vec3"),
+        ],
+    ),
+    "PushEntityRequest": (
+        None,
+        [
+            wire.Field(1, "entity", "uint32"),
+            wire.Field(2, "velocity", "message", message="Vec3"),
+            wire.Field(3, "spin", "message", optional=True, message="Vec3"),
         ],
     ),
     "EntityRequest": (
@@ -2082,6 +2093,7 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "position", "message", message="Vec3"),
             wire.Field(2, "facing", "message", message="EulerAngles"),
+            wire.Field(3, "velocity", "message", optional=True, message="Vec3"),
         ],
     ),
     "EntityResponse": (
@@ -3145,8 +3157,8 @@ def entity_class(entity: int) -> EntityClassName | None:
 
 def entity_position(entity: int) -> EntityPlacement | None:
     """entity_position returns where a live entity stands, its absolute origin
-    and angles, as MoveEntity places it. Any entity with a place in the
-    world has one, such as one of the map's boxes.
+    and angles, as MoveEntity places it, and its velocity. Any entity with a
+    place in the world has one, such as one of the map's boxes.
     """
     response = _call("EntityPosition", "EntityRequest", {"entity": entity}, "EntityPositionResponse")
     if response is None:
@@ -3447,11 +3459,21 @@ def start_rift(position: Vector) -> bool:
     return _call("StartRift", "StartRiftRequest", {"position": position}) is not None
 
 
-def move_entity(entity: int, position: Vector, facing: Angles | None = None, velocity: Vector | None = None) -> bool:
+def move_entity(entity: int, position: Vector | None = None, facing: Angles | None = None, velocity: Vector | None = None) -> bool:
     """move_entity places any entity, such as a projectile, and replaces its
-    facing and motion when given.
+    facing and motion when given. Without a position it leaves the entity
+    where it is, so a velocity alone steers a body the physics simulates, such
+    as a prop_physics, which carries the motion on against the world.
     """
     return _call("MoveEntity", "MoveEntityRequest", {"entity": entity, "position": position, "facing": facing, "velocity": velocity}) is not None
+
+
+def push_entity(entity: int, velocity: Vector, spin: Vector | None = None) -> bool:
+    """push_entity adds a velocity and an angular velocity to any entity. On a
+    body the physics simulates, such as a prop_physics, it acts like an
+    impulse that the simulation carries on.
+    """
+    return _call("PushEntity", "PushEntityRequest", {"entity": entity, "velocity": velocity, "spin": spin}) is not None
 
 
 def emit_sound(entity: int, sound: str) -> bool:

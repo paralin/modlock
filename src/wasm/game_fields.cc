@@ -624,10 +624,16 @@ std::expected<entities::EntityPositionResponse, std::string> Game::EntityPositio
     return std::unexpected("the entity has no place in the world");
   }
 
-  // Answer them.
+  // Answer them, with the velocity when the engine's call resolves.
   entities::EntityPositionResponse response;
-  SetVector(response.mutable_placement()->mutable_position(), *origin);
-  SetAngles(response.mutable_placement()->mutable_facing(), *angles);
+  auto* placement = response.mutable_placement();
+  SetVector(placement->mutable_position(), *origin);
+  SetAngles(placement->mutable_facing(), *angles);
+  if (auto dynamics = services_.Dynamics()) {
+    std::array<float, 3> velocity{};
+    (*dynamics)->velocity(*entity, velocity.data());
+    SetVector(placement->mutable_velocity(), velocity);
+  }
   return response;
 }
 

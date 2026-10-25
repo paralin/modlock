@@ -210,6 +210,13 @@ std::expected<const gameinterop::PawnMotion*, std::string> GameServices::Motion(
   return &*motion_;
 }
 
+std::expected<const gameinterop::EntityDynamics*, std::string> GameServices::Dynamics() {
+  if (auto cached = Cache(dynamics_, &gameinterop::EntityDynamics::Resolve); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*dynamics_;
+}
+
 std::expected<const gameinterop::BotCreation*, std::string> GameServices::Bots() {
   if (!bots_) {
     // Resolve the bot calls once.

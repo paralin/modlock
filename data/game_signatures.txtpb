@@ -218,6 +218,34 @@ signatures {
   shape: "void (CGameEntitySystem*, CEntityIdentity*, CEntityKeyValues*)"
 }
 
+# The VScript GetVelocity binding. For a MOVETYPE_VPHYSICS entity it reads the
+# first physics body's velocity; for any other, m_vecAbsVelocity.
+signatures {
+  id: "entity.abs-velocity"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 08 57 48 83 EC 30 80 B9 F5 02 00 00 05"
+  shape: "Vector* GetAbsVelocity(CBaseEntity*, Vector* out)"
+}
+
+# The VScript ApplyAbsVelocityImpulse binding. For a MOVETYPE_VPHYSICS entity
+# it adds the velocity to each physics body; for any other, to m_vecAbsVelocity.
+signatures {
+  id: "entity.apply-abs-velocity-impulse"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 18 56 48 83 EC 50 0F 57 C0"
+  shape: "void ApplyAbsVelocityImpulse(CBaseEntity*, const Vector*)"
+}
+
+# The VScript ApplyLocalAngularVelocityImpulse binding. For a MOVETYPE_VPHYSICS
+# entity it adds the angular velocity to each physics body; for any other, to
+# m_vecAngVelocity.
+signatures {
+  id: "entity.apply-local-angular-velocity-impulse"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 56 48 83 EC 70 F3 0F 10 05 ?? ?? ?? ??"
+  shape: "void ApplyLocalAngularVelocityImpulse(CBaseEntity*, const AngularImpulse*)"
+}
+
 signatures {
   id: "entity.emit-sound"
   modules: GAME_MODULE_SERVER

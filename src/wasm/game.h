@@ -25,6 +25,7 @@
 #include "modlock/gameinterop/command_hook.h"
 #include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/entity_abi.h"
+#include "modlock/gameinterop/entity_dynamics.h"
 #include "modlock/gameinterop/game_rules.h"
 #include "modlock/gameinterop/hero_definitions.h"
 #include "modlock/gameinterop/mapped_module_image.h"
@@ -113,6 +114,7 @@ class GameServices {
   std::expected<gameinterop::ResetHeroPawn, std::string> ResetHero();
   std::expected<gameinterop::TeleportClientCamera, std::string> Teleport();
   std::expected<const gameinterop::PawnMotion*, std::string> Motion();
+  std::expected<const gameinterop::EntityDynamics*, std::string> Dynamics();
   std::expected<const gameinterop::BotCreation*, std::string> Bots();
   std::expected<render::WorldTextGameFactory*, std::string> Text();
   std::expected<render::WorldEffectGameFactory*, std::string> Effects();
@@ -196,6 +198,7 @@ class GameServices {
   gameinterop::ResetHeroPawn reset_hero_ = nullptr;
   gameinterop::TeleportClientCamera teleport_ = nullptr;
   std::optional<gameinterop::PawnMotion> motion_;
+  std::optional<gameinterop::EntityDynamics> dynamics_;
   std::optional<gameinterop::BotCreation> bots_;
   // bot_heroes_ lets bots keep a human's hero once a mod adds one.
   std::optional<gameinterop::BotHeroGuard> bot_heroes_;
@@ -518,6 +521,7 @@ class Game : public HostService {
   std::expected<match::RiftResponse, std::string> Rift() override;
   std::expected<void, std::string> StartRift(const match::StartRiftRequest& request) override;
   std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override;
+  std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override;
   std::expected<void, std::string> EmitSound(const effects::EmitSoundRequest& request) override;
   std::expected<void, std::string> Kill(const players::PlayerRequest& request) override;
   std::expected<void, std::string> SetVelocity(

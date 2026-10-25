@@ -53,13 +53,13 @@ func (x PickupKind) String() string {
 	return strconv.Itoa(int(x))
 }
 
-// MoveEntityRequest places one entity.
+// MoveEntityRequest places one entity, or changes only its facing or motion.
 type MoveEntityRequest struct {
 	unknownFields []byte
 	// Entity is the entity's handle.
 	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
-	// Position is the entity's new origin.
-	Position *geometry.Vec3 `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
+	// Position replaces the entity's origin when present.
+	Position *geometry.Vec3 `protobuf:"bytes,2,opt,name=position,proto3,oneof" json:"position,omitempty"`
 	// Facing replaces the entity's angles when present.
 	Facing *geometry.EulerAngles `protobuf:"bytes,3,opt,name=facing,proto3,oneof" json:"facing,omitempty"`
 	// Velocity replaces the entity's motion when present.
@@ -96,6 +96,46 @@ func (x *MoveEntityRequest) GetFacing() *geometry.EulerAngles {
 func (x *MoveEntityRequest) GetVelocity() *geometry.Vec3 {
 	if x != nil {
 		return x.Velocity
+	}
+	return nil
+}
+
+// PushEntityRequest adds motion to one entity.
+type PushEntityRequest struct {
+	unknownFields []byte
+	// Entity is the entity's handle.
+	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
+	// Velocity is added to the entity's motion, in units per second in world
+	// axes.
+	Velocity *geometry.Vec3 `protobuf:"bytes,2,opt,name=velocity,proto3" json:"velocity,omitempty"`
+	// Spin is added to the entity's angular velocity when present, in degrees
+	// per second about its own x, y and z axes.
+	Spin *geometry.Vec3 `protobuf:"bytes,3,opt,name=spin,proto3,oneof" json:"spin,omitempty"`
+}
+
+func (x *PushEntityRequest) Reset() {
+	*x = PushEntityRequest{}
+}
+
+func (*PushEntityRequest) ProtoMessage() {}
+
+func (x *PushEntityRequest) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
+	}
+	return 0
+}
+
+func (x *PushEntityRequest) GetVelocity() *geometry.Vec3 {
+	if x != nil {
+		return x.Velocity
+	}
+	return nil
+}
+
+func (x *PushEntityRequest) GetSpin() *geometry.Vec3 {
+	if x != nil {
+		return x.Spin
 	}
 	return nil
 }
@@ -194,6 +234,9 @@ type EntityPlacement struct {
 	Position *geometry.Vec3 `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
 	// Facing is the entity's absolute angles.
 	Facing *geometry.EulerAngles `protobuf:"bytes,2,opt,name=facing,proto3" json:"facing,omitempty"`
+	// Velocity is the entity's motion in units per second. For a body the
+	// physics simulates, such as a prop_physics, it is the body's.
+	Velocity *geometry.Vec3 `protobuf:"bytes,3,opt,name=velocity,proto3,oneof" json:"velocity,omitempty"`
 }
 
 func (x *EntityPlacement) Reset() {
@@ -212,6 +255,13 @@ func (x *EntityPlacement) GetPosition() *geometry.Vec3 {
 func (x *EntityPlacement) GetFacing() *geometry.EulerAngles {
 	if x != nil {
 		return x.Facing
+	}
+	return nil
+}
+
+func (x *EntityPlacement) GetVelocity() *geometry.Vec3 {
+	if x != nil {
+		return x.Velocity
 	}
 	return nil
 }
@@ -729,6 +779,24 @@ func (m *MoveEntityRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *PushEntityRequest) CloneVT() *PushEntityRequest {
+	if m == nil {
+		return (*PushEntityRequest)(nil)
+	}
+	r := new(PushEntityRequest)
+	r.Entity = m.Entity
+	r.Velocity = protobuf_go_lite.CloneVTValue(m.Velocity)
+	r.Spin = protobuf_go_lite.CloneVTValue(m.Spin)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PushEntityRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *EntityRequest) CloneVT() *EntityRequest {
 	if m == nil {
 		return (*EntityRequest)(nil)
@@ -801,6 +869,7 @@ func (m *EntityPlacement) CloneVT() *EntityPlacement {
 	r := new(EntityPlacement)
 	r.Position = protobuf_go_lite.CloneVTValue(m.Position)
 	r.Facing = protobuf_go_lite.CloneVTValue(m.Facing)
+	r.Velocity = protobuf_go_lite.CloneVTValue(m.Velocity)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1157,6 +1226,32 @@ func (this *MoveEntityRequest) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *PushEntityRequest) EqualVT(that *PushEntityRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Entity != that.Entity {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Velocity, that.Velocity) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Spin, that.Spin) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PushEntityRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PushEntityRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *EntityRequest) EqualVT(that *EntityRequest) bool {
 	if this == that {
 		return true
@@ -1250,6 +1345,9 @@ func (this *EntityPlacement) EqualVT(that *EntityPlacement) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Facing, that.Facing) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Velocity, that.Velocity) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1811,6 +1909,72 @@ func (x *MoveEntityRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the PushEntityRequest message to JSON.
+func (x *PushEntityRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Entity != 0 || s.HasField("entity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entity")
+		s.WriteUint32(x.Entity)
+	}
+	if x.Velocity != nil || s.HasField("velocity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("velocity")
+		x.Velocity.MarshalProtoJSON(s.WithField("velocity"))
+	}
+	if x.Spin != nil || s.HasField("spin") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("spin")
+		x.Spin.MarshalProtoJSON(s.WithField("spin"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PushEntityRequest to JSON.
+func (x *PushEntityRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PushEntityRequest message from JSON.
+func (x *PushEntityRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "entity":
+			s.AddField("entity")
+			x.Entity = s.ReadUint32()
+		case "velocity":
+			if s.ReadNil() {
+				x.Velocity = nil
+				return
+			}
+			x.Velocity = &geometry.Vec3{}
+			x.Velocity.UnmarshalProtoJSON(s.WithField("velocity", true))
+		case "spin":
+			if s.ReadNil() {
+				x.Spin = nil
+				return
+			}
+			x.Spin = &geometry.Vec3{}
+			x.Spin.UnmarshalProtoJSON(s.WithField("spin", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PushEntityRequest from JSON.
+func (x *PushEntityRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the EntityRequest message to JSON.
 func (x *EntityRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2013,6 +2177,11 @@ func (x *EntityPlacement) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("facing")
 		x.Facing.MarshalProtoJSON(s.WithField("facing"))
 	}
+	if x.Velocity != nil || s.HasField("velocity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("velocity")
+		x.Velocity.MarshalProtoJSON(s.WithField("velocity"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2044,6 +2213,13 @@ func (x *EntityPlacement) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Facing = &geometry.EulerAngles{}
 			x.Facing.UnmarshalProtoJSON(s.WithField("facing", true))
+		case "velocity":
+			if s.ReadNil() {
+				x.Velocity = nil
+				return
+			}
+			x.Velocity = &geometry.Vec3{}
+			x.Velocity.UnmarshalProtoJSON(s.WithField("velocity", true))
 		}
 	})
 }
@@ -2946,6 +3122,63 @@ func (m *MoveEntityRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *PushEntityRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PushEntityRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PushEntityRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Spin != nil {
+		size, err := m.Spin.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Velocity != nil {
+		size, err := m.Velocity.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Entity != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *EntityRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3137,6 +3370,16 @@ func (m *EntityPlacement) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Velocity != nil {
+		size, err := m.Velocity.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
 	}
 	if m.Facing != nil {
 		size, err := m.Facing.MarshalToSizedBufferVT(dAtA[:i])
@@ -3899,6 +4142,25 @@ func (m *MoveEntityRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *PushEntityRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
+	if m.Velocity != nil {
+		l = m.Velocity.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Spin != nil {
+		l = m.Spin.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *EntityRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3962,6 +4224,10 @@ func (m *EntityPlacement) SizeVT() (n int) {
 	}
 	if m.Facing != nil {
 		l = m.Facing.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Velocity != nil {
+		l = m.Velocity.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += len(m.unknownFields)
@@ -4253,6 +4519,28 @@ func (x *MoveEntityRequest) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *PushEntityRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PushEntityRequest")
+	if x.Entity != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entity")
+		protobuf_go_lite.TextWriteUint(&sb, x.Entity)
+	}
+	if x.Velocity != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "velocity")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Velocity)
+	}
+	if x.Spin != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "spin")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Spin)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PushEntityRequest) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *EntityRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "EntityRequest")
@@ -4323,6 +4611,10 @@ func (x *EntityPlacement) MarshalProtoText() string {
 	if x.Facing != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "facing")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Facing)
+	}
+	if x.Velocity != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "velocity")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Velocity)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -4720,6 +5012,88 @@ func (m *MoveEntityRequest) UnmarshalVT(dAtA []byte) error {
 	return nil
 }
 
+func (m *PushEntityRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PushEntityRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PushEntityRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Entity", wireType)
+			}
+			m.Entity = 0
+			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Velocity", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Velocity == nil {
+				m.Velocity = &geometry.Vec3{}
+			}
+			if err := m.Velocity.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Spin", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Spin == nil {
+				m.Spin = &geometry.Vec3{}
+			}
+			if err := m.Spin.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
 func (m *EntityRequest) UnmarshalVT(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4998,6 +5372,21 @@ func (m *EntityPlacement) UnmarshalVT(dAtA []byte) error {
 				m.Facing = &geometry.EulerAngles{}
 			}
 			if err := m.Facing.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Velocity", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Velocity == nil {
+				m.Velocity = &geometry.Vec3{}
+			}
+			if err := m.Velocity.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

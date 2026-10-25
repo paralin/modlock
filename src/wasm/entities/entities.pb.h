@@ -134,6 +134,10 @@ class PickupResponse;
 struct PickupResponseDefaultTypeInternal;
 MODLOCK_API extern PickupResponseDefaultTypeInternal _PickupResponse_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PickupResponse_class_data_;
+class PushEntityRequest;
+struct PushEntityRequestDefaultTypeInternal;
+MODLOCK_API extern PushEntityRequestDefaultTypeInternal _PushEntityRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PushEntityRequest_class_data_;
 class RemoveEntitiesRequest;
 struct RemoveEntitiesRequestDefaultTypeInternal;
 MODLOCK_API extern RemoveEntitiesRequestDefaultTypeInternal _RemoveEntitiesRequest_default_instance_;
@@ -253,7 +257,7 @@ class MODLOCK_API ShowEntityOnlyToRequest final : public ::google::protobuf::Mes
     return *reinterpret_cast<const ShowEntityOnlyToRequest*>(
         &_ShowEntityOnlyToRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(ShowEntityOnlyToRequest& a, ShowEntityOnlyToRequest& b) { a.Swap(&b); }
   inline void Swap(ShowEntityOnlyToRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -464,7 +468,7 @@ class MODLOCK_API RemoveEntitiesRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const RemoveEntitiesRequest*>(
         &_RemoveEntitiesRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(RemoveEntitiesRequest& a, RemoveEntitiesRequest& b) { a.Swap(&b); }
   inline void Swap(RemoveEntitiesRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -659,7 +663,7 @@ class MODLOCK_API PickupResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const PickupResponse*>(
         &_PickupResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(PickupResponse& a, PickupResponse& b) { a.Swap(&b); }
   inline void Swap(PickupResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -849,7 +853,7 @@ class MODLOCK_API PickupRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PickupRequest*>(
         &_PickupRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(PickupRequest& a, PickupRequest& b) { a.Swap(&b); }
   inline void Swap(PickupRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1039,7 +1043,7 @@ class MODLOCK_API FindEntitiesRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FindEntitiesRequest*>(
         &_FindEntitiesRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(FindEntitiesRequest& a, FindEntitiesRequest& b) { a.Swap(&b); }
   inline void Swap(FindEntitiesRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1234,7 +1238,7 @@ class MODLOCK_API EntityResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityResponse*>(
         &_EntityResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(EntityResponse& a, EntityResponse& b) { a.Swap(&b); }
   inline void Swap(EntityResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1424,7 +1428,7 @@ class MODLOCK_API EntityRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityRequest*>(
         &_EntityRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
+  static constexpr int kIndexInFileMessages = 2;
   friend void swap(EntityRequest& a, EntityRequest& b) { a.Swap(&b); }
   inline void Swap(EntityRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1614,7 +1618,7 @@ class MODLOCK_API EntityClassName final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityClassName*>(
         &_EntityClassName_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(EntityClassName& a, EntityClassName& b) { a.Swap(&b); }
   inline void Swap(EntityClassName* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1826,7 +1830,7 @@ class MODLOCK_API EntitiesResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntitiesResponse*>(
         &_EntitiesResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(EntitiesResponse& a, EntitiesResponse& b) { a.Swap(&b); }
   inline void Swap(EntitiesResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2025,7 +2029,7 @@ class MODLOCK_API CountResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const CountResponse*>(
         &_CountResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(CountResponse& a, CountResponse& b) { a.Swap(&b); }
   inline void Swap(CountResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2215,7 +2219,7 @@ class MODLOCK_API AliveResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const AliveResponse*>(
         &_AliveResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(AliveResponse& a, AliveResponse& b) { a.Swap(&b); }
   inline void Swap(AliveResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2348,6 +2352,230 @@ class MODLOCK_API AliveResponse final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AliveResponse_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API PushEntityRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.entities.PushEntityRequest) */ {
+ public:
+  inline PushEntityRequest() : PushEntityRequest(nullptr) {}
+  ~PushEntityRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PushEntityRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PushEntityRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PushEntityRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline PushEntityRequest(const PushEntityRequest& from) : PushEntityRequest(nullptr, from) {}
+  inline PushEntityRequest(PushEntityRequest&& from) noexcept
+      : PushEntityRequest(nullptr, ::std::move(from)) {}
+  inline PushEntityRequest& operator=(const PushEntityRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PushEntityRequest& operator=(PushEntityRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PushEntityRequest& default_instance() {
+    return *reinterpret_cast<const PushEntityRequest*>(
+        &_PushEntityRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(PushEntityRequest& a, PushEntityRequest& b) { a.Swap(&b); }
+  inline void Swap(PushEntityRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PushEntityRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PushEntityRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PushEntityRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PushEntityRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PushEntityRequest& from) { PushEntityRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PushEntityRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.entities.PushEntityRequest"; }
+
+  explicit PushEntityRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PushEntityRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PushEntityRequest& from);
+  PushEntityRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PushEntityRequest&& from) noexcept
+      : PushEntityRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kVelocityFieldNumber = 2,
+    kSpinFieldNumber = 3,
+    kEntityFieldNumber = 1,
+  };
+  // .modlock.geometry.Vec3 velocity = 2;
+  bool has_velocity() const;
+  void clear_velocity() ;
+  const ::modlock::geometry::Vec3& velocity() const;
+  [[nodiscard]] ::modlock::geometry::Vec3* PROTOBUF_NULLABLE release_velocity();
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL mutable_velocity();
+  void set_allocated_velocity(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_velocity(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  ::modlock::geometry::Vec3* PROTOBUF_NULLABLE unsafe_arena_release_velocity();
+
+  private:
+  const ::modlock::geometry::Vec3& _internal_velocity() const;
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL _internal_mutable_velocity();
+
+  public:
+  // optional .modlock.geometry.Vec3 spin = 3;
+  bool has_spin() const;
+  void clear_spin() ;
+  const ::modlock::geometry::Vec3& spin() const;
+  [[nodiscard]] ::modlock::geometry::Vec3* PROTOBUF_NULLABLE release_spin();
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL mutable_spin();
+  void set_allocated_spin(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_spin(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  ::modlock::geometry::Vec3* PROTOBUF_NULLABLE unsafe_arena_release_spin();
+
+  private:
+  const ::modlock::geometry::Vec3& _internal_spin() const;
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL _internal_mutable_spin();
+
+  public:
+  // uint32 entity = 1;
+  void clear_entity() ;
+  ::uint32_t entity() const;
+  void set_entity(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_entity() const;
+  void _internal_set_entity(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.entities.PushEntityRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   2, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PushEntityRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE velocity_;
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE spin_;
+    ::uint32_t entity_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PushEntityRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API MoveEntityRequest final : public ::google::protobuf::Message
@@ -2497,7 +2725,7 @@ class MODLOCK_API MoveEntityRequest final : public ::google::protobuf::Message
     kVelocityFieldNumber = 4,
     kEntityFieldNumber = 1,
   };
-  // .modlock.geometry.Vec3 position = 2;
+  // optional .modlock.geometry.Vec3 position = 2;
   bool has_position() const;
   void clear_position() ;
   const ::modlock::geometry::Vec3& position() const;
@@ -2655,7 +2883,7 @@ class MODLOCK_API EntityValue final : public ::google::protobuf::Message
     kColor = 6,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(EntityValue& a, EntityValue& b) { a.Swap(&b); }
   inline void Swap(EntityValue* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2938,7 +3166,7 @@ class MODLOCK_API EntityPlacement final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityPlacement*>(
         &_EntityPlacement_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(EntityPlacement& a, EntityPlacement& b) { a.Swap(&b); }
   inline void Swap(EntityPlacement* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3027,6 +3255,7 @@ class MODLOCK_API EntityPlacement final : public ::google::protobuf::Message
   enum : int {
     kPositionFieldNumber = 1,
     kFacingFieldNumber = 2,
+    kVelocityFieldNumber = 3,
   };
   // .modlock.geometry.Vec3 position = 1;
   bool has_position() const;
@@ -3058,12 +3287,27 @@ class MODLOCK_API EntityPlacement final : public ::google::protobuf::Message
   ::modlock::geometry::EulerAngles* PROTOBUF_NONNULL _internal_mutable_facing();
 
   public:
+  // optional .modlock.geometry.Vec3 velocity = 3;
+  bool has_velocity() const;
+  void clear_velocity() ;
+  const ::modlock::geometry::Vec3& velocity() const;
+  [[nodiscard]] ::modlock::geometry::Vec3* PROTOBUF_NULLABLE release_velocity();
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL mutable_velocity();
+  void set_allocated_velocity(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_velocity(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  ::modlock::geometry::Vec3* PROTOBUF_NULLABLE unsafe_arena_release_velocity();
+
+  private:
+  const ::modlock::geometry::Vec3& _internal_velocity() const;
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL _internal_mutable_velocity();
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.entities.EntityPlacement)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   2, 0,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   3, 0,
                                    2>
       _table_;
 
@@ -3086,6 +3330,7 @@ class MODLOCK_API EntityPlacement final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::modlock::geometry::Vec3* PROTOBUF_NULLABLE position_;
     ::modlock::geometry::EulerAngles* PROTOBUF_NULLABLE facing_;
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE velocity_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3150,7 +3395,7 @@ class MODLOCK_API EntityClassResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityClassResponse*>(
         &_EntityClassResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 3;
   friend void swap(EntityClassResponse& a, EntityClassResponse& b) { a.Swap(&b); }
   inline void Swap(EntityClassResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3345,7 +3590,7 @@ class MODLOCK_API CreatePickupRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const CreatePickupRequest*>(
         &_CreatePickupRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(CreatePickupRequest& a, CreatePickupRequest& b) { a.Swap(&b); }
   inline void Swap(CreatePickupRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3552,7 +3797,7 @@ class MODLOCK_API KeyValue final : public ::google::protobuf::Message
     return *reinterpret_cast<const KeyValue*>(
         &_KeyValue_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(KeyValue& a, KeyValue& b) { a.Swap(&b); }
   inline void Swap(KeyValue* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3764,7 +4009,7 @@ class MODLOCK_API FireInputRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FireInputRequest*>(
         &_FireInputRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(FireInputRequest& a, FireInputRequest& b) { a.Swap(&b); }
   inline void Swap(FireInputRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4001,7 +4246,7 @@ class MODLOCK_API EntityPositionResponse final : public ::google::protobuf::Mess
     return *reinterpret_cast<const EntityPositionResponse*>(
         &_EntityPositionResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(EntityPositionResponse& a, EntityPositionResponse& b) { a.Swap(&b); }
   inline void Swap(EntityPositionResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4196,7 +4441,7 @@ class MODLOCK_API EntityOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const EntityOptions*>(
         &_EntityOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(EntityOptions& a, EntityOptions& b) { a.Swap(&b); }
   inline void Swap(EntityOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4490,7 +4735,7 @@ inline void MoveEntityRequest::_internal_set_entity(::uint32_t value) {
   _impl_.entity_ = value;
 }
 
-// .modlock.geometry.Vec3 position = 2;
+// optional .modlock.geometry.Vec3 position = 2;
 inline bool MoveEntityRequest::has_position() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
   PROTOBUF_ASSUME(!value || _impl_.position_ != nullptr);
@@ -4767,6 +5012,221 @@ inline void MoveEntityRequest::set_allocated_velocity(::modlock::geometry::Vec3*
 
   _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.entities.MoveEntityRequest.velocity)
+}
+
+// -------------------------------------------------------------------
+
+// PushEntityRequest
+
+// uint32 entity = 1;
+inline void PushEntityRequest::clear_entity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t PushEntityRequest::entity() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.entities.PushEntityRequest.entity)
+  return _internal_entity();
+}
+inline void PushEntityRequest::set_entity(::uint32_t value) {
+  _internal_set_entity(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.entities.PushEntityRequest.entity)
+}
+inline ::uint32_t PushEntityRequest::_internal_entity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.entity_;
+}
+inline void PushEntityRequest::_internal_set_entity(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.entity_ = value;
+}
+
+// .modlock.geometry.Vec3 velocity = 2;
+inline bool PushEntityRequest::has_velocity() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  PROTOBUF_ASSUME(!value || _impl_.velocity_ != nullptr);
+  return value;
+}
+inline const ::modlock::geometry::Vec3& PushEntityRequest::_internal_velocity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::geometry::Vec3* p = _impl_.velocity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::geometry::Vec3&>(::modlock::geometry::_Vec3_default_instance_);
+}
+inline const ::modlock::geometry::Vec3& PushEntityRequest::velocity() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.entities.PushEntityRequest.velocity)
+  return _internal_velocity();
+}
+inline void PushEntityRequest::unsafe_arena_set_allocated_velocity(
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.velocity_);
+  }
+  _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.entities.PushEntityRequest.velocity)
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE PushEntityRequest::release_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::geometry::Vec3* released = _impl_.velocity_;
+  _impl_.velocity_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE PushEntityRequest::unsafe_arena_release_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.entities.PushEntityRequest.velocity)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::geometry::Vec3* temp = _impl_.velocity_;
+  _impl_.velocity_ = nullptr;
+  return temp;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL PushEntityRequest::_internal_mutable_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.velocity_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::geometry::Vec3>(GetArena());
+    _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(p);
+  }
+  return _impl_.velocity_;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL PushEntityRequest::mutable_velocity()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::geometry::Vec3* _msg = _internal_mutable_velocity();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.entities.PushEntityRequest.velocity)
+  return _msg;
+}
+inline void PushEntityRequest::set_allocated_velocity(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.velocity_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+
+  _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.entities.PushEntityRequest.velocity)
+}
+
+// optional .modlock.geometry.Vec3 spin = 3;
+inline bool PushEntityRequest::has_spin() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  PROTOBUF_ASSUME(!value || _impl_.spin_ != nullptr);
+  return value;
+}
+inline const ::modlock::geometry::Vec3& PushEntityRequest::_internal_spin() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::geometry::Vec3* p = _impl_.spin_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::geometry::Vec3&>(::modlock::geometry::_Vec3_default_instance_);
+}
+inline const ::modlock::geometry::Vec3& PushEntityRequest::spin() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.entities.PushEntityRequest.spin)
+  return _internal_spin();
+}
+inline void PushEntityRequest::unsafe_arena_set_allocated_spin(
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.spin_);
+  }
+  _impl_.spin_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.entities.PushEntityRequest.spin)
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE PushEntityRequest::release_spin() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::geometry::Vec3* released = _impl_.spin_;
+  _impl_.spin_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE PushEntityRequest::unsafe_arena_release_spin() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.entities.PushEntityRequest.spin)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::geometry::Vec3* temp = _impl_.spin_;
+  _impl_.spin_ = nullptr;
+  return temp;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL PushEntityRequest::_internal_mutable_spin() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.spin_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::geometry::Vec3>(GetArena());
+    _impl_.spin_ = reinterpret_cast<::modlock::geometry::Vec3*>(p);
+  }
+  return _impl_.spin_;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL PushEntityRequest::mutable_spin()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::geometry::Vec3* _msg = _internal_mutable_spin();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.entities.PushEntityRequest.spin)
+  return _msg;
+}
+inline void PushEntityRequest::set_allocated_spin(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.spin_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+
+  _impl_.spin_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.entities.PushEntityRequest.spin)
 }
 
 // -------------------------------------------------------------------
@@ -5326,6 +5786,99 @@ inline void EntityPlacement::set_allocated_facing(::modlock::geometry::EulerAngl
 
   _impl_.facing_ = reinterpret_cast<::modlock::geometry::EulerAngles*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.entities.EntityPlacement.facing)
+}
+
+// optional .modlock.geometry.Vec3 velocity = 3;
+inline bool EntityPlacement::has_velocity() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  PROTOBUF_ASSUME(!value || _impl_.velocity_ != nullptr);
+  return value;
+}
+inline const ::modlock::geometry::Vec3& EntityPlacement::_internal_velocity() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::geometry::Vec3* p = _impl_.velocity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::geometry::Vec3&>(::modlock::geometry::_Vec3_default_instance_);
+}
+inline const ::modlock::geometry::Vec3& EntityPlacement::velocity() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.entities.EntityPlacement.velocity)
+  return _internal_velocity();
+}
+inline void EntityPlacement::unsafe_arena_set_allocated_velocity(
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.velocity_);
+  }
+  _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.entities.EntityPlacement.velocity)
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE EntityPlacement::release_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::modlock::geometry::Vec3* released = _impl_.velocity_;
+  _impl_.velocity_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE EntityPlacement::unsafe_arena_release_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.entities.EntityPlacement.velocity)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::modlock::geometry::Vec3* temp = _impl_.velocity_;
+  _impl_.velocity_ = nullptr;
+  return temp;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL EntityPlacement::_internal_mutable_velocity() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.velocity_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::geometry::Vec3>(GetArena());
+    _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(p);
+  }
+  return _impl_.velocity_;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL EntityPlacement::mutable_velocity()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::modlock::geometry::Vec3* _msg = _internal_mutable_velocity();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.entities.EntityPlacement.velocity)
+  return _msg;
+}
+inline void EntityPlacement::set_allocated_velocity(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.velocity_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+
+  _impl_.velocity_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.entities.EntityPlacement.velocity)
 }
 
 // -------------------------------------------------------------------

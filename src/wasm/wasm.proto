@@ -315,8 +315,8 @@ service Host {
   rpc EntityClass(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityClassResponse);
 
   // EntityPosition returns where a live entity stands, its absolute origin
-  // and angles, as MoveEntity places it. Any entity with a place in the
-  // world has one, such as one of the map's boxes.
+  // and angles, as MoveEntity places it, and its velocity. Any entity with a
+  // place in the world has one, such as one of the map's boxes.
   rpc EntityPosition(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityPositionResponse);
 
   // ModifierState reports whether an entity has a modifier state, such as
@@ -545,8 +545,15 @@ service Host {
   rpc StartRift(modlock.wasm.match.StartRiftRequest) returns (Empty);
 
   // MoveEntity places any entity, such as a projectile, and replaces its
-  // facing and motion when given.
+  // facing and motion when given. Without a position it leaves the entity
+  // where it is, so a velocity alone steers a body the physics simulates, such
+  // as a prop_physics, which carries the motion on against the world.
   rpc MoveEntity(modlock.wasm.entities.MoveEntityRequest) returns (Empty);
+
+  // PushEntity adds a velocity and an angular velocity to any entity. On a
+  // body the physics simulates, such as a prop_physics, it acts like an
+  // impulse that the simulation carries on.
+  rpc PushEntity(modlock.wasm.entities.PushEntityRequest) returns (Empty);
 
   // EmitSound plays one game sound on any entity, such as a projectile.
   rpc EmitSound(modlock.wasm.effects.EmitSoundRequest) returns (Empty);

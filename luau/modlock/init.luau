@@ -379,6 +379,9 @@ export type EntityPlacement = {
 	position: Vector,
 	-- facing is the entity's absolute angles.
 	facing: Angles,
+	-- velocity is the entity's motion in units per second. For a body the
+	-- physics simulates, such as a prop_physics, it is the body's.
+	velocity: Vector?,
 }
 
 -- EntityOptions describes an entity to create.
@@ -1979,9 +1982,14 @@ schema.FieldWrite = {
 }
 schema.MoveEntityRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
-	{ number = 2, name = "position", kind = "message", message = "Vec3" },
+	{ number = 2, name = "position", kind = "message", optional = true, message = "Vec3" },
 	{ number = 3, name = "facing", kind = "message", optional = true, message = "EulerAngles" },
 	{ number = 4, name = "velocity", kind = "message", optional = true, message = "Vec3" },
+}
+schema.PushEntityRequest = {
+	{ number = 1, name = "entity", kind = "uint32" },
+	{ number = 2, name = "velocity", kind = "message", message = "Vec3" },
+	{ number = 3, name = "spin", kind = "message", optional = true, message = "Vec3" },
 }
 schema.EntityRequest = {
 	{ number = 1, name = "entity", kind = "uint32" },
@@ -1999,6 +2007,7 @@ schema.EntityPositionResponse = {
 schema.EntityPlacement = {
 	{ number = 1, name = "position", kind = "message", message = "Vec3" },
 	{ number = 2, name = "facing", kind = "message", message = "EulerAngles" },
+	{ number = 3, name = "velocity", kind = "message", optional = true, message = "Vec3" },
 }
 schema.EntityResponse = {
 	{ number = 1, name = "entity", kind = "uint32" },
@@ -2710,8 +2719,8 @@ function modlock.entityClass(entity: number): EntityClassName?
 end
 
 -- entityPosition returns where a live entity stands, its absolute origin
--- and angles, as MoveEntity places it. Any entity with a place in the
--- world has one, such as one of the map's boxes.
+-- and angles, as MoveEntity places it, and its velocity. Any entity with a
+-- place in the world has one, such as one of the map's boxes.
 function modlock.entityPosition(entity: number): EntityPlacement?
 	local response = call("EntityPosition", "EntityRequest", { entity = entity }, "EntityPositionResponse")
 	if response == nil then
@@ -3004,9 +3013,18 @@ function modlock.startRift(position: Vector): boolean
 end
 
 -- moveEntity places any entity, such as a projectile, and replaces its
--- facing and motion when given.
-function modlock.moveEntity(entity: number, position: Vector, facing: Angles?, velocity: Vector?): boolean
+-- facing and motion when given. Without a position it leaves the entity
+-- where it is, so a velocity alone steers a body the physics simulates, such
+-- as a prop_physics, which carries the motion on against the world.
+function modlock.moveEntity(entity: number, position: Vector?, facing: Angles?, velocity: Vector?): boolean
 	return call("MoveEntity", "MoveEntityRequest", { entity = entity, position = position, facing = facing, velocity = velocity }) ~= nil
+end
+
+-- pushEntity adds a velocity and an angular velocity to any entity. On a
+-- body the physics simulates, such as a prop_physics, it acts like an
+-- impulse that the simulation carries on.
+function modlock.pushEntity(entity: number, velocity: Vector, spin: Vector?): boolean
+	return call("PushEntity", "PushEntityRequest", { entity = entity, velocity = velocity, spin = spin }) ~= nil
 end
 
 -- emitSound plays one game sound on any entity, such as a projectile.

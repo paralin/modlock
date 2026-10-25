@@ -431,8 +431,8 @@ class HostService {
   }
 
   // EntityPosition returns where a live entity stands, its absolute origin
-  // and angles, as MoveEntity places it. Any entity with a place in the
-  // world has one, such as one of the map's boxes.
+  // and angles, as MoveEntity places it, and its velocity. Any entity with a
+  // place in the world has one, such as one of the map's boxes.
   virtual std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
       const entities::EntityRequest& /*request*/) {
     return std::unexpected("this host does not support EntityPosition");
@@ -793,10 +793,20 @@ class HostService {
   }
 
   // MoveEntity places any entity, such as a projectile, and replaces its
-  // facing and motion when given.
+  // facing and motion when given. Without a position it leaves the entity
+  // where it is, so a velocity alone steers a body the physics simulates, such
+  // as a prop_physics, which carries the motion on against the world.
   virtual std::expected<void, std::string> MoveEntity(
       const entities::MoveEntityRequest& /*request*/) {
     return std::unexpected("this host does not support MoveEntity");
+  }
+
+  // PushEntity adds a velocity and an angular velocity to any entity. On a
+  // body the physics simulates, such as a prop_physics, it acts like an
+  // impulse that the simulation carries on.
+  virtual std::expected<void, std::string> PushEntity(
+      const entities::PushEntityRequest& /*request*/) {
+    return std::unexpected("this host does not support PushEntity");
   }
 
   // EmitSound plays one game sound on any entity, such as a projectile.
@@ -1636,6 +1646,14 @@ class HostService {
              return detail::Fail("the MoveEntity request is malformed");
            }
            return detail::Answer(host.MoveEntity(request));
+         }},
+        {"PushEntity",
+         [](HostService& host, const std::string& bytes) {
+           entities::PushEntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the PushEntity request is malformed");
+           }
+           return detail::Answer(host.PushEntity(request));
          }},
         {"EmitSound",
          [](HostService& host, const std::string& bytes) {

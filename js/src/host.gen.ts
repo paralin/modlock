@@ -588,6 +588,11 @@ export interface EntityPlacement {
   readonly position: Vector
   /** facing is the entity's absolute angles. */
   readonly facing: Angles
+  /**
+   * velocity is the entity's motion in units per second. For a body the
+   * physics simulates, such as a prop_physics, it is the body's.
+   */
+  readonly velocity?: Vector
 }
 
 /** fromEntityPlacement decodes an EntityPlacement. */
@@ -595,6 +600,7 @@ function fromEntityPlacement(message: entitiesPb.EntityPlacement): EntityPlaceme
   return {
     position: vector(message.position),
     facing: angles(message.facing),
+    velocity: message.velocity === undefined ? undefined : vector(message.velocity),
   }
 }
 
@@ -2482,8 +2488,8 @@ export function entityClass(entity: number): EntityClassName | undefined {
 
 /**
  * entityPosition returns where a live entity stands, its absolute origin
- * and angles, as MoveEntity places it. Any entity with a place in the
- * world has one, such as one of the map's boxes.
+ * and angles, as MoveEntity places it, and its velocity. Any entity with a
+ * place in the world has one, such as one of the map's boxes.
  */
 export function entityPosition(entity: number): EntityPlacement | undefined {
   const reply = call('EntityPosition', entitiesPb.EntityRequest.toBinary({ entity }))
@@ -2814,10 +2820,21 @@ export function startRift(position: Vector): boolean {
 
 /**
  * moveEntity places any entity, such as a projectile, and replaces its
- * facing and motion when given.
+ * facing and motion when given. Without a position it leaves the entity
+ * where it is, so a velocity alone steers a body the physics simulates, such
+ * as a prop_physics, which carries the motion on against the world.
  */
-export function moveEntity(entity: number, position: Vector, facing?: Angles, velocity?: Vector): boolean {
+export function moveEntity(entity: number, position?: Vector, facing?: Angles, velocity?: Vector): boolean {
   return call('MoveEntity', entitiesPb.MoveEntityRequest.toBinary({ entity, position, facing, velocity })) !== undefined
+}
+
+/**
+ * pushEntity adds a velocity and an angular velocity to any entity. On a
+ * body the physics simulates, such as a prop_physics, it acts like an
+ * impulse that the simulation carries on.
+ */
+export function pushEntity(entity: number, velocity: Vector, spin?: Vector): boolean {
+  return call('PushEntity', entitiesPb.PushEntityRequest.toBinary({ entity, velocity, spin })) !== undefined
 }
 
 /** emitSound plays one game sound on any entity, such as a projectile. */

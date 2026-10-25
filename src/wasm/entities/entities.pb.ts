@@ -38,7 +38,7 @@ export const PickupKind_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
- * MoveEntityRequest places one entity.
+ * MoveEntityRequest places one entity, or changes only its facing or motion.
  *
  * @generated from message modlock.wasm.entities.MoveEntityRequest
  */
@@ -48,7 +48,7 @@ export interface MoveEntityRequest {
    */
   entity?: number
   /**
-   * Position is the entity's new origin.
+   * Position replaces the entity's origin when present.
    */
   position?: Vec3
   /**
@@ -114,6 +114,78 @@ export const MoveEntityRequest: MessageType<MoveEntityRequest> =
         {
           const v = m.velocity
           if (v != null) Vec3.writeField(w, 4, v)
+        }
+      },
+    },
+  )
+
+/**
+ * PushEntityRequest adds motion to one entity.
+ *
+ * @generated from message modlock.wasm.entities.PushEntityRequest
+ */
+export interface PushEntityRequest {
+  /**
+   * Entity is the entity's handle.
+   */
+  entity?: number
+  /**
+   * Velocity is added to the entity's motion, in units per second in world
+   * axes.
+   */
+  velocity?: Vec3
+  /**
+   * Spin is added to the entity's angular velocity when present, in degrees
+   * per second about its own x, y and z axes.
+   */
+  spin?: Vec3
+}
+
+export const PushEntityRequest: MessageType<PushEntityRequest> =
+  /* @__PURE__ */ createMessageType<PushEntityRequest>(
+    'modlock.wasm.entities.PushEntityRequest',
+    () => [
+      [1, 'entity', 13],
+      [2, 'velocity', 11, 0, Vec3.codec],
+      [3, 'spin', 11, 0, Vec3.codec],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: PushEntityRequest,
+      ): PushEntityRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.entity = r.uint32()
+              break
+            case 2:
+              m.velocity = Vec3.decode(r, r.delimited(), m.velocity ?? {})
+              break
+            case 3:
+              m.spin = Vec3.decode(r, r.delimited(), m.spin ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: PushEntityRequest, w: Writer): void => {
+        {
+          const v = m.entity
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.velocity
+          if (v != null) Vec3.writeField(w, 2, v)
+        }
+        {
+          const v = m.spin
+          if (v != null) Vec3.writeField(w, 3, v)
         }
       },
     },
@@ -321,6 +393,11 @@ export interface EntityPlacement {
    * Facing is the entity's absolute angles.
    */
   facing?: EulerAngles
+  /**
+   * Velocity is the entity's motion in units per second. For a body the
+   * physics simulates, such as a prop_physics, it is the body's.
+   */
+  velocity?: Vec3
 }
 
 export const EntityPlacement: MessageType<EntityPlacement> =
@@ -329,6 +406,7 @@ export const EntityPlacement: MessageType<EntityPlacement> =
     () => [
       [1, 'position', 11, 0, Vec3.codec],
       [2, 'facing', 11, 0, EulerAngles.codec],
+      [3, 'velocity', 11, 0, Vec3.codec],
     ],
     {
       decode: (
@@ -346,6 +424,9 @@ export const EntityPlacement: MessageType<EntityPlacement> =
             case 2:
               m.facing = EulerAngles.decode(r, r.delimited(), m.facing ?? {})
               break
+            case 3:
+              m.velocity = Vec3.decode(r, r.delimited(), m.velocity ?? {})
+              break
             default:
               r.skip(t)
           }
@@ -360,6 +441,10 @@ export const EntityPlacement: MessageType<EntityPlacement> =
         {
           const v = m.facing
           if (v != null) EulerAngles.writeField(w, 2, v)
+        }
+        {
+          const v = m.velocity
+          if (v != null) Vec3.writeField(w, 3, v)
         }
       },
     },

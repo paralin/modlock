@@ -859,8 +859,8 @@ func EntityClass(entity uint32) (*EntityClassName, error) {
 }
 
 // EntityPosition returns where a live entity stands, its absolute origin
-// and angles, as MoveEntity places it. Any entity with a place in the
-// world has one, such as one of the map's boxes.
+// and angles, as MoveEntity places it, and its velocity. Any entity with a
+// place in the world has one, such as one of the map's boxes.
 func EntityPosition(entity uint32) (*EntityPlacement, error) {
 	request := &entitiespb.EntityRequest{Entity: entity}
 	response := &entitiespb.EntityPositionResponse{}
@@ -1303,9 +1303,18 @@ func StartRift(position *Vector) error {
 }
 
 // MoveEntity places any entity, such as a projectile, and replaces its
-// facing and motion when given.
+// facing and motion when given. Without a position it leaves the entity
+// where it is, so a velocity alone steers a body the physics simulates, such
+// as a prop_physics, which carries the motion on against the world.
 func MoveEntity(entity uint32, position *Vector, facing *Angles, velocity *Vector) error {
 	return invoke("MoveEntity", &entitiespb.MoveEntityRequest{Entity: entity, Position: position, Facing: facing, Velocity: velocity}, nil)
+}
+
+// PushEntity adds a velocity and an angular velocity to any entity. On a
+// body the physics simulates, such as a prop_physics, it acts like an
+// impulse that the simulation carries on.
+func PushEntity(entity uint32, velocity, spin *Vector) error {
+	return invoke("PushEntity", &entitiespb.PushEntityRequest{Entity: entity, Velocity: velocity, Spin: spin}, nil)
 }
 
 // EmitSound plays one game sound on any entity, such as a projectile.
