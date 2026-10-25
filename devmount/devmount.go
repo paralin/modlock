@@ -1,6 +1,10 @@
 // Package devmount owns the package a development session mounts in a
 // Deadlock installation: its directory, its block in gameinfo.gi, and the lock
-// that tells a live session from one that ended without unmounting. Another
+// that tells a live session from one that ended without unmounting. Each
+// package lives in its own subdirectory named for its content, since a running
+// game holds the package it loaded open and Windows refuses to replace it; a
+// changed package goes beside the held one, and the next session prunes the
+// ones no game holds. Another
 // program that mounts content in the same game, such as a game client that
 // refuses to start beside conflicting packages, clears a stale mount through
 // ClearStale instead of asking the player to edit gameinfo.gi.
@@ -19,7 +23,7 @@ import (
 const (
 	// Name names the session's block in gameinfo.gi.
 	Name = "MODLOCK DEV"
-	// Dir is the game-relative directory of the session's package.
+	// Dir is the game-relative directory of the session's packages.
 	Dir = "citadel/modlock_dev"
 	// lockName is the lock file in Dir that each live session holds shared.
 	lockName = "session.lock"
@@ -28,9 +32,47 @@ const (
 // ErrRunning reports that a live development session holds the mount.
 var ErrRunning = errors.New("a Modlock development session is running in this game")
 
-// Path returns the session's package directory in the installation at gameDir.
+// Path returns the sessions' directory in the installation at gameDir.
 func Path(gameDir string) string {
 	return filepath.Join(gameDir, "game", filepath.FromSlash(Dir))
+}
+
+// PackagePath returns the directory of the package named key in the
+// installation at gameDir.
+func PackagePath(gameDir, key string) string {
+	return filepath.Join(Path(gameDir), key)
+}
+
+// Prune removes every package but keep's while no other session is live, and
+// keeps going past an entry it cannot remove, such as a package a running game
+// still holds. Prune before Hold, whose shared lock would count as live.
+func Prune(gameDir, keep string) error {
+	// Prune only while no other session holds the lock.
+	dir := Path(gameDir)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	held, err := filelock.Lock(filepath.Join(dir, lockName), true, false)
+	if err == filelock.ErrLocked {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	defer held.Close()
+
+	// Remove every other package, and a package from before keyed
+	// directories, past the ones a running game holds.
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if name := entry.Name(); name != keep && name != lockName {
+			_ = os.RemoveAll(filepath.Join(dir, name))
+		}
+	}
+	return nil
 }
 
 // Hold marks a session live in the installation at gameDir until the returned
@@ -44,15 +86,16 @@ func Hold(gameDir string) (*os.File, error) {
 	return filelock.Lock(filepath.Join(dir, lockName), false, true)
 }
 
-// Mount adds the session's block to the installation's gameinfo.gi, replacing
-// a block a session left that did not end cleanly.
-func Mount(gameDir string) error {
+// Mount adds the session's block for the package named key to the
+// installation's gameinfo.gi, replacing a block a session left that did not
+// end cleanly or that names an older package.
+func Mount(gameDir, key string) error {
 	info := infoPath(gameDir)
 	source, err := os.ReadFile(info)
 	if err != nil {
 		return err
 	}
-	mounted, err := gameinfo.Mount(source, Name, Dir)
+	mounted, err := gameinfo.Mount(source, Name, Dir+"/"+key)
 	if err != nil {
 		return err
 	}

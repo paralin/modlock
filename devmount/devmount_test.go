@@ -37,7 +37,7 @@ func TestClearStale(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Mount(gameDir); err != nil {
+	if err := Mount(gameDir, "package"); err != nil {
 		t.Fatal(err)
 	}
 	if err := ClearStale(gameDir); err != ErrRunning {
@@ -62,7 +62,7 @@ func TestClearStale(t *testing.T) {
 	if err := os.Remove(filepath.Join(Path(gameDir), lockName)); err != nil {
 		t.Fatal(err)
 	}
-	if err := Mount(gameDir); err != nil {
+	if err := Mount(gameDir, "package"); err != nil {
 		t.Fatal(err)
 	}
 	if err := ClearStale(gameDir); err != nil || read() != stock {

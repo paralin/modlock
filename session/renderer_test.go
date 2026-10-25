@@ -43,11 +43,15 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mapped := filepath.Join(devmount.Path(gameDir), "maps", "arena.vpk")
+	found, _ := filepath.Glob(filepath.Join(devmount.Path(gameDir), "*", "maps", "arena.vpk"))
+	if len(found) != 1 {
+		t.Fatalf("map archives beside the package: %v", found)
+	}
+	mapped := found[0]
 	if got, err := os.ReadFile(mapped); err != nil || !bytes.Equal(got, arena) {
 		t.Fatalf("map archive beside the package: %q, %v", got, err)
 	}
-	pak, err := vpk.OpenArchive(filepath.Join(devmount.Path(gameDir), "pak01_dir.vpk"))
+	pak, err := vpk.OpenArchive(filepath.Join(filepath.Dir(filepath.Dir(mapped)), "pak01_dir.vpk"))
 	if err != nil {
 		t.Fatal(err)
 	}

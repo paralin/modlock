@@ -2,11 +2,15 @@ package session
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
 	"io/fs"
 	"maps"
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing/fstest"
 
@@ -57,7 +61,10 @@ type Renderer struct {
 // other mounted package while the session runs, and the server and the game
 // load it only when they start. The session holds the mount live until it
 // unmounts, so another program clears the block only after a session that did
-// not end cleanly, and the next session replaces such a block too.
+// not end cleanly, and the next session replaces such a block too. Each
+// package goes in a directory named for its content, so a game still running
+// from an earlier session keeps its package while the next session mounts a
+// changed one.
 func mountRenderer(gameDir string, renderer *Renderer, content fstest.MapFS) (func() error, error) {
 	// Build the package from the renderer and the mods' content.
 	citadel := filepath.Join(gameDir, "game", "citadel")
@@ -81,72 +88,73 @@ func mountRenderer(gameDir string, renderer *Renderer, content fstest.MapFS) (fu
 		return func() error { return nil }, nil
 	}
 
-	// Hold the mount live, write the package, then mount it.
+	// Name the package for its content, so a changed one goes beside the one
+	// a running game holds open instead of over it.
 	var archive bytes.Buffer
 	if err := vpk.Write(&archive, files); err != nil {
+		return nil, err
+	}
+	archives["pak01_dir.vpk"] = &fstest.MapFile{Data: archive.Bytes()}
+	key := packageKey(archives)
+
+	// Prune the packages no game holds, hold the mount live, write the
+	// package, then mount it.
+	if err := devmount.Prune(gameDir, key); err != nil {
 		return nil, err
 	}
 	held, err := devmount.Hold(gameDir)
 	if err != nil {
 		return nil, err
 	}
-	unmount := func() error {
+	if err := writePackage(devmount.PackagePath(gameDir, key), archives); err != nil {
+		_ = held.Close()
+		return nil, err
+	}
+	if err := devmount.Mount(gameDir, key); err != nil {
+		_ = held.Close()
+		return nil, err
+	}
+	return func() error {
 		defer held.Close()
 		return devmount.Unmount(gameDir)
+	}, nil
+}
+
+// packageKey names a package for its files: the first 16 hex digits of a
+// SHA-256 over each file's name and content in name order.
+func packageKey(files fstest.MapFS) string {
+	hash := sha256.New()
+	for _, name := range slices.Sorted(maps.Keys(files)) {
+		data := files[name].Data
+		_ = binary.Write(hash, binary.LittleEndian, uint64(len(name)))
+		hash.Write([]byte(name))
+		_ = binary.Write(hash, binary.LittleEndian, uint64(len(data)))
+		hash.Write(data)
 	}
-	// A running game holds the package open on Windows, so leave an
-	// unchanged package as it is.
-	pak := filepath.Join(devmount.Path(gameDir), "pak01_dir.vpk")
-	if current, err := os.ReadFile(pak); err != nil || !bytes.Equal(current, archive.Bytes()) {
-		if err := os.WriteFile(pak, archive.Bytes(), 0o644); err != nil {
-			_ = held.Close()
-			return nil, err
+	return hex.EncodeToString(hash.Sum(nil))[:16]
+}
+
+// writePackage writes files into dir, skipping each one already there with
+// the same content, as it is when an earlier session wrote the same package.
+func writePackage(dir string, files fstest.MapFS) error {
+	for name, file := range files {
+		target := filepath.Join(dir, filepath.FromSlash(name))
+		if current, err := os.ReadFile(target); err == nil && bytes.Equal(current, file.Data) {
+			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+			return errors.Wrap(err, "write the mods' package")
+		}
+		if err := os.WriteFile(target, file.Data, 0o644); err != nil {
+			return errors.Wrap(err, "write the mods' package")
 		}
 	}
-	if err := writeMapArchives(devmount.Path(gameDir), archives); err != nil {
-		_ = held.Close()
-		return nil, err
-	}
-	if err := devmount.Mount(gameDir); err != nil {
-		_ = held.Close()
-		return nil, err
-	}
-	return unmount, nil
+	return nil
 }
 
 // isMapArchive reports whether name in a content addon is a map's archive.
 func isMapArchive(name string) bool {
 	return path.Dir(name) == check.MapsDir && path.Ext(name) == ".vpk"
-}
-
-// writeMapArchives makes the maps directory of the package directory dir hold
-// archives: it writes each changed one and removes the ones a previous session
-// left. A running game holds a map it loaded open on Windows, so an unchanged
-// archive stays as it is and a stale one it holds stays until the game exits.
-func writeMapArchives(dir string, archives fstest.MapFS) error {
-	dir = filepath.Join(dir, check.MapsDir)
-	stale, _ := filepath.Glob(filepath.Join(dir, "*.vpk"))
-	for _, name := range stale {
-		if _, ok := archives[path.Join(check.MapsDir, filepath.Base(name))]; !ok {
-			_ = os.Remove(name)
-		}
-	}
-	if len(archives) == 0 {
-		return nil
-	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return errors.Wrap(err, "write the mods' maps")
-	}
-	for name, file := range archives {
-		target := filepath.Join(dir, path.Base(name))
-		if current, err := os.ReadFile(target); err == nil && bytes.Equal(current, file.Data) {
-			continue
-		}
-		if err := os.WriteFile(target, file.Data, 0o644); err != nil {
-			return errors.Wrap(err, "write the mods' maps")
-		}
-	}
-	return nil
 }
 
 // rendererFiles compiles the renderer's files: the installed news layout
