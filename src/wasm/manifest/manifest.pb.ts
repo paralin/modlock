@@ -72,8 +72,8 @@ export interface Manifest {
   metrics?: Metric[]
   /**
    * FreeForAll starts the mod in free-for-all: the game shows no team screen,
-   * the host seats each new player on the smaller team and opens the hero
-   * picker, and every hero can damage every other. The mod can change it
+   * the host seats each new player on the smaller team, where the mod gives
+   * them a hero with SelectHero, and every hero can damage every other. The mod can change it
    * while it runs with SetFreeForAll. Meant for dedicated servers.
    */
   freeForAll?: boolean

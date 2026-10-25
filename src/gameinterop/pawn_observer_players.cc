@@ -369,8 +369,8 @@ std::expected<bool, std::string> PawnObserver::SeatForChoice(int32_t slot, uint6
   }
 
   // The game's own join runs these three steps in order: ChangeTeam, the hero
-  // pawn, then the play state. The state replicates to the client, which opens
-  // the hero picker in place of the team screen.
+  // pawn, then the play state. The client then leaves the team screen, but
+  // its hero picker stays closed; something else in the stock join opens it.
   reinterpret_cast<void (*)(void*, int)>(table[*change_team])(*controller, team);
   controller = borrow();
   if (!controller) {

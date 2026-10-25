@@ -3169,8 +3169,10 @@ def hold_modifier_state(entity: int, state: str, active: bool | None = None) -> 
 def set_free_for_all(enabled: bool) -> bool:
     """set_free_for_all turns free-for-all on or off for the running mod, over the
     Manifest's free_for_all default. While on, the host seats each new player
-    on the smaller team and opens the hero picker with no team screen, holds
-    friendly fire on every hero, and ignores changeteam commands. Turning it
+    on the smaller team with no team screen, holds friendly fire on every
+    hero, and ignores changeteam commands. The stock hero picker does not
+    open for a seated player, so the mod gives each seated player whose pawn
+    has hero 0 a hero with SelectHero. Turning it
     off releases the friendly fire holds; players keep their teams.
     """
     return _call("SetFreeForAll", "SetFreeForAllRequest", {"enabled": enabled}) is not None
@@ -3179,8 +3181,10 @@ def set_free_for_all(enabled: bool) -> bool:
 def set_team_seating(enabled: bool) -> bool:
     """set_team_seating turns team seating on or off for the running mod. While
     on, the host seats each player who joins with no team on the smaller
-    team and opens the hero picker with no team screen; friendly fire and
-    changeteam stay as the game has them. Free-for-all seats players this
+    team with no team screen; friendly fire and changeteam stay as the game
+    has them. The stock hero picker does not open for a seated player, so
+    the mod gives each seated player whose pawn has hero 0 a hero with
+    SelectHero. Free-for-all seats players this
     way whatever this says. Turning it off leaves players on their teams.
     """
     return _call("SetTeamSeating", "SetTeamSeatingRequest", {"enabled": enabled}) is not None

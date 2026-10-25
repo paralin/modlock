@@ -616,8 +616,8 @@ class Game : public HostService {
   // them.
   void ApplyHolds();
 
-  // SeatPlayers seats each player who has no team on the smaller side, in the
-  // hero picker, while team seating or free-for-all is on. A host that cannot
+  // SeatPlayers seats each player who has no team on the smaller side, with
+  // no hero, while team seating or free-for-all is on. A host that cannot
   // seat a player leaves the game's own team screen to them.
   void SeatPlayers();
   // ApplyFreeForAll holds friendly fire on every living hero in free-for-all.

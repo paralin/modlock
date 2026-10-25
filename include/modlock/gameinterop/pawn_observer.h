@@ -149,7 +149,7 @@ struct EntityLayout {
   // Optional CNetworkViewOffsetVector field on CBaseModelEntity.
   std::optional<size_t> view_offset;
   // Optional controller-relative m_ePlayState, which the stock join leaves at
-  // EPlayerChoosingHero so the player sees the hero picker.
+  // EPlayerChoosingHero while the player picks a hero.
   std::optional<size_t> play_state;
   // Optional inline EGold/EAbilityPoints/EAbilityUnlocks currency prefix.
   std::optional<size_t> currencies;
@@ -434,7 +434,8 @@ class MODLOCK_API PawnObserver {
 
   // SeatForChoice joins a player who has no team to team 2 or 3 as the game's
   // own changeteam does: it changes the team, creates the hero pawn and leaves
-  // the player choosing a hero, so the game's picker opens with no team screen.
+  // the player choosing a hero. The client shows no team screen, but its hero
+  // picker does not open either, so the caller selects the hero.
   // It returns false and does nothing when the player already has a team.
   std::expected<bool, std::string> SeatForChoice(int32_t slot, uint64_t steam_id,
                                                  uint32_t generation, int32_t team,
