@@ -167,3 +167,10 @@ export const teamBarBottom = 84
  * below it so the bar's labels stay clear.
  */
 export const objectiveBarBottom = 220
+
+/**
+ * fpsReadoutBottom is how far down the top right corner HUD starts, in pixels
+ * on a 1080 high HUD: under the game's two line FPS readout, which ends about
+ * 41px down.
+ */
+export const fpsReadoutBottom = 48

@@ -1059,8 +1059,10 @@ Style `panel`, `label`, `image`, `button` and `layout` with `width`,
 The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
 sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
 counts as the round counter does, `<Tag>` names a status, `<Banner>`
-announces a moment, and `<TopStrip>` with a `<Score>` in it fills the top of
-the screen. `theme` holds the tokens, such as `theme.tones` and
+announces a moment, `<TopStrip>` with a `<Score>` in it fills the top of
+the screen, and `<Roster>` lists the players down the top right corner with
+their hero portraits. Each entry in `heroes` carries its small `portrait`.
+`theme` holds the tokens, such as `theme.tones` and
 `theme.sizes`, for a mod's own panels.
 
 An interface travels as the typed tree in

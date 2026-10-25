@@ -9,10 +9,19 @@ import {
   stopwatch,
 } from '../src/format.js'
 import { findHero, heroes } from '../src/heroes.js'
-import { Pips, Score, Tag, Text, TopStrip } from '../src/hud.js'
+import {
+  Pips,
+  Roster,
+  rosterRows,
+  Score,
+  Tag,
+  Text,
+  TopStrip,
+} from '../src/hud.js'
 import {
   objectiveBarBottom,
   pillEdge,
+  shades,
   teamBarBottom,
   tones,
 } from '../src/theme.js'
@@ -96,6 +105,30 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     background: tones.gold,
     color: tones.onAccent,
   })
+
+  // The roster shows at most its rows.
+  const wraith = heroes.find((h) => h.name === 'hero_wraith')!
+  const rows = Array.from({ length: 8 }, (_, i) => ({
+    name: `player ${i}`,
+    self: i === 0,
+    hero: i === 1 ? 0 : wraith.id,
+    activity: 'Free roam',
+  }))
+  const roster = Roster({ rows })!
+  expect(kids(roster)).toHaveLength(rosterRows)
+
+  // Each row's portrait edge is accented on the viewer's own row, holds the
+  // hero's portrait, and is empty without a hero.
+  const edge = (row: number) => kids(kids(roster)[row]!)[1]!
+  expect(edge(0).props.style?.background).toBe(tones.accent)
+  expect(edge(2).props.style?.background).toBe(shades.dim)
+  expect(kids(kids(edge(2))[0]!)[0]!.props).toMatchObject({
+    src: wraith.portrait,
+  })
+  expect(kids(kids(edge(1))[0]!)).toHaveLength(0)
+
+  // Without rows the roster draws nothing.
+  expect(Roster({ rows: [] })).toBeNull()
 
   // Heroes match by game name, plain title, prefix and substring.
   expect(heroes.length).toBeGreaterThan(40)

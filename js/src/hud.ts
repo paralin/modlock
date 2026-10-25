@@ -1,18 +1,22 @@
 // The HUD kit: components that draw a mod's HUD in the stock HUD's look, from
 // the tokens in theme.ts. Text sets VALVEPulp capitals over a soft shadow,
 // plates and pills hold text over a bright sky, and pips count as the stock
-// round counter does.
+// round counter does. The roster lists the players down the top right corner.
 //
 //   show(player, <TopStrip heading="Round 2"><Score points={[1, 0]} /></TopStrip>)
 
+import { clip } from './format.js'
+import { heroes } from './heroes.js'
 import {
   emptyPip,
+  fpsReadoutBottom,
   objectiveBarBottom,
   pillEdge,
   pipRings,
   type PipShape,
   pipShapes,
   plate,
+  shades,
   sizes,
   teamBarBottom,
   type TextRole,
@@ -298,4 +302,122 @@ export function Score(props: ScoreProps): UiElement {
     }),
     side(props.points[1], far),
   ])
+}
+
+/** RosterRow is one player as the roster shows them. */
+export interface RosterRow {
+  name: string
+  /** self marks the viewing player's own row. */
+  self?: boolean
+  /** hero is the player's hero as Pawn.hero gives it, or 0 without one. */
+  hero: number
+  /** activity is the line under the name, such as "Free roam". */
+  activity: string
+}
+
+/** rosterRows is the most players the roster shows, above the minimap. */
+export const rosterRows = 6
+
+/** rosterName is the most characters a roster name shows. */
+const rosterName = 24
+
+/** portraitSize is the portrait square's side, its 1px edge included. */
+const portraitSize = 44
+
+/** portraits maps each hero's id to its small portrait. */
+const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
+
+/** rosterKey is what the roster shows, to redraw only when it changes. */
+export function rosterKey(rows: readonly RosterRow[]): string {
+  return rows
+    .slice(0, rosterRows)
+    .map(
+      (row) =>
+        `${row.self ? '*' : ''}${row.name}\t${row.hero}\t${row.activity}`,
+    )
+    .join('\n')
+}
+
+/** RosterProps list the players and where the roster starts. */
+export interface RosterProps {
+  rows: readonly RosterRow[]
+  /** top is the roster's top margin, under the FPS readout unless set. */
+  top?: number
+}
+
+/**
+ * Roster stacks up to rosterRows players down the top right corner, each
+ * one's hero portrait at the edge with their name and a line, such as what
+ * they are doing or their score, to its left. It shows nothing without rows.
+ * A mode that hides the stock scoreboard's heroes shows who else is here with
+ * it.
+ */
+export function Roster(props: RosterProps): UiElement | null {
+  if (props.rows.length === 0) return null
+  return element(
+    'panel',
+    {
+      width: 'fit',
+      height: 'fit',
+      flow: 'down',
+      horizontalAlign: 'right',
+      verticalAlign: 'top',
+      margin: [props.top ?? fpsReadoutBottom, 24, 0, 0],
+    },
+    props.rows.slice(0, rosterRows).map(rosterRow),
+  )
+}
+
+/**
+ * rosterRow is one player: name and activity, then the portrait, whose edge
+ * reads in the accent on the viewing player's own row.
+ */
+function rosterRow(row: RosterRow, index: number): UiElement {
+  // The name and its line align right, against the portrait.
+  const right = { horizontalAlign: 'right', textAlign: 'right' } as const
+  const text = element(
+    'panel',
+    { flow: 'down', verticalAlign: 'center', margin: [0, 12, 0, 0] },
+    [
+      Text({
+        role: 'label',
+        tone: 'text',
+        style: right,
+        children: clip(row.name.toUpperCase(), rosterName),
+      }),
+      Text({
+        role: 'caption',
+        tone: 'muted',
+        style: { ...right, margin: [1, 0, 0, 0] },
+        children: row.activity,
+      }),
+    ],
+  )
+
+  // The portrait sits in a 1px edge on a raised square, empty without a hero.
+  const src = portraits.get(row.hero)
+  const portrait = element(
+    'panel',
+    {
+      width: portraitSize,
+      height: portraitSize,
+      padding: 1,
+      verticalAlign: 'center',
+      background: row.self ? tones.accent : shades.dim,
+    },
+    element(
+      'panel',
+      { width: '100%', height: '100%', background: shades.raised },
+      src && {
+        type: 'image',
+        props: { src, style: { width: '100%', height: '100%' } },
+      },
+    ),
+  )
+  return element(
+    'panel',
+    { flow: 'right', horizontalAlign: 'right', margin: [0, 0, 8, 0] },
+    [text, portrait],
+    `row-${index}`,
+  )
 }
