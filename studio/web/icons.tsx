@@ -25,6 +25,7 @@ function glyph(children: ReactNode) {
 export type IconName =
   | 'chevron'
   | 'folder'
+  | 'map'
   | 'model'
   | 'texture'
   | 'material'
@@ -39,6 +40,12 @@ export type IconName =
 const paths: Record<IconName, ReactNode> = {
   chevron: <path d="M6 4l4 4-4 4" />,
   folder: <path d="M2 4.5h4l1.5 1.5H14v6.5H2z" />,
+  map: (
+    <>
+      <path d="M2 4l4-1.5 4 1.5 4-1.5v9.5L10 13.5 6 12l-4 1.5z" />
+      <path d="M6 2.5V12M10 4v9.5" />
+    </>
+  ),
   model: (
     <>
       <path d="M8 2l5.5 3v6L8 14l-5.5-3V5z" />

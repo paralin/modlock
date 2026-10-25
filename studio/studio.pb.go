@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	io "io"
 	maps "maps"
+	math "math"
 	slices "slices"
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
@@ -307,8 +308,9 @@ type DrawCall struct {
 	unknownFields []byte
 	// Material is the material's resource name, without the _c suffix.
 	Material string `protobuf:"bytes,1,opt,name=material,proto3" json:"material,omitempty"`
-	// VertexBuffer is the vertex buffer's index in Mesh.vertex_buffers.
-	VertexBuffer uint32 `protobuf:"varint,2,opt,name=vertex_buffer,json=vertexBuffer,proto3" json:"vertexBuffer,omitempty"`
+	// VertexBuffers are the indexes in Mesh.vertex_buffers of the streams the
+	// call reads its vertices from; each stream holds some of the attributes.
+	VertexBuffers []uint32 `protobuf:"varint,2,rep,packed,name=vertex_buffers,json=vertexBuffers,proto3" json:"vertexBuffers,omitempty"`
 	// IndexBuffer is the index buffer's index in Mesh.index_buffers.
 	IndexBuffer uint32 `protobuf:"varint,3,opt,name=index_buffer,json=indexBuffer,proto3" json:"indexBuffer,omitempty"`
 	// StartIndex is the first index the call draws.
@@ -332,11 +334,11 @@ func (x *DrawCall) GetMaterial() string {
 	return ""
 }
 
-func (x *DrawCall) GetVertexBuffer() uint32 {
+func (x *DrawCall) GetVertexBuffers() []uint32 {
 	if x != nil {
-		return x.VertexBuffer
+		return x.VertexBuffers
 	}
-	return 0
+	return nil
 }
 
 func (x *DrawCall) GetIndexBuffer() uint32 {
@@ -367,7 +369,7 @@ func (x *DrawCall) GetBaseVertex() int32 {
 	return 0
 }
 
-// Material is a material's shader and textures.
+// Material is a material's shader and the parameters it sets.
 type Material struct {
 	unknownFields []byte
 	// Shader is the shader's name, such as "pbr.vfx".
@@ -375,6 +377,15 @@ type Material struct {
 	// Textures maps each texture parameter, such as "g_tColor", to the
 	// compiled texture's archive path.
 	Textures map[string]string `protobuf:"bytes,2,rep,name=textures,proto3" json:"textures,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Ints maps each integer parameter, such as the feature "F_SELF_ILLUM",
+	// to its value.
+	Ints map[string]int64 `protobuf:"bytes,3,rep,name=ints,proto3" json:"ints,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+	// Floats maps each float parameter, such as "g_flSelfIllumScale1", to its
+	// value.
+	Floats map[string]float32 `protobuf:"bytes,4,rep,name=floats,proto3" json:"floats,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"fixed32,2,opt,name=value,proto3"`
+	// Vectors maps each vector parameter, such as "g_vColorTint1", to its
+	// value.
+	Vectors map[string]*Vector `protobuf:"bytes,5,rep,name=vectors,proto3" json:"vectors,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *Material) Reset() {
@@ -397,6 +408,70 @@ func (x *Material) GetTextures() map[string]string {
 	return nil
 }
 
+func (x *Material) GetInts() map[string]int64 {
+	if x != nil {
+		return x.Ints
+	}
+	return nil
+}
+
+func (x *Material) GetFloats() map[string]float32 {
+	if x != nil {
+		return x.Floats
+	}
+	return nil
+}
+
+func (x *Material) GetVectors() map[string]*Vector {
+	if x != nil {
+		return x.Vectors
+	}
+	return nil
+}
+
+// Vector is a four component material parameter.
+type Vector struct {
+	unknownFields []byte
+	X             float32 `protobuf:"fixed32,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y             float32 `protobuf:"fixed32,2,opt,name=y,proto3" json:"y,omitempty"`
+	Z             float32 `protobuf:"fixed32,3,opt,name=z,proto3" json:"z,omitempty"`
+	W             float32 `protobuf:"fixed32,4,opt,name=w,proto3" json:"w,omitempty"`
+}
+
+func (x *Vector) Reset() {
+	*x = Vector{}
+}
+
+func (*Vector) ProtoMessage() {}
+
+func (x *Vector) GetX() float32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *Vector) GetY() float32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+func (x *Vector) GetZ() float32 {
+	if x != nil {
+		return x.Z
+	}
+	return 0
+}
+
+func (x *Vector) GetW() float32 {
+	if x != nil {
+		return x.W
+	}
+	return 0
+}
+
 // Texture is a compiled texture's header.
 type Texture struct {
 	unknownFields []byte
@@ -412,7 +487,7 @@ type Texture struct {
 	Mips uint32 `protobuf:"varint,5,opt,name=mips,proto3" json:"mips,omitempty"`
 	// Cube reports a cube map, whose mips hold six faces.
 	Cube bool `protobuf:"varint,6,opt,name=cube,proto3" json:"cube,omitempty"`
-	// Served reports that the mip route can answer this format's mips.
+	// Served reports that the mips route can answer this format's mips.
 	Served bool `protobuf:"varint,7,opt,name=served,proto3" json:"served,omitempty"`
 }
 
@@ -501,6 +576,146 @@ func (x *Resource) GetJson() string {
 	return ""
 }
 
+// World is a compiled map's static geometry: every model its world nodes
+// place, and where. Entities, such as doors and moving props, are not part
+// of it.
+type World struct {
+	unknownFields []byte
+	// Models are the archive paths of the models the placements draw.
+	Models []string `protobuf:"bytes,1,rep,name=models,proto3" json:"models,omitempty"`
+	// Placements are the world's scene objects and aggregates.
+	Placements []*Placement `protobuf:"bytes,2,rep,name=placements,proto3" json:"placements,omitempty"`
+	// Materials holds each material a placement puts in place of a model's
+	// own, by its name.
+	Materials map[string]*Material `protobuf:"bytes,3,rep,name=materials,proto3" json:"materials,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *World) Reset() {
+	*x = World{}
+}
+
+func (*World) ProtoMessage() {}
+
+func (x *World) GetModels() []string {
+	if x != nil {
+		return x.Models
+	}
+	return nil
+}
+
+func (x *World) GetPlacements() []*Placement {
+	if x != nil {
+		return x.Placements
+	}
+	return nil
+}
+
+func (x *World) GetMaterials() map[string]*Material {
+	if x != nil {
+		return x.Materials
+	}
+	return nil
+}
+
+// Placement draws one model of World.models into the world.
+type Placement struct {
+	unknownFields []byte
+	// Model is the model's index in World.models.
+	Model uint32 `protobuf:"varint,1,opt,name=model,proto3" json:"model,omitempty"`
+	// Transform is the model's 3x4 row-major transform into the world; empty
+	// means the identity.
+	Transform []float32 `protobuf:"fixed32,2,rep,packed,name=transform,proto3" json:"transform,omitempty"`
+	// Tint is the placement's sRGB color and alpha tint; empty means white.
+	Tint []float32 `protobuf:"fixed32,3,rep,packed,name=tint,proto3" json:"tint,omitempty"`
+	// Fragments are an aggregate's draws, each one draw call of the model's
+	// finest level of detail. A placement without fragments draws the whole
+	// model at its finest level of detail.
+	Fragments []*Fragment `protobuf:"bytes,4,rep,name=fragments,proto3" json:"fragments,omitempty"`
+	// Materials replaces the material of a draw call, by its index across the
+	// model's meshes, with one of World.materials.
+	Materials map[uint32]string `protobuf:"bytes,5,rep,name=materials,proto3" json:"materials,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *Placement) Reset() {
+	*x = Placement{}
+}
+
+func (*Placement) ProtoMessage() {}
+
+func (x *Placement) GetModel() uint32 {
+	if x != nil {
+		return x.Model
+	}
+	return 0
+}
+
+func (x *Placement) GetTransform() []float32 {
+	if x != nil {
+		return x.Transform
+	}
+	return nil
+}
+
+func (x *Placement) GetTint() []float32 {
+	if x != nil {
+		return x.Tint
+	}
+	return nil
+}
+
+func (x *Placement) GetFragments() []*Fragment {
+	if x != nil {
+		return x.Fragments
+	}
+	return nil
+}
+
+func (x *Placement) GetMaterials() map[uint32]string {
+	if x != nil {
+		return x.Materials
+	}
+	return nil
+}
+
+// Fragment is one draw call of an aggregate.
+type Fragment struct {
+	unknownFields []byte
+	// DrawCall is the draw call's index across the model's meshes.
+	DrawCall uint32 `protobuf:"varint,1,opt,name=draw_call,json=drawCall,proto3" json:"drawCall,omitempty"`
+	// Transform is the fragment's own 3x4 row-major transform into the world;
+	// empty means the placement's.
+	Transform []float32 `protobuf:"fixed32,2,rep,packed,name=transform,proto3" json:"transform,omitempty"`
+	// Tint is the fragment's sRGB color tint; empty means the placement's.
+	Tint []float32 `protobuf:"fixed32,3,rep,packed,name=tint,proto3" json:"tint,omitempty"`
+}
+
+func (x *Fragment) Reset() {
+	*x = Fragment{}
+}
+
+func (*Fragment) ProtoMessage() {}
+
+func (x *Fragment) GetDrawCall() uint32 {
+	if x != nil {
+		return x.DrawCall
+	}
+	return 0
+}
+
+func (x *Fragment) GetTransform() []float32 {
+	if x != nil {
+		return x.Transform
+	}
+	return nil
+}
+
+func (x *Fragment) GetTint() []float32 {
+	if x != nil {
+		return x.Tint
+	}
+	return nil
+}
+
 type Model_MaterialsEntry struct {
 	unknownFields []byte
 	Key           string    `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -547,6 +762,136 @@ func (x *Material_TexturesEntry) GetKey() string {
 }
 
 func (x *Material_TexturesEntry) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type Material_IntsEntry struct {
+	unknownFields []byte
+	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         int64  `protobuf:"varint,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Material_IntsEntry) Reset() {
+	*x = Material_IntsEntry{}
+}
+
+func (*Material_IntsEntry) ProtoMessage() {}
+
+func (x *Material_IntsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Material_IntsEntry) GetValue() int64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+type Material_FloatsEntry struct {
+	unknownFields []byte
+	Key           string  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         float32 `protobuf:"fixed32,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Material_FloatsEntry) Reset() {
+	*x = Material_FloatsEntry{}
+}
+
+func (*Material_FloatsEntry) ProtoMessage() {}
+
+func (x *Material_FloatsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Material_FloatsEntry) GetValue() float32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+type Material_VectorsEntry struct {
+	unknownFields []byte
+	Key           string  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         *Vector `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Material_VectorsEntry) Reset() {
+	*x = Material_VectorsEntry{}
+}
+
+func (*Material_VectorsEntry) ProtoMessage() {}
+
+func (x *Material_VectorsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Material_VectorsEntry) GetValue() *Vector {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type World_MaterialsEntry struct {
+	unknownFields []byte
+	Key           string    `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         *Material `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *World_MaterialsEntry) Reset() {
+	*x = World_MaterialsEntry{}
+}
+
+func (*World_MaterialsEntry) ProtoMessage() {}
+
+func (x *World_MaterialsEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *World_MaterialsEntry) GetValue() *Material {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type Placement_MaterialsEntry struct {
+	unknownFields []byte
+	Key           uint32 `protobuf:"varint,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Placement_MaterialsEntry) Reset() {
+	*x = Placement_MaterialsEntry{}
+}
+
+func (*Placement_MaterialsEntry) ProtoMessage() {}
+
+func (x *Placement_MaterialsEntry) GetKey() uint32 {
+	if x != nil {
+		return x.Key
+	}
+	return 0
+}
+
+func (x *Placement_MaterialsEntry) GetValue() string {
 	if x != nil {
 		return x.Value
 	}
@@ -673,11 +1018,11 @@ func (m *DrawCall) CloneVT() *DrawCall {
 	}
 	r := new(DrawCall)
 	r.Material = m.Material
-	r.VertexBuffer = m.VertexBuffer
 	r.IndexBuffer = m.IndexBuffer
 	r.StartIndex = m.StartIndex
 	r.IndexCount = m.IndexCount
 	r.BaseVertex = m.BaseVertex
+	r.VertexBuffers = protobuf_go_lite.CloneSlice(m.VertexBuffers)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -695,6 +1040,9 @@ func (m *Material) CloneVT() *Material {
 	r := new(Material)
 	r.Shader = m.Shader
 	r.Textures = protobuf_go_lite.CloneMap(m.Textures)
+	r.Ints = protobuf_go_lite.CloneMap(m.Ints)
+	r.Floats = protobuf_go_lite.CloneMap(m.Floats)
+	r.Vectors = protobuf_go_lite.CloneVTMap(m.Vectors)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -702,6 +1050,25 @@ func (m *Material) CloneVT() *Material {
 }
 
 func (m *Material) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Vector) CloneVT() *Vector {
+	if m == nil {
+		return (*Vector)(nil)
+	}
+	r := new(Vector)
+	r.X = m.X
+	r.Y = m.Y
+	r.Z = m.Z
+	r.W = m.W
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Vector) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -741,6 +1108,62 @@ func (m *Resource) CloneVT() *Resource {
 }
 
 func (m *Resource) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *World) CloneVT() *World {
+	if m == nil {
+		return (*World)(nil)
+	}
+	r := new(World)
+	r.Models = protobuf_go_lite.CloneSlice(m.Models)
+	r.Placements = protobuf_go_lite.CloneVTSlice(m.Placements)
+	r.Materials = protobuf_go_lite.CloneVTMap(m.Materials)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *World) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Placement) CloneVT() *Placement {
+	if m == nil {
+		return (*Placement)(nil)
+	}
+	r := new(Placement)
+	r.Model = m.Model
+	r.Transform = protobuf_go_lite.CloneSlice(m.Transform)
+	r.Tint = protobuf_go_lite.CloneSlice(m.Tint)
+	r.Fragments = protobuf_go_lite.CloneVTSlice(m.Fragments)
+	r.Materials = protobuf_go_lite.CloneMap(m.Materials)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Placement) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Fragment) CloneVT() *Fragment {
+	if m == nil {
+		return (*Fragment)(nil)
+	}
+	r := new(Fragment)
+	r.DrawCall = m.DrawCall
+	r.Transform = protobuf_go_lite.CloneSlice(m.Transform)
+	r.Tint = protobuf_go_lite.CloneSlice(m.Tint)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Fragment) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -927,7 +1350,7 @@ func (this *DrawCall) EqualVT(that *DrawCall) bool {
 	if this.Material != that.Material {
 		return false
 	}
-	if this.VertexBuffer != that.VertexBuffer {
+	if !protobuf_go_lite.EqualSlice(this.VertexBuffers, that.VertexBuffers) {
 		return false
 	}
 	if this.IndexBuffer != that.IndexBuffer {
@@ -965,11 +1388,49 @@ func (this *Material) EqualVT(that *Material) bool {
 	if !protobuf_go_lite.EqualMap(this.Textures, that.Textures) {
 		return false
 	}
+	if !protobuf_go_lite.EqualMap(this.Ints, that.Ints) {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Floats, that.Floats) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTMapImplicit(this.Vectors, that.Vectors, func() *Vector { return &Vector{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Material) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Material)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Vector) EqualVT(that *Vector) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.X != that.X {
+		return false
+	}
+	if this.Y != that.Y {
+		return false
+	}
+	if this.Z != that.Z {
+		return false
+	}
+	if this.W != that.W {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Vector) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Vector)
 	if !ok {
 		return false
 	}
@@ -1031,6 +1492,90 @@ func (this *Resource) EqualVT(that *Resource) bool {
 
 func (this *Resource) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Resource)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *World) EqualVT(that *World) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Models, that.Models) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Placements, that.Placements, func() *Placement { return &Placement{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTMapImplicit(this.Materials, that.Materials, func() *Material { return &Material{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *World) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*World)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Placement) EqualVT(that *Placement) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Model != that.Model {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Transform, that.Transform) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Tint, that.Tint) {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Fragments, that.Fragments, func() *Fragment { return &Fragment{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Materials, that.Materials) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Placement) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Placement)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Fragment) EqualVT(that *Fragment) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.DrawCall != that.DrawCall {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Transform, that.Transform) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Tint, that.Tint) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Fragment) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Fragment)
 	if !ok {
 		return false
 	}
@@ -1651,10 +2196,10 @@ func (x *DrawCall) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("material")
 		s.WriteString(x.Material)
 	}
-	if x.VertexBuffer != 0 || s.HasField("vertexBuffer") {
+	if len(x.VertexBuffers) > 0 || s.HasField("vertexBuffers") {
 		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("vertexBuffer")
-		s.WriteUint32(x.VertexBuffer)
+		s.WriteObjectField("vertexBuffers")
+		s.WriteUint32Array(x.VertexBuffers)
 	}
 	if x.IndexBuffer != 0 || s.HasField("indexBuffer") {
 		s.WriteMoreIf(&wroteField)
@@ -1696,9 +2241,13 @@ func (x *DrawCall) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "material":
 			s.AddField("material")
 			x.Material = s.ReadString()
-		case "vertex_buffer", "vertexBuffer":
-			s.AddField("vertex_buffer")
-			x.VertexBuffer = s.ReadUint32()
+		case "vertex_buffers", "vertexBuffers":
+			s.AddField("vertex_buffers")
+			if s.ReadNil() {
+				x.VertexBuffers = nil
+				return
+			}
+			x.VertexBuffers = s.ReadUint32Array()
 		case "index_buffer", "indexBuffer":
 			s.AddField("index_buffer")
 			x.IndexBuffer = s.ReadUint32()
@@ -1770,6 +2319,160 @@ func (x *Material_TexturesEntry) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Material_IntsEntry message to JSON.
+func (x *Material_IntsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteInt64(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Material_IntsEntry to JSON.
+func (x *Material_IntsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Material_IntsEntry message from JSON.
+func (x *Material_IntsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadInt64()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Material_IntsEntry from JSON.
+func (x *Material_IntsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Material_FloatsEntry message to JSON.
+func (x *Material_FloatsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteFloat32(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Material_FloatsEntry to JSON.
+func (x *Material_FloatsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Material_FloatsEntry message from JSON.
+func (x *Material_FloatsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Material_FloatsEntry from JSON.
+func (x *Material_FloatsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Material_VectorsEntry message to JSON.
+func (x *Material_VectorsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != nil || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		x.Value.MarshalProtoJSON(s.WithField("value"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Material_VectorsEntry to JSON.
+func (x *Material_VectorsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Material_VectorsEntry message from JSON.
+func (x *Material_VectorsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			if s.ReadNil() {
+				x.Value = nil
+				return
+			}
+			x.Value = &Vector{}
+			x.Value.UnmarshalProtoJSON(s.WithField("value", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Material_VectorsEntry from JSON.
+func (x *Material_VectorsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Material message to JSON.
 func (x *Material) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -1793,6 +2496,45 @@ func (x *Material) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteElement)
 			s.WriteObjectStringField(k)
 			s.WriteString(v)
+		}
+		s.WriteObjectEnd()
+	}
+	if x.Ints != nil || s.HasField("ints") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ints")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Ints)) {
+			v := x.Ints[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			s.WriteInt64(v)
+		}
+		s.WriteObjectEnd()
+	}
+	if x.Floats != nil || s.HasField("floats") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("floats")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Floats)) {
+			v := x.Floats[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			s.WriteFloat32(v)
+		}
+		s.WriteObjectEnd()
+	}
+	if x.Vectors != nil || s.HasField("vectors") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("vectors")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Vectors)) {
+			v := x.Vectors[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			v.MarshalProtoJSON(s.WithField("vectors"))
 		}
 		s.WriteObjectEnd()
 	}
@@ -1826,12 +2568,110 @@ func (x *Material) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			s.ReadStringMap(func(key string) {
 				x.Textures[key] = s.ReadString()
 			})
+		case "ints":
+			s.AddField("ints")
+			if s.ReadNil() {
+				x.Ints = nil
+				return
+			}
+			x.Ints = make(map[string]int64)
+			s.ReadStringMap(func(key string) {
+				x.Ints[key] = s.ReadInt64()
+			})
+		case "floats":
+			s.AddField("floats")
+			if s.ReadNil() {
+				x.Floats = nil
+				return
+			}
+			x.Floats = make(map[string]float32)
+			s.ReadStringMap(func(key string) {
+				x.Floats[key] = s.ReadFloat32()
+			})
+		case "vectors":
+			s.AddField("vectors")
+			if s.ReadNil() {
+				x.Vectors = nil
+				return
+			}
+			x.Vectors = make(map[string]*Vector)
+			s.ReadStringMap(func(key string) {
+				var v Vector
+				v.UnmarshalProtoJSON(s)
+				x.Vectors[key] = &v
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Material from JSON.
 func (x *Material) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Vector message to JSON.
+func (x *Vector) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.X != 0 || s.HasField("x") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("x")
+		s.WriteFloat32(x.X)
+	}
+	if x.Y != 0 || s.HasField("y") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("y")
+		s.WriteFloat32(x.Y)
+	}
+	if x.Z != 0 || s.HasField("z") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("z")
+		s.WriteFloat32(x.Z)
+	}
+	if x.W != 0 || s.HasField("w") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("w")
+		s.WriteFloat32(x.W)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Vector to JSON.
+func (x *Vector) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Vector message from JSON.
+func (x *Vector) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "x":
+			s.AddField("x")
+			x.X = s.ReadFloat32()
+		case "y":
+			s.AddField("y")
+			x.Y = s.ReadFloat32()
+		case "z":
+			s.AddField("z")
+			x.Z = s.ReadFloat32()
+		case "w":
+			s.AddField("w")
+			x.W = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Vector from JSON.
+func (x *Vector) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1976,6 +2816,394 @@ func (x *Resource) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the Resource from JSON.
 func (x *Resource) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the World_MaterialsEntry message to JSON.
+func (x *World_MaterialsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != nil || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		x.Value.MarshalProtoJSON(s.WithField("value"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the World_MaterialsEntry to JSON.
+func (x *World_MaterialsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the World_MaterialsEntry message from JSON.
+func (x *World_MaterialsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			if s.ReadNil() {
+				x.Value = nil
+				return
+			}
+			x.Value = &Material{}
+			x.Value.UnmarshalProtoJSON(s.WithField("value", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the World_MaterialsEntry from JSON.
+func (x *World_MaterialsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the World message to JSON.
+func (x *World) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Models) > 0 || s.HasField("models") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("models")
+		s.WriteStringArray(x.Models)
+	}
+	if len(x.Placements) > 0 || s.HasField("placements") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("placements")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Placements {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("placements"))
+		}
+		s.WriteArrayEnd()
+	}
+	if x.Materials != nil || s.HasField("materials") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("materials")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Materials)) {
+			v := x.Materials[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			v.MarshalProtoJSON(s.WithField("materials"))
+		}
+		s.WriteObjectEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the World to JSON.
+func (x *World) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the World message from JSON.
+func (x *World) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "models":
+			s.AddField("models")
+			if s.ReadNil() {
+				x.Models = nil
+				return
+			}
+			x.Models = s.ReadStringArray()
+		case "placements":
+			s.AddField("placements")
+			if s.ReadNil() {
+				x.Placements = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Placements = append(x.Placements, nil)
+					return
+				}
+				v := &Placement{}
+				v.UnmarshalProtoJSON(s.WithField("placements", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Placements = append(x.Placements, v)
+			})
+		case "materials":
+			s.AddField("materials")
+			if s.ReadNil() {
+				x.Materials = nil
+				return
+			}
+			x.Materials = make(map[string]*Material)
+			s.ReadStringMap(func(key string) {
+				var v Material
+				v.UnmarshalProtoJSON(s)
+				x.Materials[key] = &v
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the World from JSON.
+func (x *World) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Placement_MaterialsEntry message to JSON.
+func (x *Placement_MaterialsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != 0 || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteUint32(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Placement_MaterialsEntry to JSON.
+func (x *Placement_MaterialsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Placement_MaterialsEntry message from JSON.
+func (x *Placement_MaterialsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadUint32()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Placement_MaterialsEntry from JSON.
+func (x *Placement_MaterialsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Placement message to JSON.
+func (x *Placement) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Model != 0 || s.HasField("model") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("model")
+		s.WriteUint32(x.Model)
+	}
+	if len(x.Transform) > 0 || s.HasField("transform") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("transform")
+		s.WriteFloat32Array(x.Transform)
+	}
+	if len(x.Tint) > 0 || s.HasField("tint") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("tint")
+		s.WriteFloat32Array(x.Tint)
+	}
+	if len(x.Fragments) > 0 || s.HasField("fragments") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("fragments")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Fragments {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("fragments"))
+		}
+		s.WriteArrayEnd()
+	}
+	if x.Materials != nil || s.HasField("materials") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("materials")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Materials)) {
+			v := x.Materials[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectUint32Field(k)
+			s.WriteString(v)
+		}
+		s.WriteObjectEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Placement to JSON.
+func (x *Placement) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Placement message from JSON.
+func (x *Placement) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "model":
+			s.AddField("model")
+			x.Model = s.ReadUint32()
+		case "transform":
+			s.AddField("transform")
+			if s.ReadNil() {
+				x.Transform = nil
+				return
+			}
+			x.Transform = s.ReadFloat32Array()
+		case "tint":
+			s.AddField("tint")
+			if s.ReadNil() {
+				x.Tint = nil
+				return
+			}
+			x.Tint = s.ReadFloat32Array()
+		case "fragments":
+			s.AddField("fragments")
+			if s.ReadNil() {
+				x.Fragments = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Fragments = append(x.Fragments, nil)
+					return
+				}
+				v := &Fragment{}
+				v.UnmarshalProtoJSON(s.WithField("fragments", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Fragments = append(x.Fragments, v)
+			})
+		case "materials":
+			s.AddField("materials")
+			if s.ReadNil() {
+				x.Materials = nil
+				return
+			}
+			x.Materials = make(map[uint32]string)
+			s.ReadUint32Map(func(key uint32) {
+				x.Materials[key] = s.ReadString()
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Placement from JSON.
+func (x *Placement) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Fragment message to JSON.
+func (x *Fragment) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.DrawCall != 0 || s.HasField("drawCall") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("drawCall")
+		s.WriteUint32(x.DrawCall)
+	}
+	if len(x.Transform) > 0 || s.HasField("transform") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("transform")
+		s.WriteFloat32Array(x.Transform)
+	}
+	if len(x.Tint) > 0 || s.HasField("tint") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("tint")
+		s.WriteFloat32Array(x.Tint)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Fragment to JSON.
+func (x *Fragment) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Fragment message from JSON.
+func (x *Fragment) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "draw_call", "drawCall":
+			s.AddField("draw_call")
+			x.DrawCall = s.ReadUint32()
+		case "transform":
+			s.AddField("transform")
+			if s.ReadNil() {
+				x.Transform = nil
+				return
+			}
+			x.Transform = s.ReadFloat32Array()
+		case "tint":
+			s.AddField("tint")
+			if s.ReadNil() {
+				x.Tint = nil
+				return
+			}
+			x.Tint = s.ReadFloat32Array()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Fragment from JSON.
+func (x *Fragment) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2401,10 +3629,10 @@ func (m *DrawCall) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x18
 	}
-	if m.VertexBuffer != 0 {
-		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.VertexBuffer))
+	if len(m.VertexBuffers) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.VertexBuffers)
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x12
 	}
 	if len(m.Material) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Material)
@@ -2443,6 +3671,56 @@ func (m *Material) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Vectors) > 0 {
+		for k := range m.Vectors {
+			v := m.Vectors[k]
+			baseI := i
+			size, err := v.MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Floats) > 0 {
+		for k := range m.Floats {
+			v := m.Floats[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(v))))
+			i--
+			dAtA[i] = 0x15
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Ints) > 0 {
+		for k := range m.Ints {
+			v := m.Ints[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(v))
+			i--
+			dAtA[i] = 0x10
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
 	if len(m.Textures) > 0 {
 		for k := range m.Textures {
 			v := m.Textures[k]
@@ -2462,6 +3740,58 @@ func (m *Material) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Shader)
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Vector) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Vector) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Vector) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.W != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.W))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Z != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Z))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Y != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Y))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.X != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.X))))
+		i--
+		dAtA[i] = 0xd
 	}
 	return len(dAtA) - i, nil
 }
@@ -2573,6 +3903,214 @@ func (m *Resource) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0xa
 		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *World) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *World) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *World) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Materials) > 0 {
+		for k := range m.Materials {
+			v := m.Materials[k]
+			baseI := i
+			size, err := v.MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Placements) > 0 {
+		for iNdEx := len(m.Placements) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Placements[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Models) > 0 {
+		for iNdEx := len(m.Models) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Models[iNdEx])
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Placement) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Placement) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Placement) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Materials) > 0 {
+		for k := range m.Materials {
+			v := m.Materials[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeString(dAtA, i, v)
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(k))
+			i--
+			dAtA[i] = 0x8
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Fragments) > 0 {
+		for iNdEx := len(m.Fragments) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Fragments[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Tint) > 0 {
+		for iNdEx := len(m.Tint) - 1; iNdEx >= 0; iNdEx-- {
+			f1 := math.Float32bits(float32(m.Tint[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f1))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Tint)*4))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Transform) > 0 {
+		for iNdEx := len(m.Transform) - 1; iNdEx >= 0; iNdEx-- {
+			f2 := math.Float32bits(float32(m.Transform[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f2))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Transform)*4))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Model != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Model))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Fragment) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Fragment) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Fragment) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Tint) > 0 {
+		for iNdEx := len(m.Tint) - 1; iNdEx >= 0; iNdEx-- {
+			f1 := math.Float32bits(float32(m.Tint[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f1))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Tint)*4))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Transform) > 0 {
+		for iNdEx := len(m.Transform) - 1; iNdEx >= 0; iNdEx-- {
+			f2 := math.Float32bits(float32(m.Transform[iNdEx]))
+			i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(f2))
+		}
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(len(m.Transform)*4))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.DrawCall != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.DrawCall))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -2695,7 +4233,7 @@ func (m *DrawCall) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Material)
-	n += protobuf_go_lite.SizeVarintNonZero(1, m.VertexBuffer)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.VertexBuffers)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.IndexBuffer)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.StartIndex)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.IndexCount)
@@ -2717,6 +4255,42 @@ func (m *Material) SizeVT() (n int) {
 		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
 		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
 	}
+	for k, v := range m.Ints {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeVarintValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	for k, v := range m.Floats {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeFixed32Value(1)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	for k, v := range m.Vectors {
+		_ = k
+		_ = v
+		l = 0
+		if v != nil {
+			l = v.SizeVT()
+		}
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeMessage(1, l)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Vector) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.X)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Y)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Z)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.W)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2746,6 +4320,67 @@ func (m *Resource) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeStringSlice(1, m.Blocks)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Json)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *World) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringSlice(1, m.Models)
+	for _, e := range m.Placements {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	for k, v := range m.Materials {
+		_ = k
+		_ = v
+		l = 0
+		if v != nil {
+			l = v.SizeVT()
+		}
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeMessage(1, l)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Placement) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Model)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Transform)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Tint)
+	for _, e := range m.Fragments {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	for k, v := range m.Materials {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeVarintValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Fragment) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.DrawCall)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Transform)
+	n += protobuf_go_lite.SizeFixed32Packed(1, m.Tint)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2998,9 +4633,13 @@ func (x *DrawCall) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "material")
 		protobuf_go_lite.TextWriteString(&sb, x.Material)
 	}
-	if x.VertexBuffer != 0 {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "vertex_buffer")
-		protobuf_go_lite.TextWriteUint(&sb, x.VertexBuffer)
+	if len(x.VertexBuffers) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "vertex_buffers")
+		for i, v := range x.VertexBuffers {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteUint(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	if x.IndexBuffer != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "index_buffer")
@@ -3043,6 +4682,60 @@ func (x *Material_TexturesEntry) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *Material_IntsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "IntsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteInt(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Material_IntsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Material_FloatsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "FloatsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Material_FloatsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Material_VectorsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "VectorsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Material_VectorsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *Material) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Material")
@@ -3061,10 +4754,73 @@ func (x *Material) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteMapEnd(&sb)
 	}
+	if len(x.Ints) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "ints")
+		for _, k := range slices.Sorted(maps.Keys(x.Ints)) {
+			v := x.Ints[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteInt(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	if len(x.Floats) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "floats")
+		for _, k := range slices.Sorted(maps.Keys(x.Floats)) {
+			v := x.Floats[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	if len(x.Vectors) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "vectors")
+		for _, k := range slices.Sorted(maps.Keys(x.Vectors)) {
+			v := x.Vectors[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Vector{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Material) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Vector) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Vector")
+	if x.X != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "x")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.X)
+	}
+	if x.Y != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "y")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Y)
+	}
+	if x.Z != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "z")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Z)
+	}
+	if x.W != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "w")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.W)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Vector) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3125,6 +4881,170 @@ func (x *Resource) MarshalProtoText() string {
 }
 
 func (x *Resource) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *World_MaterialsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MaterialsEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *World_MaterialsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *World) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "World")
+	if len(x.Models) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "models")
+		for i, v := range x.Models {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Placements) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "placements")
+		for i, v := range x.Placements {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Placement{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Materials) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "materials")
+		for _, k := range slices.Sorted(maps.Keys(x.Materials)) {
+			v := x.Materials[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Material{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *World) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Placement_MaterialsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "MaterialsEntry")
+	if x.Key != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteUint(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Placement_MaterialsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Placement) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Placement")
+	if x.Model != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "model")
+		protobuf_go_lite.TextWriteUint(&sb, x.Model)
+	}
+	if len(x.Transform) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "transform")
+		for i, v := range x.Transform {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Tint) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "tint")
+		for i, v := range x.Tint {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Fragments) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "fragments")
+		for i, v := range x.Fragments {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Fragment{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Materials) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "materials")
+		for _, k := range slices.Sorted(maps.Keys(x.Materials)) {
+			v := x.Materials[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteUint(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Placement) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Fragment) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Fragment")
+	if x.DrawCall != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "draw_call")
+		protobuf_go_lite.TextWriteUint(&sb, x.DrawCall)
+	}
+	if len(x.Transform) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "transform")
+		for i, v := range x.Transform {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Tint) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "tint")
+		for i, v := range x.Tint {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteFloat32(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Fragment) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3701,13 +5621,34 @@ func (m *DrawCall) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Material = v
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field VertexBuffer", wireType)
-			}
-			m.VertexBuffer = 0
-			m.VertexBuffer, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
-			if err != nil {
-				return err
+			if wireType == 0 {
+				var v uint32
+				v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				m.VertexBuffers = append(m.VertexBuffers, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.VertexBuffers) == 0 {
+					m.VertexBuffers = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					m.VertexBuffers = append(m.VertexBuffers, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field VertexBuffers", wireType)
 			}
 		case 3:
 			if wireType != 0 {
@@ -3840,6 +5781,232 @@ func (m *Material) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Textures[mapkey] = mapvalue
 			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ints", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Ints == nil {
+				m.Ints = make(map[string]int64)
+			}
+			var mapkey string
+			var mapvalue int64
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeVarintInt64(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Ints[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Floats", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Floats == nil {
+				m.Floats = make(map[string]float32)
+			}
+			var mapkey string
+			var mapvalue float32
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					var mapvaluetemp uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					mapvaluetemp = uint32(_v32)
+					mapvalue = math.Float32frombits(mapvaluetemp)
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Floats[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vectors", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Vectors == nil {
+				m.Vectors = make(map[string]*Vector)
+			}
+			var mapkey string
+			var mapvalue *Vector
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					msgStartmapvalue, postmsgIndexmapvalue, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					mapvalue = &Vector{}
+					if err := mapvalue.UnmarshalVT(dAtA[msgStartmapvalue:postmsgIndexmapvalue]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Vectors[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Vector) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Vector: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Vector: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field X", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.X = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Y", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Y = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Z", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Z = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field W", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.W = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4011,6 +6178,422 @@ func (m *Resource) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Json = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *World) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: World: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: World: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Models", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Models = append(m.Models, v)
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Placements", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Placements = append(m.Placements, &Placement{})
+			if err := m.Placements[len(m.Placements)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Materials", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Materials == nil {
+				m.Materials = make(map[string]*Material)
+			}
+			var mapkey string
+			var mapvalue *Material
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					msgStartmapvalue, postmsgIndexmapvalue, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					mapvalue = &Material{}
+					if err := mapvalue.UnmarshalVT(dAtA[msgStartmapvalue:postmsgIndexmapvalue]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Materials[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Placement) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Placement: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Placement: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Model", wireType)
+			}
+			m.Model = 0
+			m.Model, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Transform = append(m.Transform, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Transform) == 0 {
+					m.Transform = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Transform = append(m.Transform, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Transform", wireType)
+			}
+		case 3:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Tint = append(m.Tint, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Tint) == 0 {
+					m.Tint = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Tint = append(m.Tint, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tint", wireType)
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fragments", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Fragments = append(m.Fragments, &Fragment{})
+			if err := m.Fragments[len(m.Fragments)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Materials", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Materials == nil {
+				m.Materials = make(map[uint32]string)
+			}
+			var mapkey uint32
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Materials[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Fragment) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Fragment: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Fragment: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DrawCall", wireType)
+			}
+			m.DrawCall = 0
+			m.DrawCall, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Transform = append(m.Transform, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Transform) == 0 {
+					m.Transform = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Transform = append(m.Transform, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Transform", wireType)
+			}
+		case 3:
+			if wireType == 5 {
+				var v uint32
+				var _v32 uint32
+				_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				v = uint32(_v32)
+				v2 := float32(math.Float32frombits(v))
+				m.Tint = append(m.Tint, v2)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedFixedElementCount(dAtA[iNdEx:postIndex], 4)
+				if elementCount != 0 && len(m.Tint) == 0 {
+					m.Tint = make([]float32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					var _v32 uint32
+					_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+					v = uint32(_v32)
+					v2 := float32(math.Float32frombits(v))
+					m.Tint = append(m.Tint, v2)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tint", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

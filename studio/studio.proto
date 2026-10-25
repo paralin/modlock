@@ -110,8 +110,9 @@ message DrawCall {
   // Material is the material's resource name, without the _c suffix.
   string material = 1;
 
-  // VertexBuffer is the vertex buffer's index in Mesh.vertex_buffers.
-  uint32 vertex_buffer = 2;
+  // VertexBuffers are the indexes in Mesh.vertex_buffers of the streams the
+  // call reads its vertices from; each stream holds some of the attributes.
+  repeated uint32 vertex_buffers = 2;
 
   // IndexBuffer is the index buffer's index in Mesh.index_buffers.
   uint32 index_buffer = 3;
@@ -126,7 +127,7 @@ message DrawCall {
   int32 base_vertex = 6;
 }
 
-// Material is a material's shader and textures.
+// Material is a material's shader and the parameters it sets.
 message Material {
   // Shader is the shader's name, such as "pbr.vfx".
   string shader = 1;
@@ -134,6 +135,26 @@ message Material {
   // Textures maps each texture parameter, such as "g_tColor", to the
   // compiled texture's archive path.
   map<string, string> textures = 2;
+
+  // Ints maps each integer parameter, such as the feature "F_SELF_ILLUM",
+  // to its value.
+  map<string, int64> ints = 3;
+
+  // Floats maps each float parameter, such as "g_flSelfIllumScale1", to its
+  // value.
+  map<string, float> floats = 4;
+
+  // Vectors maps each vector parameter, such as "g_vColorTint1", to its
+  // value.
+  map<string, Vector> vectors = 5;
+}
+
+// Vector is a four component material parameter.
+message Vector {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float w = 4;
 }
 
 // Texture is a compiled texture's header.
@@ -156,7 +177,7 @@ message Texture {
   // Cube reports a cube map, whose mips hold six faces.
   bool cube = 6;
 
-  // Served reports that the mip route can answer this format's mips.
+  // Served reports that the mips route can answer this format's mips.
   bool served = 7;
 }
 
@@ -168,4 +189,54 @@ message Resource {
   // Json holds each KeyValues3 block decoded, as one JSON object keyed by
   // block tag.
   string json = 2;
+}
+
+// World is a compiled map's static geometry: every model its world nodes
+// place, and where. Entities, such as doors and moving props, are not part
+// of it.
+message World {
+  // Models are the archive paths of the models the placements draw.
+  repeated string models = 1;
+
+  // Placements are the world's scene objects and aggregates.
+  repeated Placement placements = 2;
+
+  // Materials holds each material a placement puts in place of a model's
+  // own, by its name.
+  map<string, Material> materials = 3;
+}
+
+// Placement draws one model of World.models into the world.
+message Placement {
+  // Model is the model's index in World.models.
+  uint32 model = 1;
+
+  // Transform is the model's 3x4 row-major transform into the world; empty
+  // means the identity.
+  repeated float transform = 2;
+
+  // Tint is the placement's sRGB color and alpha tint; empty means white.
+  repeated float tint = 3;
+
+  // Fragments are an aggregate's draws, each one draw call of the model's
+  // finest level of detail. A placement without fragments draws the whole
+  // model at its finest level of detail.
+  repeated Fragment fragments = 4;
+
+  // Materials replaces the material of a draw call, by its index across the
+  // model's meshes, with one of World.materials.
+  map<uint32, string> materials = 5;
+}
+
+// Fragment is one draw call of an aggregate.
+message Fragment {
+  // DrawCall is the draw call's index across the model's meshes.
+  uint32 draw_call = 1;
+
+  // Transform is the fragment's own 3x4 row-major transform into the world;
+  // empty means the placement's.
+  repeated float transform = 2;
+
+  // Tint is the fragment's sRGB color tint; empty means the placement's.
+  repeated float tint = 3;
 }
