@@ -751,6 +751,14 @@ const cast = new Cast({
 onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 ```
 
+### Find the floor
+
+`ground(point)` returns the floor under a point with one trace straight down,
+from 64 units above it to 1024 below, through solid and player clip. It
+returns nothing when no floor is in reach, when the point is inside a wall, or
+before the world's collision is ready, so `ground(spawn) ?? spawn` keeps the
+point when there is no floor. `above`, `below` and `layers` change the reach.
+
 ### Time your frames
 
 `frameClock` shows how much of a slow server's frame is your mod's, and which
