@@ -54,14 +54,14 @@ func TestGameLink(t *testing.T) {
 	}
 
 	// An arrived game that stops sending leaves; one still sending stays.
-	local := &arrivalStream{arrived: make(chan struct{})}
+	local := &arrivalStream{sent: make(chan struct{}), arrived: make(chan struct{})}
 	left := make(chan struct{})
 	go local.watchQuiet(ctx, 50*time.Millisecond, func() { close(left) })
 	time.Sleep(100 * time.Millisecond)
 
 	// Steady packets keep the game.
 	local.last.Store(time.Now().UnixNano())
-	close(local.arrived)
+	close(local.sent)
 	for range 5 {
 		time.Sleep(20 * time.Millisecond)
 		local.last.Store(time.Now().UnixNano())
@@ -72,11 +72,14 @@ func TestGameLink(t *testing.T) {
 	default:
 	}
 
-	// Silence ends it.
+	// Silence ends it, as unanswered since no server packet arrived.
 	select {
 	case <-left:
 	case <-time.After(time.Second):
 		t.Fatal("quiet game did not leave")
+	}
+	if err := local.quietCause(); !errors.Is(err, ErrUnanswered) {
+		t.Fatalf("quiet cause %v", err)
 	}
 }
 
@@ -123,7 +126,11 @@ func joinGame(ctx context.Context, t *testing.T, server *net.UDPConn, target *ne
 	if err != nil || string(packet[:n]) != payload {
 		t.Fatalf("server read %q: %v", packet[:n], err)
 	}
-	<-client.Arrived()
+	select {
+	case <-client.Arrived():
+		t.Fatal("arrived before the server answered")
+	default:
+	}
 
 	// The server's reply reaches only this game.
 	if _, err := server.WriteToUDP([]byte("ack "+payload), source); err != nil {
@@ -133,5 +140,6 @@ func joinGame(ctx context.Context, t *testing.T, server *net.UDPConn, target *ne
 	if err != nil || string(packet[:n]) != "ack "+payload {
 		t.Fatalf("game read %q: %v", packet[:n], err)
 	}
+	<-client.Arrived()
 	return source.String()
 }
