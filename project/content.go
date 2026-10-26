@@ -11,6 +11,7 @@ import (
 	"testing/fstest"
 
 	"github.com/paralin/modlock/check"
+	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/source2/panorama"
 	"github.com/pkg/errors"
 )
@@ -102,7 +103,7 @@ func (p *Project) buildContent() error {
 		if err := os.RemoveAll(final); err != nil {
 			return errors.Wrap(err, "write the content")
 		}
-		err := os.Rename(filepath.Join(staged, dir), final)
+		err := fileretry.Rename(filepath.Join(staged, dir), final)
 		if err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return errors.Wrap(err, "write the content")
 		}

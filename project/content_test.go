@@ -15,7 +15,7 @@ import (
 // addon's directories with the addon named in its paths, passes the publishing check, tells content
 // that runs code from content that only draws, refuses a file outside a
 // kind's directory, fingerprints the built mod apart from notes and logs, and
-// removes the content once the project has none.
+// removes the content once the project has none, and ships the map.
 func TestContent(t *testing.T) {
 	// Lay out a project with a layout that loads its script, and an editor's
 	// hidden file that must stay out.
@@ -136,4 +136,22 @@ func TestContent(t *testing.T) {
 			t.Errorf("%s remains: %v", dir, err)
 		}
 	}
+
+	// The build ships the project's map, keeps the copy while the map is
+	// unchanged, and replaces it when the map changes.
+	manifest.Map = "arena"
+	shipped := func(want string) {
+		t.Helper()
+		if err := p.shipMap(); err != nil {
+			t.Fatal(err)
+		}
+		if got, err := os.ReadFile(filepath.Join(p.Output(), check.MapsDir, "arena.vpk")); err != nil || string(got) != want {
+			t.Errorf("map %q, %v; want %q", got, err, want)
+		}
+	}
+	write("maps/arena.vpk", "first")
+	shipped("first")
+	shipped("first")
+	write("maps/arena.vpk", "second map")
+	shipped("second map")
 }

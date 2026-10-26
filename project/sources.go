@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/src/wasm/manifest"
 	"github.com/pkg/errors"
 )
@@ -105,7 +106,7 @@ func (p *Project) writeSources(runtime manifest.Manifest_Runtime, sources []stri
 	if err := os.WriteFile(staged, archive.Bytes(), 0o644); err != nil {
 		return errors.Wrap(err, "write the sources")
 	}
-	if err := os.Rename(staged, filepath.Join(p.Output(), SourcesEntry)); err != nil {
+	if err := fileretry.Rename(staged, filepath.Join(p.Output(), SourcesEntry)); err != nil {
 		return errors.Wrap(err, "write the sources")
 	}
 	return p.writeBuiltManifest(runtime, SourcesEntry)

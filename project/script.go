@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
+	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/internal/npm"
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/src/wasm/manifest"
@@ -133,7 +134,7 @@ func (p *Project) writeBuild(content []byte, runtime manifest.Manifest_Runtime, 
 	if err := os.WriteFile(staged, content, 0o644); err != nil {
 		return errors.Wrap(err, "write the build")
 	}
-	if err := os.Rename(staged, filepath.Join(p.Output(), entry)); err != nil {
+	if err := fileretry.Rename(staged, filepath.Join(p.Output(), entry)); err != nil {
 		return errors.Wrap(err, "write the build")
 	}
 
