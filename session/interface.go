@@ -3,6 +3,7 @@ package session
 import (
 	"net"
 	"net/http"
+	"net/url"
 	"testing/fstest"
 
 	"github.com/paralin/modlock/devmount"
@@ -44,7 +45,7 @@ func StartInterface(config Interface) (stop func()) {
 	// A block left in gameinfo.gi outranks every package the game loads after
 	// the session, so report a failure to remove it.
 	unmount := func() {}
-	if mounted, err := mountRenderer(config.GameDir, config.Renderer, config.Content); err != nil {
+	if mounted, err := mountRenderer(config.GameDir, config.Renderer, config.bridge(), config.Content); err != nil {
 		config.fail(errors.Wrap(err, "the game shows no mod interfaces or content"))
 	} else {
 		unmount = func() {
@@ -69,6 +70,17 @@ func StartInterface(config Interface) (stop func()) {
 		_ = server.Close()
 		unmount()
 	}
+}
+
+// bridge returns the URL of the relay page that reads the screen from
+// Address, or empty when no screen is served. The page takes the port in its
+// query, so the renderer reaches a server on any port.
+func (c Interface) bridge() string {
+	_, port, err := net.SplitHostPort(c.Address)
+	if err != nil {
+		return ""
+	}
+	return c.Relay + BridgePath + "?" + url.Values{"port": {port}}.Encode()
 }
 
 // fail reports err as a failure event.

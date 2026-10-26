@@ -1117,7 +1117,8 @@ The game draws interfaces with the renderer in [`panorama/`](panorama):
   `127.0.0.1:4320` (`--ui-port`, 0 for none). Deadlock's HTML panels load only
   https pages, so the renderer reads them through a relay page at `--ui-relay`,
   `https://hyperline.gg` by default. The controller answers only that origin's
-  page.
+  page. The session's package loads the page at `/app/relay/bridge.html?port=<port>`,
+  and the page reads the screen from that loopback port.
 - Both commands also install the renderer in the game for the session, so its
   interfaces show with no setup. They write `game/citadel/modlock_dev`, a
   package that adds the renderer to the stock news layout, and mount it

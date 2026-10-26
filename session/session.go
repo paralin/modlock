@@ -14,12 +14,17 @@ import (
 const DefaultPort = 27067
 
 // DefaultInterfacePort is the loopback port the relay page reads the mods'
-// interfaces from.
+// interfaces from when its URL names none.
 const DefaultInterfacePort = 4320
 
 // DefaultRelay hosts the relay page the game reads the mods' interfaces
 // through.
 const DefaultRelay = "https://hyperline.gg"
+
+// BridgePath is the relay page's path under its origin. The page reads the
+// screen from the loopback port its query names as port, or from
+// DefaultInterfacePort.
+const BridgePath = "/app/relay/bridge.html"
 
 // Session is a running play session: the host with the mods and, once the
 // server is ready, the Deadlock client joined to it.
