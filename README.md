@@ -512,6 +512,7 @@ When the mode plays well, [publish it](#publishing).
 | [`drill`](examples/drill)               | An aim drill: target bots, headshots, a length setting, best score. |
 | [`dropper`](examples/dropper)           | Building a spot of solid objects while playing.                     |
 | [`world-panel`](examples/world-panel)   | A board of the mod's own layout, drawn in the world.                |
+| [`inventory`](examples/inventory)       | A drag inventory in the mod's own layout and script.                |
 | [`bounty`](examples/bounty)             | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
 | [`race`](examples/race)                 | A Go checkpoint race: a marked course, laps, resets, unit tests.    |
 | [`hello-luau`](examples/hello-luau)     | The smallest mod in Luau.                                           |
@@ -534,7 +535,7 @@ event within the limits. It then goes where `--to` says:
 `modlock login` opens the browser to sign in to hyperline.gg and saves the
 session for every later command, and `modlock logout` removes it; the first
 upload signs in the same way when no session is saved. Publishing there needs access during the alpha; ask for it in the
-[Hyperline Discord](https://discord.gg/cezb3jg4vd). `--origin` points it at
+[Hyperline Discord](https://discord.gg/DCErWrCFvh). `--origin` points it at
 another service with the same API. The `github` destination uses the
 [`gh`](https://cli.github.com) command line and its sign-in.
 
@@ -580,6 +581,10 @@ create('point_clientui_world_panel', {
 [`world-panel`](examples/world-panel) is the whole mod. A layout that loads a
 script or handles an event runs code in each player's game, and a publishing
 service may hold it for creators it trusts; one that only draws needs no trust.
+[`inventory`](examples/inventory) draws a layout with a script through the
+[layout element](#interfaces): the player drags items between slots, the
+script sends each move as a console command, and the mod answers with the new
+slots.
 
 Ship style sheets and images compiled by Valve's resource compiler, as
 `.vcss_c` and `.vtex_c`. The publishing check refuses a build with client files

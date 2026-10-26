@@ -18,6 +18,9 @@ export default defineConfig({
     '**/*.pb.js',
     '**/*.gen.ts',
     'js/src/entities.ts',
+    // A mod's layout scripts run in the player's game on Panorama's untyped
+    // globals, which no tsconfig declares.
+    '**/content/scripts/**',
   ],
   rules: {
     'no-unused-vars': [
