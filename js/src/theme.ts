@@ -170,7 +170,8 @@ export const objectiveBarBottom = 220
 
 /**
  * fpsReadoutBottom is how far down the top right corner HUD starts, in pixels
- * on a 1080 high HUD: under the game's two line FPS readout, which ends about
- * 41px down.
+ * on a 1080 high HUD: under the game's FPS readout, whose third line, the red
+ * slow server frame warning, shows during server spikes and ends about 62px
+ * down.
  */
-export const fpsReadoutBottom = 48
+export const fpsReadoutBottom = 68
