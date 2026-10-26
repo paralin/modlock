@@ -23,11 +23,12 @@ constexpr size_t kClassInfoSchemaBinding = 0x28;
 // Teleport calls CBaseEntity::Teleport. Null pose pointers preserve placement.
 // An unresolved slot leaves the entity in place.
 void Teleport(void* entity, const float* position, const float* angles, const float* velocity) {
-  // Find the entity's Teleport slot.
+  // Find the entity's Teleport slot, resolved once: the resolver's answer,
+  // a failure included, holds for the game build.
   if (entity == nullptr) {
     return;
   }
-  const auto slot = ResolveVirtualSlot("entity.teleport");
+  static const auto slot = ResolveVirtualSlot("entity.teleport");
   if (!slot) {
     return;
   }
@@ -41,11 +42,12 @@ void Teleport(void* entity, const float* position, const float* angles, const fl
 // NetworkStateNotificationOf resolves the shared replication entry for preflight
 // and publication, so callers never maintain a second copy of its ABI slot.
 void* NetworkStateNotificationOf(void* entity) {
-  // Find the entity's notification slot.
+  // Find the entity's notification slot, resolved once since replication
+  // asks on every state change.
   if (!entity) {
     return nullptr;
   }
-  const auto slot = ResolveVirtualSlot("entity.network-state-changed");
+  static const auto slot = ResolveVirtualSlot("entity.network-state-changed");
   if (!slot) {
     return nullptr;
   }
@@ -373,6 +375,7 @@ std::expected<void*, std::string> FindDeclaredEnumOf(void* type_scope, const cha
 std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const char* module_name,
                                                       const char* class_name,
                                                       const char* field_name) {
+  // Find the class that holds the path's first field.
   auto info = SchemaClassInfoOf(schema_system, module_name, class_name);
   if (!info) {
     return std::unexpected(info.error());
@@ -385,6 +388,7 @@ std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const
   size_t base = 0;
   bool networked = true;
   for (;;) {
+    // Find the segment's field; the last one ends the walk.
     const auto dot = path.find('.');
     const std::string segment(path.substr(0, dot));
     const char* type = nullptr;
@@ -396,6 +400,8 @@ std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const
     if (dot == std::string_view::npos) {
       return SchemaField{base + field->offset, field->size, networked};
     }
+
+    // Step into the structure the segment holds.
     if (type == nullptr) {
       return std::unexpected("schema field '" + segment + "' has no type");
     }

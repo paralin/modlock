@@ -291,11 +291,12 @@ PawnObserver::Seams PawnObserver::LiveSeams(bool movement_enabled) {
 
   // Read the calculated maximum health through the pawn's override.
   seams.effective_max_health = [](void* pawn) -> std::optional<int32_t> {
-    // Find the pawn's maximum health override.
+    // Find the pawn's maximum health override, resolved once since every
+    // observation reads it.
     if (!pawn) {
       return std::nullopt;
     }
-    const auto slot = ResolveVirtualSlot("entity.max-health");
+    static const auto slot = ResolveVirtualSlot("entity.max-health");
     if (!slot) {
       return std::nullopt;
     }
