@@ -1,6 +1,8 @@
 #include <array>
 #include <cmath>
 #include <cstring>
+#include <expected>
+#include <string>
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/mapped_module_image.h"
@@ -128,27 +130,39 @@ struct UpgradeBonuses {
   const UpgradeBonusLayout* layout;
 };
 
-std::expected<UpgradeBonuses, std::string> UpgradeBonusModifier(void* pawn) {
+// UpgradeBonusMiss is why a pawn's upgrade bonus modifier was not found. The
+// observer reads the bonuses every frame and drops the reason, so finding
+// the modifier allocates nothing; DescribeMiss spells it out for a restore.
+enum class UpgradeBonusMiss {
+  kNoPawn,
+  kNoLayout,
+  kNoProperty,
+  kBadVector,
+  kNotFound,
+  kUnsupported,
+};
+
+std::expected<UpgradeBonuses, UpgradeBonusMiss> UpgradeBonusModifier(void* pawn) {
 #if defined(_WIN32)
   // Find the pawn's modifier property.
   if (!pawn) {
-    return std::unexpected("upgrade bonuses: pawn unavailable");
+    return std::unexpected(UpgradeBonusMiss::kNoPawn);
   }
   const auto& layout = UpgradeBonusLayoutOnce();
   if (!layout) {
-    return std::unexpected("upgrade bonuses: " + layout.error());
+    return std::unexpected(UpgradeBonusMiss::kNoLayout);
   }
   unsigned char* property = nullptr;
   std::memcpy(&property, static_cast<unsigned char*>(pawn) + layout->modifier_property,
               sizeof(property));
   if (!property) {
-    return std::unexpected("upgrade bonuses: modifier property unavailable");
+    return std::unexpected(UpgradeBonusMiss::kNoProperty);
   }
 
-  // Read the modifier rows->
+  // Read the modifier rows.
   const auto rows = ReadUtlVector<unsigned char*>(property + layout->modifier_rows, kMaxModifiers);
   if (!rows) {
-    return std::unexpected("upgrade bonuses: invalid modifier vector");
+    return std::unexpected(UpgradeBonusMiss::kBadVector);
   }
 
   // Find the bonus modifier the pawn owns.
@@ -169,11 +183,34 @@ std::expected<UpgradeBonuses, std::string> UpgradeBonusModifier(void* pawn) {
       return UpgradeBonuses{row, &*layout};
     }
   }
-  return std::unexpected("upgrade bonuses: modifier not found");
+  return std::unexpected(UpgradeBonusMiss::kNotFound);
 #else
   (void)pawn;
-  return std::unexpected("upgrade bonuses require the Windows host");
+  return std::unexpected(UpgradeBonusMiss::kUnsupported);
 #endif
+}
+
+// DescribeMiss names why the modifier was not found.
+std::string DescribeMiss(UpgradeBonusMiss miss) {
+  switch (miss) {
+    case UpgradeBonusMiss::kNoPawn:
+      return "upgrade bonuses: pawn unavailable";
+    case UpgradeBonusMiss::kNoLayout:
+#if defined(_WIN32)
+      return "upgrade bonuses: " + UpgradeBonusLayoutOnce().error();
+#else
+      return "upgrade bonuses: layout unavailable";
+#endif
+    case UpgradeBonusMiss::kNoProperty:
+      return "upgrade bonuses: modifier property unavailable";
+    case UpgradeBonusMiss::kBadVector:
+      return "upgrade bonuses: invalid modifier vector";
+    case UpgradeBonusMiss::kNotFound:
+      return "upgrade bonuses: modifier not found";
+    case UpgradeBonusMiss::kUnsupported:
+      return "upgrade bonuses require the Windows host";
+  }
+  return "upgrade bonuses: unavailable";
 }
 
 }  // namespace
@@ -221,7 +258,7 @@ std::expected<void, std::string> RestorePawnUpgradeBonuses(void* pawn,
   }
   const auto bonuses = UpgradeBonusModifier(pawn);
   if (!bonuses) {
-    return std::unexpected(bonuses.error());
+    return std::unexpected(DescribeMiss(bonuses.error()));
   }
 
   // The modifier's own deserializer notifies before each changed field; this

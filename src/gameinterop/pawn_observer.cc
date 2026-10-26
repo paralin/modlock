@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <span>
 #include <utility>
 
@@ -19,6 +20,15 @@
 namespace modlock::gameinterop {
 
 namespace {
+
+// Trace writes one interop trace line to stderr and flushes it, so the line
+// survives a crash that follows it.
+template <typename... Args>
+void Trace(std::format_string<Args...> format, Args&&... args) {
+  const auto line = std::format(format, std::forward<Args>(args)...);
+  std::fprintf(stderr, "[modlock] %s\n", line.c_str());
+  std::fflush(stderr);
+}
 
 // ReadUint32 reads the unsigned integer at offset from base.
 uint32_t ReadUint32(const unsigned char* base, size_t offset) {
@@ -446,19 +456,15 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
   auto slot_state = seams_.slot_state ? seams_.slot_state(slot) : ConnectionTracker::SlotState{};
   if (!slot_state.occupied) {
     if (stage_trace && trace_slot_occupied_) {
-      std::fprintf(stderr,
-                   "[modlock] interop trace: pawn slot %d state occupied->empty generation %u\n",
-                   slot, slot_state.generation);
-      std::fflush(stderr);
+      Trace("interop trace: pawn slot {} state occupied->empty generation {}", slot,
+            slot_state.generation);
       trace_slot_occupied_ = false;
     }
     return std::nullopt;
   }
   if (stage_trace && !trace_slot_occupied_) {
-    std::fprintf(stderr,
-                 "[modlock] interop trace: pawn slot %d state empty->occupied generation %u\n",
-                 slot, slot_state.generation);
-    std::fflush(stderr);
+    Trace("interop trace: pawn slot {} state empty->occupied generation {}", slot,
+          slot_state.generation);
     trace_slot_occupied_ = true;
   }
 
@@ -495,10 +501,7 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
   if (controller_identity == nullptr) {
     if (trace_now) {
       ++traced_frames;
-      std::fprintf(stderr,
-                   "[modlock] observe trace: controller identity at index %u did not resolve\n",
-                   slot + 1);
-      std::fflush(stderr);
+      Trace("observe trace: controller identity at index {} did not resolve", slot + 1);
     }
     return std::nullopt;
   }
@@ -507,43 +510,39 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
     return std::nullopt;
   }
 
+  // Read the controller's pawn handle.
   const uint32_t pawn_handle = ObservedPawnHandle(controller);
   if (trace_now) {
     ++traced_frames;
-    std::fprintf(
-        stderr, "[modlock] observe trace: frame %d pawn handle = 0x%08x (index %u serial %u)\n",
-        traced_frames, pawn_handle, EntityIndexOf(pawn_handle), pawn_handle >> kSerialShift);
+    Trace("observe trace: frame {} pawn handle = {:#010x} (index {} serial {})", traced_frames,
+          pawn_handle, EntityIndexOf(pawn_handle), pawn_handle >> kSerialShift);
   }
 
   // Resolve the pawn and its origin, tracing each failure.
   auto* pawn_identity = IdentityOfHandle(entity_list, pawn_handle);
   if (pawn_identity == nullptr) {
     if (trace_now) {
-      std::fprintf(stderr, "[modlock] observe trace: pawn identity failed the serial proof\n");
-      std::fflush(stderr);
+      Trace("observe trace: pawn identity failed the serial proof");
     }
     return std::nullopt;
   }
   void* pawn = InstanceOf(pawn_identity);
   if (pawn == nullptr) {
     if (trace_now) {
-      std::fprintf(stderr, "[modlock] observe trace: pawn identity carries no instance\n");
-      std::fflush(stderr);
+      Trace("observe trace: pawn identity carries no instance");
     }
     return std::nullopt;
   }
   const float* origin = AbsOriginOf(layout_, pawn);
   if (origin == nullptr) {
     if (trace_now) {
-      std::fprintf(stderr, "[modlock] observe trace: pawn origin chain is incomplete\n");
-      std::fflush(stderr);
+      Trace("observe trace: pawn origin chain is incomplete");
     }
     return std::nullopt;
   }
   if (trace_now) {
-    std::fprintf(stderr, "[modlock] observe trace: full walk ok, origin %.1f %.1f %.1f xuid %llu\n",
-                 origin[0], origin[1], origin[2], static_cast<unsigned long long>(slot_state.xuid));
-    std::fflush(stderr);
+    Trace("observe trace: full walk ok, origin {:.1f} {:.1f} {:.1f} xuid {}", origin[0], origin[1],
+          origin[2], slot_state.xuid);
   }
   if (!AllFinite(std::span<const float>(origin, 3))) {
     return std::nullopt;
