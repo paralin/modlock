@@ -868,6 +868,7 @@ after(30, () => tour?.cancel())
 | Call                                                     | Effect                                                              |
 | -------------------------------------------------------- | ------------------------------------------------------------------- |
 | `createText`, `createModel`, `createParticle`            | Place text, a model or an effect; move, change or remove it later.  |
+| `createFog({ position, mins, maxs, strength, color })`   | Fill a box with tinted fog; tile boxes to darken all but one area.  |
 | `precache({ heroes, resources })`                        | Load heroes and resources with the next world.                      |
 | `serverCommand(line)`                                    | Run a line at the server console.                                   |
 | `moveEntity`, `pushEntity`, `emitSound`                  | Move an entity, set or add to its velocity, or play a sound on it.  |
@@ -1056,12 +1057,14 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 
 ### Interfaces
 
-| Call                                    | Effect                                                                  |
-| --------------------------------------- | ----------------------------------------------------------------------- |
-| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                |
-| `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                |
-| `hideHud(player, parts)`                | Hide `'levelUp'`, `'ownHealth'`, `'topBar'` or `'ammo'`; `[]` restores. |
-| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                      |
+| Call                                    | Effect                                                                                 |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                               |
+| `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                               |
+| `hideHud(player, parts)`                | Hide `'levelUp'`, `'ownHealth'`, `'topBar'` or `'ammo'`; `[]` restores.                |
+| `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |
+| `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |
+| `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                                     |
 
 Style `panel`, `label`, `image`, `button` and `layout` with `width`,
 `height`, `flow`, `horizontalAlign`, `verticalAlign`, `margin`, `padding`,
