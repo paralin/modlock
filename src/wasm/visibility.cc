@@ -32,8 +32,9 @@ void Visibility::Unhide(int32_t slot, uint32_t object) {
 void Visibility::RemoveObject(uint32_t object, std::optional<uint32_t> entity) {
   // Withhold the entity of an object some players must not see.
   const bool restricted =
-      object_audiences_.erase(object) != 0 ||
-      std::ranges::any_of(hidden_, [&](const auto& entry) { return entry.second.contains(object); });
+      object_audiences_.erase(object) != 0 || std::ranges::any_of(hidden_, [&](const auto& entry) {
+        return entry.second.contains(object);
+      });
   if (restricted && entity) {
     audiences_[*entity] = 0;
   }

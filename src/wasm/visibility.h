@@ -1,5 +1,7 @@
 #pragma once
 
+#include <google/protobuf/repeated_field.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <expected>
@@ -7,8 +9,6 @@
 #include <optional>
 #include <set>
 #include <string>
-
-#include <google/protobuf/repeated_field.h>
 
 #include "modlock/gameinterop/transmit_hook.h"
 
@@ -25,18 +25,22 @@ class Visibility {
   static std::expected<uint64_t, std::string> Audience(
       const google::protobuf::RepeatedField<int32_t>& players);
 
-  // Hide withholds object from the player in slot; Unhide sends it again.
+  // Hide withholds object from the player in slot.
   void Hide(int32_t slot, uint32_t object) { hidden_[slot].insert(object); }
+
+  // Unhide sends object to the player in slot again.
   void Unhide(int32_t slot, uint32_t object);
 
-  // ShowObjectOnlyTo sends object only to the players in the slot bits;
-  // ShowObjectToAll sends it to everyone again.
+  // ShowObjectOnlyTo sends object only to the players in the slot bits.
   void ShowObjectOnlyTo(uint32_t object, uint64_t slots) { object_audiences_[object] = slots; }
+
+  // ShowObjectToAll sends object to every player again.
   void ShowObjectToAll(uint32_t object) { object_audiences_.erase(object); }
 
-  // ShowEntityOnlyTo sends entity only to the players in the slot bits;
-  // ShowEntityToAll sends it to everyone again.
+  // ShowEntityOnlyTo sends entity only to the players in the slot bits.
   void ShowEntityOnlyTo(uint32_t entity, uint64_t slots) { audiences_[entity] = slots; }
+
+  // ShowEntityToAll sends entity to every player again.
   void ShowEntityToAll(uint32_t entity) { audiences_.erase(entity); }
 
   // RemoveObject forgets a removed object. When some players must not see it,

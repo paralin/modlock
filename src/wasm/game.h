@@ -308,8 +308,8 @@ class Game : public HostService {
   // next player there starts clear.
   void Leave(int32_t slot);
 
-  // Clear removes everything the mod placed, releases its frozen heroes,
-  // held modifiers, input changes and match clock hold, resumes a game it
+  // Clear removes everything the mod placed, ends its seating, releases its
+  // frozen heroes, held modifiers, input changes and match clock hold, resumes a game it
   // paused and stops watching projectiles.
   void Clear();
 

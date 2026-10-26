@@ -205,12 +205,13 @@ void Game::Clear() {
   // Releasing the movement hook cannot fail.
   static_cast<void>(services_.Steps());
 
-  // Release held modifier states and the free-for-all.
+  // Release held modifier states, the free-for-all and team seating.
   for (const auto& [entity, state] : held_) {
     static_cast<void>(SetModifierState(entity, state, false));
   }
   held_.clear();
   free_for_all_ = false;
+  team_seating_ = false;
   ReleaseFreeForAll();
   ReleaseModifiers();
 
