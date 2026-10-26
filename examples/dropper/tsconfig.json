@@ -14,5 +14,6 @@
       "modlock/jsx-runtime": ["../../js/src/index.ts"]
     }
   },
+  "include": ["**/*", "../../js/src/globals.d.ts"],
   "exclude": ["build", "node_modules"]
 }

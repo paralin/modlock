@@ -15,5 +15,6 @@
       "modlock/entities": ["../../js/src/entities.ts"]
     }
   },
+  "include": ["**/*", "../../js/src/globals.d.ts"],
   "exclude": ["build", "node_modules"]
 }
