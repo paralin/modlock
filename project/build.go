@@ -8,9 +8,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/internal/filelock"
+	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/wasm/manifest"
@@ -122,7 +124,7 @@ func (p *Project) buildGo(ctx context.Context, output io.Writer) error {
 	}
 
 	// Replace the module, then the manifest that names it.
-	if err := os.Rename(staged, filepath.Join(p.Output(), Entry)); err != nil {
+	if err := fileretry.Rename(staged, filepath.Join(p.Output(), Entry)); err != nil {
 		return errors.Wrap(err, "write the module")
 	}
 	return p.writeBuiltManifest(manifest.Manifest_RUNTIME_WASM, Entry)
@@ -169,7 +171,7 @@ func (p *Project) shipData() error {
 	if !shipped {
 		return nil
 	}
-	return errors.Wrap(os.Rename(staged, final), "copy the data")
+	return errors.Wrap(fileretry.Rename(staged, final), "copy the data")
 }
 
 // shipMapFile copies one map file, when the project has it.
@@ -187,8 +189,19 @@ func (p *Project) shipMapFile(name string) error {
 	}
 	defer source.Close()
 
-	// Stage the copy so a failed one leaves the previous map in place.
+	// Keep a copy with the source's size and time, which an earlier build
+	// made, so a build that did not change the map never replaces the archive
+	// a running session reads.
 	dir := filepath.Join(p.Output(), check.MapsDir)
+	from, err := source.Stat()
+	if err != nil {
+		return errors.Wrap(err, "read the map")
+	}
+	if to, err := os.Stat(filepath.Join(dir, name)); err == nil && to.Size() == from.Size() && to.ModTime().Equal(from.ModTime()) {
+		return nil
+	}
+
+	// Stage the copy so a failed one leaves the previous map in place.
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return errors.Wrap(err, "create the maps directory")
 	}
@@ -211,5 +224,8 @@ func (p *Project) shipMapFile(name string) error {
 	if err := staged.Close(); err != nil {
 		return errors.Wrap(err, "copy the map")
 	}
-	return errors.Wrap(os.Rename(staged.Name(), filepath.Join(dir, name)), "copy the map")
+	if err := os.Chtimes(staged.Name(), time.Time{}, from.ModTime()); err != nil {
+		return errors.Wrap(err, "copy the map")
+	}
+	return errors.Wrap(fileretry.Rename(staged.Name(), filepath.Join(dir, name)), "copy the map")
 }

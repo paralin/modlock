@@ -13,6 +13,7 @@ import (
 	"github.com/aperturerobotics/fastjson"
 	"github.com/aperturerobotics/protobuf-go-lite/json"
 	"github.com/paralin/modlock/check"
+	"github.com/paralin/modlock/internal/fileretry"
 	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
 	"github.com/pkg/errors"
 )
@@ -138,5 +139,5 @@ func writeJSON(path string, data []byte) error {
 	if err := os.WriteFile(path+".tmp", buf.Bytes(), 0o644); err != nil {
 		return errors.Wrap(err, "write mod.json")
 	}
-	return errors.Wrap(os.Rename(path+".tmp", path), "write mod.json")
+	return errors.Wrap(fileretry.Rename(path+".tmp", path), "write mod.json")
 }
