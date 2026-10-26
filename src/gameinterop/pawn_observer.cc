@@ -586,6 +586,7 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
                 .steam_id = xuid,
                 .session_generation = slot_state.generation,
                 .pawn_handle = pawn_handle,
+                .pawn = pawn,
                 .movement = std::move(movement),
                 .hero_id = hero_id,
                 .team = team,

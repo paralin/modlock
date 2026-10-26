@@ -337,6 +337,9 @@ class MODLOCK_API PawnObserver {
     uint64_t steam_id = 0;
     uint32_t session_generation = 0;
     uint32_t pawn_handle = 0;
+    // Pawn is the engine's pawn behind pawn_handle, borrowed for the frame
+    // that observed it.
+    void* pawn = nullptr;
     // Stamina is exact cumulative expenditure, not resource-bar depletion.
     std::optional<modlock::StaminaEvidence> stamina_evidence;
     // HeadshotCount is the number of distinct attributed head hits consumed

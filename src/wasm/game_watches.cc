@@ -217,7 +217,7 @@ std::vector<movement::MovementSample> Game::Movement(std::span<const MovementFac
       SetVector(out.mutable_wall_jump_normal(), *movement.wall_jump_normal_used);
     }
     out.set_wall_jump_facing(movement.wall_jump_facing.value_or(0));
-    if (auto command = services_.Command(observer_.PawnForSlot(slot))) {
+    if (auto command = services_.Command(sample->pawn)) {
       *out.mutable_command() = std::move(*command);
     }
     if (movement.last_time_on_zipline) {
@@ -256,7 +256,7 @@ std::vector<Game::Hero> Game::Heroes() {
     }
     Hero hero{.slot = slot,
               .handle = sample->pawn_handle,
-              .pawn = observer_.PawnForSlot(slot),
+              .pawn = sample->pawn,
               .feet = {float(sample->x), float(sample->y), float(sample->z)}};
     if (sample->movement) {
       hero.velocity = sample->movement->abs_velocity;
