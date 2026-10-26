@@ -41,7 +41,6 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
     if (instance_->Failure()) {
       Failed("stopped: " + reply.error());
       Halt();
-      instance_.reset();
       Stopped();
     }
     return reply;

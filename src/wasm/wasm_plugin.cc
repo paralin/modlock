@@ -132,7 +132,6 @@ std::expected<void, std::string> WasmPlugin::Succeed(std::unique_ptr<wasm::Insta
                                                      std::optional<Build> build) {
   if (instance_) {
     Halt();
-    instance_.reset();
   }
   successor_ = Successor{.instance = std::move(instance),
                          .build = std::move(build),
@@ -240,6 +239,9 @@ void WasmPlugin::Halt() {
   for (const auto slot : ui_.Clear()) {
     ShowUi(slot, reset);
   }
+
+  // Release the instance last, since the steps above may still reach it.
+  instance_.reset();
 }
 
 void WasmPlugin::ListenForRestart() {
@@ -342,7 +344,6 @@ void WasmPlugin::Restart() {
   if (!instance) {
     if (instance_) {
       Halt();
-      instance_.reset();
     }
     Failed("did not restart: " + instance.error());
     Stopped();
@@ -491,7 +492,6 @@ void WasmPlugin::Stop() {
   // Stop the mod and hand on every player's metrics.
   world_.Reset();
   Halt();
-  instance_.reset();
   while (!tallies_.empty()) {
     HandOn(tallies_.begin()->first);
   }

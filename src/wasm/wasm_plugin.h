@@ -230,6 +230,8 @@ class WasmPlugin final : public Plugin {
   // Begin starts the mod and learns which events it consumes, reporting
   // whether it started.
   std::expected<void, std::string> Begin(bool reloaded);
+  // Halt stops the running instance: it ends the instance's hold, movement,
+  // subscriptions, game state and interfaces, then releases the instance.
   void Halt();
   // ListenForRestart hears the players' restart command for the plugin's
   // lifetime, since a stopped instance has no commands of its own.
