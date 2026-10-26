@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 
 	"github.com/paralin/modlock/internal/filelock"
+	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/source2/gameinfo"
 	"github.com/pkg/errors"
 )
@@ -90,31 +91,37 @@ func Hold(gameDir string) (*os.File, error) {
 // installation's gameinfo.gi, replacing a block a session left that did not
 // end cleanly or that names an older package.
 func Mount(gameDir, key string) error {
-	info := infoPath(gameDir)
-	source, err := os.ReadFile(info)
-	if err != nil {
-		return err
-	}
-	mounted, err := gameinfo.Mount(source, Name, Dir+"/"+key)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(info, mounted, 0o644)
+	return edit(gameDir, func(source []byte) ([]byte, error) {
+		return gameinfo.Mount(source, Name, Dir+"/"+key)
+	})
 }
 
 // Unmount removes the session's block from the installation's gameinfo.gi,
 // as it reads now, keeping every change another program made since.
 func Unmount(gameDir string) error {
+	return edit(gameDir, func(source []byte) ([]byte, error) {
+		return gameinfo.Unmount(source, Name)
+	})
+}
+
+// edit rewrites the installation's gameinfo.gi with change, as it reads now,
+// and leaves the file untouched when change returns it unchanged. A running
+// game holds the file for a moment when it reloads its search paths, as it
+// does when the session's server stops under it, so edit tries again while
+// the file is held.
+func edit(gameDir string, change func(source []byte) ([]byte, error)) error {
 	info := infoPath(gameDir)
-	source, err := os.ReadFile(info)
-	if err != nil {
-		return err
-	}
-	unmounted, err := gameinfo.Unmount(source, Name)
-	if err != nil || bytes.Equal(unmounted, source) {
-		return err
-	}
-	return os.WriteFile(info, unmounted, 0o644)
+	return fileretry.Do(func() error {
+		source, err := os.ReadFile(info)
+		if err != nil {
+			return err
+		}
+		changed, err := change(source)
+		if err != nil || bytes.Equal(changed, source) {
+			return err
+		}
+		return os.WriteFile(info, changed, 0o644)
+	})
 }
 
 // ClearStale unmounts a block that no live session holds, and returns
