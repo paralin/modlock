@@ -195,8 +195,8 @@ tools installed.
 | `modlock studio`                           | Open Modlock Studio, a page that browses the game's archive and draws its models and textures.  |
 
 `panorama compile` keeps every other file in `DIR` as it is, so compiled
-resources such as images ship beside the layouts; `-o` names another archive,
-or a directory to write the files into. Style sheets still need Valve's resource
+resources such as images ship beside the layouts; `-o` writes to another archive,
+or to a directory. Style sheets still need Valve's resource
 compiler: ship the `.vcss_c` it writes. `decompile` and `kv3` take `--archive`
 to read `FILE` from inside an archive, including the game's split
 `game/citadel/pak01_dir.vpk`:
@@ -559,9 +559,8 @@ build compiles them into the mod's own addon, named `SLUG-VERSION`, so
 <include src="file://{resources}/scripts/{addon}/scoreboard.js" />
 ```
 
-A mod names its layouts the same way. The host writes the addon's name in
-place of `{addon}` in an entity's text key values, so a world panel draws the
-mod's own layout in the world:
+Entity key values take `{addon}` too: the host writes the addon's name in its
+place, so a world panel can draw the mod's own layout in the world:
 
 ```ts
 create('point_clientui_world_panel', {
@@ -783,14 +782,14 @@ onFrame((frame) => {
 
 ### Camera moves
 
-`playCamera` plays a curve on each camera param it names (`distance`,
+`playCamera` plays a curve on each camera param you pass (`distance`,
 `fieldOfView`, `target`, `verticalOffset`, `horizontalOffset`), all on one
 timeline. The whole move goes to the client at once, as the game's own lerps
 queued in one context, so it plays smoothly without the mod's timers. It
 returns a move with `duration` and `cancel()`, or nothing when the player has
 no hero. Each param snaps back to its usual value when its curve ends, so
 end a curve at rest: at zero when it is `relative`. A move takes a context of its own unless you
-name one; moves in two contexts take turns by `priority`, and the higher one
+pass one; moves in two contexts take turns by `priority`, and the higher one
 hands back when it ends. `loop` plays the curves again until `cancel()`.
 
 The camera has no pitch param. The game's camera operations
@@ -904,9 +903,9 @@ Choose the sequence and cycle for that model. A cycle write changes its pose;
 the model's existing transform stays in place. Nonanimated entities are refused.
 
 A write changes the field on the server and sends it to the players. The host
-checks that the entity is of the named class or one derived from it, and refuses
-one that is not, such as a trooper named as a `CCitadelPlayerPawn`, with a
-message naming both classes. The entity stays unchanged, and the mod keeps
+checks that the entity is of the class you pass or one derived from it, and refuses
+one that is not, such as a trooper passed as a `CCitadelPlayerPawn`, with a
+message that gives both classes. The entity stays unchanged, and the mod keeps
 running.
 
 Some fields matter only while an entity spawns, such as `m_iInitialTeamNum`.
@@ -999,7 +998,7 @@ guardian?.inputDisableShadow()
 `create` knows only the designer names that survived their spawn on a
 dedicated server, 577 of the game's 1,183, and gives each name that needs a
 subclass the one it lived with, so `create('npc_trooper_boss', ...)` makes a
-Guardian without naming `npc_boss_tier1`. A name that never lived, such as an
+Guardian without asking for `npc_boss_tier1`. A name that never lived, such as an
 abstract base or one that crashes the server, has no constructor, and the type
 checker rejects it. [docs/ENTITY_SCHEMA.md](docs/ENTITY_SCHEMA.md) explores
 the whole entity system: the dump, the survey, the generated classes in each
@@ -1067,7 +1066,7 @@ Style `panel`, `label`, `image`, `button` and `layout` with `width`,
 
 The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
 sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
-counts as the round counter does, `<Tag>` names a status, `<Banner>`
+counts as the round counter does, `<Tag>` labels a status, `<Banner>`
 announces a moment, `<TopStrip>` with a `<Score>` in it fills the top of
 the screen, and `<Roster>` lists the players down the top right corner with
 their hero portraits. Each entry in `heroes` carries its small `portrait`.
@@ -1224,7 +1223,7 @@ Every project has a `mod.json` at its root:
 
 `dev` and `play` start on the first map a mod asks for in the game's
 `citadel/maps`, or `dl_midtown`, which hyperline.gg also plays for a mod
-that names no map.
+that asks for no map.
 
 ### Movement
 
@@ -1273,7 +1272,7 @@ Each entry changes one stock definition on the server. A player's game that
 | `fields`     | Float schema fields by `Class.m_field/Class.m_field` path, and their new values.     |
 | `copyFields` | Copy the field at each value's path over the field at its key's path.                |
 
-A path's last step can end in `[Enum.Value]` to name one value of a map keyed
+A path's last step can end in `[Enum.Value]` to select one value of a map keyed
 by an enum, such as a hero's starting stats. The server writes the changes when
 it loads the definitions and again in each new map.
 
