@@ -256,6 +256,8 @@ class WasmPlugin final : public Plugin {
   // Arrive starts the instance that Succeed holds back, when its
   // predecessor's bots have left or kDepartWait passed.
   std::expected<void, std::string> Arrive();
+  // World restarts movement and sends the mod its world event. Tick calls it
+  // on the first frame after world_due_ is set.
   void World();
   // SteamId returns the account of the player in slot, or zero for a bot or
   // an empty slot.
@@ -362,9 +364,12 @@ class WasmPlugin final : public Plugin {
   // the game.
   PluginGame game_;
   // world_ follows world loads and endings for the plugin's lifetime; map_
-  // names the loaded world, so a reload starts in it at once.
+  // names the loaded world, so a reload starts in it at once, and world_due_
+  // is true while the running instance waits for the next frame to hear of
+  // it.
   Subscription world_;
   std::optional<std::string> map_;
+  bool world_due_ = false;
   // players_ holds the instance's player callbacks; listening_ is true while
   // it does.
   Subscription players_;
