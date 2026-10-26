@@ -3,7 +3,8 @@
 // the game's entry level, with the hideout HUD in place of the game HUD. The
 // wheel zooms only while the pawn also holds MODIFIER_STATE_HIDEOUT_ZONE, since
 // the server ignores the wheel's orbit_camera_in and orbit_camera_out without
-// it.
+// it. The wheel's first zoom adds modifier_citadel_orbit_camera, which keeps
+// the zoom level, so returning the normal camera removes it too.
 //
 // playCamera plays curves (curve.ts) on moveCamera's queued lerps: the
 // operations on one param in one context run in order, so a whole curve goes
@@ -25,6 +26,7 @@ import {
   type CameraOptions,
   type CameraParam,
   type CameraValue,
+  fireInput,
   holdModifierState,
   type Player,
   writeField,
@@ -33,9 +35,9 @@ import { every, type Timer } from './timer.js'
 
 /**
  * setOrbitCamera gives the player's hero the hideout's orbit camera, zoomed
- * with the wheel, or returns the normal camera. The hideout HUD replaces the
- * game HUD while it is on. It returns false when the player has no hero or a
- * call fails.
+ * with the wheel, or returns the normal camera and drops the wheel's zoom.
+ * The hideout HUD replaces the game HUD while it is on. It returns false when
+ * the player has no hero or a call fails.
  */
 export function setOrbitCamera(player: Player, enabled: boolean): boolean {
   // A player between lives has no hero to switch.
@@ -55,7 +57,13 @@ export function setOrbitCamera(player: Player, enabled: boolean): boolean {
     'MODIFIER_STATE_HIDEOUT_ZONE',
     enabled,
   )
-  return flag && zoom
+  if (enabled) return flag && zoom
+
+  // The wheel's orbit modifier keeps its zoom level after the flag clears.
+  const orbit = fireInput(pawn.entity, 'RemoveModifier', {
+    text: 'modifier_citadel_orbit_camera',
+  })
+  return flag && zoom && orbit
 }
 
 /** CameraPlayOptions plays curves on a player's camera. */
