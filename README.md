@@ -793,6 +793,15 @@ end a curve at rest: at zero when it is `relative`. A move takes a context of it
 name one; moves in two contexts take turns by `priority`, and the higher one
 hands back when it ends. `loop` plays the curves again until `cancel()`.
 
+The camera has no pitch param. The game's camera operations
+(`CCitadelUserMsg_CameraController`) move only the distance, field of view,
+target, vertical offset and horizontal offset, and the view always looks along
+the player's own aim, so `Pawn.cameraPosition` and `cameraAngles` stay true for
+picking. Frame a higher view by raising `verticalOffset` and pulling
+`distance` back, and shift it with `horizontalOffset`; the player tilts it
+with the mouse. Turning the view itself means setting the player's view
+angles, which takes over their look.
+
 The `curve` namespace builds curves. Each one is a list of spans, and every
 builder returns one, so they compose:
 
