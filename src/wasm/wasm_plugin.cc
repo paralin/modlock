@@ -134,15 +134,16 @@ std::expected<void, std::string> WasmPlugin::Succeed(std::unique_ptr<wasm::Insta
     Halt();
     instance_.reset();
   }
-  successor_ = Successor{std::move(instance), std::move(build)};
-  starting_until_ = std::chrono::steady_clock::now() + kDepartWait;
+  successor_ = Successor{.instance = std::move(instance),
+                         .build = std::move(build),
+                         .until = std::chrono::steady_clock::now() + kDepartWait};
   return Arrive();
 }
 
 std::expected<void, std::string> WasmPlugin::Arrive() {
   // Wait for a removed bot to leave, unless the start is overdue.
   if (game_.Departing()) {
-    if (std::chrono::steady_clock::now() < starting_until_) {
+    if (std::chrono::steady_clock::now() < successor_->until) {
       return {};
     }
     Log("starts while a bot it removed has not left yet");
@@ -278,7 +279,9 @@ void WasmPlugin::Slowed(std::string_view report) {
   Log(std::string("slow: ") + std::string(report));
   host_.Notify([&](WasmHostObserver& observer) { observer.Slowed(name_, report); });
   const auto now = std::chrono::steady_clock::now();
-  offer_until_ = now + kOfferWindow;
+  if (std::holds_alternative<std::monostate>(offer_) || std::holds_alternative<SlowOffer>(offer_)) {
+    offer_ = SlowOffer{now + kOfferWindow};
+  }
   if (now - warned_at_ >= kWarnPeriod) {
     Warn(std::format("is running slowly. If it seems stuck, type /{} to restart it.",
                      kRestartCommand));
@@ -288,8 +291,7 @@ void WasmPlugin::Slowed(std::string_view report) {
 void WasmPlugin::Stopped() {
   // A restart runs the mod's start on the engine thread, which a mod that
   // keeps failing would hold, so the players choose when it happens.
-  stopped_ = true;
-  restart_ = false;
+  offer_ = StoppedOffer{};
   Log(std::format("stays stopped until a player types /{}", kRestartCommand));
   Warn(std::format("stopped. Type /{} to start it again.", kRestartCommand));
 }
@@ -311,10 +313,20 @@ void WasmPlugin::Warn(std::string_view what) {
   }
 }
 
+bool WasmPlugin::AskRestart() {
+  // Take the request while a restart is offered.
+  const auto* slow = std::get_if<SlowOffer>(&offer_);
+  const bool offered = std::holds_alternative<StoppedOffer>(offer_) ||
+                       std::holds_alternative<RestartAsked>(offer_) ||
+                       (slow && std::chrono::steady_clock::now() < slow->until);
+  if (offered) {
+    offer_ = RestartAsked{};
+  }
+  return offered;
+}
+
 void WasmPlugin::Withdraw() {
-  stopped_ = false;
-  restart_ = false;
-  offer_until_ = {};
+  offer_ = std::monostate{};
 }
 
 void WasmPlugin::Restart() {
@@ -408,9 +420,10 @@ void WasmPlugin::Tick() {
   }
 
   // Restart a stopped mod when asked, or remind players it stopped.
-  if (restart_) {
+  if (std::holds_alternative<RestartAsked>(offer_)) {
     Restart();
-  } else if (stopped_ && std::chrono::steady_clock::now() - warned_at_ >= kWarnPeriod) {
+  } else if (std::holds_alternative<StoppedOffer>(offer_) &&
+             std::chrono::steady_clock::now() - warned_at_ >= kWarnPeriod) {
     Warn(std::format("stopped. Type /{} to start it again.", kRestartCommand));
   }
 

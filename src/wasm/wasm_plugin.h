@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "modlock/engine_host.h"
@@ -169,13 +170,7 @@ class WasmPlugin final : public Plugin {
   // AskRestart restarts the running build in a new instance on the next
   // frame, while the plugin offers that: after the instance stopped or ran a
   // slow event. It reports whether the restart was offered.
-  bool AskRestart() {
-    if (!stopped_ && std::chrono::steady_clock::now() >= offer_until_) {
-      return false;
-    }
-    restart_ = true;
-    return true;
-  }
+  bool AskRestart();
 
   // Press delivers a press on a button the mod shows the player in slot.
   std::expected<void, std::string> Press(int32_t slot, std::string_view node);
@@ -248,7 +243,7 @@ class WasmPlugin final : public Plugin {
   // Warn tells every player in the game what happened to the mod, after its
   // name.
   void Warn(std::string_view what);
-  // Withdraw ends the stopped state and the restart offer.
+  // Withdraw ends the restart offer, and a request for it.
   void Withdraw();
   // Restart starts the running build again in a new instance, in place of a
   // stopped or a running one.
@@ -338,23 +333,36 @@ class WasmPlugin final : public Plugin {
   bool held_ = false;
   std::optional<Build> waiting_;
 
-  // Successor is an instance that waits until starting_until_ for the bots
-  // its predecessor kicked to leave, since a bot it adds under a leaving
-  // bot's name takes that bot's queued kick.
+  // Successor is an instance that waits until a deadline for the bots its
+  // predecessor kicked to leave, since a bot it adds under a leaving bot's
+  // name takes that bot's queued kick.
   struct Successor {
     std::unique_ptr<wasm::Instance> instance;
     std::optional<Build> build;
+    std::chrono::steady_clock::time_point until;
   };
 
   std::optional<Successor> successor_;
-  std::chrono::steady_clock::time_point starting_until_;
-  // stopped_ is true while a failed instance waits for a player to restart
-  // it, and restart_ once one asked. offer_until_ ends the restart offer a
-  // slow event opens, and warned_at_ is the players' last warning.
-  // restart_command_ hears the request once it is active.
-  bool stopped_ = false;
-  bool restart_ = false;
-  std::chrono::steady_clock::time_point offer_until_;
+
+  // SlowOffer is the restart a slow event offers until a deadline.
+  struct SlowOffer {
+    std::chrono::steady_clock::time_point until;
+  };
+
+  // StoppedOffer is the restart a failed instance offers until a player
+  // asks for it.
+  struct StoppedOffer {};
+
+  // RestartAsked is a player's request, which the next frame carries out.
+  struct RestartAsked {};
+
+  // Offer is the restart the players may ask for: none, a slow event's, a
+  // stopped instance's, or one already asked for.
+  using Offer = std::variant<std::monostate, SlowOffer, StoppedOffer, RestartAsked>;
+
+  // offer_ is the current restart offer, and warned_at_ the players' last
+  // warning. restart_command_ hears the request once it is active.
+  Offer offer_;
   std::chrono::steady_clock::time_point warned_at_;
   Subscription restart_command_;
   // movement_ steps every hero while a world is loaded. hero_slots_ maps
