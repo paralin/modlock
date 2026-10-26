@@ -188,7 +188,8 @@ CommandHook::CommandHook(CommandHook&&) noexcept = default;
 CommandHook& CommandHook::operator=(CommandHook&&) noexcept = default;
 CommandHook::~CommandHook() = default;
 
-std::expected<CommandHook, std::string> CommandHook::Install(const ModuleImage& server, Decide decide) {
+std::expected<CommandHook, std::string> CommandHook::Install(const ModuleImage& server,
+                                                             Decide decide) {
 #if defined(_WIN32)
   // Install once.
   if (g_hook || !decide) {

@@ -25,8 +25,7 @@ inline constexpr std::size_t kMaxKeys = 100000;
 // ValidatePath checks the path contract: finite key fields, aspect ratios
 // within bounds, and strictly increasing nonnegative key times. Returns an
 // error naming the offending key.
-[[nodiscard]] MODLOCK_API std::expected<void, std::string> ValidatePath(
-    const CameraPath& path);
+[[nodiscard]] MODLOCK_API std::expected<void, std::string> ValidatePath(const CameraPath& path);
 
 // EvaluatePath returns the camera pose and aspect ratio at one shot-relative
 // time without state: forward playback and rewinds are identical. Position

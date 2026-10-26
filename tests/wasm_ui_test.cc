@@ -8,9 +8,9 @@
 
 namespace {
 
+using modlock::wasm::UiTrees;
 using modlock::wasm::ui::Change;
 using modlock::wasm::ui::Kind;
-using modlock::wasm::UiTrees;
 
 // Set returns a change that sets one node.
 Change Set(std::string id, Kind kind, bool reset = false) {

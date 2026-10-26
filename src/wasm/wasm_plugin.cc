@@ -22,6 +22,9 @@ namespace {
 // frames to repay it: half of a 64-tick frame.
 constexpr auto kFrameAllowance = std::chrono::milliseconds(8);
 
+// kShedLogPeriod is how often the log reports the frames a slow mod skipped.
+constexpr auto kShedLogPeriod = std::chrono::minutes(1);
+
 // kRestartCommand is the chat command that restarts a stopped or slow mod,
 // alone for every such mod or followed by one mod's name. kWarnPeriod is how
 // often the players hear of it, and kOfferWindow how long a slow event keeps
@@ -439,9 +442,9 @@ void WasmPlugin::Tick() {
     frames_resume_ = ended + spent;
   }
 
-  // Log the skipped frames at most once a minute.
-  if (skipped_ > 0 && ended - shed_logged_ >= std::chrono::minutes(1)) {
-    // Log the shed frames at most once a minute.
+  // Log the skipped frames at most once a period.
+  if (skipped_ > 0 && ended - shed_logged_ >= kShedLogPeriod) {
+    // Report the count and the slowest frame, then count afresh.
     const auto slowest = std::chrono::duration_cast<std::chrono::milliseconds>(slowest_);
     Log(std::format("skipped {} frames to repay slow ones; the slowest took {} ms: {}", skipped_,
                     slowest.count(), slowest_report_));

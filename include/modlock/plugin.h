@@ -46,7 +46,9 @@ class MODLOCK_API PawnControl {
 
   // ResetToPose begins a fresh attempt at rest and sets the owning client's view.
   // Unsupported hosts refuse the reset instead of silently dropping the view.
-  virtual bool ResetToPose(int32_t, const geometry::Vec3&, const geometry::EulerAngles&) { return false; }
+  virtual bool ResetToPose(int32_t, const geometry::Vec3&, const geometry::EulerAngles&) {
+    return false;
+  }
 };
 
 // TickContext carries the server clock, observed pawn positions, and an

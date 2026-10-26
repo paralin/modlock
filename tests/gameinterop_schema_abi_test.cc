@@ -421,6 +421,7 @@ TEST(SchemaFieldOfPaths, DottedPathReachesInsideAnEmbeddedStructure) {
     const void* vtable;
     const char* name;
   };
+
   const Type collision_type{nullptr, "CCollisionProperty"};
   const Type group_type{nullptr, "uint8"};
   constexpr size_t kFieldType = 0x08;

@@ -1,8 +1,5 @@
 #include "modlock/gameinterop/native_trace.h"
 
-#include "modlock/gameinterop/entity_abi.h"
-#include "native_trace_layout.h"
-
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -10,6 +7,9 @@
 #include <numbers>
 #include <type_traits>
 #include <utility>
+
+#include "modlock/gameinterop/entity_abi.h"
+#include "native_trace_layout.h"
 
 namespace modlock::gameinterop {
 namespace {
@@ -125,8 +125,7 @@ struct PhysicsQuery {
   void* world;
 };
 
-using TraceShapeFn = bool (*)(PhysicsQuery*, Ray*, TraceVector*, TraceVector*, Filter*,
-                              GameTrace*);
+using TraceShapeFn = bool (*)(PhysicsQuery*, Ray*, TraceVector*, TraceVector*, Filter*, GameTrace*);
 
 void FilterDestructor(Filter*, std::uint8_t) {}
 

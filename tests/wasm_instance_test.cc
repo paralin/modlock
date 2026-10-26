@@ -15,19 +15,19 @@
 namespace {
 
 using modlock::wasm::Call;
-using modlock::wasm::effects::ChatRequest;
 using modlock::wasm::CommandEvent;
 using modlock::wasm::CommandResult;
-using modlock::wasm::fields::FieldResponse;
 using modlock::wasm::FrameEvent;
 using modlock::wasm::Instance;
 using modlock::wasm::Limits;
 using modlock::wasm::LogRequest;
-using modlock::wasm::fields::ReadFieldRequest;
 using modlock::wasm::Reply;
 using modlock::wasm::Runtime;
 using modlock::wasm::StartEvent;
 using modlock::wasm::StartResult;
+using modlock::wasm::effects::ChatRequest;
+using modlock::wasm::fields::FieldResponse;
+using modlock::wasm::fields::ReadFieldRequest;
 using modlock::wasm::fields::WriteFieldRequest;
 
 // ReadFile returns the bytes of a built module.

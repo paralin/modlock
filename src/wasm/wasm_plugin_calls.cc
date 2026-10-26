@@ -248,7 +248,7 @@ void WasmPlugin::SettingChanged(uint64_t steam_id, std::string_view key, std::st
 
   // Tell the mod for each slot the player holds.
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
-    // Tell the mod for each slot the player holds.
+    // Send the change to this slot when the player holds it.
     if (SteamId(slot) != steam_id) {
       continue;
     }

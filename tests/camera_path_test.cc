@@ -11,8 +11,9 @@ namespace modlock::camera {
 namespace {
 
 // Key makes one keyframe with defaults matching the Dolly test helpers.
-modlock::camera::CameraKeyframe Key(double time, double x = 0, double y = 0, double z = 0, double pitch = 0,
-                            double yaw = 0, double roll = 0, double aspect = kDefaultAspectRatio) {
+modlock::camera::CameraKeyframe Key(double time, double x = 0, double y = 0, double z = 0,
+                                    double pitch = 0, double yaw = 0, double roll = 0,
+                                    double aspect = kDefaultAspectRatio) {
   // Set the time and position.
   modlock::camera::CameraKeyframe key;
   key.set_time(time);
@@ -29,10 +30,11 @@ modlock::camera::CameraKeyframe Key(double time, double x = 0, double y = 0, dou
 }
 
 // Path makes a default-interpolation path from keys.
-modlock::camera::CameraPath MakePath(std::initializer_list<modlock::camera::CameraKeyframe> keys,
-                             modlock::camera::Interpolation interpolation = modlock::camera::INTERPOLATION_SMOOTH,
-                             modlock::camera::RotationMode rotation = modlock::camera::ROTATION_MODE_SHORTEST,
-                             modlock::camera::Interpolation lens = modlock::camera::INTERPOLATION_SMOOTH) {
+modlock::camera::CameraPath MakePath(
+    std::initializer_list<modlock::camera::CameraKeyframe> keys,
+    modlock::camera::Interpolation interpolation = modlock::camera::INTERPOLATION_SMOOTH,
+    modlock::camera::RotationMode rotation = modlock::camera::ROTATION_MODE_SHORTEST,
+    modlock::camera::Interpolation lens = modlock::camera::INTERPOLATION_SMOOTH) {
   // Set the modes and append each key.
   modlock::camera::CameraPath path;
   path.set_interpolation(interpolation);
@@ -178,8 +180,9 @@ TEST(CameraPathTest, ShortestAnglesStayContinuousAcrossSeamsAndRewinds) {
 
 TEST(CameraPathTest, UnwrappedModePreservesIntentionalMultipleSpins) {
   // Spin twice in yaw and once in roll.
-  auto path = MakePath({Key(0), Key(4, 0, 0, 0, 0, 720, -360)}, modlock::camera::INTERPOLATION_SMOOTH,
-                       modlock::camera::ROTATION_MODE_UNWRAPPED);
+  auto path =
+      MakePath({Key(0), Key(4, 0, 0, 0, 0, 720, -360)}, modlock::camera::INTERPOLATION_SMOOTH,
+               modlock::camera::ROTATION_MODE_UNWRAPPED);
   auto at2 = EvaluatePath(path, 2);
   ASSERT_TRUE(at2.has_value());
   ExpectClose(at2->angles().yaw(), 360);

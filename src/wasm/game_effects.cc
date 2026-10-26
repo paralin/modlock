@@ -13,7 +13,8 @@ namespace modlock::wasm {
 namespace {
 
 // ScreenState returns the game's state for a screen effect.
-std::expected<gameinterop::engine::ScreenEffectState, std::string> ScreenState(effects::ScreenEffect effect) {
+std::expected<gameinterop::engine::ScreenEffectState, std::string> ScreenState(
+    effects::ScreenEffect effect) {
   switch (effect) {
     case effects::SCREEN_EFFECT_KILLED:
       return gameinterop::engine::SCREEN_EFFECT_STATE_KILLED;
@@ -75,7 +76,8 @@ std::expected<combat::TraceResponse, std::string> Game::Trace(const combat::Trac
   return response;
 }
 
-std::expected<objects::ObjectResponse, std::string> Game::CreateParticle(const objects::ParticleOptions& request) {
+std::expected<objects::ObjectResponse, std::string> Game::CreateParticle(
+    const objects::ParticleOptions& request) {
   // Resolve the effects service.
   auto effects = services_.Effects();
   if (!effects) {
@@ -113,7 +115,8 @@ std::expected<objects::ObjectResponse, std::string> Game::CreateParticle(const o
   return Keep(std::unique_ptr<render::WorldEffect>(std::move(*particle)));
 }
 
-std::expected<objects::ObjectResponse, std::string> Game::CreateFog(const objects::FogOptions& request) {
+std::expected<objects::ObjectResponse, std::string> Game::CreateFog(
+    const objects::FogOptions& request) {
   // kDrawDistance reaches the far edges of the largest map.
   constexpr float kDrawDistance = 16384;
   auto effects = services_.Effects();
@@ -191,7 +194,8 @@ std::expected<void, std::string> Game::ScreenEffect(const effects::ScreenEffectR
                                     .fade_out = timing.fade_out()});
 }
 
-std::expected<void, std::string> Game::ClearScreenEffect(const effects::ClearScreenEffectRequest& request) {
+std::expected<void, std::string> Game::ClearScreenEffect(
+    const effects::ClearScreenEffectRequest& request) {
   // Resolve the messages, the screen's owner and the effect.
   auto messages = services_.Messages();
   if (!messages) {

@@ -30,6 +30,8 @@ struct PluginContext {
   EngineHost* engine = nullptr;
   int argc = 0;
   const char* const* argv = nullptr;
+  // CheckOnly is true when the host loads, starts and stops the plugin only
+  // to check it; the engine never opens a game.
   bool check_only = false;
   const net::LaunchConfig* launch = nullptr;
   // Wasm runs the sandboxed mods a plugin loads, such as a game's modes. The

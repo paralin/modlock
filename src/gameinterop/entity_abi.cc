@@ -401,8 +401,8 @@ std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const
     }
     info = SchemaClassInfoOf(schema_system, module_name, type);
     if (!info) {
-      return std::unexpected("schema field '" + segment + "' does not hold a structure: " +
-                             info.error());
+      return std::unexpected("schema field '" + segment +
+                             "' does not hold a structure: " + info.error());
     }
     base += field->offset;
     path.remove_prefix(dot + 1);

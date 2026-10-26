@@ -30,8 +30,7 @@ struct FakeEntityList {
 
   // Delete frees the slot, as the engine does when it removes the entity.
   void Delete() {
-    Write(identity.data() + gameinterop::kIdentityEHandleOffset,
-          gameinterop::kInvalidEHandleIndex);
+    Write(identity.data() + gameinterop::kIdentityEHandleOffset, gameinterop::kInvalidEHandleIndex);
   }
 
   void* System() { return system.data(); }

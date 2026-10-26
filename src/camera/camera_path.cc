@@ -253,8 +253,7 @@ std::expected<void, std::string> ValidatePath(const CameraPath& path) {
   return {};
 }
 
-std::expected<CameraPose, std::string> EvaluatePath(const CameraPath& path,
-                                                             double time) {
+std::expected<CameraPose, std::string> EvaluatePath(const CameraPath& path, double time) {
   // Refuse an empty or invalid path, or a nonfinite time.
   if (path.keys_size() == 0) {
     return std::unexpected("add a camera keyframe before evaluating the path");

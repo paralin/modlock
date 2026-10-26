@@ -16,7 +16,8 @@ class MODLOCK_API WasmMetrics {
   virtual ~WasmMetrics() = default;
 
   // Keep receives the player's totals for the mod's session.
-  virtual void Keep(std::string_view mod, uint64_t steam_id, const wasm::metrics::MetricTotals& totals) = 0;
+  virtual void Keep(std::string_view mod, uint64_t steam_id,
+                    const wasm::metrics::MetricTotals& totals) = 0;
 };
 
 }  // namespace modlock

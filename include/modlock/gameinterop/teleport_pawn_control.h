@@ -21,7 +21,8 @@ class MODLOCK_API TeleportPawnControl final : public modlock::PawnControl {
 
   bool TeleportToPosition(int32_t slot, const geometry::Vec3& position) override;
 
-  bool ResetToPose(int32_t slot, const geometry::Vec3& position, const geometry::EulerAngles& angles) override;
+  bool ResetToPose(int32_t slot, const geometry::Vec3& position,
+                   const geometry::EulerAngles& angles) override;
 
  private:
   const PawnObserver& observer_;

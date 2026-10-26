@@ -97,7 +97,8 @@ std::expected<void, std::string> Game::SetVelocity(const movement::SetVelocityRe
   return {};
 }
 
-std::expected<input::ButtonsResponse, std::string> Game::Buttons(const players::PlayerRequest& request) {
+std::expected<input::ButtonsResponse, std::string> Game::Buttons(
+    const players::PlayerRequest& request) {
   // Resolve the controller's pawn fields.
   auto pawn_field = services_.Field("CBasePlayerController", "m_hPawn");
   if (!pawn_field) {
@@ -156,7 +157,8 @@ std::expected<input::ButtonsResponse, std::string> Game::Buttons(const players::
   return response;
 }
 
-std::expected<void, std::string> Game::WatchMovement(const movement::WatchMovementRequest& request) {
+std::expected<void, std::string> Game::WatchMovement(
+    const movement::WatchMovementRequest& request) {
   if (request.player() < 0 || request.player() >= gameinterop::kMaxPlayerSlots) {
     return std::unexpected("no player has that slot");
   }
@@ -309,7 +311,8 @@ void Game::TrackProjectiles() {
   projectiles_seen_ = std::move(seen);
 }
 
-std::optional<combat::ImpactEvent> Game::Watching(void* entity, const gameinterop::TraceResult& contact) {
+std::optional<combat::ImpactEvent> Game::Watching(void* entity,
+                                                  const gameinterop::TraceResult& contact) {
   // Only a watched projectile reports an impact.
   const auto name = DesignerName(entity);
   if (!Watches(projectiles_, name)) {

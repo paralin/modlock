@@ -36,7 +36,8 @@ class MODLOCK_API WorldTextEntity {
 
   // SetOrigin moves the entity to world-space position with Euler degrees in
   // the game's pitch/yaw/roll order.
-  virtual void SetOrigin(const modlock::geometry::Vec3& position, const modlock::geometry::EulerAngles& angles) = 0;
+  virtual void SetOrigin(const modlock::geometry::Vec3& position,
+                         const modlock::geometry::EulerAngles& angles) = 0;
 
   // Handle returns the entity's packed handle while it is live. SetMessage
   // may replace the entity, so callers read it again after each change.
@@ -61,8 +62,8 @@ class MODLOCK_API WorldTextEntityFactory {
   // Create spawns one enabled, fullbright world-text entity at origin and
   // returns an owned handle, or an error naming the failed game step.
   virtual std::expected<std::unique_ptr<WorldTextEntity>, std::string> Create(
-      std::string_view message, const modlock::geometry::Vec3& origin, const modlock::geometry::EulerAngles& angles,
-      const WorldTextStyle& style) = 0;
+      std::string_view message, const modlock::geometry::Vec3& origin,
+      const modlock::geometry::EulerAngles& angles, const WorldTextStyle& style) = 0;
 };
 
 }  // namespace modlock::render
