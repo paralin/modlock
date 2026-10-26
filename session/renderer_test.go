@@ -39,7 +39,7 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	unmount, err := mountRenderer(gameDir, nil, content)
+	unmount, err := mountRenderer(gameDir, nil, "", content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if content, err = ReadContent([]string{mod}); err != nil {
 		t.Fatal(err)
 	}
-	if unmount, err = mountRenderer(gameDir, nil, content); err != nil {
+	if unmount, err = mountRenderer(gameDir, nil, "", content); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(mapped); !os.IsNotExist(err) {

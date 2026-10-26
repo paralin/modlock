@@ -8,8 +8,11 @@ import { Bridge } from './bridge.js'
 import { Drawing, pressCommand } from './draw.js'
 import { Hud, hiddenParts } from './hud.js'
 
-/** relay is the origin of the relay page, as the controller's default. */
-const relay = 'https://hyperline.gg'
+/**
+ * defaultBridge is the relay page a package without the session's boot script
+ * reads, which serves the screen on the default port.
+ */
+const defaultBridge = 'https://hyperline.gg/app/relay/bridge.html'
 
 /** hud returns the game's HUD above panel, or the layout's own root. */
 function hud(panel: Panel): Panel {
@@ -35,7 +38,8 @@ const stock = new Hud(game, (seconds, callback) => {
 })
 new Bridge(
   context.FindChildTraverse('ModlockUiState')!,
-  `${relay}/app/relay/bridge.html`,
+  // The session's boot script names the page for its relay and port.
+  context.GetAttributeString('modlock_bridge', defaultBridge),
   (screen) => {
     drawing.draw(screen)
     stock.draw(hiddenParts(screen))

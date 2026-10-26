@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"io/fs"
 	"maps"
 	"os"
@@ -31,14 +32,26 @@ const (
 	bootScript = "panorama/scripts/modlock/boot.js"
 )
 
-// bootSource creates a pass-through panel in the news layout and loads the
-// renderer into it.
-const bootSource = `(function () {
+// bridgeAttribute names the attribute of the renderer's panel that holds the
+// relay page's URL, which the renderer reads before it loads the page.
+const bridgeAttribute = "modlock_bridge"
+
+// bootSource returns the boot script, which creates a pass-through panel in
+// the news layout, gives it the relay page's URL bridge unless it is empty,
+// and loads the renderer into it.
+func bootSource(bridge string) string {
+	var attribute string
+	if bridge != "" {
+		quoted, _ := json.Marshal(bridge)
+		attribute = "  host.SetAttributeString('" + bridgeAttribute + "', " + string(quoted) + ")\n"
+	}
+	return `(function () {
   var host = $.CreatePanel('Panel', $.GetContextPanel(), 'ModlockUiHost')
   host.hittest = false
-  host.BLoadLayout('file://{resources}/layout/modlock/ui.xml', false, false)
+` + attribute + `  host.BLoadLayout('file://{resources}/layout/modlock/ui.xml', false, false)
 })()
 `
+}
 
 // Renderer is the built scripts that draw the mods' interfaces in the game.
 type Renderer struct {
@@ -52,8 +65,9 @@ type Renderer struct {
 // mountRenderer mounts a package in the Deadlock installation at gameDir that
 // draws the mods' interfaces in the player's game and carries each mod's
 // content addon, and returns the call that unmounts it. renderer is the built
-// renderer, or nil to leave the interfaces out, and content is the mods'
-// content addons. A map archive in content, maps/<map>.vpk, is written beside
+// renderer, or nil to leave the interfaces out; bridge is the URL of the relay
+// page it reads the screen through, or empty for the renderer's default; and
+// content is the mods' content addons. A map archive in content, maps/<map>.vpk, is written beside
 // the package instead of into it, since the game opens each map as its own
 // archive on the search path, as it does the stock maps.
 // The renderer shadows the stock news layout, read from the installed game so
@@ -65,12 +79,12 @@ type Renderer struct {
 // package goes in a directory named for its content, so a game still running
 // from an earlier session keeps its package while the next session mounts a
 // changed one.
-func mountRenderer(gameDir string, renderer *Renderer, content fstest.MapFS) (func() error, error) {
+func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fstest.MapFS) (func() error, error) {
 	// Build the package from the renderer and the mods' content.
 	citadel := filepath.Join(gameDir, "game", "citadel")
 	files := fstest.MapFS{}
 	if renderer != nil {
-		compiled, err := rendererFiles(citadel, renderer)
+		compiled, err := rendererFiles(citadel, renderer, bridge)
 		if err != nil {
 			return nil, err
 		}
@@ -158,9 +172,9 @@ func isMapArchive(name string) bool {
 }
 
 // rendererFiles compiles the renderer's files: the installed news layout
-// with the boot script added, the boot script, and the renderer's layout and
-// scripts.
-func rendererFiles(citadel string, renderer *Renderer) (fstest.MapFS, error) {
+// with the boot script added, the boot script naming the relay page bridge,
+// and the renderer's layout and scripts.
+func rendererFiles(citadel string, renderer *Renderer, bridge string) (fstest.MapFS, error) {
 	stock, err := vpk.OpenArchive(filepath.Join(citadel, "pak01_dir.vpk"))
 	if err != nil {
 		return nil, err
@@ -179,7 +193,7 @@ func rendererFiles(citadel string, renderer *Renderer) (fstest.MapFS, error) {
 	}
 	return s2panorama.CompileTree("modlock_dev", fstest.MapFS{
 		newsLayout:                           {Data: []byte(news)},
-		bootScript:                           {Data: []byte(bootSource)},
+		bootScript:                           {Data: []byte(bootSource(bridge))},
 		"panorama/layout/modlock/ui.xml":     {Data: panorama.Layout},
 		"panorama/scripts/modlock/ui.js":     {Data: renderer.Script},
 		"panorama/scripts/modlock/layout.js": {Data: renderer.Layout},
