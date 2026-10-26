@@ -243,6 +243,12 @@ if(WIN32)
   target_include_directories(modlock_sdk SYSTEM PRIVATE third_party/safetyhook)
   target_compile_definitions(modlock_sdk PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
   target_link_libraries(modlock_sdk PRIVATE ws2_32 psapi)
+  # The native memory guard uses __try and __except, which Clang accepts only
+  # with Microsoft extensions.
+  if(NOT MSVC)
+    set_source_files_properties(src/gameinterop/windows/native_memory.cc
+      PROPERTIES COMPILE_OPTIONS -fms-extensions)
+  endif()
 else()
   target_sources(modlock_sdk PRIVATE
     src/gameinterop/unsupported/mapped_module_image.cc
