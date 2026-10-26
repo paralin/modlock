@@ -163,8 +163,7 @@ std::expected<void, std::string> Game::Heal(const players::HealRequest& request)
   if (health <= sample->health) {
     return {};
   }
-  if (!gameinterop::RestorePawnHealth(observer_.PawnForSlot(request.player()), health,
-                                      sample->max_health)) {
+  if (!gameinterop::RestorePawnHealth(sample->pawn, health, sample->max_health)) {
     return std::unexpected("cannot heal the player's hero");
   }
   return {};
@@ -228,10 +227,11 @@ std::expected<void, std::string> Game::Sound(const effects::SoundRequest& reques
   if (!sound) {
     return std::unexpected(sound.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  auto pawn = LivePawn(request.player());
+  if (!pawn) {
+    return std::unexpected(pawn.error());
   }
-  if (!(*sound)->Emit(observer_.PawnForSlot(request.player()), request.sound().c_str())) {
+  if (!(*sound)->Emit(*pawn, request.sound().c_str())) {
     return std::unexpected("the game did not play " + request.sound());
   }
   return {};

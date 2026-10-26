@@ -85,15 +85,15 @@ std::expected<void, std::string> Game::Kill(const players::PlayerRequest& reques
   if (sample->health <= 0) {
     return {};
   }
-  return (*damage)->Kill(observer_.PawnForSlot(request.player()));
+  return (*damage)->Kill(sample->pawn);
 }
 
 std::expected<void, std::string> Game::SetVelocity(const movement::SetVelocityRequest& request) {
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  auto pawn = LivePawn(request.player());
+  if (!pawn) {
+    return std::unexpected(pawn.error());
   }
-  gameinterop::SetEntityVelocity(observer_.PawnForSlot(request.player()),
-                                 Floats(request.velocity()));
+  gameinterop::SetEntityVelocity(*pawn, Floats(request.velocity()));
   return {};
 }
 

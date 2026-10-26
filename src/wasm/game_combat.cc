@@ -66,8 +66,8 @@ std::expected<void, std::string> Game::AdjustSouls(const players::AdjustSoulsReq
   if (!currency) {
     return std::unexpected(currency.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   auto adjusted =
       observer_.AdjustSouls(request.player(), request.delta(), request.silent(), *currency);
@@ -83,8 +83,8 @@ std::expected<void, std::string> Game::StartingSouls(const players::StartingSoul
   if (!currency) {
     return std::unexpected(currency.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   auto prepared = observer_.PrepareStartingSouls(request.player(), request.souls(), *currency);
   if (!prepared) {
@@ -103,8 +103,8 @@ std::expected<void, std::string> Game::ResetHero(const players::ResetHeroRequest
   if (!reset) {
     return std::unexpected(reset.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   auto fresh = observer_.ResetStartingSouls(request.player(), request.souls(), *currency, *reset);
   if (!fresh) {

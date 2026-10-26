@@ -204,10 +204,13 @@ uint32_t ContextId(std::string_view context) {
 template <typename SetNumber, typename MutableVector>
 void SetValue(const players::CameraValue& value, SetNumber set_number,
               MutableVector mutable_vector) {
+  // A value without a position is a number.
   if (!value.has_position()) {
     set_number(value.number());
     return;
   }
+
+  // Otherwise write the position as the operation's vector.
   engine::MsgVector* vector = mutable_vector();
   vector->set_x(static_cast<float>(value.position().x()));
   vector->set_y(static_cast<float>(value.position().y()));
@@ -313,6 +316,8 @@ std::expected<void, std::string> Game::MoveCamera(const players::CameraOptions& 
   if (auto motion = SetMotion(request.motion(), message); !motion) {
     return motion;
   }
+
+  // Apply its context, timing and sharing options.
   message.set_context_symbol_id(ContextId(request.context()));
   message.set_delay(request.delay());
   message.set_relative_values(request.relative());
@@ -342,6 +347,7 @@ std::expected<void, std::string> Game::MoveCamera(const players::CameraOptions& 
 }
 
 std::expected<void, std::string> Game::ClearCamera(const players::ClearCameraRequest& request) {
+  // Resolve the message sender.
   auto messages = services_.Messages();
   if (!messages) {
     return std::unexpected(messages.error());
@@ -403,8 +409,8 @@ std::expected<void, std::string> Game::ClearItems(const players::PlayerRequest& 
   if (!items) {
     return std::unexpected(items.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   return observer_.ReconcileItems(request.player(), {}, **abilities, **items);
 }
@@ -413,8 +419,8 @@ std::expected<void, std::string> Game::Freeze(const players::FreezeRequest& requ
   // Check the player's hero is live, then freeze or release it.
   const auto slot = request.player();
   const bool frozen = !request.has_frozen() || request.frozen();
-  if (auto sample = Live(slot); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(slot); !pawn) {
+    return std::unexpected(pawn.error());
   }
   if (auto done = observer_.SetPreparationFrozen(slot, frozen); !done) {
     return done;
@@ -434,8 +440,8 @@ std::expected<void, std::string> Game::RestoreStamina(const players::PlayerReque
   if (!now) {
     return std::unexpected(now.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   return observer_.SetPracticeStamina(request.player(), *now);
 }
@@ -445,8 +451,8 @@ std::expected<void, std::string> Game::SetStamina(const players::SetStaminaReque
   if (!now) {
     return std::unexpected(now.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   return observer_.SetPracticeStamina(request.player(), *now, request.stamina());
 }
@@ -496,8 +502,8 @@ std::expected<abilities::AbilitiesResponse, std::string> Game::Abilities(
   if (!definitions) {
     return std::unexpected(definitions.error());
   }
-  if (auto sample = Live(slot); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(slot); !pawn) {
+    return std::unexpected(pawn.error());
   }
   auto abilities = observer_.CurrentAbilitiesForSlot(slot);
   if (!abilities) {
@@ -621,8 +627,8 @@ std::expected<void, std::string> Game::GiveItem(const abilities::GiveItemRequest
   if (!items) {
     return std::unexpected(items.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
 
   // Grant the item to the player's hero.
@@ -654,8 +660,8 @@ std::expected<void, std::string> Game::ReplaceAbility(
   }
 
   // Replace the ability on the player's live hero.
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   return (*slots)->Replace(observer_, request.player(), static_cast<uint16_t>(request.index()),
                            gameinterop::MakeMemberName(request.ability()).hash, **definitions,
@@ -719,8 +725,8 @@ std::expected<void, std::string> Game::GiveModifier(const abilities::GiveModifie
   if (!schema) {
     return std::unexpected(schema.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
   }
   auto owned = observer_.CurrentAbilitiesForSlot(request.player());
   if (!owned) {
@@ -757,8 +763,8 @@ std::expected<gameinterop::PawnObserver::Ability, std::string> Game::OwnedAbilit
   if (!definitions) {
     return std::unexpected(definitions.error());
   }
-  if (auto sample = Live(slot); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(slot); !pawn) {
+    return std::unexpected(pawn.error());
   }
   auto abilities = observer_.CurrentAbilitiesForSlot(slot);
   if (!abilities) {
@@ -781,18 +787,18 @@ std::expected<void, std::string> Game::Teleport(const movement::TeleportRequest&
   if (!teleport) {
     return std::unexpected(teleport.error());
   }
-  if (auto sample = Live(request.player()); !sample) {
-    return std::unexpected(sample.error());
+  auto pawn = LivePawn(request.player());
+  if (!pawn) {
+    return std::unexpected(pawn.error());
   }
 
   // Teleport the hero, with a velocity when the request sets one.
   const auto position = Floats(request.position());
   const auto angles = Floats(request.facing());
-  auto* pawn = observer_.PawnForSlot(request.player());
   if (request.has_velocity()) {
-    gameinterop::TeleportEntity(pawn, position, angles, Floats(request.velocity()));
+    gameinterop::TeleportEntity(*pawn, position, angles, Floats(request.velocity()));
   } else {
-    (*teleport)(nullptr, pawn, position.data(), angles.data());
+    (*teleport)(nullptr, *pawn, position.data(), angles.data());
   }
 
   // A teleport recomputes the hero's modifier states, dropping held ones.
@@ -807,8 +813,9 @@ std::expected<void, std::string> Game::MovePlayer(const movement::MovePlayerRequ
     return std::unexpected(motion.error());
   }
   const auto slot = request.player();
-  if (auto sample = Live(slot); !sample) {
-    return std::unexpected(sample.error());
+  auto live = LivePawn(slot);
+  if (!live) {
+    return std::unexpected(live.error());
   }
 
   // Convert the requested pose to the game's floats.
@@ -818,7 +825,7 @@ std::expected<void, std::string> Game::MovePlayer(const movement::MovePlayerRequ
 
   // The aim takes the whole facing; tilting the body by pitch would lean the
   // whole hero.
-  auto* pawn = observer_.PawnForSlot(slot);
+  void* pawn = *live;
   if (auto aimed = observer_.SetEyeAngles(pawn, facing); !aimed) {
     return aimed;
   }
@@ -838,8 +845,8 @@ std::expected<void, std::string> Game::Steer(const movement::SteerRequest& reque
   }
 
   // Steer the live hero, and drop the steering if the movement hook fails.
-  if (auto sample = Live(slot); !sample) {
-    return std::unexpected(sample.error());
+  if (auto pawn = LivePawn(slot); !pawn) {
+    return std::unexpected(pawn.error());
   }
   steers_.insert_or_assign(slot, request.steering());
   auto steps = services_.Steps();

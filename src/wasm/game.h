@@ -658,6 +658,11 @@ class Game : public HostService {
   // Live returns the observed pawn of slot for this frame.
   std::expected<gameinterop::PawnObserver::Sample, std::string> Live(int32_t slot);
 
+  // LivePawn returns the pawn Live would observe for slot, without reading its
+  // sample, for a call that only acts on the hero. The pointer is borrowed for
+  // the call.
+  std::expected<void*, std::string> LivePawn(int32_t slot) const;
+
   // Entity resolves a handle to the live entity it names.
   std::expected<void*, std::string> Entity(uint32_t handle) const;
 

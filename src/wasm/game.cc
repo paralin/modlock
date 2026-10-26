@@ -423,6 +423,14 @@ std::expected<gameinterop::PawnObserver::Sample, std::string> Game::Live(int32_t
   return *sample;
 }
 
+std::expected<void*, std::string> Game::LivePawn(int32_t slot) const {
+  void* pawn = observer_.PawnForSlot(slot);
+  if (pawn == nullptr) {
+    return std::unexpected("the player has no live hero");
+  }
+  return pawn;
+}
+
 std::expected<void*, std::string> Game::Entity(uint32_t handle) const {
   // Find the live entity with that handle.
   auto entities = gameinterop::ResolveLiveEntitySystem();
