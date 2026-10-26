@@ -91,14 +91,17 @@ bool WasmPlugin::Start() {
                                   ListenForRestart();
                                   ListenToPlayers();
                                   ListenToCombat();
-                                  World();
+                                  world_due_ = true;
                                 });
   if (world) {
     world_.Add(std::move(*world));
   } else {
     Log(std::string("player commands are unavailable: ") + world.error());
   }
-  if (auto ending = engine_->OnWorldEnding([this] { game_.WorldEnding(); })) {
+  if (auto ending = engine_->OnWorldEnding([this] {
+        world_due_ = false;
+        game_.WorldEnding();
+      })) {
     world_.Add(std::move(*ending));
   } else {
     Log(std::string("world objects may outlive their world: ") + ending.error());
@@ -200,7 +203,7 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   if (map_) {
     ListenToPlayers();
     ListenToCombat();
-    World();
+    world_due_ = true;
   }
   return {};
 }
@@ -371,6 +374,13 @@ void WasmPlugin::Tick() {
     Restart();
   } else if (stopped_ && std::chrono::steady_clock::now() - warned_at_ >= kWarnPeriod) {
     Warn(std::format("stopped. Type /{} to start it again.", kRestartCommand));
+  }
+
+  // Tell the mod of its world on the world's first frame: the server starts
+  // a world before it can take the objects a mod creates there, and a
+  // particle created from the startup crashes the server.
+  if (std::exchange(world_due_, false)) {
+    World();
   }
 
   // Change the server's definitions once per world.
