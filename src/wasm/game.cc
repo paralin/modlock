@@ -106,7 +106,7 @@ void Game::ReleaseModifiers() {
 }
 
 std::vector<Game::ButtonChange> Game::TakeButtonChanges() {
-  return std::exchange(changes_, {});
+  return input_.TakeChanges();
 }
 
 std::vector<Game::Restored> Game::TakeRestored() {
@@ -145,7 +145,7 @@ void Game::WorldEnding() {
 
   // Release what the mod held in the world.
   ReleaseModifiers();
-  presses_.clear();
+  input_.DropPresses();
   restores_.clear();
   npc_restore_.reset();
   held_clock_.reset();
@@ -165,8 +165,7 @@ void Game::Leave(int32_t slot) {
 
   // Forget its restores, blocks, presses and hidden objects.
   restores_.erase(slot);
-  slot_blocked_.erase(slot);
-  presses_.erase(slot);
+  input_.Leave(slot);
   hidden_.erase(slot);
 
   // Whoever takes the slot next is a different player, who was never listed.
@@ -226,12 +225,7 @@ void Game::Clear() {
   ReleaseModifiers();
 
   // Release the input the mod blocked, remapped or watched.
-  blocked_ = 0;
-  slot_blocked_.clear();
-  remap_.Clear();
-  presses_.clear();
-  watched_ = 0;
-  changes_.clear();
+  input_.Clear();
 
   // Drop pending restores and their reports.
   restores_.clear();

@@ -237,9 +237,12 @@ std::expected<void, std::string> Game::RemoveObject(const objects::ObjectRequest
 
 std::expected<void, std::string> Game::ShowObjectOnlyTo(
     const objects::ShowObjectOnlyToRequest& request) {
+  // Find the object.
   if (!objects_.contains(request.object())) {
     return std::unexpected("no object has that identifier");
   }
+
+  // Collect the audience's slot bits.
   uint64_t slots = 0;
   for (const auto slot : request.players()) {
     if (!gameinterop::IsPlayerSlot(slot)) {
@@ -347,35 +350,31 @@ std::expected<void, std::string> Game::Precache(const PrecacheOptions& request) 
 // The input calls replace the mod's changes; the shared hook applies them.
 
 std::expected<void, std::string> Game::BlockInput(const input::InputRequest& request) {
-  blocked_ = request.buttons();
+  input_.Block(request.buttons());
   services_.Input();
   return {};
 }
 
 std::expected<void, std::string> Game::BlockPlayerInput(const input::PlayerInputRequest& request) {
-  if (request.buttons() == 0) {
-    slot_blocked_.erase(request.player());
-  } else {
-    slot_blocked_[request.player()] = request.buttons();
-  }
+  input_.BlockPlayer(request.player(), request.buttons());
   services_.Input();
   return {};
 }
 
 std::expected<void, std::string> Game::Press(const input::PlayerInputRequest& request) {
-  presses_[request.player()] |= request.buttons();
+  input_.Press(request.player(), request.buttons());
   services_.Input();
   return {};
 }
 
 std::expected<void, std::string> Game::WatchInput(const input::InputRequest& request) {
-  watched_ = request.buttons();
+  input_.Watch(request.buttons());
   services_.Input();
   return {};
 }
 
 std::expected<void, std::string> Game::RemapInput(const input::RemapInputRequest& request) {
-  remap_ = request;
+  input_.Remap(request);
   services_.Input();
   return {};
 }

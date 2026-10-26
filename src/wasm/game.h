@@ -44,6 +44,7 @@
 #include "src/wasm/wasm.pb.h"
 #include "wasm/hero_restore.h"
 #include "wasm/host_service.gen.h"
+#include "wasm/input_changes.h"
 #include "wasm/npc_restore.h"
 
 namespace modlock::wasm {
@@ -272,13 +273,7 @@ class Game : public HostService {
   // its hero restores.
   void Frame();
 
-  // ButtonChange is one player's watched buttons that went down or up in one
-  // input.
-  struct ButtonChange {
-    int32_t slot = 0;
-    uint64_t pressed = 0;
-    uint64_t released = 0;
-  };
+  using ButtonChange = InputChanges::ButtonChange;
 
   // TakeButtonChanges returns the watched button changes since the last call,
   // in the order players made them.
@@ -755,16 +750,8 @@ class Game : public HostService {
   // first time one is limited; it puts the game's own maximums back when the
   // game ends.
   std::unique_ptr<gameinterop::AbilityChargeLimit> charge_limit_;
-  // blocked_ withholds buttons from every player and slot_blocked_ from one
-  // player; presses_ adds buttons to one player's next input.
-  uint64_t blocked_ = 0;
-  std::map<int32_t, uint64_t> slot_blocked_;
-  // remap_ makes its from buttons act as its to buttons for every player.
-  input::RemapInputRequest remap_;
-  std::map<int32_t, uint64_t> presses_;
-  // watched_ selects the buttons whose changes changes_ queues for the mod.
-  uint64_t watched_ = 0;
-  std::vector<ButtonChange> changes_;
+  // input_ is the mod's blocks, presses, remap and watched buttons.
+  InputChanges input_;
   // projectiles_ is the mod's projectile watch. projectiles_seen_ holds the
   // watched projectiles of the last frame, and launches_ queues the new ones
   // for the mod.

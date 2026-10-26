@@ -13,24 +13,6 @@ namespace modlock::wasm {
 
 namespace {
 
-// Remap moves the state of remap's from buttons to its to buttons.
-void Remap(const input::RemapInputRequest& remap, gameinterop::AbilityInputHook::Input& input) {
-  if (remap.from() == 0) {
-    return;
-  }
-  const bool held = input.buttons[0] & remap.from();
-  for (auto& state : input.buttons) {
-    const bool set = state & remap.from();
-    state &= ~remap.from();
-    if (set) {
-      state |= remap.to();
-    }
-  }
-  if (held && remap.repeat()) {
-    input.buttons[1] |= remap.to();
-  }
-}
-
 // The movement buttons the game holds beside the movement axes.
 constexpr uint64_t kInForward = 1u << 3;     // IN_FORWARD
 constexpr uint64_t kInBack = 1u << 4;        // IN_BACK
@@ -89,10 +71,7 @@ uint64_t GameServices::Filter(gameinterop::AbilityInputHook::Input& input) {
   // Merge every game's blocks for this player.
   uint64_t blocked = 0;
   for (auto* game : games_) {
-    blocked |= game->blocked_;
-    if (auto found = game->slot_blocked_.find(input.slot); found != game->slot_blocked_.end()) {
-      blocked |= found->second;
-    }
+    blocked |= game->input_.Blocked(input.slot);
   }
 
   // A press is a button held now that changed for this input; a release is
@@ -105,26 +84,15 @@ uint64_t GameServices::Filter(gameinterop::AbilityInputHook::Input& input) {
   last = held;
   const uint64_t pressed = held & changed;
   const uint64_t released = ~held & changed;
+
+  // Queue each game's watched changes and add its pending press, then apply
+  // the remaps to the input the presses made.
   for (auto* game : games_) {
-    // Record the game's watched changes.
-    if ((pressed | released) & game->watched_ && game->changes_.size() < kMaxChanges) {
-      game->changes_.push_back({input.slot, pressed & game->watched_, released & game->watched_});
-    }
-
-    // Take the game's pending press for this slot.
-    auto press = game->presses_.find(input.slot);
-    if (press == game->presses_.end()) {
-      continue;
-    }
-
-    // A press is down and newly changed for this one input.
-    input.buttons[0] |= press->second;
-    input.buttons[1] |= press->second;
-    input.buttons[2] &= ~press->second;
-    game->presses_.erase(press);
+    game->input_.Record(input.slot, pressed, released);
+    game->input_.ApplyPress(input);
   }
   for (auto* game : games_) {
-    Remap(game->remap_, input);
+    game->input_.ApplyRemap(input);
   }
   return blocked;
 }
@@ -176,6 +144,7 @@ std::expected<void, std::string> GameServices::Commands() {
   if (usercmds_error_) {
     return std::unexpected(*usercmds_error_);
   }
+
   // Pawn reads ask every frame, so a hook that cannot install is not retried.
   auto image = Image();
   auto hook = image ? gameinterop::CommandHook::Install(
@@ -352,6 +321,7 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
   const auto driven = std::ranges::find_if(
       games_, [&](const Game* game) { return game->drives_.contains(call.slot); });
   if (driven != games_.end()) {
+    // Replay the drive's axes, movement keys and view.
     const auto& drive = (*driven)->drives_.at(call.slot);
     call.forward = drive.forward;
     call.left = drive.left;
@@ -367,6 +337,8 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
     if (!std::exchange(stepped, true)) {
       command.set_grounded(call.ground_entity != MovementHook::kNoGround);
     }
+
+    // Keep the latest held buttons and axes, and add this command's presses.
     command.set_held(call.buttons[0]);
     command.set_changed(command.changed() | call.buttons[1]);
     command.set_scroll(command.scroll() | call.buttons[2]);
