@@ -103,6 +103,10 @@ EngineHost::EngineHost() : impl_(std::make_unique<Impl>()) {}
 
 EngineHost::~EngineHost() = default;
 
+bool EngineHost::Opened() const {
+  return impl_->opened;
+}
+
 const host_app::GamePaths& EngineHost::Paths() const {
   return impl_->paths;
 }

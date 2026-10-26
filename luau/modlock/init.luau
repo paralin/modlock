@@ -1005,8 +1005,10 @@ export type UiPressEvent = {
 export type StartEvent = {
 	-- args holds the arguments that follow -- on the host command line.
 	args: { string },
-	-- checkOnly is true when the host checks the mod without starting a game;
-	-- every call but Log then fails.
+	-- checkOnly is true when the host checks the mod without starting a game.
+	-- The mod then hears no game events, and a call that needs the game fails;
+	-- logging, the host's services, settings, metrics, files, interfaces and
+	-- the reload hold still answer.
 	checkOnly: boolean,
 	-- source holds an interpreted mod's entry, which the interpreter module
 	-- evaluates during start. It is empty for a compiled mod.

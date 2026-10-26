@@ -153,8 +153,10 @@ export interface StartEvent {
    */
   args?: string[]
   /**
-   * CheckOnly is true when the host checks the mod without starting a game;
-   * every call but Log then fails.
+   * CheckOnly is true when the host checks the mod without starting a game.
+   * The mod then hears no game events, and a call that needs the game fails;
+   * logging, the host's services, settings, metrics, files, interfaces and
+   * the reload hold still answer.
    */
   checkOnly?: boolean
   /**

@@ -1676,8 +1676,10 @@ export interface StartEvent {
   /** args holds the arguments that follow -- on the host command line. */
   readonly args: string[]
   /**
-   * checkOnly is true when the host checks the mod without starting a game;
-   * every call but Log then fails.
+   * checkOnly is true when the host checks the mod without starting a game.
+   * The mod then hears no game events, and a call that needs the game fails;
+   * logging, the host's services, settings, metrics, files, interfaces and
+   * the reload hold still answer.
    */
   readonly checkOnly: boolean
   /**

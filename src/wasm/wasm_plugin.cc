@@ -77,7 +77,7 @@ bool WasmPlugin::Start() {
   if (!Begin(false)) {
     return false;
   }
-  if (check_only_) {
+  if (!GameOpen()) {
     return true;
   }
 
@@ -297,9 +297,6 @@ void WasmPlugin::Stopped() {
 void WasmPlugin::Warn(std::string_view what) {
   // Address each player, since the game's chat goes to one slot at a time.
   warned_at_ = std::chrono::steady_clock::now();
-  if (check_only_) {
-    return;
-  }
   auto messages = host_.game.Messages();
   if (!messages) {
     return;
@@ -355,6 +352,45 @@ void WasmPlugin::World() {
   static_cast<void>(mod_.World(event));
 }
 
+bool WasmPlugin::GameOpen() const {
+  return engine_ && engine_->Opened();
+}
+
+void WasmPlugin::Play() {
+  // Change the server's definitions once per world.
+  if (!tuned_) {
+    tuned_ =
+        Tune(L"server.dll", "server.dll", manifest_, [this](std::string_view text) { Log(text); });
+  }
+
+  // Run the game's frame work.
+  game_.Frame();
+  Steer();
+  DeliverDamaged();
+  DeliverGameEvents();
+}
+
+void WasmPlugin::Observe(wasm::FrameEvent& frame) {
+  // A frame without a clock reads tick zero, which stalls every timer a mod
+  // keeps, so log each new reason the clock is unreadable.
+  if (auto server = host_.game.Server()) {
+    if (auto clock = (*server)->ReadClock()) {
+      frame.set_tick(static_cast<uint64_t>(clock->tick));
+      frame.set_time_seconds(clock->current_time);
+      clock_error_.clear();
+    } else if (clock.error() != clock_error_) {
+      clock_error_ = clock.error();
+      Log("the server clock is unreadable: " + clock_error_);
+    }
+  }
+
+  // Listen to combat once players move, and sample the watched heroes.
+  if (map_ && game_.Moving()) {
+    ListenToCombat();
+  }
+  Sample(frame);
+}
+
 void WasmPlugin::Tick() {
   // A build that waited for the hold's release replaces the running one
   // outside the mod's own calls.
@@ -385,17 +421,10 @@ void WasmPlugin::Tick() {
     World();
   }
 
-  // Change the server's definitions once per world.
-  if (!tuned_ && !check_only_) {
-    tuned_ =
-        Tune(L"server.dll", "server.dll", manifest_, [this](std::string_view text) { Log(text); });
+  // Run the game's frame work, and deliver the frame to a mod that wants it.
+  if (GameOpen()) {
+    Play();
   }
-
-  // Run the game's frame work.
-  game_.Frame();
-  Steer();
-  DeliverDamaged();
-  DeliverGameEvents();
   if (!wants_.frames() || !instance_) {
     return;
   }
@@ -409,23 +438,8 @@ void WasmPlugin::Tick() {
     return;
   }
   wasm::FrameEvent frame;
-  if (!check_only_) {
-    if (auto server = host_.game.Server()) {
-      // A frame without a clock reads tick zero, which stalls every timer a
-      // mod keeps, so log each new reason the clock is unreadable.
-      if (auto clock = (*server)->ReadClock()) {
-        frame.set_tick(static_cast<uint64_t>(clock->tick));
-        frame.set_time_seconds(clock->current_time);
-        clock_error_.clear();
-      } else if (clock.error() != clock_error_) {
-        clock_error_ = clock.error();
-        Log("the server clock is unreadable: " + clock_error_);
-      }
-    }
-    if (map_ && game_.Moving()) {
-      ListenToCombat();
-    }
-    Sample(frame);
+  if (GameOpen()) {
+    Observe(frame);
   }
   static_cast<void>(mod_.Frame(frame));
 

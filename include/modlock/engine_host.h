@@ -37,6 +37,9 @@ class MODLOCK_API EngineHost {
   // it before Run starts the engine.
   std::expected<void, std::string> Open(const std::filesystem::path& game_dir,
                                         const net::LaunchConfig& launch);
+  // Opened reports whether Open loaded the game; until it does, no game
+  // runs and no game event fires.
+  bool Opened() const;
   const host_app::GamePaths& Paths() const;
 
   // Run hands control to the engine until it exits, then invalidates world views.

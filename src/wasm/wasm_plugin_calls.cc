@@ -1,5 +1,7 @@
 //go:build deps_only
 
+#include <algorithm>
+#include <array>
 #include <string_view>
 #include <utility>
 
@@ -59,7 +61,7 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
 
 void WasmPlugin::ReportPlayers() {
   // Report only a changed set of players.
-  if (check_only_ || !instance_) {
+  if (!GameOpen() || !instance_) {
     return;
   }
   const auto revision = gameinterop::ConnectionTracker::Revision();
@@ -150,13 +152,12 @@ void WasmPlugin::Scope(std::optional<std::set<int32_t>> players) {
 }
 
 wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
-  // A mod that serves some players reaches only them. A check runs no game;
-  // the mod may still log, reach the host's services and hold its build.
+  // A mod that serves some players reaches only them. Without a game it
+  // reaches only what the plugin answers itself.
   wasm::Reply reply;
   if (auto refused = scope_.Refuse(call); !refused.empty()) {
     reply.set_error(std::move(refused));
-  } else if (!check_only_ || call.method() == "Log" || call.method() == "CallService" ||
-             call.method() == "HoldReload") {
+  } else if (GameOpen() || PluginGame::AnswersWithoutGame(call.method())) {
     reply = game_.Dispatch(call);
   } else {
     reply.set_error("no game is running");
@@ -309,6 +310,15 @@ void WasmPlugin::HandOn(int32_t slot) {
 uint64_t WasmPlugin::SteamId(int32_t slot) {
   const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
   return state.occupied && !state.is_bot ? state.xuid : 0;
+}
+
+bool PluginGame::AnswersWithoutGame(std::string_view method) {
+  // Keep this list to the host calls this class overrides.
+  static constexpr std::array<std::string_view, 9> kMethods = {
+      "Log",       "Ui",         "CallService", "PlayerSetting", "SetPlayerSetting",
+      "AddMetric", "HoldReload", "ReadFile",    "WriteFile",
+  };
+  return std::ranges::find(kMethods, method) != kMethods.end();
 }
 
 std::expected<void, std::string> PluginGame::Log(const wasm::LogRequest& request) {

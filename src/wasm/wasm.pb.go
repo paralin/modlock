@@ -91,8 +91,10 @@ type StartEvent struct {
 	unknownFields []byte
 	// Args holds the arguments that follow -- on the host command line.
 	Args []string `protobuf:"bytes,1,rep,name=args,proto3" json:"args,omitempty"`
-	// CheckOnly is true when the host checks the mod without starting a game;
-	// every call but Log then fails.
+	// CheckOnly is true when the host checks the mod without starting a game.
+	// The mod then hears no game events, and a call that needs the game fails;
+	// logging, the host's services, settings, metrics, files, interfaces and
+	// the reload hold still answer.
 	CheckOnly bool `protobuf:"varint,2,opt,name=check_only,json=checkOnly,proto3" json:"checkOnly,omitempty"`
 	// Source holds an interpreted mod's entry, which the interpreter module
 	// evaluates during start. It is empty for a compiled mod.

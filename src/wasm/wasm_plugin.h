@@ -78,6 +78,10 @@ class PluginGame final : public wasm::Game {
   PluginGame(WasmPlugin& plugin, Mods& host, EngineHost* engine)
       : Game(host.game, engine), plugin_(plugin) {}
 
+  // AnswersWithoutGame reports whether the plugin answers method itself,
+  // without the game: the calls this class overrides.
+  static bool AnswersWithoutGame(std::string_view method);
+
  private:
   std::expected<void, std::string> Log(const wasm::LogRequest& request) override;
   std::expected<void, std::string> Ui(const wasm::ui::UiRequest& request) override;
@@ -278,6 +282,14 @@ class WasmPlugin final : public Plugin {
   // Sample fills a frame that starts a new tick with the watched heroes'
   // movement and the facts queued since the last one.
   void Sample(wasm::FrameEvent& frame);
+  // GameOpen reports whether the engine opened a game; a check opens none,
+  // so its mod hears no game and reaches none.
+  bool GameOpen() const;
+  // Play runs a frame's game work: the definitions, the game's own frame,
+  // the movement model and the queued deliveries.
+  void Play();
+  // Observe fills a frame with the game clock and the heroes' movement.
+  void Observe(wasm::FrameEvent& frame);
   // DeliverGameEvents passes on the button changes and ended restores the
   // game queued.
   void DeliverGameEvents();
@@ -302,6 +314,8 @@ class WasmPlugin final : public Plugin {
   std::string name_;
   // engine_ outlives the plugin; the host owns it.
   EngineHost* engine_;
+  // check_only_ is true when the host only checks the mod, which the mod
+  // hears at its start.
   bool check_only_;
   std::vector<std::string> args_;
   std::unique_ptr<wasm::Instance> instance_;

@@ -1181,8 +1181,10 @@ class StartEvent:
 
     # args holds the arguments that follow -- on the host command line.
     args: list[str] = dataclasses.field(default_factory=lambda: list[str]())
-    # check_only is true when the host checks the mod without starting a game;
-    # every call but Log then fails.
+    # check_only is true when the host checks the mod without starting a game.
+    # The mod then hears no game events, and a call that needs the game fails;
+    # logging, the host's services, settings, metrics, files, interfaces and
+    # the reload hold still answer.
     check_only: bool = False
     # source holds an interpreted mod's entry, which the interpreter module
     # evaluates during start. It is empty for a compiled mod.
