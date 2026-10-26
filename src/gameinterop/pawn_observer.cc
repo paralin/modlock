@@ -463,19 +463,9 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
   }
 
   // Resolve the layout once.
-  if (!offsets_ok_) {
-    // Resolve the schema layout once.
-    if (!seams_.layout) {
-      NoteDegradation("no schema layout resolver");
-      return std::nullopt;
-    }
-    auto layout = seams_.layout();
-    if (!layout) {
-      NoteDegradation(layout.error().c_str());
-      return std::nullopt;
-    }
-    layout_ = layout.value();
-    offsets_ok_ = true;
+  if (auto layout = ResolveLayout(); !layout) {
+    NoteDegradation(layout.error().c_str());
+    return std::nullopt;
   }
 
   // Resolve the entity list.
