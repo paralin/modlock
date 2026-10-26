@@ -224,28 +224,24 @@ std::expected<PawnObserver::Ability, std::string> ReadOwnedAbility(const Ability
 
 std::expected<std::vector<PawnObserver::Ability>, std::string>
 PawnObserver::CurrentAbilitiesForSlot(int32_t slot) {
-  // The frame's connection must be unchanged.
-  if (slot != frame_slot_ || !frame_pawn_ || !frame_entity_system_) {
-    return std::unexpected("pawn is unavailable in this frame");
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
   }
-  const auto connection =
-      seams_.slot_state ? seams_.slot_state(slot) : ConnectionTracker::SlotState{};
-  if (!connection.occupied || connection.xuid != frame_connection_.xuid ||
-      connection.generation != frame_connection_.generation) {
-    return std::unexpected("connection changed during this frame");
-  }
+  return AbilitiesOf(*here);
+}
 
-  // The frame's pawn must still be the controller's.
-  auto* entity_list = EntityListOf(frame_entity_system_);
-  auto* pawn_identity = IdentityOfHandle(entity_list, frame_pawn_handle_);
-  auto* controller_identity = IdentityOfIndex(entity_list, slot + 1);
-  if (!pawn_identity || InstanceOf(pawn_identity) != frame_pawn_ || !controller_identity) {
-    return std::unexpected("pawn identity changed during this frame");
+std::expected<std::vector<PawnObserver::Ability>, std::string> PawnObserver::PinnedAbilities(
+    int32_t slot, const Located& before) {
+  const auto here = Relocate(slot, before);
+  if (!here) {
+    return std::unexpected(here.error());
   }
-  if (ObservedPawnHandle(InstanceOf(controller_identity)) != frame_pawn_handle_) {
-    return std::unexpected("controller pawn changed during this frame");
-  }
+  return AbilitiesOf(*here);
+}
 
+std::expected<std::vector<PawnObserver::Ability>, std::string> PawnObserver::AbilitiesOf(
+    const Located& here) {
   // Resolve the ability layout once.
   if (!ability_layout_) {
     if (!seams_.ability_layout) {
@@ -261,7 +257,7 @@ PawnObserver::CurrentAbilitiesForSlot(int32_t slot) {
 
   // Read the ability handle vector.
   const auto handles = ReadUtlVector<const uint32_t>(
-      static_cast<const unsigned char*>(frame_pawn_) + layout.handles, kMaxAbilities);
+      static_cast<const unsigned char*>(here.pawn) + layout.handles, kMaxAbilities);
   if (!handles) {
     return std::unexpected("invalid ability handle vector");
   }
@@ -275,7 +271,7 @@ PawnObserver::CurrentAbilitiesForSlot(int32_t slot) {
     if (handle == kInvalidEHandleIndex) {
       continue;
     }
-    auto* identity = IdentityOfHandle(EntityListOf(frame_entity_system_), handle);
+    auto* identity = IdentityOfHandle(here.entity_list, handle);
     if (!identity) {
       return std::unexpected("owned ability handle is unresolved");
     }
@@ -285,7 +281,7 @@ PawnObserver::CurrentAbilitiesForSlot(int32_t slot) {
     }
 
     // Read it, and check that it belongs to this pawn.
-    auto ability = ReadOwnedAbility(layout, entity, handle, frame_pawn_handle_);
+    auto ability = ReadOwnedAbility(layout, entity, handle, here.pawn_handle);
     if (!ability) {
       return std::unexpected(ability.error());
     }
@@ -309,6 +305,7 @@ std::expected<SetUpgradeBits, std::string> ResolveSetUpgradeBits(const ModuleIma
 }
 
 std::expected<CreateAbility, std::string> ResolveCreateAbility(const ModuleImage& server) {
+  // Resolve the creation entry, wrapped in the slot selection on Windows.
   auto address = ResolveSignature(server, "ability.create-and-register");
   if (!address) {
     return std::unexpected(address.error());
@@ -347,9 +344,13 @@ std::expected<void, std::string> PawnObserver::ReconcileAbilities(
   }
 
   // Create each target the pawn lacks, then apply the upgrades.
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
   for (const auto& target : targets) {
     // Skip an ability already owned in its slot.
-    auto owned = CurrentAbilitiesForSlot(slot);
+    auto owned = PinnedAbilities(slot, *here);
     if (!owned) {
       return std::unexpected(owned.error());
     }
@@ -377,9 +378,9 @@ std::expected<void, std::string> PawnObserver::ReconcileAbilities(
     }
 
     // Create it and check that it landed.
-    create(static_cast<unsigned char*>(frame_pawn_) + ability_layout_->component,
+    create(static_cast<unsigned char*>(here->pawn) + ability_layout_->component,
            definition->native_definition_pointer, target.slot, 0, true, nullptr);
-    owned = CurrentAbilitiesForSlot(slot);
+    owned = PinnedAbilities(slot, *here);
     if (!owned) {
       return std::unexpected(owned.error());
     }
@@ -424,7 +425,11 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityUpgrades(
     return std::unexpected("engine upgrade setter is unavailable");
   }
   const auto set_low_word = UpgradeLowWordSetter();
-  auto owned = CurrentAbilitiesForSlot(slot);
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
+  auto owned = AbilitiesOf(*here);
   if (!owned) {
     return std::unexpected(owned.error());
   }
@@ -451,7 +456,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityUpgrades(
   for (size_t i = 0; i < upgrades.size(); ++i) {
     // A setter can update other abilities. Revalidate ownership after every
     // engine call, without retaining any borrowed entity pointer across it.
-    owned = CurrentAbilitiesForSlot(slot);
+    owned = PinnedAbilities(slot, *here);
     if (!owned) {
       return std::unexpected(owned.error());
     }
@@ -468,7 +473,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityUpgrades(
     }
 
     // Set the low word if it differs, then the bits.
-    auto* identity = IdentityOfHandle(EntityListOf(frame_entity_system_), found->handle);
+    auto* identity = IdentityOfHandle(here->entity_list, found->handle);
     if (!identity) {
       return std::unexpected("upgrade target expired during apply");
     }
@@ -482,7 +487,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityUpgrades(
   }
 
   // Include the final setter in the ownership check before returning success.
-  owned = CurrentAbilitiesForSlot(slot);
+  owned = PinnedAbilities(slot, *here);
   if (!owned) {
     return std::unexpected(owned.error());
   }
@@ -490,18 +495,27 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityUpgrades(
 }
 
 void* PawnObserver::AbilityInstance(int32_t slot, uint32_t handle) {
-  const auto owned = CurrentAbilitiesForSlot(slot);
+  // The located pawn must own the ability.
+  const auto here = Locate(slot);
+  if (!here) {
+    return nullptr;
+  }
+  const auto owned = AbilitiesOf(*here);
   if (!owned || std::none_of(owned->begin(), owned->end(),
                              [&](const auto& ability) { return ability.handle == handle; })) {
     return nullptr;
   }
-  return InstanceOf(IdentityOfHandle(EntityListOf(frame_entity_system_), handle));
+  return InstanceOf(IdentityOfHandle(here->entity_list, handle));
 }
 
 std::expected<void, std::string> PawnObserver::ApplyAbilityTimers(
     int32_t slot, std::span<const Ability> targets) {
   // Match targets by identity and by timers.
-  auto owned = CurrentAbilitiesForSlot(slot);
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
+  auto owned = AbilitiesOf(*here);
   if (!owned) {
     return std::unexpected(owned.error());
   }
@@ -533,7 +547,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityTimers(
                      [&](const auto& a) { return matches(a, target); })) {
       return std::unexpected("timer target does not match an owned ability");
     }
-    auto* identity = IdentityOfHandle(EntityListOf(frame_entity_system_), target.handle);
+    auto* identity = IdentityOfHandle(here->entity_list, target.handle);
     if (!CanNotifyEntityStateChanged(InstanceOf(identity))) {
       return std::unexpected("ability replication notification is unavailable");
     }
@@ -542,7 +556,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityTimers(
   // Write each target's timers and read them back.
   for (const auto& target : targets) {
     // Skip a target whose timers already match.
-    owned = CurrentAbilitiesForSlot(slot);
+    owned = PinnedAbilities(slot, *here);
     if (!owned) {
       return std::unexpected(owned.error());
     }
@@ -556,7 +570,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityTimers(
     }
 
     // Find the ability's entity.
-    auto* identity = IdentityOfHandle(EntityListOf(frame_entity_system_), target.handle);
+    auto* identity = IdentityOfHandle(here->entity_list, target.handle);
     auto* entity = static_cast<unsigned char*>(InstanceOf(identity));
     const auto& layout = *ability_layout_;
 
@@ -574,7 +588,7 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityTimers(
     }
 
     // Read them back.
-    owned = CurrentAbilitiesForSlot(slot);
+    owned = PinnedAbilities(slot, *here);
     if (!owned) {
       return std::unexpected(owned.error());
     }
@@ -599,7 +613,11 @@ std::expected<void, std::string> PawnObserver::ApplyAbilityTimers(
 std::expected<std::vector<PawnObserver::Ability>, std::string> PawnObserver::FreshAbilityTargets(
     int32_t slot) {
   // Read the owned abilities and the charge reader.
-  auto targets = CurrentAbilitiesForSlot(slot);
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
+  auto targets = AbilitiesOf(*here);
   if (!targets) {
     return std::unexpected(targets.error());
   }
@@ -610,7 +628,7 @@ std::expected<std::vector<PawnObserver::Ability>, std::string> PawnObserver::Fre
   // Each fresh ability has full charges and no cooldown.
   for (auto& target : *targets) {
     // Check that the ability is still owned.
-    auto current = CurrentAbilitiesForSlot(slot);
+    auto current = PinnedAbilities(slot, *here);
     if (!current) {
       return std::unexpected(current.error());
     }
@@ -623,12 +641,12 @@ std::expected<std::vector<PawnObserver::Ability>, std::string> PawnObserver::Fre
     }
 
     // Read its charge maximum and check ownership again.
-    auto* identity = IdentityOfHandle(EntityListOf(frame_entity_system_), target.handle);
+    auto* identity = IdentityOfHandle(here->entity_list, target.handle);
     auto maximum = seams_.max_charges(InstanceOf(identity));
     if (!maximum) {
       return std::unexpected(maximum.error());
     }
-    current = CurrentAbilitiesForSlot(slot);
+    current = PinnedAbilities(slot, *here);
     if (!current || std::none_of(current->begin(), current->end(), matches)) {
       return std::unexpected("ability ownership changed while reading its charge maximum");
     }
@@ -654,22 +672,16 @@ std::expected<void, std::string> PawnObserver::SetPracticeStamina(int32_t slot, 
     return std::unexpected("stamina is not finite");
   }
 
-  // CurrentAbilitiesForSlot revalidates the frame-scoped pawn, connection and
-  // controller identity before any write.
-  auto owned = CurrentAbilitiesForSlot(slot);
-  if (!owned) {
-    return std::unexpected(owned.error());
+  // Locate the pawn and read its stamina resource.
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
   }
   if (!layout_.stamina) {
     return std::unexpected("stamina schema capability is unavailable");
   }
-
-  // Read the pawn's stamina resource.
   const auto& st = *layout_.stamina;
-  auto* pawn = static_cast<unsigned char*>(PawnForSlot(slot));
-  if (!pawn) {
-    return std::unexpected("pawn is unavailable in this frame");
-  }
+  auto* pawn = static_cast<unsigned char*>(here->pawn);
   float current = 0, max = 0;
   std::memcpy(&current, pawn + st.current, sizeof(current));
   std::memcpy(&max, pawn + st.max, sizeof(max));
@@ -690,11 +702,10 @@ std::expected<void, std::string> PawnObserver::SetPracticeStamina(int32_t slot, 
     return std::unexpected("stamina replication notification is unavailable");
   }
 
-  // The notification callback can mutate or destroy entities. Revalidate
-  // ownership through the existing ability readback, then verify the write.
-  owned = CurrentAbilitiesForSlot(slot);
-  if (!owned) {
-    return std::unexpected(owned.error());
+  // The notification callback can mutate or destroy entities. Locate the
+  // same pawn again, then verify the write.
+  if (const auto after = Relocate(slot, *here); !after) {
+    return std::unexpected(after.error());
   }
   float written_current = 0, written_latch_value = 0, written_latch_time = 0;
   std::memcpy(&written_current, pawn + st.current, sizeof(written_current));

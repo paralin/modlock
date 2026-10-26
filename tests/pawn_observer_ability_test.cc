@@ -168,17 +168,16 @@ TEST(PawnObserver, ReadsOwnedAbilitiesAndRejectsIncompleteOrStaleLoadouts) {
   auto changed = observer.ApplyAbilityUpgrades(0, targets, replace_pawn);
   EXPECT_FALSE(changed);
   if (!changed) {
-    EXPECT_EQ(changed.error(), "controller pawn changed during this frame");
+    EXPECT_EQ(changed.error(), "player pawn changed during the call");
   }
 
   // Restore the pawn.
   std::memcpy(fixture.controller.data() + kPawnHandleField, &pawn_handle, sizeof(pawn_handle));
   changing_controller = nullptr;
 
-  // A reconnect expires the frame until the next observation.
+  // Every call locates the slot's current pawn, so a reconnect needs no new
+  // observation first.
   ++fixture.generation;
-  EXPECT_FALSE(observer.CurrentAbilitiesForSlot(0));
-  ASSERT_TRUE(observer.Observe());
   ASSERT_TRUE(observer.CurrentAbilitiesForSlot(0));
 
   // A reused identity cannot satisfy the older handle in the pawn's vector.
@@ -404,6 +403,8 @@ TEST(PawnObserver, ReconcilesMissingAuxiliaryAbilityThroughItsNativeOwner) {
                             modlock::gameinterop::AbilityUpgrade{100, 1, 196609}};
   auto copies = observer.ReconcileAbilities(0, repeated, definitions, create, set_bits);
   ASSERT_TRUE(copies) << copies.error();
+
+  // Each copy keeps its own handle and upgrade, with no further creation.
   const auto independent = observer.CurrentAbilitiesForSlot(0);
   ASSERT_TRUE(independent);
   ASSERT_EQ(independent->size(), 2u);

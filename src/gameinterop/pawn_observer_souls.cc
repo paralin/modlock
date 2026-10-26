@@ -248,6 +248,7 @@ std::expected<void, std::string> PawnObserver::SetPreparationFrozen(int32_t slot
   // engine gives it walking, so release restores only a player's own modes,
   // flying and noclip, and walks otherwise.
   if (frozen && owned == frozen_pawns_.end()) {
+    // Record the flags, damage and movement it held.
     constexpr uint8_t kFlying = 3;
     constexpr uint8_t kNoclip = 7;
     const uint8_t current = pawn[movement->offset];
@@ -289,10 +290,12 @@ std::expected<void, std::string> PawnObserver::SetPreparationFrozen(int32_t slot
 }
 
 std::optional<std::array<float, 3>> PawnObserver::CurrentOriginForSlot(int32_t slot) const {
-  if (frame_slot_ != slot || frame_pawn_ == nullptr || !offsets_ok_) {
+  // Read the located pawn's scene-node origin.
+  const auto here = Locate(slot);
+  if (!here) {
     return std::nullopt;
   }
-  const float* origin = AbsOriginOf(layout_, frame_pawn_);
+  const float* origin = AbsOriginOf(layout_, here->pawn);
   if (origin == nullptr) {
     return std::nullopt;
   }

@@ -436,12 +436,6 @@ uint32_t PawnObserver::ObservedPawnHandle(const void* controller) const {
 }
 
 std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
-  // Forget the previous frame's pawn.
-  frame_pawn_ = nullptr;
-  frame_entity_system_ = nullptr;
-  frame_pawn_handle_ = 0;
-  frame_slot_ = -1;
-
   // The stage trace covers the first ten occupied frames: frame one names the
   // walk stages, and the window distinguishes a pre-spawn zero origin from a
   // dead offset.
@@ -578,16 +572,10 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
     return std::nullopt;
   }
 
-  // Keep this frame's pawn for the calls that follow.
-  frame_pawn_ = pawn;
-  frame_entity_system_ = *entity_system;
-  frame_pawn_handle_ = pawn_handle;
-  frame_connection_ = slot_state;
-  frame_slot_ = slot;
-
   // Read the movement abilities when the movement state resolved.
   if (movement) {
-    if (const auto abilities = CurrentAbilitiesForSlot(slot)) {
+    const Located here{pawn, entity_list, pawn_handle, slot_state.generation};
+    if (const auto abilities = AbilitiesOf(here)) {
       ApplyMovementAbilities(*movement, *abilities);
     }
   }
@@ -617,22 +605,58 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
 }
 
 void PawnObserver::Invalidate() {
-  // Forget the frame's pawn and every resolved layout.
-  frame_pawn_ = nullptr;
-  frame_entity_system_ = nullptr;
-  frame_pawn_handle_ = 0;
-  frame_slot_ = -1;
+  // Forget every resolved layout.
   offsets_ok_ = false;
   layout_ = {};
   ability_layout_.reset();
   trace_slot_occupied_ = false;
 }
 
-void* PawnObserver::PawnForSlot(int32_t slot) const {
-  if (frame_slot_ == slot) {
-    return frame_pawn_;
+std::expected<PawnObserver::Located, std::string> PawnObserver::Locate(int32_t slot) const {
+  // The slot needs a connected client and a resolved layout.
+  const auto connection =
+      seams_.slot_state ? seams_.slot_state(slot) : ConnectionTracker::SlotState{};
+  if (!connection.occupied) {
+    return std::unexpected("player slot is empty");
   }
-  return nullptr;
+  if (!offsets_ok_ || !seams_.entity_system) {
+    return std::unexpected("pawn layout is unresolved");
+  }
+
+  // Find the controller at index slot + 1.
+  auto system = seams_.entity_system();
+  if (!system) {
+    return std::unexpected(system.error());
+  }
+  auto* list = EntityListOf(*system);
+  auto* controller_identity = IdentityOfIndex(list, slot + 1);
+  auto* controller = controller_identity ? InstanceOf(controller_identity) : nullptr;
+  if (!controller) {
+    return std::unexpected("player controller unavailable");
+  }
+
+  // Resolve the pawn it selects through the serial proof.
+  const uint32_t handle = ObservedPawnHandle(controller);
+  auto* pawn_identity = IdentityOfHandle(list, handle);
+  void* pawn = pawn_identity ? InstanceOf(pawn_identity) : nullptr;
+  if (!pawn) {
+    return std::unexpected("player pawn is not live");
+  }
+  return Located{pawn, list, handle, connection.generation};
+}
+
+std::expected<PawnObserver::Located, std::string> PawnObserver::Relocate(
+    int32_t slot, const Located& before) const {
+  auto here = Locate(slot);
+  if (!here || here->pawn_handle != before.pawn_handle || here->generation != before.generation) {
+    return std::unexpected("player pawn changed during the call");
+  }
+  return here;
+}
+
+void* PawnObserver::PawnForSlot(int32_t slot) const {
+  const auto here = Locate(slot);
+  return here ? here->pawn : nullptr;
 }
 
 }  // namespace modlock::gameinterop

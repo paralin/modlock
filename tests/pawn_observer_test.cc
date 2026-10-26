@@ -399,7 +399,7 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_EQ(sample->y, -2.25);
   EXPECT_EQ(sample->z, 300.0);
 
-  // The frame's pawn and origin belong to slot zero only.
+  // The located pawn and origin belong to slot zero only.
   EXPECT_EQ(observer.PawnForSlot(0), pawn.data());
   EXPECT_EQ(observer.PawnForSlot(1), nullptr);
   auto current = observer.CurrentOriginForSlot(0);
@@ -423,8 +423,8 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_FLOAT_EQ((*current)[2], 9.0f);
   EXPECT_FALSE(observer.CurrentOriginForSlot(1).has_value());
 
-  // A second client's controller is addressed by its own slot, without
-  // borrowing the previous client's frame-scoped mutation capability.
+  // A second client's controller is addressed by its own slot, and the first
+  // slot no longer locates a pawn once its client leaves.
   fixture.slot = 7;
   fixture.image.SetIdentity(8, fixture.controller.data(), 5, 0);
   sample = observer.Observe(7);
@@ -438,7 +438,8 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_EQ(observer.PawnForSlot(7), pawn.data());
   EXPECT_EQ(observer.PawnForSlot(0), nullptr);
   EXPECT_FALSE(observer.Observe(0));
-  EXPECT_EQ(observer.PawnForSlot(7), nullptr);
+  EXPECT_EQ(observer.PawnForSlot(7),
+            pawn.data());  // A failed observation of another slot leaves this one.
 }
 
 TEST(PawnObserver, MissingScoreSchemaLeavesScoreAbsentAndPoseIntact) {

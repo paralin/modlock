@@ -6,12 +6,12 @@
 
 namespace modlock::gameinterop {
 
-// TeleportPawnControl adapts the observer's frame-scoped pawn pointers to the
+// TeleportPawnControl adapts the observer's located pawns to the
 // plugin PawnControl seam: TeleportToPosition resolves the slot's observed
 // pawn and issues the raw CBaseEntity::Teleport vcall.
 // ResetToPose uses the supplied native helper to reset velocity and client view.
 //
-// Slots without a live pawn in the current frame report failure without
+// Slots without a live pawn report failure without
 // touching anything.
 class MODLOCK_API TeleportPawnControl final : public modlock::PawnControl {
  public:

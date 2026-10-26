@@ -251,8 +251,9 @@ struct MODLOCK_API ItemFunctions {
 // CEntitySystem::GetEntityIdentity chunk table, and m_hPawn resolved through the
 // GetRefEHandle serial proof.
 //
-// No entity scan, no signature scan; no pointer survives a frame except
-// PawnForSlot's same-frame window.
+// No entity scan, no signature scan, and no retained engine pointer: every
+// slot call walks from the controller to its pawn again, so a call made
+// outside Observe still reaches the slot's current pawn.
 //
 // Session identity (slot, xuid) survives missed frames. Only a confirmed
 // disconnect or a generation change clears it, and ConnectionTracker's engine
@@ -375,8 +376,8 @@ class MODLOCK_API PawnObserver {
   // yet.
   std::optional<Sample> Observe(int32_t slot = kSessionSlot);
 
-  // Invalidate drops the frame-scoped pawn and schema layout resolved for the
-  // current world. The next observation resolves a fresh world layout.
+  // Invalidate drops the schema layout resolved for the current world. The next observation
+  // resolves a fresh world layout.
   void Invalidate();
 
   // Prepare resolves the world's layout and the module lookups a first
@@ -384,20 +385,18 @@ class MODLOCK_API PawnObserver {
   // ones. Call it at map load; a failure is left for Observe to report.
   void Prepare();
 
-  // PawnForSlot returns the observed pawn pointer during the current frame
-  // window, or nullptr after Observe starts the next frame.
+  // PawnForSlot returns the pawn Observe would select for slot now, or nullptr
+  // while the slot is empty, the pawn is not live, or no layout is resolved.
+  // The pointer is borrowed: any engine call can destroy the pawn.
   void* PawnForSlot(int32_t slot) const;
 
-  // CurrentOriginForSlot rereads the observed pawn's scene-node origin during
-  // the current frame window. It uses the same resolved layout and pawn as
-  // Observe.
-  //
-  // Returns no value outside that window.
+  // CurrentOriginForSlot reads the scene-node origin of the pawn PawnForSlot
+  // returns, or no value when there is none.
   std::optional<std::array<float, 3>> CurrentOriginForSlot(int32_t slot) const;
 
   // SetEyeAngles applies recorded aim to a hero pawn and requests native
   // replication. It uses the schema layout Observe resolved, so it works on any
-  // live pawn of the world last observed, inside or outside the frame window.
+  // live pawn of the world last observed.
   std::expected<void, std::string> SetEyeAngles(void* pawn, const std::array<float, 3>& angles);
 
   struct Ability {
@@ -496,13 +495,13 @@ class MODLOCK_API PawnObserver {
   // upgrade all four abilities. The caller applies it once per fresh hero pawn.
   std::expected<Sample, std::string> PrepareAbilityPoints(int32_t slot, ModifyCurrency modify);
 
-  // Reads the frame's owned ability handles, including items. Every nonempty
+  // Reads the slot's owned ability handles, including items. Every nonempty
   // handle must resolve with the current serial and point back to this pawn.
   // Missing schema or incomplete ownership returns an error, never a partial
   // loadout. Empty handle slots are omitted; no engine pointer escapes.
   std::expected<std::vector<Ability>, std::string> CurrentAbilitiesForSlot(int32_t slot);
 
-  // Validates every target against this frame's owned handles before applying.
+  // Validates every target against the pawn's owned handles before applying.
   // The engine setter owns upgrade effects and replication. Its ABI writes
   // the packed high word only; a differing low word is refused, not overwritten.
   std::expected<void, std::string> ApplyAbilityUpgrades(int32_t slot,
@@ -519,7 +518,7 @@ class MODLOCK_API PawnObserver {
                                                       SetUpgradeBits set_bits);
 
   // ApplyAbilityTimers writes charge counts and absolute destination-clock intervals.
-  // Every target must retain this frame's owned handle, subclass and slot. The entire
+  // Every target must retain the pawn's owned handle, subclass and slot. The entire
   // request is validated before mutation; replication and immediate readback follow
   // each changed entity. Clock rebasing and sustained verification belong to the caller.
   std::expected<void, std::string> ApplyAbilityTimers(int32_t slot,
@@ -537,8 +536,7 @@ class MODLOCK_API PawnObserver {
   // latchValue = value, latchTime = now) without repeating the modifier's
   // incremental +1 refill. Native max and regen rate are retained. The
   // explicit practice caller owns the policy; no exact-replay path calls this.
-  // Reborrows the pawn through this frame's observation before writing and
-  // after the replication notification.
+  // Locates the pawn again after the replication notification.
   std::expected<void, std::string> SetPracticeStamina(int32_t slot, float now,
                                                       std::optional<float> stamina = {});
 
@@ -594,6 +592,27 @@ class MODLOCK_API PawnObserver {
   // controller: the hero, which stays the player's while the active pawn is a
   // camera, or the active pawn of a spectator.
   uint32_t ObservedPawnHandle(const void* controller) const;
+
+  // Located is the pawn a slot's controller selects, with the entity list
+  // that resolves its handles, borrowed until the next engine call.
+  struct Located {
+    void* pawn;
+    unsigned char* entity_list;
+    uint32_t pawn_handle;
+    uint32_t generation;
+  };
+
+  // Locate walks from slot's controller to the pawn Observe would select,
+  // through the serial proof, without tracing or caching anything.
+  std::expected<Located, std::string> Locate(int32_t slot) const;
+  // Relocate locates slot again after an engine call and requires the same
+  // connection and pawn as before.
+  std::expected<Located, std::string> Relocate(int32_t slot, const Located& before) const;
+  // AbilitiesOf reads the abilities a located pawn owns.
+  std::expected<std::vector<Ability>, std::string> AbilitiesOf(const Located& here);
+  // PinnedAbilities reads the abilities of the pawn before still selects.
+  std::expected<std::vector<Ability>, std::string> PinnedAbilities(int32_t slot,
+                                                                   const Located& before);
   // ControllerOfSlot returns the slot's controller and the entity list that
   // resolves its handles.
   std::expected<std::pair<unsigned char*, unsigned char*>, std::string> ControllerOfSlot(
@@ -605,12 +624,7 @@ class MODLOCK_API PawnObserver {
   bool degradation_logged_ = false;
   EntityLayout layout_{};
   bool trace_slot_occupied_ = false;
-  void* frame_pawn_ = nullptr;
-  void* frame_entity_system_ = nullptr;
-  uint32_t frame_pawn_handle_ = 0;
-  ConnectionTracker::SlotState frame_connection_;
   std::optional<AbilityLayout> ability_layout_;
-  int32_t frame_slot_ = -1;
 };
 
 }  // namespace modlock::gameinterop

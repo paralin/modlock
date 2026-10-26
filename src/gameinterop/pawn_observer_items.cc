@@ -66,7 +66,13 @@ std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantItem(
   if (definition->disabled || !definition->name.starts_with("upgrade_") || !functions.add) {
     return std::unexpected("enabled native item and grant function required");
   }
-  const auto before = CurrentAbilitiesForSlot(slot);
+
+  // Return the item when the located pawn already owns it.
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
+  const auto before = AbilitiesOf(*here);
   if (!before) {
     return std::unexpected(before.error());
   }
@@ -77,8 +83,8 @@ std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantItem(
 
   // The engine owns the returned pointer. Only the subsequent owned-ability
   // observation establishes the grant and its actual inventory slot.
-  functions.add(frame_pawn_, definition->name.c_str(), 0, nullptr);
-  const auto after = CurrentAbilitiesForSlot(slot);
+  functions.add(here->pawn, definition->name.c_str(), 0, nullptr);
+  const auto after = PinnedAbilities(slot, *here);
   if (!after) {
     return std::unexpected(after.error());
   }
@@ -136,10 +142,14 @@ std::expected<void, std::string> PawnObserver::ReconcileItems(int32_t slot,
     names.push_back(std::move(definition->name));
   }
 
-  // Read the pawn's items.
+  // Read the located pawn's items.
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
   const auto read_items = [&]() -> std::expected<std::vector<Ability>, std::string> {
     // Keep the owned abilities that are items.
-    auto owned = CurrentAbilitiesForSlot(slot);
+    auto owned = PinnedAbilities(slot, *here);
     if (!owned) {
       return std::unexpected(owned.error());
     }
@@ -189,13 +199,13 @@ std::expected<void, std::string> PawnObserver::ReconcileItems(int32_t slot,
     if (found == items->end()) {
       return std::unexpected("item changed before removal");
     }
-    auto* identity = IdentityOfHandle(EntityListOf(frame_entity_system_), found->handle);
+    auto* identity = IdentityOfHandle(here->entity_list, found->handle);
     if (!identity) {
       return std::unexpected("item expired before removal");
     }
 
     // Remove it and check that it left.
-    functions.remove(static_cast<unsigned char*>(frame_pawn_) + ability_layout_->component,
+    functions.remove(static_cast<unsigned char*>(here->pawn) + ability_layout_->component,
                      InstanceOf(identity), 0);
     items = read_items();
     if (!items) {
@@ -224,7 +234,7 @@ std::expected<void, std::string> PawnObserver::ReconcileItems(int32_t slot,
       // high dword the packed low word of m_nUpgradeInfo.
       const uint64_t upgrade =
           (uint64_t{targets[i].upgrade_info & 0xffffu} << 32) | (targets[i].upgrade_info >> 16);
-      functions.add(frame_pawn_, names[i].c_str(), upgrade, nullptr);
+      functions.add(here->pawn, names[i].c_str(), upgrade, nullptr);
       items = read_items();
       if (!items) {
         return std::unexpected(items.error());
@@ -268,7 +278,7 @@ std::expected<void, std::string> PawnObserver::ReconcileItems(int32_t slot,
       return std::unexpected("item active/passive slot class differs from replay");
     }
     const auto handle = found->handle;
-    functions.swap_slots(static_cast<unsigned char*>(frame_pawn_) + ability_layout_->component,
+    functions.swap_slots(static_cast<unsigned char*>(here->pawn) + ability_layout_->component,
                          found->slot, *target.slot);
 
     // Check that the swap held.
