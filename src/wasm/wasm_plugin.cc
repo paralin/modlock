@@ -241,7 +241,7 @@ void WasmPlugin::Halt() {
 void WasmPlugin::ListenForRestart() {
   // Hear "/restartmod" or "/restartmod <mod>", with the prefixes the mod's
   // own commands take.
-  if (restartable_) {
+  if (restart_command_.Active()) {
     return;
   }
   auto chats = engine_->OnChat([this](int32_t, std::string_view text) {
@@ -267,7 +267,6 @@ void WasmPlugin::ListenForRestart() {
     return;
   }
   restart_command_ = std::move(*chats);
-  restartable_ = true;
 }
 
 void WasmPlugin::Slowed(std::string_view report) {
@@ -458,7 +457,6 @@ void WasmPlugin::Stop() {
   successor_.reset();
   Withdraw();
   restart_command_.Reset();
-  restartable_ = false;
 
   // Stop the mod and hand on every player's metrics.
   world_.Reset();

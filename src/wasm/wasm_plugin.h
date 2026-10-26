@@ -337,13 +337,12 @@ class WasmPlugin final : public Plugin {
   // stopped_ is true while a failed instance waits for a player to restart
   // it, and restart_ once one asked. offer_until_ ends the restart offer a
   // slow event opens, and warned_at_ is the players' last warning.
-  // restart_command_ hears the request while restartable_ is true.
+  // restart_command_ hears the request once it is active.
   bool stopped_ = false;
   bool restart_ = false;
   std::chrono::steady_clock::time_point offer_until_;
   std::chrono::steady_clock::time_point warned_at_;
   Subscription restart_command_;
-  bool restartable_ = false;
   // movement_ steps every hero while a world is loaded. hero_slots_ maps
   // this frame's heroes to their slots, and floor_known_ is true once the
   // world entity under the heroes is.
@@ -370,16 +369,13 @@ class WasmPlugin final : public Plugin {
   Subscription world_;
   std::optional<std::string> map_;
   bool world_due_ = false;
-  // players_ holds the instance's player callbacks; listening_ is true while
-  // it does.
+  // players_ holds the instance's player callbacks.
   Subscription players_;
-  bool listening_ = false;
-  // combat_ holds the instance's damage subscription while fighting_ is
-  // true; it starts with a loaded world. adjusted_ carries the
+  // combat_ holds the instance's damage subscription, which starts with a
+  // loaded world. adjusted_ carries the
   // amount the mod chose for the hit being decided, from suppression to
   // adjustment, which the engine runs back to back.
   Subscription combat_;
-  bool fighting_ = false;
   std::optional<float> adjusted_;
   // damaged_ queues applied hits and facts_ movement facts, which the engine
   // may report off the engine thread, until a frame delivers them.

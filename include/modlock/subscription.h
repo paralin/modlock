@@ -31,6 +31,9 @@ class MODLOCK_API Subscription {
     }
   }
 
+  // Active reports whether the subscription owns any registration.
+  bool Active() const { return !registrations_.empty(); }
+
   // Reset removes every owned callback; an in-flight callback may finish.
   void Reset() { registrations_.clear(); }
 

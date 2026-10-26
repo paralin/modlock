@@ -64,7 +64,8 @@ class Departures final : public gameinterop::ConnectionEventSink {
 
 void WasmPlugin::Move() {
   // Only a running QuakeWorld mod moves players, and only once.
-  if (movement_ || !instance_ || manifest_.movement().model() != wasm::manifest::Movement::MODEL_QUAKEWORLD) {
+  if (movement_ || !instance_ ||
+      manifest_.movement().model() != wasm::manifest::Movement::MODEL_QUAKEWORLD) {
     return;
   }
 
@@ -149,7 +150,7 @@ void WasmPlugin::Steer() {
 
 void WasmPlugin::ListenToPlayers() {
   // Listen once, while a mod runs.
-  if (listening_ || !instance_) {
+  if (players_.Active() || !instance_) {
     return;
   }
 
@@ -167,7 +168,6 @@ void WasmPlugin::ListenToPlayers() {
     return;
   }
   players_.Add(std::move(*chats));
-  listening_ = true;
   if (auto commands = engine_->OnCommand(
           [this](int32_t slot, std::string_view line) { return Command(slot, line); })) {
     players_.Add(std::move(*commands));
@@ -185,7 +185,8 @@ void WasmPlugin::ListenToPlayers() {
 
 void WasmPlugin::ListenToCombat() {
   // Listen once, while a mod wants damage or moves players.
-  if (fighting_ || !instance_ || (!wants_.damage() && !wants_.damaged() && !game_.Moving())) {
+  if (combat_.Active() || !instance_ ||
+      (!wants_.damage() && !wants_.damaged() && !game_.Moving())) {
     return;
   }
 
@@ -213,7 +214,6 @@ void WasmPlugin::ListenToCombat() {
     return;
   }
   combat_ = std::move(*combat);
-  fighting_ = true;
 }
 
 bool WasmPlugin::Hit(const gameinterop::DamageContactEvent& contact) {
@@ -258,7 +258,8 @@ void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool damaged) {
     facts_.push_back({event.movement->pawn_handle, MovementActionOf(event.movement->execution)});
   }
   if (event.ability) {
-    facts_.push_back({event.ability->caster_handle, wasm::movement::MOVEMENT_ACTION_ABILITY_EXECUTED,
+    facts_.push_back({event.ability->caster_handle,
+                      wasm::movement::MOVEMENT_ACTION_ABILITY_EXECUTED,
                       event.ability->ability_handle});
   }
 }
@@ -348,9 +349,7 @@ void WasmPlugin::DeliverGameEvents() {
 void WasmPlugin::Unsubscribe() {
   // Drop the player and combat subscriptions.
   players_.Reset();
-  listening_ = false;
   combat_.Reset();
-  fighting_ = false;
   adjusted_.reset();
   sampled_.reset();
 
