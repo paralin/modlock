@@ -1,5 +1,6 @@
 #include "modlock/gameinterop/entity_abi.h"
 
+#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -289,32 +290,50 @@ void* EntityInstance(void* entity_system, uint32_t handle) {
   return instance;
 }
 
-std::expected<void*, std::string> ResolveLiveEntitySystem() {
-  // Borrow the game resource service.
-  const auto resource_service =
-      ResolveEngineInterface(L"engine2.dll", kGameResourceServiceServerVersion);
-  if (!resource_service) {
-    return std::unexpected(resource_service.error());
+namespace {
+
+// TraceResourceService prints the resource service's first slots when
+// diagnosing a shifted native layout.
+void TraceResourceService(void* resource_service) {
+  // Trace only when interop tracing is on.
+  static const bool trace = InteropTraceEnabled();
+  if (!trace) {
+    return;
   }
 
-  // Print the borrowed service once when diagnosing a shifted native layout.
-  static const bool trace = InteropTraceEnabled();
-  if (trace) {
-    static bool traced = false;
-    if (!traced) {
-      // Trace the resource service's first slots once.
-      traced = true;
-      const auto* service = static_cast<const unsigned char*>(*resource_service);
-      std::fprintf(stderr, "[modlock] interop trace: resource_service=%p\n", *resource_service);
-      for (size_t offset = 0; offset < 0x100; offset += sizeof(void*)) {
-        void* value = nullptr;
-        std::memcpy(&value, service + offset, sizeof(value));
-        std::fprintf(stderr, "[modlock] interop trace: service+0x%02zx = %p\n", offset, value);
-      }
-      std::fflush(stderr);
-    }
+  // Print the service pointer and each slot.
+  const auto* service = static_cast<const unsigned char*>(resource_service);
+  std::fprintf(stderr, "[modlock] interop trace: resource_service=%p\n", resource_service);
+  for (size_t offset = 0; offset < 0x100; offset += sizeof(void*)) {
+    void* value = nullptr;
+    std::memcpy(&value, service + offset, sizeof(value));
+    std::fprintf(stderr, "[modlock] interop trace: service+0x%02zx = %p\n", offset, value);
   }
-  return EntitySystemFromResourceService(*resource_service);
+  std::fflush(stderr);
+}
+
+}  // namespace
+
+std::expected<void*, std::string> ResolveLiveEntitySystem() {
+  // Borrow the game resource service once. The engine keeps one for the
+  // process, and finding it walks the loaded modules and the interface list,
+  // which every pawn read would otherwise pay. A failure resolves again on
+  // the next call, since the engine may not have loaded yet.
+  static std::atomic<void*> cached{nullptr};
+  void* resource_service = cached.load(std::memory_order_acquire);
+  if (resource_service == nullptr) {
+    // Find it through the engine's factory and keep it.
+    const auto resolved = ResolveEngineInterface(L"engine2.dll", kGameResourceServiceServerVersion);
+    if (!resolved) {
+      return std::unexpected(resolved.error());
+    }
+    resource_service = *resolved;
+    cached.store(resource_service, std::memory_order_release);
+    TraceResourceService(resource_service);
+  }
+
+  // The entity system changes with the map, so read it on every call.
+  return EntitySystemFromResourceService(resource_service);
 }
 
 std::expected<void*, std::string> ResolveSchemaSystem() {

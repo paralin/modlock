@@ -490,7 +490,7 @@ std::expected<void, std::string> PawnObserver::EliminatePlayer(int32_t slot, uin
   if (!sample || sample->session_generation != generation) {
     return std::unexpected("elimination player observation is absent or stale");
   }
-  auto killed = damage.Kill(PawnForSlot(slot));
+  auto killed = damage.Kill(sample->pawn);
   if (!killed) {
     return killed;
   }
