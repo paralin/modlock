@@ -46,6 +46,7 @@
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
 #include "wasm/npc_restore.h"
+#include "wasm/visibility.h"
 
 namespace modlock::wasm {
 
@@ -575,10 +576,13 @@ class Game : public HostService {
   // frame and queues the ones that ended.
   void TickRestores();
 
-  // PruneAudiences drops the audience of each entity that is gone, so a new
-  // entity that takes its index reaches every player. A removed object's
-  // entity waits here, sent to nobody, until the engine retires it.
+  // PruneAudiences drops the audience of each entity the world no longer
+  // holds. A removed object's entity waits, sent to nobody, until then.
   void PruneAudiences();
+
+  // ObjectHandle returns the entity handle of the mod's object id now, or
+  // nothing.
+  std::optional<uint32_t> ObjectHandle(uint32_t id) const;
 
   // HoldClock sets the held match clock again, since the game advances it
   // each frame.
@@ -697,11 +701,8 @@ class Game : public HostService {
   EngineHost* engine_;
   gameinterop::PawnObserver observer_;
   std::map<uint32_t, Object> objects_;
-  // hidden_ maps each player's slot to the objects hidden from them.
-  std::map<int32_t, std::set<uint32_t>> hidden_;
-  // object_audiences_ maps each object a mod shows only to some players to
-  // the bits of their slots.
-  std::map<uint32_t, uint64_t> object_audiences_;
+  // visibility_ is who receives the mod's objects and entities.
+  Visibility visibility_;
   // fog_ is the world's fog controller, which the fog objects need; it is
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;
@@ -711,9 +712,6 @@ class Game : public HostService {
   // the units' placement finishes.
   std::optional<gameinterop::WorldEntities> world_;
   std::set<uint32_t> created_;
-  // audiences_ maps each created entity a mod shows only to some players to
-  // the bits of their slots.
-  std::map<uint32_t, uint64_t> audiences_;
   bool spawned_ = false;
   // bots_ maps each bot's slot to its name, which the console kicks by.
   std::map<int32_t, std::string> bots_;

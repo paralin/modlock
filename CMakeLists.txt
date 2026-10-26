@@ -191,6 +191,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_watches.cc
   src/wasm/hero_restore.cc
   src/wasm/input_changes.cc
+  src/wasm/visibility.cc
   src/wasm/npc_restore.cc
   src/wasm/ui.cc
   src/wasm/settings.cc

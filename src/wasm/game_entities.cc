@@ -185,15 +185,7 @@ std::expected<void, std::string> Game::SetObjectHidden(
     return std::unexpected("no object has that identifier");
   }
   if (!request.hidden()) {
-    // Unhide the object, forgetting an empty set.
-    auto hidden = hidden_.find(request.player());
-    if (hidden == hidden_.end()) {
-      return {};
-    }
-    hidden->second.erase(request.object());
-    if (hidden->second.empty()) {
-      hidden_.erase(hidden);
-    }
+    visibility_.Unhide(request.player(), request.object());
     return {};
   }
 
@@ -202,7 +194,7 @@ std::expected<void, std::string> Game::SetObjectHidden(
   if (auto transmit = services_.Transmit(); !transmit) {
     return transmit;
   }
-  hidden_[request.player()].insert(request.object());
+  visibility_.Hide(request.player(), request.object());
   return {};
 }
 
@@ -213,25 +205,10 @@ std::expected<void, std::string> Game::RemoveObject(const objects::ObjectRequest
     return std::unexpected("no object has that identifier");
   }
 
-  // An object some players must not see stays withheld from everyone until
-  // the engine retires its entity, which can outlive the removal by frames.
-  const bool restricted = object_audiences_.erase(request.object()) != 0 ||
-                          std::ranges::any_of(hidden_, [&](const auto& entry) {
-                            return entry.second.contains(request.object());
-                          });
-  if (restricted) {
-    if (auto handle =
-            std::visit([](const auto& object) { return object->Handle(); }, found->second)) {
-      audiences_[*handle] = 0;
-    }
-  }
-
-  // Remove it from the world and from every hidden set.
+  // Forget who may see it, then remove it from the world.
+  visibility_.RemoveObject(request.object(), ObjectHandle(request.object()));
   std::visit([](auto& handle) { handle->Remove(); }, found->second);
   objects_.erase(found);
-  for (auto& [slot, objects] : hidden_) {
-    objects.erase(request.object());
-  }
   return {};
 }
 
@@ -243,12 +220,9 @@ std::expected<void, std::string> Game::ShowObjectOnlyTo(
   }
 
   // Collect the audience's slot bits.
-  uint64_t slots = 0;
-  for (const auto slot : request.players()) {
-    if (!gameinterop::IsPlayerSlot(slot)) {
-      return std::unexpected("player slot out of range");
-    }
-    slots |= uint64_t{1} << slot;
+  const auto slots = Visibility::Audience(request.players());
+  if (!slots) {
+    return std::unexpected(slots.error());
   }
 
   // The engine sends only what its transmit pass allows, so an audience
@@ -256,7 +230,7 @@ std::expected<void, std::string> Game::ShowObjectOnlyTo(
   if (auto transmit = services_.Transmit(); !transmit) {
     return transmit;
   }
-  object_audiences_[request.object()] = slots;
+  visibility_.ShowObjectOnlyTo(request.object(), *slots);
   return {};
 }
 
@@ -264,7 +238,7 @@ std::expected<void, std::string> Game::ShowObjectToAll(const objects::ObjectRequ
   if (!objects_.contains(request.object())) {
     return std::unexpected("no object has that identifier");
   }
-  object_audiences_.erase(request.object());
+  visibility_.ShowObjectToAll(request.object());
   return {};
 }
 
@@ -471,7 +445,7 @@ std::expected<entities::AliveResponse, std::string> Game::RemoveEntity(
   if (!created_.erase(request.entity())) {
     return std::unexpected("the mod did not create the entity");
   }
-  audiences_.erase(request.entity());
+  visibility_.ShowEntityToAll(request.entity());
   return Alive((*world)->RemoveEntity(request.entity()));
 }
 
@@ -482,12 +456,9 @@ std::expected<void, std::string> Game::ShowEntityOnlyTo(
   if (!created_.contains(request.entity())) {
     return std::unexpected("the mod did not create the entity");
   }
-  uint64_t slots = 0;
-  for (const auto slot : request.players()) {
-    if (!gameinterop::IsPlayerSlot(slot)) {
-      return std::unexpected("player slot out of range");
-    }
-    slots |= uint64_t{1} << slot;
+  const auto slots = Visibility::Audience(request.players());
+  if (!slots) {
+    return std::unexpected(slots.error());
   }
 
   // The engine sends only what its transmit pass allows, so an audience
@@ -495,7 +466,7 @@ std::expected<void, std::string> Game::ShowEntityOnlyTo(
   if (auto transmit = services_.Transmit(); !transmit) {
     return transmit;
   }
-  audiences_[request.entity()] = slots;
+  visibility_.ShowEntityOnlyTo(request.entity(), *slots);
   return {};
 }
 
@@ -503,20 +474,28 @@ std::expected<void, std::string> Game::ShowEntityToAll(const entities::EntityReq
   if (!created_.contains(request.entity())) {
     return std::unexpected("the mod did not create the entity");
   }
-  audiences_.erase(request.entity());
+  visibility_.ShowEntityToAll(request.entity());
   return {};
 }
 
 void Game::PruneAudiences() {
-  if (audiences_.empty() || !world_) {
+  if (!world_) {
     return;
   }
   // The transmit pass withholds by entity index alone, so a gone entity's
   // audience would otherwise apply to the next entity at its index.
-  std::erase_if(audiences_, [this](const auto& entry) {
-    auto live = world_->Exists(entry.first);
+  visibility_.Prune([this](uint32_t entity) {
+    auto live = world_->Exists(entity);
     return live && !*live;
   });
+}
+
+std::optional<uint32_t> Game::ObjectHandle(uint32_t id) const {
+  const auto found = objects_.find(id);
+  if (found == objects_.end()) {
+    return std::nullopt;
+  }
+  return std::visit([](const auto& object) { return object->Handle(); }, found->second);
 }
 
 std::expected<npcs::NpcResponse, std::string> Game::SpawnNpc(const npcs::NpcOptions& request) {

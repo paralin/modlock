@@ -163,20 +163,10 @@ void Game::Leave(int32_t slot) {
   steers_.erase(slot);
   drives_.erase(slot);
 
-  // Forget its restores, blocks, presses and hidden objects.
+  // Forget its restores, blocks, presses and what it was shown.
   restores_.erase(slot);
   input_.Leave(slot);
-  hidden_.erase(slot);
-
-  // Whoever takes the slot next is a different player, who was never listed.
-  if (gameinterop::IsPlayerSlot(slot)) {
-    for (auto& [entity, slots] : audiences_) {
-      slots &= ~(uint64_t{1} << slot);
-    }
-    for (auto& [object, slots] : object_audiences_) {
-      slots &= ~(uint64_t{1} << slot);
-    }
-  }
+  visibility_.Leave(slot);
 
   // Release the modifiers the slot held.
   std::vector<std::string> keys;
@@ -247,8 +237,6 @@ void Game::RemoveWorld() {
     std::visit([](auto& handle) { handle->Remove(); }, object);
   }
   objects_.clear();
-  hidden_.clear();
-  object_audiences_.clear();
   if (fog_) {
     fog_->Remove();
     fog_.reset();
@@ -261,7 +249,7 @@ void Game::RemoveWorld() {
     }
   }
   created_.clear();
-  audiences_.clear();
+  visibility_.Clear();
 
   // Only the engine's kick removes a bot's connection.
   if (auto server = services_.Server()) {

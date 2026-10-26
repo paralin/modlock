@@ -194,38 +194,7 @@ void GameServices::Withhold(gameinterop::TransmitSet& set) {
   // A text object's entity changes with its words, so each update reads the
   // current handles.
   for (auto* game : games_) {
-    auto hidden = game->hidden_.find(set.Slot());
-    if (hidden == game->hidden_.end()) {
-      continue;
-    }
-    for (const auto id : hidden->second) {
-      auto found = game->objects_.find(id);
-      if (found == game->objects_.end()) {
-        continue;
-      }
-      auto handle = std::visit([](const auto& object) { return object->Handle(); }, found->second);
-      if (handle) {
-        set.Withhold(*handle);
-      }
-    }
-  }
-
-  // The engine's pass already set the bits of entities sent to every client,
-  // TransmitAlways ones included, so clearing them here still withholds them.
-  for (auto* game : games_) {
-    for (const auto& [entity, slots] : game->audiences_) {
-      set.WithholdUnlessIn(entity, slots);
-    }
-    for (const auto& [id, slots] : game->object_audiences_) {
-      auto found = game->objects_.find(id);
-      if (found == game->objects_.end()) {
-        continue;
-      }
-      auto handle = std::visit([](const auto& object) { return object->Handle(); }, found->second);
-      if (handle) {
-        set.WithholdUnlessIn(*handle, slots);
-      }
-    }
+    game->visibility_.Withhold(set, [game](uint32_t id) { return game->ObjectHandle(id); });
   }
 }
 
