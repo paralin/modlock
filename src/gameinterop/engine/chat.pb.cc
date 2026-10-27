@@ -78,6 +78,7 @@ inline constexpr ChatMessage::Impl_::Impl_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         all_chat_{false},
+        lane_color_{0},
         player_slot_{-1} {}
 
 template <typename>
@@ -128,13 +129,15 @@ const ::uint32_t
         4,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::ChatMessage, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::ChatMessage, _impl_.player_slot_),
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::ChatMessage, _impl_.text_),
         PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::ChatMessage, _impl_.all_chat_),
-        2,
+        PROTOBUF_FIELD_OFFSET(::modlock::gameinterop::engine::ChatMessage, _impl_.lane_color_),
+        3,
         0,
         1,
+        2,
 };
 
 static const ::_pbi::MigrationSchema
@@ -154,16 +157,16 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fga
     "ty_index\030\001 \001(\005:\002-1\022\014\n\004chat\030\002 \001(\010\022\024\n\014mess"
     "age_name\030\003 \001(\t\022\023\n\013player_name\030\004 \001(\t\022\014\n\004t"
     "ext\030\005 \001(\t\022\016\n\006param3\030\006 \001(\t\022\016\n\006param4\030\007 \001("
-    "\t\"F\n\013ChatMessage\022\027\n\013player_slot\030\001 \001(\005:\002-"
-    "1\022\014\n\004text\030\002 \001(\t\022\020\n\010all_chat\030\003 \001(\010B:Z8git"
-    "hub.com/paralin/modlock/src/gameinterop/"
-    "engine;engine"
+    "\t\"Z\n\013ChatMessage\022\027\n\013player_slot\030\001 \001(\005:\002-"
+    "1\022\014\n\004text\030\002 \001(\t\022\020\n\010all_chat\030\003 \001(\010\022\022\n\nlan"
+    "e_color\030\004 \001(\005B:Z8github.com/paralin/modl"
+    "ock/src/gameinterop/engine;engine"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fchat_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fchat_2eproto = {
     false,
     false,
-    373,
+    393,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fchat_2eproto,
     "github.com/paralin/modlock/src/gameinterop/engine/chat.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fengine_2fchat_2eproto_once,
@@ -669,7 +672,12 @@ PROTOBUF_NDEBUG_INLINE ChatMessage::Impl_::Impl_(
 
 inline void ChatMessage::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.all_chat_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, all_chat_),
+           0,
+           offsetof(Impl_, lane_color_) -
+               offsetof(Impl_, all_chat_) +
+               sizeof(Impl_::lane_color_));
 }
 ChatMessage::~ChatMessage() {
   // @@protoc_insertion_point(destructor:modlock.gameinterop.engine.ChatMessage)
@@ -729,16 +737,16 @@ ChatMessage::GetClassData() const {
   return ChatMessage_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+const ::_pbi::TcParseTable<2, 4, 0, 0, 2>
 ChatMessage::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     ChatMessage_class_data_.base(),
@@ -748,10 +756,13 @@ ChatMessage::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::gameinterop::engine::ChatMessage>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional int32 lane_color = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ChatMessage, _impl_.lane_color_), 2>(),
+     {32, 2, 0,
+      PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.lane_color_)}},
     // optional int32 player_slot = 1 [default = -1];
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ChatMessage, _impl_.player_slot_), 2>(),
-     {8, 2, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ChatMessage, _impl_.player_slot_), 3>(),
+     {8, 3, 0,
       PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.player_slot_)}},
     // optional string text = 2;
     {::_pbi::TcParser::FastBS1,
@@ -765,11 +776,13 @@ ChatMessage::_table_ = {
     65535, 65535
   }}, {{
     // optional int32 player_slot = 1 [default = -1];
-    {PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.player_slot_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.player_slot_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // optional string text = 2;
     {PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.text_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kBytes | ::_fl::kRepAString)},
     // optional bool all_chat = 3;
     {PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.all_chat_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // optional int32 lane_color = 4;
+    {PROTOBUF_FIELD_OFFSET(ChatMessage, _impl_.lane_color_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
   }},
   // no aux_entries
   {{
@@ -786,8 +799,10 @@ PROTOBUF_NOINLINE void ChatMessage::Clear() {
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     _impl_.text_.ClearNonDefaultToEmpty();
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
-    _impl_.all_chat_ = false;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000eU)) {
+    ::memset(&_impl_.all_chat_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.lane_color_) -
+        reinterpret_cast<char*>(&_impl_.all_chat_)) + sizeof(_impl_.lane_color_));
     _impl_.player_slot_ = -1;
   }
   _impl_._has_bits_.Clear();
@@ -814,7 +829,7 @@ PROTOBUF_NOINLINE void ChatMessage::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // optional int32 player_slot = 1 [default = -1];
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     target =
         ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
             stream, this_._internal_player_slot(), target);
@@ -831,6 +846,13 @@ PROTOBUF_NOINLINE void ChatMessage::Clear() {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteBoolToArray(
         3, this_._internal_all_chat(), target);
+  }
+
+  // optional int32 lane_color = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target =
+        ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
+            stream, this_._internal_lane_color(), target);
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -859,14 +881,19 @@ PROTOBUF_NOINLINE void ChatMessage::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   total_size += static_cast<bool>(0x00000002U & cached_has_bits) * 2;
-  if (BatchCheckHasBit(cached_has_bits, 0x00000005U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000dU)) {
     // optional string text = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                       this_._internal_text());
     }
-    // optional int32 player_slot = 1 [default = -1];
+    // optional int32 lane_color = 4;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+          this_._internal_lane_color());
+    }
+    // optional int32 player_slot = 1 [default = -1];
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
           this_._internal_player_slot());
     }
@@ -889,7 +916,7 @@ void ChatMessage::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _this->_internal_set_text(from._internal_text());
     }
@@ -897,6 +924,9 @@ void ChatMessage::MergeImpl(::google::protobuf::MessageLite& to_msg,
       _this->_impl_.all_chat_ = from._impl_.all_chat_;
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_impl_.lane_color_ = from._impl_.lane_color_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       _this->_impl_.player_slot_ = from._impl_.player_slot_;
     }
   }

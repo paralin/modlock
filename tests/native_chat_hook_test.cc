@@ -42,6 +42,7 @@ TEST(NativeChatHook, DecodesRecordedHumanAllChatToItsClientSlot) {
   ASSERT_TRUE(chat);
   EXPECT_EQ(chat->slot, 0);
   EXPECT_EQ(chat->text, "/ready");
+  EXPECT_TRUE(chat->all);
   EXPECT_FALSE(NativeChatHook::Decode(314, kHumanReady));
 }
 
@@ -58,9 +59,19 @@ TEST(NativeChatHook, DecodesGlobalAndTeamGameChatToTheSenderSlot) {
         ASSERT_TRUE(chat);
         EXPECT_EQ(chat->slot, slot);
         EXPECT_EQ(chat->text, text);
+        EXPECT_EQ(chat->all, all_chat);
       }
     }
   }
+
+  // A pinged lane carries its color.
+  engine::ChatMessage pinged;
+  pinged.set_player_slot(0);
+  pinged.set_text("push");
+  pinged.set_lane_color(4);
+  const auto chat = NativeChatHook::Decode(314, EncodeChat(pinged));
+  ASSERT_TRUE(chat);
+  EXPECT_EQ(chat->lane, 4);
 }
 
 TEST(NativeChatHook, DecodesConsoleTeamChatWhileAliveOrDead) {
@@ -79,6 +90,7 @@ TEST(NativeChatHook, DecodesConsoleTeamChatWhileAliveOrDead) {
       ASSERT_TRUE(chat);
       EXPECT_EQ(chat->slot, 1);
       EXPECT_EQ(chat->text, "/again");
+      EXPECT_FALSE(chat->all);
     }
   }
 }

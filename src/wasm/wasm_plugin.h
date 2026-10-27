@@ -302,6 +302,8 @@ class WasmPlugin final : public Plugin {
   // frame's heroes.
   void Steer();
   bool Command(int32_t slot, std::string_view line);
+  // Chat delivers one chat line to a mod that asked for chat.
+  void Chat(const gameinterop::NativeChatHook::Message& line);
   void ShowUi(int32_t slot, const ui::Change& change);
   void Leave(int32_t slot);
   // HandOn hands the player's metric totals to the host's metrics, or logs

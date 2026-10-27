@@ -137,6 +137,8 @@ type StartResult struct {
 	Damage bool `protobuf:"varint,2,opt,name=damage,proto3" json:"damage,omitempty"`
 	// Damaged asks for a Damaged event after each hit.
 	Damaged bool `protobuf:"varint,3,opt,name=damaged,proto3" json:"damaged,omitempty"`
+	// Chat asks for a Chat event for each chat line.
+	Chat bool `protobuf:"varint,4,opt,name=chat,proto3" json:"chat,omitempty"`
 }
 
 func (x *StartResult) Reset() {
@@ -162,6 +164,13 @@ func (x *StartResult) GetDamage() bool {
 func (x *StartResult) GetDamaged() bool {
 	if x != nil {
 		return x.Damaged
+	}
+	return false
+}
+
+func (x *StartResult) GetChat() bool {
+	if x != nil {
+		return x.Chat
 	}
 	return false
 }
@@ -234,6 +243,55 @@ func (x *CommandEvent) GetLine() string {
 		return x.Line
 	}
 	return ""
+}
+
+// ChatEvent carries one chat line as the server accepted it, commands
+// included.
+type ChatEvent struct {
+	unknownFields []byte
+	// Player is the player who wrote the line.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Text is the line as written.
+	Text string `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	// All is true for chat every player reads, false for team chat.
+	All bool `protobuf:"varint,3,opt,name=all,proto3" json:"all,omitempty"`
+	// Lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
+	// green, 4 blue, 6 purple, or 0 for none.
+	Lane int32 `protobuf:"varint,4,opt,name=lane,proto3" json:"lane,omitempty"`
+}
+
+func (x *ChatEvent) Reset() {
+	*x = ChatEvent{}
+}
+
+func (*ChatEvent) ProtoMessage() {}
+
+func (x *ChatEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ChatEvent) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *ChatEvent) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+func (x *ChatEvent) GetLane() int32 {
+	if x != nil {
+		return x.Lane
+	}
+	return 0
 }
 
 // CommandResult answers whether the mod handled a command.
@@ -483,6 +541,7 @@ func (m *StartResult) CloneVT() *StartResult {
 	r.Frames = m.Frames
 	r.Damage = m.Damage
 	r.Damaged = m.Damaged
+	r.Chat = m.Chat
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -525,6 +584,25 @@ func (m *CommandEvent) CloneVT() *CommandEvent {
 }
 
 func (m *CommandEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ChatEvent) CloneVT() *ChatEvent {
+	if m == nil {
+		return (*ChatEvent)(nil)
+	}
+	r := new(ChatEvent)
+	r.Player = m.Player
+	r.Text = m.Text
+	r.All = m.All
+	r.Lane = m.Lane
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ChatEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -747,6 +825,9 @@ func (this *StartResult) EqualVT(that *StartResult) bool {
 	if this.Damaged != that.Damaged {
 		return false
 	}
+	if this.Chat != that.Chat {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -801,6 +882,35 @@ func (this *CommandEvent) EqualVT(that *CommandEvent) bool {
 
 func (this *CommandEvent) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*CommandEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ChatEvent) EqualVT(that *ChatEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Text != that.Text {
+		return false
+	}
+	if this.All != that.All {
+		return false
+	}
+	if this.Lane != that.Lane {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ChatEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ChatEvent)
 	if !ok {
 		return false
 	}
@@ -1171,6 +1281,11 @@ func (x *StartResult) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("damaged")
 		s.WriteBool(x.Damaged)
 	}
+	if x.Chat || s.HasField("chat") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("chat")
+		s.WriteBool(x.Chat)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1197,6 +1312,9 @@ func (x *StartResult) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "damaged":
 			s.AddField("damaged")
 			x.Damaged = s.ReadBool()
+		case "chat":
+			s.AddField("chat")
+			x.Chat = s.ReadBool()
 		}
 	})
 }
@@ -1332,6 +1450,72 @@ func (x *CommandEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the CommandEvent from JSON.
 func (x *CommandEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ChatEvent message to JSON.
+func (x *ChatEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Text != "" || s.HasField("text") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("text")
+		s.WriteString(x.Text)
+	}
+	if x.All || s.HasField("all") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("all")
+		s.WriteBool(x.All)
+	}
+	if x.Lane != 0 || s.HasField("lane") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("lane")
+		s.WriteInt32(x.Lane)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ChatEvent to JSON.
+func (x *ChatEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ChatEvent message from JSON.
+func (x *ChatEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "text":
+			s.AddField("text")
+			x.Text = s.ReadString()
+		case "all":
+			s.AddField("all")
+			x.All = s.ReadBool()
+		case "lane":
+			s.AddField("lane")
+			x.Lane = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ChatEvent from JSON.
+func (x *ChatEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1855,6 +2039,11 @@ func (m *StartResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Chat {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Chat)
+		i--
+		dAtA[i] = 0x20
+	}
 	if m.Damaged {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Damaged)
 		i--
@@ -1958,6 +2147,58 @@ func (m *CommandEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if len(m.Line) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Line)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ChatEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ChatEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ChatEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Lane != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Lane))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.All {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.All)
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Text) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Text)
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2303,6 +2544,7 @@ func (m *StartResult) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Frames)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Damage)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Damaged)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Chat)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2331,6 +2573,20 @@ func (m *CommandEvent) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Line)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ChatEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Text)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.All)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Lane)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2502,6 +2758,10 @@ func (x *StartResult) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "damaged")
 		protobuf_go_lite.TextWriteBool(&sb, x.Damaged)
 	}
+	if x.Chat != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "chat")
+		protobuf_go_lite.TextWriteBool(&sb, x.Chat)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -2554,6 +2814,32 @@ func (x *CommandEvent) MarshalProtoText() string {
 }
 
 func (x *CommandEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ChatEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ChatEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Text != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
+		protobuf_go_lite.TextWriteString(&sb, x.Text)
+	}
+	if x.All != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "all")
+		protobuf_go_lite.TextWriteBool(&sb, x.All)
+	}
+	if x.Lane != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "lane")
+		protobuf_go_lite.TextWriteInt(&sb, x.Lane)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ChatEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -2961,6 +3247,16 @@ func (m *StartResult) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Damaged = bool(v)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Chat", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Chat = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -3100,6 +3396,87 @@ func (m *CommandEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Line = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ChatEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ChatEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ChatEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Text = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field All", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.All = bool(v)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lane", wireType)
+			}
+			m.Lane = 0
+			m.Lane, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

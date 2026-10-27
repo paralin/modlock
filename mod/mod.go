@@ -47,6 +47,7 @@ type handlers struct {
 
 	starts        []func(args []string)
 	frames        []func(*FrameEvent)
+	chats         []func(*ChatEvent)
 	worlds        []func(mapName string)
 	inputs        []func(p Player, pressed, released uint64)
 	restoreds     []func(p Player, err error)
@@ -91,6 +92,12 @@ func OnStart(handler func(args []string)) {
 // OnFrame calls handler once per server frame.
 func OnFrame(handler func(f *FrameEvent)) {
 	registered.frames = append(registered.frames, handler)
+}
+
+// OnChat calls handler with each chat line a player writes, commands
+// included, on the next server frame.
+func OnChat(handler func(line *ChatEvent)) {
+	registered.chats = append(registered.chats, handler)
 }
 
 // OnWorld calls handler with the map's name each time a world loads, and at
@@ -162,7 +169,12 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		handler(event.GetArgs())
 	}
 	// Timers run from frames, so the library always takes them.
-	return &StartResult{Frames: true, Damage: len(h.damages) != 0, Damaged: len(h.damageds) != 0}, nil
+	return &StartResult{
+		Frames:  true,
+		Damage:  len(h.damages) != 0,
+		Damaged: len(h.damageds) != 0,
+		Chat:    len(h.chats) != 0,
+	}, nil
 }
 
 // Frame runs the timers that came due and the frame handlers.
@@ -190,6 +202,17 @@ func (h *handlers) Command(event *CommandEvent) (*CommandResult, error) {
 	player, args := Player{Slot: event.GetPlayer()}, strings.TrimSpace(args)
 	After(0, func() { handler(player, args) })
 	return &CommandResult{Claimed: true}, nil
+}
+
+// Chat runs the chat handlers with the next frame, since the line arrives
+// under the same CPU budget as a command.
+func (h *handlers) Chat(event *ChatEvent) error {
+	After(0, func() {
+		for _, handler := range h.chats {
+			handler(event)
+		}
+	})
+	return nil
 }
 
 // World runs the world handlers.

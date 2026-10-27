@@ -132,6 +132,15 @@ bool WasmPlugin::Command(int32_t slot, std::string_view line) {
   return result && result->claimed();
 }
 
+void WasmPlugin::Chat(const gameinterop::NativeChatHook::Message& line) {
+  wasm::ChatEvent event;
+  event.set_player(line.slot);
+  event.set_text(line.text);
+  event.set_all(line.all);
+  event.set_lane(line.lane);
+  static_cast<void>(mod_.Chat(event));
+}
+
 void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {
   host_.Notify([&](WasmHostObserver& observer) { observer.Ui(name_, slot, change); });
 }

@@ -1053,6 +1053,8 @@ export type StartResult = {
 	damage: boolean,
 	-- damaged asks for a damaged event after each hit.
 	damaged: boolean,
+	-- chat asks for a chat event for each chat line.
+	chat: boolean,
 }
 
 -- FrameEvent identifies one server frame.
@@ -1074,6 +1076,20 @@ export type CommandEvent = {
 	player: Player,
 	-- line is the complete command line, starting with the command name.
 	line: string,
+}
+
+-- ChatEvent carries one chat line as the server accepted it, commands
+-- included.
+export type ChatEvent = {
+	-- player is the player who wrote the line.
+	player: Player,
+	-- text is the line as written.
+	text: string,
+	-- all is true for chat every player reads, false for team chat.
+	all: boolean,
+	-- lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
+	-- green, 4 blue, 6 purple, or 0 for none.
+	lane: number,
 }
 
 -- CommandResult answers whether the mod handled a command.
@@ -2653,6 +2669,7 @@ schema.StartResult = {
 	{ number = 1, name = "frames", kind = "bool" },
 	{ number = 2, name = "damage", kind = "bool" },
 	{ number = 3, name = "damaged", kind = "bool" },
+	{ number = 4, name = "chat", kind = "bool" },
 }
 schema.FrameEvent = {
 	{ number = 1, name = "tick", kind = "uint64" },
@@ -2662,6 +2679,12 @@ schema.FrameEvent = {
 schema.CommandEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "line", kind = "string" },
+}
+schema.ChatEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "text", kind = "string" },
+	{ number = 3, name = "all", kind = "bool" },
+	{ number = 4, name = "lane", kind = "int32" },
 }
 schema.CommandResult = {
 	{ number = 1, name = "claimed", kind = "bool" },
@@ -3152,6 +3175,9 @@ export type ModHandlers = {
 	frame: (event: FrameEvent) -> (),
 	-- command offers one command a player typed.
 	command: (event: CommandEvent) -> CommandResult,
+	-- chat reports each chat line the server accepted from a player the mod
+	-- serves, while the mod asked for chat, before the line's command.
+	chat: (event: ChatEvent) -> (),
 	-- world follows each world load, and start when a world has already
 	-- loaded. Objects and bots from an earlier world are gone by then.
 	world: (event: WorldEvent) -> (),
@@ -3198,6 +3224,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Start = { request = "StartEvent", response = "StartResult", handler = "start" },
 	Frame = { request = "FrameEvent", response = "Empty", handler = "frame" },
 	Command = { request = "CommandEvent", response = "CommandResult", handler = "command" },
+	Chat = { request = "ChatEvent", response = "Empty", handler = "chat" },
 	World = { request = "WorldEvent", response = "Empty", handler = "world" },
 	UiPress = { request = "UiPressEvent", response = "Empty", handler = "uiPress" },
 	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
@@ -3344,6 +3371,7 @@ local services: { [string]: Service } = {}
 -- registration order.
 local starts: { (args: { string }) -> () } = {}
 local frames: { (frame: FrameEvent) -> () } = {}
+local chats: { (line: ChatEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
 local inputs: { (player: Player, pressed: number, released: number) -> () } = {}
 local restoreds: { (player: Player, error: string?) -> () } = {}
@@ -3552,6 +3580,12 @@ function modlock.onDamage(handler: (hit: DamageEvent) -> DamageResult?)
 	table.insert(damages, handler)
 end
 
+-- onChat calls handler with each chat line a player writes, commands
+-- included, on the next server frame.
+function modlock.onChat(handler: (line: ChatEvent) -> ())
+	table.insert(chats, handler)
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -3589,7 +3623,7 @@ local handlers: ModHandlers = {
 			handler(event.args)
 		end
 		-- Timers run from frames, so the library always takes them.
-		return { frames = true, damage = #damages ~= 0, damaged = #damageds ~= 0 }
+		return { frames = true, damage = #damages ~= 0, damaged = #damageds ~= 0, chat = #chats ~= 0 }
 	end,
 
 	frame = function(event)
@@ -3615,6 +3649,16 @@ local handlers: ModHandlers = {
 			handler(player, args or "")
 		end)
 		return { claimed = true }
+	end,
+
+	-- A line arrives under the same CPU budget as a command, so its handlers
+	-- run with the next frame.
+	chat = function(event)
+		modlock.after(0, function()
+			for _, handler in chats do
+				handler(event)
+			end
+		end)
 	end,
 
 	world = function(event)

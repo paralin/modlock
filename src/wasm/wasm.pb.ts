@@ -230,6 +230,10 @@ export interface StartResult {
    * Damaged asks for a Damaged event after each hit.
    */
   damaged?: boolean
+  /**
+   * Chat asks for a Chat event for each chat line.
+   */
+  chat?: boolean
 }
 
 export const StartResult: MessageType<StartResult> =
@@ -239,6 +243,7 @@ export const StartResult: MessageType<StartResult> =
       [1, 'frames', 8],
       [2, 'damage', 8],
       [3, 'damaged', 8],
+      [4, 'chat', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: StartResult): StartResult => {
@@ -254,6 +259,9 @@ export const StartResult: MessageType<StartResult> =
               break
             case 3:
               m.damaged = r.bool()
+              break
+            case 4:
+              m.chat = r.bool()
               break
             default:
               r.skip(t)
@@ -273,6 +281,10 @@ export const StartResult: MessageType<StartResult> =
         {
           const v = m.damaged
           if (v) w.uint32(24).bool(v)
+        }
+        {
+          const v = m.chat
+          if (v) w.uint32(32).bool(v)
         }
       },
     },
@@ -398,6 +410,86 @@ export const CommandEvent: MessageType<CommandEvent> =
         {
           const v = m.line
           if (v) w.uint32(18).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ChatEvent carries one chat line as the server accepted it, commands
+ * included.
+ *
+ * @generated from message modlock.wasm.ChatEvent
+ */
+export interface ChatEvent {
+  /**
+   * Player is the player who wrote the line.
+   */
+  player?: number
+  /**
+   * Text is the line as written.
+   */
+  text?: string
+  /**
+   * All is true for chat every player reads, false for team chat.
+   */
+  all?: boolean
+  /**
+   * Lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
+   * green, 4 blue, 6 purple, or 0 for none.
+   */
+  lane?: number
+}
+
+export const ChatEvent: MessageType<ChatEvent> =
+  /* @__PURE__ */ createMessageType<ChatEvent>(
+    'modlock.wasm.ChatEvent',
+    () => [
+      [1, 'player', 5],
+      [2, 'text', 9],
+      [3, 'all', 8],
+      [4, 'lane', 5],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ChatEvent): ChatEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.text = r.string()
+              break
+            case 3:
+              m.all = r.bool()
+              break
+            case 4:
+              m.lane = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ChatEvent, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.text
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.all
+          if (v) w.uint32(24).bool(v)
+        }
+        {
+          const v = m.lane
+          if (v) w.uint32(32).int32(v)
         }
       },
     },

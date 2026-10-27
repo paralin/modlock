@@ -154,13 +154,17 @@ void WasmPlugin::ListenToPlayers() {
     return;
   }
 
-  // Offer the mod every player command: "/hello there" in chat arrives as
-  // "hello there", as does the console command of the same line. Chat also
-  // accepts ".", "+" or "-" in place of the slash, for players whose chat
-  // keeps a slash line to itself.
-  auto chats = engine_->OnChat([this](int32_t slot, std::string_view text) {
+  // Offer the mod every chat line it asked for, then every player command:
+  // "/hello there" in chat arrives as "hello there", as does the console
+  // command of the same line. Chat also accepts ".", "+" or "-" in place of
+  // the slash, for players whose chat keeps a slash line to itself.
+  auto chats = engine_->OnChat([this](const gameinterop::NativeChatHook::Message& line) {
+    if (wants_.chat()) {
+      Chat(line);
+    }
+    const std::string_view text = line.text;
     if (!text.empty() && std::string_view("/.+-").contains(text.front())) {
-      Command(slot, text.substr(1));
+      Command(line.slot, text.substr(1));
     }
   });
   if (!chats) {

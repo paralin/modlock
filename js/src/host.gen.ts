@@ -1766,6 +1766,8 @@ export interface StartResult {
   damage: boolean
   /** damaged asks for a damaged event after each hit. */
   damaged: boolean
+  /** chat asks for a chat event for each chat line. */
+  chat: boolean
 }
 
 /** FrameEvent identifies one server frame. */
@@ -1807,6 +1809,34 @@ function fromCommandEvent(message: wasmPb.CommandEvent): CommandEvent {
   return {
     player: new Player(message.player ?? 0),
     line: message.line ?? '',
+  }
+}
+
+/**
+ * ChatEvent carries one chat line as the server accepted it, commands
+ * included.
+ */
+export interface ChatEvent {
+  /** player is the player who wrote the line. */
+  readonly player: Player
+  /** text is the line as written. */
+  readonly text: string
+  /** all is true for chat every player reads, false for team chat. */
+  readonly all: boolean
+  /**
+   * lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
+   * green, 4 blue, 6 purple, or 0 for none.
+   */
+  readonly lane: number
+}
+
+/** fromChatEvent decodes a ChatEvent. */
+function fromChatEvent(message: wasmPb.ChatEvent): ChatEvent {
+  return {
+    player: new Player(message.player ?? 0),
+    text: message.text ?? '',
+    all: message.all ?? false,
+    lane: message.lane ?? 0,
   }
 }
 
@@ -2959,6 +2989,11 @@ export interface ModHandlers {
   /** command offers one command a player typed. */
   command(event: CommandEvent): CommandResult
   /**
+   * chat reports each chat line the server accepted from a player the mod
+   * serves, while the mod asked for chat, before the line's command.
+   */
+  chat(event: ChatEvent): void
+  /**
    * world follows each world load, and start when a world has already
    * loaded. Objects and bots from an earlier world are gone by then.
    */
@@ -3033,6 +3068,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'Command':
         return reply(wasmPb.CommandResult.toBinary(handlers.command(fromCommandEvent(wasmPb.CommandEvent.fromBinary(input)))))
+      case 'Chat':
+        handlers.chat(fromChatEvent(wasmPb.ChatEvent.fromBinary(input)))
+        return reply()
       case 'World':
         handlers.world(fromWorldEvent(wasmPb.WorldEvent.fromBinary(input)))
         return reply()

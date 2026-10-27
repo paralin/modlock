@@ -268,7 +268,8 @@ void WasmPlugin::ListenForRestart() {
   if (restart_command_.Active()) {
     return;
   }
-  auto chats = engine_->OnChat([this](int32_t, std::string_view text) {
+  auto chats = engine_->OnChat([this](const gameinterop::NativeChatHook::Message& line) {
+    std::string_view text = line.text;
     // Accept only the restart command, for this mod or for all.
     if (text.empty() || !std::string_view("/.+-").contains(text.front())) {
       return;

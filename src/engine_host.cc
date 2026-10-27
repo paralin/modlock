@@ -62,7 +62,7 @@ struct EngineHost::Impl {
   std::expected<int, std::string> result = std::unexpected("engine has not run");
 
   Callbacks<void()> frames;
-  Callbacks<void(int32_t, std::string_view)> chats;
+  Callbacks<void(const gameinterop::NativeChatHook::Message&)> chats;
   Callbacks<bool(int32_t, std::string_view)> commands;
   Callbacks<void(const gameinterop::CombatEvent&)> combat;
   Callbacks<bool(const gameinterop::DamageContactEvent&)> damage;
@@ -207,7 +207,7 @@ std::expected<Subscription, std::string> EngineHost::OnChat(
   }
   if (!impl_->chat_hook) {
     auto hook = gameinterop::NativeChatHook::Install(
-        [this](int32_t slot, std::string_view text) { impl_->chats.Dispatch(slot, text); });
+        [this](const gameinterop::NativeChatHook::Message& line) { impl_->chats.Dispatch(line); });
     if (!hook) {
       return std::unexpected(hook.error());
     }

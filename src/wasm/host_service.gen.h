@@ -1786,6 +1786,12 @@ class ModClient {
     return Send<CommandResult>("Command", event);
   }
 
+  // Chat reports each chat line the server accepted from a player the mod
+  // serves, while the mod asked for chat, before the line's command.
+  std::expected<void, std::string> Chat(const ChatEvent& event) {
+    return Send<void>("Chat", event);
+  }
+
   // World follows each world load, and start when a world has already
   // loaded. Objects and bots from an earlier world are gone by then.
   std::expected<void, std::string> World(const WorldEvent& event) {

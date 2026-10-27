@@ -1238,6 +1238,8 @@ class StartResult:
     damage: bool = False
     # damaged asks for a damaged event after each hit.
     damaged: bool = False
+    # chat asks for a chat event for each chat line.
+    chat: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1264,6 +1266,23 @@ class CommandEvent:
     player: Player
     # line is the complete command line, starting with the command name.
     line: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class ChatEvent:
+    """ChatEvent carries one chat line as the server accepted it, commands
+    included.
+    """
+
+    # player is the player who wrote the line.
+    player: Player
+    # text is the line as written.
+    text: str = ""
+    # all is true for chat every player reads, false for team chat.
+    all: bool = False
+    # lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
+    # green, 4 blue, 6 purple, or 0 for none.
+    lane: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -3067,6 +3086,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "frames", "bool"),
             wire.Field(2, "damage", "bool"),
             wire.Field(3, "damaged", "bool"),
+            wire.Field(4, "chat", "bool"),
         ],
     ),
     "FrameEvent": (
@@ -3082,6 +3102,15 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "line", "string"),
+        ],
+    ),
+    "ChatEvent": (
+        ChatEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "text", "string"),
+            wire.Field(3, "all", "bool"),
+            wire.Field(4, "lane", "int32"),
         ],
     ),
     "CommandResult": (
@@ -3612,6 +3641,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Start": ("StartEvent", "StartResult", "start"),
     "Frame": ("FrameEvent", "Empty", "frame"),
     "Command": ("CommandEvent", "CommandResult", "command"),
+    "Chat": ("ChatEvent", "Empty", "chat"),
     "World": ("WorldEvent", "Empty", "world"),
     "UiPress": ("UiPressEvent", "Empty", "ui_press"),
     "UiInput": ("UiInputEvent", "Empty", "ui_input"),
@@ -3733,6 +3763,7 @@ _services: dict[str, Service] = {}
 # Each list runs in registration order.
 _starts: list[Callable[[list[str]], object]] = []
 _frames: list[Callable[[FrameEvent], object]] = []
+_chats: list[Callable[[ChatEvent], object]] = []
 _worlds: list[Callable[[str], object]] = []
 _inputs: list[Callable[[Player, Buttons, Buttons], object]] = []
 _restoreds: list[Callable[[Player, str | None], object]] = []
@@ -3964,6 +3995,13 @@ def on_damage[F: Callable[[DamageEvent], DamageResult | None]](handler: F) -> F:
     return handler
 
 
+def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
+    """on_chat calls handler with each chat line a player writes, commands
+    included, on the next server frame."""
+    _chats.append(handler)
+    return handler
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands."""
     _damageds.append(handler)
@@ -4003,7 +4041,9 @@ def _start(event: StartEvent) -> StartResult:
     for handler in _starts:
         handler(event.args)
     # Timers run from frames, so the library always takes them.
-    return StartResult(frames=True, damage=bool(_damages), damaged=bool(_damageds))
+    return StartResult(
+        frames=True, damage=bool(_damages), damaged=bool(_damageds), chat=bool(_chats)
+    )
 
 
 def _frame(event: FrameEvent) -> None:
@@ -4025,6 +4065,16 @@ def _command(event: CommandEvent) -> CommandResult:
     player, text = event.player, args.strip()
     after(0, lambda: handler(player, text))
     return CommandResult(claimed=True)
+
+
+def _chat(event: ChatEvent) -> None:
+    # The line arrives under the same CPU budget as a command, so its
+    # handlers run with the next frame.
+    def run() -> None:
+        for handler in _chats:
+            handler(event)
+
+    after(0, run)
 
 
 def _world(event: WorldEvent) -> None:
@@ -4108,6 +4158,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "start": _start,
     "frame": _frame,
     "command": _command,
+    "chat": _chat,
     "world": _world,
     "ui_press": _ui_press,
     "ui_input": _ui_input,

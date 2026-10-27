@@ -107,6 +107,7 @@ local services: { [string]: Service } = {}
 -- registration order.
 local starts: { (args: { string }) -> () } = {}
 local frames: { (frame: FrameEvent) -> () } = {}
+local chats: { (line: ChatEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
 local inputs: { (player: Player, pressed: number, released: number) -> () } = {}
 local restoreds: { (player: Player, error: string?) -> () } = {}
@@ -315,6 +316,12 @@ function modlock.onDamage(handler: (hit: DamageEvent) -> DamageResult?)
 	table.insert(damages, handler)
 end
 
+-- onChat calls handler with each chat line a player writes, commands
+-- included, on the next server frame.
+function modlock.onChat(handler: (line: ChatEvent) -> ())
+	table.insert(chats, handler)
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -352,7 +359,7 @@ local handlers: ModHandlers = {
 			handler(event.args)
 		end
 		-- Timers run from frames, so the library always takes them.
-		return { frames = true, damage = #damages ~= 0, damaged = #damageds ~= 0 }
+		return { frames = true, damage = #damages ~= 0, damaged = #damageds ~= 0, chat = #chats ~= 0 }
 	end,
 
 	frame = function(event)
@@ -378,6 +385,16 @@ local handlers: ModHandlers = {
 			handler(player, args or "")
 		end)
 		return { claimed = true }
+	end,
+
+	-- A line arrives under the same CPU budget as a command, so its handlers
+	-- run with the next frame.
+	chat = function(event)
+		modlock.after(0, function()
+			for _, handler in chats do
+				handler(event)
+			end
+		end)
 	end,
 
 	world = function(event)
