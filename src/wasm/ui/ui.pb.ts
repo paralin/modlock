@@ -11,6 +11,113 @@ import type {
 } from '@aptre/protobuf-es-lite/binary-encoding'
 
 /**
+ * Scaling fits a picture into its node's box.
+ *
+ * @generated from enum modlock.wasm.ui.Scaling
+ */
+export enum Scaling {
+  /**
+   * SCALING_DEFAULT keeps the panel's own scaling: an image fits its box,
+   * keeping its shape.
+   */
+  DEFAULT = 0,
+
+  /**
+   * SCALING_FIT shows the whole picture in the box, keeping its shape.
+   */
+  FIT = 1,
+
+  /**
+   * SCALING_COVER fills the box, keeping the picture's shape and cropping what
+   * falls outside.
+   */
+  COVER = 2,
+
+  /**
+   * SCALING_STRETCH fills the box, stretching the picture.
+   */
+  STRETCH = 3,
+
+  /**
+   * SCALING_FIT_WIDTH fits the picture's width to the box, keeping its shape.
+   */
+  FIT_WIDTH = 4,
+
+  /**
+   * SCALING_FIT_HEIGHT fits the picture's height to the box, keeping its
+   * shape.
+   */
+  FIT_HEIGHT = 5,
+
+  /**
+   * SCALING_NONE draws the picture at its own size.
+   */
+  NONE = 6,
+}
+
+export const Scaling_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Scaling',
+  [
+    [0, 'SCALING_DEFAULT'],
+    [1, 'SCALING_FIT'],
+    [2, 'SCALING_COVER'],
+    [3, 'SCALING_STRETCH'],
+    [4, 'SCALING_FIT_WIDTH'],
+    [5, 'SCALING_FIT_HEIGHT'],
+    [6, 'SCALING_NONE'],
+  ],
+)
+
+/**
+ * HeroLook is one of the game's pictures of a hero.
+ *
+ * @generated from enum modlock.wasm.ui.HeroLook
+ */
+export enum HeroLook {
+  /**
+   * HERO_LOOK_SMALL is the square portrait of the kill feed and scoreboard.
+   */
+  SMALL = 0,
+
+  /**
+   * HERO_LOOK_CARD is the tall card the hero picker shows.
+   */
+  CARD = 1,
+
+  /**
+   * HERO_LOOK_ICON is the hero's round icon.
+   */
+  ICON = 2,
+
+  /**
+   * HERO_LOOK_VERTICAL is the narrow portrait of the hero grid.
+   */
+  VERTICAL = 3,
+
+  /**
+   * HERO_LOOK_TOP_BAR is the portrait in the bar across the top of the HUD.
+   */
+  TOP_BAR = 4,
+
+  /**
+   * HERO_LOOK_MINIMAP is the hero's minimap icon.
+   */
+  MINIMAP = 5,
+}
+
+export const HeroLook_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.HeroLook',
+  [
+    [0, 'HERO_LOOK_SMALL'],
+    [1, 'HERO_LOOK_CARD'],
+    [2, 'HERO_LOOK_ICON'],
+    [3, 'HERO_LOOK_VERTICAL'],
+    [4, 'HERO_LOOK_TOP_BAR'],
+    [5, 'HERO_LOOK_MINIMAP'],
+  ],
+)
+
+/**
  * HudPart is a part of the game's own HUD a mod may hide from a player.
  *
  * @generated from enum modlock.wasm.ui.HudPart
@@ -98,6 +205,11 @@ export enum Kind {
    * under its route's name. No parent lists it.
    */
   ROUTE = 5,
+
+  /**
+   * KIND_HERO_IMAGE shows one of the game's pictures of the node's hero.
+   */
+  HERO_IMAGE = 6,
 }
 
 export const Kind_Enum = /* @__PURE__ */ createEnumType(
@@ -109,6 +221,231 @@ export const Kind_Enum = /* @__PURE__ */ createEnumType(
     [3, 'KIND_BUTTON'],
     [4, 'KIND_LAYOUT'],
     [5, 'KIND_ROUTE'],
+    [6, 'KIND_HERO_IMAGE'],
+  ],
+)
+
+/**
+ * Overflow decides what happens to children that do not fit a node.
+ *
+ * @generated from enum modlock.wasm.ui.Overflow
+ */
+export enum Overflow {
+  /**
+   * OVERFLOW_DEFAULT keeps the panel's own behavior: they shrink to fit.
+   */
+  DEFAULT = 0,
+
+  /**
+   * OVERFLOW_SQUISH shrinks the children to fit.
+   */
+  SQUISH = 1,
+
+  /**
+   * OVERFLOW_CLIP cuts off what does not fit.
+   */
+  CLIP = 2,
+
+  /**
+   * OVERFLOW_SCROLL lets the player scroll to what does not fit.
+   */
+  SCROLL = 3,
+
+  /**
+   * OVERFLOW_SHOW draws what does not fit outside the node.
+   */
+  SHOW = 4,
+}
+
+export const Overflow_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Overflow',
+  [
+    [0, 'OVERFLOW_DEFAULT'],
+    [1, 'OVERFLOW_SQUISH'],
+    [2, 'OVERFLOW_CLIP'],
+    [3, 'OVERFLOW_SCROLL'],
+    [4, 'OVERFLOW_SHOW'],
+  ],
+)
+
+/**
+ * GradientShape is the direction or shape a gradient's colors run in.
+ *
+ * @generated from enum modlock.wasm.ui.GradientShape
+ */
+export enum GradientShape {
+  /**
+   * GRADIENT_SHAPE_DOWN runs from the top to the bottom.
+   */
+  DOWN = 0,
+
+  /**
+   * GRADIENT_SHAPE_RIGHT runs from the left to the right.
+   */
+  RIGHT = 1,
+
+  /**
+   * GRADIENT_SHAPE_UP runs from the bottom to the top.
+   */
+  UP = 2,
+
+  /**
+   * GRADIENT_SHAPE_LEFT runs from the right to the left.
+   */
+  LEFT = 3,
+
+  /**
+   * GRADIENT_SHAPE_RADIAL runs from the center out to the edges.
+   */
+  RADIAL = 4,
+}
+
+export const GradientShape_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.GradientShape',
+  [
+    [0, 'GRADIENT_SHAPE_DOWN'],
+    [1, 'GRADIENT_SHAPE_RIGHT'],
+    [2, 'GRADIENT_SHAPE_UP'],
+    [3, 'GRADIENT_SHAPE_LEFT'],
+    [4, 'GRADIENT_SHAPE_RADIAL'],
+  ],
+)
+
+/**
+ * Weight is a text weight, as the game's faces draw them.
+ *
+ * @generated from enum modlock.wasm.ui.Weight
+ */
+export enum Weight {
+  /**
+   * WEIGHT_DEFAULT keeps the panel's weight, or bold's.
+   */
+  DEFAULT = 0,
+  THIN = 1,
+  LIGHT = 2,
+  NORMAL = 3,
+  MEDIUM = 4,
+  SEMI_BOLD = 5,
+  BOLD = 6,
+  BLACK = 7,
+}
+
+export const Weight_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Weight',
+  [
+    [0, 'WEIGHT_DEFAULT'],
+    [1, 'WEIGHT_THIN'],
+    [2, 'WEIGHT_LIGHT'],
+    [3, 'WEIGHT_NORMAL'],
+    [4, 'WEIGHT_MEDIUM'],
+    [5, 'WEIGHT_SEMI_BOLD'],
+    [6, 'WEIGHT_BOLD'],
+    [7, 'WEIGHT_BLACK'],
+  ],
+)
+
+/**
+ * TextOverflow decides what text that does not fit its box does.
+ *
+ * @generated from enum modlock.wasm.ui.TextOverflow
+ */
+export enum TextOverflow {
+  /**
+   * TEXT_OVERFLOW_DEFAULT keeps the panel's behavior.
+   */
+  DEFAULT = 0,
+
+  /**
+   * TEXT_OVERFLOW_ELLIPSIS ends the text that fits with an ellipsis.
+   */
+  ELLIPSIS = 1,
+
+  /**
+   * TEXT_OVERFLOW_SHRINK makes the text smaller until it fits.
+   */
+  SHRINK = 2,
+
+  /**
+   * TEXT_OVERFLOW_CLIP cuts the text off at the box's edge.
+   */
+  CLIP = 3,
+}
+
+export const TextOverflow_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.TextOverflow',
+  [
+    [0, 'TEXT_OVERFLOW_DEFAULT'],
+    [1, 'TEXT_OVERFLOW_ELLIPSIS'],
+    [2, 'TEXT_OVERFLOW_SHRINK'],
+    [3, 'TEXT_OVERFLOW_CLIP'],
+  ],
+)
+
+/**
+ * Decoration draws a line under or through text.
+ *
+ * @generated from enum modlock.wasm.ui.Decoration
+ */
+export enum Decoration {
+  /**
+   * DECORATION_NONE draws no line.
+   */
+  NONE = 0,
+
+  /**
+   * DECORATION_UNDERLINE draws a line under the text.
+   */
+  UNDERLINE = 1,
+
+  /**
+   * DECORATION_STRIKE draws a line through the text.
+   */
+  STRIKE = 2,
+}
+
+export const Decoration_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Decoration',
+  [
+    [0, 'DECORATION_NONE'],
+    [1, 'DECORATION_UNDERLINE'],
+    [2, 'DECORATION_STRIKE'],
+  ],
+)
+
+/**
+ * Easing shapes an animation's speed over its time.
+ *
+ * @generated from enum modlock.wasm.ui.Easing
+ */
+export enum Easing {
+  /**
+   * EASING_EASE_OUT starts fast and settles.
+   */
+  EASE_OUT = 0,
+
+  /**
+   * EASING_EASE_IN starts slow and speeds up.
+   */
+  EASE_IN = 1,
+
+  /**
+   * EASING_EASE_IN_OUT starts and ends slow.
+   */
+  EASE_IN_OUT = 2,
+
+  /**
+   * EASING_LINEAR keeps one speed.
+   */
+  LINEAR = 3,
+}
+
+export const Easing_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ui.Easing',
+  [
+    [0, 'EASING_EASE_OUT'],
+    [1, 'EASING_EASE_IN'],
+    [2, 'EASING_EASE_IN_OUT'],
+    [3, 'EASING_LINEAR'],
   ],
 )
 
@@ -170,6 +507,18 @@ export enum Flow {
    * FLOW_RIGHT places children in a row.
    */
   RIGHT = 2,
+
+  /**
+   * FLOW_DOWN_WRAP places children in columns, starting a new column where
+   * one is full.
+   */
+  DOWN_WRAP = 3,
+
+  /**
+   * FLOW_RIGHT_WRAP places children in rows, starting a new row where one is
+   * full.
+   */
+  RIGHT_WRAP = 4,
 }
 
 export const Flow_Enum = /* @__PURE__ */ createEnumType(
@@ -178,6 +527,8 @@ export const Flow_Enum = /* @__PURE__ */ createEnumType(
     [0, 'FLOW_NONE'],
     [1, 'FLOW_DOWN'],
     [2, 'FLOW_RIGHT'],
+    [3, 'FLOW_DOWN_WRAP'],
+    [4, 'FLOW_RIGHT_WRAP'],
   ],
 )
 
@@ -274,6 +625,45 @@ export interface Node {
    * '-' and '.'.
    */
   route?: string
+  /**
+   * Hover is the style drawn over the node's style while the pointer is over
+   * it. Each property it sets returns to the node's own value, or to the
+   * property's resting value, when the pointer leaves. A node with a hover
+   * style takes the pointer, so the game behind it does not.
+   */
+  hover?: Style
+  /**
+   * Tooltip is the text the game's tooltip shows while the pointer is over the
+   * node. A node with a tooltip takes the pointer.
+   */
+  tooltip?: string
+  /**
+   * Sound is the game's sound event a button plays when pressed, such as
+   * "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
+   */
+  sound?: string
+  /**
+   * HoverSound is the game's sound event played as the pointer enters the
+   * node, named as sound is.
+   */
+  hoverSound?: string
+  /**
+   * Disabled keeps a button from taking presses; its style shows why.
+   */
+  disabled?: boolean
+  /**
+   * Scaling fits an image or a hero's portrait into the node's box.
+   */
+  scaling?: Scaling
+  /**
+   * Hero is a hero image's hero, by the game's hero id.
+   */
+  hero?: number
+  /**
+   * HeroLook picks which of the game's pictures of the hero a hero image
+   * draws.
+   */
+  heroLook?: HeroLook
 }
 
 export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
@@ -289,6 +679,14 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [8, 'data', 9],
     [9, 'hide_hud', 14, 3, HudPart_Enum],
     [10, 'route', 9],
+    [11, 'hover', 11, 0, Style.codec],
+    [12, 'tooltip', 9],
+    [13, 'sound', 9],
+    [14, 'hover_sound', 9],
+    [15, 'disabled', 8],
+    [16, 'scaling', 14, 0, Scaling_Enum],
+    [17, 'hero', 5],
+    [18, 'hero_look', 14, 0, HeroLook_Enum],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -326,6 +724,30 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 10:
             m.route = r.string()
+            break
+          case 11:
+            m.hover = Style.decode(r, r.delimited(), m.hover ?? {})
+            break
+          case 12:
+            m.tooltip = r.string()
+            break
+          case 13:
+            m.sound = r.string()
+            break
+          case 14:
+            m.hoverSound = r.string()
+            break
+          case 15:
+            m.disabled = r.bool()
+            break
+          case 16:
+            m.scaling = r.int32()
+            break
+          case 17:
+            m.hero = r.int32()
+            break
+          case 18:
+            m.heroLook = r.int32()
             break
           default:
             r.skip(t)
@@ -377,6 +799,38 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.route
         if (v) w.uint32(82).string(v)
+      }
+      {
+        const v = m.hover
+        if (v != null) Style.writeField(w, 11, v)
+      }
+      {
+        const v = m.tooltip
+        if (v) w.uint32(98).string(v)
+      }
+      {
+        const v = m.sound
+        if (v) w.uint32(106).string(v)
+      }
+      {
+        const v = m.hoverSound
+        if (v) w.uint32(114).string(v)
+      }
+      {
+        const v = m.disabled
+        if (v) w.uint32(120).bool(v)
+      }
+      {
+        const v = m.scaling
+        if (v) w.uint32(128).int32(v)
+      }
+      {
+        const v = m.hero
+        if (v) w.uint32(136).int32(v)
+      }
+      {
+        const v = m.heroLook
+        if (v) w.uint32(144).int32(v)
       }
     },
   },
@@ -471,6 +925,92 @@ export interface Style {
    * only when both its width and its color are set.
    */
   borderColor?: number
+  /**
+   * X and Y place the node at an offset from its parent's top left corner,
+   * in pixels or a percent of the parent, outside the parent's flow.
+   */
+  x?: Length
+  y?: Length
+  /**
+   * MinWidth, MaxWidth, MinHeight and MaxHeight bound the node's size.
+   */
+  minWidth?: Length
+  maxWidth?: Length
+  minHeight?: Length
+  maxHeight?: Length
+  /**
+   * ZIndex draws the node above its siblings with a lower index; zero keeps
+   * the drawing order.
+   */
+  zIndex?: number
+  /**
+   * OverflowX and OverflowY decide what happens to children that do not fit
+   * across and down.
+   */
+  overflowX?: Overflow
+  overflowY?: Overflow
+  /**
+   * Gradient fills the node with a gradient in place of its background.
+   */
+  gradient?: Gradient
+  /**
+   * BoxShadow draws a shadow around or inside the node's box.
+   */
+  boxShadow?: Shadow
+  /**
+   * TextShadow draws this shadow under the text in place of shadow's.
+   */
+  textShadow?: Shadow
+  /**
+   * Tint washes the node and its children with a color as 0xRRGGBBAA, which
+   * recolors a white icon; zero leaves them.
+   */
+  tint?: number
+  /**
+   * Saturation, Brightness and Contrast scale the node's colors; 1 leaves
+   * them, unset leaves them.
+   */
+  saturation?: number
+  brightness?: number
+  contrast?: number
+  /**
+   * Blur blurs the node and its children by a radius in pixels.
+   */
+  blur?: number
+  /**
+   * Italic slants the text.
+   */
+  italic?: boolean
+  /**
+   * Weight sets the text's weight in place of bold.
+   */
+  weight?: Weight
+  /**
+   * LineHeight is the height of each line of text, in pixels.
+   */
+  lineHeight?: number
+  /**
+   * NoWrap keeps the text on one line.
+   */
+  noWrap?: boolean
+  /**
+   * TextOverflow decides what text that does not fit its box does.
+   */
+  textOverflow?: TextOverflow
+  /**
+   * Decoration draws a line under or through the text.
+   */
+  decoration?: Decoration
+  /**
+   * Transform moves, scales and rotates the node as drawn, without moving its
+   * neighbors.
+   */
+  transform?: Transform
+  /**
+   * Transition animates each change to the node's style, and the move to and
+   * from its hover style, instead of snapping to it.
+   */
+  transition?: Transition
 }
 
 export const Style: MessageType<Style> =
@@ -497,6 +1037,31 @@ export const Style: MessageType<Style> =
       [18, 'shadow', 8],
       [19, 'border_width', 2],
       [20, 'border_color', 7],
+      [21, 'x', 11, 0, Length.codec],
+      [22, 'y', 11, 0, Length.codec],
+      [23, 'min_width', 11, 0, Length.codec],
+      [24, 'max_width', 11, 0, Length.codec],
+      [25, 'min_height', 11, 0, Length.codec],
+      [26, 'max_height', 11, 0, Length.codec],
+      [27, 'z_index', 5],
+      [28, 'overflow_x', 14, 0, Overflow_Enum],
+      [29, 'overflow_y', 14, 0, Overflow_Enum],
+      [30, 'gradient', 11, 0, Gradient.codec],
+      [31, 'box_shadow', 11, 0, Shadow.codec],
+      [32, 'text_shadow', 11, 0, Shadow.codec],
+      [33, 'tint', 7],
+      [34, 'saturation', 2, 4],
+      [35, 'brightness', 2, 4],
+      [36, 'contrast', 2, 4],
+      [37, 'blur', 2],
+      [38, 'italic', 8],
+      [39, 'weight', 14, 0, Weight_Enum],
+      [40, 'line_height', 2],
+      [41, 'no_wrap', 8],
+      [42, 'text_overflow', 14, 0, TextOverflow_Enum],
+      [43, 'decoration', 14, 0, Decoration_Enum],
+      [44, 'transform', 11, 0, Transform.codec],
+      [45, 'transition', 11, 0, Transition.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Style): Style => {
@@ -563,6 +1128,89 @@ export const Style: MessageType<Style> =
               break
             case 20:
               m.borderColor = r.fixed32()
+              break
+            case 21:
+              m.x = Length.decode(r, r.delimited(), m.x ?? {})
+              break
+            case 22:
+              m.y = Length.decode(r, r.delimited(), m.y ?? {})
+              break
+            case 23:
+              m.minWidth = Length.decode(r, r.delimited(), m.minWidth ?? {})
+              break
+            case 24:
+              m.maxWidth = Length.decode(r, r.delimited(), m.maxWidth ?? {})
+              break
+            case 25:
+              m.minHeight = Length.decode(r, r.delimited(), m.minHeight ?? {})
+              break
+            case 26:
+              m.maxHeight = Length.decode(r, r.delimited(), m.maxHeight ?? {})
+              break
+            case 27:
+              m.zIndex = r.int32()
+              break
+            case 28:
+              m.overflowX = r.int32()
+              break
+            case 29:
+              m.overflowY = r.int32()
+              break
+            case 30:
+              m.gradient = Gradient.decode(r, r.delimited(), m.gradient ?? {})
+              break
+            case 31:
+              m.boxShadow = Shadow.decode(r, r.delimited(), m.boxShadow ?? {})
+              break
+            case 32:
+              m.textShadow = Shadow.decode(r, r.delimited(), m.textShadow ?? {})
+              break
+            case 33:
+              m.tint = r.fixed32()
+              break
+            case 34:
+              m.saturation = r.float()
+              break
+            case 35:
+              m.brightness = r.float()
+              break
+            case 36:
+              m.contrast = r.float()
+              break
+            case 37:
+              m.blur = r.float()
+              break
+            case 38:
+              m.italic = r.bool()
+              break
+            case 39:
+              m.weight = r.int32()
+              break
+            case 40:
+              m.lineHeight = r.float()
+              break
+            case 41:
+              m.noWrap = r.bool()
+              break
+            case 42:
+              m.textOverflow = r.int32()
+              break
+            case 43:
+              m.decoration = r.int32()
+              break
+            case 44:
+              m.transform = Transform.decode(
+                r,
+                r.delimited(),
+                m.transform ?? {},
+              )
+              break
+            case 45:
+              m.transition = Transition.decode(
+                r,
+                r.delimited(),
+                m.transition ?? {},
+              )
               break
             default:
               r.skip(t)
@@ -650,6 +1298,485 @@ export const Style: MessageType<Style> =
         {
           const v = m.borderColor
           if (v) w.uint32(165).fixed32(v)
+        }
+        {
+          const v = m.x
+          if (v != null) Length.writeField(w, 21, v)
+        }
+        {
+          const v = m.y
+          if (v != null) Length.writeField(w, 22, v)
+        }
+        {
+          const v = m.minWidth
+          if (v != null) Length.writeField(w, 23, v)
+        }
+        {
+          const v = m.maxWidth
+          if (v != null) Length.writeField(w, 24, v)
+        }
+        {
+          const v = m.minHeight
+          if (v != null) Length.writeField(w, 25, v)
+        }
+        {
+          const v = m.maxHeight
+          if (v != null) Length.writeField(w, 26, v)
+        }
+        {
+          const v = m.zIndex
+          if (v) w.uint32(216).int32(v)
+        }
+        {
+          const v = m.overflowX
+          if (v) w.uint32(224).int32(v)
+        }
+        {
+          const v = m.overflowY
+          if (v) w.uint32(232).int32(v)
+        }
+        {
+          const v = m.gradient
+          if (v != null) Gradient.writeField(w, 30, v)
+        }
+        {
+          const v = m.boxShadow
+          if (v != null) Shadow.writeField(w, 31, v)
+        }
+        {
+          const v = m.textShadow
+          if (v != null) Shadow.writeField(w, 32, v)
+        }
+        {
+          const v = m.tint
+          if (v) w.uint32(269).fixed32(v)
+        }
+        {
+          const v = m.saturation
+          if (v != null) w.uint32(277).float(v)
+        }
+        {
+          const v = m.brightness
+          if (v != null) w.uint32(285).float(v)
+        }
+        {
+          const v = m.contrast
+          if (v != null) w.uint32(293).float(v)
+        }
+        {
+          const v = m.blur
+          if (v != null && v !== 0) w.uint32(301).float(v)
+        }
+        {
+          const v = m.italic
+          if (v) w.uint32(304).bool(v)
+        }
+        {
+          const v = m.weight
+          if (v) w.uint32(312).int32(v)
+        }
+        {
+          const v = m.lineHeight
+          if (v != null && v !== 0) w.uint32(325).float(v)
+        }
+        {
+          const v = m.noWrap
+          if (v) w.uint32(328).bool(v)
+        }
+        {
+          const v = m.textOverflow
+          if (v) w.uint32(336).int32(v)
+        }
+        {
+          const v = m.decoration
+          if (v) w.uint32(344).int32(v)
+        }
+        {
+          const v = m.transform
+          if (v != null) Transform.writeField(w, 44, v)
+        }
+        {
+          const v = m.transition
+          if (v != null) Transition.writeField(w, 45, v)
+        }
+      },
+    },
+  )
+
+/**
+ * Gradient blends colors across a node.
+ *
+ * @generated from message modlock.wasm.ui.Gradient
+ */
+export interface Gradient {
+  /**
+   * Shape is the direction or shape the colors run in.
+   */
+  shape?: GradientShape
+  /**
+   * Stops are the colors and where each sits, in order.
+   */
+  stops?: GradientStop[]
+}
+
+export const Gradient: MessageType<Gradient> =
+  /* @__PURE__ */ createMessageType<Gradient>(
+    'modlock.wasm.ui.Gradient',
+    () => [
+      [1, 'shape', 14, 0, GradientShape_Enum],
+      [2, 'stops', 11, 1, GradientStop.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Gradient): Gradient => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.shape = r.int32()
+              break
+            case 2:
+              ;(m.stops ??= []).push(GradientStop.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Gradient, w: Writer): void => {
+        {
+          const v = m.shape
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const a = m.stops
+          if (a != null) for (const e of a) GradientStop.writeField(w, 2, e)
+        }
+      },
+    },
+  )
+
+/**
+ * GradientStop is one color of a gradient.
+ *
+ * @generated from message modlock.wasm.ui.GradientStop
+ */
+export interface GradientStop {
+  /**
+   * At is where the color sits along the gradient, from 0 to 1.
+   */
+  at?: number
+  /**
+   * Color is the color as 0xRRGGBBAA.
+   */
+  color?: number
+}
+
+export const GradientStop: MessageType<GradientStop> =
+  /* @__PURE__ */ createMessageType<GradientStop>(
+    'modlock.wasm.ui.GradientStop',
+    () => [
+      [1, 'at', 2],
+      [2, 'color', 7],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: GradientStop): GradientStop => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.at = r.float()
+              break
+            case 2:
+              m.color = r.fixed32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: GradientStop, w: Writer): void => {
+        {
+          const v = m.at
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.color
+          if (v) w.uint32(21).fixed32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Shadow is a soft shadow under text or around a box.
+ *
+ * @generated from message modlock.wasm.ui.Shadow
+ */
+export interface Shadow {
+  /**
+   * X and Y offset the shadow, in pixels.
+   */
+  x?: number
+  y?: number
+  /**
+   * Blur softens the shadow's edge, in pixels.
+   */
+  blur?: number
+  /**
+   * Spread grows a box's shadow, in pixels, or strengthens a text shadow.
+   */
+  spread?: number
+  /**
+   * Color is the shadow's color as 0xRRGGBBAA.
+   */
+  color?: number
+  /**
+   * Inset draws a box's shadow inside its edge.
+   */
+  inset?: boolean
+}
+
+export const Shadow: MessageType<Shadow> =
+  /* @__PURE__ */ createMessageType<Shadow>(
+    'modlock.wasm.ui.Shadow',
+    () => [
+      [1, 'x', 2],
+      [2, 'y', 2],
+      [3, 'blur', 2],
+      [4, 'spread', 2],
+      [5, 'color', 7],
+      [6, 'inset', 8],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Shadow): Shadow => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.x = r.float()
+              break
+            case 2:
+              m.y = r.float()
+              break
+            case 3:
+              m.blur = r.float()
+              break
+            case 4:
+              m.spread = r.float()
+              break
+            case 5:
+              m.color = r.fixed32()
+              break
+            case 6:
+              m.inset = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Shadow, w: Writer): void => {
+        {
+          const v = m.x
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.y
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.blur
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.spread
+          if (v != null && v !== 0) w.uint32(37).float(v)
+        }
+        {
+          const v = m.color
+          if (v) w.uint32(45).fixed32(v)
+        }
+        {
+          const v = m.inset
+          if (v) w.uint32(48).bool(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Transform moves, scales and rotates a node as drawn.
+ *
+ * @generated from message modlock.wasm.ui.Transform
+ */
+export interface Transform {
+  /**
+   * TranslateX and TranslateY move the node, in pixels.
+   */
+  translateX?: number
+  translateY?: number
+  /**
+   * ScaleX and ScaleY scale the node; unset is 1.
+   */
+  scaleX?: number
+  scaleY?: number
+  /**
+   * Rotate turns the node clockwise, in degrees.
+   */
+  rotate?: number
+  /**
+   * OriginX and OriginY are the point the node scales and turns about, as a
+   * percent of its size; unset is its center.
+   */
+  originX?: number
+  originY?: number
+}
+
+export const Transform: MessageType<Transform> =
+  /* @__PURE__ */ createMessageType<Transform>(
+    'modlock.wasm.ui.Transform',
+    () => [
+      [1, 'translate_x', 2],
+      [2, 'translate_y', 2],
+      [3, 'scale_x', 2, 4],
+      [4, 'scale_y', 2, 4],
+      [5, 'rotate', 2],
+      [6, 'origin_x', 2, 4],
+      [7, 'origin_y', 2, 4],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Transform): Transform => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.translateX = r.float()
+              break
+            case 2:
+              m.translateY = r.float()
+              break
+            case 3:
+              m.scaleX = r.float()
+              break
+            case 4:
+              m.scaleY = r.float()
+              break
+            case 5:
+              m.rotate = r.float()
+              break
+            case 6:
+              m.originX = r.float()
+              break
+            case 7:
+              m.originY = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Transform, w: Writer): void => {
+        {
+          const v = m.translateX
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.translateY
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.scaleX
+          if (v != null) w.uint32(29).float(v)
+        }
+        {
+          const v = m.scaleY
+          if (v != null) w.uint32(37).float(v)
+        }
+        {
+          const v = m.rotate
+          if (v != null && v !== 0) w.uint32(45).float(v)
+        }
+        {
+          const v = m.originX
+          if (v != null) w.uint32(53).float(v)
+        }
+        {
+          const v = m.originY
+          if (v != null) w.uint32(61).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Transition animates a node's style changes.
+ *
+ * @generated from message modlock.wasm.ui.Transition
+ */
+export interface Transition {
+  /**
+   * Seconds is how long each change takes.
+   */
+  seconds?: number
+  /**
+   * Delay is how long each change waits before it starts, in seconds.
+   */
+  delay?: number
+  /**
+   * Easing shapes the change's speed over its time.
+   */
+  easing?: Easing
+}
+
+export const Transition: MessageType<Transition> =
+  /* @__PURE__ */ createMessageType<Transition>(
+    'modlock.wasm.ui.Transition',
+    () => [
+      [1, 'seconds', 2],
+      [2, 'delay', 2],
+      [3, 'easing', 14, 0, Easing_Enum],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Transition): Transition => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.seconds = r.float()
+              break
+            case 2:
+              m.delay = r.float()
+              break
+            case 3:
+              m.easing = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Transition, w: Writer): void => {
+        {
+          const v = m.seconds
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.delay
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.easing
+          if (v) w.uint32(24).int32(v)
         }
       },
     },

@@ -264,16 +264,83 @@ const nonPanels = new Set(['styles', 'scripts', 'snippets'])
  * Press, so dispatched events go nowhere.
  */
 export const domPanorama = {
-  CreatePanel(type: string, parent: DomPanel, id: string): DomPanel {
+  CreatePanel(
+    type: string,
+    parent: DomPanel,
+    id: string,
+    properties?: Record<string, string>,
+  ): DomPanel {
+    // Make the panel, then show its scaling and hero as the page can.
     const panel = new DomPanel(type, id)
     panel.SetParent(parent)
+    if (properties?.scaling) {
+      panel.element.style.backgroundSize = backgroundSize(properties.scaling)
+    }
+    if (properties?.heroid) {
+      panel.element.dataset.hero = `hero ${properties.heroid}`
+    }
     return panel
   },
-  DispatchEvent() {},
+  // A text tooltip shows as the element's title; other events go nowhere.
+  DispatchEvent(event: string, ...values: unknown[]) {
+    const [panel, text] = values
+    if (!(panel instanceof DomPanel)) return
+    if (event === 'UIShowTextTooltip') panel.element.title = String(text)
+    if (event === 'UIHideTextTooltip') panel.element.removeAttribute('title')
+  },
   Msg(...values: unknown[]) {
     console.debug(...values)
   },
 } satisfies Panorama
+
+// backgroundSize maps an image's Panorama scaling to a CSS background size.
+function backgroundSize(scaling: string): string {
+  switch (scaling) {
+    case 'stretch-to-cover-preserve-aspect':
+    case 'cover':
+      return 'cover'
+    case 'stretch':
+      return '100% 100%'
+    case 'stretch-to-fit-x-preserve-aspect':
+      return '100% auto'
+    case 'stretch-to-fit-y-preserve-aspect':
+      return 'auto 100%'
+    case 'none':
+      return 'auto'
+    default:
+      return 'contain'
+  }
+}
+
+// filters holds each element's Panorama color filters by property, since CSS
+// writes them all in one filter.
+const filters = new WeakMap<HTMLElement, Map<string, string>>()
+
+// filter sets one of an element's color filters and writes them all.
+function filter(element: HTMLElement, name: string, value: string): void {
+  // Write the filter as CSS, dropping one at its identity value.
+  const each = filters.get(element) ?? new Map<string, string>()
+  filters.set(element, each)
+  const blur = /gaussian\(\s*([\d.]+)/.exec(value)?.[1]
+  const css =
+    name === 'blur'
+      ? blur && `blur(${blur}px)`
+      : value && value !== '1' && `${name}(${value})`
+  if (css) each.set(name, css)
+  else each.delete(name)
+  element.style.filter = [...each.values()].join(' ')
+}
+
+// weights maps Panorama's font weights to CSS's.
+const weights: Record<string, string> = {
+  thin: '100',
+  light: '300',
+  normal: '400',
+  medium: '500',
+  'semi-bold': '600',
+  bold: '700',
+  black: '900',
+}
 
 // camel returns a style property's name as code writes it.
 function camel(kebab: string): string {
@@ -353,17 +420,26 @@ function applyStyle(element: HTMLElement, kebab: string, value: string): void {
       shrink(element)
       return
     }
-    case 'brightness': {
-      css.filter = value ? `brightness(${value})` : ''
+    case 'brightness':
+    case 'saturation':
+    case 'contrast':
+    case 'blur': {
+      filter(element, name === 'saturation' ? 'saturate' : name, value)
+      return
+    }
+    case 'fontWeight': {
+      css.fontWeight = weights[value] ?? value
       return
     }
     case 'backgroundColor': {
-      css.background = gradient(value)
+      css.background = value === 'none' ? '' : gradient(value)
+      return
+    }
+    case 'border': {
+      css.border = value === '0px none' ? '' : value
       return
     }
     case 'washColor':
-    case 'saturation':
-    case 'blur':
     case 'soundOut':
       return
     default:
@@ -444,7 +520,7 @@ function gradient(value: string): string {
 function colorStops(stops: string): string {
   return [
     ...stops.matchAll(
-      /(from|to|color-stop)\(\s*(?:([\d.]+)\s*,\s*)?([^)]+)\)/g,
+      /(from|to|color-stop)\(\s*(?:([\d.]+)\s*,\s*)?((?:[^()]|\([^)]*\))+)\)/g,
     ),
   ]
     .map(([, kind, at, color = '']) =>

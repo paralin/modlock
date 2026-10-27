@@ -175,3 +175,18 @@ export const objectiveBarBottom = 220
  * down.
  */
 export const fpsReadoutBottom = 68
+
+/**
+ * sounds are the game's interface sound events for the kit's controls: the
+ * main menu's hover tick and press.
+ */
+export const sounds = {
+  hover: 'UI.MainMenu.Hover',
+  press: 'UI.MainMenu.Activate',
+} as const
+
+/**
+ * motion is how long the kit's controls take to answer the pointer and a
+ * meter to reach its value, in seconds: quick enough to feel immediate.
+ */
+export const motion = { hover: 0.15, meter: 0.25 } as const

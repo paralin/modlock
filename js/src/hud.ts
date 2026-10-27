@@ -2,6 +2,8 @@
 // the tokens in theme.ts. Text sets VALVEPulp capitals over a soft shadow,
 // plates and pills hold text over a bright sky, and pips count as the stock
 // round counter does. The roster lists the players down the top right corner.
+// Actions are the game's menu buttons, with its hover and press sounds, and a
+// meter fills toward its value.
 //
 //   show(player, <TopStrip heading="Round 2"><Score points={[1, 0]} /></TopStrip>)
 
@@ -9,6 +11,7 @@ import { clip } from './format.js'
 import { heroes } from './heroes.js'
 import {
   emptyPip,
+  motion,
   fpsReadoutBottom,
   objectiveBarBottom,
   pillEdge,
@@ -18,12 +21,14 @@ import {
   plate,
   shades,
   sizes,
+  sounds,
   teamBarBottom,
   type TextRole,
   type Tone,
   tones,
   types,
 } from './theme.js'
+import type { Player } from './host.gen.js'
 import type { Child, Style, UiElement } from './ui.js'
 
 /**
@@ -419,5 +424,124 @@ function rosterRow(row: RosterRow, index: number): UiElement {
     { flow: 'right', horizontalAlign: 'right', margin: [0, 0, 8, 0] },
     [text, portrait],
     `row-${index}`,
+  )
+}
+
+/** ActionProps make a button in the game's menu look. */
+export interface ActionProps {
+  /**
+   * kind is 'primary' for the one action a screen leads with, 'secondary' for
+   * the rest, and 'quiet' for an action that should not draw the eye.
+   */
+  kind?: 'primary' | 'secondary' | 'quiet'
+  /** disabled dims the action and takes no presses. */
+  disabled?: boolean
+  onPress?: (player: Player) => void
+  style?: Style
+  children?: Child
+}
+
+/** actionLooks are each kind of action's fill, edge and text, idle and hovered. */
+const actionLooks = {
+  primary: {
+    idle: { background: tones.text },
+    hover: { background: shades.white },
+    text: shades.ink,
+  },
+  secondary: {
+    idle: {
+      background: shades.raised,
+      borderWidth: 1,
+      borderColor: shades.faint,
+    },
+    hover: { background: shades.lit, borderColor: tones.text },
+    text: tones.text,
+  },
+  quiet: {
+    idle: { background: shades.clear },
+    hover: { background: shades.raised },
+    text: shades.quiet,
+  },
+} as const
+
+/**
+ * Action is a button in the game's menu look: capitals on a fill that lights
+ * as the pointer enters, with the main menu's hover and press sounds.
+ */
+export function Action(props: ActionProps): UiElement {
+  const look = actionLooks[props.kind ?? 'secondary']
+  const label = element(
+    'label',
+    {
+      face: 'block',
+      fontSize: 16,
+      uppercase: true,
+      letterSpacing: 1,
+      color: look.text,
+      horizontalAlign: 'center',
+      verticalAlign: 'center',
+      noWrap: true,
+    },
+    props.children,
+  )
+  return {
+    type: 'button',
+    props: {
+      style: {
+        height: sizes.control,
+        padding: [0, 14],
+        borderRadius: sizes.radius,
+        transition: motion.hover,
+        ...look.idle,
+        ...(props.disabled ? { opacity: 0.4 } : {}),
+        ...props.style,
+      },
+      hover: props.disabled ? undefined : look.hover,
+      hoverSound: props.disabled ? undefined : sounds.hover,
+      sound: sounds.press,
+      disabled: props.disabled,
+      onPress: props.onPress,
+      children: label,
+    },
+  }
+}
+
+/** MeterProps show how full something is. */
+export interface MeterProps {
+  /** value is how full the meter is, from 0 to 1. */
+  value: number
+  tone?: Tone
+  /** width and height size the meter, in pixels; 160 by 8 unless set. */
+  width?: number
+  height?: number
+  style?: Style
+}
+
+/**
+ * Meter is a bar that fills from the left toward its value, easing to each new
+ * value: a charge, a capture or a timer.
+ */
+export function Meter(props: MeterProps): UiElement {
+  const height = props.height ?? 8
+  const value = Math.min(1, Math.max(0, props.value))
+  return element(
+    'panel',
+    {
+      width: props.width ?? 160,
+      height,
+      background: shades.raised,
+      borderRadius: height / 2,
+      overflow: 'clip',
+      ...props.style,
+    },
+    // The fill scales rather than resizes, so it eases without layout work.
+    element('panel', {
+      width: '100%',
+      height: '100%',
+      background: tones[props.tone ?? 'accent'],
+      scale: [value, 1],
+      origin: [0, 50],
+      transition: motion.meter,
+    }),
   )
 }

@@ -5,6 +5,7 @@ interface Panel {
   readonly id: string
   readonly paneltype: string
   hittest: boolean
+  enabled: boolean
   text: string
   readonly style: Record<string, string | null>
   IsValid(): boolean
@@ -33,7 +34,12 @@ interface Panel {
 declare const $: {
   Msg(...values: unknown[]): void
   GetContextPanel(): Panel
-  CreatePanel(type: string, parent: Panel, id: string): Panel
+  CreatePanel(
+    type: string,
+    parent: Panel,
+    id: string,
+    properties?: Record<string, string>,
+  ): Panel
   RegisterEventHandler(
     event: string,
     panel: Panel,
@@ -45,5 +51,8 @@ declare const $: {
   ): number
   Schedule(seconds: number, callback: () => void): number
   CancelScheduled(handle: number): void
-  DispatchEvent(event: string, ...args: string[]): void
+  DispatchEvent(event: string, ...args: unknown[]): void
 }
+
+/** PlayUISoundEvent plays one of the game's interface sound events. */
+declare function PlayUISoundEvent(sound: string): number

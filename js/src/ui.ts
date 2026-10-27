@@ -14,6 +14,12 @@
 // for that player, so a mod may call it whenever its state changes, or every
 // frame.
 //
+// Every element takes a style and a hover style, which the game draws while
+// the pointer is over it and animates to when the style has a transition. A
+// tooltip and a hover sound show and play on the same hover; a button plays
+// its sound when pressed. A hero element shows one of the game's pictures of
+// a hero, such as <hero hero={player.hero} look="small" />.
+//
 // A layout element loads a layout from the mod's content addon, such as
 // <layout src="shop.xml" data={stock} />. Its script runs in the player's
 // game, so only a host that has reviewed the mod's content loads it; elsewhere
@@ -36,15 +42,27 @@
 import {
   Align,
   type Change,
+  Decoration,
+  Easing,
   Face,
   Flow,
+  GradientShape,
+  HeroLook,
   HudPart as WireHudPart,
   Kind,
+  Overflow as WireOverflow,
+  Scaling as WireScaling,
+  TextOverflow,
   type Edges as WireEdges,
+  type Gradient as WireGradient,
   type Length as WireLength,
   type Node,
+  type Shadow as WireShadow,
   type Style as WireStyle,
+  type Transform as WireTransform,
+  type Transition as WireTransition,
   UiRequest,
+  Weight,
 } from '../../src/wasm/ui/ui.pb.js'
 import type { Player } from './host.gen.js'
 import { call } from './host.js'
@@ -62,12 +80,79 @@ export type Length = number | `${number}%` | 'fit' | 'fill'
  */
 export type Edges = number | readonly number[]
 
-/** Style lays out and paints an element. Colors are '#rrggbb' or '#rrggbbaa'. */
+/**
+ * Overflow decides what happens to children that do not fit: 'squish' shrinks
+ * them, 'clip' cuts them off, 'scroll' lets the player scroll to them, and
+ * 'show' draws them outside the element.
+ */
+export type Overflow = 'squish' | 'clip' | 'scroll' | 'show'
+
+/**
+ * Gradient blends colors across an element in place of its background. The
+ * colors run down by default; at places each color from 0 to 1, spaced evenly
+ * when unset.
+ */
+export interface Gradient {
+  shape?: 'down' | 'right' | 'up' | 'left' | 'radial'
+  colors: readonly string[]
+  at?: readonly number[]
+}
+
+/**
+ * Shadow is a soft shadow, offset by x and y and softened by blur, in pixels.
+ * Spread grows a box's shadow in pixels, or strengthens a text shadow, where 0
+ * draws it at full strength; inset draws a box's shadow inside its edge.
+ */
+export interface Shadow {
+  x?: number
+  y?: number
+  blur?: number
+  spread?: number
+  color: string
+  inset?: boolean
+}
+
+/**
+ * Transition animates each change of an element's style, and the move to its
+ * hover style and back, over seconds after delay. Easing is 'out' unless set.
+ */
+export interface Transition {
+  seconds: number
+  delay?: number
+  easing?: 'out' | 'in' | 'inOut' | 'linear'
+}
+
+/**
+ * Style lays out and paints an element. Colors are '#rrggbb' or '#rrggbbaa'.
+ * Options that take one or two numbers are an array rather than a union of
+ * tuples, which scriptc does not compile.
+ */
 export interface Style {
   width?: Length
   height?: Length
-  /** flow places the children in a column or a row; unset stacks them. */
-  flow?: 'down' | 'right'
+  /** minWidth, maxWidth, minHeight and maxHeight bound the element's size. */
+  minWidth?: Length
+  maxWidth?: Length
+  minHeight?: Length
+  maxHeight?: Length
+  /**
+   * flow places the children in a column or a row, or in columns or rows that
+   * wrap where one is full; unset stacks them.
+   */
+  flow?: 'down' | 'right' | 'downWrap' | 'rightWrap'
+  /**
+   * x and y place the element at an offset from its parent's top left corner,
+   * in pixels or a percent of the parent, outside the parent's flow.
+   */
+  x?: number | `${number}%`
+  y?: number | `${number}%`
+  /** zIndex draws the element above its siblings with a lower index. */
+  zIndex?: number
+  /** overflow decides what children that do not fit do, across and down. */
+  overflow?: Overflow
+  /** overflowX and overflowY set overflow for one direction. */
+  overflowX?: Overflow
+  overflowY?: Overflow
   horizontalAlign?: 'left' | 'center' | 'right'
   verticalAlign?: 'top' | 'center' | 'bottom'
   margin?: Edges
@@ -91,12 +176,64 @@ export interface Style {
   letterSpacing?: number
   /** shadow draws a soft drop shadow under the text, to read over the world. */
   shadow?: boolean
+  /** textShadow draws this shadow under the text in place of shadow's. */
+  textShadow?: Shadow
   /**
    * borderWidth and borderColor draw a line around the element's edge; it
    * shows only when both are set.
    */
   borderWidth?: number
   borderColor?: string
+  /** gradient fills the element in place of its background. */
+  gradient?: Gradient
+  /** boxShadow draws a shadow around or inside the element's box. */
+  boxShadow?: Shadow
+  /** tint washes the element and its children with a color, recoloring a white icon. */
+  tint?: string
+  /** saturation, brightness and contrast scale the colors; 1 leaves them. */
+  saturation?: number
+  brightness?: number
+  contrast?: number
+  /** blur blurs the element and its children by a radius in pixels. */
+  blur?: number
+  italic?: boolean
+  /** weight sets the text's weight in place of bold. */
+  weight?:
+    | 'thin'
+    | 'light'
+    | 'normal'
+    | 'medium'
+    | 'semiBold'
+    | 'bold'
+    | 'black'
+  /** lineHeight is the height of each line of text, in pixels. */
+  lineHeight?: number
+  /** noWrap keeps the text on one line. */
+  noWrap?: boolean
+  /**
+   * textOverflow ends text that does not fit with an 'ellipsis', 'shrink's it
+   * until it fits, or 'clip's it at the edge.
+   */
+  textOverflow?: 'ellipsis' | 'shrink' | 'clip'
+  /** decoration draws a line under or through the text. */
+  decoration?: 'underline' | 'strike'
+  /** translate moves the element as drawn by [x, y] pixels. */
+  translate?: readonly number[]
+  /** scale scales the element as drawn: one factor, or [x, y]. */
+  scale?: number | readonly number[]
+  /** rotate turns the element clockwise, in degrees. */
+  rotate?: number
+  /**
+   * origin is the point the element scales and turns about, as [x, y]
+   * percents of its size; unset is its center.
+   */
+  origin?: readonly number[]
+  /**
+   * transition animates each change of the style: seconds, or a Transition.
+   * Animate transform, opacity and colors; size and placement animate too, but
+   * move the element's neighbors each frame.
+   */
+  transition?: number | Transition
 }
 
 /**
@@ -137,38 +274,94 @@ export interface UiElement {
  */
 export interface Props {
   readonly style?: Style
+  readonly hover?: Style
+  readonly tooltip?: string
+  readonly hoverSound?: string
   readonly children?: Child
   readonly src?: string
+  readonly scaling?: Scaling
+  readonly hero?: number
+  readonly look?: HeroLookName
   readonly data?: unknown
+  readonly sound?: string
+  readonly disabled?: boolean
   readonly onPress?: (player: Player) => void
 }
 
-/** PanelProps lay out a panel, which groups its children. */
-export interface PanelProps {
+/**
+ * ElementProps are the props every drawn element takes. hover is the style
+ * drawn over style while the pointer is over the element; tooltip is the text
+ * the game's tooltip shows then, and hoverSound the game's sound event played
+ * as the pointer enters, such as 'UI.MainMenu.Hover'. An element with any of
+ * them takes the pointer, so the game behind it does not.
+ */
+export interface ElementProps {
   style?: Style
+  hover?: Style
+  tooltip?: string
+  hoverSound?: string
+}
+
+/** PanelProps lay out a panel, which groups its children. */
+export interface PanelProps extends ElementProps {
   children?: Child
 }
 
 /** LabelProps show text: the label's text children, joined. */
-export interface LabelProps {
-  style?: Style
+export interface LabelProps extends ElementProps {
   children?: Child
 }
 
+/**
+ * Scaling fits a picture into its element's box: 'fit' shows it whole, 'cover'
+ * fills the box and crops, 'stretch' fills the box and stretches, 'fitWidth'
+ * and 'fitHeight' fit one side, and 'none' draws it at its own size.
+ */
+export type Scaling =
+  | 'fit'
+  | 'cover'
+  | 'stretch'
+  | 'fitWidth'
+  | 'fitHeight'
+  | 'none'
+
 /** ImageProps show an image from the game's content, such as 'file://{images}/hud/icon.png'. */
-export interface ImageProps {
-  style?: Style
+export interface ImageProps extends ElementProps {
   src: string
+  scaling?: Scaling
+}
+
+/**
+ * HeroLookName is one of the game's pictures of a hero: 'small' the square
+ * portrait of the kill feed, 'card' the hero picker's tall card, 'icon' the
+ * round icon, 'vertical' the hero grid's narrow portrait, 'topBar' the top
+ * bar's portrait and 'minimap' the minimap icon.
+ */
+export type HeroLookName =
+  | 'small'
+  | 'card'
+  | 'icon'
+  | 'vertical'
+  | 'topBar'
+  | 'minimap'
+
+/** HeroProps show a picture of hero, by the game's hero id. */
+export interface HeroProps extends ElementProps {
+  hero: number
+  look?: HeroLookName
+  scaling?: Scaling
 }
 
 /**
  * ButtonProps make a button, which holds its children and calls onPress
  * with the player who pressed it. Players press buttons while they have a
- * cursor.
+ * cursor. sound is the game's sound event the press plays, such as
+ * 'UI.MainMenu.Activate', and a disabled button takes no presses.
  */
-export interface ButtonProps {
-  style?: Style
+export interface ButtonProps extends ElementProps {
   children?: Child
+  sound?: string
+  disabled?: boolean
   onPress?: (player: Player) => void
 }
 
@@ -192,6 +385,7 @@ export declare namespace JSX {
     panel: PanelProps & IntrinsicAttributes
     label: LabelProps & IntrinsicAttributes
     image: ImageProps & IntrinsicAttributes
+    hero: HeroProps & IntrinsicAttributes
     button: ButtonProps & IntrinsicAttributes
     layout: LayoutProps & IntrinsicAttributes
   }
@@ -417,10 +611,9 @@ function notices(stack: readonly Notice[]): Child {
           color: '#f2f2f2',
           fontSize: 16,
           borderRadius: 4,
-          // Step the fade by tenths so it sends a handful of changes.
-          opacity:
-            Math.ceil(Math.min(1, (notice.until - now) / fadeSeconds) * 10) /
-            10,
+          // The game animates the fade, so it sends one change.
+          opacity: notice.until - now > fadeSeconds ? 1 : 0,
+          transition: { seconds: fadeSeconds, easing: 'linear' },
         },
         children: notice.text,
       },
@@ -551,6 +744,9 @@ function place(layout: Layout, child: Child, at: string): string[] {
   const node: Node = {
     id: layout.id(at),
     style: wireStyle(props.style),
+    hover: wireStyle(props.hover),
+    tooltip: props.tooltip,
+    hoverSound: props.hoverSound,
   }
   switch (child.type) {
     case 'label':
@@ -560,10 +756,20 @@ function place(layout: Layout, child: Child, at: string): string[] {
     case 'image':
       node.kind = Kind.IMAGE
       node.image = props.src ?? ''
+      node.scaling = scaling(props.scaling)
+      break
+    case 'hero':
+      node.kind = Kind.HERO_IMAGE
+      node.hero = props.hero
+      node.heroLook = props.look === undefined ? undefined : looks[props.look]
+      node.scaling = scaling(props.scaling)
       break
     case 'button':
       node.kind = Kind.BUTTON
-      if (props.onPress) {
+      node.sound = props.sound
+      node.disabled = props.disabled
+      // A disabled button's press runs nothing, whoever sends it.
+      if (props.onPress && !props.disabled) {
         layout.screen.presses.set(node.id!, { handler: props.onPress })
       }
       node.children = place(layout, props.children, `${at}/`)
@@ -660,6 +866,93 @@ const faces = {
   serif: Face.SERIF,
 } as const
 
+/** looks maps each picture of a hero to its wire value. */
+const looks = {
+  small: HeroLook.SMALL,
+  card: HeroLook.CARD,
+  icon: HeroLook.ICON,
+  vertical: HeroLook.VERTICAL,
+  topBar: HeroLook.TOP_BAR,
+  minimap: HeroLook.MINIMAP,
+} as const
+
+/** scalings maps each way to fit a picture to its wire value. */
+const scalings = {
+  fit: WireScaling.FIT,
+  cover: WireScaling.COVER,
+  stretch: WireScaling.STRETCH,
+  fitWidth: WireScaling.FIT_WIDTH,
+  fitHeight: WireScaling.FIT_HEIGHT,
+  none: WireScaling.NONE,
+} as const
+
+/** scaling encodes a way to fit a picture. */
+function scaling(value: Scaling | undefined): WireScaling | undefined {
+  return value === undefined ? undefined : scalings[value]
+}
+
+/** flows maps each flow to its wire value. */
+const flows = {
+  down: Flow.DOWN,
+  right: Flow.RIGHT,
+  downWrap: Flow.DOWN_WRAP,
+  rightWrap: Flow.RIGHT_WRAP,
+} as const
+
+/** overflows maps each overflow to its wire value. */
+const overflows = {
+  squish: WireOverflow.SQUISH,
+  clip: WireOverflow.CLIP,
+  scroll: WireOverflow.SCROLL,
+  show: WireOverflow.SHOW,
+} as const
+
+/** overflow encodes an overflow. */
+function overflow(value: Overflow | undefined): WireOverflow | undefined {
+  return value === undefined ? undefined : overflows[value]
+}
+
+/** shapes maps each gradient shape to its wire value. */
+const shapes = {
+  down: GradientShape.DOWN,
+  right: GradientShape.RIGHT,
+  up: GradientShape.UP,
+  left: GradientShape.LEFT,
+  radial: GradientShape.RADIAL,
+} as const
+
+/** weights maps each text weight to its wire value. */
+const weights = {
+  thin: Weight.THIN,
+  light: Weight.LIGHT,
+  normal: Weight.NORMAL,
+  medium: Weight.MEDIUM,
+  semiBold: Weight.SEMI_BOLD,
+  bold: Weight.BOLD,
+  black: Weight.BLACK,
+} as const
+
+/** textOverflows maps each text overflow to its wire value. */
+const textOverflows = {
+  ellipsis: TextOverflow.ELLIPSIS,
+  shrink: TextOverflow.SHRINK,
+  clip: TextOverflow.CLIP,
+} as const
+
+/** decorations maps each text decoration to its wire value. */
+const decorations = {
+  underline: Decoration.UNDERLINE,
+  strike: Decoration.STRIKE,
+} as const
+
+/** easings maps each easing to its wire value. */
+const easings = {
+  out: Easing.EASE_OUT,
+  in: Easing.EASE_IN,
+  inOut: Easing.EASE_IN_OUT,
+  linear: Easing.LINEAR,
+} as const
+
 /** wireStyle encodes style. */
 function wireStyle(style: Style | undefined): WireStyle | undefined {
   if (!style) {
@@ -668,12 +961,7 @@ function wireStyle(style: Style | undefined): WireStyle | undefined {
   return {
     width: length(style.width),
     height: length(style.height),
-    flow:
-      style.flow === 'down'
-        ? Flow.DOWN
-        : style.flow === 'right'
-          ? Flow.RIGHT
-          : undefined,
+    flow: style.flow === undefined ? undefined : flows[style.flow],
     horizontalAlign: align(style.horizontalAlign),
     verticalAlign: align(style.verticalAlign),
     margin: edges(style.margin),
@@ -691,6 +979,102 @@ function wireStyle(style: Style | undefined): WireStyle | undefined {
     shadow: style.shadow,
     borderWidth: style.borderWidth,
     borderColor: color(style.borderColor),
+    x: length(style.x),
+    y: length(style.y),
+    minWidth: length(style.minWidth),
+    maxWidth: length(style.maxWidth),
+    minHeight: length(style.minHeight),
+    maxHeight: length(style.maxHeight),
+    zIndex: style.zIndex,
+    overflowX: overflow(style.overflowX ?? style.overflow),
+    overflowY: overflow(style.overflowY ?? style.overflow),
+    gradient: gradient(style.gradient),
+    boxShadow: shadow(style.boxShadow),
+    textShadow: shadow(style.textShadow),
+    tint: color(style.tint),
+    saturation: style.saturation,
+    brightness: style.brightness,
+    contrast: style.contrast,
+    blur: style.blur,
+    italic: style.italic,
+    weight: style.weight === undefined ? undefined : weights[style.weight],
+    lineHeight: style.lineHeight,
+    noWrap: style.noWrap,
+    textOverflow:
+      style.textOverflow === undefined
+        ? undefined
+        : textOverflows[style.textOverflow],
+    decoration:
+      style.decoration === undefined
+        ? undefined
+        : decorations[style.decoration],
+    transform: transform(style),
+    transition: transition(style.transition),
+  }
+}
+
+/** gradient encodes a gradient, spacing colors without places evenly. */
+function gradient(value: Gradient | undefined): WireGradient | undefined {
+  if (!value) {
+    return undefined
+  }
+  const last = Math.max(1, value.colors.length - 1)
+  return {
+    shape: value.shape === undefined ? undefined : shapes[value.shape],
+    stops: value.colors.map((each, index) => ({
+      at: value.at?.[index] ?? index / last,
+      color: color(each),
+    })),
+  }
+}
+
+/** shadow encodes a shadow. */
+function shadow(value: Shadow | undefined): WireShadow | undefined {
+  if (!value) {
+    return undefined
+  }
+  return {
+    x: value.x,
+    y: value.y,
+    blur: value.blur,
+    spread: value.spread,
+    color: color(value.color),
+    inset: value.inset,
+  }
+}
+
+/** transform encodes a style's move, scale, turn and origin, or none. */
+function transform(style: Style): WireTransform | undefined {
+  const { translate, scale, rotate, origin } = style
+  if (!translate && scale === undefined && rotate === undefined && !origin) {
+    return undefined
+  }
+  const scales = typeof scale === 'number' ? [scale, scale] : scale
+  return {
+    translateX: translate?.[0],
+    translateY: translate?.[1],
+    scaleX: scales?.[0],
+    scaleY: scales?.[1],
+    rotate,
+    originX: origin?.[0],
+    originY: origin?.[1],
+  }
+}
+
+/** transition encodes a transition: seconds, or a Transition. */
+function transition(
+  value: number | Transition | undefined,
+): WireTransition | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+  if (typeof value === 'number') {
+    return { seconds: value }
+  }
+  return {
+    seconds: value.seconds,
+    delay: value.delay,
+    easing: value.easing === undefined ? undefined : easings[value.easing],
   }
 }
 

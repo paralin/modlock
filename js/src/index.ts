@@ -88,6 +88,10 @@ export {
   type TextProps,
   TopStrip,
   type TopStripProps,
+  Action,
+  type ActionProps,
+  Meter,
+  type MeterProps,
 } from './hud.js'
 export * as theme from './theme.js'
 export type { Face, PipShape, TextRole, Tone } from './theme.js'
@@ -126,7 +130,11 @@ export {
   type Child,
   type Component,
   type Edges,
+  type ElementProps,
   Fragment,
+  type Gradient,
+  type HeroLookName,
+  type HeroProps,
   hide,
   hideHud,
   type HudPart,
@@ -137,11 +145,15 @@ export {
   type LabelProps,
   type LayoutProps,
   type Length,
+  type Overflow,
   type PanelProps,
   route,
+  type Scaling,
+  type Shadow,
   show,
   type Style,
   toast,
+  type Transition,
   type UiElement,
 } from './ui.js'
 

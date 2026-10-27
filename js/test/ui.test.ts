@@ -1,9 +1,20 @@
 import { expect, test } from 'bun:test'
 
-import { Face, HudPart, UiRequest } from '../../src/wasm/ui/ui.pb.js'
+import {
+  Easing,
+  Face,
+  Flow,
+  GradientShape,
+  HeroLook,
+  HudPart,
+  Kind,
+  Scaling,
+  UiRequest,
+  Weight,
+} from '../../src/wasm/ui/ui.pb.js'
 import { Call, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind } from '../src/host.js'
-import { hideHud, jsx, show } from '../src/index.js'
+import { Action, hideHud, jsx, show } from '../src/index.js'
 
 // The library sends each interface change through the transport, which
 // records it.
@@ -66,7 +77,7 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
   expect(sent.at(-1)!.change!.set![0]!.hideHud ?? []).toEqual([])
 })
 
-test("a style names the game's faces and edge lines on the wire", () => {
+test("a style names the game's faces, edges, paint and motion on the wire", () => {
   // Show a title in the heading face over a bordered plate.
   const player = { slot: 8 } as Parameters<typeof show>[0]
   show(
@@ -94,4 +105,49 @@ test("a style names the game's faces and edge lines on the wire", () => {
   expect(title.style!.uppercase).toBe(true)
   expect(title.style!.letterSpacing).toBe(1)
   expect(title.style!.shadow).toBe(true)
+
+  // A row of a hero card and a disabled action wraps over a gradient.
+  show(
+    player,
+    jsx('panel', {
+      style: {
+        flow: 'rightWrap',
+        gradient: { shape: 'right', colors: ['#000000', '#ffffff'] },
+        weight: 'semiBold',
+      },
+      children: [
+        jsx('hero', { hero: 15, look: 'card', scaling: 'cover' }),
+        Action({ kind: 'primary', children: 'Ready' }),
+        Action({ disabled: true, children: 'Leave' }),
+      ],
+    }),
+  )
+
+  // The row's flow, weight and gradient arrive as their enums and stops.
+  const drawn = sent.at(-1)!.change!.set!
+  const row = drawn.find((node) => node.style?.gradient)!
+  expect(row.style!.flow).toBe(Flow.RIGHT_WRAP)
+  expect(row.style!.weight).toBe(Weight.SEMI_BOLD)
+  expect(row.style!.gradient).toEqual({
+    shape: GradientShape.RIGHT,
+    stops: [{ color: 0x000000ff }, { at: 1, color: 0xffffffff }],
+  })
+
+  // The hero card names its hero, look and scaling.
+  const hero = drawn.find((node) => node.kind === Kind.HERO_IMAGE)!
+  expect(hero.hero).toBe(15)
+  expect(hero.heroLook).toBe(HeroLook.CARD)
+  expect(hero.scaling).toBe(Scaling.COVER)
+
+  // An action carries its hover style, sounds and easing; a disabled one
+  // answers neither the pointer nor a press.
+  const [action, leave] = drawn.filter((node) => node.kind === Kind.BUTTON)
+  expect(action!.hover).toBeDefined()
+  expect(action!.sound).toBe('UI.MainMenu.Activate')
+  expect(action!.hoverSound).toBe('UI.MainMenu.Hover')
+  expect(action!.style!.transition!.easing ?? Easing.EASE_OUT).toBe(
+    Easing.EASE_OUT,
+  )
+  expect(leave!.disabled).toBe(true)
+  expect(leave!.hover).toBeUndefined()
 })

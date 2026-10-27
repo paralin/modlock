@@ -1,6 +1,9 @@
 // Drawing turns each mod's tree into stock panels. It runs no mod code: every
 // property it writes comes from a typed field of the tree, and a node becomes
-// one of four stock panel types. A layout node is the one exception: a host
+// one of five stock panel types. A node keeps its panel across style changes,
+// so a transition animates them: a property the new style drops returns to
+// its resting value, and only a property with none makes a new panel. A
+// node's hover style is drawn over its style while the pointer is over it. A layout node is the one exception: a host
 // that has reviewed a mod's content addon passes Layouts, and the drawing
 // loads the mod's layout into the node's panel; without Layouts the panel
 // stays empty. A route node draws nothing and hands its value to each of the
@@ -10,16 +13,27 @@
 
 import {
   Align,
+  Decoration,
+  Easing,
   type Edges,
   Face,
   Flow,
+  type Gradient,
+  GradientShape,
+  HeroLook,
   Kind,
   type Length,
   type Node,
+  Overflow,
   type Region,
+  Scaling,
   type Screen,
+  type Shadow,
   type Style,
+  TextOverflow,
+  type Transform,
   type Tree,
+  Weight,
 } from '../../src/wasm/ui/ui.pb.js'
 import {
   isRouteName,
@@ -39,6 +53,7 @@ export {
 export interface Panel {
   readonly paneltype: string
   hittest: boolean
+  enabled: boolean
   text: string
   readonly style: Record<string, string | null>
   IsValid(): boolean
@@ -56,11 +71,22 @@ export interface Panel {
   DeleteAsync(seconds: number): void
 }
 
-/** Panorama is the part of the game's script API the drawing uses. */
+/**
+ * Panorama is the part of the game's script API the drawing uses. CreatePanel
+ * takes the properties a panel is made with only when there are some, since
+ * the game refuses an undefined argument. PlaySound plays one of the game's
+ * sound events; a host without sound leaves it out.
+ */
 export interface Panorama {
-  CreatePanel(type: string, parent: Panel, id: string): Panel
-  DispatchEvent(event: string, value: string): void
+  CreatePanel(
+    type: string,
+    parent: Panel,
+    id: string,
+    properties?: Record<string, string>,
+  ): Panel
+  DispatchEvent(event: string, ...values: unknown[]): void
   Msg(...values: unknown[]): void
+  PlaySound?(sound: string): void
 }
 
 /** Press reports a press on a mod's button. */
@@ -115,17 +141,30 @@ const panelTypes: Record<Kind, string> = {
   [Kind.BUTTON]: 'Button',
   [Kind.LAYOUT]: 'Panel',
   [Kind.ROUTE]: 'Panel',
+  [Kind.HERO_IMAGE]: 'CitadelHeroImage',
 }
 
 /**
- * Drawn is one node's panel, its parent and the style written to it. A layout
- * node's panel also records the layout's URL, whether it loaded, and the data
- * set on it.
+ * Drawn is one node's panel, its parent, the properties it was made with as
+ * JSON, and its style: the node's own, its hover's, and what the panel holds
+ * now, which is the hover's over the node's while the pointer is over it. It
+ * keeps the node's pointer feedback for the panel's events, and whether its
+ * tooltip shows. A layout node's panel also records the layout's URL, whether
+ * it loaded, and the data set on it.
  */
 interface Drawn {
   panel: Panel
   parent: Panel
+  made: string
   style: Record<string, string>
+  hover: Record<string, string>
+  written: Record<string, string>
+  over: boolean
+  tooltip: string
+  tipped: boolean
+  sound: string
+  hoverSound: string
+  disabled: boolean
   layout: string | null
   loaded: boolean
   data: string
@@ -240,10 +279,82 @@ export class Drawing {
     this.mods.set(mod, drawn)
   }
 
-  /** delete deletes a drawn node's panel and notes a layout's. */
+  /** delete deletes a drawn node's panel and its tooltip, and notes a layout's. */
   private delete(drawn: Drawn): void {
+    this.untip(drawn)
     drawn.panel.DeleteAsync(0)
     this.unloaded ||= drawn.layout !== null
+  }
+
+  /**
+   * paint writes the style the node's panel should hold now, the hover's over
+   * the node's while the pointer is over it, returning each property it no
+   * longer sets to its resting value.
+   */
+  private paint(drawn: Drawn): void {
+    const target = drawn.over ? { ...drawn.style, ...drawn.hover } : drawn.style
+    for (const name of Object.keys(drawn.written)) {
+      if (!(name in target) && name in rest) {
+        this.write(drawn.panel, name, rest[name]!)
+      }
+    }
+    for (const [name, value] of Object.entries(target)) {
+      if (drawn.written[name] !== value) {
+        this.write(drawn.panel, name, value)
+      }
+    }
+    drawn.written = target
+  }
+
+  /**
+   * point answers the pointer entering or leaving a node's panel: it draws or
+   * lifts the hover style, plays the hover sound and shows or hides the
+   * tooltip. The node is looked up as last drawn, so the panel's events follow
+   * its later changes.
+   */
+  private point(mod: string, id: string, over: boolean): void {
+    // Skip a repeated event and a panel the game has dropped.
+    const drawn = this.mods.get(mod)?.get(id)
+    if (!drawn || drawn.over === over || !drawn.panel.IsValid()) {
+      return
+    }
+
+    // Tick, show or hide the tooltip, then repaint in the new state.
+    drawn.over = over
+    if (over && drawn.hoverSound) {
+      this.panorama.PlaySound?.(drawn.hoverSound)
+    }
+    if (over && drawn.tooltip) {
+      this.panorama.DispatchEvent(
+        'UIShowTextTooltip',
+        drawn.panel,
+        drawn.tooltip,
+      )
+      drawn.tipped = true
+    } else if (!over) {
+      this.untip(drawn)
+    }
+    this.paint(drawn)
+  }
+
+  /** untip hides the tooltip a node's panel shows. */
+  private untip(drawn: Drawn): void {
+    if (drawn.tipped) {
+      drawn.tipped = false
+      this.panorama.DispatchEvent('UIHideTextTooltip', drawn.panel)
+    }
+  }
+
+  /** activate presses a button that is not disabled, playing its sound. */
+  private activate(mod: string, id: string): void {
+    const drawn = this.mods.get(mod)?.get(id)
+    if (drawn?.disabled) {
+      return
+    }
+    if (drawn?.sound) {
+      this.panorama.PlaySound?.(drawn.sound)
+    }
+    this.press(mod, id)
   }
 
   /**
@@ -259,14 +370,9 @@ export class Drawing {
     nodes: Map<string, Node>,
     region?: Region,
   ): Panel {
-    // Resolve the node's id, panel type, style, and the URL of its layout.
+    // Resolve the node's id, kind, and the URL and data of its layout.
     const id = node.id ?? ''
     const kind = id === '' ? Kind.PANEL : (node.kind ?? Kind.PANEL)
-    const type = panelTypes[kind] ?? 'Panel'
-    const style = {
-      ...styleOf(node.style, id === ''),
-      ...(region ? placed(region) : {}),
-    }
     const path = node.layout ?? ''
     const layout =
       kind === Kind.LAYOUT && isLayoutPath(path)
@@ -274,33 +380,55 @@ export class Drawing {
         : null
     const data = node.data ?? ''
 
-    // Reuse the node's panel when its type, parent and layout stay and its
-    // style keeps every property, since Panorama cannot unset some of them;
-    // or make one.
+    // Resolve its panel type, the properties it is made with, and its style
+    // and hover style with their transition.
+    const type = panelTypes[kind] ?? 'Panel'
+    const properties = madeWith(kind, node)
+    const made = JSON.stringify(properties)
+    const style = {
+      ...styleOf(node.style, id === ''),
+      ...(region ? placed(region) : {}),
+    }
+    const hover = hoverOf(node.hover, style)
+    Object.assign(style, transitionOf(node.style, style, hover))
+
+    // Find the node's last panel and the style it now wants, with the hover
+    // style over it while the pointer stays on it.
     const old = previous.get(id)
+    const over = old?.over ?? false
+    const target = over ? { ...style, ...hover } : style
+
+    // Reuse the panel when its type, parent, properties and layout stay and
+    // each property it holds that the new style drops has a resting value to
+    // return to; or make one.
     let panel = old?.panel
-    let written = old?.style ?? {}
+    let written = old?.written ?? {}
     let loaded = old?.loaded ?? false
     let given = old?.data ?? ''
     const kept =
       old &&
       old.parent === parent &&
+      old.made === made &&
       old.layout === layout &&
-      Object.keys(written).every((name) => name in style)
+      Object.keys(written).every((name) => name in target || name in rest)
     if (!panel || !kept || !panel.IsValid() || panel.paneltype !== type) {
       if (old?.panel.IsValid()) {
         this.delete(old)
       }
-      panel = this.panorama.CreatePanel(
-        type,
-        parent,
-        id === '' ? `ModlockUi_${mod.replace(/\W/g, '_')}` : 'ModlockUiNode',
-      )
+      const name =
+        id === '' ? `ModlockUi_${mod.replace(/\W/g, '_')}` : 'ModlockUiNode'
+      panel = properties
+        ? this.panorama.CreatePanel(type, parent, name, properties)
+        : this.panorama.CreatePanel(type, parent, name)
       written = {}
       loaded = false
       given = ''
       if (kind === Kind.BUTTON) {
-        panel.SetPanelEvent('onactivate', () => this.press(mod, id))
+        panel.SetPanelEvent('onactivate', () => this.activate(mod, id))
+      }
+      if (!layout) {
+        panel.SetPanelEvent('onmouseover', () => this.point(mod, id, true))
+        panel.SetPanelEvent('onmouseout', () => this.point(mod, id, false))
       }
     }
 
@@ -319,22 +447,47 @@ export class Drawing {
       panel.SetAttributeString(layoutDataAttribute, data)
       this.changed = true
     }
-    drawn.set(id, { panel, parent, style, layout, loaded, data })
+    const each: Drawn = {
+      panel,
+      parent,
+      made,
+      style,
+      hover,
+      written,
+      over,
+      tooltip: node.tooltip ?? '',
+      tipped: old?.panel === panel && old.tipped,
+      sound: soundOf(node.sound),
+      hoverSound: soundOf(node.hoverSound),
+      disabled: kind === Kind.BUTTON && !!node.disabled,
+      layout,
+      loaded,
+      data,
+    }
+    drawn.set(id, each)
 
     // Write the node's content and the style properties that changed. A
-    // layout's own root decides whether it takes clicks.
+    // layout's own root decides whether it takes the pointer; a node takes it
+    // to be pressed, to answer hover, or to scroll.
     if (!layout) {
-      panel.hittest = kind === Kind.BUTTON
+      panel.hittest =
+        kind === Kind.BUTTON ||
+        Object.keys(hover).length !== 0 ||
+        !!each.tooltip ||
+        !!each.hoverSound ||
+        /scroll/.test(style.overflow ?? '')
+    }
+    if (kind === Kind.BUTTON) {
+      panel.enabled = !each.disabled
     }
     if (kind === Kind.LABEL) {
       panel.text = node.text ?? ''
     } else if (kind === Kind.IMAGE) {
       panel.SetImage(node.image ?? '')
     }
-    for (const [name, value] of Object.entries(style)) {
-      if (written[name] !== value) {
-        this.write(panel, name, value)
-      }
+    this.paint(each)
+    if (each.tipped && !each.tooltip) {
+      this.untip(each)
     }
 
     // Draw each child once, in order; a child seen before would make a cycle.
@@ -422,22 +575,46 @@ function styleOf(
   const css: Record<string, string | null> = {
     width: length(style?.width) ?? (root ? '100%' : null),
     height: length(style?.height) ?? (root ? '100%' : null),
-    flowChildren:
-      style?.flow === Flow.DOWN
-        ? 'down'
-        : style?.flow === Flow.RIGHT
-          ? 'right'
-          : null,
+    minWidth: length(style?.minWidth),
+    maxWidth: length(style?.maxWidth),
+    minHeight: length(style?.minHeight),
+    maxHeight: length(style?.maxHeight),
+    flowChildren: style?.flow ? (flows[style.flow] ?? null) : null,
     horizontalAlign: style?.horizontalAlign
       ? aligns[style.horizontalAlign][0]
       : null,
     verticalAlign: style?.verticalAlign ? aligns[style.verticalAlign][1] : null,
+    x: length(style?.x),
+    y: length(style?.y),
+    zIndex: style?.zIndex ? String(Math.trunc(finite(style.zIndex))) : null,
+    overflow:
+      style?.overflowX || style?.overflowY
+        ? `${overflows[style.overflowX ?? Overflow.DEFAULT]} ${overflows[style.overflowY ?? Overflow.DEFAULT]}`
+        : null,
     margin: edges(style?.margin),
     padding: edges(style?.padding),
-    backgroundColor: style?.background ? color(style.background) : null,
+    backgroundColor: style?.gradient
+      ? gradient(style.gradient)
+      : style?.background
+        ? color(style.background)
+        : null,
+    boxShadow: style?.boxShadow ? boxShadow(style.boxShadow) : null,
     color: style?.color ? color(style.color) : null,
     fontSize: style?.fontSize ? `${finite(style.fontSize)}px` : null,
-    fontWeight: style?.bold ? 'bold' : null,
+    fontWeight: style?.weight
+      ? (weights[style.weight] ?? null)
+      : style?.bold
+        ? 'bold'
+        : null,
+    fontStyle: style?.italic ? 'italic' : null,
+    lineHeight: style?.lineHeight ? `${finite(style.lineHeight)}px` : null,
+    whiteSpace: style?.noWrap ? 'nowrap' : null,
+    textOverflow: style?.textOverflow
+      ? (textOverflows[style.textOverflow] ?? null)
+      : null,
+    textDecoration: style?.decoration
+      ? (decorations[style.decoration] ?? null)
+      : null,
     textAlign: style?.textAlign ? aligns[style.textAlign][0] : null,
     borderRadius: style?.borderRadius
       ? `${finite(style.borderRadius)}px`
@@ -449,10 +626,34 @@ function styleOf(
     letterSpacing: style?.letterSpacing
       ? `${finite(style.letterSpacing)}px`
       : null,
-    textShadow: style?.shadow ? textShadow : null,
+    textShadow: style?.textShadow
+      ? textShadowOf(style.textShadow)
+      : style?.shadow
+        ? textShadow
+        : null,
     border:
       style?.borderWidth && style.borderColor
         ? `${finite(style.borderWidth)}px solid ${color(style.borderColor)}`
+        : null,
+    washColor: style?.tint ? color(style.tint) : null,
+    saturation:
+      style?.saturation === undefined
+        ? null
+        : String(clamp(style.saturation, 0, 10)),
+    brightness:
+      style?.brightness === undefined
+        ? null
+        : String(clamp(style.brightness, 0, 10)),
+    contrast:
+      style?.contrast === undefined
+        ? null
+        : String(clamp(style.contrast, 0, 10)),
+    blur: style?.blur ? `gaussian(${clamp(style.blur, 0, 100)}px)` : null,
+    transform: style?.transform ? transform(style.transform) : null,
+    transformOrigin:
+      style?.transform?.originX !== undefined ||
+      style?.transform?.originY !== undefined
+        ? `${finite(style.transform.originX ?? 50)}% ${finite(style.transform.originY ?? 50)}%`
         : null,
   }
   return Object.fromEntries(
@@ -460,6 +661,267 @@ function styleOf(
       (entry): entry is [string, string] => entry[1] !== null,
     ),
   )
+}
+
+/**
+ * hoverOf returns the hover style's properties to draw over style: those that
+ * differ from style and that style either sets or can return from, since the
+ * hover lifts again without a new panel.
+ */
+function hoverOf(
+  hover: Style | undefined,
+  style: Record<string, string>,
+): Record<string, string> {
+  if (!hover) {
+    return {}
+  }
+  return Object.fromEntries(
+    Object.entries(styleOf(hover, false)).filter(
+      ([name, value]) =>
+        style[name] !== value && (name in style || name in rest),
+    ),
+  )
+}
+
+/**
+ * transitionOf returns the properties that animate the changes of style and
+ * hover over the style's transition: every property either writes that the
+ * game animates.
+ */
+function transitionOf(
+  source: Style | undefined,
+  style: Record<string, string>,
+  hover: Record<string, string>,
+): Record<string, string> {
+  // An element without a duration does not animate.
+  const transition = source?.transition
+  if (!transition?.seconds) {
+    return {}
+  }
+
+  // Animate each property either style writes that the game can animate.
+  const names = [...new Set([...Object.keys(style), ...Object.keys(hover)])]
+    .filter((name) => animated.has(name))
+    .map((name) => name.replace(/[A-Z]/g, (cap) => `-${cap.toLowerCase()}`))
+  if (names.length === 0) {
+    return {}
+  }
+  return {
+    transitionProperty: names.join(', '),
+    transitionDuration: `${clamp(transition.seconds, 0, 60)}s`,
+    transitionDelay: `${clamp(transition.delay ?? 0, 0, 60)}s`,
+    transitionTimingFunction: easings[transition.easing ?? Easing.EASE_OUT],
+  }
+}
+
+/** animated holds the style properties the game animates in a transition. */
+const animated = new Set([
+  'width',
+  'height',
+  'x',
+  'y',
+  'margin',
+  'padding',
+  'backgroundColor',
+  'boxShadow',
+  'color',
+  'fontSize',
+  'borderRadius',
+  'opacity',
+  'letterSpacing',
+  'textShadow',
+  'border',
+  'washColor',
+  'saturation',
+  'brightness',
+  'contrast',
+  'blur',
+  'transform',
+  'transformOrigin',
+])
+
+/**
+ * rest maps each style property a node may drop to the value it rests at, as
+ * a stock panel holds it before any style is written. A property with no
+ * resting value, such as a font, makes the node a new panel when dropped.
+ */
+const rest: Record<string, string> = {
+  width: 'fit-children',
+  height: 'fit-children',
+  flowChildren: 'none',
+  horizontalAlign: 'left',
+  verticalAlign: 'top',
+  x: '0px',
+  y: '0px',
+  zIndex: '0',
+  overflow: 'squish squish',
+  margin: '0px 0px 0px 0px',
+  padding: '0px 0px 0px 0px',
+  backgroundColor: 'none',
+  boxShadow: 'none',
+  fontStyle: 'normal',
+  whiteSpace: 'normal',
+  textDecoration: 'none',
+  textAlign: 'left',
+  borderRadius: '0px',
+  opacity: '1',
+  textTransform: 'none',
+  letterSpacing: '0px',
+  textShadow: 'none',
+  border: '0px none',
+  washColor: 'none',
+  saturation: '1',
+  brightness: '1',
+  contrast: '1',
+  blur: 'gaussian(0px)',
+  transform: 'none',
+  transformOrigin: '50% 50%',
+  transitionProperty: 'none',
+  transitionDuration: '0s',
+  transitionDelay: '0s',
+  transitionTimingFunction: 'ease',
+}
+
+/** flows maps each flow to the game's flow-children value. */
+const flows: Partial<Record<Flow, string>> = {
+  [Flow.DOWN]: 'down',
+  [Flow.RIGHT]: 'right',
+  [Flow.DOWN_WRAP]: 'down-wrap',
+  [Flow.RIGHT_WRAP]: 'right-wrap',
+}
+
+/** overflows maps each overflow to the game's value for one direction. */
+const overflows: Record<Overflow, string> = {
+  [Overflow.DEFAULT]: 'squish',
+  [Overflow.SQUISH]: 'squish',
+  [Overflow.CLIP]: 'clip',
+  [Overflow.SCROLL]: 'scroll',
+  [Overflow.SHOW]: 'noclip',
+}
+
+/** weights maps each text weight to the game's font-weight value. */
+const weights: Partial<Record<Weight, string>> = {
+  [Weight.THIN]: 'thin',
+  [Weight.LIGHT]: 'light',
+  [Weight.NORMAL]: 'normal',
+  [Weight.MEDIUM]: 'medium',
+  [Weight.SEMI_BOLD]: 'semi-bold',
+  [Weight.BOLD]: 'bold',
+  [Weight.BLACK]: 'black',
+}
+
+/** textOverflows maps each text overflow to the game's value. */
+const textOverflows: Partial<Record<TextOverflow, string>> = {
+  [TextOverflow.ELLIPSIS]: 'ellipsis',
+  [TextOverflow.SHRINK]: 'shrink',
+  [TextOverflow.CLIP]: 'clip',
+}
+
+/** decorations maps each text decoration to the game's value. */
+const decorations: Partial<Record<Decoration, string>> = {
+  [Decoration.UNDERLINE]: 'underline',
+  [Decoration.STRIKE]: 'line-through',
+}
+
+/** easings maps each easing to the game's timing function. */
+const easings: Record<Easing, string> = {
+  [Easing.EASE_OUT]: 'ease-out',
+  [Easing.EASE_IN]: 'ease-in',
+  [Easing.EASE_IN_OUT]: 'ease-in-out',
+  [Easing.LINEAR]: 'linear',
+}
+
+/** scalings maps each way to fit a picture to the game's scaling value. */
+const scalings: Partial<Record<Scaling, string>> = {
+  [Scaling.FIT]: 'stretch-to-fit-preserve-aspect',
+  [Scaling.COVER]: 'stretch-to-cover-preserve-aspect',
+  [Scaling.STRETCH]: 'stretch',
+  [Scaling.FIT_WIDTH]: 'stretch-to-fit-x-preserve-aspect',
+  [Scaling.FIT_HEIGHT]: 'stretch-to-fit-y-preserve-aspect',
+  [Scaling.NONE]: 'none',
+}
+
+/** looks maps each picture of a hero to the game's hero image style. */
+const looks: Record<HeroLook, string> = {
+  [HeroLook.SMALL]: 'small',
+  [HeroLook.CARD]: 'hero_card',
+  [HeroLook.ICON]: 'icon',
+  [HeroLook.VERTICAL]: 'vertical',
+  [HeroLook.TOP_BAR]: 'top_bar',
+  [HeroLook.MINIMAP]: 'minimap_icon',
+}
+
+/**
+ * madeWith returns the properties a node's panel is made with, which the game
+ * reads only then: an image's scaling, and a hero image's hero, picture and
+ * scaling. Other panels take none.
+ */
+function madeWith(kind: Kind, node: Node): Record<string, string> | undefined {
+  const scaling = node.scaling ? scalings[node.scaling] : undefined
+  if (kind === Kind.HERO_IMAGE) {
+    return {
+      heroid: String(Math.trunc(finite(node.hero))),
+      heroimagestyle: looks[node.heroLook ?? HeroLook.SMALL] ?? 'small',
+      scaling: scaling ?? 'stretch-to-fit-preserve-aspect',
+    }
+  }
+  return kind === Kind.IMAGE && scaling ? { scaling } : undefined
+}
+
+/** soundOf returns a sound event's name, or nothing for a name the game cannot hold. */
+function soundOf(sound: string | undefined): string {
+  return sound && /^[\w.-]{1,128}$/.test(sound) ? sound : ''
+}
+
+/** ends maps each linear gradient's direction to its start and end points. */
+const ends: Partial<Record<GradientShape, string>> = {
+  [GradientShape.DOWN]: '0% 0%, 0% 100%',
+  [GradientShape.RIGHT]: '0% 0%, 100% 0%',
+  [GradientShape.UP]: '0% 100%, 0% 0%',
+  [GradientShape.LEFT]: '100% 0%, 0% 0%',
+}
+
+/** gradient writes a gradient, or its one color, or null for no colors. */
+function gradient(value: Gradient): string | null {
+  // Fewer than two stops make no gradient.
+  const stops = value.stops ?? []
+  if (stops.length < 2) {
+    return stops[0] ? color(stops[0].color ?? 0) : null
+  }
+
+  // Write the shape's ends, then each stop.
+  const shape = value.shape ?? GradientShape.DOWN
+  const head =
+    shape === GradientShape.RADIAL
+      ? 'radial, 50% 50%, 0% 0%, 50% 50%'
+      : `linear, ${ends[shape] ?? ends[GradientShape.DOWN]}`
+  const colors = stops.map(
+    (stop) =>
+      `color-stop( ${clamp(stop.at ?? 0, 0, 1)}, ${color(stop.color ?? 0)} )`,
+  )
+  return `gradient( ${head}, ${colors.join(', ')} )`
+}
+
+/** boxShadow writes a box's shadow. */
+function boxShadow(value: Shadow): string {
+  const inset = value.inset ? 'inset ' : ''
+  return `${inset}${color(value.color ?? 0)} ${finite(value.x)}px ${finite(value.y)}px ${clamp(value.blur ?? 0, 0, 200)}px ${finite(value.spread)}px`
+}
+
+/** textShadowOf writes a text shadow, at full strength unless spread strengthens it. */
+function textShadowOf(value: Shadow): string {
+  const strength = value.spread ? clamp(value.spread, 0, 10) : 1
+  return `${finite(value.x)}px ${finite(value.y)}px ${clamp(value.blur ?? 0, 0, 200)}px ${strength} ${color(value.color ?? 0)}`
+}
+
+/**
+ * transform writes a move, a scale and a turn, always all three, so a
+ * transition between two transforms matches each part with its own.
+ */
+function transform(value: Transform): string {
+  const scaleX = value.scaleX ?? 1
+  const scaleY = value.scaleY ?? scaleX
+  return `translate3d( ${finite(value.translateX)}px, ${finite(value.translateY)}px, 0px ) scale3d( ${finite(scaleX)}, ${finite(scaleY)}, 1 ) rotateZ( ${finite(value.rotate)}deg )`
 }
 
 /** refused holds the style properties the game refused, each logged once. */

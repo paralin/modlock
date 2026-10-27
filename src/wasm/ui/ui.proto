@@ -59,6 +59,85 @@ message Node {
   // Route names a route node's data route: one or more letters, digits, '_',
   // '-' and '.'.
   string route = 10;
+
+  // Hover is the style drawn over the node's style while the pointer is over
+  // it. Each property it sets returns to the node's own value, or to the
+  // property's resting value, when the pointer leaves. A node with a hover
+  // style takes the pointer, so the game behind it does not.
+  Style hover = 11;
+
+  // Tooltip is the text the game's tooltip shows while the pointer is over the
+  // node. A node with a tooltip takes the pointer.
+  string tooltip = 12;
+
+  // Sound is the game's sound event a button plays when pressed, such as
+  // "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
+  string sound = 13;
+
+  // HoverSound is the game's sound event played as the pointer enters the
+  // node, named as sound is.
+  string hover_sound = 14;
+
+  // Disabled keeps a button from taking presses; its style shows why.
+  bool disabled = 15;
+
+  // Scaling fits an image or a hero's portrait into the node's box.
+  Scaling scaling = 16;
+
+  // Hero is a hero image's hero, by the game's hero id.
+  int32 hero = 17;
+
+  // HeroLook picks which of the game's pictures of the hero a hero image
+  // draws.
+  HeroLook hero_look = 18;
+}
+
+// Scaling fits a picture into its node's box.
+enum Scaling {
+  // SCALING_DEFAULT keeps the panel's own scaling: an image fits its box,
+  // keeping its shape.
+  SCALING_DEFAULT = 0;
+
+  // SCALING_FIT shows the whole picture in the box, keeping its shape.
+  SCALING_FIT = 1;
+
+  // SCALING_COVER fills the box, keeping the picture's shape and cropping what
+  // falls outside.
+  SCALING_COVER = 2;
+
+  // SCALING_STRETCH fills the box, stretching the picture.
+  SCALING_STRETCH = 3;
+
+  // SCALING_FIT_WIDTH fits the picture's width to the box, keeping its shape.
+  SCALING_FIT_WIDTH = 4;
+
+  // SCALING_FIT_HEIGHT fits the picture's height to the box, keeping its
+  // shape.
+  SCALING_FIT_HEIGHT = 5;
+
+  // SCALING_NONE draws the picture at its own size.
+  SCALING_NONE = 6;
+}
+
+// HeroLook is one of the game's pictures of a hero.
+enum HeroLook {
+  // HERO_LOOK_SMALL is the square portrait of the kill feed and scoreboard.
+  HERO_LOOK_SMALL = 0;
+
+  // HERO_LOOK_CARD is the tall card the hero picker shows.
+  HERO_LOOK_CARD = 1;
+
+  // HERO_LOOK_ICON is the hero's round icon.
+  HERO_LOOK_ICON = 2;
+
+  // HERO_LOOK_VERTICAL is the narrow portrait of the hero grid.
+  HERO_LOOK_VERTICAL = 3;
+
+  // HERO_LOOK_TOP_BAR is the portrait in the bar across the top of the HUD.
+  HERO_LOOK_TOP_BAR = 4;
+
+  // HERO_LOOK_MINIMAP is the hero's minimap icon.
+  HERO_LOOK_MINIMAP = 5;
 }
 
 // HudPart is a part of the game's own HUD a mod may hide from a player.
@@ -108,6 +187,9 @@ enum Kind {
   // KIND_ROUTE draws nothing: it hands its data to every layout of the mod
   // under its route's name. No parent lists it.
   KIND_ROUTE = 5;
+
+  // KIND_HERO_IMAGE shows one of the game's pictures of the node's hero.
+  KIND_HERO_IMAGE = 6;
 }
 
 // Style is the closed set of layout and paint properties a node may set. A
@@ -174,6 +256,233 @@ message Style {
   // BorderColor is the edge line's color as 0xRRGGBBAA. The line is drawn
   // only when both its width and its color are set.
   fixed32 border_color = 20;
+
+  // X and Y place the node at an offset from its parent's top left corner,
+  // in pixels or a percent of the parent, outside the parent's flow.
+  Length x = 21;
+  Length y = 22;
+
+  // MinWidth, MaxWidth, MinHeight and MaxHeight bound the node's size.
+  Length min_width = 23;
+  Length max_width = 24;
+  Length min_height = 25;
+  Length max_height = 26;
+
+  // ZIndex draws the node above its siblings with a lower index; zero keeps
+  // the drawing order.
+  int32 z_index = 27;
+
+  // OverflowX and OverflowY decide what happens to children that do not fit
+  // across and down.
+  Overflow overflow_x = 28;
+  Overflow overflow_y = 29;
+
+  // Gradient fills the node with a gradient in place of its background.
+  Gradient gradient = 30;
+
+  // BoxShadow draws a shadow around or inside the node's box.
+  Shadow box_shadow = 31;
+
+  // TextShadow draws this shadow under the text in place of shadow's.
+  Shadow text_shadow = 32;
+
+  // Tint washes the node and its children with a color as 0xRRGGBBAA, which
+  // recolors a white icon; zero leaves them.
+  fixed32 tint = 33;
+
+  // Saturation, Brightness and Contrast scale the node's colors; 1 leaves
+  // them, unset leaves them.
+  optional float saturation = 34;
+  optional float brightness = 35;
+  optional float contrast = 36;
+
+  // Blur blurs the node and its children by a radius in pixels.
+  float blur = 37;
+
+  // Italic slants the text.
+  bool italic = 38;
+
+  // Weight sets the text's weight in place of bold.
+  Weight weight = 39;
+
+  // LineHeight is the height of each line of text, in pixels.
+  float line_height = 40;
+
+  // NoWrap keeps the text on one line.
+  bool no_wrap = 41;
+
+  // TextOverflow decides what text that does not fit its box does.
+  TextOverflow text_overflow = 42;
+
+  // Decoration draws a line under or through the text.
+  Decoration decoration = 43;
+
+  // Transform moves, scales and rotates the node as drawn, without moving its
+  // neighbors.
+  Transform transform = 44;
+
+  // Transition animates each change to the node's style, and the move to and
+  // from its hover style, instead of snapping to it.
+  Transition transition = 45;
+}
+
+// Overflow decides what happens to children that do not fit a node.
+enum Overflow {
+  // OVERFLOW_DEFAULT keeps the panel's own behavior: they shrink to fit.
+  OVERFLOW_DEFAULT = 0;
+
+  // OVERFLOW_SQUISH shrinks the children to fit.
+  OVERFLOW_SQUISH = 1;
+
+  // OVERFLOW_CLIP cuts off what does not fit.
+  OVERFLOW_CLIP = 2;
+
+  // OVERFLOW_SCROLL lets the player scroll to what does not fit.
+  OVERFLOW_SCROLL = 3;
+
+  // OVERFLOW_SHOW draws what does not fit outside the node.
+  OVERFLOW_SHOW = 4;
+}
+
+// Gradient blends colors across a node.
+message Gradient {
+  // Shape is the direction or shape the colors run in.
+  GradientShape shape = 1;
+
+  // Stops are the colors and where each sits, in order.
+  repeated GradientStop stops = 2;
+}
+
+// GradientShape is the direction or shape a gradient's colors run in.
+enum GradientShape {
+  // GRADIENT_SHAPE_DOWN runs from the top to the bottom.
+  GRADIENT_SHAPE_DOWN = 0;
+
+  // GRADIENT_SHAPE_RIGHT runs from the left to the right.
+  GRADIENT_SHAPE_RIGHT = 1;
+
+  // GRADIENT_SHAPE_UP runs from the bottom to the top.
+  GRADIENT_SHAPE_UP = 2;
+
+  // GRADIENT_SHAPE_LEFT runs from the right to the left.
+  GRADIENT_SHAPE_LEFT = 3;
+
+  // GRADIENT_SHAPE_RADIAL runs from the center out to the edges.
+  GRADIENT_SHAPE_RADIAL = 4;
+}
+
+// GradientStop is one color of a gradient.
+message GradientStop {
+  // At is where the color sits along the gradient, from 0 to 1.
+  float at = 1;
+
+  // Color is the color as 0xRRGGBBAA.
+  fixed32 color = 2;
+}
+
+// Shadow is a soft shadow under text or around a box.
+message Shadow {
+  // X and Y offset the shadow, in pixels.
+  float x = 1;
+  float y = 2;
+
+  // Blur softens the shadow's edge, in pixels.
+  float blur = 3;
+
+  // Spread grows a box's shadow, in pixels, or strengthens a text shadow.
+  float spread = 4;
+
+  // Color is the shadow's color as 0xRRGGBBAA.
+  fixed32 color = 5;
+
+  // Inset draws a box's shadow inside its edge.
+  bool inset = 6;
+}
+
+// Weight is a text weight, as the game's faces draw them.
+enum Weight {
+  // WEIGHT_DEFAULT keeps the panel's weight, or bold's.
+  WEIGHT_DEFAULT = 0;
+  WEIGHT_THIN = 1;
+  WEIGHT_LIGHT = 2;
+  WEIGHT_NORMAL = 3;
+  WEIGHT_MEDIUM = 4;
+  WEIGHT_SEMI_BOLD = 5;
+  WEIGHT_BOLD = 6;
+  WEIGHT_BLACK = 7;
+}
+
+// TextOverflow decides what text that does not fit its box does.
+enum TextOverflow {
+  // TEXT_OVERFLOW_DEFAULT keeps the panel's behavior.
+  TEXT_OVERFLOW_DEFAULT = 0;
+
+  // TEXT_OVERFLOW_ELLIPSIS ends the text that fits with an ellipsis.
+  TEXT_OVERFLOW_ELLIPSIS = 1;
+
+  // TEXT_OVERFLOW_SHRINK makes the text smaller until it fits.
+  TEXT_OVERFLOW_SHRINK = 2;
+
+  // TEXT_OVERFLOW_CLIP cuts the text off at the box's edge.
+  TEXT_OVERFLOW_CLIP = 3;
+}
+
+// Decoration draws a line under or through text.
+enum Decoration {
+  // DECORATION_NONE draws no line.
+  DECORATION_NONE = 0;
+
+  // DECORATION_UNDERLINE draws a line under the text.
+  DECORATION_UNDERLINE = 1;
+
+  // DECORATION_STRIKE draws a line through the text.
+  DECORATION_STRIKE = 2;
+}
+
+// Transform moves, scales and rotates a node as drawn.
+message Transform {
+  // TranslateX and TranslateY move the node, in pixels.
+  float translate_x = 1;
+  float translate_y = 2;
+
+  // ScaleX and ScaleY scale the node; unset is 1.
+  optional float scale_x = 3;
+  optional float scale_y = 4;
+
+  // Rotate turns the node clockwise, in degrees.
+  float rotate = 5;
+
+  // OriginX and OriginY are the point the node scales and turns about, as a
+  // percent of its size; unset is its center.
+  optional float origin_x = 6;
+  optional float origin_y = 7;
+}
+
+// Transition animates a node's style changes.
+message Transition {
+  // Seconds is how long each change takes.
+  float seconds = 1;
+
+  // Delay is how long each change waits before it starts, in seconds.
+  float delay = 2;
+
+  // Easing shapes the change's speed over its time.
+  Easing easing = 3;
+}
+
+// Easing shapes an animation's speed over its time.
+enum Easing {
+  // EASING_EASE_OUT starts fast and settles.
+  EASING_EASE_OUT = 0;
+
+  // EASING_EASE_IN starts slow and speeds up.
+  EASING_EASE_IN = 1;
+
+  // EASING_EASE_IN_OUT starts and ends slow.
+  EASING_EASE_IN_OUT = 2;
+
+  // EASING_LINEAR keeps one speed.
+  EASING_LINEAR = 3;
 }
 
 // Face is one of the game's typefaces.
@@ -220,6 +529,14 @@ enum Flow {
 
   // FLOW_RIGHT places children in a row.
   FLOW_RIGHT = 2;
+
+  // FLOW_DOWN_WRAP places children in columns, starting a new column where
+  // one is full.
+  FLOW_DOWN_WRAP = 3;
+
+  // FLOW_RIGHT_WRAP places children in rows, starting a new row where one is
+  // full.
+  FLOW_RIGHT_WRAP = 4;
 }
 
 // Align places a node or text along one axis.

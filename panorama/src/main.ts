@@ -30,8 +30,21 @@ const root = $.CreatePanel('Panel', game, 'ModlockUi')
 root.hittest = false
 root.style.width = '100%'
 root.style.height = '100%'
-const drawing = new Drawing($, root, (mod, node) =>
-  $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
+// The drawing reaches the game through $, and plays sounds through the game's
+// global sound call.
+const drawing = new Drawing(
+  {
+    CreatePanel: (...args: Parameters<typeof $.CreatePanel>) =>
+      $.CreatePanel(...args),
+    DispatchEvent: (event: string, ...values: unknown[]) =>
+      $.DispatchEvent(event, ...values),
+    Msg: (...values: unknown[]) => $.Msg(...values),
+    PlaySound: (sound: string) => {
+      PlayUISoundEvent(sound)
+    },
+  },
+  root,
+  (mod, node) => $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
 )
 const stock = new Hud(game, (seconds, callback) => {
   $.Schedule(seconds, callback)

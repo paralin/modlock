@@ -12,6 +12,7 @@ class FakePanel {
   children: FakePanel[] = []
   parent: FakePanel | null = null
   hittest = true
+  enabled = true
   text = ''
   image = ''
   url = ''
@@ -25,6 +26,7 @@ class FakePanel {
   constructor(
     readonly paneltype: string,
     readonly id: string,
+    readonly properties?: Record<string, string>,
   ) {}
 
   IsValid() {
@@ -94,7 +96,10 @@ const handlers = new Map<
 /** scheduled holds the callbacks $.Schedule holds. */
 const scheduled = new Map<number, () => void>()
 
-/** dispatched holds each event $.DispatchEvent sent, with its arguments. */
+/**
+ * dispatched holds each event $.DispatchEvent sent, with its arguments, and
+ * each sound played as a 'sound' event.
+ */
 const dispatched: string[][] = []
 
 beforeEach(() => {
@@ -106,8 +111,13 @@ beforeEach(() => {
   Object.assign(globalThis, {
     $: {
       Msg() {},
-      CreatePanel(type: string, parent: FakePanel, id: string) {
-        const panel = new FakePanel(type, id)
+      CreatePanel(
+        type: string,
+        parent: FakePanel,
+        id: string,
+        properties?: Record<string, string>,
+      ) {
+        const panel = new FakePanel(type, id, properties)
         panel.parent = parent
         parent.children.push(panel)
         return panel
@@ -134,6 +144,9 @@ beforeEach(() => {
       },
       DispatchEvent(...args: string[]) {
         dispatched.push(args)
+      },
+      PlaySound(sound: string) {
+        dispatched.push(['sound', sound])
       },
     },
   })
@@ -268,7 +281,7 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
   expect(root.children).toEqual([])
 })
 
-test("draws the game's faces, capitals, shadows and borders", () => {
+test("draws the game's faces, styles, motion, hover and hero pictures", () => {
   // Draw a title in the heading face and a pill with an edge line.
   const root = new FakePanel('Panel', 'ModlockUi')
   const drawing = new Drawing($, root, () => {})
@@ -304,6 +317,145 @@ test("draws the game's faces, capitals, shadows and borders", () => {
   // A border needs both its width and its color; the default face sets none.
   expect(pill!.style.border).toBe('2px solid rgba(255, 239, 215, 0.102)')
   expect(bare!.style).toEqual({})
+
+  // Draw a button that answers the pointer, a hero's card, a wrapping
+  // gradient row that scrolls, and a line of set text.
+  const presses: string[] = []
+  const live = new Drawing($, root, (mod, node) =>
+    presses.push(`${mod}:${node}`),
+  )
+  const go = (extra: JsonObject = {}): JsonObject => ({
+    id: 'go',
+    kind: 'KIND_BUTTON',
+    style: {
+      background: 0x151611ff,
+      transform: { scaleX: 1 },
+      transition: { seconds: 0.15 },
+    },
+    hover: { background: 0x2b2a24ff, transform: { scaleX: 1.05 } },
+    sound: 'UI.MainMenu.Activate',
+    hoverSound: 'UI.MainMenu.Hover',
+    tooltip: 'Start the round',
+    ...extra,
+  })
+  const rest: JsonObject[] = [
+    {
+      id: 'hero',
+      kind: 'KIND_HERO_IMAGE',
+      hero: 15,
+      heroLook: 'HERO_LOOK_CARD',
+      scaling: 'SCALING_COVER',
+    },
+    {
+      id: 'row',
+      style: {
+        flow: 'FLOW_RIGHT_WRAP',
+        overflowY: 'OVERFLOW_SCROLL',
+        x: { pixels: 12 },
+        gradient: {
+          shape: 'GRADIENT_SHAPE_RIGHT',
+          stops: [
+            { at: 0, color: 0x000000ff },
+            { at: 1, color: 0xffffffff },
+          ],
+        },
+        boxShadow: { y: 2, blur: 8, color: 0x00000080 },
+        tint: 0xff0000ff,
+        blur: 4,
+      },
+    },
+    {
+      id: 'line',
+      kind: 'KIND_LABEL',
+      text: 'Was 300',
+      style: {
+        weight: 'WEIGHT_SEMI_BOLD',
+        italic: true,
+        noWrap: true,
+        textOverflow: 'TEXT_OVERFLOW_ELLIPSIS',
+        decoration: 'DECORATION_STRIKE',
+      },
+    },
+  ]
+  const tree = (...nodes: JsonObject[]) =>
+    screen({ id: '', children: ['go', 'hero', 'row', 'line'] }, ...nodes)
+  live.draw(tree(go(), ...rest))
+  const shown = () => root.children[root.children.length - 1]!.children
+  const [button, hero, row, line] = shown()
+
+  // The button animates the fill and transform both of its styles write.
+  expect(button!.hittest).toBe(true)
+  expect(button!.style).toMatchObject({
+    backgroundColor: 'rgba(21, 22, 17, 1.000)',
+    transform:
+      'translate3d( 0px, 0px, 0px ) scale3d( 1, 1, 1 ) rotateZ( 0deg )',
+    transitionProperty: 'background-color, transform',
+    transitionDuration: '0.15s',
+    transitionTimingFunction: 'ease-out',
+  })
+
+  // The pointer lights the button, ticks and shows the tooltip.
+  dispatched.length = 0
+  button!.events.get('onmouseover')!()
+  expect(button!.style.backgroundColor).toBe('rgba(43, 42, 36, 1.000)')
+  expect(button!.style.transform).toContain('scale3d( 1.05, 1.05, 1 )')
+
+  // Leaving returns its style and hides the tooltip; a press plays its sound.
+  button!.events.get('onmouseout')!()
+  expect(button!.style.backgroundColor).toBe('rgba(21, 22, 17, 1.000)')
+  button!.events.get('onactivate')!()
+  expect(dispatched).toEqual([
+    ['sound', 'UI.MainMenu.Hover'],
+    ['UIShowTextTooltip', button, 'Start the round'],
+    ['UIHideTextTooltip', button],
+    ['sound', 'UI.MainMenu.Activate'],
+  ] as unknown as string[][])
+  expect(presses).toEqual(['arena:go'])
+
+  // Disabling the button and dropping its fill keep its panel, so the change
+  // animates: the fill rests at none and presses stop.
+  live.draw(
+    tree(
+      go({ disabled: true, style: { transition: { seconds: 0.15 } } }),
+      ...rest,
+    ),
+  )
+  expect(shown()[0]).toBe(button)
+  expect(button!.enabled).toBe(false)
+  expect(button!.style.backgroundColor).toBe('none')
+  button!.events.get('onactivate')!()
+  expect(presses).toEqual(['arena:go'])
+
+  // The hero image is made with its hero, picture and scaling.
+  expect(hero!.paneltype).toBe('CitadelHeroImage')
+  expect(hero!.properties).toEqual({
+    heroid: '15',
+    heroimagestyle: 'hero_card',
+    scaling: 'stretch-to-cover-preserve-aspect',
+  })
+
+  // The row wraps, scrolls down, sits at its offset and paints its gradient,
+  // shadow, tint and blur.
+  expect(row!.hittest).toBe(true)
+  expect(row!.style).toMatchObject({
+    flowChildren: 'right-wrap',
+    overflow: 'squish scroll',
+    x: '12px',
+    backgroundColor:
+      'gradient( linear, 0% 0%, 100% 0%, color-stop( 0, rgba(0, 0, 0, 1.000) ), color-stop( 1, rgba(255, 255, 255, 1.000) ) )',
+    boxShadow: 'rgba(0, 0, 0, 0.502) 0px 2px 8px 0px',
+    washColor: 'rgba(255, 0, 0, 1.000)',
+    blur: 'gaussian(4px)',
+  })
+
+  // The line sets its weight, slant, wrap, overflow and strike.
+  expect(line!.style).toMatchObject({
+    fontWeight: 'semi-bold',
+    fontStyle: 'italic',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    textDecoration: 'line-through',
+  })
 })
 
 test("hides the game's HUD parts while a root lists them", () => {

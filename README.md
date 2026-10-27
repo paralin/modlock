@@ -1066,18 +1066,43 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |
 | `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                                     |
 
-Style `panel`, `label`, `image`, `button` and `layout` with `width`,
-`height`, `flow`, `horizontalAlign`, `verticalAlign`, `margin`, `padding`,
-`background`, `color`, `fontSize`, `bold`, `textAlign`, `borderRadius`,
-`opacity`, `face` (the game's `body`, `block` or `serif` typeface), `uppercase`,
-`letterSpacing`, `shadow`, `borderWidth` and `borderColor`.
+Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
+
+- Layout: `width`, `height`, `minWidth`, `maxWidth`, `minHeight`,
+  `maxHeight`, `x`, `y`, `zIndex`, `margin`, `padding`, `horizontalAlign`,
+  `verticalAlign`, `flow` (`'down'`, `'right'`, `'downWrap'`, `'rightWrap'`)
+  and `overflow`, `overflowX` or `overflowY` (`'squish'`, `'clip'`,
+  `'scroll'`, `'show'`).
+- Paint: `background`, `gradient` (`{ shape, colors, at }`), `borderRadius`,
+  `borderWidth`, `borderColor`, `boxShadow`, `opacity`, `tint`, `saturation`,
+  `brightness`, `contrast` and `blur`.
+- Text: `color`, `fontSize`, `face` (the game's `body`, `block` or `serif`
+  typeface), `bold`, `weight`, `italic`, `uppercase`, `letterSpacing`,
+  `lineHeight`, `textAlign`, `noWrap`, `textOverflow` (`'ellipsis'`,
+  `'shrink'`, `'clip'`), `decoration` (`'underline'`, `'strike'`), `shadow`
+  and `textShadow`.
+- Motion: `translate`, `scale`, `rotate` and `origin`, and `transition`, in
+  seconds or `{ seconds, delay, easing }`. A change to any style property
+  that the game animates eases to its new value instead of jumping.
+
+Any element takes `hover`, a style laid over its own while the pointer is on
+it, `tooltip`, text the game shows beside it, and `hoverSound`, a game sound
+event such as `'UI.MainMenu.Hover'`. A `button` also takes `sound`, played on
+a press, and `disabled`, which stops its presses. An `image` takes `scaling`
+(`'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`), and
+`<hero hero={15} look="card" />` draws the game's own picture of a hero, in the
+`small`, `card`, `icon`, `vertical`, `topBar` or `minimap` look. Interfaces
+load no pages, styles or scripts from outside the game.
 
 The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
 sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
 counts as the round counter does, `<Tag>` labels a status, `<Banner>`
 announces a moment, `<TopStrip>` with a `<Score>` in it fills the top of
 the screen, and `<Roster>` lists the players down the top right corner with
-their hero portraits. Each entry in `heroes` carries its small `portrait`.
+their hero portraits. `<Action kind>` is a button in the game's menu look,
+with its hover, sounds and disabled state, and `<Meter value>` fills a bar
+that eases to each new value. Each entry in `heroes` carries its small
+`portrait`.
 `theme` holds the tokens, such as `theme.tones` and
 `theme.sizes`, for a mod's own panels.
 

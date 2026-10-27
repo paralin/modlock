@@ -15,6 +15,117 @@ import (
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 )
 
+// Scaling fits a picture into its node's box.
+type Scaling int32
+
+const (
+	// SCALING_DEFAULT keeps the panel's own scaling: an image fits its box,
+	// keeping its shape.
+	Scaling_SCALING_DEFAULT Scaling = 0
+	// SCALING_FIT shows the whole picture in the box, keeping its shape.
+	Scaling_SCALING_FIT Scaling = 1
+	// SCALING_COVER fills the box, keeping the picture's shape and cropping what
+	// falls outside.
+	Scaling_SCALING_COVER Scaling = 2
+	// SCALING_STRETCH fills the box, stretching the picture.
+	Scaling_SCALING_STRETCH Scaling = 3
+	// SCALING_FIT_WIDTH fits the picture's width to the box, keeping its shape.
+	Scaling_SCALING_FIT_WIDTH Scaling = 4
+	// SCALING_FIT_HEIGHT fits the picture's height to the box, keeping its
+	// shape.
+	Scaling_SCALING_FIT_HEIGHT Scaling = 5
+	// SCALING_NONE draws the picture at its own size.
+	Scaling_SCALING_NONE Scaling = 6
+)
+
+// Enum value maps for Scaling.
+var (
+	Scaling_name = map[int32]string{
+		0: "SCALING_DEFAULT",
+		1: "SCALING_FIT",
+		2: "SCALING_COVER",
+		3: "SCALING_STRETCH",
+		4: "SCALING_FIT_WIDTH",
+		5: "SCALING_FIT_HEIGHT",
+		6: "SCALING_NONE",
+	}
+	Scaling_value = map[string]int32{
+		"SCALING_DEFAULT":    0,
+		"SCALING_FIT":        1,
+		"SCALING_COVER":      2,
+		"SCALING_STRETCH":    3,
+		"SCALING_FIT_WIDTH":  4,
+		"SCALING_FIT_HEIGHT": 5,
+		"SCALING_NONE":       6,
+	}
+)
+
+func (x Scaling) Enum() *Scaling {
+	p := new(Scaling)
+	*p = x
+	return p
+}
+
+func (x Scaling) String() string {
+	name, valid := Scaling_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// HeroLook is one of the game's pictures of a hero.
+type HeroLook int32
+
+const (
+	// HERO_LOOK_SMALL is the square portrait of the kill feed and scoreboard.
+	HeroLook_HERO_LOOK_SMALL HeroLook = 0
+	// HERO_LOOK_CARD is the tall card the hero picker shows.
+	HeroLook_HERO_LOOK_CARD HeroLook = 1
+	// HERO_LOOK_ICON is the hero's round icon.
+	HeroLook_HERO_LOOK_ICON HeroLook = 2
+	// HERO_LOOK_VERTICAL is the narrow portrait of the hero grid.
+	HeroLook_HERO_LOOK_VERTICAL HeroLook = 3
+	// HERO_LOOK_TOP_BAR is the portrait in the bar across the top of the HUD.
+	HeroLook_HERO_LOOK_TOP_BAR HeroLook = 4
+	// HERO_LOOK_MINIMAP is the hero's minimap icon.
+	HeroLook_HERO_LOOK_MINIMAP HeroLook = 5
+)
+
+// Enum value maps for HeroLook.
+var (
+	HeroLook_name = map[int32]string{
+		0: "HERO_LOOK_SMALL",
+		1: "HERO_LOOK_CARD",
+		2: "HERO_LOOK_ICON",
+		3: "HERO_LOOK_VERTICAL",
+		4: "HERO_LOOK_TOP_BAR",
+		5: "HERO_LOOK_MINIMAP",
+	}
+	HeroLook_value = map[string]int32{
+		"HERO_LOOK_SMALL":    0,
+		"HERO_LOOK_CARD":     1,
+		"HERO_LOOK_ICON":     2,
+		"HERO_LOOK_VERTICAL": 3,
+		"HERO_LOOK_TOP_BAR":  4,
+		"HERO_LOOK_MINIMAP":  5,
+	}
+)
+
+func (x HeroLook) Enum() *HeroLook {
+	p := new(HeroLook)
+	*p = x
+	return p
+}
+
+func (x HeroLook) String() string {
+	name, valid := HeroLook_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // HudPart is a part of the game's own HUD a mod may hide from a player.
 type HudPart int32
 
@@ -89,6 +200,8 @@ const (
 	// KIND_ROUTE draws nothing: it hands its data to every layout of the mod
 	// under its route's name. No parent lists it.
 	Kind_KIND_ROUTE Kind = 5
+	// KIND_HERO_IMAGE shows one of the game's pictures of the node's hero.
+	Kind_KIND_HERO_IMAGE Kind = 6
 )
 
 // Enum value maps for Kind.
@@ -100,14 +213,16 @@ var (
 		3: "KIND_BUTTON",
 		4: "KIND_LAYOUT",
 		5: "KIND_ROUTE",
+		6: "KIND_HERO_IMAGE",
 	}
 	Kind_value = map[string]int32{
-		"KIND_PANEL":  0,
-		"KIND_LABEL":  1,
-		"KIND_IMAGE":  2,
-		"KIND_BUTTON": 3,
-		"KIND_LAYOUT": 4,
-		"KIND_ROUTE":  5,
+		"KIND_PANEL":      0,
+		"KIND_LABEL":      1,
+		"KIND_IMAGE":      2,
+		"KIND_BUTTON":     3,
+		"KIND_LAYOUT":     4,
+		"KIND_ROUTE":      5,
+		"KIND_HERO_IMAGE": 6,
 	}
 )
 
@@ -119,6 +234,283 @@ func (x Kind) Enum() *Kind {
 
 func (x Kind) String() string {
 	name, valid := Kind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// Overflow decides what happens to children that do not fit a node.
+type Overflow int32
+
+const (
+	// OVERFLOW_DEFAULT keeps the panel's own behavior: they shrink to fit.
+	Overflow_OVERFLOW_DEFAULT Overflow = 0
+	// OVERFLOW_SQUISH shrinks the children to fit.
+	Overflow_OVERFLOW_SQUISH Overflow = 1
+	// OVERFLOW_CLIP cuts off what does not fit.
+	Overflow_OVERFLOW_CLIP Overflow = 2
+	// OVERFLOW_SCROLL lets the player scroll to what does not fit.
+	Overflow_OVERFLOW_SCROLL Overflow = 3
+	// OVERFLOW_SHOW draws what does not fit outside the node.
+	Overflow_OVERFLOW_SHOW Overflow = 4
+)
+
+// Enum value maps for Overflow.
+var (
+	Overflow_name = map[int32]string{
+		0: "OVERFLOW_DEFAULT",
+		1: "OVERFLOW_SQUISH",
+		2: "OVERFLOW_CLIP",
+		3: "OVERFLOW_SCROLL",
+		4: "OVERFLOW_SHOW",
+	}
+	Overflow_value = map[string]int32{
+		"OVERFLOW_DEFAULT": 0,
+		"OVERFLOW_SQUISH":  1,
+		"OVERFLOW_CLIP":    2,
+		"OVERFLOW_SCROLL":  3,
+		"OVERFLOW_SHOW":    4,
+	}
+)
+
+func (x Overflow) Enum() *Overflow {
+	p := new(Overflow)
+	*p = x
+	return p
+}
+
+func (x Overflow) String() string {
+	name, valid := Overflow_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// GradientShape is the direction or shape a gradient's colors run in.
+type GradientShape int32
+
+const (
+	// GRADIENT_SHAPE_DOWN runs from the top to the bottom.
+	GradientShape_GRADIENT_SHAPE_DOWN GradientShape = 0
+	// GRADIENT_SHAPE_RIGHT runs from the left to the right.
+	GradientShape_GRADIENT_SHAPE_RIGHT GradientShape = 1
+	// GRADIENT_SHAPE_UP runs from the bottom to the top.
+	GradientShape_GRADIENT_SHAPE_UP GradientShape = 2
+	// GRADIENT_SHAPE_LEFT runs from the right to the left.
+	GradientShape_GRADIENT_SHAPE_LEFT GradientShape = 3
+	// GRADIENT_SHAPE_RADIAL runs from the center out to the edges.
+	GradientShape_GRADIENT_SHAPE_RADIAL GradientShape = 4
+)
+
+// Enum value maps for GradientShape.
+var (
+	GradientShape_name = map[int32]string{
+		0: "GRADIENT_SHAPE_DOWN",
+		1: "GRADIENT_SHAPE_RIGHT",
+		2: "GRADIENT_SHAPE_UP",
+		3: "GRADIENT_SHAPE_LEFT",
+		4: "GRADIENT_SHAPE_RADIAL",
+	}
+	GradientShape_value = map[string]int32{
+		"GRADIENT_SHAPE_DOWN":   0,
+		"GRADIENT_SHAPE_RIGHT":  1,
+		"GRADIENT_SHAPE_UP":     2,
+		"GRADIENT_SHAPE_LEFT":   3,
+		"GRADIENT_SHAPE_RADIAL": 4,
+	}
+)
+
+func (x GradientShape) Enum() *GradientShape {
+	p := new(GradientShape)
+	*p = x
+	return p
+}
+
+func (x GradientShape) String() string {
+	name, valid := GradientShape_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// Weight is a text weight, as the game's faces draw them.
+type Weight int32
+
+const (
+	// WEIGHT_DEFAULT keeps the panel's weight, or bold's.
+	Weight_WEIGHT_DEFAULT   Weight = 0
+	Weight_WEIGHT_THIN      Weight = 1
+	Weight_WEIGHT_LIGHT     Weight = 2
+	Weight_WEIGHT_NORMAL    Weight = 3
+	Weight_WEIGHT_MEDIUM    Weight = 4
+	Weight_WEIGHT_SEMI_BOLD Weight = 5
+	Weight_WEIGHT_BOLD      Weight = 6
+	Weight_WEIGHT_BLACK     Weight = 7
+)
+
+// Enum value maps for Weight.
+var (
+	Weight_name = map[int32]string{
+		0: "WEIGHT_DEFAULT",
+		1: "WEIGHT_THIN",
+		2: "WEIGHT_LIGHT",
+		3: "WEIGHT_NORMAL",
+		4: "WEIGHT_MEDIUM",
+		5: "WEIGHT_SEMI_BOLD",
+		6: "WEIGHT_BOLD",
+		7: "WEIGHT_BLACK",
+	}
+	Weight_value = map[string]int32{
+		"WEIGHT_DEFAULT":   0,
+		"WEIGHT_THIN":      1,
+		"WEIGHT_LIGHT":     2,
+		"WEIGHT_NORMAL":    3,
+		"WEIGHT_MEDIUM":    4,
+		"WEIGHT_SEMI_BOLD": 5,
+		"WEIGHT_BOLD":      6,
+		"WEIGHT_BLACK":     7,
+	}
+)
+
+func (x Weight) Enum() *Weight {
+	p := new(Weight)
+	*p = x
+	return p
+}
+
+func (x Weight) String() string {
+	name, valid := Weight_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// TextOverflow decides what text that does not fit its box does.
+type TextOverflow int32
+
+const (
+	// TEXT_OVERFLOW_DEFAULT keeps the panel's behavior.
+	TextOverflow_TEXT_OVERFLOW_DEFAULT TextOverflow = 0
+	// TEXT_OVERFLOW_ELLIPSIS ends the text that fits with an ellipsis.
+	TextOverflow_TEXT_OVERFLOW_ELLIPSIS TextOverflow = 1
+	// TEXT_OVERFLOW_SHRINK makes the text smaller until it fits.
+	TextOverflow_TEXT_OVERFLOW_SHRINK TextOverflow = 2
+	// TEXT_OVERFLOW_CLIP cuts the text off at the box's edge.
+	TextOverflow_TEXT_OVERFLOW_CLIP TextOverflow = 3
+)
+
+// Enum value maps for TextOverflow.
+var (
+	TextOverflow_name = map[int32]string{
+		0: "TEXT_OVERFLOW_DEFAULT",
+		1: "TEXT_OVERFLOW_ELLIPSIS",
+		2: "TEXT_OVERFLOW_SHRINK",
+		3: "TEXT_OVERFLOW_CLIP",
+	}
+	TextOverflow_value = map[string]int32{
+		"TEXT_OVERFLOW_DEFAULT":  0,
+		"TEXT_OVERFLOW_ELLIPSIS": 1,
+		"TEXT_OVERFLOW_SHRINK":   2,
+		"TEXT_OVERFLOW_CLIP":     3,
+	}
+)
+
+func (x TextOverflow) Enum() *TextOverflow {
+	p := new(TextOverflow)
+	*p = x
+	return p
+}
+
+func (x TextOverflow) String() string {
+	name, valid := TextOverflow_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// Decoration draws a line under or through text.
+type Decoration int32
+
+const (
+	// DECORATION_NONE draws no line.
+	Decoration_DECORATION_NONE Decoration = 0
+	// DECORATION_UNDERLINE draws a line under the text.
+	Decoration_DECORATION_UNDERLINE Decoration = 1
+	// DECORATION_STRIKE draws a line through the text.
+	Decoration_DECORATION_STRIKE Decoration = 2
+)
+
+// Enum value maps for Decoration.
+var (
+	Decoration_name = map[int32]string{
+		0: "DECORATION_NONE",
+		1: "DECORATION_UNDERLINE",
+		2: "DECORATION_STRIKE",
+	}
+	Decoration_value = map[string]int32{
+		"DECORATION_NONE":      0,
+		"DECORATION_UNDERLINE": 1,
+		"DECORATION_STRIKE":    2,
+	}
+)
+
+func (x Decoration) Enum() *Decoration {
+	p := new(Decoration)
+	*p = x
+	return p
+}
+
+func (x Decoration) String() string {
+	name, valid := Decoration_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// Easing shapes an animation's speed over its time.
+type Easing int32
+
+const (
+	// EASING_EASE_OUT starts fast and settles.
+	Easing_EASING_EASE_OUT Easing = 0
+	// EASING_EASE_IN starts slow and speeds up.
+	Easing_EASING_EASE_IN Easing = 1
+	// EASING_EASE_IN_OUT starts and ends slow.
+	Easing_EASING_EASE_IN_OUT Easing = 2
+	// EASING_LINEAR keeps one speed.
+	Easing_EASING_LINEAR Easing = 3
+)
+
+// Enum value maps for Easing.
+var (
+	Easing_name = map[int32]string{
+		0: "EASING_EASE_OUT",
+		1: "EASING_EASE_IN",
+		2: "EASING_EASE_IN_OUT",
+		3: "EASING_LINEAR",
+	}
+	Easing_value = map[string]int32{
+		"EASING_EASE_OUT":    0,
+		"EASING_EASE_IN":     1,
+		"EASING_EASE_IN_OUT": 2,
+		"EASING_LINEAR":      3,
+	}
+)
+
+func (x Easing) Enum() *Easing {
+	p := new(Easing)
+	*p = x
+	return p
+}
+
+func (x Easing) String() string {
+	name, valid := Easing_name[int32(x)]
 	if valid {
 		return name
 	}
@@ -180,6 +572,12 @@ const (
 	Flow_FLOW_DOWN Flow = 1
 	// FLOW_RIGHT places children in a row.
 	Flow_FLOW_RIGHT Flow = 2
+	// FLOW_DOWN_WRAP places children in columns, starting a new column where
+	// one is full.
+	Flow_FLOW_DOWN_WRAP Flow = 3
+	// FLOW_RIGHT_WRAP places children in rows, starting a new row where one is
+	// full.
+	Flow_FLOW_RIGHT_WRAP Flow = 4
 )
 
 // Enum value maps for Flow.
@@ -188,11 +586,15 @@ var (
 		0: "FLOW_NONE",
 		1: "FLOW_DOWN",
 		2: "FLOW_RIGHT",
+		3: "FLOW_DOWN_WRAP",
+		4: "FLOW_RIGHT_WRAP",
 	}
 	Flow_value = map[string]int32{
-		"FLOW_NONE":  0,
-		"FLOW_DOWN":  1,
-		"FLOW_RIGHT": 2,
+		"FLOW_NONE":       0,
+		"FLOW_DOWN":       1,
+		"FLOW_RIGHT":      2,
+		"FLOW_DOWN_WRAP":  3,
+		"FLOW_RIGHT_WRAP": 4,
 	}
 )
 
@@ -289,6 +691,29 @@ type Node struct {
 	// Route names a route node's data route: one or more letters, digits, '_',
 	// '-' and '.'.
 	Route string `protobuf:"bytes,10,opt,name=route,proto3" json:"route,omitempty"`
+	// Hover is the style drawn over the node's style while the pointer is over
+	// it. Each property it sets returns to the node's own value, or to the
+	// property's resting value, when the pointer leaves. A node with a hover
+	// style takes the pointer, so the game behind it does not.
+	Hover *Style `protobuf:"bytes,11,opt,name=hover,proto3" json:"hover,omitempty"`
+	// Tooltip is the text the game's tooltip shows while the pointer is over the
+	// node. A node with a tooltip takes the pointer.
+	Tooltip string `protobuf:"bytes,12,opt,name=tooltip,proto3" json:"tooltip,omitempty"`
+	// Sound is the game's sound event a button plays when pressed, such as
+	// "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
+	Sound string `protobuf:"bytes,13,opt,name=sound,proto3" json:"sound,omitempty"`
+	// HoverSound is the game's sound event played as the pointer enters the
+	// node, named as sound is.
+	HoverSound string `protobuf:"bytes,14,opt,name=hover_sound,json=hoverSound,proto3" json:"hoverSound,omitempty"`
+	// Disabled keeps a button from taking presses; its style shows why.
+	Disabled bool `protobuf:"varint,15,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	// Scaling fits an image or a hero's portrait into the node's box.
+	Scaling Scaling `protobuf:"varint,16,opt,name=scaling,proto3" json:"scaling,omitempty"`
+	// Hero is a hero image's hero, by the game's hero id.
+	Hero int32 `protobuf:"varint,17,opt,name=hero,proto3" json:"hero,omitempty"`
+	// HeroLook picks which of the game's pictures of the hero a hero image
+	// draws.
+	HeroLook HeroLook `protobuf:"varint,18,opt,name=hero_look,json=heroLook,proto3" json:"heroLook,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -367,6 +792,62 @@ func (x *Node) GetRoute() string {
 	return ""
 }
 
+func (x *Node) GetHover() *Style {
+	if x != nil {
+		return x.Hover
+	}
+	return nil
+}
+
+func (x *Node) GetTooltip() string {
+	if x != nil {
+		return x.Tooltip
+	}
+	return ""
+}
+
+func (x *Node) GetSound() string {
+	if x != nil {
+		return x.Sound
+	}
+	return ""
+}
+
+func (x *Node) GetHoverSound() string {
+	if x != nil {
+		return x.HoverSound
+	}
+	return ""
+}
+
+func (x *Node) GetDisabled() bool {
+	if x != nil {
+		return x.Disabled
+	}
+	return false
+}
+
+func (x *Node) GetScaling() Scaling {
+	if x != nil {
+		return x.Scaling
+	}
+	return Scaling_SCALING_DEFAULT
+}
+
+func (x *Node) GetHero() int32 {
+	if x != nil {
+		return x.Hero
+	}
+	return 0
+}
+
+func (x *Node) GetHeroLook() HeroLook {
+	if x != nil {
+		return x.HeroLook
+	}
+	return HeroLook_HERO_LOOK_SMALL
+}
+
 // Style is the closed set of layout and paint properties a node may set. A
 // zero value leaves the panel's default.
 type Style struct {
@@ -413,6 +894,56 @@ type Style struct {
 	// BorderColor is the edge line's color as 0xRRGGBBAA. The line is drawn
 	// only when both its width and its color are set.
 	BorderColor uint32 `protobuf:"fixed32,20,opt,name=border_color,json=borderColor,proto3" json:"borderColor,omitempty"`
+	// X and Y place the node at an offset from its parent's top left corner,
+	// in pixels or a percent of the parent, outside the parent's flow.
+	X *Length `protobuf:"bytes,21,opt,name=x,proto3" json:"x,omitempty"`
+	Y *Length `protobuf:"bytes,22,opt,name=y,proto3" json:"y,omitempty"`
+	// MinWidth, MaxWidth, MinHeight and MaxHeight bound the node's size.
+	MinWidth  *Length `protobuf:"bytes,23,opt,name=min_width,json=minWidth,proto3" json:"minWidth,omitempty"`
+	MaxWidth  *Length `protobuf:"bytes,24,opt,name=max_width,json=maxWidth,proto3" json:"maxWidth,omitempty"`
+	MinHeight *Length `protobuf:"bytes,25,opt,name=min_height,json=minHeight,proto3" json:"minHeight,omitempty"`
+	MaxHeight *Length `protobuf:"bytes,26,opt,name=max_height,json=maxHeight,proto3" json:"maxHeight,omitempty"`
+	// ZIndex draws the node above its siblings with a lower index; zero keeps
+	// the drawing order.
+	ZIndex int32 `protobuf:"varint,27,opt,name=z_index,json=zIndex,proto3" json:"zIndex,omitempty"`
+	// OverflowX and OverflowY decide what happens to children that do not fit
+	// across and down.
+	OverflowX Overflow `protobuf:"varint,28,opt,name=overflow_x,json=overflowX,proto3" json:"overflowX,omitempty"`
+	OverflowY Overflow `protobuf:"varint,29,opt,name=overflow_y,json=overflowY,proto3" json:"overflowY,omitempty"`
+	// Gradient fills the node with a gradient in place of its background.
+	Gradient *Gradient `protobuf:"bytes,30,opt,name=gradient,proto3" json:"gradient,omitempty"`
+	// BoxShadow draws a shadow around or inside the node's box.
+	BoxShadow *Shadow `protobuf:"bytes,31,opt,name=box_shadow,json=boxShadow,proto3" json:"boxShadow,omitempty"`
+	// TextShadow draws this shadow under the text in place of shadow's.
+	TextShadow *Shadow `protobuf:"bytes,32,opt,name=text_shadow,json=textShadow,proto3" json:"textShadow,omitempty"`
+	// Tint washes the node and its children with a color as 0xRRGGBBAA, which
+	// recolors a white icon; zero leaves them.
+	Tint uint32 `protobuf:"fixed32,33,opt,name=tint,proto3" json:"tint,omitempty"`
+	// Saturation, Brightness and Contrast scale the node's colors; 1 leaves
+	// them, unset leaves them.
+	Saturation *float32 `protobuf:"fixed32,34,opt,name=saturation,proto3,oneof" json:"saturation,omitempty"`
+	Brightness *float32 `protobuf:"fixed32,35,opt,name=brightness,proto3,oneof" json:"brightness,omitempty"`
+	Contrast   *float32 `protobuf:"fixed32,36,opt,name=contrast,proto3,oneof" json:"contrast,omitempty"`
+	// Blur blurs the node and its children by a radius in pixels.
+	Blur float32 `protobuf:"fixed32,37,opt,name=blur,proto3" json:"blur,omitempty"`
+	// Italic slants the text.
+	Italic bool `protobuf:"varint,38,opt,name=italic,proto3" json:"italic,omitempty"`
+	// Weight sets the text's weight in place of bold.
+	Weight Weight `protobuf:"varint,39,opt,name=weight,proto3" json:"weight,omitempty"`
+	// LineHeight is the height of each line of text, in pixels.
+	LineHeight float32 `protobuf:"fixed32,40,opt,name=line_height,json=lineHeight,proto3" json:"lineHeight,omitempty"`
+	// NoWrap keeps the text on one line.
+	NoWrap bool `protobuf:"varint,41,opt,name=no_wrap,json=noWrap,proto3" json:"noWrap,omitempty"`
+	// TextOverflow decides what text that does not fit its box does.
+	TextOverflow TextOverflow `protobuf:"varint,42,opt,name=text_overflow,json=textOverflow,proto3" json:"textOverflow,omitempty"`
+	// Decoration draws a line under or through the text.
+	Decoration Decoration `protobuf:"varint,43,opt,name=decoration,proto3" json:"decoration,omitempty"`
+	// Transform moves, scales and rotates the node as drawn, without moving its
+	// neighbors.
+	Transform *Transform `protobuf:"bytes,44,opt,name=transform,proto3" json:"transform,omitempty"`
+	// Transition animates each change to the node's style, and the move to and
+	// from its hover style, instead of snapping to it.
+	Transition *Transition `protobuf:"bytes,45,opt,name=transition,proto3" json:"transition,omitempty"`
 }
 
 func (x *Style) Reset() {
@@ -559,6 +1090,413 @@ func (x *Style) GetBorderColor() uint32 {
 		return x.BorderColor
 	}
 	return 0
+}
+
+func (x *Style) GetX() *Length {
+	if x != nil {
+		return x.X
+	}
+	return nil
+}
+
+func (x *Style) GetY() *Length {
+	if x != nil {
+		return x.Y
+	}
+	return nil
+}
+
+func (x *Style) GetMinWidth() *Length {
+	if x != nil {
+		return x.MinWidth
+	}
+	return nil
+}
+
+func (x *Style) GetMaxWidth() *Length {
+	if x != nil {
+		return x.MaxWidth
+	}
+	return nil
+}
+
+func (x *Style) GetMinHeight() *Length {
+	if x != nil {
+		return x.MinHeight
+	}
+	return nil
+}
+
+func (x *Style) GetMaxHeight() *Length {
+	if x != nil {
+		return x.MaxHeight
+	}
+	return nil
+}
+
+func (x *Style) GetZIndex() int32 {
+	if x != nil {
+		return x.ZIndex
+	}
+	return 0
+}
+
+func (x *Style) GetOverflowX() Overflow {
+	if x != nil {
+		return x.OverflowX
+	}
+	return Overflow_OVERFLOW_DEFAULT
+}
+
+func (x *Style) GetOverflowY() Overflow {
+	if x != nil {
+		return x.OverflowY
+	}
+	return Overflow_OVERFLOW_DEFAULT
+}
+
+func (x *Style) GetGradient() *Gradient {
+	if x != nil {
+		return x.Gradient
+	}
+	return nil
+}
+
+func (x *Style) GetBoxShadow() *Shadow {
+	if x != nil {
+		return x.BoxShadow
+	}
+	return nil
+}
+
+func (x *Style) GetTextShadow() *Shadow {
+	if x != nil {
+		return x.TextShadow
+	}
+	return nil
+}
+
+func (x *Style) GetTint() uint32 {
+	if x != nil {
+		return x.Tint
+	}
+	return 0
+}
+
+func (x *Style) GetSaturation() float32 {
+	if x != nil && x.Saturation != nil {
+		return *x.Saturation
+	}
+	return 0
+}
+
+func (x *Style) GetBrightness() float32 {
+	if x != nil && x.Brightness != nil {
+		return *x.Brightness
+	}
+	return 0
+}
+
+func (x *Style) GetContrast() float32 {
+	if x != nil && x.Contrast != nil {
+		return *x.Contrast
+	}
+	return 0
+}
+
+func (x *Style) GetBlur() float32 {
+	if x != nil {
+		return x.Blur
+	}
+	return 0
+}
+
+func (x *Style) GetItalic() bool {
+	if x != nil {
+		return x.Italic
+	}
+	return false
+}
+
+func (x *Style) GetWeight() Weight {
+	if x != nil {
+		return x.Weight
+	}
+	return Weight_WEIGHT_DEFAULT
+}
+
+func (x *Style) GetLineHeight() float32 {
+	if x != nil {
+		return x.LineHeight
+	}
+	return 0
+}
+
+func (x *Style) GetNoWrap() bool {
+	if x != nil {
+		return x.NoWrap
+	}
+	return false
+}
+
+func (x *Style) GetTextOverflow() TextOverflow {
+	if x != nil {
+		return x.TextOverflow
+	}
+	return TextOverflow_TEXT_OVERFLOW_DEFAULT
+}
+
+func (x *Style) GetDecoration() Decoration {
+	if x != nil {
+		return x.Decoration
+	}
+	return Decoration_DECORATION_NONE
+}
+
+func (x *Style) GetTransform() *Transform {
+	if x != nil {
+		return x.Transform
+	}
+	return nil
+}
+
+func (x *Style) GetTransition() *Transition {
+	if x != nil {
+		return x.Transition
+	}
+	return nil
+}
+
+// Gradient blends colors across a node.
+type Gradient struct {
+	unknownFields []byte
+	// Shape is the direction or shape the colors run in.
+	Shape GradientShape `protobuf:"varint,1,opt,name=shape,proto3" json:"shape,omitempty"`
+	// Stops are the colors and where each sits, in order.
+	Stops []*GradientStop `protobuf:"bytes,2,rep,name=stops,proto3" json:"stops,omitempty"`
+}
+
+func (x *Gradient) Reset() {
+	*x = Gradient{}
+}
+
+func (*Gradient) ProtoMessage() {}
+
+func (x *Gradient) GetShape() GradientShape {
+	if x != nil {
+		return x.Shape
+	}
+	return GradientShape_GRADIENT_SHAPE_DOWN
+}
+
+func (x *Gradient) GetStops() []*GradientStop {
+	if x != nil {
+		return x.Stops
+	}
+	return nil
+}
+
+// GradientStop is one color of a gradient.
+type GradientStop struct {
+	unknownFields []byte
+	// At is where the color sits along the gradient, from 0 to 1.
+	At float32 `protobuf:"fixed32,1,opt,name=at,proto3" json:"at,omitempty"`
+	// Color is the color as 0xRRGGBBAA.
+	Color uint32 `protobuf:"fixed32,2,opt,name=color,proto3" json:"color,omitempty"`
+}
+
+func (x *GradientStop) Reset() {
+	*x = GradientStop{}
+}
+
+func (*GradientStop) ProtoMessage() {}
+
+func (x *GradientStop) GetAt() float32 {
+	if x != nil {
+		return x.At
+	}
+	return 0
+}
+
+func (x *GradientStop) GetColor() uint32 {
+	if x != nil {
+		return x.Color
+	}
+	return 0
+}
+
+// Shadow is a soft shadow under text or around a box.
+type Shadow struct {
+	unknownFields []byte
+	// X and Y offset the shadow, in pixels.
+	X float32 `protobuf:"fixed32,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y float32 `protobuf:"fixed32,2,opt,name=y,proto3" json:"y,omitempty"`
+	// Blur softens the shadow's edge, in pixels.
+	Blur float32 `protobuf:"fixed32,3,opt,name=blur,proto3" json:"blur,omitempty"`
+	// Spread grows a box's shadow, in pixels, or strengthens a text shadow.
+	Spread float32 `protobuf:"fixed32,4,opt,name=spread,proto3" json:"spread,omitempty"`
+	// Color is the shadow's color as 0xRRGGBBAA.
+	Color uint32 `protobuf:"fixed32,5,opt,name=color,proto3" json:"color,omitempty"`
+	// Inset draws a box's shadow inside its edge.
+	Inset bool `protobuf:"varint,6,opt,name=inset,proto3" json:"inset,omitempty"`
+}
+
+func (x *Shadow) Reset() {
+	*x = Shadow{}
+}
+
+func (*Shadow) ProtoMessage() {}
+
+func (x *Shadow) GetX() float32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *Shadow) GetY() float32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+func (x *Shadow) GetBlur() float32 {
+	if x != nil {
+		return x.Blur
+	}
+	return 0
+}
+
+func (x *Shadow) GetSpread() float32 {
+	if x != nil {
+		return x.Spread
+	}
+	return 0
+}
+
+func (x *Shadow) GetColor() uint32 {
+	if x != nil {
+		return x.Color
+	}
+	return 0
+}
+
+func (x *Shadow) GetInset() bool {
+	if x != nil {
+		return x.Inset
+	}
+	return false
+}
+
+// Transform moves, scales and rotates a node as drawn.
+type Transform struct {
+	unknownFields []byte
+	// TranslateX and TranslateY move the node, in pixels.
+	TranslateX float32 `protobuf:"fixed32,1,opt,name=translate_x,json=translateX,proto3" json:"translateX,omitempty"`
+	TranslateY float32 `protobuf:"fixed32,2,opt,name=translate_y,json=translateY,proto3" json:"translateY,omitempty"`
+	// ScaleX and ScaleY scale the node; unset is 1.
+	ScaleX *float32 `protobuf:"fixed32,3,opt,name=scale_x,json=scaleX,proto3,oneof" json:"scaleX,omitempty"`
+	ScaleY *float32 `protobuf:"fixed32,4,opt,name=scale_y,json=scaleY,proto3,oneof" json:"scaleY,omitempty"`
+	// Rotate turns the node clockwise, in degrees.
+	Rotate float32 `protobuf:"fixed32,5,opt,name=rotate,proto3" json:"rotate,omitempty"`
+	// OriginX and OriginY are the point the node scales and turns about, as a
+	// percent of its size; unset is its center.
+	OriginX *float32 `protobuf:"fixed32,6,opt,name=origin_x,json=originX,proto3,oneof" json:"originX,omitempty"`
+	OriginY *float32 `protobuf:"fixed32,7,opt,name=origin_y,json=originY,proto3,oneof" json:"originY,omitempty"`
+}
+
+func (x *Transform) Reset() {
+	*x = Transform{}
+}
+
+func (*Transform) ProtoMessage() {}
+
+func (x *Transform) GetTranslateX() float32 {
+	if x != nil {
+		return x.TranslateX
+	}
+	return 0
+}
+
+func (x *Transform) GetTranslateY() float32 {
+	if x != nil {
+		return x.TranslateY
+	}
+	return 0
+}
+
+func (x *Transform) GetScaleX() float32 {
+	if x != nil && x.ScaleX != nil {
+		return *x.ScaleX
+	}
+	return 0
+}
+
+func (x *Transform) GetScaleY() float32 {
+	if x != nil && x.ScaleY != nil {
+		return *x.ScaleY
+	}
+	return 0
+}
+
+func (x *Transform) GetRotate() float32 {
+	if x != nil {
+		return x.Rotate
+	}
+	return 0
+}
+
+func (x *Transform) GetOriginX() float32 {
+	if x != nil && x.OriginX != nil {
+		return *x.OriginX
+	}
+	return 0
+}
+
+func (x *Transform) GetOriginY() float32 {
+	if x != nil && x.OriginY != nil {
+		return *x.OriginY
+	}
+	return 0
+}
+
+// Transition animates a node's style changes.
+type Transition struct {
+	unknownFields []byte
+	// Seconds is how long each change takes.
+	Seconds float32 `protobuf:"fixed32,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
+	// Delay is how long each change waits before it starts, in seconds.
+	Delay float32 `protobuf:"fixed32,2,opt,name=delay,proto3" json:"delay,omitempty"`
+	// Easing shapes the change's speed over its time.
+	Easing Easing `protobuf:"varint,3,opt,name=easing,proto3" json:"easing,omitempty"`
+}
+
+func (x *Transition) Reset() {
+	*x = Transition{}
+}
+
+func (*Transition) ProtoMessage() {}
+
+func (x *Transition) GetSeconds() float32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+func (x *Transition) GetDelay() float32 {
+	if x != nil {
+		return x.Delay
+	}
+	return 0
+}
+
+func (x *Transition) GetEasing() Easing {
+	if x != nil {
+		return x.Easing
+	}
+	return Easing_EASING_EASE_OUT
 }
 
 // Length is a size along one axis.
@@ -911,9 +1849,17 @@ func (m *Node) CloneVT() *Node {
 	r.Layout = m.Layout
 	r.Data = m.Data
 	r.Route = m.Route
+	r.Tooltip = m.Tooltip
+	r.Sound = m.Sound
+	r.HoverSound = m.HoverSound
+	r.Disabled = m.Disabled
+	r.Scaling = m.Scaling
+	r.Hero = m.Hero
+	r.HeroLook = m.HeroLook
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
+	r.Hover = protobuf_go_lite.CloneVTValue(m.Hover)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -944,11 +1890,36 @@ func (m *Style) CloneVT() *Style {
 	r.Shadow = m.Shadow
 	r.BorderWidth = m.BorderWidth
 	r.BorderColor = m.BorderColor
+	r.ZIndex = m.ZIndex
+	r.OverflowX = m.OverflowX
+	r.OverflowY = m.OverflowY
+	r.Tint = m.Tint
+	r.Blur = m.Blur
+	r.Italic = m.Italic
+	r.Weight = m.Weight
+	r.LineHeight = m.LineHeight
+	r.NoWrap = m.NoWrap
+	r.TextOverflow = m.TextOverflow
+	r.Decoration = m.Decoration
 	r.Width = protobuf_go_lite.CloneVTValue(m.Width)
 	r.Height = protobuf_go_lite.CloneVTValue(m.Height)
 	r.Margin = protobuf_go_lite.CloneVTValue(m.Margin)
 	r.Padding = protobuf_go_lite.CloneVTValue(m.Padding)
 	r.Opacity = protobuf_go_lite.ClonePtr(m.Opacity)
+	r.X = protobuf_go_lite.CloneVTValue(m.X)
+	r.Y = protobuf_go_lite.CloneVTValue(m.Y)
+	r.MinWidth = protobuf_go_lite.CloneVTValue(m.MinWidth)
+	r.MaxWidth = protobuf_go_lite.CloneVTValue(m.MaxWidth)
+	r.MinHeight = protobuf_go_lite.CloneVTValue(m.MinHeight)
+	r.MaxHeight = protobuf_go_lite.CloneVTValue(m.MaxHeight)
+	r.Gradient = protobuf_go_lite.CloneVTValue(m.Gradient)
+	r.BoxShadow = protobuf_go_lite.CloneVTValue(m.BoxShadow)
+	r.TextShadow = protobuf_go_lite.CloneVTValue(m.TextShadow)
+	r.Saturation = protobuf_go_lite.ClonePtr(m.Saturation)
+	r.Brightness = protobuf_go_lite.ClonePtr(m.Brightness)
+	r.Contrast = protobuf_go_lite.ClonePtr(m.Contrast)
+	r.Transform = protobuf_go_lite.CloneVTValue(m.Transform)
+	r.Transition = protobuf_go_lite.CloneVTValue(m.Transition)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -956,6 +1927,101 @@ func (m *Style) CloneVT() *Style {
 }
 
 func (m *Style) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Gradient) CloneVT() *Gradient {
+	if m == nil {
+		return (*Gradient)(nil)
+	}
+	r := new(Gradient)
+	r.Shape = m.Shape
+	r.Stops = protobuf_go_lite.CloneVTSlice(m.Stops)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Gradient) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *GradientStop) CloneVT() *GradientStop {
+	if m == nil {
+		return (*GradientStop)(nil)
+	}
+	r := new(GradientStop)
+	r.At = m.At
+	r.Color = m.Color
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *GradientStop) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Shadow) CloneVT() *Shadow {
+	if m == nil {
+		return (*Shadow)(nil)
+	}
+	r := new(Shadow)
+	r.X = m.X
+	r.Y = m.Y
+	r.Blur = m.Blur
+	r.Spread = m.Spread
+	r.Color = m.Color
+	r.Inset = m.Inset
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Shadow) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Transform) CloneVT() *Transform {
+	if m == nil {
+		return (*Transform)(nil)
+	}
+	r := new(Transform)
+	r.TranslateX = m.TranslateX
+	r.TranslateY = m.TranslateY
+	r.Rotate = m.Rotate
+	r.ScaleX = protobuf_go_lite.ClonePtr(m.ScaleX)
+	r.ScaleY = protobuf_go_lite.ClonePtr(m.ScaleY)
+	r.OriginX = protobuf_go_lite.ClonePtr(m.OriginX)
+	r.OriginY = protobuf_go_lite.ClonePtr(m.OriginY)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Transform) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Transition) CloneVT() *Transition {
+	if m == nil {
+		return (*Transition)(nil)
+	}
+	r := new(Transition)
+	r.Seconds = m.Seconds
+	r.Delay = m.Delay
+	r.Easing = m.Easing
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Transition) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1189,6 +2255,30 @@ func (this *Node) EqualVT(that *Node) bool {
 	if this.Route != that.Route {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.Hover, that.Hover) {
+		return false
+	}
+	if this.Tooltip != that.Tooltip {
+		return false
+	}
+	if this.Sound != that.Sound {
+		return false
+	}
+	if this.HoverSound != that.HoverSound {
+		return false
+	}
+	if this.Disabled != that.Disabled {
+		return false
+	}
+	if this.Scaling != that.Scaling {
+		return false
+	}
+	if this.Hero != that.Hero {
+		return false
+	}
+	if this.HeroLook != that.HeroLook {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1266,11 +2356,231 @@ func (this *Style) EqualVT(that *Style) bool {
 	if this.BorderColor != that.BorderColor {
 		return false
 	}
+	if !protobuf_go_lite.IsEqualVT(this.X, that.X) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Y, that.Y) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.MinWidth, that.MinWidth) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.MaxWidth, that.MaxWidth) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.MinHeight, that.MinHeight) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.MaxHeight, that.MaxHeight) {
+		return false
+	}
+	if this.ZIndex != that.ZIndex {
+		return false
+	}
+	if this.OverflowX != that.OverflowX {
+		return false
+	}
+	if this.OverflowY != that.OverflowY {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Gradient, that.Gradient) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.BoxShadow, that.BoxShadow) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.TextShadow, that.TextShadow) {
+		return false
+	}
+	if this.Tint != that.Tint {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Saturation, that.Saturation) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Brightness, that.Brightness) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Contrast, that.Contrast) {
+		return false
+	}
+	if this.Blur != that.Blur {
+		return false
+	}
+	if this.Italic != that.Italic {
+		return false
+	}
+	if this.Weight != that.Weight {
+		return false
+	}
+	if this.LineHeight != that.LineHeight {
+		return false
+	}
+	if this.NoWrap != that.NoWrap {
+		return false
+	}
+	if this.TextOverflow != that.TextOverflow {
+		return false
+	}
+	if this.Decoration != that.Decoration {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Transform, that.Transform) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Transition, that.Transition) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Style) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Style)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Gradient) EqualVT(that *Gradient) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Shape != that.Shape {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Stops, that.Stops, func() *GradientStop { return &GradientStop{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Gradient) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Gradient)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *GradientStop) EqualVT(that *GradientStop) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.At != that.At {
+		return false
+	}
+	if this.Color != that.Color {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GradientStop) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*GradientStop)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Shadow) EqualVT(that *Shadow) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.X != that.X {
+		return false
+	}
+	if this.Y != that.Y {
+		return false
+	}
+	if this.Blur != that.Blur {
+		return false
+	}
+	if this.Spread != that.Spread {
+		return false
+	}
+	if this.Color != that.Color {
+		return false
+	}
+	if this.Inset != that.Inset {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Shadow) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Shadow)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Transform) EqualVT(that *Transform) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.TranslateX != that.TranslateX {
+		return false
+	}
+	if this.TranslateY != that.TranslateY {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.ScaleX, that.ScaleX) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.ScaleY, that.ScaleY) {
+		return false
+	}
+	if this.Rotate != that.Rotate {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.OriginX, that.OriginX) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.OriginY, that.OriginY) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Transform) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Transform)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Transition) EqualVT(that *Transition) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	if this.Delay != that.Delay {
+		return false
+	}
+	if this.Easing != that.Easing {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Transition) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Transition)
 	if !ok {
 		return false
 	}
@@ -1548,6 +2858,86 @@ func (this *UiRequest) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+// MarshalProtoJSON marshals the Scaling to JSON.
+func (x Scaling) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Scaling_name)
+}
+
+// MarshalText marshals the Scaling to text.
+func (x Scaling) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Scaling_name)), nil
+}
+
+// MarshalJSON marshals the Scaling to JSON.
+func (x Scaling) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Scaling from JSON.
+func (x *Scaling) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Scaling_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Scaling enum: %v", err)
+		return
+	}
+	*x = Scaling(v)
+}
+
+// UnmarshalText unmarshals the Scaling from text.
+func (x *Scaling) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Scaling_value)
+	if err != nil {
+		return err
+	}
+	*x = Scaling(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Scaling from JSON.
+func (x *Scaling) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the HeroLook to JSON.
+func (x HeroLook) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), HeroLook_name)
+}
+
+// MarshalText marshals the HeroLook to text.
+func (x HeroLook) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), HeroLook_name)), nil
+}
+
+// MarshalJSON marshals the HeroLook to JSON.
+func (x HeroLook) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HeroLook from JSON.
+func (x *HeroLook) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(HeroLook_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read HeroLook enum: %v", err)
+		return
+	}
+	*x = HeroLook(v)
+}
+
+// UnmarshalText unmarshals the HeroLook from text.
+func (x *HeroLook) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), HeroLook_value)
+	if err != nil {
+		return err
+	}
+	*x = HeroLook(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the HeroLook from JSON.
+func (x *HeroLook) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the HudPart to JSON.
 func (x HudPart) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteEnum(int32(x), HudPart_name)
@@ -1625,6 +3015,246 @@ func (x *Kind) UnmarshalText(b []byte) error {
 
 // UnmarshalJSON unmarshals the Kind from JSON.
 func (x *Kind) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Overflow to JSON.
+func (x Overflow) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Overflow_name)
+}
+
+// MarshalText marshals the Overflow to text.
+func (x Overflow) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Overflow_name)), nil
+}
+
+// MarshalJSON marshals the Overflow to JSON.
+func (x Overflow) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Overflow from JSON.
+func (x *Overflow) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Overflow_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Overflow enum: %v", err)
+		return
+	}
+	*x = Overflow(v)
+}
+
+// UnmarshalText unmarshals the Overflow from text.
+func (x *Overflow) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Overflow_value)
+	if err != nil {
+		return err
+	}
+	*x = Overflow(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Overflow from JSON.
+func (x *Overflow) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the GradientShape to JSON.
+func (x GradientShape) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), GradientShape_name)
+}
+
+// MarshalText marshals the GradientShape to text.
+func (x GradientShape) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), GradientShape_name)), nil
+}
+
+// MarshalJSON marshals the GradientShape to JSON.
+func (x GradientShape) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the GradientShape from JSON.
+func (x *GradientShape) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(GradientShape_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read GradientShape enum: %v", err)
+		return
+	}
+	*x = GradientShape(v)
+}
+
+// UnmarshalText unmarshals the GradientShape from text.
+func (x *GradientShape) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), GradientShape_value)
+	if err != nil {
+		return err
+	}
+	*x = GradientShape(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the GradientShape from JSON.
+func (x *GradientShape) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Weight to JSON.
+func (x Weight) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Weight_name)
+}
+
+// MarshalText marshals the Weight to text.
+func (x Weight) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Weight_name)), nil
+}
+
+// MarshalJSON marshals the Weight to JSON.
+func (x Weight) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Weight from JSON.
+func (x *Weight) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Weight_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Weight enum: %v", err)
+		return
+	}
+	*x = Weight(v)
+}
+
+// UnmarshalText unmarshals the Weight from text.
+func (x *Weight) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Weight_value)
+	if err != nil {
+		return err
+	}
+	*x = Weight(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Weight from JSON.
+func (x *Weight) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the TextOverflow to JSON.
+func (x TextOverflow) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), TextOverflow_name)
+}
+
+// MarshalText marshals the TextOverflow to text.
+func (x TextOverflow) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), TextOverflow_name)), nil
+}
+
+// MarshalJSON marshals the TextOverflow to JSON.
+func (x TextOverflow) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TextOverflow from JSON.
+func (x *TextOverflow) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(TextOverflow_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read TextOverflow enum: %v", err)
+		return
+	}
+	*x = TextOverflow(v)
+}
+
+// UnmarshalText unmarshals the TextOverflow from text.
+func (x *TextOverflow) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), TextOverflow_value)
+	if err != nil {
+		return err
+	}
+	*x = TextOverflow(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the TextOverflow from JSON.
+func (x *TextOverflow) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Decoration to JSON.
+func (x Decoration) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Decoration_name)
+}
+
+// MarshalText marshals the Decoration to text.
+func (x Decoration) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Decoration_name)), nil
+}
+
+// MarshalJSON marshals the Decoration to JSON.
+func (x Decoration) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Decoration from JSON.
+func (x *Decoration) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Decoration_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Decoration enum: %v", err)
+		return
+	}
+	*x = Decoration(v)
+}
+
+// UnmarshalText unmarshals the Decoration from text.
+func (x *Decoration) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Decoration_value)
+	if err != nil {
+		return err
+	}
+	*x = Decoration(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Decoration from JSON.
+func (x *Decoration) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Easing to JSON.
+func (x Easing) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Easing_name)
+}
+
+// MarshalText marshals the Easing to text.
+func (x Easing) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Easing_name)), nil
+}
+
+// MarshalJSON marshals the Easing to JSON.
+func (x Easing) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Easing from JSON.
+func (x *Easing) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Easing_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Easing enum: %v", err)
+		return
+	}
+	*x = Easing(v)
+}
+
+// UnmarshalText unmarshals the Easing from text.
+func (x *Easing) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Easing_value)
+	if err != nil {
+		return err
+	}
+	*x = Easing(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Easing from JSON.
+func (x *Easing) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1812,6 +3442,46 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("route")
 		s.WriteString(x.Route)
 	}
+	if x.Hover != nil || s.HasField("hover") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hover")
+		x.Hover.MarshalProtoJSON(s.WithField("hover"))
+	}
+	if x.Tooltip != "" || s.HasField("tooltip") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("tooltip")
+		s.WriteString(x.Tooltip)
+	}
+	if x.Sound != "" || s.HasField("sound") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sound")
+		s.WriteString(x.Sound)
+	}
+	if x.HoverSound != "" || s.HasField("hoverSound") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hoverSound")
+		s.WriteString(x.HoverSound)
+	}
+	if x.Disabled || s.HasField("disabled") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("disabled")
+		s.WriteBool(x.Disabled)
+	}
+	if x.Scaling != 0 || s.HasField("scaling") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("scaling")
+		x.Scaling.MarshalProtoJSON(s)
+	}
+	if x.Hero != 0 || s.HasField("hero") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hero")
+		s.WriteInt32(x.Hero)
+	}
+	if x.HeroLook != 0 || s.HasField("heroLook") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("heroLook")
+		x.HeroLook.MarshalProtoJSON(s)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1875,6 +3545,34 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "route":
 			s.AddField("route")
 			x.Route = s.ReadString()
+		case "hover":
+			if s.ReadNil() {
+				x.Hover = nil
+				return
+			}
+			x.Hover = &Style{}
+			x.Hover.UnmarshalProtoJSON(s.WithField("hover", true))
+		case "tooltip":
+			s.AddField("tooltip")
+			x.Tooltip = s.ReadString()
+		case "sound":
+			s.AddField("sound")
+			x.Sound = s.ReadString()
+		case "hover_sound", "hoverSound":
+			s.AddField("hover_sound")
+			x.HoverSound = s.ReadString()
+		case "disabled":
+			s.AddField("disabled")
+			x.Disabled = s.ReadBool()
+		case "scaling":
+			s.AddField("scaling")
+			x.Scaling.UnmarshalProtoJSON(s)
+		case "hero":
+			s.AddField("hero")
+			x.Hero = s.ReadInt32()
+		case "hero_look", "heroLook":
+			s.AddField("hero_look")
+			x.HeroLook.UnmarshalProtoJSON(s)
 		}
 	})
 }
@@ -1992,6 +3690,131 @@ func (x *Style) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("borderColor")
 		s.WriteUint32(x.BorderColor)
 	}
+	if x.X != nil || s.HasField("x") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("x")
+		x.X.MarshalProtoJSON(s.WithField("x"))
+	}
+	if x.Y != nil || s.HasField("y") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("y")
+		x.Y.MarshalProtoJSON(s.WithField("y"))
+	}
+	if x.MinWidth != nil || s.HasField("minWidth") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("minWidth")
+		x.MinWidth.MarshalProtoJSON(s.WithField("minWidth"))
+	}
+	if x.MaxWidth != nil || s.HasField("maxWidth") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("maxWidth")
+		x.MaxWidth.MarshalProtoJSON(s.WithField("maxWidth"))
+	}
+	if x.MinHeight != nil || s.HasField("minHeight") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("minHeight")
+		x.MinHeight.MarshalProtoJSON(s.WithField("minHeight"))
+	}
+	if x.MaxHeight != nil || s.HasField("maxHeight") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("maxHeight")
+		x.MaxHeight.MarshalProtoJSON(s.WithField("maxHeight"))
+	}
+	if x.ZIndex != 0 || s.HasField("zIndex") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("zIndex")
+		s.WriteInt32(x.ZIndex)
+	}
+	if x.OverflowX != 0 || s.HasField("overflowX") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("overflowX")
+		x.OverflowX.MarshalProtoJSON(s)
+	}
+	if x.OverflowY != 0 || s.HasField("overflowY") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("overflowY")
+		x.OverflowY.MarshalProtoJSON(s)
+	}
+	if x.Gradient != nil || s.HasField("gradient") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("gradient")
+		x.Gradient.MarshalProtoJSON(s.WithField("gradient"))
+	}
+	if x.BoxShadow != nil || s.HasField("boxShadow") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("boxShadow")
+		x.BoxShadow.MarshalProtoJSON(s.WithField("boxShadow"))
+	}
+	if x.TextShadow != nil || s.HasField("textShadow") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("textShadow")
+		x.TextShadow.MarshalProtoJSON(s.WithField("textShadow"))
+	}
+	if x.Tint != 0 || s.HasField("tint") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("tint")
+		s.WriteUint32(x.Tint)
+	}
+	if x.Saturation != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("saturation")
+		s.WriteFloat32(*x.Saturation)
+	}
+	if x.Brightness != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("brightness")
+		s.WriteFloat32(*x.Brightness)
+	}
+	if x.Contrast != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("contrast")
+		s.WriteFloat32(*x.Contrast)
+	}
+	if x.Blur != 0 || s.HasField("blur") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("blur")
+		s.WriteFloat32(x.Blur)
+	}
+	if x.Italic || s.HasField("italic") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("italic")
+		s.WriteBool(x.Italic)
+	}
+	if x.Weight != 0 || s.HasField("weight") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("weight")
+		x.Weight.MarshalProtoJSON(s)
+	}
+	if x.LineHeight != 0 || s.HasField("lineHeight") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("lineHeight")
+		s.WriteFloat32(x.LineHeight)
+	}
+	if x.NoWrap || s.HasField("noWrap") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("noWrap")
+		s.WriteBool(x.NoWrap)
+	}
+	if x.TextOverflow != 0 || s.HasField("textOverflow") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("textOverflow")
+		x.TextOverflow.MarshalProtoJSON(s)
+	}
+	if x.Decoration != 0 || s.HasField("decoration") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("decoration")
+		x.Decoration.MarshalProtoJSON(s)
+	}
+	if x.Transform != nil || s.HasField("transform") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("transform")
+		x.Transform.MarshalProtoJSON(s.WithField("transform"))
+	}
+	if x.Transition != nil || s.HasField("transition") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("transition")
+		x.Transition.MarshalProtoJSON(s.WithField("transition"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -2090,12 +3913,517 @@ func (x *Style) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "border_color", "borderColor":
 			s.AddField("border_color")
 			x.BorderColor = s.ReadUint32()
+		case "x":
+			if s.ReadNil() {
+				x.X = nil
+				return
+			}
+			x.X = &Length{}
+			x.X.UnmarshalProtoJSON(s.WithField("x", true))
+		case "y":
+			if s.ReadNil() {
+				x.Y = nil
+				return
+			}
+			x.Y = &Length{}
+			x.Y.UnmarshalProtoJSON(s.WithField("y", true))
+		case "min_width", "minWidth":
+			if s.ReadNil() {
+				x.MinWidth = nil
+				return
+			}
+			x.MinWidth = &Length{}
+			x.MinWidth.UnmarshalProtoJSON(s.WithField("min_width", true))
+		case "max_width", "maxWidth":
+			if s.ReadNil() {
+				x.MaxWidth = nil
+				return
+			}
+			x.MaxWidth = &Length{}
+			x.MaxWidth.UnmarshalProtoJSON(s.WithField("max_width", true))
+		case "min_height", "minHeight":
+			if s.ReadNil() {
+				x.MinHeight = nil
+				return
+			}
+			x.MinHeight = &Length{}
+			x.MinHeight.UnmarshalProtoJSON(s.WithField("min_height", true))
+		case "max_height", "maxHeight":
+			if s.ReadNil() {
+				x.MaxHeight = nil
+				return
+			}
+			x.MaxHeight = &Length{}
+			x.MaxHeight.UnmarshalProtoJSON(s.WithField("max_height", true))
+		case "z_index", "zIndex":
+			s.AddField("z_index")
+			x.ZIndex = s.ReadInt32()
+		case "overflow_x", "overflowX":
+			s.AddField("overflow_x")
+			x.OverflowX.UnmarshalProtoJSON(s)
+		case "overflow_y", "overflowY":
+			s.AddField("overflow_y")
+			x.OverflowY.UnmarshalProtoJSON(s)
+		case "gradient":
+			if s.ReadNil() {
+				x.Gradient = nil
+				return
+			}
+			x.Gradient = &Gradient{}
+			x.Gradient.UnmarshalProtoJSON(s.WithField("gradient", true))
+		case "box_shadow", "boxShadow":
+			if s.ReadNil() {
+				x.BoxShadow = nil
+				return
+			}
+			x.BoxShadow = &Shadow{}
+			x.BoxShadow.UnmarshalProtoJSON(s.WithField("box_shadow", true))
+		case "text_shadow", "textShadow":
+			if s.ReadNil() {
+				x.TextShadow = nil
+				return
+			}
+			x.TextShadow = &Shadow{}
+			x.TextShadow.UnmarshalProtoJSON(s.WithField("text_shadow", true))
+		case "tint":
+			s.AddField("tint")
+			x.Tint = s.ReadUint32()
+		case "saturation":
+			s.AddField("saturation")
+			if s.ReadNil() {
+				x.Saturation = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Saturation = &t
+		case "brightness":
+			s.AddField("brightness")
+			if s.ReadNil() {
+				x.Brightness = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Brightness = &t
+		case "contrast":
+			s.AddField("contrast")
+			if s.ReadNil() {
+				x.Contrast = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.Contrast = &t
+		case "blur":
+			s.AddField("blur")
+			x.Blur = s.ReadFloat32()
+		case "italic":
+			s.AddField("italic")
+			x.Italic = s.ReadBool()
+		case "weight":
+			s.AddField("weight")
+			x.Weight.UnmarshalProtoJSON(s)
+		case "line_height", "lineHeight":
+			s.AddField("line_height")
+			x.LineHeight = s.ReadFloat32()
+		case "no_wrap", "noWrap":
+			s.AddField("no_wrap")
+			x.NoWrap = s.ReadBool()
+		case "text_overflow", "textOverflow":
+			s.AddField("text_overflow")
+			x.TextOverflow.UnmarshalProtoJSON(s)
+		case "decoration":
+			s.AddField("decoration")
+			x.Decoration.UnmarshalProtoJSON(s)
+		case "transform":
+			if s.ReadNil() {
+				x.Transform = nil
+				return
+			}
+			x.Transform = &Transform{}
+			x.Transform.UnmarshalProtoJSON(s.WithField("transform", true))
+		case "transition":
+			if s.ReadNil() {
+				x.Transition = nil
+				return
+			}
+			x.Transition = &Transition{}
+			x.Transition.UnmarshalProtoJSON(s.WithField("transition", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Style from JSON.
 func (x *Style) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Gradient message to JSON.
+func (x *Gradient) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Shape != 0 || s.HasField("shape") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("shape")
+		x.Shape.MarshalProtoJSON(s)
+	}
+	if len(x.Stops) > 0 || s.HasField("stops") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("stops")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Stops {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("stops"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Gradient to JSON.
+func (x *Gradient) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Gradient message from JSON.
+func (x *Gradient) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "shape":
+			s.AddField("shape")
+			x.Shape.UnmarshalProtoJSON(s)
+		case "stops":
+			s.AddField("stops")
+			if s.ReadNil() {
+				x.Stops = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Stops = append(x.Stops, nil)
+					return
+				}
+				v := &GradientStop{}
+				v.UnmarshalProtoJSON(s.WithField("stops", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Stops = append(x.Stops, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Gradient from JSON.
+func (x *Gradient) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the GradientStop message to JSON.
+func (x *GradientStop) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.At != 0 || s.HasField("at") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("at")
+		s.WriteFloat32(x.At)
+	}
+	if x.Color != 0 || s.HasField("color") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("color")
+		s.WriteUint32(x.Color)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the GradientStop to JSON.
+func (x *GradientStop) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the GradientStop message from JSON.
+func (x *GradientStop) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "at":
+			s.AddField("at")
+			x.At = s.ReadFloat32()
+		case "color":
+			s.AddField("color")
+			x.Color = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the GradientStop from JSON.
+func (x *GradientStop) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Shadow message to JSON.
+func (x *Shadow) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.X != 0 || s.HasField("x") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("x")
+		s.WriteFloat32(x.X)
+	}
+	if x.Y != 0 || s.HasField("y") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("y")
+		s.WriteFloat32(x.Y)
+	}
+	if x.Blur != 0 || s.HasField("blur") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("blur")
+		s.WriteFloat32(x.Blur)
+	}
+	if x.Spread != 0 || s.HasField("spread") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("spread")
+		s.WriteFloat32(x.Spread)
+	}
+	if x.Color != 0 || s.HasField("color") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("color")
+		s.WriteUint32(x.Color)
+	}
+	if x.Inset || s.HasField("inset") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("inset")
+		s.WriteBool(x.Inset)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Shadow to JSON.
+func (x *Shadow) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Shadow message from JSON.
+func (x *Shadow) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "x":
+			s.AddField("x")
+			x.X = s.ReadFloat32()
+		case "y":
+			s.AddField("y")
+			x.Y = s.ReadFloat32()
+		case "blur":
+			s.AddField("blur")
+			x.Blur = s.ReadFloat32()
+		case "spread":
+			s.AddField("spread")
+			x.Spread = s.ReadFloat32()
+		case "color":
+			s.AddField("color")
+			x.Color = s.ReadUint32()
+		case "inset":
+			s.AddField("inset")
+			x.Inset = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Shadow from JSON.
+func (x *Shadow) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Transform message to JSON.
+func (x *Transform) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.TranslateX != 0 || s.HasField("translateX") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("translateX")
+		s.WriteFloat32(x.TranslateX)
+	}
+	if x.TranslateY != 0 || s.HasField("translateY") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("translateY")
+		s.WriteFloat32(x.TranslateY)
+	}
+	if x.ScaleX != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("scaleX")
+		s.WriteFloat32(*x.ScaleX)
+	}
+	if x.ScaleY != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("scaleY")
+		s.WriteFloat32(*x.ScaleY)
+	}
+	if x.Rotate != 0 || s.HasField("rotate") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("rotate")
+		s.WriteFloat32(x.Rotate)
+	}
+	if x.OriginX != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("originX")
+		s.WriteFloat32(*x.OriginX)
+	}
+	if x.OriginY != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("originY")
+		s.WriteFloat32(*x.OriginY)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Transform to JSON.
+func (x *Transform) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Transform message from JSON.
+func (x *Transform) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "translate_x", "translateX":
+			s.AddField("translate_x")
+			x.TranslateX = s.ReadFloat32()
+		case "translate_y", "translateY":
+			s.AddField("translate_y")
+			x.TranslateY = s.ReadFloat32()
+		case "scale_x", "scaleX":
+			s.AddField("scale_x")
+			if s.ReadNil() {
+				x.ScaleX = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.ScaleX = &t
+		case "scale_y", "scaleY":
+			s.AddField("scale_y")
+			if s.ReadNil() {
+				x.ScaleY = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.ScaleY = &t
+		case "rotate":
+			s.AddField("rotate")
+			x.Rotate = s.ReadFloat32()
+		case "origin_x", "originX":
+			s.AddField("origin_x")
+			if s.ReadNil() {
+				x.OriginX = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.OriginX = &t
+		case "origin_y", "originY":
+			s.AddField("origin_y")
+			if s.ReadNil() {
+				x.OriginY = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.OriginY = &t
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Transform from JSON.
+func (x *Transform) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Transition message to JSON.
+func (x *Transition) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteFloat32(x.Seconds)
+	}
+	if x.Delay != 0 || s.HasField("delay") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("delay")
+		s.WriteFloat32(x.Delay)
+	}
+	if x.Easing != 0 || s.HasField("easing") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("easing")
+		x.Easing.MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Transition to JSON.
+func (x *Transition) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Transition message from JSON.
+func (x *Transition) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadFloat32()
+		case "delay":
+			s.AddField("delay")
+			x.Delay = s.ReadFloat32()
+		case "easing":
+			s.AddField("easing")
+			x.Easing.UnmarshalProtoJSON(s)
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Transition from JSON.
+func (x *Transition) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2667,6 +4995,57 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.HeroLook != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.HeroLook))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x90
+	}
+	if m.Hero != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Hero))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x88
+	}
+	if m.Scaling != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Scaling))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x80
+	}
+	if m.Disabled {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Disabled)
+		i--
+		dAtA[i] = 0x78
+	}
+	if len(m.HoverSound) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.HoverSound)
+		i--
+		dAtA[i] = 0x72
+	}
+	if len(m.Sound) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sound)
+		i--
+		dAtA[i] = 0x6a
+	}
+	if len(m.Tooltip) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Tooltip)
+		i--
+		dAtA[i] = 0x62
+	}
+	if m.Hover != nil {
+		size, err := m.Hover.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x5a
+	}
 	if len(m.Route) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Route)
 		i--
@@ -2755,6 +5134,236 @@ func (m *Style) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Transition != nil {
+		size, err := m.Transition.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xea
+	}
+	if m.Transform != nil {
+		size, err := m.Transform.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xe2
+	}
+	if m.Decoration != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Decoration))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xd8
+	}
+	if m.TextOverflow != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.TextOverflow))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xd0
+	}
+	if m.NoWrap {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.NoWrap)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xc8
+	}
+	if m.LineHeight != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.LineHeight))))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xc5
+	}
+	if m.Weight != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Weight))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xb8
+	}
+	if m.Italic {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Italic)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xb0
+	}
+	if m.Blur != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Blur))))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xad
+	}
+	if m.Contrast != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Contrast))))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xa5
+	}
+	if m.Brightness != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Brightness))))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x9d
+	}
+	if m.Saturation != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Saturation))))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x95
+	}
+	if m.Tint != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(m.Tint))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x8d
+	}
+	if m.TextShadow != nil {
+		size, err := m.TextShadow.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x82
+	}
+	if m.BoxShadow != nil {
+		size, err := m.BoxShadow.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xfa
+	}
+	if m.Gradient != nil {
+		size, err := m.Gradient.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xf2
+	}
+	if m.OverflowY != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.OverflowY))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xe8
+	}
+	if m.OverflowX != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.OverflowX))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xe0
+	}
+	if m.ZIndex != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.ZIndex))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xd8
+	}
+	if m.MaxHeight != nil {
+		size, err := m.MaxHeight.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xd2
+	}
+	if m.MinHeight != nil {
+		size, err := m.MinHeight.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xca
+	}
+	if m.MaxWidth != nil {
+		size, err := m.MaxWidth.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xc2
+	}
+	if m.MinWidth != nil {
+		size, err := m.MinWidth.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xba
+	}
+	if m.Y != nil {
+		size, err := m.Y.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb2
+	}
+	if m.X != nil {
+		size, err := m.X.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xaa
 	}
 	if m.BorderColor != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(m.BorderColor))
@@ -2885,6 +5494,273 @@ func (m *Style) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Gradient) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Gradient) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Gradient) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Stops) > 0 {
+		for iNdEx := len(m.Stops) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Stops[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Shape != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Shape))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GradientStop) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GradientStop) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *GradientStop) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Color != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(m.Color))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.At != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.At))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Shadow) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Shadow) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Shadow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Inset {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Inset)
+		i--
+		dAtA[i] = 0x30
+	}
+	if m.Color != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(m.Color))
+		i--
+		dAtA[i] = 0x2d
+	}
+	if m.Spread != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Spread))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Blur != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Blur))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Y != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Y))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.X != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.X))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Transform) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Transform) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Transform) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.OriginY != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.OriginY))))
+		i--
+		dAtA[i] = 0x3d
+	}
+	if m.OriginX != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.OriginX))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if m.Rotate != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Rotate))))
+		i--
+		dAtA[i] = 0x2d
+	}
+	if m.ScaleY != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.ScaleY))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.ScaleX != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.ScaleX))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.TranslateY != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.TranslateY))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.TranslateX != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.TranslateX))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Transition) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Transition) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Transition) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Easing != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Easing))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Delay != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Delay))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
+		i--
+		dAtA[i] = 0xd
 	}
 	return len(dAtA) - i, nil
 }
@@ -3353,6 +6229,17 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Data)
 	n += protobuf_go_lite.SizeVarintPacked(1, m.HideHud)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Route)
+	if m.Hover != nil {
+		l = m.Hover.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Tooltip)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.HoverSound)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Disabled)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Scaling)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Hero)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.HeroLook)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3395,6 +6282,137 @@ func (m *Style) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.Shadow)
 	n += protobuf_go_lite.SizeFixed32NonZero(2, m.BorderWidth)
 	n += protobuf_go_lite.SizeFixed32NonZero(2, m.BorderColor)
+	if m.X != nil {
+		l = m.X.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.Y != nil {
+		l = m.Y.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.MinWidth != nil {
+		l = m.MinWidth.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.MaxWidth != nil {
+		l = m.MaxWidth.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.MinHeight != nil {
+		l = m.MinHeight.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.MaxHeight != nil {
+		l = m.MaxHeight.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.ZIndex)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.OverflowX)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.OverflowY)
+	if m.Gradient != nil {
+		l = m.Gradient.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.BoxShadow != nil {
+		l = m.BoxShadow.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.TextShadow != nil {
+		l = m.TextShadow.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += protobuf_go_lite.SizeFixed32NonZero(2, m.Tint)
+	n += protobuf_go_lite.SizeFixed32Ptr(2, m.Saturation)
+	n += protobuf_go_lite.SizeFixed32Ptr(2, m.Brightness)
+	n += protobuf_go_lite.SizeFixed32Ptr(2, m.Contrast)
+	n += protobuf_go_lite.SizeFixed32NonZero(2, m.Blur)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.Italic)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Weight)
+	n += protobuf_go_lite.SizeFixed32NonZero(2, m.LineHeight)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.NoWrap)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.TextOverflow)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Decoration)
+	if m.Transform != nil {
+		l = m.Transform.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.Transition != nil {
+		l = m.Transition.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Gradient) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Shape)
+	for _, e := range m.Stops {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *GradientStop) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.At)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Color)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Shadow) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.X)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Y)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Blur)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Spread)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Color)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Inset)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Transform) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.TranslateX)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.TranslateY)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.ScaleX)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.ScaleY)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Rotate)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.OriginX)
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.OriginY)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Transition) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delay)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Easing)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3556,11 +6574,43 @@ func (m *UiRequest) SizeVT() (n int) {
 	return n
 }
 
+func (x Scaling) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x HeroLook) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x HudPart) MarshalProtoText() string {
 	return x.String()
 }
 
 func (x Kind) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x Overflow) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x GradientShape) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x Weight) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x TextOverflow) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x Decoration) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x Easing) MarshalProtoText() string {
 	return x.String()
 }
 
@@ -3626,6 +6676,38 @@ func (x *Node) MarshalProtoText() string {
 	if x.Route != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "route")
 		protobuf_go_lite.TextWriteString(&sb, x.Route)
+	}
+	if x.Hover != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hover")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Hover)
+	}
+	if x.Tooltip != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "tooltip")
+		protobuf_go_lite.TextWriteString(&sb, x.Tooltip)
+	}
+	if x.Sound != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sound")
+		protobuf_go_lite.TextWriteString(&sb, x.Sound)
+	}
+	if x.HoverSound != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hover_sound")
+		protobuf_go_lite.TextWriteString(&sb, x.HoverSound)
+	}
+	if x.Disabled != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "disabled")
+		protobuf_go_lite.TextWriteBool(&sb, x.Disabled)
+	}
+	if x.Scaling != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "scaling")
+		protobuf_go_lite.TextWriteStringer(&sb, Scaling(x.Scaling))
+	}
+	if x.Hero != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hero")
+		protobuf_go_lite.TextWriteInt(&sb, x.Hero)
+	}
+	if x.HeroLook != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hero_look")
+		protobuf_go_lite.TextWriteStringer(&sb, HeroLook(x.HeroLook))
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3717,10 +6799,248 @@ func (x *Style) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "border_color")
 		protobuf_go_lite.TextWriteUint(&sb, x.BorderColor)
 	}
+	if x.X != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "x")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.X)
+	}
+	if x.Y != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "y")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Y)
+	}
+	if x.MinWidth != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "min_width")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.MinWidth)
+	}
+	if x.MaxWidth != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max_width")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.MaxWidth)
+	}
+	if x.MinHeight != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "min_height")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.MinHeight)
+	}
+	if x.MaxHeight != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max_height")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.MaxHeight)
+	}
+	if x.ZIndex != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "z_index")
+		protobuf_go_lite.TextWriteInt(&sb, x.ZIndex)
+	}
+	if x.OverflowX != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "overflow_x")
+		protobuf_go_lite.TextWriteStringer(&sb, Overflow(x.OverflowX))
+	}
+	if x.OverflowY != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "overflow_y")
+		protobuf_go_lite.TextWriteStringer(&sb, Overflow(x.OverflowY))
+	}
+	if x.Gradient != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "gradient")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Gradient)
+	}
+	if x.BoxShadow != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "box_shadow")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.BoxShadow)
+	}
+	if x.TextShadow != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text_shadow")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.TextShadow)
+	}
+	if x.Tint != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "tint")
+		protobuf_go_lite.TextWriteUint(&sb, x.Tint)
+	}
+	if x.Saturation != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "saturation")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Saturation)
+	}
+	if x.Brightness != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "brightness")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Brightness)
+	}
+	if x.Contrast != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "contrast")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.Contrast)
+	}
+	if x.Blur != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "blur")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Blur)
+	}
+	if x.Italic != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "italic")
+		protobuf_go_lite.TextWriteBool(&sb, x.Italic)
+	}
+	if x.Weight != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "weight")
+		protobuf_go_lite.TextWriteStringer(&sb, Weight(x.Weight))
+	}
+	if x.LineHeight != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "line_height")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.LineHeight)
+	}
+	if x.NoWrap != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "no_wrap")
+		protobuf_go_lite.TextWriteBool(&sb, x.NoWrap)
+	}
+	if x.TextOverflow != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text_overflow")
+		protobuf_go_lite.TextWriteStringer(&sb, TextOverflow(x.TextOverflow))
+	}
+	if x.Decoration != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "decoration")
+		protobuf_go_lite.TextWriteStringer(&sb, Decoration(x.Decoration))
+	}
+	if x.Transform != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "transform")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Transform)
+	}
+	if x.Transition != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "transition")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Transition)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Style) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Gradient) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Gradient")
+	if x.Shape != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "shape")
+		protobuf_go_lite.TextWriteStringer(&sb, GradientShape(x.Shape))
+	}
+	if len(x.Stops) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "stops")
+		for i, v := range x.Stops {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &GradientStop{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Gradient) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *GradientStop) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "GradientStop")
+	if x.At != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "at")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.At)
+	}
+	if x.Color != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "color")
+		protobuf_go_lite.TextWriteUint(&sb, x.Color)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *GradientStop) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Shadow) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Shadow")
+	if x.X != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "x")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.X)
+	}
+	if x.Y != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "y")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Y)
+	}
+	if x.Blur != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "blur")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Blur)
+	}
+	if x.Spread != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "spread")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Spread)
+	}
+	if x.Color != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "color")
+		protobuf_go_lite.TextWriteUint(&sb, x.Color)
+	}
+	if x.Inset != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "inset")
+		protobuf_go_lite.TextWriteBool(&sb, x.Inset)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Shadow) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Transform) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Transform")
+	if x.TranslateX != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "translate_x")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.TranslateX)
+	}
+	if x.TranslateY != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "translate_y")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.TranslateY)
+	}
+	if x.ScaleX != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "scale_x")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.ScaleX)
+	}
+	if x.ScaleY != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "scale_y")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.ScaleY)
+	}
+	if x.Rotate != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "rotate")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Rotate)
+	}
+	if x.OriginX != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "origin_x")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.OriginX)
+	}
+	if x.OriginY != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "origin_y")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.OriginY)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Transform) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Transition) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Transition")
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
+	}
+	if x.Delay != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "delay")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Delay)
+	}
+	if x.Easing != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "easing")
+		protobuf_go_lite.TextWriteStringer(&sb, Easing(x.Easing))
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Transition) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4072,6 +7392,92 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Route = v
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hover", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Hover == nil {
+				m.Hover = &Style{}
+			}
+			if err := m.Hover.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tooltip", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Tooltip = v
+		case 13:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sound", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Sound = v
+		case 14:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HoverSound", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.HoverSound = v
+		case 15:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Disabled", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Disabled = bool(v)
+		case 16:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Scaling", wireType)
+			}
+			m.Scaling = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Scaling = Scaling(_v)
+			if err != nil {
+				return err
+			}
+		case 17:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hero", wireType)
+			}
+			m.Hero = 0
+			m.Hero, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 18:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HeroLook", wireType)
+			}
+			m.HeroLook = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.HeroLook = HeroLook(_v)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4354,6 +7760,783 @@ func (m *Style) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.BorderColor = uint32(_v32)
+		case 21:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field X", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.X == nil {
+				m.X = &Length{}
+			}
+			if err := m.X.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 22:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Y", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Y == nil {
+				m.Y = &Length{}
+			}
+			if err := m.Y.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 23:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinWidth", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.MinWidth == nil {
+				m.MinWidth = &Length{}
+			}
+			if err := m.MinWidth.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 24:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxWidth", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.MaxWidth == nil {
+				m.MaxWidth = &Length{}
+			}
+			if err := m.MaxWidth.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 25:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinHeight", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.MinHeight == nil {
+				m.MinHeight = &Length{}
+			}
+			if err := m.MinHeight.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 26:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxHeight", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.MaxHeight == nil {
+				m.MaxHeight = &Length{}
+			}
+			if err := m.MaxHeight.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 27:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ZIndex", wireType)
+			}
+			m.ZIndex = 0
+			m.ZIndex, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 28:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OverflowX", wireType)
+			}
+			m.OverflowX = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.OverflowX = Overflow(_v)
+			if err != nil {
+				return err
+			}
+		case 29:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OverflowY", wireType)
+			}
+			m.OverflowY = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.OverflowY = Overflow(_v)
+			if err != nil {
+				return err
+			}
+		case 30:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Gradient", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Gradient == nil {
+				m.Gradient = &Gradient{}
+			}
+			if err := m.Gradient.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 31:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BoxShadow", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.BoxShadow == nil {
+				m.BoxShadow = &Shadow{}
+			}
+			if err := m.BoxShadow.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 32:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TextShadow", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.TextShadow == nil {
+				m.TextShadow = &Shadow{}
+			}
+			if err := m.TextShadow.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 33:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tint", wireType)
+			}
+			m.Tint = 0
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Tint = uint32(_v32)
+		case 34:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Saturation", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Saturation = &v2
+		case 35:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Brightness", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Brightness = &v2
+		case 36:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Contrast", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.Contrast = &v2
+		case 37:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Blur", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Blur = float32(math.Float32frombits(v))
+		case 38:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Italic", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Italic = bool(v)
+		case 39:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Weight", wireType)
+			}
+			m.Weight = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Weight = Weight(_v)
+			if err != nil {
+				return err
+			}
+		case 40:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LineHeight", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.LineHeight = float32(math.Float32frombits(v))
+		case 41:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NoWrap", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.NoWrap = bool(v)
+		case 42:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TextOverflow", wireType)
+			}
+			m.TextOverflow = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.TextOverflow = TextOverflow(_v)
+			if err != nil {
+				return err
+			}
+		case 43:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Decoration", wireType)
+			}
+			m.Decoration = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Decoration = Decoration(_v)
+			if err != nil {
+				return err
+			}
+		case 44:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Transform", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Transform == nil {
+				m.Transform = &Transform{}
+			}
+			if err := m.Transform.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 45:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Transition", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Transition == nil {
+				m.Transition = &Transition{}
+			}
+			if err := m.Transition.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Gradient) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Gradient: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Gradient: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Shape", wireType)
+			}
+			m.Shape = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Shape = GradientShape(_v)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Stops", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Stops = append(m.Stops, &GradientStop{})
+			if err := m.Stops[len(m.Stops)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *GradientStop) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GradientStop: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GradientStop: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field At", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.At = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Color", wireType)
+			}
+			m.Color = 0
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Color = uint32(_v32)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Shadow) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Shadow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Shadow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field X", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.X = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Y", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Y = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Blur", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Blur = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Spread", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Spread = float32(math.Float32frombits(v))
+		case 5:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Color", wireType)
+			}
+			m.Color = 0
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Color = uint32(_v32)
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Inset", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Inset = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Transform) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Transform: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Transform: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TranslateX", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.TranslateX = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TranslateY", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.TranslateY = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ScaleX", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.ScaleX = &v2
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ScaleY", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.ScaleY = &v2
+		case 5:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rotate", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Rotate = float32(math.Float32frombits(v))
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OriginX", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.OriginX = &v2
+		case 7:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OriginY", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.OriginY = &v2
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Transition) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Transition: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Transition: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Seconds = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Delay", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Delay = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Easing", wireType)
+			}
+			m.Easing = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Easing = Easing(_v)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
