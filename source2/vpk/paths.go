@@ -61,6 +61,17 @@ func Files(archive []byte) (map[string][]byte, error) {
 		return nil, err
 	}
 
+	// An archive stores each file's bytes once, so its records claim no more
+	// bytes than it holds. Records that share data would make the joins below
+	// copy it once each.
+	var claimed int64
+	for _, file := range entries {
+		claimed += int64(len(file.preload)) + int64(file.length)
+	}
+	if claimed > int64(len(archive)) {
+		return nil, errors.New("VPK records claim more bytes than the archive holds")
+	}
+
 	// Join each file's preload bytes and its embedded data.
 	files := make(map[string][]byte, len(entries))
 	for _, file := range entries {
