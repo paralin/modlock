@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime"
 	"strconv"
+	"sync"
 	"sync/atomic"
 
 	"github.com/paralin/modlock/src/host_app/control"
@@ -36,9 +37,11 @@ type Session struct {
 	control *Control
 	// host is the host process.
 	host *Host
-	// stopInterface stops serving the mods' interfaces to the player's game,
-	// if the session serves them.
+	// stopInterface unmounts the mods' interfaces and content from the
+	// player's game and stops serving the interfaces; it runs once.
 	stopInterface func()
+	// stopOnDone ends the session when Start's context ends.
+	stopOnDone func() bool
 	// controlled is closed when the control link ends.
 	controlled chan struct{}
 }
@@ -80,8 +83,11 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	if config.Interface != "" {
 		iface.Address, iface.Relay, iface.Renderer = config.Interface, config.Relay, config.Renderer
 	}
-	stopInterface := StartInterface(iface)
-	host, err := StartHost(ctx, HostConfig{
+	stopInterface := sync.OnceFunc(StartInterface(iface))
+	// The host outlives ctx until Stop has unmounted, since a game joined to
+	// the server reloads its search paths when the server stops, holding
+	// gameinfo.gi past any unmount that follows.
+	host, err := StartHost(context.WithoutCancel(ctx), HostConfig{
 		Executable: executable,
 		GameDir:    gameDir,
 		Mods:       config.Mods,
@@ -101,6 +107,7 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	}
 
 	session := &Session{Executable: executable, control: link, host: host, controlled: make(chan struct{}), stopInterface: stopInterface}
+	session.stopOnDone = context.AfterFunc(ctx, session.Stop)
 	// Pass events on, launching the client at the first ready server.
 	var launched atomic.Bool
 	handle := func(event *control.HostEvent) {
@@ -131,15 +138,18 @@ func (s *Session) Reload(ctx context.Context, path string) error {
 func (s *Session) Wait() error {
 	// Wait for the host, then close the link and the interfaces it fed.
 	err := s.host.Wait()
+	s.stopOnDone()
 	_ = s.control.Close()
-	if s.stopInterface != nil {
-		s.stopInterface()
-	}
+	s.stopInterface()
 	<-s.controlled
 	return err
 }
 
-// Stop ends the host.
+// Stop unmounts the mods from the player's game, then ends the host. The
+// unmount comes first because the game, once its server stops, holds
+// gameinfo.gi while it reloads its search paths; the running server and game
+// keep the package they loaded.
 func (s *Session) Stop() {
+	s.stopInterface()
 	s.host.Stop()
 }
