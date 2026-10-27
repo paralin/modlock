@@ -232,6 +232,20 @@ and 64-bit floats, vectors, entity handles and strings. Angles travel as
 vectors. A typed field whose type is another entity class reads as that
 class, so `hero.m_hController` is a controller a mod can read further.
 
+The host checks the requested type against the type the schema declares for
+the field, and refuses a call whose type the field cannot hold, naming both:
+
+- Any number type, a boolean or a handle reads a field that holds a number,
+  boolean, enum, handle or boxed number such as `GameTime_t`. The value is cut
+  to the requested type's size.
+- `vector` reads a `Vector`, `VectorWS` or `QAngle`.
+- `string` reads a `CUtlString` or `CUtlSymbolLarge`, and never writes.
+- A list call reads a `CUtlVector` or `CNetworkUtlVectorBase` of one of those,
+  and a single-value call never reads a list.
+
+A pointer, an embedded structure and any other container hold nothing a mod
+can read or write by value; reach a structure's fields with a dotted name.
+
 ### The match's state
 
 The match's state, such as each team's gold, the game state, the winning team,

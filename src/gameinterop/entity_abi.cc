@@ -1,9 +1,11 @@
 #include "modlock/gameinterop/entity_abi.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 #include <span>
 #include <string_view>
 
@@ -120,11 +122,10 @@ const schema::ClassInfo* FirstBaseOf(const schema::ClassInfo* info) {
 
 // FieldInClassInfo searches one class info's own fields, then its first base
 // class (single inheritance). A field's storage runs to the next field or the
-// end of its class. type receives the field's type name, as the schema spells
-// it.
+// end of its class. type receives the field's schema type.
 std::expected<SchemaField, std::string> FieldInClassInfo(const schema::ClassInfo* info,
                                                          const char* field_name,
-                                                         const char** type) {
+                                                         const schema::Type** type) {
   for (; info != nullptr; info = FirstBaseOf(info)) {
     const std::span fields(info->fields, info->field_count);
     for (const auto& field : fields) {
@@ -141,7 +142,7 @@ std::expected<SchemaField, std::string> FieldInClassInfo(const schema::ClassInfo
       if (field.offset < 0 || boundary <= field.offset) {
         return std::unexpected("schema field storage span is invalid");
       }
-      *type = field.type == nullptr ? nullptr : field.type->name;
+      *type = field.type;
       return SchemaField{static_cast<size_t>(field.offset),
                          static_cast<size_t>(boundary - field.offset), IsFieldNetworked(field)};
     }
@@ -391,6 +392,132 @@ std::expected<void*, std::string> FindDeclaredEnumOf(void* type_scope, const cha
   return FindDeclared(type_scope, "schema-type-scope.find-declared-enum", "enum", enum_name);
 }
 
+namespace {
+
+// TemplateArgument returns the argument of a one-argument template type
+// spelled as the schema spells it, such as CHandle< CBaseEntity >, or nothing
+// when type is not that template.
+std::optional<std::string_view> TemplateArgument(std::string_view type, std::string_view name) {
+  if (!type.starts_with(name) || !type.substr(name.size()).starts_with("< ") ||
+      !type.ends_with(" >")) {
+    return std::nullopt;
+  }
+  return type.substr(name.size() + 2, type.size() - name.size() - 4);
+}
+
+// NamedStorageOf classifies a builtin or engine type by its name, or answers
+// nothing for a name it does not know. A fixed array reads as its first
+// element.
+std::optional<SchemaStorage> NamedStorageOf(std::string_view type) {
+  static constexpr std::array<std::string_view, 13> kNumbers{
+      "bool",   "int8",   "int16",   "int32",   "int64",         "uint8",          "uint16",
+      "uint32", "uint64", "float32", "float64", "CEntityHandle", "CUtlStringToken"};
+  if (std::ranges::find(kNumbers, type) != kNumbers.end() || TemplateArgument(type, "CHandle")) {
+    return SchemaStorage::kNumber;
+  }
+  if (type == "Vector" || type == "VectorWS" || type == "QAngle") {
+    return SchemaStorage::kVector;
+  }
+  if (type == "CUtlString" || type == "CUtlSymbolLarge") {
+    return SchemaStorage::kText;
+  }
+  if (type.ends_with(']')) {
+    return NamedStorageOf(type.substr(0, type.rfind('[')));
+  }
+  return std::nullopt;
+}
+
+// IsBoxed reports whether a class is a boxed number, such as GameTime_t: one
+// field the schema marks MIsBoxedFloatType or MIsBoxedIntegerType.
+bool IsBoxed(const schema::ClassInfo& info) {
+  if (info.field_count != 1) {
+    return false;
+  }
+  for (int32_t i = 0; i < info.metadata_count; ++i) {
+    const char* name = info.metadata[i].name;
+    if (name != nullptr && std::string_view(name).starts_with("MIsBoxed")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// BoxedStorageOf classifies a declared class: a boxed number reads as its
+// number, any other class is opaque.
+SchemaStorage BoxedStorageOf(const schema::ClassInfo& info) {
+  const auto* type = info.fields == nullptr ? nullptr : info.fields->type;
+  if (!IsBoxed(info) || type == nullptr || type->name == nullptr) {
+    return SchemaStorage::kOpaque;
+  }
+  return NamedStorageOf(type->name).value_or(SchemaStorage::kOpaque);
+}
+
+// DeclaredStorageOf classifies a type that declares an enum or a class from
+// the declaration its record holds. A declaration that does not point back at
+// itself under the type's name is a record of another shape, and opaque.
+SchemaStorage DeclaredStorageOf(const schema::Type* type) {
+  // Find the declaration of a declared class or enum.
+  const auto* declared = reinterpret_cast<const schema::DeclaredType*>(type);
+  const auto category = declared->category;
+  if (category != schema::TypeCategory::kDeclaredClass &&
+      category != schema::TypeCategory::kDeclaredEnum) {
+    return SchemaStorage::kOpaque;
+  }
+  const auto* info = static_cast<const schema::ClassInfo*>(declared->declaration);
+  if (info == nullptr || info->self != info || info->name == nullptr ||
+      std::strcmp(info->name, type->name) != 0) {
+    return SchemaStorage::kOpaque;
+  }
+
+  // An enum is a number; its record shares the class record's self and name.
+  if (category == schema::TypeCategory::kDeclaredEnum) {
+    return SchemaStorage::kNumber;
+  }
+  return BoxedStorageOf(*info);
+}
+
+// ElementStorageOf classifies a list's element type, which its list's record
+// names but does not declare, by name and then in the module's type scope. A
+// type the scope does not declare is opaque.
+SchemaStorage ElementStorageOf(void* schema_system, const char* module_name,
+                               std::string_view element) {
+  if (auto named = NamedStorageOf(element)) {
+    return *named;
+  }
+  if (element.empty() || element.find_first_of("<>*[]: ") != std::string_view::npos) {
+    return SchemaStorage::kOpaque;
+  }
+  auto scope = FindTypeScopeOf(schema_system, module_name);
+  if (!scope) {
+    return SchemaStorage::kOpaque;
+  }
+  const std::string name(element);
+  if (auto info = FindDeclaredClassOf(*scope, name.c_str())) {
+    return BoxedStorageOf(*static_cast<const schema::ClassInfo*>(*info));
+  }
+  return FindDeclaredEnumOf(*scope, name.c_str()) ? SchemaStorage::kNumber : SchemaStorage::kOpaque;
+}
+
+// Classify fills field's storage from its schema type.
+void Classify(void* schema_system, const char* module_name, const schema::Type* type,
+              SchemaField& field) {
+  if (type == nullptr || type->name == nullptr) {
+    return;
+  }
+  field.type = type->name;
+  for (const auto list : {"CUtlVector", "CNetworkUtlVectorBase"}) {
+    if (auto element = TemplateArgument(type->name, list)) {
+      field.list = true;
+      field.storage = ElementStorageOf(schema_system, module_name, *element);
+      return;
+    }
+  }
+  auto named = NamedStorageOf(type->name);
+  field.storage = named ? *named : DeclaredStorageOf(type);
+}
+
+}  // namespace
+
 std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const char* module_name,
                                                       const char* class_name,
                                                       const char* field_name) {
@@ -410,21 +537,23 @@ std::expected<SchemaField, std::string> SchemaFieldOf(void* schema_system, const
     // Find the segment's field; the last one ends the walk.
     const auto dot = path.find('.');
     const std::string segment(path.substr(0, dot));
-    const char* type = nullptr;
+    const schema::Type* type = nullptr;
     auto field = FieldInClassInfo(*info, segment.c_str(), &type);
     if (!field) {
       return std::unexpected(field.error());
     }
     networked = networked && field->networked;
     if (dot == std::string_view::npos) {
-      return SchemaField{base + field->offset, field->size, networked};
+      SchemaField found{base + field->offset, field->size, networked};
+      Classify(schema_system, module_name, type, found);
+      return found;
     }
 
     // Step into the structure the segment holds.
-    if (type == nullptr) {
+    if (type == nullptr || type->name == nullptr) {
       return std::unexpected("schema field '" + segment + "' has no type");
     }
-    info = SchemaClassInfoOf(schema_system, module_name, type);
+    info = SchemaClassInfoOf(schema_system, module_name, type->name);
     if (!info) {
       return std::unexpected("schema field '" + segment +
                              "' does not hold a structure: " + info.error());

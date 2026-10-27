@@ -535,13 +535,15 @@ class Game : public HostService {
   std::expected<void, std::string> WatchProjectiles(
       const combat::ProjectileOptions& request) override;
 
-  // FieldAddress resolves a schema field of entity that holds at least size
-  // bytes, refusing an entity that is not of class_name. A game rules class
-  // resolves on the game rules proxy entity to the field of the rules object,
-  // and a model part class through the entity's body component.
+  // FieldAddress resolves a schema field of entity whose storage holds a
+  // value of type, or a list of them when list is set, refusing an entity
+  // that is not of class_name. A game rules class resolves on the game rules
+  // proxy entity to the field of the rules object, and a model part class
+  // through the entity's body component.
   std::expected<unsigned char*, std::string> FieldAddress(void* entity,
                                                           const std::string& class_name,
-                                                          const std::string& field, size_t size);
+                                                          const std::string& field,
+                                                          fields::FieldType type, bool list);
   // ModelPart returns the address of the part of entity's model that
   // class_name names, as IsModelClass lists, through its body component,
   // including CBaseAnimGraphController for animated model entities.

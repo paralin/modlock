@@ -21,6 +21,29 @@ struct Type {
   const char* name;
 };
 
+// TypeCategory is SchemaTypeCategory_t, the kind of a schema type.
+enum class TypeCategory : uint8_t {
+  kBuiltin = 0,
+  kPointer = 1,
+  kBitfield = 2,
+  kFixedArray = 3,
+  kAtomic = 4,
+  kDeclaredClass = 5,
+  kDeclaredEnum = 6,
+};
+
+// DeclaredType is CSchemaType_DeclaredClass or CSchemaType_DeclaredEnum: a
+// Type, its scope and category, then the ClassInfo or EnumInfo it declares.
+// Another category's record may be shorter.
+struct DeclaredType {
+  const void* vtable;
+  const char* name;
+  const void* type_scope;
+  TypeCategory category;
+  uint8_t atomic_category;
+  const void* declaration;
+};
+
 struct Field {
   const char* name;
   const Type* type;
@@ -80,6 +103,8 @@ struct EnumInfo {
   const void* type_scope;
 };
 
+static_assert(offsetof(DeclaredType, category) == 0x18);
+static_assert(offsetof(DeclaredType, declaration) == 0x20);
 static_assert(sizeof(Field) == 32);
 static_assert(sizeof(BaseClass) == 16);
 static_assert(offsetof(ClassInfo, size) == 0x20);

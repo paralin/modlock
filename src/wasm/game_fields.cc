@@ -266,6 +266,41 @@ std::expected<fields::FieldResponse, std::string> ReadValue(const unsigned char*
   return response;
 }
 
+// Holds checks that field's storage holds a value of type, or a list of them
+// when list is set, as the schema declares it, so a mod reads and writes only
+// the values the game keeps there and never a pointer or a structure. A
+// refusal names the field as class_name.field_name.
+std::expected<void, std::string> Holds(const gameinterop::SchemaField& field,
+                                       fields::FieldType type, bool list,
+                                       const std::string& class_name,
+                                       const std::string& field_name) {
+  // Accept a field that spans the type and holds the storage it reads.
+  using gameinterop::SchemaStorage;
+  const bool spans = field.size >= (list ? sizeof(ListHeader) : Size(type));
+  const auto wanted = type == fields::FIELD_TYPE_VECTOR   ? SchemaStorage::kVector
+                      : type == fields::FIELD_TYPE_STRING ? SchemaStorage::kText
+                                                          : SchemaStorage::kNumber;
+  if (spans && field.storage == wanted && field.list == list) {
+    return {};
+  }
+
+  // Say what the field holds.
+  const auto name = class_name + "." + field_name;
+  if (!spans) {
+    return std::unexpected(name + " is smaller than its requested type");
+  }
+  const std::string declared = field.type != nullptr ? field.type : "type the schema does not name";
+  if (field.storage == SchemaStorage::kOpaque) {
+    return std::unexpected(name + " is a " + declared +
+                           ", which holds no value a mod can read or write");
+  }
+  static constexpr std::array<const char*, 4> kOne{"", "a number", "a vector", "text"};
+  static constexpr std::array<const char*, 4> kMany{"", "numbers", "vectors", "text"};
+  const auto storage = static_cast<size_t>(field.storage);
+  return std::unexpected(name + " is a " + declared + ", which reads as " +
+                         (field.list ? std::string("a list of ") + kMany[storage] : kOne[storage]));
+}
+
 // ModifierName copies the name of the modifier at modifier: its definition,
 // at +0x10 as in Deadworks CBaseModifier, keeps its interned name at +0x10, as
 // every CEntitySubclassVDataBase does. An unreadable name is empty.
@@ -288,14 +323,14 @@ std::string ModifierName(const unsigned char* modifier) {
 std::expected<unsigned char*, std::string> Game::FieldAddress(void* entity,
                                                               const std::string& class_name,
                                                               const std::string& field,
-                                                              size_t size) {
+                                                              fields::FieldType type, bool list) {
   // Resolve the field's offset and check it holds the requested type.
   auto found = services_.Field(class_name, field);
   if (!found) {
     return std::unexpected(found.error());
   }
-  if (found->size < size) {
-    return std::unexpected(class_name + "." + field + " is smaller than its requested type");
+  if (auto holds = Holds(*found, type, list, class_name, field); !holds) {
+    return std::unexpected(holds.error());
   }
 
   // The offset belongs to class_name, so the entity must be one.
@@ -391,7 +426,7 @@ std::expected<void, std::string> Game::StoreField(void* entity, const std::strin
   if (!bytes) {
     return std::unexpected(bytes.error());
   }
-  auto address = FieldAddress(entity, class_name, field, Size(type));
+  auto address = FieldAddress(entity, class_name, field, type, false);
   if (!address) {
     return std::unexpected(address.error());
   }
@@ -410,11 +445,11 @@ std::expected<fields::FieldResponse, std::string> Game::ReadField(
   if (!entity) {
     return std::unexpected(entity.error());
   }
-  const auto size = Size(request.type());
-  if (size == 0) {
+  if (Size(request.type()) == 0) {
     return std::unexpected("the field type is unknown");
   }
-  auto address = FieldAddress(*entity, request.class_name(), request.field(), size);
+  auto address =
+      FieldAddress(*entity, request.class_name(), request.field(), request.type(), false);
   if (!address) {
     return std::unexpected(address.error());
   }
@@ -428,17 +463,16 @@ std::expected<fields::FieldResponse, std::string> Game::ReadModifierField(
   if (!entity) {
     return std::unexpected(entity.error());
   }
-  const auto size = Size(request.type());
-  if (size == 0) {
+  if (Size(request.type()) == 0) {
     return std::unexpected("the field type is unknown");
   }
   auto found = services_.Field(request.class_name(), request.field());
   if (!found) {
     return std::unexpected(found.error());
   }
-  if (found->size < size) {
-    return std::unexpected(request.class_name() + "." + request.field() +
-                           " is smaller than its requested type");
+  if (auto holds = Holds(*found, request.type(), false, request.class_name(), request.field());
+      !holds) {
+    return std::unexpected(holds.error());
   }
   auto layout = services_.Modifiers();
   if (!layout) {
@@ -503,7 +537,7 @@ std::expected<fields::FieldListResponse, std::string> Game::ReadFieldList(
   if (stride == 0) {
     return std::unexpected("the field type is unknown");
   }
-  auto address = FieldAddress(*entity, request.class_name(), request.field(), sizeof(ListHeader));
+  auto address = FieldAddress(*entity, request.class_name(), request.field(), request.type(), true);
   if (!address) {
     return std::unexpected(address.error());
   }
@@ -552,7 +586,7 @@ std::expected<void, std::string> Game::WriteFieldList(
   }
 
   // Find the list field's address and its header.
-  auto address = FieldAddress(*entity, request.class_name(), request.field(), sizeof(ListHeader));
+  auto address = FieldAddress(*entity, request.class_name(), request.field(), request.type(), true);
   if (!address) {
     return std::unexpected(address.error());
   }

@@ -475,6 +475,112 @@ TEST(SchemaFieldOfPaths, DottedPathReachesInsideAnEmbeddedStructure) {
   g_classes.clear();
 }
 
+TEST(SchemaFieldOfPaths, StorageFollowsTheFieldsSchemaType) {
+  using modlock::gameinterop::SchemaStorage;
+
+  // A schema type is a vtable, its name and scope, its category at 0x18 and,
+  // for a declared class or enum, the declaration at 0x20.
+  struct Type {
+    const void* vtable;
+    const char* name;
+    const void* scope;
+    uint8_t category;
+    const void* declaration;
+  };
+
+  // A boxed time wraps one float32; an enum record points at itself.
+  const Type float_type{nullptr, "float32", nullptr, 0, nullptr};
+  std::array<unsigned char, 0x68> boxed{};
+  std::array<unsigned char, kFieldStride> boxed_field{};
+  const char* boxed_metadata[2] = {"MIsBoxedFloatType", nullptr};
+  const Type* float_pointer = &float_type;
+  std::memcpy(boxed_field.data() + 0x08, &float_pointer, sizeof(float_pointer));
+  void* boxed_self = boxed.data();
+  const char* boxed_name = "GameTime_t";
+  std::memcpy(boxed.data(), &boxed_self, sizeof(boxed_self));
+  std::memcpy(boxed.data() + 0x08, &boxed_name, sizeof(boxed_name));
+  const uint16_t one = 1;
+  std::memcpy(boxed.data() + 0x24, &one, sizeof(one));
+  std::memcpy(boxed.data() + 0x26, &one, sizeof(one));
+  unsigned char* boxed_fields = boxed_field.data();
+  std::memcpy(boxed.data() + kInfoFields, &boxed_fields, sizeof(boxed_fields));
+  const char** metadata = boxed_metadata;
+  std::memcpy(boxed.data() + 0x48, &metadata, sizeof(metadata));
+  std::array<const void*, 4> state_enum{};
+  state_enum[0] = state_enum.data();
+  state_enum[1] = "EGameState";
+
+  // An embedded structure is a declared class that is not boxed.
+  std::array<unsigned char, 0x68> collision{};
+  void* collision_self = collision.data();
+  const char* collision_name = "CCollisionProperty";
+  std::memcpy(collision.data(), &collision_self, sizeof(collision_self));
+  std::memcpy(collision.data() + 0x08, &collision_name, sizeof(collision_name));
+
+  // One field of each kind, 0x20 bytes apart.
+  const std::array<Type, 9> types{{
+      {nullptr, "CHandle< CBaseEntity >", nullptr, 4, nullptr},
+      {nullptr, "CBaseEntity*", nullptr, 1, nullptr},
+      {nullptr, "VectorWS", nullptr, 4, nullptr},
+      {nullptr, "CNetworkUtlVectorBase< CHandle< CBaseEntity > >", nullptr, 4, nullptr},
+      {nullptr, "GameTime_t", nullptr, 5, boxed.data()},
+      {nullptr, "EGameState", nullptr, 6, state_enum.data()},
+      {nullptr, "CCollisionProperty", nullptr, 5, collision.data()},
+      {nullptr, "CUtlVector< CUtlVector< int32 > >", nullptr, 4, nullptr},
+      {nullptr, "CUtlVector< GameTime_t >", nullptr, 4, nullptr},
+  }};
+  const std::array<const char*, 9> names{"m_hOwner",    "m_pOwner", "m_vecOrigin",
+                                         "m_hList",     "m_flTime", "m_eGameState",
+                                         "m_Collision", "m_nested", "m_times"};
+  std::array<unsigned char, 9 * kFieldStride> fields{};
+  for (size_t i = 0; i < names.size(); ++i) {
+    const Type* type = &types[i];
+    const int offset = static_cast<int>(0x10 + 0x20 * i);
+    std::memcpy(fields.data() + i * kFieldStride + kFieldNameOffset, &names[i], sizeof(names[i]));
+    std::memcpy(fields.data() + i * kFieldStride + 0x08, &type, sizeof(type));
+    std::memcpy(fields.data() + i * kFieldStride + kFieldOffsetField, &offset, sizeof(offset));
+  }
+  ClassInfoBuffers entity;
+  entity.set_class_size(0x200);
+  entity.set_field_count(static_cast<uint16_t>(names.size()));
+  entity.set_fields_pointer(fields.data());
+
+  // A schema system finds the class, and the boxed time by name for a list.
+  alignas(16) void* system_table[16];
+  std::memset(system_table, 0, sizeof(system_table));
+  system_table[kFindTypeScope] = reinterpret_cast<void*>(&SystemFindTypeScopeEntry);
+  FakeTypeScope system{system_table};
+  alignas(16) void* scope_table[3];
+  std::memset(scope_table, 0, sizeof(scope_table));
+  scope_table[kFindDeclaredClass] = reinterpret_cast<void*>(&NamedScopeEntry);
+  FakeTypeScope type_scope{scope_table};
+  g_persistent_scope = &type_scope;
+  g_classes = {{"CBaseEntity", entity.info.data()}, {"GameTime_t", boxed.data()}};
+
+  // Each field's storage and list form follow its type.
+  const std::array<std::pair<SchemaStorage, bool>, 9> want{{
+      {SchemaStorage::kNumber, false},
+      {SchemaStorage::kOpaque, false},
+      {SchemaStorage::kVector, false},
+      {SchemaStorage::kNumber, true},
+      {SchemaStorage::kNumber, false},
+      {SchemaStorage::kNumber, false},
+      {SchemaStorage::kOpaque, false},
+      {SchemaStorage::kOpaque, true},
+      {SchemaStorage::kNumber, true},
+  }};
+  for (size_t i = 0; i < names.size(); ++i) {
+    auto field =
+        modlock::gameinterop::SchemaFieldOf(&system, "server.dll", "CBaseEntity", names[i]);
+    ASSERT_TRUE(field.has_value()) << names[i] << ": " << field.error();
+    EXPECT_EQ(field->storage, want[i].first) << names[i];
+    EXPECT_EQ(field->list, want[i].second) << names[i];
+    EXPECT_STREQ(field->type, types[i].name);
+  }
+  g_persistent_scope = nullptr;
+  g_classes.clear();
+}
+
 TEST(SchemaFieldOfPaths, ZeroSizedStorageSpanIsAnError) {
   // A class whose only field sits at its end.
   ClassInfoBuffers buffers;

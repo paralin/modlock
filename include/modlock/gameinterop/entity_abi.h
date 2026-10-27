@@ -218,12 +218,35 @@ class EntityRef {
 // Every failure is a named error; nothing here guesses an address.
 [[nodiscard]] MODLOCK_API std::expected<void*, std::string> ResolveSchemaSystem();
 
+// SchemaStorage is what a schema field's bytes hold, as far as a caller that
+// reads or writes them by value may treat them.
+enum class SchemaStorage : uint8_t {
+  // kOpaque is anything else: a pointer, an embedded structure, a container
+  // other than a list, or a type the schema does not describe. Its bytes are
+  // not a value a caller may read or write.
+  kOpaque,
+  // kNumber is a boolean, an integer, a float, an enum, an entity handle or a
+  // boxed number.
+  kNumber,
+  // kVector is three floats: a Vector, VectorWS or QAngle.
+  kVector,
+  // kText is a pointer to characters the game owns: a CUtlString or
+  // CUtlSymbolLarge.
+  kText,
+};
+
 // SchemaField is one resolved schema field: its byte offset and bounded
-// storage span inside the entity, plus whether the game networks it.
+// storage span inside the entity, whether the game networks it, and what its
+// storage holds. A list field is a CUtlVector whose elements hold storage.
+// type is the schema's name for the field's type, static data of the
+// declaring module.
 struct SchemaField {
   size_t offset;
   size_t size;
   bool networked;
+  SchemaStorage storage = SchemaStorage::kOpaque;
+  bool list = false;
+  const char* type = nullptr;
 };
 
 // CanNotifyEntityStateChanged checks the current entity's replication entry before
@@ -238,6 +261,8 @@ struct SchemaField {
 // schema system, walking base classes when the field belongs to an ancestor.
 // A dotted field_name, such as m_Collision.m_CollisionGroup, reaches a field
 // inside an embedded structure, with its offset from the entity's start.
+// The field's storage comes from its schema type, and a type it cannot
+// classify is opaque rather than an error.
 // schema_system is the live ISchemaSystem instance.
 [[nodiscard]] MODLOCK_API std::expected<SchemaField, std::string> SchemaFieldOf(
     void* schema_system, const char* module_name, const char* class_name, const char* field_name);
