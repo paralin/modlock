@@ -719,6 +719,7 @@ export class Drawing {
     drawn: Map<string, Drawn>,
     nodes: Map<string, Node>,
     region?: Region,
+    parentFlow?: Flow,
   ): Panel {
     // Resolve the node's id, kind, and the URL and data of its layout.
     const id = node.id ?? ''
@@ -743,13 +744,13 @@ export class Drawing {
     // Resolve its style and the styles laid over it, with the transition
     // that eases between them.
     const style = {
-      ...styleOf(node.style, id === ''),
+      ...styleOf(node.style, id === '', parentFlow),
       ...(region ? placed(region) : {}),
     }
-    const hover = layerOf(node.hover, style)
-    const enter = layerOf(node.enter, style)
-    const exit = layerOf(node.exit, style)
-    const cycle = cyclingOf(node, style)
+    const hover = layerOf(node.hover, style, parentFlow)
+    const enter = layerOf(node.enter, style, parentFlow)
+    const exit = layerOf(node.exit, style, parentFlow)
+    const cycle = cyclingOf(node, style, parentFlow)
     const transition = node.style?.transition ?? cycleTransition(cycle)
     Object.assign(
       style,
@@ -913,6 +914,8 @@ export class Drawing {
         previous,
         drawn,
         nodes,
+        undefined,
+        node.style?.flow,
       )
       if (last) {
         panel.MoveChildAfter(childPanel, last)
@@ -991,21 +994,23 @@ function placed(region: Region): Record<string, string> {
 function styleOf(
   style: Style | undefined,
   root: boolean,
+  parentFlow: Flow | undefined,
 ): Record<string, string> {
+  const along = flowAxes(parentFlow)
   const css: Record<string, string | null> = {
-    width: length(style?.width) ?? (root ? '100%' : null),
-    height: length(style?.height) ?? (root ? '100%' : null),
-    minWidth: length(style?.minWidth),
-    maxWidth: length(style?.maxWidth),
-    minHeight: length(style?.minHeight),
-    maxHeight: length(style?.maxHeight),
+    width: length(style?.width, along.width) ?? (root ? '100%' : null),
+    height: length(style?.height, along.height) ?? (root ? '100%' : null),
+    minWidth: length(style?.minWidth, false),
+    maxWidth: length(style?.maxWidth, false),
+    minHeight: length(style?.minHeight, false),
+    maxHeight: length(style?.maxHeight, false),
     flowChildren: style?.flow ? (flows[style.flow] ?? null) : null,
     horizontalAlign: style?.horizontalAlign
       ? aligns[style.horizontalAlign][0]
       : null,
     verticalAlign: style?.verticalAlign ? aligns[style.verticalAlign][1] : null,
-    x: length(style?.x),
-    y: length(style?.y),
+    x: length(style?.x, false),
+    y: length(style?.y, false),
     zIndex: style?.zIndex ? String(Math.trunc(finite(style.zIndex))) : null,
     overflow:
       style?.overflowX || style?.overflowY
@@ -1091,12 +1096,13 @@ function styleOf(
 function layerOf(
   layer: Style | undefined,
   style: Record<string, string>,
+  parentFlow: Flow | undefined,
 ): Record<string, string> {
   if (!layer) {
     return {}
   }
   return Object.fromEntries(
-    Object.entries(styleOf(layer, false)).filter(
+    Object.entries(styleOf(layer, false, parentFlow)).filter(
       ([name, value]) =>
         style[name] !== value && (name in style || name in rest),
     ),
@@ -1107,9 +1113,13 @@ function layerOf(
  * cyclingOf returns the cycle a node runs, with its far end laid over style,
  * or null for none. A cycle swings at most twenty times a second.
  */
-function cyclingOf(node: Node, style: Record<string, string>): Cycling | null {
+function cyclingOf(
+  node: Node,
+  style: Record<string, string>,
+  parentFlow: Flow | undefined,
+): Cycling | null {
   const cycle = node.cycle
-  const far = layerOf(cycle?.style, style)
+  const far = layerOf(cycle?.style, style, parentFlow)
   if (!cycle || Object.keys(far).length === 0) {
     return null
   }
@@ -1441,8 +1451,22 @@ function transform(value: Transform): string {
 /** refused holds the kinds of call the game refused, each logged once. */
 const refused = new Set<string>()
 
-/** length writes a length, or null for none. */
-function length(value: Length | undefined): string | null {
+/**
+ * flowAxes returns the axes a parent's flow lays its children along: the game
+ * honours fill-parent-flow only along them.
+ */
+function flowAxes(flow: Flow | undefined): { width: boolean; height: boolean } {
+  return {
+    width: flow === Flow.RIGHT || flow === Flow.RIGHT_WRAP,
+    height: flow === Flow.DOWN || flow === Flow.DOWN_WRAP,
+  }
+}
+
+/**
+ * length writes a length, or null for none. A fill takes its share of the
+ * parent's flow when flowing is true, and the whole parent otherwise.
+ */
+function length(value: Length | undefined, flowing: boolean): string | null {
   switch (value?.value?.case) {
     case 'pixels':
       return `${finite(value.value.value)}px`
@@ -1451,7 +1475,9 @@ function length(value: Length | undefined): string | null {
     case 'fitChildren':
       return 'fit-children'
     case 'fill':
-      return `fill-parent-flow(${clamp(value.value.value, 0, 100)})`
+      return flowing
+        ? `fill-parent-flow(${clamp(value.value.value, 0, 100)})`
+        : '100%'
     default:
       return null
   }

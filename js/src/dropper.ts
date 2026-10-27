@@ -235,7 +235,16 @@ export class Dropper {
   turn(player: Player, degrees: number): void {
     const builder = this.builders.get(player.slot)
     if (builder) {
-      builder.yaw = (builder.yaw + degrees + 360) % 360
+      this.face(player, builder.yaw + degrees)
+    }
+  }
+
+  /** face sets player's preview to face degrees, and shows it on the panel's slider. */
+  face(player: Player, degrees: number): void {
+    const builder = this.builders.get(player.slot)
+    if (builder) {
+      builder.yaw = ((degrees % 360) + 360) % 360
+      this.draw(builder)
     }
   }
 
@@ -460,6 +469,18 @@ export class Dropper {
             children: held,
           }),
           ...windowOf(rows, builder.entry),
+          jsx('label', {
+            style: { fontSize: 14, color: '#dddddd', margin: [8, 0, 0, 0] },
+            children: 'Facing',
+          }),
+          jsx('slider', {
+            value: builder.yaw,
+            min: 0,
+            max: 360 - turnDegrees,
+            step: turnDegrees,
+            onChange: (player: Player, degrees: number) =>
+              this.face(player, degrees),
+          }),
           jsx('label', {
             style: { fontSize: 14, color: '#dddddd', margin: [8, 0, 0, 0] },
             children:

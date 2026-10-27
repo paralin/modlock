@@ -298,6 +298,32 @@ test('draws a tree, keeps panels that stay and reports presses', () => {
     height: '25%',
   })
 
+  // A fill takes the parent's flow only along it; across it, or in a parent
+  // with no flow, it takes the whole parent, and a new flow redraws it.
+  const filling = (flow: string) =>
+    screen(
+      { id: '', style: { flow }, children: ['f'] },
+      {
+        id: 'f',
+        kind: 'KIND_PANEL',
+        style: { width: { fill: 1 }, height: { fill: 1 } },
+      },
+    )
+  drawing.draw(filling('FLOW_RIGHT'))
+  const filled = root.children[0]!.children[0]!
+  expect(filled.style.width).toBe('fill-parent-flow(1)')
+  expect(filled.style.height).toBe('100%')
+
+  // A column flips them.
+  drawing.draw(filling('FLOW_DOWN'))
+  expect(root.children[0]!.children[0]!.style.width).toBe('100%')
+  expect(root.children[0]!.children[0]!.style.height).toBe(
+    'fill-parent-flow(1)',
+  )
+  drawing.draw(filling('FLOW_NONE'))
+  expect(root.children[0]!.children[0]!.style.width).toBe('100%')
+  expect(root.children[0]!.children[0]!.style.height).toBe('100%')
+
   // A cycle draws each node once, and an empty screen removes the tree.
   drawing.draw(
     screen({ id: '', children: ['a'] }, { id: 'a', children: ['a', ''] }),
