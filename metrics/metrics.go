@@ -18,7 +18,7 @@ const (
 	// limit bounds how many metrics a mod declares.
 	limit = 32
 	// labelLimit bounds the labels of one metric.
-	labelLimit = 16
+	labelLimit = 64
 )
 
 var (
