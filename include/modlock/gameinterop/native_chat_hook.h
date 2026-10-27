@@ -18,12 +18,17 @@ namespace modlock::gameinterop {
 // restores dispatch after the engine thread has quiesced.
 class MODLOCK_API NativeChatHook {
  public:
-  using Handler = std::function<void(int32_t, std::string_view)>;
-
+  // Message is one accepted chat line.
   struct Message {
     int32_t slot;
     std::string text;
+    // all is true for chat every player reads, false for team chat.
+    bool all = false;
+    // lane is the CMsgLaneColor of the lane the line pings, or zero.
+    int32_t lane = 0;
   };
+
+  using Handler = std::function<void(const Message&)>;
 
   // Decode accepts native length-prefixed human chat bytes. The live hook
   // separately verifies the decoded slot's current authenticated connection.

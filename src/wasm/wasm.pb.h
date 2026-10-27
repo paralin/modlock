@@ -76,6 +76,10 @@ class Call;
 struct CallDefaultTypeInternal;
 MODLOCK_API extern CallDefaultTypeInternal _Call_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Call_class_data_;
+class ChatEvent;
+struct ChatEventDefaultTypeInternal;
+MODLOCK_API extern ChatEventDefaultTypeInternal _ChatEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ChatEvent_class_data_;
 class CommandEvent;
 struct CommandEventDefaultTypeInternal;
 MODLOCK_API extern CommandEventDefaultTypeInternal _CommandEvent_default_instance_;
@@ -198,7 +202,7 @@ class MODLOCK_API WorldEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const WorldEvent*>(
         &_WorldEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(WorldEvent& a, WorldEvent& b) { a.Swap(&b); }
   inline void Swap(WorldEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -483,6 +487,7 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
     kFramesFieldNumber = 1,
     kDamageFieldNumber = 2,
     kDamagedFieldNumber = 3,
+    kChatFieldNumber = 4,
   };
   // bool frames = 1;
   void clear_frames() ;
@@ -514,11 +519,21 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
   void _internal_set_damaged(bool value);
 
   public:
+  // bool chat = 4;
+  void clear_chat() ;
+  bool chat() const;
+  void set_chat(bool value);
+
+  private:
+  bool _internal_chat() const;
+  void _internal_set_chat(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.StartResult)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    0, 0,
                                    2>
       _table_;
@@ -543,6 +558,7 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
     bool frames_;
     bool damage_;
     bool damaged_;
+    bool chat_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -838,7 +854,7 @@ class MODLOCK_API ServiceReply final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceReply*>(
         &_ServiceReply_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(ServiceReply& a, ServiceReply& b) { a.Swap(&b); }
   inline void Swap(ServiceReply* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1033,7 +1049,7 @@ class MODLOCK_API ServiceCall final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServiceCall*>(
         &_ServiceCall_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(ServiceCall& a, ServiceCall& b) { a.Swap(&b); }
   inline void Swap(ServiceCall* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1262,7 +1278,7 @@ class MODLOCK_API ServerCommandRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const ServerCommandRequest*>(
         &_ServerCommandRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(ServerCommandRequest& a, ServerCommandRequest& b) { a.Swap(&b); }
   inline void Swap(ServerCommandRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1669,7 +1685,7 @@ class MODLOCK_API PrecacheOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const PrecacheOptions*>(
         &_PrecacheOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(PrecacheOptions& a, PrecacheOptions& b) { a.Swap(&b); }
   inline void Swap(PrecacheOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1895,7 +1911,7 @@ class MODLOCK_API LogRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const LogRequest*>(
         &_LogRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(LogRequest& a, LogRequest& b) { a.Swap(&b); }
   inline void Swap(LogRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2224,7 +2240,7 @@ class MODLOCK_API CommandResult final : public ::google::protobuf::Message
     return *reinterpret_cast<const CommandResult*>(
         &_CommandResult_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(CommandResult& a, CommandResult& b) { a.Swap(&b); }
   inline void Swap(CommandResult* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2564,6 +2580,237 @@ class MODLOCK_API CommandEvent final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull CommandEvent_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API ChatEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ChatEvent) */ {
+ public:
+  inline ChatEvent() : ChatEvent(nullptr) {}
+  ~ChatEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ChatEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ChatEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ChatEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline ChatEvent(const ChatEvent& from) : ChatEvent(nullptr, from) {}
+  inline ChatEvent(ChatEvent&& from) noexcept
+      : ChatEvent(nullptr, ::std::move(from)) {}
+  inline ChatEvent& operator=(const ChatEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ChatEvent& operator=(ChatEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ChatEvent& default_instance() {
+    return *reinterpret_cast<const ChatEvent*>(
+        &_ChatEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 7;
+  friend void swap(ChatEvent& a, ChatEvent& b) { a.Swap(&b); }
+  inline void Swap(ChatEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ChatEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ChatEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ChatEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ChatEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ChatEvent& from) { ChatEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ChatEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ChatEvent"; }
+
+  explicit ChatEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ChatEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ChatEvent& from);
+  ChatEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ChatEvent&& from) noexcept
+      : ChatEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kTextFieldNumber = 2,
+    kPlayerFieldNumber = 1,
+    kAllFieldNumber = 3,
+    kLaneFieldNumber = 4,
+  };
+  // string text = 2;
+  void clear_text() ;
+  const ::std::string& text() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_text(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_text();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_text();
+  void set_allocated_text(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_text() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_text(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_text();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // bool all = 3;
+  void clear_all() ;
+  bool all() const;
+  void set_all(bool value);
+
+  private:
+  bool _internal_all() const;
+  void _internal_set_all(bool value);
+
+  public:
+  // int32 lane = 4;
+  void clear_lane() ;
+  ::int32_t lane() const;
+  void set_lane(::int32_t value);
+
+  private:
+  ::int32_t _internal_lane() const;
+  void _internal_set_lane(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ChatEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   0, 35,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ChatEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr text_;
+    ::int32_t player_;
+    bool all_;
+    ::int32_t lane_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fwasm_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ChatEvent_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API Call final : public ::google::protobuf::Message
@@ -3527,6 +3774,31 @@ inline void StartResult::_internal_set_damaged(bool value) {
   _impl_.damaged_ = value;
 }
 
+// bool chat = 4;
+inline void StartResult::clear_chat() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.chat_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline bool StartResult::chat() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.chat)
+  return _internal_chat();
+}
+inline void StartResult::set_chat(bool value) {
+  _internal_set_chat(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.chat)
+}
+inline bool StartResult::_internal_chat() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.chat_;
+}
+inline void StartResult::_internal_set_chat(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.chat_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // FrameEvent
@@ -3723,6 +3995,150 @@ inline void CommandEvent::set_allocated_line(::std::string* PROTOBUF_NULLABLE va
     _impl_.line_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.CommandEvent.line)
+}
+
+// -------------------------------------------------------------------
+
+// ChatEvent
+
+// int32 player = 1;
+inline void ChatEvent::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t ChatEvent::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ChatEvent.player)
+  return _internal_player();
+}
+inline void ChatEvent::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ChatEvent.player)
+}
+inline ::int32_t ChatEvent::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void ChatEvent::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// string text = 2;
+inline void ChatEvent::clear_text() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.text_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ChatEvent::text() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ChatEvent.text)
+  return _internal_text();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ChatEvent::set_text(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.text_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ChatEvent.text)
+}
+inline ::std::string* PROTOBUF_NONNULL ChatEvent::mutable_text()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_text();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ChatEvent.text)
+  return _s;
+}
+inline const ::std::string& ChatEvent::_internal_text() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.text_.Get();
+}
+inline void ChatEvent::_internal_set_text(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.text_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ChatEvent::_internal_mutable_text() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.text_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ChatEvent::release_text() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ChatEvent.text)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.text_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.text_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ChatEvent::set_allocated_text(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.text_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.text_.IsDefault()) {
+    _impl_.text_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ChatEvent.text)
+}
+
+// bool all = 3;
+inline void ChatEvent::clear_all() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.all_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline bool ChatEvent::all() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ChatEvent.all)
+  return _internal_all();
+}
+inline void ChatEvent::set_all(bool value) {
+  _internal_set_all(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ChatEvent.all)
+}
+inline bool ChatEvent::_internal_all() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.all_;
+}
+inline void ChatEvent::_internal_set_all(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.all_ = value;
+}
+
+// int32 lane = 4;
+inline void ChatEvent::clear_lane() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lane_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::int32_t ChatEvent::lane() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ChatEvent.lane)
+  return _internal_lane();
+}
+inline void ChatEvent::set_lane(::int32_t value) {
+  _internal_set_lane(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ChatEvent.lane)
+}
+inline ::int32_t ChatEvent::_internal_lane() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.lane_;
+}
+inline void ChatEvent::_internal_set_lane(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lane_ = value;
 }
 
 // -------------------------------------------------------------------

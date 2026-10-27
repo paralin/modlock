@@ -177,12 +177,12 @@ std::expected<void, std::string> ControlLink::Watch(EngineHost& engine) {
     joining_ = true;
 
     // Report chat; the session plays on without it.
-    auto chat = engine.OnChat([this](int32_t slot, std::string_view text) {
+    auto chat = engine.OnChat([this](const gameinterop::NativeChatHook::Message& said) {
       control::HostEvent event;
       auto* line = event.mutable_chat();
-      line->set_slot(slot);
-      line->set_name(names_[slot]);
-      line->set_text(std::string(text));
+      line->set_slot(said.slot);
+      line->set_name(names_[said.slot]);
+      line->set_text(said.text);
       Push(std::move(event));
     });
     if (!chat) {

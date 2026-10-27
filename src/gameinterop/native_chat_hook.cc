@@ -104,7 +104,7 @@ void PostThunk(void* self, int32_t split_screen, bool local_only, int32_t client
   }
   const auto sender = ConnectionTracker::StateForSlot(chat->slot);
   if (sender.occupied && sender.fully_connected && !sender.is_bot && sender.xuid && g_handler) {
-    (*g_handler)(chat->slot, chat->text);
+    (*g_handler)(*chat);
   }
 }
 #endif
@@ -134,7 +134,7 @@ std::optional<NativeChatHook::Message> NativeChatHook::Decode(int16_t message_id
         !IsPlayerSlot(message.player_slot())) {
       return std::nullopt;
     }
-    return Message{message.player_slot(), message.text()};
+    return Message{message.player_slot(), message.text(), message.all_chat(), message.lane_color()};
   }
 
   // A player chat message must be chat to a known audience.
@@ -152,7 +152,8 @@ std::optional<NativeChatHook::Message> NativeChatHook::Decode(int16_t message_id
   if (std::ranges::find(kPlayerChatAudiences, audience) == kPlayerChatAudiences.end()) {
     return std::nullopt;
   }
-  return Message{message.entity_index() - 1, message.text()};
+  return Message{message.entity_index() - 1, message.text(),
+                 audience.starts_with("Cstrike_Chat_All")};
 }
 
 struct NativeChatHook::Impl {

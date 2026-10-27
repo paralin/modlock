@@ -639,6 +639,7 @@ the next frame after the release. A mod that stops also releases its hold.
 | Call                                                | Runs the handler                                              |
 | --------------------------------------------------- | ------------------------------------------------------------- |
 | `command(name, handler)`                            | On the frame after a player types `/name` in chat.            |
+| `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.   |
 | `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.      |
 | `onWorld(handler)`                                  | With the map's name each time a world loads.                  |
 | `onFrame(handler)`                                  | Once per server frame.                                        |

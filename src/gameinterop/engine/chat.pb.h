@@ -520,6 +520,7 @@ class MODLOCK_API ChatMessage final : public ::google::protobuf::Message
   enum : int {
     kTextFieldNumber = 2,
     kAllChatFieldNumber = 3,
+    kLaneColorFieldNumber = 4,
     kPlayerSlotFieldNumber = 1,
   };
   // optional string text = 2;
@@ -549,6 +550,17 @@ class MODLOCK_API ChatMessage final : public ::google::protobuf::Message
   void _internal_set_all_chat(bool value);
 
   public:
+  // optional int32 lane_color = 4;
+  bool has_lane_color() const;
+  void clear_lane_color() ;
+  ::int32_t lane_color() const;
+  void set_lane_color(::int32_t value);
+
+  private:
+  ::int32_t _internal_lane_color() const;
+  void _internal_set_lane_color(::int32_t value);
+
+  public:
   // optional int32 player_slot = 1 [default = -1];
   bool has_player_slot() const;
   void clear_player_slot() ;
@@ -564,7 +576,7 @@ class MODLOCK_API ChatMessage final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    0, 0,
                                    2>
       _table_;
@@ -588,6 +600,7 @@ class MODLOCK_API ChatMessage final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr text_;
     bool all_chat_;
+    ::int32_t lane_color_;
     ::int32_t player_slot_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1022,14 +1035,14 @@ inline void PlayerChatMessage::set_allocated_param4(::std::string* PROTOBUF_NULL
 
 // optional int32 player_slot = 1 [default = -1];
 inline bool ChatMessage::has_player_slot() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
   return value;
 }
 inline void ChatMessage::clear_player_slot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_slot_ = -1;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::int32_t ChatMessage::player_slot() const {
   // @@protoc_insertion_point(field_get:modlock.gameinterop.engine.ChatMessage.player_slot)
@@ -1037,7 +1050,7 @@ inline ::int32_t ChatMessage::player_slot() const {
 }
 inline void ChatMessage::set_player_slot(::int32_t value) {
   _internal_set_player_slot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.gameinterop.engine.ChatMessage.player_slot)
 }
 inline ::int32_t ChatMessage::_internal_player_slot() const {
@@ -1145,6 +1158,35 @@ inline bool ChatMessage::_internal_all_chat() const {
 inline void ChatMessage::_internal_set_all_chat(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.all_chat_ = value;
+}
+
+// optional int32 lane_color = 4;
+inline bool ChatMessage::has_lane_color() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void ChatMessage::clear_lane_color() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lane_color_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::int32_t ChatMessage::lane_color() const {
+  // @@protoc_insertion_point(field_get:modlock.gameinterop.engine.ChatMessage.lane_color)
+  return _internal_lane_color();
+}
+inline void ChatMessage::set_lane_color(::int32_t value) {
+  _internal_set_lane_color(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.gameinterop.engine.ChatMessage.lane_color)
+}
+inline ::int32_t ChatMessage::_internal_lane_color() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.lane_color_;
+}
+inline void ChatMessage::_internal_set_lane_color(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lane_color_ = value;
 }
 
 #ifdef __GNUC__

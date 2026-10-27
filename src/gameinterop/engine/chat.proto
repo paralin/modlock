@@ -43,4 +43,7 @@ message ChatMessage {
 
   // AllChat distinguishes global chat from team chat.
   optional bool all_chat = 3;
+
+  // LaneColor is the CMsgLaneColor of the lane a line pings, or zero.
+  optional int32 lane_color = 4;
 }

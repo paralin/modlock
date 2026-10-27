@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 
 import {
   Call,
+  ChatEvent,
   CommandEvent,
   CommandResult,
   FrameEvent,
@@ -11,7 +12,7 @@ import {
 } from '../../src/wasm/wasm.pb.js'
 import { apply, arena } from '../src/console.js'
 import { bind, deliver as dispatch } from '../src/host.js'
-import { command, onFrame, ProbeRun } from '../src/index.js'
+import { command, onChat, onFrame, ProbeRun } from '../src/index.js'
 
 /** lines holds the log lines and console commands the mod sent the host. */
 const lines: string[] = []
@@ -76,6 +77,16 @@ test('a command is claimed at once and runs with the next frame', () => {
 
   // A command the mod does not know stays with the game.
   expect(send(3, 'unknown')).toBe(false)
+
+  // A chat line also waits for the frame, with its audience.
+  onChat((line) =>
+    seen.push(`chat ${line.player.slot} ${line.text} ${line.all}`),
+  )
+  seen.length = 0
+  deliver('Chat', ChatEvent.toBinary({ player: 2, text: 'gg', all: true }))
+  expect(seen).toEqual([])
+  frame(10.032)
+  expect(seen).toEqual(['chat 2 gg true', 'frame'])
 })
 
 test('a command that throws does not stop the frame', () => {

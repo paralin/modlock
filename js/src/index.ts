@@ -18,6 +18,7 @@
 
 import {
   type DamageEvent,
+  type ChatEvent,
   type DamagedEvent,
   type DamageResult,
   type FrameEvent,
@@ -202,6 +203,14 @@ export function onStart(handler: (args: readonly string[]) => void): void {
   starts.push(handler)
 }
 
+/**
+ * onChat calls handler with each chat line a player writes, commands
+ * included, on the next server frame.
+ */
+export function onChat(handler: (line: ChatEvent) => void): void {
+  chats.push(handler)
+}
+
 /** onFrame calls handler once per server frame. */
 export function onFrame(handler: (frame: FrameEvent) => void): void {
   frames.push(handler)
@@ -330,6 +339,7 @@ const services = new Map<string, { readonly handler: Service }>()
 // Each list runs in registration order.
 const starts: ((args: readonly string[]) => void)[] = []
 const frames: ((frame: FrameEvent) => void)[] = []
+const chats: ((line: ChatEvent) => void)[] = []
 const worlds: ((map: string) => void)[] = []
 const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] =
   []
@@ -354,6 +364,7 @@ const handlers: ModHandlers = {
       frames: true,
       damage: damages.length !== 0,
       damaged: damageds.length !== 0,
+      chat: chats.length !== 0,
     }
   },
 
@@ -381,6 +392,16 @@ const handlers: ModHandlers = {
     const args = space < 0 ? '' : line.slice(space + 1).trim()
     after(0, () => registered.handler(event.player, args))
     return { claimed: true }
+  },
+
+  chat(event) {
+    // A line arrives under the same CPU budget as a command, so its handlers
+    // run with the next frame.
+    after(0, () => {
+      for (const handler of chats) {
+        handler(event)
+      }
+    })
   },
 
   world(event) {

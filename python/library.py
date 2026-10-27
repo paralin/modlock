@@ -86,6 +86,7 @@ _services: dict[str, Service] = {}
 # Each list runs in registration order.
 _starts: list[Callable[[list[str]], object]] = []
 _frames: list[Callable[[FrameEvent], object]] = []
+_chats: list[Callable[[ChatEvent], object]] = []
 _worlds: list[Callable[[str], object]] = []
 _inputs: list[Callable[[Player, Buttons, Buttons], object]] = []
 _restoreds: list[Callable[[Player, str | None], object]] = []
@@ -317,6 +318,13 @@ def on_damage[F: Callable[[DamageEvent], DamageResult | None]](handler: F) -> F:
     return handler
 
 
+def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
+    """on_chat calls handler with each chat line a player writes, commands
+    included, on the next server frame."""
+    _chats.append(handler)
+    return handler
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands."""
     _damageds.append(handler)
@@ -356,7 +364,9 @@ def _start(event: StartEvent) -> StartResult:
     for handler in _starts:
         handler(event.args)
     # Timers run from frames, so the library always takes them.
-    return StartResult(frames=True, damage=bool(_damages), damaged=bool(_damageds))
+    return StartResult(
+        frames=True, damage=bool(_damages), damaged=bool(_damageds), chat=bool(_chats)
+    )
 
 
 def _frame(event: FrameEvent) -> None:
@@ -378,6 +388,16 @@ def _command(event: CommandEvent) -> CommandResult:
     player, text = event.player, args.strip()
     after(0, lambda: handler(player, text))
     return CommandResult(claimed=True)
+
+
+def _chat(event: ChatEvent) -> None:
+    # The line arrives under the same CPU budget as a command, so its
+    # handlers run with the next frame.
+    def run() -> None:
+        for handler in _chats:
+            handler(event)
+
+    after(0, run)
 
 
 def _world(event: WorldEvent) -> None:
@@ -461,6 +481,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "start": _start,
     "frame": _frame,
     "command": _command,
+    "chat": _chat,
     "world": _world,
     "ui_press": _ui_press,
     "ui_input": _ui_input,

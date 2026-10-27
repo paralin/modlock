@@ -614,6 +614,10 @@ service Mod {
   // Command offers one command a player typed.
   rpc Command(CommandEvent) returns (CommandResult);
 
+  // Chat reports each chat line the server accepted from a player the mod
+  // serves, while the mod asked for chat, before the line's command.
+  rpc Chat(ChatEvent) returns (Empty);
+
   // World follows each world load, and start when a world has already
   // loaded. Objects and bots from an earlier world are gone by then.
   rpc World(WorldEvent) returns (Empty);
@@ -694,6 +698,9 @@ message StartResult {
 
   // Damaged asks for a Damaged event after each hit.
   bool damaged = 3;
+
+  // Chat asks for a Chat event for each chat line.
+  bool chat = 4;
 }
 
 // FrameEvent identifies one server frame.
@@ -718,6 +725,23 @@ message CommandEvent {
 
   // Line is the complete command line, starting with the command name.
   string line = 2;
+}
+
+// ChatEvent carries one chat line as the server accepted it, commands
+// included.
+message ChatEvent {
+  // Player is the player who wrote the line.
+  int32 player = 1;
+
+  // Text is the line as written.
+  string text = 2;
+
+  // All is true for chat every player reads, false for team chat.
+  bool all = 3;
+
+  // Lane is the CMsgLaneColor of the lane the line pings: 1 yellow, 3
+  // green, 4 blue, 6 purple, or 0 for none.
+  int32 lane = 4;
 }
 
 // CommandResult answers whether the mod handled a command.

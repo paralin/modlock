@@ -332,6 +332,10 @@ type FrameEvent = wasmpb.FrameEvent
 // command the server received.
 type CommandEvent = wasmpb.CommandEvent
 
+// ChatEvent carries one chat line as the server accepted it, commands
+// included.
+type ChatEvent = wasmpb.ChatEvent
+
 // CommandResult answers whether the mod handled a command.
 type CommandResult = wasmpb.CommandResult
 
@@ -1419,6 +1423,9 @@ type modHandlers interface {
 	Frame(event *FrameEvent) error
 	// Command offers one command a player typed.
 	Command(event *CommandEvent) (*CommandResult, error)
+	// Chat reports each chat line the server accepted from a player the mod
+	// serves, while the mod asked for chat, before the line's command.
+	Chat(event *ChatEvent) error
 	// World follows each world load, and start when a world has already
 	// loaded. Objects and bots from an earlier world are gone by then.
 	World(event *WorldEvent) error
@@ -1481,6 +1488,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(handlers.Command(event))
+	case "Chat":
+		event := &ChatEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.Chat(event))
 	case "World":
 		event := &WorldEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
