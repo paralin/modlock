@@ -146,6 +146,14 @@ const (
 	// HUD_PART_AMMO is the player's ammo: the clip ring and count around the
 	// crosshair and the low and out of ammo warnings. The crosshair stays.
 	HudPart_HUD_PART_AMMO HudPart = 4
+	// HUD_PART_SOULS is the player's souls and level readout beside their
+	// health. The abilities, items and health bar stay.
+	HudPart_HUD_PART_SOULS HudPart = 5
+	// HUD_PART_MINIMAP is the minimap with its hints and district name.
+	HudPart_HUD_PART_MINIMAP HudPart = 6
+	// HUD_PART_ABILITIES is the bar of the player's abilities and active items.
+	// The health bar, souls, held items and crosshair stay.
+	HudPart_HUD_PART_ABILITIES HudPart = 7
 )
 
 // Enum value maps for HudPart.
@@ -156,6 +164,9 @@ var (
 		2: "HUD_PART_OWN_HEALTH",
 		3: "HUD_PART_TOP_BAR",
 		4: "HUD_PART_AMMO",
+		5: "HUD_PART_SOULS",
+		6: "HUD_PART_MINIMAP",
+		7: "HUD_PART_ABILITIES",
 	}
 	HudPart_value = map[string]int32{
 		"HUD_PART_UNKNOWN":    0,
@@ -163,6 +174,9 @@ var (
 		"HUD_PART_OWN_HEALTH": 2,
 		"HUD_PART_TOP_BAR":    3,
 		"HUD_PART_AMMO":       4,
+		"HUD_PART_SOULS":      5,
+		"HUD_PART_MINIMAP":    6,
+		"HUD_PART_ABILITIES":  7,
 	}
 )
 

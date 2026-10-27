@@ -679,6 +679,11 @@ test("hides the game's HUD parts while a root lists them", () => {
   const clip = add(crosshair, 'ammo_panel')
   const lowAmmo = add(game, 'low_ammo_label')
 
+  // Lay out the souls, the minimap and the abilities.
+  const souls = add(game, 'gold_and_ap_container')
+  const minimap = add(game, 'minimap_persp')
+  const abilities = add(game, 'AbilitiesContainer')
+
   // Sweep through the fake $.Schedule.
   const hud = new Hud(game, (_, callback) => $.Schedule(0, callback))
 
@@ -732,6 +737,19 @@ test("hides the game's HUD parts while a root lists them", () => {
   expect(crosshair.style.visibility).toBeUndefined()
   expect(scores.style.visibility).toBeNull()
   expect(chat.style.visibility).toBeUndefined()
+
+  // The souls, minimap and abilities collapse whole.
+  hud.draw(
+    hiddenParts(
+      screen({
+        id: '',
+        hideHud: ['HUD_PART_SOULS', 'HUD_PART_MINIMAP', 'HUD_PART_ABILITIES'],
+      }),
+    ),
+  )
+  for (const panel of [souls, minimap, abilities])
+    expect(panel.style.visibility).toBe('collapse')
+  expect(health.style.visibility).toBeUndefined()
 
   // Once no root lists them, the parts show again and the sweeps stop.
   hud.draw(hiddenParts(screen({ id: '', hideHud: ['HUD_PART_LEVEL_UP'] })))

@@ -198,6 +198,17 @@ enum HudPart {
   // HUD_PART_AMMO is the player's ammo: the clip ring and count around the
   // crosshair and the low and out of ammo warnings. The crosshair stays.
   HUD_PART_AMMO = 4;
+
+  // HUD_PART_SOULS is the player's souls and level readout beside their
+  // health. The abilities, items and health bar stay.
+  HUD_PART_SOULS = 5;
+
+  // HUD_PART_MINIMAP is the minimap with its hints and district name.
+  HUD_PART_MINIMAP = 6;
+
+  // HUD_PART_ABILITIES is the bar of the player's abilities and active items.
+  // The health bar, souls, held items and crosshair stay.
+  HUD_PART_ABILITIES = 7;
 }
 
 // Kind selects the panel a node draws.

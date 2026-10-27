@@ -258,9 +258,18 @@ export interface Style {
  * ability point and power increase, 'ownHealth' the player's health bar with
  * its shields and regeneration, 'topBar' the bar of team scores, portraits
  * and clock across the top, 'ammo' the clip ring, count and ammo warnings at
- * the crosshair. The abilities, items, status icons, crosshair and chat stay.
+ * the crosshair, 'souls' the souls and level readout, 'minimap' the minimap
+ * with its hints and district name, 'abilities' the ability and active item
+ * bar. Whatever a part does not name stays, such as the crosshair and chat.
  */
-export type HudPart = 'levelUp' | 'ownHealth' | 'topBar' | 'ammo'
+export type HudPart =
+  | 'levelUp'
+  | 'ownHealth'
+  | 'topBar'
+  | 'ammo'
+  | 'souls'
+  | 'minimap'
+  | 'abilities'
 
 /** Child is anything an element may hold. Text becomes a label. */
 export type Child =
@@ -1092,6 +1101,9 @@ const hudParts = {
   ownHealth: WireHudPart.OWN_HEALTH,
   topBar: WireHudPart.TOP_BAR,
   ammo: WireHudPart.AMMO,
+  souls: WireHudPart.SOULS,
+  minimap: WireHudPart.MINIMAP,
+  abilities: WireHudPart.ABILITIES,
 } as const
 
 /** faces maps each typeface to its wire value. */
