@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/paralin/modlock/src/wasm/manifest"
@@ -17,7 +18,20 @@ func TestValidate(t *testing.T) {
 	if err := Validate(good); err != nil {
 		t.Fatalf("Validate(good) = %v", err)
 	}
+	labels := func(n int) []string {
+		out := make([]string, n)
+		for i := range out {
+			out[i] = fmt.Sprintf("label%d", i)
+		}
+		return out
+	}
+	if err := Validate(&manifest.Manifest{Metrics: []*metrics.Metric{
+		{Name: "level", Kind: metrics.Metric_KIND_MAX, Labels: labels(64)},
+	}}); err != nil {
+		t.Fatalf("Validate(64 labels) = %v", err)
+	}
 	for name, metric := range map[string]*metrics.Metric{
+		"count": {Name: "runs", Kind: metrics.Metric_KIND_SUM, Labels: labels(65)},
 		"name":  {Name: "9lives", Kind: metrics.Metric_KIND_SUM},
 		"kind":  {Name: "runs"},
 		"label": {Name: "runs", Kind: metrics.Metric_KIND_SUM, Labels: []string{"two words"}},
