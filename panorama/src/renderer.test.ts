@@ -600,9 +600,12 @@ test('eases panels in, cycles them and eases them out', () => {
     enter: { opacity: 0 },
     exit: { opacity: 0 },
     cycle: { style: { opacity: 0.5 }, seconds: 0.4, count: 1 },
+    children: ['word'],
   }
-  drawing.draw(screen({ id: '', children: ['pulse'] }, pulse))
+  const word = { id: 'word', kind: 'KIND_LABEL', text: 'Go' }
+  drawing.draw(screen({ id: '', children: ['pulse'] }, pulse, word))
   const panel = root.children[0]!.children[0]!
+  const label = panel.children[0]!
 
   // It starts at its enter style, then swings to its cycle's far end and back.
   expect(panel.style.opacity).toBe('0')
@@ -613,11 +616,13 @@ test('eases panels in, cycles them and eases them out', () => {
   runScheduled()
   expect(scheduled.size).toBe(0)
 
-  // Leaving the tree eases it to its exit style before its panel goes.
+  // Leaving the tree eases it to its exit style before its panel goes, and
+  // its label goes with it.
   drawing.draw(screen({ id: '' }))
   expect(panel.style.opacity).toBe('0')
   expect(panel.hittest).toBe(false)
   expect(panel.deleteSeconds).toBeCloseTo(0.2)
+  expect(label.deleteSeconds).toBe(-1)
 })
 
 test("hides the game's HUD parts while a root lists them", () => {

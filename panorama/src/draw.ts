@@ -429,9 +429,16 @@ export class Drawing {
     }
 
     // A node no parent reaches is not drawn; its panel eases out to its exit
-    // style, or goes with its old parent.
-    for (const [id, old] of previous) {
-      if (!drawn.has(id) && old.panel.IsValid()) {
+    // style, and a child of a panel that also leaves goes with it.
+    const gone = [...previous]
+      .filter(([id, old]) => !drawn.has(id) && old.panel.IsValid())
+      .map(([, old]) => old)
+    const leaving = new Set(gone.map((old) => old.panel))
+    for (const old of gone) {
+      if (leaving.has(old.parent)) {
+        this.untip(old)
+        this.unloaded ||= old.layout !== null
+      } else {
         this.leave(old)
       }
     }
@@ -1211,7 +1218,9 @@ const rest: Record<string, string> = {
   brightness: '1',
   contrast: '1',
   blur: 'gaussian(0px)',
-  transform: 'none',
+  // A transform rests at the identity in the form styles write, so the game
+  // eases a transform back to rest as it eases between two.
+  transform: transform({}),
   transformOrigin: '50% 50%',
   transitionProperty: 'none',
   transitionDuration: '0s',

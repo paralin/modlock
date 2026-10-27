@@ -44,6 +44,25 @@ function element(
   return { type, props: { style, children }, key }
 }
 
+/**
+ * arriving eases a component in from slightly smaller and fades it out as it
+ * goes, over a quarter second.
+ */
+function arriving(component: UiElement, from: Style): UiElement {
+  return {
+    ...component,
+    props: {
+      ...component.props,
+      style: {
+        transition: { seconds: 0.25, easing: 'out' },
+        ...component.props.style,
+      },
+      enter: { opacity: 0, ...from },
+      exit: { opacity: 0 },
+    },
+  }
+}
+
 /** TextProps set one label in a type role and tone. */
 export interface TextProps {
   role: TextRole
@@ -200,9 +219,12 @@ export interface BannerProps {
   style?: Style
 }
 
-/** Banner is a centered title in the heading face with a muted detail. */
+/**
+ * Banner is a centered title in the heading face with a muted detail. It
+ * grows in as it appears and fades as it goes.
+ */
 export function Banner(props: BannerProps): UiElement {
-  return element(
+  const banner = element(
     'panel',
     {
       flow: 'down',
@@ -216,6 +238,7 @@ export function Banner(props: BannerProps): UiElement {
         Text({ role: 'caption', tone: 'muted', children: props.detail }),
     ],
   )
+  return arriving(banner, { scale: 0.92 })
 }
 
 /** TopStripProps fill the top block of an arena HUD. */
@@ -419,12 +442,15 @@ function rosterRow(row: RosterRow, index: number): UiElement {
       },
     ),
   )
-  return element(
+
+  // A player who joins slides in from the edge.
+  const line = element(
     'panel',
     { flow: 'right', horizontalAlign: 'right', margin: [0, 0, 8, 0] },
     [text, portrait],
     `row-${index}`,
   )
+  return arriving(line, { translate: [16, 0] })
 }
 
 /** ActionProps make a button in the game's menu look. */

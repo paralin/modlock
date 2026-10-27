@@ -590,7 +590,7 @@ export function hide(player: Player): boolean {
 
 /**
  * toast shows player text in a notice at the lower left for seconds.
- * Notices stack, newest last, and fade as they expire.
+ * Notices stack, newest last, slide in, and fade as they expire.
  */
 export function toast(player: Player, text: string, seconds = 4): boolean {
   const current = view(player)
@@ -666,8 +666,12 @@ let nextNotice = 0
 /** maxNotices bounds the stack; a newer notice pushes out the oldest. */
 const maxNotices = 4
 
-/** fadeSeconds is how long a notice takes to fade before it expires. */
-const fadeSeconds = 0.5
+/** noticeMotion slides a notice in from the left and fades it out when it expires. */
+const noticeMotion = {
+  enter: { opacity: 0, translate: [-16, 0] },
+  exit: { opacity: 0 },
+  transition: { seconds: 0.25, easing: 'out' },
+} as const
 
 /** view returns what the mod shows player, or an empty view. */
 function view(player: Player): View {
@@ -717,6 +721,7 @@ function draw(player: Player): boolean {
  * the game's health, weapon and spirit stats and the status icons above them.
  */
 function notices(stack: readonly Notice[]): Child {
+  // The stack fades with its last notice.
   const style: Style = {
     width: 'fit',
     height: 'fit',
@@ -724,6 +729,7 @@ function notices(stack: readonly Notice[]): Child {
     horizontalAlign: 'left',
     verticalAlign: 'bottom',
     margin: [0, 0, 260, 24],
+    transition: noticeMotion.transition,
   }
   const labels = stack.map((notice) =>
     jsx(
@@ -737,16 +743,16 @@ function notices(stack: readonly Notice[]): Child {
           color: '#f2f2f2',
           fontSize: 16,
           borderRadius: 4,
-          // The game animates the fade, so it sends one change.
-          opacity: notice.until - now > fadeSeconds ? 1 : 0,
-          transition: { seconds: fadeSeconds, easing: 'linear' },
+          transition: noticeMotion.transition,
         },
+        enter: noticeMotion.enter,
+        exit: noticeMotion.exit,
         children: notice.text,
       },
       notice.id,
     ),
   )
-  return jsx('panel', { style, children: labels })
+  return jsx('panel', { style, exit: noticeMotion.exit, children: labels })
 }
 
 /** Screen is what one player's interface holds, as the host last accepted it. */
