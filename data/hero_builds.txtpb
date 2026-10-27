@@ -1,0 +1,38 @@
+# proto-file: src/gamedata/hero_builds.proto
+# proto-message: modlock.gamedata.HeroBuildFile
+#
+# One recommended build per hero. This file is a small hand-written set of
+# real hero and item class names; a fuller export replaces it.
+
+game_version: 0
+
+heroes {
+  hero_class: "hero_inferno"
+  name: "Starter Build"
+  categories {
+    name: "Early Game"
+    description: "Weapon and health basics."
+    items {
+      class_name: "upgrade_clip_size"
+    }
+    items {
+      class_name: "upgrade_headhunter"
+    }
+  }
+  categories {
+    name: "Mid Game"
+    description: "Sustain and speed."
+    items {
+      class_name: "upgrade_siphon_bullets"
+    }
+    items {
+      class_name: "upgrade_sprint_booster"
+    }
+  }
+  categories {
+    name: "Late Game"
+    items {
+      class_name: "upgrade_cooldown_reduction"
+    }
+  }
+}

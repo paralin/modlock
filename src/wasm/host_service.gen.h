@@ -271,6 +271,16 @@ class HostService {
     return std::unexpected("this host does not support GiveItem");
   }
 
+  // HeroBuild reads a hero's recommended build from the host's game data:
+  // its categories of items in buying order. Items the game does not define
+  // are left out, so every item returned is one GiveItem accepts. A hero
+  // without a build answers with no categories. The call needs a loaded
+  // world.
+  virtual std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
+      const abilities::HeroBuildRequest& /*request*/) {
+    return std::unexpected("this host does not support HeroBuild");
+  }
+
   // ReplaceAbility puts the ability named ability, untrained, in the hero's
   // ability slot index, as Ability.slot, removing the ability there. An
   // ability from another hero loads its models and particles only if
@@ -1115,6 +1125,14 @@ class HostService {
              return detail::Fail("the GiveItem request is malformed");
            }
            return detail::Answer(host.GiveItem(request));
+         }},
+        {"HeroBuild",
+         [](HostService& host, const std::string& bytes) {
+           abilities::HeroBuildRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the HeroBuild request is malformed");
+           }
+           return detail::Answer(host.HeroBuild(request));
          }},
         {"ReplaceAbility",
          [](HostService& host, const std::string& bytes) {

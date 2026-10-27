@@ -412,6 +412,8 @@ class Game : public HostService {
       const players::PlayerRequest& request) override;
   std::expected<void, std::string> SetAbility(const abilities::AbilityOptions& request) override;
   std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& request) override;
+  std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
+      const abilities::HeroBuildRequest& request) override;
   std::expected<void, std::string> ReplaceAbility(
       const abilities::ReplaceAbilityRequest& request) override;
   std::expected<void, std::string> HoldModifier(

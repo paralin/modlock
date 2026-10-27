@@ -9,3 +9,9 @@ import _ "embed"
 //
 //go:embed game_signatures.txtpb
 var GameSignatures []byte
+
+// HeroBuilds is the text-format HeroBuildFile in hero_builds.txtpb: one
+// recommended item build per hero.
+//
+//go:embed hero_builds.txtpb
+var HeroBuilds []byte

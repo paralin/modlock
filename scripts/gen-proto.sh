@@ -31,10 +31,10 @@ aptre --rpc none --language cpp --language go --language ts \
   --targets './src/geometry/*.proto' --targets './src/wasm/*.proto' --targets './src/wasm/*/*.proto' \
   --targets './src/host_app/control/*.proto' "$@"
 
-# The game's own messages, camera paths and signatures serve only the host.
+# The game's own messages, camera paths, signatures and hero builds serve only the host.
 aptre --rpc none --language cpp \
   --targets './src/camera/*.proto' --targets './src/gameinterop/engine/*.proto' \
-  --targets './src/gameinterop/signatures/*.proto'
+  --targets './src/gameinterop/signatures/*.proto' --targets './src/gamedata/*.proto'
 
 # The publishing messages and the command line's events serve the command line
 # and the programs that read its --json output; the spot document serves the
