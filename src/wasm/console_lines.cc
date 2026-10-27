@@ -1,3 +1,5 @@
+//go:build deps_only
+
 #include "wasm/console_lines.h"
 
 #include <algorithm>
