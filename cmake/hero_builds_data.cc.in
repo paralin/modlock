@@ -1,0 +1,15 @@
+#include <string_view>
+
+namespace modlock::wasm {
+
+namespace {
+
+// kData holds the bytes of data/hero_builds.txtpb as of the build.
+constexpr char kData[] = {@MODLOCK_HERO_BUILDS@};
+
+}  // namespace
+
+// kBuiltInHeroBuilds is data/hero_builds.txtpb as of the build.
+extern const std::string_view kBuiltInHeroBuilds(kData, sizeof(kData));
+
+}  // namespace modlock::wasm

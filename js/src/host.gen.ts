@@ -259,6 +259,44 @@ function toAbilityOptions(value: AbilityOptions): abilitiesPb.AbilityOptions {
   }
 }
 
+/** BuildCategory is one named group of a build's items. */
+export interface BuildCategory {
+  /** name is the category's title. */
+  readonly name: string
+  /** description is the author's note on the category. */
+  readonly description: string
+  /**
+   * items lists the category's items in buying order. An item this game
+   * version does not define is left out.
+   */
+  readonly items: BuildItem[]
+}
+
+/** fromBuildCategory decodes a BuildCategory. */
+function fromBuildCategory(message: abilitiesPb.BuildCategory): BuildCategory {
+  return {
+    name: message.name ?? '',
+    description: message.description ?? '',
+    items: (message.items ?? []).map((v) => fromBuildItem(v)),
+  }
+}
+
+/** BuildItem is one item of a build. */
+export interface BuildItem {
+  /** item is the item's name, as GiveItem takes it. */
+  readonly item: string
+  /** annotation is the author's note on the item. */
+  readonly annotation: string
+}
+
+/** fromBuildItem decodes a BuildItem. */
+function fromBuildItem(message: abilitiesPb.BuildItem): BuildItem {
+  return {
+    item: message.item ?? '',
+    annotation: message.annotation ?? '',
+  }
+}
+
 /**
  * DamageEvent is one hit before the game applies it. Handles are zero when
  * the game names no such entity.
@@ -2451,6 +2489,20 @@ export function writeFile(name: string, text: string): boolean {
  */
 export function holdReload(held: boolean): boolean {
   return call('HoldReload', abilitiesPb.HoldReloadRequest.toBinary({ held })) !== undefined
+}
+
+/**
+ * heroBuild reads a hero's recommended build from the host's game data:
+ * its categories of items in buying order. Items the game does not define
+ * are left out, so every item returned is one GiveItem accepts. A hero
+ * without a build answers with no categories. The call needs a loaded
+ * world.
+ */
+export function heroBuild(hero: string): BuildCategory[] {
+  const reply = call('HeroBuild', abilitiesPb.HeroBuildRequest.toBinary({ hero }))
+  if (reply === undefined) return []
+  const response = abilitiesPb.HeroBuildResponse.fromBinary(reply)
+  return (response.categories ?? []).map((v) => fromBuildCategory(v))
 }
 
 /**

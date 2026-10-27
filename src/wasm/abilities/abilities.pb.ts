@@ -862,3 +862,220 @@ export const HoldModifierStateRequest: MessageType<HoldModifierStateRequest> =
       },
     },
   )
+
+/**
+ * HeroBuildRequest names the hero whose build to read.
+ *
+ * @generated from message modlock.wasm.abilities.HeroBuildRequest
+ */
+export interface HeroBuildRequest {
+  /**
+   * Hero is the hero's class name, such as hero_inferno.
+   */
+  hero?: string
+}
+
+export const HeroBuildRequest: MessageType<HeroBuildRequest> =
+  /* @__PURE__ */ createMessageType<HeroBuildRequest>(
+    'modlock.wasm.abilities.HeroBuildRequest',
+    () => [[1, 'hero', 9]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: HeroBuildRequest,
+      ): HeroBuildRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.hero = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HeroBuildRequest, w: Writer): void => {
+        {
+          const v = m.hero
+          if (v) w.uint32(10).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * HeroBuildResponse is a hero's recommended build. A hero without a build
+ * answers with no categories.
+ *
+ * @generated from message modlock.wasm.abilities.HeroBuildResponse
+ */
+export interface HeroBuildResponse {
+  /**
+   * Categories lists the build's phases in order, such as early, mid and late
+   * game.
+   */
+  categories?: BuildCategory[]
+}
+
+export const HeroBuildResponse: MessageType<HeroBuildResponse> =
+  /* @__PURE__ */ createMessageType<HeroBuildResponse>(
+    'modlock.wasm.abilities.HeroBuildResponse',
+    () => [[1, 'categories', 11, 1, BuildCategory.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: HeroBuildResponse,
+      ): HeroBuildResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.categories ??= []).push(
+                BuildCategory.decode(r, r.delimited(), {}),
+              )
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HeroBuildResponse, w: Writer): void => {
+        {
+          const a = m.categories
+          if (a != null) for (const e of a) BuildCategory.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
+ * BuildCategory is one named group of a build's items.
+ *
+ * @generated from message modlock.wasm.abilities.BuildCategory
+ */
+export interface BuildCategory {
+  /**
+   * Name is the category's title.
+   */
+  name?: string
+  /**
+   * Description is the author's note on the category.
+   */
+  description?: string
+  /**
+   * Items lists the category's items in buying order. An item this game
+   * version does not define is left out.
+   */
+  items?: BuildItem[]
+}
+
+export const BuildCategory: MessageType<BuildCategory> =
+  /* @__PURE__ */ createMessageType<BuildCategory>(
+    'modlock.wasm.abilities.BuildCategory',
+    () => [
+      [1, 'name', 9],
+      [2, 'description', 9],
+      [3, 'items', 11, 1, BuildItem.codec],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: BuildCategory,
+      ): BuildCategory => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            case 2:
+              m.description = r.string()
+              break
+            case 3:
+              ;(m.items ??= []).push(BuildItem.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: BuildCategory, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.description
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const a = m.items
+          if (a != null) for (const e of a) BuildItem.writeField(w, 3, e)
+        }
+      },
+    },
+  )
+
+/**
+ * BuildItem is one item of a build.
+ *
+ * @generated from message modlock.wasm.abilities.BuildItem
+ */
+export interface BuildItem {
+  /**
+   * Item is the item's name, as GiveItem takes it.
+   */
+  item?: string
+  /**
+   * Annotation is the author's note on the item.
+   */
+  annotation?: string
+}
+
+export const BuildItem: MessageType<BuildItem> =
+  /* @__PURE__ */ createMessageType<BuildItem>(
+    'modlock.wasm.abilities.BuildItem',
+    () => [
+      [1, 'item', 9],
+      [2, 'annotation', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: BuildItem): BuildItem => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.item = r.string()
+              break
+            case 2:
+              m.annotation = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: BuildItem, w: Writer): void => {
+        {
+          const v = m.item
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.annotation
+          if (v) w.uint32(18).string(v)
+        }
+      },
+    },
+  )

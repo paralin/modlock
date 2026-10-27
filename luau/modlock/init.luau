@@ -193,6 +193,25 @@ export type AbilityOptions = {
 	maxCharges: number?,
 }
 
+-- BuildCategory is one named group of a build's items.
+export type BuildCategory = {
+	-- name is the category's title.
+	name: string,
+	-- description is the author's note on the category.
+	description: string,
+	-- items lists the category's items in buying order. An item this game
+	-- version does not define is left out.
+	items: { BuildItem },
+}
+
+-- BuildItem is one item of a build.
+export type BuildItem = {
+	-- item is the item's name, as GiveItem takes it.
+	item: string,
+	-- annotation is the author's note on the item.
+	annotation: string,
+}
+
 -- DamageEvent is one hit before the game applies it. Handles are zero when
 -- the game names no such entity.
 export type DamageEvent = {
@@ -1862,6 +1881,21 @@ schema.HoldModifierStateRequest = {
 	{ number = 2, name = "state", kind = "string" },
 	{ number = 3, name = "active", kind = "bool", optional = true },
 }
+schema.HeroBuildRequest = {
+	{ number = 1, name = "hero", kind = "string" },
+}
+schema.HeroBuildResponse = {
+	{ number = 1, name = "categories", kind = "message", repeated = true, message = "BuildCategory" },
+}
+schema.BuildCategory = {
+	{ number = 1, name = "name", kind = "string" },
+	{ number = 2, name = "description", kind = "string" },
+	{ number = 3, name = "items", kind = "message", repeated = true, message = "BuildItem" },
+}
+schema.BuildItem = {
+	{ number = 1, name = "item", kind = "string" },
+	{ number = 2, name = "annotation", kind = "string" },
+}
 schema.Vec3 = {
 	{ number = 1, name = "x", kind = "double" },
 	{ number = 2, name = "y", kind = "double" },
@@ -2702,6 +2736,19 @@ end
 -- without a hold.
 function modlock.holdReload(held: boolean): boolean
 	return call("HoldReload", "HoldReloadRequest", { held = held }) ~= nil
+end
+
+-- heroBuild reads a hero's recommended build from the host's game data:
+-- its categories of items in buying order. Items the game does not define
+-- are left out, so every item returned is one GiveItem accepts. A hero
+-- without a build answers with no categories. The call needs a loaded
+-- world.
+function modlock.heroBuild(hero: string): { BuildCategory }
+	local response = call("HeroBuild", "HeroBuildRequest", { hero = hero }, "HeroBuildResponse")
+	if response == nil then
+		return {}
+	end
+	return response.categories
 end
 
 -- readField reads one schema field of a live entity, such as the int32

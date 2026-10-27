@@ -129,6 +129,12 @@ type Ability = abilitiespb.Ability
 // AbilityOptions changes one ability of a player's hero.
 type AbilityOptions = abilitiespb.AbilityOptions
 
+// BuildCategory is one named group of a build's items.
+type BuildCategory = abilitiespb.BuildCategory
+
+// BuildItem is one item of a build.
+type BuildItem = abilitiespb.BuildItem
+
 // DamageEvent is one hit before the game applies it. Handles are zero when
 // the game names no such entity.
 type DamageEvent = combatpb.DamageEvent
@@ -689,6 +695,20 @@ func (p Player) SetAbility(options *AbilityOptions) error {
 // keeps its one copy.
 func (p Player) GiveItem(item string) error {
 	return invoke("GiveItem", &abilitiespb.GiveItemRequest{Player: p.Slot, Item: item}, nil)
+}
+
+// HeroBuild reads a hero's recommended build from the host's game data:
+// its categories of items in buying order. Items the game does not define
+// are left out, so every item returned is one GiveItem accepts. A hero
+// without a build answers with no categories. The call needs a loaded
+// world.
+func HeroBuild(hero string) ([]*BuildCategory, error) {
+	request := &abilitiespb.HeroBuildRequest{Hero: hero}
+	response := &abilitiespb.HeroBuildResponse{}
+	if err := invoke("HeroBuild", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetCategories(), nil
 }
 
 // ReplaceAbility puts the ability named ability, untrained, in the hero's

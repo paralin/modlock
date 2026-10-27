@@ -160,3 +160,39 @@ message HoldModifierStateRequest {
   // Active holds the state when true or omitted; false releases the hold.
   optional bool active = 3;
 }
+
+// HeroBuildRequest names the hero whose build to read.
+message HeroBuildRequest {
+  // Hero is the hero's class name, such as hero_inferno.
+  string hero = 1;
+}
+
+// HeroBuildResponse is a hero's recommended build. A hero without a build
+// answers with no categories.
+message HeroBuildResponse {
+  // Categories lists the build's phases in order, such as early, mid and late
+  // game.
+  repeated BuildCategory categories = 1;
+}
+
+// BuildCategory is one named group of a build's items.
+message BuildCategory {
+  // Name is the category's title.
+  string name = 1;
+
+  // Description is the author's note on the category.
+  string description = 2;
+
+  // Items lists the category's items in buying order. An item this game
+  // version does not define is left out.
+  repeated BuildItem items = 3;
+}
+
+// BuildItem is one item of a build.
+message BuildItem {
+  // Item is the item's name, as GiveItem takes it.
+  string item = 1;
+
+  // Annotation is the author's note on the item.
+  string annotation = 2;
+}

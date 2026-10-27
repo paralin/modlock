@@ -501,6 +501,116 @@ func (x *HoldModifierStateRequest) GetActive() bool {
 	return false
 }
 
+// HeroBuildRequest names the hero whose build to read.
+type HeroBuildRequest struct {
+	unknownFields []byte
+	// Hero is the hero's class name, such as hero_inferno.
+	Hero string `protobuf:"bytes,1,opt,name=hero,proto3" json:"hero,omitempty"`
+}
+
+func (x *HeroBuildRequest) Reset() {
+	*x = HeroBuildRequest{}
+}
+
+func (*HeroBuildRequest) ProtoMessage() {}
+
+func (x *HeroBuildRequest) GetHero() string {
+	if x != nil {
+		return x.Hero
+	}
+	return ""
+}
+
+// HeroBuildResponse is a hero's recommended build. A hero without a build
+// answers with no categories.
+type HeroBuildResponse struct {
+	unknownFields []byte
+	// Categories lists the build's phases in order, such as early, mid and late
+	// game.
+	Categories []*BuildCategory `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
+}
+
+func (x *HeroBuildResponse) Reset() {
+	*x = HeroBuildResponse{}
+}
+
+func (*HeroBuildResponse) ProtoMessage() {}
+
+func (x *HeroBuildResponse) GetCategories() []*BuildCategory {
+	if x != nil {
+		return x.Categories
+	}
+	return nil
+}
+
+// BuildCategory is one named group of a build's items.
+type BuildCategory struct {
+	unknownFields []byte
+	// Name is the category's title.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Description is the author's note on the category.
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// Items lists the category's items in buying order. An item this game
+	// version does not define is left out.
+	Items []*BuildItem `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
+}
+
+func (x *BuildCategory) Reset() {
+	*x = BuildCategory{}
+}
+
+func (*BuildCategory) ProtoMessage() {}
+
+func (x *BuildCategory) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *BuildCategory) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *BuildCategory) GetItems() []*BuildItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+// BuildItem is one item of a build.
+type BuildItem struct {
+	unknownFields []byte
+	// Item is the item's name, as GiveItem takes it.
+	Item string `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	// Annotation is the author's note on the item.
+	Annotation string `protobuf:"bytes,2,opt,name=annotation,proto3" json:"annotation,omitempty"`
+}
+
+func (x *BuildItem) Reset() {
+	*x = BuildItem{}
+}
+
+func (*BuildItem) ProtoMessage() {}
+
+func (x *BuildItem) GetItem() string {
+	if x != nil {
+		return x.Item
+	}
+	return ""
+}
+
+func (x *BuildItem) GetAnnotation() string {
+	if x != nil {
+		return x.Annotation
+	}
+	return ""
+}
+
 func (m *HoldReloadRequest) CloneVT() *HoldReloadRequest {
 	if m == nil {
 		return (*HoldReloadRequest)(nil)
@@ -717,6 +827,73 @@ func (m *HoldModifierStateRequest) CloneVT() *HoldModifierStateRequest {
 }
 
 func (m *HoldModifierStateRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *HeroBuildRequest) CloneVT() *HeroBuildRequest {
+	if m == nil {
+		return (*HeroBuildRequest)(nil)
+	}
+	r := new(HeroBuildRequest)
+	r.Hero = m.Hero
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HeroBuildRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *HeroBuildResponse) CloneVT() *HeroBuildResponse {
+	if m == nil {
+		return (*HeroBuildResponse)(nil)
+	}
+	r := new(HeroBuildResponse)
+	r.Categories = protobuf_go_lite.CloneVTSlice(m.Categories)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *HeroBuildResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *BuildCategory) CloneVT() *BuildCategory {
+	if m == nil {
+		return (*BuildCategory)(nil)
+	}
+	r := new(BuildCategory)
+	r.Name = m.Name
+	r.Description = m.Description
+	r.Items = protobuf_go_lite.CloneVTSlice(m.Items)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *BuildCategory) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *BuildItem) CloneVT() *BuildItem {
+	if m == nil {
+		return (*BuildItem)(nil)
+	}
+	r := new(BuildItem)
+	r.Item = m.Item
+	r.Annotation = m.Annotation
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *BuildItem) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1035,6 +1212,95 @@ func (this *HoldModifierStateRequest) EqualVT(that *HoldModifierStateRequest) bo
 
 func (this *HoldModifierStateRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*HoldModifierStateRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *HeroBuildRequest) EqualVT(that *HeroBuildRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Hero != that.Hero {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HeroBuildRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HeroBuildRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *HeroBuildResponse) EqualVT(that *HeroBuildResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Categories, that.Categories, func() *BuildCategory { return &BuildCategory{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *HeroBuildResponse) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*HeroBuildResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *BuildCategory) EqualVT(that *BuildCategory) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Description != that.Description {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Items, that.Items, func() *BuildItem { return &BuildItem{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *BuildCategory) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*BuildCategory)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *BuildItem) EqualVT(that *BuildItem) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Item != that.Item {
+		return false
+	}
+	if this.Annotation != that.Annotation {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *BuildItem) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*BuildItem)
 	if !ok {
 		return false
 	}
@@ -1817,6 +2083,240 @@ func (x *HoldModifierStateRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the HeroBuildRequest message to JSON.
+func (x *HeroBuildRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Hero != "" || s.HasField("hero") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hero")
+		s.WriteString(x.Hero)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HeroBuildRequest to JSON.
+func (x *HeroBuildRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HeroBuildRequest message from JSON.
+func (x *HeroBuildRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "hero":
+			s.AddField("hero")
+			x.Hero = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HeroBuildRequest from JSON.
+func (x *HeroBuildRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the HeroBuildResponse message to JSON.
+func (x *HeroBuildResponse) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Categories) > 0 || s.HasField("categories") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("categories")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Categories {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("categories"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the HeroBuildResponse to JSON.
+func (x *HeroBuildResponse) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the HeroBuildResponse message from JSON.
+func (x *HeroBuildResponse) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "categories":
+			s.AddField("categories")
+			if s.ReadNil() {
+				x.Categories = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Categories = append(x.Categories, nil)
+					return
+				}
+				v := &BuildCategory{}
+				v.UnmarshalProtoJSON(s.WithField("categories", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Categories = append(x.Categories, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the HeroBuildResponse from JSON.
+func (x *HeroBuildResponse) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the BuildCategory message to JSON.
+func (x *BuildCategory) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Description != "" || s.HasField("description") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("description")
+		s.WriteString(x.Description)
+	}
+	if len(x.Items) > 0 || s.HasField("items") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("items")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Items {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("items"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the BuildCategory to JSON.
+func (x *BuildCategory) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the BuildCategory message from JSON.
+func (x *BuildCategory) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "description":
+			s.AddField("description")
+			x.Description = s.ReadString()
+		case "items":
+			s.AddField("items")
+			if s.ReadNil() {
+				x.Items = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Items = append(x.Items, nil)
+					return
+				}
+				v := &BuildItem{}
+				v.UnmarshalProtoJSON(s.WithField("items", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Items = append(x.Items, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the BuildCategory from JSON.
+func (x *BuildCategory) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the BuildItem message to JSON.
+func (x *BuildItem) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Item != "" || s.HasField("item") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("item")
+		s.WriteString(x.Item)
+	}
+	if x.Annotation != "" || s.HasField("annotation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("annotation")
+		s.WriteString(x.Annotation)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the BuildItem to JSON.
+func (x *BuildItem) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the BuildItem message from JSON.
+func (x *BuildItem) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "item":
+			s.AddField("item")
+			x.Item = s.ReadString()
+		case "annotation":
+			s.AddField("annotation")
+			x.Annotation = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the BuildItem from JSON.
+func (x *BuildItem) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *HoldReloadRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2403,6 +2903,183 @@ func (m *HoldModifierStateRequest) MarshalToSizedBufferVT(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *HeroBuildRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HeroBuildRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HeroBuildRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Hero) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Hero)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *HeroBuildResponse) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *HeroBuildResponse) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HeroBuildResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Categories) > 0 {
+		for iNdEx := len(m.Categories) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Categories[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *BuildCategory) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BuildCategory) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *BuildCategory) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Items) > 0 {
+		for iNdEx := len(m.Items) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Items[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Description) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Description)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *BuildItem) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BuildItem) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *BuildItem) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Annotation) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Annotation)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Item) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Item)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *HoldReloadRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2561,6 +3238,59 @@ func (m *HoldModifierStateRequest) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.State)
 	n += protobuf_go_lite.SizeBoolPtr(1, m.Active)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *HeroBuildRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Hero)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *HeroBuildResponse) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Categories {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *BuildCategory) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Description)
+	for _, e := range m.Items {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *BuildItem) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Item)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Annotation)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2846,6 +3576,90 @@ func (x *HoldModifierStateRequest) MarshalProtoText() string {
 }
 
 func (x *HoldModifierStateRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *HeroBuildRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HeroBuildRequest")
+	if x.Hero != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hero")
+		protobuf_go_lite.TextWriteString(&sb, x.Hero)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HeroBuildRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *HeroBuildResponse) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "HeroBuildResponse")
+	if len(x.Categories) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "categories")
+		for i, v := range x.Categories {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &BuildCategory{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *HeroBuildResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *BuildCategory) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "BuildCategory")
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Description != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "description")
+		protobuf_go_lite.TextWriteString(&sb, x.Description)
+	}
+	if len(x.Items) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "items")
+		for i, v := range x.Items {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &BuildItem{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *BuildCategory) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *BuildItem) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "BuildItem")
+	if x.Item != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "item")
+		protobuf_go_lite.TextWriteString(&sb, x.Item)
+	}
+	if x.Annotation != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "annotation")
+		protobuf_go_lite.TextWriteString(&sb, x.Annotation)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *BuildItem) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3738,6 +4552,254 @@ func (m *HoldModifierStateRequest) UnmarshalVT(dAtA []byte) error {
 			}
 			b := bool(v)
 			m.Active = &b
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *HeroBuildRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HeroBuildRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HeroBuildRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hero", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Hero = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *HeroBuildResponse) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: HeroBuildResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: HeroBuildResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Categories", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Categories = append(m.Categories, &BuildCategory{})
+			if err := m.Categories[len(m.Categories)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *BuildCategory) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BuildCategory: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BuildCategory: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Description = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Items", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Items = append(m.Items, &BuildItem{})
+			if err := m.Items[len(m.Items)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *BuildItem) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BuildItem: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BuildItem: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Item", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Item = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Annotation", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Annotation = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

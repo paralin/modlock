@@ -101,6 +101,11 @@ string(REGEX REPLACE "(..)" "'\\\\x\\1'," MODLOCK_GAME_SIGNATURES "${MODLOCK_GAM
 configure_file(cmake/game_signatures_data.cc.in src/gameinterop/game_signatures_data.cc @ONLY)
 configure_file(data/game_signatures.txtpb game_signatures.txtpb COPYONLY)
 
+# The hero builds embed the same way.
+file(READ data/hero_builds.txtpb MODLOCK_HERO_BUILDS HEX)
+string(REGEX REPLACE "(..)" "'\\\\x\\1'," MODLOCK_HERO_BUILDS "${MODLOCK_HERO_BUILDS}")
+configure_file(cmake/hero_builds_data.cc.in src/wasm/hero_builds_data.cc @ONLY)
+
 # The SDK carries every generated message beside its code under src/, except
 # the host executable's own control and dump messages.
 file(GLOB_RECURSE MODLOCK_SDK_PROTO_SOURCES CONFIGURE_DEPENDS src/*.pb.cc)
@@ -185,6 +190,8 @@ add_library(modlock_sdk SHARED
   src/wasm/game_entities.cc
   src/wasm/game_fields.cc
   src/wasm/game_heroes.cc
+  src/wasm/game_builds.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/src/wasm/hero_builds_data.cc
   src/wasm/game_match.cc
   src/wasm/game_services.cc
   src/wasm/game_services_input.cc

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package modlock.gamedata;
+
+option go_package = "github.com/paralin/modlock/src/gamedata;gamedata";
+
+// HeroBuildFile is the game data file data/hero_builds.txtpb: one recommended
+// item build per hero, for the game version it was recorded under. The host
+// embeds it and answers the HeroBuild call from it.
+message HeroBuildFile {
+  // GameVersion is the game build the builds were recorded under.
+  uint32 game_version = 1;
+
+  // Heroes holds one build per hero, sorted by hero class.
+  repeated HeroBuild heroes = 2;
+}
+
+// HeroBuild is one hero's recommended build.
+message HeroBuild {
+  // HeroClass is the hero's class name, such as "hero_inferno".
+  string hero_class = 1;
+
+  // BuildId is the build's identifier in the source it was recorded from, or
+  // zero when it has none.
+  uint32 build_id = 2;
+
+  // Name is the build's title.
+  string name = 3;
+
+  // AuthorAccountId is the build author's account, or zero when unknown.
+  uint32 author_account_id = 4;
+
+  // Categories lists the build's phases in the author's order, such as early,
+  // mid and late game.
+  repeated HeroBuildCategory categories = 5;
+}
+
+// HeroBuildCategory is one named group of a build's items.
+message HeroBuildCategory {
+  // Name is the category's title, such as "Early Game".
+  string name = 1;
+
+  // Description is the author's note on the category.
+  string description = 2;
+
+  // Items lists the category's items in buying order.
+  repeated HeroBuildItem items = 3;
+}
+
+// HeroBuildItem is one item of a build.
+message HeroBuildItem {
+  // ClassName is the item's name, such as "upgrade_fleetfoot_boots".
+  string class_name = 1;
+
+  // Annotation is the author's note on the item.
+  string annotation = 2;
+}

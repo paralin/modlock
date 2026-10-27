@@ -236,6 +236,29 @@ class AbilityOptions:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class BuildCategory:
+    """BuildCategory is one named group of a build's items."""
+
+    # name is the category's title.
+    name: str = ""
+    # description is the author's note on the category.
+    description: str = ""
+    # items lists the category's items in buying order. An item this game
+    # version does not define is left out.
+    items: list[BuildItem] = dataclasses.field(default_factory=lambda: list[BuildItem]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class BuildItem:
+    """BuildItem is one item of a build."""
+
+    # item is the item's name, as GiveItem takes it.
+    item: str = ""
+    # annotation is the author's note on the item.
+    annotation: str = ""
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class DamageEvent:
     """DamageEvent is one hit before the game applies it. Handles are zero when
     the game names no such entity.
@@ -1835,6 +1858,33 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "active", "bool", optional=True),
         ],
     ),
+    "HeroBuildRequest": (
+        None,
+        [
+            wire.Field(1, "hero", "string"),
+        ],
+    ),
+    "HeroBuildResponse": (
+        None,
+        [
+            wire.Field(1, "categories", "message", repeated=True, message="BuildCategory"),
+        ],
+    ),
+    "BuildCategory": (
+        BuildCategory,
+        [
+            wire.Field(1, "name", "string"),
+            wire.Field(2, "description", "string"),
+            wire.Field(3, "items", "message", repeated=True, message="BuildItem"),
+        ],
+    ),
+    "BuildItem": (
+        BuildItem,
+        [
+            wire.Field(1, "item", "string"),
+            wire.Field(2, "annotation", "string"),
+        ],
+    ),
     "Vec3": (
         Vector,
         [
@@ -3134,6 +3184,19 @@ def hold_reload(held: bool) -> bool:
     without a hold.
     """
     return _call("HoldReload", "HoldReloadRequest", {"held": held}) is not None
+
+
+def hero_build(hero: str) -> list[BuildCategory]:
+    """hero_build reads a hero's recommended build from the host's game data:
+    its categories of items in buying order. Items the game does not define
+    are left out, so every item returned is one GiveItem accepts. A hero
+    without a build answers with no categories. The call needs a loaded
+    world.
+    """
+    response = _call("HeroBuild", "HeroBuildRequest", {"hero": hero}, "HeroBuildResponse")
+    if response is None:
+        return []
+    return response["categories"]
 
 
 def read_field(entity: int, class_name: str, field: str, type: FieldType) -> FieldValue | None:
