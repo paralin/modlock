@@ -74,6 +74,12 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
     HudPart.OWN_HEALTH,
     HudPart.LEVEL_UP,
   ])
+  hideHud(player, ['souls', 'minimap', 'abilities'])
+  expect(sent.at(-1)!.change!.set![0]!.hideHud).toEqual([
+    HudPart.SOULS,
+    HudPart.MINIMAP,
+    HudPart.ABILITIES,
+  ])
   hideHud(player, [])
   expect(sent.at(-1)!.change!.set![0]!.hideHud ?? []).toEqual([])
 })

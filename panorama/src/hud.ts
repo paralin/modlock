@@ -61,6 +61,15 @@ const finders: Partial<Record<HudPart, (hud: HudPanel) => HudPanel[]>> = {
     )
     return ammo.filter((panel) => panel !== null)
   },
+  [HudPart.SOULS]: (hud) => ownPanel(hud, 'gold_and_ap_container'),
+  [HudPart.MINIMAP]: (hud) => ownPanel(hud, 'minimap_persp'),
+  [HudPart.ABILITIES]: (hud) => ownPanel(hud, 'AbilitiesContainer'),
+}
+
+/** ownPanel finds the one panel with id under the game's HUD. */
+function ownPanel(hud: HudPanel, id: string): HudPanel[] {
+  const panel = hud.FindChildTraverse(id)
+  return panel ? [panel] : []
 }
 
 /** hiddenParts lists the parts of the game's HUD that screen's roots hide. */

@@ -152,6 +152,23 @@ export enum HudPart {
    * crosshair and the low and out of ammo warnings. The crosshair stays.
    */
   AMMO = 4,
+
+  /**
+   * HUD_PART_SOULS is the player's souls and level readout beside their
+   * health. The abilities, items and health bar stay.
+   */
+  SOULS = 5,
+
+  /**
+   * HUD_PART_MINIMAP is the minimap with its hints and district name.
+   */
+  MINIMAP = 6,
+
+  /**
+   * HUD_PART_ABILITIES is the bar of the player's abilities and active items.
+   * The health bar, souls, held items and crosshair stay.
+   */
+  ABILITIES = 7,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -162,6 +179,9 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [2, 'HUD_PART_OWN_HEALTH'],
     [3, 'HUD_PART_TOP_BAR'],
     [4, 'HUD_PART_AMMO'],
+    [5, 'HUD_PART_SOULS'],
+    [6, 'HUD_PART_MINIMAP'],
+    [7, 'HUD_PART_ABILITIES'],
   ],
 )
 
