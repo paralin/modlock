@@ -17,6 +17,9 @@ export class DomPanel implements Panel {
   private readonly attributes = new Map<string, string>()
   private valid = true
   private accepts = false
+  /** options holds a dropdown's option panels by id. */
+  private readonly options = new Map<string, DomPanel>()
+  private dialog: Record<string, string> = {}
 
   constructor(
     readonly paneltype: string,
@@ -51,8 +54,19 @@ export class DomPanel implements Panel {
     this.element.addEventListener('click', (event) => {
       if (!this.enabled) return
       event.stopPropagation()
+      if (paneltype === 'ToggleButton') this.checked = !this.checked
       this.handlers.get('onactivate')?.()
     })
+
+    // A form element's edits arrive as the event its panel type raises.
+    this.element.addEventListener('input', () =>
+      this.handlers.get(
+        paneltype === 'Slider' ? 'onvaluechanged' : 'ontextentrychange',
+      )?.(),
+    )
+    this.element.addEventListener('change', () =>
+      this.handlers.get('oninputsubmit')?.(),
+    )
     this.element.addEventListener('mouseenter', () =>
       this.handlers.get('onmouseover')?.(),
     )
@@ -66,11 +80,63 @@ export class DomPanel implements Panel {
   }
 
   get text(): string {
-    return this.element.textContent ?? ''
+    return this.element instanceof HTMLInputElement
+      ? this.element.value
+      : (this.element.textContent ?? '')
   }
   set text(value: string) {
+    if (this.element instanceof HTMLInputElement) {
+      this.element.value = value
+      return
+    }
     this.element.textContent = value
     shrink(this.element)
+  }
+
+  get value(): number {
+    return this.element instanceof HTMLInputElement
+      ? Number(this.element.value)
+      : 0
+  }
+  set value(value: number) {
+    if (this.element instanceof HTMLInputElement) {
+      this.element.value = String(value)
+    }
+  }
+
+  get checked(): boolean {
+    return this.element.getAttribute('aria-pressed') === 'true'
+  }
+  set checked(value: boolean) {
+    this.element.setAttribute('aria-pressed', String(value))
+  }
+
+  /** SetDialogVariable keeps a value for Localize to fill a token with. */
+  SetDialogVariable(name: string, value: string) {
+    this.dialog[name] = value
+  }
+
+  /** dialogVariables returns the values SetDialogVariable kept. */
+  dialogVariables(): Readonly<Record<string, string>> {
+    return this.dialog
+  }
+
+  /** AddOption makes a label panel one of a dropdown's options. */
+  AddOption(option: DomPanel) {
+    if (!(this.element instanceof HTMLSelectElement)) return
+    option.element.remove()
+    this.options.set(option.id, option)
+    this.element.append(new Option(option.text, option.id))
+  }
+
+  SetSelected(id: string) {
+    if (this.element instanceof HTMLSelectElement) this.element.value = id
+  }
+
+  GetSelected(): DomPanel | null {
+    return this.element instanceof HTMLSelectElement
+      ? (this.options.get(this.element.value) ?? null)
+      : null
   }
 
   get visible(): boolean {
@@ -270,8 +336,9 @@ export const domPanorama = {
     id: string,
     properties?: Record<string, string>,
   ): DomPanel {
-    // Make the panel, then show its scaling and hero as the page can.
-    const panel = new DomPanel(type, id)
+    // Make the panel, on a form element for an input, then show its scaling,
+    // hero and account as the page can.
+    const panel = new DomPanel(type, id, control(type, properties ?? {}))
     panel.SetParent(parent)
     if (properties?.scaling) {
       panel.element.style.backgroundSize = backgroundSize(properties.scaling)
@@ -279,7 +346,15 @@ export const domPanorama = {
     if (properties?.heroid) {
       panel.element.dataset.hero = `hero ${properties.heroid}`
     }
+    if (properties?.accountid) {
+      panel.element.dataset.account = properties.accountid
+    }
     return panel
+  },
+  // The page has no game text, so a token shows itself and its values.
+  Localize(token: string, panel: DomPanel) {
+    const values = Object.values(panel.dialogVariables())
+    return values.length ? `${token} ${values.join(' ')}` : token
   },
   // A text tooltip shows as the element's title; other events go nowhere.
   DispatchEvent(event: string, ...values: unknown[]) {
@@ -291,7 +366,45 @@ export const domPanorama = {
   Msg(...values: unknown[]) {
     console.debug(...values)
   },
+  Schedule(seconds: number, callback: () => void) {
+    setTimeout(callback, seconds * 1000)
+  },
 } satisfies Panorama
+
+// control returns the form element a panel of type draws on, made with
+// properties as the game makes it, or undefined for a plain panel.
+function control(
+  type: string,
+  properties: Record<string, string>,
+): HTMLElement | undefined {
+  switch (type) {
+    case 'TextEntry': {
+      const entry = document.createElement('input')
+      entry.maxLength = Number(properties.maxchars ?? 100)
+      entry.placeholder = properties.placeholder ?? ''
+      return entry
+    }
+    case 'Slider': {
+      // A zero increment slides smoothly.
+      const slider = document.createElement('input')
+      slider.type = 'range'
+      slider.min = properties.min ?? '0'
+      slider.max = properties.max ?? '1'
+      slider.step =
+        Number(properties.increment) > 0 ? properties.increment! : 'any'
+      return slider
+    }
+    case 'ToggleButton': {
+      const toggle = document.createElement('button')
+      toggle.textContent = properties.text ?? ''
+      return toggle
+    }
+    case 'DropDown':
+      return document.createElement('select')
+    default:
+      return undefined
+  }
+}
 
 // backgroundSize maps an image's Panorama scaling to a CSS background size.
 function backgroundSize(scaling: string): string {

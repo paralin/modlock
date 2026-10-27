@@ -205,6 +205,11 @@ func (h *handlers) UiPress(*UiPressEvent) error {
 	return nil
 }
 
+// UiInput ignores changes to inputs; Go mods build no interface.
+func (h *handlers) UiInput(*UiInputEvent) error {
+	return nil
+}
+
 // Serve runs the handler of the called service.
 func (h *handlers) Serve(event *ServiceCall) (*ServiceReply, error) {
 	handler, ok := h.services[event.GetService()]

@@ -1,6 +1,7 @@
 // Contract tests for a mod's interface trees: changes apply in order, a change
 // that breaks a limit leaves the tree as it was, a layout stays inside the
-// mod's addon, and only a shown button takes presses. A departed player's slot takes only a reset.
+// mod's addon, only a shown button takes presses, and only a value a shown
+// input can hold reaches the mod. A departed player's slot takes only a reset.
 #include <string>
 
 #include "gtest/gtest.h"
@@ -75,6 +76,63 @@ TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   }
   EXPECT_FALSE(trees.Apply(0, large));
   EXPECT_TRUE(trees.IsButton(0, "ready"));
+}
+
+TEST(UiTrees, ChecksInputs) {
+  // Show an entry, a slider, a toggle and a dropdown.
+  UiTrees trees;
+  Change change;
+  auto add = [&](const char* id) {
+    auto* node = change.add_set();
+    node->set_id(id);
+    node->set_kind(modlock::wasm::ui::KIND_INPUT);
+    return node;
+  };
+  add("name")->mutable_text_entry()->set_max_length(4);
+  auto* slider = add("volume")->mutable_slider();
+  slider->set_min(0);
+  slider->set_max(10);
+  slider->set_step(2.5F);
+  add("ready")->mutable_toggle();
+  auto* team = add("team")->mutable_dropdown();
+  team->add_options("Red");
+  team->add_options("Blue");
+  ASSERT_TRUE(trees.Apply(0, change));
+
+  // Text arrives in base64url, losing control characters and what passes
+  // the entry's length; malformed text is refused.
+  EXPECT_EQ(trees.Input(0, "name", "SGkK8J-Ygg")->text(), "Hi\xf0\x9f\x98\x82");
+  EXPECT_EQ(trees.Input(0, "name", "YWJjZGVm")->text(), "abcd");
+  EXPECT_FALSE(trees.Input(0, "name", "wA"));
+  EXPECT_FALSE(trees.Input(0, "name", "a b"));
+
+  // A slider's number is clamped and snapped, and a dropdown's index and a
+  // toggle's state must be ones the control holds.
+  EXPECT_FLOAT_EQ(trees.Input(0, "volume", "6.1")->number(), 5);
+  EXPECT_FLOAT_EQ(trees.Input(0, "volume", "99")->number(), 10);
+  EXPECT_FALSE(trees.Input(0, "volume", "nan"));
+  EXPECT_TRUE(trees.Input(0, "ready", "1")->on());
+  EXPECT_FALSE(trees.Input(0, "ready", "yes"));
+  EXPECT_EQ(trees.Input(0, "team", "1")->choice(), 1U);
+  EXPECT_FALSE(trees.Input(0, "team", "2"));
+
+  // Another slot, a node that is no input and a disabled input take nothing.
+  EXPECT_FALSE(trees.Input(1, "ready", "1"));
+  ASSERT_TRUE(trees.Apply(0, Set("ready", modlock::wasm::ui::KIND_BUTTON)));
+  EXPECT_FALSE(trees.Input(0, "ready", "1"));
+  auto disabled = Set("ready", modlock::wasm::ui::KIND_INPUT);
+  disabled.mutable_set(0)->mutable_toggle();
+  disabled.mutable_set(0)->set_disabled(true);
+  ASSERT_TRUE(trees.Apply(0, disabled));
+  EXPECT_FALSE(trees.Input(0, "ready", "1"));
+
+  // An input needs a control, and a token is '#' then a word.
+  EXPECT_FALSE(trees.Apply(0, Set("bare", modlock::wasm::ui::KIND_INPUT)));
+  auto label = Set("hero", modlock::wasm::ui::KIND_LABEL);
+  label.mutable_set(0)->set_token("#Citadel_HeroName_Haze");
+  EXPECT_TRUE(trees.Apply(0, label));
+  label.mutable_set(0)->set_token("#{s:x}");
+  EXPECT_FALSE(trees.Apply(0, label));
 }
 
 TEST(UiTrees, ForgetsPlayers) {

@@ -20,6 +20,22 @@
 // its sound when pressed. A hero element shows one of the game's pictures of
 // a hero, such as <hero hero={player.hero} look="small" />.
 //
+// An element's enter style is where its panel starts when it first shows,
+// and its exit style where it goes as it leaves; its transition eases each
+// way, so <panel style={{ opacity: 1, transition: { seconds: 0.2 } }}
+// enter={{ opacity: 0 }}> fades in. A cycle swings an element to another style
+// and back while it shows, as a pulse or a blink.
+//
+// Inputs take a value from the player and call onChange with the player and
+// the value the host checked: <entry> a line of text, <slider> a number in its
+// range, <toggle> on or off, and <dropdown> the index of an option. The value
+// the mod draws is the truth; the player's edit shows until the mod's next
+// value for that input differs from its last.
+//
+// A label with a token shows the game's own text in the player's language,
+// such as <label token="#Citadel_HeroName_Haze" />, and an avatar shows a
+// player's Steam picture: <avatar steamId={info.steamId} />.
+//
 // A layout element loads a layout from the mod's content addon, such as
 // <layout src="shop.xml" data={stock} />. Its script runs in the player's
 // game, so only a host that has reviewed the mod's content loads it; elsewhere
@@ -42,6 +58,7 @@
 import {
   Align,
   type Change,
+  type Cycle as WireCycle,
   Decoration,
   Easing,
   Face,
@@ -286,6 +303,22 @@ export interface Props {
   readonly sound?: string
   readonly disabled?: boolean
   readonly onPress?: (player: Player) => void
+  readonly enter?: Style
+  readonly exit?: Style
+  readonly cycle?: Cycle
+  readonly token?: string
+  readonly variables?: Readonly<Record<string, string | number>>
+  readonly steamId?: bigint
+  readonly value?: string | number
+  readonly placeholder?: string
+  readonly maxLength?: number
+  readonly min?: number
+  readonly max?: number
+  readonly step?: number
+  readonly on?: boolean
+  readonly options?: readonly string[]
+  readonly selected?: number
+  readonly onChange?: (player: Player, value: never) => void
 }
 
 /**
@@ -300,6 +333,22 @@ export interface ElementProps {
   hover?: Style
   tooltip?: string
   hoverSound?: string
+  /** enter is the style the element's panel starts from when it first shows. */
+  enter?: Style
+  /** exit is the style the element's panel eases to as it leaves. */
+  exit?: Style
+  /** cycle swings the element to another style and back while it shows. */
+  cycle?: Cycle
+}
+
+/**
+ * Cycle swings an element from its style to style and back, each way taking
+ * seconds, count times or, without a count, while it shows.
+ */
+export interface Cycle {
+  style: Style
+  seconds: number
+  count?: number
 }
 
 /** PanelProps lay out a panel, which groups its children. */
@@ -307,9 +356,66 @@ export interface PanelProps extends ElementProps {
   children?: Child
 }
 
-/** LabelProps show text: the label's text children, joined. */
+/**
+ * LabelProps show text: the label's text children, joined, or the game's text
+ * for token in the player's language, with each {s:name} place in it filled
+ * from variables.
+ */
 export interface LabelProps extends ElementProps {
   children?: Child
+  token?: string
+  variables?: Readonly<Record<string, string | number>>
+}
+
+/** AvatarProps show the Steam picture of the player with steamId. */
+export interface AvatarProps extends ElementProps {
+  steamId: bigint
+}
+
+/**
+ * InputProps are the props every input takes. A disabled input takes no
+ * changes.
+ */
+export interface InputProps extends ElementProps {
+  disabled?: boolean
+}
+
+/**
+ * EntryProps make a box the player types a line into: value is its text,
+ * placeholder the faint text it shows empty, and maxLength its limit in
+ * characters, 100 unless set, and at most 240 bytes of text.
+ */
+export interface EntryProps extends InputProps {
+  value?: string
+  placeholder?: string
+  maxLength?: number
+  onChange?: (player: Player, text: string) => void
+}
+
+/**
+ * SliderProps make a bar the player drags to a number from min to max, 0 to 1
+ * unless set, stopping at each step when step is set.
+ */
+export interface SliderProps extends InputProps {
+  value?: number
+  min?: number
+  max?: number
+  step?: number
+  onChange?: (player: Player, value: number) => void
+}
+
+/** ToggleProps make a box the player checks, labeled by its text children. */
+export interface ToggleProps extends InputProps {
+  children?: Child
+  on?: boolean
+  onChange?: (player: Player, on: boolean) => void
+}
+
+/** DropdownProps let the player pick one of options; selected is its index. */
+export interface DropdownProps extends InputProps {
+  options: readonly string[]
+  selected?: number
+  onChange?: (player: Player, index: number) => void
 }
 
 /**
@@ -388,6 +494,11 @@ export declare namespace JSX {
     hero: HeroProps & IntrinsicAttributes
     button: ButtonProps & IntrinsicAttributes
     layout: LayoutProps & IntrinsicAttributes
+    avatar: AvatarProps & IntrinsicAttributes
+    entry: EntryProps & IntrinsicAttributes
+    slider: SliderProps & IntrinsicAttributes
+    toggle: ToggleProps & IntrinsicAttributes
+    dropdown: DropdownProps & IntrinsicAttributes
   }
   interface IntrinsicAttributes {
     key?: string | number
@@ -496,6 +607,21 @@ export function press(player: Player, node: string): void {
   const pressed = screens.get(player.slot)?.presses.get(node)
   if (pressed) {
     pressed.handler(player)
+  }
+}
+
+/**
+ * change runs the handler of the input the player changed, with its value as
+ * the host checked it.
+ */
+export function change(
+  player: Player,
+  node: string,
+  value: string | number | boolean | undefined,
+): void {
+  const changed = screens.get(player.slot)?.changes.get(node)
+  if (changed) {
+    changed.handler(player, value as never)
   }
 }
 
@@ -638,6 +764,11 @@ interface Screen {
    * scriptc has no Map slot for a function.
    */
   readonly presses: Map<string, { readonly handler: (player: Player) => void }>
+  /** changes maps each input's id to its handler, as presses does. */
+  readonly changes: Map<
+    string,
+    { readonly handler: (player: Player, value: never) => void }
+  >
   /** next numbers the next new node, so an id is never reused. */
   next: number
 }
@@ -690,13 +821,18 @@ class Layout {
       nodes: new Map(),
       ids: new Map(),
       presses: new Map(),
+      changes: new Map(),
       next: previous?.next ?? 0,
     }
   }
 
   /** add records a node. */
   add(node: Node): void {
-    this.screen.nodes.set(node.id!, { node, encoded: JSON.stringify(node) })
+    // An avatar's Steam id is a bigint, which JSON writes as its digits here.
+    const encoded = JSON.stringify(node, (_, value: unknown) =>
+      typeof value === 'bigint' ? String(value) : value,
+    )
+    this.screen.nodes.set(node.id!, { node, encoded })
   }
 
   /** id returns the node id for the element at place. */
@@ -747,11 +883,26 @@ function place(layout: Layout, child: Child, at: string): string[] {
     hover: wireStyle(props.hover),
     tooltip: props.tooltip,
     hoverSound: props.hoverSound,
+    enter: wireStyle(props.enter),
+    exit: wireStyle(props.exit),
+    cycle: cycle(props.cycle),
   }
   switch (child.type) {
     case 'label':
       node.kind = Kind.LABEL
       node.text = text(props.children)
+      node.token = props.token
+      node.variables = variables(props.variables)
+      break
+    case 'avatar':
+      node.kind = Kind.AVATAR
+      node.steamId = props.steamId
+      break
+    case 'entry':
+    case 'slider':
+    case 'toggle':
+    case 'dropdown':
+      input(layout, node, child.type, props)
       break
     case 'image':
       node.kind = Kind.IMAGE
@@ -786,6 +937,84 @@ function place(layout: Layout, child: Child, at: string): string[] {
   }
   layout.add(node)
   return [node.id!]
+}
+
+/** input lays out an input of kind from props in node. */
+function input(
+  layout: Layout,
+  node: Node,
+  kind: 'entry' | 'slider' | 'toggle' | 'dropdown',
+  props: Props,
+): void {
+  // A disabled input's change runs nothing, whoever sends it.
+  node.kind = Kind.INPUT
+  node.disabled = props.disabled
+  if (props.onChange && !props.disabled) {
+    layout.screen.changes.set(node.id!, { handler: props.onChange })
+  }
+
+  // Each control carries its value and its bounds.
+  switch (kind) {
+    case 'entry':
+      node.input = {
+        case: 'textEntry',
+        value: {
+          text: String(props.value ?? ''),
+          placeholder: props.placeholder,
+          maxLength: props.maxLength,
+        },
+      }
+      break
+    case 'slider':
+      node.input = {
+        case: 'slider',
+        value: {
+          value: Number(props.value ?? 0),
+          min: props.min,
+          max: props.max,
+          step: props.step,
+        },
+      }
+      break
+    case 'toggle':
+      node.text = text(props.children)
+      node.input = { case: 'toggle', value: { on: props.on } }
+      break
+    case 'dropdown':
+      node.input = {
+        case: 'dropdown',
+        value: {
+          options: [...(props.options ?? [])],
+          selected: props.selected,
+        },
+      }
+  }
+}
+
+/** variables encodes a localized label's variables as text. */
+function variables(
+  value: Readonly<Record<string, string | number>> | undefined,
+): Record<string, string> | undefined {
+  if (!value) {
+    return undefined
+  }
+  const encoded: Record<string, string> = {}
+  for (const [name, filled] of Object.entries(value)) {
+    encoded[name] = String(filled)
+  }
+  return encoded
+}
+
+/** cycle encodes a cycle. */
+function cycle(value: Cycle | undefined): WireCycle | undefined {
+  if (!value) {
+    return undefined
+  }
+  return {
+    style: wireStyle(value.style),
+    seconds: value.seconds,
+    count: value.count,
+  }
 }
 
 /** diff returns the change from previous to next, or undefined when nothing changed. */

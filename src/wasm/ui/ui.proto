@@ -90,6 +90,43 @@ message Node {
   // HeroLook picks which of the game's pictures of the hero a hero image
   // draws.
   HeroLook hero_look = 18;
+
+  // Input is the control an input node draws and the value it holds. Each
+  // change the player makes reaches the mod as a UiInputEvent, which the host
+  // checks against the control: a slider's range and step, a dropdown's
+  // options, an entry's length. The renderer keeps the player's own edit
+  // until a draw changes the value the node holds, so the mod's value is the
+  // truth and a redraw for another reason does not undo a change in flight.
+  oneof input {
+    TextEntry text_entry = 19;
+    Slider slider = 20;
+    Toggle toggle = 21;
+    Dropdown dropdown = 22;
+  }
+
+  // Token draws a label in the player's language: a token of the game's
+  // localization, such as "#Citadel_HeroName_Haze", shown in place of text.
+  // It is '#' then one or more letters, digits, '_', '-' and '.'.
+  string token = 23;
+
+  // Variables fill the {s:name} places in a localized label's token.
+  map<string, string> variables = 24;
+
+  // SteamId is an avatar's player, by Steam id.
+  fixed64 steam_id = 25;
+
+  // Enter is the style a node's new panel starts from. The node's transition
+  // eases it from there to the node's style, so it fades, slides or grows
+  // in.
+  Style enter = 26;
+
+  // Exit is the style a node's panel eases to, over its transition, when the
+  // node leaves the tree; the panel goes once the transition ends.
+  Style exit = 27;
+
+  // Cycle repeats a change to the node's style while it shows, such as a
+  // pulse or a blink.
+  Cycle cycle = 28;
 }
 
 // Scaling fits a picture into its node's box.
@@ -190,6 +227,68 @@ enum Kind {
 
   // KIND_HERO_IMAGE shows one of the game's pictures of the node's hero.
   KIND_HERO_IMAGE = 6;
+
+  // KIND_INPUT takes a value from the player in the control its input names.
+  // An input takes clicks only while the player has a cursor.
+  KIND_INPUT = 7;
+
+  // KIND_AVATAR shows the Steam picture of the player its steam_id names.
+  KIND_AVATAR = 8;
+}
+
+// TextEntry is a box the player types a line of text into.
+message TextEntry {
+  // Text is the box's text.
+  string text = 1;
+
+  // Placeholder is the faint text an empty box shows.
+  string placeholder = 2;
+
+  // MaxLength bounds the text, in characters; zero means 100. The host takes
+  // at most 240 bytes of text, so a console line carries it.
+  uint32 max_length = 3;
+}
+
+// Slider is a bar the player drags to a number.
+message Slider {
+  // Value is the number the slider holds.
+  float value = 1;
+
+  // Min and Max bound the value; a max no greater than min means 0 to 1.
+  float min = 2;
+  float max = 3;
+
+  // Step is the distance between the values the slider stops at; zero lets
+  // it stop anywhere.
+  float step = 4;
+}
+
+// Toggle is a box the player checks or clears. The node's text labels it.
+message Toggle {
+  // On reports whether the box is checked.
+  bool on = 1;
+}
+
+// Dropdown lets the player pick one of a list of options.
+message Dropdown {
+  // Options are the choices, as the player reads them.
+  repeated string options = 1;
+
+  // Selected is the index of the chosen option.
+  uint32 selected = 2;
+}
+
+// Cycle alternates a node between its style and another, easing each way.
+message Cycle {
+  // Style is the style laid over the node's own at the far end of the cycle.
+  Style style = 1;
+
+  // Seconds is how long each way takes.
+  float seconds = 2;
+
+  // Count is how many times the node goes there and back; zero repeats while
+  // it shows.
+  uint32 count = 3;
 }
 
 // Style is the closed set of layout and paint properties a node may set. A
@@ -623,6 +722,31 @@ message UiPressEvent {
 
   // Node is the id of the pressed button.
   string node = 2;
+}
+
+// UiInputEvent reports a change the player made to an input in their
+// interface, with the value as the host checked it.
+message UiInputEvent {
+  // Player is the player who changed it.
+  int32 player = 1;
+
+  // Node is the id of the input.
+  string node = 2;
+
+  // Value is the input's new value, in the kind its control holds.
+  oneof value {
+    // Text is a text entry's text.
+    string text = 3;
+
+    // Number is a slider's value.
+    float number = 4;
+
+    // On is a toggle's state.
+    bool on = 5;
+
+    // Choice is the index of a dropdown's chosen option.
+    uint32 choice = 6;
+  }
 }
 
 // UiRequest changes the interface the mod shows one player.

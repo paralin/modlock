@@ -365,6 +365,7 @@ type Input struct {
 	// Types that are assignable to Body:
 	//	*Input_Command
 	//	*Input_Press
+	//	*Input_Change
 	Body isInput_Body `protobuf_oneof:"body"`
 }
 
@@ -395,6 +396,13 @@ func (x *Input) GetPress() *Press {
 	return nil
 }
 
+func (x *Input) GetChange() *Change {
+	if x, ok := x.GetBody().(*Input_Change); ok {
+		return x.Change
+	}
+	return nil
+}
+
 type isInput_Body interface {
 	isInput_Body()
 }
@@ -409,9 +417,45 @@ type Input_Press struct {
 	Press *Press `protobuf:"bytes,2,opt,name=press,proto3,oneof"`
 }
 
+type Input_Change struct {
+	// Change changes an input in a mod's interface.
+	Change *Change `protobuf:"bytes,3,opt,name=change,proto3,oneof"`
+}
+
 func (*Input_Command) isInput_Body() {}
 
 func (*Input_Press) isInput_Body() {}
+
+func (*Input_Change) isInput_Body() {}
+
+// Change sets an input in the interface a mod shows a player.
+type Change struct {
+	unknownFields []byte
+	// Mod is the mod's name.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Event names the player, the input and its new value.
+	Event *ui.UiInputEvent `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty"`
+}
+
+func (x *Change) Reset() {
+	*x = Change{}
+}
+
+func (*Change) ProtoMessage() {}
+
+func (x *Change) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *Change) GetEvent() *ui.UiInputEvent {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
 
 // Press identifies a button in the interface a mod shows a player.
 type Press struct {
@@ -904,6 +948,36 @@ func (m *Input_Press) CloneVT() *Input_Press {
 }
 
 func (m *Input_Press) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
+func (m *Input_Change) CloneVT() *Input_Change {
+	if m == nil {
+		return (*Input_Change)(nil)
+	}
+	r := new(Input_Change)
+	r.Change = protobuf_go_lite.CloneVTValue(m.Change)
+	return r
+}
+
+func (m *Input_Change) CloneOneofVT() isInput_Body {
+	return m.CloneVT()
+}
+
+func (m *Change) CloneVT() *Change {
+	if m == nil {
+		return (*Change)(nil)
+	}
+	r := new(Change)
+	r.Mod = m.Mod
+	r.Event = protobuf_go_lite.CloneVTValue(m.Event)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Change) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1400,6 +1474,46 @@ func (this *Input_Press) EqualVT(thatIface isInput_Body) bool {
 		return false
 	}
 	return true
+}
+
+func (this *Input_Change) EqualVT(thatIface isInput_Body) bool {
+	that, ok := thatIface.(*Input_Change)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Change, that.Change, func() *Change { return &Change{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Change) EqualVT(that *Change) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Event, that.Event) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Change) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Change)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *Press) EqualVT(that *Press) bool {
@@ -2086,6 +2200,10 @@ func (x *Input) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("press")
 			ov.Press.MarshalProtoJSON(s.WithField("press"))
+		case *Input_Change:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("change")
+			ov.Change.MarshalProtoJSON(s.WithField("change"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -2119,12 +2237,75 @@ func (x *Input) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Press = &Press{}
 			ov.Press.UnmarshalProtoJSON(s.WithField("press", true))
+		case "change":
+			ov := &Input_Change{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Change = nil
+				return
+			}
+			ov.Change = &Change{}
+			ov.Change.UnmarshalProtoJSON(s.WithField("change", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Input from JSON.
 func (x *Input) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Change message to JSON.
+func (x *Change) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Event != nil || s.HasField("event") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("event")
+		x.Event.MarshalProtoJSON(s.WithField("event"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Change to JSON.
+func (x *Change) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Change message from JSON.
+func (x *Change) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "event":
+			if s.ReadNil() {
+				x.Event = nil
+				return
+			}
+			x.Event = &ui.UiInputEvent{}
+			x.Event.UnmarshalProtoJSON(s.WithField("event", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Change from JSON.
+func (x *Change) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -3004,6 +3185,77 @@ func (m *Input_Press) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Input_Change) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Input_Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Change != nil {
+		size, err := m.Change.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Change) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Change) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Event != nil {
+		size, err := m.Event.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Press) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3570,6 +3822,36 @@ func (m *Input_Press) SizeVT() (n int) {
 	return n
 }
 
+func (m *Input_Change) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Change != nil {
+		l = m.Change.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
+func (m *Change) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	if m.Event != nil {
+		l = m.Event.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *Press) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3902,11 +4184,36 @@ func (x *Input) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Press)
 		}
+	case *Input_Change:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "change")
+		if body.Change == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Change{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Change)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Input) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Change) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Change")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Event != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "event")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Event)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Change) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4668,6 +4975,94 @@ func (m *Input) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &Input_Press{Press: v}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Change", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*Input_Change); ok {
+				if err := oneof.Change.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Change{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &Input_Change{Change: v}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Change) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Change: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Change: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Event", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Event == nil {
+				m.Event = &ui.UiInputEvent{}
+			}
+			if err := m.Event.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:

@@ -74,7 +74,7 @@ const layouts: Layouts = {
 }
 
 // The drawing fills the screen, as the game's interface layer does, and a
-// press reaches the mods as the player's.
+// press or an edit reaches the mods as the player's.
 const root = new DomPanel('Panel', 'ModlockUi')
 root.hittest = false
 root.style.width = '100%'
@@ -87,6 +87,14 @@ const drawing = new Drawing(
     send({ body: { case: 'press', value: { mod, node } } })
   },
   layouts,
+  (mod, node, value) => {
+    send({
+      body: {
+        case: 'change',
+        value: { mod, event: { player: 0, node, value } },
+      },
+    })
+  },
 )
 
 /** building is true while the latest state reports a build. */

@@ -3,7 +3,12 @@ import { beforeEach, expect, test } from 'bun:test'
 
 import { Screen } from '../../src/wasm/ui/ui.pb.js'
 import { Bridge } from './bridge.js'
-import { Drawing, layoutDataChanged } from './draw.js'
+import {
+  Drawing,
+  type InputValue,
+  inputCommand,
+  layoutDataChanged,
+} from './draw.js'
 import { Hud, hiddenParts } from './hud.js'
 import { decodeUtf8 } from './packed.js'
 
@@ -14,6 +19,8 @@ class FakePanel {
   hittest = true
   enabled = true
   text = ''
+  value = 0
+  checked = false
   image = ''
   url = ''
   layout = ''
@@ -22,6 +29,10 @@ class FakePanel {
   events = new Map<string, () => void>()
   attributes = new Map<string, string>()
   classes: string[] = []
+  dialog: Record<string, string> = {}
+  options: FakePanel[] = []
+  selected = ''
+  deleteSeconds = -1
 
   constructor(
     readonly paneltype: string,
@@ -81,9 +92,22 @@ class FakePanel {
   descendants(): FakePanel[] {
     return this.children.flatMap((child) => [child, ...child.descendants()])
   }
-  DeleteAsync() {
+  DeleteAsync(seconds: number) {
     this.valid = false
+    this.deleteSeconds = seconds
     this.parent?.children.splice(this.parent.children.indexOf(this), 1)
+  }
+  SetDialogVariable(name: string, value: string) {
+    this.dialog[name] = value
+  }
+  AddOption(option: FakePanel) {
+    this.options.push(option)
+  }
+  SetSelected(id: string) {
+    this.selected = id
+  }
+  GetSelected() {
+    return this.options.find((option) => option.id === this.selected) ?? null
   }
 }
 
@@ -147,6 +171,9 @@ beforeEach(() => {
       },
       PlaySound(sound: string) {
         dispatched.push(['sound', sound])
+      },
+      Localize(token: string, panel: FakePanel) {
+        return `${token} ${JSON.stringify(panel.dialog)}`
       },
     },
   })
@@ -456,6 +483,141 @@ test("draws the game's faces, styles, motion, hover and hero pictures", () => {
     textOverflow: 'ellipsis',
     textDecoration: 'line-through',
   })
+})
+
+test('draws inputs, avatars and game text, and sends edits', () => {
+  // Draw an entry, a slider, a toggle, a dropdown, an avatar and a token.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const changes: string[] = []
+  const drawing = new Drawing(
+    $,
+    root,
+    () => {},
+    undefined,
+    (mod, node, value) => changes.push(inputCommand(mod, node, value)),
+  )
+  const tree = (name: string, disabled = false) =>
+    screen(
+      { id: '', children: ['name', 'volume', 'ready', 'team', 'face', 'hero'] },
+      {
+        id: 'name',
+        kind: 'KIND_INPUT',
+        disabled,
+        textEntry: { text: name, placeholder: 'Name', maxLength: 12 },
+      },
+      {
+        id: 'volume',
+        kind: 'KIND_INPUT',
+        slider: { value: 5, min: 0, max: 10, step: 1 },
+      },
+      { id: 'ready', kind: 'KIND_INPUT', text: 'Ready', toggle: {} },
+      {
+        id: 'team',
+        kind: 'KIND_INPUT',
+        dropdown: { options: ['Amber', 'Sapphire'], selected: 1 },
+      },
+      { id: 'face', kind: 'KIND_AVATAR', steamId: '76561198000000001' },
+      {
+        id: 'hero',
+        kind: 'KIND_LABEL',
+        token: '#Citadel_HeroName_Haze',
+        variables: { count: '3' },
+      },
+    )
+  drawing.draw(tree('Ana'))
+  const [name, volume, ready, team, face, hero] = root.children[0]!.children
+
+  // Each control is made with its bounds and shows the mod's value.
+  expect(name!.paneltype).toBe('TextEntry')
+  expect(name!.properties).toEqual({ maxchars: '12', placeholder: 'Name' })
+  expect(name!.text).toBe('Ana')
+  expect(volume!.properties).toMatchObject({
+    min: '0',
+    max: '10',
+    increment: '1',
+  })
+  expect(volume!.value).toBe(5)
+
+  // The toggle carries its label and the dropdown its options.
+  expect(ready!.paneltype).toBe('ToggleButton')
+  expect(ready!.properties).toEqual({ text: 'Ready' })
+  expect(team!.options.map((option) => option.properties?.text)).toEqual([
+    'Amber',
+    'Sapphire',
+  ])
+  expect(team!.selected).toBe('option1')
+
+  // The avatar names the account, and the label shows the game's text.
+  expect(face!.paneltype).toBe('CitadelAvatarImage')
+  expect(face!.properties).toEqual({ accountid: '39734273' })
+  expect(hero!.text).toBe('#Citadel_HeroName_Haze {"count":"3"}')
+
+  // A run of typing sends once, after a tenth of a second.
+  name!.text = 'Anaïs'
+  name!.events.get('ontextentrychange')!()
+  name!.events.get('ontextentrychange')!()
+
+  // A toggle and a choice send at once.
+  ready!.checked = true
+  ready!.events.get('onactivate')!()
+  team!.selected = 'option0'
+  team!.events.get('oninputsubmit')!()
+  runScheduled()
+  expect(changes).toEqual([
+    'modlockinput arena ready 1',
+    'modlockinput arena team 0',
+    `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
+  ])
+
+  // The player's edit stays until the mod draws a new value, and a disabled
+  // entry sends nothing.
+  name!.text = 'Anaï'
+  drawing.draw(tree('Ana'))
+  expect(name!.text).toBe('Anaï')
+  drawing.draw(tree('Bo', true))
+  expect(name!.text).toBe('Bo')
+  name!.events.get('ontextentrychange')!()
+  runScheduled()
+  expect(changes).toHaveLength(3)
+
+  // Text past the host's limit is cut at a character.
+  const long = inputCommand('arena', 'name', {
+    case: 'text',
+    value: 'é'.repeat(200),
+  } satisfies InputValue)
+  expect(long).toBe(
+    `modlockinput arena name ${Buffer.from('é'.repeat(120)).toString('base64url')}`,
+  )
+})
+
+test('eases panels in, cycles them and eases them out', () => {
+  // Draw a panel that fades in, pulses twice and fades out.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  const pulse: JsonObject = {
+    id: 'pulse',
+    style: { opacity: 1, transition: { seconds: 0.2 } },
+    enter: { opacity: 0 },
+    exit: { opacity: 0 },
+    cycle: { style: { opacity: 0.5 }, seconds: 0.4, count: 1 },
+  }
+  drawing.draw(screen({ id: '', children: ['pulse'] }, pulse))
+  const panel = root.children[0]!.children[0]!
+
+  // It starts at its enter style, then swings to its cycle's far end and back.
+  expect(panel.style.opacity).toBe('0')
+  runScheduled()
+  expect(panel.style.opacity).toBe('0.5')
+  runScheduled()
+  expect(panel.style.opacity).toBe('1')
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+
+  // Leaving the tree eases it to its exit style before its panel goes.
+  drawing.draw(screen({ id: '' }))
+  expect(panel.style.opacity).toBe('0')
+  expect(panel.hittest).toBe(false)
+  expect(panel.deleteSeconds).toBeCloseTo(0.2)
 })
 
 test("hides the game's HUD parts while a root lists them", () => {

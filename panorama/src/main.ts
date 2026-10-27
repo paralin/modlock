@@ -5,7 +5,7 @@
 // command that sends it to the server.
 
 import { Bridge } from './bridge.js'
-import { Drawing, pressCommand } from './draw.js'
+import { Drawing, inputCommand, pressCommand } from './draw.js'
 import { Hud, hiddenParts } from './hud.js'
 
 /**
@@ -31,7 +31,7 @@ root.hittest = false
 root.style.width = '100%'
 root.style.height = '100%'
 // The drawing reaches the game through $, and plays sounds through the game's
-// global sound call.
+// global sound call. Presses and edits go to the host as console commands.
 const drawing = new Drawing(
   {
     CreatePanel: (...args: Parameters<typeof $.CreatePanel>) =>
@@ -42,9 +42,16 @@ const drawing = new Drawing(
     PlaySound: (sound: string) => {
       PlayUISoundEvent(sound)
     },
+    Schedule: (seconds: number, callback: () => void) => {
+      $.Schedule(seconds, callback)
+    },
+    Localize: (token: string, panel: object) => $.Localize(token, panel),
   },
   root,
   (mod, node) => $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
+  undefined,
+  (mod, node, value) =>
+    $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
 )
 const stock = new Hud(game, (seconds, callback) => {
   $.Schedule(seconds, callback)

@@ -175,6 +175,11 @@ class WasmPlugin final : public Plugin {
   // Press delivers a press on a button the mod shows the player in slot.
   std::expected<void, std::string> Press(int32_t slot, std::string_view node);
 
+  // Input delivers a change to an input the mod shows the player in slot:
+  // line is the input's id, a space, and the value as UiTrees::Input reads
+  // it.
+  std::expected<void, std::string> Input(int32_t slot, std::string_view line);
+
   // Serve delivers one call to a service the mod serves and returns its answer.
   std::expected<std::string, std::string> Serve(const wasm::ServiceCall& call);
 

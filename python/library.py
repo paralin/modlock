@@ -389,6 +389,10 @@ def _ui_press(event: UiPressEvent) -> None:
     """_ui_press ignores presses: Python mods build no interface yet."""
 
 
+def _ui_input(event: UiInputEvent) -> None:
+    """_ui_input ignores changes to inputs: Python mods build no interface yet."""
+
+
 def _serve(event: ServiceCall) -> ServiceReply:
     handler = _services.get(event.service)
     if handler is None:
@@ -459,6 +463,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "command": _command,
     "world": _world,
     "ui_press": _ui_press,
+    "ui_input": _ui_input,
     "serve": _serve,
     "damage": _damage,
     "damaged": _damaged,

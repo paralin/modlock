@@ -9,8 +9,8 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
+import { Screen, UiInputEvent } from '../src/wasm/ui/ui.pb.js'
 import { Release } from '../publish/publish.pb.js'
-import { Screen } from '../src/wasm/ui/ui.pb.js'
 
 /**
  * Event is one thing the command line did or saw.
@@ -540,6 +540,7 @@ export interface Input {
     | { value?: undefined; case: undefined }
     | { value: string; case: 'command' }
     | { value: Press; case: 'press' }
+    | { value: Change; case: 'change' }
 }
 
 export const Input: MessageType<Input> =
@@ -548,6 +549,7 @@ export const Input: MessageType<Input> =
     () => [
       [1, 'command', 9, 0, 0, 'body'],
       [2, 'press', 11, 0, Press.codec, 'body'],
+      [3, 'change', 11, 0, Change.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Input): Input => {
@@ -568,6 +570,16 @@ export const Input: MessageType<Input> =
                 ),
               }
               break
+            case 3:
+              m.body = {
+                case: 'change',
+                value: Change.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'change' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -584,6 +596,65 @@ export const Input: MessageType<Input> =
           const o = m.body
           if (o?.case === 'press' && o.value != null)
             Press.writeField(w, 2, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'change' && o.value != null)
+            Change.writeField(w, 3, o.value)
+        }
+      },
+    },
+  )
+
+/**
+ * Change sets an input in the interface a mod shows a player.
+ *
+ * @generated from message modlock.cli.Change
+ */
+export interface Change {
+  /**
+   * Mod is the mod's name.
+   */
+  mod?: string
+  /**
+   * Event names the player, the input and its new value.
+   */
+  event?: UiInputEvent
+}
+
+export const Change: MessageType<Change> =
+  /* @__PURE__ */ createMessageType<Change>(
+    'modlock.cli.Change',
+    () => [
+      [1, 'mod', 9],
+      [2, 'event', 11, 0, UiInputEvent.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Change): Change => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.event = UiInputEvent.decode(r, r.delimited(), m.event ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Change, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.event
+          if (v != null) UiInputEvent.writeField(w, 2, v)
         }
       },
     },

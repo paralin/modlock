@@ -1176,6 +1176,20 @@ class UiPressEvent:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class UiInputEvent:
+    """UiInputEvent reports a change the player made to an input in their
+    interface, with the value as the host checked it.
+    """
+
+    # player is the player who changed it.
+    player: Player
+    # node is the id of the input.
+    node: str = ""
+    # value is the input's new value, in the kind its control holds.
+    value: str | float | bool | int | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class StartEvent:
     """StartEvent describes the server the mod starts in."""
 
@@ -2963,6 +2977,17 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "node", "string"),
         ],
     ),
+    "UiInputEvent": (
+        UiInputEvent,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "node", "string"),
+            wire.Field(3, "text", "string", oneof="value"),
+            wire.Field(4, "number", "float", oneof="value"),
+            wire.Field(5, "on", "bool", oneof="value"),
+            wire.Field(6, "choice", "uint32", oneof="value"),
+        ],
+    ),
     "Call": (
         None,
         [
@@ -3524,6 +3549,7 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Command": ("CommandEvent", "CommandResult", "command"),
     "World": ("WorldEvent", "Empty", "world"),
     "UiPress": ("UiPressEvent", "Empty", "ui_press"),
+    "UiInput": ("UiInputEvent", "Empty", "ui_input"),
     "Serve": ("ServiceCall", "ServiceReply", "serve"),
     "Damage": ("DamageEvent", "DamageResult", "damage"),
     "Damaged": ("DamagedEvent", "Empty", "damaged"),
@@ -3945,6 +3971,10 @@ def _ui_press(event: UiPressEvent) -> None:
     """_ui_press ignores presses: Python mods build no interface yet."""
 
 
+def _ui_input(event: UiInputEvent) -> None:
+    """_ui_input ignores changes to inputs: Python mods build no interface yet."""
+
+
 def _serve(event: ServiceCall) -> ServiceReply:
     handler = _services.get(event.service)
     if handler is None:
@@ -4015,6 +4045,7 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "command": _command,
     "world": _world,
     "ui_press": _ui_press,
+    "ui_input": _ui_input,
     "serve": _serve,
     "damage": _damage,
     "damaged": _damaged,

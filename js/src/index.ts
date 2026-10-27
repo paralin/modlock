@@ -34,7 +34,7 @@ import { keepPlayers } from './players.js'
 import { advancePuppets } from './puppet.js'
 import { settleRestore } from './restore.js'
 import { advance, after } from './timer.js'
-import { press, tick } from './ui.js'
+import { change, press, tick } from './ui.js'
 export * as vector from './vector.js'
 
 export { Buttons, Layers } from './bits.js'
@@ -393,6 +393,11 @@ const handlers: ModHandlers = {
     // A press arrives under the same CPU budget as a command, so its handler
     // also runs with the next frame.
     after(0, () => press(event.player, event.node))
+  },
+
+  uiInput(event) {
+    // A change runs with the next frame, as a press does.
+    after(0, () => change(event.player, event.node, event.value))
   },
 
   serve(event) {

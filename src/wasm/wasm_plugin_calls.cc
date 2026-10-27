@@ -17,6 +17,11 @@ namespace {
 // player who sent it, so a press reaches the mod from any player's game.
 constexpr std::string_view kPressCommand = "modlockpress ";
 
+// kInputCommand starts the console command a player's game sends when they
+// change an input in a mod's interface: "modlockinput <mod> <node> <value>",
+// with the value as UiTrees::Input reads it.
+constexpr std::string_view kInputCommand = "modlockinput ";
+
 }  // namespace
 
 std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call) {
@@ -99,6 +104,18 @@ bool WasmPlugin::Command(int32_t slot, std::string_view line) {
       return false;
     }
     if (auto refused = Press(slot, pressed.substr(space + 1)); !refused) {
+      Log(refused.error());
+    }
+    return true;
+  }
+  if (line.starts_with(kInputCommand)) {
+    // A change names this mod, then its input and the value.
+    const auto changed = line.substr(kInputCommand.size());
+    const auto space = changed.find(' ');
+    if (space == std::string_view::npos || changed.substr(0, space) != name_) {
+      return false;
+    }
+    if (auto refused = Input(slot, changed.substr(space + 1)); !refused) {
       Log(refused.error());
     }
     return true;

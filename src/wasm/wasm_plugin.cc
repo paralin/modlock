@@ -176,6 +176,24 @@ std::expected<void, std::string> WasmPlugin::Press(int32_t slot, std::string_vie
   return {};
 }
 
+std::expected<void, std::string> WasmPlugin::Input(int32_t slot, std::string_view line) {
+  // Refuse a change the running mod's input cannot hold.
+  if (!instance_) {
+    return std::unexpected(name_ + " is not running");
+  }
+  const auto space = line.find(' ');
+  const auto node = line.substr(0, space);
+  const auto value = space == std::string_view::npos ? std::string_view() : line.substr(space + 1);
+  auto event = ui_.Input(slot, node, value);
+  if (!event) {
+    return std::unexpected(name_ + " " + event.error());
+  }
+
+  // Deliver the change to the mod.
+  static_cast<void>(mod_.UiInput(*event));
+  return {};
+}
+
 std::expected<std::string, std::string> WasmPlugin::Serve(const wasm::ServiceCall& call) {
   auto reply = mod_.Serve(call);
   if (!reply) {

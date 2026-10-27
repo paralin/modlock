@@ -296,6 +296,22 @@ type SettingChangedEvent = settingspb.SettingChangedEvent
 // UiPressEvent reports a press on a button in a player's interface.
 type UiPressEvent = uipb.UiPressEvent
 
+// UiInputEvent reports a change the player made to an input in their
+// interface, with the value as the host checked it.
+type UiInputEvent = uipb.UiInputEvent
+
+// UiInputEventText sets UiInputEvent.Value to Text.
+type UiInputEventText = uipb.UiInputEvent_Text
+
+// UiInputEventNumber sets UiInputEvent.Value to Number.
+type UiInputEventNumber = uipb.UiInputEvent_Number
+
+// UiInputEventOn sets UiInputEvent.Value to On.
+type UiInputEventOn = uipb.UiInputEvent_On
+
+// UiInputEventChoice sets UiInputEvent.Value to Choice.
+type UiInputEventChoice = uipb.UiInputEvent_Choice
+
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent
 
@@ -1388,6 +1404,8 @@ type modHandlers interface {
 	World(event *WorldEvent) error
 	// UiPress reports a press on a button in a player's interface.
 	UiPress(event *UiPressEvent) error
+	// UiInput reports a change to an input in a player's interface.
+	UiInput(event *UiInputEvent) error
 	// Serve calls a service the mod serves from the host.
 	Serve(event *ServiceCall) (*ServiceReply, error)
 	// Damage offers one hit before the game applies it, while the mod asked
@@ -1455,6 +1473,12 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.UiPress(event))
+	case "UiInput":
+		event := &UiInputEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.UiInput(event))
 	case "Serve":
 		event := &ServiceCall{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

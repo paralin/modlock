@@ -1671,6 +1671,28 @@ function fromUiPressEvent(message: uiPb.UiPressEvent): UiPressEvent {
   }
 }
 
+/**
+ * UiInputEvent reports a change the player made to an input in their
+ * interface, with the value as the host checked it.
+ */
+export interface UiInputEvent {
+  /** player is the player who changed it. */
+  readonly player: Player
+  /** node is the id of the input. */
+  readonly node: string
+  /** value is the input's new value, in the kind its control holds. */
+  readonly value?: string | number | boolean | number
+}
+
+/** fromUiInputEvent decodes an UiInputEvent. */
+function fromUiInputEvent(message: uiPb.UiInputEvent): UiInputEvent {
+  return {
+    player: new Player(message.player ?? 0),
+    node: message.node ?? '',
+    value: message.value?.value,
+  }
+}
+
 /** StartEvent describes the server the mod starts in. */
 export interface StartEvent {
   /** args holds the arguments that follow -- on the host command line. */
@@ -2889,6 +2911,8 @@ export interface ModHandlers {
   world(event: WorldEvent): void
   /** uiPress reports a press on a button in a player's interface. */
   uiPress(event: UiPressEvent): void
+  /** uiInput reports a change to an input in a player's interface. */
+  uiInput(event: UiInputEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
   /**
@@ -2960,6 +2984,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'UiPress':
         handlers.uiPress(fromUiPressEvent(uiPb.UiPressEvent.fromBinary(input)))
+        return reply()
+      case 'UiInput':
+        handlers.uiInput(fromUiInputEvent(uiPb.UiInputEvent.fromBinary(input)))
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))

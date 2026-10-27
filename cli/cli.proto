@@ -121,7 +121,19 @@ message Input {
 
     // Press presses a button in a mod's interface.
     Press press = 2;
+
+    // Change changes an input in a mod's interface.
+    Change change = 3;
   }
+}
+
+// Change sets an input in the interface a mod shows a player.
+message Change {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Event names the player, the input and its new value.
+  modlock.wasm.ui.UiInputEvent event = 2;
 }
 
 // Press identifies a button in the interface a mod shows a player.

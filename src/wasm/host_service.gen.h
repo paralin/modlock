@@ -1777,6 +1777,11 @@ class ModClient {
     return Send<void>("UiPress", event);
   }
 
+  // UiInput reports a change to an input in a player's interface.
+  std::expected<void, std::string> UiInput(const ui::UiInputEvent& event) {
+    return Send<void>("UiInput", event);
+  }
+
   // Serve calls a service the mod serves from the host.
   std::expected<ServiceReply, std::string> Serve(const ServiceCall& event) {
     return Send<ServiceReply>("Serve", event);

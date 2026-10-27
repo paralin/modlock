@@ -148,3 +148,36 @@
 .p-CitadelHeroImage::after {
   content: attr(data-hero);
 }
+
+/* An avatar stands in as a box with the account's id, since the preview has
+   no Steam pictures. */
+.p-CitadelAvatarImage {
+  display: grid;
+  place-items: center;
+  background: #2a2f36;
+  color: #9aa3ad;
+  font-size: 11px;
+}
+.p-CitadelAvatarImage::after {
+  content: attr(data-account);
+}
+
+/* Inputs draw on the page's own form controls, in the game's dark look. */
+.p-TextEntry,
+.p-DropDown,
+.p-ToggleButton {
+  box-sizing: border-box;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid #ffffff33;
+  border-radius: 4px;
+  background: #00000080;
+  color: #ffffff;
+  font: inherit;
+}
+.p-ToggleButton[aria-pressed='true'] {
+  background: #3a7a4f;
+}
+.p-Slider {
+  accent-color: #efd71a;
+}

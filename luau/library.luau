@@ -386,8 +386,10 @@ local handlers: ModHandlers = {
 		end
 	end,
 
-	-- Luau mods build no interface yet, so no button reports a press.
+	-- Luau mods build no interface yet, so no button reports a press and no
+	-- input a change.
 	uiPress = function(_event) end,
+	uiInput = function(_event) end,
 
 	serve = function(event)
 		local handler = services[event.service]

@@ -614,6 +614,9 @@ service Mod {
   // UiPress reports a press on a button in a player's interface.
   rpc UiPress(modlock.wasm.ui.UiPressEvent) returns (Empty);
 
+  // UiInput reports a change to an input in a player's interface.
+  rpc UiInput(modlock.wasm.ui.UiInputEvent) returns (Empty);
+
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 

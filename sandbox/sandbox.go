@@ -137,6 +137,21 @@ func (s *Sandbox) Press(ctx context.Context, mod string, slot int32, node string
 	return pressed, err
 }
 
+// Input delivers a change to an input in the interface mod shows the
+// event's player, and reports whether the mod is running to receive it. The
+// creator's own preview sends it, so the sandbox passes the value on as sent.
+func (s *Sandbox) Input(ctx context.Context, mod string, event *ui.UiInputEvent) (bool, error) {
+	var changed bool
+	err := s.do(ctx, func(ctx context.Context) {
+		for _, running := range s.mods {
+			if running.name == mod {
+				changed = s.deliver(ctx, running, "UiInput", event, nil)
+			}
+		}
+	})
+	return changed, err
+}
+
 // Wait waits for the session to end.
 func (s *Sandbox) Wait() error {
 	<-s.done

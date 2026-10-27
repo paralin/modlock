@@ -7,6 +7,7 @@ package ui
 import (
 	fmt "fmt"
 	io "io"
+	maps "maps"
 	math "math"
 	slices "slices"
 	strconv "strconv"
@@ -202,6 +203,11 @@ const (
 	Kind_KIND_ROUTE Kind = 5
 	// KIND_HERO_IMAGE shows one of the game's pictures of the node's hero.
 	Kind_KIND_HERO_IMAGE Kind = 6
+	// KIND_INPUT takes a value from the player in the control its input names.
+	// An input takes clicks only while the player has a cursor.
+	Kind_KIND_INPUT Kind = 7
+	// KIND_AVATAR shows the Steam picture of the player its steam_id names.
+	Kind_KIND_AVATAR Kind = 8
 )
 
 // Enum value maps for Kind.
@@ -214,6 +220,8 @@ var (
 		4: "KIND_LAYOUT",
 		5: "KIND_ROUTE",
 		6: "KIND_HERO_IMAGE",
+		7: "KIND_INPUT",
+		8: "KIND_AVATAR",
 	}
 	Kind_value = map[string]int32{
 		"KIND_PANEL":      0,
@@ -223,6 +231,8 @@ var (
 		"KIND_LAYOUT":     4,
 		"KIND_ROUTE":      5,
 		"KIND_HERO_IMAGE": 6,
+		"KIND_INPUT":      7,
+		"KIND_AVATAR":     8,
 	}
 )
 
@@ -714,6 +724,37 @@ type Node struct {
 	// HeroLook picks which of the game's pictures of the hero a hero image
 	// draws.
 	HeroLook HeroLook `protobuf:"varint,18,opt,name=hero_look,json=heroLook,proto3" json:"heroLook,omitempty"`
+	// Input is the control an input node draws and the value it holds. Each
+	// change the player makes reaches the mod as a UiInputEvent, which the host
+	// checks against the control: a slider's range and step, a dropdown's
+	// options, an entry's length. The renderer keeps the player's own edit
+	// until a draw changes the value the node holds, so the mod's value is the
+	// truth and a redraw for another reason does not undo a change in flight.
+	//
+	// Types that are assignable to Input:
+	//	*Node_TextEntry
+	//	*Node_Slider
+	//	*Node_Toggle
+	//	*Node_Dropdown
+	Input isNode_Input `protobuf_oneof:"input"`
+	// Token draws a label in the player's language: a token of the game's
+	// localization, such as "#Citadel_HeroName_Haze", shown in place of text.
+	// It is '#' then one or more letters, digits, '_', '-' and '.'.
+	Token string `protobuf:"bytes,23,opt,name=token,proto3" json:"token,omitempty"`
+	// Variables fill the {s:name} places in a localized label's token.
+	Variables map[string]string `protobuf:"bytes,24,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// SteamId is an avatar's player, by Steam id.
+	SteamId uint64 `protobuf:"fixed64,25,opt,name=steam_id,json=steamId,proto3" json:"steamId,omitempty"`
+	// Enter is the style a node's new panel starts from. The node's transition
+	// eases it from there to the node's style, so it fades, slides or grows
+	// in.
+	Enter *Style `protobuf:"bytes,26,opt,name=enter,proto3" json:"enter,omitempty"`
+	// Exit is the style a node's panel eases to, over its transition, when the
+	// node leaves the tree; the panel goes once the transition ends.
+	Exit *Style `protobuf:"bytes,27,opt,name=exit,proto3" json:"exit,omitempty"`
+	// Cycle repeats a change to the node's style while it shows, such as a
+	// pulse or a blink.
+	Cycle *Cycle `protobuf:"bytes,28,opt,name=cycle,proto3" json:"cycle,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -846,6 +887,285 @@ func (x *Node) GetHeroLook() HeroLook {
 		return x.HeroLook
 	}
 	return HeroLook_HERO_LOOK_SMALL
+}
+
+func (m *Node) GetInput() isNode_Input {
+	if m != nil {
+		return m.Input
+	}
+	return nil
+}
+
+func (x *Node) GetTextEntry() *TextEntry {
+	if x, ok := x.GetInput().(*Node_TextEntry); ok {
+		return x.TextEntry
+	}
+	return nil
+}
+
+func (x *Node) GetSlider() *Slider {
+	if x, ok := x.GetInput().(*Node_Slider); ok {
+		return x.Slider
+	}
+	return nil
+}
+
+func (x *Node) GetToggle() *Toggle {
+	if x, ok := x.GetInput().(*Node_Toggle); ok {
+		return x.Toggle
+	}
+	return nil
+}
+
+func (x *Node) GetDropdown() *Dropdown {
+	if x, ok := x.GetInput().(*Node_Dropdown); ok {
+		return x.Dropdown
+	}
+	return nil
+}
+
+func (x *Node) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *Node) GetVariables() map[string]string {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
+}
+
+func (x *Node) GetSteamId() uint64 {
+	if x != nil {
+		return x.SteamId
+	}
+	return 0
+}
+
+func (x *Node) GetEnter() *Style {
+	if x != nil {
+		return x.Enter
+	}
+	return nil
+}
+
+func (x *Node) GetExit() *Style {
+	if x != nil {
+		return x.Exit
+	}
+	return nil
+}
+
+func (x *Node) GetCycle() *Cycle {
+	if x != nil {
+		return x.Cycle
+	}
+	return nil
+}
+
+type isNode_Input interface {
+	isNode_Input()
+}
+
+type Node_TextEntry struct {
+	TextEntry *TextEntry `protobuf:"bytes,19,opt,name=text_entry,json=textEntry,proto3,oneof"`
+}
+
+type Node_Slider struct {
+	Slider *Slider `protobuf:"bytes,20,opt,name=slider,proto3,oneof"`
+}
+
+type Node_Toggle struct {
+	Toggle *Toggle `protobuf:"bytes,21,opt,name=toggle,proto3,oneof"`
+}
+
+type Node_Dropdown struct {
+	Dropdown *Dropdown `protobuf:"bytes,22,opt,name=dropdown,proto3,oneof"`
+}
+
+func (*Node_TextEntry) isNode_Input() {}
+
+func (*Node_Slider) isNode_Input() {}
+
+func (*Node_Toggle) isNode_Input() {}
+
+func (*Node_Dropdown) isNode_Input() {}
+
+// TextEntry is a box the player types a line of text into.
+type TextEntry struct {
+	unknownFields []byte
+	// Text is the box's text.
+	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	// Placeholder is the faint text an empty box shows.
+	Placeholder string `protobuf:"bytes,2,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
+	// MaxLength bounds the text, in characters; zero means 100. The host takes
+	// at most 240 bytes of text, so a console line carries it.
+	MaxLength uint32 `protobuf:"varint,3,opt,name=max_length,json=maxLength,proto3" json:"maxLength,omitempty"`
+}
+
+func (x *TextEntry) Reset() {
+	*x = TextEntry{}
+}
+
+func (*TextEntry) ProtoMessage() {}
+
+func (x *TextEntry) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *TextEntry) GetPlaceholder() string {
+	if x != nil {
+		return x.Placeholder
+	}
+	return ""
+}
+
+func (x *TextEntry) GetMaxLength() uint32 {
+	if x != nil {
+		return x.MaxLength
+	}
+	return 0
+}
+
+// Slider is a bar the player drags to a number.
+type Slider struct {
+	unknownFields []byte
+	// Value is the number the slider holds.
+	Value float32 `protobuf:"fixed32,1,opt,name=value,proto3" json:"value,omitempty"`
+	// Min and Max bound the value; a max no greater than min means 0 to 1.
+	Min float32 `protobuf:"fixed32,2,opt,name=min,proto3" json:"min,omitempty"`
+	Max float32 `protobuf:"fixed32,3,opt,name=max,proto3" json:"max,omitempty"`
+	// Step is the distance between the values the slider stops at; zero lets
+	// it stop anywhere.
+	Step float32 `protobuf:"fixed32,4,opt,name=step,proto3" json:"step,omitempty"`
+}
+
+func (x *Slider) Reset() {
+	*x = Slider{}
+}
+
+func (*Slider) ProtoMessage() {}
+
+func (x *Slider) GetValue() float32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+func (x *Slider) GetMin() float32 {
+	if x != nil {
+		return x.Min
+	}
+	return 0
+}
+
+func (x *Slider) GetMax() float32 {
+	if x != nil {
+		return x.Max
+	}
+	return 0
+}
+
+func (x *Slider) GetStep() float32 {
+	if x != nil {
+		return x.Step
+	}
+	return 0
+}
+
+// Toggle is a box the player checks or clears. The node's text labels it.
+type Toggle struct {
+	unknownFields []byte
+	// On reports whether the box is checked.
+	On bool `protobuf:"varint,1,opt,name=on,proto3" json:"on,omitempty"`
+}
+
+func (x *Toggle) Reset() {
+	*x = Toggle{}
+}
+
+func (*Toggle) ProtoMessage() {}
+
+func (x *Toggle) GetOn() bool {
+	if x != nil {
+		return x.On
+	}
+	return false
+}
+
+// Dropdown lets the player pick one of a list of options.
+type Dropdown struct {
+	unknownFields []byte
+	// Options are the choices, as the player reads them.
+	Options []string `protobuf:"bytes,1,rep,name=options,proto3" json:"options,omitempty"`
+	// Selected is the index of the chosen option.
+	Selected uint32 `protobuf:"varint,2,opt,name=selected,proto3" json:"selected,omitempty"`
+}
+
+func (x *Dropdown) Reset() {
+	*x = Dropdown{}
+}
+
+func (*Dropdown) ProtoMessage() {}
+
+func (x *Dropdown) GetOptions() []string {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+func (x *Dropdown) GetSelected() uint32 {
+	if x != nil {
+		return x.Selected
+	}
+	return 0
+}
+
+// Cycle alternates a node between its style and another, easing each way.
+type Cycle struct {
+	unknownFields []byte
+	// Style is the style laid over the node's own at the far end of the cycle.
+	Style *Style `protobuf:"bytes,1,opt,name=style,proto3" json:"style,omitempty"`
+	// Seconds is how long each way takes.
+	Seconds float32 `protobuf:"fixed32,2,opt,name=seconds,proto3" json:"seconds,omitempty"`
+	// Count is how many times the node goes there and back; zero repeats while
+	// it shows.
+	Count uint32 `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+}
+
+func (x *Cycle) Reset() {
+	*x = Cycle{}
+}
+
+func (*Cycle) ProtoMessage() {}
+
+func (x *Cycle) GetStyle() *Style {
+	if x != nil {
+		return x.Style
+	}
+	return nil
+}
+
+func (x *Cycle) GetSeconds() float32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
+
+func (x *Cycle) GetCount() uint32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
 }
 
 // Style is the closed set of layout and paint properties a node may set. A
@@ -1809,6 +2129,111 @@ func (x *UiPressEvent) GetNode() string {
 	return ""
 }
 
+// UiInputEvent reports a change the player made to an input in their
+// interface, with the value as the host checked it.
+type UiInputEvent struct {
+	unknownFields []byte
+	// Player is the player who changed it.
+	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Node is the id of the input.
+	Node string `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
+	// Value is the input's new value, in the kind its control holds.
+	//
+	// Types that are assignable to Value:
+	//	*UiInputEvent_Text
+	//	*UiInputEvent_Number
+	//	*UiInputEvent_On
+	//	*UiInputEvent_Choice
+	Value isUiInputEvent_Value `protobuf_oneof:"value"`
+}
+
+func (x *UiInputEvent) Reset() {
+	*x = UiInputEvent{}
+}
+
+func (*UiInputEvent) ProtoMessage() {}
+
+func (x *UiInputEvent) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *UiInputEvent) GetNode() string {
+	if x != nil {
+		return x.Node
+	}
+	return ""
+}
+
+func (m *UiInputEvent) GetValue() isUiInputEvent_Value {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (x *UiInputEvent) GetText() string {
+	if x, ok := x.GetValue().(*UiInputEvent_Text); ok {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *UiInputEvent) GetNumber() float32 {
+	if x, ok := x.GetValue().(*UiInputEvent_Number); ok {
+		return x.Number
+	}
+	return 0
+}
+
+func (x *UiInputEvent) GetOn() bool {
+	if x, ok := x.GetValue().(*UiInputEvent_On); ok {
+		return x.On
+	}
+	return false
+}
+
+func (x *UiInputEvent) GetChoice() uint32 {
+	if x, ok := x.GetValue().(*UiInputEvent_Choice); ok {
+		return x.Choice
+	}
+	return 0
+}
+
+type isUiInputEvent_Value interface {
+	isUiInputEvent_Value()
+}
+
+type UiInputEvent_Text struct {
+	// Text is a text entry's text.
+	Text string `protobuf:"bytes,3,opt,name=text,proto3,oneof"`
+}
+
+type UiInputEvent_Number struct {
+	// Number is a slider's value.
+	Number float32 `protobuf:"fixed32,4,opt,name=number,proto3,oneof"`
+}
+
+type UiInputEvent_On struct {
+	// On is a toggle's state.
+	On bool `protobuf:"varint,5,opt,name=on,proto3,oneof"`
+}
+
+type UiInputEvent_Choice struct {
+	// Choice is the index of a dropdown's chosen option.
+	Choice uint32 `protobuf:"varint,6,opt,name=choice,proto3,oneof"`
+}
+
+func (*UiInputEvent_Text) isUiInputEvent_Value() {}
+
+func (*UiInputEvent_Number) isUiInputEvent_Value() {}
+
+func (*UiInputEvent_On) isUiInputEvent_Value() {}
+
+func (*UiInputEvent_Choice) isUiInputEvent_Value() {}
+
 // UiRequest changes the interface the mod shows one player.
 type UiRequest struct {
 	unknownFields []byte
@@ -1837,6 +2262,32 @@ func (x *UiRequest) GetChange() *Change {
 	return nil
 }
 
+type Node_VariablesEntry struct {
+	unknownFields []byte
+	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Node_VariablesEntry) Reset() {
+	*x = Node_VariablesEntry{}
+}
+
+func (*Node_VariablesEntry) ProtoMessage() {}
+
+func (x *Node_VariablesEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Node_VariablesEntry) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 func (m *Node) CloneVT() *Node {
 	if m == nil {
 		return (*Node)(nil)
@@ -1856,10 +2307,19 @@ func (m *Node) CloneVT() *Node {
 	r.Scaling = m.Scaling
 	r.Hero = m.Hero
 	r.HeroLook = m.HeroLook
+	r.Token = m.Token
+	r.SteamId = m.SteamId
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
 	r.Hover = protobuf_go_lite.CloneVTValue(m.Hover)
+	if m.Input != nil {
+		r.Input = m.Input.(interface{ CloneOneofVT() isNode_Input }).CloneOneofVT()
+	}
+	r.Variables = protobuf_go_lite.CloneMap(m.Variables)
+	r.Enter = protobuf_go_lite.CloneVTValue(m.Enter)
+	r.Exit = protobuf_go_lite.CloneVTValue(m.Exit)
+	r.Cycle = protobuf_go_lite.CloneVTValue(m.Cycle)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1867,6 +2327,146 @@ func (m *Node) CloneVT() *Node {
 }
 
 func (m *Node) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Node_TextEntry) CloneVT() *Node_TextEntry {
+	if m == nil {
+		return (*Node_TextEntry)(nil)
+	}
+	r := new(Node_TextEntry)
+	r.TextEntry = protobuf_go_lite.CloneVTValue(m.TextEntry)
+	return r
+}
+
+func (m *Node_TextEntry) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *Node_Slider) CloneVT() *Node_Slider {
+	if m == nil {
+		return (*Node_Slider)(nil)
+	}
+	r := new(Node_Slider)
+	r.Slider = protobuf_go_lite.CloneVTValue(m.Slider)
+	return r
+}
+
+func (m *Node_Slider) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *Node_Toggle) CloneVT() *Node_Toggle {
+	if m == nil {
+		return (*Node_Toggle)(nil)
+	}
+	r := new(Node_Toggle)
+	r.Toggle = protobuf_go_lite.CloneVTValue(m.Toggle)
+	return r
+}
+
+func (m *Node_Toggle) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *Node_Dropdown) CloneVT() *Node_Dropdown {
+	if m == nil {
+		return (*Node_Dropdown)(nil)
+	}
+	r := new(Node_Dropdown)
+	r.Dropdown = protobuf_go_lite.CloneVTValue(m.Dropdown)
+	return r
+}
+
+func (m *Node_Dropdown) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *TextEntry) CloneVT() *TextEntry {
+	if m == nil {
+		return (*TextEntry)(nil)
+	}
+	r := new(TextEntry)
+	r.Text = m.Text
+	r.Placeholder = m.Placeholder
+	r.MaxLength = m.MaxLength
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *TextEntry) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Slider) CloneVT() *Slider {
+	if m == nil {
+		return (*Slider)(nil)
+	}
+	r := new(Slider)
+	r.Value = m.Value
+	r.Min = m.Min
+	r.Max = m.Max
+	r.Step = m.Step
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Slider) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Toggle) CloneVT() *Toggle {
+	if m == nil {
+		return (*Toggle)(nil)
+	}
+	r := new(Toggle)
+	r.On = m.On
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Toggle) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Dropdown) CloneVT() *Dropdown {
+	if m == nil {
+		return (*Dropdown)(nil)
+	}
+	r := new(Dropdown)
+	r.Selected = m.Selected
+	r.Options = protobuf_go_lite.CloneSlice(m.Options)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Dropdown) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Cycle) CloneVT() *Cycle {
+	if m == nil {
+		return (*Cycle)(nil)
+	}
+	r := new(Cycle)
+	r.Seconds = m.Seconds
+	r.Count = m.Count
+	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Cycle) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -2202,6 +2802,78 @@ func (m *UiPressEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *UiInputEvent) CloneVT() *UiInputEvent {
+	if m == nil {
+		return (*UiInputEvent)(nil)
+	}
+	r := new(UiInputEvent)
+	r.Player = m.Player
+	r.Node = m.Node
+	if m.Value != nil {
+		r.Value = m.Value.(interface{ CloneOneofVT() isUiInputEvent_Value }).CloneOneofVT()
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *UiInputEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *UiInputEvent_Text) CloneVT() *UiInputEvent_Text {
+	if m == nil {
+		return (*UiInputEvent_Text)(nil)
+	}
+	r := new(UiInputEvent_Text)
+	r.Text = m.Text
+	return r
+}
+
+func (m *UiInputEvent_Text) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
+func (m *UiInputEvent_Number) CloneVT() *UiInputEvent_Number {
+	if m == nil {
+		return (*UiInputEvent_Number)(nil)
+	}
+	r := new(UiInputEvent_Number)
+	r.Number = m.Number
+	return r
+}
+
+func (m *UiInputEvent_Number) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
+func (m *UiInputEvent_On) CloneVT() *UiInputEvent_On {
+	if m == nil {
+		return (*UiInputEvent_On)(nil)
+	}
+	r := new(UiInputEvent_On)
+	r.On = m.On
+	return r
+}
+
+func (m *UiInputEvent_On) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
+func (m *UiInputEvent_Choice) CloneVT() *UiInputEvent_Choice {
+	if m == nil {
+		return (*UiInputEvent_Choice)(nil)
+	}
+	r := new(UiInputEvent_Choice)
+	r.Choice = m.Choice
+	return r
+}
+
+func (m *UiInputEvent_Choice) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
 func (m *UiRequest) CloneVT() *UiRequest {
 	if m == nil {
 		return (*UiRequest)(nil)
@@ -2224,6 +2896,16 @@ func (this *Node) EqualVT(that *Node) bool {
 		return true
 	} else if this == nil || that == nil {
 		return false
+	}
+	if this.Input == nil && that.Input != nil {
+		return false
+	} else if this.Input != nil {
+		if that.Input == nil {
+			return false
+		}
+		if !this.Input.(interface{ EqualVT(isNode_Input) bool }).EqualVT(that.Input) {
+			return false
+		}
 	}
 	if this.Id != that.Id {
 		return false
@@ -2279,11 +2961,221 @@ func (this *Node) EqualVT(that *Node) bool {
 	if this.HeroLook != that.HeroLook {
 		return false
 	}
+	if this.Token != that.Token {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Variables, that.Variables) {
+		return false
+	}
+	if this.SteamId != that.SteamId {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Enter, that.Enter) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Exit, that.Exit) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Cycle, that.Cycle) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Node) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Node)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Node_TextEntry) EqualVT(thatIface isNode_Input) bool {
+	that, ok := thatIface.(*Node_TextEntry)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.TextEntry, that.TextEntry, func() *TextEntry { return &TextEntry{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Node_Slider) EqualVT(thatIface isNode_Input) bool {
+	that, ok := thatIface.(*Node_Slider)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Slider, that.Slider, func() *Slider { return &Slider{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Node_Toggle) EqualVT(thatIface isNode_Input) bool {
+	that, ok := thatIface.(*Node_Toggle)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Toggle, that.Toggle, func() *Toggle { return &Toggle{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *Node_Dropdown) EqualVT(thatIface isNode_Input) bool {
+	that, ok := thatIface.(*Node_Dropdown)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Dropdown, that.Dropdown, func() *Dropdown { return &Dropdown{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *TextEntry) EqualVT(that *TextEntry) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Text != that.Text {
+		return false
+	}
+	if this.Placeholder != that.Placeholder {
+		return false
+	}
+	if this.MaxLength != that.MaxLength {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *TextEntry) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*TextEntry)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Slider) EqualVT(that *Slider) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Value != that.Value {
+		return false
+	}
+	if this.Min != that.Min {
+		return false
+	}
+	if this.Max != that.Max {
+		return false
+	}
+	if this.Step != that.Step {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Slider) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Slider)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Toggle) EqualVT(that *Toggle) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.On != that.On {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Toggle) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Toggle)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Dropdown) EqualVT(that *Dropdown) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Options, that.Options) {
+		return false
+	}
+	if this.Selected != that.Selected {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Dropdown) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Dropdown)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Cycle) EqualVT(that *Cycle) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Style, that.Style) {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	if this.Count != that.Count {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Cycle) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Cycle)
 	if !ok {
 		return false
 	}
@@ -2835,6 +3727,109 @@ func (this *UiPressEvent) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *UiInputEvent) EqualVT(that *UiInputEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Value == nil && that.Value != nil {
+		return false
+	} else if this.Value != nil {
+		if that.Value == nil {
+			return false
+		}
+		if !this.Value.(interface {
+			EqualVT(isUiInputEvent_Value) bool
+		}).EqualVT(that.Value) {
+			return false
+		}
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Node != that.Node {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UiInputEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*UiInputEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *UiInputEvent_Text) EqualVT(thatIface isUiInputEvent_Value) bool {
+	that, ok := thatIface.(*UiInputEvent_Text)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Text != that.Text {
+		return false
+	}
+	return true
+}
+
+func (this *UiInputEvent_Number) EqualVT(thatIface isUiInputEvent_Value) bool {
+	that, ok := thatIface.(*UiInputEvent_Number)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Number != that.Number {
+		return false
+	}
+	return true
+}
+
+func (this *UiInputEvent_On) EqualVT(thatIface isUiInputEvent_Value) bool {
+	that, ok := thatIface.(*UiInputEvent_On)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.On != that.On {
+		return false
+	}
+	return true
+}
+
+func (this *UiInputEvent_Choice) EqualVT(thatIface isUiInputEvent_Value) bool {
+	that, ok := thatIface.(*UiInputEvent_Choice)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Choice != that.Choice {
+		return false
+	}
+	return true
+}
+
 func (this *UiRequest) EqualVT(that *UiRequest) bool {
 	if this == that {
 		return true
@@ -3378,6 +4373,56 @@ func (x *Align) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Node_VariablesEntry message to JSON.
+func (x *Node_VariablesEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != "" || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteString(x.Key)
+	}
+	if x.Value != "" || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteString(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Node_VariablesEntry to JSON.
+func (x *Node_VariablesEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Node_VariablesEntry message from JSON.
+func (x *Node_VariablesEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadString()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Node_VariablesEntry from JSON.
+func (x *Node_VariablesEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Node message to JSON.
 func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -3482,6 +4527,64 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("heroLook")
 		x.HeroLook.MarshalProtoJSON(s)
 	}
+	if x.Input != nil {
+		switch ov := x.Input.(type) {
+		case *Node_TextEntry:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("textEntry")
+			ov.TextEntry.MarshalProtoJSON(s.WithField("textEntry"))
+		case *Node_Slider:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("slider")
+			ov.Slider.MarshalProtoJSON(s.WithField("slider"))
+		case *Node_Toggle:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("toggle")
+			ov.Toggle.MarshalProtoJSON(s.WithField("toggle"))
+		case *Node_Dropdown:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("dropdown")
+			ov.Dropdown.MarshalProtoJSON(s.WithField("dropdown"))
+		}
+	}
+	if x.Token != "" || s.HasField("token") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("token")
+		s.WriteString(x.Token)
+	}
+	if x.Variables != nil || s.HasField("variables") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("variables")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Variables)) {
+			v := x.Variables[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectStringField(k)
+			s.WriteString(v)
+		}
+		s.WriteObjectEnd()
+	}
+	if x.SteamId != 0 || s.HasField("steamId") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steamId")
+		s.WriteUint64(x.SteamId)
+	}
+	if x.Enter != nil || s.HasField("enter") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("enter")
+		x.Enter.MarshalProtoJSON(s.WithField("enter"))
+	}
+	if x.Exit != nil || s.HasField("exit") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("exit")
+		x.Exit.MarshalProtoJSON(s.WithField("exit"))
+	}
+	if x.Cycle != nil || s.HasField("cycle") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("cycle")
+		x.Cycle.MarshalProtoJSON(s.WithField("cycle"))
+	}
 	s.WriteObjectEnd()
 }
 
@@ -3573,12 +4676,367 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "hero_look", "heroLook":
 			s.AddField("hero_look")
 			x.HeroLook.UnmarshalProtoJSON(s)
+		case "text_entry", "textEntry":
+			ov := &Node_TextEntry{}
+			x.Input = ov
+			if s.ReadNil() {
+				ov.TextEntry = nil
+				return
+			}
+			ov.TextEntry = &TextEntry{}
+			ov.TextEntry.UnmarshalProtoJSON(s.WithField("text_entry", true))
+		case "slider":
+			ov := &Node_Slider{}
+			x.Input = ov
+			if s.ReadNil() {
+				ov.Slider = nil
+				return
+			}
+			ov.Slider = &Slider{}
+			ov.Slider.UnmarshalProtoJSON(s.WithField("slider", true))
+		case "toggle":
+			ov := &Node_Toggle{}
+			x.Input = ov
+			if s.ReadNil() {
+				ov.Toggle = nil
+				return
+			}
+			ov.Toggle = &Toggle{}
+			ov.Toggle.UnmarshalProtoJSON(s.WithField("toggle", true))
+		case "dropdown":
+			ov := &Node_Dropdown{}
+			x.Input = ov
+			if s.ReadNil() {
+				ov.Dropdown = nil
+				return
+			}
+			ov.Dropdown = &Dropdown{}
+			ov.Dropdown.UnmarshalProtoJSON(s.WithField("dropdown", true))
+		case "token":
+			s.AddField("token")
+			x.Token = s.ReadString()
+		case "variables":
+			s.AddField("variables")
+			if s.ReadNil() {
+				x.Variables = nil
+				return
+			}
+			x.Variables = make(map[string]string)
+			s.ReadStringMap(func(key string) {
+				x.Variables[key] = s.ReadString()
+			})
+		case "steam_id", "steamId":
+			s.AddField("steam_id")
+			x.SteamId = s.ReadUint64()
+		case "enter":
+			if s.ReadNil() {
+				x.Enter = nil
+				return
+			}
+			x.Enter = &Style{}
+			x.Enter.UnmarshalProtoJSON(s.WithField("enter", true))
+		case "exit":
+			if s.ReadNil() {
+				x.Exit = nil
+				return
+			}
+			x.Exit = &Style{}
+			x.Exit.UnmarshalProtoJSON(s.WithField("exit", true))
+		case "cycle":
+			if s.ReadNil() {
+				x.Cycle = nil
+				return
+			}
+			x.Cycle = &Cycle{}
+			x.Cycle.UnmarshalProtoJSON(s.WithField("cycle", true))
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Node from JSON.
 func (x *Node) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the TextEntry message to JSON.
+func (x *TextEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Text != "" || s.HasField("text") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("text")
+		s.WriteString(x.Text)
+	}
+	if x.Placeholder != "" || s.HasField("placeholder") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("placeholder")
+		s.WriteString(x.Placeholder)
+	}
+	if x.MaxLength != 0 || s.HasField("maxLength") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("maxLength")
+		s.WriteUint32(x.MaxLength)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the TextEntry to JSON.
+func (x *TextEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TextEntry message from JSON.
+func (x *TextEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "text":
+			s.AddField("text")
+			x.Text = s.ReadString()
+		case "placeholder":
+			s.AddField("placeholder")
+			x.Placeholder = s.ReadString()
+		case "max_length", "maxLength":
+			s.AddField("max_length")
+			x.MaxLength = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the TextEntry from JSON.
+func (x *TextEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Slider message to JSON.
+func (x *Slider) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteFloat32(x.Value)
+	}
+	if x.Min != 0 || s.HasField("min") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("min")
+		s.WriteFloat32(x.Min)
+	}
+	if x.Max != 0 || s.HasField("max") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("max")
+		s.WriteFloat32(x.Max)
+	}
+	if x.Step != 0 || s.HasField("step") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("step")
+		s.WriteFloat32(x.Step)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Slider to JSON.
+func (x *Slider) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Slider message from JSON.
+func (x *Slider) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadFloat32()
+		case "min":
+			s.AddField("min")
+			x.Min = s.ReadFloat32()
+		case "max":
+			s.AddField("max")
+			x.Max = s.ReadFloat32()
+		case "step":
+			s.AddField("step")
+			x.Step = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Slider from JSON.
+func (x *Slider) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Toggle message to JSON.
+func (x *Toggle) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.On || s.HasField("on") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("on")
+		s.WriteBool(x.On)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Toggle to JSON.
+func (x *Toggle) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Toggle message from JSON.
+func (x *Toggle) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "on":
+			s.AddField("on")
+			x.On = s.ReadBool()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Toggle from JSON.
+func (x *Toggle) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Dropdown message to JSON.
+func (x *Dropdown) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Options) > 0 || s.HasField("options") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("options")
+		s.WriteStringArray(x.Options)
+	}
+	if x.Selected != 0 || s.HasField("selected") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("selected")
+		s.WriteUint32(x.Selected)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Dropdown to JSON.
+func (x *Dropdown) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Dropdown message from JSON.
+func (x *Dropdown) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "options":
+			s.AddField("options")
+			if s.ReadNil() {
+				x.Options = nil
+				return
+			}
+			x.Options = s.ReadStringArray()
+		case "selected":
+			s.AddField("selected")
+			x.Selected = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Dropdown from JSON.
+func (x *Dropdown) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Cycle message to JSON.
+func (x *Cycle) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Style != nil || s.HasField("style") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("style")
+		x.Style.MarshalProtoJSON(s.WithField("style"))
+	}
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteFloat32(x.Seconds)
+	}
+	if x.Count != 0 || s.HasField("count") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("count")
+		s.WriteUint32(x.Count)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Cycle to JSON.
+func (x *Cycle) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Cycle message from JSON.
+func (x *Cycle) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "style":
+			if s.ReadNil() {
+				x.Style = nil
+				return
+			}
+			x.Style = &Style{}
+			x.Style.UnmarshalProtoJSON(s.WithField("style", true))
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadFloat32()
+		case "count":
+			s.AddField("count")
+			x.Count = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Cycle from JSON.
+func (x *Cycle) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -4912,6 +6370,96 @@ func (x *UiPressEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the UiInputEvent message to JSON.
+func (x *UiInputEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Node != "" || s.HasField("node") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("node")
+		s.WriteString(x.Node)
+	}
+	if x.Value != nil {
+		switch ov := x.Value.(type) {
+		case *UiInputEvent_Text:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("text")
+			s.WriteString(ov.Text)
+		case *UiInputEvent_Number:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("number")
+			s.WriteFloat32(ov.Number)
+		case *UiInputEvent_On:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("on")
+			s.WriteBool(ov.On)
+		case *UiInputEvent_Choice:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("choice")
+			s.WriteUint32(ov.Choice)
+		}
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the UiInputEvent to JSON.
+func (x *UiInputEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the UiInputEvent message from JSON.
+func (x *UiInputEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "node":
+			s.AddField("node")
+			x.Node = s.ReadString()
+		case "text":
+			s.AddField("text")
+			ov := &UiInputEvent_Text{}
+			x.Value = ov
+			ov.Text = s.ReadString()
+		case "number":
+			s.AddField("number")
+			ov := &UiInputEvent_Number{}
+			x.Value = ov
+			ov.Number = s.ReadFloat32()
+		case "on":
+			s.AddField("on")
+			ov := &UiInputEvent_On{}
+			x.Value = ov
+			ov.On = s.ReadBool()
+		case "choice":
+			s.AddField("choice")
+			ov := &UiInputEvent_Choice{}
+			x.Value = ov
+			ov.Choice = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the UiInputEvent from JSON.
+func (x *UiInputEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the UiRequest message to JSON.
 func (x *UiRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -4994,6 +6542,82 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if vtmsg, ok := m.Input.(interface {
+		MarshalToSizedBufferVT([]byte) (int, error)
+	}); ok {
+		size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+	}
+	if m.Cycle != nil {
+		size, err := m.Cycle.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xe2
+	}
+	if m.Exit != nil {
+		size, err := m.Exit.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xda
+	}
+	if m.Enter != nil {
+		size, err := m.Enter.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xd2
+	}
+	if m.SteamId != 0 {
+		i = protobuf_go_lite.EncodeFixed64(dAtA, i, uint64(m.SteamId))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xc9
+	}
+	if len(m.Variables) > 0 {
+		for k := range m.Variables {
+			v := m.Variables[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeString(dAtA, i, v)
+			i--
+			dAtA[i] = 0x12
+			i = protobuf_go_lite.EncodeString(dAtA, i, k)
+			i--
+			dAtA[i] = 0xa
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0xc2
+		}
+	}
+	if len(m.Token) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Token)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xba
 	}
 	if m.HeroLook != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.HeroLook))
@@ -5100,6 +6724,350 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if len(m.Id) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Id)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Node_TextEntry) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Node_TextEntry) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.TextEntry != nil {
+		size, err := m.TextEntry.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x9a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x9a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Node_Slider) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Node_Slider) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Slider != nil {
+		size, err := m.Slider.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xa2
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xa2
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Node_Toggle) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Node_Toggle) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Toggle != nil {
+		size, err := m.Toggle.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xaa
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xaa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Node_Dropdown) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Node_Dropdown) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Dropdown != nil {
+		size, err := m.Dropdown.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb2
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb2
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TextEntry) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TextEntry) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *TextEntry) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.MaxLength != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.MaxLength))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Placeholder) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Placeholder)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Text) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Text)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Slider) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Slider) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Slider) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Step != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Step))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Max != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Max))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Min != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Min))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Value != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Value))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Toggle) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Toggle) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Toggle) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.On {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.On)
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Dropdown) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Dropdown) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Dropdown) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Selected != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Selected))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Options) > 0 {
+		for iNdEx := len(m.Options) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Options[iNdEx])
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Cycle) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Cycle) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Cycle) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Count != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Count))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Style != nil {
+		size, err := m.Style.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -6163,6 +8131,109 @@ func (m *UiPressEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UiInputEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UiInputEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if vtmsg, ok := m.Value.(interface {
+		MarshalToSizedBufferVT([]byte) (int, error)
+	}); ok {
+		size, err := vtmsg.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+	}
+	if len(m.Node) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Node)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UiInputEvent_Text) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent_Text) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeString(dAtA, i, m.Text)
+	i--
+	dAtA[i] = 0x1a
+	return len(dAtA) - i, nil
+}
+
+func (m *UiInputEvent_Number) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent_Number) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Number))))
+	i--
+	dAtA[i] = 0x25
+	return len(dAtA) - i, nil
+}
+
+func (m *UiInputEvent_On) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent_On) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeBool(dAtA, i, m.On)
+	i--
+	dAtA[i] = 0x28
+	return len(dAtA) - i, nil
+}
+
+func (m *UiInputEvent_Choice) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent_Choice) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Choice))
+	i--
+	dAtA[i] = 0x30
+	return len(dAtA) - i, nil
+}
+
 func (m *UiRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -6240,6 +8311,155 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Scaling)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Hero)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.HeroLook)
+	if vtmsg, ok := m.Input.(interface{ SizeVT() int }); ok {
+		n += vtmsg.SizeVT()
+	}
+	n += protobuf_go_lite.SizeStringNonEmpty(2, m.Token)
+	for k, v := range m.Variables {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeStringValue(1, k) + protobuf_go_lite.SizeStringValue(1, v)
+		n += protobuf_go_lite.SizeMessage(2, mapEntrySize)
+	}
+	n += protobuf_go_lite.SizeFixed64NonZero(2, m.SteamId)
+	if m.Enter != nil {
+		l = m.Enter.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.Exit != nil {
+		l = m.Exit.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	if m.Cycle != nil {
+		l = m.Cycle.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Node_TextEntry) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.TextEntry != nil {
+		l = m.TextEntry.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	} else {
+		n += 3
+	}
+	return n
+}
+
+func (m *Node_Slider) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Slider != nil {
+		l = m.Slider.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	} else {
+		n += 3
+	}
+	return n
+}
+
+func (m *Node_Toggle) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Toggle != nil {
+		l = m.Toggle.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	} else {
+		n += 3
+	}
+	return n
+}
+
+func (m *Node_Dropdown) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Dropdown != nil {
+		l = m.Dropdown.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	} else {
+		n += 3
+	}
+	return n
+}
+
+func (m *TextEntry) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Text)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Placeholder)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.MaxLength)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Slider) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Value)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Min)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Max)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Step)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Toggle) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.On)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Dropdown) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringSlice(1, m.Options)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Selected)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Cycle) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Style != nil {
+		l = m.Style.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Count)
 	n += len(m.unknownFields)
 	return n
 }
@@ -6559,6 +8779,61 @@ func (m *UiPressEvent) SizeVT() (n int) {
 	return n
 }
 
+func (m *UiInputEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Node)
+	if vtmsg, ok := m.Value.(interface{ SizeVT() int }); ok {
+		n += vtmsg.SizeVT()
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *UiInputEvent_Text) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringValue(1, m.Text)
+	return n
+}
+
+func (m *UiInputEvent_Number) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32Value(1)
+	return n
+}
+
+func (m *UiInputEvent_On) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBoolValue(1)
+	return n
+}
+
+func (m *UiInputEvent_Choice) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintValue(1, m.Choice)
+	return n
+}
+
 func (m *UiRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -6624,6 +8899,24 @@ func (x Flow) MarshalProtoText() string {
 
 func (x Align) MarshalProtoText() string {
 	return x.String()
+}
+
+func (x *Node_VariablesEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "VariablesEntry")
+	if x.Key != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteString(&sb, x.Key)
+	}
+	if x.Value != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteString(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Node_VariablesEntry) String() string {
+	return x.MarshalProtoText()
 }
 
 func (x *Node) MarshalProtoText() string {
@@ -6709,10 +9002,177 @@ func (x *Node) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hero_look")
 		protobuf_go_lite.TextWriteStringer(&sb, HeroLook(x.HeroLook))
 	}
+	switch body := x.Input.(type) {
+	case *Node_TextEntry:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text_entry")
+		if body.TextEntry == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &TextEntry{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.TextEntry)
+		}
+	case *Node_Slider:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slider")
+		if body.Slider == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Slider{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Slider)
+		}
+	case *Node_Toggle:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "toggle")
+		if body.Toggle == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Toggle{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Toggle)
+		}
+	case *Node_Dropdown:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "dropdown")
+		if body.Dropdown == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Dropdown{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Dropdown)
+		}
+	}
+	if x.Token != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "token")
+		protobuf_go_lite.TextWriteString(&sb, x.Token)
+	}
+	if len(x.Variables) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "variables")
+		for _, k := range slices.Sorted(maps.Keys(x.Variables)) {
+			v := x.Variables[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteString(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	if x.SteamId != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steam_id")
+		protobuf_go_lite.TextWriteUint(&sb, x.SteamId)
+	}
+	if x.Enter != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "enter")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Enter)
+	}
+	if x.Exit != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "exit")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Exit)
+	}
+	if x.Cycle != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "cycle")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Cycle)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Node) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *TextEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "TextEntry")
+	if x.Text != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
+		protobuf_go_lite.TextWriteString(&sb, x.Text)
+	}
+	if x.Placeholder != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "placeholder")
+		protobuf_go_lite.TextWriteString(&sb, x.Placeholder)
+	}
+	if x.MaxLength != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max_length")
+		protobuf_go_lite.TextWriteUint(&sb, x.MaxLength)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *TextEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Slider) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Slider")
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Value)
+	}
+	if x.Min != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "min")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Min)
+	}
+	if x.Max != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "max")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Max)
+	}
+	if x.Step != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "step")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Step)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Slider) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Toggle) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Toggle")
+	if x.On != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "on")
+		protobuf_go_lite.TextWriteBool(&sb, x.On)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Toggle) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Dropdown) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Dropdown")
+	if len(x.Options) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "options")
+		for i, v := range x.Options {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Selected != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "selected")
+		protobuf_go_lite.TextWriteUint(&sb, x.Selected)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Dropdown) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Cycle) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Cycle")
+	if x.Style != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "style")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Style)
+	}
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
+	}
+	if x.Count != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "count")
+		protobuf_go_lite.TextWriteUint(&sb, x.Count)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Cycle) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -7224,6 +9684,38 @@ func (x *UiPressEvent) String() string {
 	return x.MarshalProtoText()
 }
 
+func (x *UiInputEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiInputEvent")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Node != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "node")
+		protobuf_go_lite.TextWriteString(&sb, x.Node)
+	}
+	switch body := x.Value.(type) {
+	case *UiInputEvent_Text:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
+		protobuf_go_lite.TextWriteString(&sb, body.Text)
+	case *UiInputEvent_Number:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "number")
+		protobuf_go_lite.TextWriteFloat32(&sb, body.Number)
+	case *UiInputEvent_On:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "on")
+		protobuf_go_lite.TextWriteBool(&sb, body.On)
+	case *UiInputEvent_Choice:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "choice")
+		protobuf_go_lite.TextWriteUint(&sb, body.Choice)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *UiInputEvent) String() string {
+	return x.MarshalProtoText()
+}
+
 func (x *UiRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "UiRequest")
@@ -7475,6 +9967,551 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 			var _v uint64
 			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
 			m.HeroLook = HeroLook(_v)
+			if err != nil {
+				return err
+			}
+		case 19:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TextEntry", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Input.(*Node_TextEntry); ok {
+				if err := oneof.TextEntry.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &TextEntry{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Input = &Node_TextEntry{TextEntry: v}
+			}
+			iNdEx = postIndex
+		case 20:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Slider", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Input.(*Node_Slider); ok {
+				if err := oneof.Slider.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Slider{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Input = &Node_Slider{Slider: v}
+			}
+			iNdEx = postIndex
+		case 21:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Toggle", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Input.(*Node_Toggle); ok {
+				if err := oneof.Toggle.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Toggle{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Input = &Node_Toggle{Toggle: v}
+			}
+			iNdEx = postIndex
+		case 22:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Dropdown", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Input.(*Node_Dropdown); ok {
+				if err := oneof.Dropdown.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Dropdown{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Input = &Node_Dropdown{Dropdown: v}
+			}
+			iNdEx = postIndex
+		case 23:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Token = v
+		case 24:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Variables", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Variables == nil {
+				m.Variables = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Variables[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 25:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SteamId", wireType)
+			}
+			m.SteamId = 0
+			var _v64 uint64
+			_v64, iNdEx, err = protobuf_go_lite.DecodeFixed64(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.SteamId = uint64(_v64)
+		case 26:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Enter", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Enter == nil {
+				m.Enter = &Style{}
+			}
+			if err := m.Enter.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 27:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Exit", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Exit == nil {
+				m.Exit = &Style{}
+			}
+			if err := m.Exit.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 28:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cycle", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Cycle == nil {
+				m.Cycle = &Cycle{}
+			}
+			if err := m.Cycle.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *TextEntry) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TextEntry: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TextEntry: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Text = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Placeholder", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Placeholder = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxLength", wireType)
+			}
+			m.MaxLength = 0
+			m.MaxLength, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Slider) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Slider: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Slider: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Value = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Min", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Min = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Max", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Max = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Step", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Step = float32(math.Float32frombits(v))
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Toggle) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Toggle: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Toggle: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field On", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.On = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Dropdown) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Dropdown: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Dropdown: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Options", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Options = append(m.Options, v)
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Selected", wireType)
+			}
+			m.Selected = 0
+			m.Selected, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Cycle) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Cycle: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Cycle: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Style", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Style == nil {
+				m.Style = &Style{}
+			}
+			if err := m.Style.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Seconds = float32(math.Float32frombits(v))
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Count", wireType)
+			}
+			m.Count = 0
+			m.Count, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
@@ -9084,6 +12121,111 @@ func (m *UiPressEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Node = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *UiInputEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UiInputEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UiInputEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Node = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = &UiInputEvent_Text{Text: v}
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Number", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Value = &UiInputEvent_Number{Number: float32(math.Float32frombits(v))}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field On", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.Value = &UiInputEvent_On{On: b}
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Choice", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Value = &UiInputEvent_Choice{Choice: v}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

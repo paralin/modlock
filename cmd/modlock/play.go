@@ -299,6 +299,15 @@ func deliver(ctx context.Context, box *sandbox.Sandbox, in *modcli.Input) string
 		return ""
 	}
 
+	// Change the input.
+	if change := in.GetChange(); change != nil {
+		changed, err := box.Input(ctx, change.GetMod(), change.GetEvent())
+		if err == nil && !changed {
+			return change.GetMod() + " is not running to receive the change"
+		}
+		return ""
+	}
+
 	// Send the command.
 	command := strings.TrimSpace(in.GetCommand())
 	handled, err := box.Command(ctx, command)

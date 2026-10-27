@@ -15,6 +15,7 @@ import {
 import { Call, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind } from '../src/host.js'
 import { Action, hideHud, jsx, show } from '../src/index.js'
+import { change } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
 // records it.
@@ -150,4 +151,59 @@ test("a style names the game's faces, edges, paint and motion on the wire", () =
   )
   expect(leave!.disabled).toBe(true)
   expect(leave!.hover).toBeUndefined()
+})
+
+test('inputs carry their values and hand changes to the mod', () => {
+  // Show a name entry, a slider, a disabled toggle, an avatar and a token.
+  const player = { slot: 9 } as Parameters<typeof show>[0]
+  const names: string[] = []
+  show(
+    player,
+    jsx('panel', {
+      children: [
+        jsx('entry', {
+          value: 'Ana',
+          placeholder: 'Name',
+          maxLength: 12,
+          onChange: (_: unknown, value: string) => names.push(value),
+        }),
+        jsx('slider', { value: 5, min: 0, max: 10, step: 1 }),
+        jsx('toggle', {
+          on: true,
+          disabled: true,
+          onChange: () => names.push('toggled'),
+        }),
+        jsx('avatar', { steamId: 76561198000000001n }),
+        jsx('label', {
+          token: '#Citadel_HeroName_Haze',
+          variables: { count: 3 },
+        }),
+      ],
+    }),
+  )
+  const nodes = sent.at(-1)!.change!.set!
+  const [entry, slider, toggle] = nodes.filter(
+    (node) => node.kind === Kind.INPUT,
+  )
+
+  // Each control arrives with its value and bounds.
+  expect(entry!.input).toEqual({
+    case: 'textEntry',
+    value: { text: 'Ana', placeholder: 'Name', maxLength: 12 },
+  })
+  expect(slider!.input).toMatchObject({
+    case: 'slider',
+    value: { value: 5, max: 10, step: 1 },
+  })
+  expect(toggle!.disabled).toBe(true)
+  expect(nodes.find((node) => node.kind === Kind.AVATAR)!.steamId).toBe(
+    76561198000000001n,
+  )
+  const label = nodes.find((node) => node.token)!
+  expect(label.variables).toEqual({ count: '3' })
+
+  // A change reaches the entry's handler, and none the disabled toggle's.
+  change(player, entry!.id!, 'Bo')
+  change(player, toggle!.id!, false)
+  expect(names).toEqual(['Bo'])
 })

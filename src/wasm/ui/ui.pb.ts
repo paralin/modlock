@@ -4,7 +4,7 @@
 
 import { createEnumType } from '@aptre/protobuf-es-lite/enum'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
-import { createMessageType } from '@aptre/protobuf-es-lite/message'
+import { createMessageType, newMap } from '@aptre/protobuf-es-lite/message'
 import type {
   BinaryReader,
   Writer,
@@ -210,6 +210,17 @@ export enum Kind {
    * KIND_HERO_IMAGE shows one of the game's pictures of the node's hero.
    */
   HERO_IMAGE = 6,
+
+  /**
+   * KIND_INPUT takes a value from the player in the control its input names.
+   * An input takes clicks only while the player has a cursor.
+   */
+  INPUT = 7,
+
+  /**
+   * KIND_AVATAR shows the Steam picture of the player its steam_id names.
+   */
+  AVATAR = 8,
 }
 
 export const Kind_Enum = /* @__PURE__ */ createEnumType(
@@ -222,6 +233,8 @@ export const Kind_Enum = /* @__PURE__ */ createEnumType(
     [4, 'KIND_LAYOUT'],
     [5, 'KIND_ROUTE'],
     [6, 'KIND_HERO_IMAGE'],
+    [7, 'KIND_INPUT'],
+    [8, 'KIND_AVATAR'],
   ],
 )
 
@@ -664,6 +677,52 @@ export interface Node {
    * draws.
    */
   heroLook?: HeroLook
+  /**
+   * Token draws a label in the player's language: a token of the game's
+   * localization, such as "#Citadel_HeroName_Haze", shown in place of text.
+   * It is '#' then one or more letters, digits, '_', '-' and '.'.
+   */
+  token?: string
+  /**
+   * Variables fill the {s:name} places in a localized label's token.
+   */
+  variables?: { [key: string]: string }
+  /**
+   * SteamId is an avatar's player, by Steam id.
+   */
+  steamId?: bigint
+  /**
+   * Enter is the style a node's new panel starts from. The node's transition
+   * eases it from there to the node's style, so it fades, slides or grows
+   * in.
+   */
+  enter?: Style
+  /**
+   * Exit is the style a node's panel eases to, over its transition, when the
+   * node leaves the tree; the panel goes once the transition ends.
+   */
+  exit?: Style
+  /**
+   * Cycle repeats a change to the node's style while it shows, such as a
+   * pulse or a blink.
+   */
+  cycle?: Cycle
+  /**
+   * Input is the control an input node draws and the value it holds. Each
+   * change the player makes reaches the mod as a UiInputEvent, which the host
+   * checks against the control: a slider's range and step, a dropdown's
+   * options, an entry's length. The renderer keeps the player's own edit
+   * until a draw changes the value the node holds, so the mod's value is the
+   * truth and a redraw for another reason does not undo a change in flight.
+   *
+   * @generated from oneof modlock.wasm.ui.Node.input
+   */
+  input?:
+    | { value?: undefined; case: undefined }
+    | { value: TextEntry; case: 'textEntry' }
+    | { value: Slider; case: 'slider' }
+    | { value: Toggle; case: 'toggle' }
+    | { value: Dropdown; case: 'dropdown' }
 }
 
 export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
@@ -687,6 +746,16 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [16, 'scaling', 14, 0, Scaling_Enum],
     [17, 'hero', 5],
     [18, 'hero_look', 14, 0, HeroLook_Enum],
+    [19, 'text_entry', 11, 0, TextEntry.codec, 'input'],
+    [20, 'slider', 11, 0, Slider.codec, 'input'],
+    [21, 'toggle', 11, 0, Toggle.codec, 'input'],
+    [22, 'dropdown', 11, 0, Dropdown.codec, 'input'],
+    [23, 'token', 9],
+    [24, 'variables', 9, 584],
+    [25, 'steam_id', 6],
+    [26, 'enter', 11, 0, Style.codec],
+    [27, 'exit', 11, 0, Style.codec],
+    [28, 'cycle', 11, 0, Cycle.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -748,6 +817,72 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 18:
             m.heroLook = r.int32()
+            break
+          case 19:
+            m.input = {
+              case: 'textEntry',
+              value: TextEntry.decode(
+                r,
+                r.delimited(),
+                m.input?.case === 'textEntry' ? m.input.value : {},
+              ),
+            }
+            break
+          case 20:
+            m.input = {
+              case: 'slider',
+              value: Slider.decode(
+                r,
+                r.delimited(),
+                m.input?.case === 'slider' ? m.input.value : {},
+              ),
+            }
+            break
+          case 21:
+            m.input = {
+              case: 'toggle',
+              value: Toggle.decode(
+                r,
+                r.delimited(),
+                m.input?.case === 'toggle' ? m.input.value : {},
+              ),
+            }
+            break
+          case 22:
+            m.input = {
+              case: 'dropdown',
+              value: Dropdown.decode(
+                r,
+                r.delimited(),
+                m.input?.case === 'dropdown' ? m.input.value : {},
+              ),
+            }
+            break
+          case 23:
+            m.token = r.string()
+            break
+          case 24: {
+            const [k, v] = r.entry(
+              (r) => r.string(),
+              (r) => r.string(),
+              '',
+              '',
+            )
+            m.variables ??= newMap()
+            m.variables[k] = v
+            break
+          }
+          case 25:
+            m.steamId = r.fixed64()
+            break
+          case 26:
+            m.enter = Style.decode(r, r.delimited(), m.enter ?? {})
+            break
+          case 27:
+            m.exit = Style.decode(r, r.delimited(), m.exit ?? {})
+            break
+          case 28:
+            m.cycle = Cycle.decode(r, r.delimited(), m.cycle ?? {})
             break
           default:
             r.skip(t)
@@ -832,9 +967,363 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
         const v = m.heroLook
         if (v) w.uint32(144).int32(v)
       }
+      {
+        const o = m.input
+        if (o?.case === 'textEntry' && o.value != null)
+          TextEntry.writeField(w, 19, o.value)
+      }
+      {
+        const o = m.input
+        if (o?.case === 'slider' && o.value != null)
+          Slider.writeField(w, 20, o.value)
+      }
+      {
+        const o = m.input
+        if (o?.case === 'toggle' && o.value != null)
+          Toggle.writeField(w, 21, o.value)
+      }
+      {
+        const o = m.input
+        if (o?.case === 'dropdown' && o.value != null)
+          Dropdown.writeField(w, 22, o.value)
+      }
+      {
+        const v = m.token
+        if (v) w.uint32(186).string(v)
+      }
+      {
+        const o = m.variables
+        if (o != null)
+          for (const [k, v] of Object.entries(o)) {
+            const s = w.uint32(194).fork()
+            w.uint32(10).string(k)
+            w.uint32(18).string(v)
+            w.join(s)
+          }
+      }
+      {
+        const v = m.steamId
+        if (v) w.uint32(201).fixed64(v)
+      }
+      {
+        const v = m.enter
+        if (v != null) Style.writeField(w, 26, v)
+      }
+      {
+        const v = m.exit
+        if (v != null) Style.writeField(w, 27, v)
+      }
+      {
+        const v = m.cycle
+        if (v != null) Cycle.writeField(w, 28, v)
+      }
     },
   },
 )
+
+/**
+ * TextEntry is a box the player types a line of text into.
+ *
+ * @generated from message modlock.wasm.ui.TextEntry
+ */
+export interface TextEntry {
+  /**
+   * Text is the box's text.
+   */
+  text?: string
+  /**
+   * Placeholder is the faint text an empty box shows.
+   */
+  placeholder?: string
+  /**
+   * MaxLength bounds the text, in characters; zero means 100. The host takes
+   * at most 240 bytes of text, so a console line carries it.
+   */
+  maxLength?: number
+}
+
+export const TextEntry: MessageType<TextEntry> =
+  /* @__PURE__ */ createMessageType<TextEntry>(
+    'modlock.wasm.ui.TextEntry',
+    () => [
+      [1, 'text', 9],
+      [2, 'placeholder', 9],
+      [3, 'max_length', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: TextEntry): TextEntry => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.text = r.string()
+              break
+            case 2:
+              m.placeholder = r.string()
+              break
+            case 3:
+              m.maxLength = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: TextEntry, w: Writer): void => {
+        {
+          const v = m.text
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.placeholder
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.maxLength
+          if (v) w.uint32(24).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Slider is a bar the player drags to a number.
+ *
+ * @generated from message modlock.wasm.ui.Slider
+ */
+export interface Slider {
+  /**
+   * Value is the number the slider holds.
+   */
+  value?: number
+  /**
+   * Min and Max bound the value; a max no greater than min means 0 to 1.
+   */
+  min?: number
+  max?: number
+  /**
+   * Step is the distance between the values the slider stops at; zero lets
+   * it stop anywhere.
+   */
+  step?: number
+}
+
+export const Slider: MessageType<Slider> =
+  /* @__PURE__ */ createMessageType<Slider>(
+    'modlock.wasm.ui.Slider',
+    () => [
+      [1, 'value', 2],
+      [2, 'min', 2],
+      [3, 'max', 2],
+      [4, 'step', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Slider): Slider => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.value = r.float()
+              break
+            case 2:
+              m.min = r.float()
+              break
+            case 3:
+              m.max = r.float()
+              break
+            case 4:
+              m.step = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Slider, w: Writer): void => {
+        {
+          const v = m.value
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.min
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.max
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+        {
+          const v = m.step
+          if (v != null && v !== 0) w.uint32(37).float(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Toggle is a box the player checks or clears. The node's text labels it.
+ *
+ * @generated from message modlock.wasm.ui.Toggle
+ */
+export interface Toggle {
+  /**
+   * On reports whether the box is checked.
+   */
+  on?: boolean
+}
+
+export const Toggle: MessageType<Toggle> =
+  /* @__PURE__ */ createMessageType<Toggle>(
+    'modlock.wasm.ui.Toggle',
+    () => [[1, 'on', 8]],
+    {
+      decode: (r: BinaryReader, end: number, m: Toggle): Toggle => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.on = r.bool()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Toggle, w: Writer): void => {
+        {
+          const v = m.on
+          if (v) w.uint32(8).bool(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Dropdown lets the player pick one of a list of options.
+ *
+ * @generated from message modlock.wasm.ui.Dropdown
+ */
+export interface Dropdown {
+  /**
+   * Options are the choices, as the player reads them.
+   */
+  options?: string[]
+  /**
+   * Selected is the index of the chosen option.
+   */
+  selected?: number
+}
+
+export const Dropdown: MessageType<Dropdown> =
+  /* @__PURE__ */ createMessageType<Dropdown>(
+    'modlock.wasm.ui.Dropdown',
+    () => [
+      [1, 'options', 9, 1],
+      [2, 'selected', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Dropdown): Dropdown => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.options ??= []).push(r.string())
+              break
+            case 2:
+              m.selected = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Dropdown, w: Writer): void => {
+        {
+          const a = m.options
+          if (a != null) for (const e of a) w.uint32(10).string(e)
+        }
+        {
+          const v = m.selected
+          if (v) w.uint32(16).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Cycle alternates a node between its style and another, easing each way.
+ *
+ * @generated from message modlock.wasm.ui.Cycle
+ */
+export interface Cycle {
+  /**
+   * Style is the style laid over the node's own at the far end of the cycle.
+   */
+  style?: Style
+  /**
+   * Seconds is how long each way takes.
+   */
+  seconds?: number
+  /**
+   * Count is how many times the node goes there and back; zero repeats while
+   * it shows.
+   */
+  count?: number
+}
+
+export const Cycle: MessageType<Cycle> =
+  /* @__PURE__ */ createMessageType<Cycle>(
+    'modlock.wasm.ui.Cycle',
+    () => [
+      [1, 'style', 11, 0, Style.codec],
+      [2, 'seconds', 2],
+      [3, 'count', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Cycle): Cycle => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.style = Style.decode(r, r.delimited(), m.style ?? {})
+              break
+            case 2:
+              m.seconds = r.float()
+              break
+            case 3:
+              m.count = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Cycle, w: Writer): void => {
+        {
+          const v = m.style
+          if (v != null) Style.writeField(w, 1, v)
+        }
+        {
+          const v = m.seconds
+          if (v != null && v !== 0) w.uint32(21).float(v)
+        }
+        {
+          const v = m.count
+          if (v) w.uint32(24).uint32(v)
+        }
+      },
+    },
+  )
 
 /**
  * Style is the closed set of layout and paint properties a node may set. A
@@ -2239,6 +2728,107 @@ export const UiPressEvent: MessageType<UiPressEvent> =
         {
           const v = m.node
           if (v) w.uint32(18).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * UiInputEvent reports a change the player made to an input in their
+ * interface, with the value as the host checked it.
+ *
+ * @generated from message modlock.wasm.ui.UiInputEvent
+ */
+export interface UiInputEvent {
+  /**
+   * Player is the player who changed it.
+   */
+  player?: number
+  /**
+   * Node is the id of the input.
+   */
+  node?: string
+  /**
+   * Value is the input's new value, in the kind its control holds.
+   *
+   * @generated from oneof modlock.wasm.ui.UiInputEvent.value
+   */
+  value?:
+    | { value?: undefined; case: undefined }
+    | { value: string; case: 'text' }
+    | { value: number; case: 'number' }
+    | { value: boolean; case: 'on' }
+    | { value: number; case: 'choice' }
+}
+
+export const UiInputEvent: MessageType<UiInputEvent> =
+  /* @__PURE__ */ createMessageType<UiInputEvent>(
+    'modlock.wasm.ui.UiInputEvent',
+    () => [
+      [1, 'player', 5],
+      [2, 'node', 9],
+      [3, 'text', 9, 0, 0, 'value'],
+      [4, 'number', 2, 0, 0, 'value'],
+      [5, 'on', 8, 0, 0, 'value'],
+      [6, 'choice', 13, 0, 0, 'value'],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: UiInputEvent): UiInputEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.node = r.string()
+              break
+            case 3:
+              m.value = { case: 'text', value: r.string() }
+              break
+            case 4:
+              m.value = { case: 'number', value: r.float() }
+              break
+            case 5:
+              m.value = { case: 'on', value: r.bool() }
+              break
+            case 6:
+              m.value = { case: 'choice', value: r.uint32() }
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: UiInputEvent, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.node
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'text' && o.value != null)
+            w.uint32(26).string(o.value)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'number' && o.value != null)
+            w.uint32(37).float(o.value)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'on' && o.value != null) w.uint32(40).bool(o.value)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'choice' && o.value != null)
+            w.uint32(48).uint32(o.value)
         }
       },
     },

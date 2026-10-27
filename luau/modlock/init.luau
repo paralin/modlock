@@ -1001,6 +1001,17 @@ export type UiPressEvent = {
 	node: string,
 }
 
+-- UiInputEvent reports a change the player made to an input in their
+-- interface, with the value as the host checked it.
+export type UiInputEvent = {
+	-- player is the player who changed it.
+	player: Player,
+	-- node is the id of the input.
+	node: string,
+	-- value is the input's new value, in the kind its control holds.
+	value: (string | number | boolean)?,
+}
+
 -- StartEvent describes the server the mod starts in.
 export type StartEvent = {
 	-- args holds the arguments that follow -- on the host command line.
@@ -2582,6 +2593,14 @@ schema.UiPressEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "node", kind = "string" },
 }
+schema.UiInputEvent = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "node", kind = "string" },
+	{ number = 3, name = "text", kind = "string", oneof = "value" },
+	{ number = 4, name = "number", kind = "float", oneof = "value" },
+	{ number = 5, name = "on", kind = "bool", oneof = "value" },
+	{ number = 6, name = "choice", kind = "uint32", oneof = "value" },
+}
 schema.Call = {
 	{ number = 1, name = "method", kind = "string" },
 	{ number = 2, name = "request", kind = "bytes" },
@@ -3089,6 +3108,8 @@ export type ModHandlers = {
 	world: (event: WorldEvent) -> (),
 	-- uiPress reports a press on a button in a player's interface.
 	uiPress: (event: UiPressEvent) -> (),
+	-- uiInput reports a change to an input in a player's interface.
+	uiInput: (event: UiInputEvent) -> (),
 	-- serve calls a service the mod serves from the host.
 	serve: (event: ServiceCall) -> ServiceReply,
 	-- damage offers one hit before the game applies it, while the mod asked
@@ -3130,6 +3151,7 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Command = { request = "CommandEvent", response = "CommandResult", handler = "command" },
 	World = { request = "WorldEvent", response = "Empty", handler = "world" },
 	UiPress = { request = "UiPressEvent", response = "Empty", handler = "uiPress" },
+	UiInput = { request = "UiInputEvent", response = "Empty", handler = "uiInput" },
 	Serve = { request = "ServiceCall", response = "ServiceReply", handler = "serve" },
 	Damage = { request = "DamageEvent", response = "DamageResult", handler = "damage" },
 	Damaged = { request = "DamagedEvent", response = "Empty", handler = "damaged" },
@@ -3552,8 +3574,10 @@ local handlers: ModHandlers = {
 		end
 	end,
 
-	-- Luau mods build no interface yet, so no button reports a press.
+	-- Luau mods build no interface yet, so no button reports a press and no
+	-- input a change.
 	uiPress = function(_event) end,
+	uiInput = function(_event) end,
 
 	serve = function(event)
 		local handler = services[event.service]

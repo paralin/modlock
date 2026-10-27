@@ -7,6 +7,8 @@ interface Panel {
   hittest: boolean
   enabled: boolean
   text: string
+  value: number
+  checked: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
   GetParent(): Panel | null
@@ -28,6 +30,10 @@ interface Panel {
   FindChildrenWithClassTraverse(name: string): Panel[]
   BHasClass(name: string): boolean
   DeleteAsync(seconds: number): void
+  SetDialogVariable(name: string, value: string): void
+  AddOption(option: Panel): void
+  SetSelected(id: string): void
+  GetSelected(): Panel | null
 }
 
 /** $ is the Panorama script API. */
@@ -52,6 +58,7 @@ declare const $: {
   Schedule(seconds: number, callback: () => void): number
   CancelScheduled(handle: number): void
   DispatchEvent(event: string, ...args: unknown[]): void
+  Localize(token: string, panel?: object): string
 }
 
 /** PlayUISoundEvent plays one of the game's interface sound events. */

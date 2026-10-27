@@ -1094,6 +1094,25 @@ a press, and `disabled`, which stops its presses. An `image` takes `scaling`
 `small`, `card`, `icon`, `vertical`, `topBar` or `minimap` look. Interfaces
 load no pages, styles or scripts from outside the game.
 
+`enter`, `exit` and `cycle` move an element with its `transition`: it
+appears at its `enter` style and eases to its own, eases to its `exit` style
+before it goes when the mod stops drawing it, and swings between its own style
+and `cycle: { style, seconds, count }`, `count` times there and back or forever
+without one. A `label` with `token="#Citadel_HeroName_Haze"` shows the game's
+own text in the player's language, filling its places from `variables`, and
+`<avatar steamId={connection.steamId} />`, with an entry of `players()`,
+draws a player's Steam picture.
+
+Four inputs take a value and hand each change to `onChange(player, value)`:
+`<entry value placeholder maxLength>` for text, `<slider value min max
+step>`, `<toggle on>` with its label as children, and `<dropdown options
+selected>`, whose value is the chosen option's index. The host checks each
+change against the input the player was shown: it clamps a slider to its range
+and step, cuts text to `maxLength` characters, and drops a change to a
+disabled input or one the player no longer sees. The mod's value stays the
+truth: the player's edit shows until the mod draws a new value, so a mod that
+keeps the value it is handed keeps the input in step.
+
 The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
 sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
 counts as the round counter does, `<Tag>` labels a status, `<Banner>`
