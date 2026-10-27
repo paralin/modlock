@@ -341,6 +341,8 @@ export interface RosterRow {
   hero: number
   /** activity is the line under the name, such as "Free roam". */
   activity: string
+  /** steamId badges the portrait's corner with the player's Steam avatar. */
+  steamId?: bigint
 }
 
 /** rosterRows is the most players the roster shows, above the minimap. */
@@ -352,6 +354,9 @@ const rosterName = 24
 /** portraitSize is the portrait square's side, its 1px edge included. */
 const portraitSize = 44
 
+/** badgeSize is the side of the avatar badge on a portrait's corner. */
+const badgeSize = 18
+
 /** portraits maps each hero's id to its small portrait. */
 const portraits = new Map(heroes.map((hero) => [hero.id, hero.portrait]))
 
@@ -361,7 +366,7 @@ export function rosterKey(rows: readonly RosterRow[]): string {
     .slice(0, rosterRows)
     .map(
       (row) =>
-        `${row.self ? '*' : ''}${row.name}\t${row.hero}\t${row.activity}`,
+        `${row.self ? '*' : ''}${row.name}\t${row.hero}\t${row.activity}\t${row.steamId ?? ''}`,
     )
     .join('\n')
 }
@@ -422,8 +427,24 @@ function rosterRow(row: RosterRow, index: number): UiElement {
     ],
   )
 
-  // The portrait sits in a 1px edge on a raised square, empty without a hero.
+  // The portrait sits in a 1px edge on a raised square, empty without a hero,
+  // with the player's avatar on its lower left corner.
   const src = portraits.get(row.hero)
+  const badge: UiElement | false = row.steamId !== undefined && {
+    type: 'avatar',
+    props: {
+      steamId: row.steamId,
+      style: {
+        width: badgeSize,
+        height: badgeSize,
+        horizontalAlign: 'left',
+        verticalAlign: 'bottom',
+        borderRadius: badgeSize / 2,
+        borderWidth: 1,
+        borderColor: shades.dim,
+      },
+    },
+  }
   const portrait = element(
     'panel',
     {
@@ -436,10 +457,13 @@ function rosterRow(row: RosterRow, index: number): UiElement {
     element(
       'panel',
       { width: '100%', height: '100%', background: shades.raised },
-      src && {
-        type: 'image',
-        props: { src, style: { width: '100%', height: '100%' } },
-      },
+      [
+        src && {
+          type: 'image',
+          props: { src, style: { width: '100%', height: '100%' } },
+        },
+        badge,
+      ],
     ),
   )
 
