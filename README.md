@@ -546,6 +546,11 @@ Hyperline publishes each version once, so raise `version` in `mod.json` before
 publishing again. `--notes` says what changed: hyperline.gg shows it on the
 game's page, and the `github` destination uses it for a new release.
 
+After the upload, `modlock publish` says where the release plays. A mod with
+code plays on hyperline.gg's game servers at once, and on players' own PCs once
+a reviewer approves it, unless the creator is trusted, whose releases play
+everywhere when published.
+
 ### Client content
 
 Layouts, scripts, style sheets and images the mod shows in each player's game go

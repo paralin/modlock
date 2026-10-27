@@ -92,6 +92,8 @@ func publishHyperline(c *cli.Context, out *printer, mod *modpublish.Mod, name st
 	switch release.GetReviewState() {
 	case publish.ReviewState_REVIEW_STATE_APPROVED:
 		out.note("published " + name + "; players can install it now")
+	case publish.ReviewState_REVIEW_STATE_APPROVED_FOR_SERVERS:
+		out.note("published " + name + "; it plays on hyperline.gg's game servers now, and on players' PCs once a reviewer approves it")
 	case publish.ReviewState_REVIEW_STATE_REJECTED:
 		return errors.Errorf("%s was rejected: %s", name, release.GetReviewNote())
 	default:

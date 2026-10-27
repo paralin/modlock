@@ -35,6 +35,12 @@ export enum ReviewState {
    * REVIEW_STATE_REJECTED was refused.
    */
   REJECTED = 3,
+
+  /**
+   * REVIEW_STATE_APPROVED_FOR_SERVERS may be played on the service's game
+   * servers, and on players' PCs once a reviewer approves it.
+   */
+  APPROVED_FOR_SERVERS = 4,
 }
 
 export const ReviewState_Enum = /* @__PURE__ */ createEnumType(
@@ -44,6 +50,7 @@ export const ReviewState_Enum = /* @__PURE__ */ createEnumType(
     [1, 'REVIEW_STATE_PENDING'],
     [2, 'REVIEW_STATE_APPROVED'],
     [3, 'REVIEW_STATE_REJECTED'],
+    [4, 'REVIEW_STATE_APPROVED_FOR_SERVERS'],
   ],
 )
 

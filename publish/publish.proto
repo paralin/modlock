@@ -70,6 +70,10 @@ enum ReviewState {
 
   // REVIEW_STATE_REJECTED was refused.
   REVIEW_STATE_REJECTED = 3;
+
+  // REVIEW_STATE_APPROVED_FOR_SERVERS may be played on the service's game
+  // servers, and on players' PCs once a reviewer approves it.
+  REVIEW_STATE_APPROVED_FOR_SERVERS = 4;
 }
 
 // Error is a refused request's explanation.

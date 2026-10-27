@@ -26,6 +26,9 @@ const (
 	ReviewState_REVIEW_STATE_APPROVED ReviewState = 2
 	// REVIEW_STATE_REJECTED was refused.
 	ReviewState_REVIEW_STATE_REJECTED ReviewState = 3
+	// REVIEW_STATE_APPROVED_FOR_SERVERS may be played on the service's game
+	// servers, and on players' PCs once a reviewer approves it.
+	ReviewState_REVIEW_STATE_APPROVED_FOR_SERVERS ReviewState = 4
 )
 
 // Enum value maps for ReviewState.
@@ -35,12 +38,14 @@ var (
 		1: "REVIEW_STATE_PENDING",
 		2: "REVIEW_STATE_APPROVED",
 		3: "REVIEW_STATE_REJECTED",
+		4: "REVIEW_STATE_APPROVED_FOR_SERVERS",
 	}
 	ReviewState_value = map[string]int32{
-		"REVIEW_STATE_UNKNOWN":  0,
-		"REVIEW_STATE_PENDING":  1,
-		"REVIEW_STATE_APPROVED": 2,
-		"REVIEW_STATE_REJECTED": 3,
+		"REVIEW_STATE_UNKNOWN":              0,
+		"REVIEW_STATE_PENDING":              1,
+		"REVIEW_STATE_APPROVED":             2,
+		"REVIEW_STATE_REJECTED":             3,
+		"REVIEW_STATE_APPROVED_FOR_SERVERS": 4,
 	}
 )
 
