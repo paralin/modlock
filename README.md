@@ -870,7 +870,7 @@ after(30, () => tour?.cancel())
 | `createText`, `createModel`, `createParticle`            | Place text, a model or an effect; move, change or remove it later.  |
 | `createFog({ position, mins, maxs, strength, color })`   | Fill a box with tinted fog; tile boxes to darken all but one area.  |
 | `precache({ heroes, resources })`                        | Load heroes and resources with the next world.                      |
-| `serverCommand(line)`                                    | Run a line at the server console.                                   |
+| `serverCommand(line)`                                    | Run a line at the server console, within [its limits](#console).    |
 | `moveEntity`, `pushEntity`, `emitSound`                  | Move an entity, set or add to its velocity, or play a sound on it.  |
 | `modifierState(entity, state)`, `holdModifierState(...)` | Test a modifier state on an entity, or hold one on it.              |
 | `readField`, `writeField`, `entityClass`                 | Read or write any schema field of a live entity, or name its class. |
@@ -1043,6 +1043,25 @@ run('changelevel', 'street_test')
 Each call runs one line through `serverCommand`, which may set a
 development-only or cheat-protected variable. A variable whose value is a
 vector or a color has no typed setter; set it with `serverCommand`.
+
+A mod's console lines change the game and nothing around it. They may set the
+game's rules and bots, change or reload the map, kick a player, quit, set the
+time scale, and start the game's own recording with `tv_enable` and
+`tv_record <name>`, where the name holds only letters, digits, `-` and `_`.
+They may not reach the engine's controls for:
+
+- files: `exec` and its kin, saves, demo playback, config and path variables,
+  and commands that write a file, such as `condump` or `writeip`;
+- logging: `log`, `log_*`, `con_log*`, `sv_log*` and console redirection;
+- the network: `connect`, `rcon*`, addresses and ports, IP bans, passwords,
+  Steam account and group settings, and broadcast, relay and playcast `tv_*`
+  settings;
+- the process: crash and minidump commands, debuggers, tools and shutdown;
+- commands that store a line to run later: `alias`, `cmd`, `bind*`, `unbind*`
+  and `execute_command_every_frame`.
+
+The server checks every command in a line, after each `;` or newline, and
+returns an error that names the first one refused.
 
 `apply(settings)` sets several variables in order and returns the names the
 server refused. `arena` empties the map for a custom mode: the server keeps

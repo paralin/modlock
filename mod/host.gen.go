@@ -462,7 +462,9 @@ func logLine(message string) error {
 
 // ServerCommand runs one line at the server console, as if typed there. A
 // line that sets a variable may set a development-only or cheat-protected
-// one.
+// one. A line that reaches the engine's controls for files, logging, the
+// network or the process, or stores a command to run later, is refused with
+// the name of the command.
 func ServerCommand(command string) error {
 	return invoke("ServerCommand", &wasmpb.ServerCommandRequest{Command: command}, nil)
 }

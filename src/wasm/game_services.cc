@@ -8,6 +8,7 @@
 
 #include "modlock/gameinterop/console_variables.h"
 #include "modlock/gameinterop/player_selection.h"
+#include "wasm/console_lines.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
 
@@ -36,8 +37,12 @@ std::expected<const gameinterop::NativeUserMessages*, std::string> GameServices:
 }
 
 std::expected<void, std::string> GameServices::ServerCommand(std::string command) {
+  // Refuse a line that reaches outside the game.
+  if (auto refused = RefuseConsoleLine(command); !refused.empty()) {
+    return std::unexpected(std::move(refused));
+  }
+
   // Hold the line until the world starts.
-  command += '\n';
   if (!started_) {
     pending_commands_.push_back(std::move(command));
     return {};
@@ -49,16 +54,17 @@ std::expected<void, std::string> GameServices::ServerCommand(std::string command
     return std::unexpected(server.error());
   }
 
-  // A line that sets a variable may name a development-only or cheat-protected
-  // one, which the console otherwise refuses. Exposing the first word of any
-  // other line finds no variable and changes nothing.
+  // A command that sets a variable may name a development-only or
+  // cheat-protected one, which the console otherwise refuses. Exposing the
+  // name of any other command finds no variable and changes nothing.
   if (auto variables = gameinterop::ConsoleVariables::Resolve()) {
-    const auto name = command.substr(0, command.find_first_of(" \t\n"));
-    static_cast<void>(variables->AllowServerChanges(name.c_str()));
+    for (const auto& run : SplitConsoleLine(command)) {
+      static_cast<void>(variables->AllowServerChanges(std::string(run.name).c_str()));
+    }
   }
 
   // Run the line on the server console.
-  if (!(*server)->ServerCommand(command.c_str())) {
+  if (!(*server)->ServerCommand((command + '\n').c_str())) {
     return std::unexpected("the server console is unavailable");
   }
   return {};

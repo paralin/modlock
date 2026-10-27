@@ -193,6 +193,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_builds.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/wasm/hero_builds_data.cc
   src/wasm/game_match.cc
+  src/wasm/console_lines.cc
   src/wasm/game_services.cc
   src/wasm/game_services_input.cc
   src/wasm/game_watches.cc
@@ -531,6 +532,10 @@ if(BUILD_TESTING)
   add_executable(combat_events_test tests/combat_events_test.cc)
   target_link_libraries(combat_events_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME combat_events_test COMMAND combat_events_test)
+  add_executable(console_lines_test tests/console_lines_test.cc src/wasm/console_lines.cc)
+  target_include_directories(console_lines_test PRIVATE src)
+  target_link_libraries(console_lines_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME console_lines_test COMMAND console_lines_test)
   add_executable(console_variables_test tests/console_variables_test.cc)
   target_link_libraries(console_variables_test PRIVATE modlock::sdk gtest_main)
   add_test(NAME console_variables_test COMMAND console_variables_test)

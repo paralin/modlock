@@ -58,7 +58,9 @@ class HostService {
 
   // ServerCommand runs one line at the server console, as if typed there. A
   // line that sets a variable may set a development-only or cheat-protected
-  // one.
+  // one. A line that reaches the engine's controls for files, logging, the
+  // network or the process, or stores a command to run later, is refused with
+  // the name of the command.
   virtual std::expected<void, std::string> ServerCommand(const ServerCommandRequest& /*request*/) {
     return std::unexpected("this host does not support ServerCommand");
   }
