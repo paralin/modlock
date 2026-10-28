@@ -3,7 +3,7 @@ module github.com/paralin/modlock
 go 1.27.0
 
 replace (
-	github.com/cloudflare/circl => github.com/aperturerobotics/circl v1.6.4-0.20260922203741-ec4e0985fb65
+	github.com/cloudflare/circl => github.com/aperturerobotics/circl v1.6.4-0.20261026102657-7415ab3046b7
 	github.com/pion/ice/v4 => github.com/aperturerobotics/pion-ice/v4 v4.0.0-20260923005200-d591ff5895c0
 	github.com/pion/webrtc/v4 => github.com/aperturerobotics/pion-webrtc/v4 v4.2.16-0.20260922235615-c5c6104de130
 	github.com/sirupsen/logrus => github.com/aperturerobotics/logrus v1.10.2-0.20260922042813-73f013325281 // master
