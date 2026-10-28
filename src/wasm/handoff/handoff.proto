@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package modlock.wasm.handoff;
+
+option go_package = "github.com/paralin/modlock/src/wasm/handoff;handoff";
+
+// HandoffRequest replaces the state the running build hands the next build
+// for the game.
+message HandoffRequest {
+  // Text is the new state, such as JSON; empty forgets it.
+  string text = 1;
+}
+
+// HandoffPlayerRequest replaces the state the running build hands the next
+// build for one player.
+message HandoffPlayerRequest {
+  // Player is the player's server slot.
+  int32 player = 1;
+  // Text is the new state, as HandoffRequest holds it.
+  string text = 2;
+}
+
+// HandedOffResponse holds handoff state.
+message HandedOffResponse {
+  // Text is the state last handed off, or empty when none is.
+  string text = 1;
+}

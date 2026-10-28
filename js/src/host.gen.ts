@@ -6,6 +6,7 @@ import * as effectsPb from '../../src/wasm/effects/effects.pb.js'
 import * as entitiesPb from '../../src/wasm/entities/entities.pb.js'
 import * as fieldsPb from '../../src/wasm/fields/fields.pb.js'
 import * as filesPb from '../../src/wasm/files/files.pb.js'
+import * as handoffPb from '../../src/wasm/handoff/handoff.pb.js'
 import * as inputPb from '../../src/wasm/input/input.pb.js'
 import * as matchPb from '../../src/wasm/match/match.pb.js'
 import * as metricsPb from '../../src/wasm/metrics/metrics.pb.js'
@@ -1977,6 +1978,24 @@ export class Player {
   }
 
   /**
+   * handoff replaces the handoff state for the player, such as the
+   * panels their HUD shows. It lasts only through a reload of the mod in the
+   * same game, in memory, as the game's does, and ends early when the player
+   * leaves; only that player reads it back, and a bot keeps none.
+   */
+  handoff(text: string): boolean {
+    return call('PlayerHandoff', handoffPb.HandoffPlayerRequest.toBinary({ player: this.slot, text })) !== undefined
+  }
+
+  /** handedOff returns the player's handoff state, or empty. */
+  handedOff(): string | undefined {
+    const reply = call('PlayerHandedOff', playersPb.PlayerRequest.toBinary({ player: this.slot }))
+    if (reply === undefined) return undefined
+    const response = handoffPb.HandedOffResponse.fromBinary(reply)
+    return response.text ?? ''
+  }
+
+  /**
    * selectHero gives the player a hero on a team, 2 or 3, and returns the
    * hero's identifier as Pawn.hero reports it. The hero appears on a later
    * frame.
@@ -2521,6 +2540,26 @@ export function writeFile(name: string, text: string): boolean {
  */
 export function holdReload(held: boolean): boolean {
   return call('HoldReload', abilitiesPb.HoldReloadRequest.toBinary({ held })) !== undefined
+}
+
+/**
+ * handoff replaces the handoff state for the game: what the running build
+ * hands the next build when the mod reloads, such as which round it plays.
+ * It lasts only through a reload of the mod in the same game, such as an
+ * update, whose new build reads it back with HandedOff. The host holds it
+ * in memory and never writes it to disk, so it ends when the mod stops or
+ * the server restarts. The host refuses state past 64 KiB.
+ */
+export function handoff(text: string): boolean {
+  return call('Handoff', handoffPb.HandoffRequest.toBinary({ text })) !== undefined
+}
+
+/** handedOff returns the game's handoff state, or empty. */
+export function handedOff(): string | undefined {
+  const reply = call('HandedOff', new Uint8Array())
+  if (reply === undefined) return undefined
+  const response = handoffPb.HandedOffResponse.fromBinary(reply)
+  return response.text ?? ''
 }
 
 /**

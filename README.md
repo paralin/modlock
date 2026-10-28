@@ -639,6 +639,15 @@ calls `holdReload(true)`, and `holdReload(false)` once it ends. A reload that
 arrives meanwhile waits for it, and the newest build replaces the running one on
 the next frame after the release. A mod that stops also releases its hold.
 
+A mod hands what a reload should not reset, such as which round it plays or the
+panels each player has open, to its next build as handoff state: `handoff(text)`
+for the game and `player.handoff(text)` for one player, read back on load with
+`handedOff()` and `player.handedOff()`. Handoff state lasts only through a reload
+in the same game. The host holds it in memory, up to 64 KiB per call, and never
+writes it to disk; the game's state ends when the mod stops or the server
+restarts, and a player's when that player leaves. A bot has none. Handing off an
+empty text forgets it.
+
 ### Events
 
 | Call                                                | Runs the handler                                              |
@@ -701,6 +710,7 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 | `player.abilities()`, `setAbility`, `replaceAbility`, `holdModifier`                   | Read or change abilities, their timers and charges, modifiers.  |
 | `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)` | Read or change the player's settings.                           |
 | `player.addMetric(name, value, label?)`                                                | Add to the player's total of a metric.                          |
+| `player.handoff(text)`, `handedOff()`                                                  | Hand the player's state to the next build, and read it back.    |
 | `player.watchMovement(true)`                                                           | Add the hero's movement, landings and wall jumps to each frame. |
 | `playCamera(player, options)`, `cameraPulse`, `cameraShake`                            | Play curves on the camera; see [Camera moves](#camera-moves).   |
 | `setOrbitCamera(player, enabled)`                                                      | Switch the hero to the hideout's zoom camera and HUD, or back.  |

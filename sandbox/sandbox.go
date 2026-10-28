@@ -15,6 +15,7 @@ import (
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/paralin/modlock/src/wasm/effects"
 	filespb "github.com/paralin/modlock/src/wasm/files"
+	"github.com/paralin/modlock/src/wasm/handoff"
 	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
 	metricspb "github.com/paralin/modlock/src/wasm/metrics"
 	"github.com/paralin/modlock/src/wasm/players"
@@ -64,6 +65,21 @@ type Sandbox struct {
 	// tallies holds the stand-in player's metric totals by mod, which the
 	// session logs when it ends.
 	tallies map[string]*metrics.Tally
+	// handoff holds the handoff state of each mod for the game and for the
+	// stand-in player, which the next build reads back after a reload.
+	handoff map[handoffKey]string
+}
+
+// handoffLimit is the most handoff state a mod sets in one call, as a server
+// allows.
+const handoffLimit = 64 * 1024
+
+// handoffKey names one mod's handoff state: the game's, or the player's.
+type handoffKey struct {
+	// mod is the mod's slug.
+	mod string
+	// player is set for the stand-in player's state.
+	player bool
 }
 
 // running is one mod in the session.
@@ -432,6 +448,8 @@ func (s *Sandbox) answer(build *Build, call *wasm.Call) *wasm.Reply {
 		if request.UnmarshalVT(call.GetRequest()) == nil {
 			s.addMetric(manifest, request)
 		}
+	case "Handoff", "HandedOff", "PlayerHandoff", "PlayerHandedOff":
+		return s.handOff(mod, call)
 	case "ReadFile", "WriteFile":
 		return s.file(build, call)
 	case "CallService":
@@ -441,6 +459,63 @@ func (s *Sandbox) answer(build *Build, call *wasm.Call) *wasm.Reply {
 	}
 
 	return &wasm.Reply{}
+}
+
+// handOff answers a call that sets or reads the handoff state of mod for the
+// game or the stand-in player. A bot's slot has none.
+func (s *Sandbox) handOff(mod string, call *wasm.Call) *wasm.Reply {
+	// Find the state the call names.
+	key := handoffKey{mod: mod}
+	var slot int32
+	var text string
+	sets := true
+	switch call.GetMethod() {
+	case "Handoff":
+		request := &handoff.HandoffRequest{}
+		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasm.Reply{Error: "the Handoff request is malformed"}
+		}
+		text, slot = request.GetText(), player.GetPlayer()
+	case "PlayerHandoff":
+		request := &handoff.HandoffPlayerRequest{}
+		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasm.Reply{Error: "the PlayerHandoff request is malformed"}
+		}
+		key.player, text, slot = true, request.GetText(), request.GetPlayer()
+	case "HandedOff":
+		sets, slot = false, player.GetPlayer()
+	case "PlayerHandedOff":
+		request := &players.PlayerRequest{}
+		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasm.Reply{Error: "the PlayerHandedOff request is malformed"}
+		}
+		key.player, sets, slot = true, false, request.GetPlayer()
+	}
+
+	// Set or read it, as a server does for one player.
+	if sets {
+		if len(text) > handoffLimit {
+			return &wasm.Reply{Error: "handoff state is limited to 64 KiB"}
+		}
+		if slot != player.GetPlayer() {
+			return &wasm.Reply{}
+		}
+		if s.handoff == nil {
+			s.handoff = map[handoffKey]string{}
+		}
+		if text == "" {
+			delete(s.handoff, key)
+		} else {
+			s.handoff[key] = text
+		}
+		return &wasm.Reply{}
+	}
+	response := &handoff.HandedOffResponse{}
+	if slot == player.GetPlayer() {
+		response.Text = s.handoff[key]
+	}
+	data, _ := response.MarshalVT()
+	return &wasm.Reply{Response: data}
 }
 
 // file answers a call that reads or writes one of build's files, kept in a

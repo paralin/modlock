@@ -508,12 +508,14 @@ void WasmPlugin::Stop() {
   Withdraw();
   restart_command_.Reset();
 
-  // Stop the mod and hand on every player's metrics.
+  // Stop the mod, hand on every player's metrics and drop the handoff state.
   world_.Reset();
   Halt();
   while (!tallies_.empty()) {
     HandOn(tallies_.begin()->first);
   }
+  handoff_.clear();
+  handoff_players_.clear();
 }
 
 void WasmPlugin::Log(std::string_view text) {

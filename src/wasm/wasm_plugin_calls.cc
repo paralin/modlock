@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <format>
 #include <string_view>
 #include <utility>
 
@@ -21,6 +22,10 @@ constexpr std::string_view kPressCommand = "modlockpress ";
 // change an input in a mod's interface: "modlockinput <mod> <node> <value>",
 // with the value as UiTrees::Input reads it.
 constexpr std::string_view kInputCommand = "modlockinput ";
+
+// kHandoffLimit is the most bytes of handoff state a mod holds for the game
+// or for one player.
+constexpr size_t kHandoffLimit = 64 * 1024;
 
 }  // namespace
 
@@ -148,6 +153,7 @@ void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {
 void WasmPlugin::Leave(int32_t slot) {
   // Hand on the player's metrics and drop their state.
   HandOn(slot);
+  handoff_players_.erase(slot);
   game_.Leave(slot);
   if (!ui_.Drop(slot)) {
     return;
@@ -312,6 +318,40 @@ std::expected<void, std::string> WasmPlugin::AddMetric(int32_t slot, std::string
   return {};
 }
 
+std::expected<void, std::string> WasmPlugin::Handoff(std::optional<int32_t> slot,
+                                                     std::string text) {
+  // Refuse state past the limit, which the mod's memory limit does not cover.
+  if (text.size() > kHandoffLimit) {
+    return std::unexpected(std::format("handoff state of {} bytes passes the limit of {}",
+                                       text.size(), kHandoffLimit));
+  }
+
+  // Hold the game's state, or the player's with their account.
+  if (!slot) {
+    handoff_ = std::move(text);
+    return {};
+  }
+  const auto steam_id = SteamId(*slot);
+  if (steam_id == 0 || text.empty()) {
+    handoff_players_.erase(*slot);
+    return {};
+  }
+  handoff_players_.insert_or_assign(*slot, std::pair{steam_id, std::move(text)});
+  return {};
+}
+
+std::string WasmPlugin::HandedOff(std::optional<int32_t> slot) const {
+  // A player reads only what was handed off for their own account in the slot.
+  if (!slot) {
+    return handoff_;
+  }
+  const auto found = handoff_players_.find(*slot);
+  if (found == handoff_players_.end() || found->second.first != SteamId(*slot)) {
+    return {};
+  }
+  return found->second.second;
+}
+
 void WasmPlugin::HandOn(int32_t slot) {
   // Take the player's tally.
   auto found = tallies_.find(slot);
@@ -339,9 +379,10 @@ uint64_t WasmPlugin::SteamId(int32_t slot) {
 
 bool PluginGame::AnswersWithoutGame(std::string_view method) {
   // Keep this list to the host calls this class overrides.
-  static constexpr std::array<std::string_view, 9> kMethods = {
-      "Log",       "Ui",         "CallService", "PlayerSetting", "SetPlayerSetting",
-      "AddMetric", "HoldReload", "ReadFile",    "WriteFile",
+  static constexpr std::array<std::string_view, 13> kMethods = {
+      "Log",        "Ui",      "CallService", "PlayerSetting", "SetPlayerSetting", "AddMetric",
+      "HoldReload", "Handoff", "HandedOff",   "PlayerHandoff", "PlayerHandedOff",  "ReadFile",
+      "WriteFile",
   };
   return std::ranges::find(kMethods, method) != kMethods.end();
 }
@@ -386,6 +427,28 @@ std::expected<void, std::string> PluginGame::HoldReload(
     const wasm::abilities::HoldReloadRequest& request) {
   plugin_.Hold(request.held());
   return {};
+}
+
+std::expected<void, std::string> PluginGame::Handoff(const wasm::handoff::HandoffRequest& request) {
+  return plugin_.Handoff(std::nullopt, request.text());
+}
+
+std::expected<wasm::handoff::HandedOffResponse, std::string> PluginGame::HandedOff() {
+  wasm::handoff::HandedOffResponse response;
+  response.set_text(plugin_.HandedOff(std::nullopt));
+  return response;
+}
+
+std::expected<void, std::string> PluginGame::PlayerHandoff(
+    const wasm::handoff::HandoffPlayerRequest& request) {
+  return plugin_.Handoff(request.player(), request.text());
+}
+
+std::expected<wasm::handoff::HandedOffResponse, std::string> PluginGame::PlayerHandedOff(
+    const wasm::players::PlayerRequest& request) {
+  wasm::handoff::HandedOffResponse response;
+  response.set_text(plugin_.HandedOff(request.player()));
+  return response;
 }
 
 std::expected<wasm::files::ReadFileResponse, std::string> PluginGame::ReadFile(

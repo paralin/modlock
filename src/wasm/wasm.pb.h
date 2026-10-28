@@ -39,6 +39,7 @@
 #include "fields/fields.pb.h"
 #include "files/files.pb.h"
 #include "input/input.pb.h"
+#include "handoff/handoff.pb.h"
 #include "match/match.pb.h"
 #include "metrics/metrics.pb.h"
 #include "movement/movement.pb.h"
