@@ -16,7 +16,6 @@ import (
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/peernet"
 	"github.com/paralin/modlock/preview"
-	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/pkg/errors"
 )
@@ -38,6 +37,7 @@ func devCommand(out *printer) *cli.Command {
 				Name:  "watch",
 				Usage: "rebuild the mod and reload it on each save",
 			},
+			releaseFlag,
 			&cli.UintFlag{
 				Name:  "preview-port",
 				Value: previewPort,
@@ -92,7 +92,7 @@ func runDev(c *cli.Context, out *printer, command string, host bool) error {
 	started := make(chan error, 1)
 	rebuild := func() {
 		// Keep the running mod when the build fails.
-		if err := out.build(c.Context, opened, project.Dev); err != nil {
+		if err := out.build(c.Context, opened, buildMode(c)); err != nil {
 			if !watch {
 				started <- errors.Wrap(err, "the build failed; fix it and run again, or pass --watch to rebuild on each save")
 				return

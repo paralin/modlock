@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -48,10 +49,10 @@ func playCommand(out *printer) *cli.Command {
 		Name:      "play",
 		Usage:     "run built mods or mod projects in a local server and join it, or in the sandbox without the game",
 		ArgsUsage: "[MOD...]",
-		Flags:     sessionFlags,
+		Flags:     append(slices.Clone(sessionFlags), releaseFlag),
 		Action: func(c *cli.Context) error {
 			// Take each mod as a built mod or a project's build, building a
-			// project that has none yet.
+			// project that has none yet, or every project with --release.
 			paths := c.Args().Slice()
 			if len(paths) == 0 {
 				paths = []string{"."}
@@ -67,11 +68,14 @@ func playCommand(out *printer) *cli.Command {
 				if err == nil {
 					dir = opened.Output()
 				}
-				if _, err := os.Stat(filepath.Join(dir, project.ManifestFile)); err != nil {
-					if opened == nil {
-						return errors.Errorf("%s is neither a mod project nor a built mod", path)
-					}
-					if err := out.build(c.Context, opened, project.Dev); err != nil {
+				_, err = os.Stat(filepath.Join(dir, project.ManifestFile))
+				if err != nil && opened == nil {
+					return errors.Errorf("%s is neither a mod project nor a built mod", path)
+				}
+				// --release rebuilds a project, so an earlier dev build
+				// never stands in for the release.
+				if opened != nil && (err != nil || c.Bool("release")) {
+					if err := out.build(c.Context, opened, buildMode(c)); err != nil {
 						return err
 					}
 				}
