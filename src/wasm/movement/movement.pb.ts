@@ -741,7 +741,8 @@ export const SteerRequest: MessageType<SteerRequest> =
 export interface Steering {
   command?: MovementCommand
   /**
-   * Position, Velocity and Grounded are the pose the step ends on.
+   * Position, Velocity and Grounded are the pose the next step ends on; the
+   * steps after it move on from there.
    */
   position?: Vec3
   velocity?: Vec3

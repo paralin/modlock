@@ -362,7 +362,9 @@ class HostService {
   // bot: the game runs the command's buttons and axes, so the hero crouches,
   // slides, jumps and mantles with its own animation, and the step then ends
   // on the recorded pose. The steering stays until the next Steer replaces
-  // it, its presses counting once; a Steer without one releases the hero.
+  // it, its presses and its pose counting once: on the ticks between, the
+  // game's own movement carries the held command on from the pose. A Steer
+  // without one releases the hero.
   virtual std::expected<void, std::string> Steer(const movement::SteerRequest& /*request*/) {
     return std::unexpected("this host does not support Steer");
   }

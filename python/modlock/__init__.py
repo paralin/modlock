@@ -666,7 +666,8 @@ class Steering:
     """Steering is one recorded movement command and the pose its step ends on."""
 
     command: MovementCommand
-    # position, velocity and grounded are the pose the step ends on.
+    # position, velocity and grounded are the pose the next step ends on; the
+    # steps after it move on from there.
     position: Vector
     velocity: Vector
     grounded: bool = False
@@ -1581,7 +1582,9 @@ class Player:
         bot: the game runs the command's buttons and axes, so the hero crouches,
         slides, jumps and mantles with its own animation, and the step then ends
         on the recorded pose. The steering stays until the next Steer replaces
-        it, its presses counting once; a Steer without one releases the hero.
+        it, its presses and its pose counting once: on the ticks between, the
+        game's own movement carries the held command on from the pose. A Steer
+        without one releases the hero.
         """
         return _call("Steer", "SteerRequest", {"player": self, "steering": steering}) is not None
 

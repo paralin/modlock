@@ -339,6 +339,13 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
       command.set_changed(0);
       command.set_scroll(0);
 
+      // A pose counts once too: on the ticks before the next Steer, as when
+      // the mod skips a slow frame, the game's own step carries the held
+      // command on from it rather than pinning the hero where it stood.
+      if (!steering.has_position()) {
+        return false;
+      }
+
       // The step then ends exactly on the recorded pose, on the ground the
       // heroes stand on when its own step left it in the air.
       call.origin = Floats(steering.position());
@@ -352,6 +359,8 @@ bool GameServices::Step(gameinterop::MovementCall& call) {
       if (call.ground_entity != ground) {
         static_cast<void>(gameinterop::NotifyEntityStateChanged(call.pawn));
       }
+      steering.clear_position();
+      steering.clear_velocity();
       return true;
     }
   }

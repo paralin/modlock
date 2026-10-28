@@ -522,7 +522,8 @@ func (x *SteerRequest) GetSteering() *Steering {
 type Steering struct {
 	unknownFields []byte
 	Command       *MovementCommand `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
-	// Position, Velocity and Grounded are the pose the step ends on.
+	// Position, Velocity and Grounded are the pose the next step ends on; the
+	// steps after it move on from there.
 	Position *geometry.Vec3 `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
 	Velocity *geometry.Vec3 `protobuf:"bytes,3,opt,name=velocity,proto3" json:"velocity,omitempty"`
 	Grounded bool           `protobuf:"varint,4,opt,name=grounded,proto3" json:"grounded,omitempty"`

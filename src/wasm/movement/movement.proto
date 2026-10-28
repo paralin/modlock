@@ -159,7 +159,8 @@ message SteerRequest {
 message Steering {
   MovementCommand command = 1;
 
-  // Position, Velocity and Grounded are the pose the step ends on.
+  // Position, Velocity and Grounded are the pose the next step ends on; the
+  // steps after it move on from there.
   modlock.geometry.Vec3 position = 2;
   modlock.geometry.Vec3 velocity = 3;
   bool grounded = 4;

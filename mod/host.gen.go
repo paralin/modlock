@@ -813,7 +813,9 @@ func (p Player) Move(position *Vector, facing *Angles, velocity *Vector) error {
 // bot: the game runs the command's buttons and axes, so the hero crouches,
 // slides, jumps and mantles with its own animation, and the step then ends
 // on the recorded pose. The steering stays until the next Steer replaces
-// it, its presses counting once; a Steer without one releases the hero.
+// it, its presses and its pose counting once: on the ticks between, the
+// game's own movement carries the held command on from the pose. A Steer
+// without one releases the hero.
 func (p Player) Steer(steering *Steering) error {
 	return invoke("Steer", &movementpb.SteerRequest{Player: p.Slot, Steering: steering}, nil)
 }
