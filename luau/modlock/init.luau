@@ -128,6 +128,17 @@ local MovementAction: { [any]: any } = {
 	abilityExecuted = 11,
 }
 
+-- ModRole is what a player is to the running mods.
+export type ModRole = "unspecified" | "developer" | "tester"
+local ModRole: { [any]: any } = {
+	[0] = "unspecified",
+	unspecified = 0,
+	[1] = "developer",
+	developer = 1,
+	[2] = "tester",
+	tester = 2,
+}
+
 -- CameraParam is one value of the camera that follows a hero, which the
 -- game's abilities move as Mirage's Tornado pulls the camera back.
 export type CameraParam = "distance" | "fieldOfView" | "target" | "verticalOffset" | "horizontalOffset"
@@ -771,6 +782,11 @@ export type Connection = {
 	ready: boolean,
 	-- generation changes each time a new connection takes the slot.
 	generation: number,
+	-- roles are what the player is to the running mods, as the program that
+	-- runs the host grants them. A role decides what a mod shows, such as an
+	-- unfinished feature for its testers; the platform that keeps a mod's
+	-- shared data checks its own writers.
+	roles: { ModRole },
 }
 
 -- Pawn is one player's hero this frame.
@@ -2478,6 +2494,7 @@ schema.Connection = {
 	{ number = 4, name = "bot", kind = "bool" },
 	{ number = 5, name = "ready", kind = "bool" },
 	{ number = 6, name = "generation", kind = "uint32" },
+	{ number = 7, name = "roles", kind = "enum", repeated = true, enum = ModRole },
 }
 schema.PawnResponse = {
 	{ number = 1, name = "pawn", kind = "message", optional = true, message = "Pawn" },

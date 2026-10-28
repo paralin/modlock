@@ -4,6 +4,7 @@ package modlock.host_app.control;
 
 option go_package = "github.com/paralin/modlock/src/host_app/control;control";
 
+import "github.com/paralin/modlock/src/wasm/players/players.proto";
 import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
 
 // The control link connects modlock-host to the program that started it. The
@@ -18,6 +19,9 @@ message ControlRequest {
   oneof body {
     // Reload replaces a running mod with a new build.
     ReloadRequest reload = 1;
+
+    // Roles replaces the players' roles, which mods read on each Connection.
+    modlock.wasm.players.RolesTable roles = 2;
   }
 }
 

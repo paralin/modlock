@@ -106,6 +106,19 @@ const (
 	MovementActionAbilityExecuted = movementpb.MovementAction_MOVEMENT_ACTION_ABILITY_EXECUTED
 )
 
+// ModRole is what a player is to the running mods.
+type ModRole = playerspb.ModRole
+
+// The values of ModRole.
+const (
+	// ModRoleUnspecified is no role.
+	ModRoleUnspecified = playerspb.ModRole_MOD_ROLE_UNSPECIFIED
+	// ModRoleDeveloper builds the mod.
+	ModRoleDeveloper = playerspb.ModRole_MOD_ROLE_DEVELOPER
+	// ModRoleTester tries the mod's unfinished features.
+	ModRoleTester = playerspb.ModRole_MOD_ROLE_TESTER
+)
+
 // CameraParam is one value of the camera that follows a hero, which the
 // game's abilities move as Mirage's Tornado pulls the camera back.
 type CameraParam = playerspb.CameraParam

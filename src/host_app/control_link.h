@@ -23,7 +23,8 @@ namespace modlock::host_app {
 // ControlLink connects modlock-host to the program that started it, such as
 // modlock dev, with the framing control.proto describes. The host dials the
 // controller's loopback address, streams mod starts, logs, failures, server
-// readiness, player joins and leaves and mod interfaces, and takes reloads.
+// readiness, player joins and leaves and mod interfaces, and takes reloads
+// and the players' roles.
 // Requests run on the engine thread through RunRequests. When the controller
 // disconnects, events are dropped and the host keeps running.
 class ControlLink final : public WasmHostObserver, public gameinterop::ConnectionEventSink {

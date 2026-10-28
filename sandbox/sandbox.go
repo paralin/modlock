@@ -28,13 +28,15 @@ import (
 // frameInterval is the sandbox's frame clock.
 const frameInterval = time.Second / 60
 
-// player is the stand-in player every sandbox holds.
+// player is the stand-in player every sandbox holds. It develops and tests
+// the mod, as the local players of a play session do.
 var player = &players.Connection{
 	Player:     0,
 	SteamId:    76561197960265728,
 	Name:       "Player",
 	Ready:      true,
 	Generation: 1,
+	Roles:      []players.ModRole{players.ModRole_MOD_ROLE_DEVELOPER, players.ModRole_MOD_ROLE_TESTER},
 }
 
 // Sandbox runs mods without a game, as a server would with one player who

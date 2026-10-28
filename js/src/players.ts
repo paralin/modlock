@@ -1,8 +1,11 @@
 // The host reports the occupied player slots before an event whenever they
 // changed, so players answers from memory instead of a call each frame.
 
-import { PlayersResponse } from '../../src/wasm/players/players.pb.js'
-import { type Connection, Player } from './host.gen.js'
+import {
+  ModRole as ModRolePb,
+  PlayersResponse,
+} from '../../src/wasm/players/players.pb.js'
+import { type Connection, type ModRole, Player } from './host.gen.js'
 import { call } from './host.js'
 
 /** roster is the player list the host last reported, if any. */
@@ -45,5 +48,12 @@ export function players(): Connection[] {
     bot: c.bot ?? false,
     ready: c.ready ?? false,
     generation: c.generation ?? 0,
+    roles: (c.roles ?? []).flatMap((role) => roleNames[role] ?? []),
   }))
+}
+
+/** roleNames names each role a player can hold. */
+const roleNames: Partial<Record<ModRolePb, ModRole>> = {
+  [ModRolePb.DEVELOPER]: 'developer',
+  [ModRolePb.TESTER]: 'tester',
 }

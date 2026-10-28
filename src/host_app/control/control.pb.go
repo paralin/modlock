@@ -12,6 +12,7 @@ import (
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
+	players "github.com/paralin/modlock/src/wasm/players"
 	ui "github.com/paralin/modlock/src/wasm/ui"
 )
 
@@ -62,6 +63,7 @@ type ControlRequest struct {
 	//
 	// Types that are assignable to Body:
 	//	*ControlRequest_Reload
+	//	*ControlRequest_Roles
 	Body isControlRequest_Body `protobuf_oneof:"body"`
 }
 
@@ -85,6 +87,13 @@ func (x *ControlRequest) GetReload() *ReloadRequest {
 	return nil
 }
 
+func (x *ControlRequest) GetRoles() *players.RolesTable {
+	if x, ok := x.GetBody().(*ControlRequest_Roles); ok {
+		return x.Roles
+	}
+	return nil
+}
+
 type isControlRequest_Body interface {
 	isControlRequest_Body()
 }
@@ -94,7 +103,14 @@ type ControlRequest_Reload struct {
 	Reload *ReloadRequest `protobuf:"bytes,1,opt,name=reload,proto3,oneof"`
 }
 
+type ControlRequest_Roles struct {
+	// Roles replaces the players' roles, which mods read on each Connection.
+	Roles *players.RolesTable `protobuf:"bytes,2,opt,name=roles,proto3,oneof"`
+}
+
 func (*ControlRequest_Reload) isControlRequest_Body() {}
+
+func (*ControlRequest_Roles) isControlRequest_Body() {}
 
 // ReloadRequest replaces one mod in place. The mod keeps its place among the
 // host's plugins; its old instance stops and the new build starts.
@@ -611,6 +627,19 @@ func (m *ControlRequest_Reload) CloneOneofVT() isControlRequest_Body {
 	return m.CloneVT()
 }
 
+func (m *ControlRequest_Roles) CloneVT() *ControlRequest_Roles {
+	if m == nil {
+		return (*ControlRequest_Roles)(nil)
+	}
+	r := new(ControlRequest_Roles)
+	r.Roles = protobuf_go_lite.CloneVTValue(m.Roles)
+	return r
+}
+
+func (m *ControlRequest_Roles) CloneOneofVT() isControlRequest_Body {
+	return m.CloneVT()
+}
+
 func (m *ReloadRequest) CloneVT() *ReloadRequest {
 	if m == nil {
 		return (*ReloadRequest)(nil)
@@ -960,6 +989,23 @@ func (this *ControlRequest_Reload) EqualVT(thatIface isControlRequest_Body) bool
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.Reload, that.Reload, func() *ReloadRequest { return &ReloadRequest{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *ControlRequest_Roles) EqualVT(thatIface isControlRequest_Body) bool {
+	that, ok := thatIface.(*ControlRequest_Roles)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Roles, that.Roles, func() *players.RolesTable { return &players.RolesTable{} }) {
 		return false
 	}
 	return true
@@ -1438,6 +1484,10 @@ func (x *ControlRequest) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("reload")
 			ov.Reload.MarshalProtoJSON(s.WithField("reload"))
+		case *ControlRequest_Roles:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("roles")
+			ov.Roles.MarshalProtoJSON(s.WithField("roles"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -1466,6 +1516,15 @@ func (x *ControlRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Reload = &ReloadRequest{}
 			ov.Reload.UnmarshalProtoJSON(s.WithField("reload", true))
+		case "roles":
+			ov := &ControlRequest_Roles{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Roles = nil
+				return
+			}
+			ov.Roles = &players.RolesTable{}
+			ov.Roles.UnmarshalProtoJSON(s.WithField("roles", true))
 		}
 	})
 }
@@ -2223,6 +2282,30 @@ func (m *ControlRequest_Reload) MarshalToSizedBufferVT(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *ControlRequest_Roles) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ControlRequest_Roles) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Roles != nil {
+		size, err := m.Roles.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ReloadRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2948,6 +3031,21 @@ func (m *ControlRequest_Reload) SizeVT() (n int) {
 	return n
 }
 
+func (m *ControlRequest_Roles) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Roles != nil {
+		l = m.Roles.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *ReloadRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3236,6 +3334,13 @@ func (x *ControlRequest) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ReloadRequest{})
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Reload)
+		}
+	case *ControlRequest_Roles:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "roles")
+		if body.Roles == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &players.RolesTable{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Roles)
 		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
@@ -3550,6 +3655,26 @@ func (m *ControlRequest) UnmarshalVT(dAtA []byte) error {
 					return err
 				}
 				m.Body = &ControlRequest_Reload{Reload: v}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Roles", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*ControlRequest_Roles); ok {
+				if err := oneof.Roles.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &players.RolesTable{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &ControlRequest_Roles{Roles: v}
 			}
 			iNdEx = postIndex
 		default:

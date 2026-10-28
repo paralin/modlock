@@ -15,6 +15,7 @@
 #include "modlock/plugin_library.h"
 #include "modlock/wasm_metrics.h"
 #include "modlock/wasm_settings.h"
+#include "src/wasm/players/players.pb.h"
 #include "src/wasm/ui/ui.pb.h"
 
 namespace modlock {
@@ -139,6 +140,11 @@ class MODLOCK_API WasmHost {
   // settings already hold the new value.
   void SettingChanged(std::string_view mod, uint64_t steam_id, std::string_view key,
                       std::string_view value);
+
+  // SetRoles replaces the players' roles, which the mods read on each
+  // connection from their next event on. A table equal to the current one
+  // changes nothing.
+  void SetRoles(wasm::players::RolesTable roles);
 
   // Call calls method of the service mod serves and returns the mod's answer.
   // A mod that is not running, serves no such service or fails returns an

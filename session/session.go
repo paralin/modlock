@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/paralin/modlock/src/host_app/control"
+	"github.com/paralin/modlock/src/wasm/players"
 	"github.com/pkg/errors"
 )
 
@@ -71,6 +72,13 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	// Listen for the host before it starts, so it can dial at once.
 	link, err := NewControl()
 	if err != nil {
+		return nil, err
+	}
+	// The local players are the mod's own developers, so give every human
+	// both roles.
+	local := &players.RolesTable{Humans: []players.ModRole{players.ModRole_MOD_ROLE_DEVELOPER, players.ModRole_MOD_ROLE_TESTER}}
+	if err := link.SetRoles(ctx, local); err != nil {
+		_ = link.Close()
 		return nil, err
 	}
 	// Mount the mods' interfaces and content before the host starts, so the

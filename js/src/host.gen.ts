@@ -152,6 +152,19 @@ const movementActionNames: Partial<Record<number, MovementAction>> = {
   11: 'abilityExecuted',
 }
 
+/** ModRole is what a player is to the running mods. */
+export type ModRole =
+  | 'unspecified'
+  | 'developer'
+  | 'tester'
+
+/** modRoleNames decodes each ModRole; an unknown value has no name. */
+const modRoleNames: Partial<Record<number, ModRole>> = {
+  0: 'unspecified',
+  1: 'developer',
+  2: 'tester',
+}
+
 /**
  * CameraParam is one value of the camera that follows a hero, which the
  * game's abilities move as Mirage's Tornado pulls the camera back.
@@ -1254,6 +1267,13 @@ export interface Connection {
   readonly ready: boolean
   /** generation changes each time a new connection takes the slot. */
   readonly generation: number
+  /**
+   * roles are what the player is to the running mods, as the program that
+   * runs the host grants them. A role decides what a mod shows, such as an
+   * unfinished feature for its testers; the platform that keeps a mod's
+   * shared data checks its own writers.
+   */
+  readonly roles: ModRole[]
 }
 
 /** fromConnection decodes a Connection. */
@@ -1265,6 +1285,7 @@ function fromConnection(message: playersPb.Connection): Connection {
     bot: message.bot ?? false,
     ready: message.ready ?? false,
     generation: message.generation ?? 0,
+    roles: known(message.roles, (v) => modRoleNames[v]),
   }
 }
 

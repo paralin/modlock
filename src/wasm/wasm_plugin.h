@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -54,6 +55,9 @@ struct Mods {
   // files holds a directory per mod for the files mods write, or is empty
   // when the host keeps none.
   std::filesystem::path files;
+  // roles gives players their roles, and roles_revision counts its changes.
+  players::RolesTable roles;
+  uint64_t roles_revision = 0;
 
   // Notify calls report with each observer. An observer may stop observing
   // from its callback.
@@ -77,7 +81,7 @@ bool Tune(std::wstring_view module, const char* module_name,
 class PluginGame final : public wasm::Game {
  public:
   PluginGame(WasmPlugin& plugin, Mods& host, EngineHost* engine)
-      : Game(host.game, engine), plugin_(plugin) {}
+      : Game(host.game, engine), plugin_(plugin), host_(host) {}
 
   // AnswersWithoutGame reports whether the plugin answers method itself,
   // without the game: the calls this class overrides.
@@ -86,6 +90,7 @@ class PluginGame final : public wasm::Game {
  private:
   std::expected<void, std::string> Log(const wasm::LogRequest& request) override;
   std::expected<void, std::string> Ui(const wasm::ui::UiRequest& request) override;
+  std::expected<wasm::players::PlayersResponse, std::string> Players() override;
   std::expected<wasm::ServiceReply, std::string> CallService(
       const wasm::ServiceCall& request) override;
   std::expected<wasm::settings::SettingResponse, std::string> PlayerSetting(
@@ -107,8 +112,9 @@ class PluginGame final : public wasm::Game {
   std::expected<void, std::string> WriteFile(const wasm::files::WriteFileRequest& request) override;
   void Impacted(const wasm::combat::ImpactEvent& event) override;
 
-  // plugin_ owns the game.
+  // plugin_ owns the game; host_ holds the players' roles.
   WasmPlugin& plugin_;
+  Mods& host_;
 };
 
 // WasmPlugin connects one sandboxed mod to the engine. Frames arrive through
@@ -398,11 +404,11 @@ class WasmPlugin final : public Plugin {
   std::map<uint32_t, int32_t> hero_slots_;
   bool floor_known_ = false;
   // mod_ delivers events to the running instance. sending_ is true while
-  // one is delivered, and reported_ is the connection revision the running
-  // instance last heard, or nullopt before it heard one.
+  // one is delivered, and reported_ is the connection and roles revisions
+  // the running instance last heard, or nullopt before it heard them.
   wasm::ModClient mod_;
   bool sending_ = false;
-  std::optional<uint64_t> reported_;
+  std::optional<std::pair<uint64_t, uint64_t>> reported_;
   // wants_ is the running instance's start answer: the events it consumes.
   wasm::StartResult wants_;
   // scope_ is the players the mod serves, across instances.

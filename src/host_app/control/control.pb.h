@@ -32,6 +32,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/generated_enum_reflection.h"
 #include "google/protobuf/unknown_field_set.h"
+#include "../../wasm/players/players.pb.h"
 #include "../../wasm/ui/ui.pb.h"
 // @@protoc_insertion_point(includes)
 
@@ -2130,6 +2131,7 @@ class ControlRequest final : public ::google::protobuf::Message
   }
   enum BodyCase {
     kReload = 1,
+    kRoles = 2,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 0;
@@ -2220,6 +2222,7 @@ class ControlRequest final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kReloadFieldNumber = 1,
+    kRolesFieldNumber = 2,
   };
   // .modlock.host_app.control.ReloadRequest reload = 1;
   bool has_reload() const;
@@ -2240,17 +2243,37 @@ class ControlRequest final : public ::google::protobuf::Message
   ::modlock::host_app::control::ReloadRequest* PROTOBUF_NONNULL _internal_mutable_reload();
 
   public:
+  // .modlock.wasm.players.RolesTable roles = 2;
+  bool has_roles() const;
+  private:
+  bool _internal_has_roles() const;
+
+  public:
+  void clear_roles() ;
+  const ::modlock::wasm::players::RolesTable& roles() const;
+  [[nodiscard]] ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE release_roles();
+  ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL mutable_roles();
+  void set_allocated_roles(::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_roles(::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE unsafe_arena_release_roles();
+
+  private:
+  const ::modlock::wasm::players::RolesTable& _internal_roles() const;
+  ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL _internal_mutable_roles();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.ControlRequest)
  private:
   class _Internal;
   void set_has_reload();
+  void set_has_roles();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 1,
-                                   1, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 2,
+                                   2, 0,
                                    2>
       _table_;
 
@@ -2273,6 +2296,7 @@ class ControlRequest final : public ::google::protobuf::Message
       constexpr BodyUnion() : _constinit_{} {}
       ::google::protobuf::internal::ConstantInitialized _constinit_;
       ::modlock::host_app::control::ReloadRequest* PROTOBUF_NULLABLE reload_;
+      ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE roles_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -2999,6 +3023,77 @@ inline ::modlock::host_app::control::ReloadRequest* PROTOBUF_NONNULL ControlRequ
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::modlock::host_app::control::ReloadRequest* _msg = _internal_mutable_reload();
   // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControlRequest.reload)
+  return _msg;
+}
+
+// .modlock.wasm.players.RolesTable roles = 2;
+inline bool ControlRequest::has_roles() const {
+  return body_case() == kRoles;
+}
+inline bool ControlRequest::_internal_has_roles() const {
+  return body_case() == kRoles;
+}
+inline void ControlRequest::set_has_roles() {
+  _impl_._oneof_case_[0] = kRoles;
+}
+inline ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE ControlRequest::release_roles() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ControlRequest.roles)
+  if (body_case() == kRoles) {
+    clear_has_body();
+    auto* temp = _impl_.body_.roles_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.roles_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::wasm::players::RolesTable& ControlRequest::_internal_roles() const {
+  return body_case() == kRoles ? static_cast<const ::modlock::wasm::players::RolesTable&>(*_impl_.body_.roles_)
+                     : reinterpret_cast<const ::modlock::wasm::players::RolesTable&>(::modlock::wasm::players::_RolesTable_default_instance_);
+}
+inline const ::modlock::wasm::players::RolesTable& ControlRequest::roles() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ControlRequest.roles)
+  return _internal_roles();
+}
+inline ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE ControlRequest::unsafe_arena_release_roles() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.ControlRequest.roles)
+  if (body_case() == kRoles) {
+    clear_has_body();
+    auto* temp = _impl_.body_.roles_;
+    _impl_.body_.roles_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ControlRequest::unsafe_arena_set_allocated_roles(
+    ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_roles();
+    _impl_.body_.roles_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ControlRequest.roles)
+}
+inline ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL ControlRequest::_internal_mutable_roles() {
+  if (body_case() != kRoles) {
+    clear_body();
+    set_has_roles();
+    _impl_.body_.roles_ = 
+        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::players::RolesTable>(GetArena());
+  }
+  return _impl_.body_.roles_;
+}
+inline ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL ControlRequest::mutable_roles()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::wasm::players::RolesTable* _msg = _internal_mutable_roles();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControlRequest.roles)
   return _msg;
 }
 

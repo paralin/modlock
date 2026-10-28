@@ -16,6 +16,46 @@ import (
 	geometry "github.com/paralin/modlock/src/geometry"
 )
 
+// ModRole is what a player is to the running mods.
+type ModRole int32
+
+const (
+	// MOD_ROLE_UNSPECIFIED is no role.
+	ModRole_MOD_ROLE_UNSPECIFIED ModRole = 0
+	// MOD_ROLE_DEVELOPER builds the mod.
+	ModRole_MOD_ROLE_DEVELOPER ModRole = 1
+	// MOD_ROLE_TESTER tries the mod's unfinished features.
+	ModRole_MOD_ROLE_TESTER ModRole = 2
+)
+
+// Enum value maps for ModRole.
+var (
+	ModRole_name = map[int32]string{
+		0: "MOD_ROLE_UNSPECIFIED",
+		1: "MOD_ROLE_DEVELOPER",
+		2: "MOD_ROLE_TESTER",
+	}
+	ModRole_value = map[string]int32{
+		"MOD_ROLE_UNSPECIFIED": 0,
+		"MOD_ROLE_DEVELOPER":   1,
+		"MOD_ROLE_TESTER":      2,
+	}
+)
+
+func (x ModRole) Enum() *ModRole {
+	p := new(ModRole)
+	*p = x
+	return p
+}
+
+func (x ModRole) String() string {
+	name, valid := ModRole_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // CameraParam is one value of the camera that follows a hero, which the
 // game's abilities move as Mirage's Tornado pulls the camera back.
 type CameraParam int32
@@ -168,6 +208,11 @@ type Connection struct {
 	Ready bool `protobuf:"varint,5,opt,name=ready,proto3" json:"ready,omitempty"`
 	// Generation changes each time a new connection takes the slot.
 	Generation uint32 `protobuf:"varint,6,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Roles are what the player is to the running mods, as the program that
+	// runs the host grants them. A role decides what a mod shows, such as an
+	// unfinished feature for its testers; the platform that keeps a mod's
+	// shared data checks its own writers.
+	Roles []ModRole `protobuf:"varint,7,rep,packed,name=roles,proto3" json:"roles,omitempty"`
 }
 
 func (x *Connection) Reset() {
@@ -216,6 +261,82 @@ func (x *Connection) GetGeneration() uint32 {
 		return x.Generation
 	}
 	return 0
+}
+
+func (x *Connection) GetRoles() []ModRole {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+// RolesTable gives each connected player their roles. Each table replaces the
+// one before it.
+type RolesTable struct {
+	unknownFields []byte
+	// Connections holds the roles of the listed connections. An entry whose
+	// generation no longer matches its slot's connection gives nothing.
+	Connections []*ConnectionRoles `protobuf:"bytes,1,rep,name=connections,proto3" json:"connections,omitempty"`
+	// Humans holds the roles of every human connection the table does not list.
+	Humans []ModRole `protobuf:"varint,2,rep,packed,name=humans,proto3" json:"humans,omitempty"`
+}
+
+func (x *RolesTable) Reset() {
+	*x = RolesTable{}
+}
+
+func (*RolesTable) ProtoMessage() {}
+
+func (x *RolesTable) GetConnections() []*ConnectionRoles {
+	if x != nil {
+		return x.Connections
+	}
+	return nil
+}
+
+func (x *RolesTable) GetHumans() []ModRole {
+	if x != nil {
+		return x.Humans
+	}
+	return nil
+}
+
+// ConnectionRoles gives one connection its roles.
+type ConnectionRoles struct {
+	unknownFields []byte
+	// SteamId identifies the player.
+	SteamId uint64 `protobuf:"varint,1,opt,name=steam_id,json=steamId,proto3" json:"steamId,omitempty"`
+	// Generation is the connection's generation, as Connection carries it.
+	Generation uint32 `protobuf:"varint,2,opt,name=generation,proto3" json:"generation,omitempty"`
+	// Roles are the connection's roles.
+	Roles []ModRole `protobuf:"varint,3,rep,packed,name=roles,proto3" json:"roles,omitempty"`
+}
+
+func (x *ConnectionRoles) Reset() {
+	*x = ConnectionRoles{}
+}
+
+func (*ConnectionRoles) ProtoMessage() {}
+
+func (x *ConnectionRoles) GetSteamId() uint64 {
+	if x != nil {
+		return x.SteamId
+	}
+	return 0
+}
+
+func (x *ConnectionRoles) GetGeneration() uint32 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *ConnectionRoles) GetRoles() []ModRole {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
 }
 
 // PawnResponse holds the player's hero, absent without a live one.
@@ -1809,6 +1930,7 @@ func (m *Connection) CloneVT() *Connection {
 	r.Bot = m.Bot
 	r.Ready = m.Ready
 	r.Generation = m.Generation
+	r.Roles = protobuf_go_lite.CloneSlice(m.Roles)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1816,6 +1938,41 @@ func (m *Connection) CloneVT() *Connection {
 }
 
 func (m *Connection) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *RolesTable) CloneVT() *RolesTable {
+	if m == nil {
+		return (*RolesTable)(nil)
+	}
+	r := new(RolesTable)
+	r.Connections = protobuf_go_lite.CloneVTSlice(m.Connections)
+	r.Humans = protobuf_go_lite.CloneSlice(m.Humans)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *RolesTable) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ConnectionRoles) CloneVT() *ConnectionRoles {
+	if m == nil {
+		return (*ConnectionRoles)(nil)
+	}
+	r := new(ConnectionRoles)
+	r.SteamId = m.SteamId
+	r.Generation = m.Generation
+	r.Roles = protobuf_go_lite.CloneSlice(m.Roles)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ConnectionRoles) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -2626,11 +2783,63 @@ func (this *Connection) EqualVT(that *Connection) bool {
 	if this.Generation != that.Generation {
 		return false
 	}
+	if !protobuf_go_lite.EqualSlice(this.Roles, that.Roles) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Connection) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Connection)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *RolesTable) EqualVT(that *RolesTable) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Connections, that.Connections, func() *ConnectionRoles { return &ConnectionRoles{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Humans, that.Humans) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *RolesTable) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*RolesTable)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ConnectionRoles) EqualVT(that *ConnectionRoles) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.SteamId != that.SteamId {
+		return false
+	}
+	if this.Generation != that.Generation {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Roles, that.Roles) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ConnectionRoles) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ConnectionRoles)
 	if !ok {
 		return false
 	}
@@ -3687,6 +3896,46 @@ func (this *BotResponse) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+// MarshalProtoJSON marshals the ModRole to JSON.
+func (x ModRole) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), ModRole_name)
+}
+
+// MarshalText marshals the ModRole to text.
+func (x ModRole) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), ModRole_name)), nil
+}
+
+// MarshalJSON marshals the ModRole to JSON.
+func (x ModRole) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ModRole from JSON.
+func (x *ModRole) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(ModRole_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read ModRole enum: %v", err)
+		return
+	}
+	*x = ModRole(v)
+}
+
+// UnmarshalText unmarshals the ModRole from text.
+func (x *ModRole) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), ModRole_value)
+	if err != nil {
+		return err
+	}
+	*x = ModRole(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the ModRole from JSON.
+func (x *ModRole) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the CameraParam to JSON.
 func (x CameraParam) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteEnum(int32(x), CameraParam_name)
@@ -3983,6 +4232,17 @@ func (x *Connection) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("generation")
 		s.WriteUint32(x.Generation)
 	}
+	if len(x.Roles) > 0 || s.HasField("roles") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("roles")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Roles {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s)
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4018,12 +4278,180 @@ func (x *Connection) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "generation":
 			s.AddField("generation")
 			x.Generation = s.ReadUint32()
+		case "roles":
+			s.AddField("roles")
+			if s.ReadNil() {
+				x.Roles = nil
+				return
+			}
+			s.ReadArray(func() {
+				var v ModRole
+				v.UnmarshalProtoJSON(s)
+				x.Roles = append(x.Roles, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Connection from JSON.
 func (x *Connection) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the RolesTable message to JSON.
+func (x *RolesTable) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if len(x.Connections) > 0 || s.HasField("connections") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connections")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Connections {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("connections"))
+		}
+		s.WriteArrayEnd()
+	}
+	if len(x.Humans) > 0 || s.HasField("humans") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("humans")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Humans {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s)
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the RolesTable to JSON.
+func (x *RolesTable) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the RolesTable message from JSON.
+func (x *RolesTable) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "connections":
+			s.AddField("connections")
+			if s.ReadNil() {
+				x.Connections = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Connections = append(x.Connections, nil)
+					return
+				}
+				v := &ConnectionRoles{}
+				v.UnmarshalProtoJSON(s.WithField("connections", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Connections = append(x.Connections, v)
+			})
+		case "humans":
+			s.AddField("humans")
+			if s.ReadNil() {
+				x.Humans = nil
+				return
+			}
+			s.ReadArray(func() {
+				var v ModRole
+				v.UnmarshalProtoJSON(s)
+				x.Humans = append(x.Humans, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the RolesTable from JSON.
+func (x *RolesTable) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ConnectionRoles message to JSON.
+func (x *ConnectionRoles) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.SteamId != 0 || s.HasField("steamId") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("steamId")
+		s.WriteUint64(x.SteamId)
+	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint32(x.Generation)
+	}
+	if len(x.Roles) > 0 || s.HasField("roles") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("roles")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Roles {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s)
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ConnectionRoles to JSON.
+func (x *ConnectionRoles) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ConnectionRoles message from JSON.
+func (x *ConnectionRoles) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "steam_id", "steamId":
+			s.AddField("steam_id")
+			x.SteamId = s.ReadUint64()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint32()
+		case "roles":
+			s.AddField("roles")
+			if s.ReadNil() {
+				x.Roles = nil
+				return
+			}
+			s.ReadArray(func() {
+				var v ModRole
+				v.UnmarshalProtoJSON(s)
+				x.Roles = append(x.Roles, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ConnectionRoles from JSON.
+func (x *ConnectionRoles) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -6555,6 +6983,11 @@ func (m *Connection) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Roles) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Roles)
+		i--
+		dAtA[i] = 0x3a
+	}
 	if m.Generation != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
 		i--
@@ -6582,6 +7015,102 @@ func (m *Connection) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Player != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RolesTable) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RolesTable) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *RolesTable) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Humans) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Humans)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Connections) > 0 {
+		for iNdEx := len(m.Connections) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Connections[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ConnectionRoles) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConnectionRoles) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ConnectionRoles) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Roles) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Roles)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.SteamId != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.SteamId))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -8488,6 +9017,35 @@ func (m *Connection) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Bot)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Ready)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Roles)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *RolesTable) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for _, e := range m.Connections {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Humans)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ConnectionRoles) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.SteamId)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Roles)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9108,6 +9666,10 @@ func (m *BotResponse) SizeVT() (n int) {
 	return n
 }
 
+func (x ModRole) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x CameraParam) MarshalProtoText() string {
 	return x.String()
 }
@@ -9215,10 +9777,74 @@ func (x *Connection) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
 		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
 	}
+	if len(x.Roles) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "roles")
+		for i, v := range x.Roles {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteStringer(&sb, ModRole(v))
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Connection) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *RolesTable) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "RolesTable")
+	if len(x.Connections) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "connections")
+		for i, v := range x.Connections {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &ConnectionRoles{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Humans) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "humans")
+		for i, v := range x.Humans {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteStringer(&sb, ModRole(v))
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *RolesTable) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ConnectionRoles) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ConnectionRoles")
+	if x.SteamId != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "steam_id")
+		protobuf_go_lite.TextWriteUint(&sb, x.SteamId)
+	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
+	}
+	if len(x.Roles) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "roles")
+		for i, v := range x.Roles {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteStringer(&sb, ModRole(v))
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ConnectionRoles) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -10339,6 +10965,225 @@ func (m *Connection) UnmarshalVT(dAtA []byte) error {
 			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
+			}
+		case 7:
+			if wireType == 0 {
+				var v ModRole
+				var _v uint64
+				_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				v = ModRole(_v)
+				if err != nil {
+					return err
+				}
+				m.Roles = append(m.Roles, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Roles) == 0 {
+					m.Roles = make([]ModRole, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v ModRole
+					var _v uint64
+					_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					v = ModRole(_v)
+					if err != nil {
+						return err
+					}
+					m.Roles = append(m.Roles, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Roles", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *RolesTable) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RolesTable: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RolesTable: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connections", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Connections = append(m.Connections, &ConnectionRoles{})
+			if err := m.Connections[len(m.Connections)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType == 0 {
+				var v ModRole
+				var _v uint64
+				_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				v = ModRole(_v)
+				if err != nil {
+					return err
+				}
+				m.Humans = append(m.Humans, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Humans) == 0 {
+					m.Humans = make([]ModRole, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v ModRole
+					var _v uint64
+					_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					v = ModRole(_v)
+					if err != nil {
+						return err
+					}
+					m.Humans = append(m.Humans, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Humans", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ConnectionRoles) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConnectionRoles: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConnectionRoles: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SteamId", wireType)
+			}
+			m.SteamId = 0
+			m.SteamId, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType == 0 {
+				var v ModRole
+				var _v uint64
+				_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				v = ModRole(_v)
+				if err != nil {
+					return err
+				}
+				m.Roles = append(m.Roles, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Roles) == 0 {
+					m.Roles = make([]ModRole, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v ModRole
+					var _v uint64
+					_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					v = ModRole(_v)
+					if err != nil {
+						return err
+					}
+					m.Roles = append(m.Roles, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Roles", wireType)
 			}
 		default:
 			iNdEx = preIndex

@@ -12,6 +12,37 @@ import type {
 import { EulerAngles, Vec3 } from '../../geometry/geometry.pb.js'
 
 /**
+ * ModRole is what a player is to the running mods.
+ *
+ * @generated from enum modlock.wasm.players.ModRole
+ */
+export enum ModRole {
+  /**
+   * MOD_ROLE_UNSPECIFIED is no role.
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * MOD_ROLE_DEVELOPER builds the mod.
+   */
+  DEVELOPER = 1,
+
+  /**
+   * MOD_ROLE_TESTER tries the mod's unfinished features.
+   */
+  TESTER = 2,
+}
+
+export const ModRole_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.players.ModRole',
+  [
+    [0, 'MOD_ROLE_UNSPECIFIED'],
+    [1, 'MOD_ROLE_DEVELOPER'],
+    [2, 'MOD_ROLE_TESTER'],
+  ],
+)
+
+/**
  * CameraParam is one value of the camera that follows a hero, which the
  * game's abilities move as Mirage's Tornado pulls the camera back.
  *
@@ -270,6 +301,13 @@ export interface Connection {
    * Generation changes each time a new connection takes the slot.
    */
   generation?: number
+  /**
+   * Roles are what the player is to the running mods, as the program that
+   * runs the host grants them. A role decides what a mod shows, such as an
+   * unfinished feature for its testers; the platform that keeps a mod's
+   * shared data checks its own writers.
+   */
+  roles?: ModRole[]
 }
 
 export const Connection: MessageType<Connection> =
@@ -282,6 +320,7 @@ export const Connection: MessageType<Connection> =
       [4, 'bot', 8],
       [5, 'ready', 8],
       [6, 'generation', 13],
+      [7, 'roles', 14, 3, ModRole_Enum],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Connection): Connection => {
@@ -306,6 +345,10 @@ export const Connection: MessageType<Connection> =
               break
             case 6:
               m.generation = r.uint32()
+              break
+            case 7:
+              for (const e = r.run(t), a = (m.roles ??= []); r.pos < e;)
+                a.push(r.int32())
               break
             default:
               r.skip(t)
@@ -337,6 +380,152 @@ export const Connection: MessageType<Connection> =
         {
           const v = m.generation
           if (v) w.uint32(48).uint32(v)
+        }
+        {
+          const a = m.roles
+          if (a != null && a.length > 0) {
+            const s = w.uint32(58).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )
+
+/**
+ * RolesTable gives each connected player their roles. Each table replaces the
+ * one before it.
+ *
+ * @generated from message modlock.wasm.players.RolesTable
+ */
+export interface RolesTable {
+  /**
+   * Connections holds the roles of the listed connections. An entry whose
+   * generation no longer matches its slot's connection gives nothing.
+   */
+  connections?: ConnectionRoles[]
+  /**
+   * Humans holds the roles of every human connection the table does not list.
+   */
+  humans?: ModRole[]
+}
+
+export const RolesTable: MessageType<RolesTable> =
+  /* @__PURE__ */ createMessageType<RolesTable>(
+    'modlock.wasm.players.RolesTable',
+    () => [
+      [1, 'connections', 11, 1, ConnectionRoles.codec],
+      [2, 'humans', 14, 3, ModRole_Enum],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: RolesTable): RolesTable => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.connections ??= []).push(
+                ConnectionRoles.decode(r, r.delimited(), {}),
+              )
+              break
+            case 2:
+              for (const e = r.run(t), a = (m.humans ??= []); r.pos < e;)
+                a.push(r.int32())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: RolesTable, w: Writer): void => {
+        {
+          const a = m.connections
+          if (a != null) for (const e of a) ConnectionRoles.writeField(w, 1, e)
+        }
+        {
+          const a = m.humans
+          if (a != null && a.length > 0) {
+            const s = w.uint32(18).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
+        }
+      },
+    },
+  )
+
+/**
+ * ConnectionRoles gives one connection its roles.
+ *
+ * @generated from message modlock.wasm.players.ConnectionRoles
+ */
+export interface ConnectionRoles {
+  /**
+   * SteamId identifies the player.
+   */
+  steamId?: bigint
+  /**
+   * Generation is the connection's generation, as Connection carries it.
+   */
+  generation?: number
+  /**
+   * Roles are the connection's roles.
+   */
+  roles?: ModRole[]
+}
+
+export const ConnectionRoles: MessageType<ConnectionRoles> =
+  /* @__PURE__ */ createMessageType<ConnectionRoles>(
+    'modlock.wasm.players.ConnectionRoles',
+    () => [
+      [1, 'steam_id', 4],
+      [2, 'generation', 13],
+      [3, 'roles', 14, 3, ModRole_Enum],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ConnectionRoles,
+      ): ConnectionRoles => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.steamId = r.uint64()
+              break
+            case 2:
+              m.generation = r.uint32()
+              break
+            case 3:
+              for (const e = r.run(t), a = (m.roles ??= []); r.pos < e;)
+                a.push(r.int32())
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ConnectionRoles, w: Writer): void => {
+        {
+          const v = m.steamId
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.generation
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const a = m.roles
+          if (a != null && a.length > 0) {
+            const s = w.uint32(26).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
         }
       },
     },

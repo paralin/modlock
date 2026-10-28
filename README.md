@@ -328,6 +328,12 @@ Set `live = true` in step 3's frame handler where the round goes live. This map
 keys scores by slot. When players come and go, key them by slot and
 `generation`: the generation changes when someone new takes the slot.
 
+Each connection also carries `roles`, which say who builds and tests the mod:
+`developer` and `tester`. `modlock dev` and `modlock play` give every local
+player both, and a platform that hosts the mod sends its own over the control
+link. A role decides only what the mod shows, such as a menu still in testing;
+whatever guards saved data must check the player where the data lives.
+
 ### 5. Show a HUD
 
 An interface is JSX in a `.tsx` module. Put this HUD in `hud.tsx` beside

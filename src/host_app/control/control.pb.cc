@@ -386,6 +386,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ControlRequest, _impl_._oneof_case_[0]),
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ControlRequest, _impl_.body_),
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ControlRequest, _impl_.body_),
+        PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ControlRequest, _impl_.body_),
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::host_app::control::ReloadRequest, _impl_._has_bits_),
         4, // hasbit index offset
@@ -479,17 +480,17 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::host_app::control::ControlRequest)},
-        {4, sizeof(::modlock::host_app::control::ReloadRequest)},
-        {9, sizeof(::modlock::host_app::control::HostEvent)},
-        {21, sizeof(::modlock::host_app::control::PlayerChat)},
-        {30, sizeof(::modlock::host_app::control::ModStarted)},
-        {37, sizeof(::modlock::host_app::control::ModLog)},
-        {44, sizeof(::modlock::host_app::control::ModFailed)},
-        {51, sizeof(::modlock::host_app::control::PlayerJoined)},
-        {60, sizeof(::modlock::host_app::control::PlayerLeft)},
-        {65, sizeof(::modlock::host_app::control::PlayerMessage)},
-        {78, sizeof(::modlock::host_app::control::ServerReady)},
-        {83, sizeof(::modlock::host_app::control::UiChanged)},
+        {5, sizeof(::modlock::host_app::control::ReloadRequest)},
+        {10, sizeof(::modlock::host_app::control::HostEvent)},
+        {22, sizeof(::modlock::host_app::control::PlayerChat)},
+        {31, sizeof(::modlock::host_app::control::ModStarted)},
+        {38, sizeof(::modlock::host_app::control::ModLog)},
+        {45, sizeof(::modlock::host_app::control::ModFailed)},
+        {52, sizeof(::modlock::host_app::control::PlayerJoined)},
+        {61, sizeof(::modlock::host_app::control::PlayerLeft)},
+        {66, sizeof(::modlock::host_app::control::PlayerMessage)},
+        {79, sizeof(::modlock::host_app::control::ServerReady)},
+        {84, sizeof(::modlock::host_app::control::UiChanged)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::host_app::control::_ControlRequest_default_instance_._instance,
@@ -509,55 +510,59 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fho
     protodesc_cold) = {
     "\n=github.com/paralin/modlock/src/host_ap"
     "p/control/control.proto\022\030modlock.host_ap"
-    "p.control\032/github.com/paralin/modlock/sr"
-    "c/wasm/ui/ui.proto\"S\n\016ControlRequest\0229\n\006"
-    "reload\030\001 \001(\0132\'.modlock.host_app.control."
-    "ReloadRequestH\000B\006\n\004body\"\035\n\rReloadRequest"
-    "\022\014\n\004path\030\001 \001(\t\"\201\004\n\tHostEvent\0227\n\007started\030"
-    "\001 \001(\0132$.modlock.host_app.control.ModStar"
-    "tedH\000\022/\n\003log\030\002 \001(\0132 .modlock.host_app.co"
-    "ntrol.ModLogH\000\0225\n\006failed\030\003 \001(\0132#.modlock"
-    ".host_app.control.ModFailedH\000\0228\n\006joined\030"
-    "\004 \001(\0132&.modlock.host_app.control.PlayerJ"
-    "oinedH\000\0226\n\005ready\030\005 \001(\0132%.modlock.host_ap"
-    "p.control.ServerReadyH\000\0221\n\002ui\030\006 \001(\0132#.mo"
-    "dlock.host_app.control.UiChangedH\000\0224\n\004le"
-    "ft\030\007 \001(\0132$.modlock.host_app.control.Play"
-    "erLeftH\000\022:\n\007message\030\010 \001(\0132\'.modlock.host"
-    "_app.control.PlayerMessageH\000\0224\n\004chat\030\t \001"
-    "(\0132$.modlock.host_app.control.PlayerChat"
-    "H\000B\006\n\004body\"6\n\nPlayerChat\022\014\n\004slot\030\001 \001(\005\022\014"
-    "\n\004name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"+\n\nModStarted"
-    "\022\013\n\003mod\030\001 \001(\t\022\020\n\010reloaded\030\002 \001(\010\"#\n\006ModLo"
-    "g\022\013\n\003mod\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"\'\n\tModFaile"
-    "d\022\013\n\003mod\030\001 \001(\t\022\r\n\005error\030\002 \001(\t\"<\n\014PlayerJ"
-    "oined\022\014\n\004slot\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\020\n\010ste"
-    "am_id\030\003 \001(\006\"\032\n\nPlayerLeft\022\014\n\004slot\030\001 \001(\005\""
-    "|\n\rPlayerMessage\022\013\n\003mod\030\001 \001(\t\022\014\n\004slot\030\002 "
-    "\001(\005\0223\n\004kind\030\003 \001(\0162%.modlock.host_app.con"
-    "trol.MessageKind\022\r\n\005title\030\004 \001(\t\022\014\n\004text\030"
-    "\005 \001(\t\"\032\n\013ServerReady\022\013\n\003map\030\001 \001(\t\"O\n\tUiC"
-    "hanged\022\013\n\003mod\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\022\'\n\006cha"
-    "nge\030\003 \001(\0132\027.modlock.wasm.ui.Change*\\\n\013Me"
-    "ssageKind\022\025\n\021MESSAGE_KIND_CHAT\020\000\022\027\n\023MESS"
-    "AGE_KIND_CENTER\020\001\022\035\n\031MESSAGE_KIND_ANNOUN"
-    "CEMENT\020\002B9Z7github.com/paralin/modlock/s"
-    "rc/host_app/control;controlb\006proto3"
+    "p.control\0329github.com/paralin/modlock/sr"
+    "c/wasm/players/players.proto\032/github.com"
+    "/paralin/modlock/src/wasm/ui/ui.proto\"\206\001"
+    "\n\016ControlRequest\0229\n\006reload\030\001 \001(\0132\'.modlo"
+    "ck.host_app.control.ReloadRequestH\000\0221\n\005r"
+    "oles\030\002 \001(\0132 .modlock.wasm.players.RolesT"
+    "ableH\000B\006\n\004body\"\035\n\rReloadRequest\022\014\n\004path\030"
+    "\001 \001(\t\"\201\004\n\tHostEvent\0227\n\007started\030\001 \001(\0132$.m"
+    "odlock.host_app.control.ModStartedH\000\022/\n\003"
+    "log\030\002 \001(\0132 .modlock.host_app.control.Mod"
+    "LogH\000\0225\n\006failed\030\003 \001(\0132#.modlock.host_app"
+    ".control.ModFailedH\000\0228\n\006joined\030\004 \001(\0132&.m"
+    "odlock.host_app.control.PlayerJoinedH\000\0226"
+    "\n\005ready\030\005 \001(\0132%.modlock.host_app.control"
+    ".ServerReadyH\000\0221\n\002ui\030\006 \001(\0132#.modlock.hos"
+    "t_app.control.UiChangedH\000\0224\n\004left\030\007 \001(\0132"
+    "$.modlock.host_app.control.PlayerLeftH\000\022"
+    ":\n\007message\030\010 \001(\0132\'.modlock.host_app.cont"
+    "rol.PlayerMessageH\000\0224\n\004chat\030\t \001(\0132$.modl"
+    "ock.host_app.control.PlayerChatH\000B\006\n\004bod"
+    "y\"6\n\nPlayerChat\022\014\n\004slot\030\001 \001(\005\022\014\n\004name\030\002 "
+    "\001(\t\022\014\n\004text\030\003 \001(\t\"+\n\nModStarted\022\013\n\003mod\030\001"
+    " \001(\t\022\020\n\010reloaded\030\002 \001(\010\"#\n\006ModLog\022\013\n\003mod\030"
+    "\001 \001(\t\022\014\n\004text\030\002 \001(\t\"\'\n\tModFailed\022\013\n\003mod\030"
+    "\001 \001(\t\022\r\n\005error\030\002 \001(\t\"<\n\014PlayerJoined\022\014\n\004"
+    "slot\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\020\n\010steam_id\030\003 \001"
+    "(\006\"\032\n\nPlayerLeft\022\014\n\004slot\030\001 \001(\005\"|\n\rPlayer"
+    "Message\022\013\n\003mod\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\0223\n\004ki"
+    "nd\030\003 \001(\0162%.modlock.host_app.control.Mess"
+    "ageKind\022\r\n\005title\030\004 \001(\t\022\014\n\004text\030\005 \001(\t\"\032\n\013"
+    "ServerReady\022\013\n\003map\030\001 \001(\t\"O\n\tUiChanged\022\013\n"
+    "\003mod\030\001 \001(\t\022\014\n\004slot\030\002 \001(\005\022\'\n\006change\030\003 \001(\013"
+    "2\027.modlock.wasm.ui.Change*\\\n\013MessageKind"
+    "\022\025\n\021MESSAGE_KIND_CHAT\020\000\022\027\n\023MESSAGE_KIND_"
+    "CENTER\020\001\022\035\n\031MESSAGE_KIND_ANNOUNCEMENT\020\002B"
+    "9Z7github.com/paralin/modlock/src/host_a"
+    "pp/control;controlb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
-    descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps[1] = {
+    descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps[2] = {
+        &::descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
         &::descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto = {
     false,
     false,
-    1435,
+    1546,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto,
     "github.com/paralin/modlock/src/host_app/control/control.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto_deps,
-    1,
+    2,
     12,
     schemas,
     file_default_instances,
@@ -595,6 +600,30 @@ void ControlRequest::set_allocated_reload(::modlock::host_app::control::ReloadRe
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ControlRequest.reload)
 }
+void ControlRequest::set_allocated_roles(::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE roles) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_body();
+  if (roles) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(roles)->GetArena();
+    if (message_arena != submessage_arena) {
+      roles = ::google::protobuf::internal::GetOwnedMessage(message_arena, roles, submessage_arena);
+    }
+    set_has_roles();
+    _impl_.body_.roles_ = roles;
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ControlRequest.roles)
+}
+void ControlRequest::clear_roles() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kRoles) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.roles_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.roles_);
+    }
+    clear_has_body();
+  }
+}
 ControlRequest::ControlRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : ::google::protobuf::Message(arena, ControlRequest_class_data_.base()) {
@@ -630,6 +659,9 @@ ControlRequest::ControlRequest(
       break;
       case kReload:
         _impl_.body_.reload_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.reload_);
+        break;
+      case kRoles:
+        _impl_.body_.roles_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.roles_);
         break;
   }
 
@@ -671,6 +703,14 @@ void ControlRequest::clear_body() {
         delete _impl_.body_.reload_;
       } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
         ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.reload_);
+      }
+      break;
+    }
+    case kRoles: {
+      if (GetArena() == nullptr) {
+        delete _impl_.body_.roles_;
+      } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+        ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.roles_);
       }
       break;
     }
@@ -725,17 +765,17 @@ ControlRequest::GetClassData() const {
   return ControlRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 1, 0, 2>
+const ::_pbi::TcParseTable<0, 2, 2, 0, 2>
 ControlRequest::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967294,  // skipmap
+    4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    1,  // num_field_entries
-    1,  // num_aux_entries
+    2,  // num_field_entries
+    2,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     ControlRequest_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -750,9 +790,12 @@ ControlRequest::_table_ = {
   }}, {{
     // .modlock.host_app.control.ReloadRequest reload = 1;
     {PROTOBUF_FIELD_OFFSET(ControlRequest, _impl_.body_.reload_), _Internal::kOneofCaseOffset + 0, 0, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+    // .modlock.wasm.players.RolesTable roles = 2;
+    {PROTOBUF_FIELD_OFFSET(ControlRequest, _impl_.body_.roles_), _Internal::kOneofCaseOffset + 0, 1, (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::host_app::control::ReloadRequest>()},
+      {::_pbi::TcParser::GetTable<::modlock::wasm::players::RolesTable>()},
   }},
   {{
   }},
@@ -786,13 +829,22 @@ PROTOBUF_NOINLINE void ControlRequest::Clear() {
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
-  // .modlock.host_app.control.ReloadRequest reload = 1;
-  if (this_.body_case() == kReload) {
-    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-        1, *this_._impl_.body_.reload_, this_._impl_.body_.reload_->GetCachedSize(), target,
-        stream);
+  switch (this_.body_case()) {
+    case kReload: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          1, *this_._impl_.body_.reload_, this_._impl_.body_.reload_->GetCachedSize(), target,
+          stream);
+      break;
+    }
+    case kRoles: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          2, *this_._impl_.body_.roles_, this_._impl_.body_.roles_->GetCachedSize(), target,
+          stream);
+      break;
+    }
+    default:
+      break;
   }
-
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -821,6 +873,12 @@ PROTOBUF_NOINLINE void ControlRequest::Clear() {
     case kReload: {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.body_.reload_);
+      break;
+    }
+    // .modlock.wasm.players.RolesTable roles = 2;
+    case kRoles: {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.body_.roles_);
       break;
     }
     case BODY_NOT_SET: {
@@ -862,6 +920,14 @@ void ControlRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
           _this->_impl_.body_.reload_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.reload_);
         } else {
           _this->_impl_.body_.reload_->MergeFrom(*from._impl_.body_.reload_);
+        }
+        break;
+      }
+      case kRoles: {
+        if (oneof_needs_init) {
+          _this->_impl_.body_.roles_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.body_.roles_);
+        } else {
+          _this->_impl_.body_.roles_->MergeFrom(*from._impl_.body_.roles_);
         }
         break;
       }

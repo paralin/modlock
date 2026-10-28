@@ -224,6 +224,9 @@ void ControlLink::RunRequests(WasmHost& mods) {
         }
         break;
       }
+      case control::ControlRequest::kRoles:
+        mods.SetRoles(request.roles());
+        break;
       default:
         break;
     }

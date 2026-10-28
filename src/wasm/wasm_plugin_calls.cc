@@ -73,7 +73,7 @@ void WasmPlugin::ReportPlayers() {
   if (!GameOpen() || !instance_) {
     return;
   }
-  const auto revision = gameinterop::ConnectionTracker::Revision();
+  const auto revision = std::pair(gameinterop::ConnectionTracker::Revision(), host_.roles_revision);
   if (reported_ == revision) {
     return;
   }
@@ -385,6 +385,29 @@ bool PluginGame::AnswersWithoutGame(std::string_view method) {
       "WriteFile",
   };
   return std::ranges::find(kMethods, method) != kMethods.end();
+}
+
+std::expected<wasm::players::PlayersResponse, std::string> PluginGame::Players() {
+  // Give each human the roles the table lists for its connection, or the
+  // humans' roles when it lists none. A stale entry gives nothing.
+  auto players = Game::Players();
+  if (!players) {
+    return players;
+  }
+  for (auto& connection : *players->mutable_players()) {
+    if (connection.bot()) {
+      continue;
+    }
+    const auto& listed = host_.roles.connections();
+    const auto entry =
+        std::ranges::find(listed, connection.steam_id(), &wasm::players::ConnectionRoles::steam_id);
+    if (entry == listed.end()) {
+      *connection.mutable_roles() = host_.roles.humans();
+    } else if (entry->generation() == connection.generation()) {
+      *connection.mutable_roles() = entry->roles();
+    }
+  }
+  return players;
 }
 
 std::expected<void, std::string> PluginGame::Log(const wasm::LogRequest& request) {

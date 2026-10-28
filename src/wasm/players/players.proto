@@ -51,6 +51,47 @@ message Connection {
 
   // Generation changes each time a new connection takes the slot.
   uint32 generation = 6;
+
+  // Roles are what the player is to the running mods, as the program that
+  // runs the host grants them. A role decides what a mod shows, such as an
+  // unfinished feature for its testers; the platform that keeps a mod's
+  // shared data checks its own writers.
+  repeated ModRole roles = 7;
+}
+
+// ModRole is what a player is to the running mods.
+enum ModRole {
+  // MOD_ROLE_UNSPECIFIED is no role.
+  MOD_ROLE_UNSPECIFIED = 0;
+
+  // MOD_ROLE_DEVELOPER builds the mod.
+  MOD_ROLE_DEVELOPER = 1;
+
+  // MOD_ROLE_TESTER tries the mod's unfinished features.
+  MOD_ROLE_TESTER = 2;
+}
+
+// RolesTable gives each connected player their roles. Each table replaces the
+// one before it.
+message RolesTable {
+  // Connections holds the roles of the listed connections. An entry whose
+  // generation no longer matches its slot's connection gives nothing.
+  repeated ConnectionRoles connections = 1;
+
+  // Humans holds the roles of every human connection the table does not list.
+  repeated ModRole humans = 2;
+}
+
+// ConnectionRoles gives one connection its roles.
+message ConnectionRoles {
+  // SteamId identifies the player.
+  uint64 steam_id = 1;
+
+  // Generation is the connection's generation, as Connection carries it.
+  uint32 generation = 2;
+
+  // Roles are the connection's roles.
+  repeated ModRole roles = 3;
 }
 
 // PawnResponse holds the player's hero, absent without a live one.

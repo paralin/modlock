@@ -165,6 +165,18 @@ _MovementAction: dict[Any, Any] = {
 }
 
 
+# ModRole is what a player is to the running mods.
+type ModRole = Literal["unspecified", "developer", "tester"]
+_ModRole: dict[Any, Any] = {
+    0: "unspecified",
+    "unspecified": 0,
+    1: "developer",
+    "developer": 1,
+    2: "tester",
+    "tester": 2,
+}
+
+
 # CameraParam is one value of the camera that follows a hero, which the
 # game's abilities move as Mirage's Tornado pulls the camera back.
 type CameraParam = Literal["distance", "field_of_view", "target", "vertical_offset", "horizontal_offset"]
@@ -904,6 +916,11 @@ class Connection:
     ready: bool = False
     # generation changes each time a new connection takes the slot.
     generation: int = 0
+    # roles are what the player is to the running mods, as the program that
+    # runs the host grants them. A role decides what a mod shows, such as an
+    # unfinished feature for its testers; the platform that keeps a mod's
+    # shared data checks its own writers.
+    roles: list[ModRole] = dataclasses.field(default_factory=lambda: list[ModRole]())
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2778,6 +2795,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "bot", "bool"),
             wire.Field(5, "ready", "bool"),
             wire.Field(6, "generation", "uint32"),
+            wire.Field(7, "roles", "enum", repeated=True, enum=_ModRole),
         ],
     ),
     "PawnResponse": (

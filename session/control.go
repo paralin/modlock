@@ -11,6 +11,7 @@ import (
 	"net"
 
 	"github.com/paralin/modlock/src/host_app/control"
+	"github.com/paralin/modlock/src/wasm/players"
 	"github.com/pkg/errors"
 )
 
@@ -19,8 +20,8 @@ const maxMessage = 10_000_000
 
 // Control is the controller's end of the control link. It listens on a
 // loopback port and modlock-host dials it with --control; then the host
-// streams its events and takes reloads, each message framed by
-// its length as control.proto describes.
+// streams its events and takes reloads and the players' roles, each message
+// framed by its length as control.proto describes.
 type Control struct {
 	// listener accepts the host's connection.
 	listener net.Listener
@@ -47,6 +48,14 @@ func (c *Control) Address() string {
 func (c *Control) Reload(ctx context.Context, path string) error {
 	return c.request(ctx, &control.ControlRequest{
 		Body: &control.ControlRequest_Reload{Reload: &control.ReloadRequest{Path: path}},
+	})
+}
+
+// SetRoles replaces the players' roles, which the mods read on each
+// connection. Requests made before the host connects wait for it.
+func (c *Control) SetRoles(ctx context.Context, roles *players.RolesTable) error {
+	return c.request(ctx, &control.ControlRequest{
+		Body: &control.ControlRequest_Roles{Roles: roles},
 	})
 }
 

@@ -382,9 +382,39 @@ struct EquipmentTargetDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EquipmentTargetDefaultTypeInternal _EquipmentTarget_default_instance_;
 
+inline constexpr ConnectionRoles::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        roles_{},
+        _roles_cached_byte_size_{0},
+        steam_id_{::uint64_t{0u}},
+        generation_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ConnectionRoles::ConnectionRoles(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ConnectionRoles_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ConnectionRolesDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ConnectionRolesDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ConnectionRolesDefaultTypeInternal() {}
+  union {
+    ConnectionRoles _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ConnectionRolesDefaultTypeInternal _ConnectionRoles_default_instance_;
+
 inline constexpr Connection::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
+        roles_{},
+        _roles_cached_byte_size_{0},
         name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -573,6 +603,33 @@ struct AdjustSoulsRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AdjustSoulsRequestDefaultTypeInternal _AdjustSoulsRequest_default_instance_;
+
+inline constexpr RolesTable::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        connections_{},
+        humans_{},
+        _humans_cached_byte_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR RolesTable::RolesTable(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(RolesTable_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct RolesTableDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR RolesTableDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~RolesTableDefaultTypeInternal() {}
+  union {
+    RolesTable _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 RolesTableDefaultTypeInternal _RolesTable_default_instance_;
 
 inline constexpr PlayersResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -986,7 +1043,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace wasm
 }  // namespace modlock
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[1];
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[2];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto = nullptr;
 const ::uint32_t
@@ -1016,19 +1073,37 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_._has_bits_),
-        9, // hasbit index offset
+        10, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.steam_id_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.name_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.bot_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.ready_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.generation_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Connection, _impl_.roles_),
+        3,
         2,
         1,
-        0,
-        3,
         4,
         5,
+        6,
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::RolesTable, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::RolesTable, _impl_.connections_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::RolesTable, _impl_.humans_),
+        0,
+        1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ConnectionRoles, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ConnectionRoles, _impl_.steam_id_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ConnectionRoles, _impl_.generation_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::ConnectionRoles, _impl_.roles_),
+        1,
+        2,
+        0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PawnResponse, _impl_._has_bits_),
         4, // hasbit index offset
@@ -1360,35 +1435,37 @@ static const ::_pbi::MigrationSchema
         {12, sizeof(::modlock::wasm::players::PlayerRequest)},
         {17, sizeof(::modlock::wasm::players::PlayersResponse)},
         {22, sizeof(::modlock::wasm::players::Connection)},
-        {37, sizeof(::modlock::wasm::players::PawnResponse)},
-        {42, sizeof(::modlock::wasm::players::Pawn)},
-        {79, sizeof(::modlock::wasm::players::Score)},
-        {98, sizeof(::modlock::wasm::players::SelectHeroRequest)},
-        {111, sizeof(::modlock::wasm::players::HeroResponse)},
-        {116, sizeof(::modlock::wasm::players::WatchRequest)},
-        {125, sizeof(::modlock::wasm::players::FreeCameraRequest)},
-        {134, sizeof(::modlock::wasm::players::CameraValue)},
-        {139, sizeof(::modlock::wasm::players::CameraMotion)},
-        {147, sizeof(::modlock::wasm::players::CameraHold)},
-        {152, sizeof(::modlock::wasm::players::CameraApproach)},
-        {167, sizeof(::modlock::wasm::players::CameraSpring)},
-        {178, sizeof(::modlock::wasm::players::CameraLerp)},
-        {191, sizeof(::modlock::wasm::players::CameraLag)},
-        {204, sizeof(::modlock::wasm::players::CameraOptions)},
-        {225, sizeof(::modlock::wasm::players::ClearCameraRequest)},
-        {232, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
-        {239, sizeof(::modlock::wasm::players::FreezeRequest)},
-        {246, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
-        {255, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
-        {262, sizeof(::modlock::wasm::players::ResetHeroRequest)},
-        {269, sizeof(::modlock::wasm::players::HealRequest)},
-        {276, sizeof(::modlock::wasm::players::SetStaminaRequest)},
-        {283, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
-        {290, sizeof(::modlock::wasm::players::HeroTarget)},
-        {315, sizeof(::modlock::wasm::players::EquipmentTarget)},
-        {324, sizeof(::modlock::wasm::players::TimerTarget)},
-        {339, sizeof(::modlock::wasm::players::BotOptions)},
-        {354, sizeof(::modlock::wasm::players::BotResponse)},
+        {39, sizeof(::modlock::wasm::players::RolesTable)},
+        {46, sizeof(::modlock::wasm::players::ConnectionRoles)},
+        {55, sizeof(::modlock::wasm::players::PawnResponse)},
+        {60, sizeof(::modlock::wasm::players::Pawn)},
+        {97, sizeof(::modlock::wasm::players::Score)},
+        {116, sizeof(::modlock::wasm::players::SelectHeroRequest)},
+        {129, sizeof(::modlock::wasm::players::HeroResponse)},
+        {134, sizeof(::modlock::wasm::players::WatchRequest)},
+        {143, sizeof(::modlock::wasm::players::FreeCameraRequest)},
+        {152, sizeof(::modlock::wasm::players::CameraValue)},
+        {157, sizeof(::modlock::wasm::players::CameraMotion)},
+        {165, sizeof(::modlock::wasm::players::CameraHold)},
+        {170, sizeof(::modlock::wasm::players::CameraApproach)},
+        {185, sizeof(::modlock::wasm::players::CameraSpring)},
+        {196, sizeof(::modlock::wasm::players::CameraLerp)},
+        {209, sizeof(::modlock::wasm::players::CameraLag)},
+        {222, sizeof(::modlock::wasm::players::CameraOptions)},
+        {243, sizeof(::modlock::wasm::players::ClearCameraRequest)},
+        {250, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
+        {257, sizeof(::modlock::wasm::players::FreezeRequest)},
+        {264, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
+        {273, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
+        {280, sizeof(::modlock::wasm::players::ResetHeroRequest)},
+        {287, sizeof(::modlock::wasm::players::HealRequest)},
+        {294, sizeof(::modlock::wasm::players::SetStaminaRequest)},
+        {301, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
+        {308, sizeof(::modlock::wasm::players::HeroTarget)},
+        {333, sizeof(::modlock::wasm::players::EquipmentTarget)},
+        {342, sizeof(::modlock::wasm::players::TimerTarget)},
+        {357, sizeof(::modlock::wasm::players::BotOptions)},
+        {372, sizeof(::modlock::wasm::players::BotResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::players::_RestoredEvent_default_instance_._instance,
@@ -1396,6 +1473,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::players::_PlayerRequest_default_instance_._instance,
     &::modlock::wasm::players::_PlayersResponse_default_instance_._instance,
     &::modlock::wasm::players::_Connection_default_instance_._instance,
+    &::modlock::wasm::players::_RolesTable_default_instance_._instance,
+    &::modlock::wasm::players::_ConnectionRoles_default_instance_._instance,
     &::modlock::wasm::players::_PawnResponse_default_instance_._instance,
     &::modlock::wasm::players::_Pawn_default_instance_._instance,
     &::modlock::wasm::players::_Score_default_instance_._instance,
@@ -1437,125 +1516,134 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     ".players.Connection\"\037\n\rPlayerRequest\022\016\n\006"
     "player\030\001 \001(\005\"D\n\017PlayersResponse\0221\n\007playe"
     "rs\030\001 \003(\0132 .modlock.wasm.players.Connecti"
-    "on\"l\n\nConnection\022\016\n\006player\030\001 \001(\005\022\020\n\010stea"
-    "m_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003bot\030\004 \001(\010\022\r\n"
-    "\005ready\030\005 \001(\010\022\022\n\ngeneration\030\006 \001(\r\"8\n\014Pawn"
-    "Response\022(\n\004pawn\030\001 \001(\0132\032.modlock.wasm.pl"
-    "ayers.Pawn\"\341\004\n\004Pawn\022\016\n\006entity\030\001 \001(\r\022\014\n\004h"
-    "ero\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030\004 \001(\005\022"
-    "\022\n\nmax_health\030\005 \001(\005\022(\n\010position\030\006 \001(\0132\026."
-    "modlock.geometry.Vec3\0221\n\neye_angles\030\007 \001("
-    "\0132\035.modlock.geometry.EulerAngles\0224\n\rcame"
-    "ra_angles\030\010 \001(\0132\035.modlock.geometry.Euler"
-    "Angles\022\024\n\007stamina\030\t \001(\002H\000\210\001\001\022\030\n\013max_stam"
-    "ina\030\n \001(\002H\001\210\001\001\022\022\n\ngeneration\030\013 \001(\r\022\r\n\005so"
-    "uls\030\014 \001(\005\022,\n\014eye_position\030\r \001(\0132\026.modloc"
-    "k.geometry.Vec3\022(\n\010velocity\030\016 \001(\0132\026.modl"
-    "ock.geometry.Vec3\022\031\n\014carrying_urn\030\017 \001(\010H"
-    "\002\210\001\001\022/\n\005score\030\020 \001(\0132\033.modlock.wasm.playe"
-    "rs.ScoreH\003\210\001\001\0224\n\017camera_position\030\021 \001(\0132\026"
-    ".modlock.geometry.Vec3H\004\210\001\001B\n\n\010_staminaB"
-    "\016\n\014_max_staminaB\017\n\r_carrying_urnB\010\n\006_sco"
-    "reB\022\n\020_camera_position\"\230\001\n\005Score\022\r\n\005kill"
-    "s\030\001 \001(\005\022\016\n\006deaths\030\002 \001(\005\022\017\n\007assists\030\003 \001(\005"
-    "\022\021\n\tlast_hits\030\004 \001(\005\022\016\n\006denies\030\005 \001(\005\022\023\n\013h"
-    "ero_damage\030\006 \001(\005\022\024\n\014hero_healing\030\007 \001(\005\022\021"
-    "\n\tnet_worth\030\010 \001(\005\"a\n\021SelectHeroRequest\022\016"
-    "\n\006player\030\001 \001(\005\022\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007h"
-    "ero_id\030\003 \001(\rH\000\022\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014"
-    "HeroResponse\022\014\n\004hero\030\001 \001(\r\"L\n\014WatchReque"
-    "st\022\016\n\006player\030\001 \001(\005\022\016\n\006target\030\002 \001(\r\022\022\n\005ch"
-    "ase\030\003 \001(\010H\000\210\001\001B\010\n\006_chase\"|\n\021FreeCameraRe"
-    "quest\022\016\n\006player\030\001 \001(\005\022(\n\010position\030\002 \001(\0132"
-    "\026.modlock.geometry.Vec3\022-\n\006facing\030\003 \001(\0132"
-    "\035.modlock.geometry.EulerAngles\"T\n\013Camera"
-    "Value\022\020\n\006number\030\001 \001(\002H\000\022*\n\010position\030\002 \001("
-    "\0132\026.modlock.geometry.Vec3H\000B\007\n\005value\"\234\002\n"
-    "\014CameraMotion\0220\n\004hold\030\001 \001(\0132 .modlock.wa"
-    "sm.players.CameraHoldH\000\0228\n\010approach\030\002 \001("
-    "\0132$.modlock.wasm.players.CameraApproachH"
-    "\000\0224\n\006spring\030\003 \001(\0132\".modlock.wasm.players"
-    ".CameraSpringH\000\0220\n\004lerp\030\004 \001(\0132 .modlock."
-    "wasm.players.CameraLerpH\000\022.\n\003lag\030\005 \001(\0132\037"
-    ".modlock.wasm.players.CameraLagH\000B\010\n\006mot"
-    "ion\"0\n\nCameraHold\022\025\n\010duration\030\001 \001(\002H\000\210\001\001"
-    "B\013\n\t_duration\"\243\002\n\016CameraApproach\0225\n\005valu"
-    "e\030\001 \001(\0132!.modlock.wasm.players.CameraVal"
-    "ueH\000\210\001\001\022\022\n\005speed\030\002 \001(\002H\001\210\001\001\022\032\n\rdefault_s"
-    "peed\030\003 \001(\002H\002\210\001\001\022\031\n\014acceleration\030\004 \001(\002H\003\210"
-    "\001\001\022\031\n\014min_duration\030\005 \001(\002H\004\210\001\001\022\032\n\rchase_d"
-    "efault\030\006 \001(\010H\005\210\001\001B\010\n\006_valueB\010\n\006_speedB\020\n"
-    "\016_default_speedB\017\n\r_accelerationB\017\n\r_min"
-    "_durationB\020\n\016_chase_default\"\305\001\n\014CameraSp"
-    "ring\0225\n\005value\030\001 \001(\0132!.modlock.wasm.playe"
-    "rs.CameraValueH\000\210\001\001\022\025\n\010strength\030\002 \001(\002H\001\210"
-    "\001\001\022\026\n\tmin_speed\030\003 \001(\002H\002\210\001\001\022\031\n\014max_durati"
-    "on\030\004 \001(\002H\003\210\001\001B\010\n\006_valueB\013\n\t_strengthB\014\n\n"
-    "_min_speedB\017\n\r_max_duration\"\312\001\n\nCameraLe"
-    "rp\0220\n\005start\030\001 \001(\0132!.modlock.wasm.players"
-    ".CameraValue\022.\n\003end\030\002 \001(\0132!.modlock.wasm"
-    ".players.CameraValue\022\021\n\004bias\030\003 \001(\002H\000\210\001\001\022"
-    "\021\n\004gain\030\004 \001(\002H\001\210\001\001\022\025\n\010duration\030\005 \001(\002H\002\210\001"
-    "\001B\007\n\005_biasB\007\n\005_gainB\013\n\t_duration\"\361\001\n\tCam"
-    "eraLag\022\031\n\014min_duration\030\001 \001(\002H\000\210\001\001\022\025\n\010lag"
-    "_time\030\002 \001(\002H\001\210\001\001\022\026\n\tmax_speed\030\003 \001(\002H\002\210\001\001"
-    "\022\034\n\017spring_strength\030\004 \001(\002H\003\210\001\001\022\"\n\025keep_t"
-    "arget_on_screen\030\005 \001(\010H\004\210\001\001B\017\n\r_min_durat"
-    "ionB\013\n\t_lag_timeB\014\n\n_max_speedB\022\n\020_sprin"
-    "g_strengthB\030\n\026_keep_target_on_screen\"\315\002\n"
-    "\rCameraOptions\022\016\n\006player\030\001 \001(\005\022\024\n\007contex"
-    "t\030\002 \001(\tH\000\210\001\001\0220\n\005param\030\003 \001(\0162!.modlock.wa"
-    "sm.players.CameraParam\0222\n\006motion\030\004 \001(\0132\""
-    ".modlock.wasm.players.CameraMotion\022\022\n\005de"
-    "lay\030\005 \001(\002H\001\210\001\001\022\025\n\010relative\030\006 \001(\010H\002\210\001\001\022\025\n"
-    "\010priority\030\007 \001(\rH\003\210\001\001\022\023\n\006shared\030\010 \001(\010H\004\210\001"
-    "\001\022\023\n\006target\030\t \001(\rH\005\210\001\001B\n\n\010_contextB\010\n\006_d"
-    "elayB\013\n\t_relativeB\013\n\t_priorityB\t\n\007_share"
-    "dB\t\n\007_target\"F\n\022ClearCameraRequest\022\016\n\006pl"
-    "ayer\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001B\n\n\010_con"
-    "text\"1\n\021ChangeTeamRequest\022\016\n\006player\030\001 \001("
-    "\005\022\014\n\004team\030\002 \001(\005\"\?\n\rFreezeRequest\022\016\n\006play"
-    "er\030\001 \001(\005\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen"
-    "\"S\n\022AdjustSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r"
-    "\n\005delta\030\002 \001(\005\022\023\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_s"
-    "ilent\"5\n\024StartingSoulsRequest\022\016\n\006player\030"
-    "\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"1\n\020ResetHeroRequest"
-    "\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealR"
-    "equest\022\016\n\006player\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4"
-    "\n\021SetStaminaRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007s"
-    "tamina\030\002 \001(\002\"V\n\022RestoreHeroRequest\022\016\n\006pl"
-    "ayer\030\001 \001(\005\0220\n\006target\030\002 \001(\0132 .modlock.was"
-    "m.players.HeroTarget\"\323\003\n\nHeroTarget\022(\n\010p"
-    "osition\030\001 \001(\0132\026.modlock.geometry.Vec3\022-\n"
-    "\006facing\030\002 \001(\0132\035.modlock.geometry.EulerAn"
-    "gles\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H"
-    "\001\210\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030"
-    "\006 \001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses\030\007 \003(\002\0228\n\ta"
-    "bilities\030\010 \003(\0132%.modlock.wasm.players.Eq"
-    "uipmentTarget\0224\n\005items\030\t \003(\0132%.modlock.w"
-    "asm.players.EquipmentTarget\022\032\n\rreplace_i"
-    "tems\030\n \001(\010H\004\210\001\001\0221\n\006timers\030\013 \003(\0132!.modloc"
-    "k.wasm.players.TimerTargetB\010\n\006_freshB\010\n\006"
-    "_levelB\t\n\007_healthB\r\n\013_max_healthB\020\n\016_rep"
-    "lace_items\"H\n\017EquipmentTarget\022\n\n\002id\030\001 \001("
-    "\r\022\021\n\004slot\030\002 \001(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_"
-    "slot\"\342\001\n\013TimerTarget\022\n\n\002id\030\001 \001(\r\022\017\n\007char"
-    "ges\030\002 \001(\005\022\033\n\016cooldown_start\030\003 \001(\002H\000\210\001\001\022\031"
-    "\n\014cooldown_end\030\004 \001(\002H\001\210\001\001\022\033\n\016recharge_st"
-    "art\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001"
-    "\001B\021\n\017_cooldown_startB\017\n\r_cooldown_endB\021\n"
-    "\017_recharge_startB\017\n\r_recharge_end\"\224\001\n\nBo"
-    "tOptions\022\014\n\004name\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\t"
-    "hero_name\030\003 \001(\tH\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010"
-    "position\030\005 \001(\0132\026.modlock.geometry.Vec3H\001"
-    "\210\001\001B\006\n\004heroB\013\n\t_position\"\035\n\013BotResponse\022"
-    "\016\n\006player\030\001 \001(\005*\247\001\n\013CameraParam\022\031\n\025CAMER"
-    "A_PARAM_DISTANCE\020\000\022\036\n\032CAMERA_PARAM_FIELD"
-    "_OF_VIEW\020\001\022\027\n\023CAMERA_PARAM_TARGET\020\002\022 \n\034C"
-    "AMERA_PARAM_VERTICAL_OFFSET\020\003\022\"\n\036CAMERA_"
-    "PARAM_HORIZONTAL_OFFSET\020\004B5Z3github.com/"
-    "paralin/modlock/src/wasm/players;players"
-    "b\006proto3"
+    "on\"\232\001\n\nConnection\022\016\n\006player\030\001 \001(\005\022\020\n\010ste"
+    "am_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003bot\030\004 \001(\010\022\r"
+    "\n\005ready\030\005 \001(\010\022\022\n\ngeneration\030\006 \001(\r\022,\n\005rol"
+    "es\030\007 \003(\0162\035.modlock.wasm.players.ModRole\""
+    "w\n\nRolesTable\022:\n\013connections\030\001 \003(\0132%.mod"
+    "lock.wasm.players.ConnectionRoles\022-\n\006hum"
+    "ans\030\002 \003(\0162\035.modlock.wasm.players.ModRole"
+    "\"e\n\017ConnectionRoles\022\020\n\010steam_id\030\001 \001(\004\022\022\n"
+    "\ngeneration\030\002 \001(\r\022,\n\005roles\030\003 \003(\0162\035.modlo"
+    "ck.wasm.players.ModRole\"8\n\014PawnResponse\022"
+    "(\n\004pawn\030\001 \001(\0132\032.modlock.wasm.players.Paw"
+    "n\"\341\004\n\004Pawn\022\016\n\006entity\030\001 \001(\r\022\014\n\004hero\030\002 \001(\r"
+    "\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030\004 \001(\005\022\022\n\nmax_he"
+    "alth\030\005 \001(\005\022(\n\010position\030\006 \001(\0132\026.modlock.g"
+    "eometry.Vec3\0221\n\neye_angles\030\007 \001(\0132\035.modlo"
+    "ck.geometry.EulerAngles\0224\n\rcamera_angles"
+    "\030\010 \001(\0132\035.modlock.geometry.EulerAngles\022\024\n"
+    "\007stamina\030\t \001(\002H\000\210\001\001\022\030\n\013max_stamina\030\n \001(\002"
+    "H\001\210\001\001\022\022\n\ngeneration\030\013 \001(\r\022\r\n\005souls\030\014 \001(\005"
+    "\022,\n\014eye_position\030\r \001(\0132\026.modlock.geometr"
+    "y.Vec3\022(\n\010velocity\030\016 \001(\0132\026.modlock.geome"
+    "try.Vec3\022\031\n\014carrying_urn\030\017 \001(\010H\002\210\001\001\022/\n\005s"
+    "core\030\020 \001(\0132\033.modlock.wasm.players.ScoreH"
+    "\003\210\001\001\0224\n\017camera_position\030\021 \001(\0132\026.modlock."
+    "geometry.Vec3H\004\210\001\001B\n\n\010_staminaB\016\n\014_max_s"
+    "taminaB\017\n\r_carrying_urnB\010\n\006_scoreB\022\n\020_ca"
+    "mera_position\"\230\001\n\005Score\022\r\n\005kills\030\001 \001(\005\022\016"
+    "\n\006deaths\030\002 \001(\005\022\017\n\007assists\030\003 \001(\005\022\021\n\tlast_"
+    "hits\030\004 \001(\005\022\016\n\006denies\030\005 \001(\005\022\023\n\013hero_damag"
+    "e\030\006 \001(\005\022\024\n\014hero_healing\030\007 \001(\005\022\021\n\tnet_wor"
+    "th\030\010 \001(\005\"a\n\021SelectHeroRequest\022\016\n\006player\030"
+    "\001 \001(\005\022\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 "
+    "\001(\rH\000\022\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroRespo"
+    "nse\022\014\n\004hero\030\001 \001(\r\"L\n\014WatchRequest\022\016\n\006pla"
+    "yer\030\001 \001(\005\022\016\n\006target\030\002 \001(\r\022\022\n\005chase\030\003 \001(\010"
+    "H\000\210\001\001B\010\n\006_chase\"|\n\021FreeCameraRequest\022\016\n\006"
+    "player\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modlock"
+    ".geometry.Vec3\022-\n\006facing\030\003 \001(\0132\035.modlock"
+    ".geometry.EulerAngles\"T\n\013CameraValue\022\020\n\006"
+    "number\030\001 \001(\002H\000\022*\n\010position\030\002 \001(\0132\026.modlo"
+    "ck.geometry.Vec3H\000B\007\n\005value\"\234\002\n\014CameraMo"
+    "tion\0220\n\004hold\030\001 \001(\0132 .modlock.wasm.player"
+    "s.CameraHoldH\000\0228\n\010approach\030\002 \001(\0132$.modlo"
+    "ck.wasm.players.CameraApproachH\000\0224\n\006spri"
+    "ng\030\003 \001(\0132\".modlock.wasm.players.CameraSp"
+    "ringH\000\0220\n\004lerp\030\004 \001(\0132 .modlock.wasm.play"
+    "ers.CameraLerpH\000\022.\n\003lag\030\005 \001(\0132\037.modlock."
+    "wasm.players.CameraLagH\000B\010\n\006motion\"0\n\nCa"
+    "meraHold\022\025\n\010duration\030\001 \001(\002H\000\210\001\001B\013\n\t_dura"
+    "tion\"\243\002\n\016CameraApproach\0225\n\005value\030\001 \001(\0132!"
+    ".modlock.wasm.players.CameraValueH\000\210\001\001\022\022"
+    "\n\005speed\030\002 \001(\002H\001\210\001\001\022\032\n\rdefault_speed\030\003 \001("
+    "\002H\002\210\001\001\022\031\n\014acceleration\030\004 \001(\002H\003\210\001\001\022\031\n\014min"
+    "_duration\030\005 \001(\002H\004\210\001\001\022\032\n\rchase_default\030\006 "
+    "\001(\010H\005\210\001\001B\010\n\006_valueB\010\n\006_speedB\020\n\016_default"
+    "_speedB\017\n\r_accelerationB\017\n\r_min_duration"
+    "B\020\n\016_chase_default\"\305\001\n\014CameraSpring\0225\n\005v"
+    "alue\030\001 \001(\0132!.modlock.wasm.players.Camera"
+    "ValueH\000\210\001\001\022\025\n\010strength\030\002 \001(\002H\001\210\001\001\022\026\n\tmin"
+    "_speed\030\003 \001(\002H\002\210\001\001\022\031\n\014max_duration\030\004 \001(\002H"
+    "\003\210\001\001B\010\n\006_valueB\013\n\t_strengthB\014\n\n_min_spee"
+    "dB\017\n\r_max_duration\"\312\001\n\nCameraLerp\0220\n\005sta"
+    "rt\030\001 \001(\0132!.modlock.wasm.players.CameraVa"
+    "lue\022.\n\003end\030\002 \001(\0132!.modlock.wasm.players."
+    "CameraValue\022\021\n\004bias\030\003 \001(\002H\000\210\001\001\022\021\n\004gain\030\004"
+    " \001(\002H\001\210\001\001\022\025\n\010duration\030\005 \001(\002H\002\210\001\001B\007\n\005_bia"
+    "sB\007\n\005_gainB\013\n\t_duration\"\361\001\n\tCameraLag\022\031\n"
+    "\014min_duration\030\001 \001(\002H\000\210\001\001\022\025\n\010lag_time\030\002 \001"
+    "(\002H\001\210\001\001\022\026\n\tmax_speed\030\003 \001(\002H\002\210\001\001\022\034\n\017sprin"
+    "g_strength\030\004 \001(\002H\003\210\001\001\022\"\n\025keep_target_on_"
+    "screen\030\005 \001(\010H\004\210\001\001B\017\n\r_min_durationB\013\n\t_l"
+    "ag_timeB\014\n\n_max_speedB\022\n\020_spring_strengt"
+    "hB\030\n\026_keep_target_on_screen\"\315\002\n\rCameraOp"
+    "tions\022\016\n\006player\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000"
+    "\210\001\001\0220\n\005param\030\003 \001(\0162!.modlock.wasm.player"
+    "s.CameraParam\0222\n\006motion\030\004 \001(\0132\".modlock."
+    "wasm.players.CameraMotion\022\022\n\005delay\030\005 \001(\002"
+    "H\001\210\001\001\022\025\n\010relative\030\006 \001(\010H\002\210\001\001\022\025\n\010priority"
+    "\030\007 \001(\rH\003\210\001\001\022\023\n\006shared\030\010 \001(\010H\004\210\001\001\022\023\n\006targ"
+    "et\030\t \001(\rH\005\210\001\001B\n\n\010_contextB\010\n\006_delayB\013\n\t_"
+    "relativeB\013\n\t_priorityB\t\n\007_sharedB\t\n\007_tar"
+    "get\"F\n\022ClearCameraRequest\022\016\n\006player\030\001 \001("
+    "\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001B\n\n\010_context\"1\n\021C"
+    "hangeTeamRequest\022\016\n\006player\030\001 \001(\005\022\014\n\004team"
+    "\030\002 \001(\005\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005\022"
+    "\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"S\n\022Adjus"
+    "tSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005delta\030\002"
+    " \001(\005\022\023\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024"
+    "StartingSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005"
+    "souls\030\002 \001(\005\"1\n\020ResetHeroRequest\022\016\n\006playe"
+    "r\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealRequest\022\016\n"
+    "\006player\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4\n\021SetStam"
+    "inaRequest\022\016\n\006player\030\001 \001(\005\022\017\n\007stamina\030\002 "
+    "\001(\002\"V\n\022RestoreHeroRequest\022\016\n\006player\030\001 \001("
+    "\005\0220\n\006target\030\002 \001(\0132 .modlock.wasm.players"
+    ".HeroTarget\"\323\003\n\nHeroTarget\022(\n\010position\030\001"
+    " \001(\0132\026.modlock.geometry.Vec3\022-\n\006facing\030\002"
+    " \001(\0132\035.modlock.geometry.EulerAngles\022\022\n\005f"
+    "resh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210\001\001\022\023\n\006h"
+    "ealth\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 \001(\005H\003\210\001"
+    "\001\022\027\n\017upgrade_bonuses\030\007 \003(\002\0228\n\tabilities\030"
+    "\010 \003(\0132%.modlock.wasm.players.EquipmentTa"
+    "rget\0224\n\005items\030\t \003(\0132%.modlock.wasm.playe"
+    "rs.EquipmentTarget\022\032\n\rreplace_items\030\n \001("
+    "\010H\004\210\001\001\0221\n\006timers\030\013 \003(\0132!.modlock.wasm.pl"
+    "ayers.TimerTargetB\010\n\006_freshB\010\n\006_levelB\t\n"
+    "\007_healthB\r\n\013_max_healthB\020\n\016_replace_item"
+    "s\"H\n\017EquipmentTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot"
+    "\030\002 \001(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013"
+    "TimerTarget\022\n\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005"
+    "\022\033\n\016cooldown_start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldow"
+    "n_end\030\004 \001(\002H\001\210\001\001\022\033\n\016recharge_start\030\005 \001(\002"
+    "H\002\210\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_coo"
+    "ldown_startB\017\n\r_cooldown_endB\021\n\017_recharg"
+    "e_startB\017\n\r_recharge_end\"\224\001\n\nBotOptions\022"
+    "\014\n\004name\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name"
+    "\030\003 \001(\tH\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010position\030"
+    "\005 \001(\0132\026.modlock.geometry.Vec3H\001\210\001\001B\006\n\004he"
+    "roB\013\n\t_position\"\035\n\013BotResponse\022\016\n\006player"
+    "\030\001 \001(\005*P\n\007ModRole\022\030\n\024MOD_ROLE_UNSPECIFIE"
+    "D\020\000\022\026\n\022MOD_ROLE_DEVELOPER\020\001\022\023\n\017MOD_ROLE_"
+    "TESTER\020\002*\247\001\n\013CameraParam\022\031\n\025CAMERA_PARAM"
+    "_DISTANCE\020\000\022\036\n\032CAMERA_PARAM_FIELD_OF_VIE"
+    "W\020\001\022\027\n\023CAMERA_PARAM_TARGET\020\002\022 \n\034CAMERA_P"
+    "ARAM_VERTICAL_OFFSET\020\003\022\"\n\036CAMERA_PARAM_H"
+    "ORIZONTAL_OFFSET\020\004B5Z3github.com/paralin"
+    "/modlock/src/wasm/players;playersb\006proto"
+    "3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps[1] = {
@@ -1565,13 +1653,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto = {
     false,
     false,
-    5088,
+    5441,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
     "github.com/paralin/modlock/src/wasm/players/players.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps,
     1,
-    34,
+    36,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto::offsets,
@@ -1581,9 +1669,15 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2
 namespace modlock {
 namespace wasm {
 namespace players {
-const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL CameraParam_descriptor() {
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ModRole_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto);
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[0];
+}
+PROTOBUF_CONSTINIT const uint32_t ModRole_internal_data_[] = {
+    196608u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL CameraParam_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[1];
 }
 PROTOBUF_CONSTINIT const uint32_t CameraParam_internal_data_[] = {
     327680u, 0u, };
@@ -2737,6 +2831,8 @@ PROTOBUF_NDEBUG_INLINE Connection::Impl_::Impl_(
     [[maybe_unused]] const ::modlock::wasm::players::Connection& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
+        roles_{visibility, arena, from.roles_},
+        _roles_cached_byte_size_{0},
         name_(arena, from.name_) {}
 
 Connection::Connection(
@@ -2766,6 +2862,8 @@ PROTOBUF_NDEBUG_INLINE Connection::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
+        roles_{visibility, arena},
+        _roles_cached_byte_size_{0},
         name_(arena) {}
 
 inline void Connection::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
@@ -2798,8 +2896,20 @@ inline void* PROTOBUF_NONNULL Connection::PlacementNew_(
   return ::new (mem) Connection(arena);
 }
 constexpr auto Connection::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Connection),
-                                            alignof(Connection));
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(Connection, _impl_.roles_) +
+          decltype(Connection::_impl_.roles_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::CopyInit(
+        sizeof(Connection), alignof(Connection), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&Connection::PlacementNew_,
+                                 sizeof(Connection),
+                                 alignof(Connection));
+  }
 }
 constexpr auto Connection::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
@@ -2835,16 +2945,16 @@ Connection::GetClassData() const {
   return Connection_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 6, 0, 44, 2>
+const ::_pbi::TcParseTable<3, 7, 0, 44, 2>
 Connection::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Connection, _impl_._has_bits_),
     0, // no _extensions_
-    6, 56,  // max_field_number, fast_idx_mask
+    7, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967232,  // skipmap
+    4294967168,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    6,  // num_field_entries
+    7,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     Connection_class_data_.base(),
@@ -2856,45 +2966,50 @@ Connection::_table_ = {
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // int32 player = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Connection, _impl_.player_), 2>(),
-     {8, 2, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Connection, _impl_.player_), 3>(),
+     {8, 3, 0,
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.player_)}},
     // uint64 steam_id = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Connection, _impl_.steam_id_), 1>(),
-     {16, 1, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Connection, _impl_.steam_id_), 2>(),
+     {16, 2, 0,
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.steam_id_)}},
     // string name = 3;
     {::_pbi::TcParser::FastUS1,
-     {26, 0, 0,
+     {26, 1, 0,
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.name_)}},
     // bool bot = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Connection, _impl_.bot_), 3>(),
-     {32, 3, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Connection, _impl_.bot_), 4>(),
+     {32, 4, 0,
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.bot_)}},
     // bool ready = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Connection, _impl_.ready_), 4>(),
-     {40, 4, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Connection, _impl_.ready_), 5>(),
+     {40, 5, 0,
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.ready_)}},
     // uint32 generation = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Connection, _impl_.generation_), 5>(),
-     {48, 5, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Connection, _impl_.generation_), 6>(),
+     {48, 6, 0,
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.generation_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // repeated .modlock.wasm.players.ModRole roles = 7;
+    {::_pbi::TcParser::FastV32P1,
+     {58, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Connection, _impl_.roles_)}},
   }}, {{
     65535, 65535
   }}, {{
     // int32 player = 1;
-    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.player_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.player_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // uint64 steam_id = 2;
-    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.steam_id_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.steam_id_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
     // string name = 3;
-    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.name_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // bool bot = 4;
-    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.bot_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.bot_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool ready = 5;
-    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.ready_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.ready_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // uint32 generation = 6;
-    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.generation_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.generation_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // repeated .modlock.wasm.players.ModRole roles = 7;
+    {PROTOBUF_FIELD_OFFSET(Connection, _impl_.roles_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
   }},
   // no aux_entries
   {{
@@ -2911,10 +3026,15 @@ PROTOBUF_NOINLINE void Connection::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    _impl_.name_.ClearNonDefaultToEmpty();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _impl_.roles_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _impl_.name_.ClearNonDefaultToEmpty();
+    }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000003eU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007cU)) {
     ::memset(&_impl_.steam_id_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.generation_) -
         reinterpret_cast<char*>(&_impl_.steam_id_)) + sizeof(_impl_.generation_));
@@ -2943,7 +3063,7 @@ PROTOBUF_NOINLINE void Connection::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 player = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (this_._internal_player() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -2952,7 +3072,7 @@ PROTOBUF_NOINLINE void Connection::Clear() {
   }
 
   // uint64 steam_id = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     if (this_._internal_steam_id() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
@@ -2961,7 +3081,7 @@ PROTOBUF_NOINLINE void Connection::Clear() {
   }
 
   // string name = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     if (!this_._internal_name().empty()) {
       const ::std::string& _s = this_._internal_name();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -2971,7 +3091,7 @@ PROTOBUF_NOINLINE void Connection::Clear() {
   }
 
   // bool bot = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     if (this_._internal_bot() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -2980,7 +3100,7 @@ PROTOBUF_NOINLINE void Connection::Clear() {
   }
 
   // bool ready = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     if (this_._internal_ready() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -2989,11 +3109,22 @@ PROTOBUF_NOINLINE void Connection::Clear() {
   }
 
   // uint32 generation = 6;
-  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     if (this_._internal_generation() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
           6, this_._internal_generation(), target);
+    }
+  }
+
+  // repeated .modlock.wasm.players.ModRole roles = 7;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    {
+      ::size_t byte_size = this_._impl_._roles_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteEnumPacked(
+            7, this_._internal_roles(), byte_size, target);
+      }
     }
   }
 
@@ -3022,42 +3153,47 @@ PROTOBUF_NOINLINE void Connection::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    // repeated .modlock.wasm.players.ModRole roles = 7;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size += ::_pbi::WireFormatLite::EnumSizeWithPackedTagSize(
+          this_._internal_roles(), 1, this_._impl_._roles_cached_byte_size_);
+    }
     // string name = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       if (!this_._internal_name().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_name());
       }
     }
     // uint64 steam_id = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (this_._internal_steam_id() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
             this_._internal_steam_id());
       }
     }
     // int32 player = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (this_._internal_player() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_player());
       }
     }
     // bool bot = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (this_._internal_bot() != 0) {
         total_size += 2;
       }
     }
     // bool ready = 5;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (this_._internal_ready() != 0) {
         total_size += 2;
       }
     }
     // uint32 generation = 6;
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (this_._internal_generation() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_generation());
@@ -3082,8 +3218,11 @@ void Connection::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
-    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_roles()->MergeFrom(from._internal_roles());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       if (!from._internal_name().empty()) {
         _this->_internal_set_name(from._internal_name());
       } else {
@@ -3092,27 +3231,27 @@ void Connection::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       if (from._internal_steam_id() != 0) {
         _this->_impl_.steam_id_ = from._impl_.steam_id_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (from._internal_player() != 0) {
         _this->_impl_.player_ = from._impl_.player_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (from._internal_bot() != 0) {
         _this->_impl_.bot_ = from._impl_.bot_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (from._internal_ready() != 0) {
         _this->_impl_.ready_ = from._impl_.ready_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (from._internal_generation() != 0) {
         _this->_impl_.generation_ = from._impl_.generation_;
       }
@@ -3137,6 +3276,7 @@ void Connection::InternalSwap(Connection* PROTOBUF_RESTRICT PROTOBUF_NONNULL oth
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.roles_.InternalSwap(&other->_impl_.roles_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Connection, _impl_.generation_)
@@ -3147,6 +3287,689 @@ void Connection::InternalSwap(Connection* PROTOBUF_RESTRICT PROTOBUF_NONNULL oth
 }
 
 ::google::protobuf::Metadata Connection::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class RolesTable::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<RolesTable>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(RolesTable, _impl_._has_bits_);
+};
+
+RolesTable::RolesTable(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, RolesTable_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.players.RolesTable)
+}
+PROTOBUF_NDEBUG_INLINE RolesTable::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::players::RolesTable& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        connections_{visibility, arena, from.connections_},
+        humans_{visibility, arena, from.humans_},
+        _humans_cached_byte_size_{0} {}
+
+RolesTable::RolesTable(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const RolesTable& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, RolesTable_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  RolesTable* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.players.RolesTable)
+}
+PROTOBUF_NDEBUG_INLINE RolesTable::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        connections_{visibility, arena},
+        humans_{visibility, arena},
+        _humans_cached_byte_size_{0} {}
+
+inline void RolesTable::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+RolesTable::~RolesTable() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.players.RolesTable)
+  SharedDtor(*this);
+}
+inline void RolesTable::SharedDtor(MessageLite& self) {
+  RolesTable& this_ = static_cast<RolesTable&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL RolesTable::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) RolesTable(arena);
+}
+constexpr auto RolesTable::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(RolesTable, _impl_.connections_) +
+          decltype(RolesTable::_impl_.connections_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(RolesTable, _impl_.humans_) +
+          decltype(RolesTable::_impl_.humans_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(RolesTable), alignof(RolesTable), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&RolesTable::PlacementNew_,
+                                 sizeof(RolesTable),
+                                 alignof(RolesTable));
+  }
+}
+constexpr auto RolesTable::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_RolesTable_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &RolesTable::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<RolesTable>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &RolesTable::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<RolesTable>(), &RolesTable::ByteSizeLong,
+              &RolesTable::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(RolesTable, _impl_._cached_size_),
+          false,
+      },
+      &RolesTable::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull RolesTable_class_data_ =
+        RolesTable::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+RolesTable::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&RolesTable_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(RolesTable_class_data_.tc_table);
+  return RolesTable_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 1, 0, 2>
+RolesTable::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(RolesTable, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    RolesTable_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::players::RolesTable>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // repeated .modlock.wasm.players.ModRole humans = 2;
+    {::_pbi::TcParser::FastV32P1,
+     {18, 1, 0,
+      PROTOBUF_FIELD_OFFSET(RolesTable, _impl_.humans_)}},
+    // repeated .modlock.wasm.players.ConnectionRoles connections = 1;
+    {::_pbi::TcParser::FastMtR1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(RolesTable, _impl_.connections_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // repeated .modlock.wasm.players.ConnectionRoles connections = 1;
+    {PROTOBUF_FIELD_OFFSET(RolesTable, _impl_.connections_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .modlock.wasm.players.ModRole humans = 2;
+    {PROTOBUF_FIELD_OFFSET(RolesTable, _impl_.humans_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::players::ConnectionRoles>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void RolesTable::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.players.RolesTable)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _impl_.connections_.Clear();
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      _impl_.humans_.Clear();
+    }
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL RolesTable::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const RolesTable& this_ = static_cast<const RolesTable&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL RolesTable::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const RolesTable& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.players.RolesTable)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // repeated .modlock.wasm.players.ConnectionRoles connections = 1;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_connections_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_connections().Get(i);
+      target =
+          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+              1, repfield, repfield.GetCachedSize(),
+              target, stream);
+    }
+  }
+
+  // repeated .modlock.wasm.players.ModRole humans = 2;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+    {
+      ::size_t byte_size = this_._impl_._humans_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteEnumPacked(
+            2, this_._internal_humans(), byte_size, target);
+      }
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.players.RolesTable)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t RolesTable::ByteSizeLong(const MessageLite& base) {
+  const RolesTable& this_ = static_cast<const RolesTable&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t RolesTable::ByteSizeLong() const {
+  const RolesTable& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.players.RolesTable)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // repeated .modlock.wasm.players.ConnectionRoles connections = 1;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size += 1UL * this_._internal_connections_size();
+      for (const auto& msg : this_._internal_connections()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .modlock.wasm.players.ModRole humans = 2;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      total_size += ::_pbi::WireFormatLite::EnumSizeWithPackedTagSize(
+          this_._internal_humans(), 1, this_._impl_._humans_cached_byte_size_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void RolesTable::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<RolesTable*>(&to_msg);
+  auto& from = static_cast<const RolesTable&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.players.RolesTable)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_connections()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_connections());
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      _this->_internal_mutable_humans()->MergeFrom(from._internal_humans());
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void RolesTable::CopyFrom(const RolesTable& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.players.RolesTable)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void RolesTable::InternalSwap(RolesTable* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.connections_.InternalSwap(&other->_impl_.connections_);
+  _impl_.humans_.InternalSwap(&other->_impl_.humans_);
+}
+
+::google::protobuf::Metadata RolesTable::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ConnectionRoles::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ConnectionRoles>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_._has_bits_);
+};
+
+ConnectionRoles::ConnectionRoles(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ConnectionRoles_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.players.ConnectionRoles)
+}
+PROTOBUF_NDEBUG_INLINE ConnectionRoles::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::players::ConnectionRoles& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        roles_{visibility, arena, from.roles_},
+        _roles_cached_byte_size_{0} {}
+
+ConnectionRoles::ConnectionRoles(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const ConnectionRoles& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ConnectionRoles_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  ConnectionRoles* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, steam_id_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, steam_id_),
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, steam_id_) +
+               sizeof(Impl_::generation_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.players.ConnectionRoles)
+}
+PROTOBUF_NDEBUG_INLINE ConnectionRoles::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        roles_{visibility, arena},
+        _roles_cached_byte_size_{0} {}
+
+inline void ConnectionRoles::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, steam_id_),
+           0,
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, steam_id_) +
+               sizeof(Impl_::generation_));
+}
+ConnectionRoles::~ConnectionRoles() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.players.ConnectionRoles)
+  SharedDtor(*this);
+}
+inline void ConnectionRoles::SharedDtor(MessageLite& self) {
+  ConnectionRoles& this_ = static_cast<ConnectionRoles&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ConnectionRoles::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ConnectionRoles(arena);
+}
+constexpr auto ConnectionRoles::InternalNewImpl_() {
+  constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
+      PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.roles_) +
+          decltype(ConnectionRoles::_impl_.roles_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+  });
+  if (arena_bits.has_value()) {
+    return ::google::protobuf::internal::MessageCreator::ZeroInit(
+        sizeof(ConnectionRoles), alignof(ConnectionRoles), *arena_bits);
+  } else {
+    return ::google::protobuf::internal::MessageCreator(&ConnectionRoles::PlacementNew_,
+                                 sizeof(ConnectionRoles),
+                                 alignof(ConnectionRoles));
+  }
+}
+constexpr auto ConnectionRoles::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ConnectionRoles_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ConnectionRoles::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ConnectionRoles>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ConnectionRoles::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ConnectionRoles>(), &ConnectionRoles::ByteSizeLong,
+              &ConnectionRoles::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_._cached_size_),
+          false,
+      },
+      &ConnectionRoles::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ConnectionRoles_class_data_ =
+        ConnectionRoles::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ConnectionRoles::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ConnectionRoles_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ConnectionRoles_class_data_.tc_table);
+  return ConnectionRoles_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+ConnectionRoles::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ConnectionRoles_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::players::ConnectionRoles>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // uint64 steam_id = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ConnectionRoles, _impl_.steam_id_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.steam_id_)}},
+    // uint32 generation = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ConnectionRoles, _impl_.generation_), 2>(),
+     {16, 2, 0,
+      PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.generation_)}},
+    // repeated .modlock.wasm.players.ModRole roles = 3;
+    {::_pbi::TcParser::FastV32P1,
+     {26, 0, 0,
+      PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.roles_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint64 steam_id = 1;
+    {PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.steam_id_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
+    // uint32 generation = 2;
+    {PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.generation_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // repeated .modlock.wasm.players.ModRole roles = 3;
+    {PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.roles_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ConnectionRoles::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.players.ConnectionRoles)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    _impl_.roles_.Clear();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
+    ::memset(&_impl_.steam_id_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.generation_) -
+        reinterpret_cast<char*>(&_impl_.steam_id_)) + sizeof(_impl_.generation_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ConnectionRoles::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ConnectionRoles& this_ = static_cast<const ConnectionRoles&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ConnectionRoles::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ConnectionRoles& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.players.ConnectionRoles)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // uint64 steam_id = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_steam_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          1, this_._internal_steam_id(), target);
+    }
+  }
+
+  // uint32 generation = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_generation() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          2, this_._internal_generation(), target);
+    }
+  }
+
+  // repeated .modlock.wasm.players.ModRole roles = 3;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+    {
+      ::size_t byte_size = this_._impl_._roles_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteEnumPacked(
+            3, this_._internal_roles(), byte_size, target);
+      }
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.players.ConnectionRoles)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ConnectionRoles::ByteSizeLong(const MessageLite& base) {
+  const ConnectionRoles& this_ = static_cast<const ConnectionRoles&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ConnectionRoles::ByteSizeLong() const {
+  const ConnectionRoles& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.players.ConnectionRoles)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    // repeated .modlock.wasm.players.ModRole roles = 3;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      total_size += ::_pbi::WireFormatLite::EnumSizeWithPackedTagSize(
+          this_._internal_roles(), 1, this_._impl_._roles_cached_byte_size_);
+    }
+    // uint64 steam_id = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_steam_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_steam_id());
+      }
+    }
+    // uint32 generation = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_generation() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_generation());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ConnectionRoles::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<ConnectionRoles*>(&to_msg);
+  auto& from = static_cast<const ConnectionRoles&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.players.ConnectionRoles)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_roles()->MergeFrom(from._internal_roles());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_steam_id() != 0) {
+        _this->_impl_.steam_id_ = from._impl_.steam_id_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_generation() != 0) {
+        _this->_impl_.generation_ = from._impl_.generation_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void ConnectionRoles::CopyFrom(const ConnectionRoles& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.players.ConnectionRoles)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ConnectionRoles::InternalSwap(ConnectionRoles* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.roles_.InternalSwap(&other->_impl_.roles_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.generation_)
+      + sizeof(ConnectionRoles::_impl_.generation_)
+      - PROTOBUF_FIELD_OFFSET(ConnectionRoles, _impl_.steam_id_)>(
+          reinterpret_cast<char*>(&_impl_.steam_id_),
+          reinterpret_cast<char*>(&other->_impl_.steam_id_));
+}
+
+::google::protobuf::Metadata ConnectionRoles::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

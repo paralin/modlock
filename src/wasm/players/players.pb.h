@@ -61,6 +61,8 @@ namespace wasm {
 namespace players {
 enum CameraParam : int;
 extern const uint32_t CameraParam_internal_data_[];
+enum ModRole : int;
+extern const uint32_t ModRole_internal_data_[];
 class AdjustSoulsRequest;
 struct AdjustSoulsRequestDefaultTypeInternal;
 MODLOCK_API extern AdjustSoulsRequestDefaultTypeInternal _AdjustSoulsRequest_default_instance_;
@@ -117,6 +119,10 @@ class Connection;
 struct ConnectionDefaultTypeInternal;
 MODLOCK_API extern ConnectionDefaultTypeInternal _Connection_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Connection_class_data_;
+class ConnectionRoles;
+struct ConnectionRolesDefaultTypeInternal;
+MODLOCK_API extern ConnectionRolesDefaultTypeInternal _ConnectionRoles_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ConnectionRoles_class_data_;
 class EquipmentTarget;
 struct EquipmentTargetDefaultTypeInternal;
 MODLOCK_API extern EquipmentTargetDefaultTypeInternal _EquipmentTarget_default_instance_;
@@ -173,6 +179,10 @@ class RestoredEvent;
 struct RestoredEventDefaultTypeInternal;
 MODLOCK_API extern RestoredEventDefaultTypeInternal _RestoredEvent_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull RestoredEvent_class_data_;
+class RolesTable;
+struct RolesTableDefaultTypeInternal;
+MODLOCK_API extern RolesTableDefaultTypeInternal _RolesTable_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull RolesTable_class_data_;
 class Score;
 struct ScoreDefaultTypeInternal;
 MODLOCK_API extern ScoreDefaultTypeInternal _Score_default_instance_;
@@ -205,12 +215,52 @@ namespace protobuf {
 template <>
 internal::EnumTraitsT<::modlock::wasm::players::CameraParam_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::players::CameraParam>;
+template <>
+internal::EnumTraitsT<::modlock::wasm::players::ModRole_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::players::ModRole>;
 }  // namespace protobuf
 }  // namespace google
 
 namespace modlock {
 namespace wasm {
 namespace players {
+enum ModRole : int {
+  MOD_ROLE_UNSPECIFIED = 0,
+  MOD_ROLE_DEVELOPER = 1,
+  MOD_ROLE_TESTER = 2,
+  ModRole_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  ModRole_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t ModRole_internal_data_[];
+inline constexpr ModRole ModRole_MIN =
+    static_cast<ModRole>(0);
+inline constexpr ModRole ModRole_MAX =
+    static_cast<ModRole>(2);
+inline bool ModRole_IsValid(int value) {
+  return 0 <= value && value <= 2;
+}
+inline constexpr int ModRole_ARRAYSIZE = 2 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ModRole_descriptor();
+template <typename T>
+const ::std::string& ModRole_Name(T value) {
+  static_assert(::std::is_same<T, ModRole>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to ModRole_Name().");
+  return ModRole_Name(static_cast<ModRole>(value));
+}
+template <>
+inline const ::std::string& ModRole_Name(ModRole value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<ModRole_descriptor, 0, 2>(
+      static_cast<int>(value));
+}
+inline bool ModRole_Parse(
+    ::absl::string_view name, ModRole* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<ModRole>(ModRole_descriptor(), name,
+                                           value);
+}
 enum CameraParam : int {
   CAMERA_PARAM_DISTANCE = 0,
   CAMERA_PARAM_FIELD_OF_VIEW = 1,
@@ -311,7 +361,7 @@ class MODLOCK_API WatchRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const WatchRequest*>(
         &_WatchRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(WatchRequest& a, WatchRequest& b) { a.Swap(&b); }
   inline void Swap(WatchRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -526,7 +576,7 @@ class MODLOCK_API TimerTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const TimerTarget*>(
         &_TimerTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 31;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(TimerTarget& a, TimerTarget& b) { a.Swap(&b); }
   inline void Swap(TimerTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -780,7 +830,7 @@ class MODLOCK_API StartingSoulsRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const StartingSoulsRequest*>(
         &_StartingSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 24;
+  static constexpr int kIndexInFileMessages = 26;
   friend void swap(StartingSoulsRequest& a, StartingSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(StartingSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -982,7 +1032,7 @@ class MODLOCK_API SetStaminaRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetStaminaRequest*>(
         &_SetStaminaRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 27;
+  static constexpr int kIndexInFileMessages = 29;
   friend void swap(SetStaminaRequest& a, SetStaminaRequest& b) { a.Swap(&b); }
   inline void Swap(SetStaminaRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1189,7 +1239,7 @@ class MODLOCK_API SelectHeroRequest final : public ::google::protobuf::Message
     kHeroId = 3,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(SelectHeroRequest& a, SelectHeroRequest& b) { a.Swap(&b); }
   inline void Swap(SelectHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1433,7 +1483,7 @@ class MODLOCK_API Score final : public ::google::protobuf::Message
     return *reinterpret_cast<const Score*>(
         &_Score_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(Score& a, Score& b) { a.Swap(&b); }
   inline void Swap(Score* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1914,7 +1964,7 @@ class MODLOCK_API ResetHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ResetHeroRequest*>(
         &_ResetHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 25;
+  static constexpr int kIndexInFileMessages = 27;
   friend void swap(ResetHeroRequest& a, ResetHeroRequest& b) { a.Swap(&b); }
   inline void Swap(ResetHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2306,7 +2356,7 @@ class MODLOCK_API HeroResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroResponse*>(
         &_HeroResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(HeroResponse& a, HeroResponse& b) { a.Swap(&b); }
   inline void Swap(HeroResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2496,7 +2546,7 @@ class MODLOCK_API HealRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HealRequest*>(
         &_HealRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 26;
+  static constexpr int kIndexInFileMessages = 28;
   friend void swap(HealRequest& a, HealRequest& b) { a.Swap(&b); }
   inline void Swap(HealRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2698,7 +2748,7 @@ class MODLOCK_API FreezeRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FreezeRequest*>(
         &_FreezeRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(FreezeRequest& a, FreezeRequest& b) { a.Swap(&b); }
   inline void Swap(FreezeRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2901,7 +2951,7 @@ class MODLOCK_API EquipmentTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const EquipmentTarget*>(
         &_EquipmentTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 30;
+  static constexpr int kIndexInFileMessages = 32;
   friend void swap(EquipmentTarget& a, EquipmentTarget& b) { a.Swap(&b); }
   inline void Swap(EquipmentTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3061,6 +3111,230 @@ class MODLOCK_API EquipmentTarget final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull EquipmentTarget_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API ConnectionRoles final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.ConnectionRoles) */ {
+ public:
+  inline ConnectionRoles() : ConnectionRoles(nullptr) {}
+  ~ConnectionRoles() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ConnectionRoles* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ConnectionRoles));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ConnectionRoles(::google::protobuf::internal::ConstantInitialized);
+
+  inline ConnectionRoles(const ConnectionRoles& from) : ConnectionRoles(nullptr, from) {}
+  inline ConnectionRoles(ConnectionRoles&& from) noexcept
+      : ConnectionRoles(nullptr, ::std::move(from)) {}
+  inline ConnectionRoles& operator=(const ConnectionRoles& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ConnectionRoles& operator=(ConnectionRoles&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ConnectionRoles& default_instance() {
+    return *reinterpret_cast<const ConnectionRoles*>(
+        &_ConnectionRoles_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(ConnectionRoles& a, ConnectionRoles& b) { a.Swap(&b); }
+  inline void Swap(ConnectionRoles* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ConnectionRoles* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ConnectionRoles* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ConnectionRoles>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ConnectionRoles& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ConnectionRoles& from) { ConnectionRoles::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ConnectionRoles* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.ConnectionRoles"; }
+
+  explicit ConnectionRoles(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ConnectionRoles(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ConnectionRoles& from);
+  ConnectionRoles(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ConnectionRoles&& from) noexcept
+      : ConnectionRoles(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kRolesFieldNumber = 3,
+    kSteamIdFieldNumber = 1,
+    kGenerationFieldNumber = 2,
+  };
+  // repeated .modlock.wasm.players.ModRole roles = 3;
+  int roles_size() const;
+  private:
+  int _internal_roles_size() const;
+
+  public:
+  void clear_roles() ;
+  public:
+  ::modlock::wasm::players::ModRole roles(int index) const;
+  void set_roles(int index, ::modlock::wasm::players::ModRole value);
+  void add_roles(::modlock::wasm::players::ModRole value);
+  const ::google::protobuf::RepeatedField<int>& roles() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL mutable_roles();
+
+  private:
+  const ::google::protobuf::RepeatedField<int>& _internal_roles() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL _internal_mutable_roles();
+
+  public:
+  // uint64 steam_id = 1;
+  void clear_steam_id() ;
+  ::uint64_t steam_id() const;
+  void set_steam_id(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_steam_id() const;
+  void _internal_set_steam_id(::uint64_t value);
+
+  public:
+  // uint32 generation = 2;
+  void clear_generation() ;
+  ::uint32_t generation() const;
+  void set_generation(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_generation() const;
+  void _internal_set_generation(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.ConnectionRoles)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ConnectionRoles& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<int> roles_;
+    ::google::protobuf::internal::CachedSize _roles_cached_byte_size_;
+    ::uint64_t steam_id_;
+    ::uint32_t generation_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ConnectionRoles_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Connection final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.players.Connection) */ {
  public:
@@ -3203,6 +3477,7 @@ class MODLOCK_API Connection final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
+    kRolesFieldNumber = 7,
     kNameFieldNumber = 3,
     kSteamIdFieldNumber = 2,
     kPlayerFieldNumber = 1,
@@ -3210,6 +3485,25 @@ class MODLOCK_API Connection final : public ::google::protobuf::Message
     kReadyFieldNumber = 5,
     kGenerationFieldNumber = 6,
   };
+  // repeated .modlock.wasm.players.ModRole roles = 7;
+  int roles_size() const;
+  private:
+  int _internal_roles_size() const;
+
+  public:
+  void clear_roles() ;
+  public:
+  ::modlock::wasm::players::ModRole roles(int index) const;
+  void set_roles(int index, ::modlock::wasm::players::ModRole value);
+  void add_roles(::modlock::wasm::players::ModRole value);
+  const ::google::protobuf::RepeatedField<int>& roles() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL mutable_roles();
+
+  private:
+  const ::google::protobuf::RepeatedField<int>& _internal_roles() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL _internal_mutable_roles();
+
+  public:
   // string name = 3;
   void clear_name() ;
   const ::std::string& name() const;
@@ -3279,7 +3573,7 @@ class MODLOCK_API Connection final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 6,
+  static const ::google::protobuf::internal::TcParseTable<3, 7,
                                    0, 44,
                                    2>
       _table_;
@@ -3301,6 +3595,8 @@ class MODLOCK_API Connection final : public ::google::protobuf::Message
         const Connection& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<int> roles_;
+    ::google::protobuf::internal::CachedSize _roles_cached_byte_size_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::uint64_t steam_id_;
     ::int32_t player_;
@@ -3371,7 +3667,7 @@ class MODLOCK_API ClearCameraRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ClearCameraRequest*>(
         &_ClearCameraRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(ClearCameraRequest& a, ClearCameraRequest& b) { a.Swap(&b); }
   inline void Swap(ClearCameraRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3579,7 +3875,7 @@ class MODLOCK_API ChangeTeamRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ChangeTeamRequest*>(
         &_ChangeTeamRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(ChangeTeamRequest& a, ChangeTeamRequest& b) { a.Swap(&b); }
   inline void Swap(ChangeTeamRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3781,7 +4077,7 @@ class MODLOCK_API CameraLag final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraLag*>(
         &_CameraLag_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(CameraLag& a, CameraLag& b) { a.Swap(&b); }
   inline void Swap(CameraLag* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4024,7 +4320,7 @@ class MODLOCK_API CameraHold final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraHold*>(
         &_CameraHold_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(CameraHold& a, CameraHold& b) { a.Swap(&b); }
   inline void Swap(CameraHold* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4215,7 +4511,7 @@ class MODLOCK_API BotResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const BotResponse*>(
         &_BotResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(BotResponse& a, BotResponse& b) { a.Swap(&b); }
   inline void Swap(BotResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4405,7 +4701,7 @@ class MODLOCK_API AdjustSoulsRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const AdjustSoulsRequest*>(
         &_AdjustSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 25;
   friend void swap(AdjustSoulsRequest& a, AdjustSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(AdjustSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4563,6 +4859,225 @@ class MODLOCK_API AdjustSoulsRequest final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AdjustSoulsRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API RolesTable final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.RolesTable) */ {
+ public:
+  inline RolesTable() : RolesTable(nullptr) {}
+  ~RolesTable() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(RolesTable* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(RolesTable));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR RolesTable(::google::protobuf::internal::ConstantInitialized);
+
+  inline RolesTable(const RolesTable& from) : RolesTable(nullptr, from) {}
+  inline RolesTable(RolesTable&& from) noexcept
+      : RolesTable(nullptr, ::std::move(from)) {}
+  inline RolesTable& operator=(const RolesTable& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline RolesTable& operator=(RolesTable&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const RolesTable& default_instance() {
+    return *reinterpret_cast<const RolesTable*>(
+        &_RolesTable_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 5;
+  friend void swap(RolesTable& a, RolesTable& b) { a.Swap(&b); }
+  inline void Swap(RolesTable* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(RolesTable* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  RolesTable* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<RolesTable>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const RolesTable& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const RolesTable& from) { RolesTable::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(RolesTable* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.RolesTable"; }
+
+  explicit RolesTable(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  RolesTable(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const RolesTable& from);
+  RolesTable(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, RolesTable&& from) noexcept
+      : RolesTable(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kConnectionsFieldNumber = 1,
+    kHumansFieldNumber = 2,
+  };
+  // repeated .modlock.wasm.players.ConnectionRoles connections = 1;
+  int connections_size() const;
+  private:
+  int _internal_connections_size() const;
+
+  public:
+  void clear_connections() ;
+  ::modlock::wasm::players::ConnectionRoles* PROTOBUF_NONNULL mutable_connections(int index);
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>* PROTOBUF_NONNULL mutable_connections();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>& _internal_connections() const;
+  ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>* PROTOBUF_NONNULL _internal_mutable_connections();
+  public:
+  const ::modlock::wasm::players::ConnectionRoles& connections(int index) const;
+  ::modlock::wasm::players::ConnectionRoles* PROTOBUF_NONNULL add_connections();
+  const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>& connections() const;
+  // repeated .modlock.wasm.players.ModRole humans = 2;
+  int humans_size() const;
+  private:
+  int _internal_humans_size() const;
+
+  public:
+  void clear_humans() ;
+  public:
+  ::modlock::wasm::players::ModRole humans(int index) const;
+  void set_humans(int index, ::modlock::wasm::players::ModRole value);
+  void add_humans(::modlock::wasm::players::ModRole value);
+  const ::google::protobuf::RepeatedField<int>& humans() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL mutable_humans();
+
+  private:
+  const ::google::protobuf::RepeatedField<int>& _internal_humans() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL _internal_mutable_humans();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.RolesTable)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const RolesTable& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::modlock::wasm::players::ConnectionRoles > connections_;
+    ::google::protobuf::RepeatedField<int> humans_;
+    ::google::protobuf::internal::CachedSize _humans_cached_byte_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull RolesTable_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API PlayersResponse final : public ::google::protobuf::Message
@@ -5014,7 +5529,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     return *reinterpret_cast<const Pawn*>(
         &_Pawn_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(Pawn& a, Pawn& b) { a.Swap(&b); }
   inline void Swap(Pawn* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5434,7 +5949,7 @@ class MODLOCK_API HeroTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroTarget*>(
         &_HeroTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 29;
+  static constexpr int kIndexInFileMessages = 31;
   friend void swap(HeroTarget& a, HeroTarget& b) { a.Swap(&b); }
   inline void Swap(HeroTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5788,7 +6303,7 @@ class MODLOCK_API FreeCameraRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FreeCameraRequest*>(
         &_FreeCameraRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(FreeCameraRequest& a, FreeCameraRequest& b) { a.Swap(&b); }
   inline void Swap(FreeCameraRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6017,7 +6532,7 @@ class MODLOCK_API CameraValue final : public ::google::protobuf::Message
     kPosition = 2,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(CameraValue& a, CameraValue& b) { a.Swap(&b); }
   inline void Swap(CameraValue* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6244,7 +6759,7 @@ class MODLOCK_API BotOptions final : public ::google::protobuf::Message
     kHeroId = 4,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(BotOptions& a, BotOptions& b) { a.Swap(&b); }
   inline void Swap(BotOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6510,7 +7025,7 @@ class MODLOCK_API RestoreHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RestoreHeroRequest*>(
         &_RestoreHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 28;
+  static constexpr int kIndexInFileMessages = 30;
   friend void swap(RestoreHeroRequest& a, RestoreHeroRequest& b) { a.Swap(&b); }
   inline void Swap(RestoreHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6717,7 +7232,7 @@ class MODLOCK_API PawnResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const PawnResponse*>(
         &_PawnResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(PawnResponse& a, PawnResponse& b) { a.Swap(&b); }
   inline void Swap(PawnResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6912,7 +7427,7 @@ class MODLOCK_API CameraSpring final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraSpring*>(
         &_CameraSpring_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(CameraSpring& a, CameraSpring& b) { a.Swap(&b); }
   inline void Swap(CameraSpring* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7146,7 +7661,7 @@ class MODLOCK_API CameraLerp final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraLerp*>(
         &_CameraLerp_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(CameraLerp& a, CameraLerp& b) { a.Swap(&b); }
   inline void Swap(CameraLerp* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7397,7 +7912,7 @@ class MODLOCK_API CameraApproach final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraApproach*>(
         &_CameraApproach_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(CameraApproach& a, CameraApproach& b) { a.Swap(&b); }
   inline void Swap(CameraApproach* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7665,7 +8180,7 @@ class MODLOCK_API CameraMotion final : public ::google::protobuf::Message
     kLag = 5,
     MOTION_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(CameraMotion& a, CameraMotion& b) { a.Swap(&b); }
   inline void Swap(CameraMotion* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7961,7 +8476,7 @@ class MODLOCK_API CameraOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraOptions*>(
         &_CameraOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(CameraOptions& a, CameraOptions& b) { a.Swap(&b); }
   inline void Swap(CameraOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8471,7 +8986,7 @@ inline void Connection::clear_player() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::int32_t Connection::player() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.players.Connection.player)
@@ -8479,7 +8994,7 @@ inline ::int32_t Connection::player() const {
 }
 inline void Connection::set_player(::int32_t value) {
   _internal_set_player(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.player)
 }
 inline ::int32_t Connection::_internal_player() const {
@@ -8496,7 +9011,7 @@ inline void Connection::clear_steam_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.steam_id_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::uint64_t Connection::steam_id() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.players.Connection.steam_id)
@@ -8504,7 +9019,7 @@ inline ::uint64_t Connection::steam_id() const {
 }
 inline void Connection::set_steam_id(::uint64_t value) {
   _internal_set_steam_id(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.steam_id)
 }
 inline ::uint64_t Connection::_internal_steam_id() const {
@@ -8521,7 +9036,7 @@ inline void Connection::clear_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.name_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000001U);
+                  0x00000002U);
 }
 inline const ::std::string& Connection::name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -8531,13 +9046,13 @@ inline const ::std::string& Connection::name() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Connection::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.name)
 }
 inline ::std::string* PROTOBUF_NONNULL Connection::mutable_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::std::string* _s = _internal_mutable_name();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.players.Connection.name)
   return _s;
@@ -8557,10 +9072,10 @@ inline ::std::string* PROTOBUF_NONNULL Connection::_internal_mutable_name() {
 inline ::std::string* PROTOBUF_NULLABLE Connection::release_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.players.Connection.name)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.name_.Set("", GetArena());
@@ -8570,9 +9085,9 @@ inline ::std::string* PROTOBUF_NULLABLE Connection::release_name() {
 inline void Connection::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
   _impl_.name_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
@@ -8586,7 +9101,7 @@ inline void Connection::clear_bot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.bot_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline bool Connection::bot() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.players.Connection.bot)
@@ -8594,7 +9109,7 @@ inline bool Connection::bot() const {
 }
 inline void Connection::set_bot(bool value) {
   _internal_set_bot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.bot)
 }
 inline bool Connection::_internal_bot() const {
@@ -8611,7 +9126,7 @@ inline void Connection::clear_ready() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ready_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000020U);
 }
 inline bool Connection::ready() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.players.Connection.ready)
@@ -8619,7 +9134,7 @@ inline bool Connection::ready() const {
 }
 inline void Connection::set_ready(bool value) {
   _internal_set_ready(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.ready)
 }
 inline bool Connection::_internal_ready() const {
@@ -8636,7 +9151,7 @@ inline void Connection::clear_generation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generation_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000020U);
+                  0x00000040U);
 }
 inline ::uint32_t Connection::generation() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.players.Connection.generation)
@@ -8644,7 +9159,7 @@ inline ::uint32_t Connection::generation() const {
 }
 inline void Connection::set_generation(::uint32_t value) {
   _internal_set_generation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.generation)
 }
 inline ::uint32_t Connection::_internal_generation() const {
@@ -8654,6 +9169,270 @@ inline ::uint32_t Connection::_internal_generation() const {
 inline void Connection::_internal_set_generation(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generation_ = value;
+}
+
+// repeated .modlock.wasm.players.ModRole roles = 7;
+inline int Connection::_internal_roles_size() const {
+  return _internal_roles().size();
+}
+inline int Connection::roles_size() const {
+  return _internal_roles_size();
+}
+inline void Connection::clear_roles() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.roles_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::players::ModRole Connection::roles(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.Connection.roles)
+  return static_cast<::modlock::wasm::players::ModRole>(_internal_roles().Get(index));
+}
+inline void Connection::set_roles(int index, ::modlock::wasm::players::ModRole value) {
+  _internal_mutable_roles()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.Connection.roles)
+}
+inline void Connection::add_roles(::modlock::wasm::players::ModRole value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_roles()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.players.Connection.roles)
+}
+inline const ::google::protobuf::RepeatedField<int>& Connection::roles() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.players.Connection.roles)
+  return _internal_roles();
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL Connection::mutable_roles()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.players.Connection.roles)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_roles();
+}
+inline const ::google::protobuf::RepeatedField<int>& Connection::_internal_roles()
+    const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.roles_;
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL
+Connection::_internal_mutable_roles() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.roles_;
+}
+
+// -------------------------------------------------------------------
+
+// RolesTable
+
+// repeated .modlock.wasm.players.ConnectionRoles connections = 1;
+inline int RolesTable::_internal_connections_size() const {
+  return _internal_connections().size();
+}
+inline int RolesTable::connections_size() const {
+  return _internal_connections_size();
+}
+inline void RolesTable::clear_connections() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.connections_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::players::ConnectionRoles* PROTOBUF_NONNULL RolesTable::mutable_connections(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.players.RolesTable.connections)
+  return _internal_mutable_connections()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>* PROTOBUF_NONNULL RolesTable::mutable_connections()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.players.RolesTable.connections)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_connections();
+}
+inline const ::modlock::wasm::players::ConnectionRoles& RolesTable::connections(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.RolesTable.connections)
+  return _internal_connections().Get(index);
+}
+inline ::modlock::wasm::players::ConnectionRoles* PROTOBUF_NONNULL RolesTable::add_connections()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::modlock::wasm::players::ConnectionRoles* _add =
+      _internal_mutable_connections()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.players.RolesTable.connections)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>& RolesTable::connections() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.players.RolesTable.connections)
+  return _internal_connections();
+}
+inline const ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>&
+RolesTable::_internal_connections() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.connections_;
+}
+inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::ConnectionRoles>* PROTOBUF_NONNULL
+RolesTable::_internal_mutable_connections() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.connections_;
+}
+
+// repeated .modlock.wasm.players.ModRole humans = 2;
+inline int RolesTable::_internal_humans_size() const {
+  return _internal_humans().size();
+}
+inline int RolesTable::humans_size() const {
+  return _internal_humans_size();
+}
+inline void RolesTable::clear_humans() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.humans_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::modlock::wasm::players::ModRole RolesTable::humans(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.RolesTable.humans)
+  return static_cast<::modlock::wasm::players::ModRole>(_internal_humans().Get(index));
+}
+inline void RolesTable::set_humans(int index, ::modlock::wasm::players::ModRole value) {
+  _internal_mutable_humans()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.RolesTable.humans)
+}
+inline void RolesTable::add_humans(::modlock::wasm::players::ModRole value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_humans()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.players.RolesTable.humans)
+}
+inline const ::google::protobuf::RepeatedField<int>& RolesTable::humans() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.players.RolesTable.humans)
+  return _internal_humans();
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL RolesTable::mutable_humans()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.players.RolesTable.humans)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_humans();
+}
+inline const ::google::protobuf::RepeatedField<int>& RolesTable::_internal_humans()
+    const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.humans_;
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL
+RolesTable::_internal_mutable_humans() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.humans_;
+}
+
+// -------------------------------------------------------------------
+
+// ConnectionRoles
+
+// uint64 steam_id = 1;
+inline void ConnectionRoles::clear_steam_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.steam_id_ = ::uint64_t{0u};
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint64_t ConnectionRoles::steam_id() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.ConnectionRoles.steam_id)
+  return _internal_steam_id();
+}
+inline void ConnectionRoles::set_steam_id(::uint64_t value) {
+  _internal_set_steam_id(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.ConnectionRoles.steam_id)
+}
+inline ::uint64_t ConnectionRoles::_internal_steam_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.steam_id_;
+}
+inline void ConnectionRoles::_internal_set_steam_id(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.steam_id_ = value;
+}
+
+// uint32 generation = 2;
+inline void ConnectionRoles::clear_generation() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t ConnectionRoles::generation() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.ConnectionRoles.generation)
+  return _internal_generation();
+}
+inline void ConnectionRoles::set_generation(::uint32_t value) {
+  _internal_set_generation(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.ConnectionRoles.generation)
+}
+inline ::uint32_t ConnectionRoles::_internal_generation() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generation_;
+}
+inline void ConnectionRoles::_internal_set_generation(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = value;
+}
+
+// repeated .modlock.wasm.players.ModRole roles = 3;
+inline int ConnectionRoles::_internal_roles_size() const {
+  return _internal_roles().size();
+}
+inline int ConnectionRoles::roles_size() const {
+  return _internal_roles_size();
+}
+inline void ConnectionRoles::clear_roles() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.roles_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::modlock::wasm::players::ModRole ConnectionRoles::roles(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.ConnectionRoles.roles)
+  return static_cast<::modlock::wasm::players::ModRole>(_internal_roles().Get(index));
+}
+inline void ConnectionRoles::set_roles(int index, ::modlock::wasm::players::ModRole value) {
+  _internal_mutable_roles()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.ConnectionRoles.roles)
+}
+inline void ConnectionRoles::add_roles(::modlock::wasm::players::ModRole value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_roles()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.players.ConnectionRoles.roles)
+}
+inline const ::google::protobuf::RepeatedField<int>& ConnectionRoles::roles() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.players.ConnectionRoles.roles)
+  return _internal_roles();
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL ConnectionRoles::mutable_roles()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.players.ConnectionRoles.roles)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_roles();
+}
+inline const ::google::protobuf::RepeatedField<int>& ConnectionRoles::_internal_roles()
+    const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.roles_;
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL
+ConnectionRoles::_internal_mutable_roles() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.roles_;
 }
 
 // -------------------------------------------------------------------
@@ -13997,6 +14776,12 @@ inline void BotResponse::_internal_set_player(::int32_t value) {
 namespace google {
 namespace protobuf {
 
+template <>
+struct is_proto_enum<::modlock::wasm::players::ModRole> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::players::ModRole>() {
+  return ::modlock::wasm::players::ModRole_descriptor();
+}
 template <>
 struct is_proto_enum<::modlock::wasm::players::CameraParam> : std::true_type {};
 template <>

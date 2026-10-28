@@ -372,6 +372,10 @@ class Game : public HostService {
   std::vector<combat::LaunchEvent> TakeLaunches() { return std::exchange(launches_, {}); }
 
  protected:
+  // Players lists the occupied player slots; a host may add what it knows of
+  // each player.
+  std::expected<players::PlayersResponse, std::string> Players() override;
+
   // Impacted delivers a watched projectile's impact to the mod, inside the
   // game's impact.
   virtual void Impacted(const combat::ImpactEvent& event) = 0;
@@ -389,7 +393,6 @@ class Game : public HostService {
   std::expected<void, std::string> CenterText(const effects::CenterTextRequest& request) override;
   std::expected<void, std::string> Announce(const effects::AnnounceRequest& request) override;
   std::expected<void, std::string> Precache(const PrecacheOptions& request) override;
-  std::expected<players::PlayersResponse, std::string> Players() override;
   std::expected<players::PawnResponse, std::string> Pawn(
       const players::PlayerRequest& request) override;
   std::expected<players::HeroResponse, std::string> SelectHero(

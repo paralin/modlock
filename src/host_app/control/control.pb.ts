@@ -3,6 +3,7 @@
 /* eslint-disable */
 
 import { createEnumType } from '@aptre/protobuf-es-lite/enum'
+import { RolesTable } from '../../wasm/players/players.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType } from '@aptre/protobuf-es-lite/message'
 import type {
@@ -56,12 +57,16 @@ export interface ControlRequest {
   body?:
     | { value?: undefined; case: undefined }
     | { value: ReloadRequest; case: 'reload' }
+    | { value: RolesTable; case: 'roles' }
 }
 
 export const ControlRequest: MessageType<ControlRequest> =
   /* @__PURE__ */ createMessageType<ControlRequest>(
     'modlock.host_app.control.ControlRequest',
-    () => [[1, 'reload', 11, 0, ReloadRequest.codec, 'body']],
+    () => [
+      [1, 'reload', 11, 0, ReloadRequest.codec, 'body'],
+      [2, 'roles', 11, 0, RolesTable.codec, 'body'],
+    ],
     {
       decode: (
         r: BinaryReader,
@@ -82,6 +87,16 @@ export const ControlRequest: MessageType<ControlRequest> =
                 ),
               }
               break
+            case 2:
+              m.body = {
+                case: 'roles',
+                value: RolesTable.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'roles' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -93,6 +108,11 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'reload' && o.value != null)
             ReloadRequest.writeField(w, 1, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'roles' && o.value != null)
+            RolesTable.writeField(w, 2, o.value)
         }
       },
     },
