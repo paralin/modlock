@@ -129,7 +129,26 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   });
   auto* table_ptr = table.data();
   std::memcpy(fixture.controller.data(), &table_ptr, sizeof(table_ptr));
+
+  // The hero records its strip, which must see the old team and the binding.
+  std::array<void*, 108> hero_table{};
+  hero_table[107] = reinterpret_cast<void*>(+[](void*, int old_team, int new_team) {
+    EXPECT_EQ(old_team, 2);
+    EXPECT_EQ(new_team, 1);
+    uint32_t bound = 0;
+    std::memcpy(&bound, active->controller.data() + kHeroHandleField, sizeof(bound));
+    EXPECT_EQ(bound, HandleOf(2, 7));
+    steps.push_back("strip");
+  });
+  auto* hero_table_ptr = hero_table.data();
+  std::memcpy(hero.data(), &hero_table_ptr, sizeof(hero_table_ptr));
   modlock::gameinterop::PlayerSelectionCalls calls;
+  static void* removed = nullptr;
+  removed = nullptr;
+  calls.remove = +[](void* entity) {
+    removed = entity;
+    steps.push_back("remove");
+  };
   calls.set_pawn = +[](void* controller, void* pawn, bool retain_old_pawn_team, bool, bool, bool) {
     // Unbind the pawn and keep its team.
     EXPECT_EQ(controller, active->controller.data());
@@ -144,14 +163,17 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
     return nullptr;
   };
 
-  // The hero handle is cleared and published, and the pawn unbound, before
-  // the team changes and the observer spawns.
+  // The hero is stripped while bound; its handle is cleared and published,
+  // the pawn unbound and removed, before the team changes and the observer
+  // spawns.
   PawnObserver observer{HeroSeamsFor(fixture)};
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   uint32_t released = 0;
   std::memcpy(&released, fixture.controller.data() + kHeroHandleField, sizeof(released));
   EXPECT_EQ(released, 0xffffffffu);
-  EXPECT_EQ(steps, (std::vector<std::string>{"notify", "unbind", "team", "observer"}));
+  EXPECT_EQ(steps,
+            (std::vector<std::string>{"strip", "notify", "unbind", "remove", "team", "observer"}));
+  EXPECT_EQ(removed, hero.data());
   active = nullptr;
 }
 

@@ -18,6 +18,11 @@ std::expected<PlayerSelectionCalls, std::string> PlayerSelectionCalls::Resolve(
   if (!resolved) {
     return std::unexpected(resolved.error());
   }
+
+  // Removal is optional: without it a stripped hero stays in the world.
+  if (auto remove = ResolveSignature(server, "entity.remove")) {
+    calls.remove = reinterpret_cast<void (*)(void*)>(*remove);
+  }
   return calls;
 }
 

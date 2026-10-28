@@ -9,6 +9,26 @@
 
 namespace modlock::gameinterop {
 
+namespace {
+
+// StripHero runs pawn's own reaction to leaving old_team for the spectators,
+// which removes its abilities and items through UTIL_Remove and clears its
+// hero. It returns pawn once stripped, or nullptr when the reaction is not
+// found in this game build, and the pawn keeps its hero.
+void* StripHero(void* pawn, uint8_t old_team) {
+  const auto slot = ResolveVirtualSlot("pawn.team-changed");
+  auto** table = *static_cast<void***>(pawn);
+  if (!slot || !table || !table[*slot]) {
+    std::fprintf(stderr, "[modlock] spectating leaves the hero in the world: %s\n",
+                 slot ? "pawn team change unavailable" : slot.error().c_str());
+    return nullptr;
+  }
+  reinterpret_cast<void (*)(void*, int, int)>(table[*slot])(pawn, old_team, 1);
+  return pawn;
+}
+
+}  // namespace
+
 std::expected<std::pair<unsigned char*, unsigned char*>, std::string>
 PawnObserver::ControllerOfSlot(int32_t slot) {
   // Check the slot and the layout.
@@ -220,13 +240,25 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
   uint8_t current_team = 0;
   std::memcpy(&current_team, static_cast<const char*>(current->first) + layout_.team, 1);
   if (current_team != team && team == 1) {
-    // The game's own move to the spectators releases the hero before the team
-    // changes: it clears the hero handle and unbinds the pawn. A client whose
-    // hero stays bound reads its hero's data after the change and crashes.
+    // Strip the hero while it is still bound: the pawn's own reaction to a
+    // team change removes its abilities and items and clears its hero, and it
+    // finds the controller through the binding.
     auto* controller = static_cast<unsigned char*>(current->first);
     uint32_t hero = 0;
     std::memcpy(&hero, controller + *layout_.hero_pawn_handle, sizeof(hero));
-    if (IdentityOfHandle(EntityListOf(current->second), hero)) {
+    auto* released = IdentityOfHandle(EntityListOf(current->second), hero);
+    void* stripped = released ? StripHero(InstanceOf(released), current_team) : nullptr;
+    if (stripped) {
+      current = borrow();
+      if (!current) {
+        return std::unexpected(current.error());
+      }
+    }
+
+    // The game's own move to the spectators releases the hero before the team
+    // changes: it clears the hero handle and unbinds the pawn. A client whose
+    // hero stays bound reads its hero's data after the change and crashes.
+    if (released) {
       hero = kInvalidEHandleIndex;
       std::memcpy(controller + *layout_.hero_pawn_handle, &hero, sizeof(hero));
       if (!NotifyEntityStateChanged(controller)) {
@@ -237,6 +269,15 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
     current = borrow();
     if (!current) {
       return std::unexpected(current.error());
+    }
+
+    // Remove the stripped pawn so no body stays in the world. UTIL_Remove
+    // defers it to the end of the frame, with the abilities and items the
+    // strip removed, so clients never hold an owned entity without its pawn.
+    // A hero that could not be stripped stays: removing it alone would strand
+    // its abilities on clients.
+    if (stripped && calls.remove) {
+      calls.remove(stripped);
     }
   }
   if (current_team != team) {
