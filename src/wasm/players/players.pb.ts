@@ -394,8 +394,8 @@ export const Connection: MessageType<Connection> =
   )
 
 /**
- * RolesTable gives each connected player their roles. Each table replaces the
- * one before it.
+ * RolesTable gives each connected player their roles in one mod. Each table
+ * replaces the one before it for the same mod.
  *
  * @generated from message modlock.wasm.players.RolesTable
  */
@@ -409,6 +409,11 @@ export interface RolesTable {
    * Humans holds the roles of every human connection the table does not list.
    */
   humans?: ModRole[]
+  /**
+   * Mod names the mod the table is for. A table with no mod serves every mod
+   * that has no table of its own.
+   */
+  mod?: string
 }
 
 export const RolesTable: MessageType<RolesTable> =
@@ -417,6 +422,7 @@ export const RolesTable: MessageType<RolesTable> =
     () => [
       [1, 'connections', 11, 1, ConnectionRoles.codec],
       [2, 'humans', 14, 3, ModRole_Enum],
+      [3, 'mod', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: RolesTable): RolesTable => {
@@ -432,6 +438,9 @@ export const RolesTable: MessageType<RolesTable> =
             case 2:
               for (const e = r.run(t), a = (m.humans ??= []); r.pos < e;)
                 a.push(r.int32())
+              break
+            case 3:
+              m.mod = r.string()
               break
             default:
               r.skip(t)
@@ -451,6 +460,10 @@ export const RolesTable: MessageType<RolesTable> =
             for (const e of a) w.int32(e)
             w.join(s)
           }
+        }
+        {
+          const v = m.mod
+          if (v) w.uint32(26).string(v)
         }
       },
     },

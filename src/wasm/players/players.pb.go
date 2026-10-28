@@ -270,8 +270,8 @@ func (x *Connection) GetRoles() []ModRole {
 	return nil
 }
 
-// RolesTable gives each connected player their roles. Each table replaces the
-// one before it.
+// RolesTable gives each connected player their roles in one mod. Each table
+// replaces the one before it for the same mod.
 type RolesTable struct {
 	unknownFields []byte
 	// Connections holds the roles of the listed connections. An entry whose
@@ -279,6 +279,9 @@ type RolesTable struct {
 	Connections []*ConnectionRoles `protobuf:"bytes,1,rep,name=connections,proto3" json:"connections,omitempty"`
 	// Humans holds the roles of every human connection the table does not list.
 	Humans []ModRole `protobuf:"varint,2,rep,packed,name=humans,proto3" json:"humans,omitempty"`
+	// Mod names the mod the table is for. A table with no mod serves every mod
+	// that has no table of its own.
+	Mod string `protobuf:"bytes,3,opt,name=mod,proto3" json:"mod,omitempty"`
 }
 
 func (x *RolesTable) Reset() {
@@ -299,6 +302,13 @@ func (x *RolesTable) GetHumans() []ModRole {
 		return x.Humans
 	}
 	return nil
+}
+
+func (x *RolesTable) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
 }
 
 // ConnectionRoles gives one connection its roles.
@@ -1946,6 +1956,7 @@ func (m *RolesTable) CloneVT() *RolesTable {
 		return (*RolesTable)(nil)
 	}
 	r := new(RolesTable)
+	r.Mod = m.Mod
 	r.Connections = protobuf_go_lite.CloneVTSlice(m.Connections)
 	r.Humans = protobuf_go_lite.CloneSlice(m.Humans)
 	if len(m.unknownFields) > 0 {
@@ -2807,6 +2818,9 @@ func (this *RolesTable) EqualVT(that *RolesTable) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualSlice(this.Humans, that.Humans) {
+		return false
+	}
+	if this.Mod != that.Mod {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4328,6 +4342,11 @@ func (x *RolesTable) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4374,6 +4393,9 @@ func (x *RolesTable) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				v.UnmarshalProtoJSON(s)
 				x.Humans = append(x.Humans, v)
 			})
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
 		}
 	})
 }
@@ -7050,6 +7072,11 @@ func (m *RolesTable) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.Humans) > 0 {
 		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Humans)
 		i--
@@ -9033,6 +9060,7 @@ func (m *RolesTable) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += protobuf_go_lite.SizeVarintPacked(1, m.Humans)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9814,6 +9842,10 @@ func (x *RolesTable) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteStringer(&sb, ModRole(v))
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -11090,6 +11122,16 @@ func (m *RolesTable) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field Humans", wireType)
 			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

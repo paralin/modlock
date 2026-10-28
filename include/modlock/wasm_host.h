@@ -141,7 +141,8 @@ class MODLOCK_API WasmHost {
   void SettingChanged(std::string_view mod, uint64_t steam_id, std::string_view key,
                       std::string_view value);
 
-  // SetRoles replaces the players' roles, which the mods read on each
+  // SetRoles replaces the players' roles in the table's mod, or in every mod
+  // without a table of its own when it names none. The mods read them on each
   // connection from their next event on. A table equal to the current one
   // changes nothing.
   void SetRoles(wasm::players::RolesTable roles);

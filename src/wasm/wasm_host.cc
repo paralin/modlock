@@ -186,10 +186,11 @@ void WasmHost::SettingChanged(std::string_view mod, uint64_t steam_id, std::stri
 }
 
 void WasmHost::SetRoles(wasm::players::RolesTable roles) {
-  if (roles.SerializeAsString() == impl_->roles.SerializeAsString()) {
+  auto& current = impl_->roles[roles.mod()];
+  if (roles.SerializeAsString() == current.SerializeAsString()) {
     return;
   }
-  impl_->roles = std::move(roles);
+  current = std::move(roles);
   ++impl_->roles_revision;
 }
 

@@ -55,8 +55,9 @@ struct Mods {
   // files holds a directory per mod for the files mods write, or is empty
   // when the host keeps none.
   std::filesystem::path files;
-  // roles gives players their roles, and roles_revision counts its changes.
-  players::RolesTable roles;
+  // roles holds each mod's roles table by mod name, the empty name serving
+  // every mod without its own, and roles_revision counts their changes.
+  std::map<std::string, players::RolesTable, std::less<>> roles;
   uint64_t roles_revision = 0;
 
   // Notify calls report with each observer. An observer may stop observing

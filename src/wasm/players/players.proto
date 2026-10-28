@@ -71,8 +71,8 @@ enum ModRole {
   MOD_ROLE_TESTER = 2;
 }
 
-// RolesTable gives each connected player their roles. Each table replaces the
-// one before it.
+// RolesTable gives each connected player their roles in one mod. Each table
+// replaces the one before it for the same mod.
 message RolesTable {
   // Connections holds the roles of the listed connections. An entry whose
   // generation no longer matches its slot's connection gives nothing.
@@ -80,6 +80,10 @@ message RolesTable {
 
   // Humans holds the roles of every human connection the table does not list.
   repeated ModRole humans = 2;
+
+  // Mod names the mod the table is for. A table with no mod serves every mod
+  // that has no table of its own.
+  string mod = 3;
 }
 
 // ConnectionRoles gives one connection its roles.
