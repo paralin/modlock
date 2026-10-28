@@ -343,6 +343,13 @@ export interface RosterRow {
   activity: string
   /** steamId badges the portrait's corner with the player's Steam avatar. */
   steamId?: bigint
+  /**
+   * onPress makes the row a button the viewer presses while they have a
+   * cursor, such as to open a card about that player.
+   */
+  onPress?: (player: Player) => void
+  /** selected edges the portrait in the accent, as for the row a card shows. */
+  selected?: boolean
 }
 
 /** rosterRows is the most players the roster shows, above the minimap. */
@@ -366,7 +373,7 @@ export function rosterKey(rows: readonly RosterRow[]): string {
     .slice(0, rosterRows)
     .map(
       (row) =>
-        `${row.self ? '*' : ''}${row.name}\t${row.hero}\t${row.activity}\t${row.steamId ?? ''}`,
+        `${row.self ? '*' : ''}${row.selected ? '+' : ''}${row.onPress ? '>' : ''}${row.name}\t${row.hero}\t${row.activity}\t${row.steamId ?? ''}`,
     )
     .join('\n')
 }
@@ -452,7 +459,7 @@ function rosterRow(row: RosterRow, index: number): UiElement {
       height: portraitSize,
       padding: 1,
       verticalAlign: 'center',
-      background: row.self ? tones.accent : shades.dim,
+      background: row.self || row.selected ? tones.accent : shades.dim,
     },
     element(
       'panel',
@@ -467,13 +474,31 @@ function rosterRow(row: RosterRow, index: number): UiElement {
     ),
   )
 
-  // A player who joins slides in from the edge.
-  const line = element(
-    'panel',
-    { flow: 'right', horizontalAlign: 'right', margin: [0, 0, 8, 0] },
-    [text, portrait],
-    `row-${index}`,
-  )
+  // A player who joins slides in from the edge. A pressable row is a button
+  // whose ground lifts under the pointer.
+  const style: Style = {
+    flow: 'right',
+    horizontalAlign: 'right',
+    margin: [0, 0, 8, 0],
+  }
+  const line: UiElement = row.onPress
+    ? {
+        type: 'button',
+        props: {
+          style: {
+            ...style,
+            borderRadius: sizes.radius,
+            transition: motion.hover,
+          },
+          hover: { background: shades.raised },
+          hoverSound: sounds.hover,
+          sound: sounds.press,
+          onPress: row.onPress,
+          children: [text, portrait],
+        },
+        key: `row-${index}`,
+      }
+    : element('panel', style, [text, portrait], `row-${index}`)
   return arriving(line, { translate: [16, 0] })
 }
 

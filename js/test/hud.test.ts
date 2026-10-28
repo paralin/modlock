@@ -12,6 +12,7 @@ import { findHero, heroes } from '../src/heroes.js'
 import {
   Pips,
   Roster,
+  rosterKey,
   rosterRows,
   Score,
   Tag,
@@ -126,6 +127,19 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     src: wraith.portrait,
   })
   expect(kids(kids(edge(1))[0]!)).toHaveLength(0)
+
+  // A row with onPress is a button that runs it.
+  let pressed = 0
+  const pressable = { ...rows[2]!, onPress: () => pressed++, selected: true }
+  const picked = kids(Roster({ rows: [pressable] })!)[0]!
+  expect(picked.type).toBe('button')
+  ;(picked.props as { onPress: () => void }).onPress()
+  expect(pressed).toBe(1)
+
+  // Only the selected row's edge takes the accent, and the key follows both.
+  expect(kids(picked)[1]!.props.style?.background).toBe(tones.accent)
+  expect(kids(kids(roster)[2]!)[1]!.props.style?.background).toBe(shades.dim)
+  expect(rosterKey([pressable])).not.toBe(rosterKey([rows[2]!]))
 
   // Without rows the roster draws nothing.
   expect(Roster({ rows: [] })).toBeNull()
