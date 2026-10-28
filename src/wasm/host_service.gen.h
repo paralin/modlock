@@ -153,6 +153,36 @@ class HostService {
     return std::unexpected("this host does not support HoldReload");
   }
 
+  // Handoff replaces the handoff state for the game: what the running build
+  // hands the next build when the mod reloads, such as which round it plays.
+  // It lasts only through a reload of the mod in the same game, such as an
+  // update, whose new build reads it back with HandedOff. The host holds it
+  // in memory and never writes it to disk, so it ends when the mod stops or
+  // the server restarts. The host refuses state past 64 KiB.
+  virtual std::expected<void, std::string> Handoff(const handoff::HandoffRequest& /*request*/) {
+    return std::unexpected("this host does not support Handoff");
+  }
+
+  // HandedOff returns the game's handoff state, or empty.
+  virtual std::expected<handoff::HandedOffResponse, std::string> HandedOff() {
+    return std::unexpected("this host does not support HandedOff");
+  }
+
+  // PlayerHandoff replaces the handoff state for the player, such as the
+  // panels their HUD shows. It lasts only through a reload of the mod in the
+  // same game, in memory, as the game's does, and ends early when the player
+  // leaves; only that player reads it back, and a bot keeps none.
+  virtual std::expected<void, std::string> PlayerHandoff(
+      const handoff::HandoffPlayerRequest& /*request*/) {
+    return std::unexpected("this host does not support PlayerHandoff");
+  }
+
+  // PlayerHandedOff returns the player's handoff state, or empty.
+  virtual std::expected<handoff::HandedOffResponse, std::string> PlayerHandedOff(
+      const players::PlayerRequest& /*request*/) {
+    return std::unexpected("this host does not support PlayerHandedOff");
+  }
+
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
   // frame.
@@ -991,6 +1021,35 @@ class HostService {
              return detail::Fail("the HoldReload request is malformed");
            }
            return detail::Answer(host.HoldReload(request));
+         }},
+        {"Handoff",
+         [](HostService& host, const std::string& bytes) {
+           handoff::HandoffRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Handoff request is malformed");
+           }
+           return detail::Answer(host.Handoff(request));
+         }},
+        {"HandedOff",
+         [](HostService& host, const std::string& bytes) {
+           static_cast<void>(bytes);
+           return detail::Answer(host.HandedOff());
+         }},
+        {"PlayerHandoff",
+         [](HostService& host, const std::string& bytes) {
+           handoff::HandoffPlayerRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the PlayerHandoff request is malformed");
+           }
+           return detail::Answer(host.PlayerHandoff(request));
+         }},
+        {"PlayerHandedOff",
+         [](HostService& host, const std::string& bytes) {
+           players::PlayerRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the PlayerHandedOff request is malformed");
+           }
+           return detail::Answer(host.PlayerHandedOff(request));
          }},
         {"SelectHero",
          [](HostService& host, const std::string& bytes) {

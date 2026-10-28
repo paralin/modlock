@@ -1389,6 +1389,21 @@ class Player:
         """
         return _call("AddMetric", "AddMetricRequest", {"player": self, "name": name, "value": value, "label": label}) is not None
 
+    def handoff(self, text: str) -> bool:
+        """handoff replaces the handoff state for the player, such as the
+        panels their HUD shows. It lasts only through a reload of the mod in the
+        same game, in memory, as the game's does, and ends early when the player
+        leaves; only that player reads it back, and a bot keeps none.
+        """
+        return _call("PlayerHandoff", "HandoffPlayerRequest", {"player": self, "text": text}) is not None
+
+    def handed_off(self) -> str | None:
+        """handed_off returns the player's handoff state, or empty."""
+        response = _call("PlayerHandedOff", "PlayerRequest", {"player": self}, "HandedOffResponse")
+        if response is None:
+            return None
+        return response["text"]
+
     def select_hero(self, hero: str | int, team: int) -> int | None:
         """select_hero gives the player a hero on a team, 2 or 3, and returns the
         hero's identifier as Pawn.hero reports it. The hero appears on a later
@@ -2352,6 +2367,25 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "repeat", "bool", optional=True),
         ],
     ),
+    "HandoffRequest": (
+        None,
+        [
+            wire.Field(1, "text", "string"),
+        ],
+    ),
+    "HandoffPlayerRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "text", "string"),
+        ],
+    ),
+    "HandedOffResponse": (
+        None,
+        [
+            wire.Field(1, "text", "string"),
+        ],
+    ),
     "SetFreeForAllRequest": (
         None,
         [
@@ -3215,6 +3249,25 @@ def hold_reload(held: bool) -> bool:
     without a hold.
     """
     return _call("HoldReload", "HoldReloadRequest", {"held": held}) is not None
+
+
+def handoff(text: str) -> bool:
+    """handoff replaces the handoff state for the game: what the running build
+    hands the next build when the mod reloads, such as which round it plays.
+    It lasts only through a reload of the mod in the same game, such as an
+    update, whose new build reads it back with HandedOff. The host holds it
+    in memory and never writes it to disk, so it ends when the mod stops or
+    the server restarts. The host refuses state past 64 KiB.
+    """
+    return _call("Handoff", "HandoffRequest", {"text": text}) is not None
+
+
+def handed_off() -> str | None:
+    """handed_off returns the game's handoff state, or empty."""
+    response = _call("HandedOff", "Empty", {}, "HandedOffResponse")
+    if response is None:
+        return None
+    return response["text"]
 
 
 def hero_build(hero: str) -> list[BuildCategory]:

@@ -13,6 +13,7 @@ import (
 	entitiespb "github.com/paralin/modlock/src/wasm/entities"
 	fieldspb "github.com/paralin/modlock/src/wasm/fields"
 	filespb "github.com/paralin/modlock/src/wasm/files"
+	handoffpb "github.com/paralin/modlock/src/wasm/handoff"
 	inputpb "github.com/paralin/modlock/src/wasm/input"
 	matchpb "github.com/paralin/modlock/src/wasm/match"
 	metricspb "github.com/paralin/modlock/src/wasm/metrics"
@@ -562,6 +563,43 @@ func WriteFile(name, text string) error {
 // without a hold.
 func HoldReload(held bool) error {
 	return invoke("HoldReload", &abilitiespb.HoldReloadRequest{Held: held}, nil)
+}
+
+// Handoff replaces the handoff state for the game: what the running build
+// hands the next build when the mod reloads, such as which round it plays.
+// It lasts only through a reload of the mod in the same game, such as an
+// update, whose new build reads it back with HandedOff. The host holds it
+// in memory and never writes it to disk, so it ends when the mod stops or
+// the server restarts. The host refuses state past 64 KiB.
+func Handoff(text string) error {
+	return invoke("Handoff", &handoffpb.HandoffRequest{Text: text}, nil)
+}
+
+// HandedOff returns the game's handoff state, or empty.
+func HandedOff() (string, error) {
+	response := &handoffpb.HandedOffResponse{}
+	if err := invoke("HandedOff", &wasmpb.Empty{}, response); err != nil {
+		return "", err
+	}
+	return response.GetText(), nil
+}
+
+// Handoff replaces the handoff state for the player, such as the
+// panels their HUD shows. It lasts only through a reload of the mod in the
+// same game, in memory, as the game's does, and ends early when the player
+// leaves; only that player reads it back, and a bot keeps none.
+func (p Player) Handoff(text string) error {
+	return invoke("PlayerHandoff", &handoffpb.HandoffPlayerRequest{Player: p.Slot, Text: text}, nil)
+}
+
+// HandedOff returns the player's handoff state, or empty.
+func (p Player) HandedOff() (string, error) {
+	request := &playerspb.PlayerRequest{Player: p.Slot}
+	response := &handoffpb.HandedOffResponse{}
+	if err := invoke("PlayerHandedOff", request, response); err != nil {
+		return "", err
+	}
+	return response.GetText(), nil
 }
 
 // SelectHero gives the player a hero on a team, 2 or 3, and returns the

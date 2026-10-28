@@ -1158,6 +1158,13 @@ export type Player = {
 	-- The host keeps each player's totals in memory and hands them on once,
 	-- when the player leaves or the mod stops; a bot keeps none.
 	addMetric: (self: Player, name: string, value: number, label: string?) -> boolean,
+	-- handoff replaces the handoff state for the player, such as the
+	-- panels their HUD shows. It lasts only through a reload of the mod in the
+	-- same game, in memory, as the game's does, and ends early when the player
+	-- leaves; only that player reads it back, and a bot keeps none.
+	handoff: (self: Player, text: string) -> boolean,
+	-- handedOff returns the player's handoff state, or empty.
+	handedOff: (self: Player) -> string?,
 	-- selectHero gives the player a hero on a team, 2 or 3, and returns the
 	-- hero's identifier as Pawn.hero reports it. The hero appears on a later
 	-- frame.
@@ -1358,6 +1365,23 @@ end
 -- when the player leaves or the mod stops; a bot keeps none.
 function Player.addMetric(self: Player, name: string, value: number, label: string?): boolean
 	return call("AddMetric", "AddMetricRequest", { player = self, name = name, value = value, label = label }) ~= nil
+end
+
+-- handoff replaces the handoff state for the player, such as the
+-- panels their HUD shows. It lasts only through a reload of the mod in the
+-- same game, in memory, as the game's does, and ends early when the player
+-- leaves; only that player reads it back, and a bot keeps none.
+function Player.handoff(self: Player, text: string): boolean
+	return call("PlayerHandoff", "HandoffPlayerRequest", { player = self, text = text }) ~= nil
+end
+
+-- handedOff returns the player's handoff state, or empty.
+function Player.handedOff(self: Player): string?
+	local response = call("PlayerHandedOff", "PlayerRequest", { player = self }, "HandedOffResponse")
+	if response == nil then
+		return nil
+	end
+	return response.text
 end
 
 -- selectHero gives the player a hero on a team, 2 or 3, and returns the
@@ -2189,6 +2213,16 @@ schema.RemapInputRequest = {
 	{ number = 2, name = "to", kind = "uint64" },
 	{ number = 3, name = "repeat", kind = "bool", optional = true },
 }
+schema.HandoffRequest = {
+	{ number = 1, name = "text", kind = "string" },
+}
+schema.HandoffPlayerRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "text", kind = "string" },
+}
+schema.HandedOffResponse = {
+	{ number = 1, name = "text", kind = "string" },
+}
 schema.SetFreeForAllRequest = {
 	{ number = 1, name = "enabled", kind = "bool" },
 }
@@ -2761,6 +2795,25 @@ end
 -- without a hold.
 function modlock.holdReload(held: boolean): boolean
 	return call("HoldReload", "HoldReloadRequest", { held = held }) ~= nil
+end
+
+-- handoff replaces the handoff state for the game: what the running build
+-- hands the next build when the mod reloads, such as which round it plays.
+-- It lasts only through a reload of the mod in the same game, such as an
+-- update, whose new build reads it back with HandedOff. The host holds it
+-- in memory and never writes it to disk, so it ends when the mod stops or
+-- the server restarts. The host refuses state past 64 KiB.
+function modlock.handoff(text: string): boolean
+	return call("Handoff", "HandoffRequest", { text = text }) ~= nil
+end
+
+-- handedOff returns the game's handoff state, or empty.
+function modlock.handedOff(): string?
+	local response = call("HandedOff", "Empty", {}, "HandedOffResponse")
+	if response == nil then
+		return nil
+	end
+	return response.text
 end
 
 -- heroBuild reads a hero's recommended build from the host's game data:

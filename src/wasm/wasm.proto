@@ -11,6 +11,7 @@ import "github.com/paralin/modlock/src/wasm/entities/entities.proto";
 import "github.com/paralin/modlock/src/wasm/fields/fields.proto";
 import "github.com/paralin/modlock/src/wasm/files/files.proto";
 import "github.com/paralin/modlock/src/wasm/input/input.proto";
+import "github.com/paralin/modlock/src/wasm/handoff/handoff.proto";
 import "github.com/paralin/modlock/src/wasm/match/match.proto";
 import "github.com/paralin/modlock/src/wasm/metrics/metrics.proto";
 import "github.com/paralin/modlock/src/wasm/movement/movement.proto";
@@ -133,6 +134,26 @@ service Host {
   // on the first frame after the mod releases the hold. A new build starts
   // without a hold.
   rpc HoldReload(modlock.wasm.abilities.HoldReloadRequest) returns (Empty);
+
+  // Handoff replaces the handoff state for the game: what the running build
+  // hands the next build when the mod reloads, such as which round it plays.
+  // It lasts only through a reload of the mod in the same game, such as an
+  // update, whose new build reads it back with HandedOff. The host holds it
+  // in memory and never writes it to disk, so it ends when the mod stops or
+  // the server restarts. The host refuses state past 64 KiB.
+  rpc Handoff(modlock.wasm.handoff.HandoffRequest) returns (Empty);
+
+  // HandedOff returns the game's handoff state, or empty.
+  rpc HandedOff(Empty) returns (modlock.wasm.handoff.HandedOffResponse);
+
+  // PlayerHandoff replaces the handoff state for the player, such as the
+  // panels their HUD shows. It lasts only through a reload of the mod in the
+  // same game, in memory, as the game's does, and ends early when the player
+  // leaves; only that player reads it back, and a bot keeps none.
+  rpc PlayerHandoff(modlock.wasm.handoff.HandoffPlayerRequest) returns (Empty);
+
+  // PlayerHandedOff returns the player's handoff state, or empty.
+  rpc PlayerHandedOff(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.handoff.HandedOffResponse);
 
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later

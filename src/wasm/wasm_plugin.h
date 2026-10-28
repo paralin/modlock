@@ -96,6 +96,12 @@ class PluginGame final : public wasm::Game {
       const wasm::metrics::AddMetricRequest& request) override;
   std::expected<void, std::string> HoldReload(
       const wasm::abilities::HoldReloadRequest& request) override;
+  std::expected<void, std::string> Handoff(const wasm::handoff::HandoffRequest& request) override;
+  std::expected<wasm::handoff::HandedOffResponse, std::string> HandedOff() override;
+  std::expected<void, std::string> PlayerHandoff(
+      const wasm::handoff::HandoffPlayerRequest& request) override;
+  std::expected<wasm::handoff::HandedOffResponse, std::string> PlayerHandedOff(
+      const wasm::players::PlayerRequest& request) override;
   std::expected<wasm::files::ReadFileResponse, std::string> ReadFile(
       const wasm::files::ReadFileRequest& request) override;
   std::expected<void, std::string> WriteFile(const wasm::files::WriteFileRequest& request) override;
@@ -161,6 +167,17 @@ class WasmPlugin final : public Plugin {
 
   // Held reports whether the running instance keeps itself through reloads.
   bool Held() const { return held_; }
+
+  // Handoff replaces the handoff state for the game, or for the player in
+  // slot when slot is set: what the running build hands the next one. It
+  // outlives instances, so a reload reads it back, but lives only in memory:
+  // it ends when the mod stops or, for a player's, when the player leaves. A
+  // bot keeps none.
+  std::expected<void, std::string> Handoff(std::optional<int32_t> slot, std::string text);
+
+  // HandedOff returns the handoff state for the game, or for the player in
+  // slot when slot is set, or empty.
+  std::string HandedOff(std::optional<int32_t> slot) const;
 
   // Scope limits the mod to players, or serves every player when players is
   // nullopt. Each player it stops serving leaves it as a disconnected player
@@ -420,6 +437,11 @@ class WasmPlugin final : public Plugin {
   // tallies_ holds each player's metric totals by slot, with the account
   // they belong to, until the player leaves or the mod stops.
   std::map<int32_t, std::pair<uint64_t, wasm::Tally>> tallies_;
+  // handoff_ is the game's handoff state, and handoff_players_ each player's
+  // by slot, with the account it belongs to. Both outlive instances until
+  // the mod stops; a player's ends when they leave.
+  std::string handoff_;
+  std::map<int32_t, std::pair<uint64_t, std::string>> handoff_players_;
   // frames_resume_ is when the mod's next frame is due after a slow one.
   // skipped_ counts the frames skipped since shed_logged_, the last log of
   // them, slowest_ is the slowest frame since then, and slowest_report_
