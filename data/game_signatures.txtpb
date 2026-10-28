@@ -737,6 +737,19 @@ slots {
   shape: "void INetworkServerService::StartupServer(const GameSessionConfiguration_t&, ...)"
 }
 
+# The pawn's reaction to its controller's team change. While the controller
+# lets team changes strip the hero (it does except inside the change that keeps
+# the hero), it removes the pawn's abilities and items through UTIL_Remove,
+# clears its hero and respawns it empty, as the clearhero command does.
+slots {
+  id: "pawn.team-changed"
+  module: "server.dll"
+  class_name: "CCitadelPlayerPawn"
+  index: 107
+  pattern: "48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 20 41 8B F8 48 8B D9 E8 ?? ?? ?? ?? 33 D2 48 8B CB E8 ?? ?? ?? ?? 48 8D 8B ?? ?? 00 00 E8"
+  shape: "void CCitadelPlayerPawn::OnTeamChanged(int old_team, int new_team)"
+}
+
 slots {
   id: "player-controller.change-team"
   module: "server.dll"
