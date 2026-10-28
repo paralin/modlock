@@ -57,7 +57,8 @@ func (p *Project) scriptEntry() string {
 // buildScript type checks a TypeScript or JavaScript project. A release build
 // of a mod that asks for RUNTIME_WASM compiles it with scriptc; any other
 // build, or a mod scriptc cannot compile, bundles it with the library into
-// one script for QuickJS.
+// one script for QuickJS: a release with Rolldown, minified, and a dev build
+// with esbuild, which needs no download and keeps the script readable.
 func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) error {
 	// Install the library's declarations and the type checker.
 	library, err := js.Library(ctx)
@@ -94,7 +95,16 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 		_, _ = fmt.Fprintf(output, "%v; the mod runs on QuickJS\n", err)
 	}
 
-	// Bundle the sources and the library into one script.
+	// Bundle and minify a release with Rolldown.
+	if mode == Release {
+		bundled, err := p.bundleRolldown(ctx, library, output)
+		if err != nil {
+			return err
+		}
+		return p.writeBuild(bundled, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+	}
+
+	// Bundle a dev build's sources and the library into one script.
 	result := api.Build(api.BuildOptions{
 		EntryPoints:     []string{p.scriptEntry()},
 		AbsWorkingDir:   p.Dir,

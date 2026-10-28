@@ -12,8 +12,9 @@ func buildCommand(out *printer) *cli.Command {
 		Usage:     "check the mod and write the built mod to its build directory",
 		ArgsUsage: "[DIRECTORY]",
 		Description: "A script mod builds for QuickJS, which takes a moment. When its mod.json sets\n" +
-			"\"runtime\": \"RUNTIME_WASM\", publish compiles it with scriptc instead; --release builds\n" +
-			"that way here, to check the published build.",
+			"\"runtime\": \"RUNTIME_WASM\", publish compiles it with scriptc instead, and otherwise\n" +
+			"bundles and minifies it with Rolldown; --release builds that way here, to check the\n" +
+			"published build.",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{Name: "release", Usage: "build the mod as publish does"},
 		},

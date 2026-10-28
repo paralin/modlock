@@ -1,13 +1,18 @@
 // Package npm downloads pinned npm packages into the user cache: the
-// TypeScript checker and the runtime the TypeScript library imports.
+// TypeScript checker, the runtime the TypeScript library imports, and the
+// bundler that builds a release.
 package npm
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"maps"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 
 	"github.com/paralin/modlock/internal/fetch"
 	"github.com/pkg/errors"
@@ -26,19 +31,54 @@ func Package(ctx context.Context, name, version string) (string, error) {
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		// Fetch the registry's archive beside the cache, then unpack it.
-		archive := dir + ".tgz"
-		defer os.Remove(archive)
-		url := "https://registry.npmjs.org/" + name + "/-/" + path.Base(name) + "-" + version + ".tgz"
-		if err := fetch.File(ctx, url, archive); err != nil {
-			return err
-		}
-		return fetch.UntarTree(archive, "package/", staging)
+		return unpack(ctx, name, version, dir+".tgz", staging)
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "install %s", name)
 	}
 	return dir, nil
+}
+
+// Modules returns a directory whose node_modules holds each of packages, a
+// name to version map, so the packages resolve one another as an npm install
+// lays them out. It installs no dependencies packages leaves out.
+func Modules(ctx context.Context, packages map[string]string) (string, error) {
+	// Key the tree by its packages.
+	names := slices.Sorted(maps.Keys(packages))
+	key := sha256.New()
+	for _, name := range names {
+		_, _ = key.Write([]byte(name + "@" + packages[name] + "\x00"))
+	}
+	dir, err := fetch.Cache("npm", "modules", hex.EncodeToString(key.Sum(nil))[:16])
+	if err != nil {
+		return "", err
+	}
+
+	// Unpack each package into the tree the first time it is asked for.
+	err = fetch.Install(dir, func(staging string) error {
+		for _, name := range names {
+			target := filepath.Join(staging, "node_modules", filepath.FromSlash(name))
+			if err := unpack(ctx, name, packages[name], staging+".tgz", target); err != nil {
+				return errors.Wrapf(err, "install %s", name)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return dir, nil
+}
+
+// unpack downloads the registry's archive of name at version to archive, then
+// unpacks the package into dir.
+func unpack(ctx context.Context, name, version, archive, dir string) error {
+	defer os.Remove(archive)
+	url := "https://registry.npmjs.org/" + name + "/-/" + path.Base(name) + "-" + version + ".tgz"
+	if err := fetch.File(ctx, url, archive); err != nil {
+		return err
+	}
+	return fetch.UntarTree(archive, "package/", dir)
 }
 
 // Tsgo returns the TypeScript checker for this system.
