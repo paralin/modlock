@@ -236,10 +236,13 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
   }
 
   // Answer it and hold the encoded reply for host_read. The host's work
-  // counts against the budget; past it, the mod traps on return.
-  const auto entered = ThreadTime();
+  // counts against the budget, in thread time; past it, the mod traps on
+  // return. The report times each call on the steady clock instead, since
+  // Wine answers thread time in 10 ms steps that round most calls to 0 or 10.
+  const auto entered = std::chrono::steady_clock::now();
   host_call_(call).SerializeToString(&pending_);
-  const auto spent = ThreadTime() - entered;
+  const auto spent = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::steady_clock::now() - entered);
   budget_.host += spent;
   if (spent > budget_.slowest_time) {
     budget_.slowest = call.method();

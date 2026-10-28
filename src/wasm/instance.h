@@ -97,7 +97,9 @@ class Instance {
 
   // Budget is the running call's processor time limit and how its host calls
   // spent it. began is the thread's processor time when the call started,
-  // and spent is the time the call took once it returned.
+  // and spent is the time the call took once it returned. host and
+  // slowest_time are the host calls' steady clock time, which Wine measures
+  // finer than processor time.
   struct Budget {
     std::string call;
     std::chrono::milliseconds limit{};
