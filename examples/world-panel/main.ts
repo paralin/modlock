@@ -1,6 +1,7 @@
 // world-panel raises a board of the mod's own layout in front of each player
-// as their hero first spawns. The layout lives in content/layout/board.xml and
-// ships in the mod's content addon, which the host names in place of {addon}.
+// as their hero first spawns. The layout lives in content/layout/board.xml with
+// its style sheet in content/styles/board.css, and both ship in the mod's
+// content addon, which the host names in place of {addon}.
 import { log, onFrame, players } from 'modlock'
 import { create } from 'modlock/entities'
 

@@ -32,6 +32,7 @@ func TestContent(t *testing.T) {
 	}
 	write("content/layout/panel.xml", `<root><scripts><include src="file://{resources}/scripts/{addon}/panel.js" /></scripts><Panel /></root>`)
 	write("content/scripts/panel.js", "$.Msg('{addon} stays as written outside a path');")
+	write("content/styles/panel.css", ".Mark { background-image: url('file://{images}/{addon}/mark.png'); }")
 	write("content/layout/.panel.xml.swp", "swap")
 	write("content/models/pawn.vmdl_c", "compiled")
 	manifest := &manifestpb.Manifest{Slug: "parry", Version: "1.2.0", Language: manifestpb.Manifest_LANGUAGE_TYPESCRIPT}
@@ -58,11 +59,16 @@ func TestContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if source, err := panorama.Decompile(layout); err != nil || !strings.Contains(source, "panorama/scripts/"+addon+"/panel.vjs_c") {
+	if source, err := panorama.Decompile(layout); err != nil || !strings.Contains(source, "panorama/scripts/"+addon+"/panel.vjs") {
 		t.Errorf("layout %q, %v; want the script under the addon's name", source, err)
 	}
 	if _, err := os.Stat(filepath.Join(built, "scripts", addon, "panel.vjs_c")); err != nil {
 		t.Error(err)
+	}
+	if sheet, err := os.ReadFile(filepath.Join(built, "styles", addon, "panel.vcss_c")); err != nil {
+		t.Error(err)
+	} else if source, err := panorama.DecompileStyle(sheet); err != nil || !strings.Contains(source, "s2r://panorama/images/"+addon+"/mark_png.vtex") {
+		t.Errorf("sheet %q, %v; want the image under the addon's name", source, err)
 	}
 	if model, err := os.ReadFile(filepath.Join(p.Output(), "models", addon, "pawn.vmdl_c")); err != nil || string(model) != "compiled" {
 		t.Errorf("model %q, %v; want the compiled resource as written under models/%s", model, err, addon)

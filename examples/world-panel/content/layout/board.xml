@@ -1,6 +1,9 @@
 <root>
-  <Panel style="width: 100%; height: 100%; flow-children: down; background-color: #101820e0; border-radius: 12px;">
-    <Label text="Welcome to Midtown" style="horizontal-align: center; margin-top: 40px; font-size: 64px; color: #f2e6c9;" />
-    <Label text="This board is the mod's own layout, drawn in the world." style="horizontal-align: center; margin-top: 16px; font-size: 32px; color: #c8c2b4;" />
+  <styles>
+    <include src="file://{resources}/styles/{addon}/board.css" />
+  </styles>
+  <Panel class="Board">
+    <Label class="Title" text="Welcome to Midtown" />
+    <Label class="Subtitle" text="This board is the mod's own layout and style sheet, drawn in the world." />
   </Panel>
 </root>

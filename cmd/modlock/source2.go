@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -25,17 +26,17 @@ var archiveFlag = &cli.StringFlag{Name: "archive", Usage: "read `PATH` from insi
 func panoramaCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:  "panorama",
-		Usage: "compile and decompile Panorama layouts and scripts without Valve's tools",
+		Usage: "compile and decompile Panorama layouts, scripts and style sheets without Valve's tools",
 		Subcommands: []*cli.Command{
 			{
 				Name:      "compile",
 				Usage:     "compile an addon's content directory into its game files",
 				ArgsUsage: "DIRECTORY",
 				Description: "DIRECTORY holds the addon's sources as the game names them, such as\n" +
-					"panorama/layout/menu.xml and panorama/scripts/menu.js. Each layout and script\n" +
-					"compiles to its .vxml_c or .vjs_c resource; other files, such as resources\n" +
-					"already compiled, are kept. The result is written to --output: an archive when\n" +
-					"it ends in .vpk, otherwise a directory.",
+					"panorama/layout/menu.xml, panorama/scripts/menu.js and panorama/styles/menu.css.\n" +
+					"Each layout, script and style sheet compiles to its .vxml_c, .vjs_c or .vcss_c\n" +
+					"resource; other files, such as images already compiled, are kept. The result is\n" +
+					"written to --output: an archive when it ends in .vpk, otherwise a directory.",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: "the archive or directory to write (default: DIRECTORY.vpk)"},
 					&cli.StringFlag{Name: "addon", Usage: "the addon name the resources record (default: DIRECTORY's name)"},
@@ -69,9 +70,9 @@ func panoramaCommand(out *printer) *cli.Command {
 			},
 			{
 				Name:      "decompile",
-				Usage:     "print a compiled layout as XML, or a compiled script as its source",
+				Usage:     "print a compiled layout as XML, a compiled style sheet as CSS, or a compiled script as its source",
 				ArgsUsage: "FILE",
-				Description: "FILE is a .vxml_c or .vjs_c resource. With --archive, FILE names it inside the\n" +
+				Description: "FILE is a .vxml_c, .vcss_c or .vjs_c resource. With --archive, FILE names it inside the\n" +
 					"archive, as in: modlock panorama decompile --archive pak01_dir.vpk panorama/layout/hud.vxml_c",
 				Flags: []cli.Flag{archiveFlag},
 				Action: func(c *cli.Context) error {
@@ -81,16 +82,22 @@ func panoramaCommand(out *printer) *cli.Command {
 						return err
 					}
 
-					// A script stores its source; a layout prints from its tree.
-					if strings.HasSuffix(c.Args().First(), ".vjs_c") {
+					// A script stores its source; a style sheet prints from its
+					// text and a layout from its tree.
+					var text string
+					switch path.Ext(c.Args().First()) {
+					case ".vjs_c":
 						source, err := resource.ReadBlock(data, "DATA")
 						if err != nil {
 							return err
 						}
 						_, err = os.Stdout.Write(source)
 						return err
+					case ".vcss_c":
+						text, err = panorama.DecompileStyle(data)
+					default:
+						text, err = panorama.Decompile(data)
 					}
-					text, err := panorama.Decompile(data)
 					if err != nil {
 						return err
 					}

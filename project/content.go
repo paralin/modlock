@@ -27,8 +27,9 @@ const ContentDir = "content"
 
 // addonToken matches a path to one of the addon's own files, which a layout,
 // script or style sheet writes with {addon} in place of the addon's name, as
-// in file://{resources}/scripts/{addon}/inventory.js.
-var addonToken = regexp.MustCompile(`(\{resources\}/[\w.-]+/)\{addon\}/`)
+// in file://{resources}/scripts/{addon}/inventory.js or
+// file://{images}/{addon}/mark.png.
+var addonToken = regexp.MustCompile(`(\{resources\}/[\w.-]+/|\{images\}/)\{addon\}/`)
 
 // buildContent compiles the project's content directory into the built mod's,
 // replacing the previous one, and names the content addon in the manifest; a

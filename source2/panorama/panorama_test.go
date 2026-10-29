@@ -2,8 +2,11 @@ package panorama
 
 import (
 	"bytes"
+	"encoding/binary"
 	"reflect"
+	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/paralin/modlock/source2/kv3"
 	"github.com/paralin/modlock/source2/resource"
@@ -103,4 +106,93 @@ func layoutTree(t *testing.T, compiled []byte) map[string]any {
 	}
 	strip(tree)
 	return tree.(map[string]any)
+}
+
+// sheet is a style sheet using each construct the minifier treats specially.
+const sheet = `/* A board. */
+@define Gold: #ffd700;
+@import url("file://{resources}/styles/base.css");
+
+.Board, .Board > Label
+{
+	color: Gold;
+	font-family: "Radiance Bold", sans-serif;
+	transition: opacity 0.5s ;
+}
+
+.Board .Icon { background-image: url('file://{images}/icons/mark.png'); }
+.Board .Glyph { background-image: url("s2r://panorama/images/icons/x.vsvg"); }
+
+@keyframes 'pulse'
+{
+	0% { opacity: 1; }
+	100% { opacity: 0.5; }
+}
+`
+
+// TestStyle compiles a sheet to Valve's minified text with its URLs rewritten,
+// decompiles it to the same text, refuses a URL outside the game's files, and
+// compiles a sheet in a tree.
+func TestStyle(t *testing.T) {
+	// Compile the sheet and read its text.
+	compiled, err := Compile("mymod", "panorama/styles/board.css", []byte(sheet))
+	if err != nil {
+		t.Fatal(err)
+	}
+	const want = `@define Gold: #ffd700;` +
+		`@import url("s2r://panorama/styles/base.vcss");` +
+		`.Board,.Board > Label{color: Gold;font-family: "Radiance Bold", sans-serif;transition: opacity 0.5s ;}` +
+		`.Board .Icon{background-image: url("s2r://panorama/images/icons/mark_png.vtex");}` +
+		`.Board .Glyph{background-image: url("s2r://panorama/images/icons/x.vsvg");}` +
+		`@keyframes 'pulse'{0%{opacity: 1;}100%{opacity: 0.5;}}`
+	text := styleText(t, compiled)
+	if text != want {
+		t.Fatalf("compiled text\n%s\nwant\n%s", text, want)
+	}
+
+	// The decompiled sheet compiles to the same text.
+	decompiled, err := DecompileStyle(compiled)
+	if err != nil {
+		t.Fatal(err)
+	}
+	again, err := Compile("mymod", "panorama/styles/board.css", []byte(decompiled))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := styleText(t, again); text != want {
+		t.Fatalf("the decompiled sheet compiles to\n%s\nfrom\n%s", text, decompiled)
+	}
+
+	// A URL outside the game's files is refused with its line.
+	for _, url := range []string{"https://example.com/x.png", "file://C:/x.png", "file://{images}/../../x.png"} {
+		bad := ".A\n{\n\tbackground-image: url(\"" + url + "\");\n}\n"
+		_, err := Compile("mymod", "panorama/styles/bad.css", []byte(bad))
+		if err == nil || !strings.Contains(err.Error(), "line 3") {
+			t.Fatalf("compiling url(%s): %v", url, err)
+		}
+	}
+
+	// A tree compiles its sheets beside its layouts.
+	tree, err := CompileTree("mymod", fstest.MapFS{"panorama/styles/board.css": {Data: []byte(sheet)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if file := tree["panorama/styles/board.vcss_c"]; file == nil || styleText(t, file.Data) != want {
+		t.Fatalf("the tree holds %v", tree)
+	}
+}
+
+// styleText returns a compiled sheet's text, after its checksum and resource
+// table.
+func styleText(t *testing.T, compiled []byte) string {
+	t.Helper()
+	data, err := resource.ReadBlock(compiled, "DATA")
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := 6
+	for range binary.LittleEndian.Uint16(data[4:]) {
+		at += bytes.IndexByte(data[at:], 0) + 9
+	}
+	return string(data[at:])
 }

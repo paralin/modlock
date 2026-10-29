@@ -184,20 +184,23 @@ prints its address.
 These commands work on the game's own file formats, with no game or Valve
 tools installed.
 
-| Command                                    | Effect                                                                                          |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| `modlock panorama compile DIR`             | Compile the Panorama layouts (`.xml`) and scripts (`.js`) under `DIR/panorama/` into `DIR.vpk`. |
-| `modlock panorama decompile FILE`          | Print a compiled layout (`.vxml_c`) as XML, or a compiled script (`.vjs_c`) as its source.      |
-| `modlock vpk list ARCHIVE`                 | List an archive's files and their sizes.                                                        |
-| `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                              |
-| `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive; equal directories pack to equal bytes.                        |
-| `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON; `--blocks` lists its blocks.               |
-| `modlock studio`                           | Open Modlock Studio, a page that browses the game's archive and draws its models and textures.  |
+| Command                                    | Effect                                                                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `modlock panorama compile DIR`             | Compile the Panorama layouts (`.xml`), scripts (`.js`) and style sheets (`.css`) under `DIR/panorama/` into `DIR.vpk`. |
+| `modlock panorama decompile FILE`          | Print a compiled layout (`.vxml_c`) as XML, a script (`.vjs_c`) as its source, or a style sheet (`.vcss_c`) as CSS.    |
+| `modlock vpk list ARCHIVE`                 | List an archive's files and their sizes.                                                                               |
+| `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                                                     |
+| `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive; equal directories pack to equal bytes.                                               |
+| `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON; `--blocks` lists its blocks.                                      |
+| `modlock studio`                           | Open Modlock Studio, a page that browses the game's archive and draws its models and textures.                         |
 
 `panorama compile` keeps every other file in `DIR` as it is, so compiled
 resources such as images ship beside the layouts; `-o` writes to another archive,
-or to a directory. Style sheets still need Valve's resource
-compiler: ship the `.vcss_c` it writes. `decompile` and `kv3` take `--archive`
+or to a directory. A style sheet's `url()` names an image or another sheet in the
+game's files, as `s2r://`, `file://{images}/` or `file://{resources}/`, and
+compiles to the resource the game loads, so `file://{images}/icons/mark.png`
+becomes `s2r://panorama/images/icons/mark_png.vtex`; any other URL is refused
+with its line. `decompile` and `kv3` take `--archive`
 to read `FILE` from inside an archive, including the game's split
 `game/citadel/pak01_dir.vpk`:
 
@@ -613,9 +616,11 @@ service may hold it for creators it trusts; one that only draws needs no trust.
 script sends each move as a console command, and the mod answers with the new
 slots.
 
-Ship style sheets and images compiled by Valve's resource compiler, as
-`.vcss_c` and `.vtex_c`. The publishing check refuses a build with client files
-outside the addon's directories.
+A layout includes the mod's style sheet as
+`file://{resources}/styles/{addon}/scoreboard.css`, and the sheet names the
+mod's images as `file://{images}/{addon}/mark.png`. Ship images already
+compiled, as `.vtex_c` in `content/images/`. The publishing check refuses a
+build with client files outside the addon's directories.
 
 Compiled models, materials and particles go in `content/models/`,
 `content/materials/` and `content/particles/`, and build to

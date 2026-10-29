@@ -1,7 +1,8 @@
-// Package panorama compiles Panorama layouts and scripts into the resources
-// the game loads, without Valve's resource compiler, and decompiles layouts
-// back to XML. The output follows what the resource compiler writes, so the
-// game reads it the same way on every platform.
+// Package panorama compiles Panorama layouts, scripts and style sheets into
+// the resources the game loads, without Valve's resource compiler, and
+// decompiles layouts back to XML and style sheets back to CSS. The output
+// follows what the resource compiler writes, so the game reads it the same way
+// on every platform.
 package panorama
 
 import (
@@ -20,16 +21,17 @@ import (
 // whether Compile builds that kind of source.
 func Compiled(source string) (string, bool) {
 	switch path.Ext(source) {
-	case ".xml", ".js":
-		return strings.TrimSuffix(source, path.Ext(source)) + ".v" + path.Ext(source)[1:] + "_c", true
+	case ".xml", ".js", ".css":
+		return compiledName(source) + "_c", true
 	default:
 		return "", false
 	}
 }
 
-// Compile builds the source at path, such as panorama/layout/hud.xml or
-// panorama/scripts/hud.js inside the addon named addon, into its compiled
-// resource. A layout is parsed into the tree the game reads; a script is
+// Compile builds the source at path, such as panorama/layout/hud.xml,
+// panorama/scripts/hud.js or panorama/styles/hud.css inside the addon named
+// addon, into its compiled resource. A layout is parsed into the tree the game
+// reads, a style sheet is minified with its paths rewritten, and a script is
 // stored as it is.
 func Compile(addon, path string, source []byte) ([]byte, error) {
 	switch {
@@ -37,8 +39,10 @@ func Compile(addon, path string, source []byte) ([]byte, error) {
 		return layout(addon, path, source)
 	case strings.HasSuffix(path, ".js"):
 		return script(addon, path, source)
+	case strings.HasSuffix(path, ".css"):
+		return style(addon, path, source)
 	default:
-		return nil, errors.Errorf("%s is not a Panorama layout or script", path)
+		return nil, errors.Errorf("%s is not a Panorama layout, script or style sheet", path)
 	}
 }
 

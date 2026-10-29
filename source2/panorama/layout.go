@@ -174,7 +174,7 @@ func reference(value string) kv3.Object {
 		return kv3.Object{{Key: "eType", Value: "REFERENCE_COMPILED"}, {Key: "name", Value: name}}
 	}
 	if match := resourcesPattern.FindStringSubmatch(value); match != nil && match[2] != "webm" {
-		return kv3.Object{{Key: "eType", Value: "REFERENCE_COMPILED"}, {Key: "name", Value: "panorama/" + match[1] + ".v" + match[2] + "_c"}}
+		return kv3.Object{{Key: "eType", Value: "REFERENCE_COMPILED"}, {Key: "name", Value: compiledName("panorama/" + match[1] + "." + match[2])}}
 	}
 	return kv3.Object{{Key: "eType", Value: "REFERENCE_PASSTHROUGH"}, {Key: "name", Value: strings.TrimPrefix(value, "file://")}}
 }
