@@ -106,6 +106,32 @@ const (
 	MovementActionAbilityExecuted = movementpb.MovementAction_MOVEMENT_ACTION_ABILITY_EXECUTED
 )
 
+// TextAlign places text across its position.
+type TextAlign = objectspb.TextAlign
+
+// The values of TextAlign.
+const (
+	// TextAlignLeft starts the text at its position.
+	TextAlignLeft = objectspb.TextAlign_TEXT_ALIGN_LEFT
+	// TextAlignCenter centers the text on its position.
+	TextAlignCenter = objectspb.TextAlign_TEXT_ALIGN_CENTER
+	// TextAlignRight ends the text at its position.
+	TextAlignRight = objectspb.TextAlign_TEXT_ALIGN_RIGHT
+)
+
+// TextVerticalAlign places text up and down its position.
+type TextVerticalAlign = objectspb.TextVerticalAlign
+
+// The values of TextVerticalAlign.
+const (
+	// TextVerticalAlignBottom stands the text on its position.
+	TextVerticalAlignBottom = objectspb.TextVerticalAlign_TEXT_VERTICAL_ALIGN_BOTTOM
+	// TextVerticalAlignCenter centers the text on its position.
+	TextVerticalAlignCenter = objectspb.TextVerticalAlign_TEXT_VERTICAL_ALIGN_CENTER
+	// TextVerticalAlignTop hangs the text from its position.
+	TextVerticalAlignTop = objectspb.TextVerticalAlign_TEXT_VERTICAL_ALIGN_TOP
+)
+
 // ModRole is what a player is to the running mods.
 type ModRole = playerspb.ModRole
 

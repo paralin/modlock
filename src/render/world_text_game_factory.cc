@@ -147,7 +147,7 @@ class GameWorldTextEntity final : public WorldTextEntity {
     if (entity == nullptr) {
       return;
     }
-    PlaceEntity(entity, position, angles);
+    PlaceEntity(entity, position, Placed(angles));
     origin_ = position;
     angles_ = angles;
   }
@@ -210,7 +210,7 @@ class GameWorldTextEntity final : public WorldTextEntity {
     }
 
     // Place it.
-    PlaceEntity(entity, origin_, angles_);
+    PlaceEntity(entity, origin_, Placed(angles_));
 
     // Spawn it.
     factory_.calls_.queue_spawn_entity(factory_.calls_.entity_system, IdentityOf(entity),
@@ -230,6 +230,20 @@ class GameWorldTextEntity final : public WorldTextEntity {
   }
 
  private:
+  // Placed is the rotation the entity takes for angles. The entity lies flat,
+  // face up, at zero angles, and turning toward the camera spins it about the
+  // up axis without standing it, so text that faces the camera stands with
+  // roll 90 whatever angles it was given.
+  modlock::geometry::EulerAngles Placed(const modlock::geometry::EulerAngles& angles) const {
+    if (!style_.face_camera) {
+      return angles;
+    }
+    modlock::geometry::EulerAngles standing;
+    standing.set_yaw(angles.yaw());
+    standing.set_roll(90);
+    return standing;
+  }
+
   // ApplyKeyValues sets enabled, fullbright text with the requested style.
   [[nodiscard]] std::expected<void, std::string> ApplyKeyValues() {
     // Build the entity's keyvalues from the style.
@@ -248,8 +262,8 @@ class GameWorldTextEntity final : public WorldTextEntity {
         {.key = "world_units_per_pixel",
          .value = (0.25f / 1050.0f) * style_.font_size * style_.scale},
         {.key = "color", .value = color},
-        {.key = "justify_horizontal", .value = 0},
-        {.key = "justify_vertical", .value = 0},
+        {.key = "justify_horizontal", .value = static_cast<int>(style_.justify_horizontal)},
+        {.key = "justify_vertical", .value = static_cast<int>(style_.justify_vertical)},
         {.key = "reorient_mode", .value = style_.face_camera ? 1 : 0},
     };
     auto built = modlock::gameinterop::BuildEntityKeyValues(factory_.calls_.key_values, values);

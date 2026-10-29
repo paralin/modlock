@@ -152,6 +152,32 @@ const movementActionNames: Partial<Record<number, MovementAction>> = {
   11: 'abilityExecuted',
 }
 
+/** TextAlign places text across its position. */
+export type TextAlign =
+  | 'left'
+  | 'center'
+  | 'right'
+
+/** textAlignValues encodes each TextAlign. */
+const textAlignValues: Record<TextAlign, objectsPb.TextAlign> = {
+  left: 0,
+  center: 1,
+  right: 2,
+}
+
+/** TextVerticalAlign places text up and down its position. */
+export type TextVerticalAlign =
+  | 'bottom'
+  | 'center'
+  | 'top'
+
+/** textVerticalAlignValues encodes each TextVerticalAlign. */
+const textVerticalAlignValues: Record<TextVerticalAlign, objectsPb.TextVerticalAlign> = {
+  bottom: 0,
+  center: 1,
+  top: 2,
+}
+
 /** ModRole is what a player is to the running mods. */
 export type ModRole =
   | 'unspecified'
@@ -1128,7 +1154,11 @@ export interface TextOptions {
   text: string
   /** position is the text's origin. */
   position: Vector
-  /** facing is the text's rotation when it does not face the camera. */
+  /**
+   * facing is the text's rotation. When the text faces the camera it stands
+   * upright and ignores this; otherwise it lies flat, face up, at zero angles
+   * and stands with roll 90.
+   */
   facing?: Angles
   /** fontSize is the text's size; the default is 100. */
   fontSize?: number
@@ -1138,6 +1168,31 @@ export interface TextOptions {
   faceCamera?: boolean
   /** scale multiplies the text's size in the world; the default is 1. */
   scale?: number
+  /**
+   * align is where the text sits across its position; the default is left,
+   * with the text starting there.
+   */
+  align?: TextAlign
+  /**
+   * verticalAlign is where the text sits up and down its position; the
+   * default is bottom, with the text standing on it.
+   */
+  verticalAlign?: TextVerticalAlign
+}
+
+/** toTextOptions encodes a TextOptions. */
+function toTextOptions(value: TextOptions): objectsPb.TextOptions {
+  return {
+    text: value.text,
+    position: value.position,
+    facing: value.facing,
+    fontSize: value.fontSize,
+    color: value.color,
+    faceCamera: value.faceCamera,
+    scale: value.scale,
+    align: value.align === undefined ? undefined : textAlignValues[value.align],
+    verticalAlign: value.verticalAlign === undefined ? undefined : textVerticalAlignValues[value.verticalAlign],
+  }
 }
 
 /** ParticleOptions describes a particle effect. */
@@ -2752,7 +2807,7 @@ export function createModel(options: ModelOptions): WorldObject | undefined {
 
 /** createText places text that floats in the world. */
 export function createText(options: TextOptions): WorldObject | undefined {
-  const reply = call('CreateText', objectsPb.TextOptions.toBinary(options))
+  const reply = call('CreateText', objectsPb.TextOptions.toBinary(toTextOptions(options)))
   if (reply === undefined) return undefined
   const response = objectsPb.ObjectResponse.fromBinary(reply)
   return new WorldObject(response.object ?? 0)

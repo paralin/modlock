@@ -9,11 +9,92 @@ import (
 	io "io"
 	math "math"
 	slices "slices"
+	strconv "strconv"
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	geometry "github.com/paralin/modlock/src/geometry"
 )
+
+// TextAlign places text across its position.
+type TextAlign int32
+
+const (
+	// TEXT_ALIGN_LEFT starts the text at its position.
+	TextAlign_TEXT_ALIGN_LEFT TextAlign = 0
+	// TEXT_ALIGN_CENTER centers the text on its position.
+	TextAlign_TEXT_ALIGN_CENTER TextAlign = 1
+	// TEXT_ALIGN_RIGHT ends the text at its position.
+	TextAlign_TEXT_ALIGN_RIGHT TextAlign = 2
+)
+
+// Enum value maps for TextAlign.
+var (
+	TextAlign_name = map[int32]string{
+		0: "TEXT_ALIGN_LEFT",
+		1: "TEXT_ALIGN_CENTER",
+		2: "TEXT_ALIGN_RIGHT",
+	}
+	TextAlign_value = map[string]int32{
+		"TEXT_ALIGN_LEFT":   0,
+		"TEXT_ALIGN_CENTER": 1,
+		"TEXT_ALIGN_RIGHT":  2,
+	}
+)
+
+func (x TextAlign) Enum() *TextAlign {
+	p := new(TextAlign)
+	*p = x
+	return p
+}
+
+func (x TextAlign) String() string {
+	name, valid := TextAlign_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
+// TextVerticalAlign places text up and down its position.
+type TextVerticalAlign int32
+
+const (
+	// TEXT_VERTICAL_ALIGN_BOTTOM stands the text on its position.
+	TextVerticalAlign_TEXT_VERTICAL_ALIGN_BOTTOM TextVerticalAlign = 0
+	// TEXT_VERTICAL_ALIGN_CENTER centers the text on its position.
+	TextVerticalAlign_TEXT_VERTICAL_ALIGN_CENTER TextVerticalAlign = 1
+	// TEXT_VERTICAL_ALIGN_TOP hangs the text from its position.
+	TextVerticalAlign_TEXT_VERTICAL_ALIGN_TOP TextVerticalAlign = 2
+)
+
+// Enum value maps for TextVerticalAlign.
+var (
+	TextVerticalAlign_name = map[int32]string{
+		0: "TEXT_VERTICAL_ALIGN_BOTTOM",
+		1: "TEXT_VERTICAL_ALIGN_CENTER",
+		2: "TEXT_VERTICAL_ALIGN_TOP",
+	}
+	TextVerticalAlign_value = map[string]int32{
+		"TEXT_VERTICAL_ALIGN_BOTTOM": 0,
+		"TEXT_VERTICAL_ALIGN_CENTER": 1,
+		"TEXT_VERTICAL_ALIGN_TOP":    2,
+	}
+)
+
+func (x TextVerticalAlign) Enum() *TextVerticalAlign {
+	p := new(TextVerticalAlign)
+	*p = x
+	return p
+}
+
+func (x TextVerticalAlign) String() string {
+	name, valid := TextVerticalAlign_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
 
 // ModelOptions describes a model placed in the world.
 type ModelOptions struct {
@@ -99,7 +180,9 @@ type TextOptions struct {
 	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
 	// Position is the text's origin.
 	Position *geometry.Vec3 `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
-	// Facing is the text's rotation when it does not face the camera.
+	// Facing is the text's rotation. When the text faces the camera it stands
+	// upright and ignores this; otherwise it lies flat, face up, at zero angles
+	// and stands with roll 90.
 	Facing *geometry.EulerAngles `protobuf:"bytes,3,opt,name=facing,proto3,oneof" json:"facing,omitempty"`
 	// FontSize is the text's size; the default is 100.
 	FontSize *float32 `protobuf:"fixed32,4,opt,name=font_size,json=fontSize,proto3,oneof" json:"fontSize,omitempty"`
@@ -109,6 +192,12 @@ type TextOptions struct {
 	FaceCamera *bool `protobuf:"varint,6,opt,name=face_camera,json=faceCamera,proto3,oneof" json:"faceCamera,omitempty"`
 	// Scale multiplies the text's size in the world; the default is 1.
 	Scale *float32 `protobuf:"fixed32,7,opt,name=scale,proto3,oneof" json:"scale,omitempty"`
+	// Align is where the text sits across its position; the default is left,
+	// with the text starting there.
+	Align *TextAlign `protobuf:"varint,8,opt,name=align,proto3,oneof" json:"align,omitempty"`
+	// VerticalAlign is where the text sits up and down its position; the
+	// default is bottom, with the text standing on it.
+	VerticalAlign *TextVerticalAlign `protobuf:"varint,9,opt,name=vertical_align,json=verticalAlign,proto3,oneof" json:"verticalAlign,omitempty"`
 }
 
 func (x *TextOptions) Reset() {
@@ -164,6 +253,20 @@ func (x *TextOptions) GetScale() float32 {
 		return *x.Scale
 	}
 	return 0
+}
+
+func (x *TextOptions) GetAlign() TextAlign {
+	if x != nil && x.Align != nil {
+		return *x.Align
+	}
+	return TextAlign_TEXT_ALIGN_LEFT
+}
+
+func (x *TextOptions) GetVerticalAlign() TextVerticalAlign {
+	if x != nil && x.VerticalAlign != nil {
+		return *x.VerticalAlign
+	}
+	return TextVerticalAlign_TEXT_VERTICAL_ALIGN_BOTTOM
 }
 
 // ParticleOptions describes a particle effect.
@@ -588,6 +691,8 @@ func (m *TextOptions) CloneVT() *TextOptions {
 	r.Color = protobuf_go_lite.ClonePtr(m.Color)
 	r.FaceCamera = protobuf_go_lite.ClonePtr(m.FaceCamera)
 	r.Scale = protobuf_go_lite.ClonePtr(m.Scale)
+	r.Align = protobuf_go_lite.ClonePtr(m.Align)
+	r.VerticalAlign = protobuf_go_lite.ClonePtr(m.VerticalAlign)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -842,6 +947,12 @@ func (this *TextOptions) EqualVT(that *TextOptions) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualPtr(this.Scale, that.Scale) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Align, that.Align) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.VerticalAlign, that.VerticalAlign) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1118,6 +1229,86 @@ func (this *ShowObjectOnlyToRequest) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+// MarshalProtoJSON marshals the TextAlign to JSON.
+func (x TextAlign) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), TextAlign_name)
+}
+
+// MarshalText marshals the TextAlign to text.
+func (x TextAlign) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), TextAlign_name)), nil
+}
+
+// MarshalJSON marshals the TextAlign to JSON.
+func (x TextAlign) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TextAlign from JSON.
+func (x *TextAlign) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(TextAlign_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read TextAlign enum: %v", err)
+		return
+	}
+	*x = TextAlign(v)
+}
+
+// UnmarshalText unmarshals the TextAlign from text.
+func (x *TextAlign) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), TextAlign_value)
+	if err != nil {
+		return err
+	}
+	*x = TextAlign(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the TextAlign from JSON.
+func (x *TextAlign) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the TextVerticalAlign to JSON.
+func (x TextVerticalAlign) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), TextVerticalAlign_name)
+}
+
+// MarshalText marshals the TextVerticalAlign to text.
+func (x TextVerticalAlign) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), TextVerticalAlign_name)), nil
+}
+
+// MarshalJSON marshals the TextVerticalAlign to JSON.
+func (x TextVerticalAlign) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TextVerticalAlign from JSON.
+func (x *TextVerticalAlign) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(TextVerticalAlign_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read TextVerticalAlign enum: %v", err)
+		return
+	}
+	*x = TextVerticalAlign(v)
+}
+
+// UnmarshalText unmarshals the TextVerticalAlign from text.
+func (x *TextVerticalAlign) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), TextVerticalAlign_value)
+	if err != nil {
+		return err
+	}
+	*x = TextVerticalAlign(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the TextVerticalAlign from JSON.
+func (x *TextVerticalAlign) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the ModelOptions message to JSON.
 func (x *ModelOptions) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -1279,6 +1470,16 @@ func (x *TextOptions) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("scale")
 		s.WriteFloat32(*x.Scale)
 	}
+	if x.Align != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("align")
+		(*x.Align).MarshalProtoJSON(s)
+	}
+	if x.VerticalAlign != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("verticalAlign")
+		(*x.VerticalAlign).MarshalProtoJSON(s)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1345,6 +1546,24 @@ func (x *TextOptions) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			t := s.ReadFloat32()
 			x.Scale = &t
+		case "align":
+			s.AddField("align")
+			if s.ReadNil() {
+				x.Align = nil
+				return
+			}
+			var v TextAlign
+			v.UnmarshalProtoJSON(s)
+			x.Align = &v
+		case "vertical_align", "verticalAlign":
+			s.AddField("vertical_align")
+			if s.ReadNil() {
+				x.VerticalAlign = nil
+				return
+			}
+			var v TextVerticalAlign
+			v.UnmarshalProtoJSON(s)
+			x.VerticalAlign = &v
 		}
 	})
 }
@@ -2133,6 +2352,16 @@ func (m *TextOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.VerticalAlign != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.VerticalAlign))
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.Align != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Align))
+		i--
+		dAtA[i] = 0x40
+	}
 	if m.Scale != nil {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.Scale))))
 		i--
@@ -2755,6 +2984,8 @@ func (m *TextOptions) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Color)
 	n += protobuf_go_lite.SizeBoolPtr(1, m.FaceCamera)
 	n += protobuf_go_lite.SizeFixed32Ptr(1, m.Scale)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Align)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.VerticalAlign)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2923,6 +3154,14 @@ func (m *ShowObjectOnlyToRequest) SizeVT() (n int) {
 	return n
 }
 
+func (x TextAlign) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x TextVerticalAlign) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x *ModelOptions) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ModelOptions")
@@ -2991,6 +3230,14 @@ func (x *TextOptions) MarshalProtoText() string {
 	if x.Scale != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "scale")
 		protobuf_go_lite.TextWriteFloat32(&sb, *x.Scale)
+	}
+	if x.Align != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "align")
+		protobuf_go_lite.TextWriteStringer(&sb, x.Align)
+	}
+	if x.VerticalAlign != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "vertical_align")
+		protobuf_go_lite.TextWriteStringer(&sb, x.VerticalAlign)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3474,6 +3721,30 @@ func (m *TextOptions) UnmarshalVT(dAtA []byte) error {
 			v = uint32(_v32)
 			v2 := float32(math.Float32frombits(v))
 			m.Scale = &v2
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Align", wireType)
+			}
+			var v TextAlign
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			v = TextAlign(_v)
+			if err != nil {
+				return err
+			}
+			m.Align = &v
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VerticalAlign", wireType)
+			}
+			var v TextVerticalAlign
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			v = TextVerticalAlign(_v)
+			if err != nil {
+				return err
+			}
+			m.VerticalAlign = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

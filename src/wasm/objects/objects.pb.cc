@@ -199,7 +199,9 @@ inline constexpr TextOptions::Impl_::Impl_(
         font_size_{0},
         color_{0u},
         face_camera_{false},
-        scale_{0} {}
+        scale_{0},
+        align_{static_cast< ::modlock::wasm::objects::TextAlign >(0)},
+        vertical_align_{static_cast< ::modlock::wasm::objects::TextVerticalAlign >(0)} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR TextOptions::TextOptions(::_pbi::ConstantInitialized)
@@ -374,8 +376,8 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace objects
 }  // namespace wasm
 }  // namespace modlock
-static constexpr const ::_pb::EnumDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto = nullptr;
+static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto[2];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto = nullptr;
 const ::uint32_t
@@ -400,7 +402,7 @@ const ::uint32_t
         6,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_._has_bits_),
-        10, // hasbit index offset
+        12, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.text_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.position_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.facing_),
@@ -408,6 +410,8 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.color_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.face_camera_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.scale_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.align_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::TextOptions, _impl_.vertical_align_),
         0,
         1,
         2,
@@ -415,6 +419,8 @@ const ::uint32_t
         4,
         5,
         6,
+        7,
+        8,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::objects::ParticleOptions, _impl_._has_bits_),
         12, // hasbit index offset
@@ -513,16 +519,16 @@ static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::objects::ModelOptions)},
         {17, sizeof(::modlock::wasm::objects::TextOptions)},
-        {34, sizeof(::modlock::wasm::objects::ParticleOptions)},
-        {55, sizeof(::modlock::wasm::objects::ParticleAnchor)},
-        {62, sizeof(::modlock::wasm::objects::ParticlePoint)},
-        {69, sizeof(::modlock::wasm::objects::FogOptions)},
-        {84, sizeof(::modlock::wasm::objects::ObjectResponse)},
-        {89, sizeof(::modlock::wasm::objects::ObjectRequest)},
-        {94, sizeof(::modlock::wasm::objects::MoveObjectRequest)},
-        {103, sizeof(::modlock::wasm::objects::SetTextRequest)},
-        {110, sizeof(::modlock::wasm::objects::SetObjectHiddenRequest)},
-        {119, sizeof(::modlock::wasm::objects::ShowObjectOnlyToRequest)},
+        {38, sizeof(::modlock::wasm::objects::ParticleOptions)},
+        {59, sizeof(::modlock::wasm::objects::ParticleAnchor)},
+        {66, sizeof(::modlock::wasm::objects::ParticlePoint)},
+        {73, sizeof(::modlock::wasm::objects::FogOptions)},
+        {88, sizeof(::modlock::wasm::objects::ObjectResponse)},
+        {93, sizeof(::modlock::wasm::objects::ObjectRequest)},
+        {98, sizeof(::modlock::wasm::objects::MoveObjectRequest)},
+        {107, sizeof(::modlock::wasm::objects::SetTextRequest)},
+        {114, sizeof(::modlock::wasm::objects::SetObjectHiddenRequest)},
+        {123, sizeof(::modlock::wasm::objects::ShowObjectOnlyToRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::objects::_ModelOptions_default_instance_._instance,
@@ -549,44 +555,53 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     ".geometry.EulerAnglesH\000\210\001\001\022\022\n\005scale\030\004 \001("
     "\002H\001\210\001\001\022\022\n\005color\030\005 \001(\007H\002\210\001\001\022\021\n\004glow\030\006 \001(\010"
     "H\003\210\001\001\022\022\n\005solid\030\007 \001(\010H\004\210\001\001B\t\n\007_facingB\010\n\006"
-    "_scaleB\010\n\006_colorB\007\n\005_glowB\010\n\006_solid\"\220\002\n\013"
+    "_scaleB\010\n\006_colorB\007\n\005_glowB\010\n\006_solid\"\250\003\n\013"
     "TextOptions\022\014\n\004text\030\001 \001(\t\022(\n\010position\030\002 "
     "\001(\0132\026.modlock.geometry.Vec3\0222\n\006facing\030\003 "
     "\001(\0132\035.modlock.geometry.EulerAnglesH\000\210\001\001\022"
     "\026\n\tfont_size\030\004 \001(\002H\001\210\001\001\022\022\n\005color\030\005 \001(\007H\002"
     "\210\001\001\022\030\n\013face_camera\030\006 \001(\010H\003\210\001\001\022\022\n\005scale\030\007"
-    " \001(\002H\004\210\001\001B\t\n\007_facingB\014\n\n_font_sizeB\010\n\006_c"
-    "olorB\016\n\014_face_cameraB\010\n\006_scale\"\220\003\n\017Parti"
-    "cleOptions\022\020\n\010resource\030\001 \001(\t\022(\n\010position"
-    "\030\002 \001(\0132\026.modlock.geometry.Vec3\0222\n\006facing"
-    "\030\003 \001(\0132\035.modlock.geometry.EulerAnglesH\000\210"
-    "\001\001\022\022\n\005color\030\004 \001(\007H\001\210\001\001\022\027\n\ntint_point\030\005 \001"
-    "(\005H\002\210\001\001\0227\n\005point\030\006 \001(\0132#.modlock.wasm.ob"
-    "jects.ParticlePointH\003\210\001\001\022\023\n\006parent\030\007 \001(\r"
-    "H\004\210\001\001\0225\n\007anchors\030\010 \003(\0132$.modlock.wasm.ob"
-    "jects.ParticleAnchor\022\025\n\010inactive\030\t \001(\010H\005"
-    "\210\001\001B\t\n\007_facingB\010\n\006_colorB\r\n\013_tint_pointB"
-    "\010\n\006_pointB\t\n\007_parentB\013\n\t_inactive\"/\n\016Par"
-    "ticleAnchor\022\r\n\005index\030\001 \001(\005\022\016\n\006entity\030\002 \001"
-    "(\r\"H\n\rParticlePoint\022\r\n\005index\030\001 \001(\005\022(\n\010po"
-    "sition\030\002 \001(\0132\026.modlock.geometry.Vec3\"\342\001\n"
-    "\nFogOptions\022(\n\010position\030\001 \001(\0132\026.modlock."
-    "geometry.Vec3\0222\n\006facing\030\002 \001(\0132\035.modlock."
-    "geometry.EulerAnglesH\000\210\001\001\022$\n\004mins\030\003 \001(\0132"
-    "\026.modlock.geometry.Vec3\022$\n\004maxs\030\004 \001(\0132\026."
-    "modlock.geometry.Vec3\022\020\n\010strength\030\005 \001(\002\022"
-    "\r\n\005color\030\006 \001(\007B\t\n\007_facing\" \n\016ObjectRespo"
-    "nse\022\016\n\006object\030\001 \001(\r\"\037\n\rObjectRequest\022\016\n\006"
-    "object\030\001 \001(\r\"\214\001\n\021MoveObjectRequest\022\016\n\006ob"
-    "ject\030\001 \001(\r\022(\n\010position\030\002 \001(\0132\026.modlock.g"
-    "eometry.Vec3\0222\n\006facing\030\003 \001(\0132\035.modlock.g"
-    "eometry.EulerAnglesH\000\210\001\001B\t\n\007_facing\".\n\016S"
-    "etTextRequest\022\016\n\006object\030\001 \001(\r\022\014\n\004text\030\002 "
-    "\001(\t\"H\n\026SetObjectHiddenRequest\022\016\n\006object\030"
-    "\001 \001(\r\022\016\n\006player\030\002 \001(\005\022\016\n\006hidden\030\003 \001(\010\":\n"
-    "\027ShowObjectOnlyToRequest\022\016\n\006object\030\001 \001(\r"
-    "\022\017\n\007players\030\002 \003(\005B5Z3github.com/paralin/"
-    "modlock/src/wasm/objects;objectsb\006proto3"
+    " \001(\002H\004\210\001\001\0223\n\005align\030\010 \001(\0162\037.modlock.wasm."
+    "objects.TextAlignH\005\210\001\001\022D\n\016vertical_align"
+    "\030\t \001(\0162\'.modlock.wasm.objects.TextVertic"
+    "alAlignH\006\210\001\001B\t\n\007_facingB\014\n\n_font_sizeB\010\n"
+    "\006_colorB\016\n\014_face_cameraB\010\n\006_scaleB\010\n\006_al"
+    "ignB\021\n\017_vertical_align\"\220\003\n\017ParticleOptio"
+    "ns\022\020\n\010resource\030\001 \001(\t\022(\n\010position\030\002 \001(\0132\026"
+    ".modlock.geometry.Vec3\0222\n\006facing\030\003 \001(\0132\035"
+    ".modlock.geometry.EulerAnglesH\000\210\001\001\022\022\n\005co"
+    "lor\030\004 \001(\007H\001\210\001\001\022\027\n\ntint_point\030\005 \001(\005H\002\210\001\001\022"
+    "7\n\005point\030\006 \001(\0132#.modlock.wasm.objects.Pa"
+    "rticlePointH\003\210\001\001\022\023\n\006parent\030\007 \001(\rH\004\210\001\001\0225\n"
+    "\007anchors\030\010 \003(\0132$.modlock.wasm.objects.Pa"
+    "rticleAnchor\022\025\n\010inactive\030\t \001(\010H\005\210\001\001B\t\n\007_"
+    "facingB\010\n\006_colorB\r\n\013_tint_pointB\010\n\006_poin"
+    "tB\t\n\007_parentB\013\n\t_inactive\"/\n\016ParticleAnc"
+    "hor\022\r\n\005index\030\001 \001(\005\022\016\n\006entity\030\002 \001(\r\"H\n\rPa"
+    "rticlePoint\022\r\n\005index\030\001 \001(\005\022(\n\010position\030\002"
+    " \001(\0132\026.modlock.geometry.Vec3\"\342\001\n\nFogOpti"
+    "ons\022(\n\010position\030\001 \001(\0132\026.modlock.geometry"
+    ".Vec3\0222\n\006facing\030\002 \001(\0132\035.modlock.geometry"
+    ".EulerAnglesH\000\210\001\001\022$\n\004mins\030\003 \001(\0132\026.modloc"
+    "k.geometry.Vec3\022$\n\004maxs\030\004 \001(\0132\026.modlock."
+    "geometry.Vec3\022\020\n\010strength\030\005 \001(\002\022\r\n\005color"
+    "\030\006 \001(\007B\t\n\007_facing\" \n\016ObjectResponse\022\016\n\006o"
+    "bject\030\001 \001(\r\"\037\n\rObjectRequest\022\016\n\006object\030\001"
+    " \001(\r\"\214\001\n\021MoveObjectRequest\022\016\n\006object\030\001 \001"
+    "(\r\022(\n\010position\030\002 \001(\0132\026.modlock.geometry."
+    "Vec3\0222\n\006facing\030\003 \001(\0132\035.modlock.geometry."
+    "EulerAnglesH\000\210\001\001B\t\n\007_facing\".\n\016SetTextRe"
+    "quest\022\016\n\006object\030\001 \001(\r\022\014\n\004text\030\002 \001(\t\"H\n\026S"
+    "etObjectHiddenRequest\022\016\n\006object\030\001 \001(\r\022\016\n"
+    "\006player\030\002 \001(\005\022\016\n\006hidden\030\003 \001(\010\":\n\027ShowObj"
+    "ectOnlyToRequest\022\016\n\006object\030\001 \001(\r\022\017\n\007play"
+    "ers\030\002 \003(\005*M\n\tTextAlign\022\023\n\017TEXT_ALIGN_LEF"
+    "T\020\000\022\025\n\021TEXT_ALIGN_CENTER\020\001\022\024\n\020TEXT_ALIGN"
+    "_RIGHT\020\002*p\n\021TextVerticalAlign\022\036\n\032TEXT_VE"
+    "RTICAL_ALIGN_BOTTOM\020\000\022\036\n\032TEXT_VERTICAL_A"
+    "LIGN_CENTER\020\001\022\033\n\027TEXT_VERTICAL_ALIGN_TOP"
+    "\020\002B5Z3github.com/paralin/modlock/src/was"
+    "m/objects;objectsb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto_deps[1] = {
@@ -596,7 +611,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto = {
     false,
     false,
-    1880,
+    2225,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto,
     "github.com/paralin/modlock/src/wasm/objects/objects.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto_once,
@@ -612,6 +627,18 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2
 namespace modlock {
 namespace wasm {
 namespace objects {
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TextAlign_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto[0];
+}
+PROTOBUF_CONSTINIT const uint32_t TextAlign_internal_data_[] = {
+    196608u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TextVerticalAlign_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fobjects_2fobjects_2eproto[1];
+}
+PROTOBUF_CONSTINIT const uint32_t TextVerticalAlign_internal_data_[] = {
+    196608u, 0u, };
 // ===================================================================
 
 class ModelOptions::_Internal {
@@ -1131,9 +1158,9 @@ TextOptions::TextOptions(
                offsetof(Impl_, font_size_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, font_size_),
-           offsetof(Impl_, scale_) -
+           offsetof(Impl_, vertical_align_) -
                offsetof(Impl_, font_size_) +
-               sizeof(Impl_::scale_));
+               sizeof(Impl_::vertical_align_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.objects.TextOptions)
 }
@@ -1148,9 +1175,9 @@ inline void TextOptions::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, position_),
            0,
-           offsetof(Impl_, scale_) -
+           offsetof(Impl_, vertical_align_) -
                offsetof(Impl_, position_) +
-               sizeof(Impl_::scale_));
+               sizeof(Impl_::vertical_align_));
 }
 TextOptions::~TextOptions() {
   // @@protoc_insertion_point(destructor:modlock.wasm.objects.TextOptions)
@@ -1212,16 +1239,16 @@ TextOptions::GetClassData() const {
   return TextOptions_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 7, 2, 45, 2>
+const ::_pbi::TcParseTable<4, 9, 2, 53, 2>
 TextOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(TextOptions, _impl_._has_bits_),
     0, // no _extensions_
-    7, 56,  // max_field_number, fast_idx_mask
+    9, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967168,  // skipmap
+    4294966784,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    7,  // num_field_entries
+    9,  // num_field_entries
     2,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     TextOptions_class_data_.base(),
@@ -1260,6 +1287,20 @@ TextOptions::_table_ = {
     {::_pbi::TcParser::FastF32S1,
      {61, 6, 0,
       PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.scale_)}},
+    // optional .modlock.wasm.objects.TextAlign align = 8;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(TextOptions, _impl_.align_), 7>(),
+     {64, 7, 0,
+      PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.align_)}},
+    // optional .modlock.wasm.objects.TextVerticalAlign vertical_align = 9;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(TextOptions, _impl_.vertical_align_), 8>(),
+     {72, 8, 0,
+      PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.vertical_align_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -1277,13 +1318,17 @@ TextOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.face_camera_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // optional float scale = 7;
     {PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.scale_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // optional .modlock.wasm.objects.TextAlign align = 8;
+    {PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.align_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    // optional .modlock.wasm.objects.TextVerticalAlign vertical_align = 9;
+    {PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.vertical_align_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
       {::_pbi::TcParser::GetTable<::modlock::geometry::EulerAngles>()},
   }},
   {{
-    "\40\4\0\0\0\0\0\0"
+    "\40\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
     "modlock.wasm.objects.TextOptions"
     "text"
   }},
@@ -1309,11 +1354,12 @@ PROTOBUF_NOINLINE void TextOptions::Clear() {
       _impl_.facing_->Clear();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000078U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000f8U)) {
     ::memset(&_impl_.font_size_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.scale_) -
-        reinterpret_cast<char*>(&_impl_.font_size_)) + sizeof(_impl_.scale_));
+        reinterpret_cast<char*>(&_impl_.align_) -
+        reinterpret_cast<char*>(&_impl_.font_size_)) + sizeof(_impl_.align_));
   }
+  _impl_.vertical_align_ = 0;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -1389,6 +1435,20 @@ PROTOBUF_NOINLINE void TextOptions::Clear() {
         7, this_._internal_scale(), target);
   }
 
+  // optional .modlock.wasm.objects.TextAlign align = 8;
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+        8, this_._internal_align(), target);
+  }
+
+  // optional .modlock.wasm.objects.TextVerticalAlign vertical_align = 9;
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+        9, this_._internal_vertical_align(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -1416,7 +1476,7 @@ PROTOBUF_NOINLINE void TextOptions::Clear() {
   cached_has_bits = this_._impl_._has_bits_[0];
   total_size += ::absl::popcount(0x00000058U & cached_has_bits) * 5;
   total_size += static_cast<bool>(0x00000020U & cached_has_bits) * 2;
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000087U)) {
     // string text = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!this_._internal_text().empty()) {
@@ -1433,6 +1493,18 @@ PROTOBUF_NOINLINE void TextOptions::Clear() {
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.facing_);
+    }
+    // optional .modlock.wasm.objects.TextAlign align = 8;
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      total_size += 1 +
+                    ::_pbi::WireFormatLite::EnumSize(this_._internal_align());
+    }
+  }
+   {
+    // optional .modlock.wasm.objects.TextVerticalAlign vertical_align = 9;
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      total_size += 1 +
+                    ::_pbi::WireFormatLite::EnumSize(this_._internal_vertical_align());
     }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -1454,7 +1526,7 @@ void TextOptions::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_text().empty()) {
         _this->_internal_set_text(from._internal_text());
@@ -1492,6 +1564,12 @@ void TextOptions::MergeImpl(::google::protobuf::MessageLite& to_msg,
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       _this->_impl_.scale_ = from._impl_.scale_;
     }
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      _this->_impl_.align_ = from._impl_.align_;
+    }
+  }
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    _this->_impl_.vertical_align_ = from._impl_.vertical_align_;
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -1514,8 +1592,8 @@ void TextOptions::InternalSwap(TextOptions* PROTOBUF_RESTRICT PROTOBUF_NONNULL o
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.text_, &other->_impl_.text_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.scale_)
-      + sizeof(TextOptions::_impl_.scale_)
+      PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.vertical_align_)
+      + sizeof(TextOptions::_impl_.vertical_align_)
       - PROTOBUF_FIELD_OFFSET(TextOptions, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

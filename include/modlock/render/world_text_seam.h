@@ -18,11 +18,18 @@ struct WorldTextStyle {
   float font_size = 100.0f;
   // color_abgr is the entity color as 0xAABBGGRR.
   std::uint32_t color_abgr = 0xFFFFFFFFu;
-  // face_camera rotates around the text's up axis; false uses its exact angles.
+  // face_camera stands the text upright and rotates it around its up axis
+  // toward each viewer; false uses its exact angles.
   bool face_camera = true;
   // scale multiplies the text's world size without adding pixels, so large
   // signs read from afar without outgrowing the entity's fixed panel.
   float scale = 1.0f;
+  // justify_horizontal maps to the justify_horizontal keyvalue: 0 left,
+  // 1 center, 2 right.
+  std::uint32_t justify_horizontal = 0;
+  // justify_vertical maps to the justify_vertical keyvalue: 0 bottom,
+  // 1 center, 2 top.
+  std::uint32_t justify_vertical = 0;
 };
 
 // WorldTextEntity is one owned point_worldtext handle. Remove ends its native

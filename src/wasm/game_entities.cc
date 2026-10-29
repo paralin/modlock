@@ -136,6 +136,8 @@ std::expected<objects::ObjectResponse, std::string> Game::CreateText(
       .color_abgr = request.color() == 0 ? UINT32_MAX : std::byteswap(request.color()),
       .face_camera = request.face_camera(),
       .scale = request.scale() == 0 ? 1 : request.scale(),
+      .justify_horizontal = static_cast<std::uint32_t>(request.align()),
+      .justify_vertical = static_cast<std::uint32_t>(request.vertical_align()),
   };
   auto entity = (*text)->Create(request.text(), request.position(), request.facing(), style);
   if (!entity) {

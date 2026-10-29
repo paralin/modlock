@@ -2,6 +2,7 @@
 // @generated from file github.com/paralin/modlock/src/wasm/objects/objects.proto (package modlock.wasm.objects, syntax proto3)
 /* eslint-disable */
 
+import { createEnumType } from '@aptre/protobuf-es-lite/enum'
 import { EulerAngles, Vec3 } from '../../geometry/geometry.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType } from '@aptre/protobuf-es-lite/message'
@@ -9,6 +10,68 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
+
+/**
+ * TextAlign places text across its position.
+ *
+ * @generated from enum modlock.wasm.objects.TextAlign
+ */
+export enum TextAlign {
+  /**
+   * TEXT_ALIGN_LEFT starts the text at its position.
+   */
+  LEFT = 0,
+
+  /**
+   * TEXT_ALIGN_CENTER centers the text on its position.
+   */
+  CENTER = 1,
+
+  /**
+   * TEXT_ALIGN_RIGHT ends the text at its position.
+   */
+  RIGHT = 2,
+}
+
+export const TextAlign_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.objects.TextAlign',
+  [
+    [0, 'TEXT_ALIGN_LEFT'],
+    [1, 'TEXT_ALIGN_CENTER'],
+    [2, 'TEXT_ALIGN_RIGHT'],
+  ],
+)
+
+/**
+ * TextVerticalAlign places text up and down its position.
+ *
+ * @generated from enum modlock.wasm.objects.TextVerticalAlign
+ */
+export enum TextVerticalAlign {
+  /**
+   * TEXT_VERTICAL_ALIGN_BOTTOM stands the text on its position.
+   */
+  BOTTOM = 0,
+
+  /**
+   * TEXT_VERTICAL_ALIGN_CENTER centers the text on its position.
+   */
+  CENTER = 1,
+
+  /**
+   * TEXT_VERTICAL_ALIGN_TOP hangs the text from its position.
+   */
+  TOP = 2,
+}
+
+export const TextVerticalAlign_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.objects.TextVerticalAlign',
+  [
+    [0, 'TEXT_VERTICAL_ALIGN_BOTTOM'],
+    [1, 'TEXT_VERTICAL_ALIGN_CENTER'],
+    [2, 'TEXT_VERTICAL_ALIGN_TOP'],
+  ],
+)
 
 /**
  * ModelOptions describes a model placed in the world.
@@ -142,7 +205,9 @@ export interface TextOptions {
    */
   position?: Vec3
   /**
-   * Facing is the text's rotation when it does not face the camera.
+   * Facing is the text's rotation. When the text faces the camera it stands
+   * upright and ignores this; otherwise it lies flat, face up, at zero angles
+   * and stands with roll 90.
    */
   facing?: EulerAngles
   /**
@@ -161,6 +226,16 @@ export interface TextOptions {
    * Scale multiplies the text's size in the world; the default is 1.
    */
   scale?: number
+  /**
+   * Align is where the text sits across its position; the default is left,
+   * with the text starting there.
+   */
+  align?: TextAlign
+  /**
+   * VerticalAlign is where the text sits up and down its position; the
+   * default is bottom, with the text standing on it.
+   */
+  verticalAlign?: TextVerticalAlign
 }
 
 export const TextOptions: MessageType<TextOptions> =
@@ -174,6 +249,8 @@ export const TextOptions: MessageType<TextOptions> =
       [5, 'color', 7, 4],
       [6, 'face_camera', 8, 4],
       [7, 'scale', 2, 4],
+      [8, 'align', 14, 4, TextAlign_Enum],
+      [9, 'vertical_align', 14, 4, TextVerticalAlign_Enum],
     ],
     {
       decode: (r: BinaryReader, end: number, m: TextOptions): TextOptions => {
@@ -201,6 +278,12 @@ export const TextOptions: MessageType<TextOptions> =
               break
             case 7:
               m.scale = r.float()
+              break
+            case 8:
+              m.align = r.int32()
+              break
+            case 9:
+              m.verticalAlign = r.int32()
               break
             default:
               r.skip(t)
@@ -236,6 +319,14 @@ export const TextOptions: MessageType<TextOptions> =
         {
           const v = m.scale
           if (v != null) w.uint32(61).float(v)
+        }
+        {
+          const v = m.align
+          if (v != null) w.uint32(64).int32(v)
+        }
+        {
+          const v = m.verticalAlign
+          if (v != null) w.uint32(72).int32(v)
         }
       },
     },

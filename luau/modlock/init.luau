@@ -128,6 +128,28 @@ local MovementAction: { [any]: any } = {
 	abilityExecuted = 11,
 }
 
+-- TextAlign places text across its position.
+export type TextAlign = "left" | "center" | "right"
+local TextAlign: { [any]: any } = {
+	[0] = "left",
+	left = 0,
+	[1] = "center",
+	center = 1,
+	[2] = "right",
+	right = 2,
+}
+
+-- TextVerticalAlign places text up and down its position.
+export type TextVerticalAlign = "bottom" | "center" | "top"
+local TextVerticalAlign: { [any]: any } = {
+	[0] = "bottom",
+	bottom = 0,
+	[1] = "center",
+	center = 1,
+	[2] = "top",
+	top = 2,
+}
+
 -- ModRole is what a player is to the running mods.
 export type ModRole = "unspecified" | "developer" | "tester"
 local ModRole: { [any]: any } = {
@@ -685,7 +707,9 @@ export type TextOptions = {
 	text: string,
 	-- position is the text's origin.
 	position: Vector,
-	-- facing is the text's rotation when it does not face the camera.
+	-- facing is the text's rotation. When the text faces the camera it stands
+	-- upright and ignores this; otherwise it lies flat, face up, at zero angles
+	-- and stands with roll 90.
 	facing: Angles?,
 	-- fontSize is the text's size; the default is 100.
 	fontSize: number?,
@@ -695,6 +719,12 @@ export type TextOptions = {
 	faceCamera: boolean?,
 	-- scale multiplies the text's size in the world; the default is 1.
 	scale: number?,
+	-- align is where the text sits across its position; the default is left,
+	-- with the text starting there.
+	align: TextAlign?,
+	-- verticalAlign is where the text sits up and down its position; the
+	-- default is bottom, with the text standing on it.
+	verticalAlign: TextVerticalAlign?,
 }
 
 -- ParticleOptions describes a particle effect.
@@ -2430,6 +2460,8 @@ schema.TextOptions = {
 	{ number = 5, name = "color", kind = "fixed32", optional = true },
 	{ number = 6, name = "faceCamera", kind = "bool", optional = true },
 	{ number = 7, name = "scale", kind = "float", optional = true },
+	{ number = 8, name = "align", kind = "enum", optional = true, enum = TextAlign },
+	{ number = 9, name = "verticalAlign", kind = "enum", optional = true, enum = TextVerticalAlign },
 }
 schema.ParticleOptions = {
 	{ number = 1, name = "resource", kind = "string" },

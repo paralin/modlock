@@ -165,6 +165,30 @@ _MovementAction: dict[Any, Any] = {
 }
 
 
+# TextAlign places text across its position.
+type TextAlign = Literal["left", "center", "right"]
+_TextAlign: dict[Any, Any] = {
+    0: "left",
+    "left": 0,
+    1: "center",
+    "center": 1,
+    2: "right",
+    "right": 2,
+}
+
+
+# TextVerticalAlign places text up and down its position.
+type TextVerticalAlign = Literal["bottom", "center", "top"]
+_TextVerticalAlign: dict[Any, Any] = {
+    0: "bottom",
+    "bottom": 0,
+    1: "center",
+    "center": 1,
+    2: "top",
+    "top": 2,
+}
+
+
 # ModRole is what a player is to the running mods.
 type ModRole = Literal["unspecified", "developer", "tester"]
 _ModRole: dict[Any, Any] = {
@@ -805,7 +829,9 @@ class TextOptions:
     text: str = ""
     # position is the text's origin.
     position: Vector
-    # facing is the text's rotation when it does not face the camera.
+    # facing is the text's rotation. When the text faces the camera it stands
+    # upright and ignores this; otherwise it lies flat, face up, at zero angles
+    # and stands with roll 90.
     facing: Angles | None = None
     # font_size is the text's size; the default is 100.
     font_size: float | None = None
@@ -815,6 +841,12 @@ class TextOptions:
     face_camera: bool | None = None
     # scale multiplies the text's size in the world; the default is 1.
     scale: float | None = None
+    # align is where the text sits across its position; the default is left,
+    # with the text starting there.
+    align: TextAlign | None = None
+    # vertical_align is where the text sits up and down its position; the
+    # default is bottom, with the text standing on it.
+    vertical_align: TextVerticalAlign | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2687,6 +2719,8 @@ _SCHEMA: wire.Schema = {
             wire.Field(5, "color", "fixed32", optional=True),
             wire.Field(6, "face_camera", "bool", optional=True),
             wire.Field(7, "scale", "float", optional=True),
+            wire.Field(8, "align", "enum", optional=True, enum=_TextAlign),
+            wire.Field(9, "vertical_align", "enum", optional=True, enum=_TextVerticalAlign),
         ],
     ),
     "ParticleOptions": (

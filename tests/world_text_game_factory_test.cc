@@ -229,19 +229,21 @@ TEST_F(WorldTextGameFactoryTest, EngineResetInvalidationDoesNotCallUtilRemove) {
 }
 
 TEST_F(WorldTextGameFactoryTest, CreateAppliesKeyValuesAndPoseBeforeQueuedSpawn) {
-  // Place the text off the origin, turned.
+  // Place the text off the origin, turned and tipped but not stood up.
   modlock::geometry::Vec3 origin;
   origin.set_x(10);
   origin.set_y(20);
   origin.set_z(30);
   modlock::geometry::EulerAngles angles;
+  angles.set_pitch(20);
   angles.set_yaw(-35.5);
-  angles.set_roll(90);
 
-  // Style it larger and colored.
+  // Style it larger, colored and centered over its position.
   WorldTextStyle style;
   style.font_size = 120.0f;
   style.color_abgr = 0xFFA0FF40u;
+  style.justify_horizontal = 1;
+  style.justify_vertical = 2;
 
   // Create it.
   auto created = factory_.Create("gate label", origin, angles, style);
@@ -260,9 +262,11 @@ TEST_F(WorldTextGameFactoryTest, CreateAppliesKeyValuesAndPoseBeforeQueuedSpawn)
   EXPECT_EQ(steps[5], "write-message:gate label");
   EXPECT_EQ(steps[6], "accept-input:Enable:");
 
-  // Teleport precedes spawn and carries roll-90 plus the manual yaw.
+  // Teleport precedes spawn and stands the camera-facing text upright at its
+  // yaw, whatever pitch and roll it was given.
   EXPECT_EQ(g_teleport_position.x(), 10);
   EXPECT_EQ(g_teleport_position.z(), 30);
+  EXPECT_EQ(g_teleport_angles.pitch(), 0);
   EXPECT_EQ(g_teleport_angles.yaw(), -35.5);
   EXPECT_EQ(g_teleport_angles.roll(), 90);
 
@@ -279,8 +283,8 @@ TEST_F(WorldTextGameFactoryTest, CreateAppliesKeyValuesAndPoseBeforeQueuedSpawn)
                                    {"font_size", "120.000000"},
                                    {"world_units_per_pixel", "0.028571"},
                                    {"color", "64,255,160,255"},
-                                   {"justify_horizontal", "0"},
-                                   {"justify_vertical", "0"},
+                                   {"justify_horizontal", "1"},
+                                   {"justify_vertical", "2"},
                                    {"reorient_mode", "1"}};
   EXPECT_EQ(g_recorder.key_values, expected);
 }

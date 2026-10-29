@@ -41,7 +41,9 @@ message TextOptions {
   // Position is the text's origin.
   modlock.geometry.Vec3 position = 2;
 
-  // Facing is the text's rotation when it does not face the camera.
+  // Facing is the text's rotation. When the text faces the camera it stands
+  // upright and ignores this; otherwise it lies flat, face up, at zero angles
+  // and stands with roll 90.
   optional modlock.geometry.EulerAngles facing = 3;
 
   // FontSize is the text's size; the default is 100.
@@ -55,6 +57,38 @@ message TextOptions {
 
   // Scale multiplies the text's size in the world; the default is 1.
   optional float scale = 7;
+
+  // Align is where the text sits across its position; the default is left,
+  // with the text starting there.
+  optional TextAlign align = 8;
+
+  // VerticalAlign is where the text sits up and down its position; the
+  // default is bottom, with the text standing on it.
+  optional TextVerticalAlign vertical_align = 9;
+}
+
+// TextAlign places text across its position.
+enum TextAlign {
+  // TEXT_ALIGN_LEFT starts the text at its position.
+  TEXT_ALIGN_LEFT = 0;
+
+  // TEXT_ALIGN_CENTER centers the text on its position.
+  TEXT_ALIGN_CENTER = 1;
+
+  // TEXT_ALIGN_RIGHT ends the text at its position.
+  TEXT_ALIGN_RIGHT = 2;
+}
+
+// TextVerticalAlign places text up and down its position.
+enum TextVerticalAlign {
+  // TEXT_VERTICAL_ALIGN_BOTTOM stands the text on its position.
+  TEXT_VERTICAL_ALIGN_BOTTOM = 0;
+
+  // TEXT_VERTICAL_ALIGN_CENTER centers the text on its position.
+  TEXT_VERTICAL_ALIGN_CENTER = 1;
+
+  // TEXT_VERTICAL_ALIGN_TOP hangs the text from its position.
+  TEXT_VERTICAL_ALIGN_TOP = 2;
 }
 
 // ParticleOptions describes a particle effect.

@@ -30,6 +30,7 @@
 #include "google/protobuf/message_lite.h"
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
+#include "google/protobuf/generated_enum_reflection.h"
 #include "google/protobuf/unknown_field_set.h"
 #include "../../geometry/geometry.pb.h"
 // @@protoc_insertion_point(includes)
@@ -58,6 +59,10 @@ MODLOCK_API extern const ::google::protobuf::internal::DescriptorTable descripto
 namespace modlock {
 namespace wasm {
 namespace objects {
+enum TextAlign : int;
+extern const uint32_t TextAlign_internal_data_[];
+enum TextVerticalAlign : int;
+extern const uint32_t TextVerticalAlign_internal_data_[];
 class FogOptions;
 struct FogOptionsDefaultTypeInternal;
 MODLOCK_API extern FogOptionsDefaultTypeInternal _FogOptions_default_instance_;
@@ -111,12 +116,92 @@ MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TextOptions
 }  // namespace modlock
 namespace google {
 namespace protobuf {
+template <>
+internal::EnumTraitsT<::modlock::wasm::objects::TextAlign_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::objects::TextAlign>;
+template <>
+internal::EnumTraitsT<::modlock::wasm::objects::TextVerticalAlign_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::objects::TextVerticalAlign>;
 }  // namespace protobuf
 }  // namespace google
 
 namespace modlock {
 namespace wasm {
 namespace objects {
+enum TextAlign : int {
+  TEXT_ALIGN_LEFT = 0,
+  TEXT_ALIGN_CENTER = 1,
+  TEXT_ALIGN_RIGHT = 2,
+  TextAlign_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  TextAlign_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t TextAlign_internal_data_[];
+inline constexpr TextAlign TextAlign_MIN =
+    static_cast<TextAlign>(0);
+inline constexpr TextAlign TextAlign_MAX =
+    static_cast<TextAlign>(2);
+inline bool TextAlign_IsValid(int value) {
+  return 0 <= value && value <= 2;
+}
+inline constexpr int TextAlign_ARRAYSIZE = 2 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TextAlign_descriptor();
+template <typename T>
+const ::std::string& TextAlign_Name(T value) {
+  static_assert(::std::is_same<T, TextAlign>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to TextAlign_Name().");
+  return TextAlign_Name(static_cast<TextAlign>(value));
+}
+template <>
+inline const ::std::string& TextAlign_Name(TextAlign value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<TextAlign_descriptor, 0, 2>(
+      static_cast<int>(value));
+}
+inline bool TextAlign_Parse(
+    ::absl::string_view name, TextAlign* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<TextAlign>(TextAlign_descriptor(), name,
+                                           value);
+}
+enum TextVerticalAlign : int {
+  TEXT_VERTICAL_ALIGN_BOTTOM = 0,
+  TEXT_VERTICAL_ALIGN_CENTER = 1,
+  TEXT_VERTICAL_ALIGN_TOP = 2,
+  TextVerticalAlign_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  TextVerticalAlign_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t TextVerticalAlign_internal_data_[];
+inline constexpr TextVerticalAlign TextVerticalAlign_MIN =
+    static_cast<TextVerticalAlign>(0);
+inline constexpr TextVerticalAlign TextVerticalAlign_MAX =
+    static_cast<TextVerticalAlign>(2);
+inline bool TextVerticalAlign_IsValid(int value) {
+  return 0 <= value && value <= 2;
+}
+inline constexpr int TextVerticalAlign_ARRAYSIZE = 2 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL TextVerticalAlign_descriptor();
+template <typename T>
+const ::std::string& TextVerticalAlign_Name(T value) {
+  static_assert(::std::is_same<T, TextVerticalAlign>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to TextVerticalAlign_Name().");
+  return TextVerticalAlign_Name(static_cast<TextVerticalAlign>(value));
+}
+template <>
+inline const ::std::string& TextVerticalAlign_Name(TextVerticalAlign value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<TextVerticalAlign_descriptor, 0, 2>(
+      static_cast<int>(value));
+}
+inline bool TextVerticalAlign_Parse(
+    ::absl::string_view name, TextVerticalAlign* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<TextVerticalAlign>(TextVerticalAlign_descriptor(), name,
+                                           value);
+}
 
 // ===================================================================
 
@@ -1486,6 +1571,8 @@ class MODLOCK_API TextOptions final : public ::google::protobuf::Message
     kColorFieldNumber = 5,
     kFaceCameraFieldNumber = 6,
     kScaleFieldNumber = 7,
+    kAlignFieldNumber = 8,
+    kVerticalAlignFieldNumber = 9,
   };
   // string text = 1;
   void clear_text() ;
@@ -1576,12 +1663,34 @@ class MODLOCK_API TextOptions final : public ::google::protobuf::Message
   void _internal_set_scale(float value);
 
   public:
+  // optional .modlock.wasm.objects.TextAlign align = 8;
+  bool has_align() const;
+  void clear_align() ;
+  ::modlock::wasm::objects::TextAlign align() const;
+  void set_align(::modlock::wasm::objects::TextAlign value);
+
+  private:
+  ::modlock::wasm::objects::TextAlign _internal_align() const;
+  void _internal_set_align(::modlock::wasm::objects::TextAlign value);
+
+  public:
+  // optional .modlock.wasm.objects.TextVerticalAlign vertical_align = 9;
+  bool has_vertical_align() const;
+  void clear_vertical_align() ;
+  ::modlock::wasm::objects::TextVerticalAlign vertical_align() const;
+  void set_vertical_align(::modlock::wasm::objects::TextVerticalAlign value);
+
+  private:
+  ::modlock::wasm::objects::TextVerticalAlign _internal_vertical_align() const;
+  void _internal_set_vertical_align(::modlock::wasm::objects::TextVerticalAlign value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.objects.TextOptions)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 7,
-                                   2, 45,
+  static const ::google::protobuf::internal::TcParseTable<4, 9,
+                                   2, 53,
                                    2>
       _table_;
 
@@ -1609,6 +1718,8 @@ class MODLOCK_API TextOptions final : public ::google::protobuf::Message
     ::uint32_t color_;
     bool face_camera_;
     float scale_;
+    int align_;
+    int vertical_align_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3670,6 +3781,64 @@ inline void TextOptions::_internal_set_scale(float value) {
   _impl_.scale_ = value;
 }
 
+// optional .modlock.wasm.objects.TextAlign align = 8;
+inline bool TextOptions::has_align() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000080U);
+  return value;
+}
+inline void TextOptions::clear_align() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.align_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000080U);
+}
+inline ::modlock::wasm::objects::TextAlign TextOptions::align() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.objects.TextOptions.align)
+  return _internal_align();
+}
+inline void TextOptions::set_align(::modlock::wasm::objects::TextAlign value) {
+  _internal_set_align(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.objects.TextOptions.align)
+}
+inline ::modlock::wasm::objects::TextAlign TextOptions::_internal_align() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::objects::TextAlign>(_impl_.align_);
+}
+inline void TextOptions::_internal_set_align(::modlock::wasm::objects::TextAlign value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.align_ = value;
+}
+
+// optional .modlock.wasm.objects.TextVerticalAlign vertical_align = 9;
+inline bool TextOptions::has_vertical_align() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000100U);
+  return value;
+}
+inline void TextOptions::clear_vertical_align() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.vertical_align_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000100U);
+}
+inline ::modlock::wasm::objects::TextVerticalAlign TextOptions::vertical_align() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.objects.TextOptions.vertical_align)
+  return _internal_vertical_align();
+}
+inline void TextOptions::set_vertical_align(::modlock::wasm::objects::TextVerticalAlign value) {
+  _internal_set_vertical_align(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.objects.TextOptions.vertical_align)
+}
+inline ::modlock::wasm::objects::TextVerticalAlign TextOptions::_internal_vertical_align() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::objects::TextVerticalAlign>(_impl_.vertical_align_);
+}
+inline void TextOptions::_internal_set_vertical_align(::modlock::wasm::objects::TextVerticalAlign value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.vertical_align_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // ParticleOptions
@@ -5332,6 +5501,25 @@ ShowObjectOnlyToRequest::_internal_mutable_players() {
 }  // namespace wasm
 }  // namespace modlock
 
+
+namespace google {
+namespace protobuf {
+
+template <>
+struct is_proto_enum<::modlock::wasm::objects::TextAlign> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::objects::TextAlign>() {
+  return ::modlock::wasm::objects::TextAlign_descriptor();
+}
+template <>
+struct is_proto_enum<::modlock::wasm::objects::TextVerticalAlign> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::objects::TextVerticalAlign>() {
+  return ::modlock::wasm::objects::TextVerticalAlign_descriptor();
+}
+
+}  // namespace protobuf
+}  // namespace google
 
 // @@protoc_insertion_point(global_scope)
 
