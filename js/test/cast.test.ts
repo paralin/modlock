@@ -1,5 +1,10 @@
 import { expect, test } from 'bun:test'
 
+import { EntitiesResponse } from '../../src/wasm/entities/entities.pb.js'
+import {
+  FieldResponse,
+  ReadFieldRequest,
+} from '../../src/wasm/fields/fields.pb.js'
 import {
   type Connection as ConnectionMessage,
   HeroResponse,
@@ -33,8 +38,12 @@ const asks = new Map<number, number>()
 /** sent lists the calls that change the game, as Method slot. */
 const sent: string[] = []
 
-// The stand-in game answers pawn reads from heroes, loses each player's first
-// hero selection, and records every call that changes the game.
+/** tvController is the handle of SourceTV's controller, in slot 3. */
+const tvController = (9 << 15) | 4
+
+// The stand-in game answers pawn reads from heroes, seats SourceTV in slot 3,
+// loses each player's first hero selection, and records every call that
+// changes the game.
 bind((bytes) => {
   const call = Call.fromBinary(bytes)
   const request = call.request ?? new Uint8Array()
@@ -45,6 +54,20 @@ bind((bytes) => {
       return Reply.toBinary({
         response: PawnResponse.toBinary({
           pawn: hero && { entity: 100 + slot, ...hero },
+        }),
+      })
+    }
+    case 'FindEntities':
+      return Reply.toBinary({
+        response: EntitiesResponse.toBinary({
+          entities: [(9 << 15) | 2, (9 << 15) | 3, tvController],
+        }),
+      })
+    case 'ReadField': {
+      const tv = ReadFieldRequest.fromBinary(request).entity === tvController
+      return Reply.toBinary({
+        response: FieldResponse.toBinary({
+          value: { value: { case: 'boolean', value: tv } },
         }),
       })
     }
@@ -112,7 +135,8 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   })
   onFrame(({ timeSeconds }) => cast.frame(timeSeconds))
 
-  // A human still joining is no member; a bot is kicked once.
+  // A human still joining is no member; a bot is kicked once, and SourceTV,
+  // which joins as a bot, is left alone.
   const ada = {
     player: 1,
     steamId: 11n,
@@ -121,7 +145,14 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
     generation: 1,
   }
   const bot = { player: 2, name: 'Bot', bot: true, ready: true, generation: 1 }
-  report([ada, bot])
+  const tv = {
+    player: 3,
+    name: 'SourceTV',
+    bot: true,
+    ready: true,
+    generation: 1,
+  }
+  report([ada, bot, tv])
   expect(frame(1)).toEqual(['kick "Bot"'])
   expect(cast.size).toBe(0)
   report([ada, bot])
