@@ -365,6 +365,9 @@ local function bytes(schema: Schema, field: Field, value: any): string
 			error(string.format("%s cannot be %q", field.name, tostring(value)), 0)
 		end
 		value = number
+	elseif field.kind == "int32" then
+		-- Saturate rather than let the wire wrap a large amount.
+		value = math.clamp(value, -2 ^ 31, 2 ^ 31 - 1)
 	end
 	return varint(split(value))
 end

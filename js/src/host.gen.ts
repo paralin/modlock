@@ -38,6 +38,15 @@ function vector(value: { x?: number; y?: number; z?: number } | undefined): Vect
   return { x: value?.x ?? 0, y: value?.y ?? 0, z: value?.z ?? 0 }
 }
 
+/**
+ * int32 saturates value to the int32 range, which the wire would otherwise
+ * wrap, so a large amount such as Number.MAX_SAFE_INTEGER reads as the
+ * largest the field holds.
+ */
+function int32(value: number): number {
+  return Math.trunc(Math.min(Math.max(value, -0x80000000), 0x7fffffff))
+}
+
 /** angles reads wire angles, taking absent components as zero. */
 function angles(value: { pitch?: number; yaw?: number; roll?: number } | undefined): Angles {
   return { pitch: value?.pitch ?? 0, yaw: value?.yaw ?? 0, roll: value?.roll ?? 0 }
@@ -292,10 +301,10 @@ function toAbilityOptions(value: AbilityOptions): abilitiesPb.AbilityOptions {
   return {
     ability: value.ability,
     upgrades: value.upgrades,
-    charges: value.charges,
+    charges: value.charges === undefined ? undefined : int32(value.charges),
     cooldownEnd: value.cooldownEnd,
     rechargeEnd: value.rechargeEnd,
-    maxCharges: value.maxCharges,
+    maxCharges: value.maxCharges === undefined ? undefined : int32(value.maxCharges),
   }
 }
 
@@ -529,6 +538,18 @@ export interface HitOptions {
   ability?: number
 }
 
+/** toHitOptions encodes a HitOptions. */
+function toHitOptions(value: HitOptions): combatPb.HitOptions {
+  return {
+    victim: value.victim,
+    attacker: value.attacker,
+    inflictor: value.inflictor,
+    amount: value.amount,
+    hitGroup: value.hitGroup === undefined ? undefined : int32(value.hitGroup),
+    ability: value.ability,
+  }
+}
+
 /**
  * TraceOptions describes a line to test against the world. Layers are bits
  * of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
@@ -723,7 +744,7 @@ function toEntityOptions(value: EntityOptions): entitiesPb.EntityOptions {
   return {
     designerName: value.designerName,
     subclass: value.subclass,
-    team: value.team,
+    team: int32(value.team),
     position: value.position,
     facing: value.facing,
     keyValues: value.keyValues?.map((v) => toKeyValue(v)),
@@ -765,7 +786,7 @@ export type EntityValue =
 /** toEntityValue encodes an EntityValue. */
 function toEntityValue(value: EntityValue): entitiesPb.EntityValue {
   if ('boolean' in value) return { value: { case: 'boolean', value: value.boolean } }
-  if ('integer' in value) return { value: { case: 'integer', value: value.integer } }
+  if ('integer' in value) return { value: { case: 'integer', value: int32(value.integer) } }
   if ('number' in value) return { value: { case: 'number', value: value.number } }
   if ('text' in value) return { value: { case: 'text', value: value.text } }
   if ('vector' in value) return { value: { case: 'vector', value: value.vector } }
@@ -1057,11 +1078,11 @@ function toNpcOptions(value: NpcOptions): npcsPb.NpcOptions {
   return {
     className: value.className,
     unit: value.unit,
-    team: value.team,
+    team: int32(value.team),
     position: value.position,
     facing: value.facing,
-    health: value.health,
-    maxHealth: value.maxHealth,
+    health: value.health === undefined ? undefined : int32(value.health),
+    maxHealth: value.maxHealth === undefined ? undefined : int32(value.maxHealth),
     lane: value.lane,
     fields: value.fields?.map((v) => toFieldWrite(v)),
   }
@@ -1119,6 +1140,21 @@ export interface NpcTarget {
   maxHealth: number
   /** lane is the lane a trooper walks; troopers need one. */
   lane?: number
+}
+
+/** toNpcTarget encodes a NpcTarget. */
+function toNpcTarget(value: NpcTarget): npcsPb.NpcTarget {
+  return {
+    className: value.className,
+    id: value.id,
+    team: int32(value.team),
+    position: value.position,
+    facing: value.facing,
+    velocity: value.velocity,
+    health: int32(value.health),
+    maxHealth: int32(value.maxHealth),
+    lane: value.lane,
+  }
 }
 
 /** ModelOptions describes a model placed in the world. */
@@ -1236,10 +1272,10 @@ function toParticleOptions(value: ParticleOptions): objectsPb.ParticleOptions {
     position: value.position,
     facing: value.facing,
     color: value.color,
-    tintPoint: value.tintPoint,
-    point: value.point,
+    tintPoint: value.tintPoint === undefined ? undefined : int32(value.tintPoint),
+    point: value.point === undefined ? undefined : toParticlePoint(value.point),
     parent: value.parent,
-    anchors: value.anchors?.slice(),
+    anchors: value.anchors?.map((v) => toParticleAnchor(v)),
     inactive: value.inactive,
   }
 }
@@ -1252,12 +1288,28 @@ export interface ParticleAnchor {
   entity: number
 }
 
+/** toParticleAnchor encodes a ParticleAnchor. */
+function toParticleAnchor(value: ParticleAnchor): objectsPb.ParticleAnchor {
+  return {
+    index: int32(value.index),
+    entity: value.entity,
+  }
+}
+
 /** ParticlePoint places one control point of a particle effect. */
 export interface ParticlePoint {
   /** index is the control point's number. */
   index: number
   /** position is the control point's value. */
   position: Vector
+}
+
+/** toParticlePoint encodes a ParticlePoint. */
+function toParticlePoint(value: ParticlePoint): objectsPb.ParticlePoint {
+  return {
+    index: int32(value.index),
+    position: value.position,
+  }
 }
 
 /** FogOptions describes an oriented box of tinted fog. */
@@ -1687,14 +1739,14 @@ function toHeroTarget(value: HeroTarget): playersPb.HeroTarget {
     position: value.position,
     facing: value.facing,
     fresh: value.fresh,
-    level: value.level,
-    health: value.health,
-    maxHealth: value.maxHealth,
+    level: value.level === undefined ? undefined : int32(value.level),
+    health: value.health === undefined ? undefined : int32(value.health),
+    maxHealth: value.maxHealth === undefined ? undefined : int32(value.maxHealth),
     upgradeBonuses: value.upgradeBonuses?.slice(),
-    abilities: value.abilities?.slice(),
-    items: value.items?.slice(),
+    abilities: value.abilities?.map((v) => toEquipmentTarget(v)),
+    items: value.items?.map((v) => toEquipmentTarget(v)),
     replaceItems: value.replaceItems,
-    timers: value.timers?.slice(),
+    timers: value.timers?.map((v) => toTimerTarget(v)),
   }
 }
 
@@ -1709,6 +1761,15 @@ export interface EquipmentTarget {
   slot?: number
   /** state is the packed upgrade word, as Ability.state. */
   state: number
+}
+
+/** toEquipmentTarget encodes an EquipmentTarget. */
+function toEquipmentTarget(value: EquipmentTarget): playersPb.EquipmentTarget {
+  return {
+    id: value.id,
+    slot: value.slot === undefined ? undefined : int32(value.slot),
+    state: value.state,
+  }
 }
 
 /**
@@ -1727,6 +1788,18 @@ export interface TimerTarget {
   /** rechargeStart and rechargeEnd bound the recovery of its next charge. */
   rechargeStart?: number
   rechargeEnd?: number
+}
+
+/** toTimerTarget encodes a TimerTarget. */
+function toTimerTarget(value: TimerTarget): playersPb.TimerTarget {
+  return {
+    id: value.id,
+    charges: int32(value.charges),
+    cooldownStart: value.cooldownStart,
+    cooldownEnd: value.cooldownEnd,
+    rechargeStart: value.rechargeStart,
+    rechargeEnd: value.rechargeEnd,
+  }
 }
 
 /** BotOptions describes a bot player. */
@@ -1748,7 +1821,7 @@ export interface BotOptions {
 function toBotOptions(value: BotOptions): playersPb.BotOptions {
   return {
     name: value.name,
-    team: value.team,
+    team: int32(value.team),
     hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: value.hero } : { case: 'heroId' as const, value: value.hero },
     position: value.position,
   }
@@ -2080,7 +2153,7 @@ export class Player {
    * frame.
    */
   selectHero(hero: string | number, team: number): number | undefined {
-    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: hero } : { case: 'heroId' as const, value: hero }, team }))
+    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: hero } : { case: 'heroId' as const, value: hero }, team: int32(team) }))
     if (reply === undefined) return undefined
     const response = playersPb.HeroResponse.fromBinary(reply)
     return response.hero ?? 0
@@ -2155,7 +2228,7 @@ export class Player {
    * instead.
    */
   changeTeam(team: number): boolean {
-    return call('ChangeTeam', playersPb.ChangeTeamRequest.toBinary({ player: this.slot, team })) !== undefined
+    return call('ChangeTeam', playersPb.ChangeTeamRequest.toBinary({ player: this.slot, team: int32(team) })) !== undefined
   }
 
   /** clearItems removes every item the player's hero owns. */
@@ -2301,12 +2374,12 @@ export class Player {
    * nothing. Silent skips the pickup's sound and number.
    */
   adjustSouls(delta: number, silent?: boolean): boolean {
-    return call('AdjustSouls', playersPb.AdjustSoulsRequest.toBinary({ player: this.slot, delta, silent })) !== undefined
+    return call('AdjustSouls', playersPb.AdjustSoulsRequest.toBinary({ player: this.slot, delta: int32(delta), silent })) !== undefined
   }
 
   /** startingSouls sets the souls the player's hero spawns with. */
   startingSouls(souls: number): boolean {
-    return call('StartingSouls', playersPb.StartingSoulsRequest.toBinary({ player: this.slot, souls })) !== undefined
+    return call('StartingSouls', playersPb.StartingSoulsRequest.toBinary({ player: this.slot, souls: int32(souls) })) !== undefined
   }
 
   /**
@@ -2314,12 +2387,12 @@ export class Player {
    * ability upgrades, levels or ability points, holding souls.
    */
   resetHero(souls: number): boolean {
-    return call('ResetHero', playersPb.ResetHeroRequest.toBinary({ player: this.slot, souls })) !== undefined
+    return call('ResetHero', playersPb.ResetHeroRequest.toBinary({ player: this.slot, souls: int32(souls) })) !== undefined
   }
 
   /** heal restores health to the player's hero, up to its maximum. */
   heal(amount: number): boolean {
-    return call('Heal', playersPb.HealRequest.toBinary({ player: this.slot, amount })) !== undefined
+    return call('Heal', playersPb.HealRequest.toBinary({ player: this.slot, amount: int32(amount) })) !== undefined
   }
 
   /**
@@ -2451,7 +2524,7 @@ export class WorldObject {
    * reaches no client while the engine retires its entity.
    */
   showOnlyTo(players?: readonly number[]): boolean {
-    return call('ShowObjectOnlyTo', objectsPb.ShowObjectOnlyToRequest.toBinary({ object: this.id, players: players?.slice() })) !== undefined
+    return call('ShowObjectOnlyTo', objectsPb.ShowObjectOnlyToRequest.toBinary({ object: this.id, players: players?.map((v) => int32(v)) })) !== undefined
   }
 
   /**
@@ -2512,7 +2585,7 @@ export class Npc {
    * reports false once the unit is gone.
    */
   setHealth(health: number, maxHealth?: number): boolean {
-    const reply = call('SetNpcHealth', npcsPb.SetNpcHealthRequest.toBinary({ npc: this.entity, health, maxHealth }))
+    const reply = call('SetNpcHealth', npcsPb.SetNpcHealthRequest.toBinary({ npc: this.entity, health: int32(health), maxHealth: maxHealth === undefined ? undefined : int32(maxHealth) }))
     if (reply === undefined) return false
     const response = entitiesPb.AliveResponse.fromBinary(reply)
     return response.alive ?? false
@@ -2936,7 +3009,7 @@ export function removeEntity(entity: number): boolean {
  * the rule.
  */
 export function showEntityOnlyTo(entity: number, players?: readonly number[]): boolean {
-  return call('ShowEntityOnlyTo', entitiesPb.ShowEntityOnlyToRequest.toBinary({ entity, players: players?.slice() })) !== undefined
+  return call('ShowEntityOnlyTo', entitiesPb.ShowEntityOnlyToRequest.toBinary({ entity, players: players?.map((v) => int32(v)) })) !== undefined
 }
 
 /**
@@ -3006,7 +3079,7 @@ export function clearMap(): boolean {
  * include its own hits.
  */
 export function damage(options: HitOptions): boolean {
-  return call('Damage', combatPb.HitOptions.toBinary(options)) !== undefined
+  return call('Damage', combatPb.HitOptions.toBinary(toHitOptions(options))) !== undefined
 }
 
 /**
@@ -3028,7 +3101,7 @@ export function trace(options: TraceOptions): TraceHit | undefined {
  * as its own unit, or why not. A new call replaces the running one.
  */
 export function restoreNpcs(npcs?: readonly NpcTarget[]): boolean {
-  return call('RestoreNpcs', npcsPb.RestoreNpcsRequest.toBinary({ npcs: npcs?.slice() })) !== undefined
+  return call('RestoreNpcs', npcsPb.RestoreNpcsRequest.toBinary({ npcs: npcs?.map((v) => toNpcTarget(v)) })) !== undefined
 }
 
 /**

@@ -34,6 +34,15 @@ function vector(value: { x?: number; y?: number; z?: number } | undefined): Vect
   return { x: value?.x ?? 0, y: value?.y ?? 0, z: value?.z ?? 0 }
 }
 
+/**
+ * int32 saturates value to the int32 range, which the wire would otherwise
+ * wrap, so a large amount such as Number.MAX_SAFE_INTEGER reads as the
+ * largest the field holds.
+ */
+function int32(value: number): number {
+  return Math.trunc(Math.min(Math.max(value, -0x80000000), 0x7fffffff))
+}
+
 /** angles reads wire angles, taking absent components as zero. */
 function angles(value: { pitch?: number; yaw?: number; roll?: number } | undefined): Angles {
   return { pitch: value?.pitch ?? 0, yaw: value?.yaw ?? 0, roll: value?.roll ?? 0 }
@@ -646,6 +655,8 @@ func (w *tsWriter) toValue(f *field, value string) string {
 		return fmt.Sprintf("%sValues[%s]", lowerCamel(f.enum.name), value)
 	case f.message != nil && mapped(f.message) == "" && w.converts(f.message):
 		return fmt.Sprintf("to%s(%s)", f.message.name, value)
+	case f.kind == descriptorpb.FieldDescriptorProto_TYPE_INT32:
+		return fmt.Sprintf("int32(%s)", value)
 	}
 	return value
 }

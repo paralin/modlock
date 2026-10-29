@@ -241,6 +241,9 @@ def _bytes(schema: Schema, field: Field, value: Any) -> bytes:
         if not isinstance(number, int):
             raise ValueError(f"{field.name} cannot be {value!r}")
         value = number
+    if field.kind == "int32":
+        # Saturate rather than let the wire wrap a large amount.
+        value = min(max(value, -(1 << 31)), (1 << 31) - 1)
     return _varint(int(value))
 
 
