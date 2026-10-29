@@ -106,9 +106,13 @@ class MODLOCK_API WasmHost {
   // Load reads a built mod, either a directory with mod.json or a .wasm file,
   // runs its initialization, and returns a plugin that delivers server frames
   // and player commands to it. A directory's mod is named by its manifest's
-  // slug, a file's by its stem.
+  // slug, a file's by its stem. A non-empty name names this running instance
+  // instead, so one build can run as several instances, such as one game for
+  // two pairs of players: the host's calls, scopes and observers address the
+  // instance by that name, while its files, roles and interface presses stay
+  // its build's. Reload replaces only the instance named by its build.
   [[nodiscard]] std::expected<std::unique_ptr<Plugin>, std::string> Load(
-      const std::filesystem::path& path, const PluginContext& context);
+      const std::filesystem::path& path, const PluginContext& context, std::string_view name = {});
 
   // Reload replaces the running mod of the same name with the build at path.
   // The mod keeps its place among the plugins: its old build stops and the

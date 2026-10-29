@@ -100,12 +100,14 @@ bool WasmPlugin::Command(int32_t slot, std::string_view line) {
     return false;
   }
 
-  // A press names its mod; the other mods leave it alone and never see it.
+  // A press names its mod's build; the other mods leave it alone and never
+  // see it. Instances of one build serve different players, so the scope
+  // above already kept the press to the player's own instance.
   if (line.starts_with(kPressCommand)) {
     // A press names this mod, then its command.
     const auto pressed = line.substr(kPressCommand.size());
     const auto space = pressed.find(' ');
-    if (space == std::string_view::npos || pressed.substr(0, space) != name_) {
+    if (space == std::string_view::npos || pressed.substr(0, space) != slug_) {
       return false;
     }
     if (auto refused = Press(slot, pressed.substr(space + 1)); !refused) {
@@ -117,7 +119,7 @@ bool WasmPlugin::Command(int32_t slot, std::string_view line) {
     // A change names this mod, then its input and the value.
     const auto changed = line.substr(kInputCommand.size());
     const auto space = changed.find(' ');
-    if (space == std::string_view::npos || changed.substr(0, space) != name_) {
+    if (space == std::string_view::npos || changed.substr(0, space) != slug_) {
       return false;
     }
     if (auto refused = Input(slot, changed.substr(space + 1)); !refused) {
@@ -407,7 +409,7 @@ std::expected<wasm::players::PlayersResponse, std::string> PluginGame::Players()
   if (!players) {
     return players;
   }
-  auto table = host_.roles.find(plugin_.Name());
+  auto table = host_.roles.find(plugin_.Slug());
   if (table == host_.roles.end()) {
     table = host_.roles.find("");
   }
