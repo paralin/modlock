@@ -128,9 +128,11 @@ class PluginGame final : public wasm::Game {
 // for its release.
 class WasmPlugin final : public Plugin {
  public:
-  WasmPlugin(Mods& host, std::string name, const PluginContext& context)
+  // name names this running instance and slug its build.
+  WasmPlugin(Mods& host, std::string name, std::string slug, const PluginContext& context)
       : host_(host),
         name_(std::move(name)),
+        slug_(std::move(slug)),
         engine_(context.engine),
         check_only_(context.check_only),
         mod_([this](const wasm::Call& call) { return Send(call); }),
@@ -240,7 +242,7 @@ class WasmPlugin final : public Plugin {
   // Files returns the mod's files: those it wrote over those the running
   // build ships.
   ModFiles Files() const {
-    return {.written = host_.files.empty() ? host_.files : host_.files / name_, .data = data_};
+    return {.written = host_.files.empty() ? host_.files : host_.files / slug_, .data = data_};
   }
 
   // Impacted delivers a watched projectile's impact to the mod.
@@ -253,6 +255,9 @@ class WasmPlugin final : public Plugin {
   uint32_t InterfaceVersion() const override { return PluginInterfaceVersion; }
 
   const char* Name() const override { return name_.c_str(); }
+
+  // Slug names the mod's build, which keys its files, roles and interface.
+  const std::string& Slug() const { return slug_; }
 
   bool Start() override;
   void Tick() override;
@@ -345,7 +350,10 @@ class WasmPlugin final : public Plugin {
 
   // host_ outlives the plugin.
   Mods& host_;
+  // name_ names this running instance and slug_ its build; they differ when
+  // one build runs as several instances.
   std::string name_;
+  std::string slug_;
   // engine_ outlives the plugin; the host owns it.
   EngineHost* engine_;
   // check_only_ is true when the host only checks the mod, which the mod

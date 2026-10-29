@@ -106,7 +106,7 @@ void WasmHost::Unobserve(WasmHostObserver* observer) {
 }
 
 std::expected<std::unique_ptr<Plugin>, std::string> WasmHost::Load(
-    const std::filesystem::path& path, const PluginContext& context) {
+    const std::filesystem::path& path, const PluginContext& context, std::string_view name) {
   // Read the build; a client launch runs it as a client mod.
   auto build = ReadBuild(path, impl_->interpreters);
   if (!build) {
@@ -115,17 +115,18 @@ std::expected<std::unique_ptr<Plugin>, std::string> WasmHost::Load(
   if (context.launch != nullptr && !context.launch->connect.empty()) {
     return std::make_unique<ClientMod>(std::move(*build));
   }
-  if (impl_->plugins.contains(build->name)) {
-    return std::unexpected(path.string() + ": a mod named " + build->name + " is already loaded");
+  std::string instance_name = name.empty() ? build->name : std::string(name);
+  if (impl_->plugins.contains(instance_name)) {
+    return std::unexpected(path.string() + ": a mod named " + instance_name + " is already loaded");
   }
 
   // Load the mod into a sandbox that answers through the plugin.
-  auto plugin = std::make_unique<WasmPlugin>(*impl_, build->name, context);
+  auto plugin = std::make_unique<WasmPlugin>(*impl_, instance_name, build->name, context);
   auto instance = plugin->Instantiate(build->module);
   if (!instance) {
-    return std::unexpected(build->name + ": " + instance.error());
+    return std::unexpected(instance_name + ": " + instance.error());
   }
-  impl_->plugins.emplace(build->name, plugin.get());
+  impl_->plugins.emplace(std::move(instance_name), plugin.get());
   plugin->Attach(std::move(*instance), std::move(*build));
   return plugin;
 }

@@ -106,20 +106,26 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
   auto still = host.Call("extension-go", "reach", "show", "2");
   ASSERT_FALSE(still);
   EXPECT_EQ(still.error(), "this mod does not serve the player ShowEntityOnlyTo names");
-  const auto copy = std::filesystem::temp_directory_path() / "second.wasm";
-  std::filesystem::copy_file(EXTENSION_GO_WASM, copy,
-                             std::filesystem::copy_options::overwrite_existing);
-  auto second = host.Load(copy, PluginContext{.check_only = true});
+  // A second instance of the same build runs under its own name, for its own
+  // players, while the first keeps its name and scope.
+  EXPECT_FALSE(host.Load(EXTENSION_GO_WASM, PluginContext{.check_only = true}));
+  auto second = host.Load(EXTENSION_GO_WASM, PluginContext{.check_only = true}, "second");
   ASSERT_TRUE(second) << second.error();
   ASSERT_TRUE((*second)->Start());
+  EXPECT_STREQ((*second)->Name(), "second");
   ASSERT_TRUE(host.Scope("second", {.players = std::set<int32_t>{2}}));
+  auto own = host.Call("second", "reach", "show", "2");
+  ASSERT_FALSE(own);
+  EXPECT_EQ(own.error(), "no game is running");
+  auto first = host.Call("second", "reach", "show", "1");
+  ASSERT_FALSE(first);
+  EXPECT_EQ(first.error(), "this mod does not serve the player ShowEntityOnlyTo names");
   auto taken = host.Scope("second", {.players = std::set<int32_t>{2}, .world = true});
   ASSERT_FALSE(taken);
   EXPECT_EQ(taken.error(), "the mod extension-go already changes the world");
   ASSERT_TRUE(host.Scope("extension-go", {.players = std::set<int32_t>{1}}));
   ASSERT_TRUE(host.Scope("second", {.players = std::set<int32_t>{2}, .world = true}));
   (*second)->Stop();
-  std::filesystem::remove(copy);
 
   // Serving every player again lifts every limit.
   ASSERT_TRUE(host.Scope("extension-go", {}));
