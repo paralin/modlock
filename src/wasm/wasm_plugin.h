@@ -186,10 +186,13 @@ class WasmPlugin final : public Plugin {
   // slot when slot is set, or empty.
   std::string HandedOff(std::optional<int32_t> slot) const;
 
-  // Scope limits the mod to players, or serves every player when players is
-  // nullopt. Each player it stops serving leaves it as a disconnected player
-  // does, and the mod hears its new player list before its next event.
-  void Scope(std::optional<std::set<int32_t>> players);
+  // Scope limits the mod to scope. Each player it stops serving leaves it as
+  // a disconnected player does, and the mod hears its new player list before
+  // its next event.
+  void Scope(WasmScope scope);
+
+  // Scoped is the part of the server the mod serves.
+  const PlayerScope& Scoped() const { return scope_; }
 
   // AskRestart restarts the running build in a new instance on the next
   // frame, while the plugin offers that: after the instance stopped or ran a
@@ -301,6 +304,9 @@ class WasmPlugin final : public Plugin {
   void ListenToPlayers();
   void ListenToCombat();
   bool Hit(const gameinterop::DamageContactEvent& contact);
+  // Contact returns what the mod does with a hit between the entities with
+  // the handles attacker and victim.
+  PlayerScope::Contact Contact(uint32_t attacker, uint32_t victim) const;
   // Fought queues an applied hit for a mod that wants it and a movement fact
   // for the movement samples.
   void Fought(const gameinterop::CombatEvent& event, bool damaged);

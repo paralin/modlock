@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "modlock/gameinterop/entity_abi.h"
 #include "pawn_observer_fixture.h"
 
 namespace pawn_observer_test {
@@ -221,6 +222,17 @@ TEST(PawnObserver, ObservesRetainedDeadHeroAfterActivePawnBecomesSpectator) {
   EXPECT_EQ(sample->pawn_handle, hero_handle);
   EXPECT_EQ(sample->hero_id, hero_id);
   EXPECT_EQ(sample->health, 0);
+
+  // The dead hero, not the spectator, maps to the slot and back.
+  EXPECT_EQ(observer.PawnHandleForSlot(0), hero_handle);
+  EXPECT_EQ(observer.SlotOfPawn(hero_handle), 0);
+  EXPECT_FALSE(observer.SlotOfPawn(HandleOf(3, 8)));
+  EXPECT_FALSE(observer.SlotOfPawn(modlock::gameinterop::kInvalidEHandleIndex));
+
+  // A slot whose client left owns no pawn.
+  fixture.occupied = false;
+  EXPECT_FALSE(observer.SlotOfPawn(hero_handle));
+  EXPECT_FALSE(observer.PawnHandleForSlot(0));
 }
 
 TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {

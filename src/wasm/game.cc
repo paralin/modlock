@@ -180,6 +180,11 @@ void Game::Leave(int32_t slot) {
   }
 }
 
+std::expected<void, std::string> Game::Apart(uint64_t slots) {
+  apart_ = slots;
+  return slots ? services_.Transmit() : std::expected<void, std::string>{};
+}
+
 void Game::Clear() {
   // Stop watching every player.
   for (const auto slot : observer_.WatchingSlots()) {

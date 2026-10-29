@@ -195,6 +195,25 @@ void GameServices::Withhold(gameinterop::TransmitSet& set) {
   // current handles.
   for (auto* game : games_) {
     game->visibility_.Withhold(set, [game](uint32_t id) { return game->ObjectHandle(id); });
+    WithholdApart(*game, set);
+  }
+}
+
+void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set) {
+  // A player inside an apart game receives no hero from outside it, and one
+  // outside receives none from inside. The heroes are read each update, since
+  // a respawn or a hero swap changes their handles.
+  if (!game.apart_ || set.Slot() < 0 || set.Slot() >= gameinterop::kMaxPlayerSlots) {
+    return;
+  }
+  const bool inside = (game.apart_ >> set.Slot()) & 1;
+  for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
+    if (((game.apart_ >> slot) & 1) == inside) {
+      continue;
+    }
+    if (const auto hero = game.observer_.PawnHandleForSlot(slot)) {
+      set.Withhold(*hero);
+    }
   }
 }
 

@@ -650,4 +650,35 @@ void* PawnObserver::PawnForSlot(int32_t slot) const {
   return here ? here->pawn : nullptr;
 }
 
+std::optional<uint32_t> PawnObserver::PawnHandleForSlot(int32_t slot) const {
+  const auto here = Locate(slot);
+  return here ? std::optional(here->pawn_handle) : std::nullopt;
+}
+
+std::optional<int32_t> PawnObserver::SlotOfPawn(uint32_t handle) const {
+  // An invalid handle names no pawn, though an empty controller holds one.
+  if (handle == kInvalidEHandleIndex || !offsets_ok_ || !seams_.entity_system ||
+      !seams_.slot_state) {
+    return std::nullopt;
+  }
+  auto system = seams_.entity_system();
+  if (!system) {
+    return std::nullopt;
+  }
+
+  // Compare each connected player's selected pawn with the handle.
+  auto* list = EntityListOf(*system);
+  for (int32_t slot = 0; slot < kMaxPlayerSlots; ++slot) {
+    if (!seams_.slot_state(slot).occupied) {
+      continue;
+    }
+    auto* identity = IdentityOfIndex(list, slot + 1);
+    auto* controller = identity ? InstanceOf(identity) : nullptr;
+    if (controller && ObservedPawnHandle(controller) == handle) {
+      return slot;
+    }
+  }
+  return std::nullopt;
+}
+
 }  // namespace modlock::gameinterop

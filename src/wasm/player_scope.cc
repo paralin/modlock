@@ -13,8 +13,8 @@ namespace modlock::wasm {
 namespace {
 
 // kServerWide names the host requests that change the game for every player,
-// which a limited mod may not make. A bot it added would join the whole
-// server, outside its players.
+// which a limited mod may make only while it holds the world. A bot it added
+// would join the whole server, outside its players.
 constexpr std::array<std::string_view, 10> kServerWide = {
     "ServerCommand", "SetFreeForAll", "BlockInput",     "Pause",       "HoldMatchClock",
     "StartRift",     "ClearMap",      "RemoveEntities", "RestoreNpcs", "AddBot",
@@ -34,13 +34,40 @@ const google::protobuf::Descriptor* RequestType(std::string_view service, std::s
 
 }  // namespace
 
+uint64_t PlayerScope::Apart() const {
+  uint64_t slots = 0;
+  if (scope_.players && scope_.apart) {
+    for (const auto slot : *scope_.players) {
+      if (slot >= 0 && slot < 64) {
+        slots |= uint64_t{1} << slot;
+      }
+    }
+  }
+  return slots;
+}
+
+PlayerScope::Contact PlayerScope::Hit(std::optional<int32_t> attacker,
+                                      std::optional<int32_t> victim) const {
+  if (!Limited()) {
+    return Contact::kHear;
+  }
+  const bool by = attacker && scope_.players->contains(*attacker);
+  const bool on = victim && scope_.players->contains(*victim);
+  if (attacker && victim && by != on) {
+    return Contact::kBlock;
+  }
+  return by || on ? Contact::kHear : Contact::kPass;
+}
+
 std::string PlayerScope::Refuse(const Call& call) const {
-  if (!players_) {
+  if (!Limited()) {
     return {};
   }
-  for (const auto method : kServerWide) {
-    if (call.method() == method) {
-      return "this mod serves only some players and may not call " + call.method();
+  if (!scope_.world) {
+    for (const auto method : kServerWide) {
+      if (call.method() == method) {
+        return "this mod serves only some players and may not call " + call.method();
+      }
     }
   }
   if (!Addresses("modlock.wasm.Host", call.method(), call.request())) {
@@ -50,11 +77,11 @@ std::string PlayerScope::Refuse(const Call& call) const {
 }
 
 bool PlayerScope::Hears(const Call& event) const {
-  return !players_ || Addresses("modlock.wasm.Mod", event.method(), event.request());
+  return !Limited() || Addresses("modlock.wasm.Mod", event.method(), event.request());
 }
 
 void PlayerScope::Keep(google::protobuf::RepeatedPtrField<players::Connection>& players) const {
-  if (!players_) {
+  if (!Limited()) {
     return;
   }
   for (int i = players.size() - 1; i >= 0; --i) {

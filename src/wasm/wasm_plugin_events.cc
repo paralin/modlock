@@ -188,19 +188,22 @@ void WasmPlugin::ListenToPlayers() {
 }
 
 void WasmPlugin::ListenToCombat() {
-  // Listen once, while a mod wants damage or moves players.
+  // Listen once, while a mod wants damage, moves players or serves some.
   if (combat_.Active() || !instance_ ||
-      (!wants_.damage() && !wants_.damaged() && !game_.Moving())) {
+      (!wants_.damage() && !wants_.damaged() && !game_.Moving() && !scope_.Limited())) {
     return;
   }
 
-  // A mod that wants damage can block or change each hit.
+  // A mod that wants damage can block or change each hit, and a limited one
+  // blocks each hit between its players and others.
   std::function<bool(const gameinterop::DamageContactEvent&)> suppress;
   gameinterop::AdjustDamage adjust;
-  if (wants_.damage()) {
+  if (wants_.damage() || scope_.Limited()) {
     suppress = [this](const gameinterop::DamageContactEvent& contact) {
       return Hit(contact);
     };
+  }
+  if (wants_.damage()) {
     adjust = [this](const gameinterop::DamageContactEvent&, float& amount) {
       if (adjusted_) {
         amount = *std::exchange(adjusted_, std::nullopt);
@@ -223,6 +226,19 @@ void WasmPlugin::ListenToCombat() {
 bool WasmPlugin::Hit(const gameinterop::DamageContactEvent& contact) {
   // Forget the last adjustment.
   adjusted_.reset();
+
+  // The mod rules only hits it hears, and blocks those that cross its scope.
+  switch (Contact(contact.attacker_handle, contact.victim_handle)) {
+    case PlayerScope::Contact::kBlock:
+      return true;
+    case PlayerScope::Contact::kPass:
+      return false;
+    case PlayerScope::Contact::kHear:
+      break;
+  }
+  if (!wants_.damage()) {
+    return false;
+  }
 
   // Describe the hit to the mod.
   wasm::combat::DamageEvent event;
@@ -247,6 +263,14 @@ bool WasmPlugin::Hit(const gameinterop::DamageContactEvent& contact) {
     adjusted_ = result->amount();
   }
   return false;
+}
+
+PlayerScope::Contact WasmPlugin::Contact(uint32_t attacker, uint32_t victim) const {
+  // Only a limited mod pays for the players' slots.
+  if (!scope_.Limited()) {
+    return PlayerScope::Contact::kHear;
+  }
+  return scope_.Hit(game_.SlotOfPawn(attacker), game_.SlotOfPawn(victim));
 }
 
 void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool damaged) {
@@ -303,7 +327,10 @@ void WasmPlugin::DeliverDamaged() {
       return;
     }
 
-    // Tell the mod about each hit.
+    // Tell the mod about each hit it hears.
+    if (Contact(hit.attacker_handle, hit.victim_handle) != PlayerScope::Contact::kHear) {
+      continue;
+    }
     wasm::combat::DamagedEvent event;
     event.set_victim(hit.victim_handle);
     event.set_attacker(hit.attacker_handle);

@@ -2,23 +2,29 @@
 // serves, the mod calls a service the host provides, and each error reaches
 // the caller. A mod that holds its running build keeps it through a reload
 // until it releases the hold. A mod that stops stays stopped until a player
-// or a reload restarts it.
+// or a reload restarts it. A mod limited to some players reaches only them,
+// changes the whole server only while it holds the world, which one limited
+// mod holds at a time, and rules only the hits of its players.
 #include "modlock/wasm_host.h"
 
 #include <cctype>
 #include <expected>
+#include <filesystem>
 #include <set>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "wasm/player_scope.h"
 
 namespace {
 
 using modlock::PluginContext;
 using modlock::WasmHost;
 using modlock::WasmHostObserver;
+using modlock::WasmScope;
+using Contact = modlock::wasm::PlayerScope::Contact;
 
 // Events records what happens to the host's mods.
 class Events final : public WasmHostObserver {
@@ -80,7 +86,7 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
 
   // A mod limited to some players is refused a request that addresses
   // another player or the whole server, ahead of the check's own refusal.
-  ASSERT_TRUE(host.Scope("extension-go", std::set<int32_t>{1}));
+  ASSERT_TRUE(host.Scope("extension-go", {.players = std::set<int32_t>{1}}));
   auto served = host.Call("extension-go", "reach", "show", "1");
   ASSERT_FALSE(served);
   EXPECT_EQ(served.error(), "no game is running");
@@ -90,11 +96,37 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
   auto server = host.Call("extension-go", "reach", "command", "");
   ASSERT_FALSE(server);
   EXPECT_EQ(server.error(), "this mod serves only some players and may not call ServerCommand");
-  ASSERT_TRUE(host.Scope("extension-go", std::nullopt));
+
+  // Holding the world lets it change the whole server, still only for its
+  // players' requests, and a second limited mod may not hold it too.
+  ASSERT_TRUE(host.Scope("extension-go", {.players = std::set<int32_t>{1}, .world = true}));
+  auto world = host.Call("extension-go", "reach", "command", "");
+  ASSERT_FALSE(world);
+  EXPECT_EQ(world.error(), "no game is running");
+  auto still = host.Call("extension-go", "reach", "show", "2");
+  ASSERT_FALSE(still);
+  EXPECT_EQ(still.error(), "this mod does not serve the player ShowEntityOnlyTo names");
+  const auto copy = std::filesystem::temp_directory_path() / "second.wasm";
+  std::filesystem::copy_file(EXTENSION_GO_WASM, copy,
+                             std::filesystem::copy_options::overwrite_existing);
+  auto second = host.Load(copy, PluginContext{.check_only = true});
+  ASSERT_TRUE(second) << second.error();
+  ASSERT_TRUE((*second)->Start());
+  ASSERT_TRUE(host.Scope("second", {.players = std::set<int32_t>{2}}));
+  auto taken = host.Scope("second", {.players = std::set<int32_t>{2}, .world = true});
+  ASSERT_FALSE(taken);
+  EXPECT_EQ(taken.error(), "the mod extension-go already changes the world");
+  ASSERT_TRUE(host.Scope("extension-go", {.players = std::set<int32_t>{1}}));
+  ASSERT_TRUE(host.Scope("second", {.players = std::set<int32_t>{2}, .world = true}));
+  (*second)->Stop();
+  std::filesystem::remove(copy);
+
+  // Serving every player again lifts every limit.
+  ASSERT_TRUE(host.Scope("extension-go", {}));
   auto unlimited = host.Call("extension-go", "reach", "show", "2");
   ASSERT_FALSE(unlimited);
   EXPECT_EQ(unlimited.error(), "no game is running");
-  EXPECT_FALSE(host.Scope("absent", std::nullopt));
+  EXPECT_FALSE(host.Scope("absent", {}));
 
   // A withdrawn service fails the mod's call.
   host.Provide("shout", nullptr);
@@ -102,6 +134,33 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
   ASSERT_FALSE(withdrawn);
   EXPECT_EQ(withdrawn.error(), "this host provides no service shout");
   (*plugin)->Stop();
+}
+
+TEST(PlayerScope, LimitedScopeRulesOnlyItsPlayersHits) {
+  // A limited scope hears hits among its players, blocks hits that cross to
+  // another player, and leaves others' hits alone. A hit with one player,
+  // such as on a trooper or from a hazard, follows that player.
+  modlock::wasm::PlayerScope scope;
+  scope.Limit({.players = std::set<int32_t>{1, 2}, .apart = true});
+  EXPECT_EQ(scope.Hit(1, 2), Contact::kHear);
+  EXPECT_EQ(scope.Hit(1, 1), Contact::kHear);
+  EXPECT_EQ(scope.Hit(1, 3), Contact::kBlock);
+  EXPECT_EQ(scope.Hit(3, 2), Contact::kBlock);
+  EXPECT_EQ(scope.Hit(3, 4), Contact::kPass);
+  EXPECT_EQ(scope.Hit(1, std::nullopt), Contact::kHear);
+  EXPECT_EQ(scope.Hit(std::nullopt, 2), Contact::kHear);
+  EXPECT_EQ(scope.Hit(3, std::nullopt), Contact::kPass);
+  EXPECT_EQ(scope.Hit(std::nullopt, std::nullopt), Contact::kPass);
+  EXPECT_EQ(scope.Apart(), 0b110u);
+  EXPECT_FALSE(scope.World());
+
+  // An unlimited scope hears every hit and holds the world, and apart means
+  // nothing without players to keep apart.
+  scope.Limit({.apart = true});
+  EXPECT_EQ(scope.Hit(3, 4), Contact::kHear);
+  EXPECT_EQ(scope.Hit(std::nullopt, std::nullopt), Contact::kHear);
+  EXPECT_EQ(scope.Apart(), 0u);
+  EXPECT_TRUE(scope.World());
 }
 
 TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {

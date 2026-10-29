@@ -175,6 +175,10 @@ class GameServices {
   // every entity a mod shows only to others.
   void Withhold(gameinterop::TransmitSet& set);
 
+  // WithholdApart keeps from one player the heroes game's apart players and
+  // the others may not see of each other.
+  static void WithholdApart(const Game& game, gameinterop::TransmitSet& set);
+
   // Steps installs or removes the server movement hook to match what the
   // mods need of it.
   std::expected<void, std::string> Steps();
@@ -312,6 +316,16 @@ class Game : public HostService {
   // frozen heroes, held modifiers, input changes and match clock hold, resumes a game it
   // paused and stops watching projectiles.
   void Clear();
+
+  // SlotOfPawn returns the slot of the player whose hero the entity handle
+  // names, or no value for any other entity.
+  std::optional<int32_t> SlotOfPawn(uint32_t handle) const { return observer_.SlotOfPawn(handle); }
+
+  // Apart hides the heroes of the players in the slot bits from every other
+  // player, and every other player's hero from them, until the next call; zero
+  // shows every hero to everyone again. It survives Clear and world changes,
+  // since it follows the mod's scope rather than what the mod placed.
+  std::expected<void, std::string> Apart(uint64_t slots);
 
   // Departing reports whether a bot the mod removed still holds its slot.
   // The engine runs a kick from its command buffer after the call returns,
@@ -715,6 +729,8 @@ class Game : public HostService {
   std::map<uint32_t, Object> objects_;
   // visibility_ is who receives the mod's objects and entities.
   Visibility visibility_;
+  // apart_ is the slot bits of the players Apart keeps out of sight.
+  uint64_t apart_ = 0;
   // fog_ is the world's fog controller, which the fog objects need; it is
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;
