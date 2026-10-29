@@ -49,6 +49,7 @@ inline constexpr uint32_t kMaxEntityLists = 64;              // MAX_ENTITY_LISTS
 inline constexpr size_t kIdentitySize = 0x70;                // sizeof(CEntityIdentity)
 inline constexpr size_t kIdentityInstanceOffset = 0x00;      // m_pInstance
 inline constexpr size_t kIdentityEHandleOffset = 0x10;       // m_EHandle
+inline constexpr size_t kIdentityNameOffset = 0x18;          // m_name
 inline constexpr size_t kIdentityDesignerNameOffset = 0x20;  // m_designerName
 inline constexpr size_t kIdentityFlagsOffset = 0x30;         // m_flags
 inline constexpr uint32_t kEntityIndexBits = 0x7FFF;         // m_Parts.m_EntityIndex : 15
@@ -157,6 +158,17 @@ static_assert(sizeof(Variant) == 16);
 
 // IdentityOf reads the entity-identity pointer QueueSpawnEntity consumes.
 [[nodiscard]] MODLOCK_API void* IdentityOf(void* entity);
+
+// DesignerName borrows entity's designer name, such as player, from the
+// game's string pool, which keeps it for the life of the map, or returns empty
+// when the name is unreadable. Scans compare it in place, without copying
+// every entity's name.
+[[nodiscard]] MODLOCK_API std::string_view DesignerName(void* entity);
+
+// EntityName borrows entity's name, the targetname a map or a spawn key value
+// gave it, from the same pool. It returns empty for an unnamed entity or an
+// unreadable name.
+[[nodiscard]] MODLOCK_API std::string_view EntityName(void* entity);
 
 // ReferenceHandleOf validates entity's identity back-pointer and returns the
 // serial-corrected packed handle the entity system uses, or no value when the

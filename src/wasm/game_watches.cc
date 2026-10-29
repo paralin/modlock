@@ -281,7 +281,7 @@ void Game::TrackProjectiles() {
   std::set<uint32_t> seen;
   for (void* entity : gameinterop::EntityInstances(*entities)) {
     // Track each watched projectile.
-    const auto name = DesignerName(entity);
+    const auto name = gameinterop::DesignerName(entity);
     if (!Watches(projectiles_, name)) {
       continue;
     }
@@ -314,7 +314,7 @@ void Game::TrackProjectiles() {
 std::optional<combat::ImpactEvent> Game::Watching(void* entity,
                                                   const gameinterop::TraceResult& contact) {
   // Only a watched projectile reports an impact.
-  const auto name = DesignerName(entity);
+  const auto name = gameinterop::DesignerName(entity);
   if (!Watches(projectiles_, name)) {
     return std::nullopt;
   }

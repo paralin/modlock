@@ -83,16 +83,18 @@ std::expected<size_t, std::string> WorldEntities::Remove(std::string_view design
   return removed;
 }
 
-std::expected<std::vector<uint32_t>, std::string> WorldEntities::Find(
-    std::string_view designer_name) {
-  // Collect the handle of every entity with the name.
+std::expected<std::vector<uint32_t>, std::string> WorldEntities::HandlesWhere(
+    std::string_view (*read)(void* entity), std::string_view want) {
+  // Resolve the entity system.
   auto system = calls_.entity_system();
   if (!system) {
     return std::unexpected(system.error());
   }
+
+  // Collect the handle of every entity with the name.
   std::vector<uint32_t> found;
   for (void* entity : EntityInstances(*system)) {
-    if (DesignerName(entity) != designer_name) {
+    if (read(entity) != want) {
       continue;
     }
     if (auto handle = ReferenceHandleOf(entity)) {
@@ -100,6 +102,19 @@ std::expected<std::vector<uint32_t>, std::string> WorldEntities::Find(
     }
   }
   return found;
+}
+
+std::expected<std::vector<uint32_t>, std::string> WorldEntities::Find(
+    std::string_view designer_name) {
+  return HandlesWhere(DesignerName, designer_name);
+}
+
+std::expected<std::vector<uint32_t>, std::string> WorldEntities::FindByName(std::string_view name) {
+  // Every unnamed entity reads as empty, which names nothing.
+  if (name.empty()) {
+    return std::vector<uint32_t>{};
+  }
+  return HandlesWhere(EntityName, name);
 }
 
 uint32_t WorldEntities::SubclassId(std::string_view vdata_name) {

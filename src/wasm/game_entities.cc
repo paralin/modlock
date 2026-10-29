@@ -656,6 +656,22 @@ std::expected<entities::EntitiesResponse, std::string> Game::FindEntities(
   return response;
 }
 
+std::expected<entities::EntitiesResponse, std::string> Game::FindEntitiesByName(
+    const entities::FindEntitiesByNameRequest& request) {
+  // Find the entities with the name.
+  auto world = World();
+  if (!world) {
+    return std::unexpected(world.error());
+  }
+  auto found = (*world)->FindByName(request.name());
+  if (!found) {
+    return std::unexpected(found.error());
+  }
+  entities::EntitiesResponse response;
+  response.mutable_entities()->Add(found->begin(), found->end());
+  return response;
+}
+
 std::expected<entities::CountResponse, std::string> Game::RemoveEntities(
     const entities::RemoveEntitiesRequest& request) {
   // Remove the world's entities of the class and count them.

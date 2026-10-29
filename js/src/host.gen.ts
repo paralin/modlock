@@ -2816,6 +2816,17 @@ export function entityClass(entity: number): EntityClassName | undefined {
 }
 
 /**
+ * entityName returns a live entity's name, the targetname a map or a spawn
+ * key value gave it, or an empty name for an unnamed entity.
+ */
+export function entityName(entity: number): string | undefined {
+  const reply = call('EntityName', entitiesPb.EntityRequest.toBinary({ entity }))
+  if (reply === undefined) return undefined
+  const response = entitiesPb.EntityNameResponse.fromBinary(reply)
+  return response.name ?? ''
+}
+
+/**
  * entityPosition returns where a live entity stands, its absolute origin
  * and angles, as MoveEntity places it, and its velocity. Any entity with a
  * place in the world has one, such as one of the map's boxes.
@@ -3059,6 +3070,17 @@ export function createPickup(kind: PickupKind, position: Vector): Pickup | undef
  */
 export function findEntities(className: string): number[] {
   const reply = call('FindEntities', entitiesPb.FindEntitiesRequest.toBinary({ className }))
+  if (reply === undefined) return []
+  const response = entitiesPb.EntitiesResponse.fromBinary(reply)
+  return response.entities ?? []
+}
+
+/**
+ * findEntitiesByName returns the handle of every live entity with a name,
+ * the targetname a map or the targetname key value of CreateEntity gave it.
+ */
+export function findEntitiesByName(name: string): number[] {
+  const reply = call('FindEntitiesByName', entitiesPb.FindEntitiesByNameRequest.toBinary({ name }))
   if (reply === undefined) return []
   const response = entitiesPb.EntitiesResponse.fromBinary(reply)
   return response.entities ?? []

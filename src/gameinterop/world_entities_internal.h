@@ -56,32 +56,4 @@ inline bool IsRoundObjective(std::string_view name) {
   return IsPickup(name) || name == "citadel_koth_cashin" || name == "citadel_item_powerup_spawner";
 }
 
-// kMaxDesignerName bounds the scan for a designer name's terminator.
-inline constexpr size_t kMaxDesignerName = 128;
-
-// DesignerName borrows entity's designer name from the game's string pool,
-// which keeps it for the life of the map, or returns empty when the name is
-// unreadable. Scans compare it in place, without copying every entity's name.
-inline std::string_view DesignerName(void* entity) {
-  // Read the identity's designer name, accepting only a short lowercase identifier.
-  auto* identity = IdentityOf(entity);
-  if (!identity) {
-    return {};
-  }
-  const char* name = ReadAt<const char*>(identity, kIdentityDesignerNameOffset);
-  if (!name) {
-    return {};
-  }
-  for (size_t i = 0; i < kMaxDesignerName; ++i) {
-    if (!name[i]) {
-      return {name, i};
-    }
-    if (!((name[i] >= 'a' && name[i] <= 'z') || (name[i] >= '0' && name[i] <= '9') ||
-          name[i] == '_')) {
-      return {};
-    }
-  }
-  return {};
-}
-
 }  // namespace modlock::gameinterop

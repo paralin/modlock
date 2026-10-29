@@ -2229,6 +2229,12 @@ schema.PickupRequest = {
 schema.FindEntitiesRequest = {
 	{ number = 1, name = "className", kind = "string" },
 }
+schema.FindEntitiesByNameRequest = {
+	{ number = 1, name = "name", kind = "string" },
+}
+schema.EntityNameResponse = {
+	{ number = 1, name = "name", kind = "string" },
+}
 schema.RemoveEntitiesRequest = {
 	{ number = 1, name = "className", kind = "string" },
 }
@@ -2956,6 +2962,16 @@ function modlock.entityClass(entity: number): EntityClassName?
 	return response.name
 end
 
+-- entityName returns a live entity's name, the targetname a map or a spawn
+-- key value gave it, or an empty name for an unnamed entity.
+function modlock.entityName(entity: number): string?
+	local response = call("EntityName", "EntityRequest", { entity = entity }, "EntityNameResponse")
+	if response == nil then
+		return nil
+	end
+	return response.name
+end
+
 -- entityPosition returns where a live entity stands, its absolute origin
 -- and angles, as MoveEntity places it, and its velocity. Any entity with a
 -- place in the world has one, such as one of the map's boxes.
@@ -3171,6 +3187,16 @@ end
 -- zip_line_node.
 function modlock.findEntities(className: string): { number }
 	local response = call("FindEntities", "FindEntitiesRequest", { className = className }, "EntitiesResponse")
+	if response == nil then
+		return {}
+	end
+	return response.entities
+end
+
+-- findEntitiesByName returns the handle of every live entity with a name,
+-- the targetname a map or the targetname key value of CreateEntity gave it.
+function modlock.findEntitiesByName(name: string): { number }
+	local response = call("FindEntitiesByName", "FindEntitiesByNameRequest", { name = name }, "EntitiesResponse")
 	if response == nil then
 		return {}
 	end

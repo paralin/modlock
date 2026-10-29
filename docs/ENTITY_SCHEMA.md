@@ -11,20 +11,30 @@ This document follows the system from the game's own description of its
 entities to a typed call in a mod, and explains what the host checks on the
 way.
 
-## Three names for one entity
+## Four names for one entity
 
-An entity has three names, and each part of the system uses one:
+An entity has four names, and each part of the system uses one:
 
 | Name          | Example            | Where it comes from                | What uses it                         |
 | ------------- | ------------------ | ---------------------------------- | ------------------------------------ |
 | Designer name | `npc_trooper_boss` | The name a map places              | `createEntity`, `create`, inputs     |
 | Schema class  | `CNPC_TrooperBoss` | The C++ class the schema describes | Fields: `readField`, typed classes   |
 | Subclass      | `npc_boss_tier1`   | A game data entry the entity reads | `EntityOptions.subclass`, `spawnNpc` |
+| Entity name   | `arena_spawn_red`  | The targetname a map gives it      | `findEntitiesByName`, `entityName`   |
 
 `entityClass(handle)` returns the first two for a live entity. The subclass is
 the data an entity reads while it spawns: a lane Guardian and a base Guardian
 share a class and differ in their subclass, which gives their health, model
-and weapons.
+and weapons. The entity name is the one a map's author chose, often shared by
+a group of entities, and an entity without one has an empty name. A mod names
+the entities it creates with the `targetname` key value, and finds a map's
+markers with `findEntitiesByName` instead of hardcoding their positions:
+
+```ts
+import { entityPosition, findEntitiesByName } from 'modlock'
+
+const spawns = findEntitiesByName('arena_spawn_red').map(entityPosition)
+```
 
 ## The game dump
 

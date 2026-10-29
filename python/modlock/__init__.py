@@ -2351,6 +2351,18 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "class_name", "string"),
         ],
     ),
+    "FindEntitiesByNameRequest": (
+        None,
+        [
+            wire.Field(1, "name", "string"),
+        ],
+    ),
+    "EntityNameResponse": (
+        None,
+        [
+            wire.Field(1, "name", "string"),
+        ],
+    ),
     "RemoveEntitiesRequest": (
         None,
         [
@@ -3413,6 +3425,16 @@ def entity_class(entity: int) -> EntityClassName | None:
     return response["name"]
 
 
+def entity_name(entity: int) -> str | None:
+    """entity_name returns a live entity's name, the targetname a map or a spawn
+    key value gave it, or an empty name for an unnamed entity.
+    """
+    response = _call("EntityName", "EntityRequest", {"entity": entity}, "EntityNameResponse")
+    if response is None:
+        return None
+    return response["name"]
+
+
 def entity_position(entity: int) -> EntityPlacement | None:
     """entity_position returns where a live entity stands, its absolute origin
     and angles, as MoveEntity places it, and its velocity. Any entity with a
@@ -3636,6 +3658,16 @@ def find_entities(class_name: str) -> list[int]:
     zip_line_node.
     """
     response = _call("FindEntities", "FindEntitiesRequest", {"class_name": class_name}, "EntitiesResponse")
+    if response is None:
+        return []
+    return response["entities"]
+
+
+def find_entities_by_name(name: str) -> list[int]:
+    """find_entities_by_name returns the handle of every live entity with a name,
+    the targetname a map or the targetname key value of CreateEntity gave it.
+    """
+    response = _call("FindEntitiesByName", "FindEntitiesByNameRequest", {"name": name}, "EntitiesResponse")
     if response is None:
         return []
     return response["entities"]

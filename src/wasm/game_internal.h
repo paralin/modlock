@@ -1,11 +1,9 @@
 #pragma once
 
 #include <array>
-#include <cstring>
 #include <expected>
 #include <optional>
 #include <string>
-#include <string_view>
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/hero_definitions.h"
@@ -17,9 +15,6 @@ namespace modlock::wasm {
 // kMaxChanges bounds the button changes, and separately the launches, one
 // mod has not yet received.
 inline constexpr size_t kMaxChanges = 256;
-
-// kDesignerNameOffset is CEntityIdentity's designer name pointer.
-inline constexpr size_t kDesignerNameOffset = 0x20;
 
 inline std::array<float, 3> Floats(const geometry::Vec3& vector) {
   return {static_cast<float>(vector.x()), static_cast<float>(vector.y()),
@@ -47,21 +42,6 @@ inline void SetVector(geometry::Vec3* out, const std::array<float, 3>& vector) {
 // or zero for the world, entity index 0, and for nothing.
 inline uint32_t HitEntity(const std::optional<uint32_t>& handle) {
   return handle && gameinterop::EntityIndexOf(*handle) != 0 ? *handle : 0;
-}
-
-// DesignerName returns an entity's designer name, such as player, or an
-// empty view.
-inline std::string_view DesignerName(void* entity) {
-  // Find the entity's identity, which holds its names.
-  const auto* identity = static_cast<const unsigned char*>(gameinterop::IdentityOf(entity));
-  if (identity == nullptr) {
-    return {};
-  }
-
-  // Read the designer name pointer out of the identity.
-  const char* name = nullptr;
-  std::memcpy(&name, identity + kDesignerNameOffset, sizeof(name));
-  return name == nullptr ? std::string_view() : std::string_view(name);
 }
 
 // FindHero resolves a request's hero by its identifier or its name.

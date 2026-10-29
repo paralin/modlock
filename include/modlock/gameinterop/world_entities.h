@@ -97,6 +97,9 @@ class MODLOCK_API WorldEntities {
   // Find returns the handle of every live entity with this exact designer
   // name.
   std::expected<std::vector<uint32_t>, std::string> Find(std::string_view designer_name);
+  // FindByName returns the handle of every live entity with this exact name,
+  // the targetname a map or a spawn key value gave it.
+  std::expected<std::vector<uint32_t>, std::string> FindByName(std::string_view name);
 
   // Spawn adds one NPC beside the existing world through CreateEntity and
   // returns its handle. A health of zero keeps the subclass default. Call
@@ -152,6 +155,10 @@ class MODLOCK_API WorldEntities {
   static uint32_t SubclassId(std::string_view vdata_name);
 
  private:
+  // HandlesWhere returns the handle of every live entity whose name, as read
+  // by read, equals want.
+  std::expected<std::vector<uint32_t>, std::string> HandlesWhere(
+      std::string_view (*read)(void* entity), std::string_view want);
   std::expected<Sample, std::string> ReadEntity(void* entity, std::string name) const;
   // LaneOffset returns where an entity whose class walks a lane, such as a
   // trooper, stores it, or nullopt for one that walks none.

@@ -492,6 +492,13 @@ class HostService {
     return std::unexpected("this host does not support EntityClass");
   }
 
+  // EntityName returns a live entity's name, the targetname a map or a spawn
+  // key value gave it, or an empty name for an unnamed entity.
+  virtual std::expected<entities::EntityNameResponse, std::string> EntityName(
+      const entities::EntityRequest& /*request*/) {
+    return std::unexpected("this host does not support EntityName");
+  }
+
   // EntityPosition returns where a live entity stands, its absolute origin
   // and angles, as MoveEntity places it, and its velocity. Any entity with a
   // place in the world has one, such as one of the map's boxes.
@@ -791,6 +798,13 @@ class HostService {
   virtual std::expected<entities::EntitiesResponse, std::string> FindEntities(
       const entities::FindEntitiesRequest& /*request*/) {
     return std::unexpected("this host does not support FindEntities");
+  }
+
+  // FindEntitiesByName returns the handle of every live entity with a name,
+  // the targetname a map or the targetname key value of CreateEntity gave it.
+  virtual std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
+      const entities::FindEntitiesByNameRequest& /*request*/) {
+    return std::unexpected("this host does not support FindEntitiesByName");
   }
 
   // RemoveEntities removes every entity of a class, such as npc_trooper,
@@ -1366,6 +1380,14 @@ class HostService {
            }
            return detail::Answer(host.EntityClass(request));
          }},
+        {"EntityName",
+         [](HostService& host, const std::string& bytes) {
+           entities::EntityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the EntityName request is malformed");
+           }
+           return detail::Answer(host.EntityName(request));
+         }},
         {"EntityPosition",
          [](HostService& host, const std::string& bytes) {
            entities::EntityRequest request;
@@ -1677,6 +1699,14 @@ class HostService {
              return detail::Fail("the FindEntities request is malformed");
            }
            return detail::Answer(host.FindEntities(request));
+         }},
+        {"FindEntitiesByName",
+         [](HostService& host, const std::string& bytes) {
+           entities::FindEntitiesByNameRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the FindEntitiesByName request is malformed");
+           }
+           return detail::Answer(host.FindEntitiesByName(request));
          }},
         {"RemoveEntities",
          [](HostService& host, const std::string& bytes) {

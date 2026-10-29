@@ -161,6 +161,33 @@ struct FindEntitiesRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FindEntitiesRequestDefaultTypeInternal _FindEntitiesRequest_default_instance_;
 
+inline constexpr FindEntitiesByNameRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()) {}
+
+template <typename>
+PROTOBUF_CONSTEXPR FindEntitiesByNameRequest::FindEntitiesByNameRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(FindEntitiesByNameRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct FindEntitiesByNameRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR FindEntitiesByNameRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~FindEntitiesByNameRequestDefaultTypeInternal() {}
+  union {
+    FindEntitiesByNameRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FindEntitiesByNameRequestDefaultTypeInternal _FindEntitiesByNameRequest_default_instance_;
+
 inline constexpr EntityResponse::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -210,6 +237,33 @@ struct EntityRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EntityRequestDefaultTypeInternal _EntityRequest_default_instance_;
+
+inline constexpr EntityNameResponse::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()) {}
+
+template <typename>
+PROTOBUF_CONSTEXPR EntityNameResponse::EntityNameResponse(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(EntityNameResponse_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct EntityNameResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR EntityNameResponseDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~EntityNameResponseDefaultTypeInternal() {}
+  union {
+    EntityNameResponse _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EntityNameResponseDefaultTypeInternal _EntityNameResponse_default_instance_;
 
 inline constexpr EntityClassName::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -741,6 +795,16 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::FindEntitiesRequest, _impl_.class_name_),
         0,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::FindEntitiesByNameRequest, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::FindEntitiesByNameRequest, _impl_.name_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityNameResponse, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::EntityNameResponse, _impl_.name_),
+        0,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::RemoveEntitiesRequest, _impl_._has_bits_),
         4, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::entities::RemoveEntitiesRequest, _impl_.class_name_),
@@ -777,9 +841,11 @@ static const ::_pbi::MigrationSchema
         {121, sizeof(::modlock::wasm::entities::PickupResponse)},
         {126, sizeof(::modlock::wasm::entities::PickupRequest)},
         {131, sizeof(::modlock::wasm::entities::FindEntitiesRequest)},
-        {136, sizeof(::modlock::wasm::entities::RemoveEntitiesRequest)},
-        {141, sizeof(::modlock::wasm::entities::EntitiesResponse)},
-        {146, sizeof(::modlock::wasm::entities::CountResponse)},
+        {136, sizeof(::modlock::wasm::entities::FindEntitiesByNameRequest)},
+        {141, sizeof(::modlock::wasm::entities::EntityNameResponse)},
+        {146, sizeof(::modlock::wasm::entities::RemoveEntitiesRequest)},
+        {151, sizeof(::modlock::wasm::entities::EntitiesResponse)},
+        {156, sizeof(::modlock::wasm::entities::CountResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::entities::_MoveEntityRequest_default_instance_._instance,
@@ -800,6 +866,8 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::entities::_PickupResponse_default_instance_._instance,
     &::modlock::wasm::entities::_PickupRequest_default_instance_._instance,
     &::modlock::wasm::entities::_FindEntitiesRequest_default_instance_._instance,
+    &::modlock::wasm::entities::_FindEntitiesByNameRequest_default_instance_._instance,
+    &::modlock::wasm::entities::_EntityNameResponse_default_instance_._instance,
     &::modlock::wasm::entities::_RemoveEntitiesRequest_default_instance_._instance,
     &::modlock::wasm::entities::_EntitiesResponse_default_instance_._instance,
     &::modlock::wasm::entities::_CountResponse_default_instance_._instance,
@@ -857,13 +925,15 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     ".geometry.Vec3\" \n\016PickupResponse\022\016\n\006pick"
     "up\030\001 \001(\r\"\037\n\rPickupRequest\022\016\n\006pickup\030\001 \001("
     "\r\")\n\023FindEntitiesRequest\022\022\n\nclass_name\030\001"
-    " \001(\t\"+\n\025RemoveEntitiesRequest\022\022\n\nclass_n"
-    "ame\030\001 \001(\t\"$\n\020EntitiesResponse\022\020\n\010entitie"
-    "s\030\001 \003(\r\"\036\n\rCountResponse\022\r\n\005count\030\001 \001(\005*"
-    "@\n\nPickupKind\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PI"
-    "CKUP_KIND_MOVEMENT_BUFF\020\001B7Z5github.com/"
-    "paralin/modlock/src/wasm/entities;entiti"
-    "esb\006proto3"
+    " \001(\t\")\n\031FindEntitiesByNameRequest\022\014\n\004nam"
+    "e\030\001 \001(\t\"\"\n\022EntityNameResponse\022\014\n\004name\030\001 "
+    "\001(\t\"+\n\025RemoveEntitiesRequest\022\022\n\nclass_na"
+    "me\030\001 \001(\t\"$\n\020EntitiesResponse\022\020\n\010entities"
+    "\030\001 \003(\r\"\036\n\rCountResponse\022\r\n\005count\030\001 \001(\005*@"
+    "\n\nPickupKind\022\023\n\017PICKUP_KIND_URN\020\000\022\035\n\031PIC"
+    "KUP_KIND_MOVEMENT_BUFF\020\001B7Z5github.com/p"
+    "aralin/modlock/src/wasm/entities;entitie"
+    "sb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto_deps[2] = {
@@ -874,13 +944,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto = {
     false,
     false,
-    2290,
+    2369,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto,
     "github.com/paralin/modlock/src/wasm/entities/entities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto_deps,
     2,
-    21,
+    23,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto::offsets,
@@ -6783,6 +6853,556 @@ void FindEntitiesRequest::InternalSwap(FindEntitiesRequest* PROTOBUF_RESTRICT PR
 }
 
 ::google::protobuf::Metadata FindEntitiesRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class FindEntitiesByNameRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<FindEntitiesByNameRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(FindEntitiesByNameRequest, _impl_._has_bits_);
+};
+
+FindEntitiesByNameRequest::FindEntitiesByNameRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, FindEntitiesByNameRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.entities.FindEntitiesByNameRequest)
+}
+PROTOBUF_NDEBUG_INLINE FindEntitiesByNameRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::entities::FindEntitiesByNameRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        name_(arena, from.name_) {}
+
+FindEntitiesByNameRequest::FindEntitiesByNameRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const FindEntitiesByNameRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, FindEntitiesByNameRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  FindEntitiesByNameRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.entities.FindEntitiesByNameRequest)
+}
+PROTOBUF_NDEBUG_INLINE FindEntitiesByNameRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        name_(arena) {}
+
+inline void FindEntitiesByNameRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+FindEntitiesByNameRequest::~FindEntitiesByNameRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.entities.FindEntitiesByNameRequest)
+  SharedDtor(*this);
+}
+inline void FindEntitiesByNameRequest::SharedDtor(MessageLite& self) {
+  FindEntitiesByNameRequest& this_ = static_cast<FindEntitiesByNameRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL FindEntitiesByNameRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) FindEntitiesByNameRequest(arena);
+}
+constexpr auto FindEntitiesByNameRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(FindEntitiesByNameRequest),
+                                            alignof(FindEntitiesByNameRequest));
+}
+constexpr auto FindEntitiesByNameRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_FindEntitiesByNameRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &FindEntitiesByNameRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<FindEntitiesByNameRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &FindEntitiesByNameRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<FindEntitiesByNameRequest>(), &FindEntitiesByNameRequest::ByteSizeLong,
+              &FindEntitiesByNameRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(FindEntitiesByNameRequest, _impl_._cached_size_),
+          false,
+      },
+      &FindEntitiesByNameRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull FindEntitiesByNameRequest_class_data_ =
+        FindEntitiesByNameRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+FindEntitiesByNameRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&FindEntitiesByNameRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(FindEntitiesByNameRequest_class_data_.tc_table);
+  return FindEntitiesByNameRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 60, 2>
+FindEntitiesByNameRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(FindEntitiesByNameRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    FindEntitiesByNameRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::entities::FindEntitiesByNameRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(FindEntitiesByNameRequest, _impl_.name_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string name = 1;
+    {PROTOBUF_FIELD_OFFSET(FindEntitiesByNameRequest, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\57\4\0\0\0\0\0\0"
+    "modlock.wasm.entities.FindEntitiesByNameRequest"
+    "name"
+  }},
+};
+PROTOBUF_NOINLINE void FindEntitiesByNameRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.entities.FindEntitiesByNameRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.name_.ClearNonDefaultToEmpty();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL FindEntitiesByNameRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const FindEntitiesByNameRequest& this_ = static_cast<const FindEntitiesByNameRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL FindEntitiesByNameRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const FindEntitiesByNameRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.entities.FindEntitiesByNameRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string name = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_name().empty()) {
+      const ::std::string& _s = this_._internal_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.entities.FindEntitiesByNameRequest.name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.entities.FindEntitiesByNameRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t FindEntitiesByNameRequest::ByteSizeLong(const MessageLite& base) {
+  const FindEntitiesByNameRequest& this_ = static_cast<const FindEntitiesByNameRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t FindEntitiesByNameRequest::ByteSizeLong() const {
+  const FindEntitiesByNameRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.entities.FindEntitiesByNameRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // string name = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_name());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void FindEntitiesByNameRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<FindEntitiesByNameRequest*>(&to_msg);
+  auto& from = static_cast<const FindEntitiesByNameRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.entities.FindEntitiesByNameRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!from._internal_name().empty()) {
+      _this->_internal_set_name(from._internal_name());
+    } else {
+      if (_this->_impl_.name_.IsDefault()) {
+        _this->_internal_set_name("");
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void FindEntitiesByNameRequest::CopyFrom(const FindEntitiesByNameRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.entities.FindEntitiesByNameRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void FindEntitiesByNameRequest::InternalSwap(FindEntitiesByNameRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+}
+
+::google::protobuf::Metadata FindEntitiesByNameRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class EntityNameResponse::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<EntityNameResponse>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(EntityNameResponse, _impl_._has_bits_);
+};
+
+EntityNameResponse::EntityNameResponse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, EntityNameResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.entities.EntityNameResponse)
+}
+PROTOBUF_NDEBUG_INLINE EntityNameResponse::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::entities::EntityNameResponse& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        name_(arena, from.name_) {}
+
+EntityNameResponse::EntityNameResponse(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const EntityNameResponse& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, EntityNameResponse_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  EntityNameResponse* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.entities.EntityNameResponse)
+}
+PROTOBUF_NDEBUG_INLINE EntityNameResponse::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        name_(arena) {}
+
+inline void EntityNameResponse::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+EntityNameResponse::~EntityNameResponse() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.entities.EntityNameResponse)
+  SharedDtor(*this);
+}
+inline void EntityNameResponse::SharedDtor(MessageLite& self) {
+  EntityNameResponse& this_ = static_cast<EntityNameResponse&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.name_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL EntityNameResponse::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) EntityNameResponse(arena);
+}
+constexpr auto EntityNameResponse::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(EntityNameResponse),
+                                            alignof(EntityNameResponse));
+}
+constexpr auto EntityNameResponse::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_EntityNameResponse_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &EntityNameResponse::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<EntityNameResponse>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &EntityNameResponse::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<EntityNameResponse>(), &EntityNameResponse::ByteSizeLong,
+              &EntityNameResponse::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(EntityNameResponse, _impl_._cached_size_),
+          false,
+      },
+      &EntityNameResponse::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fentities_2fentities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull EntityNameResponse_class_data_ =
+        EntityNameResponse::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+EntityNameResponse::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&EntityNameResponse_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(EntityNameResponse_class_data_.tc_table);
+  return EntityNameResponse_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 53, 2>
+EntityNameResponse::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(EntityNameResponse, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    EntityNameResponse_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::entities::EntityNameResponse>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // string name = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(EntityNameResponse, _impl_.name_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string name = 1;
+    {PROTOBUF_FIELD_OFFSET(EntityNameResponse, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\50\4\0\0\0\0\0\0"
+    "modlock.wasm.entities.EntityNameResponse"
+    "name"
+  }},
+};
+PROTOBUF_NOINLINE void EntityNameResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.entities.EntityNameResponse)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.name_.ClearNonDefaultToEmpty();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL EntityNameResponse::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const EntityNameResponse& this_ = static_cast<const EntityNameResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL EntityNameResponse::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const EntityNameResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.entities.EntityNameResponse)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // string name = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_name().empty()) {
+      const ::std::string& _s = this_._internal_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.entities.EntityNameResponse.name");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.entities.EntityNameResponse)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t EntityNameResponse::ByteSizeLong(const MessageLite& base) {
+  const EntityNameResponse& this_ = static_cast<const EntityNameResponse&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t EntityNameResponse::ByteSizeLong() const {
+  const EntityNameResponse& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.entities.EntityNameResponse)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // string name = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_name());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void EntityNameResponse::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<EntityNameResponse*>(&to_msg);
+  auto& from = static_cast<const EntityNameResponse&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.entities.EntityNameResponse)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!from._internal_name().empty()) {
+      _this->_internal_set_name(from._internal_name());
+    } else {
+      if (_this->_impl_.name_.IsDefault()) {
+        _this->_internal_set_name("");
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void EntityNameResponse::CopyFrom(const EntityNameResponse& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.entities.EntityNameResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void EntityNameResponse::InternalSwap(EntityNameResponse* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+}
+
+::google::protobuf::Metadata EntityNameResponse::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

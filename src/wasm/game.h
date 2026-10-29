@@ -449,6 +449,8 @@ class Game : public HostService {
       const fields::WriteFieldListRequest& request) override;
   std::expected<entities::EntityClassResponse, std::string> EntityClass(
       const entities::EntityRequest& request) override;
+  std::expected<entities::EntityNameResponse, std::string> EntityName(
+      const entities::EntityRequest& request) override;
   std::expected<entities::EntityPositionResponse, std::string> EntityPosition(
       const entities::EntityRequest& request) override;
   std::expected<abilities::ActiveResponse, std::string> ModifierState(
@@ -512,6 +514,8 @@ class Game : public HostService {
       const entities::PickupRequest& request) override;
   std::expected<entities::EntitiesResponse, std::string> FindEntities(
       const entities::FindEntitiesRequest& request) override;
+  std::expected<entities::EntitiesResponse, std::string> FindEntitiesByName(
+      const entities::FindEntitiesByNameRequest& request) override;
   std::expected<entities::CountResponse, std::string> RemoveEntities(
       const entities::RemoveEntitiesRequest& request) override;
   std::expected<void, std::string> ClearMap() override;

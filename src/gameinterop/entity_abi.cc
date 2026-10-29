@@ -23,6 +23,35 @@ constexpr size_t kIdentityClass = 0x08;
 constexpr size_t kEntityClassInfo = 0x58;
 constexpr size_t kClassInfoSchemaBinding = 0x28;
 
+// kMaxDesignerName and kMaxEntityName bound the scans for a name's terminator.
+constexpr size_t kMaxDesignerName = 128;
+constexpr size_t kMaxEntityName = 256;
+
+// IdentityString borrows the pooled string at offset in entity's identity,
+// or returns empty when the pointer is null, a character fails accept, or no
+// terminator falls within limit characters.
+template <typename Accept>
+std::string_view IdentityString(void* entity, size_t offset, size_t limit, Accept accept) {
+  const auto* identity = static_cast<const uint8_t*>(IdentityOf(entity));
+  if (identity == nullptr) {
+    return {};
+  }
+  const char* text = nullptr;
+  std::memcpy(&text, identity + offset, sizeof(text));
+  if (text == nullptr) {
+    return {};
+  }
+  for (size_t i = 0; i < limit; ++i) {
+    if (!text[i]) {
+      return {text, i};
+    }
+    if (!accept(text[i])) {
+      return {};
+    }
+  }
+  return {};
+}
+
 // Teleport calls CBaseEntity::Teleport. Null pose pointers preserve placement.
 // An unresolved slot leaves the entity in place.
 void Teleport(void* entity, const float* position, const float* angles, const float* velocity) {
@@ -178,6 +207,19 @@ void SetEntityVelocity(void* entity, const std::array<float, 3>& velocity) {
 
 void* IdentityOf(void* entity) {
   return entity == nullptr ? nullptr : ReadPointer(entity, kIdentityOffset);
+}
+
+std::string_view DesignerName(void* entity) {
+  // Accept only a short lowercase identifier.
+  return IdentityString(entity, kIdentityDesignerNameOffset, kMaxDesignerName, [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_';
+  });
+}
+
+std::string_view EntityName(void* entity) {
+  // Accept any printable text, as Hammer and the targetname key value allow.
+  return IdentityString(entity, kIdentityNameOffset, kMaxEntityName,
+                        [](char c) { return c >= ' ' && c <= '~'; });
 }
 
 std::optional<uint32_t> ReferenceHandleOf(void* entity) {

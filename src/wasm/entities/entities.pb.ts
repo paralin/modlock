@@ -1164,6 +1164,96 @@ export const FindEntitiesRequest: MessageType<FindEntitiesRequest> =
   )
 
 /**
+ * FindEntitiesByNameRequest names the entities to find.
+ *
+ * @generated from message modlock.wasm.entities.FindEntitiesByNameRequest
+ */
+export interface FindEntitiesByNameRequest {
+  /**
+   * Name is the exact name a map or the targetname key value gave the
+   * entities, such as the name ent_find and ent_report print.
+   */
+  name?: string
+}
+
+export const FindEntitiesByNameRequest: MessageType<FindEntitiesByNameRequest> =
+  /* @__PURE__ */ createMessageType<FindEntitiesByNameRequest>(
+    'modlock.wasm.entities.FindEntitiesByNameRequest',
+    () => [[1, 'name', 9]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: FindEntitiesByNameRequest,
+      ): FindEntitiesByNameRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: FindEntitiesByNameRequest, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * EntityNameResponse holds a live entity's name.
+ *
+ * @generated from message modlock.wasm.entities.EntityNameResponse
+ */
+export interface EntityNameResponse {
+  /**
+   * Name is the targetname a map or a spawn key value gave the entity, or
+   * empty for an unnamed one.
+   */
+  name?: string
+}
+
+export const EntityNameResponse: MessageType<EntityNameResponse> =
+  /* @__PURE__ */ createMessageType<EntityNameResponse>(
+    'modlock.wasm.entities.EntityNameResponse',
+    () => [[1, 'name', 9]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: EntityNameResponse,
+      ): EntityNameResponse => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.name = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: EntityNameResponse, w: Writer): void => {
+        {
+          const v = m.name
+          if (v) w.uint32(10).string(v)
+        }
+      },
+    },
+  )
+
+/**
  * RemoveEntitiesRequest names the entity class to remove.
  *
  * @generated from message modlock.wasm.entities.RemoveEntitiesRequest

@@ -361,6 +361,10 @@ service Host {
   // CCitadelPlayerPawn, whose fields ReadField reads, and its designer name.
   rpc EntityClass(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityClassResponse);
 
+  // EntityName returns a live entity's name, the targetname a map or a spawn
+  // key value gave it, or an empty name for an unnamed entity.
+  rpc EntityName(modlock.wasm.entities.EntityRequest) returns (modlock.wasm.entities.EntityNameResponse);
+
   // EntityPosition returns where a live entity stands, its absolute origin
   // and angles, as MoveEntity places it, and its velocity. Any entity with a
   // place in the world has one, such as one of the map's boxes.
@@ -553,6 +557,10 @@ service Host {
   // FindEntities returns the handle of every live entity of a class, such as
   // zip_line_node.
   rpc FindEntities(modlock.wasm.entities.FindEntitiesRequest) returns (modlock.wasm.entities.EntitiesResponse);
+
+  // FindEntitiesByName returns the handle of every live entity with a name,
+  // the targetname a map or the targetname key value of CreateEntity gave it.
+  rpc FindEntitiesByName(modlock.wasm.entities.FindEntitiesByNameRequest) returns (modlock.wasm.entities.EntitiesResponse);
 
   // RemoveEntities removes every entity of a class, such as npc_trooper,
   // without rewards, and returns how many it removed.

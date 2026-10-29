@@ -642,7 +642,18 @@ std::expected<entities::EntityClassResponse, std::string> Game::EntityClass(
   entities::EntityClassResponse response;
   auto* name = response.mutable_name();
   name->set_class_name(std::string(gameinterop::SchemaClassNameOf(*schema)));
-  name->set_designer_name(std::string(DesignerName(*entity)));
+  name->set_designer_name(std::string(gameinterop::DesignerName(*entity)));
+  return response;
+}
+
+std::expected<entities::EntityNameResponse, std::string> Game::EntityName(
+    const entities::EntityRequest& request) {
+  auto entity = Entity(request.entity());
+  if (!entity) {
+    return std::unexpected(entity.error());
+  }
+  entities::EntityNameResponse response;
+  response.set_name(std::string(gameinterop::EntityName(*entity)));
   return response;
 }
 

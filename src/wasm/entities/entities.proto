@@ -204,6 +204,20 @@ message FindEntitiesRequest {
   string class_name = 1;
 }
 
+// FindEntitiesByNameRequest names the entities to find.
+message FindEntitiesByNameRequest {
+  // Name is the exact name a map or the targetname key value gave the
+  // entities, such as the name ent_find and ent_report print.
+  string name = 1;
+}
+
+// EntityNameResponse holds a live entity's name.
+message EntityNameResponse {
+  // Name is the targetname a map or a spawn key value gave the entity, or
+  // empty for an unnamed one.
+  string name = 1;
+}
+
 // RemoveEntitiesRequest names the entity class to remove.
 message RemoveEntitiesRequest {
   // ClassName is the exact entity class, such as npc_trooper.

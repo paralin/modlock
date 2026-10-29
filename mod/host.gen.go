@@ -996,6 +996,17 @@ func EntityClass(entity uint32) (*EntityClassName, error) {
 	return response.GetName(), nil
 }
 
+// EntityName returns a live entity's name, the targetname a map or a spawn
+// key value gave it, or an empty name for an unnamed entity.
+func EntityName(entity uint32) (string, error) {
+	request := &entitiespb.EntityRequest{Entity: entity}
+	response := &entitiespb.EntityNameResponse{}
+	if err := invoke("EntityName", request, response); err != nil {
+		return "", err
+	}
+	return response.GetName(), nil
+}
+
 // EntityPosition returns where a live entity stands, its absolute origin
 // and angles, as MoveEntity places it, and its velocity. Any entity with a
 // place in the world has one, such as one of the map's boxes.
@@ -1361,6 +1372,17 @@ func FindEntities(className string) ([]uint32, error) {
 	request := &entitiespb.FindEntitiesRequest{ClassName: className}
 	response := &entitiespb.EntitiesResponse{}
 	if err := invoke("FindEntities", request, response); err != nil {
+		return nil, err
+	}
+	return response.GetEntities(), nil
+}
+
+// FindEntitiesByName returns the handle of every live entity with a name,
+// the targetname a map or the targetname key value of CreateEntity gave it.
+func FindEntitiesByName(name string) ([]uint32, error) {
+	request := &entitiespb.FindEntitiesByNameRequest{Name: name}
+	response := &entitiespb.EntitiesResponse{}
+	if err := invoke("FindEntitiesByName", request, response); err != nil {
 		return nil, err
 	}
 	return response.GetEntities(), nil
