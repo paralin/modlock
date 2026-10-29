@@ -165,11 +165,11 @@ void WasmPlugin::Leave(int32_t slot) {
   ShowUi(slot, reset);
 }
 
-void WasmPlugin::Scope(std::optional<std::set<int32_t>> players) {
+void WasmPlugin::Scope(WasmScope scope) {
   // Each occupied slot the old scope served and the new one does not leaves
   // the mod.
   PlayerScope next;
-  next.Limit(std::move(players));
+  next.Limit(std::move(scope));
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     if (scope_.Serves(slot) && !next.Serves(slot) &&
         gameinterop::ConnectionTracker::StateForSlot(slot).occupied) {
@@ -180,6 +180,19 @@ void WasmPlugin::Scope(std::optional<std::set<int32_t>> players) {
   // The mod hears its new players before its next event.
   scope_ = std::move(next);
   reported_.reset();
+
+  // Hide its players if it plays apart.
+  if (auto apart = game_.Apart(scope_.Apart()); !apart) {
+    Log("players cannot be kept apart: " + apart.error());
+  }
+
+  // A limited mod rules hits even when it wants none, so listen again with
+  // the new scope.
+  combat_.Reset();
+  adjusted_.reset();
+  if (map_) {
+    ListenToCombat();
+  }
 }
 
 wasm::Reply WasmPlugin::Call(const wasm::Call& call) {

@@ -20,6 +20,21 @@
 
 namespace modlock {
 
+// WasmScope is the part of a server a mod runs a game for, as when several
+// mods run games for different players on one server.
+struct WasmScope {
+  // players are the slots the mod serves, or every player when nullopt.
+  std::optional<std::set<int32_t>> players;
+  // world lets a mod that serves some players still change the game for
+  // every player, as the one game that owns the server's settings does. At
+  // most one such mod runs at a time. A mod that serves every player always
+  // may.
+  bool world = false;
+  // apart hides the heroes of the mod's players from every other player, and
+  // every other player's hero from them.
+  bool apart = false;
+};
+
 // WasmHostObserver learns what happens to a WasmHost's mods. Its methods run
 // on the engine thread, or on the thread that loads the mods before the engine
 // starts.
@@ -106,15 +121,15 @@ class MODLOCK_API WasmHost {
   // reloads.
   [[nodiscard]] bool Held(std::string_view mod) const;
 
-  // Scope limits the running mod named mod to the players in the given
-  // slots, or lets it serve every player when players is nullopt, as when one
-  // mod runs a game for some of the server's players beside another. A
-  // limited mod sees only its players, hears no event about another player,
-  // and is refused a request that addresses another player or changes the
-  // whole server. Each player it stops serving leaves it as a disconnected
-  // player does.
-  [[nodiscard]] std::expected<void, std::string> Scope(std::string_view mod,
-                                                       std::optional<std::set<int32_t>> players);
+  // Scope limits the running mod named mod to scope, as when one mod runs a
+  // game for some of the server's players beside another. A limited mod sees
+  // only its players, hears no event or hit about another player, and is
+  // refused a request that addresses another player or, unless its scope
+  // holds the world, changes the whole server. A hit between one of its
+  // players and a player it does not serve is blocked. Each player it stops
+  // serving leaves it as a disconnected player does. A scope that asks for
+  // the world while another limited mod holds it is refused.
+  [[nodiscard]] std::expected<void, std::string> Scope(std::string_view mod, WasmScope scope);
 
   // Provide answers mods' calls to service with extension, replacing the
   // service's earlier extension. An empty extension withdraws the service.

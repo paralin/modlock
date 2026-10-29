@@ -148,13 +148,21 @@ bool WasmHost::Held(std::string_view mod) const {
   return found != impl_->plugins.end() && found->second->Held();
 }
 
-std::expected<void, std::string> WasmHost::Scope(std::string_view mod,
-                                                 std::optional<std::set<int32_t>> players) {
+std::expected<void, std::string> WasmHost::Scope(std::string_view mod, WasmScope scope) {
   auto found = impl_->plugins.find(mod);
   if (found == impl_->plugins.end()) {
     return std::unexpected("no running mod is named " + std::string(mod));
   }
-  found->second->Scope(std::move(players));
+
+  // One limited mod at a time changes the world.
+  if (scope.players && scope.world) {
+    for (const auto& [name, plugin] : impl_->plugins) {
+      if (name != mod && plugin->Scoped().Limited() && plugin->Scoped().World()) {
+        return std::unexpected("the mod " + name + " already changes the world");
+      }
+    }
+  }
+  found->second->Scope(std::move(scope));
   return {};
 }
 

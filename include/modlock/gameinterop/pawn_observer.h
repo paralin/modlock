@@ -393,6 +393,18 @@ class MODLOCK_API PawnObserver {
   // The pointer is borrowed: any engine call can destroy the pawn.
   void* PawnForSlot(int32_t slot) const;
 
+  // PawnHandleForSlot returns the entity handle of the pawn PawnForSlot
+  // returns, or no value when there is none. A handle stays safe to hold
+  // across engine calls, unlike the pointer.
+  std::optional<uint32_t> PawnHandleForSlot(int32_t slot) const;
+
+  // SlotOfPawn returns the connected player slot whose controller selects
+  // the pawn handle names, as Observe would, or no value when no player's
+  // does, such as for a trooper, a structure or a stale handle. It reads
+  // only controllers, never the entity handle names, and costs one
+  // controller read per connected player.
+  std::optional<int32_t> SlotOfPawn(uint32_t handle) const;
+
   // CurrentOriginForSlot reads the scene-node origin of the pawn PawnForSlot
   // returns, or no value when there is none.
   std::optional<std::array<float, 3>> CurrentOriginForSlot(int32_t slot) const;
