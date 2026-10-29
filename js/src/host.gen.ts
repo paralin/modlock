@@ -1409,7 +1409,10 @@ export interface Pawn {
   readonly team: number
   /** health is the hero's health; zero or less is dead. */
   readonly health: number
-  /** maxHealth is the hero's networked maximum health. */
+  /**
+   * maxHealth is the hero's networked maximum health, which leaves out
+   * health from items until the hero respawns.
+   */
   readonly maxHealth: number
   /** position is the hero's origin, at its feet. */
   readonly position: Vector
@@ -1446,6 +1449,11 @@ export interface Pawn {
    * commands.
    */
   readonly cameraPosition?: Vector
+  /**
+   * effectiveMaxHealth is the maximum the hero's health bar shows, health
+   * from items included. Absent when the game's own reading is unavailable.
+   */
+  readonly effectiveMaxHealth?: number
 }
 
 /** fromPawn decodes a Pawn. */
@@ -1468,6 +1476,7 @@ function fromPawn(message: playersPb.Pawn): Pawn {
     carryingUrn: message.carryingUrn,
     score: message.score === undefined ? undefined : fromScore(message.score),
     cameraPosition: message.cameraPosition === undefined ? undefined : vector(message.cameraPosition),
+    effectiveMaxHealth: message.effectiveMaxHealth,
   }
 }
 

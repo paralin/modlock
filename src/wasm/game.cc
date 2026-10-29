@@ -340,6 +340,9 @@ std::expected<players::PawnResponse, std::string> Game::Pawn(
   pawn->set_team(sample->team);
   pawn->set_health(sample->health);
   pawn->set_max_health(sample->max_health);
+  if (sample->effective_max_health) {
+    pawn->set_effective_max_health(*sample->effective_max_health);
+  }
 
   // Copy the pawn's position and view.
   pawn->mutable_position()->set_x(sample->x);

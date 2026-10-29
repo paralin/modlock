@@ -830,7 +830,8 @@ export type Pawn = {
 	team: number,
 	-- health is the hero's health; zero or less is dead.
 	health: number,
-	-- maxHealth is the hero's networked maximum health.
+	-- maxHealth is the hero's networked maximum health, which leaves out
+	-- health from items until the hero respawns.
 	maxHealth: number,
 	-- position is the hero's origin, at its feet.
 	position: Vector,
@@ -861,6 +862,9 @@ export type Pawn = {
 	-- through the reticle. Absent for a bot and on hosts that cannot read
 	-- commands.
 	cameraPosition: Vector?,
+	-- effectiveMaxHealth is the maximum the hero's health bar shows, health
+	-- from items included. Absent when the game's own reading is unavailable.
+	effectiveMaxHealth: number?,
 }
 
 -- Score is one player's scoreboard counters since the match began, as the
@@ -2554,6 +2558,7 @@ schema.Pawn = {
 	{ number = 15, name = "carryingUrn", kind = "bool", optional = true },
 	{ number = 16, name = "score", kind = "message", optional = true, message = "Score" },
 	{ number = 17, name = "cameraPosition", kind = "message", optional = true, message = "Vec3" },
+	{ number = 18, name = "effectiveMaxHealth", kind = "int32", optional = true },
 }
 schema.Score = {
 	{ number = 1, name = "kills", kind = "int32" },

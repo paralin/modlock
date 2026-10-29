@@ -703,7 +703,8 @@ inline constexpr Pawn::Impl_::Impl_(
         max_stamina_{0},
         generation_{0u},
         souls_{0},
-        carrying_urn_{false} {}
+        carrying_urn_{false},
+        effective_max_health_{0} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Pawn::Pawn(::_pbi::ConstantInitialized)
@@ -1116,7 +1117,7 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_._has_bits_),
-        20, // hasbit index offset
+        21, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.entity_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.hero_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.team_),
@@ -1134,6 +1135,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.carrying_urn_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.score_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.camera_position_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Pawn, _impl_.effective_max_health_),
         7,
         8,
         9,
@@ -1151,6 +1153,7 @@ const ::uint32_t
         16,
         5,
         6,
+        17,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::Score, _impl_._has_bits_),
         11, // hasbit index offset
@@ -1444,33 +1447,33 @@ static const ::_pbi::MigrationSchema
         {48, sizeof(::modlock::wasm::players::ConnectionRoles)},
         {57, sizeof(::modlock::wasm::players::PawnResponse)},
         {62, sizeof(::modlock::wasm::players::Pawn)},
-        {99, sizeof(::modlock::wasm::players::Score)},
-        {118, sizeof(::modlock::wasm::players::SelectHeroRequest)},
-        {131, sizeof(::modlock::wasm::players::HeroResponse)},
-        {136, sizeof(::modlock::wasm::players::WatchRequest)},
-        {145, sizeof(::modlock::wasm::players::FreeCameraRequest)},
-        {154, sizeof(::modlock::wasm::players::CameraValue)},
-        {159, sizeof(::modlock::wasm::players::CameraMotion)},
-        {167, sizeof(::modlock::wasm::players::CameraHold)},
-        {172, sizeof(::modlock::wasm::players::CameraApproach)},
-        {187, sizeof(::modlock::wasm::players::CameraSpring)},
-        {198, sizeof(::modlock::wasm::players::CameraLerp)},
-        {211, sizeof(::modlock::wasm::players::CameraLag)},
-        {224, sizeof(::modlock::wasm::players::CameraOptions)},
-        {245, sizeof(::modlock::wasm::players::ClearCameraRequest)},
-        {252, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
-        {259, sizeof(::modlock::wasm::players::FreezeRequest)},
-        {266, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
-        {275, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
-        {282, sizeof(::modlock::wasm::players::ResetHeroRequest)},
-        {289, sizeof(::modlock::wasm::players::HealRequest)},
-        {296, sizeof(::modlock::wasm::players::SetStaminaRequest)},
-        {303, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
-        {310, sizeof(::modlock::wasm::players::HeroTarget)},
-        {335, sizeof(::modlock::wasm::players::EquipmentTarget)},
-        {344, sizeof(::modlock::wasm::players::TimerTarget)},
-        {359, sizeof(::modlock::wasm::players::BotOptions)},
-        {374, sizeof(::modlock::wasm::players::BotResponse)},
+        {101, sizeof(::modlock::wasm::players::Score)},
+        {120, sizeof(::modlock::wasm::players::SelectHeroRequest)},
+        {133, sizeof(::modlock::wasm::players::HeroResponse)},
+        {138, sizeof(::modlock::wasm::players::WatchRequest)},
+        {147, sizeof(::modlock::wasm::players::FreeCameraRequest)},
+        {156, sizeof(::modlock::wasm::players::CameraValue)},
+        {161, sizeof(::modlock::wasm::players::CameraMotion)},
+        {169, sizeof(::modlock::wasm::players::CameraHold)},
+        {174, sizeof(::modlock::wasm::players::CameraApproach)},
+        {189, sizeof(::modlock::wasm::players::CameraSpring)},
+        {200, sizeof(::modlock::wasm::players::CameraLerp)},
+        {213, sizeof(::modlock::wasm::players::CameraLag)},
+        {226, sizeof(::modlock::wasm::players::CameraOptions)},
+        {247, sizeof(::modlock::wasm::players::ClearCameraRequest)},
+        {254, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
+        {261, sizeof(::modlock::wasm::players::FreezeRequest)},
+        {268, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
+        {277, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
+        {284, sizeof(::modlock::wasm::players::ResetHeroRequest)},
+        {291, sizeof(::modlock::wasm::players::HealRequest)},
+        {298, sizeof(::modlock::wasm::players::SetStaminaRequest)},
+        {305, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
+        {312, sizeof(::modlock::wasm::players::HeroTarget)},
+        {337, sizeof(::modlock::wasm::players::EquipmentTarget)},
+        {346, sizeof(::modlock::wasm::players::TimerTarget)},
+        {361, sizeof(::modlock::wasm::players::BotOptions)},
+        {376, sizeof(::modlock::wasm::players::BotResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::players::_RestoredEvent_default_instance_._instance,
@@ -1532,7 +1535,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "am_id\030\001 \001(\004\022\022\n\ngeneration\030\002 \001(\r\022,\n\005roles"
     "\030\003 \003(\0162\035.modlock.wasm.players.ModRole\"8\n"
     "\014PawnResponse\022(\n\004pawn\030\001 \001(\0132\032.modlock.wa"
-    "sm.players.Pawn\"\341\004\n\004Pawn\022\016\n\006entity\030\001 \001(\r"
+    "sm.players.Pawn\"\235\005\n\004Pawn\022\016\n\006entity\030\001 \001(\r"
     "\022\014\n\004hero\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030\004"
     " \001(\005\022\022\n\nmax_health\030\005 \001(\005\022(\n\010position\030\006 \001"
     "(\0132\026.modlock.geometry.Vec3\0221\n\neye_angles"
@@ -1545,110 +1548,111 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     ".modlock.geometry.Vec3\022\031\n\014carrying_urn\030\017"
     " \001(\010H\002\210\001\001\022/\n\005score\030\020 \001(\0132\033.modlock.wasm."
     "players.ScoreH\003\210\001\001\0224\n\017camera_position\030\021 "
-    "\001(\0132\026.modlock.geometry.Vec3H\004\210\001\001B\n\n\010_sta"
-    "minaB\016\n\014_max_staminaB\017\n\r_carrying_urnB\010\n"
-    "\006_scoreB\022\n\020_camera_position\"\230\001\n\005Score\022\r\n"
-    "\005kills\030\001 \001(\005\022\016\n\006deaths\030\002 \001(\005\022\017\n\007assists\030"
-    "\003 \001(\005\022\021\n\tlast_hits\030\004 \001(\005\022\016\n\006denies\030\005 \001(\005"
-    "\022\023\n\013hero_damage\030\006 \001(\005\022\024\n\014hero_healing\030\007 "
-    "\001(\005\022\021\n\tnet_worth\030\010 \001(\005\"a\n\021SelectHeroRequ"
-    "est\022\016\n\006player\030\001 \001(\005\022\023\n\thero_name\030\002 \001(\tH\000"
-    "\022\021\n\007hero_id\030\003 \001(\rH\000\022\014\n\004team\030\004 \001(\005B\006\n\004her"
-    "o\"\034\n\014HeroResponse\022\014\n\004hero\030\001 \001(\r\"L\n\014Watch"
-    "Request\022\016\n\006player\030\001 \001(\005\022\016\n\006target\030\002 \001(\r\022"
-    "\022\n\005chase\030\003 \001(\010H\000\210\001\001B\010\n\006_chase\"|\n\021FreeCam"
-    "eraRequest\022\016\n\006player\030\001 \001(\005\022(\n\010position\030\002"
-    " \001(\0132\026.modlock.geometry.Vec3\022-\n\006facing\030\003"
-    " \001(\0132\035.modlock.geometry.EulerAngles\"T\n\013C"
-    "ameraValue\022\020\n\006number\030\001 \001(\002H\000\022*\n\010position"
-    "\030\002 \001(\0132\026.modlock.geometry.Vec3H\000B\007\n\005valu"
-    "e\"\234\002\n\014CameraMotion\0220\n\004hold\030\001 \001(\0132 .modlo"
-    "ck.wasm.players.CameraHoldH\000\0228\n\010approach"
-    "\030\002 \001(\0132$.modlock.wasm.players.CameraAppr"
-    "oachH\000\0224\n\006spring\030\003 \001(\0132\".modlock.wasm.pl"
-    "ayers.CameraSpringH\000\0220\n\004lerp\030\004 \001(\0132 .mod"
-    "lock.wasm.players.CameraLerpH\000\022.\n\003lag\030\005 "
-    "\001(\0132\037.modlock.wasm.players.CameraLagH\000B\010"
-    "\n\006motion\"0\n\nCameraHold\022\025\n\010duration\030\001 \001(\002"
-    "H\000\210\001\001B\013\n\t_duration\"\243\002\n\016CameraApproach\0225\n"
-    "\005value\030\001 \001(\0132!.modlock.wasm.players.Came"
-    "raValueH\000\210\001\001\022\022\n\005speed\030\002 \001(\002H\001\210\001\001\022\032\n\rdefa"
-    "ult_speed\030\003 \001(\002H\002\210\001\001\022\031\n\014acceleration\030\004 \001"
-    "(\002H\003\210\001\001\022\031\n\014min_duration\030\005 \001(\002H\004\210\001\001\022\032\n\rch"
-    "ase_default\030\006 \001(\010H\005\210\001\001B\010\n\006_valueB\010\n\006_spe"
-    "edB\020\n\016_default_speedB\017\n\r_accelerationB\017\n"
-    "\r_min_durationB\020\n\016_chase_default\"\305\001\n\014Cam"
-    "eraSpring\0225\n\005value\030\001 \001(\0132!.modlock.wasm."
-    "players.CameraValueH\000\210\001\001\022\025\n\010strength\030\002 \001"
-    "(\002H\001\210\001\001\022\026\n\tmin_speed\030\003 \001(\002H\002\210\001\001\022\031\n\014max_d"
-    "uration\030\004 \001(\002H\003\210\001\001B\010\n\006_valueB\013\n\t_strengt"
-    "hB\014\n\n_min_speedB\017\n\r_max_duration\"\312\001\n\nCam"
-    "eraLerp\0220\n\005start\030\001 \001(\0132!.modlock.wasm.pl"
-    "ayers.CameraValue\022.\n\003end\030\002 \001(\0132!.modlock"
-    ".wasm.players.CameraValue\022\021\n\004bias\030\003 \001(\002H"
-    "\000\210\001\001\022\021\n\004gain\030\004 \001(\002H\001\210\001\001\022\025\n\010duration\030\005 \001("
-    "\002H\002\210\001\001B\007\n\005_biasB\007\n\005_gainB\013\n\t_duration\"\361\001"
-    "\n\tCameraLag\022\031\n\014min_duration\030\001 \001(\002H\000\210\001\001\022\025"
-    "\n\010lag_time\030\002 \001(\002H\001\210\001\001\022\026\n\tmax_speed\030\003 \001(\002"
-    "H\002\210\001\001\022\034\n\017spring_strength\030\004 \001(\002H\003\210\001\001\022\"\n\025k"
-    "eep_target_on_screen\030\005 \001(\010H\004\210\001\001B\017\n\r_min_"
-    "durationB\013\n\t_lag_timeB\014\n\n_max_speedB\022\n\020_"
-    "spring_strengthB\030\n\026_keep_target_on_scree"
-    "n\"\315\002\n\rCameraOptions\022\016\n\006player\030\001 \001(\005\022\024\n\007c"
-    "ontext\030\002 \001(\tH\000\210\001\001\0220\n\005param\030\003 \001(\0162!.modlo"
-    "ck.wasm.players.CameraParam\0222\n\006motion\030\004 "
-    "\001(\0132\".modlock.wasm.players.CameraMotion\022"
-    "\022\n\005delay\030\005 \001(\002H\001\210\001\001\022\025\n\010relative\030\006 \001(\010H\002\210"
-    "\001\001\022\025\n\010priority\030\007 \001(\rH\003\210\001\001\022\023\n\006shared\030\010 \001("
-    "\010H\004\210\001\001\022\023\n\006target\030\t \001(\rH\005\210\001\001B\n\n\010_contextB"
-    "\010\n\006_delayB\013\n\t_relativeB\013\n\t_priorityB\t\n\007_"
-    "sharedB\t\n\007_target\"F\n\022ClearCameraRequest\022"
-    "\016\n\006player\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001B\n\n"
-    "\010_context\"1\n\021ChangeTeamRequest\022\016\n\006player"
-    "\030\001 \001(\005\022\014\n\004team\030\002 \001(\005\"\?\n\rFreezeRequest\022\016\n"
-    "\006player\030\001 \001(\005\022\023\n\006frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_f"
-    "rozen\"S\n\022AdjustSoulsRequest\022\016\n\006player\030\001 "
-    "\001(\005\022\r\n\005delta\030\002 \001(\005\022\023\n\006silent\030\003 \001(\010H\000\210\001\001B"
-    "\t\n\007_silent\"5\n\024StartingSoulsRequest\022\016\n\006pl"
-    "ayer\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"1\n\020ResetHeroRe"
-    "quest\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013"
-    "HealRequest\022\016\n\006player\030\001 \001(\005\022\016\n\006amount\030\002 "
-    "\001(\005\"4\n\021SetStaminaRequest\022\016\n\006player\030\001 \001(\005"
-    "\022\017\n\007stamina\030\002 \001(\002\"V\n\022RestoreHeroRequest\022"
-    "\016\n\006player\030\001 \001(\005\0220\n\006target\030\002 \001(\0132 .modloc"
-    "k.wasm.players.HeroTarget\"\323\003\n\nHeroTarget"
-    "\022(\n\010position\030\001 \001(\0132\026.modlock.geometry.Ve"
-    "c3\022-\n\006facing\030\002 \001(\0132\035.modlock.geometry.Eu"
-    "lerAngles\022\022\n\005fresh\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004"
-    " \001(\005H\001\210\001\001\022\023\n\006health\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_he"
-    "alth\030\006 \001(\005H\003\210\001\001\022\027\n\017upgrade_bonuses\030\007 \003(\002"
-    "\0228\n\tabilities\030\010 \003(\0132%.modlock.wasm.playe"
-    "rs.EquipmentTarget\0224\n\005items\030\t \003(\0132%.modl"
-    "ock.wasm.players.EquipmentTarget\022\032\n\rrepl"
-    "ace_items\030\n \001(\010H\004\210\001\001\0221\n\006timers\030\013 \003(\0132!.m"
-    "odlock.wasm.players.TimerTargetB\010\n\006_fres"
-    "hB\010\n\006_levelB\t\n\007_healthB\r\n\013_max_healthB\020\n"
-    "\016_replace_items\"H\n\017EquipmentTarget\022\n\n\002id"
-    "\030\001 \001(\r\022\021\n\004slot\030\002 \001(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\r"
-    "B\007\n\005_slot\"\342\001\n\013TimerTarget\022\n\n\002id\030\001 \001(\r\022\017\n"
-    "\007charges\030\002 \001(\005\022\033\n\016cooldown_start\030\003 \001(\002H\000"
-    "\210\001\001\022\031\n\014cooldown_end\030\004 \001(\002H\001\210\001\001\022\033\n\016rechar"
-    "ge_start\030\005 \001(\002H\002\210\001\001\022\031\n\014recharge_end\030\006 \001("
-    "\002H\003\210\001\001B\021\n\017_cooldown_startB\017\n\r_cooldown_e"
-    "ndB\021\n\017_recharge_startB\017\n\r_recharge_end\"\224"
-    "\001\n\nBotOptions\022\014\n\004name\030\001 \001(\t\022\014\n\004team\030\002 \001("
-    "\005\022\023\n\thero_name\030\003 \001(\tH\000\022\021\n\007hero_id\030\004 \001(\rH"
-    "\000\022-\n\010position\030\005 \001(\0132\026.modlock.geometry.V"
-    "ec3H\001\210\001\001B\006\n\004heroB\013\n\t_position\"\035\n\013BotResp"
-    "onse\022\016\n\006player\030\001 \001(\005*P\n\007ModRole\022\030\n\024MOD_R"
-    "OLE_UNSPECIFIED\020\000\022\026\n\022MOD_ROLE_DEVELOPER\020"
-    "\001\022\023\n\017MOD_ROLE_TESTER\020\002*\247\001\n\013CameraParam\022\031"
-    "\n\025CAMERA_PARAM_DISTANCE\020\000\022\036\n\032CAMERA_PARA"
-    "M_FIELD_OF_VIEW\020\001\022\027\n\023CAMERA_PARAM_TARGET"
-    "\020\002\022 \n\034CAMERA_PARAM_VERTICAL_OFFSET\020\003\022\"\n\036"
-    "CAMERA_PARAM_HORIZONTAL_OFFSET\020\004B5Z3gith"
-    "ub.com/paralin/modlock/src/wasm/players;"
-    "playersb\006proto3"
+    "\001(\0132\026.modlock.geometry.Vec3H\004\210\001\001\022!\n\024effe"
+    "ctive_max_health\030\022 \001(\005H\005\210\001\001B\n\n\010_staminaB"
+    "\016\n\014_max_staminaB\017\n\r_carrying_urnB\010\n\006_sco"
+    "reB\022\n\020_camera_positionB\027\n\025_effective_max"
+    "_health\"\230\001\n\005Score\022\r\n\005kills\030\001 \001(\005\022\016\n\006deat"
+    "hs\030\002 \001(\005\022\017\n\007assists\030\003 \001(\005\022\021\n\tlast_hits\030\004"
+    " \001(\005\022\016\n\006denies\030\005 \001(\005\022\023\n\013hero_damage\030\006 \001("
+    "\005\022\024\n\014hero_healing\030\007 \001(\005\022\021\n\tnet_worth\030\010 \001"
+    "(\005\"a\n\021SelectHeroRequest\022\016\n\006player\030\001 \001(\005\022"
+    "\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001(\rH\000\022"
+    "\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroResponse\022\014\n"
+    "\004hero\030\001 \001(\r\"L\n\014WatchRequest\022\016\n\006player\030\001 "
+    "\001(\005\022\016\n\006target\030\002 \001(\r\022\022\n\005chase\030\003 \001(\010H\000\210\001\001B"
+    "\010\n\006_chase\"|\n\021FreeCameraRequest\022\016\n\006player"
+    "\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modlock.geome"
+    "try.Vec3\022-\n\006facing\030\003 \001(\0132\035.modlock.geome"
+    "try.EulerAngles\"T\n\013CameraValue\022\020\n\006number"
+    "\030\001 \001(\002H\000\022*\n\010position\030\002 \001(\0132\026.modlock.geo"
+    "metry.Vec3H\000B\007\n\005value\"\234\002\n\014CameraMotion\0220"
+    "\n\004hold\030\001 \001(\0132 .modlock.wasm.players.Came"
+    "raHoldH\000\0228\n\010approach\030\002 \001(\0132$.modlock.was"
+    "m.players.CameraApproachH\000\0224\n\006spring\030\003 \001"
+    "(\0132\".modlock.wasm.players.CameraSpringH\000"
+    "\0220\n\004lerp\030\004 \001(\0132 .modlock.wasm.players.Ca"
+    "meraLerpH\000\022.\n\003lag\030\005 \001(\0132\037.modlock.wasm.p"
+    "layers.CameraLagH\000B\010\n\006motion\"0\n\nCameraHo"
+    "ld\022\025\n\010duration\030\001 \001(\002H\000\210\001\001B\013\n\t_duration\"\243"
+    "\002\n\016CameraApproach\0225\n\005value\030\001 \001(\0132!.modlo"
+    "ck.wasm.players.CameraValueH\000\210\001\001\022\022\n\005spee"
+    "d\030\002 \001(\002H\001\210\001\001\022\032\n\rdefault_speed\030\003 \001(\002H\002\210\001\001"
+    "\022\031\n\014acceleration\030\004 \001(\002H\003\210\001\001\022\031\n\014min_durat"
+    "ion\030\005 \001(\002H\004\210\001\001\022\032\n\rchase_default\030\006 \001(\010H\005\210"
+    "\001\001B\010\n\006_valueB\010\n\006_speedB\020\n\016_default_speed"
+    "B\017\n\r_accelerationB\017\n\r_min_durationB\020\n\016_c"
+    "hase_default\"\305\001\n\014CameraSpring\0225\n\005value\030\001"
+    " \001(\0132!.modlock.wasm.players.CameraValueH"
+    "\000\210\001\001\022\025\n\010strength\030\002 \001(\002H\001\210\001\001\022\026\n\tmin_speed"
+    "\030\003 \001(\002H\002\210\001\001\022\031\n\014max_duration\030\004 \001(\002H\003\210\001\001B\010"
+    "\n\006_valueB\013\n\t_strengthB\014\n\n_min_speedB\017\n\r_"
+    "max_duration\"\312\001\n\nCameraLerp\0220\n\005start\030\001 \001"
+    "(\0132!.modlock.wasm.players.CameraValue\022.\n"
+    "\003end\030\002 \001(\0132!.modlock.wasm.players.Camera"
+    "Value\022\021\n\004bias\030\003 \001(\002H\000\210\001\001\022\021\n\004gain\030\004 \001(\002H\001"
+    "\210\001\001\022\025\n\010duration\030\005 \001(\002H\002\210\001\001B\007\n\005_biasB\007\n\005_"
+    "gainB\013\n\t_duration\"\361\001\n\tCameraLag\022\031\n\014min_d"
+    "uration\030\001 \001(\002H\000\210\001\001\022\025\n\010lag_time\030\002 \001(\002H\001\210\001"
+    "\001\022\026\n\tmax_speed\030\003 \001(\002H\002\210\001\001\022\034\n\017spring_stre"
+    "ngth\030\004 \001(\002H\003\210\001\001\022\"\n\025keep_target_on_screen"
+    "\030\005 \001(\010H\004\210\001\001B\017\n\r_min_durationB\013\n\t_lag_tim"
+    "eB\014\n\n_max_speedB\022\n\020_spring_strengthB\030\n\026_"
+    "keep_target_on_screen\"\315\002\n\rCameraOptions\022"
+    "\016\n\006player\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001\0220\n"
+    "\005param\030\003 \001(\0162!.modlock.wasm.players.Came"
+    "raParam\0222\n\006motion\030\004 \001(\0132\".modlock.wasm.p"
+    "layers.CameraMotion\022\022\n\005delay\030\005 \001(\002H\001\210\001\001\022"
+    "\025\n\010relative\030\006 \001(\010H\002\210\001\001\022\025\n\010priority\030\007 \001(\r"
+    "H\003\210\001\001\022\023\n\006shared\030\010 \001(\010H\004\210\001\001\022\023\n\006target\030\t \001"
+    "(\rH\005\210\001\001B\n\n\010_contextB\010\n\006_delayB\013\n\t_relati"
+    "veB\013\n\t_priorityB\t\n\007_sharedB\t\n\007_target\"F\n"
+    "\022ClearCameraRequest\022\016\n\006player\030\001 \001(\005\022\024\n\007c"
+    "ontext\030\002 \001(\tH\000\210\001\001B\n\n\010_context\"1\n\021ChangeT"
+    "eamRequest\022\016\n\006player\030\001 \001(\005\022\014\n\004team\030\002 \001(\005"
+    "\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005\022\023\n\006fro"
+    "zen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"S\n\022AdjustSouls"
+    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005delta\030\002 \001(\005\022\023"
+    "\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024Starti"
+    "ngSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030"
+    "\002 \001(\005\"1\n\020ResetHeroRequest\022\016\n\006player\030\001 \001("
+    "\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealRequest\022\016\n\006playe"
+    "r\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4\n\021SetStaminaReq"
+    "uest\022\016\n\006player\030\001 \001(\005\022\017\n\007stamina\030\002 \001(\002\"V\n"
+    "\022RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\0220\n\006t"
+    "arget\030\002 \001(\0132 .modlock.wasm.players.HeroT"
+    "arget\"\323\003\n\nHeroTarget\022(\n\010position\030\001 \001(\0132\026"
+    ".modlock.geometry.Vec3\022-\n\006facing\030\002 \001(\0132\035"
+    ".modlock.geometry.EulerAngles\022\022\n\005fresh\030\003"
+    " \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210\001\001\022\023\n\006health\030"
+    "\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 \001(\005H\003\210\001\001\022\027\n\017u"
+    "pgrade_bonuses\030\007 \003(\002\0228\n\tabilities\030\010 \003(\0132"
+    "%.modlock.wasm.players.EquipmentTarget\0224"
+    "\n\005items\030\t \003(\0132%.modlock.wasm.players.Equ"
+    "ipmentTarget\022\032\n\rreplace_items\030\n \001(\010H\004\210\001\001"
+    "\0221\n\006timers\030\013 \003(\0132!.modlock.wasm.players."
+    "TimerTargetB\010\n\006_freshB\010\n\006_levelB\t\n\007_heal"
+    "thB\r\n\013_max_healthB\020\n\016_replace_items\"H\n\017E"
+    "quipmentTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 \001(\005"
+    "H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013TimerT"
+    "arget\022\n\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n\016co"
+    "oldown_start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_end\030"
+    "\004 \001(\002H\001\210\001\001\022\033\n\016recharge_start\030\005 \001(\002H\002\210\001\001\022"
+    "\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldown_"
+    "startB\017\n\r_cooldown_endB\021\n\017_recharge_star"
+    "tB\017\n\r_recharge_end\"\224\001\n\nBotOptions\022\014\n\004nam"
+    "e\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name\030\003 \001(\t"
+    "H\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010position\030\005 \001(\0132"
+    "\026.modlock.geometry.Vec3H\001\210\001\001B\006\n\004heroB\013\n\t"
+    "_position\"\035\n\013BotResponse\022\016\n\006player\030\001 \001(\005"
+    "*P\n\007ModRole\022\030\n\024MOD_ROLE_UNSPECIFIED\020\000\022\026\n"
+    "\022MOD_ROLE_DEVELOPER\020\001\022\023\n\017MOD_ROLE_TESTER"
+    "\020\002*\247\001\n\013CameraParam\022\031\n\025CAMERA_PARAM_DISTA"
+    "NCE\020\000\022\036\n\032CAMERA_PARAM_FIELD_OF_VIEW\020\001\022\027\n"
+    "\023CAMERA_PARAM_TARGET\020\002\022 \n\034CAMERA_PARAM_V"
+    "ERTICAL_OFFSET\020\003\022\"\n\036CAMERA_PARAM_HORIZON"
+    "TAL_OFFSET\020\004B5Z3github.com/paralin/modlo"
+    "ck/src/wasm/players;playersb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps[1] = {
@@ -1658,7 +1662,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto = {
     false,
     false,
-    5455,
+    5515,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
     "github.com/paralin/modlock/src/wasm/players/players.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_once,
@@ -4394,9 +4398,9 @@ Pawn::Pawn(
                offsetof(Impl_, entity_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, entity_),
-           offsetof(Impl_, carrying_urn_) -
+           offsetof(Impl_, effective_max_health_) -
                offsetof(Impl_, entity_) +
-               sizeof(Impl_::carrying_urn_));
+               sizeof(Impl_::effective_max_health_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.players.Pawn)
 }
@@ -4410,9 +4414,9 @@ inline void Pawn::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, position_),
            0,
-           offsetof(Impl_, carrying_urn_) -
+           offsetof(Impl_, effective_max_health_) -
                offsetof(Impl_, position_) +
-               sizeof(Impl_::carrying_urn_));
+               sizeof(Impl_::effective_max_health_));
 }
 Pawn::~Pawn() {
   // @@protoc_insertion_point(destructor:modlock.wasm.players.Pawn)
@@ -4478,16 +4482,16 @@ Pawn::GetClassData() const {
   return Pawn_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<5, 17, 7, 0, 2>
+const ::_pbi::TcParseTable<5, 18, 7, 0, 2>
 Pawn::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Pawn, _impl_._has_bits_),
     0, // no _extensions_
-    17, 248,  // max_field_number, fast_idx_mask
+    18, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294836224,  // skipmap
+    4294705152,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    17,  // num_field_entries
+    18,  // num_field_entries
     7,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Pawn_class_data_.base(),
@@ -4566,7 +4570,10 @@ Pawn::_table_ = {
     {::_pbi::TcParser::FastMtS2,
      {394, 6, 6,
       PROTOBUF_FIELD_OFFSET(Pawn, _impl_.camera_position_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional int32 effective_max_health = 18;
+    {::_pbi::TcParser::FastV32S2,
+     {400, 17, 0,
+      PROTOBUF_FIELD_OFFSET(Pawn, _impl_.effective_max_health_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
@@ -4617,6 +4624,8 @@ Pawn::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Pawn, _impl_.score_), _Internal::kHasBitsOffset + 5, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .modlock.geometry.Vec3 camera_position = 17;
     {PROTOBUF_FIELD_OFFSET(Pawn, _impl_.camera_position_), _Internal::kHasBitsOffset + 6, 6, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // optional int32 effective_max_health = 18;
+    {PROTOBUF_FIELD_OFFSET(Pawn, _impl_.effective_max_health_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
@@ -4674,7 +4683,11 @@ PROTOBUF_NOINLINE void Pawn::Clear() {
         reinterpret_cast<char*>(&_impl_.souls_) -
         reinterpret_cast<char*>(&_impl_.hero_)) + sizeof(_impl_.souls_));
   }
-  _impl_.carrying_urn_ = false;
+  if (BatchCheckHasBit(cached_has_bits, 0x00030000U)) {
+    ::memset(&_impl_.carrying_urn_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.effective_max_health_) -
+        reinterpret_cast<char*>(&_impl_.carrying_urn_)) + sizeof(_impl_.effective_max_health_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -4831,6 +4844,13 @@ PROTOBUF_NOINLINE void Pawn::Clear() {
         stream);
   }
 
+  // optional int32 effective_max_health = 18;
+  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(
+        18, this_._internal_effective_max_health(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -4944,6 +4964,13 @@ PROTOBUF_NOINLINE void Pawn::Clear() {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_souls());
       }
+    }
+  }
+   {
+    // optional int32 effective_max_health = 18;
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+      total_size += 2 + ::_pbi::WireFormatLite::Int32Size(
+                                      this_._internal_effective_max_health());
     }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -5066,8 +5093,13 @@ void Pawn::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
-    _this->_impl_.carrying_urn_ = from._impl_.carrying_urn_;
+  if (BatchCheckHasBit(cached_has_bits, 0x00030000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+      _this->_impl_.carrying_urn_ = from._impl_.carrying_urn_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+      _this->_impl_.effective_max_health_ = from._impl_.effective_max_health_;
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -5087,8 +5119,8 @@ void Pawn::InternalSwap(Pawn* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Pawn, _impl_.carrying_urn_)
-      + sizeof(Pawn::_impl_.carrying_urn_)
+      PROTOBUF_FIELD_OFFSET(Pawn, _impl_.effective_max_health_)
+      + sizeof(Pawn::_impl_.effective_max_health_)
       - PROTOBUF_FIELD_OFFSET(Pawn, _impl_.position_)>(
           reinterpret_cast<char*>(&_impl_.position_),
           reinterpret_cast<char*>(&other->_impl_.position_));

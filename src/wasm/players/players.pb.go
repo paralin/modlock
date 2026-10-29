@@ -379,7 +379,8 @@ type Pawn struct {
 	Team int32 `protobuf:"varint,3,opt,name=team,proto3" json:"team,omitempty"`
 	// Health is the hero's health; zero or less is dead.
 	Health int32 `protobuf:"varint,4,opt,name=health,proto3" json:"health,omitempty"`
-	// MaxHealth is the hero's networked maximum health.
+	// MaxHealth is the hero's networked maximum health, which leaves out
+	// health from items until the hero respawns.
 	MaxHealth int32 `protobuf:"varint,5,opt,name=max_health,json=maxHealth,proto3" json:"maxHealth,omitempty"`
 	// Position is the hero's origin, at its feet.
 	Position *geometry.Vec3 `protobuf:"bytes,6,opt,name=position,proto3" json:"position,omitempty"`
@@ -410,6 +411,9 @@ type Pawn struct {
 	// through the reticle. Absent for a bot and on hosts that cannot read
 	// commands.
 	CameraPosition *geometry.Vec3 `protobuf:"bytes,17,opt,name=camera_position,json=cameraPosition,proto3,oneof" json:"cameraPosition,omitempty"`
+	// EffectiveMaxHealth is the maximum the hero's health bar shows, health
+	// from items included. Absent when the game's own reading is unavailable.
+	EffectiveMaxHealth *int32 `protobuf:"varint,18,opt,name=effective_max_health,json=effectiveMaxHealth,proto3,oneof" json:"effectiveMaxHealth,omitempty"`
 }
 
 func (x *Pawn) Reset() {
@@ -535,6 +539,13 @@ func (x *Pawn) GetCameraPosition() *geometry.Vec3 {
 		return x.CameraPosition
 	}
 	return nil
+}
+
+func (x *Pawn) GetEffectiveMaxHealth() int32 {
+	if x != nil && x.EffectiveMaxHealth != nil {
+		return *x.EffectiveMaxHealth
+	}
+	return 0
 }
 
 // Score is one player's scoreboard counters since the match began, as the
@@ -2025,6 +2036,7 @@ func (m *Pawn) CloneVT() *Pawn {
 	r.CarryingUrn = protobuf_go_lite.ClonePtr(m.CarryingUrn)
 	r.Score = protobuf_go_lite.CloneVTValue(m.Score)
 	r.CameraPosition = protobuf_go_lite.CloneVTValue(m.CameraPosition)
+	r.EffectiveMaxHealth = protobuf_go_lite.ClonePtr(m.EffectiveMaxHealth)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2935,6 +2947,9 @@ func (this *Pawn) EqualVT(that *Pawn) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.CameraPosition, that.CameraPosition) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.EffectiveMaxHealth, that.EffectiveMaxHealth) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4616,6 +4631,11 @@ func (x *Pawn) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("cameraPosition")
 		x.CameraPosition.MarshalProtoJSON(s.WithField("cameraPosition"))
 	}
+	if x.EffectiveMaxHealth != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("effectiveMaxHealth")
+		s.WriteInt32(*x.EffectiveMaxHealth)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4727,6 +4747,14 @@ func (x *Pawn) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.CameraPosition = &geometry.Vec3{}
 			x.CameraPosition.UnmarshalProtoJSON(s.WithField("camera_position", true))
+		case "effective_max_health", "effectiveMaxHealth":
+			s.AddField("effective_max_health")
+			if s.ReadNil() {
+				x.EffectiveMaxHealth = nil
+				return
+			}
+			t := s.ReadInt32()
+			x.EffectiveMaxHealth = &t
 		}
 	})
 }
@@ -7215,6 +7243,13 @@ func (m *Pawn) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.EffectiveMaxHealth != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.EffectiveMaxHealth))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x90
+	}
 	if m.CameraPosition != nil {
 		size, err := m.CameraPosition.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -9136,6 +9171,7 @@ func (m *Pawn) SizeVT() (n int) {
 		l = m.CameraPosition.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	n += protobuf_go_lite.SizeVarintPtr(2, m.EffectiveMaxHealth)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9964,6 +10000,10 @@ func (x *Pawn) MarshalProtoText() string {
 	if x.CameraPosition != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "camera_position")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.CameraPosition)
+	}
+	if x.EffectiveMaxHealth != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "effective_max_health")
+		protobuf_go_lite.TextWriteInt(&sb, *x.EffectiveMaxHealth)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -11533,6 +11573,16 @@ func (m *Pawn) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 18:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EffectiveMaxHealth", wireType)
+			}
+			var v int32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.EffectiveMaxHealth = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

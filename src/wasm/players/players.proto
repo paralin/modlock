@@ -117,7 +117,8 @@ message Pawn {
   // Health is the hero's health; zero or less is dead.
   int32 health = 4;
 
-  // MaxHealth is the hero's networked maximum health.
+  // MaxHealth is the hero's networked maximum health, which leaves out
+  // health from items until the hero respawns.
   int32 max_health = 5;
 
   // Position is the hero's origin, at its feet.
@@ -160,6 +161,10 @@ message Pawn {
   // through the reticle. Absent for a bot and on hosts that cannot read
   // commands.
   optional modlock.geometry.Vec3 camera_position = 17;
+
+  // EffectiveMaxHealth is the maximum the hero's health bar shows, health
+  // from items included. Absent when the game's own reading is unavailable.
+  optional int32 effective_max_health = 18;
 }
 
 // Score is one player's scoreboard counters since the match began, as the

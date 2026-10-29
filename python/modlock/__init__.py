@@ -968,7 +968,8 @@ class Pawn:
     team: int = 0
     # health is the hero's health; zero or less is dead.
     health: int = 0
-    # max_health is the hero's networked maximum health.
+    # max_health is the hero's networked maximum health, which leaves out
+    # health from items until the hero respawns.
     max_health: int = 0
     # position is the hero's origin, at its feet.
     position: Vector
@@ -999,6 +1000,9 @@ class Pawn:
     # through the reticle. Absent for a bot and on hosts that cannot read
     # commands.
     camera_position: Vector | None = None
+    # effective_max_health is the maximum the hero's health bar shows, health
+    # from items included. Absent when the game's own reading is unavailable.
+    effective_max_health: int | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2861,6 +2865,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(15, "carrying_urn", "bool", optional=True),
             wire.Field(16, "score", "message", optional=True, message="Score"),
             wire.Field(17, "camera_position", "message", optional=True, message="Vec3"),
+            wire.Field(18, "effective_max_health", "int32", optional=True),
         ],
     ),
     "Score": (

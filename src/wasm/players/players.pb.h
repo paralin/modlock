@@ -5650,6 +5650,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     kGenerationFieldNumber = 11,
     kSoulsFieldNumber = 12,
     kCarryingUrnFieldNumber = 15,
+    kEffectiveMaxHealthFieldNumber = 18,
   };
   // .modlock.geometry.Vec3 position = 6;
   bool has_position() const;
@@ -5859,11 +5860,22 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
   void _internal_set_carrying_urn(bool value);
 
   public:
+  // optional int32 effective_max_health = 18;
+  bool has_effective_max_health() const;
+  void clear_effective_max_health() ;
+  ::int32_t effective_max_health() const;
+  void set_effective_max_health(::int32_t value);
+
+  private:
+  ::int32_t _internal_effective_max_health() const;
+  void _internal_set_effective_max_health(::int32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.players.Pawn)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 17,
+  static const ::google::protobuf::internal::TcParseTable<5, 18,
                                    7, 0,
                                    2>
       _table_;
@@ -5902,6 +5914,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     ::uint32_t generation_;
     ::int32_t souls_;
     bool carrying_urn_;
+    ::int32_t effective_max_health_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -10541,6 +10554,35 @@ inline void Pawn::set_allocated_camera_position(::modlock::geometry::Vec3* PROTO
 
   _impl_.camera_position_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.players.Pawn.camera_position)
+}
+
+// optional int32 effective_max_health = 18;
+inline bool Pawn::has_effective_max_health() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00020000U);
+  return value;
+}
+inline void Pawn::clear_effective_max_health() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.effective_max_health_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00020000U);
+}
+inline ::int32_t Pawn::effective_max_health() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.Pawn.effective_max_health)
+  return _internal_effective_max_health();
+}
+inline void Pawn::set_effective_max_health(::int32_t value) {
+  _internal_set_effective_max_health(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.Pawn.effective_max_health)
+}
+inline ::int32_t Pawn::_internal_effective_max_health() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.effective_max_health_;
+}
+inline void Pawn::_internal_set_effective_max_health(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.effective_max_health_ = value;
 }
 
 // -------------------------------------------------------------------

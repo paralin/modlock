@@ -604,7 +604,8 @@ export interface Pawn {
    */
   health?: number
   /**
-   * MaxHealth is the hero's networked maximum health.
+   * MaxHealth is the hero's networked maximum health, which leaves out
+   * health from items until the hero respawns.
    */
   maxHealth?: number
   /**
@@ -660,6 +661,11 @@ export interface Pawn {
    * commands.
    */
   cameraPosition?: Vec3
+  /**
+   * EffectiveMaxHealth is the maximum the hero's health bar shows, health
+   * from items included. Absent when the game's own reading is unavailable.
+   */
+  effectiveMaxHealth?: number
 }
 
 export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
@@ -682,6 +688,7 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
     [15, 'carrying_urn', 8, 4],
     [16, 'score', 11, 0, Score.codec],
     [17, 'camera_position', 11, 0, Vec3.codec],
+    [18, 'effective_max_health', 5, 4],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Pawn): Pawn => {
@@ -751,6 +758,9 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
               r.delimited(),
               m.cameraPosition ?? {},
             )
+            break
+          case 18:
+            m.effectiveMaxHealth = r.int32()
             break
           default:
             r.skip(t)
@@ -826,6 +836,10 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
       {
         const v = m.cameraPosition
         if (v != null) Vec3.writeField(w, 17, v)
+      }
+      {
+        const v = m.effectiveMaxHealth
+        if (v != null) w.uint32(144).int32(v)
       }
     },
   },
