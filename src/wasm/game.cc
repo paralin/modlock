@@ -326,9 +326,10 @@ std::expected<players::PlayersResponse, std::string> Game::Players() {
 
 std::expected<players::PawnResponse, std::string> Game::Pawn(
     const players::PlayerRequest& request) {
-  // Sample the player's pawn; a slot without one answers no pawn.
+  // Sample the player's hero; a slot without one, or a spectator, answers no
+  // pawn.
   players::PawnResponse response;
-  const auto sample = observer_.Observe(request.player());
+  const auto sample = Live(request.player());
   if (!sample) {
     return response;
   }
@@ -419,8 +420,9 @@ std::expected<gameinterop::WorldEntities*, std::string> Game::World() {
 }
 
 std::expected<gameinterop::PawnObserver::Sample, std::string> Game::Live(int32_t slot) {
+  // A spectator's observed pawn is its camera, not a hero.
   auto sample = observer_.Observe(slot);
-  if (!sample) {
+  if (!sample || sample->team == 1) {
     return std::unexpected("the player has no live hero");
   }
   return *sample;

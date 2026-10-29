@@ -250,7 +250,7 @@ std::vector<Game::Hero> Game::Heroes() {
   std::vector<Hero> heroes;
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     // Collect each live hero.
-    const auto sample = observer_.Observe(slot);
+    const auto sample = Live(slot);
     if (!sample || sample->health <= 0) {
       continue;
     }
