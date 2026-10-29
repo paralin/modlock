@@ -460,10 +460,13 @@ class HostService {
   }
 
   // WriteField writes one schema field of a live entity and sends the change
-  // to the players. The value takes the form ReadField returns for the type;
-  // text fields cannot be written. A write to the match's state sends all of
-  // it, so players already in the match see the change, and a write to a
-  // model part, as ReadField names them, sends the entity.
+  // to the players. The value takes the form ReadField returns for the type.
+  // Text goes only to a symbol field (string_t, such as the m_DialogXMLName of
+  // a point_clientui_world_panel), with {addon} replaced by the mod's content
+  // addon as in an entity's key values; a CUtlString field owns its text and
+  // cannot be written. A write to the match's state sends all of it, so
+  // players already in the match see the change, and a write to a model part,
+  // as ReadField names them, sends the entity.
   virtual std::expected<void, std::string> WriteField(
       const fields::WriteFieldRequest& /*request*/) {
     return std::unexpected("this host does not support WriteField");

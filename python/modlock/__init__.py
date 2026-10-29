@@ -3388,10 +3388,13 @@ def read_modifier_field(entity: int, modifier: str, class_name: str, field: str,
 
 def write_field(entity: int, class_name: str, field: str, type: FieldType, value: FieldValue) -> bool:
     """write_field writes one schema field of a live entity and sends the change
-    to the players. The value takes the form ReadField returns for the type;
-    text fields cannot be written. A write to the match's state sends all of
-    it, so players already in the match see the change, and a write to a
-    model part, as ReadField names them, sends the entity.
+    to the players. The value takes the form ReadField returns for the type.
+    Text goes only to a symbol field (string_t, such as the m_DialogXMLName of
+    a point_clientui_world_panel), with {addon} replaced by the mod's content
+    addon as in an entity's key values; a CUtlString field owns its text and
+    cannot be written. A write to the match's state sends all of it, so
+    players already in the match see the change, and a write to a model part,
+    as ReadField names them, sends the entity.
     """
     return _call("WriteField", "WriteFieldRequest", {"entity": entity, "class_name": class_name, "field": field, "type": type, "value": value}) is not None
 

@@ -4,6 +4,9 @@
 #include <array>
 #include <cstring>
 #include <iostream>
+#include <string>
+#include <string_view>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -164,9 +167,18 @@ std::expected<fields::FieldValue, std::string> Decode(fields::FieldType type,
   return value;
 }
 
+// Interned returns a copy of text that lives for the life of the process, one
+// copy per distinct text. A symbol field points to it: the entity keeps the
+// pointer past the mod that wrote it and never frees it, as it never frees the
+// game's own interned symbols.
+const char* Interned(std::string text) {
+  static auto* texts = new std::unordered_set<std::string>();
+  return texts->insert(std::move(text)).first->c_str();
+}
+
 // Encode converts a value to the bytes of one field of type. The value must
-// take the form the type reads as. Text is not written, since its field
-// points to memory the game owns.
+// take the form the type reads as. Text is not encoded here, since its field
+// points to the characters; Game::StoreField writes a symbol field itself.
 std::expected<std::array<unsigned char, 12>, std::string> Encode(fields::FieldType type,
                                                                  const fields::FieldValue& value) {
   // Copy a scalar of type T into the field's bytes.
@@ -237,7 +249,7 @@ std::expected<std::array<unsigned char, 12>, std::string> Encode(fields::FieldTy
       put(static_cast<uint32_t>(number));
       break;
     case fields::FIELD_TYPE_STRING:
-      return std::unexpected("text fields cannot be written");
+      return std::unexpected("a list of text cannot be written");
     default:
       return std::unexpected("the field type is unknown");
   }
@@ -421,14 +433,38 @@ std::expected<unsigned char*, std::string> Game::ModelPart(void* entity, const v
 std::expected<void, std::string> Game::StoreField(void* entity, const std::string& class_name,
                                                   const std::string& field, fields::FieldType type,
                                                   const fields::FieldValue& value) {
-  // Encode the value and find the field it goes to.
-  auto bytes = Encode(type, value);
-  if (!bytes) {
-    return std::unexpected(bytes.error());
-  }
+  // Find the field the value goes to.
   auto address = FieldAddress(entity, class_name, field, type, false);
   if (!address) {
     return std::unexpected(address.error());
+  }
+
+  // Text goes only to a symbol field, as a pointer to an interned copy with
+  // the mod's content addon in place of {addon}. A CUtlString owns its
+  // characters, and the game would free a pointer it did not allocate.
+  if (type == fields::FIELD_TYPE_STRING) {
+    auto found = services_.Field(class_name, field);
+    if (!found) {
+      return std::unexpected(found.error());
+    }
+    if (found->type == nullptr || std::string_view(found->type) != "CUtlSymbolLarge") {
+      return std::unexpected(class_name + "." + field +
+                             " owns its text, so only the game can write it");
+    }
+    if (value.value_case() != fields::FieldValue::kText) {
+      return std::unexpected("the value does not fit the field type");
+    }
+    const char* text = Interned(WithAddon(value.text()));
+    if (!gameinterop::WriteNative(*address, &text, sizeof(text))) {
+      return std::unexpected("cannot write " + class_name + "." + field);
+    }
+    return {};
+  }
+
+  // Encode the value.
+  auto bytes = Encode(type, value);
+  if (!bytes) {
+    return std::unexpected(bytes.error());
   }
 
   // Write the bytes into the entity.

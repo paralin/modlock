@@ -592,6 +592,19 @@ create('point_clientui_world_panel', {
 })
 ```
 
+A world panel the map places has its layout path fixed when the map compiles,
+before the addon's name is known. Point it at the mod's layout when the mod
+starts; `writeField` writes `{addon}` in text the same way:
+
+```ts
+onStart(() => {
+  for (const panel of findEntities('point_clientui_world_panel')) {
+    writeField(panel, 'CBaseClientUIEntity', 'm_DialogXMLName', 'string',
+      'file://{resources}/layout/{addon}/board.xml')
+  }
+})
+```
+
 [`world-panel`](examples/world-panel) is the whole mod. A layout that loads a
 script or handles an event runs code in each player's game, and a publishing
 service may hold it for creators it trusts; one that only draws needs no trust.
