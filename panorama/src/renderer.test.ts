@@ -21,6 +21,7 @@ class FakePanel {
   text = ''
   value = 0
   checked = false
+  visible = true
   image = ''
   url = ''
   layout = ''
@@ -141,9 +142,17 @@ beforeEach(() => {
         id: string,
         properties?: Record<string, string>,
       ) {
+        // Attach the panel to its parent.
         const panel = new FakePanel(type, id, properties)
         panel.parent = parent
         parent.children.push(panel)
+
+        // A text entry holds its placeholder in a child label.
+        if (type === 'TextEntry') {
+          const placeholder = new FakePanel('Label', 'PlaceholderText')
+          placeholder.parent = panel
+          panel.children.push(placeholder)
+        }
         return panel
       },
       RegisterEventHandler(
@@ -578,6 +587,30 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   expect(face!.properties).toEqual({ accountid: '39734273' })
   expect(hero!.text).toBe('#Citadel_HeroName_Haze {"count":"3"}')
 
+  // The entry wears the game's text box, and its placeholder hides under
+  // text and shows again once the player clears it.
+  expect(name!.style).toMatchObject({
+    height: '44px',
+    border: '2px solid rgba(198, 198, 198, 0.200)',
+    color: 'rgba(255, 239, 215, 1.000)',
+    fontSize: '18px',
+  })
+  const placeholder = name!.FindChildTraverse('PlaceholderText')!
+  expect(placeholder.visible).toBe(false)
+  expect(placeholder.style).toMatchObject({
+    color: 'rgba(255, 239, 215, 1.000)',
+    opacity: '0.5',
+  })
+  name!.text = ''
+  name!.events.get('ontextentrychange')!()
+  expect(placeholder.visible).toBe(true)
+
+  // Focus brightens the border until the entry lets the keyboard go.
+  name!.events.get('onfocus')!()
+  expect(name!.style.border).toBe('2px solid rgba(255, 239, 215, 0.700)')
+  name!.events.get('onblur')!()
+  expect(name!.style.border).toBe('2px solid rgba(198, 198, 198, 0.200)')
+
   // A run of typing sends once, after a tenth of a second.
   name!.text = 'Anaïs'
   name!.events.get('ontextentrychange')!()
@@ -595,13 +628,17 @@ test('draws inputs, avatars and game text, and sends edits', () => {
     `modlockinput arena name ${Buffer.from('Anaïs').toString('base64url')}`,
   ])
 
-  // The player's edit stays until the mod draws a new value, and a disabled
-  // entry sends nothing.
-  name!.text = 'Anaï'
-  drawing.draw(tree('Ana'))
-  expect(name!.text).toBe('Anaï')
+  // The mod drawing back what the player sent leaves the letters typed since
+  // in place.
+  name!.text = 'Anaïs!'
+  drawing.draw(tree('Anaïs'))
+  expect(name!.text).toBe('Anaïs!')
+
+  // The mod's own value replaces them, and a disabled entry sends nothing.
   drawing.draw(tree('Bo', true))
   expect(name!.text).toBe('Bo')
+  expect(placeholder.visible).toBe(false)
+  expect(name!.style.color).toBe('rgba(255, 239, 215, 0.500)')
   name!.events.get('ontextentrychange')!()
   runScheduled()
   expect(changes).toHaveLength(3)

@@ -71,9 +71,11 @@ export interface Panel {
   value: number
   /** checked reports whether a toggle button is checked. */
   checked: boolean
+  visible: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
   GetChild(index: number): Panel | null
+  FindChildTraverse(id: string): Panel | null
   MoveChildBefore(child: Panel, before: Panel): void
   MoveChildAfter(child: Panel, after: Panel): void
   SetImage(path: string): void
@@ -205,6 +207,12 @@ function encodeInput(value: InputValue): string {
 const maxInput = 240
 
 /**
+ * maxUnanswered is how many sent values an input remembers until the mod
+ * draws them back: a second of typing at the pace edits send.
+ */
+const maxUnanswered = 10
+
+/**
  * utf8 returns text's UTF-8 bytes, cut at a character to at most limit bytes.
  * A lone surrogate becomes the replacement character.
  */
@@ -279,6 +287,37 @@ const controlTypes: Record<Control, string> = {
 }
 
 /**
+ * entryLook is the game's own text box, which a text entry wears under its
+ * mod's style. The stock styles that draw the box, and hide the placeholder
+ * under typed text, reach no panel the drawing makes, so a bare entry would
+ * show only small unboxed text.
+ */
+const entryLook: Record<string, string> = {
+  width: '352px',
+  height: '44px',
+  padding: '8px 12px 8px 12px',
+  backgroundColor: 'rgba(26, 26, 26, 0.900)',
+  border: '2px solid rgba(198, 198, 198, 0.200)',
+  borderRadius: '4px',
+  color: 'rgba(255, 239, 215, 1.000)',
+  fontSize: '18px',
+  fontWeight: 'semi-bold',
+  whiteSpace: 'nowrap',
+  textOverflow: 'clip',
+}
+
+/** entryDisabled dims a text entry that takes no edits. */
+const entryDisabled: Record<string, string> = {
+  backgroundColor: 'rgba(26, 26, 26, 0.500)',
+  color: 'rgba(255, 239, 215, 0.500)',
+}
+
+/** entryFocused brightens a text entry's border while it holds the keyboard. */
+const entryFocused: Record<string, string> = {
+  border: '2px solid rgba(255, 239, 215, 0.700)',
+}
+
+/**
  * Cycling is a cycle as the drawing runs it: key names the cycle the node
  * holds, style is its far end, seconds each way and count the swings there
  * and back, or zero to repeat.
@@ -296,7 +335,8 @@ interface Cycling {
  * exit style and how long it eases out, and what the panel holds now. It
  * keeps the node's pointer feedback for the panel's events, and whether its
  * tooltip shows. An input records its control, the mod's value as last
- * drawn, and whether an edit waits to send. A layout node's panel also
+ * drawn, whether an edit waits to send, and the values it sent, oldest
+ * first, that the mod has not drawn back. A layout node's panel also
  * records the layout's URL, whether it loaded, and the data set on it.
  */
 interface Drawn {
@@ -313,7 +353,9 @@ interface Drawn {
   control: Control | null
   value: string
   pending: boolean
+  unanswered: string[]
   over: boolean
+  focused: boolean
   tooltip: string
   tipped: boolean
   sound: string
@@ -468,6 +510,7 @@ export class Drawing {
 
     // Ease out, then go.
     drawn.over = false
+    drawn.focused = false
     drawn.phase = drawn.exit
     this.paint(drawn)
     drawn.panel.hittest = false
@@ -485,13 +528,15 @@ export class Drawing {
 
   /**
    * paint writes the style the node's panel should hold now, the hover's over
-   * the node's while the pointer is over it, returning each property it no
-   * longer sets to its resting value.
+   * the node's while the pointer is over it and an entry's focus ring while it
+   * holds the keyboard, returning each property it no longer sets to its
+   * resting value.
    */
   private paint(drawn: Drawn): void {
     const target = {
       ...drawn.style,
       ...(drawn.over ? drawn.hover : {}),
+      ...(drawn.focused ? entryFocused : {}),
       ...drawn.phase,
     }
     for (const name of Object.keys(drawn.written)) {
@@ -536,6 +581,15 @@ export class Drawing {
       this.untip(drawn)
     }
     this.paint(drawn)
+  }
+
+  /** focus draws or lifts an entry's focus ring as it takes or loses the keyboard. */
+  private focus(mod: string, id: string, panel: Panel, focused: boolean): void {
+    const drawn = this.current(mod, id, panel)
+    if (drawn && drawn.focused !== focused) {
+      drawn.focused = focused
+      this.paint(drawn)
+    }
   }
 
   /** untip hides the tooltip a node's panel shows. */
@@ -619,11 +673,31 @@ export class Drawing {
       readInput(drawn.control, drawn.panel),
     )
     if (value) {
+      drawn.unanswered.push(encodeInput(value))
+      drawn.unanswered.splice(0, drawn.unanswered.length - maxUnanswered)
       if (drawn.sound) {
         this.panorama.PlaySound?.(drawn.sound)
       }
       this.change?.(mod, id, value)
     }
+  }
+
+  /**
+   * answer shows the mod's new value of an input unless it only draws back a
+   * value the panel sent: the player has typed on since, and the round trip
+   * would erase what they typed while it ran.
+   */
+  private answer(drawn: Drawn, node: Node): void {
+    // Drop an echo and the older sends it answers; anything else is the
+    // mod's own value.
+    const value = nodeInput(node)
+    const sent = value ? drawn.unanswered.indexOf(encodeInput(value)) : -1
+    if (sent >= 0) {
+      drawn.unanswered.splice(0, sent + 1)
+      return
+    }
+    drawn.unanswered.length = 0
+    this.writeInput(drawn.panel, node)
   }
 
   /** writeInput shows the mod's value of an input in its panel. */
@@ -633,6 +707,7 @@ export class Drawing {
       switch (node.input?.case) {
         case 'textEntry':
           panel.text = node.input.value.text ?? ''
+          showPlaceholder(panel)
           break
         case 'slider':
           panel.value = finite(node.input.value.value)
@@ -652,7 +727,12 @@ export class Drawing {
     const edited = () => this.edit(mod, id, panel)
     switch (node.input?.case) {
       case 'textEntry':
-        panel.SetPanelEvent('ontextentrychange', edited)
+        panel.SetPanelEvent('ontextentrychange', () => {
+          showPlaceholder(panel)
+          edited()
+        })
+        panel.SetPanelEvent('onfocus', () => this.focus(mod, id, panel, true))
+        panel.SetPanelEvent('onblur', () => this.focus(mod, id, panel, false))
         break
       case 'slider':
         panel.SetPanelEvent('onvaluechanged', edited)
@@ -744,6 +824,8 @@ export class Drawing {
     // Resolve its style and the styles laid over it, with the transition
     // that eases between them.
     const style = {
+      ...(control === 'textEntry' ? entryLook : {}),
+      ...(control === 'textEntry' && node.disabled ? entryDisabled : {}),
       ...styleOf(node.style, id === '', parentFlow),
       ...(region ? placed(region) : {}),
     }
@@ -847,7 +929,9 @@ export class Drawing {
       control,
       value,
       pending: !fresh && old.pending,
+      unanswered: fresh ? [] : old.unanswered,
       over,
+      focused: !fresh && old.focused,
       tooltip: node.tooltip ?? '',
       tipped: old?.panel === panel && old.tipped,
       sound: soundOf(node.sound),
@@ -880,7 +964,15 @@ export class Drawing {
     } else if (kind === Kind.IMAGE) {
       panel.SetImage(node.image ?? '')
     } else if (control && (fresh || old.value !== value)) {
-      this.writeInput(panel, node)
+      this.answer(each, node)
+    }
+    if (
+      control === 'textEntry' &&
+      (fresh ||
+        old.style.color !== style.color ||
+        old.style.fontSize !== style.fontSize)
+    ) {
+      this.dressPlaceholder(panel, style)
     }
     this.paint(each)
     if (each.tipped && !each.tooltip) {
@@ -925,6 +1017,25 @@ export class Drawing {
       last = childPanel
     }
     return panel
+  }
+
+  /**
+   * dressPlaceholder draws an entry's placeholder in the entry's color and
+   * size, faded, as the stock styles would.
+   */
+  private dressPlaceholder(panel: Panel, style: Record<string, string>): void {
+    // An entry the game made without a placeholder has nothing to dress.
+    const placeholder = panel.FindChildTraverse('PlaceholderText')
+    if (!placeholder) {
+      return
+    }
+
+    // Fade it under the entry's own text, centered on its line.
+    this.write(placeholder, 'color', style.color ?? entryLook.color!)
+    this.write(placeholder, 'fontSize', style.fontSize ?? entryLook.fontSize!)
+    this.write(placeholder, 'opacity', '0.5')
+    this.write(placeholder, 'verticalAlign', 'center')
+    this.write(placeholder, 'horizontalAlign', 'left')
   }
 
   /** write sets one style property; a refused property leaves the rest drawn. */
@@ -1363,6 +1474,30 @@ function controlMadeWith(node: Node): Record<string, string> | undefined {
     }
     case 'toggle':
       return { text: node.text ?? '' }
+    default:
+      return undefined
+  }
+}
+
+/** showPlaceholder shows an entry's placeholder only while the entry is empty. */
+function showPlaceholder(panel: Panel): void {
+  const placeholder = panel.FindChildTraverse('PlaceholderText')
+  if (placeholder) {
+    placeholder.visible = !panel.text
+  }
+}
+
+/** nodeInput returns an input's value as the mod drew it. */
+function nodeInput(node: Node): InputValue | undefined {
+  switch (node.input?.case) {
+    case 'textEntry':
+      return { case: 'text', value: node.input.value.text ?? '' }
+    case 'slider':
+      return { case: 'number', value: finite(node.input.value.value) }
+    case 'toggle':
+      return { case: 'on', value: !!node.input.value.on }
+    case 'dropdown':
+      return { case: 'choice', value: node.input.value.selected ?? 0 }
     default:
       return undefined
   }

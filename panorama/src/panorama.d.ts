@@ -9,6 +9,7 @@ interface Panel {
   text: string
   value: number
   checked: boolean
+  visible: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
   GetParent(): Panel | null
