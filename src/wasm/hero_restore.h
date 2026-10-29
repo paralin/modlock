@@ -127,6 +127,8 @@ class HeroRestore {
   int32_t max_health_ = 0;
   std::vector<Ability> written_;
   std::optional<gameinterop::EngineServer::SimulationClock> written_clock_;
+  // build_error_ is why the build failed; health and pose are written anyway.
+  std::string build_error_;
   std::string timer_error_;
   unsigned timer_retries_ = 0;
   uint32_t stable_frames_ = 0;

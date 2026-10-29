@@ -239,6 +239,9 @@ TEST(HeroRestore, PersonsUpgradesMustMatch) {
   ASSERT_TRUE(result);
   ASSERT_FALSE(*result);
   EXPECT_NE(result->error().find("abilities differ"), std::string::npos) << result->error();
+
+  // Health is written anyway.
+  EXPECT_EQ(world.sample.health, 320);
 }
 
 TEST(HeroRestore, HealthThatNeverTakesFails) {

@@ -117,8 +117,9 @@ HeroRestore::Result HeroRestore::Tick(const std::optional<Sample>& sample, uint6
 }
 
 HeroRestore::Result HeroRestore::Start(const Sample& sample, uint64_t tick) {
+  // A build that cannot be written still gets its health and pose.
   if (!engine_.apply(sample, target_, Stage::kBuild)) {
-    return std::unexpected("the build could not be written");
+    build_error_ = "the build could not be written";
   }
   phase_ = Phase::kSettle;
   since_ = tick;
@@ -140,18 +141,25 @@ HeroRestore::Result HeroRestore::Settle(const Sample& sample, uint64_t tick) {
     max_health_ = sample.max_health;
   }
   const bool upgrades = UpgradesMatch(sample.slot);
-  if (!upgrades && AdoptGrowth(sample, tick)) {
+  if (build_error_.empty() && !upgrades && AdoptGrowth(sample, tick)) {
     return std::nullopt;
   }
   const bool items = ItemsMatch(sample.slot);
-  if ((target_.level && sample.level != *target_.level) || !upgrades || !items) {
-    return std::unexpected(
+  if (build_error_.empty() &&
+      ((target_.level && sample.level != *target_.level) || !upgrades || !items)) {
+    build_error_ =
         std::format("the build did not take: level {} of {}, abilities {}, items {}", sample.level,
                     target_.level.value_or(sample.level), upgrades ? "match" : "differ",
-                    items ? "match" : "differ"));
+                    items ? "match" : "differ");
   }
+
+  // Write health and pose even when the build failed, so the hero still
+  // stands where the round starts; the result then reports the build.
   if (!engine_.apply(sample, target_, Stage::kPawn)) {
     return std::unexpected("health and pose could not be written");
+  }
+  if (!build_error_.empty()) {
+    return std::unexpected(build_error_);
   }
 
   // Timers follow in the same frame as health and pose.
