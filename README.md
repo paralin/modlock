@@ -562,10 +562,13 @@ everywhere when published.
 Layouts, scripts, style sheets and images the mod shows in each player's game go
 in `content/`, one directory for each kind, as in the game's own `panorama/`
 directory: `content/layout/scoreboard.xml`, `content/scripts/scoreboard.js`. The
-build compiles them into the mod's own addon, named `SLUG-VERSION`, so
-`content/layout/scoreboard.xml` becomes
-`build/panorama/layout/SLUG-VERSION/scoreboard.vxml_c`. Name your own files with
-`{addon}` where the addon's name goes, and the build writes it in:
+build compiles them into the mod's own addon, named `SLUG-DIGEST` after the
+slug and a digest of the content, so `content/layout/scoreboard.xml` becomes
+`build/panorama/layout/SLUG-DIGEST/scoreboard.vxml_c`. A release that changes
+only code keeps the addon and every path in it, so a game that mounted the
+previous release still finds the new one's resources.
+Name your own files with `{addon}` where the addon's name goes, and the build
+writes it in:
 
 ```xml
 <include src="file://{resources}/scripts/{addon}/scoreboard.js" />
@@ -603,7 +606,7 @@ outside the addon's directories.
 
 Compiled models, materials and particles go in `content/models/`,
 `content/materials/` and `content/particles/`, and build to
-`models/SLUG-VERSION/` and so on. Name them with `{addon}` wherever a path
+`models/SLUG-DIGEST/` and so on. Name them with `{addon}` wherever a path
 goes, in `precache`, `createModel`, `createParticle` and entity key values:
 
 ```ts

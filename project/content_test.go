@@ -36,18 +36,29 @@ func TestContent(t *testing.T) {
 	write("content/models/pawn.vmdl_c", "compiled")
 	manifest := &manifestpb.Manifest{Slug: "parry", Version: "1.2.0", Language: manifestpb.Manifest_LANGUAGE_TYPESCRIPT}
 	p := &Project{Dir: dir, Manifest: manifest}
-	addon := check.Addon(manifest)
 
-	// Build the content and read it back.
+	// Build the content and read it back. The addon is named by its content,
+	// so a new version with the same content keeps it.
 	if err := p.buildContent(); err != nil {
 		t.Fatal(err)
+	}
+	addon := check.Addon(manifest)
+	if err := check.ContentAddon(manifest); err != nil || !strings.HasPrefix(addon, "parry-") || addon == "parry-1.2.0" {
+		t.Fatalf("addon %q, %v; want the slug and a digest of the content", addon, err)
+	}
+	manifest.Version = "1.2.1"
+	if err := p.buildContent(); err != nil {
+		t.Fatal(err)
+	}
+	if check.Addon(manifest) != addon {
+		t.Errorf("a new version with the same content renamed the addon %q to %q", addon, check.Addon(manifest))
 	}
 	built := filepath.Join(p.Output(), check.ContentDir)
 	layout, err := os.ReadFile(filepath.Join(built, "layout", addon, "panel.vxml_c"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if source, err := panorama.Decompile(layout); err != nil || !strings.Contains(source, "panorama/scripts/parry-1.2.0/panel.vjs_c") {
+	if source, err := panorama.Decompile(layout); err != nil || !strings.Contains(source, "panorama/scripts/"+addon+"/panel.vjs_c") {
 		t.Errorf("layout %q, %v; want the script under the addon's name", source, err)
 	}
 	if _, err := os.Stat(filepath.Join(built, "scripts", addon, "panel.vjs_c")); err != nil {
@@ -76,16 +87,17 @@ func TestContent(t *testing.T) {
 		if err := p.buildContent(); err != nil {
 			t.Fatal(err)
 		}
+		want = strings.ReplaceAll(want, "{addon}", check.Addon(manifest))
 		if got, err := check.Scripted(os.DirFS(p.Output())); err != nil || got != want {
 			t.Errorf("scripted %q, %v; want %q", got, err, want)
 		}
 	}
-	scripted("panorama/layout/parry-1.2.0/panel.vxml_c")
+	scripted("panorama/layout/{addon}/panel.vxml_c")
 	if err := os.Remove(filepath.Join(dir, ContentDir, "scripts", "panel.js")); err != nil {
 		t.Fatal(err)
 	}
 	write("content/layout/panel.xml", `<root><Panel><Button onactivate="$.Msg('hi')" /></Panel></root>`)
-	scripted("panorama/layout/parry-1.2.0/panel.vxml_c")
+	scripted("panorama/layout/{addon}/panel.vxml_c")
 	write("content/layout/panel.xml", `<root><styles><include src="s2r://panorama/styles/hud.vcss_c" /></styles><Panel><Label text="Ready" /></Panel></root>`)
 	scripted("")
 
@@ -120,7 +132,7 @@ func TestContent(t *testing.T) {
 	if err := p.buildContent(); err == nil || !strings.Contains(err.Error(), "content/notes.txt") {
 		t.Errorf("got %v, want an error naming content/notes.txt", err)
 	}
-	if _, err := os.Stat(filepath.Join(built, "layout", addon, "panel.vxml_c")); err != nil {
+	if _, err := os.Stat(filepath.Join(built, "layout", check.Addon(manifest), "panel.vxml_c")); err != nil {
 		t.Error(err)
 	}
 

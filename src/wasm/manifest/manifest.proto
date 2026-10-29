@@ -94,6 +94,13 @@ message Manifest {
   // them a hero with SelectHero, and every hero can damage every other. The mod can change it
   // while it runs with SetFreeForAll. Meant for dedicated servers.
   bool free_for_all = 12;
+
+  // ContentAddon names the content addon the built mod ships: its slug and
+  // the first eight hex digits of a digest of its content sources, as
+  // parry-3f9a01c2. The build writes it, so a release whose content did not
+  // change keeps its addon and every resource path in it. A mod built
+  // without it ships the addon <slug>-<version>.
+  string content_addon = 13;
 }
 
 // Movement selects the movement model heroes walk and jump with.

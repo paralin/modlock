@@ -230,6 +230,12 @@ type Manifest struct {
 	// them a hero with SelectHero, and every hero can damage every other. The mod can change it
 	// while it runs with SetFreeForAll. Meant for dedicated servers.
 	FreeForAll bool `protobuf:"varint,12,opt,name=free_for_all,json=freeForAll,proto3" json:"freeForAll,omitempty"`
+	// ContentAddon names the content addon the built mod ships: its slug and
+	// the first eight hex digits of a digest of its content sources, as
+	// parry-3f9a01c2. The build writes it, so a release whose content did not
+	// change keeps its addon and every resource path in it. A mod built
+	// without it ships the addon <slug>-<version>.
+	ContentAddon string `protobuf:"bytes,13,opt,name=content_addon,json=contentAddon,proto3" json:"contentAddon,omitempty"`
 }
 
 func (x *Manifest) Reset() {
@@ -320,6 +326,13 @@ func (x *Manifest) GetFreeForAll() bool {
 		return x.FreeForAll
 	}
 	return false
+}
+
+func (x *Manifest) GetContentAddon() string {
+	if x != nil {
+		return x.ContentAddon
+	}
+	return ""
 }
 
 // Movement selects the movement model heroes walk and jump with.
@@ -516,6 +529,7 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Entry = m.Entry
 	r.Map = m.Map
 	r.FreeForAll = m.FreeForAll
+	r.ContentAddon = m.ContentAddon
 	r.Movement = protobuf_go_lite.CloneVTValue(m.Movement)
 	r.Definitions = protobuf_go_lite.CloneVTSlice(m.Definitions)
 	r.Settings = protobuf_go_lite.CloneVTSlice(m.Settings)
@@ -608,6 +622,9 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 		return false
 	}
 	if this.FreeForAll != that.FreeForAll {
+		return false
+	}
+	if this.ContentAddon != that.ContentAddon {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -845,6 +862,11 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("freeForAll")
 		s.WriteBool(x.FreeForAll)
 	}
+	if x.ContentAddon != "" || s.HasField("contentAddon") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("contentAddon")
+		s.WriteString(x.ContentAddon)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -947,6 +969,9 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "free_for_all", "freeForAll":
 			s.AddField("free_for_all")
 			x.FreeForAll = s.ReadBool()
+		case "content_addon", "contentAddon":
+			s.AddField("content_addon")
+			x.ContentAddon = s.ReadString()
 		}
 	})
 }
@@ -1392,6 +1417,11 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.ContentAddon) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.ContentAddon)
+		i--
+		dAtA[i] = 0x6a
+	}
 	if m.FreeForAll {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FreeForAll)
 		i--
@@ -1645,6 +1675,7 @@ func (m *Manifest) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.FreeForAll)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ContentAddon)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1774,6 +1805,10 @@ func (x *Manifest) MarshalProtoText() string {
 	if x.FreeForAll != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "free_for_all")
 		protobuf_go_lite.TextWriteBool(&sb, x.FreeForAll)
+	}
+	if x.ContentAddon != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "content_addon")
+		protobuf_go_lite.TextWriteString(&sb, x.ContentAddon)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -2073,6 +2108,16 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.FreeForAll = bool(v)
+		case 13:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ContentAddon", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.ContentAddon = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

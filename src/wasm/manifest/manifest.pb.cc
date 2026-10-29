@@ -163,6 +163,9 @@ inline constexpr Manifest::Impl_::Impl_(
         map_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        content_addon_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
         movement_{nullptr},
         language_{static_cast< ::modlock::wasm::manifest::Manifest_Language >(0)},
         runtime_{static_cast< ::modlock::wasm::manifest::Manifest_Runtime >(0)},
@@ -199,7 +202,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_._has_bits_),
-        15, // hasbit index offset
+        16, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.slug_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.name_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.version_),
@@ -212,18 +215,20 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.settings_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.metrics_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.free_for_all_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Manifest, _impl_.content_addon_),
         3,
         4,
         5,
-        9,
         10,
+        11,
         6,
         7,
-        8,
+        9,
         0,
         1,
         2,
-        11,
+        12,
+        8,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Movement, _impl_._has_bits_),
         6, // hasbit index offset
@@ -272,11 +277,11 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::manifest::Manifest)},
-        {27, sizeof(::modlock::wasm::manifest::Movement)},
-        {36, sizeof(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse)},
-        {43, sizeof(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse)},
-        {50, sizeof(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse)},
-        {57, sizeof(::modlock::wasm::manifest::Definition)},
+        {29, sizeof(::modlock::wasm::manifest::Movement)},
+        {38, sizeof(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse)},
+        {45, sizeof(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse)},
+        {52, sizeof(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse)},
+        {59, sizeof(::modlock::wasm::manifest::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::manifest::_Manifest_default_instance_._instance,
@@ -293,7 +298,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "fest\0329github.com/paralin/modlock/src/was"
     "m/metrics/metrics.proto\032;github.com/para"
     "lin/modlock/src/wasm/settings/settings.p"
-    "roto\"\246\005\n\010Manifest\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030"
+    "roto\"\275\005\n\010Manifest\022\014\n\004slug\030\001 \001(\t\022\014\n\004name\030"
     "\002 \001(\t\022\017\n\007version\030\003 \001(\t\022:\n\010language\030\004 \001(\016"
     "2(.modlock.wasm.manifest.Manifest.Langua"
     "ge\0228\n\007runtime\030\005 \001(\0162\'.modlock.wasm.manif"
@@ -303,31 +308,32 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "2!.modlock.wasm.manifest.Definition\0220\n\010s"
     "ettings\030\n \003(\0132\036.modlock.wasm.settings.Se"
     "tting\022-\n\007metrics\030\013 \003(\0132\034.modlock.wasm.me"
-    "trics.Metric\022\024\n\014free_for_all\030\014 \001(\010\"k\n\007Ru"
-    "ntime\022\023\n\017RUNTIME_UNKNOWN\020\000\022\020\n\014RUNTIME_WA"
-    "SM\020\001\022\023\n\017RUNTIME_QUICKJS\020\002\022\020\n\014RUNTIME_LUA"
-    "U\020\003\022\022\n\016RUNTIME_PYTHON\020\004\"\213\001\n\010Language\022\024\n\020"
-    "LANGUAGE_UNKNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023L"
-    "ANGUAGE_TYPESCRIPT\020\002\022\027\n\023LANGUAGE_JAVASCR"
-    "IPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004\022\023\n\017LANGUAGE_PYT"
-    "HON\020\005\"\235\001\n\010Movement\0224\n\005model\030\001 \001(\0162%.modl"
-    "ock.wasm.manifest.Movement.Model\022\r\n\005scal"
-    "e\030\002 \001(\002\022\033\n\023unpredicted_buttons\030\003 \001(\004\"/\n\005"
-    "Model\022\020\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUAKEWO"
-    "RLD\020\001\"\341\003\n\nDefinition\0224\n\004file\030\001 \001(\0162&.mod"
-    "lock.wasm.manifest.Definition.File\022\r\n\005en"
-    "try\030\002 \001(\t\022E\n\nproperties\030\003 \003(\01321.modlock."
-    "wasm.manifest.Definition.PropertiesEntry"
-    "\022=\n\006fields\030\004 \003(\0132-.modlock.wasm.manifest"
-    ".Definition.FieldsEntry\022F\n\013copy_fields\030\005"
-    " \003(\01321.modlock.wasm.manifest.Definition."
-    "CopyFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003ke"
-    "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEntr"
-    "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017Cop"
-    "yFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t"
-    ":\0028\001\"+\n\004File\022\022\n\016FILE_ABILITIES\020\000\022\017\n\013FILE"
-    "_HEROES\020\001B7Z5github.com/paralin/modlock/"
-    "src/wasm/manifest;manifestb\006proto3"
+    "trics.Metric\022\024\n\014free_for_all\030\014 \001(\010\022\025\n\rco"
+    "ntent_addon\030\r \001(\t\"k\n\007Runtime\022\023\n\017RUNTIME_"
+    "UNKNOWN\020\000\022\020\n\014RUNTIME_WASM\020\001\022\023\n\017RUNTIME_Q"
+    "UICKJS\020\002\022\020\n\014RUNTIME_LUAU\020\003\022\022\n\016RUNTIME_PY"
+    "THON\020\004\"\213\001\n\010Language\022\024\n\020LANGUAGE_UNKNOWN\020"
+    "\000\022\017\n\013LANGUAGE_GO\020\001\022\027\n\023LANGUAGE_TYPESCRIP"
+    "T\020\002\022\027\n\023LANGUAGE_JAVASCRIPT\020\003\022\021\n\rLANGUAGE"
+    "_LUAU\020\004\022\023\n\017LANGUAGE_PYTHON\020\005\"\235\001\n\010Movemen"
+    "t\0224\n\005model\030\001 \001(\0162%.modlock.wasm.manifest"
+    ".Movement.Model\022\r\n\005scale\030\002 \001(\002\022\033\n\023unpred"
+    "icted_buttons\030\003 \001(\004\"/\n\005Model\022\020\n\014MODEL_NA"
+    "TIVE\020\000\022\024\n\020MODEL_QUAKEWORLD\020\001\"\341\003\n\nDefinit"
+    "ion\0224\n\004file\030\001 \001(\0162&.modlock.wasm.manifes"
+    "t.Definition.File\022\r\n\005entry\030\002 \001(\t\022E\n\nprop"
+    "erties\030\003 \003(\01321.modlock.wasm.manifest.Def"
+    "inition.PropertiesEntry\022=\n\006fields\030\004 \003(\0132"
+    "-.modlock.wasm.manifest.Definition.Field"
+    "sEntry\022F\n\013copy_fields\030\005 \003(\01321.modlock.wa"
+    "sm.manifest.Definition.CopyFieldsEntry\0321"
+    "\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
+    "\002 \001(\002:\0028\001\032-\n\013FieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n"
+    "\005value\030\002 \001(\002:\0028\001\0321\n\017CopyFieldsEntry\022\013\n\003k"
+    "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"+\n\004File\022\022\n\016F"
+    "ILE_ABILITIES\020\000\022\017\n\013FILE_HEROES\020\001B7Z5gith"
+    "ub.com/paralin/modlock/src/wasm/manifest"
+    ";manifestb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto_deps[2] = {
@@ -338,7 +344,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto = {
     false,
     false,
-    1594,
+    1617,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto_once,
@@ -422,7 +428,8 @@ PROTOBUF_NDEBUG_INLINE Manifest::Impl_::Impl_(
         name_(arena, from.name_),
         version_(arena, from.version_),
         entry_(arena, from.entry_),
-        map_(arena, from.map_) {}
+        map_(arena, from.map_),
+        content_addon_(arena, from.content_addon_) {}
 
 Manifest::Manifest(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -438,7 +445,7 @@ Manifest::Manifest(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.movement_ = (CheckHasBit(cached_has_bits, 0x00000100U))
+  _impl_.movement_ = (CheckHasBit(cached_has_bits, 0x00000200U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.movement_)
                 : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
@@ -462,7 +469,8 @@ PROTOBUF_NDEBUG_INLINE Manifest::Impl_::Impl_(
         name_(arena),
         version_(arena),
         entry_(arena),
-        map_(arena) {}
+        map_(arena),
+        content_addon_(arena) {}
 
 inline void Manifest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -489,6 +497,7 @@ inline void Manifest::SharedDtor(MessageLite& self) {
   this_._impl_.version_.Destroy();
   this_._impl_.entry_.Destroy();
   this_._impl_.map_.Destroy();
+  this_._impl_.content_addon_.Destroy();
   delete this_._impl_.movement_;
   this_._impl_.~Impl_();
 }
@@ -556,16 +565,16 @@ Manifest::GetClassData() const {
   return Manifest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 12, 4, 70, 2>
+const ::_pbi::TcParseTable<4, 13, 4, 83, 2>
 Manifest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Manifest, _impl_._has_bits_),
     0, // no _extensions_
-    12, 120,  // max_field_number, fast_idx_mask
+    13, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294963200,  // skipmap
+    4294959104,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    12,  // num_field_entries
+    13,  // num_field_entries
     4,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Manifest_class_data_.base(),
@@ -589,12 +598,12 @@ Manifest::_table_ = {
      {26, 5, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.version_)}},
     // .modlock.wasm.manifest.Manifest.Language language = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.language_), 9>(),
-     {32, 9, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.language_), 10>(),
+     {32, 10, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.language_)}},
     // .modlock.wasm.manifest.Manifest.Runtime runtime = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.runtime_), 10>(),
-     {40, 10, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Manifest, _impl_.runtime_), 11>(),
+     {40, 11, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.runtime_)}},
     // string entry = 6;
     {::_pbi::TcParser::FastUS1,
@@ -606,7 +615,7 @@ Manifest::_table_ = {
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.map_)}},
     // .modlock.wasm.manifest.Movement movement = 8;
     {::_pbi::TcParser::FastMtS1,
-     {66, 8, 0,
+     {66, 9, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_)}},
     // repeated .modlock.wasm.manifest.Definition definitions = 9;
     {::_pbi::TcParser::FastMtR1,
@@ -621,10 +630,13 @@ Manifest::_table_ = {
      {90, 2, 3,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.metrics_)}},
     // bool free_for_all = 12;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Manifest, _impl_.free_for_all_), 11>(),
-     {96, 11, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Manifest, _impl_.free_for_all_), 12>(),
+     {96, 12, 0,
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // string content_addon = 13;
+    {::_pbi::TcParser::FastUS1,
+     {106, 8, 0,
+      PROTOBUF_FIELD_OFFSET(Manifest, _impl_.content_addon_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
   }}, {{
@@ -637,15 +649,15 @@ Manifest::_table_ = {
     // string version = 3;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.version_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .modlock.wasm.manifest.Manifest.Language language = 4;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.language_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.language_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // .modlock.wasm.manifest.Manifest.Runtime runtime = 5;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.runtime_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.runtime_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // string entry = 6;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.entry_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string map = 7;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.map_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .modlock.wasm.manifest.Movement movement = 8;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.movement_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.manifest.Definition definitions = 9;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.definitions_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .modlock.wasm.settings.Setting settings = 10;
@@ -653,7 +665,9 @@ Manifest::_table_ = {
     // repeated .modlock.wasm.metrics.Metric metrics = 11;
     {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.metrics_), _Internal::kHasBitsOffset + 2, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // bool free_for_all = 12;
-    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // string content_addon = 13;
+    {PROTOBUF_FIELD_OFFSET(Manifest, _impl_.content_addon_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Movement>()},
@@ -662,13 +676,14 @@ Manifest::_table_ = {
       {::_pbi::TcParser::GetTable<::modlock::wasm::metrics::Metric>()},
   }},
   {{
-    "\36\4\4\7\0\0\5\3\0\0\0\0\0\0\0\0"
+    "\36\4\4\7\0\0\5\3\0\0\0\0\0\15\0\0"
     "modlock.wasm.manifest.Manifest"
     "slug"
     "name"
     "version"
     "entry"
     "map"
+    "content_addon"
   }},
 };
 PROTOBUF_NOINLINE void Manifest::Clear() {
@@ -705,11 +720,16 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
       _impl_.map_.ClearNonDefaultToEmpty();
     }
   }
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-    ABSL_DCHECK(_impl_.movement_ != nullptr);
-    _impl_.movement_->Clear();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      _impl_.content_addon_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      ABSL_DCHECK(_impl_.movement_ != nullptr);
+      _impl_.movement_->Clear();
+    }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000e00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00001c00U)) {
     ::memset(&_impl_.language_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.free_for_all_) -
         reinterpret_cast<char*>(&_impl_.language_)) + sizeof(_impl_.free_for_all_));
@@ -768,7 +788,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // .modlock.wasm.manifest.Manifest.Language language = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
     if (this_._internal_language() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -777,7 +797,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // .modlock.wasm.manifest.Manifest.Runtime runtime = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
     if (this_._internal_runtime() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -806,7 +826,7 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // .modlock.wasm.manifest.Movement movement = 8;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         8, *this_._impl_.movement_, this_._impl_.movement_->GetCachedSize(), target,
         stream);
@@ -852,11 +872,21 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
   }
 
   // bool free_for_all = 12;
-  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
     if (this_._internal_free_for_all() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
           12, this_._internal_free_for_all(), target);
+    }
+  }
+
+  // string content_addon = 13;
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (!this_._internal_content_addon().empty()) {
+      const ::std::string& _s = this_._internal_content_addon();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.manifest.Manifest.content_addon");
+      target = stream->WriteStringMaybeAliased(13, _s, target);
     }
   }
 
@@ -943,28 +973,35 @@ PROTOBUF_NOINLINE void Manifest::Clear() {
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
-    // .modlock.wasm.manifest.Movement movement = 8;
+  if (BatchCheckHasBit(cached_has_bits, 0x00001f00U)) {
+    // string content_addon = 13;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      if (!this_._internal_content_addon().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_content_addon());
+      }
+    }
+    // .modlock.wasm.manifest.Movement movement = 8;
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.movement_);
     }
     // .modlock.wasm.manifest.Manifest.Language language = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (this_._internal_language() != 0) {
         total_size += 1 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_language());
       }
     }
     // .modlock.wasm.manifest.Manifest.Runtime runtime = 5;
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (this_._internal_runtime() != 0) {
         total_size += 1 +
                       ::_pbi::WireFormatLite::EnumSize(this_._internal_runtime());
       }
     }
     // bool free_for_all = 12;
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (this_._internal_free_for_all() != 0) {
         total_size += 2;
       }
@@ -1051,8 +1088,17 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00001f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      if (!from._internal_content_addon().empty()) {
+        _this->_internal_set_content_addon(from._internal_content_addon());
+      } else {
+        if (_this->_impl_.content_addon_.IsDefault()) {
+          _this->_internal_set_content_addon("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       ABSL_DCHECK(from._impl_.movement_ != nullptr);
       if (_this->_impl_.movement_ == nullptr) {
         _this->_impl_.movement_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.movement_);
@@ -1060,17 +1106,17 @@ void Manifest::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.movement_->MergeFrom(*from._impl_.movement_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (from._internal_language() != 0) {
         _this->_impl_.language_ = from._impl_.language_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (from._internal_runtime() != 0) {
         _this->_impl_.runtime_ = from._impl_.runtime_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (from._internal_free_for_all() != 0) {
         _this->_impl_.free_for_all_ = from._impl_.free_for_all_;
       }
@@ -1103,6 +1149,7 @@ void Manifest::InternalSwap(Manifest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.version_, &other->_impl_.version_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.entry_, &other->_impl_.entry_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.map_, &other->_impl_.map_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.content_addon_, &other->_impl_.content_addon_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Manifest, _impl_.free_for_all_)
       + sizeof(Manifest::_impl_.free_for_all_)

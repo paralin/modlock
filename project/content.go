@@ -1,6 +1,8 @@
 package project
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -29,12 +31,16 @@ const ContentDir = "content"
 var addonToken = regexp.MustCompile(`(\{resources\}/[\w.-]+/)\{addon\}/`)
 
 // buildContent compiles the project's content directory into the built mod's,
-// replacing the previous one; a failed build leaves it in place. A project
-// without content ships none.
+// replacing the previous one, and names the content addon in the manifest; a
+// failed build leaves the content in place. A project without content ships
+// none.
 func (p *Project) buildContent() error {
-	// Read each source to its place in the addon, naming the addon in it.
-	addon := check.Addon(p.Manifest)
-	sources := fstest.MapFS{}
+	// Read each source, in the walk's lexical order.
+	type source struct {
+		kind, rest string
+		data       []byte
+	}
+	var read []source
 	root := filepath.Join(p.Dir, ContentDir)
 	err := filepath.WalkDir(root, func(file string, entry fs.DirEntry, err error) error {
 		switch {
@@ -64,19 +70,39 @@ func (p *Project) buildContent() error {
 		if err != nil {
 			return errors.Wrap(err, "read the content")
 		}
-		switch path.Ext(rest) {
-		case ".xml", ".js", ".css":
-			data = addonToken.ReplaceAll(data, []byte("${1}"+addon+"/"))
-		}
-		place := path.Join(check.ContentDir, kind, addon, rest)
-		if slices.Contains(check.AssetDirs, kind) {
-			place = path.Join(kind, addon, rest)
-		}
-		sources[place] = &fstest.MapFile{Data: data}
+		read = append(read, source{kind, rest, data})
 		return nil
 	})
 	if err != nil {
 		return err
+	}
+
+	// Name the addon by a digest of the sources, so a release whose content
+	// did not change keeps the addon a running game already mounted.
+	p.Manifest.ContentAddon = ""
+	if len(read) != 0 {
+		digest := sha256.New()
+		for _, src := range read {
+			fmt.Fprintf(digest, "%s/%s\x00%d\x00", src.kind, src.rest, len(src.data))
+			digest.Write(src.data)
+		}
+		p.Manifest.ContentAddon = check.AddonName(p.Manifest.GetSlug(), digest.Sum(nil))
+	}
+	addon := check.Addon(p.Manifest)
+
+	// Place each source in the addon, naming the addon in it.
+	sources := fstest.MapFS{}
+	for _, src := range read {
+		data := src.data
+		switch path.Ext(src.rest) {
+		case ".xml", ".js", ".css":
+			data = addonToken.ReplaceAll(data, []byte("${1}"+addon+"/"))
+		}
+		place := path.Join(check.ContentDir, src.kind, addon, src.rest)
+		if slices.Contains(check.AssetDirs, src.kind) {
+			place = path.Join(src.kind, addon, src.rest)
+		}
+		sources[place] = &fstest.MapFile{Data: data}
 	}
 	compiled, err := panorama.CompileTree(addon, sources)
 	if err != nil {

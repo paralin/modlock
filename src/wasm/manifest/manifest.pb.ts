@@ -77,6 +77,14 @@ export interface Manifest {
    * while it runs with SetFreeForAll. Meant for dedicated servers.
    */
   freeForAll?: boolean
+  /**
+   * ContentAddon names the content addon the built mod ships: its slug and
+   * the first eight hex digits of a digest of its content sources, as
+   * parry-3f9a01c2. The build writes it, so a release whose content did not
+   * change keeps its addon and every resource path in it. A mod built
+   * without it ships the addon <slug>-<version>.
+   */
+  contentAddon?: string
 }
 
 export const Manifest: MessageType<Manifest> =
@@ -95,6 +103,7 @@ export const Manifest: MessageType<Manifest> =
       [10, 'settings', 11, 1, Setting.codec],
       [11, 'metrics', 11, 1, Metric.codec],
       [12, 'free_for_all', 8],
+      [13, 'content_addon', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Manifest): Manifest => {
@@ -139,6 +148,9 @@ export const Manifest: MessageType<Manifest> =
               break
             case 12:
               m.freeForAll = r.bool()
+              break
+            case 13:
+              m.contentAddon = r.string()
               break
             default:
               r.skip(t)
@@ -194,6 +206,10 @@ export const Manifest: MessageType<Manifest> =
         {
           const v = m.freeForAll
           if (v) w.uint32(96).bool(v)
+        }
+        {
+          const v = m.contentAddon
+          if (v) w.uint32(106).string(v)
         }
       },
     },

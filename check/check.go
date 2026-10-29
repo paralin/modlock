@@ -50,6 +50,9 @@ func Mod(ctx context.Context, dist fs.FS) (*manifest.Manifest, error) {
 	if err := Version(m.GetVersion()); err != nil {
 		return nil, err
 	}
+	if err := ContentAddon(m); err != nil {
+		return nil, err
+	}
 	if err := Content(dist, Addon(m)); err != nil {
 		return nil, err
 	}

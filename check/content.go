@@ -1,6 +1,7 @@
 package check
 
 import (
+	"encoding/hex"
 	"encoding/xml"
 	"io"
 	"io/fs"
@@ -50,11 +51,41 @@ func Version(version string) error {
 	return nil
 }
 
-// Addon returns the name of the content addon a release of the mod ships: its
-// slug and version. Panorama keeps each layout it loads for the life of the
-// game, so every release names its own, and a slug belongs to one mod.
+// addonDigestPattern matches the digest that follows the slug in a content
+// addon's name.
+var addonDigestPattern = regexp.MustCompile(`^[0-9a-f]{8}$`)
+
+// Addon returns the name of the content addon a release of the mod ships: the
+// manifest's content_addon, which names the slug and a digest of the content,
+// or the slug and version for a mod built without it. Panorama keeps each
+// layout it loads for the life of the game, so changed content gets a new
+// name, while a release that changes only code keeps the addon the game
+// already loaded. A slug belongs to one mod.
 func Addon(manifest *manifestpb.Manifest) string {
+	if addon := manifest.GetContentAddon(); addon != "" {
+		return addon
+	}
 	return manifest.GetSlug() + "-" + manifest.GetVersion()
+}
+
+// AddonName returns the content addon name of the mod slug whose content
+// sources have digest, the SHA-256 the build takes of them.
+func AddonName(slug string, digest []byte) string {
+	return slug + "-" + hex.EncodeToString(digest[:4])
+}
+
+// ContentAddon reports whether manifest's content_addon is empty or names an
+// addon of its own mod: its slug and an eight digit digest.
+func ContentAddon(manifest *manifestpb.Manifest) error {
+	addon := manifest.GetContentAddon()
+	if addon == "" {
+		return nil
+	}
+	digest, ok := strings.CutPrefix(addon, manifest.GetSlug()+"-")
+	if !ok || !addonDigestPattern.MatchString(digest) {
+		return errors.Errorf("mod.json's content addon %q must be the slug %q and eight hex digits", addon, manifest.GetSlug())
+	}
+	return nil
 }
 
 // Content checks that every file in dist's addon directories lies under the

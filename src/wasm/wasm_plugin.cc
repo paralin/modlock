@@ -212,7 +212,9 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   event.set_source(source_.data(), source_.size());
   reported_.reset();
   game_.StartFreeForAll(manifest_.free_for_all());
-  game_.StartContentAddon(manifest_.slug() + "-" + manifest_.version());
+  game_.StartContentAddon(manifest_.content_addon().empty()
+                              ? manifest_.slug() + "-" + manifest_.version()
+                              : manifest_.content_addon());
 
   // Start it and keep the events it wants.
   auto started = mod_.Start(event);
