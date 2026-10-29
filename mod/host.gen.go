@@ -1045,7 +1045,8 @@ func CreateText(options *TextOptions) (WorldObject, error) {
 }
 
 // CreateParticle starts a particle effect. Removing the object stops it
-// and lets its end cap play out; moving it moves the effect.
+// and lets its end cap play out, unless the mod already stopped it, such as
+// with the DestroyImmediately input; moving it moves the effect.
 func CreateParticle(options *ParticleOptions) (WorldObject, error) {
 	response := &objectspb.ObjectResponse{}
 	if err := invoke("CreateParticle", options, response); err != nil {

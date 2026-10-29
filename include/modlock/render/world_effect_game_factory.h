@@ -38,9 +38,10 @@ struct MODLOCK_API WorldEffectGameCalls {
   void (*set_abs_angles)(void* entity, const float* angles) = nullptr;
 };
 
-// ParticleFields resolves the five schema fields used by native particles.
+// ParticleFields resolves the six schema fields used by native particles.
 // Resolution happens after the server's schema classes are available.
 struct ParticleFields {
+  gameinterop::SchemaField active;
   gameinterop::SchemaField tint;
   gameinterop::SchemaField tint_control_point;
   gameinterop::SchemaField data_control_point;

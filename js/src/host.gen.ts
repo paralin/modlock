@@ -2760,7 +2760,8 @@ export function createText(options: TextOptions): WorldObject | undefined {
 
 /**
  * createParticle starts a particle effect. Removing the object stops it
- * and lets its end cap play out; moving it moves the effect.
+ * and lets its end cap play out, unless the mod already stopped it, such as
+ * with the DestroyImmediately input; moving it moves the effect.
  */
 export function createParticle(options: ParticleOptions): WorldObject | undefined {
   const reply = call('CreateParticle', objectsPb.ParticleOptions.toBinary(toParticleOptions(options)))

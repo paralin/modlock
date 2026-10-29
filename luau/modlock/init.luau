@@ -2992,7 +2992,8 @@ function modlock.createText(options: TextOptions): WorldObject?
 end
 
 -- createParticle starts a particle effect. Removing the object stops it
--- and lets its end cap play out; moving it moves the effect.
+-- and lets its end cap play out, unless the mod already stopped it, such as
+-- with the DestroyImmediately input; moving it moves the effect.
 function modlock.createParticle(options: ParticleOptions): WorldObject?
 	local response = call("CreateParticle", "ParticleOptions", options, "ObjectResponse")
 	if response == nil then

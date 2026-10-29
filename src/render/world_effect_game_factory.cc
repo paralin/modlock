@@ -221,11 +221,15 @@ class GameWorldEffect final : public WorldParticle {
 
   std::expected<void, std::string> Detach() override { return Input("ClearParent"); }
 
-  // Remove stops the particle with its end cap and leaves the entity to the
-  // factory, which removes it once the end cap has played.
+  // Remove stops a running particle with its end cap and leaves the entity to
+  // the factory, which removes it once the end cap has played. A particle the
+  // mod already stopped keeps that stop: the stop type is one networked field,
+  // so a second stop in the same tick would replace a DestroyImmediately.
   void Remove() override {
     if (entity_.Get()) {
-      static_cast<void>(Stop());
+      if (Active()) {
+        static_cast<void>(Stop());
+      }
       factory_.Retire(entity_);
     }
     entity_.Reset();
@@ -324,6 +328,20 @@ class GameWorldEffect final : public WorldParticle {
       return std::unexpected(std::string("info_particle_system rejected ") + name);
     }
     return {};
+  }
+
+  // Active reports whether the live particle still runs, and counts a particle
+  // whose state cannot be read as running.
+  bool Active() {
+    void* entity = entity_.Get();
+    auto fields = factory_.ResolveParticleFields();
+    if (!entity || !fields) {
+      return true;
+    }
+    bool active = true;
+    std::memcpy(&active, static_cast<const std::byte*>(entity) + (*fields)->active.offset,
+                sizeof(active));
+    return active;
   }
 
   template <typename T>
@@ -555,6 +573,7 @@ std::expected<const ParticleFields*, std::string> WorldEffectGameFactory::Resolv
   // Look up each particle field.
   ParticleFields fields;
   const std::pair<const char*, gameinterop::SchemaField*> entries[] = {
+      {"m_bActive", &fields.active},
       {"m_clrTint", &fields.tint},
       {"m_nTintCP", &fields.tint_control_point},
       {"m_nDataCP", &fields.data_control_point},

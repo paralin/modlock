@@ -404,7 +404,8 @@ service Host {
   rpc CreateText(modlock.wasm.objects.TextOptions) returns (modlock.wasm.objects.ObjectResponse);
 
   // CreateParticle starts a particle effect. Removing the object stops it
-  // and lets its end cap play out; moving it moves the effect.
+  // and lets its end cap play out, unless the mod already stopped it, such as
+  // with the DestroyImmediately input; moving it moves the effect.
   rpc CreateParticle(modlock.wasm.objects.ParticleOptions) returns (modlock.wasm.objects.ObjectResponse);
 
   // CreateFog fills a box with tinted fog whose density fades across the
