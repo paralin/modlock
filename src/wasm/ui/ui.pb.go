@@ -769,6 +769,19 @@ type Node struct {
 	// Cycle repeats a change to the node's style while it shows, such as a
 	// pulse or a blink.
 	Cycle *Cycle `protobuf:"bytes,28,opt,name=cycle,proto3" json:"cycle,omitempty"`
+	// Classes names the node's classes, which the mod's style sheets select.
+	// The renderer adds and removes only the classes that changed, so a change
+	// starts the sheets' transitions. The node's style still wins over a class.
+	Classes []string `protobuf:"bytes,29,rep,name=classes,proto3" json:"classes,omitempty"`
+	// Sheets lists the mod's style sheets by their paths in its content addon's
+	// styles directory, such as "hud.css"; only the root's list counts. Each
+	// sheet styles the mod's panels and no other mod's, and a later sheet wins
+	// over an earlier one. The renderer loads a sheet as the layout that the
+	// build writes beside it, named for the sheet with ".xml" added, such as
+	// "hud.css.xml", so a sheet loads only where the mod's layouts do. A path is
+	// one or more segments of letters, digits, '_', '-' and '.', none of them
+	// "..", ending in ".css".
+	Sheets []string `protobuf:"bytes,30,rep,name=sheets,proto3" json:"sheets,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -976,6 +989,20 @@ func (x *Node) GetExit() *Style {
 func (x *Node) GetCycle() *Cycle {
 	if x != nil {
 		return x.Cycle
+	}
+	return nil
+}
+
+func (x *Node) GetClasses() []string {
+	if x != nil {
+		return x.Classes
+	}
+	return nil
+}
+
+func (x *Node) GetSheets() []string {
+	if x != nil {
+		return x.Sheets
 	}
 	return nil
 }
@@ -2334,6 +2361,8 @@ func (m *Node) CloneVT() *Node {
 	r.Enter = protobuf_go_lite.CloneVTValue(m.Enter)
 	r.Exit = protobuf_go_lite.CloneVTValue(m.Exit)
 	r.Cycle = protobuf_go_lite.CloneVTValue(m.Cycle)
+	r.Classes = protobuf_go_lite.CloneSlice(m.Classes)
+	r.Sheets = protobuf_go_lite.CloneSlice(m.Sheets)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2991,6 +3020,12 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Cycle, that.Cycle) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Classes, that.Classes) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Sheets, that.Sheets) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4599,6 +4634,16 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("cycle")
 		x.Cycle.MarshalProtoJSON(s.WithField("cycle"))
 	}
+	if len(x.Classes) > 0 || s.HasField("classes") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("classes")
+		s.WriteStringArray(x.Classes)
+	}
+	if len(x.Sheets) > 0 || s.HasField("sheets") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sheets")
+		s.WriteStringArray(x.Sheets)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4763,6 +4808,20 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Cycle = &Cycle{}
 			x.Cycle.UnmarshalProtoJSON(s.WithField("cycle", true))
+		case "classes":
+			s.AddField("classes")
+			if s.ReadNil() {
+				x.Classes = nil
+				return
+			}
+			x.Classes = s.ReadStringArray()
+		case "sheets":
+			s.AddField("sheets")
+			if s.ReadNil() {
+				x.Sheets = nil
+				return
+			}
+			x.Sheets = s.ReadStringArray()
 		}
 	})
 }
@@ -6566,6 +6625,24 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.Sheets) > 0 {
+		for iNdEx := len(m.Sheets) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Sheets[iNdEx])
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0xf2
+		}
+	}
+	if len(m.Classes) > 0 {
+		for iNdEx := len(m.Classes) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Classes[iNdEx])
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0xea
+		}
+	}
 	if m.Cycle != nil {
 		size, err := m.Cycle.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -8348,6 +8425,8 @@ func (m *Node) SizeVT() (n int) {
 		l = m.Cycle.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	n += protobuf_go_lite.SizeStringSlice(2, m.Classes)
+	n += protobuf_go_lite.SizeStringSlice(2, m.Sheets)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9076,6 +9155,22 @@ func (x *Node) MarshalProtoText() string {
 	if x.Cycle != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "cycle")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Cycle)
+	}
+	if len(x.Classes) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "classes")
+		for i, v := range x.Classes {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Sheets) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "sheets")
+		for i, v := range x.Sheets {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -10172,6 +10267,26 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 29:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Classes", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Classes = append(m.Classes, v)
+		case 30:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sheets", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Sheets = append(m.Sheets, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

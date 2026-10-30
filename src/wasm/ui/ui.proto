@@ -127,6 +127,21 @@ message Node {
   // Cycle repeats a change to the node's style while it shows, such as a
   // pulse or a blink.
   Cycle cycle = 28;
+
+  // Classes names the node's classes, which the mod's style sheets select.
+  // The renderer adds and removes only the classes that changed, so a change
+  // starts the sheets' transitions. The node's style still wins over a class.
+  repeated string classes = 29;
+
+  // Sheets lists the mod's style sheets by their paths in its content addon's
+  // styles directory, such as "hud.css"; only the root's list counts. Each
+  // sheet styles the mod's panels and no other mod's, and a later sheet wins
+  // over an earlier one. The renderer loads a sheet as the layout that the
+  // build writes beside it, named for the sheet with ".xml" added, such as
+  // "hud.css.xml", so a sheet loads only where the mod's layouts do. A path is
+  // one or more segments of letters, digits, '_', '-' and '.', none of them
+  // "..", ending in ".css".
+  repeated string sheets = 30;
 }
 
 // Scaling fits a picture into its node's box.

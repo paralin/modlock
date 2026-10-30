@@ -14,7 +14,7 @@ import {
 } from '../../src/wasm/ui/ui.pb.js'
 import { Call, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind } from '../src/host.js'
-import { Action, hideHud, jsx, show } from '../src/index.js'
+import { Action, hideHud, jsx, sheet, show } from '../src/index.js'
 import { change } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
@@ -82,6 +82,25 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
   ])
   hideHud(player, [])
   expect(sent.at(-1)!.change!.set![0]!.hideHud ?? []).toEqual([])
+
+  // A sheet reaches the root of every interface the mod shows, once, and a
+  // path leaving the addon adds nothing.
+  expect(sheet('../hud.css')).toBe(false)
+  expect(sheet('hud.css')).toBe(true)
+  expect(sent.at(-1)!.change!.set!.map((node) => node.sheets)).toEqual([
+    ['hud.css'],
+  ])
+  const before = sent.length
+  expect(sheet('hud.css')).toBe(true)
+  expect(sent.length).toBe(before)
+
+  // A class travels as its names and changes only its node.
+  const score = (names: string) =>
+    jsx('panel', { children: jsx('label', { class: names, children: 'S' }) })
+  show(player, score('Score'))
+  show(player, score('Score  Leading'))
+  const classed = sent.at(-1)!.change!.set!
+  expect(classed.map((node) => node.classes)).toEqual([['Score', 'Leading']])
 })
 
 test("a style names the game's faces, edges, paint and motion on the wire", () => {

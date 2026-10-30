@@ -5138,6 +5138,8 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   enum : int {
     kChildrenFieldNumber = 3,
     kHideHudFieldNumber = 9,
+    kClassesFieldNumber = 29,
+    kSheetsFieldNumber = 30,
     kIdFieldNumber = 1,
     kTextFieldNumber = 4,
     kImageFieldNumber = 5,
@@ -5204,6 +5206,50 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   private:
   const ::google::protobuf::RepeatedField<int>& _internal_hide_hud() const;
   ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL _internal_mutable_hide_hud();
+
+  public:
+  // repeated string classes = 29;
+  int classes_size() const;
+  private:
+  int _internal_classes_size() const;
+
+  public:
+  void clear_classes() ;
+  const ::std::string& classes(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_classes(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_classes(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_classes();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_classes(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& classes() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_classes();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_classes() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_classes();
+
+  public:
+  // repeated string sheets = 30;
+  int sheets_size() const;
+  private:
+  int _internal_sheets_size() const;
+
+  public:
+  void clear_sheets() ;
+  const ::std::string& sheets(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_sheets(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_sheets(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_sheets();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_sheets(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& sheets() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_sheets();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_sheets() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_sheets();
 
   public:
   // string id = 1;
@@ -5594,8 +5640,8 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   inline bool has_input() const;
   inline void clear_has_input();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 28,
-                                   10, 124,
+  static const ::google::protobuf::internal::TcParseTable<5, 30,
+                                   10, 137,
                                    2>
       _table_;
 
@@ -5619,6 +5665,8 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField<::std::string> children_;
     ::google::protobuf::RepeatedField<int> hide_hud_;
     ::google::protobuf::internal::CachedSize _hide_hud_cached_byte_size_;
+    ::google::protobuf::RepeatedPtrField<::std::string> classes_;
+    ::google::protobuf::RepeatedPtrField<::std::string> sheets_;
     ::google::protobuf::internal::ArenaStringPtr id_;
     ::google::protobuf::internal::ArenaStringPtr text_;
     ::google::protobuf::internal::ArenaStringPtr image_;
@@ -6552,7 +6600,7 @@ inline void Node::clear_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.id_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000010U);
 }
 inline const ::std::string& Node::id() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -6562,13 +6610,13 @@ inline const ::std::string& Node::id() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_id(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   _impl_.id_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.id)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_id()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::std::string* _s = _internal_mutable_id();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.id)
   return _s;
@@ -6588,10 +6636,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_id() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.id)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000010U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   auto* released = _impl_.id_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.id_.Set("", GetArena());
@@ -6601,9 +6649,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_id() {
 inline void Node::set_allocated_id(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
   _impl_.id_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.id_.IsDefault()) {
@@ -6617,7 +6665,7 @@ inline void Node::clear_kind() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.kind_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00020000U);
+                  0x00080000U);
 }
 inline ::modlock::wasm::ui::Kind Node::kind() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.kind)
@@ -6625,7 +6673,7 @@ inline ::modlock::wasm::ui::Kind Node::kind() const {
 }
 inline void Node::set_kind(::modlock::wasm::ui::Kind value) {
   _internal_set_kind(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.kind)
 }
 inline ::modlock::wasm::ui::Kind Node::_internal_kind() const {
@@ -6714,7 +6762,7 @@ inline void Node::clear_text() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.text_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000020U);
 }
 inline const ::std::string& Node::text() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -6724,13 +6772,13 @@ inline const ::std::string& Node::text() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_text(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   _impl_.text_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.text)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_text()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::std::string* _s = _internal_mutable_text();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.text)
   return _s;
@@ -6750,10 +6798,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_text() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_text() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.text)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000020U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   auto* released = _impl_.text_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.text_.Set("", GetArena());
@@ -6763,9 +6811,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_text() {
 inline void Node::set_allocated_text(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
   _impl_.text_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.text_.IsDefault()) {
@@ -6779,7 +6827,7 @@ inline void Node::clear_image() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.image_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000040U);
 }
 inline const ::std::string& Node::image() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -6789,13 +6837,13 @@ inline const ::std::string& Node::image() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_image(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   _impl_.image_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.image)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_image()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   ::std::string* _s = _internal_mutable_image();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.image)
   return _s;
@@ -6815,10 +6863,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_image() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_image() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.image)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000010U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000040U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   auto* released = _impl_.image_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.image_.Set("", GetArena());
@@ -6828,9 +6876,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_image() {
 inline void Node::set_allocated_image(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   }
   _impl_.image_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.image_.IsDefault()) {
@@ -6841,7 +6889,7 @@ inline void Node::set_allocated_image(::std::string* PROTOBUF_NULLABLE value) {
 
 // .modlock.wasm.ui.Style style = 6;
 inline bool Node::has_style() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00001000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00004000U);
   PROTOBUF_ASSUME(!value || _impl_.style_ != nullptr);
   return value;
 }
@@ -6849,7 +6897,7 @@ inline void Node::clear_style() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.style_ != nullptr) _impl_.style_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00001000U);
+                  0x00004000U);
 }
 inline const ::modlock::wasm::ui::Style& Node::_internal_style() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -6868,16 +6916,16 @@ inline void Node::unsafe_arena_set_allocated_style(
   }
   _impl_.style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Node.style)
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::release_style() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
   ::modlock::wasm::ui::Style* released = _impl_.style_;
   _impl_.style_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -6897,7 +6945,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.style)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
   ::modlock::wasm::ui::Style* temp = _impl_.style_;
   _impl_.style_ = nullptr;
   return temp;
@@ -6912,7 +6960,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::_internal_mutable_styl
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::mutable_style()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
   ::modlock::wasm::ui::Style* _msg = _internal_mutable_style();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.style)
   return _msg;
@@ -6929,9 +6977,9 @@ inline void Node::set_allocated_style(::modlock::wasm::ui::Style* PROTOBUF_NULLA
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
   }
 
   _impl_.style_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
@@ -6943,7 +6991,7 @@ inline void Node::clear_layout() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.layout_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000020U);
+                  0x00000080U);
 }
 inline const ::std::string& Node::layout() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -6953,13 +7001,13 @@ inline const ::std::string& Node::layout() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_layout(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   _impl_.layout_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.layout)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_layout()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   ::std::string* _s = _internal_mutable_layout();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.layout)
   return _s;
@@ -6979,10 +7027,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_layout() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_layout() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.layout)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000020U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000080U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   auto* released = _impl_.layout_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.layout_.Set("", GetArena());
@@ -6992,9 +7040,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_layout() {
 inline void Node::set_allocated_layout(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   }
   _impl_.layout_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.layout_.IsDefault()) {
@@ -7008,7 +7056,7 @@ inline void Node::clear_data() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.data_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000040U);
+                  0x00000100U);
 }
 inline const ::std::string& Node::data() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -7018,13 +7066,13 @@ inline const ::std::string& Node::data() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_data(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   _impl_.data_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.data)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_data()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   ::std::string* _s = _internal_mutable_data();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.data)
   return _s;
@@ -7044,10 +7092,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_data() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_data() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.data)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000040U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000100U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   auto* released = _impl_.data_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.data_.Set("", GetArena());
@@ -7057,9 +7105,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_data() {
 inline void Node::set_allocated_data(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   }
   _impl_.data_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.data_.IsDefault()) {
@@ -7123,7 +7171,7 @@ inline void Node::clear_route() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.route_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000080U);
+                  0x00000200U);
 }
 inline const ::std::string& Node::route() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -7133,13 +7181,13 @@ inline const ::std::string& Node::route() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_route(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   _impl_.route_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.route)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_route()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   ::std::string* _s = _internal_mutable_route();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.route)
   return _s;
@@ -7159,10 +7207,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_route() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_route() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.route)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000080U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000200U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   auto* released = _impl_.route_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.route_.Set("", GetArena());
@@ -7172,9 +7220,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_route() {
 inline void Node::set_allocated_route(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   }
   _impl_.route_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.route_.IsDefault()) {
@@ -7185,7 +7233,7 @@ inline void Node::set_allocated_route(::std::string* PROTOBUF_NULLABLE value) {
 
 // .modlock.wasm.ui.Style hover = 11;
 inline bool Node::has_hover() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00002000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00008000U);
   PROTOBUF_ASSUME(!value || _impl_.hover_ != nullptr);
   return value;
 }
@@ -7193,7 +7241,7 @@ inline void Node::clear_hover() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.hover_ != nullptr) _impl_.hover_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00002000U);
+                  0x00008000U);
 }
 inline const ::modlock::wasm::ui::Style& Node::_internal_hover() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -7212,16 +7260,16 @@ inline void Node::unsafe_arena_set_allocated_hover(
   }
   _impl_.hover_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Node.hover)
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::release_hover() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
   ::modlock::wasm::ui::Style* released = _impl_.hover_;
   _impl_.hover_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -7241,7 +7289,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.hover)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
   ::modlock::wasm::ui::Style* temp = _impl_.hover_;
   _impl_.hover_ = nullptr;
   return temp;
@@ -7256,7 +7304,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::_internal_mutable_hove
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::mutable_hover()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   ::modlock::wasm::ui::Style* _msg = _internal_mutable_hover();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.hover)
   return _msg;
@@ -7273,9 +7321,9 @@ inline void Node::set_allocated_hover(::modlock::wasm::ui::Style* PROTOBUF_NULLA
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
   }
 
   _impl_.hover_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
@@ -7287,7 +7335,7 @@ inline void Node::clear_tooltip() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tooltip_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000100U);
+                  0x00000400U);
 }
 inline const ::std::string& Node::tooltip() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -7297,13 +7345,13 @@ inline const ::std::string& Node::tooltip() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_tooltip(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   _impl_.tooltip_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.tooltip)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_tooltip()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   ::std::string* _s = _internal_mutable_tooltip();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.tooltip)
   return _s;
@@ -7323,10 +7371,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_tooltip() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_tooltip() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.tooltip)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000100U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000400U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
   auto* released = _impl_.tooltip_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.tooltip_.Set("", GetArena());
@@ -7336,9 +7384,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_tooltip() {
 inline void Node::set_allocated_tooltip(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
   }
   _impl_.tooltip_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.tooltip_.IsDefault()) {
@@ -7352,7 +7400,7 @@ inline void Node::clear_sound() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.sound_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000200U);
+                  0x00000800U);
 }
 inline const ::std::string& Node::sound() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -7362,13 +7410,13 @@ inline const ::std::string& Node::sound() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_sound(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   _impl_.sound_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.sound)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_sound()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   ::std::string* _s = _internal_mutable_sound();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.sound)
   return _s;
@@ -7388,10 +7436,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_sound() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_sound() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.sound)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000200U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000800U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   auto* released = _impl_.sound_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.sound_.Set("", GetArena());
@@ -7401,9 +7449,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_sound() {
 inline void Node::set_allocated_sound(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   }
   _impl_.sound_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.sound_.IsDefault()) {
@@ -7417,7 +7465,7 @@ inline void Node::clear_hover_sound() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.hover_sound_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000400U);
+                  0x00001000U);
 }
 inline const ::std::string& Node::hover_sound() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -7427,13 +7475,13 @@ inline const ::std::string& Node::hover_sound() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_hover_sound(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   _impl_.hover_sound_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.hover_sound)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_hover_sound()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   ::std::string* _s = _internal_mutable_hover_sound();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.hover_sound)
   return _s;
@@ -7453,10 +7501,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_hover_sound() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_hover_sound() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.hover_sound)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000400U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00001000U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   auto* released = _impl_.hover_sound_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.hover_sound_.Set("", GetArena());
@@ -7466,9 +7514,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_hover_sound() {
 inline void Node::set_allocated_hover_sound(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   }
   _impl_.hover_sound_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.hover_sound_.IsDefault()) {
@@ -7482,7 +7530,7 @@ inline void Node::clear_disabled() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.disabled_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00040000U);
+                  0x00100000U);
 }
 inline bool Node::disabled() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.disabled)
@@ -7490,7 +7538,7 @@ inline bool Node::disabled() const {
 }
 inline void Node::set_disabled(bool value) {
   _internal_set_disabled(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.disabled)
 }
 inline bool Node::_internal_disabled() const {
@@ -7507,7 +7555,7 @@ inline void Node::clear_scaling() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.scaling_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00080000U);
+                  0x00200000U);
 }
 inline ::modlock::wasm::ui::Scaling Node::scaling() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.scaling)
@@ -7515,7 +7563,7 @@ inline ::modlock::wasm::ui::Scaling Node::scaling() const {
 }
 inline void Node::set_scaling(::modlock::wasm::ui::Scaling value) {
   _internal_set_scaling(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.scaling)
 }
 inline ::modlock::wasm::ui::Scaling Node::_internal_scaling() const {
@@ -7532,7 +7580,7 @@ inline void Node::clear_hero() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.hero_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00100000U);
+                  0x00400000U);
 }
 inline ::int32_t Node::hero() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.hero)
@@ -7540,7 +7588,7 @@ inline ::int32_t Node::hero() const {
 }
 inline void Node::set_hero(::int32_t value) {
   _internal_set_hero(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.hero)
 }
 inline ::int32_t Node::_internal_hero() const {
@@ -7557,7 +7605,7 @@ inline void Node::clear_hero_look() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.hero_look_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00400000U);
+                  0x01000000U);
 }
 inline ::modlock::wasm::ui::HeroLook Node::hero_look() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.hero_look)
@@ -7565,7 +7613,7 @@ inline ::modlock::wasm::ui::HeroLook Node::hero_look() const {
 }
 inline void Node::set_hero_look(::modlock::wasm::ui::HeroLook value) {
   _internal_set_hero_look(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
+  SetHasBit(_impl_._has_bits_[0], 0x01000000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.hero_look)
 }
 inline ::modlock::wasm::ui::HeroLook Node::_internal_hero_look() const {
@@ -7910,7 +7958,7 @@ inline void Node::clear_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.token_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000800U);
+                  0x00002000U);
 }
 inline const ::std::string& Node::token() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -7920,13 +7968,13 @@ inline const ::std::string& Node::token() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Node::set_token(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   _impl_.token_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.token)
 }
 inline ::std::string* PROTOBUF_NONNULL Node::mutable_token()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::std::string* _s = _internal_mutable_token();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.token)
   return _s;
@@ -7946,10 +7994,10 @@ inline ::std::string* PROTOBUF_NONNULL Node::_internal_mutable_token() {
 inline ::std::string* PROTOBUF_NULLABLE Node::release_token() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.token)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000800U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00002000U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   auto* released = _impl_.token_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.token_.Set("", GetArena());
@@ -7959,9 +8007,9 @@ inline ::std::string* PROTOBUF_NULLABLE Node::release_token() {
 inline void Node::set_allocated_token(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
   _impl_.token_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.token_.IsDefault()) {
@@ -7981,7 +8029,7 @@ inline void Node::clear_variables() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.variables_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x00800000U);
+                  0x02000000U);
 }
 inline const ::google::protobuf::Map<::std::string, ::std::string>& Node::_internal_variables() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -7997,7 +8045,7 @@ inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL N
 }
 inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Node::mutable_variables()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00800000U);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x02000000U);
   // @@protoc_insertion_point(field_mutable_map:modlock.wasm.ui.Node.variables)
   return _internal_mutable_variables();
 }
@@ -8007,7 +8055,7 @@ inline void Node::clear_steam_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.steam_id_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00200000U);
+                  0x00800000U);
 }
 inline ::uint64_t Node::steam_id() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.steam_id)
@@ -8015,7 +8063,7 @@ inline ::uint64_t Node::steam_id() const {
 }
 inline void Node::set_steam_id(::uint64_t value) {
   _internal_set_steam_id(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00800000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.steam_id)
 }
 inline ::uint64_t Node::_internal_steam_id() const {
@@ -8029,7 +8077,7 @@ inline void Node::_internal_set_steam_id(::uint64_t value) {
 
 // .modlock.wasm.ui.Style enter = 26;
 inline bool Node::has_enter() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00004000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00010000U);
   PROTOBUF_ASSUME(!value || _impl_.enter_ != nullptr);
   return value;
 }
@@ -8037,7 +8085,7 @@ inline void Node::clear_enter() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.enter_ != nullptr) _impl_.enter_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00004000U);
+                  0x00010000U);
 }
 inline const ::modlock::wasm::ui::Style& Node::_internal_enter() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -8056,16 +8104,16 @@ inline void Node::unsafe_arena_set_allocated_enter(
   }
   _impl_.enter_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Node.enter)
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::release_enter() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
   ::modlock::wasm::ui::Style* released = _impl_.enter_;
   _impl_.enter_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -8085,7 +8133,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.enter)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
   ::modlock::wasm::ui::Style* temp = _impl_.enter_;
   _impl_.enter_ = nullptr;
   return temp;
@@ -8100,7 +8148,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::_internal_mutable_ente
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::mutable_enter()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   ::modlock::wasm::ui::Style* _msg = _internal_mutable_enter();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.enter)
   return _msg;
@@ -8117,9 +8165,9 @@ inline void Node::set_allocated_enter(::modlock::wasm::ui::Style* PROTOBUF_NULLA
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
   }
 
   _impl_.enter_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
@@ -8128,7 +8176,7 @@ inline void Node::set_allocated_enter(::modlock::wasm::ui::Style* PROTOBUF_NULLA
 
 // .modlock.wasm.ui.Style exit = 27;
 inline bool Node::has_exit() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00008000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00020000U);
   PROTOBUF_ASSUME(!value || _impl_.exit_ != nullptr);
   return value;
 }
@@ -8136,7 +8184,7 @@ inline void Node::clear_exit() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.exit_ != nullptr) _impl_.exit_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00008000U);
+                  0x00020000U);
 }
 inline const ::modlock::wasm::ui::Style& Node::_internal_exit() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -8155,16 +8203,16 @@ inline void Node::unsafe_arena_set_allocated_exit(
   }
   _impl_.exit_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Node.exit)
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::release_exit() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
   ::modlock::wasm::ui::Style* released = _impl_.exit_;
   _impl_.exit_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -8184,7 +8232,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NULLABLE Node::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.exit)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
   ::modlock::wasm::ui::Style* temp = _impl_.exit_;
   _impl_.exit_ = nullptr;
   return temp;
@@ -8199,7 +8247,7 @@ inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::_internal_mutable_exit
 }
 inline ::modlock::wasm::ui::Style* PROTOBUF_NONNULL Node::mutable_exit()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   ::modlock::wasm::ui::Style* _msg = _internal_mutable_exit();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.exit)
   return _msg;
@@ -8216,9 +8264,9 @@ inline void Node::set_allocated_exit(::modlock::wasm::ui::Style* PROTOBUF_NULLAB
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
   }
 
   _impl_.exit_ = reinterpret_cast<::modlock::wasm::ui::Style*>(value);
@@ -8227,7 +8275,7 @@ inline void Node::set_allocated_exit(::modlock::wasm::ui::Style* PROTOBUF_NULLAB
 
 // .modlock.wasm.ui.Cycle cycle = 28;
 inline bool Node::has_cycle() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00010000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00040000U);
   PROTOBUF_ASSUME(!value || _impl_.cycle_ != nullptr);
   return value;
 }
@@ -8235,7 +8283,7 @@ inline void Node::clear_cycle() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.cycle_ != nullptr) _impl_.cycle_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00010000U);
+                  0x00040000U);
 }
 inline const ::modlock::wasm::ui::Cycle& Node::_internal_cycle() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -8254,16 +8302,16 @@ inline void Node::unsafe_arena_set_allocated_cycle(
   }
   _impl_.cycle_ = reinterpret_cast<::modlock::wasm::ui::Cycle*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00040000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Node.cycle)
 }
 inline ::modlock::wasm::ui::Cycle* PROTOBUF_NULLABLE Node::release_cycle() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
   ::modlock::wasm::ui::Cycle* released = _impl_.cycle_;
   _impl_.cycle_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -8283,7 +8331,7 @@ inline ::modlock::wasm::ui::Cycle* PROTOBUF_NULLABLE Node::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Node.cycle)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
   ::modlock::wasm::ui::Cycle* temp = _impl_.cycle_;
   _impl_.cycle_ = nullptr;
   return temp;
@@ -8298,7 +8346,7 @@ inline ::modlock::wasm::ui::Cycle* PROTOBUF_NONNULL Node::_internal_mutable_cycl
 }
 inline ::modlock::wasm::ui::Cycle* PROTOBUF_NONNULL Node::mutable_cycle()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
   ::modlock::wasm::ui::Cycle* _msg = _internal_mutable_cycle();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.cycle)
   return _msg;
@@ -8315,13 +8363,157 @@ inline void Node::set_allocated_cycle(::modlock::wasm::ui::Cycle* PROTOBUF_NULLA
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00040000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
   }
 
   _impl_.cycle_ = reinterpret_cast<::modlock::wasm::ui::Cycle*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Node.cycle)
+}
+
+// repeated string classes = 29;
+inline int Node::_internal_classes_size() const {
+  return _internal_classes().size();
+}
+inline int Node::classes_size() const {
+  return _internal_classes_size();
+}
+inline void Node::clear_classes() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.classes_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::std::string* PROTOBUF_NONNULL Node::add_classes()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_classes()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.ui.Node.classes)
+  return _s;
+}
+inline const ::std::string& Node::classes(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.classes)
+  return _internal_classes().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL Node::mutable_classes(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.classes)
+  return _internal_mutable_classes()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void Node::set_classes(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_classes()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.classes)
+}
+template <typename Arg_, typename... Args_>
+inline void Node::add_classes(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_classes(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.Node.classes)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& Node::classes()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.Node.classes)
+  return _internal_classes();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+Node::mutable_classes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.Node.classes)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_classes();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+Node::_internal_classes() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.classes_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+Node::_internal_mutable_classes() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.classes_;
+}
+
+// repeated string sheets = 30;
+inline int Node::_internal_sheets_size() const {
+  return _internal_sheets().size();
+}
+inline int Node::sheets_size() const {
+  return _internal_sheets_size();
+}
+inline void Node::clear_sheets() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.sheets_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline ::std::string* PROTOBUF_NONNULL Node::add_sheets()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_sheets()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.ui.Node.sheets)
+  return _s;
+}
+inline const ::std::string& Node::sheets(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.sheets)
+  return _internal_sheets().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL Node::mutable_sheets(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Node.sheets)
+  return _internal_mutable_sheets()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void Node::set_sheets(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_sheets()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.sheets)
+}
+template <typename Arg_, typename... Args_>
+inline void Node::add_sheets(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_sheets(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.ui.Node.sheets)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& Node::sheets()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.ui.Node.sheets)
+  return _internal_sheets();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+Node::mutable_sheets() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.ui.Node.sheets)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_sheets();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+Node::_internal_sheets() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.sheets_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+Node::_internal_mutable_sheets() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.sheets_;
 }
 
 inline bool Node::has_input() const {

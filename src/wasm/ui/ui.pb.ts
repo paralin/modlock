@@ -728,6 +728,23 @@ export interface Node {
    */
   cycle?: Cycle
   /**
+   * Classes names the node's classes, which the mod's style sheets select.
+   * The renderer adds and removes only the classes that changed, so a change
+   * starts the sheets' transitions. The node's style still wins over a class.
+   */
+  classes?: string[]
+  /**
+   * Sheets lists the mod's style sheets by their paths in its content addon's
+   * styles directory, such as "hud.css"; only the root's list counts. Each
+   * sheet styles the mod's panels and no other mod's, and a later sheet wins
+   * over an earlier one. The renderer loads a sheet as the layout that the
+   * build writes beside it, named for the sheet with ".xml" added, such as
+   * "hud.css.xml", so a sheet loads only where the mod's layouts do. A path is
+   * one or more segments of letters, digits, '_', '-' and '.', none of them
+   * "..", ending in ".css".
+   */
+  sheets?: string[]
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -776,6 +793,8 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [26, 'enter', 11, 0, Style.codec],
     [27, 'exit', 11, 0, Style.codec],
     [28, 'cycle', 11, 0, Cycle.codec],
+    [29, 'classes', 9, 1],
+    [30, 'sheets', 9, 1],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -903,6 +922,12 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 28:
             m.cycle = Cycle.decode(r, r.delimited(), m.cycle ?? {})
+            break
+          case 29:
+            ;(m.classes ??= []).push(r.string())
+            break
+          case 30:
+            ;(m.sheets ??= []).push(r.string())
             break
           default:
             r.skip(t)
@@ -1036,6 +1061,14 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.cycle
         if (v != null) Cycle.writeField(w, 28, v)
+      }
+      {
+        const a = m.classes
+        if (a != null) for (const e of a) w.uint32(234).string(e)
+      }
+      {
+        const a = m.sheets
+        if (a != null) for (const e of a) w.uint32(242).string(e)
       }
     },
   },

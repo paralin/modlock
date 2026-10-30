@@ -30,6 +30,8 @@ interface Panel {
   FindChildTraverse(id: string): Panel | null
   FindChildrenWithClassTraverse(name: string): Panel[]
   BHasClass(name: string): boolean
+  AddClass(name: string): void
+  RemoveClass(name: string): void
   DeleteAsync(seconds: number): void
   SetDialogVariable(name: string, value: string): void
   AddOption(option: Panel): void

@@ -151,6 +151,7 @@ export {
   route,
   type Scaling,
   type Shadow,
+  sheet,
   show,
   type Style,
   toast,

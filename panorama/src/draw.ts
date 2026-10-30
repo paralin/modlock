@@ -15,6 +15,11 @@
 // A layout node is the one exception to stock panels: a host that has
 // reviewed a mod's content addon passes Layouts, and the drawing loads the
 // mod's layout into the node's panel; without Layouts the panel stays empty.
+// The same hosts load the mod's style sheets, which the root lists: the first
+// into the mod's root panel, and each later one into a panel nested inside the
+// one before, so the mod's classes match only its own panels and a later
+// sheet wins. A node's classes change one by one, so a sheet's transitions
+// run.
 // A route node draws nothing and hands its value to each of the mod's
 // layouts. The drawing reaches the game only through the Panorama it is
 // given, so a host's own interface script may draw the screens it receives
@@ -81,6 +86,8 @@ export interface Panel {
   SetImage(path: string): void
   SetPanelEvent(event: string, handler: () => void): void
   SetAttributeString(name: string, value: string): void
+  AddClass(name: string): void
+  RemoveClass(name: string): void
   BLoadLayout(
     path: string,
     overrideExisting: boolean,
@@ -160,10 +167,36 @@ export interface Layouts {
  * checks the path before a host joins it to the addon's layout directory.
  */
 export function isLayoutPath(path: string): boolean {
+  return isAddonPath(path, '.xml')
+}
+
+/**
+ * isSheetPath reports whether path names a style sheet inside a mod's addon,
+ * as isLayoutPath does a layout, ending in ".css".
+ */
+export function isSheetPath(path: string): boolean {
+  return isAddonPath(path, '.css')
+}
+
+/**
+ * sheetLayout is the path of the layout the build writes beside the sheet at
+ * path, which includes the sheet and nothing else.
+ */
+export function sheetLayout(path: string): string {
+  return `${path}.xml`
+}
+
+/** isAddonPath reports whether path names a file ending in extension inside an addon. */
+function isAddonPath(path: string, extension: string): boolean {
   return (
-    path.endsWith('.xml') &&
+    path.endsWith(extension) &&
     path.split('/').every((part) => /^[\w.-]+$/.test(part) && part !== '..')
   )
+}
+
+/** isClassName reports whether name can be a panel's class: letters, digits, '_' and '-'. */
+function isClassName(name: string): boolean {
+  return /^[\w-]+$/.test(name)
 }
 
 /**
@@ -337,7 +370,9 @@ interface Cycling {
  * tooltip shows. An input records its control, the mod's value as last
  * drawn, whether an edit waits to send, and the values it sent, oldest
  * first, that the mod has not drawn back. A layout node's panel also
- * records the layout's URL, whether it loaded, and the data set on it.
+ * records the layout's URL, whether it loaded, and the data set on it. A
+ * root records its sheets' layout URLs and the panels nested for the sheets
+ * after the first, and every panel its classes.
  */
 interface Drawn {
   panel: Panel
@@ -364,6 +399,9 @@ interface Drawn {
   layout: string | null
   loaded: boolean
   data: string
+  sheets: string
+  nested: Panel[]
+  classes: string[]
 }
 
 /** Drawing keeps the panels of every mod's tree under one parent. */
@@ -810,6 +848,14 @@ export class Drawing {
         ? (this.layouts?.url(mod, path) ?? null)
         : null
     const data = node.data ?? ''
+    const sheets =
+      id === '' && this.layouts
+        ? (node.sheets ?? [])
+            .filter(isSheetPath)
+            .map((sheet) => [sheet, this.layouts!.url(mod, sheetLayout(sheet))])
+            .filter((pair): pair is [string, string] => pair[1] !== null)
+        : []
+    const sheeted = JSON.stringify(sheets)
 
     // Resolve its panel type, the properties it is made with, and its
     // options, which a dropdown also makes its panel with.
@@ -862,6 +908,7 @@ export class Drawing {
       old.parent === parent &&
       old.made === made &&
       old.layout === layout &&
+      old.sheets === sheeted &&
       Object.keys(written).every((name) => name in target || name in rest)
     if (!panel || !kept || !panel.IsValid() || panel.paneltype !== type) {
       if (old?.panel.IsValid()) {
@@ -903,9 +950,32 @@ export class Drawing {
       this.changed = true
     }
 
+    // A new root loads its sheets; the panels nested for later sheets pass
+    // the pointer through and lay the root's children out as the root does.
+    const fresh = old?.panel !== panel
+    const nested = fresh ? this.loadSheets(mod, panel, sheets) : old.nested
+    if (fresh || old.style.flowChildren !== style.flowChildren) {
+      for (const each of nested) {
+        this.write(each, 'flowChildren', style.flowChildren ?? 'none')
+      }
+    }
+
+    // Add the node's new classes and remove the ones it dropped.
+    const classes = [...new Set(node.classes ?? [])].filter(isClassName)
+    const had = fresh ? [] : old.classes
+    for (const name of had) {
+      if (!classes.includes(name)) {
+        panel.RemoveClass(name)
+      }
+    }
+    for (const name of classes) {
+      if (!had.includes(name)) {
+        panel.AddClass(name)
+      }
+    }
+
     // A kept panel keeps its phase while its cycle stays, and its pending
     // edit; a new one starts from its enter style.
-    const fresh = old?.panel !== panel
     const phase =
       !fresh && old.cycle?.key === cycle?.key
         ? old.phase
@@ -941,6 +1011,9 @@ export class Drawing {
       layout,
       loaded,
       data,
+      sheets: sheeted,
+      nested,
+      classes,
     }
     drawn.set(id, each)
 
@@ -992,7 +1065,9 @@ export class Drawing {
     }
 
     // Draw each child once, in order; a child seen before would make a cycle.
-    // A layout's panels come from its file, not from the tree.
+    // A layout's panels come from its file, not from the tree, and a root's
+    // children hang from the panel of its last sheet.
+    const holder = nested[nested.length - 1] ?? panel
     let last: Panel | undefined
     for (const child of kind === Kind.LAYOUT ? [] : (node.children ?? [])) {
       const childNode = nodes.get(child)
@@ -1002,7 +1077,7 @@ export class Drawing {
       const childPanel = this.drawNode(
         mod,
         childNode,
-        panel,
+        holder,
         previous,
         drawn,
         nodes,
@@ -1010,13 +1085,43 @@ export class Drawing {
         node.style?.flow,
       )
       if (last) {
-        panel.MoveChildAfter(childPanel, last)
-      } else if (panel.GetChild(0) && panel.GetChild(0) !== childPanel) {
-        panel.MoveChildBefore(childPanel, panel.GetChild(0)!)
+        holder.MoveChildAfter(childPanel, last)
+      } else if (holder.GetChild(0) && holder.GetChild(0) !== childPanel) {
+        holder.MoveChildBefore(childPanel, holder.GetChild(0)!)
       }
       last = childPanel
     }
     return panel
+  }
+
+  /**
+   * loadSheets loads each of a new root's sheets, given as its path and its
+   * layout's URL: the first into the root's panel, each later one into a
+   * panel nested in the one before. It returns the nested panels. A sheet the
+   * game cannot load leaves the panels drawn with their own styles.
+   */
+  private loadSheets(
+    mod: string,
+    root: Panel,
+    sheets: readonly (readonly [string, string])[],
+  ): Panel[] {
+    const nested: Panel[] = []
+    let into = root
+    for (const [index, [path, url]] of sheets.entries()) {
+      if (index !== 0) {
+        into = this.panorama.CreatePanel('Panel', into, 'ModlockUiSheet')
+        nested.push(into)
+      }
+      if (!into.BLoadLayout(url, false, false)) {
+        this.panorama.Msg(`[Modlock] ${mod} style sheet ${path} is unavailable`)
+      }
+      if (into !== root) {
+        into.hittest = false
+        this.write(into, 'width', '100%')
+        this.write(into, 'height', '100%')
+      }
+    }
+    return nested
   }
 
   /**

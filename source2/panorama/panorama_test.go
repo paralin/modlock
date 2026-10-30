@@ -172,13 +172,33 @@ func TestStyle(t *testing.T) {
 		}
 	}
 
-	// A tree compiles its sheets beside its layouts.
-	tree, err := CompileTree("mymod", fstest.MapFS{"panorama/styles/board.css": {Data: []byte(sheet)}})
+	// A tree compiles its sheets beside its layouts, and gives a sheet in an
+	// addon's styles directory a sheet layout that includes it.
+	tree, err := CompileTree("mymod", fstest.MapFS{
+		"panorama/styles/board.css":       {Data: []byte(sheet)},
+		"panorama/styles/mymod/board.css": {Data: []byte(sheet)},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if file := tree["panorama/styles/board.vcss_c"]; file == nil || styleText(t, file.Data) != want {
-		t.Fatalf("the tree holds %v", tree)
+	for _, name := range []string{"panorama/styles/board.vcss_c", "panorama/styles/mymod/board.vcss_c"} {
+		if file := tree[name]; file == nil || styleText(t, file.Data) != want {
+			t.Fatalf("the tree holds %v", tree)
+		}
+	}
+	if tree["panorama/layout/board.css.vxml_c"] != nil {
+		t.Fatal("a sheet outside an addon's styles directory got a sheet layout")
+	}
+	wrapper := tree["panorama/layout/mymod/board.css.vxml_c"]
+	if wrapper == nil {
+		t.Fatalf("the tree holds no sheet layout: %v", tree)
+	}
+	layout, err := Decompile(wrapper.Data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(layout, `src="s2r://panorama/styles/mymod/board.vcss"`) {
+		t.Fatalf("the sheet layout is\n%s", layout)
 	}
 }
 

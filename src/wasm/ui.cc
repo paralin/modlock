@@ -40,15 +40,20 @@ constexpr int kMaxOptions = 64;
 constexpr size_t kMaxInput = 240;
 constexpr uint32_t kEntryLength = 100;
 
+// kMaxClasses bounds a node's classes, and kMaxSheets the root's style sheets.
+constexpr int kMaxClasses = 16;
+constexpr int kMaxSheets = 16;
+
 // kImageRoots lists where an image may come from: the game's own content.
 constexpr std::string_view kImageRoots[] = {"file://{images}/", "s2r://panorama/images/"};
 
-// IsLayoutPath reports whether path names a layout inside the mod's addon: one or
-// more segments of letters, digits, '_', '-' and '.', none of them "..", ending
-// in ".xml". The renderer joins it to the addon's layout directory, so a path
-// that could leave that directory never reaches it.
-bool IsLayoutPath(std::string_view path) {
-  if (!path.ends_with(".xml")) {
+// IsAddonPath reports whether path names a file of kind extension inside the
+// mod's addon: one or more segments of letters, digits, '_', '-' and '.', none
+// of them "..", ending in extension. The renderer joins a layout's or a style
+// sheet's path to the addon's directory, so a path that could leave that
+// directory never reaches it.
+bool IsAddonPath(std::string_view path, std::string_view extension) {
+  if (!path.ends_with(extension)) {
     return false;
   }
   for (auto part : std::views::split(path, '/')) {
@@ -135,9 +140,28 @@ std::expected<void, std::string> Check(const ui::Node& node) {
   if (node.data().size() > kMaxData) {
     return std::unexpected("node " + node.id() + ": data is too long");
   }
-  if (node.kind() == ui::KIND_LAYOUT && !IsLayoutPath(node.layout())) {
+  if (node.kind() == ui::KIND_LAYOUT && !IsAddonPath(node.layout(), ".xml")) {
     return std::unexpected("node " + node.id() +
                            ": a layout is a path ending in .xml in the mod's addon");
+  }
+
+  // A class is a word that may hold '-', and a sheet a path in the addon.
+  if (node.classes_size() > kMaxClasses) {
+    return std::unexpected("node " + node.id() + ": too many classes");
+  }
+  for (const auto& name : node.classes()) {
+    if (!IsWord(name, "-")) {
+      return std::unexpected("node " + node.id() + ": a class is letters, digits, '_' and '-'");
+    }
+  }
+  if (node.sheets_size() > kMaxSheets) {
+    return std::unexpected("node " + node.id() + ": too many style sheets");
+  }
+  for (const auto& sheet : node.sheets()) {
+    if (!IsAddonPath(sheet, ".css")) {
+      return std::unexpected("node " + node.id() +
+                             ": a style sheet is a path ending in .css in the mod's addon");
+    }
   }
 
   // An image must come from the game's content.

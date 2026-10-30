@@ -54,6 +54,17 @@
 // hideHud hides parts of the game's own HUD from a player, such as their
 // health bar or the notice for each boon, until the mod lists them no more,
 // hides the player's interface, or stops.
+//
+// sheet adds a style sheet from the mod's content addon to every interface
+// the mod shows, such as sheet('hud.css') for content/styles/hud.css, and an
+// element's class names the sheet's classes:
+//
+//   <label class={leading ? 'Score Leading' : 'Score'}>{score}</label>
+//
+// A sheet styles only the mod's own panels, a later sheet wins over an
+// earlier one, and an element's style wins over both. A class change runs the
+// sheet's transitions. Sheets load where layouts do; elsewhere the elements
+// draw with their own styles.
 
 import {
   Align,
@@ -299,6 +310,7 @@ export interface UiElement {
  * encoder reads them as typed fields. A component's props pass through to it.
  */
 export interface Props {
+  readonly class?: string
   readonly style?: Style
   readonly hover?: Style
   readonly tooltip?: string
@@ -338,6 +350,8 @@ export interface Props {
  * them takes the pointer, so the game behind it does not.
  */
 export interface ElementProps {
+  /** class names the element's classes in the mod's sheets, separated by spaces. */
+  class?: string
   style?: Style
   hover?: Style
   tooltip?: string
@@ -486,6 +500,7 @@ export interface ButtonProps extends ElementProps {
  * Modlock.data.
  */
 export interface LayoutProps {
+  class?: string
   style?: Style
   src: string
   data?: unknown
@@ -561,6 +576,39 @@ export function hideHud(player: Player, parts: readonly HudPart[]): boolean {
   views.set(player.slot, { ...view(player), hud: parts })
   return draw(player)
 }
+
+/**
+ * sheet adds the style sheet at path in the mod's content styles directory,
+ * such as 'hud.css', to every interface the mod shows, after the sheets added
+ * before it. Adding a sheet again changes nothing. A path is letters, digits,
+ * '_', '-' and '.' in segments separated by '/', ending in '.css'; another
+ * adds nothing and returns false.
+ */
+export function sheet(path: string): boolean {
+  // Refuse a path the renderer cannot load, and keep a sheet added before.
+  if (
+    !path.endsWith('.css') ||
+    !path.split('/').every((part) => sheetPart.test(part) && part !== '..')
+  ) {
+    return false
+  }
+  if (sheets.includes(path)) {
+    return true
+  }
+
+  // Redraw every interface with the new sheet.
+  sheets.push(path)
+  for (const current of views.values()) {
+    draw(current.player)
+  }
+  return true
+}
+
+/** sheetPart matches one segment of a sheet's path. */
+const sheetPart = /^[\w.-]+$/
+
+/** sheets lists the mod's style sheets, in the order the mod added them. */
+const sheets: string[] = []
 
 /**
  * route sends player value under name, for every layout of the mod to read
@@ -802,13 +850,14 @@ function render(
   routes: ReadonlyMap<string, string>,
 ): Screen {
   // The root is the full-screen panel the elements hang from, and it lists
-  // the parts of the game's HUD to hide.
+  // the parts of the game's HUD to hide and the mod's sheets.
   const layout = new Layout(previous)
   layout.add({
     id: '',
     kind: Kind.PANEL,
     children: place(layout, root, '/'),
     hideHud: [...hud],
+    sheets: [...sheets],
   })
 
   // A route's id holds a colon, which no element's id does.
@@ -901,6 +950,7 @@ function place(layout: Layout, child: Child, at: string): string[] {
     enter: wireStyle(props.enter),
     exit: wireStyle(props.exit),
     cycle: cycle(props.cycle),
+    classes: classes(props.class),
   }
   switch (child.type) {
     case 'label':
@@ -952,6 +1002,12 @@ function place(layout: Layout, child: Child, at: string): string[] {
   }
   layout.add(node)
   return [node.id!]
+}
+
+/** classes splits an element's class into its names, or undefined for none. */
+function classes(names: string | undefined): string[] | undefined {
+  const list = (names ?? '').split(' ').filter((name) => name !== '')
+  return list.length === 0 ? undefined : list
 }
 
 /** input lays out an input of kind from props in node. */

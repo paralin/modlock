@@ -30,6 +30,7 @@ class FakePanel {
   events = new Map<string, () => void>()
   attributes = new Map<string, string>()
   classes: string[] = []
+  classChanges: string[] = []
   dialog: Record<string, string> = {}
   options: FakePanel[] = []
   selected = ''
@@ -89,6 +90,14 @@ class FakePanel {
   }
   BHasClass(name: string) {
     return this.classes.includes(name)
+  }
+  AddClass(name: string) {
+    this.classes.push(name)
+    this.classChanges.push(`+${name}`)
+  }
+  RemoveClass(name: string) {
+    this.classes.splice(this.classes.indexOf(name), 1)
+    this.classChanges.push(`-${name}`)
   }
   descendants(): FakePanel[] {
     return this.children.flatMap((child) => [child, ...child.descendants()])
@@ -799,7 +808,7 @@ test("hides the game's HUD parts while a root lists them", () => {
   expect(scheduled.size).toBe(0)
 })
 
-test('loads layouts a host allows and hands them data', () => {
+test('loads layouts and style sheets a host allows and hands them data', () => {
   // Draw with a host that loads only arena's layouts.
   const root = new FakePanel('Panel', 'ModlockUi')
   let unloaded = 0
@@ -849,6 +858,57 @@ test('loads layouts a host allows and hands them data', () => {
   unloaded = 0
   drawing.draw(null)
   expect(unloaded).toBe(1)
+
+  // Draw a tree with style sheets through a host that loads layouts.
+  const sheeted = new FakePanel('Panel', 'ModlockUi')
+  const styled = new Drawing($, sheeted, () => {}, {
+    url: (mod, path) => `file://${mod}/${path}`,
+    unloaded: () => {},
+  })
+  const sheets = (list: string[], classes: string[], flow?: string) =>
+    screen(
+      { id: '', sheets: list, children: ['c'], style: flow ? { flow } : {} },
+      { id: 'c', kind: 'KIND_LABEL', classes },
+    )
+
+  // The root loads its first sheet into itself and each later one into a
+  // panel nested in the one before, where its children hang; a sheet that
+  // fails to load and a path leaving the addon leave the tree drawn.
+  styled.draw(
+    sheets(['hud.css', 'missing.css', '../x.css'], ['Score', 'Score']),
+  )
+  const modRoot = sheeted.children[0]!
+  const nested = modRoot.children[0]!
+  const label = nested.children[0]!
+
+  // The nested panel covers the root, lets presses through and holds the label.
+  expect(modRoot.layout).toBe('file://arena/hud.css.xml')
+  expect([nested.id, nested.layout, nested.hittest]).toEqual([
+    'ModlockUiSheet',
+    'file://arena/missing.css.xml',
+    false,
+  ])
+  expect(nested.style.width).toBe('100%')
+  expect(nested.children).toEqual([label])
+  expect(label.classes).toEqual(['Score'])
+
+  // A class change adds and removes only what changed, on the same panel, and
+  // the nested panel lays children out as the root does.
+  styled.draw(
+    sheets(['hud.css', 'missing.css'], ['Score', 'Leading'], 'FLOW_DOWN'),
+  )
+  styled.draw(sheets(['hud.css', 'missing.css'], ['Leading'], 'FLOW_DOWN'))
+  expect(sheeted.children[0]!.children[0]!.children[0]).toBe(label)
+  expect(label.classChanges).toEqual(['+Score', '+Leading', '-Score'])
+  expect(nested.style.flowChildren).toBe('down')
+
+  // A new list of sheets makes the tree again, and a host that loads no
+  // layouts loads no sheets.
+  styled.draw(sheets(['hud.css'], ['Leading']))
+  expect(sheeted.children[0]!.children[0]!.paneltype).toBe('Label')
+  const bare = new FakePanel('Panel', 'ModlockUi')
+  new Drawing($, bare, () => {}).draw(sheets(['hud.css'], []))
+  expect(bare.children[0]!.layout).toBe('')
 })
 
 test("hands a mod's routes to each of its layouts", () => {

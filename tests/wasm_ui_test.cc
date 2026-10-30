@@ -1,7 +1,8 @@
 // Contract tests for a mod's interface trees: changes apply in order, a change
-// that breaks a limit leaves the tree as it was, a layout stays inside the
-// mod's addon, only a shown button takes presses, and only a value a shown
-// input can hold reaches the mod. A departed player's slot takes only a reset.
+// that breaks a limit leaves the tree as it was, layouts and style sheets stay
+// inside the mod's addon, only a shown button takes presses, and only a value a
+// shown input can hold reaches the mod. A departed player's slot takes only a
+// reset.
 #include <string>
 
 #include "gtest/gtest.h"
@@ -67,6 +68,20 @@ TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   EXPECT_TRUE(trees.Apply(0, layout));
   layout.mutable_set(0)->set_data(std::string(8193, 'x'));
   EXPECT_FALSE(trees.Apply(0, layout));
+
+  // A style sheet names a .css file inside the addon, and a class is a word.
+  auto styled = Set("", modlock::wasm::ui::KIND_PANEL);
+  for (const char* path : {"hud.xml", "../hyperline/hud.css", "a//b.css"}) {
+    styled.mutable_set(0)->clear_sheets();
+    styled.mutable_set(0)->add_sheets(path);
+    EXPECT_FALSE(trees.Apply(0, styled)) << path;
+  }
+  styled.mutable_set(0)->clear_sheets();
+  styled.mutable_set(0)->add_sheets("mymod/hud.css");
+  styled.mutable_set(0)->add_classes("Board-gold");
+  EXPECT_TRUE(trees.Apply(0, styled));
+  styled.mutable_set(0)->add_classes("a b");
+  EXPECT_FALSE(trees.Apply(0, styled));
 
   // A change that grows the tree past its bound applies none of its nodes.
   Change large;
