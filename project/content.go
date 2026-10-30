@@ -31,6 +31,21 @@ const ContentDir = "content"
 // file://{images}/{addon}/mark.png.
 var addonToken = regexp.MustCompile(`(\{resources\}/[\w.-]+/|\{images\}/)\{addon\}/`)
 
+// resourceSource matches the extension of a Source 2 resource's source, such
+// as .vmdl or .vmap, which the game loads only as its compiled _c form.
+var resourceSource = regexp.MustCompile(`^\.v[a-z0-9]+$`)
+
+// uncompiled reports whether the content file rest of kind is a source the
+// game never loads: anything but a compiled resource among the assets and
+// images, or a resource's source anywhere. A content addon carries only what a
+// player's game reads, since each new addon is a new mount in every game.
+func uncompiled(kind, rest string) bool {
+	if slices.Contains(check.AssetDirs, kind) || kind == "images" {
+		return !strings.HasSuffix(rest, "_c")
+	}
+	return resourceSource.MatchString(path.Ext(rest))
+}
+
 // buildContent compiles the project's content directory into the built mod's,
 // replacing the previous one, and names the content addon in the manifest; a
 // failed build leaves the content in place. A project without content ships
@@ -66,6 +81,9 @@ func (p *Project) buildContent() error {
 		kind, rest, ok := strings.Cut(name, "/")
 		if !ok {
 			return errors.Errorf("%s/%s: put it in a directory for its kind, such as %s/layout/ or %s/models/", ContentDir, name, ContentDir, ContentDir)
+		}
+		if uncompiled(kind, rest) {
+			return errors.Errorf("%s/%s is a source the game cannot load: ship it compiled, as a _c resource, and keep sources such as a Hammer map's outside %s/", ContentDir, name, ContentDir)
 		}
 		data, err := os.ReadFile(file)
 		if err != nil {

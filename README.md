@@ -640,7 +640,9 @@ build with client files outside the addon's directories.
 
 Compiled models, materials and particles go in `content/models/`,
 `content/materials/` and `content/particles/`, and build to
-`models/SLUG-DIGEST/` and so on. Name them with `{addon}` wherever a path
+`models/SLUG-DIGEST/` and so on. The build refuses a source the game cannot
+load, such as a `.vmdl` or a Hammer map's `.vmap`, so keep sources outside
+`content/`. Name them with `{addon}` wherever a path
 goes, in `precache`, `createModel`, `createParticle` and entity key values:
 
 ```ts

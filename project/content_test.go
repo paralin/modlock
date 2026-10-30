@@ -142,6 +142,21 @@ func TestContent(t *testing.T) {
 		t.Error(err)
 	}
 
+	// A source the game cannot load fails the build the same way, whether a
+	// model's or a Hammer map's.
+	if err := os.Remove(filepath.Join(dir, ContentDir, "notes.txt")); err != nil {
+		t.Fatal(err)
+	}
+	for _, source := range []string{"content/models/pawn.vmdl", "content/maps/arena.vmap"} {
+		write(source, "source")
+		if err := p.buildContent(); err == nil || !strings.Contains(err.Error(), source) {
+			t.Errorf("got %v, want an error naming %s", err, source)
+		}
+		if err := os.Remove(filepath.Join(dir, filepath.FromSlash(source))); err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	// Without content, the build ships none.
 	if err := os.RemoveAll(filepath.Join(dir, ContentDir)); err != nil {
 		t.Fatal(err)
