@@ -555,7 +555,7 @@ signatures {
 signatures {
   id: "team.classify-target"
   modules: GAME_MODULE_SERVER
-  pattern: "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 56 41 57 48 83 EC 20 8B FA 4C 8B F1 E8 ?? ?? ?? ?? 41 0F B6 B6 ?? ?? ?? ?? 33 DB 48 0F BA E0 25"
+  pattern: "48 89 5C 24 ?? 48 89 6C 24 ?? 56 57 41 57 48 83 EC 20 4C 89 74 24 ?? 8B FA 4C 8B F1 E8 ?? ?? ?? ?? 41 0F B6 B6 ?? ?? ?? ?? 33 ?? 48 0F BA E0 25"
   shape: "uint32 ClassifyTarget(CBaseEntity* target, int observer_team); 0x1 friendly hero, 0x100 enemy hero"
 }
 
