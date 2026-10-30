@@ -596,14 +596,22 @@ create('point_clientui_world_panel', {
 ```
 
 A world panel the map places has its layout path fixed when the map compiles,
-before the addon's name is known. Point it at the mod's layout when the mod
-starts; `writeField` writes `{addon}` in text the same way:
+before the addon's name is known. Point it at the mod's layout as each world
+loads, since a server starts its mods before the map's entities exist.
+`writeField` writes `{addon}` in text the same way. Players already connected
+then get a full update, which builds their panels from the new layout and
+stalls their game for a moment, so write a layout only when it changes:
 
 ```ts
-onStart(() => {
+onWorld(() => {
   for (const panel of findEntities('point_clientui_world_panel')) {
-    writeField(panel, 'CBaseClientUIEntity', 'm_DialogXMLName', 'string',
-      'file://{resources}/layout/{addon}/board.xml')
+    writeField(
+      panel,
+      'CBaseClientUIEntity',
+      'm_DialogXMLName',
+      'string',
+      'file://{resources}/layout/{addon}/board.xml',
+    )
   }
 })
 ```
@@ -682,7 +690,7 @@ empty text forgets it.
 | `command(name, handler)`                            | On the frame after a player types `/name` in chat.            |
 | `onChat(handler)`                                   | On the frame after each chat line, with `all` for all chat.   |
 | `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.      |
-| `onWorld(handler)`                                  | With the map's name each time a world loads.                  |
+| `onWorld(handler)`                                  | As each world loads, with its map; at start if one has.       |
 | `onFrame(handler)`                                  | Once per server frame.                                        |
 | `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands. |
 | `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.        |

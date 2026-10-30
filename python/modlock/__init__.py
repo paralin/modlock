@@ -3394,7 +3394,11 @@ def write_field(entity: int, class_name: str, field: str, type: FieldType, value
     addon as in an entity's key values; a CUtlString field owns its text and
     cannot be written. A write to the match's state sends all of it, so
     players already in the match see the change, and a write to a model part,
-    as ReadField names them, sends the entity.
+    as ReadField names them, sends the entity. A client builds a client UI
+    entity's panel only when it creates the entity, so a write to
+    m_DialogXMLName sends every client a full update on the next frame, which
+    creates every entity again; the players' game stalls briefly, so write a
+    layout when it changes, not every frame.
     """
     return _call("WriteField", "WriteFieldRequest", {"entity": entity, "class_name": class_name, "field": field, "type": type, "value": value}) is not None
 

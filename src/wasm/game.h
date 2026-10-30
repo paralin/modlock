@@ -27,6 +27,7 @@
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/entity_dynamics.h"
 #include "modlock/gameinterop/free_for_all_relations.h"
+#include "modlock/gameinterop/full_updates.h"
 #include "modlock/gameinterop/game_rules.h"
 #include "modlock/gameinterop/hero_definitions.h"
 #include "modlock/gameinterop/mapped_module_image.h"
@@ -73,6 +74,9 @@ class GameServices {
 
   // Messages returns the user-message sender.
   std::expected<const gameinterop::NativeUserMessages*, std::string> Messages();
+
+  // FullUpdates returns the full update sender for connected clients.
+  std::expected<const gameinterop::FullUpdates*, std::string> FullUpdates();
 
   // WorldReady installs the input hook when a mod asked for input before the
   // first world loaded, and runs the waiting console commands when the mods
@@ -198,6 +202,7 @@ class GameServices {
   std::optional<gameinterop::MappedModuleImage> image_;
   std::optional<gameinterop::EngineServer> server_;
   std::optional<gameinterop::NativeUserMessages> messages_;
+  std::optional<gameinterop::FullUpdates> full_updates_;
   std::optional<gameinterop::HeroDefinitions> heroes_;
   // world_calls_ are the entity calls every mod's world builds on; scanning
   // for them takes hundreds of milliseconds, so they resolve once per host.
@@ -608,6 +613,9 @@ class Game : public HostService {
   // PruneAudiences drops the audience of each entity the world no longer
   // holds. A removed object's entity waits, sent to nobody, until then.
   void PruneAudiences();
+  // RebuildPanels sends every client a full update when rebuild_panels_ asks
+  // for one, so each builds its client UI panels from their current layouts.
+  void RebuildPanels();
 
   // ObjectHandle returns the entity handle of the mod's object id now, or
   // nothing.
@@ -737,6 +745,9 @@ class Game : public HostService {
   std::map<uint32_t, Object> objects_;
   // visibility_ is who receives the mod's objects and entities.
   Visibility visibility_;
+  // rebuild_panels_ asks every client for a full update at the next frame,
+  // after the mod wrote a client UI entity's layout.
+  bool rebuild_panels_ = false;
   // apart_ is the slot bits of the players Apart keeps out of sight.
   uint64_t apart_ = 0;
   // fog_ is the world's fog controller, which the fog objects need; it is

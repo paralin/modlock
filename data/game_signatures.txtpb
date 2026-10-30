@@ -527,6 +527,17 @@ signatures {
   shape: "projectile impact handler"
 }
 
+# sv_fullupdate's callback, which walks the network game server's clients
+# (count at +0x268, elements at +0x270) and calls each one's Await (+0x250).
+# The entry resolves to the global that holds the server.
+signatures {
+  id: "server.clients"
+  modules: GAME_MODULE_ENGINE
+  pattern: "40 56 48 83 EC 20 48 8B 35 ?? ?? ?? ?? 48 85 F6 74 ?? 8B 86 68 02 00 00 48 89 5C 24 30 33 DB 85 C0 7E ?? 48 89 7C 24 38 85 DB 78 ?? 3B D8 7D ?? 48 8B 86 70 02 00 00 48 63 CB 48 8B 3C C8 48 85 FF 74 ?? 48 8B 07 48 8B CF FF 90 50 02 00 00"
+  rip_relative_at: 6
+  shape: "CNetworkGameServer* g_pNetworkGameServer, read by the sv_fullupdate callback"
+}
+
 signatures {
   id: "server.reply-connection"
   modules: GAME_MODULE_ENGINE

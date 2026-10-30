@@ -36,6 +36,17 @@ std::expected<const gameinterop::NativeUserMessages*, std::string> GameServices:
   return &*messages_;
 }
 
+std::expected<const gameinterop::FullUpdates*, std::string> GameServices::FullUpdates() {
+  if (!full_updates_) {
+    auto updates = gameinterop::FullUpdates::Resolve();
+    if (!updates) {
+      return std::unexpected(updates.error());
+    }
+    full_updates_ = *updates;
+  }
+  return &*full_updates_;
+}
+
 std::expected<void, std::string> GameServices::ServerCommand(std::string command) {
   // Refuse a line that reaches outside the game.
   if (auto refused = RefuseConsoleLine(command); !refused.empty()) {

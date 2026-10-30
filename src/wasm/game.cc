@@ -36,6 +36,7 @@ void Game::Frame() {
   TickRestores();
   TrackProjectiles();
   PruneAudiences();
+  RebuildPanels();
   if (services_.effects_) {
     services_.effects_->Sweep(std::chrono::steady_clock::now());
   }

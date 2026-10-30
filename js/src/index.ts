@@ -197,7 +197,8 @@ export function command(
 
 /**
  * onStart calls handler once when the server starts the mod, with the
- * arguments that follow -- on the modlock-host command line.
+ * arguments that follow -- on the modlock-host command line. The mod starts
+ * before any world loads, so find the map's entities in onWorld.
  */
 export function onStart(handler: (args: readonly string[]) => void): void {
   starts.push(handler)

@@ -559,7 +559,27 @@ std::expected<void, std::string> Game::WriteField(const fields::WriteFieldReques
   if (!gameinterop::NotifyEntityStateChanged(*entity)) {
     return std::unexpected("cannot replicate " + request.class_name() + "." + request.field());
   }
+
+  // A client builds a client UI entity's panel only when it creates the
+  // entity, so a new layout reaches connected players through a full update,
+  // which creates every entity again.
+  if (request.field() == "m_DialogXMLName") {
+    rebuild_panels_ = true;
+  }
   return {};
+}
+
+void Game::RebuildPanels() {
+  // One full update serves every layout written in the frame.
+  if (!std::exchange(rebuild_panels_, false)) {
+    return;
+  }
+  auto updates = services_.FullUpdates();
+  if (!updates) {
+    std::cerr << "panel layouts: " << updates.error() << '\n';
+    return;
+  }
+  (*updates)->RequestAll();
 }
 
 std::expected<fields::FieldListResponse, std::string> Game::ReadFieldList(
