@@ -1214,11 +1214,10 @@ the build turns the import into `sheet('hud.css')`, which a mod may also call
 itself, and refuses a sheet outside `content/styles/`. Any element takes
 `class="board gold"`, the sheet's classes it wears; changing them runs the
 sheet's transitions, and the element's own style wins over a class. The build
-writes beside each sheet a layout that includes
-only that sheet, and the player's game loads it into the interface's root
-panel, so sheets load where layouts do: a host that passes no `Layouts` draws
-the interface without them, and a sheet that fails to load leaves it drawn with
-one log line.
+writes beside each sheet a layout that includes only that sheet, and the
+player's game loads it into the interface's root panel, so sheets load where
+layouts do: a host that passes no `Layouts` draws the interface without them,
+and a sheet that fails to load leaves it drawn with one log line.
 
 A layout gets values from the mod two ways: the `data` of its own element, and
 routes, which `route(player, 'scores', scores)` hands to every layout the mod
