@@ -1860,6 +1860,10 @@ func (e CCitadel_Ability_ChargedShot) ChannelParticle() Number[int32] {
 	return Number[int32]{e.field("m_ChannelParticle")}
 }
 
+func (e CCitadel_Ability_ChargedShot) LastWallRicochetShotID() Number[uint32] {
+	return Number[uint32]{e.field("m_LastWallRicochetShotID")}
+}
+
 type CCitadel_Ability_ChargedTackle CEntityInstance
 
 func (e CCitadel_Ability_ChargedTackle) field(name string) Field {
@@ -2348,6 +2352,10 @@ func (e CCitadel_Ability_Deadpack_Rocketeer) THeatDecayStartTime() Number[float3
 	return Number[float32]{e.field("m_tHeatDecayStartTime")}
 }
 
+func (e CCitadel_Ability_Deadpack_Rocketeer) BJetpackDisabledUntilGrounded() Bool {
+	return Bool{e.field("m_bJetpackDisabledUntilGrounded")}
+}
+
 func (e CCitadel_Ability_Deadpack_Rocketeer) EState() Number[uint8] {
 	return Number[uint8]{e.field("m_eState")}
 }
@@ -2428,6 +2436,10 @@ func (e CCitadel_Ability_Doorman_Doorway) FlLastRangeFailCast() Number[float64] 
 
 func (e CCitadel_Ability_Doorman_Doorway) FlDoorBreakableRadius() Number[float32] {
 	return Number[float32]{e.field("m_flDoorBreakableRadius")}
+}
+
+func (e CCitadel_Ability_Doorman_Doorway) FlDebugDrawDuration() Number[float32] {
+	return Number[float32]{e.field("m_flDebugDrawDuration")}
 }
 
 type CCitadel_Ability_Doorman_Hotel CEntityInstance
@@ -3712,6 +3724,10 @@ func (e CCitadel_Ability_Mirage_Teleport) HTarget() Handle[CBaseEntity] {
 
 func (e CCitadel_Ability_Mirage_Teleport) TTeleportCompletedTime() Number[float32] {
 	return Number[float32]{e.field("m_tTeleportCompletedTime")}
+}
+
+func (e CCitadel_Ability_Mirage_Teleport) TLastLandedTime() Number[float32] {
+	return Number[float32]{e.field("m_tLastLandedTime")}
 }
 
 func (e CCitadel_Ability_Mirage_Teleport) VTargetPosition() Vector {
@@ -6202,6 +6218,16 @@ func (e CCitadel_CosmeticAbility_VotingPoster) BPreview() Bool {
 
 func (e CCitadel_CosmeticAbility_VotingPoster) NActiveHero() Number[uint32] {
 	return Number[uint32]{e.field("m_nActiveHero")}
+}
+
+type CCitadel_SeasonalAbility_EatHalloweenCandy CEntityInstance
+
+func (e CCitadel_SeasonalAbility_EatHalloweenCandy) field(name string) Field {
+	return Field{e.Handle, "CCitadel_SeasonalAbility_EatHalloweenCandy", name}
+}
+
+func (e CCitadel_SeasonalAbility_EatHalloweenCandy) NCandyCount() Number[int32] {
+	return Number[int32]{e.field("m_nCandyCount")}
 }
 
 type CCitadel_Gunslinger_DemonMark CEntityInstance

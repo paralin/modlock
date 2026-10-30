@@ -2419,6 +2419,9 @@ describe("CCitadel_BreakableProp", "CBaseAnimGraph", {
 export type CCitadel_BreakableProp_Hideout = CCitadel_BreakableProp
 describe("CCitadel_BreakableProp_Hideout", "CCitadel_BreakableProp", {})
 
+export type CCitadel_BreakableProp_PunchableTroll = CCitadel_BreakableProp
+describe("CCitadel_BreakableProp_PunchableTroll", "CCitadel_BreakableProp", {})
+
 export type CCitadel_DeployablePreview = CBaseAnimGraph
 describe("CCitadel_DeployablePreview", "CBaseAnimGraph", {})
 
@@ -2540,8 +2543,8 @@ describe("CCitadel_Pickup_ArtistDrawing", "CCitadel_Pickup", {
 	m_hPlayerVictim = "CCitadelPlayerPawn",
 })
 
-export type CCitadel_Pickup_AssignedGold = CCitadel_Pickup
-describe("CCitadel_Pickup_AssignedGold", "CCitadel_Pickup", {})
+export type CCitadel_Pickup_AssignedCurrencies = CCitadel_Pickup
+describe("CCitadel_Pickup_AssignedCurrencies", "CCitadel_Pickup", {})
 
 export type CCitadel_Pickup_Currency = CCitadel_Pickup & {
 	m_nCurrencyAmount: number?,
@@ -2556,6 +2559,9 @@ export type CCitadel_Pickup_Gold = CCitadel_Pickup & {
 describe("CCitadel_Pickup_Gold", "CCitadel_Pickup", {
 	m_iGoldReward = "int32",
 })
+
+export type CCitadel_Pickup_HalloweenCandy = CCitadel_Pickup
+describe("CCitadel_Pickup_HalloweenCandy", "CCitadel_Pickup", {})
 
 export type CCitadel_Pickup_Health = CCitadel_Pickup
 describe("CCitadel_Pickup_Health", "CCitadel_Pickup", {})
@@ -8151,9 +8157,11 @@ describe("CCitadel_Ability_CardToss", "CCitadelBaseAbility", {
 
 export type CCitadel_Ability_ChargedShot = CCitadelBaseAbility & {
 	m_ChannelParticle: number?,
+	m_LastWallRicochetShotID: number?,
 }
 describe("CCitadel_Ability_ChargedShot", "CCitadelBaseAbility", {
 	m_ChannelParticle = "int32",
+	m_LastWallRicochetShotID = "uint32",
 })
 
 export type CCitadel_Ability_ChargedTackle = CCitadelBaseAbility & {
@@ -8416,6 +8424,7 @@ export type CCitadel_Ability_Deadpack_Rocketeer = CCitadelBaseAbility & {
 	m_bDiveStraightDown: boolean?,
 	m_flCastDelayFrac: number?,
 	m_tHeatDecayStartTime: number?,
+	m_bJetpackDisabledUntilGrounded: boolean?,
 	m_eState: number?,
 }
 describe("CCitadel_Ability_Deadpack_Rocketeer", "CCitadelBaseAbility", {
@@ -8435,6 +8444,7 @@ describe("CCitadel_Ability_Deadpack_Rocketeer", "CCitadelBaseAbility", {
 	m_bDiveStraightDown = "bool",
 	m_flCastDelayFrac = "float32",
 	m_tHeatDecayStartTime = "float32",
+	m_bJetpackDisabledUntilGrounded = "bool",
 	m_eState = "uint8",
 })
 
@@ -8484,11 +8494,13 @@ export type CCitadel_Ability_Doorman_Doorway = CCitadelBaseAbility & {
 	m_hDoor1: CCitadel_DoorwayPortal?,
 	m_flLastRangeFailCast: number?,
 	m_flDoorBreakableRadius: number?,
+	m_flDebugDrawDuration: number?,
 }
 describe("CCitadel_Ability_Doorman_Doorway", "CCitadelBaseAbility", {
 	m_hDoor1 = "CCitadel_DoorwayPortal",
 	m_flLastRangeFailCast = "float64",
 	m_flDoorBreakableRadius = "float32",
+	m_flDebugDrawDuration = "float32",
 })
 
 export type CCitadel_Ability_Doorman_Hotel = CCitadelBaseAbility & {
@@ -9307,12 +9319,14 @@ describe("CCitadel_Ability_Mirage_FireBeetles", "CCitadelBaseAbility", {})
 export type CCitadel_Ability_Mirage_Teleport = CCitadelBaseAbility & {
 	m_hTarget: CBaseEntity?,
 	m_tTeleportCompletedTime: number?,
+	m_tLastLandedTime: number?,
 	m_vTargetPosition: modlock.Vector?,
 	m_vTargetAngles: modlock.Angles?,
 }
 describe("CCitadel_Ability_Mirage_Teleport", "CCitadelBaseAbility", {
 	m_hTarget = "CBaseEntity",
 	m_tTeleportCompletedTime = "float32",
+	m_tLastLandedTime = "float32",
 	m_vTargetPosition = "vector",
 	m_vTargetAngles = "angles",
 })
@@ -10948,6 +10962,13 @@ describe("CCitadel_CosmeticAbility_VotingPoster", "CCitadel_CosmeticAbility", {
 	m_nActiveHero = "uint32",
 })
 
+export type CCitadel_SeasonalAbility_EatHalloweenCandy = CCitadel_CosmeticAbility & {
+	m_nCandyCount: number?,
+}
+describe("CCitadel_SeasonalAbility_EatHalloweenCandy", "CCitadel_CosmeticAbility", {
+	m_nCandyCount = "int32",
+})
+
 export type CCitadel_Gunslinger_DemonMark = CCitadelBaseAbility & {
 	m_flNextSearchTime: number?,
 }
@@ -11569,6 +11590,13 @@ describe("CCitadel_Werewolf_UnloadGun2", "CCitadelBaseAbility", {
 
 export type CCitadelEconItemContainer = CBaseEntity
 describe("CCitadelEconItemContainer", "CBaseEntity", {})
+
+export type CCitadelEventState = CBaseEntity & {
+	m_vecActiveEvents: { number }?,
+}
+describe("CCitadelEventState", "CBaseEntity", {
+	m_vecActiveEvents = "list:uint32",
+})
 
 export type CCitadelGaffer = CBaseEntity & {
 	inputBlendTo: (self: any, value: string) -> boolean,
@@ -13323,13 +13351,19 @@ describe("CInfoTeleportDestination", "CPointEntity", {})
 export type CInfoTrooperNeutralCamp = CPointEntity & {
 	m_iszCampName: string?,
 	m_flTetherRadiusOverride: number?,
+	-- Remove every neutral currently spawned by the camp.
+	inputRemoveNeutrals: (self: any) -> boolean,
 	inputSetDisabled: (self: any, value: boolean) -> boolean,
+	-- Fill every spawn point in the camp now.
+	inputSpawnNeutrals: (self: any) -> boolean,
 }
 describe("CInfoTrooperNeutralCamp", "CPointEntity", {
 	m_iszCampName = "string",
 	m_flTetherRadiusOverride = "float32",
 }, {
+	RemoveNeutrals = "",
 	SetDisabled = "boolean",
+	SpawnNeutrals = "",
 })
 
 export type CInfoTutorialPoint = CPointEntity & {
@@ -15931,9 +15965,6 @@ describe("CCitadelBotTestNode", "CServerOnlyPointEntity", {
 
 export type CInfoCitadelHelperLocation = CServerOnlyPointEntity
 describe("CInfoCitadelHelperLocation", "CServerOnlyPointEntity", {})
-
-export type CInfoMidBossSpawn = CServerOnlyPointEntity
-describe("CInfoMidBossSpawn", "CServerOnlyPointEntity", {})
 
 export type CInfoTargetServerOnly = CServerOnlyPointEntity
 describe("CInfoTargetServerOnly", "CServerOnlyPointEntity", {})
@@ -20317,6 +20348,7 @@ type ClassName0 =
 	| "CCitadel_Artist_VisionBlocker"
 	| "CCitadel_BreakableProp"
 	| "CCitadel_BreakableProp_Hideout"
+	| "CCitadel_BreakableProp_PunchableTroll"
 	| "CCitadel_DeployablePreview"
 	| "CCitadel_DoorwayPortal"
 	| "CCitadel_FissureWall"
@@ -20329,9 +20361,10 @@ type ClassName0 =
 	| "CCitadel_Pickup_Ability"
 	| "CCitadel_Pickup_Item"
 	| "CCitadel_Pickup_ArtistDrawing"
-	| "CCitadel_Pickup_AssignedGold"
+	| "CCitadel_Pickup_AssignedCurrencies"
 	| "CCitadel_Pickup_Currency"
 	| "CCitadel_Pickup_Gold"
+	| "CCitadel_Pickup_HalloweenCandy"
 	| "CCitadel_Pickup_Health"
 	| "CCitadel_Pickup_Modifier"
 	| "CCitadel_Pickup_NecroDeath"
@@ -20613,10 +20646,10 @@ type ClassName0 =
 	| "CTemplateNPCMaker"
 	| "CBasePlayerController"
 	| "CCitadelPlayerController"
-	| "CBaseTrackedStatsEntity"
-	| "CMatchTrackedStatsEntity"
 
 type ClassName1 =
+	| "CBaseTrackedStatsEntity"
+	| "CMatchTrackedStatsEntity"
 	| "CPlayerTrackedStatsEntity"
 	| "CTeamTrackedStatsEntity"
 	| "CCitadelAudioProcessingVolumeBase"
@@ -21015,10 +21048,10 @@ type ClassName1 =
 	| "CCitadel_Ability_Trapper_PoisonJar"
 	| "CCitadel_Ability_Trapper_SpiderJar"
 	| "CCitadel_Ability_Trapper_WebWall"
-	| "CCitadel_Ability_Trappers_Bolo"
-	| "CCitadel_Ability_TriggerTower"
 
 type ClassName2 =
+	| "CCitadel_Ability_Trappers_Bolo"
+	| "CCitadel_Ability_TriggerTower"
 	| "CCitadel_Ability_TurretClone"
 	| "CCitadel_Ability_UltCombo"
 	| "CCitadel_Ability_Unicorn_DazzlingOrb"
@@ -21064,6 +21097,7 @@ type ClassName2 =
 	| "CCitadel_CosmeticAbility_Emote"
 	| "CCitadel_CosmeticAbility_Snowball"
 	| "CCitadel_CosmeticAbility_VotingPoster"
+	| "CCitadel_SeasonalAbility_EatHalloweenCandy"
 	| "CCitadel_Gunslinger_DemonMark"
 	| "CCitadel_Item"
 	| "CCitadel_Ability_Shield"
@@ -21194,6 +21228,7 @@ type ClassName2 =
 	| "CCitadel_Werewolf_UnloadGun"
 	| "CCitadel_Werewolf_UnloadGun2"
 	| "CCitadelEconItemContainer"
+	| "CCitadelEventState"
 	| "CCitadelGaffer"
 	| "CCitadelHeroLoader"
 	| "CCitadelHideoutPropSlot"
@@ -21415,12 +21450,12 @@ type ClassName2 =
 	| "CPhysSlideConstraint"
 	| "CPhysWheelConstraint"
 	| "CRagdollConstraint"
+
+type ClassName3 =
 	| "CSplineConstraint"
 	| "CPhysMotor"
 	| "CPhysicsEntitySolver"
 	| "CPhysicsNPCSolver"
-
-type ClassName3 =
 	| "CPointTemplate"
 	| "CSceneListManager"
 	| "CSoundStackSave"
@@ -21429,7 +21464,6 @@ type ClassName3 =
 	| "CServerOnlyPointEntity"
 	| "CCitadelBotTestNode"
 	| "CInfoCitadelHelperLocation"
-	| "CInfoMidBossSpawn"
 	| "CInfoTargetServerOnly"
 	| "CInfoTeamSpawn"
 	| "CInfoTrooperBossSpawn"
@@ -21565,7 +21599,6 @@ local designers = {
 	citadel_passthrough_fake_wall = { "CCitadelPassthroughFakeWall", "CCitadelPassthroughFakeWall" },
 	citadel_pickup = { "CCitadel_Pickup", "CBaseAnimGraph" },
 	citadel_pickup_ability = { "CCitadel_Pickup_Ability", "CBaseAnimGraph" },
-	citadel_pickup_assigned_gold = { "CCitadel_Pickup_AssignedGold", "CBaseAnimGraph" },
 	citadel_pickup_currency = { "CCitadel_Pickup_Currency", "CBaseAnimGraph" },
 	citadel_pickup_gold = { "CCitadel_Pickup_Gold", "CBaseAnimGraph" },
 	citadel_pickup_health = { "CCitadel_Pickup_Health", "CBaseAnimGraph" },
@@ -21767,7 +21800,6 @@ local designers = {
 	info_koth_spawn_location = { "CInfoKOTHSpawnLocation", "CPointEntity" },
 	info_ladder_dismount = { "CInfoLadderDismount", "CBaseEntity" },
 	info_landmark = { "CInfoLandmark", "CPointEntity" },
-	info_mid_boss_spawn = { "CInfoMidBossSpawn", "CBaseEntity" },
 	info_mini_map_marker = { "CMiniMapMarker", "CMiniMapMarker" },
 	info_nav_space = { "CNavSpaceInfo", "CPointEntity" },
 	info_neutral_trooper_camp = { "CInfoTrooperNeutralCamp", "CInfoTrooperNeutralCamp" },

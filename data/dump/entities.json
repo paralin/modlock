@@ -1,5 +1,5 @@
 {
- "build": "6801",
+ "build": "6826",
  "classes": [
   {
    "designer_name": "abiilty_boho_channeltether",
@@ -2552,6 +2552,12 @@
    "base": "citadel_breakable_prop"
   },
   {
+   "designer_name": "citadel_breakable_prop_punchable_troll",
+   "class_name": "CCitadel_BreakableProp_PunchableTroll",
+   "data_map": "CCitadel_BreakableProp",
+   "base": "citadel_breakable_prop"
+  },
+  {
    "designer_name": "citadel_capture_point",
    "class_name": "CCitadelTriggerCapturePoint",
    "data_map": "CCitadelTriggerCapturePoint",
@@ -2645,6 +2651,12 @@
    "designer_name": "citadel_energy_tower",
    "class_name": "CCitadelEnergyTower",
    "data_map": "CCitadelEnergyTower",
+   "base": "root"
+  },
+  {
+   "designer_name": "citadel_event_state",
+   "class_name": "CCitadelEventState",
+   "data_map": "CBaseEntity",
    "base": "root"
   },
   {
@@ -2900,8 +2912,8 @@
    "base": "citadel_pickup"
   },
   {
-   "designer_name": "citadel_pickup_assigned_gold",
-   "class_name": "CCitadel_Pickup_AssignedGold",
+   "designer_name": "citadel_pickup_assigned_currencies",
+   "class_name": "CCitadel_Pickup_AssignedCurrencies",
    "data_map": "CBaseAnimGraph",
    "base": "citadel_pickup"
   },
@@ -2914,6 +2926,12 @@
   {
    "designer_name": "citadel_pickup_gold",
    "class_name": "CCitadel_Pickup_Gold",
+   "data_map": "CBaseAnimGraph",
+   "base": "citadel_pickup"
+  },
+  {
+   "designer_name": "citadel_pickup_halloween_candy",
+   "class_name": "CCitadel_Pickup_HalloweenCandy",
    "data_map": "CBaseAnimGraph",
    "base": "citadel_pickup"
   },
@@ -4314,12 +4332,6 @@
    "class_name": "CInfoLandmark",
    "data_map": "CPointEntity",
    "base": "point_entity"
-  },
-  {
-   "designer_name": "info_mid_boss_spawn",
-   "class_name": "CInfoMidBossSpawn",
-   "data_map": "CBaseEntity",
-   "base": "root"
   },
   {
    "designer_name": "info_mini_map_marker",
@@ -5914,6 +5926,12 @@
    "class_name": "CScriptedSequence",
    "data_map": "CScriptedSequence",
    "base": "root"
+  },
+  {
+   "designer_name": "seasonal_eat_halloween_candy",
+   "class_name": "CCitadel_SeasonalAbility_EatHalloweenCandy",
+   "data_map": "CCitadelBaseAbility",
+   "base": "citadel_base_ability"
   },
   {
    "designer_name": "setting_sun_projectile",
@@ -26550,6 +26568,11 @@
   },
   {
    "entity": "info_neutral_trooper_camp",
+   "name": "RemoveNeutrals",
+   "description": "Remove every neutral currently spawned by the camp."
+  },
+  {
+   "entity": "info_neutral_trooper_camp",
    "name": "SetDisabled",
    "parameters": [
     {
@@ -26557,6 +26580,11 @@
      "type": "PVAL_BOOL"
     }
    ]
+  },
+  {
+   "entity": "info_neutral_trooper_camp",
+   "name": "SpawnNeutrals",
+   "description": "Fill every spawn point in the camp now."
   },
   {
    "entity": "info_offscreen_panorama_texture",

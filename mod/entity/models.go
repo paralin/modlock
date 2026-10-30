@@ -2716,6 +2716,8 @@ func (e CCitadel_BreakableProp) NMeleeHitsTaken() Number[int32] {
 
 type CCitadel_BreakableProp_Hideout CEntityInstance
 
+type CCitadel_BreakableProp_PunchableTroll CEntityInstance
+
 type CCitadel_DeployablePreview CEntityInstance
 
 type CCitadel_DoorwayPortal CEntityInstance
@@ -2896,7 +2898,7 @@ func (e CCitadel_Pickup_ArtistDrawing) HPlayerVictim() Handle[CCitadelPlayerPawn
 	return Handle[CCitadelPlayerPawn]{e.field("m_hPlayerVictim")}
 }
 
-type CCitadel_Pickup_AssignedGold CEntityInstance
+type CCitadel_Pickup_AssignedCurrencies CEntityInstance
 
 type CCitadel_Pickup_Currency CEntityInstance
 
@@ -2917,6 +2919,8 @@ func (e CCitadel_Pickup_Gold) field(name string) Field {
 func (e CCitadel_Pickup_Gold) IGoldReward() Number[int32] {
 	return Number[int32]{e.field("m_iGoldReward")}
 }
+
+type CCitadel_Pickup_HalloweenCandy CEntityInstance
 
 type CCitadel_Pickup_Health CEntityInstance
 

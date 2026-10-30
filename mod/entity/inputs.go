@@ -2554,8 +2554,20 @@ func (e CInfoPlayerStart) InputToggle() (bool, error) {
 	return mod.FireInput(e.Handle, "Toggle", nil, nil)
 }
 
+// InputRemoveNeutrals sends RemoveNeutrals. Remove every neutral currently
+// spawned by the camp.
+func (e CInfoTrooperNeutralCamp) InputRemoveNeutrals() (bool, error) {
+	return mod.FireInput(e.Handle, "RemoveNeutrals", nil, nil)
+}
+
 func (e CInfoTrooperNeutralCamp) InputSetDisabled(value bool) (bool, error) {
 	return mod.FireInput(e.Handle, "SetDisabled", value, nil)
+}
+
+// InputSpawnNeutrals sends SpawnNeutrals. Fill every spawn point in the camp
+// now.
+func (e CInfoTrooperNeutralCamp) InputSpawnNeutrals() (bool, error) {
+	return mod.FireInput(e.Handle, "SpawnNeutrals", nil, nil)
 }
 
 func (e CInstructorEventEntity) InputEndHint() (bool, error) {

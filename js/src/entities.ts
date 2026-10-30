@@ -5800,6 +5800,8 @@ export class CCitadel_BreakableProp extends CBaseAnimGraph {
 
 export class CCitadel_BreakableProp_Hideout extends CCitadel_BreakableProp {}
 
+export class CCitadel_BreakableProp_PunchableTroll extends CCitadel_BreakableProp {}
+
 export class CCitadel_DeployablePreview extends CBaseAnimGraph {}
 
 export class CCitadel_DoorwayPortal extends CBaseAnimGraph {
@@ -6056,7 +6058,7 @@ export class CCitadel_Pickup_ArtistDrawing extends CCitadel_Pickup {
   }
 }
 
-export class CCitadel_Pickup_AssignedGold extends CCitadel_Pickup {}
+export class CCitadel_Pickup_AssignedCurrencies extends CCitadel_Pickup {}
 
 export class CCitadel_Pickup_Currency extends CCitadel_Pickup {
   get m_nCurrencyAmount(): number | undefined {
@@ -6075,6 +6077,8 @@ export class CCitadel_Pickup_Gold extends CCitadel_Pickup {
     put(this, 'CCitadel_Pickup_Gold', 'm_iGoldReward', 'int32', value)
   }
 }
+
+export class CCitadel_Pickup_HalloweenCandy extends CCitadel_Pickup {}
 
 export class CCitadel_Pickup_Health extends CCitadel_Pickup {}
 
@@ -18808,6 +18812,13 @@ export class CCitadel_Ability_ChargedShot extends CCitadelBaseAbility {
   set m_ChannelParticle(value: number | undefined) {
     put(this, 'CCitadel_Ability_ChargedShot', 'm_ChannelParticle', 'int32', value)
   }
+
+  get m_LastWallRicochetShotID(): number | undefined {
+    return readField(this.handle, 'CCitadel_Ability_ChargedShot', 'm_LastWallRicochetShotID', 'uint32') as number | undefined
+  }
+  set m_LastWallRicochetShotID(value: number | undefined) {
+    put(this, 'CCitadel_Ability_ChargedShot', 'm_LastWallRicochetShotID', 'uint32', value)
+  }
 }
 
 export class CCitadel_Ability_ChargedTackle extends CCitadelBaseAbility {
@@ -19537,6 +19548,13 @@ export class CCitadel_Ability_Deadpack_Rocketeer extends CCitadelBaseAbility {
     put(this, 'CCitadel_Ability_Deadpack_Rocketeer', 'm_tHeatDecayStartTime', 'float32', value)
   }
 
+  get m_bJetpackDisabledUntilGrounded(): boolean | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Deadpack_Rocketeer', 'm_bJetpackDisabledUntilGrounded', 'bool') as boolean | undefined
+  }
+  set m_bJetpackDisabledUntilGrounded(value: boolean | undefined) {
+    put(this, 'CCitadel_Ability_Deadpack_Rocketeer', 'm_bJetpackDisabledUntilGrounded', 'bool', value)
+  }
+
   get m_eState(): number | undefined {
     return readField(this.handle, 'CCitadel_Ability_Deadpack_Rocketeer', 'm_eState', 'uint8') as number | undefined
   }
@@ -19651,6 +19669,13 @@ export class CCitadel_Ability_Doorman_Doorway extends CCitadelBaseAbility {
   }
   set m_flDoorBreakableRadius(value: number | undefined) {
     put(this, 'CCitadel_Ability_Doorman_Doorway', 'm_flDoorBreakableRadius', 'float32', value)
+  }
+
+  get m_flDebugDrawDuration(): number | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Doorman_Doorway', 'm_flDebugDrawDuration', 'float32') as number | undefined
+  }
+  set m_flDebugDrawDuration(value: number | undefined) {
+    put(this, 'CCitadel_Ability_Doorman_Doorway', 'm_flDebugDrawDuration', 'float32', value)
   }
 }
 
@@ -21403,6 +21428,13 @@ export class CCitadel_Ability_Mirage_Teleport extends CCitadelBaseAbility {
   }
   set m_tTeleportCompletedTime(value: number | undefined) {
     put(this, 'CCitadel_Ability_Mirage_Teleport', 'm_tTeleportCompletedTime', 'float32', value)
+  }
+
+  get m_tLastLandedTime(): number | undefined {
+    return readField(this.handle, 'CCitadel_Ability_Mirage_Teleport', 'm_tLastLandedTime', 'float32') as number | undefined
+  }
+  set m_tLastLandedTime(value: number | undefined) {
+    put(this, 'CCitadel_Ability_Mirage_Teleport', 'm_tLastLandedTime', 'float32', value)
   }
 
   get m_vTargetPosition(): Vector | undefined {
@@ -24803,6 +24835,15 @@ export class CCitadel_CosmeticAbility_VotingPoster extends CCitadel_CosmeticAbil
   }
 }
 
+export class CCitadel_SeasonalAbility_EatHalloweenCandy extends CCitadel_CosmeticAbility {
+  get m_nCandyCount(): number | undefined {
+    return readField(this.handle, 'CCitadel_SeasonalAbility_EatHalloweenCandy', 'm_nCandyCount', 'int32') as number | undefined
+  }
+  set m_nCandyCount(value: number | undefined) {
+    put(this, 'CCitadel_SeasonalAbility_EatHalloweenCandy', 'm_nCandyCount', 'int32', value)
+  }
+}
+
 export class CCitadel_Gunslinger_DemonMark extends CCitadelBaseAbility {
   get m_flNextSearchTime(): number | undefined {
     return readField(this.handle, 'CCitadel_Gunslinger_DemonMark', 'm_flNextSearchTime', 'float32') as number | undefined
@@ -25611,6 +25652,15 @@ export class CCitadel_Werewolf_UnloadGun2 extends CCitadelBaseAbility {
 }
 
 export class CCitadelEconItemContainer extends CBaseEntity {}
+
+export class CCitadelEventState extends CBaseEntity {
+  get m_vecActiveEvents(): number[] {
+    return readFieldList(this.handle, 'CCitadelEventState', 'm_vecActiveEvents', 'uint32') as number[]
+  }
+  set m_vecActiveEvents(value: number[]) {
+    writeFieldList(this.handle, 'CCitadelEventState', 'm_vecActiveEvents', 'uint32', value)
+  }
+}
 
 export class CCitadelGaffer extends CBaseEntity {
   inputBlendTo(value: string, activator?: number): boolean {
@@ -29568,8 +29618,18 @@ export class CInfoTrooperNeutralCamp extends CPointEntity {
     put(this, 'CInfoTrooperNeutralCamp', 'm_flTetherRadiusOverride', 'float32', value)
   }
 
+  /** Remove every neutral currently spawned by the camp. */
+  inputRemoveNeutrals(activator?: number): boolean {
+    return fireInput(this.handle, 'RemoveNeutrals', undefined, activator)
+  }
+
   inputSetDisabled(value: boolean, activator?: number): boolean {
     return fireInput(this.handle, 'SetDisabled', { boolean: value }, activator)
+  }
+
+  /** Fill every spawn point in the camp now. */
+  inputSpawnNeutrals(activator?: number): boolean {
+    return fireInput(this.handle, 'SpawnNeutrals', undefined, activator)
   }
 }
 
@@ -35495,8 +35555,6 @@ export class CCitadelBotTestNode extends CServerOnlyPointEntity {
 }
 
 export class CInfoCitadelHelperLocation extends CServerOnlyPointEntity {}
-
-export class CInfoMidBossSpawn extends CServerOnlyPointEntity {}
 
 export class CInfoTargetServerOnly extends CServerOnlyPointEntity {}
 
@@ -41589,7 +41647,6 @@ const designers = {
   citadel_passthrough_fake_wall: { make: CCitadelPassthroughFakeWall, keys: keysCCitadelPassthroughFakeWall } as Designer<typeof CCitadelPassthroughFakeWall, CCitadelPassthroughFakeWallKeys>,
   citadel_pickup: { make: CCitadel_Pickup, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup, CBaseAnimGraphKeys>,
   citadel_pickup_ability: { make: CCitadel_Pickup_Ability, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Ability, CBaseAnimGraphKeys>,
-  citadel_pickup_assigned_gold: { make: CCitadel_Pickup_AssignedGold, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_AssignedGold, CBaseAnimGraphKeys>,
   citadel_pickup_currency: { make: CCitadel_Pickup_Currency, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Currency, CBaseAnimGraphKeys>,
   citadel_pickup_gold: { make: CCitadel_Pickup_Gold, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Gold, CBaseAnimGraphKeys>,
   citadel_pickup_health: { make: CCitadel_Pickup_Health, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Health, CBaseAnimGraphKeys>,
@@ -41791,7 +41848,6 @@ const designers = {
   info_koth_spawn_location: { make: CInfoKOTHSpawnLocation, keys: keysCPointEntity } as Designer<typeof CInfoKOTHSpawnLocation, CPointEntityKeys>,
   info_ladder_dismount: { make: CInfoLadderDismount, keys: keysCBaseEntity } as Designer<typeof CInfoLadderDismount, CBaseEntityKeys>,
   info_landmark: { make: CInfoLandmark, keys: keysCPointEntity } as Designer<typeof CInfoLandmark, CPointEntityKeys>,
-  info_mid_boss_spawn: { make: CInfoMidBossSpawn, keys: keysCBaseEntity } as Designer<typeof CInfoMidBossSpawn, CBaseEntityKeys>,
   info_mini_map_marker: { make: CMiniMapMarker, keys: keysCMiniMapMarker } as Designer<typeof CMiniMapMarker, CMiniMapMarkerKeys>,
   info_nav_space: { make: CNavSpaceInfo, keys: keysCPointEntity } as Designer<typeof CNavSpaceInfo, CPointEntityKeys>,
   info_neutral_trooper_camp: { make: CInfoTrooperNeutralCamp, keys: keysCInfoTrooperNeutralCamp } as Designer<typeof CInfoTrooperNeutralCamp, CInfoTrooperNeutralCampKeys>,

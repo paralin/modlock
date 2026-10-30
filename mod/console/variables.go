@@ -1511,6 +1511,7 @@ var CitadelForgeSentryGoldRewardBonusPerMinute = Variable[float32]{"citadel_forg
 // CitadelFowPlayerRange: Player Fow Vision Range.
 var CitadelFowPlayerRange = Variable[float32]{"citadel_fow_player_range"}
 
+// CitadelGamemodeStreetbrawlEnabled: Set to Enable StreetBrawl.
 var CitadelGamemodeStreetbrawlEnabled = Variable[bool]{"citadel_gamemode_streetbrawl_enabled"}
 
 var CitadelGgCallTime = Variable[float32]{"citadel_gg_call_time"}
@@ -1540,6 +1541,31 @@ var CitadelGunIronSightsThreshold = Variable[float32]{"citadel_gun_iron_sights_t
 // CitadelGunMaxSpreadPenalty: Max spread penalty you can incur from taking
 // damage.
 var CitadelGunMaxSpreadPenalty = Variable[float32]{"citadel_gun_max_spread_penalty"}
+
+// CitadelHalloweenCandyDeathDrop: When set, players drop all their candy when
+// they die.
+var CitadelHalloweenCandyDeathDrop = Variable[bool]{"citadel_halloween_candy_death_drop"}
+
+// CitadelHalloweenCandyHeavyMeleeDrop: When set, getting hit by a heavy melee
+// knocks candy out of the victim.
+var CitadelHalloweenCandyHeavyMeleeDrop = Variable[bool]{"citadel_halloween_candy_heavy_melee_drop"}
+
+// CitadelHalloweenCandyHeavyMeleeDropCount: Minimum candy a heavy melee knocks
+// out.
+var CitadelHalloweenCandyHeavyMeleeDropCount = Variable[int32]{"citadel_halloween_candy_heavy_melee_drop_count"}
+
+// CitadelHalloweenCandyHeavyMeleeDropLockout: Seconds before the victim can
+// pick their knocked out candy back up.
+var CitadelHalloweenCandyHeavyMeleeDropLockout = Variable[float32]{"citadel_halloween_candy_heavy_melee_drop_lockout"}
+
+// CitadelHalloweenCandyHeavyMeleeDropPercent: Fraction of the victim's held
+// candy a heavy melee knocks out, rounded down (never less than
+// citadel_halloween_candy_heavy_melee_drop_count).
+var CitadelHalloweenCandyHeavyMeleeDropPercent = Variable[float32]{"citadel_halloween_candy_heavy_melee_drop_percent"}
+
+// CitadelHalloweenCandyStreetBrawlRoundGrant: Candy given to every player at
+// the start of each Street Brawl round.
+var CitadelHalloweenCandyStreetBrawlRoundGrant = Variable[int32]{"citadel_halloween_candy_street_brawl_round_grant"}
 
 // CitadelHeroDemoHeroSpawn: Which hero do we spawn when we spawn and enemy or
 // ally hero.
@@ -2440,6 +2466,14 @@ var CitadelRrKillstreakForDeathLine = Variable[int32]{"citadel_rr_killstreak_for
 
 var CitadelSatVolumeDesatAmount = Variable[float32]{"citadel_sat_volume_desat_amount"}
 
+// CitadelSecureGoldBehindMaxBonus: Max extra secure rate (fraction of baseline)
+// for a player behind the enemy team's average net worth.
+var CitadelSecureGoldBehindMaxBonus = Variable[float32]{"citadel_secure_gold_behind_max_bonus"}
+
+// CitadelSecureGoldBehindMaxDelta: Net worth deficit vs the enemy team's
+// average (fraction of that average) at which the secure rate bonus is maxed.
+var CitadelSecureGoldBehindMaxDelta = Variable[float32]{"citadel_secure_gold_behind_max_delta"}
+
 var CitadelSecureGoldFixed = Variable[float32]{"citadel_secure_gold_fixed"}
 
 var CitadelSecureGoldFixedGrowth = Variable[float32]{"citadel_secure_gold_fixed_growth"}
@@ -2670,6 +2704,15 @@ var CitadelThrowsandProjectileShowDebug = Variable[bool]{"citadel_throwsand_proj
 // CitadelTickGoldComebackRedirectPayout: Fraction of the redirected comeback
 // souls pool paid out to the two lowest net worth players each period.
 var CitadelTickGoldComebackRedirectPayout = Variable[float32]{"citadel_tick_gold_comeback_redirect_payout"}
+
+// CitadelTickGoldDeficitMaxMultiplier: Tick gold payout multiplier for a team
+// at or beyond citadel_tick_gold_deficit_max_ratio behind in net worth. Ramps
+// from 1 at parity.
+var CitadelTickGoldDeficitMaxMultiplier = Variable[float32]{"citadel_tick_gold_deficit_max_multiplier"}
+
+// CitadelTickGoldDeficitMaxRatio: Enemy team net worth / our team net worth at
+// which citadel_tick_gold_deficit_max_multiplier is reached.
+var CitadelTickGoldDeficitMaxRatio = Variable[float32]{"citadel_tick_gold_deficit_max_ratio"}
 
 var CitadelTickGoldPayoutForLowest = Variable[float32]{"citadel_tick_gold_payout_for_lowest"}
 

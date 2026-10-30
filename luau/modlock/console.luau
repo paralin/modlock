@@ -249,6 +249,8 @@ type BooleanVariable0 =
 	| "citadel_force_strict_abandon_rules"
 	| "citadel_force_unpause_cooldown"
 	| "citadel_gamemode_streetbrawl_enabled"
+	| "citadel_halloween_candy_death_drop"
+	| "citadel_halloween_candy_heavy_melee_drop"
 	| "citadel_hero_demo_no_troopers"
 	| "citadel_hero_release_vote_force_enabled"
 	| "citadel_hero_release_vote_keep_visible"
@@ -407,10 +409,10 @@ type BooleanVariable0 =
 	| "citadel_use_new_abandon_rules_unranked"
 	| "citadel_use_pvs_for_players"
 	| "citadel_use_stateful_ready_on_client"
-	| "citadel_use_unit_query_system"
-	| "citadel_use_wip_models"
 
 type BooleanVariable1 =
+	| "citadel_use_unit_query_system"
+	| "citadel_use_wip_models"
 	| "citadel_vanguard_enabled"
 	| "citadel_vanguard_instant_capture"
 	| "citadel_viscous_bowling_radius_debug"
@@ -809,10 +811,10 @@ type BooleanVariable1 =
 	| "nav_test_split_obstacle_update_pos"
 	| "navlocal_constrain"
 	| "navlocal_debug_navlink_isect"
-	| "navlocal_parallel_trace_path_for_obstacle"
-	| "navspace_create_water_smooth_connections"
 
 type BooleanVariable2 =
+	| "navlocal_parallel_trace_path_for_obstacle"
+	| "navspace_create_water_smooth_connections"
 	| "navspace_create_water_surface_connections"
 	| "navspace_create_water_transition_connections"
 	| "navspace_path_use_water_level_locator"
@@ -1211,10 +1213,10 @@ type BooleanVariable2 =
 	| "sv_alltalk"
 	| "sv_audio_debug_bullet_material"
 	| "sv_audio_debug_pawn_surface_data"
-	| "sv_audio_log_citadel_audio_filter"
-	| "sv_audio_log_participant_start_messages"
 
 type BooleanVariable3 =
+	| "sv_audio_log_citadel_audio_filter"
+	| "sv_audio_log_participant_start_messages"
 	| "sv_autosave"
 	| "sv_banid_enabled"
 	| "sv_cheats"
@@ -1700,6 +1702,10 @@ type NumberVariable0 =
 	| "citadel_guided_bot_t1_boss_ignore_damage_threshold"
 	| "citadel_gun_iron_sights_threshold"
 	| "citadel_gun_max_spread_penalty"
+	| "citadel_halloween_candy_heavy_melee_drop_count"
+	| "citadel_halloween_candy_heavy_melee_drop_lockout"
+	| "citadel_halloween_candy_heavy_melee_drop_percent"
+	| "citadel_halloween_candy_street_brawl_round_grant"
 	| "citadel_hero_release_vote_august_2025_debug_votes_cast_total"
 	| "citadel_hero_testing_dummy_bullet_resist"
 	| "citadel_hero_testing_dummy_debuff_resist"
@@ -1798,12 +1804,12 @@ type NumberVariable0 =
 	| "citadel_neutral_player_range_weak_meters"
 	| "citadel_neutral_scorer_time_window"
 	| "citadel_neutral_sleep_time"
+
+type NumberVariable1 =
 	| "citadel_neutral_spawn_interval_override"
 	| "citadel_neutral_tether_distance_window"
 	| "citadel_neutral_vault_minigame_force_speed"
 	| "citadel_new_abandon_rules_early_end_countdown"
-
-type NumberVariable1 =
 	| "citadel_new_abandon_rules_early_time"
 	| "citadel_new_years_fireworks_epoch_override"
 	| "citadel_new_years_fireworks_force_start"
@@ -1943,6 +1949,8 @@ type NumberVariable1 =
 	| "citadel_report_card_dismissal_timeout"
 	| "citadel_rr_killstreak_for_death_line"
 	| "citadel_sat_volume_desat_amount"
+	| "citadel_secure_gold_behind_max_bonus"
+	| "citadel_secure_gold_behind_max_delta"
 	| "citadel_secure_gold_fixed"
 	| "citadel_secure_gold_fixed_growth"
 	| "citadel_secure_gold_percent"
@@ -1992,6 +2000,8 @@ type NumberVariable1 =
 	| "citadel_tether_pull_speed"
 	| "citadel_tether_pull_speed_scale_per_meter"
 	| "citadel_tick_gold_comeback_redirect_payout"
+	| "citadel_tick_gold_deficit_max_multiplier"
+	| "citadel_tick_gold_deficit_max_ratio"
 	| "citadel_tick_gold_payout_for_lowest"
 	| "citadel_tick_gold_payout_for_second_lowest"
 	| "citadel_tick_gold_period_duration_s"
@@ -2196,6 +2206,8 @@ type NumberVariable1 =
 	| "experimental_citadel_tick_rate_override"
 	| "fathom_force_spotted"
 	| "filesystem_buffer_size"
+
+type NumberVariable2 =
 	| "filesystem_fake_latency"
 	| "filesystem_max_stdio_read"
 	| "fog_hdrcolorscale"
@@ -2204,8 +2216,6 @@ type NumberVariable1 =
 	| "fog_override_exponent"
 	| "fog_override_max_density"
 	| "fog_override_start"
-
-type NumberVariable2 =
 	| "footstep_force_volume"
 	| "fps_max"
 	| "fps_max_tools"
@@ -2598,6 +2608,8 @@ type NumberVariable2 =
 	| "r_draw_particle_children_with_parents"
 	| "r_extra_render_frames"
 	| "r_fallback_texture_lod_scale"
+
+type NumberVariable3 =
 	| "r_force_render_frame_count"
 	| "r_fullscreen_gamma"
 	| "r_grass_alpha_test"
@@ -2606,8 +2618,6 @@ type NumberVariable2 =
 	| "r_grass_max_brightness_change"
 	| "r_grass_quality"
 	| "r_grass_start_fade"
-
-type NumberVariable3 =
 	| "r_grass_vertex_lighting"
 	| "r_hair_debug_guides"
 	| "r_hair_meshshader"
@@ -3000,6 +3010,8 @@ type NumberVariable3 =
 	| "voice_threshold_hold"
 	| "voice_threshold_ramp_min_db"
 	| "volume"
+
+type NumberVariable4 =
 	| "volume_fog_density_scale"
 	| "volume_fog_depth"
 	| "volume_fog_depth_warp"
@@ -3008,8 +3020,6 @@ type NumberVariable3 =
 	| "volume_fog_shadow_penumbra_multiplier"
 	| "volume_fog_temporal_weight"
 	| "volume_fog_width"
-
-type NumberVariable4 =
 	| "vprof_counters"
 	| "vt_page_atlas_size"
 	| "vt_sim_streaming_delay_ms"
@@ -3277,6 +3287,7 @@ type CommandName0 =
 	| "citadel_dump_game_state"
 	| "citadel_enable_duplicate_heroes"
 	| "citadel_enable_nearby_capture_point"
+	| "citadel_event_state_dump"
 	| "citadel_fibonacci_sphere_trace"
 	| "citadel_flame_graph_request"
 	| "citadel_force_kill"
@@ -3285,6 +3296,7 @@ type CommandName0 =
 	| "citadel_force_playofthegame"
 	| "citadel_force_spawn_idol"
 	| "citadel_give_gold"
+	| "citadel_give_halloween_candy"
 	| "citadel_give_permanent_buffs"
 	| "citadel_give_player_gold"
 	| "citadel_guide_bot_say"
@@ -3565,10 +3577,10 @@ type CommandName0 =
 	| "kickid"
 	| "kickid_hltv"
 	| "kill"
-	| "kill_all_shrines"
-	| "killvector"
 
 type CommandName1 =
+	| "kill_all_shrines"
+	| "killvector"
 	| "lightbinner_precompute"
 	| "lightbinner_test_computespheresilhouette"
 	| "lightbinner_test_computesumsilhouette"
@@ -3967,10 +3979,10 @@ type CommandName1 =
 	| "snd_sos_print_operator_stack"
 	| "snd_sos_print_operator_stack_operator"
 	| "snd_sos_print_operator_stacks"
-	| "snd_sos_print_operators"
-	| "snd_sos_print_stack_exec_list"
 
 type CommandName2 =
+	| "snd_sos_print_operators"
+	| "snd_sos_print_stack_exec_list"
 	| "snd_sos_print_strings"
 	| "snd_sos_print_tool_properties"
 	| "snd_sos_resolve_execute_operator"

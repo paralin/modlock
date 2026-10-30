@@ -952,6 +952,16 @@ func (e CCitadelAudioProcessingVolumeOBB) VMaxs() Vector {
 
 type CCitadelEconItemContainer CEntityInstance
 
+type CCitadelEventState CEntityInstance
+
+func (e CCitadelEventState) field(name string) Field {
+	return Field{e.Handle, "CCitadelEventState", name}
+}
+
+func (e CCitadelEventState) VecActiveEvents() List[uint32] {
+	return List[uint32]{e.field("m_vecActiveEvents")}
+}
+
 type CCitadelGaffer CEntityInstance
 
 type CCitadelHeroLoader CEntityInstance
@@ -6733,8 +6743,6 @@ func (e CCitadelBotTestNode) HLockingEntity() Handle[CCitadelPlayerPawn] {
 }
 
 type CInfoCitadelHelperLocation CEntityInstance
-
-type CInfoMidBossSpawn CEntityInstance
 
 type CInfoTargetServerOnly CEntityInstance
 
