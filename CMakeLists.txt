@@ -32,17 +32,20 @@ set(protobuf_INSTALL ON)
 set(protobuf_MSVC_STATIC_RUNTIME OFF)
 set(protobuf_ABSL_PROVIDER "module")
 
+# Go is looked up on every configure rather than cached, so a build directory
+# survives Go moving to another path.
+find_program(MODLOCK_GO go NO_CACHE)
+
 function(modlock_resolve_module name out)
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/vendor/${name})
     set(${out} ${CMAKE_CURRENT_SOURCE_DIR}/vendor/${name} PARENT_SCOPE)
     return()
   endif()
-  find_program(GO_EXECUTABLE go)
-  if(NOT GO_EXECUTABLE)
+  if(NOT MODLOCK_GO)
     return()
   endif()
   execute_process(
-    COMMAND ${GO_EXECUTABLE} list -m -f {{.Dir}} ${name}
+    COMMAND ${MODLOCK_GO} list -m -f {{.Dir}} ${name}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     OUTPUT_VARIABLE resolved
     OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -632,7 +635,7 @@ if(BUILD_TESTING)
   file(GLOB_RECURSE hello_go_sources CONFIGURE_DEPENDS mod/*.go examples/hello-go/*.go src/*.pb.go)
   add_custom_command(OUTPUT ${hello_go_wasm}
     COMMAND ${CMAKE_COMMAND} -E env GOOS=wasip1 GOARCH=wasm
-      ${GO_EXECUTABLE} build -buildmode=c-shared -o ${hello_go_wasm} ./examples/hello-go
+      ${MODLOCK_GO} build -buildmode=c-shared -o ${hello_go_wasm} ./examples/hello-go
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${hello_go_sources} go.mod)
   add_custom_target(hello_go_wasm DEPENDS ${hello_go_wasm})
@@ -654,7 +657,7 @@ if(BUILD_TESTING)
     src/*.pb.go)
   add_custom_command(OUTPUT ${extension_go_wasm}
     COMMAND ${CMAKE_COMMAND} -E env GOOS=wasip1 GOARCH=wasm
-      ${GO_EXECUTABLE} build -buildmode=c-shared -o ${extension_go_wasm} ./tests/wasm/extension-go
+      ${MODLOCK_GO} build -buildmode=c-shared -o ${extension_go_wasm} ./tests/wasm/extension-go
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${extension_go_sources} go.mod)
   add_custom_target(extension_go_wasm DEPENDS ${extension_go_wasm})
