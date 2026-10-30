@@ -516,8 +516,15 @@ export interface ActionProps {
   children?: Child
 }
 
-/** actionLooks are each kind of action's fill, edge and text, idle and hovered. */
-const actionLooks = {
+/** ActionLook is one kind of action's fill, edge and text, idle and hovered. */
+interface ActionLook {
+  idle: Style
+  hover: Style
+  text: string
+}
+
+/** actionLooks are each kind of action's look. */
+const actionLooks: Record<NonNullable<ActionProps['kind']>, ActionLook> = {
   primary: {
     idle: { background: tones.text },
     hover: { background: shades.white },
@@ -537,7 +544,7 @@ const actionLooks = {
     hover: { background: shades.raised },
     text: shades.quiet,
   },
-} as const
+}
 
 /**
  * Action is a button in the game's menu look: capitals on a fill that lights
