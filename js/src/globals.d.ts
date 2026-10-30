@@ -61,3 +61,9 @@ declare var TextDecoder: {
   prototype: TextDecoder
   new (): TextDecoder
 }
+
+/**
+ * A style sheet in the mod's content/styles/ directory. Importing one, as
+ * import './content/styles/hud.css', adds it to every interface the mod shows.
+ */
+declare module '*.css' {}

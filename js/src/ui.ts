@@ -582,7 +582,8 @@ export function hideHud(player: Player, parts: readonly HudPart[]): boolean {
  * such as 'hud.css', to every interface the mod shows, after the sheets added
  * before it. Adding a sheet again changes nothing. A path is letters, digits,
  * '_', '-' and '.' in segments separated by '/', ending in '.css'; another
- * adds nothing and returns false.
+ * adds nothing and returns false. The build turns an import of a sheet, such
+ * as import './content/styles/hud.css', into this call.
  */
 export function sheet(path: string): boolean {
   // Refuse a path the renderer cannot load, and keep a sheet added before.

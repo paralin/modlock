@@ -3,12 +3,14 @@ package project
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
@@ -116,6 +118,7 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 		JSX:             api.JSXAutomatic,
 		JSXImportSource: "modlock",
 		Alias:           map[string]string{"modlock": library},
+		Plugins:         []api.Plugin{p.sheetPlugin()},
 		LogLevel:        api.LogLevelSilent,
 	})
 
@@ -130,6 +133,69 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 	}
 
 	return p.writeBuild(result.OutputFiles[0].Contents, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+}
+
+// sheetNamespace is the esbuild namespace of a style sheet import.
+const sheetNamespace = "modlock-sheet"
+
+// sheetPart matches one segment of a style sheet's path, as the library's
+// sheet call accepts it.
+var sheetPart = regexp.MustCompile(`^[\w.-]+$`)
+
+// sheetPath returns the path, under the project's content/styles/ directory,
+// of the style sheet at file, as the library's sheet call names it, or why a
+// script cannot import file as a sheet.
+func (p *Project) sheetPath(file string) (string, error) {
+	// Compare the real paths, since the bundler may name either through a
+	// symbolic link.
+	styles := filepath.Join(p.Dir, ContentDir, "styles")
+	real, err := filepath.EvalSymlinks(file)
+	if err != nil {
+		return "", errors.Errorf("no style sheet at %s", filepath.Base(file))
+	}
+	if styles, err = filepath.EvalSymlinks(styles); err != nil {
+		return "", errors.Errorf("a style sheet goes in %s/styles/, which the build compiles into the mod's content", ContentDir)
+	}
+
+	// Name the sheet by its path under the styles directory.
+	rest, err := filepath.Rel(styles, real)
+	if err != nil || !filepath.IsLocal(rest) {
+		return "", errors.Errorf("a style sheet goes in %s/styles/, which the build compiles into the mod's content", ContentDir)
+	}
+	rest = filepath.ToSlash(rest)
+	for _, part := range strings.Split(rest, "/") {
+		if !sheetPart.MatchString(part) {
+			return "", errors.Errorf("a style sheet's path is letters, digits, '_', '-' and '.': %s", rest)
+		}
+	}
+	return rest, nil
+}
+
+// sheetModule is the script an import of the style sheet at path becomes: a
+// call that adds the sheet to every interface the mod shows.
+func sheetModule(path string) string {
+	name, _ := json.Marshal(path)
+	return "import { sheet } from 'modlock'\nsheet(" + string(name) + ")\n"
+}
+
+// sheetPlugin turns each import of a .css file into sheetModule, so
+// import './content/styles/hud.css' adds the compiled sheet to the mod's
+// interfaces. Rolldown's release build does the same in rolldown.ts.
+func (p *Project) sheetPlugin() api.Plugin {
+	return api.Plugin{Name: "modlock-sheet", Setup: func(build api.PluginBuild) {
+		build.OnResolve(api.OnResolveOptions{Filter: `\.css$`}, func(args api.OnResolveArgs) (api.OnResolveResult, error) {
+			file := args.Path
+			if !filepath.IsAbs(file) {
+				file = filepath.Join(args.ResolveDir, file)
+			}
+			path, err := p.sheetPath(file)
+			return api.OnResolveResult{Path: path, Namespace: sheetNamespace}, err
+		})
+		build.OnLoad(api.OnLoadOptions{Filter: `.*`, Namespace: sheetNamespace}, func(args api.OnLoadArgs) (api.OnLoadResult, error) {
+			contents := sheetModule(args.Path)
+			return api.OnLoadResult{Contents: &contents, ResolveDir: p.Dir, Loader: api.LoaderJS}, nil
+		})
+	}}
 }
 
 // writeBuild replaces the built mod's entry with content, then the manifest

@@ -1208,11 +1208,13 @@ panel. The `modlock dev` preview page draws the layout from the mod's latest
 build, with its panels and inline styles, but runs none of its scripts or style
 sheets.
 
-`sheet('hud.css')` adds the mod's style sheet `content/styles/hud.css` to every
-interface the mod shows, after the sheets added before it, so a later sheet
-wins a tie. Any element takes `class="board gold"`, the sheet's classes it
-wears; changing them runs the sheet's transitions, and the element's own style
-wins over a class. The build writes beside each sheet a layout that includes
+`import './content/styles/hud.css'` adds that style sheet to every interface
+the mod shows, after the sheets added before it, so a later sheet wins a tie;
+the build turns the import into `sheet('hud.css')`, which a mod may also call
+itself, and refuses a sheet outside `content/styles/`. Any element takes
+`class="board gold"`, the sheet's classes it wears; changing them runs the
+sheet's transitions, and the element's own style wins over a class. The build
+writes beside each sheet a layout that includes
 only that sheet, and the player's game loads it into the interface's root
 panel, so sheets load where layouts do: a host that passes no `Layouts` draws
 the interface without them, and a sheet that fails to load leaves it drawn with

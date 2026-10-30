@@ -80,6 +80,7 @@ func (p *Project) bundleRolldown(ctx context.Context, library string, output io.
 		"dir":      p.Dir,
 		"entry":    p.scriptEntry(),
 		"library":  library,
+		"styles":   filepath.Join(p.Dir, ContentDir, "styles"),
 	})
 	if err != nil {
 		return nil, err
