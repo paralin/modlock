@@ -2245,13 +2245,13 @@ schema.CountResponse = {
 	{ number = 1, name = "count", kind = "int32" },
 }
 schema.ReadFileRequest = {
-	{ number = 1, name = "name", kind = "string" },
+	{ number = 1, name = "path", kind = "string" },
 }
 schema.ReadFileResponse = {
 	{ number = 1, name = "text", kind = "string", optional = true },
 }
 schema.WriteFileRequest = {
-	{ number = 1, name = "name", kind = "string" },
+	{ number = 1, name = "path", kind = "string" },
 	{ number = 2, name = "text", kind = "string" },
 }
 schema.InputEvent = {
@@ -2836,8 +2836,8 @@ end
 -- wrote or the server's operator placed, else the one the mod ships under
 -- data/. A file in neither reads as unset. Names that leave the mod's
 -- directories are refused.
-function modlock.readFile(name: string): string?
-	local response = call("ReadFile", "ReadFileRequest", { name = name }, "ReadFileResponse")
+function modlock.readFile(path: string): string?
+	local response = call("ReadFile", "ReadFileRequest", { path = path }, "ReadFileResponse")
 	if response == nil then
 		return nil
 	end
@@ -2849,8 +2849,8 @@ end
 -- as they are. The write is whole or not at all, and the host refuses one
 -- past its quota of 4 MiB per mod. A host that keeps no files refuses every
 -- write.
-function modlock.writeFile(name: string, text: string): boolean
-	return call("WriteFile", "WriteFileRequest", { name = name, text = text }) ~= nil
+function modlock.writeFile(path: string, text: string): boolean
+	return call("WriteFile", "WriteFileRequest", { path = path, text = text }) ~= nil
 end
 
 -- holdReload keeps the running build through a reload while held is true,

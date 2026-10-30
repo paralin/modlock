@@ -228,22 +228,22 @@ class MODLOCK_API WriteFileRequest final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kNameFieldNumber = 1,
+    kPathFieldNumber = 1,
     kTextFieldNumber = 2,
   };
-  // string name = 1;
-  void clear_name() ;
-  const ::std::string& name() const;
+  // string path = 1;
+  void clear_path() ;
+  const ::std::string& path() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_name(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_name();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
-  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+  void set_path(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_path();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_path();
+  void set_allocated_path(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_name() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+  const ::std::string& _internal_path() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_path(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_path();
 
   public:
   // string text = 2;
@@ -287,7 +287,7 @@ class MODLOCK_API WriteFileRequest final : public ::google::protobuf::Message
         const WriteFileRequest& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr name_;
+    ::google::protobuf::internal::ArenaStringPtr path_;
     ::google::protobuf::internal::ArenaStringPtr text_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -636,21 +636,21 @@ class MODLOCK_API ReadFileRequest final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kNameFieldNumber = 1,
+    kPathFieldNumber = 1,
   };
-  // string name = 1;
-  void clear_name() ;
-  const ::std::string& name() const;
+  // string path = 1;
+  void clear_path() ;
+  const ::std::string& path() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_name(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_name();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_name();
-  void set_allocated_name(::std::string* PROTOBUF_NULLABLE value);
+  void set_path(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_path();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_path();
+  void set_allocated_path(::std::string* PROTOBUF_NULLABLE value);
 
   private:
-  const ::std::string& _internal_name() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+  const ::std::string& _internal_path() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_path(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_path();
 
   public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.files.ReadFileRequest)
@@ -679,7 +679,7 @@ class MODLOCK_API ReadFileRequest final : public ::google::protobuf::Message
         const ReadFileRequest& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr name_;
+    ::google::protobuf::internal::ArenaStringPtr path_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -704,69 +704,69 @@ MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ReadFileReq
 
 // ReadFileRequest
 
-// string name = 1;
-inline void ReadFileRequest::clear_name() {
+// string path = 1;
+inline void ReadFileRequest::clear_path() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.name_.ClearToEmpty();
+  _impl_.path_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000001U);
 }
-inline const ::std::string& ReadFileRequest::name() const
+inline const ::std::string& ReadFileRequest::path() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:modlock.wasm.files.ReadFileRequest.name)
-  return _internal_name();
+  // @@protoc_insertion_point(field_get:modlock.wasm.files.ReadFileRequest.path)
+  return _internal_path();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void ReadFileRequest::set_name(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void ReadFileRequest::set_path(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:modlock.wasm.files.ReadFileRequest.name)
+  _impl_.path_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.files.ReadFileRequest.path)
 }
-inline ::std::string* PROTOBUF_NONNULL ReadFileRequest::mutable_name()
+inline ::std::string* PROTOBUF_NONNULL ReadFileRequest::mutable_path()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::std::string* _s = _internal_mutable_name();
-  // @@protoc_insertion_point(field_mutable:modlock.wasm.files.ReadFileRequest.name)
+  ::std::string* _s = _internal_mutable_path();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.files.ReadFileRequest.path)
   return _s;
 }
-inline const ::std::string& ReadFileRequest::_internal_name() const {
+inline const ::std::string& ReadFileRequest::_internal_path() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.name_.Get();
+  return _impl_.path_.Get();
 }
-inline void ReadFileRequest::_internal_set_name(const ::std::string& value) {
+inline void ReadFileRequest::_internal_set_path(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.name_.Set(value, GetArena());
+  _impl_.path_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL ReadFileRequest::_internal_mutable_name() {
+inline ::std::string* PROTOBUF_NONNULL ReadFileRequest::_internal_mutable_path() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.name_.Mutable( GetArena());
+  return _impl_.path_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE ReadFileRequest::release_name() {
+inline ::std::string* PROTOBUF_NULLABLE ReadFileRequest::release_path() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:modlock.wasm.files.ReadFileRequest.name)
+  // @@protoc_insertion_point(field_release:modlock.wasm.files.ReadFileRequest.path)
   if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
     return nullptr;
   }
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  auto* released = _impl_.name_.Release();
+  auto* released = _impl_.path_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.name_.Set("", GetArena());
+    _impl_.path_.Set("", GetArena());
   }
   return released;
 }
-inline void ReadFileRequest::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
+inline void ReadFileRequest::set_allocated_path(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   } else {
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
-  _impl_.name_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
-    _impl_.name_.Set("", GetArena());
+  _impl_.path_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.path_.IsDefault()) {
+    _impl_.path_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.files.ReadFileRequest.name)
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.files.ReadFileRequest.path)
 }
 
 // -------------------------------------------------------------------
@@ -846,69 +846,69 @@ inline void ReadFileResponse::set_allocated_text(::std::string* PROTOBUF_NULLABL
 
 // WriteFileRequest
 
-// string name = 1;
-inline void WriteFileRequest::clear_name() {
+// string path = 1;
+inline void WriteFileRequest::clear_path() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.name_.ClearToEmpty();
+  _impl_.path_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000001U);
 }
-inline const ::std::string& WriteFileRequest::name() const
+inline const ::std::string& WriteFileRequest::path() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:modlock.wasm.files.WriteFileRequest.name)
-  return _internal_name();
+  // @@protoc_insertion_point(field_get:modlock.wasm.files.WriteFileRequest.path)
+  return _internal_path();
 }
 template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void WriteFileRequest::set_name(Arg_&& arg, Args_... args) {
+PROTOBUF_ALWAYS_INLINE void WriteFileRequest::set_path(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:modlock.wasm.files.WriteFileRequest.name)
+  _impl_.path_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.files.WriteFileRequest.path)
 }
-inline ::std::string* PROTOBUF_NONNULL WriteFileRequest::mutable_name()
+inline ::std::string* PROTOBUF_NONNULL WriteFileRequest::mutable_path()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::std::string* _s = _internal_mutable_name();
-  // @@protoc_insertion_point(field_mutable:modlock.wasm.files.WriteFileRequest.name)
+  ::std::string* _s = _internal_mutable_path();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.files.WriteFileRequest.path)
   return _s;
 }
-inline const ::std::string& WriteFileRequest::_internal_name() const {
+inline const ::std::string& WriteFileRequest::_internal_path() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.name_.Get();
+  return _impl_.path_.Get();
 }
-inline void WriteFileRequest::_internal_set_name(const ::std::string& value) {
+inline void WriteFileRequest::_internal_set_path(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.name_.Set(value, GetArena());
+  _impl_.path_.Set(value, GetArena());
 }
-inline ::std::string* PROTOBUF_NONNULL WriteFileRequest::_internal_mutable_name() {
+inline ::std::string* PROTOBUF_NONNULL WriteFileRequest::_internal_mutable_path() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.name_.Mutable( GetArena());
+  return _impl_.path_.Mutable( GetArena());
 }
-inline ::std::string* PROTOBUF_NULLABLE WriteFileRequest::release_name() {
+inline ::std::string* PROTOBUF_NULLABLE WriteFileRequest::release_path() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:modlock.wasm.files.WriteFileRequest.name)
+  // @@protoc_insertion_point(field_release:modlock.wasm.files.WriteFileRequest.path)
   if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
     return nullptr;
   }
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  auto* released = _impl_.name_.Release();
+  auto* released = _impl_.path_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.name_.Set("", GetArena());
+    _impl_.path_.Set("", GetArena());
   }
   return released;
 }
-inline void WriteFileRequest::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
+inline void WriteFileRequest::set_allocated_path(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   } else {
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
-  _impl_.name_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
-    _impl_.name_.Set("", GetArena());
+  _impl_.path_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.path_.IsDefault()) {
+    _impl_.path_.Set("", GetArena());
   }
-  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.files.WriteFileRequest.name)
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.files.WriteFileRequest.path)
 }
 
 // string text = 2;

@@ -22,6 +22,7 @@
 #include "modlock/wasm_settings.h"
 #include "quake/player_movement.h"
 #include "wasm/build.h"
+#include "wasm/call_profile.h"
 #include "wasm/files.h"
 #include "wasm/game.h"
 #include "wasm/instance.h"
@@ -319,6 +320,9 @@ class WasmPlugin final : public Plugin {
   // Sample fills a frame that starts a new tick with the watched heroes'
   // movement and the facts queued since the last one.
   void Sample(wasm::FrameEvent& frame);
+  // ReportCalls sends the calls counted since the last report to the
+  // observers, when there were any.
+  void ReportCalls();
   // GameOpen reports whether the engine opened a game; a check opens none,
   // so its mod hears no game and reaches none.
   bool GameOpen() const;
@@ -472,6 +476,11 @@ class WasmPlugin final : public Plugin {
   int skipped_ = 0;
   std::chrono::steady_clock::duration slowest_{};
   std::string slowest_report_;
+
+  // calls_ counts the mod's host calls since calls_reported_, the last time
+  // they went to the observers.
+  wasm::CallProfile calls_;
+  std::chrono::steady_clock::time_point calls_reported_;
 };
 
 }  // namespace modlock::wasm

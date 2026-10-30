@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package modlock.wasm.profile;
+
+option go_package = "github.com/paralin/modlock/src/wasm/profile;profile";
+
+// CallProfile counts the host calls one mod made over an interval, so a host
+// operator sees what the mod reaches. A host sends one profile for each
+// interval in which the mod called, with only the methods and keys it called
+// in that interval; adding the profiles gives the totals.
+message CallProfile {
+  // Methods holds the calls of each method the mod called.
+  repeated MethodCalls methods = 1;
+
+  // Keys holds the calls under each key the mod's calls named.
+  repeated KeyCalls keys = 2;
+
+  // Overflow counts the keys the host did not keep, one for each call that
+  // named a new key after the mod had named as many distinct keys as the
+  // host keeps. A mod that names many distinct keys is itself worth reading.
+  uint64 overflow = 3;
+}
+
+// Counts are the calls under one method or key.
+message Counts {
+  // Calls counts every call.
+  uint64 calls = 1;
+
+  // Failed counts the calls the host answered with an error.
+  uint64 failed = 2;
+
+  // Refused counts the failed calls the host refused at its boundary before
+  // reaching the game: a method the host does not have, a request outside the
+  // mod's scope, a console command a mod may not run, or a file name outside
+  // the mod's files.
+  uint64 refused = 3;
+}
+
+// MethodCalls is the calls of one Host method.
+message MethodCalls {
+  // Method names the method, such as "ReadField". An empty method counts the
+  // calls to names the host has no method for, each named by a key.
+  string method = 1;
+
+  // Counts are the method's calls.
+  Counts counts = 2;
+}
+
+// KeyCalls is the calls of one method that named one key: what the call
+// reaches, such as the class and field "CCitadelPlayerPawn.m_iHealth" a
+// ReadField call reads, or the command "citadel_active_lane" a ServerCommand
+// line runs.
+message KeyCalls {
+  // Method names the method, or is empty for a name the host has no method
+  // for.
+  string method = 1;
+
+  // Key is what the calls reach, or the name an unknown method was called
+  // by. A host may shorten a long key, and replaces one that is not UTF-8
+  // with "(not UTF-8)".
+  string key = 2;
+
+  // Counts are the key's calls. A call that names several keys counts under
+  // each, and is refused under the key the host refused.
+  Counts counts = 3;
+}

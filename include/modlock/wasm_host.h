@@ -16,6 +16,7 @@
 #include "modlock/wasm_metrics.h"
 #include "modlock/wasm_settings.h"
 #include "src/wasm/players/players.pb.h"
+#include "src/wasm/profile/profile.pb.h"
 #include "src/wasm/ui/ui.pb.h"
 
 namespace modlock {
@@ -65,6 +66,11 @@ class MODLOCK_API WasmHostObserver {
   // build through reloads. The mod may still be calling the host, so an
   // observer that replaces the mod does so after the call returns.
   virtual void Held(std::string_view /*mod*/, bool /*held*/) {}
+
+  // Called reports the host calls mod made since its last report, about once
+  // a minute while it calls and when its build stops, so a reload's calls
+  // belong to the build that made them.
+  virtual void Called(std::string_view /*mod*/, const wasm::profile::CallProfile& /*calls*/) {}
 };
 
 // WasmExtension answers mods' calls to one service the host provides. It

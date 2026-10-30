@@ -2676,8 +2676,8 @@ export function precache(options: PrecacheOptions): boolean {
  * data/. A file in neither reads as unset. Names that leave the mod's
  * directories are refused.
  */
-export function readFile(name: string): string | undefined {
-  const reply = call('ReadFile', filesPb.ReadFileRequest.toBinary({ name }))
+export function readFile(path: string): string | undefined {
+  const reply = call('ReadFile', filesPb.ReadFileRequest.toBinary({ path }))
   if (reply === undefined) return undefined
   const response = filesPb.ReadFileResponse.fromBinary(reply)
   return response.text
@@ -2690,8 +2690,8 @@ export function readFile(name: string): string | undefined {
  * past its quota of 4 MiB per mod. A host that keeps no files refuses every
  * write.
  */
-export function writeFile(name: string, text: string): boolean {
-  return call('WriteFile', filesPb.WriteFileRequest.toBinary({ name, text })) !== undefined
+export function writeFile(path: string, text: string): boolean {
+  return call('WriteFile', filesPb.WriteFileRequest.toBinary({ path, text })) !== undefined
 }
 
 /**

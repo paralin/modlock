@@ -10,6 +10,7 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
+import { CallProfile } from '../../wasm/profile/profile.pb.js'
 import { Change } from '../../wasm/ui/ui.pb.js'
 
 /**
@@ -186,6 +187,7 @@ export interface HostEvent {
     | { value: PlayerLeft; case: 'left' }
     | { value: PlayerMessage; case: 'message' }
     | { value: PlayerChat; case: 'chat' }
+    | { value: ModCalls; case: 'calls' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -201,6 +203,7 @@ export const HostEvent: MessageType<HostEvent> =
       [7, 'left', 11, 0, PlayerLeft.codec, 'body'],
       [8, 'message', 11, 0, PlayerMessage.codec, 'body'],
       [9, 'chat', 11, 0, PlayerChat.codec, 'body'],
+      [10, 'calls', 11, 0, ModCalls.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -298,6 +301,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 10:
+              m.body = {
+                case: 'calls',
+                value: ModCalls.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'calls' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -349,6 +362,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'chat' && o.value != null)
             PlayerChat.writeField(w, 9, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'calls' && o.value != null)
+            ModCalls.writeField(w, 10, o.value)
         }
       },
     },
@@ -578,6 +596,60 @@ export const ModFailed: MessageType<ModFailed> =
         {
           const v = m.error
           if (v) w.uint32(18).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ModCalls is one report of the host calls a mod made.
+ *
+ * @generated from message modlock.host_app.control.ModCalls
+ */
+export interface ModCalls {
+  /**
+   * Mod is the mod's name.
+   */
+  mod?: string
+  /**
+   * Profile counts the calls since the mod's last report.
+   */
+  profile?: CallProfile
+}
+
+export const ModCalls: MessageType<ModCalls> =
+  /* @__PURE__ */ createMessageType<ModCalls>(
+    'modlock.host_app.control.ModCalls',
+    () => [
+      [1, 'mod', 9],
+      [2, 'profile', 11, 0, CallProfile.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ModCalls): ModCalls => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.profile = CallProfile.decode(r, r.delimited(), m.profile ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModCalls, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.profile
+          if (v != null) CallProfile.writeField(w, 2, v)
         }
       },
     },

@@ -5,6 +5,7 @@ package modlock.host_app.control;
 option go_package = "github.com/paralin/modlock/src/host_app/control;control";
 
 import "github.com/paralin/modlock/src/wasm/players/players.proto";
+import "github.com/paralin/modlock/src/wasm/profile/profile.proto";
 import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
 
 // The control link connects modlock-host to the program that started it. The
@@ -65,6 +66,10 @@ message HostEvent {
 
     // Chat carries a line a player said in chat.
     PlayerChat chat = 9;
+
+    // Calls counts the host calls a mod made since its last report, about
+    // once a minute while it calls and when its build stops.
+    ModCalls calls = 10;
   }
 }
 
@@ -106,6 +111,15 @@ message ModFailed {
 
   // Error describes the failure.
   string error = 2;
+}
+
+// ModCalls is one report of the host calls a mod made.
+message ModCalls {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Profile counts the calls since the mod's last report.
+  modlock.wasm.profile.CallProfile profile = 2;
 }
 
 // PlayerJoined identifies a player who joined.

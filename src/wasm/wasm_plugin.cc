@@ -31,6 +31,8 @@ constexpr auto kShedLogPeriod = std::chrono::minutes(1);
 // the restart offered.
 constexpr std::string_view kRestartCommand = "restartmod";
 constexpr auto kWarnPeriod = std::chrono::minutes(1);
+// kCallsPeriod is how often a mod's host calls are reported while it runs.
+constexpr auto kCallsPeriod = std::chrono::minutes(1);
 constexpr auto kOfferWindow = std::chrono::minutes(5);
 
 // kDepartWait bounds how long a new instance waits for the bots its
@@ -240,8 +242,10 @@ void WasmPlugin::Hold(bool held) {
 }
 
 void WasmPlugin::Halt() {
-  // The hold ends with the instance that took it.
+  // The hold ends with the instance that took it, and its calls are reported
+  // before the next build makes any.
   Hold(false);
+  ReportCalls();
   if (movement_) {
     static_cast<void>(host_.game.StepWith(nullptr));
   }
@@ -456,6 +460,11 @@ void WasmPlugin::Tick() {
     World();
   }
 
+  // Report the mod's calls once a period.
+  if (const auto now = std::chrono::steady_clock::now(); now - calls_reported_ >= kCallsPeriod) {
+    ReportCalls();
+  }
+
   // Run the game's frame work, and deliver the frame to a mod that wants it.
   if (GameOpen()) {
     Play();
@@ -518,6 +527,13 @@ void WasmPlugin::Stop() {
   }
   handoff_.clear();
   handoff_players_.clear();
+}
+
+void WasmPlugin::ReportCalls() {
+  calls_reported_ = std::chrono::steady_clock::now();
+  if (auto calls = calls_.Take()) {
+    host_.Notify([&](WasmHostObserver& observer) { observer.Called(name_, *calls); });
+  }
 }
 
 void WasmPlugin::Log(std::string_view text) {

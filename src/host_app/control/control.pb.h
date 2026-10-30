@@ -33,6 +33,7 @@
 #include "google/protobuf/generated_enum_reflection.h"
 #include "google/protobuf/unknown_field_set.h"
 #include "../../wasm/players/players.pb.h"
+#include "../../wasm/profile/profile.pb.h"
 #include "../../wasm/ui/ui.pb.h"
 // @@protoc_insertion_point(includes)
 
@@ -70,6 +71,10 @@ class HostEvent;
 struct HostEventDefaultTypeInternal;
 extern HostEventDefaultTypeInternal _HostEvent_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull HostEvent_class_data_;
+class ModCalls;
+struct ModCallsDefaultTypeInternal;
+extern ModCallsDefaultTypeInternal _ModCalls_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ModCalls_class_data_;
 class ModFailed;
 struct ModFailedDefaultTypeInternal;
 extern ModFailedDefaultTypeInternal _ModFailed_default_instance_;
@@ -222,7 +227,7 @@ class ServerReady final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServerReady*>(
         &_ServerReady_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(ServerReady& a, ServerReady& b) { a.Swap(&b); }
   inline void Swap(ServerReady* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -612,7 +617,7 @@ class PlayerMessage final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerMessage*>(
         &_PlayerMessage_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(PlayerMessage& a, PlayerMessage& b) { a.Swap(&b); }
   inline void Swap(PlayerMessage* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -865,7 +870,7 @@ class PlayerLeft final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerLeft*>(
         &_PlayerLeft_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(PlayerLeft& a, PlayerLeft& b) { a.Swap(&b); }
   inline void Swap(PlayerLeft* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1055,7 +1060,7 @@ class PlayerJoined final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerJoined*>(
         &_PlayerJoined_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(PlayerJoined& a, PlayerJoined& b) { a.Swap(&b); }
   inline void Swap(PlayerJoined* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2309,6 +2314,218 @@ class ControlRequest final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull ControlRequest_class_data_;
 // -------------------------------------------------------------------
 
+class ModCalls final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.ModCalls) */ {
+ public:
+  inline ModCalls() : ModCalls(nullptr) {}
+  ~ModCalls() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ModCalls* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ModCalls));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ModCalls(::google::protobuf::internal::ConstantInitialized);
+
+  inline ModCalls(const ModCalls& from) : ModCalls(nullptr, from) {}
+  inline ModCalls(ModCalls&& from) noexcept
+      : ModCalls(nullptr, ::std::move(from)) {}
+  inline ModCalls& operator=(const ModCalls& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ModCalls& operator=(ModCalls&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ModCalls& default_instance() {
+    return *reinterpret_cast<const ModCalls*>(
+        &_ModCalls_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 7;
+  friend void swap(ModCalls& a, ModCalls& b) { a.Swap(&b); }
+  inline void Swap(ModCalls* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ModCalls* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ModCalls* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ModCalls>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ModCalls& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ModCalls& from) { ModCalls::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ModCalls* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.ModCalls"; }
+
+  explicit ModCalls(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ModCalls(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ModCalls& from);
+  ModCalls(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ModCalls&& from) noexcept
+      : ModCalls(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModFieldNumber = 1,
+    kProfileFieldNumber = 2,
+  };
+  // string mod = 1;
+  void clear_mod() ;
+  const ::std::string& mod() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_mod(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_mod();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_mod();
+  void set_allocated_mod(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_mod() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_mod(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_mod();
+
+  public:
+  // .modlock.wasm.profile.CallProfile profile = 2;
+  bool has_profile() const;
+  void clear_profile() ;
+  const ::modlock::wasm::profile::CallProfile& profile() const;
+  [[nodiscard]] ::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE release_profile();
+  ::modlock::wasm::profile::CallProfile* PROTOBUF_NONNULL mutable_profile();
+  void set_allocated_profile(::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_profile(::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE unsafe_arena_release_profile();
+
+  private:
+  const ::modlock::wasm::profile::CallProfile& _internal_profile() const;
+  ::modlock::wasm::profile::CallProfile* PROTOBUF_NONNULL _internal_mutable_profile();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.ModCalls)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   1, 45,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ModCalls& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr mod_;
+    ::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE profile_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull ModCalls_class_data_;
+// -------------------------------------------------------------------
+
 class UiChanged final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.host_app.control.UiChanged) */ {
  public:
@@ -2364,7 +2581,7 @@ class UiChanged final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiChanged*>(
         &_UiChanged_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(UiChanged& a, UiChanged& b) { a.Swap(&b); }
   inline void Swap(UiChanged* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2598,6 +2815,7 @@ class HostEvent final : public ::google::protobuf::Message
     kLeft = 7,
     kMessage = 8,
     kChat = 9,
+    kCalls = 10,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 2;
@@ -2696,6 +2914,7 @@ class HostEvent final : public ::google::protobuf::Message
     kLeftFieldNumber = 7,
     kMessageFieldNumber = 8,
     kChatFieldNumber = 9,
+    kCallsFieldNumber = 10,
   };
   // .modlock.host_app.control.ModStarted started = 1;
   bool has_started() const;
@@ -2868,6 +3087,25 @@ class HostEvent final : public ::google::protobuf::Message
   ::modlock::host_app::control::PlayerChat* PROTOBUF_NONNULL _internal_mutable_chat();
 
   public:
+  // .modlock.host_app.control.ModCalls calls = 10;
+  bool has_calls() const;
+  private:
+  bool _internal_has_calls() const;
+
+  public:
+  void clear_calls() ;
+  const ::modlock::host_app::control::ModCalls& calls() const;
+  [[nodiscard]] ::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE release_calls();
+  ::modlock::host_app::control::ModCalls* PROTOBUF_NONNULL mutable_calls();
+  void set_allocated_calls(::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_calls(::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE value);
+  ::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE unsafe_arena_release_calls();
+
+  private:
+  const ::modlock::host_app::control::ModCalls& _internal_calls() const;
+  ::modlock::host_app::control::ModCalls* PROTOBUF_NONNULL _internal_mutable_calls();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.HostEvent)
@@ -2882,11 +3120,12 @@ class HostEvent final : public ::google::protobuf::Message
   void set_has_left();
   void set_has_message();
   void set_has_chat();
+  void set_has_calls();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 9,
-                                   9, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 10,
+                                   10, 0,
                                    2>
       _table_;
 
@@ -2917,6 +3156,7 @@ class HostEvent final : public ::google::protobuf::Message
       ::google::protobuf::Message* PROTOBUF_NULLABLE left_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE message_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE chat_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE calls_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -3917,6 +4157,88 @@ inline ::modlock::host_app::control::PlayerChat* PROTOBUF_NONNULL HostEvent::mut
   return _msg;
 }
 
+// .modlock.host_app.control.ModCalls calls = 10;
+inline bool HostEvent::has_calls() const {
+  return body_case() == kCalls;
+}
+inline bool HostEvent::_internal_has_calls() const {
+  return body_case() == kCalls;
+}
+inline void HostEvent::set_has_calls() {
+  _impl_._oneof_case_[0] = kCalls;
+}
+inline void HostEvent::clear_calls() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kCalls) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.calls_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.calls_);
+    }
+    clear_has_body();
+  }
+}
+inline ::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE HostEvent::release_calls() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.HostEvent.calls)
+  if (body_case() == kCalls) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ModCalls*>(_impl_.body_.calls_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.calls_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::host_app::control::ModCalls& HostEvent::_internal_calls() const {
+  return body_case() == kCalls ? static_cast<const ::modlock::host_app::control::ModCalls&>(*reinterpret_cast<::modlock::host_app::control::ModCalls*>(_impl_.body_.calls_))
+                     : reinterpret_cast<const ::modlock::host_app::control::ModCalls&>(::modlock::host_app::control::_ModCalls_default_instance_);
+}
+inline const ::modlock::host_app::control::ModCalls& HostEvent::calls() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.HostEvent.calls)
+  return _internal_calls();
+}
+inline ::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE HostEvent::unsafe_arena_release_calls() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.HostEvent.calls)
+  if (body_case() == kCalls) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ModCalls*>(_impl_.body_.calls_);
+    _impl_.body_.calls_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void HostEvent::unsafe_arena_set_allocated_calls(
+    ::modlock::host_app::control::ModCalls* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_calls();
+    _impl_.body_.calls_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.HostEvent.calls)
+}
+inline ::modlock::host_app::control::ModCalls* PROTOBUF_NONNULL HostEvent::_internal_mutable_calls() {
+  if (body_case() != kCalls) {
+    clear_body();
+    set_has_calls();
+    _impl_.body_.calls_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ModCalls>(GetArena()));
+  }
+  return reinterpret_cast<::modlock::host_app::control::ModCalls*>(_impl_.body_.calls_);
+}
+inline ::modlock::host_app::control::ModCalls* PROTOBUF_NONNULL HostEvent::mutable_calls()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::host_app::control::ModCalls* _msg = _internal_mutable_calls();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.calls)
+  return _msg;
+}
+
 inline bool HostEvent::has_body() const {
   return body_case() != BODY_NOT_SET;
 }
@@ -4445,6 +4767,168 @@ inline void ModFailed::set_allocated_error(::std::string* PROTOBUF_NULLABLE valu
     _impl_.error_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ModFailed.error)
+}
+
+// -------------------------------------------------------------------
+
+// ModCalls
+
+// string mod = 1;
+inline void ModCalls::clear_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ModCalls::mod() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ModCalls.mod)
+  return _internal_mod();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ModCalls::set_mod(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.mod_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ModCalls.mod)
+}
+inline ::std::string* PROTOBUF_NONNULL ModCalls::mutable_mod()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_mod();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ModCalls.mod)
+  return _s;
+}
+inline const ::std::string& ModCalls::_internal_mod() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.mod_.Get();
+}
+inline void ModCalls::_internal_set_mod(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ModCalls::_internal_mutable_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.mod_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ModCalls::release_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ModCalls.mod)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.mod_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ModCalls::set_allocated_mod(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.mod_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.mod_.IsDefault()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ModCalls.mod)
+}
+
+// .modlock.wasm.profile.CallProfile profile = 2;
+inline bool ModCalls::has_profile() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  PROTOBUF_ASSUME(!value || _impl_.profile_ != nullptr);
+  return value;
+}
+inline const ::modlock::wasm::profile::CallProfile& ModCalls::_internal_profile() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::profile::CallProfile* p = _impl_.profile_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::profile::CallProfile&>(::modlock::wasm::profile::_CallProfile_default_instance_);
+}
+inline const ::modlock::wasm::profile::CallProfile& ModCalls::profile() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ModCalls.profile)
+  return _internal_profile();
+}
+inline void ModCalls::unsafe_arena_set_allocated_profile(
+    ::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.profile_);
+  }
+  _impl_.profile_ = reinterpret_cast<::modlock::wasm::profile::CallProfile*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ModCalls.profile)
+}
+inline ::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE ModCalls::release_profile() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::profile::CallProfile* released = _impl_.profile_;
+  _impl_.profile_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE ModCalls::unsafe_arena_release_profile() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ModCalls.profile)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::profile::CallProfile* temp = _impl_.profile_;
+  _impl_.profile_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::profile::CallProfile* PROTOBUF_NONNULL ModCalls::_internal_mutable_profile() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.profile_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::profile::CallProfile>(GetArena());
+    _impl_.profile_ = reinterpret_cast<::modlock::wasm::profile::CallProfile*>(p);
+  }
+  return _impl_.profile_;
+}
+inline ::modlock::wasm::profile::CallProfile* PROTOBUF_NONNULL ModCalls::mutable_profile()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::profile::CallProfile* _msg = _internal_mutable_profile();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ModCalls.profile)
+  return _msg;
+}
+inline void ModCalls::set_allocated_profile(::modlock::wasm::profile::CallProfile* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.profile_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+
+  _impl_.profile_ = reinterpret_cast<::modlock::wasm::profile::CallProfile*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ModCalls.profile)
 }
 
 // -------------------------------------------------------------------

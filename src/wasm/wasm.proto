@@ -37,6 +37,11 @@ import "github.com/paralin/modlock/src/wasm/ui/ui.proto";
 //   - Enum values become lowerCamel names without the enum's prefix.
 //   - A message holding only a oneof is a union of its cases' types.
 //
+// A host profiles each mod's calls by what they name, read by field name, so
+// a request names its target with the field names CallProfile reads
+// (class_name, designer_name, field, modifier, input, path, service and
+// command) rather than synonyms.
+//
 // A published mod keeps working on a newer host: the wire names each method
 // and leaves the rest to the messages, whose field numbers stay stable.
 

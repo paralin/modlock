@@ -12,6 +12,11 @@ namespace modlock::wasm {
 // kFilesQuota bounds the bytes one mod's written files hold together.
 inline constexpr uintmax_t kFilesQuota = 4u << 20;
 
+// FileName reports whether name is a file name a mod may read or write: a
+// relative path of "/"-separated segments, none empty, "." or "..", without
+// characters another platform reads as a separator.
+bool FileName(std::string_view name);
+
 // ModFiles is one mod's files: those it wrote, kept in written, over those
 // its build ships in data. Either directory may be empty, which holds no
 // files; an empty written refuses every write.

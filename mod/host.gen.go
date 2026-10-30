@@ -577,8 +577,8 @@ func (p Player) AddMetric(name string, value float64, label *string) error {
 // wrote or the server's operator placed, else the one the mod ships under
 // data/. A file in neither reads as unset. Names that leave the mod's
 // directories are refused.
-func ReadFile(name string) (*string, error) {
-	request := &filespb.ReadFileRequest{Name: name}
+func ReadFile(path string) (*string, error) {
+	request := &filespb.ReadFileRequest{Path: path}
 	response := &filespb.ReadFileResponse{}
 	if err := invoke("ReadFile", request, response); err != nil {
 		return nil, err
@@ -591,8 +591,8 @@ func ReadFile(name string) (*string, error) {
 // as they are. The write is whole or not at all, and the host refuses one
 // past its quota of 4 MiB per mod. A host that keeps no files refuses every
 // write.
-func WriteFile(name, text string) error {
-	return invoke("WriteFile", &filespb.WriteFileRequest{Name: name, Text: text}, nil)
+func WriteFile(path, text string) error {
+	return invoke("WriteFile", &filespb.WriteFileRequest{Path: path, Text: text}, nil)
 }
 
 // HoldReload keeps the running build through a reload while held is true,

@@ -201,8 +201,9 @@ wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
   // A mod that serves some players reaches only them. Without a game it
   // reaches only what the plugin answers itself.
   wasm::Reply reply;
-  if (auto refused = scope_.Refuse(call); !refused.empty()) {
-    reply.set_error(std::move(refused));
+  const auto refused = scope_.Refuse(call);
+  if (!refused.empty()) {
+    reply.set_error(refused);
   } else if (GameOpen() || PluginGame::AnswersWithoutGame(call.method())) {
     reply = game_.Dispatch(call);
   } else {
@@ -218,7 +219,8 @@ wasm::Reply WasmPlugin::Call(const wasm::Call& call) {
     }
   }
 
-  // Report a failed call in the server log too.
+  // Count the call, and report a failed one in the server log too.
+  calls_.Count(call, reply, !refused.empty());
   if (!reply.error().empty()) {
     Log(reply.error());
   }
@@ -500,7 +502,7 @@ std::expected<wasm::handoff::HandedOffResponse, std::string> PluginGame::PlayerH
 std::expected<wasm::files::ReadFileResponse, std::string> PluginGame::ReadFile(
     const wasm::files::ReadFileRequest& request) {
   // Read the file and wrap it, leaving the text unset for a missing file.
-  auto text = plugin_.Files().Read(request.name());
+  auto text = plugin_.Files().Read(request.path());
   if (!text) {
     return std::unexpected(text.error());
   }
@@ -513,7 +515,7 @@ std::expected<wasm::files::ReadFileResponse, std::string> PluginGame::ReadFile(
 
 std::expected<void, std::string> PluginGame::WriteFile(
     const wasm::files::WriteFileRequest& request) {
-  return plugin_.Files().Write(request.name(), request.text());
+  return plugin_.Files().Write(request.path(), request.text());
 }
 
 void PluginGame::Impacted(const wasm::combat::ImpactEvent& event) {

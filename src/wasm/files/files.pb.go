@@ -16,10 +16,10 @@ import (
 // ReadFileRequest names one of the mod's files.
 type ReadFileRequest struct {
 	unknownFields []byte
-	// Name is the file's path below the mod's directories, such as
+	// Path is the file's path below the mod's directories, such as
 	// "areas.yaml" or "maps/dl_midtown.json": relative, with "/" between
 	// segments, and no "." or ".." segment.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 }
 
 func (x *ReadFileRequest) Reset() {
@@ -28,9 +28,9 @@ func (x *ReadFileRequest) Reset() {
 
 func (*ReadFileRequest) ProtoMessage() {}
 
-func (x *ReadFileRequest) GetName() string {
+func (x *ReadFileRequest) GetPath() string {
 	if x != nil {
-		return x.Name
+		return x.Path
 	}
 	return ""
 }
@@ -59,8 +59,8 @@ func (x *ReadFileResponse) GetText() string {
 // WriteFileRequest replaces one of the mod's files.
 type WriteFileRequest struct {
 	unknownFields []byte
-	// Name is the file's path, as ReadFileRequest names it.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Path is the file's path, as ReadFileRequest names it.
+	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	// Text is the file's new UTF-8 text.
 	Text string `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
 }
@@ -71,9 +71,9 @@ func (x *WriteFileRequest) Reset() {
 
 func (*WriteFileRequest) ProtoMessage() {}
 
-func (x *WriteFileRequest) GetName() string {
+func (x *WriteFileRequest) GetPath() string {
 	if x != nil {
-		return x.Name
+		return x.Path
 	}
 	return ""
 }
@@ -90,7 +90,7 @@ func (m *ReadFileRequest) CloneVT() *ReadFileRequest {
 		return (*ReadFileRequest)(nil)
 	}
 	r := new(ReadFileRequest)
-	r.Name = m.Name
+	r.Path = m.Path
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -122,7 +122,7 @@ func (m *WriteFileRequest) CloneVT() *WriteFileRequest {
 		return (*WriteFileRequest)(nil)
 	}
 	r := new(WriteFileRequest)
-	r.Name = m.Name
+	r.Path = m.Path
 	r.Text = m.Text
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
@@ -140,7 +140,7 @@ func (this *ReadFileRequest) EqualVT(that *ReadFileRequest) bool {
 	} else if this == nil || that == nil {
 		return false
 	}
-	if this.Name != that.Name {
+	if this.Path != that.Path {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -180,7 +180,7 @@ func (this *WriteFileRequest) EqualVT(that *WriteFileRequest) bool {
 	} else if this == nil || that == nil {
 		return false
 	}
-	if this.Name != that.Name {
+	if this.Path != that.Path {
 		return false
 	}
 	if this.Text != that.Text {
@@ -205,10 +205,10 @@ func (x *ReadFileRequest) MarshalProtoJSON(s *json.MarshalState) {
 	}
 	s.WriteObjectStart()
 	var wroteField bool
-	if x.Name != "" || s.HasField("name") {
+	if x.Path != "" || s.HasField("path") {
 		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("name")
-		s.WriteString(x.Name)
+		s.WriteObjectField("path")
+		s.WriteString(x.Path)
 	}
 	s.WriteObjectEnd()
 }
@@ -227,9 +227,9 @@ func (x *ReadFileRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		switch key {
 		default:
 			s.Skip() // ignore unknown field
-		case "name":
-			s.AddField("name")
-			x.Name = s.ReadString()
+		case "path":
+			s.AddField("path")
+			x.Path = s.ReadString()
 		}
 	})
 }
@@ -294,10 +294,10 @@ func (x *WriteFileRequest) MarshalProtoJSON(s *json.MarshalState) {
 	}
 	s.WriteObjectStart()
 	var wroteField bool
-	if x.Name != "" || s.HasField("name") {
+	if x.Path != "" || s.HasField("path") {
 		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("name")
-		s.WriteString(x.Name)
+		s.WriteObjectField("path")
+		s.WriteString(x.Path)
 	}
 	if x.Text != "" || s.HasField("text") {
 		s.WriteMoreIf(&wroteField)
@@ -321,9 +321,9 @@ func (x *WriteFileRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		switch key {
 		default:
 			s.Skip() // ignore unknown field
-		case "name":
-			s.AddField("name")
-			x.Name = s.ReadString()
+		case "path":
+			s.AddField("path")
+			x.Path = s.ReadString()
 		case "text":
 			s.AddField("text")
 			x.Text = s.ReadString()
@@ -365,8 +365,8 @@ func (m *ReadFileRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if len(m.Name) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+	if len(m.Path) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Path)
 		i--
 		dAtA[i] = 0xa
 	}
@@ -444,8 +444,8 @@ func (m *WriteFileRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Name) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+	if len(m.Path) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Path)
 		i--
 		dAtA[i] = 0xa
 	}
@@ -458,7 +458,7 @@ func (m *ReadFileRequest) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Path)
 	n += len(m.unknownFields)
 	return n
 }
@@ -480,7 +480,7 @@ func (m *WriteFileRequest) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Path)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Text)
 	n += len(m.unknownFields)
 	return n
@@ -489,9 +489,9 @@ func (m *WriteFileRequest) SizeVT() (n int) {
 func (x *ReadFileRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ReadFileRequest")
-	if x.Name != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
-		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	if x.Path != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "path")
+		protobuf_go_lite.TextWriteString(&sb, x.Path)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -517,9 +517,9 @@ func (x *ReadFileResponse) String() string {
 func (x *WriteFileRequest) MarshalProtoText() string {
 	var sb protobuf_go_lite.TextBuilder
 	initialLen := protobuf_go_lite.TextStartMessage(&sb, "WriteFileRequest")
-	if x.Name != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
-		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	if x.Path != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "path")
+		protobuf_go_lite.TextWriteString(&sb, x.Path)
 	}
 	if x.Text != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "text")
@@ -554,14 +554,14 @@ func (m *ReadFileRequest) UnmarshalVT(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
 			}
 			var v string
 			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
-			m.Name = v
+			m.Path = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -660,14 +660,14 @@ func (m *WriteFileRequest) UnmarshalVT(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
 			}
 			var v string
 			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}
-			m.Name = v
+			m.Path = v
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Text", wireType)

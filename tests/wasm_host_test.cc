@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "wasm/call_profile.h"
 #include "wasm/player_scope.h"
 
 namespace {
@@ -43,7 +44,24 @@ class Events final : public WasmHostObserver {
 
   void Held(std::string_view, bool held) override { seen.push_back(held ? "held" : "released"); }
 
+  void Called(std::string_view mod, const modlock::wasm::profile::CallProfile& reported) override {
+    if (mod == "extension-go") {
+      calls.MergeFrom(reported);
+    }
+  }
+
+  // Key returns the counts calls holds for method and key, or empty counts.
+  modlock::wasm::profile::Counts Key(std::string_view method, std::string_view key) const {
+    for (const auto& kept : calls.keys()) {
+      if (kept.method() == method && kept.key() == key) {
+        return kept.counts();
+      }
+    }
+    return {};
+  }
+
   std::vector<std::string> seen;
+  modlock::wasm::profile::CallProfile calls;
 };
 
 // Shout answers with the method and the payload in capitals, or refuses the
@@ -139,7 +157,32 @@ TEST(WasmHost, ModsAndHostCallEachOthersServices) {
   auto withdrawn = host.Call("extension-go", "echo", "say", "hi");
   ASSERT_FALSE(withdrawn);
   EXPECT_EQ(withdrawn.error(), "this host provides no service shout");
+
+  // The mod's calls reach the observers when its build stops, counted by
+  // method and by what they name. A command a mod may not run, a file name
+  // outside its files, a method the host lacks and a call outside its scope
+  // are refused under their own key; a call past the kept keys overflows.
+  ASSERT_TRUE(host.Call("extension-go", "probe", "", ""));
+  Events events;
+  host.Observe(&events);
   (*plugin)->Stop();
+  host.Unobserve(&events);
+  EXPECT_EQ(events.Key("CallService", "shout").calls(), 3);
+  EXPECT_EQ(events.Key("ServerCommand", "echo").calls(), 2);
+  EXPECT_EQ(events.Key("ServerCommand", "echo").refused(), 1);
+  EXPECT_EQ(events.Key("ServerCommand", "say").calls(), 1);
+  EXPECT_EQ(events.Key("ServerCommand", "say").refused(), 0);
+  EXPECT_EQ(events.Key("ServerCommand", "exec").refused(), 1);
+  EXPECT_EQ(events.Key("ReadFile", "../outside").refused(), 1);
+  EXPECT_EQ(events.Key("", "NoSuchMethod").refused(), 1);
+  EXPECT_EQ(events.calls.keys_size(), modlock::wasm::CallProfile::kMaxKeys);
+  EXPECT_GT(events.calls.overflow(), 0);
+  for (const auto& method : events.calls.methods()) {
+    if (method.method() == "ReadFile") {
+      EXPECT_EQ(method.counts().calls(), 301);
+      EXPECT_GE(method.counts().refused(), 1);
+    }
+  }
 }
 
 TEST(PlayerScope, LimitedScopeRulesOnlyItsPlayersHits) {

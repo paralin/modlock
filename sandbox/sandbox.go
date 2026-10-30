@@ -535,7 +535,7 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
 			return &wasm.Reply{Error: "the WriteFile request is malformed"}
 		}
-		if err := mod.Write(request.GetName(), request.GetText()); err != nil {
+		if err := mod.Write(request.GetPath(), request.GetText()); err != nil {
 			return &wasm.Reply{Error: err.Error()}
 		}
 		return &wasm.Reply{}
@@ -544,7 +544,7 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 	if err := request.UnmarshalVT(call.GetRequest()); err != nil {
 		return &wasm.Reply{Error: "the ReadFile request is malformed"}
 	}
-	text, found, err := mod.Read(request.GetName())
+	text, found, err := mod.Read(request.GetPath())
 	if err != nil {
 		return &wasm.Reply{Error: err.Error()}
 	}

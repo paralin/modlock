@@ -194,6 +194,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_builds.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/wasm/hero_builds_data.cc
   src/wasm/game_match.cc
+  src/wasm/call_profile.cc
   src/wasm/console_lines.cc
   src/wasm/game_services.cc
   src/wasm/game_services_input.cc
@@ -230,7 +231,7 @@ target_include_directories(modlock_sdk PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(modlock_sdk PUBLIC protobuf::libprotobuf PRIVATE wasmtime::wasmtime)
+target_link_libraries(modlock_sdk PUBLIC protobuf::libprotobuf PRIVATE utf8_validity wasmtime::wasmtime)
 target_compile_features(modlock_sdk PUBLIC cxx_std_23)
 target_compile_definitions(modlock_sdk PRIVATE MODLOCK_BUILDING_SDK)
 if(MSVC)

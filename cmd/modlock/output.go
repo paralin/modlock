@@ -260,6 +260,33 @@ func (p *printer) host(event *control.HostEvent) {
 		p.line(p.pad() + paint(p.color, dim, "["+event.GetMessage().GetMod()+"]") + " " + shown(event.GetMessage()))
 	case event.GetFailed() != nil:
 		p.failed(event.GetFailed().GetMod(), event.GetFailed().GetError())
+	case event.GetCalls() != nil:
+		p.refused(event.GetCalls())
+	}
+}
+
+// refused prints the calls the host refused in one report of a mod's calls,
+// which a program can still read in full from the event stream.
+func (p *printer) refused(calls *control.ModCalls) {
+	var refused []string
+	keyed := make(map[string]bool)
+	for _, key := range calls.GetProfile().GetKeys() {
+		if n := key.GetCounts().GetRefused(); n > 0 {
+			keyed[key.GetMethod()] = true
+			method := key.GetMethod()
+			if method == "" {
+				method = "unknown method"
+			}
+			refused = append(refused, fmt.Sprintf("%s %s ×%d", method, key.GetKey(), n))
+		}
+	}
+	for _, method := range calls.GetProfile().GetMethods() {
+		if n := method.GetCounts().GetRefused(); n > 0 && !keyed[method.GetMethod()] {
+			refused = append(refused, fmt.Sprintf("%s ×%d", method.GetMethod(), n))
+		}
+	}
+	if len(refused) != 0 {
+		p.mark("!", yellow, calls.GetMod()+": the host refused "+strings.Join(refused, ", "))
 	}
 }
 

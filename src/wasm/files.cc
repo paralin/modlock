@@ -9,6 +9,28 @@
 
 namespace modlock::wasm {
 
+bool FileName(std::string_view name) {
+  // Accept "/"-separated segments without "." or "..", empty segments or
+  // characters another platform reads as a separator.
+  if (name.empty()) {
+    return false;
+  }
+  for (size_t start = 0; start <= name.size();) {
+    const auto end = std::min(name.find('/', start), name.size());
+    const auto segment = name.substr(start, end - start);
+    if (segment.empty() || segment == "." || segment == "..") {
+      return false;
+    }
+    for (const char c : segment) {
+      if (c == '\\' || c == ':' || static_cast<unsigned char>(c) < 0x20) {
+        return false;
+      }
+    }
+    start = end + 1;
+  }
+  return true;
+}
+
 namespace {
 
 // Resolve returns the path of the file name below dir, or an error for a
@@ -16,29 +38,13 @@ namespace {
 // through a symbolic link.
 std::expected<std::filesystem::path, std::string> Resolve(const std::filesystem::path& dir,
                                                           std::string_view name) {
-  // Accept "/"-separated segments without "." or "..", empty segments or
-  // characters another platform reads as a separator.
   const auto refuse = [&] {
     return std::unexpected("not a file name: " + std::string(name));
   };
-  if (name.empty()) {
+  if (!FileName(name)) {
     return refuse();
   }
-  std::filesystem::path relative;
-  for (size_t start = 0; start <= name.size();) {
-    const auto end = std::min(name.find('/', start), name.size());
-    const auto segment = name.substr(start, end - start);
-    if (segment.empty() || segment == "." || segment == "..") {
-      return refuse();
-    }
-    for (const char c : segment) {
-      if (c == '\\' || c == ':' || static_cast<unsigned char>(c) < 0x20) {
-        return refuse();
-      }
-    }
-    relative /= std::filesystem::path(std::u8string(segment.begin(), segment.end()));
-    start = end + 1;
-  }
+  const std::filesystem::path relative(std::u8string(name.begin(), name.end()));
 
   // Keep the resolved path under the resolved directory.
   std::error_code error;

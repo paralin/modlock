@@ -61,7 +61,7 @@ func TestKept(t *testing.T) {
 
 	// Read the shipped file, then the written one in the next session.
 	readFile := func(s *Sandbox, name string) (*filespb.ReadFileResponse, string) {
-		request, _ := (&filespb.ReadFileRequest{Name: name}).MarshalVT()
+		request, _ := (&filespb.ReadFileRequest{Path: name}).MarshalVT()
 		reply := s.answer(build, &wasm.Call{Method: "ReadFile", Request: request})
 		response := &filespb.ReadFileResponse{}
 		if err := response.UnmarshalVT(reply.GetResponse()); err != nil {
@@ -70,7 +70,7 @@ func TestKept(t *testing.T) {
 		return response, reply.GetError()
 	}
 	writeFile := func(s *Sandbox, name, text string) string {
-		request, _ := (&filespb.WriteFileRequest{Name: name, Text: text}).MarshalVT()
+		request, _ := (&filespb.WriteFileRequest{Path: name, Text: text}).MarshalVT()
 		return s.answer(build, &wasm.Call{Method: "WriteFile", Request: request}).GetError()
 	}
 	if got, _ := readFile(first, "maps/areas.yaml"); got.GetText() != "shipped" {

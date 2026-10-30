@@ -33,7 +33,7 @@ namespace files {
 inline constexpr WriteFileRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        name_(
+        path_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         text_(
@@ -90,7 +90,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 inline constexpr ReadFileRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        name_(
+        path_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()) {}
 
@@ -126,7 +126,7 @@ const ::uint32_t
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::ReadFileRequest, _impl_._has_bits_),
         4, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::ReadFileRequest, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::ReadFileRequest, _impl_.path_),
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::ReadFileResponse, _impl_._has_bits_),
@@ -136,7 +136,7 @@ const ::uint32_t
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::WriteFileRequest, _impl_._has_bits_),
         5, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::WriteFileRequest, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::WriteFileRequest, _impl_.path_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::files::WriteFileRequest, _impl_.text_),
         0,
         1,
@@ -157,9 +157,9 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     protodesc_cold) = {
     "\n5github.com/paralin/modlock/src/wasm/fi"
     "les/files.proto\022\022modlock.wasm.files\"\037\n\017R"
-    "eadFileRequest\022\014\n\004name\030\001 \001(\t\".\n\020ReadFile"
+    "eadFileRequest\022\014\n\004path\030\001 \001(\t\".\n\020ReadFile"
     "Response\022\021\n\004text\030\001 \001(\tH\000\210\001\001B\007\n\005_text\".\n\020"
-    "WriteFileRequest\022\014\n\004name\030\001 \001(\t\022\014\n\004text\030\002"
+    "WriteFileRequest\022\014\n\004path\030\001 \001(\t\022\014\n\004text\030\002"
     " \001(\tB1Z/github.com/paralin/modlock/src/w"
     "asm/files;filesb\006proto3"
 };
@@ -208,7 +208,7 @@ PROTOBUF_NDEBUG_INLINE ReadFileRequest::Impl_::Impl_(
     [[maybe_unused]] const ::modlock::wasm::files::ReadFileRequest& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        name_(arena, from.name_) {}
+        path_(arena, from.path_) {}
 
 ReadFileRequest::ReadFileRequest(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -230,7 +230,7 @@ PROTOBUF_NDEBUG_INLINE ReadFileRequest::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        name_(arena) {}
+        path_(arena) {}
 
 inline void ReadFileRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -246,7 +246,7 @@ inline void ReadFileRequest::SharedDtor(MessageLite& self) {
   }
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.name_.Destroy();
+  this_._impl_.path_.Destroy();
   this_._impl_.~Impl_();
 }
 
@@ -312,21 +312,21 @@ ReadFileRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::files::ReadFileRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string name = 1;
+    // string path = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(ReadFileRequest, _impl_.name_)}},
+      PROTOBUF_FIELD_OFFSET(ReadFileRequest, _impl_.path_)}},
   }}, {{
     65535, 65535
   }}, {{
-    // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(ReadFileRequest, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string path = 1;
+    {PROTOBUF_FIELD_OFFSET(ReadFileRequest, _impl_.path_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   // no aux_entries
   {{
     "\42\4\0\0\0\0\0\0"
     "modlock.wasm.files.ReadFileRequest"
-    "name"
+    "path"
   }},
 };
 PROTOBUF_NOINLINE void ReadFileRequest::Clear() {
@@ -338,7 +338,7 @@ PROTOBUF_NOINLINE void ReadFileRequest::Clear() {
 
   cached_has_bits = _impl_._has_bits_[0];
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    _impl_.name_.ClearNonDefaultToEmpty();
+    _impl_.path_.ClearNonDefaultToEmpty();
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -363,12 +363,12 @@ PROTOBUF_NOINLINE void ReadFileRequest::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // string name = 1;
+  // string path = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    if (!this_._internal_name().empty()) {
-      const ::std::string& _s = this_._internal_name();
+    if (!this_._internal_path().empty()) {
+      const ::std::string& _s = this_._internal_path();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.files.ReadFileRequest.name");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.files.ReadFileRequest.path");
       target = stream->WriteStringMaybeAliased(1, _s, target);
     }
   }
@@ -397,12 +397,12 @@ PROTOBUF_NOINLINE void ReadFileRequest::Clear() {
   (void)cached_has_bits;
 
    {
-    // string name = 1;
+    // string path = 1;
     cached_has_bits = this_._impl_._has_bits_[0];
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      if (!this_._internal_name().empty()) {
+      if (!this_._internal_path().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_name());
+                                        this_._internal_path());
       }
     }
   }
@@ -425,11 +425,11 @@ void ReadFileRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
 
   cached_has_bits = from._impl_._has_bits_[0];
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    if (!from._internal_name().empty()) {
-      _this->_internal_set_name(from._internal_name());
+    if (!from._internal_path().empty()) {
+      _this->_internal_set_path(from._internal_path());
     } else {
-      if (_this->_impl_.name_.IsDefault()) {
-        _this->_internal_set_name("");
+      if (_this->_impl_.path_.IsDefault()) {
+        _this->_internal_set_path("");
       }
     }
   }
@@ -452,7 +452,7 @@ void ReadFileRequest::InternalSwap(ReadFileRequest* PROTOBUF_RESTRICT PROTOBUF_N
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.path_, &other->_impl_.path_, arena);
 }
 
 ::google::protobuf::Metadata ReadFileRequest::GetMetadata() const {
@@ -748,7 +748,7 @@ PROTOBUF_NDEBUG_INLINE WriteFileRequest::Impl_::Impl_(
     [[maybe_unused]] const ::modlock::wasm::files::WriteFileRequest& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        name_(arena, from.name_),
+        path_(arena, from.path_),
         text_(arena, from.text_) {}
 
 WriteFileRequest::WriteFileRequest(
@@ -771,7 +771,7 @@ PROTOBUF_NDEBUG_INLINE WriteFileRequest::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        name_(arena),
+        path_(arena),
         text_(arena) {}
 
 inline void WriteFileRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
@@ -788,7 +788,7 @@ inline void WriteFileRequest::SharedDtor(MessageLite& self) {
   }
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.name_.Destroy();
+  this_._impl_.path_.Destroy();
   this_._impl_.text_.Destroy();
   this_._impl_.~Impl_();
 }
@@ -859,15 +859,15 @@ WriteFileRequest::_table_ = {
     {::_pbi::TcParser::FastUS1,
      {18, 1, 0,
       PROTOBUF_FIELD_OFFSET(WriteFileRequest, _impl_.text_)}},
-    // string name = 1;
+    // string path = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(WriteFileRequest, _impl_.name_)}},
+      PROTOBUF_FIELD_OFFSET(WriteFileRequest, _impl_.path_)}},
   }}, {{
     65535, 65535
   }}, {{
-    // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(WriteFileRequest, _impl_.name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string path = 1;
+    {PROTOBUF_FIELD_OFFSET(WriteFileRequest, _impl_.path_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string text = 2;
     {PROTOBUF_FIELD_OFFSET(WriteFileRequest, _impl_.text_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
@@ -875,7 +875,7 @@ WriteFileRequest::_table_ = {
   {{
     "\43\4\4\0\0\0\0\0"
     "modlock.wasm.files.WriteFileRequest"
-    "name"
+    "path"
     "text"
   }},
 };
@@ -889,7 +889,7 @@ PROTOBUF_NOINLINE void WriteFileRequest::Clear() {
   cached_has_bits = _impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      _impl_.name_.ClearNonDefaultToEmpty();
+      _impl_.path_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       _impl_.text_.ClearNonDefaultToEmpty();
@@ -918,12 +918,12 @@ PROTOBUF_NOINLINE void WriteFileRequest::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // string name = 1;
+  // string path = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    if (!this_._internal_name().empty()) {
-      const ::std::string& _s = this_._internal_name();
+    if (!this_._internal_path().empty()) {
+      const ::std::string& _s = this_._internal_path();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.files.WriteFileRequest.name");
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.files.WriteFileRequest.path");
       target = stream->WriteStringMaybeAliased(1, _s, target);
     }
   }
@@ -964,11 +964,11 @@ PROTOBUF_NOINLINE void WriteFileRequest::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
-    // string name = 1;
+    // string path = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      if (!this_._internal_name().empty()) {
+      if (!this_._internal_path().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_name());
+                                        this_._internal_path());
       }
     }
     // string text = 2;
@@ -999,11 +999,11 @@ void WriteFileRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   cached_has_bits = from._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      if (!from._internal_name().empty()) {
-        _this->_internal_set_name(from._internal_name());
+      if (!from._internal_path().empty()) {
+        _this->_internal_set_path(from._internal_path());
       } else {
-        if (_this->_impl_.name_.IsDefault()) {
-          _this->_internal_set_name("");
+        if (_this->_impl_.path_.IsDefault()) {
+          _this->_internal_set_path("");
         }
       }
     }
@@ -1036,7 +1036,7 @@ void WriteFileRequest::InternalSwap(WriteFileRequest* PROTOBUF_RESTRICT PROTOBUF
   ABSL_DCHECK_EQ(arena, other->GetArena());
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.path_, &other->_impl_.path_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.text_, &other->_impl_.text_, arena);
 }
 

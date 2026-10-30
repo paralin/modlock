@@ -13,6 +13,7 @@ import (
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	players "github.com/paralin/modlock/src/wasm/players"
+	profile "github.com/paralin/modlock/src/wasm/profile"
 	ui "github.com/paralin/modlock/src/wasm/ui"
 )
 
@@ -149,6 +150,7 @@ type HostEvent struct {
 	//	*HostEvent_Left
 	//	*HostEvent_Message
 	//	*HostEvent_Chat
+	//	*HostEvent_Calls
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -228,6 +230,13 @@ func (x *HostEvent) GetChat() *PlayerChat {
 	return nil
 }
 
+func (x *HostEvent) GetCalls() *ModCalls {
+	if x, ok := x.GetBody().(*HostEvent_Calls); ok {
+		return x.Calls
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -279,6 +288,12 @@ type HostEvent_Chat struct {
 	Chat *PlayerChat `protobuf:"bytes,9,opt,name=chat,proto3,oneof"`
 }
 
+type HostEvent_Calls struct {
+	// Calls counts the host calls a mod made since its last report, about
+	// once a minute while it calls and when its build stops.
+	Calls *ModCalls `protobuf:"bytes,10,opt,name=calls,proto3,oneof"`
+}
+
 func (*HostEvent_Started) isHostEvent_Body() {}
 
 func (*HostEvent_Log) isHostEvent_Body() {}
@@ -296,6 +311,8 @@ func (*HostEvent_Left) isHostEvent_Body() {}
 func (*HostEvent_Message) isHostEvent_Body() {}
 
 func (*HostEvent_Chat) isHostEvent_Body() {}
+
+func (*HostEvent_Calls) isHostEvent_Body() {}
 
 // PlayerChat is a line a player said in chat, to everyone or to their team.
 type PlayerChat struct {
@@ -421,6 +438,35 @@ func (x *ModFailed) GetError() string {
 		return x.Error
 	}
 	return ""
+}
+
+// ModCalls is one report of the host calls a mod made.
+type ModCalls struct {
+	unknownFields []byte
+	// Mod is the mod's name.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Profile counts the calls since the mod's last report.
+	Profile *profile.CallProfile `protobuf:"bytes,2,opt,name=profile,proto3" json:"profile,omitempty"`
+}
+
+func (x *ModCalls) Reset() {
+	*x = ModCalls{}
+}
+
+func (*ModCalls) ProtoMessage() {}
+
+func (x *ModCalls) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *ModCalls) GetProfile() *profile.CallProfile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
 }
 
 // PlayerJoined identifies a player who joined.
@@ -791,6 +837,19 @@ func (m *HostEvent_Chat) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *HostEvent_Calls) CloneVT() *HostEvent_Calls {
+	if m == nil {
+		return (*HostEvent_Calls)(nil)
+	}
+	r := new(HostEvent_Calls)
+	r.Calls = protobuf_go_lite.CloneVTValue(m.Calls)
+	return r
+}
+
+func (m *HostEvent_Calls) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
 func (m *PlayerChat) CloneVT() *PlayerChat {
 	if m == nil {
 		return (*PlayerChat)(nil)
@@ -857,6 +916,23 @@ func (m *ModFailed) CloneVT() *ModFailed {
 }
 
 func (m *ModFailed) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ModCalls) CloneVT() *ModCalls {
+	if m == nil {
+		return (*ModCalls)(nil)
+	}
+	r := new(ModCalls)
+	r.Mod = m.Mod
+	r.Profile = protobuf_go_lite.CloneVTValue(m.Profile)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ModCalls) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1211,6 +1287,23 @@ func (this *HostEvent_Chat) EqualVT(thatIface isHostEvent_Body) bool {
 	return true
 }
 
+func (this *HostEvent_Calls) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_Calls)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Calls, that.Calls, func() *ModCalls { return &ModCalls{} }) {
+		return false
+	}
+	return true
+}
+
 func (this *PlayerChat) EqualVT(that *PlayerChat) bool {
 	if this == that {
 		return true
@@ -1300,6 +1393,29 @@ func (this *ModFailed) EqualVT(that *ModFailed) bool {
 
 func (this *ModFailed) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ModFailed)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ModCalls) EqualVT(that *ModCalls) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Profile, that.Profile) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ModCalls) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ModCalls)
 	if !ok {
 		return false
 	}
@@ -1622,6 +1738,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("chat")
 			ov.Chat.MarshalProtoJSON(s.WithField("chat"))
+		case *HostEvent_Calls:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("calls")
+			ov.Calls.MarshalProtoJSON(s.WithField("calls"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -1722,6 +1842,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Chat = &PlayerChat{}
 			ov.Chat.UnmarshalProtoJSON(s.WithField("chat", true))
+		case "calls":
+			ov := &HostEvent_Calls{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.Calls = nil
+				return
+			}
+			ov.Calls = &ModCalls{}
+			ov.Calls.UnmarshalProtoJSON(s.WithField("calls", true))
 		}
 	})
 }
@@ -1936,6 +2065,60 @@ func (x *ModFailed) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ModFailed from JSON.
 func (x *ModFailed) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ModCalls message to JSON.
+func (x *ModCalls) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Profile != nil || s.HasField("profile") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("profile")
+		x.Profile.MarshalProtoJSON(s.WithField("profile"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ModCalls to JSON.
+func (x *ModCalls) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ModCalls message from JSON.
+func (x *ModCalls) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "profile":
+			if s.ReadNil() {
+				x.Profile = nil
+				return
+			}
+			x.Profile = &profile.CallProfile{}
+			x.Profile.UnmarshalProtoJSON(s.WithField("profile", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ModCalls from JSON.
+func (x *ModCalls) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2600,6 +2783,30 @@ func (m *HostEvent_Chat) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HostEvent_Calls) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_Calls) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Calls != nil {
+		size, err := m.Calls.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x52
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x52
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *PlayerChat) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2762,6 +2969,53 @@ func (m *ModFailed) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if len(m.Error) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Error)
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ModCalls) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ModCalls) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ModCalls) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Profile != nil {
+		size, err := m.Profile.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -3205,6 +3459,21 @@ func (m *HostEvent_Chat) SizeVT() (n int) {
 	return n
 }
 
+func (m *HostEvent_Calls) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Calls != nil {
+		l = m.Calls.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *PlayerChat) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3250,6 +3519,21 @@ func (m *ModFailed) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Error)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ModCalls) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	if m.Profile != nil {
+		l = m.Profile.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -3431,6 +3715,13 @@ func (x *HostEvent) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Chat)
 		}
+	case *HostEvent_Calls:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "calls")
+		if body.Calls == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ModCalls{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Calls)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3512,6 +3803,24 @@ func (x *ModFailed) MarshalProtoText() string {
 }
 
 func (x *ModFailed) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ModCalls) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ModCalls")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Profile != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "profile")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Profile)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ModCalls) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3953,6 +4262,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 				m.Body = &HostEvent_Chat{Chat: v}
 			}
 			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Calls", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_Calls); ok {
+				if err := oneof.Calls.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ModCalls{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_Calls{Calls: v}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4214,6 +4543,74 @@ func (m *ModFailed) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Error = v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ModCalls) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ModCalls: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ModCalls: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Profile", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Profile == nil {
+				m.Profile = &profile.CallProfile{}
+			}
+			if err := m.Profile.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

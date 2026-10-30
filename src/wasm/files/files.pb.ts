@@ -16,17 +16,17 @@ import type {
  */
 export interface ReadFileRequest {
   /**
-   * Name is the file's path below the mod's directories, such as
+   * Path is the file's path below the mod's directories, such as
    * "areas.yaml" or "maps/dl_midtown.json": relative, with "/" between
    * segments, and no "." or ".." segment.
    */
-  name?: string
+  path?: string
 }
 
 export const ReadFileRequest: MessageType<ReadFileRequest> =
   /* @__PURE__ */ createMessageType<ReadFileRequest>(
     'modlock.wasm.files.ReadFileRequest',
-    () => [[1, 'name', 9]],
+    () => [[1, 'path', 9]],
     {
       decode: (
         r: BinaryReader,
@@ -38,7 +38,7 @@ export const ReadFileRequest: MessageType<ReadFileRequest> =
           if ((t & 7) === 4) return m
           switch (t >>> 3) {
             case 1:
-              m.name = r.string()
+              m.path = r.string()
               break
             default:
               r.skip(t)
@@ -48,7 +48,7 @@ export const ReadFileRequest: MessageType<ReadFileRequest> =
       },
       encode: (m: ReadFileRequest, w: Writer): void => {
         {
-          const v = m.name
+          const v = m.path
           if (v) w.uint32(10).string(v)
         }
       },
@@ -107,9 +107,9 @@ export const ReadFileResponse: MessageType<ReadFileResponse> =
  */
 export interface WriteFileRequest {
   /**
-   * Name is the file's path, as ReadFileRequest names it.
+   * Path is the file's path, as ReadFileRequest names it.
    */
-  name?: string
+  path?: string
   /**
    * Text is the file's new UTF-8 text.
    */
@@ -120,7 +120,7 @@ export const WriteFileRequest: MessageType<WriteFileRequest> =
   /* @__PURE__ */ createMessageType<WriteFileRequest>(
     'modlock.wasm.files.WriteFileRequest',
     () => [
-      [1, 'name', 9],
+      [1, 'path', 9],
       [2, 'text', 9],
     ],
     {
@@ -134,7 +134,7 @@ export const WriteFileRequest: MessageType<WriteFileRequest> =
           if ((t & 7) === 4) return m
           switch (t >>> 3) {
             case 1:
-              m.name = r.string()
+              m.path = r.string()
               break
             case 2:
               m.text = r.string()
@@ -147,7 +147,7 @@ export const WriteFileRequest: MessageType<WriteFileRequest> =
       },
       encode: (m: WriteFileRequest, w: Writer): void => {
         {
-          const v = m.name
+          const v = m.path
           if (v) w.uint32(10).string(v)
         }
         {
