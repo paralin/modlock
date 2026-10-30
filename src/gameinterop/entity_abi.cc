@@ -449,11 +449,11 @@ std::optional<std::string_view> TemplateArgument(std::string_view type, std::str
 
 // NamedStorageOf classifies a builtin or engine type by its name, or answers
 // nothing for a name it does not know. A fixed array reads as its first
-// element.
+// element, and a Color, four bytes of red, green, blue and alpha, as a uint32.
 std::optional<SchemaStorage> NamedStorageOf(std::string_view type) {
-  static constexpr std::array<std::string_view, 13> kNumbers{
-      "bool",   "int8",   "int16",   "int32",   "int64",         "uint8",          "uint16",
-      "uint32", "uint64", "float32", "float64", "CEntityHandle", "CUtlStringToken"};
+  static constexpr std::array<std::string_view, 14> kNumbers{
+      "bool",   "int8",   "int16",   "int32",   "int64",         "uint8",           "uint16",
+      "uint32", "uint64", "float32", "float64", "CEntityHandle", "CUtlStringToken", "Color"};
   if (std::ranges::find(kNumbers, type) != kNumbers.end() || TemplateArgument(type, "CHandle")) {
     return SchemaStorage::kNumber;
   }

@@ -237,8 +237,8 @@ enum class SchemaStorage : uint8_t {
   // other than a list, or a type the schema does not describe. Its bytes are
   // not a value a caller may read or write.
   kOpaque,
-  // kNumber is a boolean, an integer, a float, an enum, an entity handle or a
-  // boxed number.
+  // kNumber is a boolean, an integer, a float, an enum, an entity handle, a
+  // Color or a boxed number.
   kNumber,
   // kVector is three floats: a Vector, VectorWS or QAngle.
   kVector,
