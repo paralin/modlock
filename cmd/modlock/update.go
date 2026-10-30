@@ -4,7 +4,9 @@ import (
 	"context"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/aperturerobotics/cli"
 	"github.com/paralin/modlock/internal/selfupdate"
@@ -54,6 +56,9 @@ func updateCommand(out *printer) *cli.Command {
 			exe, err := selfupdate.Executable()
 			if err != nil {
 				return err
+			}
+			if strings.Contains(filepath.ToSlash(exe), "/node_modules/@modlock/") {
+				return errors.Errorf("npm installed %s; run npm install modlock@%s to update it", exe, strings.TrimPrefix(target, "v"))
 			}
 			out.mark("…", dim, "downloading modlock "+target+" for "+runtime.GOOS+" "+runtime.GOARCH)
 			if err := selfupdate.Install(c.Context, target, exe); err != nil {

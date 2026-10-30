@@ -73,6 +73,13 @@ sudo install -m 755 modlock-darwin-arm64 /usr/local/bin/modlock
 On a Mac, clear the download's quarantine first:
 `xattr -c modlock-darwin-arm64`.
 
+Or install it from npm, into a project or globally, as its own command:
+
+```sh
+npm install --save-dev modlock
+npx modlock new my-mod
+```
+
 On Windows it runs the game server directly; on Linux it runs it through
 Steam's Proton. It fetches the server that matches its release the first time.
 Script mods need nothing else installed; a Go mod needs
@@ -655,8 +662,12 @@ addon's name for the version you build.
 
 A TypeScript or JavaScript mod imports `modlock` and registers its handlers when
 it loads. `main.ts`, or `main.js`, is the entry, and the types check as you
-type, with no Node.js or npm to install. A JavaScript mod is checked from its
-JSDoc. [`src/wasm/wasm.proto`](src/wasm/wasm.proto) documents every
+type, with no Node.js or npm to install. Each build writes the library's
+declarations to the project's `node_modules/modlock`, where editors and the type
+checker find them, and bundles the mod with the library built into the command
+line. A `modlock` that npm installed there already carries its release's
+declarations, and the build leaves it as it is. A JavaScript mod is checked
+from its JSDoc. [`src/wasm/wasm.proto`](src/wasm/wasm.proto) documents every
 call, its arguments and its result.
 
 Every build bundles the mod for QuickJS, which runs any JavaScript and builds in
