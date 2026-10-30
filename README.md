@@ -643,10 +643,13 @@ createModel({ resource: 'models/{addon}/pawn.vmdl', position })
 
 `modlock dev` and `modlock play` mount each mod's content in the game before
 the server starts, so the server and the player's game both load it, and
-`modlock join` mounts the host's before the guest's game starts. The game
-reads the package only when it starts, so restart it after changing content. A
-path inside a compiled resource is not rewritten: point it at the game's own
-resources, or at the addon's name for the version you build.
+`modlock join` mounts the host's before the guest's game starts. With
+`--watch`, each rebuild adds the mod's changed content to the mounted package
+under the addon's new name, so the running server and game load a changed
+layout, style sheet or model the next time the mod asks for it, without a
+restart. A guest keeps the content it joined with. A path inside a compiled
+resource is not rewritten: point it at the game's own resources, or at the
+addon's name for the version you build.
 
 ## The TypeScript library
 

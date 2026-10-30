@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"io/fs"
 	"maps"
 	"os"
@@ -62,14 +63,28 @@ type Renderer struct {
 	Layout []byte
 }
 
+// mount is a package mounted in a Deadlock installation for a session.
+type mount struct {
+	// dir is the package's directory, which gameinfo.gi names.
+	dir string
+	// gameDir is the Deadlock installation.
+	gameDir string
+	// held holds the mount live until Close.
+	held io.Closer
+	// carried is the SHA-256 of each content file the package carries, in
+	// its archive or loose beside it.
+	carried map[string][sha256.Size]byte
+}
+
 // mountRenderer mounts a package in the Deadlock installation at gameDir that
 // draws the mods' interfaces in the player's game and carries each mod's
-// content addon, and returns the call that unmounts it. renderer is the built
-// renderer, or nil to leave the interfaces out; bridge is the URL of the relay
-// page it reads the screen through, or empty for the renderer's default; and
-// content is the mods' content addons. A map archive in content, maps/<map>.vpk, is written beside
-// the package instead of into it, since the game opens each map as its own
-// archive on the search path, as it does the stock maps.
+// content addon, and returns the mount, or nil when there is nothing to
+// mount. renderer is the built renderer, or nil to leave the interfaces out;
+// bridge is the URL of the relay page it reads the screen through, or empty
+// for the renderer's default; and content is the mods' content addons. A map
+// archive in content, maps/<map>.vpk, is written beside the package instead of
+// into it, since the game opens each map as its own archive on the search
+// path, as it does the stock maps.
 // The renderer shadows the stock news layout, read from the installed game so
 // it follows game updates, with one script added. The package outranks every
 // other mounted package while the session runs, and the server and the game
@@ -79,7 +94,7 @@ type Renderer struct {
 // package goes in a directory named for its content, so a game still running
 // from an earlier session keeps its package while the next session mounts a
 // changed one.
-func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fstest.MapFS) (func() error, error) {
+func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fstest.MapFS) (*mount, error) {
 	// Build the package from the renderer and the mods' content.
 	citadel := filepath.Join(gameDir, "game", "citadel")
 	files := fstest.MapFS{}
@@ -91,6 +106,10 @@ func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fs
 		maps.Copy(files, compiled)
 	}
 	maps.Copy(files, content)
+	carried := make(map[string][sha256.Size]byte, len(content))
+	for name, file := range content {
+		carried[name] = sha256.Sum256(file.Data)
+	}
 	archives := fstest.MapFS{}
 	for name, file := range files {
 		if isMapArchive(name) {
@@ -99,7 +118,7 @@ func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fs
 		}
 	}
 	if len(files) == 0 && len(archives) == 0 {
-		return func() error { return nil }, nil
+		return nil, nil
 	}
 
 	// Name the package for its content, so a changed one goes beside the one
@@ -120,7 +139,8 @@ func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fs
 	if err != nil {
 		return nil, err
 	}
-	if err := writePackage(devmount.PackagePath(gameDir, key), archives); err != nil {
+	dir := devmount.PackagePath(gameDir, key)
+	if err := writePackage(dir, archives); err != nil {
 		_ = held.Close()
 		return nil, err
 	}
@@ -128,10 +148,35 @@ func mountRenderer(gameDir string, renderer *Renderer, bridge string, content fs
 		_ = held.Close()
 		return nil, err
 	}
-	return func() error {
-		defer held.Close()
-		return devmount.Unmount(gameDir)
-	}, nil
+	return &mount{dir: dir, gameDir: gameDir, held: held, carried: carried}, nil
+}
+
+// Add writes the files of content the package does not yet carry, or carries
+// with other data, loose into its directory, where the server and the game
+// read a file their archives lack. A rebuilt content addon takes a new name
+// for changed content, so its files land at new paths a running game has not
+// opened yet and loads when an interface or map first asks for them; a
+// changed file at a path the archive already holds may stay shadowed by it.
+func (m *mount) Add(content fstest.MapFS) error {
+	changed := fstest.MapFS{}
+	for name, file := range content {
+		if sum := sha256.Sum256(file.Data); m.carried[name] != sum {
+			changed[name] = file
+		}
+	}
+	if err := writePackage(m.dir, changed); err != nil {
+		return err
+	}
+	for name, file := range changed {
+		m.carried[name] = sha256.Sum256(file.Data)
+	}
+	return nil
+}
+
+// Close unmounts the package and releases the hold on the mount.
+func (m *mount) Close() error {
+	defer m.held.Close()
+	return devmount.Unmount(m.gameDir)
 }
 
 // packageKey names a package for its files: the first 16 hex digits of a

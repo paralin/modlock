@@ -38,6 +38,8 @@ type Session struct {
 	control *Control
 	// host is the host process.
 	host *Host
+	// served is the mods' interfaces and content in the player's game.
+	served *Served
 	// stopInterface unmounts the mods' interfaces and content from the
 	// player's game and stops serving the interfaces; it runs once.
 	stopInterface func()
@@ -91,7 +93,8 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	if config.Interface != "" {
 		iface.Address, iface.Relay, iface.Renderer = config.Interface, config.Relay, config.Renderer
 	}
-	stopInterface := sync.OnceFunc(StartInterface(iface))
+	served := StartInterface(iface)
+	stopInterface := sync.OnceFunc(served.Stop)
 	// The host outlives ctx until Stop has unmounted, since a game joined to
 	// the server reloads its search paths when the server stops, holding
 	// gameinfo.gi past any unmount that follows.
@@ -114,7 +117,7 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 		return nil, err
 	}
 
-	session := &Session{Executable: executable, control: link, host: host, controlled: make(chan struct{}), stopInterface: stopInterface}
+	session := &Session{Executable: executable, control: link, host: host, controlled: make(chan struct{}), served: served, stopInterface: stopInterface}
 	session.stopOnDone = context.AfterFunc(ctx, session.Stop)
 	// Pass events on, launching the client at the first ready server.
 	var launched atomic.Bool
@@ -137,8 +140,11 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	return session, nil
 }
 
-// Reload asks the host to replace the running mod built at path.
+// Reload asks the host to replace the running mod built at path, first
+// adding the mod's changed content to the mounted package, so the reloaded
+// mod finds the content its rebuilt addon names.
 func (s *Session) Reload(ctx context.Context, path string) error {
+	s.served.AddContent(path)
 	return s.control.Reload(ctx, path)
 }
 

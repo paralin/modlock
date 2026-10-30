@@ -393,5 +393,5 @@ func mountGuest(c *cli.Context, out *printer, steam *session.Steam, mirror *sess
 			iface.Address, iface.Relay, iface.Renderer = "127.0.0.1:"+strconv.Itoa(int(port)), c.String("ui-relay"), renderer
 		}
 	}
-	return session.StartInterface(iface)
+	return session.StartInterface(iface).Stop
 }

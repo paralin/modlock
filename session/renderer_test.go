@@ -2,9 +2,11 @@ package session
 
 import (
 	"bytes"
+	"maps"
 	"os"
 	"path/filepath"
 	"testing"
+	"testing/fstest"
 
 	"github.com/paralin/modlock/devmount"
 	"github.com/paralin/modlock/source2/vpk"
@@ -12,7 +14,8 @@ import (
 
 // TestMountRendererCarriesMaps mounts a mod that ships its own map: the map's
 // archive lands beside the package where the game finds it, its assets go
-// into the package, and the next session without the map removes it.
+// into the package, a rebuild adds only its changed files loose beside it, and
+// the next session without the map removes it.
 func TestMountRendererCarriesMaps(t *testing.T) {
 	// A game with a stock gameinfo.gi, and a built mod with a map.
 	gameDir := t.TempDir()
@@ -39,7 +42,7 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	unmount, err := mountRenderer(gameDir, nil, "", content)
+	mounted, err := mountRenderer(gameDir, nil, "", content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +66,20 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 			t.Fatalf("%s is inside the package", name)
 		}
 	}
-	if err := unmount(); err != nil {
+
+	// A rebuild adds its new files loose beside the archive, and only those.
+	rebuilt := maps.Clone(content)
+	rebuilt["panorama/styles/arena-1234abcd/hud.vcss_c"] = &fstest.MapFile{Data: []byte("sheet")}
+	if err := mounted.Add(rebuilt); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := os.ReadFile(filepath.Join(mounted.dir, "panorama", "styles", "arena-1234abcd", "hud.vcss_c")); err != nil || string(got) != "sheet" {
+		t.Fatalf("rebuilt sheet beside the package: %q, %v", got, err)
+	}
+	if _, err := os.Stat(filepath.Join(mounted.dir, "materials")); !os.IsNotExist(err) {
+		t.Fatalf("an unchanged file was written loose: %v", err)
+	}
+	if err := mounted.Close(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -74,13 +90,13 @@ func TestMountRendererCarriesMaps(t *testing.T) {
 	if content, err = ReadContent([]string{mod}); err != nil {
 		t.Fatal(err)
 	}
-	if unmount, err = mountRenderer(gameDir, nil, "", content); err != nil {
+	if mounted, err = mountRenderer(gameDir, nil, "", content); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(mapped); !os.IsNotExist(err) {
 		t.Fatalf("a previous session's map stayed: %v", err)
 	}
-	if err := unmount(); err != nil {
+	if err := mounted.Close(); err != nil {
 		t.Fatal(err)
 	}
 }

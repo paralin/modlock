@@ -33,42 +33,74 @@ type Interface struct {
 	Events func(*control.HostEvent)
 }
 
+// Served is a player's interfaces and content, started by StartInterface.
+type Served struct {
+	config Interface
+	// mounted is the package in the game, or nil when none mounted.
+	mounted *mount
+	// server serves the screen, or is nil when it does not.
+	server *http.Server
+}
+
 // StartInterface mounts the renderer and the mods' content in the game and
-// serves the screen to the relay page, and returns the call that stops both.
-// Each part is optional: a game that cannot take the package or another
-// program on the address reports a failure and leaves the session running.
-// Start it before the server and the game, which load the package only when
-// they start.
-func StartInterface(config Interface) (stop func()) {
+// serves the screen to the relay page. Each part is optional: a game that
+// cannot take the package or another program on the address reports a
+// failure and leaves the session running. Start it before the server and the
+// game, which load the package only when they start.
+func StartInterface(config Interface) *Served {
 	// Mount the renderer and the content, so the game draws the screen and
 	// the server and the game load the mods' resources.
-	// A block left in gameinfo.gi outranks every package the game loads after
-	// the session, so report a failure to remove it.
-	unmount := func() {}
-	if mounted, err := mountRenderer(config.GameDir, config.Renderer, config.bridge(), config.Content); err != nil {
+	served := &Served{config: config}
+	mounted, err := mountRenderer(config.GameDir, config.Renderer, config.bridge(), config.Content)
+	if err != nil {
 		config.fail(errors.Wrap(err, "the game shows no mod interfaces or content"))
-	} else {
-		unmount = func() {
-			if err := mounted(); err != nil {
-				config.fail(errors.Wrapf(err, "remove the %s block from gameinfo.gi; the next session replaces it", devmount.Name))
-			}
-		}
 	}
+	served.mounted = mounted
 	if config.Address == "" {
-		return unmount
+		return served
 	}
 
 	// Serve the screen. Without it the renderer has nothing to draw.
 	listener, err := net.Listen("tcp", config.Address)
 	if err != nil {
 		config.fail(errors.Wrap(err, "mod interfaces are off"))
-		return unmount
+		return served
 	}
-	server := &http.Server{Handler: NewRelay(config.Relay, config.Screen)}
-	go func() { _ = server.Serve(listener) }()
-	return func() {
-		_ = server.Close()
-		unmount()
+	served.server = &http.Server{Handler: NewRelay(config.Relay, config.Screen)}
+	go func() { _ = served.server.Serve(listener) }()
+	return served
+}
+
+// AddContent carries the content of the mod rebuilt at mod into the mounted
+// package, so the server and a running game load its changed addon without a
+// restart. It reports a failure, and runs one call at a time.
+func (s *Served) AddContent(mod string) {
+	content, err := ReadContent([]string{mod})
+	switch {
+	case err != nil:
+		s.config.fail(errors.Wrap(err, "the game keeps the mod's earlier content"))
+	case len(content) == 0:
+	case s.mounted == nil:
+		s.config.fail(errors.New("the game has no mod package to add the changed content to; restart the session to load it"))
+	default:
+		if err := s.mounted.Add(content); err != nil {
+			s.config.fail(errors.Wrap(err, "the game keeps the mod's earlier content"))
+		}
+	}
+}
+
+// Stop stops serving the screen and unmounts the package. A block left in
+// gameinfo.gi outranks every package the game loads after the session, so it
+// reports a failure to remove it.
+func (s *Served) Stop() {
+	if s.server != nil {
+		_ = s.server.Close()
+	}
+	if s.mounted == nil {
+		return
+	}
+	if err := s.mounted.Close(); err != nil {
+		s.config.fail(errors.Wrapf(err, "remove the %s block from gameinfo.gi; the next session replaces it", devmount.Name))
 	}
 }
 
