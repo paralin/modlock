@@ -57,7 +57,11 @@ func Load(ctx context.Context, module []byte, options Options) (*Mod, error) {
 	// Make a runtime with the host's limits that closes the module when an
 	// event's budget runs out. Luau unwinds its errors as WebAssembly
 	// exceptions, which the host's Wasmtime runs too.
-	config := wazero.NewRuntimeConfig().
+	config := wazero.NewRuntimeConfig()
+	if options.Interpret {
+		config = wazero.NewRuntimeConfigInterpreter()
+	}
+	config = config.
 		WithCoreFeatures(api.CoreFeaturesV2 | experimental.CoreFeaturesExceptionHandling).
 		WithMemoryLimitPages(memoryBytes / 65536).
 		WithCloseOnContextDone(true)
@@ -112,7 +116,7 @@ func (m *Mod) instantiate(ctx context.Context, module []byte, output io.Writer) 
 	}
 	if initialize := m.instance.ExportedFunction("_initialize"); initialize != nil {
 		if _, err := initialize.Call(started); err != nil {
-			return failure(started, err, "initialize", startBudget)
+			return failure(ctx, started, err, "initialize", startBudget)
 		}
 	}
 	return nil
@@ -144,7 +148,7 @@ func (m *Mod) Deliver(ctx context.Context, method string, request, response mess
 	results, err := m.instance.ExportedFunction("modlock_event").Call(delivered, uint64(len(m.pending)))
 	if err != nil {
 		_ = m.instance.Close(ctx)
-		return failure(delivered, err, method, budget)
+		return failure(ctx, delivered, err, method, budget)
 	}
 
 	// Read the reply the mod left in its memory; none answers nothing.
@@ -252,11 +256,15 @@ func types(got []api.ValueType, want ...api.ValueType) bool {
 	return true
 }
 
-// failure explains an error from the mod's step, naming the budget when the
-// step ran out of time.
-func failure(ctx context.Context, err error, step string, budget time.Duration) error {
+// failure explains an error from the mod's step, which ran under the budget's
+// context step derived from ctx: the caller's own cancellation, the budget
+// running out, or the mod's error.
+func failure(ctx, step context.Context, err error, name string, budget time.Duration) error {
 	if ctx.Err() != nil {
-		return errors.Errorf("the mod's %s took longer than %s", step, budget)
+		return errors.Wrapf(context.Cause(ctx), "the mod's %s was cancelled", name)
 	}
-	return errors.Wrapf(err, "the mod failed to %s", step)
+	if step.Err() != nil {
+		return errors.Errorf("the mod's %s took longer than %s", name, budget)
+	}
+	return errors.Wrapf(err, "the mod failed to %s", name)
 }

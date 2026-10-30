@@ -76,8 +76,10 @@ func Mod(ctx context.Context, dist fs.FS) (*manifest.Manifest, error) {
 
 // Module checks that module keeps to the host's boundary and starts within
 // the host's memory and time limits with every host request answered empty.
+// It interprets the module, since compiling a large one takes far longer than
+// the few calls the check runs.
 func Module(ctx context.Context, module []byte) error {
-	mod, err := sandbox.Load(ctx, module, sandbox.Options{})
+	mod, err := sandbox.Load(ctx, module, sandbox.Options{Interpret: true})
 	if err != nil {
 		return err
 	}

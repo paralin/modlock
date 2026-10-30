@@ -17,4 +17,8 @@ type Options struct {
 	Output io.Writer
 	// Cache keeps compiled modules for later loads, or is nil for none.
 	Cache wazero.CompilationCache
+	// Interpret runs the module in wazero's interpreter, which starts at once,
+	// rather than compiling it, which can take a minute for a large module.
+	// It suits a mod loaded to run a few calls, such as a check.
+	Interpret bool
 }
