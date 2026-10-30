@@ -149,14 +149,27 @@ interface KeyTypes {
 
 /**
  * KeyMap is one data description: its base and the type of each key it adds.
- * Keys is the type of the key values it and its bases take.
+ * Keys is the type of the key values it and its bases take; spawnKeys is never
+ * set and only carries it.
  */
-type KeyMap<Keys = unknown> = readonly [base: KeyMap | undefined, keys: Readonly<Record<string, KeyType>>] & {
+interface KeyMap<Keys = unknown> {
+  readonly base: KeyMap | undefined
+  readonly keys: Readonly<Record<string, KeyType>>
   readonly spawnKeys?: Keys
 }
 
 /** KeysOf is the type of the key values map takes. */
 type KeysOf<Map> = Map extends KeyMap<infer Keys> ? Keys : never
+
+/**
+ * Designer is a designer name's entry: the class that implements it, its key
+ * map and the subclass it needs, if any.
+ */
+interface Designer<Make extends Class = Class, Keys = unknown> {
+  readonly make: Make
+  readonly keys: KeyMap<Keys>
+  readonly subclass?: string
+}
 
 /** FieldTypes maps each entry of a class's field table to the type it holds. */
 interface FieldTypes {
@@ -232,8 +245,8 @@ export type Spawn<Keys> = Omit<EntityOptions, 'designerName' | 'subclass' | 'tea
 
 /** keyValue encodes one typed key value, whose type map or a base gives. */
 function keyValue(map: KeyMap | undefined, key: string, value: unknown): KeyValue | undefined {
-  for (; map; map = map[0]) {
-    const type = map[1][key]
+  for (; map; map = map.base) {
+    const type = map.keys[key]
     if (type === 'angles') {
       const angles = value as Angles
       return { key, value: { vector: { x: angles.pitch, y: angles.yaw, z: angles.roll } } }
@@ -249,10 +262,10 @@ function keyValue(map: KeyMap | undefined, key: string, value: unknown): KeyValu
 export type DesignerName = keyof typeof designers
 
 /** DesignerClass is the class that implements designer name D. */
-export type DesignerClass<D extends DesignerName> = InstanceType<(typeof designers)[D][0]>
+export type DesignerClass<D extends DesignerName> = InstanceType<(typeof designers)[D]['make']>
 
 /** DesignerKeys is the type of the spawn key values of designer name D. */
-export type DesignerKeys<D extends DesignerName> = KeysOf<(typeof designers)[D][1]>
+export type DesignerKeys<D extends DesignerName> = KeysOf<(typeof designers)[D]['keys']>
 
 /**
  * create creates an entity of designerName from options and addresses it as
@@ -262,7 +275,7 @@ export function create<D extends DesignerName>(
   designerName: D,
   options: Spawn<DesignerKeys<D>>,
 ): DesignerClass<D> | undefined {
-  const [make, map, subclass] = designers[designerName] as readonly [Class, KeyMap, string?]
+  const { make, keys: map, subclass } = designers[designerName] as Designer
   const keyValues = [...(options.keyValues ?? [])]
   for (const [key, value] of Object.entries(options.keys ?? {})) {
     const encoded = value === undefined ? undefined : keyValue(map, key, value)
@@ -392,19 +405,19 @@ func writeTypeScript(s *schema, classes []*class, e *entities, c *console) map[s
 		} else {
 			fmt.Fprintf(&out, "export interface %sKeys extends %s {}\n", m.name, strings.Join(bases, ", "))
 		}
-		fmt.Fprintf(&out, "const keys%s: KeyMap<%sKeys> = [%s, %s]\n", m.name, m.name, base, table)
+		fmt.Fprintf(&out, "const keys%s: KeyMap<%sKeys> = { base: %s, keys: %s }\n", m.name, m.name, base, table)
 	}
 
 	// Write the designer names, each with its class and key value table.
-	out.WriteString("\n/**\n * designers maps each designer name to its class, its key value table and the\n * subclass it needs, if any.\n */\nconst designers = {\n")
+	out.WriteString("\n/** designers maps each designer name to its Designer. */\nconst designers = {\n")
 	for _, d := range e.designers {
-		if d.subclass == "" {
-			fmt.Fprintf(&out, "  %s: [%s, keys%s],\n", d.name, d.class, d.keys.name)
-		} else {
-			fmt.Fprintf(&out, "  %s: [%s, keys%s, '%s'],\n", d.name, d.class, d.keys.name, d.subclass)
+		subclass := ""
+		if d.subclass != "" {
+			subclass = ", subclass: '" + d.subclass + "'"
 		}
+		fmt.Fprintf(&out, "  %s: { make: %s, keys: keys%s%s } as Designer<typeof %s, %sKeys>,\n", d.name, d.class, d.keys.name, subclass, d.class, d.keys.name)
 	}
-	out.WriteString("} as const\n")
+	out.WriteString("}\n")
 	return map[string][]byte{"entities.ts": out.Bytes(), "console.ts": typeScriptConsole(c)}
 }
 

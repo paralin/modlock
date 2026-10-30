@@ -137,14 +137,27 @@ interface KeyTypes {
 
 /**
  * KeyMap is one data description: its base and the type of each key it adds.
- * Keys is the type of the key values it and its bases take.
+ * Keys is the type of the key values it and its bases take; spawnKeys is never
+ * set and only carries it.
  */
-type KeyMap<Keys = unknown> = readonly [base: KeyMap | undefined, keys: Readonly<Record<string, KeyType>>] & {
+interface KeyMap<Keys = unknown> {
+  readonly base: KeyMap | undefined
+  readonly keys: Readonly<Record<string, KeyType>>
   readonly spawnKeys?: Keys
 }
 
 /** KeysOf is the type of the key values map takes. */
 type KeysOf<Map> = Map extends KeyMap<infer Keys> ? Keys : never
+
+/**
+ * Designer is a designer name's entry: the class that implements it, its key
+ * map and the subclass it needs, if any.
+ */
+interface Designer<Make extends Class = Class, Keys = unknown> {
+  readonly make: Make
+  readonly keys: KeyMap<Keys>
+  readonly subclass?: string
+}
 
 /** FieldTypes maps each entry of a class's field table to the type it holds. */
 interface FieldTypes {
@@ -220,8 +233,8 @@ export type Spawn<Keys> = Omit<EntityOptions, 'designerName' | 'subclass' | 'tea
 
 /** keyValue encodes one typed key value, whose type map or a base gives. */
 function keyValue(map: KeyMap | undefined, key: string, value: unknown): KeyValue | undefined {
-  for (; map; map = map[0]) {
-    const type = map[1][key]
+  for (; map; map = map.base) {
+    const type = map.keys[key]
     if (type === 'angles') {
       const angles = value as Angles
       return { key, value: { vector: { x: angles.pitch, y: angles.yaw, z: angles.roll } } }
@@ -237,10 +250,10 @@ function keyValue(map: KeyMap | undefined, key: string, value: unknown): KeyValu
 export type DesignerName = keyof typeof designers
 
 /** DesignerClass is the class that implements designer name D. */
-export type DesignerClass<D extends DesignerName> = InstanceType<(typeof designers)[D][0]>
+export type DesignerClass<D extends DesignerName> = InstanceType<(typeof designers)[D]['make']>
 
 /** DesignerKeys is the type of the spawn key values of designer name D. */
-export type DesignerKeys<D extends DesignerName> = KeysOf<(typeof designers)[D][1]>
+export type DesignerKeys<D extends DesignerName> = KeysOf<(typeof designers)[D]['keys']>
 
 /**
  * create creates an entity of designerName from options and addresses it as
@@ -250,7 +263,7 @@ export function create<D extends DesignerName>(
   designerName: D,
   options: Spawn<DesignerKeys<D>>,
 ): DesignerClass<D> | undefined {
-  const [make, map, subclass] = designers[designerName] as readonly [Class, KeyMap, string?]
+  const { make, keys: map, subclass } = designers[designerName] as Designer
   const keyValues = [...(options.keyValues ?? [])]
   for (const [key, value] of Object.entries(options.keys ?? {})) {
     const encoded = value === undefined ? undefined : keyValue(map, key, value)
@@ -12462,7 +12475,7 @@ const tableCBaseEntity = {
   health: 'integer',
 } as const
 export interface CBaseEntityKeys extends Typed<typeof tableCBaseEntity> {}
-const keysCBaseEntity: KeyMap<CBaseEntityKeys> = [undefined, tableCBaseEntity]
+const keysCBaseEntity: KeyMap<CBaseEntityKeys> = { base: undefined, keys: tableCBaseEntity }
 
 const tableCAI_ChangeHintGroup = {
   SearchType: 'integer',
@@ -12471,7 +12484,7 @@ const tableCAI_ChangeHintGroup = {
   Radius: 'number',
 } as const
 export interface CAI_ChangeHintGroupKeys extends CBaseEntityKeys, Typed<typeof tableCAI_ChangeHintGroup> {}
-const keysCAI_ChangeHintGroup: KeyMap<CAI_ChangeHintGroupKeys> = [keysCBaseEntity, tableCAI_ChangeHintGroup]
+const keysCAI_ChangeHintGroup: KeyMap<CAI_ChangeHintGroupKeys> = { base: keysCBaseEntity, keys: tableCAI_ChangeHintGroup }
 
 const tableCBaseModelEntity = {
   rendercolor: 'color',
@@ -12505,7 +12518,7 @@ const tableCBaseModelEntity = {
   solid: 'integer',
 } as const
 export interface CBaseModelEntityKeys extends CBaseEntityKeys, Typed<typeof tableCBaseModelEntity> {}
-const keysCBaseModelEntity: KeyMap<CBaseModelEntityKeys> = [keysCBaseEntity, tableCBaseModelEntity]
+const keysCBaseModelEntity: KeyMap<CBaseModelEntityKeys> = { base: keysCBaseEntity, keys: tableCBaseModelEntity }
 
 const tableCBaseToggle = {
   distance: 'number',
@@ -12515,7 +12528,7 @@ const tableCBaseToggle = {
   master: 'text',
 } as const
 export interface CBaseToggleKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseToggle> {}
-const keysCBaseToggle: KeyMap<CBaseToggleKeys> = [keysCBaseModelEntity, tableCBaseToggle]
+const keysCBaseToggle: KeyMap<CBaseToggleKeys> = { base: keysCBaseModelEntity, keys: tableCBaseToggle }
 
 const tableCBaseTrigger = {
   StartDisabled: 'boolean',
@@ -12523,14 +12536,14 @@ const tableCBaseTrigger = {
   useasyncqueries: 'boolean',
 } as const
 export interface CBaseTriggerKeys extends CBaseToggleKeys, Typed<typeof tableCBaseTrigger> {}
-const keysCBaseTrigger: KeyMap<CBaseTriggerKeys> = [keysCBaseToggle, tableCBaseTrigger]
+const keysCBaseTrigger: KeyMap<CBaseTriggerKeys> = { base: keysCBaseToggle, keys: tableCBaseTrigger }
 
 const tableCNpcFootSweep = {
   use_center_pusher: 'boolean',
   use_forward_pusher: 'boolean',
 } as const
 export interface CNpcFootSweepKeys extends CBaseTriggerKeys, Typed<typeof tableCNpcFootSweep> {}
-const keysCNpcFootSweep: KeyMap<CNpcFootSweepKeys> = [keysCBaseTrigger, tableCNpcFootSweep]
+const keysCNpcFootSweep: KeyMap<CNpcFootSweepKeys> = { base: keysCBaseTrigger, keys: tableCNpcFootSweep }
 
 const tableCAI_Hint = {
   nodeFOV: 'number',
@@ -12555,10 +12568,10 @@ const tableCAI_Hint = {
   radius: 'integer',
 } as const
 export interface CAI_HintKeys extends CBaseEntityKeys, Typed<typeof tableCAI_Hint> {}
-const keysCAI_Hint: KeyMap<CAI_HintKeys> = [keysCBaseEntity, tableCAI_Hint]
+const keysCAI_Hint: KeyMap<CAI_HintKeys> = { base: keysCBaseEntity, keys: tableCAI_Hint }
 
 export interface CPointEntityKeys extends CBaseEntityKeys {}
-const keysCPointEntity: KeyMap<CPointEntityKeys> = [keysCBaseEntity, {}]
+const keysCPointEntity: KeyMap<CPointEntityKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCNavLinkAreaEntity = {
   width: 'number',
@@ -12574,7 +12587,7 @@ const tableCNavLinkAreaEntity = {
   IsAutoAdjustForward: 'boolean',
 } as const
 export interface CNavLinkAreaEntityKeys extends CPointEntityKeys, Typed<typeof tableCNavLinkAreaEntity> {}
-const keysCNavLinkAreaEntity: KeyMap<CNavLinkAreaEntityKeys> = [keysCPointEntity, tableCNavLinkAreaEntity]
+const keysCNavLinkAreaEntity: KeyMap<CNavLinkAreaEntityKeys> = { base: keysCPointEntity, keys: tableCNavLinkAreaEntity }
 
 const tableCAI_ScriptConditions = {
   StartDisabled: 'boolean',
@@ -12602,7 +12615,7 @@ const tableCAI_ScriptConditions = {
   PlayerInVehicle: 'integer',
 } as const
 export interface CAI_ScriptConditionsKeys extends CBaseEntityKeys, Typed<typeof tableCAI_ScriptConditions> {}
-const keysCAI_ScriptConditions: KeyMap<CAI_ScriptConditionsKeys> = [keysCBaseEntity, tableCAI_ScriptConditions]
+const keysCAI_ScriptConditions: KeyMap<CAI_ScriptConditionsKeys> = { base: keysCBaseEntity, keys: tableCAI_ScriptConditions }
 
 const tableCAI_VolumetricEventEntity = {
   eventtype: 'integer',
@@ -12612,7 +12625,7 @@ const tableCAI_VolumetricEventEntity = {
   locationproxy: 'text',
 } as const
 export interface CAI_VolumetricEventEntityKeys extends CPointEntityKeys, Typed<typeof tableCAI_VolumetricEventEntity> {}
-const keysCAI_VolumetricEventEntity: KeyMap<CAI_VolumetricEventEntityKeys> = [keysCPointEntity, tableCAI_VolumetricEventEntity]
+const keysCAI_VolumetricEventEntity: KeyMap<CAI_VolumetricEventEntityKeys> = { base: keysCPointEntity, keys: tableCAI_VolumetricEventEntity }
 
 const tableCAI_SpeechFilter = {
   subject: 'text',
@@ -12621,13 +12634,13 @@ const tableCAI_SpeechFilter = {
   StartDisabled: 'boolean',
 } as const
 export interface CAI_SpeechFilterKeys extends CBaseEntityKeys, Typed<typeof tableCAI_SpeechFilter> {}
-const keysCAI_SpeechFilter: KeyMap<CAI_SpeechFilterKeys> = [keysCBaseEntity, tableCAI_SpeechFilter]
+const keysCAI_SpeechFilter: KeyMap<CAI_SpeechFilterKeys> = { base: keysCBaseEntity, keys: tableCAI_SpeechFilter }
 
 const tableCAITestPath = {
   NextPath: 'text',
 } as const
 export interface CAITestPathKeys extends CPointEntityKeys, Typed<typeof tableCAITestPath> {}
-const keysCAITestPath: KeyMap<CAITestPathKeys> = [keysCPointEntity, tableCAITestPath]
+const keysCAITestPath: KeyMap<CAITestPathKeys> = { base: keysCPointEntity, keys: tableCAITestPath }
 
 const tableCAI_VolumetricEventSensor = {
   StartDisabled: 'boolean',
@@ -12636,16 +12649,16 @@ const tableCAI_VolumetricEventSensor = {
   MaxRange: 'number',
 } as const
 export interface CAI_VolumetricEventSensorKeys extends CPointEntityKeys, Typed<typeof tableCAI_VolumetricEventSensor> {}
-const keysCAI_VolumetricEventSensor: KeyMap<CAI_VolumetricEventSensorKeys> = [keysCPointEntity, tableCAI_VolumetricEventSensor]
+const keysCAI_VolumetricEventSensor: KeyMap<CAI_VolumetricEventSensorKeys> = { base: keysCPointEntity, keys: tableCAI_VolumetricEventSensor }
 
 const tableCBaseAnimGraph = {
   initially_populate_interp_history: 'boolean',
 } as const
 export interface CBaseAnimGraphKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseAnimGraph> {}
-const keysCBaseAnimGraph: KeyMap<CBaseAnimGraphKeys> = [keysCBaseModelEntity, tableCBaseAnimGraph]
+const keysCBaseAnimGraph: KeyMap<CBaseAnimGraphKeys> = { base: keysCBaseModelEntity, keys: tableCBaseAnimGraph }
 
 export interface CBasePropKeys extends CBaseAnimGraphKeys {}
-const keysCBaseProp: KeyMap<CBasePropKeys> = [keysCBaseAnimGraph, {}]
+const keysCBaseProp: KeyMap<CBasePropKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
 const tableCBeam = {
   HDRColorScale: 'number',
@@ -12654,7 +12667,7 @@ const tableCBeam = {
   ScrollSpeed: 'number',
 } as const
 export interface CBeamKeys extends CBaseModelEntityKeys, Typed<typeof tableCBeam> {}
-const keysCBeam: KeyMap<CBeamKeys> = [keysCBaseModelEntity, tableCBeam]
+const keysCBeam: KeyMap<CBeamKeys> = { base: keysCBaseModelEntity, keys: tableCBeam }
 
 const tableCCitadelBulletTimeWarp = {
   bullet_time_scale: 'number',
@@ -12665,7 +12678,7 @@ const tableCCitadelBulletTimeWarp = {
   bonus_bullet_base_damage_friendly: 'number',
 } as const
 export interface CCitadelBulletTimeWarpKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelBulletTimeWarp> {}
-const keysCCitadelBulletTimeWarp: KeyMap<CCitadelBulletTimeWarpKeys> = [keysCBaseModelEntity, tableCCitadelBulletTimeWarp]
+const keysCCitadelBulletTimeWarp: KeyMap<CCitadelBulletTimeWarpKeys> = { base: keysCBaseModelEntity, keys: tableCCitadelBulletTimeWarp }
 
 const tableCBreakableProp = {
   ExplodeDamage: 'number',
@@ -12682,7 +12695,7 @@ const tableCBreakableProp = {
   physdamagescale: 'number',
 } as const
 export interface CBreakablePropKeys extends CBasePropKeys, Typed<typeof tableCBreakableProp> {}
-const keysCBreakableProp: KeyMap<CBreakablePropKeys> = [keysCBaseProp, tableCBreakableProp]
+const keysCBreakableProp: KeyMap<CBreakablePropKeys> = { base: keysCBaseProp, keys: tableCBreakableProp }
 
 const tableCDynamicProp = {
   IdleAnim: 'text',
@@ -12700,27 +12713,27 @@ const tableCDynamicProp = {
   CreateNavObstacle: 'boolean',
 } as const
 export interface CDynamicPropKeys extends CBreakablePropKeys, Typed<typeof tableCDynamicProp> {}
-const keysCDynamicProp: KeyMap<CDynamicPropKeys> = [keysCBreakableProp, tableCDynamicProp]
+const keysCDynamicProp: KeyMap<CDynamicPropKeys> = { base: keysCBreakableProp, keys: tableCDynamicProp }
 
 const tableCBaseCombatCharacter = {
   Relationship: 'text',
   physdamagescale: 'number',
 } as const
 export interface CBaseCombatCharacterKeys extends CBaseAnimGraphKeys, Typed<typeof tableCBaseCombatCharacter> {}
-const keysCBaseCombatCharacter: KeyMap<CBaseCombatCharacterKeys> = [keysCBaseAnimGraph, tableCBaseCombatCharacter]
+const keysCBaseCombatCharacter: KeyMap<CBaseCombatCharacterKeys> = { base: keysCBaseAnimGraph, keys: tableCBaseCombatCharacter }
 
 const tableCCitadelHeroLoader = {
   hero: 'text',
   seq: 'integer',
 } as const
 export interface CCitadelHeroLoaderKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelHeroLoader> {}
-const keysCCitadelHeroLoader: KeyMap<CCitadelHeroLoaderKeys> = [keysCBaseEntity, tableCCitadelHeroLoader]
+const keysCCitadelHeroLoader: KeyMap<CCitadelHeroLoaderKeys> = { base: keysCBaseEntity, keys: tableCCitadelHeroLoader }
 
 const tableCCitadel_BaseProp_MidStairs = {
   stairs_location: 'integer',
 } as const
 export interface CCitadel_BaseProp_MidStairsKeys extends CPointEntityKeys, Typed<typeof tableCCitadel_BaseProp_MidStairs> {}
-const keysCCitadel_BaseProp_MidStairs: KeyMap<CCitadel_BaseProp_MidStairsKeys> = [keysCPointEntity, tableCCitadel_BaseProp_MidStairs]
+const keysCCitadel_BaseProp_MidStairs: KeyMap<CCitadel_BaseProp_MidStairsKeys> = { base: keysCPointEntity, keys: tableCCitadel_BaseProp_MidStairs }
 
 const tableCCitadelBotTestNode = {
   NodeType: 'integer',
@@ -12728,7 +12741,7 @@ const tableCCitadelBotTestNode = {
   ShootTarget: 'text',
 } as const
 export interface CCitadelBotTestNodeKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelBotTestNode> {}
-const keysCCitadelBotTestNode: KeyMap<CCitadelBotTestNodeKeys> = [keysCBaseEntity, tableCCitadelBotTestNode]
+const keysCCitadelBotTestNode: KeyMap<CCitadelBotTestNodeKeys> = { base: keysCBaseEntity, keys: tableCCitadelBotTestNode }
 
 const tableCCitadel_BreakableProp = {
   breakable_spawn_group: 'integer',
@@ -12738,13 +12751,13 @@ const tableCCitadel_BreakableProp = {
   gold_cost: 'integer',
 } as const
 export interface CCitadel_BreakablePropKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_BreakableProp> {}
-const keysCCitadel_BreakableProp: KeyMap<CCitadel_BreakablePropKeys> = [keysCBaseAnimGraph, tableCCitadel_BreakableProp]
+const keysCCitadel_BreakableProp: KeyMap<CCitadel_BreakablePropKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadel_BreakableProp }
 
 const tableCCitadelTriggerCapturePoint = {
   GroupName: 'text',
 } as const
 export interface CCitadelTriggerCapturePointKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelTriggerCapturePoint> {}
-const keysCCitadelTriggerCapturePoint: KeyMap<CCitadelTriggerCapturePointKeys> = [keysCBaseTrigger, tableCCitadelTriggerCapturePoint]
+const keysCCitadelTriggerCapturePoint: KeyMap<CCitadelTriggerCapturePointKeys> = { base: keysCBaseTrigger, keys: tableCCitadelTriggerCapturePoint }
 
 const tableCAI_BaseNPC = {
   NavRestrictionVolume: 'text',
@@ -12752,10 +12765,10 @@ const tableCAI_BaseNPC = {
   ai_lod: 'integer',
 } as const
 export interface CAI_BaseNPCKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCAI_BaseNPC> {}
-const keysCAI_BaseNPC: KeyMap<CAI_BaseNPCKeys> = [keysCBaseCombatCharacter, tableCAI_BaseNPC]
+const keysCAI_BaseNPC: KeyMap<CAI_BaseNPCKeys> = { base: keysCBaseCombatCharacter, keys: tableCAI_BaseNPC }
 
 export interface CAI_CitadelNPCKeys extends CAI_BaseNPCKeys {}
-const keysCAI_CitadelNPC: KeyMap<CAI_CitadelNPCKeys> = [keysCAI_BaseNPC, {}]
+const keysCAI_CitadelNPC: KeyMap<CAI_CitadelNPCKeys> = { base: keysCAI_BaseNPC, keys: {} }
 
 const tableCNPC_ChessPiece = {
   lifetime: 'number',
@@ -12763,10 +12776,10 @@ const tableCNPC_ChessPiece = {
   chesspiece_type: 'integer',
 } as const
 export interface CNPC_ChessPieceKeys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_ChessPiece> {}
-const keysCNPC_ChessPiece: KeyMap<CNPC_ChessPieceKeys> = [keysCAI_CitadelNPC, tableCNPC_ChessPiece]
+const keysCNPC_ChessPiece: KeyMap<CNPC_ChessPieceKeys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_ChessPiece }
 
 export interface CTriggerMultipleKeys extends CBaseTriggerKeys {}
-const keysCTriggerMultiple: KeyMap<CTriggerMultipleKeys> = [keysCBaseTrigger, {}]
+const keysCTriggerMultiple: KeyMap<CTriggerMultipleKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCCitadelControlPointTrigger = {
   initial_radius: 'number',
@@ -12777,16 +12790,16 @@ const tableCCitadelControlPointTrigger = {
   beam_target: 'text',
 } as const
 export interface CCitadelControlPointTriggerKeys extends CTriggerMultipleKeys, Typed<typeof tableCCitadelControlPointTrigger> {}
-const keysCCitadelControlPointTrigger: KeyMap<CCitadelControlPointTriggerKeys> = [keysCTriggerMultiple, tableCCitadelControlPointTrigger]
+const keysCCitadelControlPointTrigger: KeyMap<CCitadelControlPointTriggerKeys> = { base: keysCTriggerMultiple, keys: tableCCitadelControlPointTrigger }
 
 const tableCCitadelDevTrigger = {
   DevTriggerType: 'integer',
 } as const
 export interface CCitadelDevTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelDevTrigger> {}
-const keysCCitadelDevTrigger: KeyMap<CCitadelDevTriggerKeys> = [keysCBaseTrigger, tableCCitadelDevTrigger]
+const keysCCitadelDevTrigger: KeyMap<CCitadelDevTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelDevTrigger }
 
 export interface CCitadel_DoorwayPortalKeys extends CBaseAnimGraphKeys {}
-const keysCCitadel_DoorwayPortal: KeyMap<CCitadel_DoorwayPortalKeys> = [keysCBaseAnimGraph, {}]
+const keysCCitadel_DoorwayPortal: KeyMap<CCitadel_DoorwayPortalKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
 const tableCCitadelDruidHealingTree = {
   fruit_model: 'text',
@@ -12795,10 +12808,10 @@ const tableCCitadelDruidHealingTree = {
   grow_duration: 'number',
 } as const
 export interface CCitadelDruidHealingTreeKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadelDruidHealingTree> {}
-const keysCCitadelDruidHealingTree: KeyMap<CCitadelDruidHealingTreeKeys> = [keysCBaseAnimGraph, tableCCitadelDruidHealingTree]
+const keysCCitadelDruidHealingTree: KeyMap<CCitadelDruidHealingTreeKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadelDruidHealingTree }
 
 export interface CCitadelDruidHealingFruitKeys extends CBaseAnimGraphKeys {}
-const keysCCitadelDruidHealingFruit: KeyMap<CCitadelDruidHealingFruitKeys> = [keysCBaseAnimGraph, {}]
+const keysCCitadelDruidHealingFruit: KeyMap<CCitadelDruidHealingFruitKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
 const tableCCitadelEnergyTower = {
   StartEnabled: 'boolean',
@@ -12806,13 +12819,13 @@ const tableCCitadelEnergyTower = {
   Radius: 'number',
 } as const
 export interface CCitadelEnergyTowerKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelEnergyTower> {}
-const keysCCitadelEnergyTower: KeyMap<CCitadelEnergyTowerKeys> = [keysCBaseEntity, tableCCitadelEnergyTower]
+const keysCCitadelEnergyTower: KeyMap<CCitadelEnergyTowerKeys> = { base: keysCBaseEntity, keys: tableCCitadelEnergyTower }
 
 const tableCCitadelGaffer = {
   transition_time: 'number',
 } as const
 export interface CCitadelGafferKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelGaffer> {}
-const keysCCitadelGaffer: KeyMap<CCitadelGafferKeys> = [keysCBaseEntity, tableCCitadelGaffer]
+const keysCCitadelGaffer: KeyMap<CCitadelGafferKeys> = { base: keysCBaseEntity, keys: tableCCitadelGaffer }
 
 const tableCCitadelHideoutInteractableProp = {
   interact_loc_string: 'text',
@@ -12823,21 +12836,21 @@ const tableCCitadelHideoutInteractableProp = {
   world_panel_opacity_curve: 'text',
 } as const
 export interface CCitadelHideoutInteractablePropKeys extends CDynamicPropKeys, Typed<typeof tableCCitadelHideoutInteractableProp> {}
-const keysCCitadelHideoutInteractableProp: KeyMap<CCitadelHideoutInteractablePropKeys> = [keysCDynamicProp, tableCCitadelHideoutInteractableProp]
+const keysCCitadelHideoutInteractableProp: KeyMap<CCitadelHideoutInteractablePropKeys> = { base: keysCDynamicProp, keys: tableCCitadelHideoutInteractableProp }
 
 const tableCCitadelHideoutInteractableTrigger = {
   interact_loc_string: 'text',
   hideout_action: 'integer',
 } as const
 export interface CCitadelHideoutInteractableTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelHideoutInteractableTrigger> {}
-const keysCCitadelHideoutInteractableTrigger: KeyMap<CCitadelHideoutInteractableTriggerKeys> = [keysCBaseTrigger, tableCCitadelHideoutInteractableTrigger]
+const keysCCitadelHideoutInteractableTrigger: KeyMap<CCitadelHideoutInteractableTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelHideoutInteractableTrigger }
 
 const tableCCitadelHideoutPropSlot = {
   slot_id: 'integer',
   slot_type: 'integer',
 } as const
 export interface CCitadelHideoutPropSlotKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelHideoutPropSlot> {}
-const keysCCitadelHideoutPropSlot: KeyMap<CCitadelHideoutPropSlotKeys> = [keysCBaseEntity, tableCCitadelHideoutPropSlot]
+const keysCCitadelHideoutPropSlot: KeyMap<CCitadelHideoutPropSlotKeys> = { base: keysCBaseEntity, keys: tableCCitadelHideoutPropSlot }
 
 const tableCCitadelItemPickup = {
   currency_value: 'integer',
@@ -12854,19 +12867,19 @@ const tableCCitadelItemPickup = {
   drop_position: 'vector',
 } as const
 export interface CCitadelItemPickupKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadelItemPickup> {}
-const keysCCitadelItemPickup: KeyMap<CCitadelItemPickupKeys> = [keysCBaseAnimGraph, tableCCitadelItemPickup]
+const keysCCitadelItemPickup: KeyMap<CCitadelItemPickupKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadelItemPickup }
 
 export interface CCitadelItemKothSpawnerKeys extends CCitadelItemPickupKeys {}
-const keysCCitadelItemKothSpawner: KeyMap<CCitadelItemKothSpawnerKeys> = [keysCCitadelItemPickup, {}]
+const keysCCitadelItemKothSpawner: KeyMap<CCitadelItemKothSpawnerKeys> = { base: keysCCitadelItemPickup, keys: {} }
 
 export interface CCitadelItemPickupIdolKeys extends CCitadelItemPickupKeys {}
-const keysCCitadelItemPickupIdol: KeyMap<CCitadelItemPickupIdolKeys> = [keysCCitadelItemPickup, {}]
+const keysCCitadelItemPickupIdol: KeyMap<CCitadelItemPickupIdolKeys> = { base: keysCCitadelItemPickup, keys: {} }
 
 export interface CCitadel_PickupItemSpawnerKeys extends CBaseAnimGraphKeys {}
-const keysCCitadel_PickupItemSpawner: KeyMap<CCitadel_PickupItemSpawnerKeys> = [keysCBaseAnimGraph, {}]
+const keysCCitadel_PickupItemSpawner: KeyMap<CCitadel_PickupItemSpawnerKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
 export interface CCitadelItemPunchableNeutralGoldKeys extends CCitadelItemPickupKeys {}
-const keysCCitadelItemPunchableNeutralGold: KeyMap<CCitadelItemPunchableNeutralGoldKeys> = [keysCCitadelItemPickup, {}]
+const keysCCitadelItemPunchableNeutralGold: KeyMap<CCitadelItemPunchableNeutralGoldKeys> = { base: keysCCitadelItemPickup, keys: {} }
 
 const tableCCitadel_NewYears_Fireworks = {
   ShowDurationSeconds: 'integer',
@@ -12885,13 +12898,13 @@ const tableCCitadel_NewYears_Fireworks = {
   StartSoundVerticalOffset: 'number',
 } as const
 export interface CCitadel_NewYears_FireworksKeys extends CDynamicPropKeys, Typed<typeof tableCCitadel_NewYears_Fireworks> {}
-const keysCCitadel_NewYears_Fireworks: KeyMap<CCitadel_NewYears_FireworksKeys> = [keysCDynamicProp, tableCCitadel_NewYears_Fireworks]
+const keysCCitadel_NewYears_Fireworks: KeyMap<CCitadel_NewYears_FireworksKeys> = { base: keysCDynamicProp, keys: tableCCitadel_NewYears_Fireworks }
 
 const tableCTriggerObscuredVolume = {
   modifier_name: 'text',
 } as const
 export interface CTriggerObscuredVolumeKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerObscuredVolume> {}
-const keysCTriggerObscuredVolume: KeyMap<CTriggerObscuredVolumeKeys> = [keysCBaseTrigger, tableCTriggerObscuredVolume]
+const keysCTriggerObscuredVolume: KeyMap<CTriggerObscuredVolumeKeys> = { base: keysCBaseTrigger, keys: tableCTriggerObscuredVolume }
 
 const tableCCitadelPassthroughFakeWall = {
   allow_anyone: 'boolean',
@@ -12899,7 +12912,7 @@ const tableCCitadelPassthroughFakeWall = {
   trigger_distance_meters: 'number',
 } as const
 export interface CCitadelPassthroughFakeWallKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelPassthroughFakeWall> {}
-const keysCCitadelPassthroughFakeWall: KeyMap<CCitadelPassthroughFakeWallKeys> = [keysCBaseModelEntity, tableCCitadelPassthroughFakeWall]
+const keysCCitadelPassthroughFakeWall: KeyMap<CCitadelPassthroughFakeWallKeys> = { base: keysCBaseModelEntity, keys: tableCCitadelPassthroughFakeWall }
 
 const tableCCitadel_PickupSpawner = {
   pickup_subclass: 'text',
@@ -12907,13 +12920,13 @@ const tableCCitadel_PickupSpawner = {
   respawn_time_override: 'number',
 } as const
 export interface CCitadel_PickupSpawnerKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_PickupSpawner> {}
-const keysCCitadel_PickupSpawner: KeyMap<CCitadel_PickupSpawnerKeys> = [keysCBaseAnimGraph, tableCCitadel_PickupSpawner]
+const keysCCitadel_PickupSpawner: KeyMap<CCitadel_PickupSpawnerKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadel_PickupSpawner }
 
 export interface CBasePlayerControllerKeys extends CBaseEntityKeys {}
-const keysCBasePlayerController: KeyMap<CBasePlayerControllerKeys> = [keysCBaseEntity, {}]
+const keysCBasePlayerController: KeyMap<CBasePlayerControllerKeys> = { base: keysCBaseEntity, keys: {} }
 
 export interface CCitadel_PointTalker_BaseKeys extends CBaseCombatCharacterKeys {}
-const keysCCitadel_PointTalker_Base: KeyMap<CCitadel_PointTalker_BaseKeys> = [keysCBaseCombatCharacter, {}]
+const keysCCitadel_PointTalker_Base: KeyMap<CCitadel_PointTalker_BaseKeys> = { base: keysCBaseCombatCharacter, keys: {} }
 
 const tableCCitadel_DynamicProp = {
   DefaultSkin: 'text',
@@ -12922,19 +12935,19 @@ const tableCCitadel_DynamicProp = {
   IsWorld: 'boolean',
 } as const
 export interface CCitadel_DynamicPropKeys extends CDynamicPropKeys, Typed<typeof tableCCitadel_DynamicProp> {}
-const keysCCitadel_DynamicProp: KeyMap<CCitadel_DynamicPropKeys> = [keysCDynamicProp, tableCCitadel_DynamicProp]
+const keysCCitadel_DynamicProp: KeyMap<CCitadel_DynamicPropKeys> = { base: keysCDynamicProp, keys: tableCCitadel_DynamicProp }
 
 const tableCCitadelRankedBadgeProp = {
   packed_rank: 'integer',
 } as const
 export interface CCitadelRankedBadgePropKeys extends CDynamicPropKeys, Typed<typeof tableCCitadelRankedBadgeProp> {}
-const keysCCitadelRankedBadgeProp: KeyMap<CCitadelRankedBadgePropKeys> = [keysCDynamicProp, tableCCitadelRankedBadgeProp]
+const keysCCitadelRankedBadgeProp: KeyMap<CCitadelRankedBadgePropKeys> = { base: keysCDynamicProp, keys: tableCCitadelRankedBadgeProp }
 
 const tableCCitadel_ShopProp = {
   LaneNum: 'integer',
 } as const
 export interface CCitadel_ShopPropKeys extends CDynamicPropKeys, Typed<typeof tableCCitadel_ShopProp> {}
-const keysCCitadel_ShopProp: KeyMap<CCitadel_ShopPropKeys> = [keysCDynamicProp, tableCCitadel_ShopProp]
+const keysCCitadel_ShopProp: KeyMap<CCitadel_ShopPropKeys> = { base: keysCDynamicProp, keys: tableCCitadel_ShopProp }
 
 const tableCCitadelSoundStackFieldOBB = {
   box_mins: 'vector',
@@ -12946,7 +12959,7 @@ const tableCCitadelSoundStackFieldOBB = {
   music_state: 'integer',
 } as const
 export interface CCitadelSoundStackFieldOBBKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelSoundStackFieldOBB> {}
-const keysCCitadelSoundStackFieldOBB: KeyMap<CCitadelSoundStackFieldOBBKeys> = [keysCBaseEntity, tableCCitadelSoundStackFieldOBB]
+const keysCCitadelSoundStackFieldOBB: KeyMap<CCitadelSoundStackFieldOBBKeys> = { base: keysCBaseEntity, keys: tableCCitadelSoundStackFieldOBB }
 
 const tableCCitadelAudioProcessingVolumeOBB = {
   effect_name: 'text',
@@ -12954,7 +12967,7 @@ const tableCCitadelAudioProcessingVolumeOBB = {
   box_maxs: 'vector',
 } as const
 export interface CCitadelAudioProcessingVolumeOBBKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelAudioProcessingVolumeOBB> {}
-const keysCCitadelAudioProcessingVolumeOBB: KeyMap<CCitadelAudioProcessingVolumeOBBKeys> = [keysCBaseEntity, tableCCitadelAudioProcessingVolumeOBB]
+const keysCCitadelAudioProcessingVolumeOBB: KeyMap<CCitadelAudioProcessingVolumeOBBKeys> = { base: keysCBaseEntity, keys: tableCCitadelAudioProcessingVolumeOBB }
 
 const tableCSoundEventEntity = {
   startOnSpawn: 'boolean',
@@ -12968,14 +12981,14 @@ const tableCSoundEventEntity = {
   clientCullRadius: 'number',
 } as const
 export interface CSoundEventEntityKeys extends CBaseEntityKeys, Typed<typeof tableCSoundEventEntity> {}
-const keysCSoundEventEntity: KeyMap<CSoundEventEntityKeys> = [keysCBaseEntity, tableCSoundEventEntity]
+const keysCSoundEventEntity: KeyMap<CSoundEventEntityKeys> = { base: keysCBaseEntity, keys: tableCSoundEventEntity }
 
 const tableCCitadelSoundEntityOBB = {
   box_mins: 'vector',
   box_maxs: 'vector',
 } as const
 export interface CCitadelSoundEntityOBBKeys extends CSoundEventEntityKeys, Typed<typeof tableCCitadelSoundEntityOBB> {}
-const keysCCitadelSoundEntityOBB: KeyMap<CCitadelSoundEntityOBBKeys> = [keysCSoundEventEntity, tableCCitadelSoundEntityOBB]
+const keysCCitadelSoundEntityOBB: KeyMap<CCitadelSoundEntityOBBKeys> = { base: keysCSoundEventEntity, keys: tableCCitadelSoundEntityOBB }
 
 const tableCCitadelSoundOpvarSetOBB = {
   stackName: 'text',
@@ -12988,25 +13001,25 @@ const tableCCitadelSoundOpvarSetOBB = {
   AABBDirection: 'integer',
 } as const
 export interface CCitadelSoundOpvarSetOBBKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelSoundOpvarSetOBB> {}
-const keysCCitadelSoundOpvarSetOBB: KeyMap<CCitadelSoundOpvarSetOBBKeys> = [keysCBaseEntity, tableCCitadelSoundOpvarSetOBB]
+const keysCCitadelSoundOpvarSetOBB: KeyMap<CCitadelSoundOpvarSetOBBKeys> = { base: keysCBaseEntity, keys: tableCCitadelSoundOpvarSetOBB }
 
 export interface CTeamKeys extends CBaseEntityKeys {}
-const keysCTeam: KeyMap<CTeamKeys> = [keysCBaseEntity, {}]
+const keysCTeam: KeyMap<CTeamKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCCitadelTriggerBonk = {
   bonk_range: 'number',
 } as const
 export interface CCitadelTriggerBonkKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelTriggerBonk> {}
-const keysCCitadelTriggerBonk: KeyMap<CCitadelTriggerBonkKeys> = [keysCBaseTrigger, tableCCitadelTriggerBonk]
+const keysCCitadelTriggerBonk: KeyMap<CCitadelTriggerBonkKeys> = { base: keysCBaseTrigger, keys: tableCCitadelTriggerBonk }
 
 const tableCCitadelClimbRopeTrigger = {
   AlignCameraOnAutoDismount: 'boolean',
 } as const
 export interface CCitadelClimbRopeTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelClimbRopeTrigger> {}
-const keysCCitadelClimbRopeTrigger: KeyMap<CCitadelClimbRopeTriggerKeys> = [keysCBaseTrigger, tableCCitadelClimbRopeTrigger]
+const keysCCitadelClimbRopeTrigger: KeyMap<CCitadelClimbRopeTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelClimbRopeTrigger }
 
 export interface CCitadelTriggerCorruptedItemShopKeys extends CBaseTriggerKeys {}
-const keysCCitadelTriggerCorruptedItemShop: KeyMap<CCitadelTriggerCorruptedItemShopKeys> = [keysCBaseTrigger, {}]
+const keysCCitadelTriggerCorruptedItemShop: KeyMap<CCitadelTriggerCorruptedItemShopKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCCitadelHideoutTeleportTrigger = {
   Landmark: 'text',
@@ -13015,50 +13028,50 @@ const tableCCitadelHideoutTeleportTrigger = {
   Prop: 'text',
 } as const
 export interface CCitadelHideoutTeleportTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelHideoutTeleportTrigger> {}
-const keysCCitadelHideoutTeleportTrigger: KeyMap<CCitadelHideoutTeleportTriggerKeys> = [keysCBaseTrigger, tableCCitadelHideoutTeleportTrigger]
+const keysCCitadelHideoutTeleportTrigger: KeyMap<CCitadelHideoutTeleportTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelHideoutTeleportTrigger }
 
 const tableCCitadelHotelExitTrigger = {
   is_success: 'boolean',
 } as const
 export interface CCitadelHotelExitTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelHotelExitTrigger> {}
-const keysCCitadelHotelExitTrigger: KeyMap<CCitadelHotelExitTriggerKeys> = [keysCBaseTrigger, tableCCitadelHotelExitTrigger]
+const keysCCitadelHotelExitTrigger: KeyMap<CCitadelHotelExitTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelHotelExitTrigger }
 
 const tableCTriggerModifier = {
   modifier_name: 'text',
 } as const
 export interface CTriggerModifierKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerModifier> {}
-const keysCTriggerModifier: KeyMap<CTriggerModifierKeys> = [keysCBaseTrigger, tableCTriggerModifier]
+const keysCTriggerModifier: KeyMap<CTriggerModifierKeys> = { base: keysCBaseTrigger, keys: tableCTriggerModifier }
 
 const tableCCitadelMapDistrictTrigger = {
   district_number: 'integer',
 } as const
 export interface CCitadelMapDistrictTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelMapDistrictTrigger> {}
-const keysCCitadelMapDistrictTrigger: KeyMap<CCitadelMapDistrictTriggerKeys> = [keysCBaseTrigger, tableCCitadelMapDistrictTrigger]
+const keysCCitadelMapDistrictTrigger: KeyMap<CCitadelMapDistrictTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelMapDistrictTrigger }
 
 const tableCCitadelInteriorTrigger = {
   interior_type: 'integer',
 } as const
 export interface CCitadelInteriorTriggerKeys extends CTriggerModifierKeys, Typed<typeof tableCCitadelInteriorTrigger> {}
-const keysCCitadelInteriorTrigger: KeyMap<CCitadelInteriorTriggerKeys> = [keysCTriggerModifier, tableCCitadelInteriorTrigger]
+const keysCCitadelInteriorTrigger: KeyMap<CCitadelInteriorTriggerKeys> = { base: keysCTriggerModifier, keys: tableCCitadelInteriorTrigger }
 
 const tableCCitadelPushTrigger = {
   pushdir: 'angles',
   speed: 'number',
 } as const
 export interface CCitadelPushTriggerKeys extends CTriggerModifierKeys, Typed<typeof tableCCitadelPushTrigger> {}
-const keysCCitadelPushTrigger: KeyMap<CCitadelPushTriggerKeys> = [keysCTriggerModifier, tableCCitadelPushTrigger]
+const keysCCitadelPushTrigger: KeyMap<CCitadelPushTriggerKeys> = { base: keysCTriggerModifier, keys: tableCCitadelPushTrigger }
 
 const tableCCitadelSpeedBoostTrigger = {
   movespeed_override: 'number',
 } as const
 export interface CCitadelSpeedBoostTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelSpeedBoostTrigger> {}
-const keysCCitadelSpeedBoostTrigger: KeyMap<CCitadelSpeedBoostTriggerKeys> = [keysCBaseTrigger, tableCCitadelSpeedBoostTrigger]
+const keysCCitadelSpeedBoostTrigger: KeyMap<CCitadelSpeedBoostTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelSpeedBoostTrigger }
 
 const tableCTriggerSuspendModifier = {
   modifier_name: 'text',
 } as const
 export interface CTriggerSuspendModifierKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerSuspendModifier> {}
-const keysCTriggerSuspendModifier: KeyMap<CTriggerSuspendModifierKeys> = [keysCBaseTrigger, tableCTriggerSuspendModifier]
+const keysCTriggerSuspendModifier: KeyMap<CTriggerSuspendModifierKeys> = { base: keysCBaseTrigger, keys: tableCTriggerSuspendModifier }
 
 const tableCCitadelTeleportTrigger = {
   ExitPoint: 'text',
@@ -13066,7 +13079,7 @@ const tableCCitadelTeleportTrigger = {
   Delay: 'number',
 } as const
 export interface CCitadelTeleportTriggerKeys extends CTriggerModifierKeys, Typed<typeof tableCCitadelTeleportTrigger> {}
-const keysCCitadelTeleportTrigger: KeyMap<CCitadelTeleportTriggerKeys> = [keysCTriggerModifier, tableCCitadelTeleportTrigger]
+const keysCCitadelTeleportTrigger: KeyMap<CCitadelTeleportTriggerKeys> = { base: keysCTriggerModifier, keys: tableCCitadelTeleportTrigger }
 
 const tableCCitadelTunnelNode = {
   connecting_node_01: 'text',
@@ -13076,17 +13089,17 @@ const tableCCitadelTunnelNode = {
   tunnel_id: 'integer',
 } as const
 export interface CCitadelTunnelNodeKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelTunnelNode> {}
-const keysCCitadelTunnelNode: KeyMap<CCitadelTunnelNodeKeys> = [keysCBaseModelEntity, tableCCitadelTunnelNode]
+const keysCCitadelTunnelNode: KeyMap<CCitadelTunnelNodeKeys> = { base: keysCBaseModelEntity, keys: tableCCitadelTunnelNode }
 
 const tableCCitadelTunnelTrigger = {
   kill_when_not_tiny: 'boolean',
   tunnel_id: 'integer',
 } as const
 export interface CCitadelTunnelTriggerKeys extends CCitadelSpeedBoostTriggerKeys, Typed<typeof tableCCitadelTunnelTrigger> {}
-const keysCCitadelTunnelTrigger: KeyMap<CCitadelTunnelTriggerKeys> = [keysCCitadelSpeedBoostTrigger, tableCCitadelTunnelTrigger]
+const keysCCitadelTunnelTrigger: KeyMap<CCitadelTunnelTriggerKeys> = { base: keysCCitadelSpeedBoostTrigger, keys: tableCCitadelTunnelTrigger }
 
 export interface CCitadelViscousBallKeys extends CBaseModelEntityKeys {}
-const keysCCitadelViscousBall: KeyMap<CCitadelViscousBallKeys> = [keysCBaseModelEntity, {}]
+const keysCCitadelViscousBall: KeyMap<CCitadelViscousBallKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 const tableCFuncBrush = {
   StartDisabled: 'integer',
@@ -13097,7 +13110,7 @@ const tableCFuncBrush = {
   ScriptedMovement: 'boolean',
 } as const
 export interface CFuncBrushKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncBrush> {}
-const keysCFuncBrush: KeyMap<CFuncBrushKeys> = [keysCBaseModelEntity, tableCFuncBrush]
+const keysCFuncBrush: KeyMap<CFuncBrushKeys> = { base: keysCBaseModelEntity, keys: tableCFuncBrush }
 
 const tableCCitadelZapTrigger = {
   PercentMaxHealthDamage: 'number',
@@ -13106,7 +13119,7 @@ const tableCCitadelZapTrigger = {
   ShootFromEntity: 'text',
 } as const
 export interface CCitadelZapTriggerKeys extends CFuncBrushKeys, Typed<typeof tableCCitadelZapTrigger> {}
-const keysCCitadelZapTrigger: KeyMap<CCitadelZapTriggerKeys> = [keysCFuncBrush, tableCCitadelZapTrigger]
+const keysCCitadelZapTrigger: KeyMap<CCitadelZapTriggerKeys> = { base: keysCFuncBrush, keys: tableCCitadelZapTrigger }
 
 const tableCPathParticleRope = {
   start_active: 'boolean',
@@ -13118,13 +13131,13 @@ const tableCPathParticleRope = {
   color_tint: 'color',
 } as const
 export interface CPathParticleRopeKeys extends CBaseEntityKeys, Typed<typeof tableCPathParticleRope> {}
-const keysCPathParticleRope: KeyMap<CPathParticleRopeKeys> = [keysCBaseEntity, tableCPathParticleRope]
+const keysCPathParticleRope: KeyMap<CPathParticleRopeKeys> = { base: keysCBaseEntity, keys: tableCPathParticleRope }
 
 const tableCCitadelZiplinePath = {
   lane_number: 'integer',
 } as const
 export interface CCitadelZiplinePathKeys extends CPathParticleRopeKeys, Typed<typeof tableCCitadelZiplinePath> {}
-const keysCCitadelZiplinePath: KeyMap<CCitadelZiplinePathKeys> = [keysCPathParticleRope, tableCCitadelZiplinePath]
+const keysCCitadelZiplinePath: KeyMap<CCitadelZiplinePathKeys> = { base: keysCPathParticleRope, keys: tableCCitadelZiplinePath }
 
 const tableCCitadelZipLinePathNode = {
   corner_node: 'boolean',
@@ -13137,7 +13150,7 @@ const tableCCitadelZipLinePathNode = {
   speed_multiplier_from_base_bonus: 'number',
 } as const
 export interface CCitadelZipLinePathNodeKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelZipLinePathNode> {}
-const keysCCitadelZipLinePathNode: KeyMap<CCitadelZipLinePathNodeKeys> = [keysCBaseEntity, tableCCitadelZipLinePathNode]
+const keysCCitadelZipLinePathNode: KeyMap<CCitadelZipLinePathNodeKeys> = { base: keysCBaseEntity, keys: tableCCitadelZipLinePathNode }
 
 const tableCColorCorrection = {
   minfalloff: 'number',
@@ -13151,17 +13164,17 @@ const tableCColorCorrection = {
   exclusive: 'boolean',
 } as const
 export interface CColorCorrectionKeys extends CBaseEntityKeys, Typed<typeof tableCColorCorrection> {}
-const keysCColorCorrection: KeyMap<CColorCorrectionKeys> = [keysCBaseEntity, tableCColorCorrection]
+const keysCColorCorrection: KeyMap<CColorCorrectionKeys> = { base: keysCBaseEntity, keys: tableCColorCorrection }
 
 const tableCColorCorrectionVolume = {
   fadeDuration: 'number',
   maxweight: 'number',
 } as const
 export interface CColorCorrectionVolumeKeys extends CBaseTriggerKeys, Typed<typeof tableCColorCorrectionVolume> {}
-const keysCColorCorrectionVolume: KeyMap<CColorCorrectionVolumeKeys> = [keysCBaseTrigger, tableCColorCorrectionVolume]
+const keysCColorCorrectionVolume: KeyMap<CColorCorrectionVolumeKeys> = { base: keysCBaseTrigger, keys: tableCColorCorrectionVolume }
 
 export interface CCommentaryAutoKeys extends CBaseEntityKeys {}
-const keysCCommentaryAuto: KeyMap<CCommentaryAutoKeys> = [keysCBaseEntity, {}]
+const keysCCommentaryAuto: KeyMap<CCommentaryAutoKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCCitadel_Destroyable_Building = {
   final: 'boolean',
@@ -13171,7 +13184,7 @@ const tableCCitadel_Destroyable_Building = {
   TrooperApproach: 'text',
 } as const
 export interface CCitadel_Destroyable_BuildingKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_Destroyable_Building> {}
-const keysCCitadel_Destroyable_Building: KeyMap<CCitadel_Destroyable_BuildingKeys> = [keysCBaseAnimGraph, tableCCitadel_Destroyable_Building]
+const keysCCitadel_Destroyable_Building: KeyMap<CCitadel_Destroyable_BuildingKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadel_Destroyable_Building }
 
 const tableCEnvBeam = {
   LightningStart: 'text',
@@ -13190,13 +13203,13 @@ const tableCEnvBeam = {
   decalname: 'text',
 } as const
 export interface CEnvBeamKeys extends CBeamKeys, Typed<typeof tableCEnvBeam> {}
-const keysCEnvBeam: KeyMap<CEnvBeamKeys> = [keysCBeam, tableCEnvBeam]
+const keysCEnvBeam: KeyMap<CEnvBeamKeys> = { base: keysCBeam, keys: tableCEnvBeam }
 
 const tableCEnvBeverage = {
   beveragetype: 'integer',
 } as const
 export interface CEnvBeverageKeys extends CBaseEntityKeys, Typed<typeof tableCEnvBeverage> {}
-const keysCEnvBeverage: KeyMap<CEnvBeverageKeys> = [keysCBaseEntity, tableCEnvBeverage]
+const keysCEnvBeverage: KeyMap<CEnvBeverageKeys> = { base: keysCBaseEntity, keys: tableCEnvBeverage }
 
 const tableCEnvCombinedLightProbeVolume = {
   cubemaptexture: 'text',
@@ -13225,10 +13238,10 @@ const tableCEnvCombinedLightProbeVolume = {
   light_probe_atlas_z: 'integer',
 } as const
 export interface CEnvCombinedLightProbeVolumeKeys extends CBaseEntityKeys, Typed<typeof tableCEnvCombinedLightProbeVolume> {}
-const keysCEnvCombinedLightProbeVolume: KeyMap<CEnvCombinedLightProbeVolumeKeys> = [keysCBaseEntity, tableCEnvCombinedLightProbeVolume]
+const keysCEnvCombinedLightProbeVolume: KeyMap<CEnvCombinedLightProbeVolumeKeys> = { base: keysCBaseEntity, keys: tableCEnvCombinedLightProbeVolume }
 
 export interface CCreditsKeys extends CPointEntityKeys {}
-const keysCCredits: KeyMap<CCreditsKeys> = [keysCPointEntity, {}]
+const keysCCredits: KeyMap<CCreditsKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCEnvCubemap = {
   cubemaptexture: 'text',
@@ -13250,7 +13263,7 @@ const tableCEnvCubemap = {
   copy_diffuse_from_default_cubemap: 'boolean',
 } as const
 export interface CEnvCubemapKeys extends CBaseEntityKeys, Typed<typeof tableCEnvCubemap> {}
-const keysCEnvCubemap: KeyMap<CEnvCubemapKeys> = [keysCBaseEntity, tableCEnvCubemap]
+const keysCEnvCubemap: KeyMap<CEnvCubemapKeys> = { base: keysCBaseEntity, keys: tableCEnvCubemap }
 
 const tableCEnvCubemapFog = {
   cubemapfogstartdistance: 'number',
@@ -13276,7 +13289,7 @@ const tableCEnvCubemapFog = {
   cubemapfogtexture: 'text',
 } as const
 export interface CEnvCubemapFogKeys extends CBaseEntityKeys, Typed<typeof tableCEnvCubemapFog> {}
-const keysCEnvCubemapFog: KeyMap<CEnvCubemapFogKeys> = [keysCBaseEntity, tableCEnvCubemapFog]
+const keysCEnvCubemapFog: KeyMap<CEnvCubemapFogKeys> = { base: keysCBaseEntity, keys: tableCEnvCubemapFog }
 
 const tableCEnvDecal = {
   material: 'text',
@@ -13290,14 +13303,14 @@ const tableCEnvDecal = {
   projectonwater: 'boolean',
 } as const
 export interface CEnvDecalKeys extends CBaseModelEntityKeys, Typed<typeof tableCEnvDecal> {}
-const keysCEnvDecal: KeyMap<CEnvDecalKeys> = [keysCBaseModelEntity, tableCEnvDecal]
+const keysCEnvDecal: KeyMap<CEnvDecalKeys> = { base: keysCBaseModelEntity, keys: tableCEnvDecal }
 
 const tableCEnvDetailController = {
   fademindist: 'number',
   fademaxdist: 'number',
 } as const
 export interface CEnvDetailControllerKeys extends CBaseEntityKeys, Typed<typeof tableCEnvDetailController> {}
-const keysCEnvDetailController: KeyMap<CEnvDetailControllerKeys> = [keysCBaseEntity, tableCEnvDetailController]
+const keysCEnvDetailController: KeyMap<CEnvDetailControllerKeys> = { base: keysCBaseEntity, keys: tableCEnvDetailController }
 
 const tableCEntityDissolve = {
   starttime: 'number',
@@ -13305,13 +13318,13 @@ const tableCEntityDissolve = {
   magnitude: 'integer',
 } as const
 export interface CEntityDissolveKeys extends CBaseModelEntityKeys, Typed<typeof tableCEntityDissolve> {}
-const keysCEntityDissolve: KeyMap<CEntityDissolveKeys> = [keysCBaseModelEntity, tableCEntityDissolve]
+const keysCEntityDissolve: KeyMap<CEntityDissolveKeys> = { base: keysCBaseModelEntity, keys: tableCEntityDissolve }
 
 const tableCEnvEntityIgniter = {
   lifetime: 'number',
 } as const
 export interface CEnvEntityIgniterKeys extends CBaseEntityKeys, Typed<typeof tableCEnvEntityIgniter> {}
-const keysCEnvEntityIgniter: KeyMap<CEnvEntityIgniterKeys> = [keysCBaseEntity, tableCEnvEntityIgniter]
+const keysCEnvEntityIgniter: KeyMap<CEnvEntityIgniterKeys> = { base: keysCBaseEntity, keys: tableCEnvEntityIgniter }
 
 const tableCEnvExplosion = {
   iMagnitude: 'integer',
@@ -13324,7 +13337,7 @@ const tableCEnvExplosion = {
   explosion_custom_sound: 'text',
 } as const
 export interface CEnvExplosionKeys extends CBaseModelEntityKeys, Typed<typeof tableCEnvExplosion> {}
-const keysCEnvExplosion: KeyMap<CEnvExplosionKeys> = [keysCBaseModelEntity, tableCEnvExplosion]
+const keysCEnvExplosion: KeyMap<CEnvExplosionKeys> = { base: keysCBaseModelEntity, keys: tableCEnvExplosion }
 
 const tableCEnvFade = {
   rendercolor: 'color',
@@ -13332,7 +13345,7 @@ const tableCEnvFade = {
   holdtime: 'number',
 } as const
 export interface CEnvFadeKeys extends CBaseEntityKeys, Typed<typeof tableCEnvFade> {}
-const keysCEnvFade: KeyMap<CEnvFadeKeys> = [keysCBaseEntity, tableCEnvFade]
+const keysCEnvFade: KeyMap<CEnvFadeKeys> = { base: keysCBaseEntity, keys: tableCEnvFade }
 
 const tableCFogController = {
   use_angles: 'boolean',
@@ -13353,7 +13366,7 @@ const tableCFogController = {
   locallightscale: 'number',
 } as const
 export interface CFogControllerKeys extends CBaseEntityKeys, Typed<typeof tableCFogController> {}
-const keysCFogController: KeyMap<CFogControllerKeys> = [keysCBaseEntity, tableCFogController]
+const keysCFogController: KeyMap<CFogControllerKeys> = { base: keysCBaseEntity, keys: tableCFogController }
 
 const tableCSprite = {
   scale: 'number',
@@ -13364,7 +13377,7 @@ const tableCSprite = {
   GlowProxySize: 'number',
 } as const
 export interface CSpriteKeys extends CBaseModelEntityKeys, Typed<typeof tableCSprite> {}
-const keysCSprite: KeyMap<CSpriteKeys> = [keysCBaseModelEntity, tableCSprite]
+const keysCSprite: KeyMap<CSpriteKeys> = { base: keysCBaseModelEntity, keys: tableCSprite }
 
 const tableCGradientFog = {
   StartDisabled: 'boolean',
@@ -13383,7 +13396,7 @@ const tableCGradientFog = {
   fadetime: 'number',
 } as const
 export interface CGradientFogKeys extends CBaseEntityKeys, Typed<typeof tableCGradientFog> {}
-const keysCGradientFog: KeyMap<CGradientFogKeys> = [keysCBaseEntity, tableCGradientFog]
+const keysCGradientFog: KeyMap<CGradientFogKeys> = { base: keysCBaseEntity, keys: tableCGradientFog }
 
 const tableCEnvInstructorHint = {
   hint_replace_key: 'text',
@@ -13412,7 +13425,7 @@ const tableCEnvInstructorHint = {
   hint_local_player_only: 'boolean',
 } as const
 export interface CEnvInstructorHintKeys extends CPointEntityKeys, Typed<typeof tableCEnvInstructorHint> {}
-const keysCEnvInstructorHint: KeyMap<CEnvInstructorHintKeys> = [keysCPointEntity, tableCEnvInstructorHint]
+const keysCEnvInstructorHint: KeyMap<CEnvInstructorHintKeys> = { base: keysCPointEntity, keys: tableCEnvInstructorHint }
 
 const tableCEnvInstructorVRHint = {
   hint_name: 'text',
@@ -13426,7 +13439,7 @@ const tableCEnvInstructorVRHint = {
   hint_vr_height_offset: 'number',
 } as const
 export interface CEnvInstructorVRHintKeys extends CPointEntityKeys, Typed<typeof tableCEnvInstructorVRHint> {}
-const keysCEnvInstructorVRHint: KeyMap<CEnvInstructorVRHintKeys> = [keysCPointEntity, tableCEnvInstructorVRHint]
+const keysCEnvInstructorVRHint: KeyMap<CEnvInstructorVRHintKeys> = { base: keysCPointEntity, keys: tableCEnvInstructorVRHint }
 
 const tableCEnvLightProbeVolume = {
   lightprobetexture: 'text',
@@ -13450,7 +13463,7 @@ const tableCEnvLightProbeVolume = {
   light_probe_atlas_z: 'integer',
 } as const
 export interface CEnvLightProbeVolumeKeys extends CBaseEntityKeys, Typed<typeof tableCEnvLightProbeVolume> {}
-const keysCEnvLightProbeVolume: KeyMap<CEnvLightProbeVolumeKeys> = [keysCBaseEntity, tableCEnvLightProbeVolume]
+const keysCEnvLightProbeVolume: KeyMap<CEnvLightProbeVolumeKeys> = { base: keysCBaseEntity, keys: tableCEnvLightProbeVolume }
 
 const tableCMessage = {
   message: 'text',
@@ -13459,14 +13472,14 @@ const tableCMessage = {
   messagevolume: 'number',
 } as const
 export interface CMessageKeys extends CPointEntityKeys, Typed<typeof tableCMessage> {}
-const keysCMessage: KeyMap<CMessageKeys> = [keysCPointEntity, tableCMessage]
+const keysCMessage: KeyMap<CMessageKeys> = { base: keysCPointEntity, keys: tableCMessage }
 
 const tableCEnvMuzzleFlash = {
   scale: 'number',
   parentattachment: 'text',
 } as const
 export interface CEnvMuzzleFlashKeys extends CPointEntityKeys, Typed<typeof tableCEnvMuzzleFlash> {}
-const keysCEnvMuzzleFlash: KeyMap<CEnvMuzzleFlashKeys> = [keysCPointEntity, tableCEnvMuzzleFlash]
+const keysCEnvMuzzleFlash: KeyMap<CEnvMuzzleFlashKeys> = { base: keysCPointEntity, keys: tableCEnvMuzzleFlash }
 
 const tableCParticleSystem = {
   start_active: 'boolean',
@@ -13482,7 +13495,7 @@ const tableCParticleSystem = {
   tint_cp_color: 'color',
 } as const
 export interface CParticleSystemKeys extends CBaseModelEntityKeys, Typed<typeof tableCParticleSystem> {}
-const keysCParticleSystem: KeyMap<CParticleSystemKeys> = [keysCBaseModelEntity, tableCParticleSystem]
+const keysCParticleSystem: KeyMap<CParticleSystemKeys> = { base: keysCBaseModelEntity, keys: tableCParticleSystem }
 
 const tableCEnvParticleGlow = {
   alphascale: 'number',
@@ -13492,7 +13505,7 @@ const tableCEnvParticleGlow = {
   effect_textureOverride: 'text',
 } as const
 export interface CEnvParticleGlowKeys extends CParticleSystemKeys, Typed<typeof tableCEnvParticleGlow> {}
-const keysCEnvParticleGlow: KeyMap<CEnvParticleGlowKeys> = [keysCParticleSystem, tableCEnvParticleGlow]
+const keysCEnvParticleGlow: KeyMap<CEnvParticleGlowKeys> = { base: keysCParticleSystem, keys: tableCEnvParticleGlow }
 
 const tableCPhysExplosion = {
   magnitude: 'number',
@@ -13508,7 +13521,7 @@ const tableCPhysExplosion = {
   DisablePushClamp: 'boolean',
 } as const
 export interface CPhysExplosionKeys extends CPointEntityKeys, Typed<typeof tableCPhysExplosion> {}
-const keysCPhysExplosion: KeyMap<CPhysExplosionKeys> = [keysCPointEntity, tableCPhysExplosion]
+const keysCPhysExplosion: KeyMap<CPhysExplosionKeys> = { base: keysCPointEntity, keys: tableCPhysExplosion }
 
 const tableCPhysImpact = {
   magnitude: 'number',
@@ -13516,13 +13529,13 @@ const tableCPhysImpact = {
   directionentityname: 'text',
 } as const
 export interface CPhysImpactKeys extends CPointEntityKeys, Typed<typeof tableCPhysImpact> {}
-const keysCPhysImpact: KeyMap<CPhysImpactKeys> = [keysCPointEntity, tableCPhysImpact]
+const keysCPhysImpact: KeyMap<CPhysImpactKeys> = { base: keysCPointEntity, keys: tableCPhysImpact }
 
 const tableCPhysicsWire = {
   Density: 'integer',
 } as const
 export interface CPhysicsWireKeys extends CBaseEntityKeys, Typed<typeof tableCPhysicsWire> {}
-const keysCPhysicsWire: KeyMap<CPhysicsWireKeys> = [keysCBaseEntity, tableCPhysicsWire]
+const keysCPhysicsWire: KeyMap<CPhysicsWireKeys> = { base: keysCBaseEntity, keys: tableCPhysicsWire }
 
 const tableCPlayerVisibility = {
   StartDisabled: 'boolean',
@@ -13532,7 +13545,7 @@ const tableCPlayerVisibility = {
   fadetime: 'number',
 } as const
 export interface CPlayerVisibilityKeys extends CBaseEntityKeys, Typed<typeof tableCPlayerVisibility> {}
-const keysCPlayerVisibility: KeyMap<CPlayerVisibilityKeys> = [keysCBaseEntity, tableCPlayerVisibility]
+const keysCPlayerVisibility: KeyMap<CPlayerVisibilityKeys> = { base: keysCBaseEntity, keys: tableCPlayerVisibility }
 
 const tableCEnvShake = {
   limittoentity: 'text',
@@ -13542,7 +13555,7 @@ const tableCEnvShake = {
   radius: 'number',
 } as const
 export interface CEnvShakeKeys extends CPointEntityKeys, Typed<typeof tableCEnvShake> {}
-const keysCEnvShake: KeyMap<CEnvShakeKeys> = [keysCPointEntity, tableCEnvShake]
+const keysCEnvShake: KeyMap<CEnvShakeKeys> = { base: keysCPointEntity, keys: tableCEnvShake }
 
 const tableCEnvSky = {
   skyname: 'text',
@@ -13558,7 +13571,7 @@ const tableCEnvSky = {
   angular_fog_max_end: 'number',
 } as const
 export interface CEnvSkyKeys extends CBaseModelEntityKeys, Typed<typeof tableCEnvSky> {}
-const keysCEnvSky: KeyMap<CEnvSkyKeys> = [keysCBaseModelEntity, tableCEnvSky]
+const keysCEnvSky: KeyMap<CEnvSkyKeys> = { base: keysCBaseModelEntity, keys: tableCEnvSky }
 
 const tableCEnvSoundscape = {
   radius: 'number',
@@ -13568,13 +13581,13 @@ const tableCEnvSoundscape = {
   StartDisabled: 'boolean',
 } as const
 export interface CEnvSoundscapeKeys extends CBaseEntityKeys, Typed<typeof tableCEnvSoundscape> {}
-const keysCEnvSoundscape: KeyMap<CEnvSoundscapeKeys> = [keysCBaseEntity, tableCEnvSoundscape]
+const keysCEnvSoundscape: KeyMap<CEnvSoundscapeKeys> = { base: keysCBaseEntity, keys: tableCEnvSoundscape }
 
 const tableCEnvSoundscapeProxy = {
   MainSoundscapeName: 'text',
 } as const
 export interface CEnvSoundscapeProxyKeys extends CEnvSoundscapeKeys, Typed<typeof tableCEnvSoundscapeProxy> {}
-const keysCEnvSoundscapeProxy: KeyMap<CEnvSoundscapeProxyKeys> = [keysCEnvSoundscape, tableCEnvSoundscapeProxy]
+const keysCEnvSoundscapeProxy: KeyMap<CEnvSoundscapeProxyKeys> = { base: keysCEnvSoundscape, keys: tableCEnvSoundscapeProxy }
 
 const tableCEnvSpark = {
   MaxDelay: 'number',
@@ -13583,13 +13596,13 @@ const tableCEnvSpark = {
   TrailLength: 'integer',
 } as const
 export interface CEnvSparkKeys extends CPointEntityKeys, Typed<typeof tableCEnvSpark> {}
-const keysCEnvSpark: KeyMap<CEnvSparkKeys> = [keysCPointEntity, tableCEnvSpark]
+const keysCEnvSpark: KeyMap<CEnvSparkKeys> = { base: keysCPointEntity, keys: tableCEnvSpark }
 
 const tableCEnvSplash = {
   scale: 'number',
 } as const
 export interface CEnvSplashKeys extends CPointEntityKeys, Typed<typeof tableCEnvSplash> {}
-const keysCEnvSplash: KeyMap<CEnvSplashKeys> = [keysCPointEntity, tableCEnvSplash]
+const keysCEnvSplash: KeyMap<CEnvSplashKeys> = { base: keysCPointEntity, keys: tableCEnvSplash }
 
 const tableCEnvTilt = {
   duration: 'number',
@@ -13597,7 +13610,7 @@ const tableCEnvTilt = {
   tilttime: 'number',
 } as const
 export interface CEnvTiltKeys extends CPointEntityKeys, Typed<typeof tableCEnvTilt> {}
-const keysCEnvTilt: KeyMap<CEnvTiltKeys> = [keysCPointEntity, tableCEnvTilt]
+const keysCEnvTilt: KeyMap<CEnvTiltKeys> = { base: keysCPointEntity, keys: tableCEnvTilt }
 
 const tableCTonemapController2 = {
   MinExposure: 'number',
@@ -13605,14 +13618,14 @@ const tableCTonemapController2 = {
   rate: 'number',
 } as const
 export interface CTonemapController2Keys extends CBaseEntityKeys, Typed<typeof tableCTonemapController2> {}
-const keysCTonemapController2: KeyMap<CTonemapController2Keys> = [keysCBaseEntity, tableCTonemapController2]
+const keysCTonemapController2: KeyMap<CTonemapController2Keys> = { base: keysCBaseEntity, keys: tableCTonemapController2 }
 
 const tableCEnvViewPunch = {
   punchangle: 'angles',
   radius: 'number',
 } as const
 export interface CEnvViewPunchKeys extends CPointEntityKeys, Typed<typeof tableCEnvViewPunch> {}
-const keysCEnvViewPunch: KeyMap<CEnvViewPunchKeys> = [keysCPointEntity, tableCEnvViewPunch]
+const keysCEnvViewPunch: KeyMap<CEnvViewPunchKeys> = { base: keysCPointEntity, keys: tableCEnvViewPunch }
 
 const tableCEnvVolumetricFogController = {
   IsMaster: 'boolean',
@@ -13641,7 +13654,7 @@ const tableCEnvVolumetricFogController = {
   TintColor: 'color',
 } as const
 export interface CEnvVolumetricFogControllerKeys extends CBaseEntityKeys, Typed<typeof tableCEnvVolumetricFogController> {}
-const keysCEnvVolumetricFogController: KeyMap<CEnvVolumetricFogControllerKeys> = [keysCBaseEntity, tableCEnvVolumetricFogController]
+const keysCEnvVolumetricFogController: KeyMap<CEnvVolumetricFogControllerKeys> = { base: keysCBaseEntity, keys: tableCEnvVolumetricFogController }
 
 const tableCEnvVolumetricFogVolume = {
   box_mins: 'vector',
@@ -13663,7 +13676,7 @@ const tableCEnvVolumetricFogVolume = {
   OverrideTintColor: 'boolean',
 } as const
 export interface CEnvVolumetricFogVolumeKeys extends CBaseEntityKeys, Typed<typeof tableCEnvVolumetricFogVolume> {}
-const keysCEnvVolumetricFogVolume: KeyMap<CEnvVolumetricFogVolumeKeys> = [keysCBaseEntity, tableCEnvVolumetricFogVolume]
+const keysCEnvVolumetricFogVolume: KeyMap<CEnvVolumetricFogVolumeKeys> = { base: keysCBaseEntity, keys: tableCEnvVolumetricFogVolume }
 
 const tableCEnvWind = {
   minwind: 'integer',
@@ -13677,7 +13690,7 @@ const tableCEnvWind = {
   gustdirchange: 'integer',
 } as const
 export interface CEnvWindKeys extends CBaseEntityKeys, Typed<typeof tableCEnvWind> {}
-const keysCEnvWind: KeyMap<CEnvWindKeys> = [keysCBaseEntity, tableCEnvWind]
+const keysCEnvWind: KeyMap<CEnvWindKeys> = { base: keysCBaseEntity, keys: tableCEnvWind }
 
 const tableCBasePlayerPawn = {
   scale: 'integer',
@@ -13700,70 +13713,70 @@ const tableCBasePlayerPawn = {
   locallightscale: 'number',
 } as const
 export interface CBasePlayerPawnKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCBasePlayerPawn> {}
-const keysCBasePlayerPawn: KeyMap<CBasePlayerPawnKeys> = [keysCBaseCombatCharacter, tableCBasePlayerPawn]
+const keysCBasePlayerPawn: KeyMap<CBasePlayerPawnKeys> = { base: keysCBaseCombatCharacter, keys: tableCBasePlayerPawn }
 
 export interface CCitadelPlayerPawnKeys extends CBasePlayerPawnKeys {}
-const keysCCitadelPlayerPawn: KeyMap<CCitadelPlayerPawnKeys> = [keysCBasePlayerPawn, {}]
+const keysCCitadelPlayerPawn: KeyMap<CCitadelPlayerPawnKeys> = { base: keysCBasePlayerPawn, keys: {} }
 
 export interface CCitadelFamiliarClonePlayerPawnKeys extends CCitadelPlayerPawnKeys {}
-const keysCCitadelFamiliarClonePlayerPawn: KeyMap<CCitadelFamiliarClonePlayerPawnKeys> = [keysCCitadelPlayerPawn, {}]
+const keysCCitadelFamiliarClonePlayerPawn: KeyMap<CCitadelFamiliarClonePlayerPawnKeys> = { base: keysCCitadelPlayerPawn, keys: {} }
 
 const tableCBaseFilter = {
   Negated: 'boolean',
 } as const
 export interface CBaseFilterKeys extends CBaseEntityKeys, Typed<typeof tableCBaseFilter> {}
-const keysCBaseFilter: KeyMap<CBaseFilterKeys> = [keysCBaseEntity, tableCBaseFilter]
+const keysCBaseFilter: KeyMap<CBaseFilterKeys> = { base: keysCBaseEntity, keys: tableCBaseFilter }
 
 const tableCFilterAttributeInt = {
   filterattribute: 'text',
 } as const
 export interface CFilterAttributeIntKeys extends CBaseFilterKeys, Typed<typeof tableCFilterAttributeInt> {}
-const keysCFilterAttributeInt: KeyMap<CFilterAttributeIntKeys> = [keysCBaseFilter, tableCFilterAttributeInt]
+const keysCFilterAttributeInt: KeyMap<CFilterAttributeIntKeys> = { base: keysCBaseFilter, keys: tableCFilterAttributeInt }
 
 const tableCFilterClass = {
   filterclass: 'text',
 } as const
 export interface CFilterClassKeys extends CBaseFilterKeys, Typed<typeof tableCFilterClass> {}
-const keysCFilterClass: KeyMap<CFilterClassKeys> = [keysCBaseFilter, tableCFilterClass]
+const keysCFilterClass: KeyMap<CFilterClassKeys> = { base: keysCBaseFilter, keys: tableCFilterClass }
 
 export interface CFilterContextKeys extends CBaseFilterKeys {}
-const keysCFilterContext: KeyMap<CFilterContextKeys> = [keysCBaseFilter, {}]
+const keysCFilterContext: KeyMap<CFilterContextKeys> = { base: keysCBaseFilter, keys: {} }
 
 const tableCFilterMassGreater = {
   filtermass: 'number',
 } as const
 export interface CFilterMassGreaterKeys extends CBaseFilterKeys, Typed<typeof tableCFilterMassGreater> {}
-const keysCFilterMassGreater: KeyMap<CFilterMassGreaterKeys> = [keysCBaseFilter, tableCFilterMassGreater]
+const keysCFilterMassGreater: KeyMap<CFilterMassGreaterKeys> = { base: keysCBaseFilter, keys: tableCFilterMassGreater }
 
 const tableCFilterModel = {
   model: 'text',
 } as const
 export interface CFilterModelKeys extends CBaseFilterKeys, Typed<typeof tableCFilterModel> {}
-const keysCFilterModel: KeyMap<CFilterModelKeys> = [keysCBaseFilter, tableCFilterModel]
+const keysCFilterModel: KeyMap<CFilterModelKeys> = { base: keysCBaseFilter, keys: tableCFilterModel }
 
 const tableCCitadelFilterModifier = {
   modifier_name: 'text',
 } as const
 export interface CCitadelFilterModifierKeys extends CBaseFilterKeys, Typed<typeof tableCCitadelFilterModifier> {}
-const keysCCitadelFilterModifier: KeyMap<CCitadelFilterModifierKeys> = [keysCBaseFilter, tableCCitadelFilterModifier]
+const keysCCitadelFilterModifier: KeyMap<CCitadelFilterModifierKeys> = { base: keysCBaseFilter, keys: tableCCitadelFilterModifier }
 
 const tableCFilterName = {
   filtername: 'text',
 } as const
 export interface CFilterNameKeys extends CBaseFilterKeys, Typed<typeof tableCFilterName> {}
-const keysCFilterName: KeyMap<CFilterNameKeys> = [keysCBaseFilter, tableCFilterName]
+const keysCFilterName: KeyMap<CFilterNameKeys> = { base: keysCBaseFilter, keys: tableCFilterName }
 
 const tableCFilterTeam = {
   filterteam: 'integer',
 } as const
 export interface CFilterTeamKeys extends CBaseFilterKeys, Typed<typeof tableCFilterTeam> {}
-const keysCFilterTeam: KeyMap<CFilterTeamKeys> = [keysCBaseFilter, tableCFilterTeam]
+const keysCFilterTeam: KeyMap<CFilterTeamKeys> = { base: keysCBaseFilter, keys: tableCFilterTeam }
 
 const tableFilterDamageType = {
   damagetype: 'integer',
 } as const
 export interface FilterDamageTypeKeys extends CBaseFilterKeys, Typed<typeof tableFilterDamageType> {}
-const keysFilterDamageType: KeyMap<FilterDamageTypeKeys> = [keysCBaseFilter, tableFilterDamageType]
+const keysFilterDamageType: KeyMap<FilterDamageTypeKeys> = { base: keysCBaseFilter, keys: tableFilterDamageType }
 
 const tableCFilterEnemy = {
   filtername: 'text',
@@ -13772,7 +13785,7 @@ const tableCFilterEnemy = {
   filter_max_per_enemy: 'integer',
 } as const
 export interface CFilterEnemyKeys extends CBaseFilterKeys, Typed<typeof tableCFilterEnemy> {}
-const keysCFilterEnemy: KeyMap<CFilterEnemyKeys> = [keysCBaseFilter, tableCFilterEnemy]
+const keysCFilterEnemy: KeyMap<CFilterEnemyKeys> = { base: keysCBaseFilter, keys: tableCFilterEnemy }
 
 const tableFilterHealth = {
   adrenalinepresence: 'boolean',
@@ -13780,25 +13793,25 @@ const tableFilterHealth = {
   healthmax: 'integer',
 } as const
 export interface FilterHealthKeys extends CBaseFilterKeys, Typed<typeof tableFilterHealth> {}
-const keysFilterHealth: KeyMap<FilterHealthKeys> = [keysCBaseFilter, tableFilterHealth]
+const keysFilterHealth: KeyMap<FilterHealthKeys> = { base: keysCBaseFilter, keys: tableFilterHealth }
 
 const tableCFilterModifier = {
   filtermodifier: 'text',
 } as const
 export interface CFilterModifierKeys extends CBaseFilterKeys, Typed<typeof tableCFilterModifier> {}
-const keysCFilterModifier: KeyMap<CFilterModifierKeys> = [keysCBaseFilter, tableCFilterModifier]
+const keysCFilterModifier: KeyMap<CFilterModifierKeys> = { base: keysCBaseFilter, keys: tableCFilterModifier }
 
 const tableCFilterMultiple = {
   FilterType: 'integer',
 } as const
 export interface CFilterMultipleKeys extends CBaseFilterKeys, Typed<typeof tableCFilterMultiple> {}
-const keysCFilterMultiple: KeyMap<CFilterMultipleKeys> = [keysCBaseFilter, tableCFilterMultiple]
+const keysCFilterMultiple: KeyMap<CFilterMultipleKeys> = { base: keysCBaseFilter, keys: tableCFilterMultiple }
 
 const tableCFilterProximity = {
   filter_radius: 'number',
 } as const
 export interface CFilterProximityKeys extends CBaseFilterKeys, Typed<typeof tableCFilterProximity> {}
-const keysCFilterProximity: KeyMap<CFilterProximityKeys> = [keysCBaseFilter, tableCFilterProximity]
+const keysCFilterProximity: KeyMap<CFilterProximityKeys> = { base: keysCBaseFilter, keys: tableCFilterProximity }
 
 const tableCFogVolume = {
   FogName: 'text',
@@ -13807,7 +13820,7 @@ const tableCFogVolume = {
   StartDisabled: 'boolean',
 } as const
 export interface CFogVolumeKeys extends CBaseModelEntityKeys, Typed<typeof tableCFogVolume> {}
-const keysCFogVolume: KeyMap<CFogVolumeKeys> = [keysCBaseModelEntity, tableCFogVolume]
+const keysCFogVolume: KeyMap<CFogVolumeKeys> = { base: keysCBaseModelEntity, keys: tableCFogVolume }
 
 const tableCBreakable = {
   explosion: 'integer',
@@ -13818,7 +13831,7 @@ const tableCBreakable = {
   overrideBlockLOS: 'integer',
 } as const
 export interface CBreakableKeys extends CBaseModelEntityKeys, Typed<typeof tableCBreakable> {}
-const keysCBreakable: KeyMap<CBreakableKeys> = [keysCBaseModelEntity, tableCBreakable]
+const keysCBreakable: KeyMap<CBreakableKeys> = { base: keysCBaseModelEntity, keys: tableCBreakable }
 
 const tableCBaseButton = {
   movedir: 'angles',
@@ -13832,7 +13845,7 @@ const tableCBaseButton = {
   speed: 'number',
 } as const
 export interface CBaseButtonKeys extends CBaseToggleKeys, Typed<typeof tableCBaseButton> {}
-const keysCBaseButton: KeyMap<CBaseButtonKeys> = [keysCBaseToggle, tableCBaseButton]
+const keysCBaseButton: KeyMap<CBaseButtonKeys> = { base: keysCBaseToggle, keys: tableCBaseButton }
 
 const tableCFuncInteractionLayerClip = {
   StartDisabled: 'boolean',
@@ -13840,13 +13853,13 @@ const tableCFuncInteractionLayerClip = {
   InteractsWith: 'text',
 } as const
 export interface CFuncInteractionLayerClipKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncInteractionLayerClip> {}
-const keysCFuncInteractionLayerClip: KeyMap<CFuncInteractionLayerClipKeys> = [keysCBaseModelEntity, tableCFuncInteractionLayerClip]
+const keysCFuncInteractionLayerClip: KeyMap<CFuncInteractionLayerClipKeys> = { base: keysCBaseModelEntity, keys: tableCFuncInteractionLayerClip }
 
 export interface CFuncVPhysicsClipKeys extends CBaseModelEntityKeys {}
-const keysCFuncVPhysicsClip: KeyMap<CFuncVPhysicsClipKeys> = [keysCBaseModelEntity, {}]
+const keysCFuncVPhysicsClip: KeyMap<CFuncVPhysicsClipKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 export interface CConditionalCollidableKeys extends CBaseModelEntityKeys {}
-const keysCConditionalCollidable: KeyMap<CConditionalCollidableKeys> = [keysCBaseModelEntity, {}]
+const keysCConditionalCollidable: KeyMap<CConditionalCollidableKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 const tableCBaseDoor = {
   movedir: 'angles',
@@ -13866,13 +13879,13 @@ const tableCBaseDoor = {
   unlocked_sound: 'text',
 } as const
 export interface CBaseDoorKeys extends CBaseToggleKeys, Typed<typeof tableCBaseDoor> {}
-const keysCBaseDoor: KeyMap<CBaseDoorKeys> = [keysCBaseToggle, tableCBaseDoor]
+const keysCBaseDoor: KeyMap<CBaseDoorKeys> = { base: keysCBaseToggle, keys: tableCBaseDoor }
 
 const tableCRotDoor = {
   solidbsp: 'boolean',
 } as const
 export interface CRotDoorKeys extends CBaseDoorKeys, Typed<typeof tableCRotDoor> {}
-const keysCRotDoor: KeyMap<CRotDoorKeys> = [keysCBaseDoor, tableCRotDoor]
+const keysCRotDoor: KeyMap<CRotDoorKeys> = { base: keysCBaseDoor, keys: tableCRotDoor }
 
 const tableCFuncElectrifiedVolume = {
   effect_name: 'text',
@@ -13881,19 +13894,19 @@ const tableCFuncElectrifiedVolume = {
   effect_zap_source: 'text',
 } as const
 export interface CFuncElectrifiedVolumeKeys extends CFuncBrushKeys, Typed<typeof tableCFuncElectrifiedVolume> {}
-const keysCFuncElectrifiedVolume: KeyMap<CFuncElectrifiedVolumeKeys> = [keysCFuncBrush, tableCFuncElectrifiedVolume]
+const keysCFuncElectrifiedVolume: KeyMap<CFuncElectrifiedVolumeKeys> = { base: keysCFuncBrush, keys: tableCFuncElectrifiedVolume }
 
 const tableCFishPool = {
   fish_count: 'integer',
 } as const
 export interface CFishPoolKeys extends CBaseEntityKeys, Typed<typeof tableCFishPool> {}
-const keysCFishPool: KeyMap<CFishPoolKeys> = [keysCBaseEntity, tableCFishPool]
+const keysCFishPool: KeyMap<CFishPoolKeys> = { base: keysCBaseEntity, keys: tableCFishPool }
 
 const tableCGunTarget = {
   speed: 'number',
 } as const
 export interface CGunTargetKeys extends CBaseToggleKeys, Typed<typeof tableCGunTarget> {}
-const keysCGunTarget: KeyMap<CGunTargetKeys> = [keysCBaseToggle, tableCGunTarget]
+const keysCGunTarget: KeyMap<CGunTargetKeys> = { base: keysCBaseToggle, keys: tableCGunTarget }
 
 const tableCFuncLadder = {
   point1: 'vector',
@@ -13903,7 +13916,7 @@ const tableCFuncLadder = {
   ladderSurfaceProperties: 'text',
 } as const
 export interface CFuncLadderKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncLadder> {}
-const keysCFuncLadder: KeyMap<CFuncLadderKeys> = [keysCBaseModelEntity, tableCFuncLadder]
+const keysCFuncLadder: KeyMap<CFuncLadderKeys> = { base: keysCBaseModelEntity, keys: tableCFuncLadder }
 
 const tableCFuncMonitor = {
   resolution: 'integer',
@@ -13913,7 +13926,7 @@ const tableCFuncMonitor = {
   start_enabled: 'boolean',
 } as const
 export interface CFuncMonitorKeys extends CFuncBrushKeys, Typed<typeof tableCFuncMonitor> {}
-const keysCFuncMonitor: KeyMap<CFuncMonitorKeys> = [keysCFuncBrush, tableCFuncMonitor]
+const keysCFuncMonitor: KeyMap<CFuncMonitorKeys> = { base: keysCFuncBrush, keys: tableCFuncMonitor }
 
 const tableCFuncMoveLinear = {
   movedir: 'angles',
@@ -13928,7 +13941,7 @@ const tableCFuncMoveLinear = {
   authoredposition: 'integer',
 } as const
 export interface CFuncMoveLinearKeys extends CBaseToggleKeys, Typed<typeof tableCFuncMoveLinear> {}
-const keysCFuncMoveLinear: KeyMap<CFuncMoveLinearKeys> = [keysCBaseToggle, tableCFuncMoveLinear]
+const keysCFuncMoveLinear: KeyMap<CFuncMoveLinearKeys> = { base: keysCBaseToggle, keys: tableCFuncMoveLinear }
 
 const tableCFuncMover = {
   path_name: 'text',
@@ -13975,7 +13988,7 @@ const tableCFuncMover = {
   offset_from_path: 'vector',
 } as const
 export interface CFuncMoverKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncMover> {}
-const keysCFuncMover: KeyMap<CFuncMoverKeys> = [keysCBaseModelEntity, tableCFuncMover]
+const keysCFuncMover: KeyMap<CFuncMoverKeys> = { base: keysCBaseModelEntity, keys: tableCFuncMover }
 
 const tableCFuncMoverRouter = {
   mover_index: 'integer',
@@ -13983,21 +13996,21 @@ const tableCFuncMoverRouter = {
   path_mover_name: 'text',
 } as const
 export interface CFuncMoverRouterKeys extends CBaseEntityKeys, Typed<typeof tableCFuncMoverRouter> {}
-const keysCFuncMoverRouter: KeyMap<CFuncMoverRouterKeys> = [keysCBaseEntity, tableCFuncMoverRouter]
+const keysCFuncMoverRouter: KeyMap<CFuncMoverRouterKeys> = { base: keysCBaseEntity, keys: tableCFuncMoverRouter }
 
 const tableCFuncNavObstruction = {
   StartDisabled: 'boolean',
   AsyncObstacleUpdate: 'boolean',
 } as const
 export interface CFuncNavObstructionKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncNavObstruction> {}
-const keysCFuncNavObstruction: KeyMap<CFuncNavObstructionKeys> = [keysCBaseModelEntity, tableCFuncNavObstruction]
+const keysCFuncNavObstruction: KeyMap<CFuncNavObstructionKeys> = { base: keysCBaseModelEntity, keys: tableCFuncNavObstruction }
 
 const tableCFuncNavBlocker = {
   StartDisabled: 'boolean',
   teamToBlock: 'integer',
 } as const
 export interface CFuncNavBlockerKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncNavBlocker> {}
-const keysCFuncNavBlocker: KeyMap<CFuncNavBlockerKeys> = [keysCBaseModelEntity, tableCFuncNavBlocker]
+const keysCFuncNavBlocker: KeyMap<CFuncNavBlockerKeys> = { base: keysCBaseModelEntity, keys: tableCFuncNavBlocker }
 
 const tableCDynamicNavConnectionsVolume = {
   dynamic_nav_connection_target: 'text',
@@ -14007,13 +14020,13 @@ const tableCDynamicNavConnectionsVolume = {
   max_connection_distance: 'number',
 } as const
 export interface CDynamicNavConnectionsVolumeKeys extends CTriggerMultipleKeys, Typed<typeof tableCDynamicNavConnectionsVolume> {}
-const keysCDynamicNavConnectionsVolume: KeyMap<CDynamicNavConnectionsVolumeKeys> = [keysCTriggerMultiple, tableCDynamicNavConnectionsVolume]
+const keysCDynamicNavConnectionsVolume: KeyMap<CDynamicNavConnectionsVolumeKeys> = { base: keysCTriggerMultiple, keys: tableCDynamicNavConnectionsVolume }
 
 const tableCMarkupVolume = {
   StartDisabled: 'boolean',
 } as const
 export interface CMarkupVolumeKeys extends CBaseModelEntityKeys, Typed<typeof tableCMarkupVolume> {}
-const keysCMarkupVolume: KeyMap<CMarkupVolumeKeys> = [keysCBaseModelEntity, tableCMarkupVolume]
+const keysCMarkupVolume: KeyMap<CMarkupVolumeKeys> = { base: keysCBaseModelEntity, keys: tableCMarkupVolume }
 
 const tableCMarkupVolumeTagged = {
   groupbyprefab: 'boolean',
@@ -14021,20 +14034,20 @@ const tableCMarkupVolumeTagged = {
   groupothergroups: 'boolean',
 } as const
 export interface CMarkupVolumeTaggedKeys extends CMarkupVolumeKeys, Typed<typeof tableCMarkupVolumeTagged> {}
-const keysCMarkupVolumeTagged: KeyMap<CMarkupVolumeTaggedKeys> = [keysCMarkupVolume, tableCMarkupVolumeTagged]
+const keysCMarkupVolumeTagged: KeyMap<CMarkupVolumeTaggedKeys> = { base: keysCMarkupVolume, keys: tableCMarkupVolumeTagged }
 
 const tableCMarkupVolumeTagged_Nav = {
   flags: 'integer',
 } as const
 export interface CMarkupVolumeTagged_NavKeys extends CMarkupVolumeTaggedKeys, Typed<typeof tableCMarkupVolumeTagged_Nav> {}
-const keysCMarkupVolumeTagged_Nav: KeyMap<CMarkupVolumeTagged_NavKeys> = [keysCMarkupVolumeTagged, tableCMarkupVolumeTagged_Nav]
+const keysCMarkupVolumeTagged_Nav: KeyMap<CMarkupVolumeTagged_NavKeys> = { base: keysCMarkupVolumeTagged, keys: tableCMarkupVolumeTagged_Nav }
 
 const tableCMarkupVolumeWithRef = {
   use_ref_position: 'boolean',
   ref_position: 'vector',
 } as const
 export interface CMarkupVolumeWithRefKeys extends CMarkupVolumeTaggedKeys, Typed<typeof tableCMarkupVolumeWithRef> {}
-const keysCMarkupVolumeWithRef: KeyMap<CMarkupVolumeWithRefKeys> = [keysCMarkupVolumeTagged, tableCMarkupVolumeWithRef]
+const keysCMarkupVolumeWithRef: KeyMap<CMarkupVolumeWithRefKeys> = { base: keysCMarkupVolumeTagged, keys: tableCMarkupVolumeWithRef }
 
 const tableCMarkupVolumeTagged_NavGame = {
   split_nav_space: 'boolean',
@@ -14042,7 +14055,7 @@ const tableCMarkupVolumeTagged_NavGame = {
   flags: 'integer',
 } as const
 export interface CMarkupVolumeTagged_NavGameKeys extends CMarkupVolumeWithRefKeys, Typed<typeof tableCMarkupVolumeTagged_NavGame> {}
-const keysCMarkupVolumeTagged_NavGame: KeyMap<CMarkupVolumeTagged_NavGameKeys> = [keysCMarkupVolumeWithRef, tableCMarkupVolumeTagged_NavGame]
+const keysCMarkupVolumeTagged_NavGame: KeyMap<CMarkupVolumeTagged_NavGameKeys> = { base: keysCMarkupVolumeWithRef, keys: tableCMarkupVolumeTagged_NavGame }
 
 const tableCPhysBox = {
   Damagetype: 'integer',
@@ -14060,7 +14073,7 @@ const tableCPhysBox = {
   interactsExclude: 'text',
 } as const
 export interface CPhysBoxKeys extends CBreakableKeys, Typed<typeof tableCPhysBox> {}
-const keysCPhysBox: KeyMap<CPhysBoxKeys> = [keysCBreakable, tableCPhysBox]
+const keysCPhysBox: KeyMap<CPhysBoxKeys> = { base: keysCBreakable, keys: tableCPhysBox }
 
 const tableCBasePlatTrain = {
   noise1: 'text',
@@ -14068,13 +14081,13 @@ const tableCBasePlatTrain = {
   volume: 'number',
 } as const
 export interface CBasePlatTrainKeys extends CBaseToggleKeys, Typed<typeof tableCBasePlatTrain> {}
-const keysCBasePlatTrain: KeyMap<CBasePlatTrainKeys> = [keysCBaseToggle, tableCBasePlatTrain]
+const keysCBasePlatTrain: KeyMap<CBasePlatTrainKeys> = { base: keysCBaseToggle, keys: tableCBasePlatTrain }
 
 const tableCFuncPlat = {
   speed: 'number',
 } as const
 export interface CFuncPlatKeys extends CBasePlatTrainKeys, Typed<typeof tableCFuncPlat> {}
-const keysCFuncPlat: KeyMap<CFuncPlatKeys> = [keysCBasePlatTrain, tableCFuncPlat]
+const keysCFuncPlat: KeyMap<CFuncPlatKeys> = { base: keysCBasePlatTrain, keys: tableCFuncPlat }
 
 const tableCFuncRotating = {
   maxspeed: 'number',
@@ -14083,7 +14096,7 @@ const tableCFuncRotating = {
   speed: 'number',
 } as const
 export interface CFuncRotatingKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncRotating> {}
-const keysCFuncRotating: KeyMap<CFuncRotatingKeys> = [keysCBaseModelEntity, tableCFuncRotating]
+const keysCFuncRotating: KeyMap<CFuncRotatingKeys> = { base: keysCBaseModelEntity, keys: tableCFuncRotating }
 
 const tableCFuncRotator = {
   rotate_type: 'integer',
@@ -14101,7 +14114,7 @@ const tableCFuncRotator = {
   time_to_complete_rotation: 'number',
 } as const
 export interface CFuncRotatorKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncRotator> {}
-const keysCFuncRotator: KeyMap<CFuncRotatorKeys> = [keysCBaseModelEntity, tableCFuncRotator]
+const keysCFuncRotator: KeyMap<CFuncRotatorKeys> = { base: keysCBaseModelEntity, keys: tableCFuncRotator }
 
 const tableCFuncShatterglass = {
   GlassNavIgnore: 'boolean',
@@ -14119,7 +14132,7 @@ const tableCFuncShatterglass = {
   DamagedMaterial: 'text',
 } as const
 export interface CFuncShatterglassKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncShatterglass> {}
-const keysCFuncShatterglass: KeyMap<CFuncShatterglassKeys> = [keysCBaseModelEntity, tableCFuncShatterglass]
+const keysCFuncShatterglass: KeyMap<CFuncShatterglassKeys> = { base: keysCBaseModelEntity, keys: tableCFuncShatterglass }
 
 const tableCFuncTrackTrain = {
   wheels: 'number',
@@ -14143,10 +14156,10 @@ const tableCFuncTrackTrain = {
   ManualDecelSpeed: 'number',
 } as const
 export interface CFuncTrackTrainKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncTrackTrain> {}
-const keysCFuncTrackTrain: KeyMap<CFuncTrackTrainKeys> = [keysCBaseModelEntity, tableCFuncTrackTrain]
+const keysCFuncTrackTrain: KeyMap<CFuncTrackTrainKeys> = { base: keysCBaseModelEntity, keys: tableCFuncTrackTrain }
 
 export interface CFuncTankTrainKeys extends CFuncTrackTrainKeys {}
-const keysCFuncTankTrain: KeyMap<CFuncTankTrainKeys> = [keysCFuncTrackTrain, {}]
+const keysCFuncTankTrain: KeyMap<CFuncTankTrainKeys> = { base: keysCFuncTrackTrain, keys: {} }
 
 const tableCFuncTimescale = {
   desiredTimescale: 'number',
@@ -14155,7 +14168,7 @@ const tableCFuncTimescale = {
   blendDeltaMultiplier: 'number',
 } as const
 export interface CFuncTimescaleKeys extends CBaseEntityKeys, Typed<typeof tableCFuncTimescale> {}
-const keysCFuncTimescale: KeyMap<CFuncTimescaleKeys> = [keysCBaseEntity, tableCFuncTimescale]
+const keysCFuncTimescale: KeyMap<CFuncTimescaleKeys> = { base: keysCBaseEntity, keys: tableCFuncTimescale }
 
 const tableCFuncTrackChange = {
   toptrack: 'text',
@@ -14163,45 +14176,45 @@ const tableCFuncTrackChange = {
   train: 'text',
 } as const
 export interface CFuncTrackChangeKeys extends CFuncPlatKeys, Typed<typeof tableCFuncTrackChange> {}
-const keysCFuncTrackChange: KeyMap<CFuncTrackChangeKeys> = [keysCFuncPlat, tableCFuncTrackChange]
+const keysCFuncTrackChange: KeyMap<CFuncTrackChangeKeys> = { base: keysCFuncPlat, keys: tableCFuncTrackChange }
 
 export interface CFuncTrackAutoKeys extends CFuncTrackChangeKeys {}
-const keysCFuncTrackAuto: KeyMap<CFuncTrackAutoKeys> = [keysCFuncTrackChange, {}]
+const keysCFuncTrackAuto: KeyMap<CFuncTrackAutoKeys> = { base: keysCFuncTrackChange, keys: {} }
 
 const tableCFuncTrain = {
   dmg: 'number',
   speed: 'number',
 } as const
 export interface CFuncTrainKeys extends CBasePlatTrainKeys, Typed<typeof tableCFuncTrain> {}
-const keysCFuncTrain: KeyMap<CFuncTrainKeys> = [keysCBasePlatTrain, tableCFuncTrain]
+const keysCFuncTrain: KeyMap<CFuncTrainKeys> = { base: keysCBasePlatTrain, keys: tableCFuncTrain }
 
 export interface CFuncVehicleClipKeys extends CBaseModelEntityKeys {}
-const keysCFuncVehicleClip: KeyMap<CFuncVehicleClipKeys> = [keysCBaseModelEntity, {}]
+const keysCFuncVehicleClip: KeyMap<CFuncVehicleClipKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 export interface CFuncWallToggleKeys extends CBaseModelEntityKeys {}
-const keysCFuncWallToggle: KeyMap<CFuncWallToggleKeys> = [keysCBaseModelEntity, {}]
+const keysCFuncWallToggle: KeyMap<CFuncWallToggleKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 const tableCGameGibManager = {
   maxpieces: 'integer',
   allownewgibs: 'boolean',
 } as const
 export interface CGameGibManagerKeys extends CBaseEntityKeys, Typed<typeof tableCGameGibManager> {}
-const keysCGameGibManager: KeyMap<CGameGibManagerKeys> = [keysCBaseEntity, tableCGameGibManager]
+const keysCGameGibManager: KeyMap<CGameGibManagerKeys> = { base: keysCBaseEntity, keys: tableCGameGibManager }
 
 const tableCRuleEntity = {
   master: 'text',
 } as const
 export interface CRuleEntityKeys extends CBaseModelEntityKeys, Typed<typeof tableCRuleEntity> {}
-const keysCRuleEntity: KeyMap<CRuleEntityKeys> = [keysCBaseModelEntity, tableCRuleEntity]
+const keysCRuleEntity: KeyMap<CRuleEntityKeys> = { base: keysCBaseModelEntity, keys: tableCRuleEntity }
 
 const tableCRulePointEntity = {
   points: 'integer',
 } as const
 export interface CRulePointEntityKeys extends CRuleEntityKeys, Typed<typeof tableCRulePointEntity> {}
-const keysCRulePointEntity: KeyMap<CRulePointEntityKeys> = [keysCRuleEntity, tableCRulePointEntity]
+const keysCRulePointEntity: KeyMap<CRulePointEntityKeys> = { base: keysCRuleEntity, keys: tableCRulePointEntity }
 
 export interface CGamePlayerEquipKeys extends CRulePointEntityKeys {}
-const keysCGamePlayerEquip: KeyMap<CGamePlayerEquipKeys> = [keysCRulePointEntity, {}]
+const keysCGamePlayerEquip: KeyMap<CGamePlayerEquipKeys> = { base: keysCRulePointEntity, keys: {} }
 
 const tableCRagdollManager = {
   MaxRagdollCount: 'integer',
@@ -14209,7 +14222,7 @@ const tableCRagdollManager = {
   CanTakeDamage: 'boolean',
 } as const
 export interface CRagdollManagerKeys extends CBaseEntityKeys, Typed<typeof tableCRagdollManager> {}
-const keysCRagdollManager: KeyMap<CRagdollManagerKeys> = [keysCBaseEntity, tableCRagdollManager]
+const keysCRagdollManager: KeyMap<CRagdollManagerKeys> = { base: keysCBaseEntity, keys: tableCRagdollManager }
 
 const tableCGameText = {
   message: 'text',
@@ -14219,10 +14232,10 @@ const tableCGameText = {
   y: 'number',
 } as const
 export interface CGameTextKeys extends CRulePointEntityKeys, Typed<typeof tableCGameText> {}
-const keysCGameText: KeyMap<CGameTextKeys> = [keysCRulePointEntity, tableCGameText]
+const keysCGameText: KeyMap<CGameTextKeys> = { base: keysCRulePointEntity, keys: tableCGameText }
 
 export interface CGamePlayerZoneKeys extends CRuleEntityKeys {}
-const keysCGamePlayerZone: KeyMap<CGamePlayerZoneKeys> = [keysCRuleEntity, {}]
+const keysCGamePlayerZone: KeyMap<CGamePlayerZoneKeys> = { base: keysCRuleEntity, keys: {} }
 
 const tableCTextureBasedAnimatable = {
   fps: 'number',
@@ -14233,7 +14246,7 @@ const tableCTextureBasedAnimatable = {
   anim_bounds_max: 'vector',
 } as const
 export interface CTextureBasedAnimatableKeys extends CBaseModelEntityKeys, Typed<typeof tableCTextureBasedAnimatable> {}
-const keysCTextureBasedAnimatable: KeyMap<CTextureBasedAnimatableKeys> = [keysCBaseModelEntity, tableCTextureBasedAnimatable]
+const keysCTextureBasedAnimatable: KeyMap<CTextureBasedAnimatableKeys> = { base: keysCBaseModelEntity, keys: tableCTextureBasedAnimatable }
 
 const tableCBaseClientUIEntity = {
   enabled: 'boolean',
@@ -14242,7 +14255,7 @@ const tableCBaseClientUIEntity = {
   panel_id: 'text',
 } as const
 export interface CBaseClientUIEntityKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseClientUIEntity> {}
-const keysCBaseClientUIEntity: KeyMap<CBaseClientUIEntityKeys> = [keysCBaseModelEntity, tableCBaseClientUIEntity]
+const keysCBaseClientUIEntity: KeyMap<CBaseClientUIEntityKeys> = { base: keysCBaseModelEntity, keys: tableCBaseClientUIEntity }
 
 const tableCPointClientUIWorldPanel = {
   ignore_input: 'boolean',
@@ -14272,31 +14285,31 @@ const tableCPointClientUIWorldPanel = {
   ignore_parent_orientation: 'boolean',
 } as const
 export interface CPointClientUIWorldPanelKeys extends CBaseClientUIEntityKeys, Typed<typeof tableCPointClientUIWorldPanel> {}
-const keysCPointClientUIWorldPanel: KeyMap<CPointClientUIWorldPanelKeys> = [keysCBaseClientUIEntity, tableCPointClientUIWorldPanel]
+const keysCPointClientUIWorldPanel: KeyMap<CPointClientUIWorldPanelKeys> = { base: keysCBaseClientUIEntity, keys: tableCPointClientUIWorldPanel }
 
 const tableCAssignedLaneParticle = {
   LaneNum: 'integer',
 } as const
 export interface CAssignedLaneParticleKeys extends CBaseModelEntityKeys, Typed<typeof tableCAssignedLaneParticle> {}
-const keysCAssignedLaneParticle: KeyMap<CAssignedLaneParticleKeys> = [keysCBaseModelEntity, tableCAssignedLaneParticle]
+const keysCAssignedLaneParticle: KeyMap<CAssignedLaneParticleKeys> = { base: keysCBaseModelEntity, keys: tableCAssignedLaneParticle }
 
 export interface CInfoCitadelHideoutKeys extends CPointEntityKeys {}
-const keysCInfoCitadelHideout: KeyMap<CInfoCitadelHideoutKeys> = [keysCPointEntity, {}]
+const keysCInfoCitadelHideout: KeyMap<CInfoCitadelHideoutKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCCitadelHideoutInterestPoint = {
   max_distance: 'number',
 } as const
 export interface CCitadelHideoutInterestPointKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelHideoutInterestPoint> {}
-const keysCCitadelHideoutInterestPoint: KeyMap<CCitadelHideoutInterestPointKeys> = [keysCBaseModelEntity, tableCCitadelHideoutInterestPoint]
+const keysCCitadelHideoutInterestPoint: KeyMap<CCitadelHideoutInterestPointKeys> = { base: keysCBaseModelEntity, keys: tableCCitadelHideoutInterestPoint }
 
 export interface CCitadelMatchmakingStatusInfoKeys extends CPointEntityKeys {}
-const keysCCitadelMatchmakingStatusInfo: KeyMap<CCitadelMatchmakingStatusInfoKeys> = [keysCPointEntity, {}]
+const keysCCitadelMatchmakingStatusInfo: KeyMap<CCitadelMatchmakingStatusInfoKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCConstraintAnchor = {
   massScale: 'number',
 } as const
 export interface CConstraintAnchorKeys extends CBaseAnimGraphKeys, Typed<typeof tableCConstraintAnchor> {}
-const keysCConstraintAnchor: KeyMap<CConstraintAnchorKeys> = [keysCBaseAnimGraph, tableCConstraintAnchor]
+const keysCConstraintAnchor: KeyMap<CConstraintAnchorKeys> = { base: keysCBaseAnimGraph, keys: tableCConstraintAnchor }
 
 const tableCInfoDynamicShadowHint = {
   StartDisabled: 'boolean',
@@ -14305,21 +14318,21 @@ const tableCInfoDynamicShadowHint = {
   lightchoice: 'integer',
 } as const
 export interface CInfoDynamicShadowHintKeys extends CPointEntityKeys, Typed<typeof tableCInfoDynamicShadowHint> {}
-const keysCInfoDynamicShadowHint: KeyMap<CInfoDynamicShadowHintKeys> = [keysCPointEntity, tableCInfoDynamicShadowHint]
+const keysCInfoDynamicShadowHint: KeyMap<CInfoDynamicShadowHintKeys> = { base: keysCPointEntity, keys: tableCInfoDynamicShadowHint }
 
 const tableCInfoDynamicShadowHintBox = {
   box_mins: 'vector',
   box_maxs: 'vector',
 } as const
 export interface CInfoDynamicShadowHintBoxKeys extends CInfoDynamicShadowHintKeys, Typed<typeof tableCInfoDynamicShadowHintBox> {}
-const keysCInfoDynamicShadowHintBox: KeyMap<CInfoDynamicShadowHintBoxKeys> = [keysCInfoDynamicShadowHint, tableCInfoDynamicShadowHintBox]
+const keysCInfoDynamicShadowHintBox: KeyMap<CInfoDynamicShadowHintBoxKeys> = { base: keysCInfoDynamicShadowHint, keys: tableCInfoDynamicShadowHintBox }
 
 const tableCInfoGameEventProxy = {
   event_name: 'text',
   range: 'number',
 } as const
 export interface CInfoGameEventProxyKeys extends CPointEntityKeys, Typed<typeof tableCInfoGameEventProxy> {}
-const keysCInfoGameEventProxy: KeyMap<CInfoGameEventProxyKeys> = [keysCPointEntity, tableCInfoGameEventProxy]
+const keysCInfoGameEventProxy: KeyMap<CInfoGameEventProxyKeys> = { base: keysCPointEntity, keys: tableCInfoGameEventProxy }
 
 const tableCInfoHeroTestingPoint = {
   PointType: 'integer',
@@ -14327,20 +14340,20 @@ const tableCInfoHeroTestingPoint = {
   HeroID: 'integer',
 } as const
 export interface CInfoHeroTestingPointKeys extends CPointEntityKeys, Typed<typeof tableCInfoHeroTestingPoint> {}
-const keysCInfoHeroTestingPoint: KeyMap<CInfoHeroTestingPointKeys> = [keysCPointEntity, tableCInfoHeroTestingPoint]
+const keysCInfoHeroTestingPoint: KeyMap<CInfoHeroTestingPointKeys> = { base: keysCPointEntity, keys: tableCInfoHeroTestingPoint }
 
 const tableCMiniMapMarker = {
   MarkerType: 'integer',
 } as const
 export interface CMiniMapMarkerKeys extends CPointEntityKeys, Typed<typeof tableCMiniMapMarker> {}
-const keysCMiniMapMarker: KeyMap<CMiniMapMarkerKeys> = [keysCPointEntity, tableCMiniMapMarker]
+const keysCMiniMapMarker: KeyMap<CMiniMapMarkerKeys> = { base: keysCPointEntity, keys: tableCMiniMapMarker }
 
 const tableCInfoTrooperNeutralCamp = {
   CampName: 'text',
   TetherRadiusOverride: 'number',
 } as const
 export interface CInfoTrooperNeutralCampKeys extends CPointEntityKeys, Typed<typeof tableCInfoTrooperNeutralCamp> {}
-const keysCInfoTrooperNeutralCamp: KeyMap<CInfoTrooperNeutralCampKeys> = [keysCPointEntity, tableCInfoTrooperNeutralCamp]
+const keysCInfoTrooperNeutralCamp: KeyMap<CInfoTrooperNeutralCampKeys> = { base: keysCPointEntity, keys: tableCInfoTrooperNeutralCamp }
 
 const tableCInfoTrooperNeutralSpawn = {
   CampName: 'text',
@@ -14348,14 +14361,14 @@ const tableCInfoTrooperNeutralSpawn = {
   NeutralSubclass: 'text',
 } as const
 export interface CInfoTrooperNeutralSpawnKeys extends CBaseEntityKeys, Typed<typeof tableCInfoTrooperNeutralSpawn> {}
-const keysCInfoTrooperNeutralSpawn: KeyMap<CInfoTrooperNeutralSpawnKeys> = [keysCBaseEntity, tableCInfoTrooperNeutralSpawn]
+const keysCInfoTrooperNeutralSpawn: KeyMap<CInfoTrooperNeutralSpawnKeys> = { base: keysCBaseEntity, keys: tableCInfoTrooperNeutralSpawn }
 
 const tableCNPCSpawnDestination = {
   ReuseDelay: 'number',
   RenameNPC: 'text',
 } as const
 export interface CNPCSpawnDestinationKeys extends CPointEntityKeys, Typed<typeof tableCNPCSpawnDestination> {}
-const keysCNPCSpawnDestination: KeyMap<CNPCSpawnDestinationKeys> = [keysCPointEntity, tableCNPCSpawnDestination]
+const keysCNPCSpawnDestination: KeyMap<CNPCSpawnDestinationKeys> = { base: keysCPointEntity, keys: tableCNPCSpawnDestination }
 
 const tableCInfoOffscreenPanoramaTexture = {
   start_disabled: 'boolean',
@@ -14368,13 +14381,13 @@ const tableCInfoOffscreenPanoramaTexture = {
   targets: 'text',
 } as const
 export interface CInfoOffscreenPanoramaTextureKeys extends CPointEntityKeys, Typed<typeof tableCInfoOffscreenPanoramaTexture> {}
-const keysCInfoOffscreenPanoramaTexture: KeyMap<CInfoOffscreenPanoramaTextureKeys> = [keysCPointEntity, tableCInfoOffscreenPanoramaTexture]
+const keysCInfoOffscreenPanoramaTexture: KeyMap<CInfoOffscreenPanoramaTextureKeys> = { base: keysCPointEntity, keys: tableCInfoOffscreenPanoramaTexture }
 
 const tableCBaseDMStart = {
   master: 'text',
 } as const
 export interface CBaseDMStartKeys extends CPointEntityKeys, Typed<typeof tableCBaseDMStart> {}
-const keysCBaseDMStart: KeyMap<CBaseDMStartKeys> = [keysCPointEntity, tableCBaseDMStart]
+const keysCBaseDMStart: KeyMap<CBaseDMStartKeys> = { base: keysCPointEntity, keys: tableCBaseDMStart }
 
 const tableCInfoPlayerStart = {
   StartDisabled: 'boolean',
@@ -14382,7 +14395,7 @@ const tableCInfoPlayerStart = {
   PawnSubclass: 'text',
 } as const
 export interface CInfoPlayerStartKeys extends CPointEntityKeys, Typed<typeof tableCInfoPlayerStart> {}
-const keysCInfoPlayerStart: KeyMap<CInfoPlayerStartKeys> = [keysCPointEntity, tableCInfoPlayerStart]
+const keysCInfoPlayerStart: KeyMap<CInfoPlayerStartKeys> = { base: keysCPointEntity, keys: tableCInfoPlayerStart }
 
 const tableCInfoTrooperBossSpawn = {
   BossName: 'text',
@@ -14391,14 +14404,14 @@ const tableCInfoTrooperBossSpawn = {
   TrooperTestSpawner: 'boolean',
 } as const
 export interface CInfoTrooperBossSpawnKeys extends CBaseEntityKeys, Typed<typeof tableCInfoTrooperBossSpawn> {}
-const keysCInfoTrooperBossSpawn: KeyMap<CInfoTrooperBossSpawnKeys> = [keysCBaseEntity, tableCInfoTrooperBossSpawn]
+const keysCInfoTrooperBossSpawn: KeyMap<CInfoTrooperBossSpawnKeys> = { base: keysCBaseEntity, keys: tableCInfoTrooperBossSpawn }
 
 const tableCTeamRelativeParticleSystem = {
   effect_name_friendly: 'text',
   effect_name_enemy: 'text',
 } as const
 export interface CTeamRelativeParticleSystemKeys extends CParticleSystemKeys, Typed<typeof tableCTeamRelativeParticleSystem> {}
-const keysCTeamRelativeParticleSystem: KeyMap<CTeamRelativeParticleSystemKeys> = [keysCParticleSystem, tableCTeamRelativeParticleSystem]
+const keysCTeamRelativeParticleSystem: KeyMap<CTeamRelativeParticleSystemKeys> = { base: keysCParticleSystem, keys: tableCTeamRelativeParticleSystem }
 
 const tableCInfoTeamSpawn = {
   InitialSpawn: 'boolean',
@@ -14406,14 +14419,14 @@ const tableCInfoTeamSpawn = {
   GroupTag: 'text',
 } as const
 export interface CInfoTeamSpawnKeys extends CBaseEntityKeys, Typed<typeof tableCInfoTeamSpawn> {}
-const keysCInfoTeamSpawn: KeyMap<CInfoTeamSpawnKeys> = [keysCBaseEntity, tableCInfoTeamSpawn]
+const keysCInfoTeamSpawn: KeyMap<CInfoTeamSpawnKeys> = { base: keysCBaseEntity, keys: tableCInfoTeamSpawn }
 
 const tableCCitadelTeleportLocation = {
   LaneNum: 'integer',
   Objective: 'integer',
 } as const
 export interface CCitadelTeleportLocationKeys extends CBaseEntityKeys, Typed<typeof tableCCitadelTeleportLocation> {}
-const keysCCitadelTeleportLocation: KeyMap<CCitadelTeleportLocationKeys> = [keysCBaseEntity, tableCCitadelTeleportLocation]
+const keysCCitadelTeleportLocation: KeyMap<CCitadelTeleportLocationKeys> = { base: keysCBaseEntity, keys: tableCCitadelTeleportLocation }
 
 const tableCInfoFan = {
   fan_force_curve: 'text',
@@ -14421,14 +14434,14 @@ const tableCInfoFan = {
   fan_force_min_radius: 'number',
 } as const
 export interface CInfoFanKeys extends CPointEntityKeys, Typed<typeof tableCInfoFan> {}
-const keysCInfoFan: KeyMap<CInfoFanKeys> = [keysCPointEntity, tableCInfoFan]
+const keysCInfoFan: KeyMap<CInfoFanKeys> = { base: keysCPointEntity, keys: tableCInfoFan }
 
 const tableCInfoTrooperSpawn = {
   LaneNum: 'integer',
   DisableZiplining: 'boolean',
 } as const
 export interface CInfoTrooperSpawnKeys extends CBaseEntityKeys, Typed<typeof tableCInfoTrooperSpawn> {}
-const keysCInfoTrooperSpawn: KeyMap<CInfoTrooperSpawnKeys> = [keysCBaseEntity, tableCInfoTrooperSpawn]
+const keysCInfoTrooperSpawn: KeyMap<CInfoTrooperSpawnKeys> = { base: keysCBaseEntity, keys: tableCInfoTrooperSpawn }
 
 const tableCInfoTutorialPoint = {
   PointType: 'integer',
@@ -14436,14 +14449,14 @@ const tableCInfoTutorialPoint = {
   HeroID: 'integer',
 } as const
 export interface CInfoTutorialPointKeys extends CPointEntityKeys, Typed<typeof tableCInfoTutorialPoint> {}
-const keysCInfoTutorialPoint: KeyMap<CInfoTutorialPointKeys> = [keysCPointEntity, tableCInfoTutorialPoint]
+const keysCInfoTutorialPoint: KeyMap<CInfoTutorialPointKeys> = { base: keysCPointEntity, keys: tableCInfoTutorialPoint }
 
 const tableCInfoVisibilityBox = {
   cull_mode: 'integer',
   box_size: 'vector',
 } as const
 export interface CInfoVisibilityBoxKeys extends CBaseEntityKeys, Typed<typeof tableCInfoVisibilityBox> {}
-const keysCInfoVisibilityBox: KeyMap<CInfoVisibilityBoxKeys> = [keysCBaseEntity, tableCInfoVisibilityBox]
+const keysCInfoVisibilityBox: KeyMap<CInfoVisibilityBoxKeys> = { base: keysCBaseEntity, keys: tableCInfoVisibilityBox }
 
 const tableCInfoWorldLayer = {
   worldName: 'text',
@@ -14451,7 +14464,7 @@ const tableCInfoWorldLayer = {
   childSpawnGroup: 'boolean',
 } as const
 export interface CInfoWorldLayerKeys extends CBaseEntityKeys, Typed<typeof tableCInfoWorldLayer> {}
-const keysCInfoWorldLayer: KeyMap<CInfoWorldLayerKeys> = [keysCBaseEntity, tableCInfoWorldLayer]
+const keysCInfoWorldLayer: KeyMap<CInfoWorldLayerKeys> = { base: keysCBaseEntity, keys: tableCInfoWorldLayer }
 
 const tableCSceneEntity = {
   SceneFile: 'text',
@@ -14470,13 +14483,13 @@ const tableCSceneEntity = {
   onplayerdeath: 'integer',
 } as const
 export interface CSceneEntityKeys extends CPointEntityKeys, Typed<typeof tableCSceneEntity> {}
-const keysCSceneEntity: KeyMap<CSceneEntityKeys> = [keysCPointEntity, tableCSceneEntity]
+const keysCSceneEntity: KeyMap<CSceneEntityKeys> = { base: keysCPointEntity, keys: tableCSceneEntity }
 
 const tableCInstancedSceneEntity = {
   remove_on_completion: 'boolean',
 } as const
 export interface CInstancedSceneEntityKeys extends CSceneEntityKeys, Typed<typeof tableCInstancedSceneEntity> {}
-const keysCInstancedSceneEntity: KeyMap<CInstancedSceneEntityKeys> = [keysCSceneEntity, tableCInstancedSceneEntity]
+const keysCInstancedSceneEntity: KeyMap<CInstancedSceneEntityKeys> = { base: keysCSceneEntity, keys: tableCInstancedSceneEntity }
 
 const tableCPhysicsProp = {
   massscale: 'number',
@@ -14502,27 +14515,27 @@ const tableCPhysicsProp = {
   enableuseoutput: 'boolean',
 } as const
 export interface CPhysicsPropKeys extends CBreakablePropKeys, Typed<typeof tableCPhysicsProp> {}
-const keysCPhysicsProp: KeyMap<CPhysicsPropKeys> = [keysCBreakableProp, tableCPhysicsProp]
+const keysCPhysicsProp: KeyMap<CPhysicsPropKeys> = { base: keysCBreakableProp, keys: tableCPhysicsProp }
 
 const tableCItemCrate = {
   loot_type: 'integer',
   objective_position: 'integer',
 } as const
 export interface CItemCrateKeys extends CPhysicsPropKeys, Typed<typeof tableCItemCrate> {}
-const keysCItemCrate: KeyMap<CItemCrateKeys> = [keysCPhysicsProp, tableCItemCrate]
+const keysCItemCrate: KeyMap<CItemCrateKeys> = { base: keysCPhysicsProp, keys: tableCItemCrate }
 
 const tableCItemCrateSpawn = {
   loot_type: 'integer',
   objective_position: 'integer',
 } as const
 export interface CItemCrateSpawnKeys extends CBaseEntityKeys, Typed<typeof tableCItemCrateSpawn> {}
-const keysCItemCrateSpawn: KeyMap<CItemCrateSpawnKeys> = [keysCBaseEntity, tableCItemCrateSpawn]
+const keysCItemCrateSpawn: KeyMap<CItemCrateSpawnKeys> = { base: keysCBaseEntity, keys: tableCItemCrateSpawn }
 
 const tableCItem = {
   phys_start_asleep: 'boolean',
 } as const
 export interface CItemKeys extends CBaseAnimGraphKeys, Typed<typeof tableCItem> {}
-const keysCItem: KeyMap<CItemKeys> = [keysCBaseAnimGraph, tableCItem]
+const keysCItem: KeyMap<CItemKeys> = { base: keysCBaseAnimGraph, keys: tableCItem }
 
 const tableCItemGeneric = {
   spawn_particles: 'text',
@@ -14545,7 +14558,7 @@ const tableCItemGeneric = {
   useable: 'boolean',
 } as const
 export interface CItemGenericKeys extends CItemKeys, Typed<typeof tableCItemGeneric> {}
-const keysCItemGeneric: KeyMap<CItemGenericKeys> = [keysCItem, tableCItemGeneric]
+const keysCItemGeneric: KeyMap<CItemGenericKeys> = { base: keysCItem, keys: tableCItemGeneric }
 
 const tableCRopeKeyframe = {
   NextKey: 'text',
@@ -14557,21 +14570,21 @@ const tableCRopeKeyframe = {
   ScrollSpeed: 'number',
 } as const
 export interface CRopeKeyframeKeys extends CBaseModelEntityKeys, Typed<typeof tableCRopeKeyframe> {}
-const keysCRopeKeyframe: KeyMap<CRopeKeyframeKeys> = [keysCBaseModelEntity, tableCRopeKeyframe]
+const keysCRopeKeyframe: KeyMap<CRopeKeyframeKeys> = { base: keysCBaseModelEntity, keys: tableCRopeKeyframe }
 
 const tableCPathKeyFrame = {
   NextKey: 'text',
   MoveSpeed: 'number',
 } as const
 export interface CPathKeyFrameKeys extends CBaseEntityKeys, Typed<typeof tableCPathKeyFrame> {}
-const keysCPathKeyFrame: KeyMap<CPathKeyFrameKeys> = [keysCBaseEntity, tableCPathKeyFrame]
+const keysCPathKeyFrame: KeyMap<CPathKeyFrameKeys> = { base: keysCBaseEntity, keys: tableCPathKeyFrame }
 
 const tableCLaneMarkerPath = {
   LaneNum: 'integer',
   LaneSlot: 'integer',
 } as const
 export interface CLaneMarkerPathKeys extends CBaseEntityKeys, Typed<typeof tableCLaneMarkerPath> {}
-const keysCLaneMarkerPath: KeyMap<CLaneMarkerPathKeys> = [keysCBaseEntity, tableCLaneMarkerPath]
+const keysCLaneMarkerPath: KeyMap<CLaneMarkerPathKeys> = { base: keysCBaseEntity, keys: tableCLaneMarkerPath }
 
 const tableCBarnLight = {
   enabled: 'boolean',
@@ -14647,10 +14660,10 @@ const tableCBarnLight = {
   transmit_always: 'boolean',
 } as const
 export interface CBarnLightKeys extends CBaseModelEntityKeys, Typed<typeof tableCBarnLight> {}
-const keysCBarnLight: KeyMap<CBarnLightKeys> = [keysCBaseModelEntity, tableCBarnLight]
+const keysCBarnLight: KeyMap<CBarnLightKeys> = { base: keysCBaseModelEntity, keys: tableCBarnLight }
 
 export interface CLightEntityKeys extends CBaseModelEntityKeys {}
-const keysCLightEntity: KeyMap<CLightEntityKeys> = [keysCBaseModelEntity, {}]
+const keysCLightEntity: KeyMap<CLightEntityKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 const tableCDynamicLight = {
   distance: 'number',
@@ -14661,7 +14674,7 @@ const tableCDynamicLight = {
   style: 'integer',
 } as const
 export interface CDynamicLightKeys extends CBaseModelEntityKeys, Typed<typeof tableCDynamicLight> {}
-const keysCDynamicLight: KeyMap<CDynamicLightKeys> = [keysCBaseModelEntity, tableCDynamicLight]
+const keysCDynamicLight: KeyMap<CDynamicLightKeys> = { base: keysCBaseModelEntity, keys: tableCDynamicLight }
 
 const tableCEnvironmentLight = {
   skycolor: 'color',
@@ -14670,7 +14683,7 @@ const tableCEnvironmentLight = {
   angulardiameter: 'number',
 } as const
 export interface CEnvironmentLightKeys extends CBarnLightKeys, Typed<typeof tableCEnvironmentLight> {}
-const keysCEnvironmentLight: KeyMap<CEnvironmentLightKeys> = [keysCBarnLight, tableCEnvironmentLight]
+const keysCEnvironmentLight: KeyMap<CEnvironmentLightKeys> = { base: keysCBarnLight, keys: tableCEnvironmentLight }
 
 const tableCOmniLight = {
   inner_angle: 'number',
@@ -14678,20 +14691,20 @@ const tableCOmniLight = {
   showlight: 'boolean',
 } as const
 export interface COmniLightKeys extends CBarnLightKeys, Typed<typeof tableCOmniLight> {}
-const keysCOmniLight: KeyMap<COmniLightKeys> = [keysCBarnLight, tableCOmniLight]
+const keysCOmniLight: KeyMap<COmniLightKeys> = { base: keysCBarnLight, keys: tableCOmniLight }
 
 const tableCRectLight = {
   showlight: 'boolean',
 } as const
 export interface CRectLightKeys extends CBarnLightKeys, Typed<typeof tableCRectLight> {}
-const keysCRectLight: KeyMap<CRectLightKeys> = [keysCBarnLight, tableCRectLight]
+const keysCRectLight: KeyMap<CRectLightKeys> = { base: keysCBarnLight, keys: tableCRectLight }
 
 const tableCLogicAchievement = {
   StartDisabled: 'boolean',
   AchievementEvent: 'text',
 } as const
 export interface CLogicAchievementKeys extends CBaseEntityKeys, Typed<typeof tableCLogicAchievement> {}
-const keysCLogicAchievement: KeyMap<CLogicAchievementKeys> = [keysCBaseEntity, tableCLogicAchievement]
+const keysCLogicAchievement: KeyMap<CLogicAchievementKeys> = { base: keysCBaseEntity, keys: tableCLogicAchievement }
 
 const tableCLogicAutosave = {
   NewLevelUnit: 'boolean',
@@ -14699,7 +14712,7 @@ const tableCLogicAutosave = {
   MinHitPointsToCommit: 'integer',
 } as const
 export interface CLogicAutosaveKeys extends CBaseEntityKeys, Typed<typeof tableCLogicAutosave> {}
-const keysCLogicAutosave: KeyMap<CLogicAutosaveKeys> = [keysCBaseEntity, tableCLogicAutosave]
+const keysCLogicAutosave: KeyMap<CLogicAutosaveKeys> = { base: keysCBaseEntity, keys: tableCLogicAutosave }
 
 const tableCLogicActiveAutosave = {
   TriggerHitPoints: 'integer',
@@ -14707,7 +14720,7 @@ const tableCLogicActiveAutosave = {
   DangerousTime: 'number',
 } as const
 export interface CLogicActiveAutosaveKeys extends CLogicAutosaveKeys, Typed<typeof tableCLogicActiveAutosave> {}
-const keysCLogicActiveAutosave: KeyMap<CLogicActiveAutosaveKeys> = [keysCLogicAutosave, tableCLogicActiveAutosave]
+const keysCLogicActiveAutosave: KeyMap<CLogicActiveAutosaveKeys> = { base: keysCLogicAutosave, keys: tableCLogicActiveAutosave }
 
 const tableCLogicActivityEvent = {
   ActivityEventType: 'integer',
@@ -14715,28 +14728,28 @@ const tableCLogicActivityEvent = {
   sourceEntityName: 'text',
 } as const
 export interface CLogicActivityEventKeys extends CBaseEntityKeys, Typed<typeof tableCLogicActivityEvent> {}
-const keysCLogicActivityEvent: KeyMap<CLogicActivityEventKeys> = [keysCBaseEntity, tableCLogicActivityEvent]
+const keysCLogicActivityEvent: KeyMap<CLogicActivityEventKeys> = { base: keysCBaseEntity, keys: tableCLogicActivityEvent }
 
 const tableCLogicAuto = {
   globalstate: 'text',
 } as const
 export interface CLogicAutoKeys extends CBaseEntityKeys, Typed<typeof tableCLogicAuto> {}
-const keysCLogicAuto: KeyMap<CLogicAutoKeys> = [keysCBaseEntity, tableCLogicAuto]
+const keysCLogicAuto: KeyMap<CLogicAutoKeys> = { base: keysCBaseEntity, keys: tableCLogicAuto }
 
 export interface CLogicAutoCitadelKeys extends CBaseEntityKeys {}
-const keysCLogicAutoCitadel: KeyMap<CLogicAutoCitadelKeys> = [keysCBaseEntity, {}]
+const keysCLogicAutoCitadel: KeyMap<CLogicAutoCitadelKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCLogicBranch = {
   InitialValue: 'boolean',
 } as const
 export interface CLogicBranchKeys extends CBaseEntityKeys, Typed<typeof tableCLogicBranch> {}
-const keysCLogicBranch: KeyMap<CLogicBranchKeys> = [keysCBaseEntity, tableCLogicBranch]
+const keysCLogicBranch: KeyMap<CLogicBranchKeys> = { base: keysCBaseEntity, keys: tableCLogicBranch }
 
 export interface CLogicBranchListKeys extends CBaseEntityKeys {}
-const keysCLogicBranchList: KeyMap<CLogicBranchListKeys> = [keysCBaseEntity, {}]
+const keysCLogicBranchList: KeyMap<CLogicBranchListKeys> = { base: keysCBaseEntity, keys: {} }
 
 export interface CLogicCaseKeys extends CBaseEntityKeys {}
-const keysCLogicCase: KeyMap<CLogicCaseKeys> = [keysCBaseEntity, {}]
+const keysCLogicCase: KeyMap<CLogicCaseKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCLogicCollisionPair = {
   attach1: 'text',
@@ -14746,14 +14759,14 @@ const tableCLogicCollisionPair = {
   startdisabled: 'boolean',
 } as const
 export interface CLogicCollisionPairKeys extends CBaseEntityKeys, Typed<typeof tableCLogicCollisionPair> {}
-const keysCLogicCollisionPair: KeyMap<CLogicCollisionPairKeys> = [keysCBaseEntity, tableCLogicCollisionPair]
+const keysCLogicCollisionPair: KeyMap<CLogicCollisionPairKeys> = { base: keysCBaseEntity, keys: tableCLogicCollisionPair }
 
 const tableCLogicCompare = {
   CompareValue: 'number',
   InitialValue: 'number',
 } as const
 export interface CLogicCompareKeys extends CBaseEntityKeys, Typed<typeof tableCLogicCompare> {}
-const keysCLogicCompare: KeyMap<CLogicCompareKeys> = [keysCBaseEntity, tableCLogicCompare]
+const keysCLogicCompare: KeyMap<CLogicCompareKeys> = { base: keysCBaseEntity, keys: tableCLogicCompare }
 
 const tableCLogicDistanceAutosave = {
   TargetEntityName: 'text',
@@ -14762,7 +14775,7 @@ const tableCLogicDistanceAutosave = {
   CheckCough: 'boolean',
 } as const
 export interface CLogicDistanceAutosaveKeys extends CBaseEntityKeys, Typed<typeof tableCLogicDistanceAutosave> {}
-const keysCLogicDistanceAutosave: KeyMap<CLogicDistanceAutosaveKeys> = [keysCBaseEntity, tableCLogicDistanceAutosave]
+const keysCLogicDistanceAutosave: KeyMap<CLogicDistanceAutosaveKeys> = { base: keysCBaseEntity, keys: tableCLogicDistanceAutosave }
 
 const tableCLogicDistanceCheck = {
   EntityAName: 'text',
@@ -14771,13 +14784,13 @@ const tableCLogicDistanceCheck = {
   Zone2Distance: 'number',
 } as const
 export interface CLogicDistanceCheckKeys extends CBaseEntityKeys, Typed<typeof tableCLogicDistanceCheck> {}
-const keysCLogicDistanceCheck: KeyMap<CLogicDistanceCheckKeys> = [keysCBaseEntity, tableCLogicDistanceCheck]
+const keysCLogicDistanceCheck: KeyMap<CLogicDistanceCheckKeys> = { base: keysCBaseEntity, keys: tableCLogicDistanceCheck }
 
 const tableCLogicGameEvent = {
   eventName: 'text',
 } as const
 export interface CLogicGameEventKeys extends CBaseEntityKeys, Typed<typeof tableCLogicGameEvent> {}
-const keysCLogicGameEvent: KeyMap<CLogicGameEventKeys> = [keysCBaseEntity, tableCLogicGameEvent]
+const keysCLogicGameEvent: KeyMap<CLogicGameEventKeys> = { base: keysCBaseEntity, keys: tableCLogicGameEvent }
 
 const tableCLogicGameEventListener = {
   gameeventname: 'text',
@@ -14785,19 +14798,19 @@ const tableCLogicGameEventListener = {
   StartDisabled: 'boolean',
 } as const
 export interface CLogicGameEventListenerKeys extends CBaseEntityKeys, Typed<typeof tableCLogicGameEventListener> {}
-const keysCLogicGameEventListener: KeyMap<CLogicGameEventListenerKeys> = [keysCBaseEntity, tableCLogicGameEventListener]
+const keysCLogicGameEventListener: KeyMap<CLogicGameEventListenerKeys> = { base: keysCBaseEntity, keys: tableCLogicGameEventListener }
 
 const tableCLogicGameStateReport = {
   startDisabled: 'boolean',
 } as const
 export interface CLogicGameStateReportKeys extends CBaseEntityKeys, Typed<typeof tableCLogicGameStateReport> {}
-const keysCLogicGameStateReport: KeyMap<CLogicGameStateReportKeys> = [keysCBaseEntity, tableCLogicGameStateReport]
+const keysCLogicGameStateReport: KeyMap<CLogicGameStateReportKeys> = { base: keysCBaseEntity, keys: tableCLogicGameStateReport }
 
 const tableCLogicLineToEntity = {
   source: 'text',
 } as const
 export interface CLogicLineToEntityKeys extends CBaseEntityKeys, Typed<typeof tableCLogicLineToEntity> {}
-const keysCLogicLineToEntity: KeyMap<CLogicLineToEntityKeys> = [keysCBaseEntity, tableCLogicLineToEntity]
+const keysCLogicLineToEntity: KeyMap<CLogicLineToEntityKeys> = { base: keysCBaseEntity, keys: tableCLogicLineToEntity }
 
 const tableCLogicMeasureMovement = {
   MeasureTarget: 'text',
@@ -14807,7 +14820,7 @@ const tableCLogicMeasureMovement = {
   MeasureType: 'integer',
 } as const
 export interface CLogicMeasureMovementKeys extends CBaseEntityKeys, Typed<typeof tableCLogicMeasureMovement> {}
-const keysCLogicMeasureMovement: KeyMap<CLogicMeasureMovementKeys> = [keysCBaseEntity, tableCLogicMeasureMovement]
+const keysCLogicMeasureMovement: KeyMap<CLogicMeasureMovementKeys> = { base: keysCBaseEntity, keys: tableCLogicMeasureMovement }
 
 const tableCMultiLightProxy = {
   light_name: 'text',
@@ -14817,10 +14830,10 @@ const tableCMultiLightProxy = {
   screen_fade: 'boolean',
 } as const
 export interface CMultiLightProxyKeys extends CBaseEntityKeys, Typed<typeof tableCMultiLightProxy> {}
-const keysCMultiLightProxy: KeyMap<CMultiLightProxyKeys> = [keysCBaseEntity, tableCMultiLightProxy]
+const keysCMultiLightProxy: KeyMap<CMultiLightProxyKeys> = { base: keysCBaseEntity, keys: tableCMultiLightProxy }
 
 export interface CLogicNavigationKeys extends CBaseEntityKeys {}
-const keysCLogicNavigation: KeyMap<CLogicNavigationKeys> = [keysCBaseEntity, {}]
+const keysCLogicNavigation: KeyMap<CLogicNavigationKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCLogicNPCCounter = {
   minCountAll: 'integer',
@@ -14856,17 +14869,17 @@ const tableCLogicNPCCounter = {
   distanceMax: 'number',
 } as const
 export interface CLogicNPCCounterKeys extends CBaseEntityKeys, Typed<typeof tableCLogicNPCCounter> {}
-const keysCLogicNPCCounter: KeyMap<CLogicNPCCounterKeys> = [keysCBaseEntity, tableCLogicNPCCounter]
+const keysCLogicNPCCounter: KeyMap<CLogicNPCCounterKeys> = { base: keysCBaseEntity, keys: tableCLogicNPCCounter }
 
 const tableCLogicNPCCounterAABB = {
   box_outer_mins: 'vector',
   box_outer_maxs: 'vector',
 } as const
 export interface CLogicNPCCounterAABBKeys extends CLogicNPCCounterKeys, Typed<typeof tableCLogicNPCCounterAABB> {}
-const keysCLogicNPCCounterAABB: KeyMap<CLogicNPCCounterAABBKeys> = [keysCLogicNPCCounter, tableCLogicNPCCounterAABB]
+const keysCLogicNPCCounterAABB: KeyMap<CLogicNPCCounterAABBKeys> = { base: keysCLogicNPCCounter, keys: tableCLogicNPCCounterAABB }
 
 export interface CLogicPlayerProxyBaseKeys extends CBaseEntityKeys {}
-const keysCLogicPlayerProxyBase: KeyMap<CLogicPlayerProxyBaseKeys> = [keysCBaseEntity, {}]
+const keysCLogicPlayerProxyBase: KeyMap<CLogicPlayerProxyBaseKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCLogicRelay = {
   StartDisabled: 'boolean',
@@ -14875,13 +14888,13 @@ const tableCLogicRelay = {
   PassthroughCaller: 'boolean',
 } as const
 export interface CLogicRelayKeys extends CBaseEntityKeys, Typed<typeof tableCLogicRelay> {}
-const keysCLogicRelay: KeyMap<CLogicRelayKeys> = [keysCBaseEntity, tableCLogicRelay]
+const keysCLogicRelay: KeyMap<CLogicRelayKeys> = { base: keysCBaseEntity, keys: tableCLogicRelay }
 
 export interface CSceneListManagerKeys extends CBaseEntityKeys {}
-const keysCSceneListManager: KeyMap<CSceneListManagerKeys> = [keysCBaseEntity, {}]
+const keysCSceneListManager: KeyMap<CSceneListManagerKeys> = { base: keysCBaseEntity, keys: {} }
 
 export interface CLogicScriptKeys extends CPointEntityKeys {}
-const keysCLogicScript: KeyMap<CLogicScriptKeys> = [keysCPointEntity, {}]
+const keysCLogicScript: KeyMap<CLogicScriptKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCTimerEntity = {
   StartDisabled: 'integer',
@@ -14893,13 +14906,13 @@ const tableCTimerEntity = {
   UpperRandomBound: 'number',
 } as const
 export interface CTimerEntityKeys extends CBaseEntityKeys, Typed<typeof tableCTimerEntity> {}
-const keysCTimerEntity: KeyMap<CTimerEntityKeys> = [keysCBaseEntity, tableCTimerEntity]
+const keysCTimerEntity: KeyMap<CTimerEntityKeys> = { base: keysCBaseEntity, keys: tableCTimerEntity }
 
 const tableCMapSharedEnvironment = {
   targetMapName: 'text',
 } as const
 export interface CMapSharedEnvironmentKeys extends CBaseEntityKeys, Typed<typeof tableCMapSharedEnvironment> {}
-const keysCMapSharedEnvironment: KeyMap<CMapSharedEnvironmentKeys> = [keysCBaseEntity, tableCMapSharedEnvironment]
+const keysCMapSharedEnvironment: KeyMap<CMapSharedEnvironmentKeys> = { base: keysCBaseEntity, keys: tableCMapSharedEnvironment }
 
 const tableCMathColorBlend = {
   inmin: 'number',
@@ -14908,7 +14921,7 @@ const tableCMathColorBlend = {
   colormax: 'color',
 } as const
 export interface CMathColorBlendKeys extends CBaseEntityKeys, Typed<typeof tableCMathColorBlend> {}
-const keysCMathColorBlend: KeyMap<CMathColorBlendKeys> = [keysCBaseEntity, tableCMathColorBlend]
+const keysCMathColorBlend: KeyMap<CMathColorBlendKeys> = { base: keysCBaseEntity, keys: tableCMathColorBlend }
 
 const tableCMathCounter = {
   min: 'number',
@@ -14916,7 +14929,7 @@ const tableCMathCounter = {
   StartDisabled: 'boolean',
 } as const
 export interface CMathCounterKeys extends CBaseEntityKeys, Typed<typeof tableCMathCounter> {}
-const keysCMathCounter: KeyMap<CMathCounterKeys> = [keysCBaseEntity, tableCMathCounter]
+const keysCMathCounter: KeyMap<CMathCounterKeys> = { base: keysCBaseEntity, keys: tableCMathCounter }
 
 const tableCMathRemap = {
   in1: 'number',
@@ -14925,7 +14938,7 @@ const tableCMathRemap = {
   out2: 'number',
 } as const
 export interface CMathRemapKeys extends CBaseEntityKeys, Typed<typeof tableCMathRemap> {}
-const keysCMathRemap: KeyMap<CMathRemapKeys> = [keysCBaseEntity, tableCMathRemap]
+const keysCMathRemap: KeyMap<CMathRemapKeys> = { base: keysCBaseEntity, keys: tableCMathRemap }
 
 const tableCMomentaryRotButton = {
   StartDirection: 'integer',
@@ -14934,42 +14947,42 @@ const tableCMomentaryRotButton = {
   solidbsp: 'boolean',
 } as const
 export interface CMomentaryRotButtonKeys extends CBaseButtonKeys, Typed<typeof tableCMomentaryRotButton> {}
-const keysCMomentaryRotButton: KeyMap<CMomentaryRotButtonKeys> = [keysCBaseButton, tableCMomentaryRotButton]
+const keysCMomentaryRotButton: KeyMap<CMomentaryRotButtonKeys> = { base: keysCBaseButton, keys: tableCMomentaryRotButton }
 
 const tableCMultiSource = {
   globalstate: 'text',
 } as const
 export interface CMultiSourceKeys extends CBaseEntityKeys, Typed<typeof tableCMultiSource> {}
-const keysCMultiSource: KeyMap<CMultiSourceKeys> = [keysCBaseEntity, tableCMultiSource]
+const keysCMultiSource: KeyMap<CMultiSourceKeys> = { base: keysCBaseEntity, keys: tableCMultiSource }
 
 const tableCNPC_BarrackBoss = {
   LaneSide: 'integer',
   LaneNum: 'integer',
 } as const
 export interface CNPC_BarrackBossKeys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_BarrackBoss> {}
-const keysCNPC_BarrackBoss: KeyMap<CNPC_BarrackBossKeys> = [keysCAI_CitadelNPC, tableCNPC_BarrackBoss]
+const keysCNPC_BarrackBoss: KeyMap<CNPC_BarrackBossKeys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_BarrackBoss }
 
 export interface CNPC_SimpleAnimatingAIKeys extends CBaseAnimGraphKeys {}
-const keysCNPC_SimpleAnimatingAI: KeyMap<CNPC_SimpleAnimatingAIKeys> = [keysCBaseAnimGraph, {}]
+const keysCNPC_SimpleAnimatingAI: KeyMap<CNPC_SimpleAnimatingAIKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
 const tableCNPC_BaseDefenseSentry = {
   attack_cone: 'number',
   sentry_level: 'integer',
 } as const
 export interface CNPC_BaseDefenseSentryKeys extends CNPC_SimpleAnimatingAIKeys, Typed<typeof tableCNPC_BaseDefenseSentry> {}
-const keysCNPC_BaseDefenseSentry: KeyMap<CNPC_BaseDefenseSentryKeys> = [keysCNPC_SimpleAnimatingAI, tableCNPC_BaseDefenseSentry]
+const keysCNPC_BaseDefenseSentry: KeyMap<CNPC_BaseDefenseSentryKeys> = { base: keysCNPC_SimpleAnimatingAI, keys: tableCNPC_BaseDefenseSentry }
 
 const tableCNPC_Boss_Tier2 = {
   LaneNum: 'integer',
 } as const
 export interface CNPC_Boss_Tier2Keys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_Boss_Tier2> {}
-const keysCNPC_Boss_Tier2: KeyMap<CNPC_Boss_Tier2Keys> = [keysCAI_CitadelNPC, tableCNPC_Boss_Tier2]
+const keysCNPC_Boss_Tier2: KeyMap<CNPC_Boss_Tier2Keys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_Boss_Tier2 }
 
 const tableCNPC_Boss_Tier3 = {
   BackdoorProtectionTrigger: 'text',
 } as const
 export interface CNPC_Boss_Tier3Keys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_Boss_Tier3> {}
-const keysCNPC_Boss_Tier3: KeyMap<CNPC_Boss_Tier3Keys> = [keysCAI_CitadelNPC, tableCNPC_Boss_Tier3]
+const keysCNPC_Boss_Tier3: KeyMap<CNPC_Boss_Tier3Keys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_Boss_Tier3 }
 
 const tableCBaseNPCMaker = {
   CriterionVisibility: 'integer',
@@ -14989,7 +15002,7 @@ const tableCBaseNPCMaker = {
   ZeroPitchAndRoll: 'boolean',
 } as const
 export interface CBaseNPCMakerKeys extends CBaseEntityKeys, Typed<typeof tableCBaseNPCMaker> {}
-const keysCBaseNPCMaker: KeyMap<CBaseNPCMakerKeys> = [keysCBaseEntity, tableCBaseNPCMaker]
+const keysCBaseNPCMaker: KeyMap<CBaseNPCMakerKeys> = { base: keysCBaseEntity, keys: tableCBaseNPCMaker }
 
 const tableCNPCMaker = {
   NPCType: 'text',
@@ -14999,20 +15012,20 @@ const tableCNPCMaker = {
   Relationship: 'text',
 } as const
 export interface CNPCMakerKeys extends CBaseNPCMakerKeys, Typed<typeof tableCNPCMaker> {}
-const keysCNPCMaker: KeyMap<CNPCMakerKeys> = [keysCBaseNPCMaker, tableCNPCMaker]
+const keysCNPCMaker: KeyMap<CNPCMakerKeys> = { base: keysCBaseNPCMaker, keys: tableCNPCMaker }
 
 const tableCNecro_HauntingSkullEntity = {
   skull_state: 'integer',
 } as const
 export interface CNecro_HauntingSkullEntityKeys extends CBaseModelEntityKeys, Typed<typeof tableCNecro_HauntingSkullEntity> {}
-const keysCNecro_HauntingSkullEntity: KeyMap<CNecro_HauntingSkullEntityKeys> = [keysCBaseModelEntity, tableCNecro_HauntingSkullEntity]
+const keysCNecro_HauntingSkullEntity: KeyMap<CNecro_HauntingSkullEntityKeys> = { base: keysCBaseModelEntity, keys: tableCNecro_HauntingSkullEntity }
 
 const tableCNPC_NecroSkele = {
   cast_location: 'vector',
   dont_move: 'boolean',
 } as const
 export interface CNPC_NecroSkeleKeys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_NecroSkele> {}
-const keysCNPC_NecroSkele: KeyMap<CNPC_NecroSkeleKeys> = [keysCAI_CitadelNPC, tableCNPC_NecroSkele]
+const keysCNPC_NecroSkele: KeyMap<CNPC_NecroSkeleKeys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_NecroSkele }
 
 const tableCNPC_Ratking_Rat = {
   spread_offset: 'number',
@@ -15023,37 +15036,37 @@ const tableCNPC_Ratking_Rat = {
   run_direction: 'vector',
 } as const
 export interface CNPC_Ratking_RatKeys extends CBaseAnimGraphKeys, Typed<typeof tableCNPC_Ratking_Rat> {}
-const keysCNPC_Ratking_Rat: KeyMap<CNPC_Ratking_RatKeys> = [keysCBaseAnimGraph, tableCNPC_Ratking_Rat]
+const keysCNPC_Ratking_Rat: KeyMap<CNPC_Ratking_RatKeys> = { base: keysCBaseAnimGraph, keys: tableCNPC_Ratking_Rat }
 
 const tableCTemplateNPCMaker = {
   worldName: 'text',
   entityLumpName: 'text',
 } as const
 export interface CTemplateNPCMakerKeys extends CBaseNPCMakerKeys, Typed<typeof tableCTemplateNPCMaker> {}
-const keysCTemplateNPCMaker: KeyMap<CTemplateNPCMakerKeys> = [keysCBaseNPCMaker, tableCTemplateNPCMaker]
+const keysCTemplateNPCMaker: KeyMap<CTemplateNPCMakerKeys> = { base: keysCBaseNPCMaker, keys: tableCTemplateNPCMaker }
 
 const tableCNPC_Trooper = {
   LaneNum: 'integer',
   LaneSlot: 'integer',
 } as const
 export interface CNPC_TrooperKeys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_Trooper> {}
-const keysCNPC_Trooper: KeyMap<CNPC_TrooperKeys> = [keysCAI_CitadelNPC, tableCNPC_Trooper]
+const keysCNPC_Trooper: KeyMap<CNPC_TrooperKeys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_Trooper }
 
 const tableCNPC_TrooperBoss = {
   LaneSide: 'integer',
   LaneNum: 'integer',
 } as const
 export interface CNPC_TrooperBossKeys extends CAI_CitadelNPCKeys, Typed<typeof tableCNPC_TrooperBoss> {}
-const keysCNPC_TrooperBoss: KeyMap<CNPC_TrooperBossKeys> = [keysCAI_CitadelNPC, tableCNPC_TrooperBoss]
+const keysCNPC_TrooperBoss: KeyMap<CNPC_TrooperBossKeys> = { base: keysCAI_CitadelNPC, keys: tableCNPC_TrooperBoss }
 
 export interface CCitadelObserverPawnKeys extends CBasePlayerPawnKeys {}
-const keysCCitadelObserverPawn: KeyMap<CCitadelObserverPawnKeys> = [keysCBasePlayerPawn, {}]
+const keysCCitadelObserverPawn: KeyMap<CCitadelObserverPawnKeys> = { base: keysCBasePlayerPawn, keys: {} }
 
 const tableCPathAccompany = {
   allow_auto_lead: 'boolean',
 } as const
 export interface CPathAccompanyKeys extends CBaseEntityKeys, Typed<typeof tableCPathAccompany> {}
-const keysCPathAccompany: KeyMap<CPathAccompanyKeys> = [keysCBaseEntity, tableCPathAccompany]
+const keysCPathAccompany: KeyMap<CPathAccompanyKeys> = { base: keysCBaseEntity, keys: tableCPathAccompany }
 
 const tableCPathCorner = {
   wait: 'number',
@@ -15067,19 +15080,19 @@ const tableCPathCorner = {
   exact_positioning: 'boolean',
 } as const
 export interface CPathCornerKeys extends CPointEntityKeys, Typed<typeof tableCPathCorner> {}
-const keysCPathCorner: KeyMap<CPathCornerKeys> = [keysCPointEntity, tableCPathCorner]
+const keysCPathCorner: KeyMap<CPathCornerKeys> = { base: keysCPointEntity, keys: tableCPathCorner }
 
 const tableCPathSimple = {
   closed_loop: 'boolean',
 } as const
 export interface CPathSimpleKeys extends CBaseEntityKeys, Typed<typeof tableCPathSimple> {}
-const keysCPathSimple: KeyMap<CPathSimpleKeys> = [keysCBaseEntity, tableCPathSimple]
+const keysCPathSimple: KeyMap<CPathSimpleKeys> = { base: keysCBaseEntity, keys: tableCPathSimple }
 
 const tableCPathWithDynamicNodes = {
   preferred_direction: 'integer',
 } as const
 export interface CPathWithDynamicNodesKeys extends CPathSimpleKeys, Typed<typeof tableCPathWithDynamicNodes> {}
-const keysCPathWithDynamicNodes: KeyMap<CPathWithDynamicNodesKeys> = [keysCPathSimple, tableCPathWithDynamicNodes]
+const keysCPathWithDynamicNodes: KeyMap<CPathWithDynamicNodesKeys> = { base: keysCPathSimple, keys: tableCPathWithDynamicNodes }
 
 const tableCPathMover = {
   path_mover_spawner_name: 'text',
@@ -15088,7 +15101,7 @@ const tableCPathMover = {
   ignore_parent_rotation: 'boolean',
 } as const
 export interface CPathMoverKeys extends CPathWithDynamicNodesKeys, Typed<typeof tableCPathMover> {}
-const keysCPathMover: KeyMap<CPathMoverKeys> = [keysCPathWithDynamicNodes, tableCPathMover]
+const keysCPathMover: KeyMap<CPathMoverKeys> = { base: keysCPathWithDynamicNodes, keys: tableCPathMover }
 
 const tableCPathMoverEntitySpawner = {
   enabled: 'boolean',
@@ -15102,7 +15115,7 @@ const tableCPathMoverEntitySpawner = {
   path_node_start_name: 'text',
 } as const
 export interface CPathMoverEntitySpawnerKeys extends CBaseEntityKeys, Typed<typeof tableCPathMoverEntitySpawner> {}
-const keysCPathMoverEntitySpawner: KeyMap<CPathMoverEntitySpawnerKeys> = [keysCBaseEntity, tableCPathMoverEntitySpawner]
+const keysCPathMoverEntitySpawner: KeyMap<CPathMoverEntitySpawnerKeys> = { base: keysCBaseEntity, keys: tableCPathMoverEntitySpawner }
 
 const tableCPathTrack = {
   radius: 'number',
@@ -15111,7 +15124,7 @@ const tableCPathTrack = {
   speed: 'number',
 } as const
 export interface CPathTrackKeys extends CPointEntityKeys, Typed<typeof tableCPathTrack> {}
-const keysCPathTrack: KeyMap<CPathTrackKeys> = [keysCPointEntity, tableCPathTrack]
+const keysCPathTrack: KeyMap<CPathTrackKeys> = { base: keysCPointEntity, keys: tableCPathTrack }
 
 const tableCPhysMagnet = {
   massScale: 'number',
@@ -15120,7 +15133,7 @@ const tableCPhysMagnet = {
   torquelimit: 'number',
 } as const
 export interface CPhysMagnetKeys extends CBaseAnimGraphKeys, Typed<typeof tableCPhysMagnet> {}
-const keysCPhysMagnet: KeyMap<CPhysMagnetKeys> = [keysCBaseAnimGraph, tableCPhysMagnet]
+const keysCPhysMagnet: KeyMap<CPhysMagnetKeys> = { base: keysCBaseAnimGraph, keys: tableCPhysMagnet }
 
 const tableCPhysMotor = {
   attach1: 'text',
@@ -15133,7 +15146,7 @@ const tableCPhysMotor = {
   inertiafactor: 'number',
 } as const
 export interface CPhysMotorKeys extends CBaseEntityKeys, Typed<typeof tableCPhysMotor> {}
-const keysCPhysMotor: KeyMap<CPhysMotorKeys> = [keysCBaseEntity, tableCPhysMotor]
+const keysCPhysMotor: KeyMap<CPhysMotorKeys> = { base: keysCBaseEntity, keys: tableCPhysMotor }
 
 const tableCRagdollMagnet = {
   radius: 'number',
@@ -15142,7 +15155,7 @@ const tableCRagdollMagnet = {
   StartDisabled: 'boolean',
 } as const
 export interface CRagdollMagnetKeys extends CPointEntityKeys, Typed<typeof tableCRagdollMagnet> {}
-const keysCRagdollMagnet: KeyMap<CRagdollMagnetKeys> = [keysCPointEntity, tableCRagdollMagnet]
+const keysCRagdollMagnet: KeyMap<CRagdollMagnetKeys> = { base: keysCPointEntity, keys: tableCRagdollMagnet }
 
 const tableCPhysForce = {
   attach1: 'text',
@@ -15150,19 +15163,19 @@ const tableCPhysForce = {
   forcetime: 'number',
 } as const
 export interface CPhysForceKeys extends CPointEntityKeys, Typed<typeof tableCPhysForce> {}
-const keysCPhysForce: KeyMap<CPhysForceKeys> = [keysCPointEntity, tableCPhysForce]
+const keysCPhysForce: KeyMap<CPhysForceKeys> = { base: keysCPointEntity, keys: tableCPhysForce }
 
 const tableCPhysTorque = {
   axis: 'vector',
 } as const
 export interface CPhysTorqueKeys extends CPhysForceKeys, Typed<typeof tableCPhysTorque> {}
-const keysCPhysTorque: KeyMap<CPhysTorqueKeys> = [keysCPhysForce, tableCPhysTorque]
+const keysCPhysTorque: KeyMap<CPhysTorqueKeys> = { base: keysCPhysForce, keys: tableCPhysTorque }
 
 const tableCPhysicsEntitySolver = {
   duration: 'number',
 } as const
 export interface CPhysicsEntitySolverKeys extends CBaseEntityKeys, Typed<typeof tableCPhysicsEntitySolver> {}
-const keysCPhysicsEntitySolver: KeyMap<CPhysicsEntitySolverKeys> = [keysCBaseEntity, tableCPhysicsEntitySolver]
+const keysCPhysicsEntitySolver: KeyMap<CPhysicsEntitySolverKeys> = { base: keysCBaseEntity, keys: tableCPhysicsEntitySolver }
 
 const tableCRagdollProp = {
   StartDisabled: 'boolean',
@@ -15170,7 +15183,7 @@ const tableCRagdollProp = {
   buoyancyScale: 'number',
 } as const
 export interface CRagdollPropKeys extends CBaseAnimGraphKeys, Typed<typeof tableCRagdollProp> {}
-const keysCRagdollProp: KeyMap<CRagdollPropKeys> = [keysCBaseAnimGraph, tableCRagdollProp]
+const keysCRagdollProp: KeyMap<CRagdollPropKeys> = { base: keysCBaseAnimGraph, keys: tableCRagdollProp }
 
 const tableCRevertSaved = {
   loadtime: 'number',
@@ -15178,13 +15191,13 @@ const tableCRevertSaved = {
   holdtime: 'number',
 } as const
 export interface CRevertSavedKeys extends CBaseModelEntityKeys, Typed<typeof tableCRevertSaved> {}
-const keysCRevertSaved: KeyMap<CRevertSavedKeys> = [keysCBaseModelEntity, tableCRevertSaved]
+const keysCRevertSaved: KeyMap<CRevertSavedKeys> = { base: keysCBaseModelEntity, keys: tableCRevertSaved }
 
 const tableCPlayerSprayDecal = {
   player_slot: 'integer',
 } as const
 export interface CPlayerSprayDecalKeys extends CBaseModelEntityKeys, Typed<typeof tableCPlayerSprayDecal> {}
-const keysCPlayerSprayDecal: KeyMap<CPlayerSprayDecalKeys> = [keysCBaseModelEntity, tableCPlayerSprayDecal]
+const keysCPlayerSprayDecal: KeyMap<CPlayerSprayDecalKeys> = { base: keysCBaseModelEntity, keys: tableCPlayerSprayDecal }
 
 const tableCPointAngleSensor = {
   StartDisabled: 'boolean',
@@ -15192,7 +15205,7 @@ const tableCPointAngleSensor = {
   duration: 'number',
 } as const
 export interface CPointAngleSensorKeys extends CPointEntityKeys, Typed<typeof tableCPointAngleSensor> {}
-const keysCPointAngleSensor: KeyMap<CPointAngleSensorKeys> = [keysCPointEntity, tableCPointAngleSensor]
+const keysCPointAngleSensor: KeyMap<CPointAngleSensorKeys> = { base: keysCPointEntity, keys: tableCPointAngleSensor }
 
 const tableCPointAngularVelocitySensor = {
   threshold: 'number',
@@ -15201,10 +15214,10 @@ const tableCPointAngularVelocitySensor = {
   usehelper: 'boolean',
 } as const
 export interface CPointAngularVelocitySensorKeys extends CPointEntityKeys, Typed<typeof tableCPointAngularVelocitySensor> {}
-const keysCPointAngularVelocitySensor: KeyMap<CPointAngularVelocitySensorKeys> = [keysCPointEntity, tableCPointAngularVelocitySensor]
+const keysCPointAngularVelocitySensor: KeyMap<CPointAngularVelocitySensorKeys> = { base: keysCPointEntity, keys: tableCPointAngularVelocitySensor }
 
 export interface CPointBroadcastClientCommandKeys extends CPointEntityKeys {}
-const keysCPointBroadcastClientCommand: KeyMap<CPointBroadcastClientCommandKeys> = [keysCPointEntity, {}]
+const keysCPointBroadcastClientCommand: KeyMap<CPointBroadcastClientCommandKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCPointCamera = {
   FOV: 'number',
@@ -15228,7 +15241,7 @@ const tableCPointCamera = {
   dac_dof_tilt_to_ground: 'number',
 } as const
 export interface CPointCameraKeys extends CBaseEntityKeys, Typed<typeof tableCPointCamera> {}
-const keysCPointCamera: KeyMap<CPointCameraKeys> = [keysCBaseEntity, tableCPointCamera]
+const keysCPointCamera: KeyMap<CPointCameraKeys> = { base: keysCBaseEntity, keys: tableCPointCamera }
 
 const tableCPointCameraVFOV = {
   VerticalFOV: 'number',
@@ -15237,25 +15250,25 @@ const tableCPointCameraVFOV = {
   dof_tilt_to_ground: 'number',
 } as const
 export interface CPointCameraVFOVKeys extends CPointCameraKeys, Typed<typeof tableCPointCameraVFOV> {}
-const keysCPointCameraVFOV: KeyMap<CPointCameraVFOVKeys> = [keysCPointCamera, tableCPointCameraVFOV]
+const keysCPointCameraVFOV: KeyMap<CPointCameraVFOVKeys> = { base: keysCPointCamera, keys: tableCPointCameraVFOV }
 
 const tableCPointChildModifier = {
   orphan_children_on_remove: 'boolean',
 } as const
 export interface CPointChildModifierKeys extends CPointEntityKeys, Typed<typeof tableCPointChildModifier> {}
-const keysCPointChildModifier: KeyMap<CPointChildModifierKeys> = [keysCPointEntity, tableCPointChildModifier]
+const keysCPointChildModifier: KeyMap<CPointChildModifierKeys> = { base: keysCPointEntity, keys: tableCPointChildModifier }
 
 export interface CPointClientCommandKeys extends CPointEntityKeys {}
-const keysCPointClientCommand: KeyMap<CPointClientCommandKeys> = [keysCPointEntity, {}]
+const keysCPointClientCommand: KeyMap<CPointClientCommandKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCPointClientUIDialog = {
   StartEnabled: 'boolean',
 } as const
 export interface CPointClientUIDialogKeys extends CBaseClientUIEntityKeys, Typed<typeof tableCPointClientUIDialog> {}
-const keysCPointClientUIDialog: KeyMap<CPointClientUIDialogKeys> = [keysCBaseClientUIEntity, tableCPointClientUIDialog]
+const keysCPointClientUIDialog: KeyMap<CPointClientUIDialogKeys> = { base: keysCBaseClientUIEntity, keys: tableCPointClientUIDialog }
 
 export interface CPointClientUIWorldTextPanelKeys extends CPointClientUIWorldPanelKeys {}
-const keysCPointClientUIWorldTextPanel: KeyMap<CPointClientUIWorldTextPanelKeys> = [keysCPointClientUIWorldPanel, {}]
+const keysCPointClientUIWorldTextPanel: KeyMap<CPointClientUIWorldTextPanelKeys> = { base: keysCPointClientUIWorldPanel, keys: {} }
 
 const tableCPointCommentaryNode = {
   precommands: 'text',
@@ -15271,7 +15284,7 @@ const tableCPointCommentaryNode = {
   teleport_origin: 'vector',
 } as const
 export interface CPointCommentaryNodeKeys extends CBaseAnimGraphKeys, Typed<typeof tableCPointCommentaryNode> {}
-const keysCPointCommentaryNode: KeyMap<CPointCommentaryNodeKeys> = [keysCBaseAnimGraph, tableCPointCommentaryNode]
+const keysCPointCommentaryNode: KeyMap<CPointCommentaryNodeKeys> = { base: keysCBaseAnimGraph, keys: tableCPointCommentaryNode }
 
 const tableCPointEntityFinder = {
   method: 'integer',
@@ -15279,7 +15292,7 @@ const tableCPointEntityFinder = {
   referencename: 'text',
 } as const
 export interface CPointEntityFinderKeys extends CBaseEntityKeys, Typed<typeof tableCPointEntityFinder> {}
-const keysCPointEntityFinder: KeyMap<CPointEntityFinderKeys> = [keysCBaseEntity, tableCPointEntityFinder]
+const keysCPointEntityFinder: KeyMap<CPointEntityFinderKeys> = { base: keysCBaseEntity, keys: tableCPointEntityFinder }
 
 const tableCPointHurt = {
   DamageRadius: 'number',
@@ -15289,14 +15302,14 @@ const tableCPointHurt = {
   DamageTarget: 'text',
 } as const
 export interface CPointHurtKeys extends CPointEntityKeys, Typed<typeof tableCPointHurt> {}
-const keysCPointHurt: KeyMap<CPointHurtKeys> = [keysCPointEntity, tableCPointHurt]
+const keysCPointHurt: KeyMap<CPointHurtKeys> = { base: keysCPointEntity, keys: tableCPointHurt }
 
 const tableCInstructorEventEntity = {
   hint_name: 'text',
   hint_target: 'text',
 } as const
 export interface CInstructorEventEntityKeys extends CPointEntityKeys, Typed<typeof tableCInstructorEventEntity> {}
-const keysCInstructorEventEntity: KeyMap<CInstructorEventEntityKeys> = [keysCPointEntity, tableCInstructorEventEntity]
+const keysCInstructorEventEntity: KeyMap<CInstructorEventEntityKeys> = { base: keysCPointEntity, keys: tableCInstructorEventEntity }
 
 const tableCMessageEntity = {
   radius: 'integer',
@@ -15304,13 +15317,13 @@ const tableCMessageEntity = {
   developeronly: 'boolean',
 } as const
 export interface CMessageEntityKeys extends CPointEntityKeys, Typed<typeof tableCMessageEntity> {}
-const keysCMessageEntity: KeyMap<CMessageEntityKeys> = [keysCPointEntity, tableCMessageEntity]
+const keysCMessageEntity: KeyMap<CMessageEntityKeys> = { base: keysCPointEntity, keys: tableCMessageEntity }
 
 const tableCPointModifierThinker = {
   send_to_clients: 'boolean',
 } as const
 export interface CPointModifierThinkerKeys extends CBaseEntityKeys, Typed<typeof tableCPointModifierThinker> {}
-const keysCPointModifierThinker: KeyMap<CPointModifierThinkerKeys> = [keysCBaseEntity, tableCPointModifierThinker]
+const keysCPointModifierThinker: KeyMap<CPointModifierThinkerKeys> = { base: keysCBaseEntity, keys: tableCPointModifierThinker }
 
 const tableCPointOrient = {
   orient_towards: 'text',
@@ -15320,13 +15333,13 @@ const tableCPointOrient = {
   max_turn_rate: 'number',
 } as const
 export interface CPointOrientKeys extends CBaseEntityKeys, Typed<typeof tableCPointOrient> {}
-const keysCPointOrient: KeyMap<CPointOrientKeys> = [keysCBaseEntity, tableCPointOrient]
+const keysCPointOrient: KeyMap<CPointOrientKeys> = { base: keysCBaseEntity, keys: tableCPointOrient }
 
 const tableCPointProximitySensor = {
   StartDisabled: 'boolean',
 } as const
 export interface CPointProximitySensorKeys extends CPointEntityKeys, Typed<typeof tableCPointProximitySensor> {}
-const keysCPointProximitySensor: KeyMap<CPointProximitySensorKeys> = [keysCPointEntity, tableCPointProximitySensor]
+const keysCPointProximitySensor: KeyMap<CPointProximitySensorKeys> = { base: keysCPointEntity, keys: tableCPointProximitySensor }
 
 const tableCPointPush = {
   enabled: 'boolean',
@@ -15337,17 +15350,17 @@ const tableCPointPush = {
   filtername: 'text',
 } as const
 export interface CPointPushKeys extends CPointEntityKeys, Typed<typeof tableCPointPush> {}
-const keysCPointPush: KeyMap<CPointPushKeys> = [keysCPointEntity, tableCPointPush]
+const keysCPointPush: KeyMap<CPointPushKeys> = { base: keysCPointEntity, keys: tableCPointPush }
 
 export interface CPointServerCommandKeys extends CPointEntityKeys {}
-const keysCPointServerCommand: KeyMap<CPointServerCommandKeys> = [keysCPointEntity, {}]
+const keysCPointServerCommand: KeyMap<CPointServerCommandKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCPointTeleport = {
   teleport_parented_entities: 'boolean',
   teleport_use_current_angle: 'boolean',
 } as const
 export interface CPointTeleportKeys extends CBaseEntityKeys, Typed<typeof tableCPointTeleport> {}
-const keysCPointTeleport: KeyMap<CPointTeleportKeys> = [keysCBaseEntity, tableCPointTeleport]
+const keysCPointTeleport: KeyMap<CPointTeleportKeys> = { base: keysCBaseEntity, keys: tableCPointTeleport }
 
 const tableCPointTemplate = {
   worldName: 'text',
@@ -15359,7 +15372,7 @@ const tableCPointTemplate = {
   createClientOnlyEntities: 'integer',
 } as const
 export interface CPointTemplateKeys extends CBaseEntityKeys, Typed<typeof tableCPointTemplate> {}
-const keysCPointTemplate: KeyMap<CPointTemplateKeys> = [keysCBaseEntity, tableCPointTemplate]
+const keysCPointTemplate: KeyMap<CPointTemplateKeys> = { base: keysCBaseEntity, keys: tableCPointTemplate }
 
 const tableCPointValueRemapper = {
   StartDisabled: 'boolean',
@@ -15390,7 +15403,7 @@ const tableCPointValueRemapper = {
   soundMovingLoop: 'text',
 } as const
 export interface CPointValueRemapperKeys extends CBaseEntityKeys, Typed<typeof tableCPointValueRemapper> {}
-const keysCPointValueRemapper: KeyMap<CPointValueRemapperKeys> = [keysCBaseEntity, tableCPointValueRemapper]
+const keysCPointValueRemapper: KeyMap<CPointValueRemapperKeys> = { base: keysCBaseEntity, keys: tableCPointValueRemapper }
 
 const tableCPointVelocitySensor = {
   axis: 'vector',
@@ -15398,7 +15411,7 @@ const tableCPointVelocitySensor = {
   avginterval: 'number',
 } as const
 export interface CPointVelocitySensorKeys extends CPointEntityKeys, Typed<typeof tableCPointVelocitySensor> {}
-const keysCPointVelocitySensor: KeyMap<CPointVelocitySensorKeys> = [keysCPointEntity, tableCPointVelocitySensor]
+const keysCPointVelocitySensor: KeyMap<CPointVelocitySensorKeys> = { base: keysCPointEntity, keys: tableCPointVelocitySensor }
 
 const tableCPointWorldText = {
   enabled: 'boolean',
@@ -15416,7 +15429,7 @@ const tableCPointWorldText = {
   reorient_mode: 'integer',
 } as const
 export interface CPointWorldTextKeys extends CBaseModelEntityKeys, Typed<typeof tableCPointWorldText> {}
-const keysCPointWorldText: KeyMap<CPointWorldTextKeys> = [keysCBaseModelEntity, tableCPointWorldText]
+const keysCPointWorldText: KeyMap<CPointWorldTextKeys> = { base: keysCBaseModelEntity, keys: tableCPointWorldText }
 
 const tableCPostProcessingVolume = {
   postprocessing: 'text',
@@ -15432,13 +15445,13 @@ const tableCPostProcessingVolume = {
   enableexposure: 'boolean',
 } as const
 export interface CPostProcessingVolumeKeys extends CBaseTriggerKeys, Typed<typeof tableCPostProcessingVolume> {}
-const keysCPostProcessingVolume: KeyMap<CPostProcessingVolumeKeys> = [keysCBaseTrigger, tableCPostProcessingVolume]
+const keysCPostProcessingVolume: KeyMap<CPostProcessingVolumeKeys> = { base: keysCBaseTrigger, keys: tableCPostProcessingVolume }
 
 export interface CCitadelProjectileTouchVolumeKeys extends CBaseModelEntityKeys {}
-const keysCCitadelProjectileTouchVolume: KeyMap<CCitadelProjectileTouchVolumeKeys> = [keysCBaseModelEntity, {}]
+const keysCCitadelProjectileTouchVolume: KeyMap<CCitadelProjectileTouchVolumeKeys> = { base: keysCBaseModelEntity, keys: {} }
 
 export interface CPropAnimatingBreakableKeys extends CBaseAnimGraphKeys {}
-const keysCPropAnimatingBreakable: KeyMap<CPropAnimatingBreakableKeys> = [keysCBaseAnimGraph, {}]
+const keysCPropAnimatingBreakable: KeyMap<CPropAnimatingBreakableKeys> = { base: keysCBaseAnimGraph, keys: {} }
 
 const tableCBasePropDoor = {
   hardware: 'integer',
@@ -15457,7 +15470,7 @@ const tableCBasePropDoor = {
   unlocked_sound: 'text',
 } as const
 export interface CBasePropDoorKeys extends CDynamicPropKeys, Typed<typeof tableCBasePropDoor> {}
-const keysCBasePropDoor: KeyMap<CBasePropDoorKeys> = [keysCDynamicProp, tableCBasePropDoor]
+const keysCBasePropDoor: KeyMap<CBasePropDoorKeys> = { base: keysCDynamicProp, keys: tableCBasePropDoor }
 
 const tableCPropDoorRotating = {
   spawnpos: 'integer',
@@ -15468,31 +15481,31 @@ const tableCPropDoorRotating = {
   ajardoorshouldntalwaysopen: 'boolean',
 } as const
 export interface CPropDoorRotatingKeys extends CBasePropDoorKeys, Typed<typeof tableCPropDoorRotating> {}
-const keysCPropDoorRotating: KeyMap<CPropDoorRotatingKeys> = [keysCBasePropDoor, tableCPropDoorRotating]
+const keysCPropDoorRotating: KeyMap<CPropDoorRotatingKeys> = { base: keysCBasePropDoor, keys: tableCPropDoorRotating }
 
 const tableCOrnamentProp = {
   InitialOwner: 'text',
 } as const
 export interface COrnamentPropKeys extends CDynamicPropKeys, Typed<typeof tableCOrnamentProp> {}
-const keysCOrnamentProp: KeyMap<COrnamentPropKeys> = [keysCDynamicProp, tableCOrnamentProp]
+const keysCOrnamentProp: KeyMap<COrnamentPropKeys> = { base: keysCDynamicProp, keys: tableCOrnamentProp }
 
 const tableCPhysicsPropRespawnable = {
   RespawnTime: 'number',
 } as const
 export interface CPhysicsPropRespawnableKeys extends CPhysicsPropKeys, Typed<typeof tableCPhysicsPropRespawnable> {}
-const keysCPhysicsPropRespawnable: KeyMap<CPhysicsPropRespawnableKeys> = [keysCPhysicsProp, tableCPhysicsPropRespawnable]
+const keysCPhysicsPropRespawnable: KeyMap<CPhysicsPropRespawnableKeys> = { base: keysCPhysicsProp, keys: tableCPhysicsPropRespawnable }
 
 const tableCPulseGameBlackboard = {
   graph_def: 'text',
 } as const
 export interface CPulseGameBlackboardKeys extends CBaseEntityKeys, Typed<typeof tableCPulseGameBlackboard> {}
-const keysCPulseGameBlackboard: KeyMap<CPulseGameBlackboardKeys> = [keysCBaseEntity, tableCPulseGameBlackboard]
+const keysCPulseGameBlackboard: KeyMap<CPulseGameBlackboardKeys> = { base: keysCBaseEntity, keys: tableCPulseGameBlackboard }
 
 const tableCScriptNavBlocker = {
   extent: 'vector',
 } as const
 export interface CScriptNavBlockerKeys extends CFuncNavBlockerKeys, Typed<typeof tableCScriptNavBlocker> {}
-const keysCScriptNavBlocker: KeyMap<CScriptNavBlockerKeys> = [keysCFuncNavBlocker, tableCScriptNavBlocker]
+const keysCScriptNavBlocker: KeyMap<CScriptNavBlockerKeys> = { base: keysCFuncNavBlocker, keys: tableCScriptNavBlocker }
 
 const tableCTriggerHurt = {
   damage: 'number',
@@ -15505,25 +15518,25 @@ const tableCTriggerHurt = {
   thinkalways: 'boolean',
 } as const
 export interface CTriggerHurtKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerHurt> {}
-const keysCTriggerHurt: KeyMap<CTriggerHurtKeys> = [keysCBaseTrigger, tableCTriggerHurt]
+const keysCTriggerHurt: KeyMap<CTriggerHurtKeys> = { base: keysCBaseTrigger, keys: tableCTriggerHurt }
 
 const tableCScriptTriggerHurt = {
   extent: 'vector',
 } as const
 export interface CScriptTriggerHurtKeys extends CTriggerHurtKeys, Typed<typeof tableCScriptTriggerHurt> {}
-const keysCScriptTriggerHurt: KeyMap<CScriptTriggerHurtKeys> = [keysCTriggerHurt, tableCScriptTriggerHurt]
+const keysCScriptTriggerHurt: KeyMap<CScriptTriggerHurtKeys> = { base: keysCTriggerHurt, keys: tableCScriptTriggerHurt }
 
 const tableCScriptTriggerMultiple = {
   extent: 'vector',
 } as const
 export interface CScriptTriggerMultipleKeys extends CTriggerMultipleKeys, Typed<typeof tableCScriptTriggerMultiple> {}
-const keysCScriptTriggerMultiple: KeyMap<CScriptTriggerMultipleKeys> = [keysCTriggerMultiple, tableCScriptTriggerMultiple]
+const keysCScriptTriggerMultiple: KeyMap<CScriptTriggerMultipleKeys> = { base: keysCTriggerMultiple, keys: tableCScriptTriggerMultiple }
 
 const tableCScriptTriggerOnce = {
   extent: 'vector',
 } as const
 export interface CScriptTriggerOnceKeys extends CTriggerMultipleKeys, Typed<typeof tableCScriptTriggerOnce> {}
-const keysCScriptTriggerOnce: KeyMap<CScriptTriggerOnceKeys> = [keysCTriggerMultiple, tableCScriptTriggerOnce]
+const keysCScriptTriggerOnce: KeyMap<CScriptTriggerOnceKeys> = { base: keysCTriggerMultiple, keys: tableCScriptTriggerOnce }
 
 const tableCTriggerPush = {
   pushdir: 'angles',
@@ -15533,13 +15546,13 @@ const tableCTriggerPush = {
   speed: 'number',
 } as const
 export interface CTriggerPushKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerPush> {}
-const keysCTriggerPush: KeyMap<CTriggerPushKeys> = [keysCBaseTrigger, tableCTriggerPush]
+const keysCTriggerPush: KeyMap<CTriggerPushKeys> = { base: keysCBaseTrigger, keys: tableCTriggerPush }
 
 const tableCScriptTriggerPush = {
   extent: 'vector',
 } as const
 export interface CScriptTriggerPushKeys extends CTriggerPushKeys, Typed<typeof tableCScriptTriggerPush> {}
-const keysCScriptTriggerPush: KeyMap<CScriptTriggerPushKeys> = [keysCTriggerPush, tableCScriptTriggerPush]
+const keysCScriptTriggerPush: KeyMap<CScriptTriggerPushKeys> = { base: keysCTriggerPush, keys: tableCScriptTriggerPush }
 
 const tableCScriptedSequence = {
   m_iszEntry: 'text',
@@ -15590,7 +15603,7 @@ const tableCScriptedSequence = {
   onplayerdeath: 'integer',
 } as const
 export interface CScriptedSequenceKeys extends CBaseEntityKeys, Typed<typeof tableCScriptedSequence> {}
-const keysCScriptedSequence: KeyMap<CScriptedSequenceKeys> = [keysCBaseEntity, tableCScriptedSequence]
+const keysCScriptedSequence: KeyMap<CScriptedSequenceKeys> = { base: keysCBaseEntity, keys: tableCScriptedSequence }
 
 const tableCSkyCamera = {
   use_angles: 'boolean',
@@ -15614,24 +15627,24 @@ const tableCSkyCamera = {
   locallightscale: 'number',
 } as const
 export interface CSkyCameraKeys extends CBaseEntityKeys, Typed<typeof tableCSkyCamera> {}
-const keysCSkyCamera: KeyMap<CSkyCameraKeys> = [keysCBaseEntity, tableCSkyCamera]
+const keysCSkyCamera: KeyMap<CSkyCameraKeys> = { base: keysCBaseEntity, keys: tableCSkyCamera }
 
 export interface CSkyboxReferenceKeys extends CBaseEntityKeys {}
-const keysCSkyboxReference: KeyMap<CSkyboxReferenceKeys> = [keysCBaseEntity, {}]
+const keysCSkyboxReference: KeyMap<CSkyboxReferenceKeys> = { base: keysCBaseEntity, keys: {} }
 
 const tableCSoundEventAABBEntity = {
   box_mins: 'vector',
   box_maxs: 'vector',
 } as const
 export interface CSoundEventAABBEntityKeys extends CSoundEventEntityKeys, Typed<typeof tableCSoundEventAABBEntity> {}
-const keysCSoundEventAABBEntity: KeyMap<CSoundEventAABBEntityKeys> = [keysCSoundEventEntity, tableCSoundEventAABBEntity]
+const keysCSoundEventAABBEntity: KeyMap<CSoundEventAABBEntityKeys> = { base: keysCSoundEventEntity, keys: tableCSoundEventAABBEntity }
 
 const tableCSoundEventBoxHelper = {
   box_mins: 'vector',
   box_maxs: 'vector',
 } as const
 export interface CSoundEventBoxHelperKeys extends CBaseEntityKeys, Typed<typeof tableCSoundEventBoxHelper> {}
-const keysCSoundEventBoxHelper: KeyMap<CSoundEventBoxHelperKeys> = [keysCBaseEntity, tableCSoundEventBoxHelper]
+const keysCSoundEventBoxHelper: KeyMap<CSoundEventBoxHelperKeys> = { base: keysCBaseEntity, keys: tableCSoundEventBoxHelper }
 
 const tableCSoundEventConeEntity = {
   parameterName: 'text',
@@ -15641,7 +15654,7 @@ const tableCSoundEventConeEntity = {
   attenMax: 'number',
 } as const
 export interface CSoundEventConeEntityKeys extends CSoundEventEntityKeys, Typed<typeof tableCSoundEventConeEntity> {}
-const keysCSoundEventConeEntity: KeyMap<CSoundEventConeEntityKeys> = [keysCSoundEventEntity, tableCSoundEventConeEntity]
+const keysCSoundEventConeEntity: KeyMap<CSoundEventConeEntityKeys> = { base: keysCSoundEventEntity, keys: tableCSoundEventConeEntity }
 
 const tableCSoundEventMultiPointEntity = {
   soundeventCountMax: 'integer',
@@ -15649,36 +15662,36 @@ const tableCSoundEventMultiPointEntity = {
   dotProductMax: 'number',
 } as const
 export interface CSoundEventMultiPointEntityKeys extends CSoundEventEntityKeys, Typed<typeof tableCSoundEventMultiPointEntity> {}
-const keysCSoundEventMultiPointEntity: KeyMap<CSoundEventMultiPointEntityKeys> = [keysCSoundEventEntity, tableCSoundEventMultiPointEntity]
+const keysCSoundEventMultiPointEntity: KeyMap<CSoundEventMultiPointEntityKeys> = { base: keysCSoundEventEntity, keys: tableCSoundEventMultiPointEntity }
 
 export interface CSoundEventBoxEntityKeys extends CSoundEventMultiPointEntityKeys {}
-const keysCSoundEventBoxEntity: KeyMap<CSoundEventBoxEntityKeys> = [keysCSoundEventMultiPointEntity, {}]
+const keysCSoundEventBoxEntity: KeyMap<CSoundEventBoxEntityKeys> = { base: keysCSoundEventMultiPointEntity, keys: {} }
 
 const tableCSoundEventOBBEntity = {
   box_mins: 'vector',
   box_maxs: 'vector',
 } as const
 export interface CSoundEventOBBEntityKeys extends CSoundEventEntityKeys, Typed<typeof tableCSoundEventOBBEntity> {}
-const keysCSoundEventOBBEntity: KeyMap<CSoundEventOBBEntityKeys> = [keysCSoundEventEntity, tableCSoundEventOBBEntity]
+const keysCSoundEventOBBEntity: KeyMap<CSoundEventOBBEntityKeys> = { base: keysCSoundEventEntity, keys: tableCSoundEventOBBEntity }
 
 const tableCSoundEventParameter = {
   parameterName: 'text',
   floatValue: 'number',
 } as const
 export interface CSoundEventParameterKeys extends CBaseEntityKeys, Typed<typeof tableCSoundEventParameter> {}
-const keysCSoundEventParameter: KeyMap<CSoundEventParameterKeys> = [keysCBaseEntity, tableCSoundEventParameter]
+const keysCSoundEventParameter: KeyMap<CSoundEventParameterKeys> = { base: keysCBaseEntity, keys: tableCSoundEventParameter }
 
 const tableCSoundEventPathCornerEntity = {
   pathCornerEntity: 'text',
 } as const
 export interface CSoundEventPathCornerEntityKeys extends CSoundEventMultiPointEntityKeys, Typed<typeof tableCSoundEventPathCornerEntity> {}
-const keysCSoundEventPathCornerEntity: KeyMap<CSoundEventPathCornerEntityKeys> = [keysCSoundEventMultiPointEntity, tableCSoundEventPathCornerEntity]
+const keysCSoundEventPathCornerEntity: KeyMap<CSoundEventPathCornerEntityKeys> = { base: keysCSoundEventMultiPointEntity, keys: tableCSoundEventPathCornerEntity }
 
 const tableCSoundEventSphereEntity = {
   radius: 'number',
 } as const
 export interface CSoundEventSphereEntityKeys extends CSoundEventEntityKeys, Typed<typeof tableCSoundEventSphereEntity> {}
-const keysCSoundEventSphereEntity: KeyMap<CSoundEventSphereEntityKeys> = [keysCSoundEventEntity, tableCSoundEventSphereEntity]
+const keysCSoundEventSphereEntity: KeyMap<CSoundEventSphereEntityKeys> = { base: keysCSoundEventEntity, keys: tableCSoundEventSphereEntity }
 
 const tableCSoundOpvarSetEntity = {
   stackName: 'text',
@@ -15691,7 +15704,7 @@ const tableCSoundOpvarSetEntity = {
   opvarIndex: 'integer',
 } as const
 export interface CSoundOpvarSetEntityKeys extends CBaseEntityKeys, Typed<typeof tableCSoundOpvarSetEntity> {}
-const keysCSoundOpvarSetEntity: KeyMap<CSoundOpvarSetEntityKeys> = [keysCBaseEntity, tableCSoundOpvarSetEntity]
+const keysCSoundOpvarSetEntity: KeyMap<CSoundOpvarSetEntityKeys> = { base: keysCBaseEntity, keys: tableCSoundOpvarSetEntity }
 
 const tableCSoundOpvarSetPointBase = {
   stackName: 'text',
@@ -15704,7 +15717,7 @@ const tableCSoundOpvarSetPointBase = {
   startDisabled: 'boolean',
 } as const
 export interface CSoundOpvarSetPointBaseKeys extends CBaseEntityKeys, Typed<typeof tableCSoundOpvarSetPointBase> {}
-const keysCSoundOpvarSetPointBase: KeyMap<CSoundOpvarSetPointBaseKeys> = [keysCBaseEntity, tableCSoundOpvarSetPointBase]
+const keysCSoundOpvarSetPointBase: KeyMap<CSoundOpvarSetPointBaseKeys> = { base: keysCBaseEntity, keys: tableCSoundOpvarSetPointBase }
 
 const tableCSoundOpvarSetPointEntity = {
   distanceMin: 'number',
@@ -15724,7 +15737,7 @@ const tableCSoundOpvarSetPointEntity = {
   autoDisable: 'boolean',
 } as const
 export interface CSoundOpvarSetPointEntityKeys extends CSoundOpvarSetPointBaseKeys, Typed<typeof tableCSoundOpvarSetPointEntity> {}
-const keysCSoundOpvarSetPointEntity: KeyMap<CSoundOpvarSetPointEntityKeys> = [keysCSoundOpvarSetPointBase, tableCSoundOpvarSetPointEntity]
+const keysCSoundOpvarSetPointEntity: KeyMap<CSoundOpvarSetPointEntityKeys> = { base: keysCSoundOpvarSetPointBase, keys: tableCSoundOpvarSetPointEntity }
 
 const tableCSoundOpvarSetBoxEntity = {
   box_inner_mins: 'vector',
@@ -15734,14 +15747,14 @@ const tableCSoundOpvarSetBoxEntity = {
   AABBDirection: 'integer',
 } as const
 export interface CSoundOpvarSetBoxEntityKeys extends CSoundOpvarSetPointEntityKeys, Typed<typeof tableCSoundOpvarSetBoxEntity> {}
-const keysCSoundOpvarSetBoxEntity: KeyMap<CSoundOpvarSetBoxEntityKeys> = [keysCSoundOpvarSetPointEntity, tableCSoundOpvarSetBoxEntity]
+const keysCSoundOpvarSetBoxEntity: KeyMap<CSoundOpvarSetBoxEntityKeys> = { base: keysCSoundOpvarSetPointEntity, keys: tableCSoundOpvarSetBoxEntity }
 
 const tableCSoundOpvarSetAutoRoomEntity = {
   size: 'number',
   height_tolerance: 'number',
 } as const
 export interface CSoundOpvarSetAutoRoomEntityKeys extends CSoundOpvarSetPointEntityKeys, Typed<typeof tableCSoundOpvarSetAutoRoomEntity> {}
-const keysCSoundOpvarSetAutoRoomEntity: KeyMap<CSoundOpvarSetAutoRoomEntityKeys> = [keysCSoundOpvarSetPointEntity, tableCSoundOpvarSetAutoRoomEntity]
+const keysCSoundOpvarSetAutoRoomEntity: KeyMap<CSoundOpvarSetAutoRoomEntityKeys> = { base: keysCSoundOpvarSetPointEntity, keys: tableCSoundOpvarSetAutoRoomEntity }
 
 const tableCSoundOpvarSetDomeEntity = {
   size: 'number',
@@ -15758,14 +15771,14 @@ const tableCSoundOpvarSetDomeEntity = {
   smoothHalfLife: 'number',
 } as const
 export interface CSoundOpvarSetDomeEntityKeys extends CSoundOpvarSetPointEntityKeys, Typed<typeof tableCSoundOpvarSetDomeEntity> {}
-const keysCSoundOpvarSetDomeEntity: KeyMap<CSoundOpvarSetDomeEntityKeys> = [keysCSoundOpvarSetPointEntity, tableCSoundOpvarSetDomeEntity]
+const keysCSoundOpvarSetDomeEntity: KeyMap<CSoundOpvarSetDomeEntityKeys> = { base: keysCSoundOpvarSetPointEntity, keys: tableCSoundOpvarSetDomeEntity }
 
 const tableCSoundOpvarSetPathCornerEntity = {
   pathCornerEntityName: 'text',
   useParentedPath: 'boolean',
 } as const
 export interface CSoundOpvarSetPathCornerEntityKeys extends CSoundOpvarSetPointEntityKeys, Typed<typeof tableCSoundOpvarSetPathCornerEntity> {}
-const keysCSoundOpvarSetPathCornerEntity: KeyMap<CSoundOpvarSetPathCornerEntityKeys> = [keysCSoundOpvarSetPointEntity, tableCSoundOpvarSetPathCornerEntity]
+const keysCSoundOpvarSetPathCornerEntity: KeyMap<CSoundOpvarSetPathCornerEntityKeys> = { base: keysCSoundOpvarSetPointEntity, keys: tableCSoundOpvarSetPathCornerEntity }
 
 const tableCSoundOpvarSetPrecipitationEntity = {
   mode: 'integer',
@@ -15783,7 +15796,7 @@ const tableCSoundOpvarSetPrecipitationEntity = {
   smoothHalfLife: 'number',
 } as const
 export interface CSoundOpvarSetPrecipitationEntityKeys extends CSoundOpvarSetPointBaseKeys, Typed<typeof tableCSoundOpvarSetPrecipitationEntity> {}
-const keysCSoundOpvarSetPrecipitationEntity: KeyMap<CSoundOpvarSetPrecipitationEntityKeys> = [keysCSoundOpvarSetPointBase, tableCSoundOpvarSetPrecipitationEntity]
+const keysCSoundOpvarSetPrecipitationEntity: KeyMap<CSoundOpvarSetPrecipitationEntityKeys> = { base: keysCSoundOpvarSetPointBase, keys: tableCSoundOpvarSetPrecipitationEntity }
 
 const tableCSoundOpvarSetOBBWindEntity = {
   box_mins: 'vector',
@@ -15794,33 +15807,33 @@ const tableCSoundOpvarSetOBBWindEntity = {
   wind_map_max: 'number',
 } as const
 export interface CSoundOpvarSetOBBWindEntityKeys extends CSoundOpvarSetPointBaseKeys, Typed<typeof tableCSoundOpvarSetOBBWindEntity> {}
-const keysCSoundOpvarSetOBBWindEntity: KeyMap<CSoundOpvarSetOBBWindEntityKeys> = [keysCSoundOpvarSetPointBase, tableCSoundOpvarSetOBBWindEntity]
+const keysCSoundOpvarSetOBBWindEntity: KeyMap<CSoundOpvarSetOBBWindEntityKeys> = { base: keysCSoundOpvarSetPointBase, keys: tableCSoundOpvarSetOBBWindEntity }
 
 const tableCSoundAreaEntityBase = {
   StartDisabled: 'boolean',
   soundAreaType: 'text',
 } as const
 export interface CSoundAreaEntityBaseKeys extends CBaseEntityKeys, Typed<typeof tableCSoundAreaEntityBase> {}
-const keysCSoundAreaEntityBase: KeyMap<CSoundAreaEntityBaseKeys> = [keysCBaseEntity, tableCSoundAreaEntityBase]
+const keysCSoundAreaEntityBase: KeyMap<CSoundAreaEntityBaseKeys> = { base: keysCBaseEntity, keys: tableCSoundAreaEntityBase }
 
 const tableCSoundAreaEntityOrientedBox = {
   areaMin: 'vector',
   areaMax: 'vector',
 } as const
 export interface CSoundAreaEntityOrientedBoxKeys extends CSoundAreaEntityBaseKeys, Typed<typeof tableCSoundAreaEntityOrientedBox> {}
-const keysCSoundAreaEntityOrientedBox: KeyMap<CSoundAreaEntityOrientedBoxKeys> = [keysCSoundAreaEntityBase, tableCSoundAreaEntityOrientedBox]
+const keysCSoundAreaEntityOrientedBox: KeyMap<CSoundAreaEntityOrientedBoxKeys> = { base: keysCSoundAreaEntityBase, keys: tableCSoundAreaEntityOrientedBox }
 
 const tableCSoundAreaEntitySphere = {
   areaRadius: 'number',
 } as const
 export interface CSoundAreaEntitySphereKeys extends CSoundAreaEntityBaseKeys, Typed<typeof tableCSoundAreaEntitySphere> {}
-const keysCSoundAreaEntitySphere: KeyMap<CSoundAreaEntitySphereKeys> = [keysCSoundAreaEntityBase, tableCSoundAreaEntitySphere]
+const keysCSoundAreaEntitySphere: KeyMap<CSoundAreaEntitySphereKeys> = { base: keysCSoundAreaEntityBase, keys: tableCSoundAreaEntitySphere }
 
 const tableCSoundStackSave = {
   stackToSave: 'text',
 } as const
 export interface CSoundStackSaveKeys extends CBaseEntityKeys, Typed<typeof tableCSoundStackSave> {}
-const keysCSoundStackSave: KeyMap<CSoundStackSaveKeys> = [keysCBaseEntity, tableCSoundStackSave]
+const keysCSoundStackSave: KeyMap<CSoundStackSaveKeys> = { base: keysCBaseEntity, keys: tableCSoundStackSave }
 
 const tableCTankTrainAI = {
   startsound: 'text',
@@ -15828,25 +15841,25 @@ const tableCTankTrainAI = {
   movementsound: 'text',
 } as const
 export interface CTankTrainAIKeys extends CPointEntityKeys, Typed<typeof tableCTankTrainAI> {}
-const keysCTankTrainAI: KeyMap<CTankTrainAIKeys> = [keysCPointEntity, tableCTankTrainAI]
+const keysCTankTrainAI: KeyMap<CTankTrainAIKeys> = { base: keysCPointEntity, keys: tableCTankTrainAI }
 
 const tableCTankTargetChange = {
   newtarget: 'text',
 } as const
 export interface CTankTargetChangeKeys extends CPointEntityKeys, Typed<typeof tableCTankTargetChange> {}
-const keysCTankTargetChange: KeyMap<CTankTargetChangeKeys> = [keysCPointEntity, tableCTankTargetChange]
+const keysCTankTargetChange: KeyMap<CTankTargetChangeKeys> = { base: keysCPointEntity, keys: tableCTankTargetChange }
 
 const tableCTestPulseIO = {
   allow_empty_inputs: 'boolean',
 } as const
 export interface CTestPulseIOKeys extends CBaseEntityKeys, Typed<typeof tableCTestPulseIO> {}
-const keysCTestPulseIO: KeyMap<CTestPulseIOKeys> = [keysCBaseEntity, tableCTestPulseIO]
+const keysCTestPulseIO: KeyMap<CTestPulseIOKeys> = { base: keysCBaseEntity, keys: tableCTestPulseIO }
 
 const tableCTriggerActiveWeaponDetect = {
   weaponclassname: 'text',
 } as const
 export interface CTriggerActiveWeaponDetectKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerActiveWeaponDetect> {}
-const keysCTriggerActiveWeaponDetect: KeyMap<CTriggerActiveWeaponDetectKeys> = [keysCBaseTrigger, tableCTriggerActiveWeaponDetect]
+const keysCTriggerActiveWeaponDetect: KeyMap<CTriggerActiveWeaponDetectKeys> = { base: keysCBaseTrigger, keys: tableCTriggerActiveWeaponDetect }
 
 const tableCTriggerAddModifier = {
   modifier_name: 'text',
@@ -15854,14 +15867,14 @@ const tableCTriggerAddModifier = {
   momentary: 'boolean',
 } as const
 export interface CTriggerAddModifierKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerAddModifier> {}
-const keysCTriggerAddModifier: KeyMap<CTriggerAddModifierKeys> = [keysCBaseTrigger, tableCTriggerAddModifier]
+const keysCTriggerAddModifier: KeyMap<CTriggerAddModifierKeys> = { base: keysCBaseTrigger, keys: tableCTriggerAddModifier }
 
 const tableCTriggerBrush = {
   InputFilter: 'integer',
   DontMessageParent: 'integer',
 } as const
 export interface CTriggerBrushKeys extends CBaseModelEntityKeys, Typed<typeof tableCTriggerBrush> {}
-const keysCTriggerBrush: KeyMap<CTriggerBrushKeys> = [keysCBaseModelEntity, tableCTriggerBrush]
+const keysCTriggerBrush: KeyMap<CTriggerBrushKeys> = { base: keysCBaseModelEntity, keys: tableCTriggerBrush }
 
 const tableCCitadelCatapultTrigger = {
   launch_speed: 'number',
@@ -15874,19 +15887,19 @@ const tableCCitadelCatapultTrigger = {
   pickup_trail_trajectory_spacing: 'number',
 } as const
 export interface CCitadelCatapultTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelCatapultTrigger> {}
-const keysCCitadelCatapultTrigger: KeyMap<CCitadelCatapultTriggerKeys> = [keysCBaseTrigger, tableCCitadelCatapultTrigger]
+const keysCCitadelCatapultTrigger: KeyMap<CCitadelCatapultTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelCatapultTrigger }
 
 export interface CChangeLevelKeys extends CBaseTriggerKeys {}
-const keysCChangeLevel: KeyMap<CChangeLevelKeys> = [keysCBaseTrigger, {}]
+const keysCChangeLevel: KeyMap<CChangeLevelKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCTriggerDetectBulletFire = {
   player_fire_only: 'boolean',
 } as const
 export interface CTriggerDetectBulletFireKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerDetectBulletFire> {}
-const keysCTriggerDetectBulletFire: KeyMap<CTriggerDetectBulletFireKeys> = [keysCBaseTrigger, tableCTriggerDetectBulletFire]
+const keysCTriggerDetectBulletFire: KeyMap<CTriggerDetectBulletFireKeys> = { base: keysCBaseTrigger, keys: tableCTriggerDetectBulletFire }
 
 export interface CTriggerDetectExplosionKeys extends CBaseTriggerKeys {}
-const keysCTriggerDetectExplosion: KeyMap<CTriggerDetectExplosionKeys> = [keysCBaseTrigger, {}]
+const keysCTriggerDetectExplosion: KeyMap<CTriggerDetectExplosionKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCTriggerFan = {
   fan_push_away_from_info_fan: 'boolean',
@@ -15908,7 +15921,7 @@ const tableCTriggerFan = {
   fan_rampdown: 'boolean',
 } as const
 export interface CTriggerFanKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerFan> {}
-const keysCTriggerFan: KeyMap<CTriggerFanKeys> = [keysCBaseTrigger, tableCTriggerFan]
+const keysCTriggerFan: KeyMap<CTriggerFanKeys> = { base: keysCBaseTrigger, keys: tableCTriggerFan }
 
 const tableCFogTrigger = {
   fogdir: 'vector',
@@ -15928,7 +15941,7 @@ const tableCFogTrigger = {
   locallightscale: 'number',
 } as const
 export interface CFogTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCFogTrigger> {}
-const keysCFogTrigger: KeyMap<CFogTriggerKeys> = [keysCBaseTrigger, tableCFogTrigger]
+const keysCFogTrigger: KeyMap<CFogTriggerKeys> = { base: keysCBaseTrigger, keys: tableCFogTrigger }
 
 const tableCTriggerGameEvent = {
   start_touch_event: 'text',
@@ -15936,7 +15949,7 @@ const tableCTriggerGameEvent = {
   trigger_id: 'text',
 } as const
 export interface CTriggerGameEventKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerGameEvent> {}
-const keysCTriggerGameEvent: KeyMap<CTriggerGameEventKeys> = [keysCBaseTrigger, tableCTriggerGameEvent]
+const keysCTriggerGameEvent: KeyMap<CTriggerGameEventKeys> = { base: keysCBaseTrigger, keys: tableCTriggerGameEvent }
 
 const tableCTriggerImpact = {
   Magnitude: 'number',
@@ -15944,7 +15957,7 @@ const tableCTriggerImpact = {
   Viewkick: 'number',
 } as const
 export interface CTriggerImpactKeys extends CTriggerMultipleKeys, Typed<typeof tableCTriggerImpact> {}
-const keysCTriggerImpact: KeyMap<CTriggerImpactKeys> = [keysCTriggerMultiple, tableCTriggerImpact]
+const keysCTriggerImpact: KeyMap<CTriggerImpactKeys> = { base: keysCTriggerMultiple, keys: tableCTriggerImpact }
 
 const tableCTriggerItemShop = {
   AudioOffset: 'vector',
@@ -15952,10 +15965,10 @@ const tableCTriggerItemShop = {
   LaneNum: 'integer',
 } as const
 export interface CTriggerItemShopKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerItemShop> {}
-const keysCTriggerItemShop: KeyMap<CTriggerItemShopKeys> = [keysCBaseTrigger, tableCTriggerItemShop]
+const keysCTriggerItemShop: KeyMap<CTriggerItemShopKeys> = { base: keysCBaseTrigger, keys: tableCTriggerItemShop }
 
 export interface CTriggerItemShopSafeZoneKeys extends CBaseTriggerKeys {}
-const keysCTriggerItemShopSafeZone: KeyMap<CTriggerItemShopSafeZoneKeys> = [keysCBaseTrigger, {}]
+const keysCTriggerItemShopSafeZone: KeyMap<CTriggerItemShopSafeZoneKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCTriggerLerpObject = {
   lerp_target: 'text',
@@ -15967,7 +15980,7 @@ const tableCTriggerLerpObject = {
   lerp_sound: 'text',
 } as const
 export interface CTriggerLerpObjectKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerLerpObject> {}
-const keysCTriggerLerpObject: KeyMap<CTriggerLerpObjectKeys> = [keysCBaseTrigger, tableCTriggerLerpObject]
+const keysCTriggerLerpObject: KeyMap<CTriggerLerpObjectKeys> = { base: keysCBaseTrigger, keys: tableCTriggerLerpObject }
 
 const tableCTriggerLook = {
   timeout: 'number',
@@ -15978,7 +15991,7 @@ const tableCTriggerLook = {
   LookTime: 'number',
 } as const
 export interface CTriggerLookKeys extends CTriggerMultipleKeys, Typed<typeof tableCTriggerLook> {}
-const keysCTriggerLook: KeyMap<CTriggerLookKeys> = [keysCTriggerMultiple, tableCTriggerLook]
+const keysCTriggerLook: KeyMap<CTriggerLookKeys> = { base: keysCTriggerMultiple, keys: tableCTriggerLook }
 
 const tableCTriggerPhysics = {
   SetGravityScale: 'number',
@@ -15995,32 +16008,32 @@ const tableCTriggerPhysics = {
   ForceDirectionIsInLocalSpace: 'boolean',
 } as const
 export interface CTriggerPhysicsKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerPhysics> {}
-const keysCTriggerPhysics: KeyMap<CTriggerPhysicsKeys> = [keysCBaseTrigger, tableCTriggerPhysics]
+const keysCTriggerPhysics: KeyMap<CTriggerPhysicsKeys> = { base: keysCBaseTrigger, keys: tableCTriggerPhysics }
 
 const tableCTriggerPingLocation = {
   ping_location: 'integer',
 } as const
 export interface CTriggerPingLocationKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerPingLocation> {}
-const keysCTriggerPingLocation: KeyMap<CTriggerPingLocationKeys> = [keysCBaseTrigger, tableCTriggerPingLocation]
+const keysCTriggerPingLocation: KeyMap<CTriggerPingLocationKeys> = { base: keysCBaseTrigger, keys: tableCTriggerPingLocation }
 
 export interface CCitadelPortalTriggerKeys extends CBaseTriggerKeys {}
-const keysCCitadelPortalTrigger: KeyMap<CCitadelPortalTriggerKeys> = [keysCBaseTrigger, {}]
+const keysCCitadelPortalTrigger: KeyMap<CCitadelPortalTriggerKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCTriggerProximity = {
   measuretarget: 'text',
   radius: 'number',
 } as const
 export interface CTriggerProximityKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerProximity> {}
-const keysCTriggerProximity: KeyMap<CTriggerProximityKeys> = [keysCBaseTrigger, tableCTriggerProximity]
+const keysCTriggerProximity: KeyMap<CTriggerProximityKeys> = { base: keysCBaseTrigger, keys: tableCTriggerProximity }
 
 export interface CTriggerRemoveKeys extends CBaseTriggerKeys {}
-const keysCTriggerRemove: KeyMap<CTriggerRemoveKeys> = [keysCBaseTrigger, {}]
+const keysCTriggerRemove: KeyMap<CTriggerRemoveKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCTriggerRemoveModifier = {
   modifier_name: 'text',
 } as const
 export interface CTriggerRemoveModifierKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerRemoveModifier> {}
-const keysCTriggerRemoveModifier: KeyMap<CTriggerRemoveModifierKeys> = [keysCBaseTrigger, tableCTriggerRemoveModifier]
+const keysCTriggerRemoveModifier: KeyMap<CTriggerRemoveModifierKeys> = { base: keysCBaseTrigger, keys: tableCTriggerRemoveModifier }
 
 const tableCTriggerSndSosOpvar = {
   centersize: 'number',
@@ -16032,13 +16045,13 @@ const tableCTriggerSndSosOpvar = {
   is2d: 'boolean',
 } as const
 export interface CTriggerSndSosOpvarKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerSndSosOpvar> {}
-const keysCTriggerSndSosOpvar: KeyMap<CTriggerSndSosOpvarKeys> = [keysCBaseTrigger, tableCTriggerSndSosOpvar]
+const keysCTriggerSndSosOpvar: KeyMap<CTriggerSndSosOpvarKeys> = { base: keysCBaseTrigger, keys: tableCTriggerSndSosOpvar }
 
 const tableCTriggerSoundscape = {
   soundscape: 'text',
 } as const
 export interface CTriggerSoundscapeKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerSoundscape> {}
-const keysCTriggerSoundscape: KeyMap<CTriggerSoundscapeKeys> = [keysCBaseTrigger, tableCTriggerSoundscape]
+const keysCTriggerSoundscape: KeyMap<CTriggerSoundscapeKeys> = { base: keysCBaseTrigger, keys: tableCTriggerSoundscape }
 
 const tableCTriggerTeleport = {
   landmark: 'text',
@@ -16047,31 +16060,31 @@ const tableCTriggerTeleport = {
   check_if_dest_clear_for_player: 'boolean',
 } as const
 export interface CTriggerTeleportKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerTeleport> {}
-const keysCTriggerTeleport: KeyMap<CTriggerTeleportKeys> = [keysCBaseTrigger, tableCTriggerTeleport]
+const keysCTriggerTeleport: KeyMap<CTriggerTeleportKeys> = { base: keysCBaseTrigger, keys: tableCTriggerTeleport }
 
 const tableCTonemapTrigger = {
   TonemapName: 'text',
 } as const
 export interface CTonemapTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCTonemapTrigger> {}
-const keysCTonemapTrigger: KeyMap<CTonemapTriggerKeys> = [keysCBaseTrigger, tableCTonemapTrigger]
+const keysCTonemapTrigger: KeyMap<CTonemapTriggerKeys> = { base: keysCBaseTrigger, keys: tableCTonemapTrigger }
 
 const tableCTriggerVolume = {
   filtername: 'text',
 } as const
 export interface CTriggerVolumeKeys extends CBaseModelEntityKeys, Typed<typeof tableCTriggerVolume> {}
-const keysCTriggerVolume: KeyMap<CTriggerVolumeKeys> = [keysCBaseModelEntity, tableCTriggerVolume]
+const keysCTriggerVolume: KeyMap<CTriggerVolumeKeys> = { base: keysCBaseModelEntity, keys: tableCTriggerVolume }
 
 const tableCTriggerTrooperDamageReductionDetector = {
   radius: 'number',
 } as const
 export interface CTriggerTrooperDamageReductionDetectorKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerTrooperDamageReductionDetector> {}
-const keysCTriggerTrooperDamageReductionDetector: KeyMap<CTriggerTrooperDamageReductionDetectorKeys> = [keysCBaseTrigger, tableCTriggerTrooperDamageReductionDetector]
+const keysCTriggerTrooperDamageReductionDetector: KeyMap<CTriggerTrooperDamageReductionDetectorKeys> = { base: keysCBaseTrigger, keys: tableCTriggerTrooperDamageReductionDetector }
 
 const tableCTriggerTrooperDetector = {
   radius: 'number',
 } as const
 export interface CTriggerTrooperDetectorKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerTrooperDetector> {}
-const keysCTriggerTrooperDetector: KeyMap<CTriggerTrooperDetectorKeys> = [keysCBaseTrigger, tableCTriggerTrooperDetector]
+const keysCTriggerTrooperDetector: KeyMap<CTriggerTrooperDetectorKeys> = { base: keysCBaseTrigger, keys: tableCTriggerTrooperDetector }
 
 const tableCCitadelZipLineNode = {
   lane_number: 'integer',
@@ -16090,589 +16103,586 @@ const tableCCitadelZipLineNode = {
   tertiary_guard_boss_name: 'text',
 } as const
 export interface CCitadelZipLineNodeKeys extends CBaseModelEntityKeys, Typed<typeof tableCCitadelZipLineNode> {}
-const keysCCitadelZipLineNode: KeyMap<CCitadelZipLineNodeKeys> = [keysCBaseModelEntity, tableCCitadelZipLineNode]
+const keysCCitadelZipLineNode: KeyMap<CCitadelZipLineNodeKeys> = { base: keysCBaseModelEntity, keys: tableCCitadelZipLineNode }
 
-/**
- * designers maps each designer name to its class, its key value table and the
- * subclass it needs, if any.
- */
+/** designers maps each designer name to its Designer. */
 const designers = {
-  ai_changehintgroup: [CAI_ChangeHintGroup, keysCAI_ChangeHintGroup],
-  ai_foot_sweep: [CNpcFootSweep, keysCNpcFootSweep],
-  ai_hint: [CAI_Hint, keysCAI_Hint],
-  ai_nav_link_area: [CNavLinkAreaEntity, keysCNavLinkAreaEntity],
-  ai_network: [CAI_NetworkManager, keysCPointEntity],
-  ai_script_conditions: [CAI_ScriptConditions, keysCAI_ScriptConditions],
-  ai_sound: [CAI_VolumetricEventEntityAlias_ai_sound, keysCAI_VolumetricEventEntity],
-  ai_speechfilter: [CAI_SpeechFilter, keysCAI_SpeechFilter],
-  ai_test_path: [CAITestPath, keysCAITestPath],
-  ai_volumetric_event: [CAI_VolumetricEventEntity, keysCAI_VolumetricEventEntity],
-  ai_volumetric_event_sensor: [CAI_VolumetricEventSensor, keysCAI_VolumetricEventSensor],
-  archer_charged_shot_projectile: [CCitadel_Projectile_Archer_ChargedShot, keysCBaseModelEntity],
-  baba_bubblingbrew_projectile: [CCitadel_Projectile_BubblingBrew, keysCBaseModelEntity],
-  base_prop: [CBaseProp, keysCBaseProp],
-  baseanimating: [CBaseAnimGraphAlias_baseanimating, keysCBaseAnimGraph],
-  baseanimgraph: [CBaseAnimGraph, keysCBaseAnimGraph],
-  basemodelentity: [CBaseModelEntity, keysCBaseModelEntity],
-  batswarm_extra_projectile: [CCitadel_Projectile_BatSwarmExtraProjectile, keysCBaseModelEntity],
-  batswarm_projectile: [CCitadel_Projectile_BatSwarmProjectile, keysCBaseModelEntity],
-  beam: [CBeam, keysCBeam],
-  bebop_hook_projectile: [CCitadel_Projectile_Bebop_Hook, keysCBaseModelEntity],
-  blood_bomb_projectile: [CCitadel_Projectile_BloodBomb, keysCBaseModelEntity],
-  boho_bouncyprojectile: [CProjectile_Boho_BouncyProjectile, keysCBaseModelEntity],
-  bookwormdragon_projectile: [CProjectile_BookwormDragon_Projectile, keysCBaseModelEntity],
-  bookwormgun_projectile: [CCitadel_Projectile_BookwormGun, keysCBaseModelEntity],
-  bullet_redirect_volume: [CCitadelBulletRedirectVolume, keysCBaseModelEntity],
-  bullet_time_warp: [CCitadelBulletTimeWarp, keysCCitadelBulletTimeWarp],
-  cable_dynamic: [CDynamicPropAlias_cable_dynamic, keysCDynamicProp],
-  citadel_animating_model_entity: [CCitadelAnimatingModelEntity, keysCBaseAnimGraph],
-  citadel_announcer: [CCitadel_Announcer, keysCBaseCombatCharacter],
-  citadel_base_hero: [CCitadelHeroLoader, keysCCitadelHeroLoader],
-  citadel_base_prop_midboss_indicator: [CCitadel_Prop_MidBossIndicator, keysCPointEntity],
-  citadel_base_prop_stairs: [CCitadel_BaseProp_MidStairs, keysCCitadel_BaseProp_MidStairs],
-  citadel_bot_test_node: [CCitadelBotTestNode, keysCCitadelBotTestNode],
-  citadel_breakable_prop: [CCitadel_BreakableProp, keysCCitadel_BreakableProp, 'citadel_breakable_prop_vase'],
-  citadel_capture_point_escort: [CCitadelTriggerCapturePoint_Escort, keysCCitadelTriggerCapturePoint, 'capture_point_escort'],
-  citadel_cat_animating: [CCitadel_CatAnimating, keysCBaseAnimGraph, 'citadel_cat_animating'],
-  citadel_chesspiece_entity: [CNPC_ChessPiece, keysCNPC_ChessPiece, 'citadel_chesspiece_bishop'],
-  citadel_configurable_tracked_projectile: [CCitadelConfigurableTrackedProjectile, keysCBaseModelEntity],
-  citadel_control_point: [CCitadelControlPointTrigger, keysCCitadelControlPointTrigger],
-  citadel_dev_trigger: [CCitadelDevTrigger, keysCCitadelDevTrigger],
-  citadel_doorway_portal: [CCitadel_DoorwayPortal, keysCCitadel_DoorwayPortal],
-  citadel_druid_healing_tree: [CCitadelDruidHealingTree, keysCCitadelDruidHealingTree],
-  citadel_druid_healing_tree_fruit: [CCitadelDruidHealingFruit, keysCCitadelDruidHealingFruit],
-  citadel_druid_invis_bush: [CCitadelDruidInvisBush, keysCBaseAnimGraph],
-  citadel_druid_plant_shield: [CCitadelDruidPlantShield, keysCBaseAnimGraph],
-  citadel_energy_tower: [CCitadelEnergyTower, keysCCitadelEnergyTower],
-  citadel_fissure_wall: [CCitadel_FissureWall, keysCBaseAnimGraph, 'citadel_fissure_wall'],
-  citadel_gaffer: [CCitadelGaffer, keysCCitadelGaffer],
-  citadel_gamerules: [CCitadelGameRulesProxy, keysCBaseEntity],
-  citadel_grandfinale_stage: [CCitadel_GrandFinaleStage, keysCBaseAnimGraph],
-  citadel_hideout_ball: [CCitadel_Hideout_Ball, keysCBaseModelEntity, 'citadel_hideout_ball'],
-  citadel_hideout_button: [CCitadelHideoutInteractableProp, keysCCitadelHideoutInteractableProp],
-  citadel_hideout_clock: [CCitadel_Hideout_Clock, keysCBaseAnimGraph, 'citadel_hideout_clock'],
-  citadel_hideout_interactable_trigger: [CCitadelHideoutInteractableTrigger, keysCCitadelHideoutInteractableTrigger],
-  citadel_hideout_prop_slot: [CCitadelHideoutPropSlot, keysCCitadelHideoutPropSlot],
-  citadel_ice_dome_blocker: [CCitadel_Ice_Dome_Blocker, keysCBaseAnimGraph],
-  citadel_invis_volume: [CTriggerInvisVolume, keysCBaseTrigger],
-  citadel_item_koth_spawner: [CCitadelItemKothSpawner, keysCCitadelItemKothSpawner, 'citadel_item_koth_spawner'],
-  citadel_item_pickup: [CCitadelItemPickup, keysCCitadelItemPickup, 'citadel_item_pickup'],
-  citadel_item_pickup_idol: [CCitadelItemPickupIdol, keysCCitadelItemPickupIdol, 'citadel_item_pickup_idol'],
-  citadel_item_pickup_rejuv: [CCitadelItemPickupRejuv, keysCCitadelItemPickup, 'citadel_item_pickup_rejuv'],
-  citadel_item_pickup_rejuv_herotest: [CCitadelItemPickupRejuvHeroTest, keysCCitadelItemPickup, 'citadel_item_pickup_rejuv_herotest'],
-  citadel_item_pickup_rejuv_herotest_infospawn: [CCitadelItemPickupRejuvHeroTestInfoSpawn, keysCPointEntity],
-  citadel_item_powerup_spawner: [CCitadel_PickupItemSpawner, keysCCitadel_PickupItemSpawner, 'citadel_item_powerup_spawner_bounty_runes'],
-  citadel_item_punchable_gold: [CCitadelItemPunchableNeutralGold, keysCCitadelItemPunchableNeutralGold, 'citadel_item_punchable_gold'],
-  citadel_local_player_ranked_badge_prop: [CCitadelLocalPlayerRankedBadgeProp, keysCBaseEntity],
-  citadel_magic_beam_blocker: [CCitadel_Magic_Beam_Blocker, keysCBaseAnimGraph],
-  citadel_minimap_boundary: [CCitadelMinimapBoundary, keysCBaseEntity],
-  citadel_model_entity: [CCitadelModelEntity, keysCBaseModelEntity],
-  citadel_new_years_fireworks: [CCitadel_NewYears_Fireworks, keysCCitadel_NewYears_Fireworks],
-  citadel_obscured_volume: [CTriggerObscuredVolume, keysCTriggerObscuredVolume],
-  citadel_passthrough_fake_wall: [CCitadelPassthroughFakeWall, keysCCitadelPassthroughFakeWall],
-  citadel_pickup: [CCitadel_Pickup, keysCBaseAnimGraph],
-  citadel_pickup_ability: [CCitadel_Pickup_Ability, keysCBaseAnimGraph],
-  citadel_pickup_assigned_gold: [CCitadel_Pickup_AssignedGold, keysCBaseAnimGraph],
-  citadel_pickup_currency: [CCitadel_Pickup_Currency, keysCBaseAnimGraph],
-  citadel_pickup_gold: [CCitadel_Pickup_Gold, keysCBaseAnimGraph],
-  citadel_pickup_health: [CCitadel_Pickup_Health, keysCBaseAnimGraph],
-  citadel_pickup_item: [CCitadel_Pickup_Item, keysCBaseAnimGraph],
-  citadel_pickup_modifier: [CCitadel_Pickup_Modifier, keysCBaseAnimGraph],
-  citadel_pickup_necro_death: [CCitadel_Pickup_NecroDeath, keysCBaseAnimGraph],
-  citadel_pickup_spawner: [CCitadel_PickupSpawner, keysCCitadel_PickupSpawner, 'citadel_pickup_floating_apple'],
-  citadel_player_controller: [CCitadelPlayerController, keysCBasePlayerController],
-  citadel_point_talker: [CCitadel_PointTalker, keysCCitadel_PointTalker_Base],
-  citadel_point_talker_idol: [CCitadel_PointTalker_Idol, keysCCitadel_PointTalker_Base],
-  citadel_priest_slidetrap: [CCitadel_Priest_SlideTrap, keysCBaseModelEntity],
-  citadel_projectile: [CCitadelProjectile, keysCBaseModelEntity],
-  citadel_prop_dynamic: [CCitadel_DynamicProp, keysCCitadel_DynamicProp],
-  citadel_ranked_badge_prop: [CCitadelRankedBadgeProp, keysCCitadelRankedBadgeProp],
-  citadel_ratking_standard: [CCitadel_Ratking_Standard, keysCBaseAnimGraph],
-  citadel_restorative_goo_cube: [CCitadel_RestorativeGooCube, keysCBaseAnimGraph],
-  citadel_shield: [CCitadel_Shield, keysCBaseModelEntity],
-  citadel_shop_prop_dynamic: [CCitadel_ShopProp, keysCCitadel_ShopProp],
-  citadel_smokegrenade_blocker: [CCitadel_SmokeGrenade_Blocker, keysCBaseAnimGraph],
-  citadel_snd_base_music_obb: [CCitadelBaseMusicOBB, keysCCitadelSoundStackFieldOBB],
-  citadel_snd_dsp_obb: [CCitadelAudioProcessingVolumeOBB, keysCCitadelAudioProcessingVolumeOBB],
-  citadel_snd_obb: [CCitadelSoundEntityOBB, keysCCitadelSoundEntityOBB],
-  citadel_snd_opvar_set_obb: [CCitadelSoundOpvarSetOBB, keysCCitadelSoundOpvarSetOBB],
-  citadel_snd_stack_field_obb: [CCitadelSoundStackFieldOBB, keysCCitadelSoundStackFieldOBB],
-  citadel_spider_animating: [CCitadel_SpiderAnimating, keysCBaseAnimGraph, 'citadel_spider_animating'],
-  citadel_team_manager: [CCitadelTeam, keysCTeam],
-  citadel_tracked_projectile: [CCitadelTrackedProjectile, keysCBaseModelEntity],
-  citadel_trigger_bonk: [CCitadelTriggerBonk, keysCCitadelTriggerBonk],
-  citadel_trigger_climb_rope: [CCitadelClimbRopeTrigger, keysCCitadelClimbRopeTrigger],
-  citadel_trigger_corrupted_item_shop: [CCitadelTriggerCorruptedItemShop, keysCCitadelTriggerCorruptedItemShop],
-  citadel_trigger_hideout: [CCitadelTriggerHideout, keysCBaseTrigger],
-  citadel_trigger_hideout_teleport: [CCitadelHideoutTeleportTrigger, keysCCitadelHideoutTeleportTrigger],
-  citadel_trigger_hotel_exit: [CCitadelHotelExitTrigger, keysCCitadelHotelExitTrigger],
-  citadel_trigger_idol_return: [CCitadelIdolReturnTrigger, keysCTriggerModifier],
-  citadel_trigger_ignore_out_of_play_area: [CCitadelIgnoreOutOfPlayArea, keysCTriggerModifier],
-  citadel_trigger_in_map_district: [CCitadelMapDistrictTrigger, keysCCitadelMapDistrictTrigger],
-  citadel_trigger_interior: [CCitadelInteriorTrigger, keysCCitadelInteriorTrigger],
-  citadel_trigger_no_portals: [CCitadelTriggerNoPortals, keysCBaseTrigger],
-  citadel_trigger_push: [CCitadelPushTrigger, keysCCitadelPushTrigger],
-  citadel_trigger_secure_souls: [CCitadelTriggerSecureSouls, keysCBaseTrigger],
-  citadel_trigger_shop_tunnel: [CCitadelShopTunnelTrigger, keysCBaseTrigger],
-  citadel_trigger_speed_boost: [CCitadelSpeedBoostTrigger, keysCCitadelSpeedBoostTrigger],
-  citadel_trigger_suspend_modifier: [CTriggerSuspendModifier, keysCTriggerSuspendModifier],
-  citadel_trigger_teleport: [CCitadelTeleportTrigger, keysCCitadelTeleportTrigger],
-  citadel_trooper_minimap: [CCitadelTrooperMinimap, keysCBaseEntity],
-  citadel_tunnel_node: [CCitadelTunnelNode, keysCCitadelTunnelNode],
-  citadel_tunnel_trigger: [CCitadelTunnelTrigger, keysCCitadelTunnelTrigger],
-  citadel_tutorial_controller: [CInfoTutorialController, keysCDynamicProp],
-  citadel_viscous_ball: [CCitadelViscousBall, keysCCitadelViscousBall, 'citadel_viscous_ball'],
-  citadel_zap_trigger: [CCitadelZapTrigger, keysCCitadelZapTrigger],
-  citadel_zipline_path: [CCitadelZiplinePath, keysCCitadelZiplinePath],
-  citadel_zipline_path_node: [CCitadelZipLinePathNode, keysCCitadelZipLinePathNode],
-  color_correction: [CColorCorrection, keysCColorCorrection],
-  color_correction_volume: [CColorCorrectionVolume, keysCColorCorrectionVolume],
-  commentary_auto: [CCommentaryAuto, keysCCommentaryAuto],
-  destroyable_building: [CCitadel_Destroyable_Building, keysCCitadel_Destroyable_Building, 'destroyable_building'],
-  doorman_bomb_projectile: [CDoormanBombProjectile, keysCBaseModelEntity],
-  dynamic_prop: [CDynamicPropAlias_dynamic_prop, keysCDynamicProp],
-  entity_blocker: [CEntityBlocker, keysCBaseModelEntity],
-  entityflame: [CEntityFlame, keysCBaseEntity],
-  env_beam: [CEnvBeam, keysCEnvBeam],
-  env_beverage: [CEnvBeverage, keysCEnvBeverage],
-  env_combined_light_probe_volume: [CEnvCombinedLightProbeVolume, keysCEnvCombinedLightProbeVolume],
-  env_credits: [CCredits, keysCCredits],
-  env_cubemap: [CEnvCubemap, keysCEnvCubemap],
-  env_cubemap_fog: [CEnvCubemapFog, keysCEnvCubemapFog],
-  env_decal: [CEnvDecal, keysCEnvDecal],
-  env_detail_controller: [CEnvDetailController, keysCEnvDetailController],
-  env_entity_dissolver: [CEntityDissolve, keysCEntityDissolve],
-  env_entity_igniter: [CEnvEntityIgniter, keysCEnvEntityIgniter],
-  env_explosion: [CEnvExplosion, keysCEnvExplosion],
-  env_fade: [CEnvFade, keysCEnvFade],
-  env_fog_controller: [CFogController, keysCFogController],
-  env_glow: [CSpriteAlias_env_glow, keysCSprite],
-  env_gradient_fog: [CGradientFog, keysCGradientFog],
-  env_instructor_hint: [CEnvInstructorHint, keysCEnvInstructorHint],
-  env_instructor_vr_hint: [CEnvInstructorVRHint, keysCEnvInstructorVRHint],
-  env_light_probe_volume: [CEnvLightProbeVolume, keysCEnvLightProbeVolume],
-  env_message: [CMessage, keysCMessage],
-  env_muzzleflash: [CEnvMuzzleFlash, keysCEnvMuzzleFlash],
-  env_particle_glow: [CEnvParticleGlow, keysCEnvParticleGlow],
-  env_physexplosion: [CPhysExplosion, keysCPhysExplosion],
-  env_physimpact: [CPhysImpact, keysCPhysImpact],
-  env_physwire: [CPhysicsWire, keysCPhysicsWire],
-  env_player_visibility: [CPlayerVisibility, keysCPlayerVisibility],
-  env_shake: [CEnvShake, keysCEnvShake],
-  env_sky: [CEnvSky, keysCEnvSky],
-  env_soundscape: [CEnvSoundscape, keysCEnvSoundscape],
-  env_soundscape_proxy: [CEnvSoundscapeProxy, keysCEnvSoundscapeProxy],
-  env_soundscape_triggerable: [CEnvSoundscapeTriggerable, keysCEnvSoundscape],
-  env_spark: [CEnvSpark, keysCEnvSpark],
-  env_splash: [CEnvSplash, keysCEnvSplash],
-  env_sprite: [CSprite, keysCSprite],
-  env_sprite_oriented: [CSpriteOriented, keysCSprite],
-  env_tilt: [CEnvTilt, keysCEnvTilt],
-  env_tonemap_controller: [CTonemapController2, keysCTonemapController2],
-  env_tonemap_controller2: [CTonemapController2Alias_env_tonemap_controller2, keysCTonemapController2],
-  env_viewpunch: [CEnvViewPunch, keysCEnvViewPunch],
-  env_volumetric_fog_controller: [CEnvVolumetricFogController, keysCEnvVolumetricFogController],
-  env_volumetric_fog_volume: [CEnvVolumetricFogVolume, keysCEnvVolumetricFogVolume],
-  env_wind: [CEnvWind, keysCEnvWind],
-  familiar_clone: [CCitadelFamiliarClonePlayerPawn, keysCCitadelFamiliarClonePlayerPawn],
-  familiar_projectile_movingtoattach: [CProjectile_Familiar_MovingToAttach, keysCBaseModelEntity],
-  featherboomerang_projectile: [CCitadel_Projectile_FeatherBoomerang, keysCBaseModelEntity],
-  filter_activator_attribute_int: [CFilterAttributeInt, keysCFilterAttributeInt],
-  filter_activator_class: [CFilterClass, keysCFilterClass],
-  filter_activator_context: [CFilterContext, keysCFilterContext],
-  filter_activator_mass_greater: [CFilterMassGreater, keysCFilterMassGreater],
-  filter_activator_model: [CFilterModel, keysCFilterModel],
-  filter_activator_modifier: [CCitadelFilterModifier, keysCCitadelFilterModifier],
-  filter_activator_name: [CFilterName, keysCFilterName],
-  filter_activator_team: [CFilterTeam, keysCFilterTeam],
-  filter_base: [CBaseFilter, keysCBaseFilter],
-  filter_damage_type: [FilterDamageType, keysFilterDamageType],
-  filter_enemy: [CFilterEnemy, keysCFilterEnemy],
-  filter_health: [FilterHealth, keysFilterHealth],
-  filter_los: [CFilterLOS, keysCBaseFilter],
-  filter_modifier: [CFilterModifier, keysCFilterModifier],
-  filter_multi: [CFilterMultiple, keysCFilterMultiple],
-  filter_proximity: [CFilterProximity, keysCFilterProximity],
-  fish: [CFish, keysCBaseAnimGraph],
-  fog_volume: [CFogVolume, keysCFogVolume],
-  fortuna_weapon_projectile: [CCitadel_Projectile_FortunaWeapon, keysCBaseModelEntity],
-  func_breakable: [CBreakable, keysCBreakable],
-  func_brush: [CFuncBrush, keysCFuncBrush],
-  func_button: [CBaseButton, keysCBaseButton],
-  func_clip_interaction_layer: [CFuncInteractionLayerClip, keysCFuncInteractionLayerClip],
-  func_clip_vphysics: [CFuncVPhysicsClip, keysCFuncVPhysicsClip],
-  func_combined_light_probe_volume: [CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume, keysCEnvCombinedLightProbeVolume],
-  func_conditional_collidable: [CConditionalCollidable, keysCConditionalCollidable],
-  func_door: [CBaseDoor, keysCBaseDoor],
-  func_door_rotating: [CRotDoor, keysCRotDoor],
-  func_electrified_volume: [CFuncElectrifiedVolume, keysCFuncElectrifiedVolume],
-  func_fish_pool: [CFishPool, keysCFishPool],
-  func_guntarget: [CGunTarget, keysCGunTarget],
-  func_illusionary: [CFuncIllusionary, keysCBaseModelEntity],
-  func_ladder: [CFuncLadder, keysCFuncLadder],
-  func_monitor: [CFuncMonitor, keysCFuncMonitor],
-  func_movelinear: [CFuncMoveLinear, keysCFuncMoveLinear],
-  func_mover: [CFuncMover, keysCFuncMover],
-  func_mover_router: [CFuncMoverRouter, keysCFuncMoverRouter],
-  func_nav_avoidance_obstacle: [CFuncNavObstruction, keysCFuncNavObstruction],
-  func_nav_blocker: [CFuncNavBlocker, keysCFuncNavBlocker],
-  func_nav_dynamic_connections: [CDynamicNavConnectionsVolume, keysCDynamicNavConnectionsVolume],
-  func_nav_markup: [CMarkupVolumeTagged_Nav, keysCMarkupVolumeTagged_Nav],
-  func_nav_markup_citadel: [CMarkupVolumeTagged_NavCitadel, keysCMarkupVolumeWithRef],
-  func_nav_markup_game: [CMarkupVolumeTagged_NavGame, keysCMarkupVolumeTagged_NavGame],
-  func_physbox: [CPhysBox, keysCPhysBox],
-  func_physical_button: [CPhysicalButton, keysCBaseButton],
-  func_plat: [CFuncPlat, keysCFuncPlat],
-  func_platrot: [CFuncPlatRot, keysCFuncPlat],
-  func_precipitation_blocker: [CPrecipitationBlocker, keysCBaseModelEntity],
-  func_proprrespawnzone: [CFuncPropRespawnZone, keysCBaseEntity],
-  func_pushable: [CPushable, keysCBreakable],
-  func_regenerate: [CRegenerateZone, keysCBaseTrigger],
-  func_rot_button: [CRotButton, keysCBaseButton],
-  func_rotating: [CFuncRotating, keysCFuncRotating],
-  func_rotator: [CFuncRotator, keysCFuncRotator],
-  func_shatterglass: [CFuncShatterglass, keysCFuncShatterglass],
-  func_spawn_blocker: [CCitadelSpawnBlocker, keysCFuncBrush],
-  func_tanktrain: [CFuncTankTrain, keysCFuncTankTrain],
-  func_timescale: [CFuncTimescale, keysCFuncTimescale],
-  func_trackautochange: [CFuncTrackAuto, keysCFuncTrackAuto],
-  func_trackchange: [CFuncTrackChange, keysCFuncTrackChange],
-  func_tracktrain: [CFuncTrackTrain, keysCFuncTrackTrain],
-  func_train: [CFuncTrain, keysCFuncTrain],
-  func_traincontrols: [CFuncTrainControls, keysCBaseModelEntity],
-  func_useableladder: [CFuncLadderAlias_func_useableladder, keysCFuncLadder],
-  func_vehicleclip: [CFuncVehicleClip, keysCFuncVehicleClip],
-  func_wall: [CFuncWall, keysCBaseModelEntity],
-  func_wall_toggle: [CFuncWallToggle, keysCFuncWallToggle],
-  game_gib_manager: [CGameGibManager, keysCGameGibManager],
-  game_player_equip: [CGamePlayerEquip, keysCGamePlayerEquip],
-  game_ragdoll_manager: [CRagdollManager, keysCRagdollManager],
-  game_text: [CGameText, keysCGameText],
-  game_zone_player: [CGamePlayerZone, keysCGamePlayerZone],
-  guided_arrow_projectile: [CCitadel_Projectile_Guided_Arrow, keysCBaseModelEntity],
-  handle_dummy: [CHandleDummy, keysCBaseEntity],
-  handle_test: [CHandleTest, keysCBaseEntity],
-  hero_preview: [C_HeroPreview, keysCBaseEntity],
-  hero_testing_controller: [CInfoHeroTestingController, keysCPointEntity],
-  hl_vr_texture_based_animatable: [CTextureBasedAnimatable, keysCTextureBasedAnimatable],
-  icepath_shard: [CCitadel_Ice_Path_Shard_Physics, keysCBaseModelEntity],
-  immobilize_trap_projectile: [CCitadelProjectile_ImmobilizeTrap, keysCBaseModelEntity],
-  in_world_key_bind_panel: [CInWorldKeyBindPanel, keysCPointClientUIWorldPanel],
-  info_ability_test_bot: [CInfoAbilityTestBot, keysCPointEntity],
-  info_assigned_lane_particle: [CAssignedLaneParticle, keysCAssignedLaneParticle],
-  info_choreo_anchor: [CInfoChoreoAnchor, keysCPointEntity],
-  info_citadel_familiar_helper: [CInfoCitadelHelperLocation, keysCBaseEntity],
-  info_citadel_hideout: [CInfoCitadelHideout, keysCInfoCitadelHideout],
-  info_citadel_hideout_interest_point: [CCitadelHideoutInterestPoint, keysCCitadelHideoutInterestPoint],
-  info_citadel_matchmaking_status: [CCitadelMatchmakingStatusInfo, keysCCitadelMatchmakingStatusInfo],
-  info_constraint_anchor: [CConstraintAnchor, keysCConstraintAnchor],
-  info_data: [CInfoData, keysCBaseEntity],
-  info_dynamic_shadow_hint: [CInfoDynamicShadowHint, keysCInfoDynamicShadowHint],
-  info_dynamic_shadow_hint_box: [CInfoDynamicShadowHintBox, keysCInfoDynamicShadowHintBox],
-  info_game_event_proxy: [CInfoGameEventProxy, keysCInfoGameEventProxy],
-  info_hero_testing_point: [CInfoHeroTestingPoint, keysCInfoHeroTestingPoint],
-  info_koth_spawn_location: [CInfoKOTHSpawnLocation, keysCPointEntity],
-  info_ladder_dismount: [CInfoLadderDismount, keysCBaseEntity],
-  info_landmark: [CInfoLandmark, keysCPointEntity],
-  info_mid_boss_spawn: [CInfoMidBossSpawn, keysCBaseEntity],
-  info_mini_map_marker: [CMiniMapMarker, keysCMiniMapMarker],
-  info_nav_space: [CNavSpaceInfo, keysCPointEntity],
-  info_neutral_trooper_camp: [CInfoTrooperNeutralCamp, keysCInfoTrooperNeutralCamp],
-  info_neutral_trooper_spawn: [CInfoTrooperNeutralSpawn, keysCInfoTrooperNeutralSpawn],
-  info_npc_spawn_destination: [CNPCSpawnDestination, keysCNPCSpawnDestination],
-  info_offscreen_panorama_texture: [CInfoOffscreenPanoramaTexture, keysCInfoOffscreenPanoramaTexture],
-  info_particle_system: [CParticleSystem, keysCParticleSystem],
-  info_particle_target: [CInfoParticleTarget, keysCPointEntity],
-  info_player_deathmatch: [CBaseDMStart, keysCBaseDMStart],
-  info_player_start: [CInfoPlayerStart, keysCInfoPlayerStart],
-  info_portal_link: [CInfoPortalLink, keysCPointEntity],
-  info_spawngroup_landmark: [CInfoSpawnGroupLandmark, keysCPointEntity],
-  info_super_trooper_spawn: [CInfoTrooperBossSpawn, keysCInfoTrooperBossSpawn],
-  info_target: [CInfoTarget, keysCPointEntity],
-  info_target_choreo: [CChoreoInfoTarget, keysCPointEntity],
-  info_target_instructor_hint: [CInfoInstructorHintTarget, keysCPointEntity],
-  info_target_server_only: [CInfoTargetServerOnly, keysCBaseEntity],
-  info_team_relative_particle_system: [CTeamRelativeParticleSystem, keysCTeamRelativeParticleSystem],
-  info_team_spawn: [CInfoTeamSpawn, keysCInfoTeamSpawn],
-  info_teleport_destination: [CInfoTeleportDestination, keysCPointEntity],
-  info_teleport_location: [CCitadelTeleportLocation, keysCCitadelTeleportLocation],
-  info_trigger_fan: [CInfoFan, keysCInfoFan],
-  info_trooper_spawn: [CInfoTrooperSpawn, keysCInfoTrooperSpawn],
-  info_tutorial_point: [CInfoTutorialPoint, keysCInfoTutorialPoint],
-  info_visibility_box: [CInfoVisibilityBox, keysCInfoVisibilityBox],
-  info_world_layer: [CInfoWorldLayer, keysCInfoWorldLayer],
-  instanced_scripted_scene: [CInstancedSceneEntity, keysCInstancedSceneEntity],
-  item_crate: [CItemCrate, keysCItemCrate],
-  item_crate_spawn: [CItemCrateSpawn, keysCItemCrateSpawn],
-  item_explosive_barrel: [CItemExplosiveBarrel, keysCBaseModelEntity],
-  item_generic: [CItemGeneric, keysCItemGeneric],
-  item_generic_trigger_helper: [CItemGenericTriggerHelper, keysCBaseModelEntity],
-  item_sodacan: [CItemSoda, keysCBaseAnimGraph],
-  item_xp: [CItemXP, keysCBaseModelEntity, 'xp_orb'],
-  kali_boomerang_projectile: [CCitadelBoomerangProjectile, keysCBaseModelEntity],
-  keyframe_rope: [CRopeKeyframe, keysCRopeKeyframe],
-  keyframe_track: [CPathKeyFrame, keysCPathKeyFrame],
-  knightcharge_projectile: [CProjectile_KnightCharge_Projectile, keysCBaseModelEntity],
-  knightchargeleading_projectile: [CProjectile_KnightChargeLeading_Projectile, keysCBaseModelEntity],
-  lane_marker_path: [CLaneMarkerPath, keysCLaneMarkerPath],
-  light_barn: [CBarnLight, keysCBarnLight],
-  light_directional: [CLightDirectionalEntity, keysCLightEntity],
-  light_dynamic: [CDynamicLight, keysCDynamicLight],
-  light_environment: [CEnvironmentLight, keysCEnvironmentLight],
-  light_omni: [CLightEntity, keysCLightEntity],
-  light_omni2: [COmniLight, keysCOmniLight],
-  light_ortho: [CLightOrthoEntity, keysCLightEntity],
-  light_rect: [CRectLight, keysCRectLight],
-  light_spot: [CLightSpotEntity, keysCLightEntity],
-  logic_achievement: [CLogicAchievement, keysCLogicAchievement],
-  logic_active_autosave: [CLogicActiveAutosave, keysCLogicActiveAutosave],
-  logic_activityevent: [CLogicActivityEvent, keysCLogicActivityEvent],
-  logic_auto: [CLogicAuto, keysCLogicAuto],
-  logic_auto_citadel: [CLogicAutoCitadel, keysCLogicAutoCitadel],
-  logic_autosave: [CLogicAutosave, keysCLogicAutosave],
-  logic_branch: [CLogicBranch, keysCLogicBranch],
-  logic_branch_listener: [CLogicBranchList, keysCLogicBranchList],
-  logic_case: [CLogicCase, keysCLogicCase],
-  logic_choreographed_scene: [CSceneEntityAlias_logic_choreographed_scene, keysCSceneEntity],
-  logic_collision_pair: [CLogicCollisionPair, keysCLogicCollisionPair],
-  logic_compare: [CLogicCompare, keysCLogicCompare],
-  logic_distance_autosave: [CLogicDistanceAutosave, keysCLogicDistanceAutosave],
-  logic_distance_check: [CLogicDistanceCheck, keysCLogicDistanceCheck],
-  logic_game_event: [CLogicGameEvent, keysCLogicGameEvent],
-  logic_gameevent_listener: [CLogicGameEventListener, keysCLogicGameEventListener],
-  logic_gamestate_report: [CLogicGameStateReport, keysCLogicGameStateReport],
-  logic_lineto: [CLogicLineToEntity, keysCLogicLineToEntity],
-  logic_measure_movement: [CLogicMeasureMovement, keysCLogicMeasureMovement],
-  logic_multilight_proxy: [CMultiLightProxy, keysCMultiLightProxy],
-  logic_navigation: [CLogicNavigation, keysCLogicNavigation],
-  logic_npc_counter_aabb: [CLogicNPCCounterAABB, keysCLogicNPCCounterAABB],
-  logic_npc_counter_obb: [CLogicNPCCounterOBB, keysCLogicNPCCounterAABB],
-  logic_npc_counter_radius: [CLogicNPCCounter, keysCLogicNPCCounter],
-  logic_playerproxy: [CGenericLogicPlayerProxy, keysCLogicPlayerProxyBase],
-  logic_proximity: [CLogicProximity, keysCPointEntity],
-  logic_relay: [CLogicRelay, keysCLogicRelay],
-  logic_scene_list_manager: [CSceneListManager, keysCSceneListManager],
-  logic_script: [CLogicScript, keysCLogicScript],
-  logic_timer: [CTimerEntity, keysCTimerEntity],
-  magician_magicbolt_projectile: [CCitadel_Projectile_MagicBolt, keysCBaseModelEntity],
-  map_shared_environment: [CMapSharedEnvironment, keysCMapSharedEnvironment],
-  markup_volume: [CMarkupVolume, keysCMarkupVolume],
-  markup_volume_tagged: [CSimpleMarkupVolumeTagged, keysCMarkupVolumeTagged],
-  markup_volume_with_ref: [CMarkupVolumeWithRef, keysCMarkupVolumeWithRef],
-  match_tracked_stats: [CMatchTrackedStatsEntity, keysCBaseEntity],
-  math_colorblend: [CMathColorBlend, keysCMathColorBlend],
-  math_counter: [CMathCounter, keysCMathCounter],
-  math_remap: [CMathRemap, keysCMathRemap],
-  momentary_door: [CFuncMoveLinearAlias_momentary_door, keysCFuncMoveLinear],
-  momentary_rot_button: [CMomentaryRotButton, keysCMomentaryRotButton],
-  move_rope: [CRopeKeyframeAlias_move_rope, keysCRopeKeyframe],
-  multisource: [CMultiSource, keysCMultiSource],
-  necro_haunt_projectile: [CProjectile_Necro_HauntProjectile, keysCBaseModelEntity],
-  npc_barrack_boss: [CNPC_BarrackBoss, keysCNPC_BarrackBoss, 'npc_barrack_boss'],
-  npc_base_defense_sentry: [CNPC_BaseDefenseSentry, keysCNPC_BaseDefenseSentry, 'npc_base_defense_sentry'],
-  npc_boss_tier2: [CNPC_Boss_Tier2, keysCNPC_Boss_Tier2, 'npc_boss_tier2'],
-  npc_boss_tier3: [CNPC_Boss_Tier3, keysCNPC_Boss_Tier3, 'npc_boss_tier3'],
-  npc_boss_tier3core: [CNPC_Boss_Tier3Core, keysCBaseAnimGraph],
-  npc_escort: [CNPC_Escort, keysCAI_CitadelNPC, 'shield_escort'],
-  npc_maker: [CNPCMaker, keysCNPCMaker],
-  npc_necro_hauntingskull: [CNecro_HauntingSkullEntity, keysCNecro_HauntingSkullEntity],
-  npc_necro_skele: [CNPC_NecroSkele, keysCNPC_NecroSkele, 'npc_necro_skele'],
-  npc_neutral_bug: [CNPC_Neutral_Bug, keysCBaseAnimGraph, 'npc_neutral_bug'],
-  npc_neutral_flying_pigeon: [CNPC_Neutral_Flying_Pigeon, keysCBaseAnimGraph, 'npc_neutral_flying_pigeon'],
-  npc_neutral_sinners_sacrifice: [CNPC_Neutral_SinnersSacrifice, keysCAI_CitadelNPC, 'neutral_sinners_sacrifice'],
-  npc_neutral_sinners_sacrifice_hideout: [CNPC_Neutral_SinnersSacrifice_Hideout, keysCAI_CitadelNPC, 'npc_neutral_sinners_sacrifice_hideout'],
-  npc_ratking_rat: [CNPC_Ratking_Rat, keysCNPC_Ratking_Rat, 'npc_ratking_rat'],
-  npc_super_neutral: [CNPC_MidBoss, keysCAI_CitadelNPC, 'npc_super_neutral'],
-  npc_template_maker: [CTemplateNPCMaker, keysCTemplateNPCMaker],
-  npc_trooper: [CNPC_Trooper, keysCNPC_Trooper, 'trooper_normal'],
-  npc_trooper_boss: [CNPC_TrooperBoss, keysCNPC_TrooperBoss, 'npc_boss_tier1'],
-  npc_trooper_neutral: [CNPC_TrooperNeutral, keysCAI_CitadelNPC, 'neutral_trooper_weak'],
-  npc_yakuza_gangster: [CNPC_YakuzaGangster, keysCAI_CitadelNPC, 'npc_yakuza_gangster'],
-  observer: [CCitadelObserverPawn, keysCCitadelObserverPawn],
-  orb_spawner: [COrbSpawner, keysCBaseEntity],
-  path_accompany: [CPathAccompany, keysCPathAccompany],
-  path_corner: [CPathCorner, keysCPathCorner],
-  path_corner_crash: [CPathCornerCrash, keysCPathCorner],
-  path_mover: [CPathMover, keysCPathMover],
-  path_mover_entity_spawner: [CPathMoverEntitySpawner, keysCPathMoverEntitySpawner],
-  path_particle_rope: [CPathParticleRope, keysCPathParticleRope],
-  path_particle_rope_clientside: [CPathParticleRopeAlias_path_particle_rope_clientside, keysCPathParticleRope],
-  path_simple: [CPathSimple, keysCPathSimple],
-  path_track: [CPathTrack, keysCPathTrack],
-  path_with_dynamic_nodes: [CPathWithDynamicNodes, keysCPathWithDynamicNodes],
-  phys_magnet: [CPhysMagnet, keysCPhysMagnet],
-  phys_motor: [CPhysMotor, keysCPhysMotor],
-  phys_ragdollmagnet: [CRagdollMagnet, keysCRagdollMagnet],
-  phys_thruster: [CPhysThruster, keysCPhysForce],
-  phys_torque: [CPhysTorque, keysCPhysTorque],
-  physics_entity_solver: [CPhysicsEntitySolver, keysCPhysicsEntitySolver],
-  physics_prop_ragdoll: [CRagdollPropAlias_physics_prop_ragdoll, keysCRagdollProp],
-  plat_trigger: [CPlatTrigger, keysCBaseModelEntity],
-  player: [CCitadelPlayerPawn, keysCCitadelPlayerPawn],
-  player_controller: [CBasePlayerController, keysCBasePlayerController],
-  player_loadsaved: [CRevertSaved, keysCRevertSaved],
-  player_spray_decal: [CPlayerSprayDecal, keysCPlayerSprayDecal],
-  player_tracked_stats: [CPlayerTrackedStatsEntity, keysCBaseEntity],
-  point_anglesensor: [CPointAngleSensor, keysCPointAngleSensor],
-  point_angularvelocitysensor: [CPointAngularVelocitySensor, keysCPointAngularVelocitySensor],
-  point_broadcastclientcommand: [CPointBroadcastClientCommand, keysCPointBroadcastClientCommand],
-  point_camera: [CPointCamera, keysCPointCamera],
-  point_camera_vertical_fov: [CPointCameraVFOV, keysCPointCameraVFOV],
-  point_childmodifier: [CPointChildModifier, keysCPointChildModifier],
-  point_clientcommand: [CPointClientCommand, keysCPointClientCommand],
-  point_clientui_dialog: [CPointClientUIDialog, keysCPointClientUIDialog],
-  point_clientui_world_panel: [CPointClientUIWorldPanel, keysCPointClientUIWorldPanel],
-  point_clientui_world_text_panel: [CPointClientUIWorldTextPanel, keysCPointClientUIWorldTextPanel],
-  point_commentary_node: [CPointCommentaryNode, keysCPointCommentaryNode],
-  point_commentary_viewpoint: [CCommentaryViewPosition, keysCSprite],
-  point_enable_motion_fixup: [CEnableMotionFixup, keysCBaseEntity],
-  point_entity: [CPointEntity, keysCPointEntity],
-  point_entity_finder: [CPointEntityFinder, keysCPointEntityFinder],
-  point_hurt: [CPointHurt, keysCPointHurt],
-  point_instructor_event: [CInstructorEventEntity, keysCInstructorEventEntity],
-  point_message: [CMessageEntity, keysCMessageEntity],
-  point_modifier_thinker: [CPointModifierThinker, keysCPointModifierThinker],
-  point_nav_walkable: [CNavWalkable, keysCPointEntity],
-  point_orient: [CPointOrient, keysCPointOrient],
-  point_proximity_sensor: [CPointProximitySensor, keysCPointProximitySensor],
-  point_pulse: [CPointPulse, keysCBaseEntity],
-  point_push: [CPointPush, keysCPointPush],
-  point_servercommand: [CPointServerCommand, keysCPointServerCommand],
-  point_soundevent: [CSoundEventEntity, keysCSoundEventEntity],
-  point_teleport: [CPointTeleport, keysCPointTeleport],
-  point_template: [CPointTemplate, keysCPointTemplate],
-  point_value_remapper: [CPointValueRemapper, keysCPointValueRemapper],
-  point_velocitysensor: [CPointVelocitySensor, keysCPointVelocitySensor],
-  point_worldtext: [CPointWorldText, keysCPointWorldText],
-  post_processing_volume: [CPostProcessingVolume, keysCPostProcessingVolume],
-  projectile_boho_skipgrenade: [CProjectile_Boho_SkipGrenade, keysCBaseModelEntity],
-  projectile_chessmaster_forkpiece: [CProjectile_ChessMaster_Fork_Projectile, keysCBaseModelEntity],
-  projectile_cyclone: [CCitadel_Projectile_Cyclone, keysCBaseModelEntity],
-  projectile_doorman_cart_projectile: [CProjectile_Doorman_Cart_Projectile, keysCBaseModelEntity],
-  projectile_dust_storm: [CCitadel_Projectile_DustStorm, keysCBaseModelEntity],
-  projectile_gravestone_projectile: [CProjectile_GraveStone_Projectile, keysCBaseModelEntity],
-  projectile_necro_zombiewall_projectile: [CProjectile_Necro_ZombieWall_Projectile, keysCBaseModelEntity],
-  projectile_perched_predator: [CProjectile_Perched_Predator, keysCBaseModelEntity],
-  projectile_rolling_fireball: [CProjectile_Rolling_FireBall, keysCBaseModelEntity],
-  projectile_stomp_projectile: [CProjectile_Stomp_Projectile, keysCBaseModelEntity],
-  projectile_touch_volume: [CCitadelProjectileTouchVolume, keysCCitadelProjectileTouchVolume],
-  prop_animating_breakable: [CPropAnimatingBreakable, keysCPropAnimatingBreakable],
-  prop_door_rotating: [CPropDoorRotating, keysCPropDoorRotating],
-  prop_dynamic: [CDynamicProp, keysCDynamicProp],
-  prop_dynamic_ornament: [COrnamentProp, keysCOrnamentProp],
-  prop_dynamic_override: [CDynamicPropAlias_prop_dynamic_override, keysCDynamicProp],
-  prop_physics_override: [CPhysicsPropOverride, keysCPhysicsProp],
-  prop_physics_respawnable: [CPhysicsPropRespawnable, keysCPhysicsPropRespawnable],
-  prop_ragdoll: [CRagdollProp, keysCRagdollProp],
-  prop_ragdoll_attached: [CRagdollPropAttached, keysCRagdollProp],
-  pulse_game_blackboard: [CPulseGameBlackboard, keysCPulseGameBlackboard],
-  punkgoat_tether_projectile: [CProjectile_PunkgoatTether, keysCBaseModelEntity],
-  ratking_scrap_grenade_projectile: [CScrapGrenadeProjectile, keysCBaseModelEntity],
-  rocket_launcher_rocket_projectile: [CCitadel_Projectile_RocketLauncher_Rocket, keysCBaseModelEntity],
-  rotator_target: [CRotatorTarget, keysCPointEntity],
-  rutger_rocket_projectile: [CProjectile_Rutger_Rocket, keysCBaseModelEntity],
-  script_nav_blocker: [CScriptNavBlocker, keysCScriptNavBlocker],
-  script_trigger_hurt: [CScriptTriggerHurt, keysCScriptTriggerHurt],
-  script_trigger_multiple: [CScriptTriggerMultiple, keysCScriptTriggerMultiple],
-  script_trigger_once: [CScriptTriggerOnce, keysCScriptTriggerOnce],
-  script_trigger_push: [CScriptTriggerPush, keysCScriptTriggerPush],
-  scripted_item_drop: [CScriptItem, keysCItem],
-  scripted_scene: [CSceneEntity, keysCSceneEntity],
-  scripted_sequence: [CScriptedSequence, keysCScriptedSequence],
-  setting_sun_projectile: [CCitadel_Projectile_SettingSun, keysCBaseModelEntity],
-  shatterglass_shard: [CShatterGlassShardPhysics, keysCBaseModelEntity],
-  sky_camera: [CSkyCamera, keysCSkyCamera],
-  skybox_reference: [CSkyboxReference, keysCSkyboxReference],
-  snd_event_alignedbox: [CSoundEventAABBEntity, keysCSoundEventAABBEntity],
-  snd_event_box_helper: [CSoundEventBoxHelper, keysCSoundEventBoxHelper],
-  snd_event_cone: [CSoundEventConeEntity, keysCSoundEventConeEntity],
-  snd_event_oriented_boxes: [CSoundEventBoxEntity, keysCSoundEventBoxEntity],
-  snd_event_orientedbox: [CSoundEventOBBEntity, keysCSoundEventOBBEntity],
-  snd_event_param: [CSoundEventParameter, keysCSoundEventParameter],
-  snd_event_path_corner: [CSoundEventPathCornerEntity, keysCSoundEventPathCornerEntity],
-  snd_event_point: [CSoundEventEntityAlias_snd_event_point, keysCSoundEventEntity],
-  snd_event_sphere: [CSoundEventSphereEntity, keysCSoundEventSphereEntity],
-  snd_opvar_set: [CSoundOpvarSetEntity, keysCSoundOpvarSetEntity],
-  snd_opvar_set_aabb: [CSoundOpvarSetAABBEntity, keysCSoundOpvarSetBoxEntity],
-  snd_opvar_set_auto_room: [CSoundOpvarSetAutoRoomEntity, keysCSoundOpvarSetAutoRoomEntity],
-  snd_opvar_set_dome: [CSoundOpvarSetDomeEntity, keysCSoundOpvarSetDomeEntity],
-  snd_opvar_set_obb: [CSoundOpvarSetOBBEntity, keysCSoundOpvarSetBoxEntity],
-  snd_opvar_set_path_corner: [CSoundOpvarSetPathCornerEntity, keysCSoundOpvarSetPathCornerEntity],
-  snd_opvar_set_point: [CSoundOpvarSetPointEntity, keysCSoundOpvarSetPointEntity],
-  snd_opvar_set_point_base: [CSoundOpvarSetPointBase, keysCSoundOpvarSetPointBase],
-  snd_opvar_set_precipitation: [CSoundOpvarSetPrecipitationEntity, keysCSoundOpvarSetPrecipitationEntity],
-  snd_opvar_set_precipitation_obb: [CSoundOpvarSetPrecipitationOBBEntity, keysCSoundOpvarSetPrecipitationEntity],
-  snd_opvar_set_wind_obb: [CSoundOpvarSetOBBWindEntity, keysCSoundOpvarSetOBBWindEntity],
-  snd_sound_area_obb: [CSoundAreaEntityOrientedBox, keysCSoundAreaEntityOrientedBox],
-  snd_sound_area_sphere: [CSoundAreaEntitySphere, keysCSoundAreaEntitySphere],
-  snd_soundscape: [CEnvSoundscapeAlias_snd_soundscape, keysCEnvSoundscape],
-  snd_soundscape_proxy: [CEnvSoundscapeProxyAlias_snd_soundscape_proxy, keysCEnvSoundscapeProxy],
-  snd_soundscape_triggerable: [CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable, keysCEnvSoundscape],
-  snd_stack_save: [CSoundStackSave, keysCSoundStackSave],
-  spider_projectile: [CCitadel_Projectile_SpiderProjectile, keysCBaseModelEntity],
-  spotlight_end: [CSpotlightEnd, keysCBaseModelEntity],
-  synth_barrage_projectile: [CProjectile_Synth_Barrage, keysCBaseModelEntity],
-  synth_plasma_flux_projectile: [CProjectile_Synth_PlasmaFlux, keysCBaseModelEntity],
-  tanktrain_ai: [CTankTrainAI, keysCTankTrainAI],
-  tanktrain_aitarget: [CTankTargetChange, keysCTankTargetChange],
-  team_manager: [CTeam, keysCTeam],
-  team_tracked_stats: [CTeamTrackedStatsEntity, keysCBaseEntity],
-  test_effect: [CTestEffect, keysCBaseEntity],
-  test_io_combinations: [CTestPulseIO, keysCTestPulseIO],
-  trigger: [CBaseTrigger, keysCBaseTrigger],
-  trigger_Ice_Path_Volume: [CTriggerIcePathVolume, keysCBaseTrigger],
-  trigger_active_weapon_detect: [CTriggerActiveWeaponDetect, keysCTriggerActiveWeaponDetect],
-  trigger_add_modifier: [CTriggerAddModifier, keysCTriggerAddModifier],
-  trigger_brush: [CTriggerBrush, keysCTriggerBrush],
-  trigger_burrow_underground: [CTriggerBurrowUnderground, keysCBaseTrigger],
-  trigger_callback: [CTriggerCallback, keysCBaseTrigger],
-  trigger_catapult: [CCitadelCatapultTrigger, keysCCitadelCatapultTrigger],
-  trigger_changelevel: [CChangeLevel, keysCChangeLevel],
-  trigger_detect_bullet_fire: [CTriggerDetectBulletFire, keysCTriggerDetectBulletFire],
-  trigger_detect_explosion: [CTriggerDetectExplosion, keysCTriggerDetectExplosion],
-  trigger_fan: [CTriggerFan, keysCTriggerFan],
-  trigger_fog: [CFogTrigger, keysCFogTrigger],
-  trigger_game_event: [CTriggerGameEvent, keysCTriggerGameEvent],
-  trigger_gravity: [CTriggerGravity, keysCBaseTrigger],
-  trigger_hurt: [CTriggerHurt, keysCTriggerHurt],
-  trigger_hurt_citadel: [CCitadelTriggerHurt, keysCTriggerHurt],
-  trigger_impact: [CTriggerImpact, keysCTriggerImpact],
-  trigger_item_shop: [CTriggerItemShop, keysCTriggerItemShop],
-  trigger_item_shop_safe_zone: [CTriggerItemShopSafeZone, keysCTriggerItemShopSafeZone],
-  trigger_lerp_object: [CTriggerLerpObject, keysCTriggerLerpObject],
-  trigger_look: [CTriggerLook, keysCTriggerLook],
-  trigger_midboss_shield: [CTriggerMidBossShield, keysCBaseTrigger],
-  trigger_modifier: [CTriggerModifier, keysCTriggerModifier],
-  trigger_multiple: [CTriggerMultiple, keysCTriggerMultiple],
-  trigger_neutral_idles: [CTriggerNeutralIdles, keysCBaseTrigger],
-  trigger_neutral_shield: [CTriggerNeutralShield, keysCBaseTrigger],
-  trigger_once: [CTriggerOnce, keysCTriggerMultiple],
-  trigger_passthrough_fake_wall: [CTriggerPassthroughFakeWall, keysCBaseTrigger],
-  trigger_physics: [CTriggerPhysics, keysCTriggerPhysics],
-  trigger_ping_location: [CTriggerPingLocation, keysCTriggerPingLocation],
-  trigger_portal: [CCitadelPortalTrigger, keysCCitadelPortalTrigger],
-  trigger_proximity: [CTriggerProximity, keysCTriggerProximity],
-  trigger_push: [CTriggerPush, keysCTriggerPush],
-  trigger_remove: [CTriggerRemove, keysCTriggerRemove],
-  trigger_remove_modifier: [CTriggerRemoveModifier, keysCTriggerRemoveModifier],
-  trigger_serverragdoll: [CServerRagdollTrigger, keysCBaseTrigger],
-  trigger_snd_sos_opvar: [CTriggerSndSosOpvar, keysCTriggerSndSosOpvar],
-  trigger_soundscape: [CTriggerSoundscape, keysCTriggerSoundscape],
-  trigger_team_base: [CTriggerTeamBase, keysCBaseTrigger],
-  trigger_teleport: [CTriggerTeleport, keysCTriggerTeleport],
-  trigger_tier3phase2_shield: [CTriggerTier3Phase2Shield, keysCBaseTrigger],
-  trigger_tonemap: [CTonemapTrigger, keysCTonemapTrigger],
-  trigger_transition: [CTriggerVolume, keysCTriggerVolume],
-  trigger_trooper_damage_reduction_detector: [CTriggerTrooperDamageReductionDetector, keysCTriggerTrooperDamageReductionDetector],
-  trigger_trooper_detector: [CTriggerTrooperDetector, keysCTriggerTrooperDetector],
-  trooper_approach_horizon: [CTrooperApproachHorizon, keysCBaseEntity],
-  vandal_pillar_projectile: [CCitadel_Projectile_Pillar, keysCBaseModelEntity],
-  viper_hookblade_projectile: [CCitadel_Projectile_HookBlade, keysCBaseModelEntity],
-  viper_petrify_projectile: [CCitadel_Projectile_Petrify, keysCBaseModelEntity],
-  viscous_goo_grenade_projectile: [CCitadel_Projectile_Viscous_GooGrenade, keysCBaseModelEntity],
-  wearable_item: [CEconWearable, keysCBaseAnimGraph],
-  webwall_projectile: [CCitadel_Projectile_WebWall, keysCBaseModelEntity],
-  wrecker_teleport_projectile: [CCitadel_Projectile_Wrecker_Teleport, keysCBaseModelEntity],
-  wrecking_ball_projectile: [CCitadel_Projectile_WreckingBall, keysCBaseModelEntity],
-  zip_line_node: [CCitadelZipLineNode, keysCCitadelZipLineNode],
-} as const
+  ai_changehintgroup: { make: CAI_ChangeHintGroup, keys: keysCAI_ChangeHintGroup } as Designer<typeof CAI_ChangeHintGroup, CAI_ChangeHintGroupKeys>,
+  ai_foot_sweep: { make: CNpcFootSweep, keys: keysCNpcFootSweep } as Designer<typeof CNpcFootSweep, CNpcFootSweepKeys>,
+  ai_hint: { make: CAI_Hint, keys: keysCAI_Hint } as Designer<typeof CAI_Hint, CAI_HintKeys>,
+  ai_nav_link_area: { make: CNavLinkAreaEntity, keys: keysCNavLinkAreaEntity } as Designer<typeof CNavLinkAreaEntity, CNavLinkAreaEntityKeys>,
+  ai_network: { make: CAI_NetworkManager, keys: keysCPointEntity } as Designer<typeof CAI_NetworkManager, CPointEntityKeys>,
+  ai_script_conditions: { make: CAI_ScriptConditions, keys: keysCAI_ScriptConditions } as Designer<typeof CAI_ScriptConditions, CAI_ScriptConditionsKeys>,
+  ai_sound: { make: CAI_VolumetricEventEntityAlias_ai_sound, keys: keysCAI_VolumetricEventEntity } as Designer<typeof CAI_VolumetricEventEntityAlias_ai_sound, CAI_VolumetricEventEntityKeys>,
+  ai_speechfilter: { make: CAI_SpeechFilter, keys: keysCAI_SpeechFilter } as Designer<typeof CAI_SpeechFilter, CAI_SpeechFilterKeys>,
+  ai_test_path: { make: CAITestPath, keys: keysCAITestPath } as Designer<typeof CAITestPath, CAITestPathKeys>,
+  ai_volumetric_event: { make: CAI_VolumetricEventEntity, keys: keysCAI_VolumetricEventEntity } as Designer<typeof CAI_VolumetricEventEntity, CAI_VolumetricEventEntityKeys>,
+  ai_volumetric_event_sensor: { make: CAI_VolumetricEventSensor, keys: keysCAI_VolumetricEventSensor } as Designer<typeof CAI_VolumetricEventSensor, CAI_VolumetricEventSensorKeys>,
+  archer_charged_shot_projectile: { make: CCitadel_Projectile_Archer_ChargedShot, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Archer_ChargedShot, CBaseModelEntityKeys>,
+  baba_bubblingbrew_projectile: { make: CCitadel_Projectile_BubblingBrew, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_BubblingBrew, CBaseModelEntityKeys>,
+  base_prop: { make: CBaseProp, keys: keysCBaseProp } as Designer<typeof CBaseProp, CBasePropKeys>,
+  baseanimating: { make: CBaseAnimGraphAlias_baseanimating, keys: keysCBaseAnimGraph } as Designer<typeof CBaseAnimGraphAlias_baseanimating, CBaseAnimGraphKeys>,
+  baseanimgraph: { make: CBaseAnimGraph, keys: keysCBaseAnimGraph } as Designer<typeof CBaseAnimGraph, CBaseAnimGraphKeys>,
+  basemodelentity: { make: CBaseModelEntity, keys: keysCBaseModelEntity } as Designer<typeof CBaseModelEntity, CBaseModelEntityKeys>,
+  batswarm_extra_projectile: { make: CCitadel_Projectile_BatSwarmExtraProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_BatSwarmExtraProjectile, CBaseModelEntityKeys>,
+  batswarm_projectile: { make: CCitadel_Projectile_BatSwarmProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_BatSwarmProjectile, CBaseModelEntityKeys>,
+  beam: { make: CBeam, keys: keysCBeam } as Designer<typeof CBeam, CBeamKeys>,
+  bebop_hook_projectile: { make: CCitadel_Projectile_Bebop_Hook, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Bebop_Hook, CBaseModelEntityKeys>,
+  blood_bomb_projectile: { make: CCitadel_Projectile_BloodBomb, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_BloodBomb, CBaseModelEntityKeys>,
+  boho_bouncyprojectile: { make: CProjectile_Boho_BouncyProjectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Boho_BouncyProjectile, CBaseModelEntityKeys>,
+  bookwormdragon_projectile: { make: CProjectile_BookwormDragon_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_BookwormDragon_Projectile, CBaseModelEntityKeys>,
+  bookwormgun_projectile: { make: CCitadel_Projectile_BookwormGun, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_BookwormGun, CBaseModelEntityKeys>,
+  bullet_redirect_volume: { make: CCitadelBulletRedirectVolume, keys: keysCBaseModelEntity } as Designer<typeof CCitadelBulletRedirectVolume, CBaseModelEntityKeys>,
+  bullet_time_warp: { make: CCitadelBulletTimeWarp, keys: keysCCitadelBulletTimeWarp } as Designer<typeof CCitadelBulletTimeWarp, CCitadelBulletTimeWarpKeys>,
+  cable_dynamic: { make: CDynamicPropAlias_cable_dynamic, keys: keysCDynamicProp } as Designer<typeof CDynamicPropAlias_cable_dynamic, CDynamicPropKeys>,
+  citadel_animating_model_entity: { make: CCitadelAnimatingModelEntity, keys: keysCBaseAnimGraph } as Designer<typeof CCitadelAnimatingModelEntity, CBaseAnimGraphKeys>,
+  citadel_announcer: { make: CCitadel_Announcer, keys: keysCBaseCombatCharacter } as Designer<typeof CCitadel_Announcer, CBaseCombatCharacterKeys>,
+  citadel_base_hero: { make: CCitadelHeroLoader, keys: keysCCitadelHeroLoader } as Designer<typeof CCitadelHeroLoader, CCitadelHeroLoaderKeys>,
+  citadel_base_prop_midboss_indicator: { make: CCitadel_Prop_MidBossIndicator, keys: keysCPointEntity } as Designer<typeof CCitadel_Prop_MidBossIndicator, CPointEntityKeys>,
+  citadel_base_prop_stairs: { make: CCitadel_BaseProp_MidStairs, keys: keysCCitadel_BaseProp_MidStairs } as Designer<typeof CCitadel_BaseProp_MidStairs, CCitadel_BaseProp_MidStairsKeys>,
+  citadel_bot_test_node: { make: CCitadelBotTestNode, keys: keysCCitadelBotTestNode } as Designer<typeof CCitadelBotTestNode, CCitadelBotTestNodeKeys>,
+  citadel_breakable_prop: { make: CCitadel_BreakableProp, keys: keysCCitadel_BreakableProp, subclass: 'citadel_breakable_prop_vase' } as Designer<typeof CCitadel_BreakableProp, CCitadel_BreakablePropKeys>,
+  citadel_capture_point_escort: { make: CCitadelTriggerCapturePoint_Escort, keys: keysCCitadelTriggerCapturePoint, subclass: 'capture_point_escort' } as Designer<typeof CCitadelTriggerCapturePoint_Escort, CCitadelTriggerCapturePointKeys>,
+  citadel_cat_animating: { make: CCitadel_CatAnimating, keys: keysCBaseAnimGraph, subclass: 'citadel_cat_animating' } as Designer<typeof CCitadel_CatAnimating, CBaseAnimGraphKeys>,
+  citadel_chesspiece_entity: { make: CNPC_ChessPiece, keys: keysCNPC_ChessPiece, subclass: 'citadel_chesspiece_bishop' } as Designer<typeof CNPC_ChessPiece, CNPC_ChessPieceKeys>,
+  citadel_configurable_tracked_projectile: { make: CCitadelConfigurableTrackedProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadelConfigurableTrackedProjectile, CBaseModelEntityKeys>,
+  citadel_control_point: { make: CCitadelControlPointTrigger, keys: keysCCitadelControlPointTrigger } as Designer<typeof CCitadelControlPointTrigger, CCitadelControlPointTriggerKeys>,
+  citadel_dev_trigger: { make: CCitadelDevTrigger, keys: keysCCitadelDevTrigger } as Designer<typeof CCitadelDevTrigger, CCitadelDevTriggerKeys>,
+  citadel_doorway_portal: { make: CCitadel_DoorwayPortal, keys: keysCCitadel_DoorwayPortal } as Designer<typeof CCitadel_DoorwayPortal, CCitadel_DoorwayPortalKeys>,
+  citadel_druid_healing_tree: { make: CCitadelDruidHealingTree, keys: keysCCitadelDruidHealingTree } as Designer<typeof CCitadelDruidHealingTree, CCitadelDruidHealingTreeKeys>,
+  citadel_druid_healing_tree_fruit: { make: CCitadelDruidHealingFruit, keys: keysCCitadelDruidHealingFruit } as Designer<typeof CCitadelDruidHealingFruit, CCitadelDruidHealingFruitKeys>,
+  citadel_druid_invis_bush: { make: CCitadelDruidInvisBush, keys: keysCBaseAnimGraph } as Designer<typeof CCitadelDruidInvisBush, CBaseAnimGraphKeys>,
+  citadel_druid_plant_shield: { make: CCitadelDruidPlantShield, keys: keysCBaseAnimGraph } as Designer<typeof CCitadelDruidPlantShield, CBaseAnimGraphKeys>,
+  citadel_energy_tower: { make: CCitadelEnergyTower, keys: keysCCitadelEnergyTower } as Designer<typeof CCitadelEnergyTower, CCitadelEnergyTowerKeys>,
+  citadel_fissure_wall: { make: CCitadel_FissureWall, keys: keysCBaseAnimGraph, subclass: 'citadel_fissure_wall' } as Designer<typeof CCitadel_FissureWall, CBaseAnimGraphKeys>,
+  citadel_gaffer: { make: CCitadelGaffer, keys: keysCCitadelGaffer } as Designer<typeof CCitadelGaffer, CCitadelGafferKeys>,
+  citadel_gamerules: { make: CCitadelGameRulesProxy, keys: keysCBaseEntity } as Designer<typeof CCitadelGameRulesProxy, CBaseEntityKeys>,
+  citadel_grandfinale_stage: { make: CCitadel_GrandFinaleStage, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_GrandFinaleStage, CBaseAnimGraphKeys>,
+  citadel_hideout_ball: { make: CCitadel_Hideout_Ball, keys: keysCBaseModelEntity, subclass: 'citadel_hideout_ball' } as Designer<typeof CCitadel_Hideout_Ball, CBaseModelEntityKeys>,
+  citadel_hideout_button: { make: CCitadelHideoutInteractableProp, keys: keysCCitadelHideoutInteractableProp } as Designer<typeof CCitadelHideoutInteractableProp, CCitadelHideoutInteractablePropKeys>,
+  citadel_hideout_clock: { make: CCitadel_Hideout_Clock, keys: keysCBaseAnimGraph, subclass: 'citadel_hideout_clock' } as Designer<typeof CCitadel_Hideout_Clock, CBaseAnimGraphKeys>,
+  citadel_hideout_interactable_trigger: { make: CCitadelHideoutInteractableTrigger, keys: keysCCitadelHideoutInteractableTrigger } as Designer<typeof CCitadelHideoutInteractableTrigger, CCitadelHideoutInteractableTriggerKeys>,
+  citadel_hideout_prop_slot: { make: CCitadelHideoutPropSlot, keys: keysCCitadelHideoutPropSlot } as Designer<typeof CCitadelHideoutPropSlot, CCitadelHideoutPropSlotKeys>,
+  citadel_ice_dome_blocker: { make: CCitadel_Ice_Dome_Blocker, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Ice_Dome_Blocker, CBaseAnimGraphKeys>,
+  citadel_invis_volume: { make: CTriggerInvisVolume, keys: keysCBaseTrigger } as Designer<typeof CTriggerInvisVolume, CBaseTriggerKeys>,
+  citadel_item_koth_spawner: { make: CCitadelItemKothSpawner, keys: keysCCitadelItemKothSpawner, subclass: 'citadel_item_koth_spawner' } as Designer<typeof CCitadelItemKothSpawner, CCitadelItemKothSpawnerKeys>,
+  citadel_item_pickup: { make: CCitadelItemPickup, keys: keysCCitadelItemPickup, subclass: 'citadel_item_pickup' } as Designer<typeof CCitadelItemPickup, CCitadelItemPickupKeys>,
+  citadel_item_pickup_idol: { make: CCitadelItemPickupIdol, keys: keysCCitadelItemPickupIdol, subclass: 'citadel_item_pickup_idol' } as Designer<typeof CCitadelItemPickupIdol, CCitadelItemPickupIdolKeys>,
+  citadel_item_pickup_rejuv: { make: CCitadelItemPickupRejuv, keys: keysCCitadelItemPickup, subclass: 'citadel_item_pickup_rejuv' } as Designer<typeof CCitadelItemPickupRejuv, CCitadelItemPickupKeys>,
+  citadel_item_pickup_rejuv_herotest: { make: CCitadelItemPickupRejuvHeroTest, keys: keysCCitadelItemPickup, subclass: 'citadel_item_pickup_rejuv_herotest' } as Designer<typeof CCitadelItemPickupRejuvHeroTest, CCitadelItemPickupKeys>,
+  citadel_item_pickup_rejuv_herotest_infospawn: { make: CCitadelItemPickupRejuvHeroTestInfoSpawn, keys: keysCPointEntity } as Designer<typeof CCitadelItemPickupRejuvHeroTestInfoSpawn, CPointEntityKeys>,
+  citadel_item_powerup_spawner: { make: CCitadel_PickupItemSpawner, keys: keysCCitadel_PickupItemSpawner, subclass: 'citadel_item_powerup_spawner_bounty_runes' } as Designer<typeof CCitadel_PickupItemSpawner, CCitadel_PickupItemSpawnerKeys>,
+  citadel_item_punchable_gold: { make: CCitadelItemPunchableNeutralGold, keys: keysCCitadelItemPunchableNeutralGold, subclass: 'citadel_item_punchable_gold' } as Designer<typeof CCitadelItemPunchableNeutralGold, CCitadelItemPunchableNeutralGoldKeys>,
+  citadel_local_player_ranked_badge_prop: { make: CCitadelLocalPlayerRankedBadgeProp, keys: keysCBaseEntity } as Designer<typeof CCitadelLocalPlayerRankedBadgeProp, CBaseEntityKeys>,
+  citadel_magic_beam_blocker: { make: CCitadel_Magic_Beam_Blocker, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Magic_Beam_Blocker, CBaseAnimGraphKeys>,
+  citadel_minimap_boundary: { make: CCitadelMinimapBoundary, keys: keysCBaseEntity } as Designer<typeof CCitadelMinimapBoundary, CBaseEntityKeys>,
+  citadel_model_entity: { make: CCitadelModelEntity, keys: keysCBaseModelEntity } as Designer<typeof CCitadelModelEntity, CBaseModelEntityKeys>,
+  citadel_new_years_fireworks: { make: CCitadel_NewYears_Fireworks, keys: keysCCitadel_NewYears_Fireworks } as Designer<typeof CCitadel_NewYears_Fireworks, CCitadel_NewYears_FireworksKeys>,
+  citadel_obscured_volume: { make: CTriggerObscuredVolume, keys: keysCTriggerObscuredVolume } as Designer<typeof CTriggerObscuredVolume, CTriggerObscuredVolumeKeys>,
+  citadel_passthrough_fake_wall: { make: CCitadelPassthroughFakeWall, keys: keysCCitadelPassthroughFakeWall } as Designer<typeof CCitadelPassthroughFakeWall, CCitadelPassthroughFakeWallKeys>,
+  citadel_pickup: { make: CCitadel_Pickup, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup, CBaseAnimGraphKeys>,
+  citadel_pickup_ability: { make: CCitadel_Pickup_Ability, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Ability, CBaseAnimGraphKeys>,
+  citadel_pickup_assigned_gold: { make: CCitadel_Pickup_AssignedGold, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_AssignedGold, CBaseAnimGraphKeys>,
+  citadel_pickup_currency: { make: CCitadel_Pickup_Currency, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Currency, CBaseAnimGraphKeys>,
+  citadel_pickup_gold: { make: CCitadel_Pickup_Gold, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Gold, CBaseAnimGraphKeys>,
+  citadel_pickup_health: { make: CCitadel_Pickup_Health, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Health, CBaseAnimGraphKeys>,
+  citadel_pickup_item: { make: CCitadel_Pickup_Item, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Item, CBaseAnimGraphKeys>,
+  citadel_pickup_modifier: { make: CCitadel_Pickup_Modifier, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_Modifier, CBaseAnimGraphKeys>,
+  citadel_pickup_necro_death: { make: CCitadel_Pickup_NecroDeath, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Pickup_NecroDeath, CBaseAnimGraphKeys>,
+  citadel_pickup_spawner: { make: CCitadel_PickupSpawner, keys: keysCCitadel_PickupSpawner, subclass: 'citadel_pickup_floating_apple' } as Designer<typeof CCitadel_PickupSpawner, CCitadel_PickupSpawnerKeys>,
+  citadel_player_controller: { make: CCitadelPlayerController, keys: keysCBasePlayerController } as Designer<typeof CCitadelPlayerController, CBasePlayerControllerKeys>,
+  citadel_point_talker: { make: CCitadel_PointTalker, keys: keysCCitadel_PointTalker_Base } as Designer<typeof CCitadel_PointTalker, CCitadel_PointTalker_BaseKeys>,
+  citadel_point_talker_idol: { make: CCitadel_PointTalker_Idol, keys: keysCCitadel_PointTalker_Base } as Designer<typeof CCitadel_PointTalker_Idol, CCitadel_PointTalker_BaseKeys>,
+  citadel_priest_slidetrap: { make: CCitadel_Priest_SlideTrap, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Priest_SlideTrap, CBaseModelEntityKeys>,
+  citadel_projectile: { make: CCitadelProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadelProjectile, CBaseModelEntityKeys>,
+  citadel_prop_dynamic: { make: CCitadel_DynamicProp, keys: keysCCitadel_DynamicProp } as Designer<typeof CCitadel_DynamicProp, CCitadel_DynamicPropKeys>,
+  citadel_ranked_badge_prop: { make: CCitadelRankedBadgeProp, keys: keysCCitadelRankedBadgeProp } as Designer<typeof CCitadelRankedBadgeProp, CCitadelRankedBadgePropKeys>,
+  citadel_ratking_standard: { make: CCitadel_Ratking_Standard, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_Ratking_Standard, CBaseAnimGraphKeys>,
+  citadel_restorative_goo_cube: { make: CCitadel_RestorativeGooCube, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_RestorativeGooCube, CBaseAnimGraphKeys>,
+  citadel_shield: { make: CCitadel_Shield, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Shield, CBaseModelEntityKeys>,
+  citadel_shop_prop_dynamic: { make: CCitadel_ShopProp, keys: keysCCitadel_ShopProp } as Designer<typeof CCitadel_ShopProp, CCitadel_ShopPropKeys>,
+  citadel_smokegrenade_blocker: { make: CCitadel_SmokeGrenade_Blocker, keys: keysCBaseAnimGraph } as Designer<typeof CCitadel_SmokeGrenade_Blocker, CBaseAnimGraphKeys>,
+  citadel_snd_base_music_obb: { make: CCitadelBaseMusicOBB, keys: keysCCitadelSoundStackFieldOBB } as Designer<typeof CCitadelBaseMusicOBB, CCitadelSoundStackFieldOBBKeys>,
+  citadel_snd_dsp_obb: { make: CCitadelAudioProcessingVolumeOBB, keys: keysCCitadelAudioProcessingVolumeOBB } as Designer<typeof CCitadelAudioProcessingVolumeOBB, CCitadelAudioProcessingVolumeOBBKeys>,
+  citadel_snd_obb: { make: CCitadelSoundEntityOBB, keys: keysCCitadelSoundEntityOBB } as Designer<typeof CCitadelSoundEntityOBB, CCitadelSoundEntityOBBKeys>,
+  citadel_snd_opvar_set_obb: { make: CCitadelSoundOpvarSetOBB, keys: keysCCitadelSoundOpvarSetOBB } as Designer<typeof CCitadelSoundOpvarSetOBB, CCitadelSoundOpvarSetOBBKeys>,
+  citadel_snd_stack_field_obb: { make: CCitadelSoundStackFieldOBB, keys: keysCCitadelSoundStackFieldOBB } as Designer<typeof CCitadelSoundStackFieldOBB, CCitadelSoundStackFieldOBBKeys>,
+  citadel_spider_animating: { make: CCitadel_SpiderAnimating, keys: keysCBaseAnimGraph, subclass: 'citadel_spider_animating' } as Designer<typeof CCitadel_SpiderAnimating, CBaseAnimGraphKeys>,
+  citadel_team_manager: { make: CCitadelTeam, keys: keysCTeam } as Designer<typeof CCitadelTeam, CTeamKeys>,
+  citadel_tracked_projectile: { make: CCitadelTrackedProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadelTrackedProjectile, CBaseModelEntityKeys>,
+  citadel_trigger_bonk: { make: CCitadelTriggerBonk, keys: keysCCitadelTriggerBonk } as Designer<typeof CCitadelTriggerBonk, CCitadelTriggerBonkKeys>,
+  citadel_trigger_climb_rope: { make: CCitadelClimbRopeTrigger, keys: keysCCitadelClimbRopeTrigger } as Designer<typeof CCitadelClimbRopeTrigger, CCitadelClimbRopeTriggerKeys>,
+  citadel_trigger_corrupted_item_shop: { make: CCitadelTriggerCorruptedItemShop, keys: keysCCitadelTriggerCorruptedItemShop } as Designer<typeof CCitadelTriggerCorruptedItemShop, CCitadelTriggerCorruptedItemShopKeys>,
+  citadel_trigger_hideout: { make: CCitadelTriggerHideout, keys: keysCBaseTrigger } as Designer<typeof CCitadelTriggerHideout, CBaseTriggerKeys>,
+  citadel_trigger_hideout_teleport: { make: CCitadelHideoutTeleportTrigger, keys: keysCCitadelHideoutTeleportTrigger } as Designer<typeof CCitadelHideoutTeleportTrigger, CCitadelHideoutTeleportTriggerKeys>,
+  citadel_trigger_hotel_exit: { make: CCitadelHotelExitTrigger, keys: keysCCitadelHotelExitTrigger } as Designer<typeof CCitadelHotelExitTrigger, CCitadelHotelExitTriggerKeys>,
+  citadel_trigger_idol_return: { make: CCitadelIdolReturnTrigger, keys: keysCTriggerModifier } as Designer<typeof CCitadelIdolReturnTrigger, CTriggerModifierKeys>,
+  citadel_trigger_ignore_out_of_play_area: { make: CCitadelIgnoreOutOfPlayArea, keys: keysCTriggerModifier } as Designer<typeof CCitadelIgnoreOutOfPlayArea, CTriggerModifierKeys>,
+  citadel_trigger_in_map_district: { make: CCitadelMapDistrictTrigger, keys: keysCCitadelMapDistrictTrigger } as Designer<typeof CCitadelMapDistrictTrigger, CCitadelMapDistrictTriggerKeys>,
+  citadel_trigger_interior: { make: CCitadelInteriorTrigger, keys: keysCCitadelInteriorTrigger } as Designer<typeof CCitadelInteriorTrigger, CCitadelInteriorTriggerKeys>,
+  citadel_trigger_no_portals: { make: CCitadelTriggerNoPortals, keys: keysCBaseTrigger } as Designer<typeof CCitadelTriggerNoPortals, CBaseTriggerKeys>,
+  citadel_trigger_push: { make: CCitadelPushTrigger, keys: keysCCitadelPushTrigger } as Designer<typeof CCitadelPushTrigger, CCitadelPushTriggerKeys>,
+  citadel_trigger_secure_souls: { make: CCitadelTriggerSecureSouls, keys: keysCBaseTrigger } as Designer<typeof CCitadelTriggerSecureSouls, CBaseTriggerKeys>,
+  citadel_trigger_shop_tunnel: { make: CCitadelShopTunnelTrigger, keys: keysCBaseTrigger } as Designer<typeof CCitadelShopTunnelTrigger, CBaseTriggerKeys>,
+  citadel_trigger_speed_boost: { make: CCitadelSpeedBoostTrigger, keys: keysCCitadelSpeedBoostTrigger } as Designer<typeof CCitadelSpeedBoostTrigger, CCitadelSpeedBoostTriggerKeys>,
+  citadel_trigger_suspend_modifier: { make: CTriggerSuspendModifier, keys: keysCTriggerSuspendModifier } as Designer<typeof CTriggerSuspendModifier, CTriggerSuspendModifierKeys>,
+  citadel_trigger_teleport: { make: CCitadelTeleportTrigger, keys: keysCCitadelTeleportTrigger } as Designer<typeof CCitadelTeleportTrigger, CCitadelTeleportTriggerKeys>,
+  citadel_trooper_minimap: { make: CCitadelTrooperMinimap, keys: keysCBaseEntity } as Designer<typeof CCitadelTrooperMinimap, CBaseEntityKeys>,
+  citadel_tunnel_node: { make: CCitadelTunnelNode, keys: keysCCitadelTunnelNode } as Designer<typeof CCitadelTunnelNode, CCitadelTunnelNodeKeys>,
+  citadel_tunnel_trigger: { make: CCitadelTunnelTrigger, keys: keysCCitadelTunnelTrigger } as Designer<typeof CCitadelTunnelTrigger, CCitadelTunnelTriggerKeys>,
+  citadel_tutorial_controller: { make: CInfoTutorialController, keys: keysCDynamicProp } as Designer<typeof CInfoTutorialController, CDynamicPropKeys>,
+  citadel_viscous_ball: { make: CCitadelViscousBall, keys: keysCCitadelViscousBall, subclass: 'citadel_viscous_ball' } as Designer<typeof CCitadelViscousBall, CCitadelViscousBallKeys>,
+  citadel_zap_trigger: { make: CCitadelZapTrigger, keys: keysCCitadelZapTrigger } as Designer<typeof CCitadelZapTrigger, CCitadelZapTriggerKeys>,
+  citadel_zipline_path: { make: CCitadelZiplinePath, keys: keysCCitadelZiplinePath } as Designer<typeof CCitadelZiplinePath, CCitadelZiplinePathKeys>,
+  citadel_zipline_path_node: { make: CCitadelZipLinePathNode, keys: keysCCitadelZipLinePathNode } as Designer<typeof CCitadelZipLinePathNode, CCitadelZipLinePathNodeKeys>,
+  color_correction: { make: CColorCorrection, keys: keysCColorCorrection } as Designer<typeof CColorCorrection, CColorCorrectionKeys>,
+  color_correction_volume: { make: CColorCorrectionVolume, keys: keysCColorCorrectionVolume } as Designer<typeof CColorCorrectionVolume, CColorCorrectionVolumeKeys>,
+  commentary_auto: { make: CCommentaryAuto, keys: keysCCommentaryAuto } as Designer<typeof CCommentaryAuto, CCommentaryAutoKeys>,
+  destroyable_building: { make: CCitadel_Destroyable_Building, keys: keysCCitadel_Destroyable_Building, subclass: 'destroyable_building' } as Designer<typeof CCitadel_Destroyable_Building, CCitadel_Destroyable_BuildingKeys>,
+  doorman_bomb_projectile: { make: CDoormanBombProjectile, keys: keysCBaseModelEntity } as Designer<typeof CDoormanBombProjectile, CBaseModelEntityKeys>,
+  dynamic_prop: { make: CDynamicPropAlias_dynamic_prop, keys: keysCDynamicProp } as Designer<typeof CDynamicPropAlias_dynamic_prop, CDynamicPropKeys>,
+  entity_blocker: { make: CEntityBlocker, keys: keysCBaseModelEntity } as Designer<typeof CEntityBlocker, CBaseModelEntityKeys>,
+  entityflame: { make: CEntityFlame, keys: keysCBaseEntity } as Designer<typeof CEntityFlame, CBaseEntityKeys>,
+  env_beam: { make: CEnvBeam, keys: keysCEnvBeam } as Designer<typeof CEnvBeam, CEnvBeamKeys>,
+  env_beverage: { make: CEnvBeverage, keys: keysCEnvBeverage } as Designer<typeof CEnvBeverage, CEnvBeverageKeys>,
+  env_combined_light_probe_volume: { make: CEnvCombinedLightProbeVolume, keys: keysCEnvCombinedLightProbeVolume } as Designer<typeof CEnvCombinedLightProbeVolume, CEnvCombinedLightProbeVolumeKeys>,
+  env_credits: { make: CCredits, keys: keysCCredits } as Designer<typeof CCredits, CCreditsKeys>,
+  env_cubemap: { make: CEnvCubemap, keys: keysCEnvCubemap } as Designer<typeof CEnvCubemap, CEnvCubemapKeys>,
+  env_cubemap_fog: { make: CEnvCubemapFog, keys: keysCEnvCubemapFog } as Designer<typeof CEnvCubemapFog, CEnvCubemapFogKeys>,
+  env_decal: { make: CEnvDecal, keys: keysCEnvDecal } as Designer<typeof CEnvDecal, CEnvDecalKeys>,
+  env_detail_controller: { make: CEnvDetailController, keys: keysCEnvDetailController } as Designer<typeof CEnvDetailController, CEnvDetailControllerKeys>,
+  env_entity_dissolver: { make: CEntityDissolve, keys: keysCEntityDissolve } as Designer<typeof CEntityDissolve, CEntityDissolveKeys>,
+  env_entity_igniter: { make: CEnvEntityIgniter, keys: keysCEnvEntityIgniter } as Designer<typeof CEnvEntityIgniter, CEnvEntityIgniterKeys>,
+  env_explosion: { make: CEnvExplosion, keys: keysCEnvExplosion } as Designer<typeof CEnvExplosion, CEnvExplosionKeys>,
+  env_fade: { make: CEnvFade, keys: keysCEnvFade } as Designer<typeof CEnvFade, CEnvFadeKeys>,
+  env_fog_controller: { make: CFogController, keys: keysCFogController } as Designer<typeof CFogController, CFogControllerKeys>,
+  env_glow: { make: CSpriteAlias_env_glow, keys: keysCSprite } as Designer<typeof CSpriteAlias_env_glow, CSpriteKeys>,
+  env_gradient_fog: { make: CGradientFog, keys: keysCGradientFog } as Designer<typeof CGradientFog, CGradientFogKeys>,
+  env_instructor_hint: { make: CEnvInstructorHint, keys: keysCEnvInstructorHint } as Designer<typeof CEnvInstructorHint, CEnvInstructorHintKeys>,
+  env_instructor_vr_hint: { make: CEnvInstructorVRHint, keys: keysCEnvInstructorVRHint } as Designer<typeof CEnvInstructorVRHint, CEnvInstructorVRHintKeys>,
+  env_light_probe_volume: { make: CEnvLightProbeVolume, keys: keysCEnvLightProbeVolume } as Designer<typeof CEnvLightProbeVolume, CEnvLightProbeVolumeKeys>,
+  env_message: { make: CMessage, keys: keysCMessage } as Designer<typeof CMessage, CMessageKeys>,
+  env_muzzleflash: { make: CEnvMuzzleFlash, keys: keysCEnvMuzzleFlash } as Designer<typeof CEnvMuzzleFlash, CEnvMuzzleFlashKeys>,
+  env_particle_glow: { make: CEnvParticleGlow, keys: keysCEnvParticleGlow } as Designer<typeof CEnvParticleGlow, CEnvParticleGlowKeys>,
+  env_physexplosion: { make: CPhysExplosion, keys: keysCPhysExplosion } as Designer<typeof CPhysExplosion, CPhysExplosionKeys>,
+  env_physimpact: { make: CPhysImpact, keys: keysCPhysImpact } as Designer<typeof CPhysImpact, CPhysImpactKeys>,
+  env_physwire: { make: CPhysicsWire, keys: keysCPhysicsWire } as Designer<typeof CPhysicsWire, CPhysicsWireKeys>,
+  env_player_visibility: { make: CPlayerVisibility, keys: keysCPlayerVisibility } as Designer<typeof CPlayerVisibility, CPlayerVisibilityKeys>,
+  env_shake: { make: CEnvShake, keys: keysCEnvShake } as Designer<typeof CEnvShake, CEnvShakeKeys>,
+  env_sky: { make: CEnvSky, keys: keysCEnvSky } as Designer<typeof CEnvSky, CEnvSkyKeys>,
+  env_soundscape: { make: CEnvSoundscape, keys: keysCEnvSoundscape } as Designer<typeof CEnvSoundscape, CEnvSoundscapeKeys>,
+  env_soundscape_proxy: { make: CEnvSoundscapeProxy, keys: keysCEnvSoundscapeProxy } as Designer<typeof CEnvSoundscapeProxy, CEnvSoundscapeProxyKeys>,
+  env_soundscape_triggerable: { make: CEnvSoundscapeTriggerable, keys: keysCEnvSoundscape } as Designer<typeof CEnvSoundscapeTriggerable, CEnvSoundscapeKeys>,
+  env_spark: { make: CEnvSpark, keys: keysCEnvSpark } as Designer<typeof CEnvSpark, CEnvSparkKeys>,
+  env_splash: { make: CEnvSplash, keys: keysCEnvSplash } as Designer<typeof CEnvSplash, CEnvSplashKeys>,
+  env_sprite: { make: CSprite, keys: keysCSprite } as Designer<typeof CSprite, CSpriteKeys>,
+  env_sprite_oriented: { make: CSpriteOriented, keys: keysCSprite } as Designer<typeof CSpriteOriented, CSpriteKeys>,
+  env_tilt: { make: CEnvTilt, keys: keysCEnvTilt } as Designer<typeof CEnvTilt, CEnvTiltKeys>,
+  env_tonemap_controller: { make: CTonemapController2, keys: keysCTonemapController2 } as Designer<typeof CTonemapController2, CTonemapController2Keys>,
+  env_tonemap_controller2: { make: CTonemapController2Alias_env_tonemap_controller2, keys: keysCTonemapController2 } as Designer<typeof CTonemapController2Alias_env_tonemap_controller2, CTonemapController2Keys>,
+  env_viewpunch: { make: CEnvViewPunch, keys: keysCEnvViewPunch } as Designer<typeof CEnvViewPunch, CEnvViewPunchKeys>,
+  env_volumetric_fog_controller: { make: CEnvVolumetricFogController, keys: keysCEnvVolumetricFogController } as Designer<typeof CEnvVolumetricFogController, CEnvVolumetricFogControllerKeys>,
+  env_volumetric_fog_volume: { make: CEnvVolumetricFogVolume, keys: keysCEnvVolumetricFogVolume } as Designer<typeof CEnvVolumetricFogVolume, CEnvVolumetricFogVolumeKeys>,
+  env_wind: { make: CEnvWind, keys: keysCEnvWind } as Designer<typeof CEnvWind, CEnvWindKeys>,
+  familiar_clone: { make: CCitadelFamiliarClonePlayerPawn, keys: keysCCitadelFamiliarClonePlayerPawn } as Designer<typeof CCitadelFamiliarClonePlayerPawn, CCitadelFamiliarClonePlayerPawnKeys>,
+  familiar_projectile_movingtoattach: { make: CProjectile_Familiar_MovingToAttach, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Familiar_MovingToAttach, CBaseModelEntityKeys>,
+  featherboomerang_projectile: { make: CCitadel_Projectile_FeatherBoomerang, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_FeatherBoomerang, CBaseModelEntityKeys>,
+  filter_activator_attribute_int: { make: CFilterAttributeInt, keys: keysCFilterAttributeInt } as Designer<typeof CFilterAttributeInt, CFilterAttributeIntKeys>,
+  filter_activator_class: { make: CFilterClass, keys: keysCFilterClass } as Designer<typeof CFilterClass, CFilterClassKeys>,
+  filter_activator_context: { make: CFilterContext, keys: keysCFilterContext } as Designer<typeof CFilterContext, CFilterContextKeys>,
+  filter_activator_mass_greater: { make: CFilterMassGreater, keys: keysCFilterMassGreater } as Designer<typeof CFilterMassGreater, CFilterMassGreaterKeys>,
+  filter_activator_model: { make: CFilterModel, keys: keysCFilterModel } as Designer<typeof CFilterModel, CFilterModelKeys>,
+  filter_activator_modifier: { make: CCitadelFilterModifier, keys: keysCCitadelFilterModifier } as Designer<typeof CCitadelFilterModifier, CCitadelFilterModifierKeys>,
+  filter_activator_name: { make: CFilterName, keys: keysCFilterName } as Designer<typeof CFilterName, CFilterNameKeys>,
+  filter_activator_team: { make: CFilterTeam, keys: keysCFilterTeam } as Designer<typeof CFilterTeam, CFilterTeamKeys>,
+  filter_base: { make: CBaseFilter, keys: keysCBaseFilter } as Designer<typeof CBaseFilter, CBaseFilterKeys>,
+  filter_damage_type: { make: FilterDamageType, keys: keysFilterDamageType } as Designer<typeof FilterDamageType, FilterDamageTypeKeys>,
+  filter_enemy: { make: CFilterEnemy, keys: keysCFilterEnemy } as Designer<typeof CFilterEnemy, CFilterEnemyKeys>,
+  filter_health: { make: FilterHealth, keys: keysFilterHealth } as Designer<typeof FilterHealth, FilterHealthKeys>,
+  filter_los: { make: CFilterLOS, keys: keysCBaseFilter } as Designer<typeof CFilterLOS, CBaseFilterKeys>,
+  filter_modifier: { make: CFilterModifier, keys: keysCFilterModifier } as Designer<typeof CFilterModifier, CFilterModifierKeys>,
+  filter_multi: { make: CFilterMultiple, keys: keysCFilterMultiple } as Designer<typeof CFilterMultiple, CFilterMultipleKeys>,
+  filter_proximity: { make: CFilterProximity, keys: keysCFilterProximity } as Designer<typeof CFilterProximity, CFilterProximityKeys>,
+  fish: { make: CFish, keys: keysCBaseAnimGraph } as Designer<typeof CFish, CBaseAnimGraphKeys>,
+  fog_volume: { make: CFogVolume, keys: keysCFogVolume } as Designer<typeof CFogVolume, CFogVolumeKeys>,
+  fortuna_weapon_projectile: { make: CCitadel_Projectile_FortunaWeapon, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_FortunaWeapon, CBaseModelEntityKeys>,
+  func_breakable: { make: CBreakable, keys: keysCBreakable } as Designer<typeof CBreakable, CBreakableKeys>,
+  func_brush: { make: CFuncBrush, keys: keysCFuncBrush } as Designer<typeof CFuncBrush, CFuncBrushKeys>,
+  func_button: { make: CBaseButton, keys: keysCBaseButton } as Designer<typeof CBaseButton, CBaseButtonKeys>,
+  func_clip_interaction_layer: { make: CFuncInteractionLayerClip, keys: keysCFuncInteractionLayerClip } as Designer<typeof CFuncInteractionLayerClip, CFuncInteractionLayerClipKeys>,
+  func_clip_vphysics: { make: CFuncVPhysicsClip, keys: keysCFuncVPhysicsClip } as Designer<typeof CFuncVPhysicsClip, CFuncVPhysicsClipKeys>,
+  func_combined_light_probe_volume: { make: CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume, keys: keysCEnvCombinedLightProbeVolume } as Designer<typeof CEnvCombinedLightProbeVolumeAlias_func_combined_light_probe_volume, CEnvCombinedLightProbeVolumeKeys>,
+  func_conditional_collidable: { make: CConditionalCollidable, keys: keysCConditionalCollidable } as Designer<typeof CConditionalCollidable, CConditionalCollidableKeys>,
+  func_door: { make: CBaseDoor, keys: keysCBaseDoor } as Designer<typeof CBaseDoor, CBaseDoorKeys>,
+  func_door_rotating: { make: CRotDoor, keys: keysCRotDoor } as Designer<typeof CRotDoor, CRotDoorKeys>,
+  func_electrified_volume: { make: CFuncElectrifiedVolume, keys: keysCFuncElectrifiedVolume } as Designer<typeof CFuncElectrifiedVolume, CFuncElectrifiedVolumeKeys>,
+  func_fish_pool: { make: CFishPool, keys: keysCFishPool } as Designer<typeof CFishPool, CFishPoolKeys>,
+  func_guntarget: { make: CGunTarget, keys: keysCGunTarget } as Designer<typeof CGunTarget, CGunTargetKeys>,
+  func_illusionary: { make: CFuncIllusionary, keys: keysCBaseModelEntity } as Designer<typeof CFuncIllusionary, CBaseModelEntityKeys>,
+  func_ladder: { make: CFuncLadder, keys: keysCFuncLadder } as Designer<typeof CFuncLadder, CFuncLadderKeys>,
+  func_monitor: { make: CFuncMonitor, keys: keysCFuncMonitor } as Designer<typeof CFuncMonitor, CFuncMonitorKeys>,
+  func_movelinear: { make: CFuncMoveLinear, keys: keysCFuncMoveLinear } as Designer<typeof CFuncMoveLinear, CFuncMoveLinearKeys>,
+  func_mover: { make: CFuncMover, keys: keysCFuncMover } as Designer<typeof CFuncMover, CFuncMoverKeys>,
+  func_mover_router: { make: CFuncMoverRouter, keys: keysCFuncMoverRouter } as Designer<typeof CFuncMoverRouter, CFuncMoverRouterKeys>,
+  func_nav_avoidance_obstacle: { make: CFuncNavObstruction, keys: keysCFuncNavObstruction } as Designer<typeof CFuncNavObstruction, CFuncNavObstructionKeys>,
+  func_nav_blocker: { make: CFuncNavBlocker, keys: keysCFuncNavBlocker } as Designer<typeof CFuncNavBlocker, CFuncNavBlockerKeys>,
+  func_nav_dynamic_connections: { make: CDynamicNavConnectionsVolume, keys: keysCDynamicNavConnectionsVolume } as Designer<typeof CDynamicNavConnectionsVolume, CDynamicNavConnectionsVolumeKeys>,
+  func_nav_markup: { make: CMarkupVolumeTagged_Nav, keys: keysCMarkupVolumeTagged_Nav } as Designer<typeof CMarkupVolumeTagged_Nav, CMarkupVolumeTagged_NavKeys>,
+  func_nav_markup_citadel: { make: CMarkupVolumeTagged_NavCitadel, keys: keysCMarkupVolumeWithRef } as Designer<typeof CMarkupVolumeTagged_NavCitadel, CMarkupVolumeWithRefKeys>,
+  func_nav_markup_game: { make: CMarkupVolumeTagged_NavGame, keys: keysCMarkupVolumeTagged_NavGame } as Designer<typeof CMarkupVolumeTagged_NavGame, CMarkupVolumeTagged_NavGameKeys>,
+  func_physbox: { make: CPhysBox, keys: keysCPhysBox } as Designer<typeof CPhysBox, CPhysBoxKeys>,
+  func_physical_button: { make: CPhysicalButton, keys: keysCBaseButton } as Designer<typeof CPhysicalButton, CBaseButtonKeys>,
+  func_plat: { make: CFuncPlat, keys: keysCFuncPlat } as Designer<typeof CFuncPlat, CFuncPlatKeys>,
+  func_platrot: { make: CFuncPlatRot, keys: keysCFuncPlat } as Designer<typeof CFuncPlatRot, CFuncPlatKeys>,
+  func_precipitation_blocker: { make: CPrecipitationBlocker, keys: keysCBaseModelEntity } as Designer<typeof CPrecipitationBlocker, CBaseModelEntityKeys>,
+  func_proprrespawnzone: { make: CFuncPropRespawnZone, keys: keysCBaseEntity } as Designer<typeof CFuncPropRespawnZone, CBaseEntityKeys>,
+  func_pushable: { make: CPushable, keys: keysCBreakable } as Designer<typeof CPushable, CBreakableKeys>,
+  func_regenerate: { make: CRegenerateZone, keys: keysCBaseTrigger } as Designer<typeof CRegenerateZone, CBaseTriggerKeys>,
+  func_rot_button: { make: CRotButton, keys: keysCBaseButton } as Designer<typeof CRotButton, CBaseButtonKeys>,
+  func_rotating: { make: CFuncRotating, keys: keysCFuncRotating } as Designer<typeof CFuncRotating, CFuncRotatingKeys>,
+  func_rotator: { make: CFuncRotator, keys: keysCFuncRotator } as Designer<typeof CFuncRotator, CFuncRotatorKeys>,
+  func_shatterglass: { make: CFuncShatterglass, keys: keysCFuncShatterglass } as Designer<typeof CFuncShatterglass, CFuncShatterglassKeys>,
+  func_spawn_blocker: { make: CCitadelSpawnBlocker, keys: keysCFuncBrush } as Designer<typeof CCitadelSpawnBlocker, CFuncBrushKeys>,
+  func_tanktrain: { make: CFuncTankTrain, keys: keysCFuncTankTrain } as Designer<typeof CFuncTankTrain, CFuncTankTrainKeys>,
+  func_timescale: { make: CFuncTimescale, keys: keysCFuncTimescale } as Designer<typeof CFuncTimescale, CFuncTimescaleKeys>,
+  func_trackautochange: { make: CFuncTrackAuto, keys: keysCFuncTrackAuto } as Designer<typeof CFuncTrackAuto, CFuncTrackAutoKeys>,
+  func_trackchange: { make: CFuncTrackChange, keys: keysCFuncTrackChange } as Designer<typeof CFuncTrackChange, CFuncTrackChangeKeys>,
+  func_tracktrain: { make: CFuncTrackTrain, keys: keysCFuncTrackTrain } as Designer<typeof CFuncTrackTrain, CFuncTrackTrainKeys>,
+  func_train: { make: CFuncTrain, keys: keysCFuncTrain } as Designer<typeof CFuncTrain, CFuncTrainKeys>,
+  func_traincontrols: { make: CFuncTrainControls, keys: keysCBaseModelEntity } as Designer<typeof CFuncTrainControls, CBaseModelEntityKeys>,
+  func_useableladder: { make: CFuncLadderAlias_func_useableladder, keys: keysCFuncLadder } as Designer<typeof CFuncLadderAlias_func_useableladder, CFuncLadderKeys>,
+  func_vehicleclip: { make: CFuncVehicleClip, keys: keysCFuncVehicleClip } as Designer<typeof CFuncVehicleClip, CFuncVehicleClipKeys>,
+  func_wall: { make: CFuncWall, keys: keysCBaseModelEntity } as Designer<typeof CFuncWall, CBaseModelEntityKeys>,
+  func_wall_toggle: { make: CFuncWallToggle, keys: keysCFuncWallToggle } as Designer<typeof CFuncWallToggle, CFuncWallToggleKeys>,
+  game_gib_manager: { make: CGameGibManager, keys: keysCGameGibManager } as Designer<typeof CGameGibManager, CGameGibManagerKeys>,
+  game_player_equip: { make: CGamePlayerEquip, keys: keysCGamePlayerEquip } as Designer<typeof CGamePlayerEquip, CGamePlayerEquipKeys>,
+  game_ragdoll_manager: { make: CRagdollManager, keys: keysCRagdollManager } as Designer<typeof CRagdollManager, CRagdollManagerKeys>,
+  game_text: { make: CGameText, keys: keysCGameText } as Designer<typeof CGameText, CGameTextKeys>,
+  game_zone_player: { make: CGamePlayerZone, keys: keysCGamePlayerZone } as Designer<typeof CGamePlayerZone, CGamePlayerZoneKeys>,
+  guided_arrow_projectile: { make: CCitadel_Projectile_Guided_Arrow, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Guided_Arrow, CBaseModelEntityKeys>,
+  handle_dummy: { make: CHandleDummy, keys: keysCBaseEntity } as Designer<typeof CHandleDummy, CBaseEntityKeys>,
+  handle_test: { make: CHandleTest, keys: keysCBaseEntity } as Designer<typeof CHandleTest, CBaseEntityKeys>,
+  hero_preview: { make: C_HeroPreview, keys: keysCBaseEntity } as Designer<typeof C_HeroPreview, CBaseEntityKeys>,
+  hero_testing_controller: { make: CInfoHeroTestingController, keys: keysCPointEntity } as Designer<typeof CInfoHeroTestingController, CPointEntityKeys>,
+  hl_vr_texture_based_animatable: { make: CTextureBasedAnimatable, keys: keysCTextureBasedAnimatable } as Designer<typeof CTextureBasedAnimatable, CTextureBasedAnimatableKeys>,
+  icepath_shard: { make: CCitadel_Ice_Path_Shard_Physics, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Ice_Path_Shard_Physics, CBaseModelEntityKeys>,
+  immobilize_trap_projectile: { make: CCitadelProjectile_ImmobilizeTrap, keys: keysCBaseModelEntity } as Designer<typeof CCitadelProjectile_ImmobilizeTrap, CBaseModelEntityKeys>,
+  in_world_key_bind_panel: { make: CInWorldKeyBindPanel, keys: keysCPointClientUIWorldPanel } as Designer<typeof CInWorldKeyBindPanel, CPointClientUIWorldPanelKeys>,
+  info_ability_test_bot: { make: CInfoAbilityTestBot, keys: keysCPointEntity } as Designer<typeof CInfoAbilityTestBot, CPointEntityKeys>,
+  info_assigned_lane_particle: { make: CAssignedLaneParticle, keys: keysCAssignedLaneParticle } as Designer<typeof CAssignedLaneParticle, CAssignedLaneParticleKeys>,
+  info_choreo_anchor: { make: CInfoChoreoAnchor, keys: keysCPointEntity } as Designer<typeof CInfoChoreoAnchor, CPointEntityKeys>,
+  info_citadel_familiar_helper: { make: CInfoCitadelHelperLocation, keys: keysCBaseEntity } as Designer<typeof CInfoCitadelHelperLocation, CBaseEntityKeys>,
+  info_citadel_hideout: { make: CInfoCitadelHideout, keys: keysCInfoCitadelHideout } as Designer<typeof CInfoCitadelHideout, CInfoCitadelHideoutKeys>,
+  info_citadel_hideout_interest_point: { make: CCitadelHideoutInterestPoint, keys: keysCCitadelHideoutInterestPoint } as Designer<typeof CCitadelHideoutInterestPoint, CCitadelHideoutInterestPointKeys>,
+  info_citadel_matchmaking_status: { make: CCitadelMatchmakingStatusInfo, keys: keysCCitadelMatchmakingStatusInfo } as Designer<typeof CCitadelMatchmakingStatusInfo, CCitadelMatchmakingStatusInfoKeys>,
+  info_constraint_anchor: { make: CConstraintAnchor, keys: keysCConstraintAnchor } as Designer<typeof CConstraintAnchor, CConstraintAnchorKeys>,
+  info_data: { make: CInfoData, keys: keysCBaseEntity } as Designer<typeof CInfoData, CBaseEntityKeys>,
+  info_dynamic_shadow_hint: { make: CInfoDynamicShadowHint, keys: keysCInfoDynamicShadowHint } as Designer<typeof CInfoDynamicShadowHint, CInfoDynamicShadowHintKeys>,
+  info_dynamic_shadow_hint_box: { make: CInfoDynamicShadowHintBox, keys: keysCInfoDynamicShadowHintBox } as Designer<typeof CInfoDynamicShadowHintBox, CInfoDynamicShadowHintBoxKeys>,
+  info_game_event_proxy: { make: CInfoGameEventProxy, keys: keysCInfoGameEventProxy } as Designer<typeof CInfoGameEventProxy, CInfoGameEventProxyKeys>,
+  info_hero_testing_point: { make: CInfoHeroTestingPoint, keys: keysCInfoHeroTestingPoint } as Designer<typeof CInfoHeroTestingPoint, CInfoHeroTestingPointKeys>,
+  info_koth_spawn_location: { make: CInfoKOTHSpawnLocation, keys: keysCPointEntity } as Designer<typeof CInfoKOTHSpawnLocation, CPointEntityKeys>,
+  info_ladder_dismount: { make: CInfoLadderDismount, keys: keysCBaseEntity } as Designer<typeof CInfoLadderDismount, CBaseEntityKeys>,
+  info_landmark: { make: CInfoLandmark, keys: keysCPointEntity } as Designer<typeof CInfoLandmark, CPointEntityKeys>,
+  info_mid_boss_spawn: { make: CInfoMidBossSpawn, keys: keysCBaseEntity } as Designer<typeof CInfoMidBossSpawn, CBaseEntityKeys>,
+  info_mini_map_marker: { make: CMiniMapMarker, keys: keysCMiniMapMarker } as Designer<typeof CMiniMapMarker, CMiniMapMarkerKeys>,
+  info_nav_space: { make: CNavSpaceInfo, keys: keysCPointEntity } as Designer<typeof CNavSpaceInfo, CPointEntityKeys>,
+  info_neutral_trooper_camp: { make: CInfoTrooperNeutralCamp, keys: keysCInfoTrooperNeutralCamp } as Designer<typeof CInfoTrooperNeutralCamp, CInfoTrooperNeutralCampKeys>,
+  info_neutral_trooper_spawn: { make: CInfoTrooperNeutralSpawn, keys: keysCInfoTrooperNeutralSpawn } as Designer<typeof CInfoTrooperNeutralSpawn, CInfoTrooperNeutralSpawnKeys>,
+  info_npc_spawn_destination: { make: CNPCSpawnDestination, keys: keysCNPCSpawnDestination } as Designer<typeof CNPCSpawnDestination, CNPCSpawnDestinationKeys>,
+  info_offscreen_panorama_texture: { make: CInfoOffscreenPanoramaTexture, keys: keysCInfoOffscreenPanoramaTexture } as Designer<typeof CInfoOffscreenPanoramaTexture, CInfoOffscreenPanoramaTextureKeys>,
+  info_particle_system: { make: CParticleSystem, keys: keysCParticleSystem } as Designer<typeof CParticleSystem, CParticleSystemKeys>,
+  info_particle_target: { make: CInfoParticleTarget, keys: keysCPointEntity } as Designer<typeof CInfoParticleTarget, CPointEntityKeys>,
+  info_player_deathmatch: { make: CBaseDMStart, keys: keysCBaseDMStart } as Designer<typeof CBaseDMStart, CBaseDMStartKeys>,
+  info_player_start: { make: CInfoPlayerStart, keys: keysCInfoPlayerStart } as Designer<typeof CInfoPlayerStart, CInfoPlayerStartKeys>,
+  info_portal_link: { make: CInfoPortalLink, keys: keysCPointEntity } as Designer<typeof CInfoPortalLink, CPointEntityKeys>,
+  info_spawngroup_landmark: { make: CInfoSpawnGroupLandmark, keys: keysCPointEntity } as Designer<typeof CInfoSpawnGroupLandmark, CPointEntityKeys>,
+  info_super_trooper_spawn: { make: CInfoTrooperBossSpawn, keys: keysCInfoTrooperBossSpawn } as Designer<typeof CInfoTrooperBossSpawn, CInfoTrooperBossSpawnKeys>,
+  info_target: { make: CInfoTarget, keys: keysCPointEntity } as Designer<typeof CInfoTarget, CPointEntityKeys>,
+  info_target_choreo: { make: CChoreoInfoTarget, keys: keysCPointEntity } as Designer<typeof CChoreoInfoTarget, CPointEntityKeys>,
+  info_target_instructor_hint: { make: CInfoInstructorHintTarget, keys: keysCPointEntity } as Designer<typeof CInfoInstructorHintTarget, CPointEntityKeys>,
+  info_target_server_only: { make: CInfoTargetServerOnly, keys: keysCBaseEntity } as Designer<typeof CInfoTargetServerOnly, CBaseEntityKeys>,
+  info_team_relative_particle_system: { make: CTeamRelativeParticleSystem, keys: keysCTeamRelativeParticleSystem } as Designer<typeof CTeamRelativeParticleSystem, CTeamRelativeParticleSystemKeys>,
+  info_team_spawn: { make: CInfoTeamSpawn, keys: keysCInfoTeamSpawn } as Designer<typeof CInfoTeamSpawn, CInfoTeamSpawnKeys>,
+  info_teleport_destination: { make: CInfoTeleportDestination, keys: keysCPointEntity } as Designer<typeof CInfoTeleportDestination, CPointEntityKeys>,
+  info_teleport_location: { make: CCitadelTeleportLocation, keys: keysCCitadelTeleportLocation } as Designer<typeof CCitadelTeleportLocation, CCitadelTeleportLocationKeys>,
+  info_trigger_fan: { make: CInfoFan, keys: keysCInfoFan } as Designer<typeof CInfoFan, CInfoFanKeys>,
+  info_trooper_spawn: { make: CInfoTrooperSpawn, keys: keysCInfoTrooperSpawn } as Designer<typeof CInfoTrooperSpawn, CInfoTrooperSpawnKeys>,
+  info_tutorial_point: { make: CInfoTutorialPoint, keys: keysCInfoTutorialPoint } as Designer<typeof CInfoTutorialPoint, CInfoTutorialPointKeys>,
+  info_visibility_box: { make: CInfoVisibilityBox, keys: keysCInfoVisibilityBox } as Designer<typeof CInfoVisibilityBox, CInfoVisibilityBoxKeys>,
+  info_world_layer: { make: CInfoWorldLayer, keys: keysCInfoWorldLayer } as Designer<typeof CInfoWorldLayer, CInfoWorldLayerKeys>,
+  instanced_scripted_scene: { make: CInstancedSceneEntity, keys: keysCInstancedSceneEntity } as Designer<typeof CInstancedSceneEntity, CInstancedSceneEntityKeys>,
+  item_crate: { make: CItemCrate, keys: keysCItemCrate } as Designer<typeof CItemCrate, CItemCrateKeys>,
+  item_crate_spawn: { make: CItemCrateSpawn, keys: keysCItemCrateSpawn } as Designer<typeof CItemCrateSpawn, CItemCrateSpawnKeys>,
+  item_explosive_barrel: { make: CItemExplosiveBarrel, keys: keysCBaseModelEntity } as Designer<typeof CItemExplosiveBarrel, CBaseModelEntityKeys>,
+  item_generic: { make: CItemGeneric, keys: keysCItemGeneric } as Designer<typeof CItemGeneric, CItemGenericKeys>,
+  item_generic_trigger_helper: { make: CItemGenericTriggerHelper, keys: keysCBaseModelEntity } as Designer<typeof CItemGenericTriggerHelper, CBaseModelEntityKeys>,
+  item_sodacan: { make: CItemSoda, keys: keysCBaseAnimGraph } as Designer<typeof CItemSoda, CBaseAnimGraphKeys>,
+  item_xp: { make: CItemXP, keys: keysCBaseModelEntity, subclass: 'xp_orb' } as Designer<typeof CItemXP, CBaseModelEntityKeys>,
+  kali_boomerang_projectile: { make: CCitadelBoomerangProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadelBoomerangProjectile, CBaseModelEntityKeys>,
+  keyframe_rope: { make: CRopeKeyframe, keys: keysCRopeKeyframe } as Designer<typeof CRopeKeyframe, CRopeKeyframeKeys>,
+  keyframe_track: { make: CPathKeyFrame, keys: keysCPathKeyFrame } as Designer<typeof CPathKeyFrame, CPathKeyFrameKeys>,
+  knightcharge_projectile: { make: CProjectile_KnightCharge_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_KnightCharge_Projectile, CBaseModelEntityKeys>,
+  knightchargeleading_projectile: { make: CProjectile_KnightChargeLeading_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_KnightChargeLeading_Projectile, CBaseModelEntityKeys>,
+  lane_marker_path: { make: CLaneMarkerPath, keys: keysCLaneMarkerPath } as Designer<typeof CLaneMarkerPath, CLaneMarkerPathKeys>,
+  light_barn: { make: CBarnLight, keys: keysCBarnLight } as Designer<typeof CBarnLight, CBarnLightKeys>,
+  light_directional: { make: CLightDirectionalEntity, keys: keysCLightEntity } as Designer<typeof CLightDirectionalEntity, CLightEntityKeys>,
+  light_dynamic: { make: CDynamicLight, keys: keysCDynamicLight } as Designer<typeof CDynamicLight, CDynamicLightKeys>,
+  light_environment: { make: CEnvironmentLight, keys: keysCEnvironmentLight } as Designer<typeof CEnvironmentLight, CEnvironmentLightKeys>,
+  light_omni: { make: CLightEntity, keys: keysCLightEntity } as Designer<typeof CLightEntity, CLightEntityKeys>,
+  light_omni2: { make: COmniLight, keys: keysCOmniLight } as Designer<typeof COmniLight, COmniLightKeys>,
+  light_ortho: { make: CLightOrthoEntity, keys: keysCLightEntity } as Designer<typeof CLightOrthoEntity, CLightEntityKeys>,
+  light_rect: { make: CRectLight, keys: keysCRectLight } as Designer<typeof CRectLight, CRectLightKeys>,
+  light_spot: { make: CLightSpotEntity, keys: keysCLightEntity } as Designer<typeof CLightSpotEntity, CLightEntityKeys>,
+  logic_achievement: { make: CLogicAchievement, keys: keysCLogicAchievement } as Designer<typeof CLogicAchievement, CLogicAchievementKeys>,
+  logic_active_autosave: { make: CLogicActiveAutosave, keys: keysCLogicActiveAutosave } as Designer<typeof CLogicActiveAutosave, CLogicActiveAutosaveKeys>,
+  logic_activityevent: { make: CLogicActivityEvent, keys: keysCLogicActivityEvent } as Designer<typeof CLogicActivityEvent, CLogicActivityEventKeys>,
+  logic_auto: { make: CLogicAuto, keys: keysCLogicAuto } as Designer<typeof CLogicAuto, CLogicAutoKeys>,
+  logic_auto_citadel: { make: CLogicAutoCitadel, keys: keysCLogicAutoCitadel } as Designer<typeof CLogicAutoCitadel, CLogicAutoCitadelKeys>,
+  logic_autosave: { make: CLogicAutosave, keys: keysCLogicAutosave } as Designer<typeof CLogicAutosave, CLogicAutosaveKeys>,
+  logic_branch: { make: CLogicBranch, keys: keysCLogicBranch } as Designer<typeof CLogicBranch, CLogicBranchKeys>,
+  logic_branch_listener: { make: CLogicBranchList, keys: keysCLogicBranchList } as Designer<typeof CLogicBranchList, CLogicBranchListKeys>,
+  logic_case: { make: CLogicCase, keys: keysCLogicCase } as Designer<typeof CLogicCase, CLogicCaseKeys>,
+  logic_choreographed_scene: { make: CSceneEntityAlias_logic_choreographed_scene, keys: keysCSceneEntity } as Designer<typeof CSceneEntityAlias_logic_choreographed_scene, CSceneEntityKeys>,
+  logic_collision_pair: { make: CLogicCollisionPair, keys: keysCLogicCollisionPair } as Designer<typeof CLogicCollisionPair, CLogicCollisionPairKeys>,
+  logic_compare: { make: CLogicCompare, keys: keysCLogicCompare } as Designer<typeof CLogicCompare, CLogicCompareKeys>,
+  logic_distance_autosave: { make: CLogicDistanceAutosave, keys: keysCLogicDistanceAutosave } as Designer<typeof CLogicDistanceAutosave, CLogicDistanceAutosaveKeys>,
+  logic_distance_check: { make: CLogicDistanceCheck, keys: keysCLogicDistanceCheck } as Designer<typeof CLogicDistanceCheck, CLogicDistanceCheckKeys>,
+  logic_game_event: { make: CLogicGameEvent, keys: keysCLogicGameEvent } as Designer<typeof CLogicGameEvent, CLogicGameEventKeys>,
+  logic_gameevent_listener: { make: CLogicGameEventListener, keys: keysCLogicGameEventListener } as Designer<typeof CLogicGameEventListener, CLogicGameEventListenerKeys>,
+  logic_gamestate_report: { make: CLogicGameStateReport, keys: keysCLogicGameStateReport } as Designer<typeof CLogicGameStateReport, CLogicGameStateReportKeys>,
+  logic_lineto: { make: CLogicLineToEntity, keys: keysCLogicLineToEntity } as Designer<typeof CLogicLineToEntity, CLogicLineToEntityKeys>,
+  logic_measure_movement: { make: CLogicMeasureMovement, keys: keysCLogicMeasureMovement } as Designer<typeof CLogicMeasureMovement, CLogicMeasureMovementKeys>,
+  logic_multilight_proxy: { make: CMultiLightProxy, keys: keysCMultiLightProxy } as Designer<typeof CMultiLightProxy, CMultiLightProxyKeys>,
+  logic_navigation: { make: CLogicNavigation, keys: keysCLogicNavigation } as Designer<typeof CLogicNavigation, CLogicNavigationKeys>,
+  logic_npc_counter_aabb: { make: CLogicNPCCounterAABB, keys: keysCLogicNPCCounterAABB } as Designer<typeof CLogicNPCCounterAABB, CLogicNPCCounterAABBKeys>,
+  logic_npc_counter_obb: { make: CLogicNPCCounterOBB, keys: keysCLogicNPCCounterAABB } as Designer<typeof CLogicNPCCounterOBB, CLogicNPCCounterAABBKeys>,
+  logic_npc_counter_radius: { make: CLogicNPCCounter, keys: keysCLogicNPCCounter } as Designer<typeof CLogicNPCCounter, CLogicNPCCounterKeys>,
+  logic_playerproxy: { make: CGenericLogicPlayerProxy, keys: keysCLogicPlayerProxyBase } as Designer<typeof CGenericLogicPlayerProxy, CLogicPlayerProxyBaseKeys>,
+  logic_proximity: { make: CLogicProximity, keys: keysCPointEntity } as Designer<typeof CLogicProximity, CPointEntityKeys>,
+  logic_relay: { make: CLogicRelay, keys: keysCLogicRelay } as Designer<typeof CLogicRelay, CLogicRelayKeys>,
+  logic_scene_list_manager: { make: CSceneListManager, keys: keysCSceneListManager } as Designer<typeof CSceneListManager, CSceneListManagerKeys>,
+  logic_script: { make: CLogicScript, keys: keysCLogicScript } as Designer<typeof CLogicScript, CLogicScriptKeys>,
+  logic_timer: { make: CTimerEntity, keys: keysCTimerEntity } as Designer<typeof CTimerEntity, CTimerEntityKeys>,
+  magician_magicbolt_projectile: { make: CCitadel_Projectile_MagicBolt, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_MagicBolt, CBaseModelEntityKeys>,
+  map_shared_environment: { make: CMapSharedEnvironment, keys: keysCMapSharedEnvironment } as Designer<typeof CMapSharedEnvironment, CMapSharedEnvironmentKeys>,
+  markup_volume: { make: CMarkupVolume, keys: keysCMarkupVolume } as Designer<typeof CMarkupVolume, CMarkupVolumeKeys>,
+  markup_volume_tagged: { make: CSimpleMarkupVolumeTagged, keys: keysCMarkupVolumeTagged } as Designer<typeof CSimpleMarkupVolumeTagged, CMarkupVolumeTaggedKeys>,
+  markup_volume_with_ref: { make: CMarkupVolumeWithRef, keys: keysCMarkupVolumeWithRef } as Designer<typeof CMarkupVolumeWithRef, CMarkupVolumeWithRefKeys>,
+  match_tracked_stats: { make: CMatchTrackedStatsEntity, keys: keysCBaseEntity } as Designer<typeof CMatchTrackedStatsEntity, CBaseEntityKeys>,
+  math_colorblend: { make: CMathColorBlend, keys: keysCMathColorBlend } as Designer<typeof CMathColorBlend, CMathColorBlendKeys>,
+  math_counter: { make: CMathCounter, keys: keysCMathCounter } as Designer<typeof CMathCounter, CMathCounterKeys>,
+  math_remap: { make: CMathRemap, keys: keysCMathRemap } as Designer<typeof CMathRemap, CMathRemapKeys>,
+  momentary_door: { make: CFuncMoveLinearAlias_momentary_door, keys: keysCFuncMoveLinear } as Designer<typeof CFuncMoveLinearAlias_momentary_door, CFuncMoveLinearKeys>,
+  momentary_rot_button: { make: CMomentaryRotButton, keys: keysCMomentaryRotButton } as Designer<typeof CMomentaryRotButton, CMomentaryRotButtonKeys>,
+  move_rope: { make: CRopeKeyframeAlias_move_rope, keys: keysCRopeKeyframe } as Designer<typeof CRopeKeyframeAlias_move_rope, CRopeKeyframeKeys>,
+  multisource: { make: CMultiSource, keys: keysCMultiSource } as Designer<typeof CMultiSource, CMultiSourceKeys>,
+  necro_haunt_projectile: { make: CProjectile_Necro_HauntProjectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Necro_HauntProjectile, CBaseModelEntityKeys>,
+  npc_barrack_boss: { make: CNPC_BarrackBoss, keys: keysCNPC_BarrackBoss, subclass: 'npc_barrack_boss' } as Designer<typeof CNPC_BarrackBoss, CNPC_BarrackBossKeys>,
+  npc_base_defense_sentry: { make: CNPC_BaseDefenseSentry, keys: keysCNPC_BaseDefenseSentry, subclass: 'npc_base_defense_sentry' } as Designer<typeof CNPC_BaseDefenseSentry, CNPC_BaseDefenseSentryKeys>,
+  npc_boss_tier2: { make: CNPC_Boss_Tier2, keys: keysCNPC_Boss_Tier2, subclass: 'npc_boss_tier2' } as Designer<typeof CNPC_Boss_Tier2, CNPC_Boss_Tier2Keys>,
+  npc_boss_tier3: { make: CNPC_Boss_Tier3, keys: keysCNPC_Boss_Tier3, subclass: 'npc_boss_tier3' } as Designer<typeof CNPC_Boss_Tier3, CNPC_Boss_Tier3Keys>,
+  npc_boss_tier3core: { make: CNPC_Boss_Tier3Core, keys: keysCBaseAnimGraph } as Designer<typeof CNPC_Boss_Tier3Core, CBaseAnimGraphKeys>,
+  npc_escort: { make: CNPC_Escort, keys: keysCAI_CitadelNPC, subclass: 'shield_escort' } as Designer<typeof CNPC_Escort, CAI_CitadelNPCKeys>,
+  npc_maker: { make: CNPCMaker, keys: keysCNPCMaker } as Designer<typeof CNPCMaker, CNPCMakerKeys>,
+  npc_necro_hauntingskull: { make: CNecro_HauntingSkullEntity, keys: keysCNecro_HauntingSkullEntity } as Designer<typeof CNecro_HauntingSkullEntity, CNecro_HauntingSkullEntityKeys>,
+  npc_necro_skele: { make: CNPC_NecroSkele, keys: keysCNPC_NecroSkele, subclass: 'npc_necro_skele' } as Designer<typeof CNPC_NecroSkele, CNPC_NecroSkeleKeys>,
+  npc_neutral_bug: { make: CNPC_Neutral_Bug, keys: keysCBaseAnimGraph, subclass: 'npc_neutral_bug' } as Designer<typeof CNPC_Neutral_Bug, CBaseAnimGraphKeys>,
+  npc_neutral_flying_pigeon: { make: CNPC_Neutral_Flying_Pigeon, keys: keysCBaseAnimGraph, subclass: 'npc_neutral_flying_pigeon' } as Designer<typeof CNPC_Neutral_Flying_Pigeon, CBaseAnimGraphKeys>,
+  npc_neutral_sinners_sacrifice: { make: CNPC_Neutral_SinnersSacrifice, keys: keysCAI_CitadelNPC, subclass: 'neutral_sinners_sacrifice' } as Designer<typeof CNPC_Neutral_SinnersSacrifice, CAI_CitadelNPCKeys>,
+  npc_neutral_sinners_sacrifice_hideout: { make: CNPC_Neutral_SinnersSacrifice_Hideout, keys: keysCAI_CitadelNPC, subclass: 'npc_neutral_sinners_sacrifice_hideout' } as Designer<typeof CNPC_Neutral_SinnersSacrifice_Hideout, CAI_CitadelNPCKeys>,
+  npc_ratking_rat: { make: CNPC_Ratking_Rat, keys: keysCNPC_Ratking_Rat, subclass: 'npc_ratking_rat' } as Designer<typeof CNPC_Ratking_Rat, CNPC_Ratking_RatKeys>,
+  npc_super_neutral: { make: CNPC_MidBoss, keys: keysCAI_CitadelNPC, subclass: 'npc_super_neutral' } as Designer<typeof CNPC_MidBoss, CAI_CitadelNPCKeys>,
+  npc_template_maker: { make: CTemplateNPCMaker, keys: keysCTemplateNPCMaker } as Designer<typeof CTemplateNPCMaker, CTemplateNPCMakerKeys>,
+  npc_trooper: { make: CNPC_Trooper, keys: keysCNPC_Trooper, subclass: 'trooper_normal' } as Designer<typeof CNPC_Trooper, CNPC_TrooperKeys>,
+  npc_trooper_boss: { make: CNPC_TrooperBoss, keys: keysCNPC_TrooperBoss, subclass: 'npc_boss_tier1' } as Designer<typeof CNPC_TrooperBoss, CNPC_TrooperBossKeys>,
+  npc_trooper_neutral: { make: CNPC_TrooperNeutral, keys: keysCAI_CitadelNPC, subclass: 'neutral_trooper_weak' } as Designer<typeof CNPC_TrooperNeutral, CAI_CitadelNPCKeys>,
+  npc_yakuza_gangster: { make: CNPC_YakuzaGangster, keys: keysCAI_CitadelNPC, subclass: 'npc_yakuza_gangster' } as Designer<typeof CNPC_YakuzaGangster, CAI_CitadelNPCKeys>,
+  observer: { make: CCitadelObserverPawn, keys: keysCCitadelObserverPawn } as Designer<typeof CCitadelObserverPawn, CCitadelObserverPawnKeys>,
+  orb_spawner: { make: COrbSpawner, keys: keysCBaseEntity } as Designer<typeof COrbSpawner, CBaseEntityKeys>,
+  path_accompany: { make: CPathAccompany, keys: keysCPathAccompany } as Designer<typeof CPathAccompany, CPathAccompanyKeys>,
+  path_corner: { make: CPathCorner, keys: keysCPathCorner } as Designer<typeof CPathCorner, CPathCornerKeys>,
+  path_corner_crash: { make: CPathCornerCrash, keys: keysCPathCorner } as Designer<typeof CPathCornerCrash, CPathCornerKeys>,
+  path_mover: { make: CPathMover, keys: keysCPathMover } as Designer<typeof CPathMover, CPathMoverKeys>,
+  path_mover_entity_spawner: { make: CPathMoverEntitySpawner, keys: keysCPathMoverEntitySpawner } as Designer<typeof CPathMoverEntitySpawner, CPathMoverEntitySpawnerKeys>,
+  path_particle_rope: { make: CPathParticleRope, keys: keysCPathParticleRope } as Designer<typeof CPathParticleRope, CPathParticleRopeKeys>,
+  path_particle_rope_clientside: { make: CPathParticleRopeAlias_path_particle_rope_clientside, keys: keysCPathParticleRope } as Designer<typeof CPathParticleRopeAlias_path_particle_rope_clientside, CPathParticleRopeKeys>,
+  path_simple: { make: CPathSimple, keys: keysCPathSimple } as Designer<typeof CPathSimple, CPathSimpleKeys>,
+  path_track: { make: CPathTrack, keys: keysCPathTrack } as Designer<typeof CPathTrack, CPathTrackKeys>,
+  path_with_dynamic_nodes: { make: CPathWithDynamicNodes, keys: keysCPathWithDynamicNodes } as Designer<typeof CPathWithDynamicNodes, CPathWithDynamicNodesKeys>,
+  phys_magnet: { make: CPhysMagnet, keys: keysCPhysMagnet } as Designer<typeof CPhysMagnet, CPhysMagnetKeys>,
+  phys_motor: { make: CPhysMotor, keys: keysCPhysMotor } as Designer<typeof CPhysMotor, CPhysMotorKeys>,
+  phys_ragdollmagnet: { make: CRagdollMagnet, keys: keysCRagdollMagnet } as Designer<typeof CRagdollMagnet, CRagdollMagnetKeys>,
+  phys_thruster: { make: CPhysThruster, keys: keysCPhysForce } as Designer<typeof CPhysThruster, CPhysForceKeys>,
+  phys_torque: { make: CPhysTorque, keys: keysCPhysTorque } as Designer<typeof CPhysTorque, CPhysTorqueKeys>,
+  physics_entity_solver: { make: CPhysicsEntitySolver, keys: keysCPhysicsEntitySolver } as Designer<typeof CPhysicsEntitySolver, CPhysicsEntitySolverKeys>,
+  physics_prop_ragdoll: { make: CRagdollPropAlias_physics_prop_ragdoll, keys: keysCRagdollProp } as Designer<typeof CRagdollPropAlias_physics_prop_ragdoll, CRagdollPropKeys>,
+  plat_trigger: { make: CPlatTrigger, keys: keysCBaseModelEntity } as Designer<typeof CPlatTrigger, CBaseModelEntityKeys>,
+  player: { make: CCitadelPlayerPawn, keys: keysCCitadelPlayerPawn } as Designer<typeof CCitadelPlayerPawn, CCitadelPlayerPawnKeys>,
+  player_controller: { make: CBasePlayerController, keys: keysCBasePlayerController } as Designer<typeof CBasePlayerController, CBasePlayerControllerKeys>,
+  player_loadsaved: { make: CRevertSaved, keys: keysCRevertSaved } as Designer<typeof CRevertSaved, CRevertSavedKeys>,
+  player_spray_decal: { make: CPlayerSprayDecal, keys: keysCPlayerSprayDecal } as Designer<typeof CPlayerSprayDecal, CPlayerSprayDecalKeys>,
+  player_tracked_stats: { make: CPlayerTrackedStatsEntity, keys: keysCBaseEntity } as Designer<typeof CPlayerTrackedStatsEntity, CBaseEntityKeys>,
+  point_anglesensor: { make: CPointAngleSensor, keys: keysCPointAngleSensor } as Designer<typeof CPointAngleSensor, CPointAngleSensorKeys>,
+  point_angularvelocitysensor: { make: CPointAngularVelocitySensor, keys: keysCPointAngularVelocitySensor } as Designer<typeof CPointAngularVelocitySensor, CPointAngularVelocitySensorKeys>,
+  point_broadcastclientcommand: { make: CPointBroadcastClientCommand, keys: keysCPointBroadcastClientCommand } as Designer<typeof CPointBroadcastClientCommand, CPointBroadcastClientCommandKeys>,
+  point_camera: { make: CPointCamera, keys: keysCPointCamera } as Designer<typeof CPointCamera, CPointCameraKeys>,
+  point_camera_vertical_fov: { make: CPointCameraVFOV, keys: keysCPointCameraVFOV } as Designer<typeof CPointCameraVFOV, CPointCameraVFOVKeys>,
+  point_childmodifier: { make: CPointChildModifier, keys: keysCPointChildModifier } as Designer<typeof CPointChildModifier, CPointChildModifierKeys>,
+  point_clientcommand: { make: CPointClientCommand, keys: keysCPointClientCommand } as Designer<typeof CPointClientCommand, CPointClientCommandKeys>,
+  point_clientui_dialog: { make: CPointClientUIDialog, keys: keysCPointClientUIDialog } as Designer<typeof CPointClientUIDialog, CPointClientUIDialogKeys>,
+  point_clientui_world_panel: { make: CPointClientUIWorldPanel, keys: keysCPointClientUIWorldPanel } as Designer<typeof CPointClientUIWorldPanel, CPointClientUIWorldPanelKeys>,
+  point_clientui_world_text_panel: { make: CPointClientUIWorldTextPanel, keys: keysCPointClientUIWorldTextPanel } as Designer<typeof CPointClientUIWorldTextPanel, CPointClientUIWorldTextPanelKeys>,
+  point_commentary_node: { make: CPointCommentaryNode, keys: keysCPointCommentaryNode } as Designer<typeof CPointCommentaryNode, CPointCommentaryNodeKeys>,
+  point_commentary_viewpoint: { make: CCommentaryViewPosition, keys: keysCSprite } as Designer<typeof CCommentaryViewPosition, CSpriteKeys>,
+  point_enable_motion_fixup: { make: CEnableMotionFixup, keys: keysCBaseEntity } as Designer<typeof CEnableMotionFixup, CBaseEntityKeys>,
+  point_entity: { make: CPointEntity, keys: keysCPointEntity } as Designer<typeof CPointEntity, CPointEntityKeys>,
+  point_entity_finder: { make: CPointEntityFinder, keys: keysCPointEntityFinder } as Designer<typeof CPointEntityFinder, CPointEntityFinderKeys>,
+  point_hurt: { make: CPointHurt, keys: keysCPointHurt } as Designer<typeof CPointHurt, CPointHurtKeys>,
+  point_instructor_event: { make: CInstructorEventEntity, keys: keysCInstructorEventEntity } as Designer<typeof CInstructorEventEntity, CInstructorEventEntityKeys>,
+  point_message: { make: CMessageEntity, keys: keysCMessageEntity } as Designer<typeof CMessageEntity, CMessageEntityKeys>,
+  point_modifier_thinker: { make: CPointModifierThinker, keys: keysCPointModifierThinker } as Designer<typeof CPointModifierThinker, CPointModifierThinkerKeys>,
+  point_nav_walkable: { make: CNavWalkable, keys: keysCPointEntity } as Designer<typeof CNavWalkable, CPointEntityKeys>,
+  point_orient: { make: CPointOrient, keys: keysCPointOrient } as Designer<typeof CPointOrient, CPointOrientKeys>,
+  point_proximity_sensor: { make: CPointProximitySensor, keys: keysCPointProximitySensor } as Designer<typeof CPointProximitySensor, CPointProximitySensorKeys>,
+  point_pulse: { make: CPointPulse, keys: keysCBaseEntity } as Designer<typeof CPointPulse, CBaseEntityKeys>,
+  point_push: { make: CPointPush, keys: keysCPointPush } as Designer<typeof CPointPush, CPointPushKeys>,
+  point_servercommand: { make: CPointServerCommand, keys: keysCPointServerCommand } as Designer<typeof CPointServerCommand, CPointServerCommandKeys>,
+  point_soundevent: { make: CSoundEventEntity, keys: keysCSoundEventEntity } as Designer<typeof CSoundEventEntity, CSoundEventEntityKeys>,
+  point_teleport: { make: CPointTeleport, keys: keysCPointTeleport } as Designer<typeof CPointTeleport, CPointTeleportKeys>,
+  point_template: { make: CPointTemplate, keys: keysCPointTemplate } as Designer<typeof CPointTemplate, CPointTemplateKeys>,
+  point_value_remapper: { make: CPointValueRemapper, keys: keysCPointValueRemapper } as Designer<typeof CPointValueRemapper, CPointValueRemapperKeys>,
+  point_velocitysensor: { make: CPointVelocitySensor, keys: keysCPointVelocitySensor } as Designer<typeof CPointVelocitySensor, CPointVelocitySensorKeys>,
+  point_worldtext: { make: CPointWorldText, keys: keysCPointWorldText } as Designer<typeof CPointWorldText, CPointWorldTextKeys>,
+  post_processing_volume: { make: CPostProcessingVolume, keys: keysCPostProcessingVolume } as Designer<typeof CPostProcessingVolume, CPostProcessingVolumeKeys>,
+  projectile_boho_skipgrenade: { make: CProjectile_Boho_SkipGrenade, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Boho_SkipGrenade, CBaseModelEntityKeys>,
+  projectile_chessmaster_forkpiece: { make: CProjectile_ChessMaster_Fork_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_ChessMaster_Fork_Projectile, CBaseModelEntityKeys>,
+  projectile_cyclone: { make: CCitadel_Projectile_Cyclone, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Cyclone, CBaseModelEntityKeys>,
+  projectile_doorman_cart_projectile: { make: CProjectile_Doorman_Cart_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Doorman_Cart_Projectile, CBaseModelEntityKeys>,
+  projectile_dust_storm: { make: CCitadel_Projectile_DustStorm, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_DustStorm, CBaseModelEntityKeys>,
+  projectile_gravestone_projectile: { make: CProjectile_GraveStone_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_GraveStone_Projectile, CBaseModelEntityKeys>,
+  projectile_necro_zombiewall_projectile: { make: CProjectile_Necro_ZombieWall_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Necro_ZombieWall_Projectile, CBaseModelEntityKeys>,
+  projectile_perched_predator: { make: CProjectile_Perched_Predator, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Perched_Predator, CBaseModelEntityKeys>,
+  projectile_rolling_fireball: { make: CProjectile_Rolling_FireBall, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Rolling_FireBall, CBaseModelEntityKeys>,
+  projectile_stomp_projectile: { make: CProjectile_Stomp_Projectile, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Stomp_Projectile, CBaseModelEntityKeys>,
+  projectile_touch_volume: { make: CCitadelProjectileTouchVolume, keys: keysCCitadelProjectileTouchVolume } as Designer<typeof CCitadelProjectileTouchVolume, CCitadelProjectileTouchVolumeKeys>,
+  prop_animating_breakable: { make: CPropAnimatingBreakable, keys: keysCPropAnimatingBreakable } as Designer<typeof CPropAnimatingBreakable, CPropAnimatingBreakableKeys>,
+  prop_door_rotating: { make: CPropDoorRotating, keys: keysCPropDoorRotating } as Designer<typeof CPropDoorRotating, CPropDoorRotatingKeys>,
+  prop_dynamic: { make: CDynamicProp, keys: keysCDynamicProp } as Designer<typeof CDynamicProp, CDynamicPropKeys>,
+  prop_dynamic_ornament: { make: COrnamentProp, keys: keysCOrnamentProp } as Designer<typeof COrnamentProp, COrnamentPropKeys>,
+  prop_dynamic_override: { make: CDynamicPropAlias_prop_dynamic_override, keys: keysCDynamicProp } as Designer<typeof CDynamicPropAlias_prop_dynamic_override, CDynamicPropKeys>,
+  prop_physics_override: { make: CPhysicsPropOverride, keys: keysCPhysicsProp } as Designer<typeof CPhysicsPropOverride, CPhysicsPropKeys>,
+  prop_physics_respawnable: { make: CPhysicsPropRespawnable, keys: keysCPhysicsPropRespawnable } as Designer<typeof CPhysicsPropRespawnable, CPhysicsPropRespawnableKeys>,
+  prop_ragdoll: { make: CRagdollProp, keys: keysCRagdollProp } as Designer<typeof CRagdollProp, CRagdollPropKeys>,
+  prop_ragdoll_attached: { make: CRagdollPropAttached, keys: keysCRagdollProp } as Designer<typeof CRagdollPropAttached, CRagdollPropKeys>,
+  pulse_game_blackboard: { make: CPulseGameBlackboard, keys: keysCPulseGameBlackboard } as Designer<typeof CPulseGameBlackboard, CPulseGameBlackboardKeys>,
+  punkgoat_tether_projectile: { make: CProjectile_PunkgoatTether, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_PunkgoatTether, CBaseModelEntityKeys>,
+  ratking_scrap_grenade_projectile: { make: CScrapGrenadeProjectile, keys: keysCBaseModelEntity } as Designer<typeof CScrapGrenadeProjectile, CBaseModelEntityKeys>,
+  rocket_launcher_rocket_projectile: { make: CCitadel_Projectile_RocketLauncher_Rocket, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_RocketLauncher_Rocket, CBaseModelEntityKeys>,
+  rotator_target: { make: CRotatorTarget, keys: keysCPointEntity } as Designer<typeof CRotatorTarget, CPointEntityKeys>,
+  rutger_rocket_projectile: { make: CProjectile_Rutger_Rocket, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Rutger_Rocket, CBaseModelEntityKeys>,
+  script_nav_blocker: { make: CScriptNavBlocker, keys: keysCScriptNavBlocker } as Designer<typeof CScriptNavBlocker, CScriptNavBlockerKeys>,
+  script_trigger_hurt: { make: CScriptTriggerHurt, keys: keysCScriptTriggerHurt } as Designer<typeof CScriptTriggerHurt, CScriptTriggerHurtKeys>,
+  script_trigger_multiple: { make: CScriptTriggerMultiple, keys: keysCScriptTriggerMultiple } as Designer<typeof CScriptTriggerMultiple, CScriptTriggerMultipleKeys>,
+  script_trigger_once: { make: CScriptTriggerOnce, keys: keysCScriptTriggerOnce } as Designer<typeof CScriptTriggerOnce, CScriptTriggerOnceKeys>,
+  script_trigger_push: { make: CScriptTriggerPush, keys: keysCScriptTriggerPush } as Designer<typeof CScriptTriggerPush, CScriptTriggerPushKeys>,
+  scripted_item_drop: { make: CScriptItem, keys: keysCItem } as Designer<typeof CScriptItem, CItemKeys>,
+  scripted_scene: { make: CSceneEntity, keys: keysCSceneEntity } as Designer<typeof CSceneEntity, CSceneEntityKeys>,
+  scripted_sequence: { make: CScriptedSequence, keys: keysCScriptedSequence } as Designer<typeof CScriptedSequence, CScriptedSequenceKeys>,
+  setting_sun_projectile: { make: CCitadel_Projectile_SettingSun, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_SettingSun, CBaseModelEntityKeys>,
+  shatterglass_shard: { make: CShatterGlassShardPhysics, keys: keysCBaseModelEntity } as Designer<typeof CShatterGlassShardPhysics, CBaseModelEntityKeys>,
+  sky_camera: { make: CSkyCamera, keys: keysCSkyCamera } as Designer<typeof CSkyCamera, CSkyCameraKeys>,
+  skybox_reference: { make: CSkyboxReference, keys: keysCSkyboxReference } as Designer<typeof CSkyboxReference, CSkyboxReferenceKeys>,
+  snd_event_alignedbox: { make: CSoundEventAABBEntity, keys: keysCSoundEventAABBEntity } as Designer<typeof CSoundEventAABBEntity, CSoundEventAABBEntityKeys>,
+  snd_event_box_helper: { make: CSoundEventBoxHelper, keys: keysCSoundEventBoxHelper } as Designer<typeof CSoundEventBoxHelper, CSoundEventBoxHelperKeys>,
+  snd_event_cone: { make: CSoundEventConeEntity, keys: keysCSoundEventConeEntity } as Designer<typeof CSoundEventConeEntity, CSoundEventConeEntityKeys>,
+  snd_event_oriented_boxes: { make: CSoundEventBoxEntity, keys: keysCSoundEventBoxEntity } as Designer<typeof CSoundEventBoxEntity, CSoundEventBoxEntityKeys>,
+  snd_event_orientedbox: { make: CSoundEventOBBEntity, keys: keysCSoundEventOBBEntity } as Designer<typeof CSoundEventOBBEntity, CSoundEventOBBEntityKeys>,
+  snd_event_param: { make: CSoundEventParameter, keys: keysCSoundEventParameter } as Designer<typeof CSoundEventParameter, CSoundEventParameterKeys>,
+  snd_event_path_corner: { make: CSoundEventPathCornerEntity, keys: keysCSoundEventPathCornerEntity } as Designer<typeof CSoundEventPathCornerEntity, CSoundEventPathCornerEntityKeys>,
+  snd_event_point: { make: CSoundEventEntityAlias_snd_event_point, keys: keysCSoundEventEntity } as Designer<typeof CSoundEventEntityAlias_snd_event_point, CSoundEventEntityKeys>,
+  snd_event_sphere: { make: CSoundEventSphereEntity, keys: keysCSoundEventSphereEntity } as Designer<typeof CSoundEventSphereEntity, CSoundEventSphereEntityKeys>,
+  snd_opvar_set: { make: CSoundOpvarSetEntity, keys: keysCSoundOpvarSetEntity } as Designer<typeof CSoundOpvarSetEntity, CSoundOpvarSetEntityKeys>,
+  snd_opvar_set_aabb: { make: CSoundOpvarSetAABBEntity, keys: keysCSoundOpvarSetBoxEntity } as Designer<typeof CSoundOpvarSetAABBEntity, CSoundOpvarSetBoxEntityKeys>,
+  snd_opvar_set_auto_room: { make: CSoundOpvarSetAutoRoomEntity, keys: keysCSoundOpvarSetAutoRoomEntity } as Designer<typeof CSoundOpvarSetAutoRoomEntity, CSoundOpvarSetAutoRoomEntityKeys>,
+  snd_opvar_set_dome: { make: CSoundOpvarSetDomeEntity, keys: keysCSoundOpvarSetDomeEntity } as Designer<typeof CSoundOpvarSetDomeEntity, CSoundOpvarSetDomeEntityKeys>,
+  snd_opvar_set_obb: { make: CSoundOpvarSetOBBEntity, keys: keysCSoundOpvarSetBoxEntity } as Designer<typeof CSoundOpvarSetOBBEntity, CSoundOpvarSetBoxEntityKeys>,
+  snd_opvar_set_path_corner: { make: CSoundOpvarSetPathCornerEntity, keys: keysCSoundOpvarSetPathCornerEntity } as Designer<typeof CSoundOpvarSetPathCornerEntity, CSoundOpvarSetPathCornerEntityKeys>,
+  snd_opvar_set_point: { make: CSoundOpvarSetPointEntity, keys: keysCSoundOpvarSetPointEntity } as Designer<typeof CSoundOpvarSetPointEntity, CSoundOpvarSetPointEntityKeys>,
+  snd_opvar_set_point_base: { make: CSoundOpvarSetPointBase, keys: keysCSoundOpvarSetPointBase } as Designer<typeof CSoundOpvarSetPointBase, CSoundOpvarSetPointBaseKeys>,
+  snd_opvar_set_precipitation: { make: CSoundOpvarSetPrecipitationEntity, keys: keysCSoundOpvarSetPrecipitationEntity } as Designer<typeof CSoundOpvarSetPrecipitationEntity, CSoundOpvarSetPrecipitationEntityKeys>,
+  snd_opvar_set_precipitation_obb: { make: CSoundOpvarSetPrecipitationOBBEntity, keys: keysCSoundOpvarSetPrecipitationEntity } as Designer<typeof CSoundOpvarSetPrecipitationOBBEntity, CSoundOpvarSetPrecipitationEntityKeys>,
+  snd_opvar_set_wind_obb: { make: CSoundOpvarSetOBBWindEntity, keys: keysCSoundOpvarSetOBBWindEntity } as Designer<typeof CSoundOpvarSetOBBWindEntity, CSoundOpvarSetOBBWindEntityKeys>,
+  snd_sound_area_obb: { make: CSoundAreaEntityOrientedBox, keys: keysCSoundAreaEntityOrientedBox } as Designer<typeof CSoundAreaEntityOrientedBox, CSoundAreaEntityOrientedBoxKeys>,
+  snd_sound_area_sphere: { make: CSoundAreaEntitySphere, keys: keysCSoundAreaEntitySphere } as Designer<typeof CSoundAreaEntitySphere, CSoundAreaEntitySphereKeys>,
+  snd_soundscape: { make: CEnvSoundscapeAlias_snd_soundscape, keys: keysCEnvSoundscape } as Designer<typeof CEnvSoundscapeAlias_snd_soundscape, CEnvSoundscapeKeys>,
+  snd_soundscape_proxy: { make: CEnvSoundscapeProxyAlias_snd_soundscape_proxy, keys: keysCEnvSoundscapeProxy } as Designer<typeof CEnvSoundscapeProxyAlias_snd_soundscape_proxy, CEnvSoundscapeProxyKeys>,
+  snd_soundscape_triggerable: { make: CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable, keys: keysCEnvSoundscape } as Designer<typeof CEnvSoundscapeTriggerableAlias_snd_soundscape_triggerable, CEnvSoundscapeKeys>,
+  snd_stack_save: { make: CSoundStackSave, keys: keysCSoundStackSave } as Designer<typeof CSoundStackSave, CSoundStackSaveKeys>,
+  spider_projectile: { make: CCitadel_Projectile_SpiderProjectile, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_SpiderProjectile, CBaseModelEntityKeys>,
+  spotlight_end: { make: CSpotlightEnd, keys: keysCBaseModelEntity } as Designer<typeof CSpotlightEnd, CBaseModelEntityKeys>,
+  synth_barrage_projectile: { make: CProjectile_Synth_Barrage, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Synth_Barrage, CBaseModelEntityKeys>,
+  synth_plasma_flux_projectile: { make: CProjectile_Synth_PlasmaFlux, keys: keysCBaseModelEntity } as Designer<typeof CProjectile_Synth_PlasmaFlux, CBaseModelEntityKeys>,
+  tanktrain_ai: { make: CTankTrainAI, keys: keysCTankTrainAI } as Designer<typeof CTankTrainAI, CTankTrainAIKeys>,
+  tanktrain_aitarget: { make: CTankTargetChange, keys: keysCTankTargetChange } as Designer<typeof CTankTargetChange, CTankTargetChangeKeys>,
+  team_manager: { make: CTeam, keys: keysCTeam } as Designer<typeof CTeam, CTeamKeys>,
+  team_tracked_stats: { make: CTeamTrackedStatsEntity, keys: keysCBaseEntity } as Designer<typeof CTeamTrackedStatsEntity, CBaseEntityKeys>,
+  test_effect: { make: CTestEffect, keys: keysCBaseEntity } as Designer<typeof CTestEffect, CBaseEntityKeys>,
+  test_io_combinations: { make: CTestPulseIO, keys: keysCTestPulseIO } as Designer<typeof CTestPulseIO, CTestPulseIOKeys>,
+  trigger: { make: CBaseTrigger, keys: keysCBaseTrigger } as Designer<typeof CBaseTrigger, CBaseTriggerKeys>,
+  trigger_Ice_Path_Volume: { make: CTriggerIcePathVolume, keys: keysCBaseTrigger } as Designer<typeof CTriggerIcePathVolume, CBaseTriggerKeys>,
+  trigger_active_weapon_detect: { make: CTriggerActiveWeaponDetect, keys: keysCTriggerActiveWeaponDetect } as Designer<typeof CTriggerActiveWeaponDetect, CTriggerActiveWeaponDetectKeys>,
+  trigger_add_modifier: { make: CTriggerAddModifier, keys: keysCTriggerAddModifier } as Designer<typeof CTriggerAddModifier, CTriggerAddModifierKeys>,
+  trigger_brush: { make: CTriggerBrush, keys: keysCTriggerBrush } as Designer<typeof CTriggerBrush, CTriggerBrushKeys>,
+  trigger_burrow_underground: { make: CTriggerBurrowUnderground, keys: keysCBaseTrigger } as Designer<typeof CTriggerBurrowUnderground, CBaseTriggerKeys>,
+  trigger_callback: { make: CTriggerCallback, keys: keysCBaseTrigger } as Designer<typeof CTriggerCallback, CBaseTriggerKeys>,
+  trigger_catapult: { make: CCitadelCatapultTrigger, keys: keysCCitadelCatapultTrigger } as Designer<typeof CCitadelCatapultTrigger, CCitadelCatapultTriggerKeys>,
+  trigger_changelevel: { make: CChangeLevel, keys: keysCChangeLevel } as Designer<typeof CChangeLevel, CChangeLevelKeys>,
+  trigger_detect_bullet_fire: { make: CTriggerDetectBulletFire, keys: keysCTriggerDetectBulletFire } as Designer<typeof CTriggerDetectBulletFire, CTriggerDetectBulletFireKeys>,
+  trigger_detect_explosion: { make: CTriggerDetectExplosion, keys: keysCTriggerDetectExplosion } as Designer<typeof CTriggerDetectExplosion, CTriggerDetectExplosionKeys>,
+  trigger_fan: { make: CTriggerFan, keys: keysCTriggerFan } as Designer<typeof CTriggerFan, CTriggerFanKeys>,
+  trigger_fog: { make: CFogTrigger, keys: keysCFogTrigger } as Designer<typeof CFogTrigger, CFogTriggerKeys>,
+  trigger_game_event: { make: CTriggerGameEvent, keys: keysCTriggerGameEvent } as Designer<typeof CTriggerGameEvent, CTriggerGameEventKeys>,
+  trigger_gravity: { make: CTriggerGravity, keys: keysCBaseTrigger } as Designer<typeof CTriggerGravity, CBaseTriggerKeys>,
+  trigger_hurt: { make: CTriggerHurt, keys: keysCTriggerHurt } as Designer<typeof CTriggerHurt, CTriggerHurtKeys>,
+  trigger_hurt_citadel: { make: CCitadelTriggerHurt, keys: keysCTriggerHurt } as Designer<typeof CCitadelTriggerHurt, CTriggerHurtKeys>,
+  trigger_impact: { make: CTriggerImpact, keys: keysCTriggerImpact } as Designer<typeof CTriggerImpact, CTriggerImpactKeys>,
+  trigger_item_shop: { make: CTriggerItemShop, keys: keysCTriggerItemShop } as Designer<typeof CTriggerItemShop, CTriggerItemShopKeys>,
+  trigger_item_shop_safe_zone: { make: CTriggerItemShopSafeZone, keys: keysCTriggerItemShopSafeZone } as Designer<typeof CTriggerItemShopSafeZone, CTriggerItemShopSafeZoneKeys>,
+  trigger_lerp_object: { make: CTriggerLerpObject, keys: keysCTriggerLerpObject } as Designer<typeof CTriggerLerpObject, CTriggerLerpObjectKeys>,
+  trigger_look: { make: CTriggerLook, keys: keysCTriggerLook } as Designer<typeof CTriggerLook, CTriggerLookKeys>,
+  trigger_midboss_shield: { make: CTriggerMidBossShield, keys: keysCBaseTrigger } as Designer<typeof CTriggerMidBossShield, CBaseTriggerKeys>,
+  trigger_modifier: { make: CTriggerModifier, keys: keysCTriggerModifier } as Designer<typeof CTriggerModifier, CTriggerModifierKeys>,
+  trigger_multiple: { make: CTriggerMultiple, keys: keysCTriggerMultiple } as Designer<typeof CTriggerMultiple, CTriggerMultipleKeys>,
+  trigger_neutral_idles: { make: CTriggerNeutralIdles, keys: keysCBaseTrigger } as Designer<typeof CTriggerNeutralIdles, CBaseTriggerKeys>,
+  trigger_neutral_shield: { make: CTriggerNeutralShield, keys: keysCBaseTrigger } as Designer<typeof CTriggerNeutralShield, CBaseTriggerKeys>,
+  trigger_once: { make: CTriggerOnce, keys: keysCTriggerMultiple } as Designer<typeof CTriggerOnce, CTriggerMultipleKeys>,
+  trigger_passthrough_fake_wall: { make: CTriggerPassthroughFakeWall, keys: keysCBaseTrigger } as Designer<typeof CTriggerPassthroughFakeWall, CBaseTriggerKeys>,
+  trigger_physics: { make: CTriggerPhysics, keys: keysCTriggerPhysics } as Designer<typeof CTriggerPhysics, CTriggerPhysicsKeys>,
+  trigger_ping_location: { make: CTriggerPingLocation, keys: keysCTriggerPingLocation } as Designer<typeof CTriggerPingLocation, CTriggerPingLocationKeys>,
+  trigger_portal: { make: CCitadelPortalTrigger, keys: keysCCitadelPortalTrigger } as Designer<typeof CCitadelPortalTrigger, CCitadelPortalTriggerKeys>,
+  trigger_proximity: { make: CTriggerProximity, keys: keysCTriggerProximity } as Designer<typeof CTriggerProximity, CTriggerProximityKeys>,
+  trigger_push: { make: CTriggerPush, keys: keysCTriggerPush } as Designer<typeof CTriggerPush, CTriggerPushKeys>,
+  trigger_remove: { make: CTriggerRemove, keys: keysCTriggerRemove } as Designer<typeof CTriggerRemove, CTriggerRemoveKeys>,
+  trigger_remove_modifier: { make: CTriggerRemoveModifier, keys: keysCTriggerRemoveModifier } as Designer<typeof CTriggerRemoveModifier, CTriggerRemoveModifierKeys>,
+  trigger_serverragdoll: { make: CServerRagdollTrigger, keys: keysCBaseTrigger } as Designer<typeof CServerRagdollTrigger, CBaseTriggerKeys>,
+  trigger_snd_sos_opvar: { make: CTriggerSndSosOpvar, keys: keysCTriggerSndSosOpvar } as Designer<typeof CTriggerSndSosOpvar, CTriggerSndSosOpvarKeys>,
+  trigger_soundscape: { make: CTriggerSoundscape, keys: keysCTriggerSoundscape } as Designer<typeof CTriggerSoundscape, CTriggerSoundscapeKeys>,
+  trigger_team_base: { make: CTriggerTeamBase, keys: keysCBaseTrigger } as Designer<typeof CTriggerTeamBase, CBaseTriggerKeys>,
+  trigger_teleport: { make: CTriggerTeleport, keys: keysCTriggerTeleport } as Designer<typeof CTriggerTeleport, CTriggerTeleportKeys>,
+  trigger_tier3phase2_shield: { make: CTriggerTier3Phase2Shield, keys: keysCBaseTrigger } as Designer<typeof CTriggerTier3Phase2Shield, CBaseTriggerKeys>,
+  trigger_tonemap: { make: CTonemapTrigger, keys: keysCTonemapTrigger } as Designer<typeof CTonemapTrigger, CTonemapTriggerKeys>,
+  trigger_transition: { make: CTriggerVolume, keys: keysCTriggerVolume } as Designer<typeof CTriggerVolume, CTriggerVolumeKeys>,
+  trigger_trooper_damage_reduction_detector: { make: CTriggerTrooperDamageReductionDetector, keys: keysCTriggerTrooperDamageReductionDetector } as Designer<typeof CTriggerTrooperDamageReductionDetector, CTriggerTrooperDamageReductionDetectorKeys>,
+  trigger_trooper_detector: { make: CTriggerTrooperDetector, keys: keysCTriggerTrooperDetector } as Designer<typeof CTriggerTrooperDetector, CTriggerTrooperDetectorKeys>,
+  trooper_approach_horizon: { make: CTrooperApproachHorizon, keys: keysCBaseEntity } as Designer<typeof CTrooperApproachHorizon, CBaseEntityKeys>,
+  vandal_pillar_projectile: { make: CCitadel_Projectile_Pillar, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Pillar, CBaseModelEntityKeys>,
+  viper_hookblade_projectile: { make: CCitadel_Projectile_HookBlade, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_HookBlade, CBaseModelEntityKeys>,
+  viper_petrify_projectile: { make: CCitadel_Projectile_Petrify, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Petrify, CBaseModelEntityKeys>,
+  viscous_goo_grenade_projectile: { make: CCitadel_Projectile_Viscous_GooGrenade, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Viscous_GooGrenade, CBaseModelEntityKeys>,
+  wearable_item: { make: CEconWearable, keys: keysCBaseAnimGraph } as Designer<typeof CEconWearable, CBaseAnimGraphKeys>,
+  webwall_projectile: { make: CCitadel_Projectile_WebWall, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_WebWall, CBaseModelEntityKeys>,
+  wrecker_teleport_projectile: { make: CCitadel_Projectile_Wrecker_Teleport, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_Wrecker_Teleport, CBaseModelEntityKeys>,
+  wrecking_ball_projectile: { make: CCitadel_Projectile_WreckingBall, keys: keysCBaseModelEntity } as Designer<typeof CCitadel_Projectile_WreckingBall, CBaseModelEntityKeys>,
+  zip_line_node: { make: CCitadelZipLineNode, keys: keysCCitadelZipLineNode } as Designer<typeof CCitadelZipLineNode, CCitadelZipLineNodeKeys>,
+}

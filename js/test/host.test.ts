@@ -1,6 +1,11 @@
 import { expect, test } from 'bun:test'
 
+import {
+  EntityOptions,
+  EntityResponse,
+} from '../../src/wasm/entities/entities.pb.js'
 import { Call, Reply } from '../../src/wasm/wasm.pb.js'
+import { CCitadel_BreakableProp, create } from '../src/entities.js'
 import { bind, call } from '../src/host.js'
 
 /** answer is what the bound transport replies with next. */
@@ -50,4 +55,26 @@ test('a reply returns its response, or undefined when it names an error', () => 
   const long = new Uint8Array(1000).fill(5)
   answer = Reply.toBinary({ response: long })
   expect(call('Pawn', new Uint8Array())).toEqual(long)
+})
+
+test('create types each key by its own table or a base, and fills the subclass', () => {
+  // The host answers with the new entity's handle.
+  sent.length = 0
+  answer = Reply.toBinary({ response: EntityResponse.toBinary({ entity: 42 }) })
+  const prop = create('citadel_breakable_prop', {
+    position: { x: 1, y: 2, z: 3 },
+    keys: { health: 50, gravity: 0.5 },
+  })
+  expect(prop).toBeInstanceOf(CCitadel_BreakableProp)
+  expect(prop?.handle).toBe(42)
+
+  // health and gravity come from CBaseEntity's table, at the root of the
+  // prop's bases.
+  const options = EntityOptions.fromBinary(sent[0]!.request)
+  expect(options.subclass).toBe('citadel_breakable_prop_vase')
+  expect(options.keyValues).toEqual([
+    { key: 'health', value: { value: { case: 'integer', value: 50 } } },
+    { key: 'gravity', value: { value: { case: 'number', value: 0.5 } } },
+  ])
+  answer = Reply.toBinary({})
 })
