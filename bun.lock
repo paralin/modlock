@@ -5,7 +5,7 @@
     "": {
       "name": "modlock",
       "devDependencies": {
-        "@aptre/protobuf-es-lite": "1.2.5",
+        "@aptre/protobuf-es-lite": "1.2.6",
         "@babel/parser": "8.0.8",
         "@babel/types": "8.0.8",
         "@types/bun": "1.4.4",
@@ -23,7 +23,7 @@
     },
   },
   "packages": {
-    "@aptre/protobuf-es-lite": ["@aptre/protobuf-es-lite@1.2.5", "", { "dependencies": { "@typescript/vfs": "^1.5.0", "lz-string": "^1.5.0", "typescript": "6.0.3" }, "bin": { "protoc-gen-es-lite": "bin/protoc-gen-es-lite" } }, "sha512-9kKtdV+dPuiPDgN4b48f15IUvQ1gbQRD3wkK1e11GRlwYJ4r/WpJ+eU43bDxVTMwGQQPdwfVXBdFYAFCmW85Tg=="],
+    "@aptre/protobuf-es-lite": ["@aptre/protobuf-es-lite@1.2.6", "", { "dependencies": { "@typescript/vfs": "^1.5.0", "lz-string": "^1.5.0", "typescript": "6.0.3" }, "bin": { "protoc-gen-es-lite": "bin/protoc-gen-es-lite" } }, "sha512-zoAYrm2ACaTRkqnxckGK5uFi+eI6n07upEh+lY0sgkuFFz52VB/Izk2EJ+L2wOhlXpDScbT9tCC6Fa7dwkg/Mg=="],
 
     "@babel/helper-string-parser": ["@babel/helper-string-parser@8.0.8", "", {}, "sha512-fVM+gSuKbdv9cpmyRNh5EvsDHUZCdxQH3FdnFKSkNYHpbsn95bbrxm+ES3MVeQjcqwi2O5ur/DjLfmTQaO60ng=="],
 
