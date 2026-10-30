@@ -1,60 +1,59 @@
 <root>
+  <styles>
+    <include src="file://{resources}/styles/{addon}/inventory.css" />
+  </styles>
   <scripts>
     <include src="file://{resources}/scripts/modlock/layout.js" />
     <include src="file://{resources}/scripts/{addon}/inventory.js" />
   </scripts>
-  <Panel style="flow-children: down; padding: 16px; border-radius: 12px; background-color: #0b1016e8;">
-    <Label text="Bag" style="margin: 0px 4px 8px 4px; font-size: 28px; font-weight: bold; color: #f2e6c9;" />
-    <Label text="Hold Tab and drag an item to move it" style="margin: 0px 4px 12px 4px; font-size: 18px; color: #9aa4ae;" />
-    <Panel id="Grid" style="width: 416px; flow-children: right-wrap;">
-      <Panel id="Slot0" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name0" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot1" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name1" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot2" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name2" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot3" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name3" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot4" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name4" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot5" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name5" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot6" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name6" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot7" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name7" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot8" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name8" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot9" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name9" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot10" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name10" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot11" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name11" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot12" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name12" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot13" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name13" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot14" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name14" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
-      <Panel id="Slot15" class="slot" draggable="true" style="width: 96px; height: 96px; margin: 4px; border-radius: 6px; background-color: #1c2630; border: 2px solid #2e3b48;">
-        <Label id="Name15" text="" hittest="false" style="width: 100%; vertical-align: center; text-align: center; font-size: 18px; color: #101418; font-weight: bold;" />
-      </Panel>
+  <Panel id="Grid" style="width: 416px; flow-children: right-wrap;">
+    <Panel id="Slot0" class="slot" draggable="true">
+      <Label id="Name0" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot1" class="slot" draggable="true">
+      <Label id="Name1" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot2" class="slot" draggable="true">
+      <Label id="Name2" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot3" class="slot" draggable="true">
+      <Label id="Name3" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot4" class="slot" draggable="true">
+      <Label id="Name4" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot5" class="slot" draggable="true">
+      <Label id="Name5" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot6" class="slot" draggable="true">
+      <Label id="Name6" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot7" class="slot" draggable="true">
+      <Label id="Name7" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot8" class="slot" draggable="true">
+      <Label id="Name8" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot9" class="slot" draggable="true">
+      <Label id="Name9" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot10" class="slot" draggable="true">
+      <Label id="Name10" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot11" class="slot" draggable="true">
+      <Label id="Name11" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot12" class="slot" draggable="true">
+      <Label id="Name12" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot13" class="slot" draggable="true">
+      <Label id="Name13" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot14" class="slot" draggable="true">
+      <Label id="Name14" class="slot-name" text="" hittest="false" />
+    </Panel>
+    <Panel id="Slot15" class="slot" draggable="true">
+      <Label id="Name15" class="slot-name" text="" hittest="false" />
     </Panel>
   </Panel>
 </root>

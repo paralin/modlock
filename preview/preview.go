@@ -2,8 +2,8 @@
 // draws every screen the mods show the local player with the game's own
 // drawing on a browser stand-in for Panorama, says what the build and the mods
 // are doing, and passes the page's presses and chat commands to the mods as
-// that player's input. It serves the built mod's layouts as XML, so the page
-// draws a mod's own layouts too.
+// that player's input. It serves the built mod's layouts as XML and its style
+// sheets as CSS, so the page draws a mod's own layouts and sheets too.
 package preview
 
 import (
@@ -137,6 +137,8 @@ func (p *Page) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 		p.connect(w, request)
 	case request.Method == http.MethodGet && strings.HasPrefix(request.URL.Path, "/layout/"):
 		p.layout(w, strings.TrimPrefix(request.URL.Path, "/layout/"))
+	case request.Method == http.MethodGet && strings.HasPrefix(request.URL.Path, "/styles/"):
+		p.sheet(w, strings.TrimPrefix(request.URL.Path, "/styles/"))
 	case request.Method == http.MethodGet:
 		p.files.ServeHTTP(w, request)
 	default:
@@ -178,6 +180,31 @@ func (p *Page) layout(w http.ResponseWriter, name string) {
 		return
 	}
 	http.Error(w, "the mod's build has no layout "+file, http.StatusNotFound)
+}
+
+// sheet answers with the source of the built style sheet that name,
+// <addon>/<path>, names, as a loaded layout's include names it.
+func (p *Page) sheet(w http.ResponseWriter, name string) {
+	// Find the sheet in the build's content.
+	compiled, ok := panorama.Compiled(name)
+	if !ok || path.Ext(name) != ".css" || !fs.ValidPath(compiled) || !strings.Contains(compiled, "/") {
+		http.NotFound(w, nil)
+		return
+	}
+	data, err := fs.ReadFile(p.built, path.Join(check.ContentDir, "styles", compiled))
+	if err != nil {
+		http.Error(w, "the mod's build has no style sheet "+name, http.StatusNotFound)
+		return
+	}
+
+	// Answer with the sheet as its source reads.
+	source, err := panorama.DecompileStyle(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	_, _ = w.Write([]byte(source))
 }
 
 // current returns the page's state with the player's screen, and channels

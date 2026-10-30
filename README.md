@@ -521,7 +521,7 @@ When the mode plays well, [publish it](#publishing).
 | [`drill`](examples/drill)               | An aim drill: target bots, headshots, a length setting, best score. |
 | [`dropper`](examples/dropper)           | Building a spot of solid objects while playing.                     |
 | [`world-panel`](examples/world-panel)   | A board of the mod's own layout, drawn in the world.                |
-| [`inventory`](examples/inventory)       | A drag inventory in the mod's own layout and script.                |
+| [`inventory`](examples/inventory)       | A drag inventory in the mod's own layout, script and style sheet.   |
 | [`bounty`](examples/bounty)             | A Luau free-for-all: a bounty marker, damage hooks, flares, bots.   |
 | [`race`](examples/race)                 | A Go checkpoint race: a marked course, laps, resets, unit tests.    |
 | [`hello-luau`](examples/hello-luau)     | The smallest mod in Luau.                                           |
@@ -622,7 +622,8 @@ service may hold it for creators it trusts; one that only draws needs no trust.
 [`inventory`](examples/inventory) draws a layout with a script through the
 [layout element](#interfaces): the player drags items between slots, the
 script sends each move as a console command, and the mod answers with the new
-slots.
+slots. Its style sheet styles the mod's frame and the layout's slots, and a
+class the mod adds fades the bag in.
 
 A layout includes the mod's style sheet as
 `file://{resources}/styles/{addon}/scoreboard.css`, and the sheet names the
@@ -1205,8 +1206,8 @@ the player's game: it loads a layout from the mod's content addon. Only a host
 that has reviewed the mod's content loads it, by passing `Layouts` to the
 `Drawing` in `panorama/src/draw.ts`; Modlock's own renderer draws an empty
 panel. The `modlock dev` preview page draws the layout from the mod's latest
-build, with its panels and inline styles, but runs none of its scripts or style
-sheets.
+build, with its panels, inline styles and style sheets, but runs none of its
+scripts.
 
 `import './content/styles/hud.css'` adds that style sheet to every interface
 the mod shows, after the sheets added before it, so a later sheet wins a tie;

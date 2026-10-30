@@ -1,20 +1,26 @@
 import type { Panel, Panorama } from '../src/draw.js'
+import { cascade, parseSheet, type Rule, type Scope } from './sheets.js'
 
 /**
  * DomPanel stands in for a Panorama panel with one HTML element, so a mod's
  * interface renders in a browser for layout work. It approximates Panorama
  * layout with the CSS in panels.css, which the page must link: children
  * overlap unless the panel flows them down or right, and fill-parent-flow
- * takes the remaining space. Fonts and engine-only styles are approximate,
- * and a layout it loads draws its panels, their classes and inline styles but
- * runs none of its scripts or style sheets; the installed game remains the
+ * takes the remaining space. Fonts and engine-only styles are approximate.
+ * A layout it loads draws its panels, their classes and inline styles, and
+ * applies its style sheets to the panel it loads into and that panel's
+ * subtree, but runs none of its scripts; the installed game remains the
  * reference.
  */
 export class DomPanel implements Panel {
   readonly element: HTMLElement
   readonly style: Record<string, string>
+  /** sheeted holds the values the style sheets gave this panel, by name. */
+  private readonly sheeted = new Map<string, string>()
   private readonly handlers = new Map<string, (...args: unknown[]) => void>()
   private readonly attributes = new Map<string, string>()
+  /** inline holds the styles code and the layout set, by camel-case name. */
+  private readonly inline: Record<string, string>
   private valid = true
   private accepts = false
   /** options holds a dropdown's option panels by id. */
@@ -32,23 +38,31 @@ export class DomPanel implements Panel {
     if (id) this.element.dataset.id = id
     ;(this.element as HTMLElement & { panel?: DomPanel }).panel = this
 
-    // Engine style writes arrive one property at a time.
+    // Engine style writes arrive one property at a time and win over the
+    // style sheets; clearing one, by null or a delete, gives the sheets'
+    // value back.
     const element = this.element
-    this.style = new Proxy<Record<string, string>>(
-      {},
-      {
-        set(target, name: string, value: string) {
-          target[name] = value
-          applyStyle(element, name, value)
-          return true
-        },
-        deleteProperty(target, name: string) {
+    const sheeted = (name: string) =>
+      this.sheeted.get(name.replace(/[A-Z]/g, (l) => `-${l.toLowerCase()}`)) ??
+      ''
+    this.inline = {}
+    this.style = new Proxy<Record<string, string>>(this.inline, {
+      set(target, name: string, value: string | null) {
+        if (value === null) {
           delete target[name]
-          applyStyle(element, name, '')
+          applyStyle(element, name, sheeted(name))
           return true
-        },
+        }
+        target[name] = value
+        applyStyle(element, name, value)
+        return true
       },
-    )
+      deleteProperty(target, name: string) {
+        delete target[name]
+        applyStyle(element, name, sheeted(name))
+        return true
+      },
+    })
 
     // Native activation, hover and focus events map to their DOM equivalents.
     this.element.addEventListener('click', (event) => {
@@ -263,20 +277,18 @@ export class DomPanel implements Panel {
    */
   BLoadLayout(url: string) {
     if (!url.startsWith('/')) return false
-    void fetch(url)
-      .then(async (response) => {
-        if (!response.ok) throw new Error(await response.text())
-        return new DOMParser().parseFromString(
-          await response.text(),
-          'text/xml',
-        )
-      })
+    void fetchOnce(url, (text) =>
+      new DOMParser().parseFromString(text, 'text/xml'),
+    )
       .then((layout) => {
         const top = [...layout.documentElement.children].find(
           (child) => !nonPanels.has(child.tagName.toLowerCase()),
         )
-        if (this.valid && top)
-          this.loadElement(top, new Set(Object.keys(this.style)))
+        if (!this.valid) return
+        for (const child of layout.documentElement.children)
+          if (child.tagName.toLowerCase() === 'styles')
+            this.loadSheets(child, url)
+        if (top) this.loadElement(top, new Set(Object.keys(this.inline)))
       })
       .catch((error: unknown) => console.debug(`layout ${url}:`, error))
     return true
@@ -318,6 +330,131 @@ export class DomPanel implements Panel {
       panel.loadElement(child)
     }
   }
+
+  // loadSheets styles this panel's subtree with each sheet a layout's styles
+  // element includes, fetched from the page beside the layout at url.
+  private loadSheets(styles: Element, url: string) {
+    const build = new URL(url, location.href).search
+    for (const include of styles.children) {
+      const path = sheetPath(include.getAttribute('src') ?? '')
+      if (!path) continue
+      void fetchSheet(`/styles/${path}${build}`).then((rules) => {
+        const { element } = this
+        if (!this.valid) return
+        if (!scopes.some((s) => s.element === element && s.rules === rules))
+          scopes.push({ element, rules })
+        restyle()
+      })
+    }
+  }
+
+  /** applySheets writes the values the style sheets now give this panel. */
+  applySheets(values: ReadonlyMap<string, string>) {
+    for (const [name, value] of values) {
+      if (this.sheeted.get(name) === value) continue
+      this.sheeted.set(name, value)
+      if (!(camel(name) in this.inline)) applyStyle(this.element, name, value)
+    }
+    for (const name of this.sheeted.keys()) {
+      if (values.has(name)) continue
+      this.sheeted.delete(name)
+      if (!(camel(name) in this.inline)) applyStyle(this.element, name, '')
+    }
+  }
+}
+
+// sheetPath returns the page path, <addon>/<path>.css, of a sheet a layout
+// includes by its game path, or '' for one the page does not serve.
+function sheetPath(src: string): string {
+  const match =
+    /^(?:s2r:\/\/panorama|file:\/\/\{resources\})\/styles\/([^/]+\/.+)\.v?css$/.exec(
+      src,
+    )
+  return match ? `${match[1]}.css` : ''
+}
+
+// fetched holds each page path's parsed answer, so every panel that loads
+// the same layout or sheet shares one fetch, and a panel loaded again, such as
+// a screen drawn anew, gets it before the browser paints. A path carries its
+// build, so a new build fetches anew; a failed fetch leaves the cache, so a
+// later load tries again.
+const fetched = new Map<string, Promise<unknown>>()
+function fetchOnce<T>(path: string, parse: (text: string) => T): Promise<T> {
+  let answer = fetched.get(path) as Promise<T> | undefined
+  if (!answer) {
+    answer = fetch(path).then(async (response) => {
+      if (!response.ok) throw new Error(await response.text())
+      return parse(await response.text())
+    })
+    fetched.set(path, answer)
+    answer.catch(() => fetched.delete(path))
+  }
+  return answer
+}
+
+// fetchSheet returns a sheet's rules; one that fails to load has none.
+function fetchSheet(path: string): Promise<Rule[]> {
+  return fetchOnce(path, parseSheet).catch((error: unknown) => {
+    console.debug(`style sheet ${path}:`, error)
+    return []
+  })
+}
+
+// scopes holds every loaded sheet with the element it styles, in load order,
+// so a later sheet wins a tie. styled holds the panels the last restyle gave
+// sheet values, so a panel the sheets no longer match loses them.
+const scopes: Scope[] = []
+let styled = new Set<DomPanel>()
+let pending = false
+
+// restyle runs the cascade again once the current task's changes are done,
+// however many ask for it, and writes each panel's changed values. It runs
+// before the browser paints, so a new panel first shows with its sheet values,
+// as Panorama's do, rather than transitioning to them from the defaults.
+function restyle(): void {
+  if (pending) return
+  pending = true
+  queueMicrotask(() => {
+    // Drop the sheets of panels no longer on the page.
+    pending = false
+    for (let i = scopes.length - 1; i >= 0; i--)
+      if (!scopes[i]?.element.isConnected) scopes.splice(i, 1)
+
+    // Write each matched panel's values, then clear those no rule matches.
+    const next = new Set<DomPanel>()
+    for (const [element, values] of cascade(scopes)) {
+      const panel = panelOf(element)
+      if (!panel) continue
+      panel.applySheets(values)
+      next.add(panel)
+    }
+    for (const panel of styled)
+      if (!next.has(panel)) panel.applySheets(new Map())
+    styled = next
+  })
+}
+
+// A new panel, a class change or a change of hover, press or focus can change
+// which rules match; with no sheet loaded there is nothing to restyle.
+const watch = () => {
+  if (scopes.length) restyle()
+}
+if (typeof document !== 'undefined') {
+  new MutationObserver(watch).observe(document, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['class', 'aria-pressed'],
+  })
+  for (const event of [
+    'mouseover',
+    'mouseout',
+    'mousedown',
+    'mouseup',
+    'focusin',
+    'focusout',
+  ])
+    document.addEventListener(event, watch, true)
 }
 
 // nonPanels are the layout elements that hold a panel's resources rather

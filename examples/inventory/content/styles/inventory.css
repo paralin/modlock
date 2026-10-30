@@ -1,0 +1,66 @@
+/* The bag's frame, which the mod draws, and its slots and drag ghost, which
+   the layout draws. The bag fades in once it wears Bag-open. */
+
+.Bag {
+  flow-children: down;
+  horizontal-align: center;
+  vertical-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #0b1016e8;
+  opacity: 0;
+  transform: translatey(24px);
+  transition-property: opacity, transform;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
+}
+
+.Bag-open {
+  opacity: 1;
+  transform: translatey(0px);
+}
+
+.Bag-title {
+  margin: 0px 4px 8px 4px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #f2e6c9;
+}
+
+.Bag-hint {
+  margin: 0px 4px 12px 4px;
+  font-size: 18px;
+  color: #9aa4ae;
+}
+
+.slot {
+  width: 96px;
+  height: 96px;
+  margin: 4px;
+  border-radius: 6px;
+  background-color: #1c2630;
+  border: 2px solid #2e3b48;
+  transition-property: border;
+  transition-duration: 0.1s;
+}
+
+.slot-target {
+  border: 2px solid #f2e6c9;
+}
+
+.slot-name {
+  width: 100%;
+  vertical-align: center;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #101418;
+}
+
+.ghost {
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+}

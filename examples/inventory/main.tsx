@@ -1,11 +1,15 @@
 // inventory gives each player a bag of sixteen slots, drawn by the mod's own
-// layout in content/layout/inventory.xml. A player types /inventory to open or
-// close the bag and, holding Tab to free the cursor, drags an item onto another
-// slot. The layout sends the move as the console command
-// "inventory_move <from> <to>", and the mod sends the new slots back as the
-// layout's data. Only a host that has reviewed the mod's content draws the
-// layout and runs its script; Modlock's own renderer draws an empty panel.
+// layout in content/layout/inventory.xml inside a frame the mod draws. A
+// player types /inventory to open or close the bag and, holding Tab to free
+// the cursor, drags an item onto another slot. The layout sends the move as the
+// console command "inventory_move <from> <to>", and the mod sends the new
+// slots back as the layout's data. The style sheet content/styles/inventory.css
+// styles both, and fades the bag in when it opens. Only a host that has
+// reviewed the mod's content draws the layout, runs its script and applies the
+// sheet; Modlock's own renderer draws the frame unstyled around an empty panel.
+import './content/styles/inventory.css'
 import {
+  after,
   command,
   type Connection,
   hide,
@@ -65,15 +69,18 @@ function bagOf(steamId: bigint): Bag {
   return bag
 }
 
-/** draw shows player their bag in the middle of the screen. */
-function draw(player: Player, bag: Bag): void {
+/**
+ * draw shows player their bag in the middle of the screen. The bag fades in
+ * when it gains Bag-open, so opening draws it closed first.
+ */
+function draw(player: Player, bag: Bag, opened = true): void {
   show(
     player,
-    <layout
-      src="inventory.xml"
-      data={bag}
-      style={{ horizontalAlign: 'center', verticalAlign: 'center' }}
-    />,
+    <panel class={opened ? 'Bag Bag-open' : 'Bag'}>
+      <label class="Bag-title">Bag</label>
+      <label class="Bag-hint">Hold Tab and drag an item to move it</label>
+      <layout src="inventory.xml" data={bag} />
+    </panel>,
   )
 }
 
@@ -90,9 +97,14 @@ command('inventory', (player) => {
     return
   }
 
-  // Open it, filled with the starting items on first use.
+  // Open it, filled with the starting items on first use, and fade it in on
+  // the next frames unless it closed meanwhile.
   open.set(player.slot, c.generation)
-  draw(player, bagOf(c.steamId))
+  const bag = bagOf(c.steamId)
+  draw(player, bag, false)
+  after(0.05, () => {
+    if (isOpen(c)) draw(player, bag)
+  })
 })
 
 // A move swaps the two slots, so dropping onto a full slot trades places. The

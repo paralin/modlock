@@ -5,9 +5,6 @@
 'use strict'
 
 const root = $.GetContextPanel()
-const empty = '#1c2630'
-const edge = '#2e3b48'
-const hover = '#f2e6c9'
 const size = 16
 
 /** slots holds each slot's panel and its name label, in order. */
@@ -25,13 +22,14 @@ let bag = []
 /** dragged is the slot a drag started from, or -1 between drags. */
 let dragged = -1
 
-/** draw paints each slot with the item the mod put there. */
+/** draw paints each slot with the item the mod put there; an empty slot
+ * takes the sheet's color. */
 function draw(value) {
   bag = Array.isArray(value) ? value : []
   slots.forEach(({ panel, name }, i) => {
     const item = bag[i]
     name.text = item ? item.name : ''
-    panel.style.backgroundColor = item ? item.color : empty
+    panel.style.backgroundColor = item ? item.color : null
   })
 }
 
@@ -45,11 +43,7 @@ slots.forEach(({ panel }, i) => {
     const ghost = $.CreatePanel('Label', root, '')
     ghost.text = item.name
     ghost.hittest = false
-    ghost.style.fontSize = '20px'
-    ghost.style.fontWeight = 'bold'
-    ghost.style.color = '#ffffff'
-    ghost.style.padding = '8px'
-    ghost.style.borderRadius = '6px'
+    ghost.AddClass('ghost')
     ghost.style.backgroundColor = item.color
     drag.displayPanel = ghost
     drag.offsetX = 0
@@ -58,15 +52,15 @@ slots.forEach(({ panel }, i) => {
     return true
   })
   $.RegisterEventHandler('DragEnter', panel, () => {
-    panel.style.border = `2px solid ${hover}`
+    panel.AddClass('slot-target')
     return true
   })
   $.RegisterEventHandler('DragLeave', panel, () => {
-    panel.style.border = `2px solid ${edge}`
+    panel.RemoveClass('slot-target')
     return true
   })
   $.RegisterEventHandler('DragDrop', panel, () => {
-    panel.style.border = `2px solid ${edge}`
+    panel.RemoveClass('slot-target')
     if (dragged >= 0 && dragged !== i) {
       $.DispatchEvent('CitadelConCommand', `inventory_move ${dragged} ${i}`)
     }
