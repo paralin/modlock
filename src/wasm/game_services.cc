@@ -153,6 +153,13 @@ std::expected<const gameinterop::HeroDefinitions*, std::string> GameServices::He
   return &*heroes_;
 }
 
+std::expected<const gameinterop::WorldEntities::Calls*, std::string> GameServices::WorldCalls() {
+  if (auto cached = Cache(world_calls_, &gameinterop::WorldEntities::ResolveCalls); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*world_calls_;
+}
+
 std::expected<const gameinterop::PlayerSelectionCalls*, std::string> GameServices::Selection() {
   if (auto cached = Cache(selection_, &gameinterop::PlayerSelectionCalls::Resolve); !cached) {
     return std::unexpected(cached.error());

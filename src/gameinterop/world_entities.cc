@@ -72,30 +72,30 @@ std::vector<EntityKeyValue> WithWorldTextPanelDefaults(std::span<const EntityKey
 
 }  // namespace
 
-std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleImage& server,
-                                                                 void* schema_system) {
+std::expected<WorldEntities::Calls, std::string> WorldEntities::ResolveCalls(
+    const ModuleImage& server, void* schema_system) {
   // Start from the live entity system and the schema.
-  WorldEntities world({});
-  world.calls_.entity_system = &ResolveLiveEntitySystem;
-  world.calls_.schema = schema_system;
+  Calls calls;
+  calls.entity_system = &ResolveLiveEntitySystem;
+  calls.schema = schema_system;
 
   // Resolve the key values calls.
   auto key_values = ResolveKeyValuesCalls(server);
   if (!key_values) {
     return std::unexpected(key_values.error());
   }
-  world.calls_.key_values = *key_values;
+  calls.key_values = *key_values;
 
   // Resolve each native call by its signature, or fail at the first missing one.
   const SignatureCall signatures[] = {
-      {"entity-system.find-class", &world.calls_.find_class},
-      {"entity-system.create-entity-by-name", &world.calls_.create},
-      {"entity-system.queue-spawn-entity", &world.calls_.queue},
-      {"entity-system.execute-queued-creation", &world.calls_.execute},
-      {"entity.remove", &world.calls_.remove},
-      {"vdata.lookup-by-hash", &world.calls_.definition},
-      {"entity-instance.accept-input", &world.calls_.accept_input},
-      {"network-transmit.set-state", &world.calls_.set_transmit_state},
+      {"entity-system.find-class", &calls.find_class},
+      {"entity-system.create-entity-by-name", &calls.create},
+      {"entity-system.queue-spawn-entity", &calls.queue},
+      {"entity-system.execute-queued-creation", &calls.execute},
+      {"entity.remove", &calls.remove},
+      {"vdata.lookup-by-hash", &calls.definition},
+      {"entity-instance.accept-input", &calls.accept_input},
+      {"network-transmit.set-state", &calls.set_transmit_state},
   };
   auto resolved = ResolveSignatures(server, signatures);
   if (!resolved) {
@@ -103,7 +103,7 @@ std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleIma
   }
 
   // Resolve each field the NPCs read and write, with its minimum width.
-  auto& offsets = world.calls_.offsets;
+  auto& offsets = calls.offsets;
   const SchemaOffset fields[] = {
       {"CBaseEntity", "m_iTeamNum", sizeof(uint8_t), &offsets.team},
       {"CBaseEntity", "m_nSubclassID", sizeof(uint32_t) + sizeof(void*), &offsets.subclass},
@@ -119,7 +119,7 @@ std::expected<WorldEntities, std::string> WorldEntities::Resolve(const ModuleIma
   if (auto resolved = ResolveSchemaOffsets(schema_system, "server.dll", fields); !resolved) {
     return std::unexpected(resolved.error());
   }
-  return world;
+  return calls;
 }
 
 std::expected<WorldEntities::Sample, std::string> WorldEntities::ReadEntity(

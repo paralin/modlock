@@ -121,6 +121,7 @@ void Game::WorldReady() {
   // Each lookup is kept once found; one that fails here is reported by the
   // call that needs it.
   static_cast<void>(services_.Heroes());
+  static_cast<void>(services_.WorldCalls());
   static_cast<void>(services_.Selection());
   static_cast<void>(services_.Modifiers());
   static_cast<void>(services_.ModifierState("MODIFIER_STATE_HOLDING_IDOL"));
@@ -406,20 +407,12 @@ std::expected<players::PawnResponse, std::string> Game::Pawn(
 
 std::expected<gameinterop::WorldEntities*, std::string> Game::World() {
   if (!world_) {
-    // Resolve the world entities once.
-    auto image = services_.Image();
-    if (!image) {
-      return std::unexpected(image.error());
+    // Build the world's entities on the host's resolved calls.
+    auto calls = services_.WorldCalls();
+    if (!calls) {
+      return std::unexpected(calls.error());
     }
-    auto schema = services_.Schema();
-    if (!schema) {
-      return std::unexpected(schema.error());
-    }
-    auto world = gameinterop::WorldEntities::Resolve(**image, *schema);
-    if (!world) {
-      return std::unexpected(world.error());
-    }
-    world_ = std::move(*world);
+    world_.emplace(**calls);
   }
   return &*world_;
 }

@@ -20,8 +20,8 @@ namespace modlock::gameinterop {
 class NativeDamage;
 
 // WorldEntities creates, reconciles and removes entities through the native
-// entity system. Resolve and all operations run on the engine thread after
-// world initialization.
+// entity system. ResolveCalls and all operations run on the engine thread
+// after world initialization.
 class MODLOCK_API WorldEntities {
  public:
   // Calls binds the native entity lifecycle and resolved schema offsets. Native
@@ -75,8 +75,11 @@ class MODLOCK_API WorldEntities {
     Target state;
   };
 
-  static std::expected<WorldEntities, std::string> Resolve(const ModuleImage& server,
-                                                           void* schema_system);
+  // ResolveCalls scans server for the native calls and reads the schema
+  // offsets. The result stays valid while the module is loaded, so a host
+  // resolves it once and builds a WorldEntities from it for each world.
+  static std::expected<Calls, std::string> ResolveCalls(const ModuleImage& server,
+                                                        void* schema_system);
   std::expected<std::vector<Sample>, std::string> Read() const;
   // Restore retains matching structures, replaces moving NPCs, and removes
   // structures absent from targets. FinishRestore completes their placement

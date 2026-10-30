@@ -108,6 +108,7 @@ class GameServices {
   std::expected<const gameinterop::ModuleImage*, std::string> Image();
   std::expected<void*, std::string> Schema();
   std::expected<const gameinterop::HeroDefinitions*, std::string> Heroes();
+  std::expected<const gameinterop::WorldEntities::Calls*, std::string> WorldCalls();
   std::expected<const gameinterop::PlayerSelectionCalls*, std::string> Selection();
   std::expected<const gameinterop::AbilityDefinitions*, std::string> Abilities();
   std::expected<const gameinterop::ItemFunctions*, std::string> Items();
@@ -198,6 +199,9 @@ class GameServices {
   std::optional<gameinterop::EngineServer> server_;
   std::optional<gameinterop::NativeUserMessages> messages_;
   std::optional<gameinterop::HeroDefinitions> heroes_;
+  // world_calls_ are the entity calls every mod's world builds on; scanning
+  // for them takes hundreds of milliseconds, so they resolve once per host.
+  std::optional<gameinterop::WorldEntities::Calls> world_calls_;
   std::optional<gameinterop::PlayerSelectionCalls> selection_;
   std::optional<gameinterop::AbilityDefinitions> abilities_;
   std::optional<gameinterop::ItemFunctions> items_;
