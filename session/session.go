@@ -47,6 +47,9 @@ type Session struct {
 	stopOnDone func() bool
 	// controlled is closed when the control link ends.
 	controlled chan struct{}
+	// launched is set once the client launches or Stop begins, so the client
+	// launches at most once and never for a stopping session.
+	launched atomic.Bool
 }
 
 // Start starts the host with the mods and serves its control link. It
@@ -117,13 +120,14 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 		return nil, err
 	}
 
+	// Stop the session when ctx ends.
 	session := &Session{Executable: executable, control: link, host: host, controlled: make(chan struct{}), served: served, stopInterface: stopInterface}
 	session.stopOnDone = context.AfterFunc(ctx, session.Stop)
+
 	// Pass events on, launching the client at the first ready server.
-	var launched atomic.Bool
 	handle := func(event *control.HostEvent) {
 		screens.Handle(event)
-		if event.GetReady() != nil && config.Launch && !launched.Swap(true) {
+		if event.GetReady() != nil && config.Launch && !session.launched.Swap(true) {
 			address := "127.0.0.1:" + strconv.Itoa(int(config.Port))
 			if err := steam.LaunchDeadlock(ctx, "-console", "-condebug", "+connect", address); err != nil {
 				event = &control.HostEvent{Body: &control.HostEvent_Failed{Failed: &control.ModFailed{
@@ -162,8 +166,10 @@ func (s *Session) Wait() error {
 // Stop unmounts the mods from the player's game, then ends the host. The
 // unmount comes first because the game, once its server stops, holds
 // gameinfo.gi while it reloads its search paths; the running server and game
-// keep the package they loaded.
+// keep the package they loaded. A Ready event that arrives after Stop begins
+// launches no client, which would join a server about to end.
 func (s *Session) Stop() {
+	s.launched.Store(true)
 	s.stopInterface()
 	s.host.Stop()
 }
