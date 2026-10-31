@@ -20,7 +20,7 @@
     "gen:items": "bun scripts/gen-items.ts"
   },
   "devDependencies": {
-    "@aptre/common": "0.37.0",
+    "@aptre/common": "0.38.0",
     "@aptre/protobuf-es-lite": "1.2.6",
     "@babel/parser": "8.0.8",
     "@babel/types": "8.0.8",

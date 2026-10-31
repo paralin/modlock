@@ -155,6 +155,8 @@ github.com/aperturerobotics/common v0.36.4 h1:b3vrAP8/Z3T5MK6JiNYvEesuoubZwrjqi4
 github.com/aperturerobotics/common v0.36.4/go.mod h1:L2tGfyYfUbzx+DmSO9ZepjReekOrCdbiqAmFluaQtgU=
 github.com/aperturerobotics/common v0.36.5 h1:3BBM34RoJzIPMqUUYaW2Y36b8Xrha7g3HSp/9UxwGMQ=
 github.com/aperturerobotics/common v0.36.5/go.mod h1:L2tGfyYfUbzx+DmSO9ZepjReekOrCdbiqAmFluaQtgU=
+github.com/aperturerobotics/common v0.38.0 h1:7EyTv/el0pmciwKqlrFlB3Ez92hQShHQZs2smAbNz8Q=
+github.com/aperturerobotics/common v0.38.0/go.mod h1:LkSn7PwAbNE5mahtTMyZfeLBc00STLzTZHfdhU+47kY=
 github.com/aperturerobotics/controllerbus v0.53.6-0.20261021005226-3d7ed787e11b h1:B7AyIT9IMJqAI2eZiKhn1VecvxIsKOS3ISTR1U2b6xw=
 github.com/aperturerobotics/controllerbus v0.53.6-0.20261021005226-3d7ed787e11b/go.mod h1:oMdVjwUwfKUo9XgnO7GbDk6cVMvrlnVaRDp/epb7ydU=
 github.com/aperturerobotics/controllerbus v0.53.6-0.20261027053904-dd1f04e29852 h1:z7cWc+RDdYt9bjKEArnl9fwPW8dfiYBuaJeOIwMUoeg=

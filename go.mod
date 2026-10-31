@@ -12,7 +12,7 @@ replace (
 require (
 	github.com/aperturerobotics/abseil-cpp v0.0.0-20260131110040-4bb56e2f9017
 	github.com/aperturerobotics/cli v1.1.1-0.20261024231437-afc764ba6d68
-	github.com/aperturerobotics/common v0.36.5
+	github.com/aperturerobotics/common v0.38.0
 	github.com/aperturerobotics/controllerbus v0.53.6-0.20261027053904-dd1f04e29852
 	github.com/aperturerobotics/fastjson v0.1.2-0.20261024220211-b654d1d5b5aa
 	github.com/aperturerobotics/go-protoc-wasi v0.0.0-20260808023521-7b1595380c3f

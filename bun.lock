@@ -5,7 +5,7 @@
     "": {
       "name": "modlock",
       "devDependencies": {
-        "@aptre/common": "0.37.0",
+        "@aptre/common": "0.38.0",
         "@aptre/protobuf-es-lite": "1.2.6",
         "@babel/parser": "8.0.8",
         "@babel/types": "8.0.8",
@@ -24,7 +24,7 @@
     },
   },
   "packages": {
-    "@aptre/common": ["@aptre/common@0.37.0", "", { "dependencies": { "@aptre/protobuf-es-lite": "1.2.4", "starpc": "^0.52.3", "tla-ts": "0.0.3", "vitest": "^5.0.0" }, "bin": { "aptre-tla": "dist/tla/check.js" } }, "sha512-7XPCzq6VojRGmbJ7JoTdmtKX+vRdeR0h414tzDIHQ6F6BU5y3DXQ+xK3A0pgprFLms5M9fKvH6gbiYzumzVuzA=="],
+    "@aptre/common": ["@aptre/common@0.38.0", "", { "dependencies": { "@aptre/protobuf-es-lite": "1.2.4", "starpc": "^0.52.3", "tla-ts": "0.0.3", "vitest": "^5.0.0" }, "bin": { "aptre-tla": "dist/tla/check.js" } }, "sha512-ncL8/RMCa+yJvS9XPLjs1xo+y1/yF43ZRyrFnc3tYatXjTKCmraZ7r9oEV9tT9CUyNqpCG6URc2YyEHNhSHkWA=="],
 
     "@aptre/it-ws": ["@aptre/it-ws@1.1.2", "", { "dependencies": { "@types/ws": "^8.2.2", "event-iterator": "^2.0.0", "it-stream-types": "^2.0.1", "ws": "^8.17.1" } }, "sha512-llC/rTR1YXs3sNven2QRyHp3PoUwxpe0/iohiFNIfUTjbThlv1vGuq6GZysOGwCqEgbYRJGMhu4A4pTjwqztJQ=="],
 
