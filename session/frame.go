@@ -19,8 +19,8 @@ const FrameMod = "modlock"
 
 // Frame names a session in each player's top corners: "modlock" at the top
 // left, in place of the game's own mark, and at the top right a debug line
-// with Modlock's version, each mod's name, version and slug, and how many
-// times the mods reloaded. It reaches each player as an ordinary interface
+// with each mod's name and version, how many times the mods reloaded, and
+// Modlock's version. It reaches each player as an ordinary interface
 // under FrameMod, so every renderer and every guest draws it.
 type Frame struct {
 	// version is Modlock's release.
@@ -81,19 +81,19 @@ func (f *Frame) Follow(event *control.HostEvent) []*control.HostEvent {
 	return events
 }
 
-// line is the debug line: "modlock v0.1.67 · Blind Draft Duel 0.1.1 ·
-// blind-draft-duel · reload 3". It reads each mod's built mod.json, so a
-// reload that changed a name or version shows it. Callers hold mu.
+// line is the debug line, the game first: "Blind Draft Duel 0.1.1 · reload 3
+// · modlock v0.1.67". It reads each mod's built mod.json, so a reload that
+// changed a name or version shows it. Callers hold mu.
 func (f *Frame) line() string {
-	parts := []string{"modlock " + f.version}
+	var parts []string
 	for _, dir := range f.mods {
 		mod, err := readManifest(dir)
 		if err != nil {
 			continue
 		}
-		parts = append(parts, strings.TrimSpace(mod.GetName()+" "+mod.GetVersion()), mod.GetSlug())
+		parts = append(parts, strings.TrimSpace(mod.GetName()+" "+mod.GetVersion()))
 	}
-	parts = append(parts, "reload "+strconv.Itoa(f.reloads))
+	parts = append(parts, "reload "+strconv.Itoa(f.reloads), "modlock "+f.version)
 	return strings.Join(parts, " · ")
 }
 

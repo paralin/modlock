@@ -276,8 +276,6 @@ type LobbyRequest struct {
 	ModName string `protobuf:"bytes,1,opt,name=mod_name,json=modName,proto3" json:"modName,omitempty"`
 	// version is the build's version label.
 	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	// slug is the mod's id from mod.json.
-	Slug string `protobuf:"bytes,3,opt,name=slug,proto3" json:"slug,omitempty"`
 }
 
 func (x *LobbyRequest) Reset() {
@@ -296,13 +294,6 @@ func (x *LobbyRequest) GetModName() string {
 func (x *LobbyRequest) GetVersion() string {
 	if x != nil {
 		return x.Version
-	}
-	return ""
-}
-
-func (x *LobbyRequest) GetSlug() string {
-	if x != nil {
-		return x.Slug
 	}
 	return ""
 }
@@ -938,7 +929,6 @@ func (m *LobbyRequest) CloneVT() *LobbyRequest {
 	r := new(LobbyRequest)
 	r.ModName = m.ModName
 	r.Version = m.Version
-	r.Slug = m.Slug
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1486,9 +1476,6 @@ func (this *LobbyRequest) EqualVT(that *LobbyRequest) bool {
 		return false
 	}
 	if this.Version != that.Version {
-		return false
-	}
-	if this.Slug != that.Slug {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -2355,11 +2342,6 @@ func (x *LobbyRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("version")
 		s.WriteString(x.Version)
 	}
-	if x.Slug != "" || s.HasField("slug") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("slug")
-		s.WriteString(x.Slug)
-	}
 	s.WriteObjectEnd()
 }
 
@@ -2383,9 +2365,6 @@ func (x *LobbyRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "version":
 			s.AddField("version")
 			x.Version = s.ReadString()
-		case "slug":
-			s.AddField("slug")
-			x.Slug = s.ReadString()
 		}
 	})
 }
@@ -3354,11 +3333,6 @@ func (m *LobbyRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if len(m.Slug) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Slug)
-		i--
-		dAtA[i] = 0x1a
-	}
 	if len(m.Version) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Version)
 		i--
@@ -4131,7 +4105,6 @@ func (m *LobbyRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ModName)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Version)
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Slug)
 	n += len(m.unknownFields)
 	return n
 }
@@ -4570,10 +4543,6 @@ func (x *LobbyRequest) MarshalProtoText() string {
 	if x.Version != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "version")
 		protobuf_go_lite.TextWriteString(&sb, x.Version)
-	}
-	if x.Slug != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slug")
-		protobuf_go_lite.TextWriteString(&sb, x.Slug)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5256,16 +5225,6 @@ func (m *LobbyRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Version = v
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Slug", wireType)
-			}
-			var v string
-			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Slug = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

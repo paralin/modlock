@@ -113,10 +113,6 @@ message DevLobbyOpen {
 
   // Secret admits a guest's game to the host session.
   uint64 secret = 3;
-
-  // Slug is the mod's id from mod.json, which the lobby shows its players
-  // beside the name.
-  string slug = 4;
 }
 
 // DevLobbyState is the service's answer on the dev lobby socket.

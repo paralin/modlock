@@ -151,7 +151,7 @@ func runDev(c *cli.Context, out *printer, command string, host bool) error {
 	if host {
 		var lobby *peernet.LobbyRequest
 		if !c.Bool("no-lobby") {
-			lobby = &peernet.LobbyRequest{ModName: opened.Manifest.GetName(), Version: opened.Manifest.GetVersion(), Slug: opened.Manifest.GetSlug()}
+			lobby = &peernet.LobbyRequest{ModName: opened.Manifest.GetName(), Version: opened.Manifest.GetVersion()}
 		}
 		go hostSession(c, out, running, feed, lobby, []string{opened.Output()})
 	}

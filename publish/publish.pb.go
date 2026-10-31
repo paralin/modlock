@@ -304,9 +304,6 @@ type DevLobbyOpen struct {
 	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	// Secret admits a guest's game to the host session.
 	Secret uint64 `protobuf:"varint,3,opt,name=secret,proto3" json:"secret,omitempty"`
-	// Slug is the mod's id from mod.json, which the lobby shows its players
-	// beside the name.
-	Slug string `protobuf:"bytes,4,opt,name=slug,proto3" json:"slug,omitempty"`
 }
 
 func (x *DevLobbyOpen) Reset() {
@@ -334,13 +331,6 @@ func (x *DevLobbyOpen) GetSecret() uint64 {
 		return x.Secret
 	}
 	return 0
-}
-
-func (x *DevLobbyOpen) GetSlug() string {
-	if x != nil {
-		return x.Slug
-	}
-	return ""
 }
 
 // DevLobbyState is the service's answer on the dev lobby socket.
@@ -641,7 +631,6 @@ func (m *DevLobbyOpen) CloneVT() *DevLobbyOpen {
 	r.ModName = m.ModName
 	r.Version = m.Version
 	r.Secret = m.Secret
-	r.Slug = m.Slug
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -934,9 +923,6 @@ func (this *DevLobbyOpen) EqualVT(that *DevLobbyOpen) bool {
 		return false
 	}
 	if this.Secret != that.Secret {
-		return false
-	}
-	if this.Slug != that.Slug {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1523,11 +1509,6 @@ func (x *DevLobbyOpen) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("secret")
 		s.WriteUint64(x.Secret)
 	}
-	if x.Slug != "" || s.HasField("slug") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("slug")
-		s.WriteString(x.Slug)
-	}
 	s.WriteObjectEnd()
 }
 
@@ -1554,9 +1535,6 @@ func (x *DevLobbyOpen) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "secret":
 			s.AddField("secret")
 			x.Secret = s.ReadUint64()
-		case "slug":
-			s.AddField("slug")
-			x.Slug = s.ReadString()
 		}
 	})
 }
@@ -2179,11 +2157,6 @@ func (m *DevLobbyOpen) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if len(m.Slug) > 0 {
-		i = protobuf_go_lite.EncodeString(dAtA, i, m.Slug)
-		i--
-		dAtA[i] = 0x22
-	}
 	if m.Secret != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Secret))
 		i--
@@ -2557,7 +2530,6 @@ func (m *DevLobbyOpen) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ModName)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Version)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Secret)
-	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Slug)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2805,10 +2777,6 @@ func (x *DevLobbyOpen) MarshalProtoText() string {
 	if x.Secret != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "secret")
 		protobuf_go_lite.TextWriteUint(&sb, x.Secret)
-	}
-	if x.Slug != "" {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slug")
-		protobuf_go_lite.TextWriteString(&sb, x.Slug)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3417,16 +3385,6 @@ func (m *DevLobbyOpen) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Slug", wireType)
-			}
-			var v string
-			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
-			m.Slug = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

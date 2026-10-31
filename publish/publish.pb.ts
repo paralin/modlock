@@ -476,11 +476,6 @@ export interface DevLobbyOpen {
    * Secret admits a guest's game to the host session.
    */
   secret?: bigint
-  /**
-   * Slug is the mod's id from mod.json, which the lobby shows its players
-   * beside the name.
-   */
-  slug?: string
 }
 
 export const DevLobbyOpen: MessageType<DevLobbyOpen> =
@@ -490,7 +485,6 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
       [1, 'mod_name', 9],
       [2, 'version', 9],
       [3, 'secret', 4],
-      [4, 'slug', 9],
     ],
     {
       decode: (r: BinaryReader, end: number, m: DevLobbyOpen): DevLobbyOpen => {
@@ -506,9 +500,6 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
               break
             case 3:
               m.secret = r.uint64()
-              break
-            case 4:
-              m.slug = r.string()
               break
             default:
               r.skip(t)
@@ -528,10 +519,6 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
         {
           const v = m.secret
           if (v) w.uint32(24).uint64(v)
-        }
-        {
-          const v = m.slug
-          if (v) w.uint32(34).string(v)
         }
       },
     },
