@@ -32,6 +32,7 @@ export interface Event {
     | { value: Published; case: 'published' }
     | { value: Sandbox; case: 'sandbox' }
     | { value: Update; case: 'update' }
+    | { value: Hosting; case: 'hosting' }
 }
 
 export const Event: MessageType<Event> =
@@ -45,6 +46,7 @@ export const Event: MessageType<Event> =
       [5, 'published', 11, 0, Published.codec, 'body'],
       [6, 'sandbox', 11, 0, Sandbox.codec, 'body'],
       [7, 'update', 11, 0, Update.codec, 'body'],
+      [8, 'hosting', 11, 0, Hosting.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Event): Event => {
@@ -115,6 +117,16 @@ export const Event: MessageType<Event> =
                 ),
               }
               break
+            case 8:
+              m.body = {
+                case: 'hosting',
+                value: Hosting.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'hosting' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -156,6 +168,11 @@ export const Event: MessageType<Event> =
           const o = m.body
           if (o?.case === 'update' && o.value != null)
             Update.writeField(w, 7, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'hosting' && o.value != null)
+            Hosting.writeField(w, 8, o.value)
         }
       },
     },
@@ -478,6 +495,87 @@ export const Update: MessageType<Update> =
         {
           const v = m.latest
           if (v) w.uint32(18).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Hosting is how players on other PCs join a session modlock host serves.
+ * Without a lobby state the session's dev lobby on hyperline.gg is still
+ * opening.
+ *
+ * @generated from message modlock.cli.Hosting
+ */
+export interface Hosting {
+  /**
+   * JoinCode is what modlock join takes on another PC.
+   */
+  joinCode?: string
+  /**
+   * Lobby is where the session's dev lobby stands.
+   *
+   * @generated from oneof modlock.cli.Hosting.lobby
+   */
+  lobby?:
+    | { value?: undefined; case: undefined }
+    | { value: string; case: 'lobbyUrl' }
+    | { value: boolean; case: 'reconnecting' }
+    | { value: string; case: 'unlisted' }
+}
+
+export const Hosting: MessageType<Hosting> =
+  /* @__PURE__ */ createMessageType<Hosting>(
+    'modlock.cli.Hosting',
+    () => [
+      [1, 'join_code', 9],
+      [2, 'lobby_url', 9, 0, 0, 'lobby'],
+      [3, 'reconnecting', 8, 0, 0, 'lobby'],
+      [4, 'unlisted', 9, 0, 0, 'lobby'],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Hosting): Hosting => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.joinCode = r.string()
+              break
+            case 2:
+              m.lobby = { case: 'lobbyUrl', value: r.string() }
+              break
+            case 3:
+              m.lobby = { case: 'reconnecting', value: r.bool() }
+              break
+            case 4:
+              m.lobby = { case: 'unlisted', value: r.string() }
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Hosting, w: Writer): void => {
+        {
+          const v = m.joinCode
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const o = m.lobby
+          if (o?.case === 'lobbyUrl' && o.value != null)
+            w.uint32(18).string(o.value)
+        }
+        {
+          const o = m.lobby
+          if (o?.case === 'reconnecting' && o.value != null)
+            w.uint32(24).bool(o.value)
+        }
+        {
+          const o = m.lobby
+          if (o?.case === 'unlisted' && o.value != null)
+            w.uint32(34).string(o.value)
         }
       },
     },

@@ -38,6 +38,10 @@ message Event {
 
     // Update reports a newer release of the command line.
     Update update = 7;
+
+    // Hosting reports how players on other PCs join the hosted session, each
+    // time it changes.
+    Hosting hosting = 8;
   }
 }
 
@@ -102,6 +106,28 @@ message Update {
 
   // Latest is the newest release.
   string latest = 2;
+}
+
+// Hosting is how players on other PCs join a session modlock host serves.
+// Without a lobby state the session's dev lobby on hyperline.gg is still
+// opening.
+message Hosting {
+  // JoinCode is what modlock join takes on another PC.
+  string join_code = 1;
+
+  // Lobby is where the session's dev lobby stands.
+  oneof lobby {
+    // LobbyUrl is the open lobby's page, where the creator's friends join.
+    string lobby_url = 2;
+
+    // Reconnecting holds while the lobby's connection is down; the lobby
+    // stays open meanwhile.
+    bool reconnecting = 3;
+
+    // Unlisted explains why the session has no lobby, such as a missing
+    // sign-in; players join by the code.
+    string unlisted = 4;
+  }
 }
 
 // Config is the command line's settings, kept as protobuf JSON in

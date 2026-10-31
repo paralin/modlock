@@ -107,10 +107,17 @@ type hostOutput struct {
 	url string
 	// reconnecting is true while the lobby's socket is down.
 	reconnecting bool
+	// hosting is the state --json reports.
+	hosting modcli.Hosting
 }
 
-// show prints what event changed.
+// show prints what event changed, or with --json reports where hosting stands.
 func (o *hostOutput) show(event *peernet.HostEvent) {
+	if o.out.json {
+		o.report(event)
+		return
+	}
+
 	// Print the join code unless a lobby may replace it.
 	if code := event.GetJoinCode(); code != "" {
 		o.code = code
@@ -150,6 +157,30 @@ func (o *hostOutput) show(event *peernet.HostEvent) {
 		o.lobby = false
 		o.showCode()
 		o.out.note("modlock login puts it on hyperline.gg")
+	}
+}
+
+// report emits a Hosting event with the join code and the lobby's state after
+// event. A lobby state the event does not change stays as it was.
+func (o *hostOutput) report(event *peernet.HostEvent) {
+	// Take the code or the lobby's new state.
+	if code := event.GetJoinCode(); code != "" {
+		o.hosting.JoinCode = code
+	}
+	switch state := event.GetLobby().GetState().(type) {
+	case *peernet.LobbyState_Url:
+		o.hosting.Lobby = &modcli.Hosting_LobbyUrl{LobbyUrl: state.Url}
+	case *peernet.LobbyState_Reconnecting:
+		o.hosting.Lobby = &modcli.Hosting_Reconnecting{Reconnecting: true}
+	case *peernet.LobbyState_Refused:
+		o.hosting.Lobby = &modcli.Hosting_Unlisted{Unlisted: state.Refused}
+	case *peernet.LobbyState_SignedOut:
+		o.hosting.Lobby = &modcli.Hosting_Unlisted{Unlisted: "modlock login puts it on hyperline.gg"}
+	}
+
+	// Report once the code is known, since players join by it or the lobby.
+	if o.hosting.JoinCode != "" {
+		o.out.emit(&modcli.Event{Body: &modcli.Event_Hosting{Hosting: o.hosting.CloneVT()}})
 	}
 }
 
