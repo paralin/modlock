@@ -230,6 +230,10 @@ enum HudPart {
   // HUD_PART_ABILITIES is the bar of the player's abilities and active items.
   // The health bar, souls, held items and crosshair stay.
   HUD_PART_ABILITIES = 7;
+
+  // HUD_PART_STATUS is the game's own mark in the top-left corner, for a
+  // frame that names the session there instead.
+  HUD_PART_STATUS = 8;
 }
 
 // Kind selects the panel a node draws.

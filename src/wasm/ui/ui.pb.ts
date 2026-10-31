@@ -169,6 +169,12 @@ export enum HudPart {
    * The health bar, souls, held items and crosshair stay.
    */
   ABILITIES = 7,
+
+  /**
+   * HUD_PART_STATUS is the game's own mark in the top-left corner, for a
+   * frame that names the session there instead.
+   */
+  STATUS = 8,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -182,6 +188,7 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [5, 'HUD_PART_SOULS'],
     [6, 'HUD_PART_MINIMAP'],
     [7, 'HUD_PART_ABILITIES'],
+    [8, 'HUD_PART_STATUS'],
   ],
 )
 

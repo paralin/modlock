@@ -116,6 +116,8 @@ message LobbyRequest {
   string mod_name = 1;
   // version is the build's version label.
   string version = 2;
+  // slug is the mod's id from mod.json.
+  string slug = 3;
 }
 
 // LobbyState is where a hosted session's dev lobby stands.

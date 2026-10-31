@@ -1147,7 +1147,7 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | --------------------------------------- | -------------------------------------------------------------------------------------- |
 | `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                               |
 | `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                               |
-| `hideHud(player, parts)`                | Hide `'levelUp'`, `'ownHealth'`, `'topBar'` or `'ammo'`; `[]` restores.                |
+| `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
 | `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |
 | `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |

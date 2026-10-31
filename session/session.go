@@ -124,8 +124,11 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 	session := &Session{Executable: executable, control: link, host: host, controlled: make(chan struct{}), served: served, stopInterface: stopInterface}
 	session.stopOnDone = context.AfterFunc(ctx, session.Stop)
 
-	// Pass events on, launching the client at the first ready server.
+	// Pass events on, each followed by the frame it changes, launching the
+	// client at the first ready server.
+	frame := NewFrame(config.Version, config.Mods)
 	handle := func(event *control.HostEvent) {
+		framed := frame.Follow(event)
 		screens.Handle(event)
 		if event.GetReady() != nil && config.Launch && !session.launched.Swap(true) {
 			address := "127.0.0.1:" + strconv.Itoa(int(config.Port))
@@ -136,6 +139,10 @@ func Start(ctx context.Context, config Config) (*Session, error) {
 			}
 		}
 		config.Events(event)
+		for _, update := range framed {
+			screens.Handle(update)
+			config.Events(update)
+		}
 	}
 	go func() {
 		defer close(session.controlled)

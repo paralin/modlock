@@ -154,6 +154,9 @@ const (
 	// HUD_PART_ABILITIES is the bar of the player's abilities and active items.
 	// The health bar, souls, held items and crosshair stay.
 	HudPart_HUD_PART_ABILITIES HudPart = 7
+	// HUD_PART_STATUS is the game's own mark in the top-left corner, for a
+	// frame that names the session there instead.
+	HudPart_HUD_PART_STATUS HudPart = 8
 )
 
 // Enum value maps for HudPart.
@@ -167,6 +170,7 @@ var (
 		5: "HUD_PART_SOULS",
 		6: "HUD_PART_MINIMAP",
 		7: "HUD_PART_ABILITIES",
+		8: "HUD_PART_STATUS",
 	}
 	HudPart_value = map[string]int32{
 		"HUD_PART_UNKNOWN":    0,
@@ -177,6 +181,7 @@ var (
 		"HUD_PART_SOULS":      5,
 		"HUD_PART_MINIMAP":    6,
 		"HUD_PART_ABILITIES":  7,
+		"HUD_PART_STATUS":     8,
 	}
 )
 

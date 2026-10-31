@@ -281,6 +281,7 @@ export type HudPart =
   | 'souls'
   | 'minimap'
   | 'abilities'
+  | 'status'
 
 /** Child is anything an element may hold. Text becomes a label. */
 export type Child =
@@ -1177,6 +1178,7 @@ const hudParts = {
   souls: WireHudPart.SOULS,
   minimap: WireHudPart.MINIMAP,
   abilities: WireHudPart.ABILITIES,
+  status: WireHudPart.STATUS,
 } as const
 
 /** faces maps each typeface to its wire value. */

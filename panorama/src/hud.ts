@@ -15,6 +15,7 @@ export interface HudPanel {
   GetChildCount(): number
   GetChild(index: number): HudPanel | null
   BHasClass(name: string): boolean
+  GetParent(): HudPanel | null
 }
 
 /** Schedule runs callback once after seconds, as $.Schedule does. */
@@ -64,6 +65,15 @@ const finders: Partial<Record<HudPart, (hud: HudPanel) => HudPanel[]>> = {
   [HudPart.SOULS]: (hud) => ownPanel(hud, 'gold_and_ap_container'),
   [HudPart.MINIMAP]: (hud) => ownPanel(hud, 'minimap_persp'),
   [HudPart.ABILITIES]: (hud) => ownPanel(hud, 'AbilitiesContainer'),
+  // The corner mark sits outside the game's HUD, under the interface's root.
+  [HudPart.STATUS]: (hud) => ownPanel(top(hud), 'DefaultStatus'),
+}
+
+/** top returns the root of the interface panel sits in. */
+function top(panel: HudPanel): HudPanel {
+  let root = panel
+  for (let up = root.GetParent(); up; up = up.GetParent()) root = up
+  return root
 }
 
 /** ownPanel finds the one panel with id under the game's HUD. */

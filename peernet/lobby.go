@@ -24,7 +24,7 @@ const lobbyAnswerTimeout = 30 * time.Second
 // the lobby. The peer's new links use the lobby's relay until it returns.
 func (s *Service) holdLobby(ctx context.Context, req *LobbyRequest, secret uint64, report func(*LobbyState)) {
 	// Ask for the session's lobby, and drop its relay once it closes.
-	open := &publish.DevLobbyOpen{ModName: req.GetModName(), Version: req.GetVersion(), Secret: secret}
+	open := &publish.DevLobbyOpen{ModName: req.GetModName(), Version: req.GetVersion(), Secret: secret, Slug: req.GetSlug()}
 	defer s.relay.Hold(nil)
 	retry := time.Second
 	var last *LobbyState
