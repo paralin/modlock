@@ -19,8 +19,10 @@
 import { heroes } from './heroes.js'
 import {
   type Connection,
+  findEntities,
   type Pawn,
   type Player,
+  readField,
   serverCommand,
 } from './host.gen.js'
 import { watchPlayers } from './players.js'
@@ -149,13 +151,15 @@ export class Cast<M> {
     }
 
     // A human who finished joining becomes a member, and a bot as the
-    // policy says.
+    // policy says. SourceTV joins as a bot but is no player, so it is never
+    // seated or kicked.
     const { bots = 'skip' } = this.options
     for (const connection of players) {
       const slot = connection.player.slot
       if (!connection.ready || this.seats.has(slot)) continue
-      if (connection.bot && bots !== 'join') {
-        if (bots === 'kick') this.kick(connection)
+      if (connection.bot && (bots === 'skip' || sourceTV(slot))) continue
+      if (connection.bot && bots === 'kick') {
+        this.kick(connection)
         continue
       }
       this.seats.set(slot, {
@@ -275,4 +279,20 @@ export class Cast<M> {
     }
     return sapphire < amber ? 3 : 2
   }
+}
+
+/**
+ * sourceTV reports whether a slot's player controller is SourceTV's, which
+ * the host reports as a bot. A controller sits at entity index slot + 1,
+ * the low 15 bits of its handle. Only a settle asks, for an unseated bot, so
+ * the entity search stays off the frame.
+ */
+function sourceTV(slot: number): boolean {
+  const controller = findEntities('citadel_player_controller').find(
+    (handle) => (handle & 0x7fff) === slot + 1,
+  )
+  if (controller === undefined) return false
+  return (
+    readField(controller, 'CBasePlayerController', 'm_bIsHLTV', 'bool') === true
+  )
 }
