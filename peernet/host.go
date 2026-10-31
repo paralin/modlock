@@ -161,7 +161,7 @@ func (h *hosting) HandleMountedStream(_ context.Context, mounted link.MountedStr
 // this side too; without one the transport closes it seconds after it opens,
 // in the middle of the guest's game.
 func (h *hosting) holdLink(guest peer.ID) func() {
-	_, ref, err := h.bus.AddDirective(link.NewEstablishLinkWithPeer(h.local, guest), nil)
+	_, ref, err := h.bus.AddDirective(h.ctx, link.NewEstablishLinkWithPeer(h.local, guest), nil)
 	if err != nil {
 		return func() {}
 	}
