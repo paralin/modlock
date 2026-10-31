@@ -578,6 +578,16 @@ export function hideHud(player: Player, parts: readonly HudPart[]): boolean {
 }
 
 /**
+ * freeCursor shows player's mouse cursor without Tab held while free is true,
+ * so they can click the mod's panels, such as a pick screen; false gives the
+ * mouse back to aiming.
+ */
+export function freeCursor(player: Player, free: boolean): boolean {
+  views.set(player.slot, { ...view(player), cursor: free })
+  return draw(player)
+}
+
+/**
  * sheet adds the style sheet at path in the mod's content styles directory,
  * such as 'hud.css', to every interface the mod shows, after the sheets added
  * before it. Adding a sheet again changes nothing. A path is letters, digits,
@@ -700,6 +710,8 @@ interface View {
   readonly player: Player
   readonly root: Child
   readonly hud: readonly HudPart[]
+  /** cursor is true while the mod frees the player's mouse cursor. */
+  readonly cursor: boolean
   /** routes maps each route's name to its value as JSON. */
   readonly routes: ReadonlyMap<string, string>
   notices: readonly Notice[]
@@ -738,6 +750,7 @@ function view(player: Player): View {
       player,
       root: undefined,
       hud: [],
+      cursor: false,
       routes: new Map(),
       notices: [],
     }
@@ -754,13 +767,13 @@ function draw(player: Player): boolean {
   ]
   const previous = screens.get(player.slot)
   const hud = current.hud.map((part) => hudParts[part])
-  const next = render(previous, root, hud, current.routes)
+  const next = render(previous, root, hud, current.cursor, current.routes)
   const change = diff(previous, next)
 
   // Send the change; a failed send means the player may have left, so send
   // the screen whole.
   if (change && !send(player.slot, change)) {
-    const whole = render(undefined, root, hud, current.routes)
+    const whole = render(undefined, root, hud, current.cursor, current.routes)
     if (!send(player.slot, diff(undefined, whole)!)) {
       screens.delete(player.slot)
       return false
@@ -848,16 +861,19 @@ function render(
   previous: Screen | undefined,
   root: Child,
   hud: readonly WireHudPart[],
+  cursor: boolean,
   routes: ReadonlyMap<string, string>,
 ): Screen {
   // The root is the full-screen panel the elements hang from, and it lists
-  // the parts of the game's HUD to hide and the mod's sheets.
+  // the parts of the game's HUD to hide, whether the cursor is free and the
+  // mod's sheets.
   const layout = new Layout(previous)
   layout.add({
     id: '',
     kind: Kind.PANEL,
     children: place(layout, root, '/'),
     hideHud: [...hud],
+    freeCursor: cursor,
     sheets: [...sheets],
   })
 

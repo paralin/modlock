@@ -782,6 +782,11 @@ type Node struct {
 	// one or more segments of letters, digits, '_', '-' and '.', none of them
 	// "..", ending in ".css".
 	Sheets []string `protobuf:"bytes,30,rep,name=sheets,proto3" json:"sheets,omitempty"`
+	// FreeCursor shows the player's mouse cursor without Tab held, so they can
+	// click the mod's panels, while the root holds it; only the root's value
+	// counts. Aiming returns once no mod's root frees the cursor, so a mod that
+	// stops, a reset and a player who leaves all give the mouse back.
+	FreeCursor bool `protobuf:"varint,31,opt,name=free_cursor,json=freeCursor,proto3" json:"freeCursor,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1005,6 +1010,13 @@ func (x *Node) GetSheets() []string {
 		return x.Sheets
 	}
 	return nil
+}
+
+func (x *Node) GetFreeCursor() bool {
+	if x != nil {
+		return x.FreeCursor
+	}
+	return false
 }
 
 type isNode_Input interface {
@@ -2350,6 +2362,7 @@ func (m *Node) CloneVT() *Node {
 	r.HeroLook = m.HeroLook
 	r.Token = m.Token
 	r.SteamId = m.SteamId
+	r.FreeCursor = m.FreeCursor
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -3026,6 +3039,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualSlice(this.Sheets, that.Sheets) {
+		return false
+	}
+	if this.FreeCursor != that.FreeCursor {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4644,6 +4660,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("sheets")
 		s.WriteStringArray(x.Sheets)
 	}
+	if x.FreeCursor || s.HasField("freeCursor") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("freeCursor")
+		s.WriteBool(x.FreeCursor)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4822,6 +4843,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				return
 			}
 			x.Sheets = s.ReadStringArray()
+		case "free_cursor", "freeCursor":
+			s.AddField("free_cursor")
+			x.FreeCursor = s.ReadBool()
 		}
 	})
 }
@@ -6625,6 +6649,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if m.FreeCursor {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FreeCursor)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xf8
+	}
 	if len(m.Sheets) > 0 {
 		for iNdEx := len(m.Sheets) - 1; iNdEx >= 0; iNdEx-- {
 			i = protobuf_go_lite.EncodeString(dAtA, i, m.Sheets[iNdEx])
@@ -8427,6 +8458,7 @@ func (m *Node) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeStringSlice(2, m.Classes)
 	n += protobuf_go_lite.SizeStringSlice(2, m.Sheets)
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.FreeCursor)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9171,6 +9203,10 @@ func (x *Node) MarshalProtoText() string {
 			protobuf_go_lite.TextWriteString(&sb, v)
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.FreeCursor != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "free_cursor")
+		protobuf_go_lite.TextWriteBool(&sb, x.FreeCursor)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -10287,6 +10323,16 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Sheets = append(m.Sheets, v)
+		case 31:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FreeCursor", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.FreeCursor = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

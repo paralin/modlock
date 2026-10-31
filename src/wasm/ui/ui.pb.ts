@@ -745,6 +745,13 @@ export interface Node {
    */
   sheets?: string[]
   /**
+   * FreeCursor shows the player's mouse cursor without Tab held, so they can
+   * click the mod's panels, while the root holds it; only the root's value
+   * counts. Aiming returns once no mod's root frees the cursor, so a mod that
+   * stops, a reset and a player who leaves all give the mouse back.
+   */
+  freeCursor?: boolean
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -795,6 +802,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [28, 'cycle', 11, 0, Cycle.codec],
     [29, 'classes', 9, 1],
     [30, 'sheets', 9, 1],
+    [31, 'free_cursor', 8],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -928,6 +936,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 30:
             ;(m.sheets ??= []).push(r.string())
+            break
+          case 31:
+            m.freeCursor = r.bool()
             break
           default:
             r.skip(t)
@@ -1069,6 +1080,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const a = m.sheets
         if (a != null) for (const e of a) w.uint32(242).string(e)
+      }
+      {
+        const v = m.freeCursor
+        if (v) w.uint32(248).bool(v)
       }
     },
   },

@@ -82,6 +82,13 @@ export function hiddenParts(screen: Screen | null): HudPart[] {
   return parts
 }
 
+/** cursorFreed reports whether any of screen's roots frees the mouse cursor. */
+export function cursorFreed(screen: Screen | null): boolean {
+  return (screen?.trees ?? []).some(
+    (tree) => tree.nodes?.find((node) => (node.id ?? '') === '')?.freeCursor,
+  )
+}
+
 /** Hud collapses the parts of the game's HUD it is told to hide. */
 export class Hud {
   /** hidden holds the parts some root lists. */
