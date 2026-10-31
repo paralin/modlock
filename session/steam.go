@@ -21,8 +21,12 @@ var libraryPath = regexp.MustCompile(`"path"\s+"((?:[^"\\]|\\.)*)"`)
 // loginUser matches one account's Steam ID and settings in loginusers.vdf.
 var loginUser = regexp.MustCompile(`"(\d+)"\s*\{([^}]*)\}`)
 
-// mostRecent matches the setting that marks the account signed in last.
+// mostRecent matches the setting older Steam clients used to mark the account
+// signed in last.
 var mostRecent = regexp.MustCompile(`"MostRecent"\s+"1"`)
+
+// loginTime matches an account's last sign-in, in Unix seconds.
+var loginTime = regexp.MustCompile(`"[Tt]imestamp"\s+"(\d+)"`)
 
 // Steam is the local Steam installation: the client that launches games and
 // the libraries they are installed in.
@@ -88,19 +92,36 @@ func (s *Steam) Deadlock() (string, error) {
 }
 
 // Account returns the Steam ID of the account signed in to Steam last, or zero
-// when Steam names none.
+// when Steam names none. An account marked MostRecent wins; current clients no
+// longer write the mark, so otherwise the account with the latest sign-in
+// time does.
 func (s *Steam) Account() uint64 {
 	users, err := os.ReadFile(filepath.Join(s.Root, "config", "loginusers.vdf"))
 	if err != nil {
 		return 0
 	}
+	return lastAccount(users)
+}
+
+// lastAccount returns the Steam ID of the account loginusers.vdf names as
+// signed in last, or zero when it names none.
+func lastAccount(users []byte) uint64 {
+	var account, latest uint64
 	for _, match := range loginUser.FindAllSubmatch(users, -1) {
+		id, err := strconv.ParseUint(string(match[1]), 10, 64)
+		if err != nil {
+			continue
+		}
 		if mostRecent.Match(match[2]) {
-			id, _ := strconv.ParseUint(string(match[1]), 10, 64)
 			return id
 		}
+		if at := loginTime.FindSubmatch(match[2]); at != nil {
+			if t, _ := strconv.ParseUint(string(at[1]), 10, 64); t > latest {
+				account, latest = id, t
+			}
+		}
 	}
-	return 0
+	return account
 }
 
 // LaunchDeadlock starts Deadlock through the running Steam client with the
