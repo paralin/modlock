@@ -483,6 +483,17 @@ test("draws the game's faces, styles, motion, hover and hero pictures", () => {
   ] as unknown as string[][])
   expect(presses).toEqual(['arena:go'])
 
+  // An item shows the shop's own card for it in place of the tooltip.
+  live.draw(tree(go({ item: 630839635 }), ...rest))
+  dispatched.length = 0
+  button!.events.get('onmouseover')!()
+  button!.events.get('onmouseout')!()
+  expect(dispatched).toEqual([
+    ['sound', 'UI.MainMenu.Hover'],
+    ['CitadelShowModHoverTooltip', button, 630839635, 0],
+    ['CitadelHideModHoverTooltip', button],
+  ] as unknown as string[][])
+
   // Disabling the button and dropping its fill keep its panel, so the change
   // animates: the fill rests at none and presses stop.
   live.draw(

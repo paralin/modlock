@@ -728,6 +728,10 @@ type Node struct {
 	// Tooltip is the text the game's tooltip shows while the pointer is over the
 	// node. A node with a tooltip takes the pointer.
 	Tooltip string `protobuf:"bytes,12,opt,name=tooltip,proto3" json:"tooltip,omitempty"`
+	// Item is an item's id, the game's string token of its class name, whose
+	// shop card the game shows while the pointer is over the node, in place of
+	// the tooltip. A node with an item takes the pointer.
+	Item uint32 `protobuf:"varint,32,opt,name=item,proto3" json:"item,omitempty"`
 	// Sound is the game's sound event a button plays when pressed, such as
 	// "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
 	Sound string `protobuf:"bytes,13,opt,name=sound,proto3" json:"sound,omitempty"`
@@ -882,6 +886,13 @@ func (x *Node) GetTooltip() string {
 		return x.Tooltip
 	}
 	return ""
+}
+
+func (x *Node) GetItem() uint32 {
+	if x != nil {
+		return x.Item
+	}
+	return 0
 }
 
 func (x *Node) GetSound() string {
@@ -2359,6 +2370,7 @@ func (m *Node) CloneVT() *Node {
 	r.Data = m.Data
 	r.Route = m.Route
 	r.Tooltip = m.Tooltip
+	r.Item = m.Item
 	r.Sound = m.Sound
 	r.HoverSound = m.HoverSound
 	r.Disabled = m.Disabled
@@ -3047,6 +3059,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if this.FreeCursor != that.FreeCursor {
+		return false
+	}
+	if this.Item != that.Item {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4670,6 +4685,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("freeCursor")
 		s.WriteBool(x.FreeCursor)
 	}
+	if x.Item != 0 || s.HasField("item") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("item")
+		s.WriteUint32(x.Item)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4851,6 +4871,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "free_cursor", "freeCursor":
 			s.AddField("free_cursor")
 			x.FreeCursor = s.ReadBool()
+		case "item":
+			s.AddField("item")
+			x.Item = s.ReadUint32()
 		}
 	})
 }
@@ -6653,6 +6676,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.Item != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Item))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x80
 	}
 	if m.FreeCursor {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.FreeCursor)
@@ -8464,6 +8494,7 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringSlice(2, m.Classes)
 	n += protobuf_go_lite.SizeStringSlice(2, m.Sheets)
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.FreeCursor)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Item)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9212,6 +9243,10 @@ func (x *Node) MarshalProtoText() string {
 	if x.FreeCursor != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "free_cursor")
 		protobuf_go_lite.TextWriteBool(&sb, x.FreeCursor)
+	}
+	if x.Item != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "item")
+		protobuf_go_lite.TextWriteUint(&sb, x.Item)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -10338,6 +10373,15 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.FreeCursor = bool(v)
+		case 32:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Item", wireType)
+			}
+			m.Item = 0
+			m.Item, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

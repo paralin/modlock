@@ -1149,6 +1149,7 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                               |
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
+| `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. `item` prop shows its card.  |
 | `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |
 | `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |
 | `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                                     |

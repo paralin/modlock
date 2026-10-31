@@ -70,6 +70,11 @@ message Node {
   // node. A node with a tooltip takes the pointer.
   string tooltip = 12;
 
+  // Item is an item's id, the game's string token of its class name, whose
+  // shop card the game shows while the pointer is over the node, in place of
+  // the tooltip. A node with an item takes the pointer.
+  uint32 item = 32;
+
   // Sound is the game's sound event a button plays when pressed, such as
   // "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
   string sound = 13;

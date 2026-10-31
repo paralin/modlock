@@ -59,6 +59,7 @@ export {
   heroes,
   type Titled,
 } from './heroes.js'
+export { item, type Item, itemId, items, type Slot } from './items.js'
 export {
   Hook,
   type HookAbility,

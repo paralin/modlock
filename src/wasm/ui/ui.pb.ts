@@ -678,6 +678,12 @@ export interface Node {
    */
   tooltip?: string
   /**
+   * Item is an item's id, the game's string token of its class name, whose
+   * shop card the game shows while the pointer is over the node, in place of
+   * the tooltip. A node with an item takes the pointer.
+   */
+  item?: number
+  /**
    * Sound is the game's sound event a button plays when pressed, such as
    * "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
    */
@@ -810,6 +816,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [29, 'classes', 9, 1],
     [30, 'sheets', 9, 1],
     [31, 'free_cursor', 8],
+    [32, 'item', 13],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -946,6 +953,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 31:
             m.freeCursor = r.bool()
+            break
+          case 32:
+            m.item = r.uint32()
             break
           default:
             r.skip(t)
@@ -1091,6 +1101,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.freeCursor
         if (v) w.uint32(248).bool(v)
+      }
+      {
+        const v = m.item
+        if (v) w.uint32(256).uint32(v)
       }
     },
   },

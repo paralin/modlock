@@ -5163,6 +5163,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     kSteamIdFieldNumber = 25,
     kDisabledFieldNumber = 15,
     kFreeCursorFieldNumber = 31,
+    kItemFieldNumber = 32,
     kVariablesFieldNumber = 24,
     kTextEntryFieldNumber = 19,
     kSliderFieldNumber = 20,
@@ -5549,6 +5550,16 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   void _internal_set_free_cursor(bool value);
 
   public:
+  // uint32 item = 32;
+  void clear_item() ;
+  ::uint32_t item() const;
+  void set_item(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_item() const;
+  void _internal_set_item(::uint32_t value);
+
+  public:
   // map<string, string> variables = 24;
   int variables_size() const;
   private:
@@ -5652,8 +5663,8 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   inline bool has_input() const;
   inline void clear_has_input();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 31,
-                                   10, 137,
+  static const ::google::protobuf::internal::TcParseTable<5, 32,
+                                   10, 145,
                                    2>
       _table_;
 
@@ -5701,6 +5712,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     ::uint64_t steam_id_;
     bool disabled_;
     bool free_cursor_;
+    ::uint32_t item_;
     ::google::protobuf::internal::MapField<Node_VariablesEntry_DoNotUse, ::std::string, ::std::string,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
                       ::google::protobuf::internal::WireFormatLite::TYPE_STRING>
@@ -7408,6 +7420,31 @@ inline void Node::set_allocated_tooltip(::std::string* PROTOBUF_NULLABLE value) 
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Node.tooltip)
 }
 
+// uint32 item = 32;
+inline void Node::clear_item() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.item_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x04000000U);
+}
+inline ::uint32_t Node::item() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.item)
+  return _internal_item();
+}
+inline void Node::set_item(::uint32_t value) {
+  _internal_set_item(value);
+  SetHasBit(_impl_._has_bits_[0], 0x04000000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.item)
+}
+inline ::uint32_t Node::_internal_item() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.item_;
+}
+inline void Node::_internal_set_item(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.item_ = value;
+}
+
 // string sound = 13;
 inline void Node::clear_sound() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
@@ -8042,7 +8079,7 @@ inline void Node::clear_variables() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.variables_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x04000000U);
+                  0x08000000U);
 }
 inline const ::google::protobuf::Map<::std::string, ::std::string>& Node::_internal_variables() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -8058,7 +8095,7 @@ inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL N
 }
 inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Node::mutable_variables()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x04000000U);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x08000000U);
   // @@protoc_insertion_point(field_mutable_map:modlock.wasm.ui.Node.variables)
   return _internal_mutable_variables();
 }

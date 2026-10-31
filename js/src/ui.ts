@@ -66,6 +66,7 @@
 // sheet's transitions. Sheets load where layouts do; elsewhere the elements
 // draw with their own styles.
 
+import { itemId } from './item-id.js'
 import {
   Align,
   type Change,
@@ -315,6 +316,7 @@ export interface Props {
   readonly style?: Style
   readonly hover?: Style
   readonly tooltip?: string
+  readonly item?: string
   readonly hoverSound?: string
   readonly children?: Child
   readonly src?: string
@@ -346,9 +348,11 @@ export interface Props {
 /**
  * ElementProps are the props every drawn element takes. hover is the style
  * drawn over style while the pointer is over the element; tooltip is the text
- * the game's tooltip shows then, and hoverSound the game's sound event played
- * as the pointer enters, such as 'UI.MainMenu.Hover'. An element with any of
- * them takes the pointer, so the game behind it does not.
+ * the game's tooltip shows then, item names an item by class name, such as
+ * 'upgrade_ability_power_shard', whose shop card shows instead, and
+ * hoverSound is the game's sound event played as the pointer enters, such as
+ * 'UI.MainMenu.Hover'. An element with any of them takes the pointer, so the
+ * game behind it does not.
  */
 export interface ElementProps {
   /** class names the element's classes in the mod's sheets, separated by spaces. */
@@ -356,6 +360,7 @@ export interface ElementProps {
   style?: Style
   hover?: Style
   tooltip?: string
+  item?: string
   hoverSound?: string
   /** enter is the style the element's panel starts from when it first shows. */
   enter?: Style
@@ -964,6 +969,7 @@ function place(layout: Layout, child: Child, at: string): string[] {
     style: wireStyle(props.style),
     hover: wireStyle(props.hover),
     tooltip: props.tooltip,
+    item: props.item ? itemId(props.item) : undefined,
     hoverSound: props.hoverSound,
     enter: wireStyle(props.enter),
     exit: wireStyle(props.exit),

@@ -362,12 +362,15 @@ interface Cycling {
   count: number
 }
 
+/** Tip is what a node's panel shows under the pointer: nothing, its text or its item's shop card. */
+type Tip = '' | 'text' | 'item'
+
 /**
  * Drawn is one node's panel, its parent, the properties it was made with as
  * JSON, and its style: the node's own, its hover's, the phase over both, its
  * exit style and how long it eases out, and what the panel holds now. It
- * keeps the node's pointer feedback for the panel's events, and whether its
- * tooltip shows. An input records its control, the mod's value as last
+ * keeps the node's pointer feedback for the panel's events, and which of its
+ * tooltip and its item's shop card shows. An input records its control, the mod's value as last
  * drawn, whether an edit waits to send, and the values it sent, oldest
  * first, that the mod has not drawn back. A layout node's panel also
  * records the layout's URL, whether it loaded, and the data set on it. A
@@ -392,7 +395,8 @@ interface Drawn {
   over: boolean
   focused: boolean
   tooltip: string
-  tipped: boolean
+  item: number
+  tipped: Tip
   sound: string
   hoverSound: string
   disabled: boolean
@@ -603,18 +607,28 @@ export class Drawing {
       return
     }
 
-    // Tick, show or hide the tooltip, then repaint in the new state.
+    // Tick, show the item's shop card or the tooltip, or hide them, then
+    // repaint in the new state. The card's second value is the game's
+    // default, as its own shop hover sends.
     drawn.over = over
     if (over && drawn.hoverSound) {
       this.panorama.PlaySound?.(drawn.hoverSound)
     }
-    if (over && drawn.tooltip) {
+    if (over && drawn.item) {
+      this.panorama.DispatchEvent(
+        'CitadelShowModHoverTooltip',
+        drawn.panel,
+        drawn.item,
+        0,
+      )
+      drawn.tipped = 'item'
+    } else if (over && drawn.tooltip) {
       this.panorama.DispatchEvent(
         'UIShowTextTooltip',
         drawn.panel,
         drawn.tooltip,
       )
-      drawn.tipped = true
+      drawn.tipped = 'text'
     } else if (!over) {
       this.untip(drawn)
     }
@@ -630,10 +644,13 @@ export class Drawing {
     }
   }
 
-  /** untip hides the tooltip a node's panel shows. */
+  /** untip hides the tooltip or shop card a node's panel shows. */
   private untip(drawn: Drawn): void {
-    if (drawn.tipped) {
-      drawn.tipped = false
+    const tip = drawn.tipped
+    drawn.tipped = ''
+    if (tip === 'item') {
+      this.panorama.DispatchEvent('CitadelHideModHoverTooltip', drawn.panel)
+    } else if (tip === 'text') {
       this.panorama.DispatchEvent('UIHideTextTooltip', drawn.panel)
     }
   }
@@ -1003,7 +1020,8 @@ export class Drawing {
       over,
       focused: !fresh && old.focused,
       tooltip: node.tooltip ?? '',
-      tipped: old?.panel === panel && old.tipped,
+      item: node.item ?? 0,
+      tipped: old?.panel === panel ? old.tipped : '',
       sound: soundOf(node.sound),
       hoverSound: soundOf(node.hoverSound),
       disabled:
@@ -1026,6 +1044,7 @@ export class Drawing {
         kind === Kind.INPUT ||
         Object.keys(hover).length !== 0 ||
         !!each.tooltip ||
+        !!each.item ||
         !!each.hoverSound ||
         /scroll/.test(style.overflow ?? '')
     }
@@ -1048,7 +1067,10 @@ export class Drawing {
       this.dressPlaceholder(panel, style)
     }
     this.paint(each)
-    if (each.tipped && !each.tooltip) {
+    if (
+      (each.tipped === 'text' && !each.tooltip) ||
+      (each.tipped === 'item' && each.item !== old?.item)
+    ) {
       this.untip(each)
     }
 
