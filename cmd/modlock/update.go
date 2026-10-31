@@ -58,7 +58,7 @@ func updateCommand(out *printer) *cli.Command {
 				return err
 			}
 			if strings.Contains(filepath.ToSlash(exe), "/node_modules/@modlock/") {
-				return errors.Errorf("npm installed %s; run npm install modlock@%s to update it", exe, strings.TrimPrefix(target, "v"))
+				return errors.Errorf("npm installed %s; run npm install @modlock/modlock@%s to update it", exe, strings.TrimPrefix(target, "v"))
 			}
 			out.mark("…", dim, "downloading modlock "+target+" for "+runtime.GOOS+" "+runtime.GOARCH)
 			if err := selfupdate.Install(c.Context, target, exe); err != nil {

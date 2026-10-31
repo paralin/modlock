@@ -15,7 +15,7 @@ try {
 } catch {
   console.error(
     `modlock has no build for ${process.platform} ${process.arch} installed; ` +
-      `install modlock again without --omit=optional or --no-optional, ` +
+      `install @modlock/modlock again without --omit=optional or --no-optional, ` +
       `or download it from https://github.com/paralin/modlock/releases`,
   )
   process.exit(1)

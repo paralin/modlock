@@ -38,19 +38,6 @@ const libraryPackage = `{
 }
 `
 
-// fromNpm reports whether the modlock package at dir came from npm, whose
-// package.json names a version.
-func fromNpm(dir string) bool {
-	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
-	if err != nil {
-		return false
-	}
-	var manifest struct {
-		Version string `json:"version"`
-	}
-	return json.Unmarshal(data, &manifest) == nil && manifest.Version != ""
-}
-
 // scriptMain returns the source entry of a TypeScript or JavaScript project.
 func scriptMain(language manifest.Manifest_Language) string {
 	if language == manifest.Manifest_LANGUAGE_JAVASCRIPT {
@@ -238,16 +225,8 @@ func (p *Project) writeBuild(content []byte, runtime manifest.Manifest_Runtime, 
 }
 
 // installLibrary installs the declarations of the built library in library
-// into the script project in dir, removing any other file there. It leaves
-// alone a modlock package npm installed, which names its version where this
-// one names none: that package carries the declarations of its own release
-// beside the command line it launches.
+// into the script project in dir, removing any other file there.
 func installLibrary(library, dir string) error {
-	installed := filepath.Join(dir, libraryDir)
-	if fromNpm(installed) {
-		return nil
-	}
-
 	// Gather the declarations, every .d.ts file of the library, and the
 	// package that names them.
 	files := map[string][]byte{"package.json": []byte(libraryPackage)}
@@ -264,6 +243,7 @@ func installLibrary(library, dir string) error {
 	}
 
 	// Write each file that differs, and remove the rest.
+	installed := filepath.Join(dir, libraryDir)
 	if err := os.MkdirAll(installed, 0o755); err != nil {
 		return errors.Wrap(err, "install the modlock library")
 	}

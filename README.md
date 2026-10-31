@@ -76,7 +76,7 @@ On a Mac, clear the download's quarantine first:
 Or install it from npm, into a project or globally, as its own command:
 
 ```sh
-npm install --save-dev modlock
+npm install --save-dev @modlock/modlock
 npx modlock new my-mod
 ```
 
@@ -667,10 +667,9 @@ it loads. `main.ts`, or `main.js`, is the entry, and the types check as you
 type, with no Node.js or npm to install. Each build writes the library's
 declarations to the project's `node_modules/modlock`, where editors and the type
 checker find them, and bundles the mod with the library built into the command
-line. A `modlock` that npm installed there already carries its release's
-declarations, and the build leaves it as it is. A JavaScript mod is checked
-from its JSDoc. [`src/wasm/wasm.proto`](src/wasm/wasm.proto) documents every
-call, its arguments and its result.
+line. A JavaScript mod is checked from its JSDoc.
+[`src/wasm/wasm.proto`](src/wasm/wasm.proto) documents every call, its
+arguments and its result.
 
 Every build bundles the mod for QuickJS, which runs any JavaScript and builds in
 a moment. A mod whose frames run too long on QuickJS can set `"runtime":

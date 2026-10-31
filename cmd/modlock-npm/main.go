@@ -1,6 +1,6 @@
 // Command modlock-npm assembles the npm packages of a Modlock release, in the
 // layout esbuild uses: one package per system holding that system's command
-// line, and the modlock package, which holds the TypeScript library and its
+// line, and @modlock/modlock, which holds the TypeScript library and its
 // declarations and a launcher that runs the command line npm installed for
 // the system it runs on:
 //
@@ -9,7 +9,10 @@
 // -dist holds the release's command lines, named modlock-<os>-<arch>, and
 // -library the built library. Each package goes in its own directory under
 // -out, named after the package without its scope, ready for npm publish;
-// publish the system packages before modlock, which depends on them.
+// publish the system packages before @modlock/modlock, which depends on them.
+//
+// npm refuses the unscoped name modlock as too close to another package's.
+// Mods still import modlock: the command line writes the declarations there.
 package main
 
 import (
@@ -24,7 +27,7 @@ import (
 	"github.com/paralin/modlock/js"
 )
 
-// launcher is the modlock package's bin/modlock.js.
+// launcher is @modlock/modlock's bin/modlock.js.
 //
 //go:embed launcher.js
 var launcher []byte
@@ -94,7 +97,7 @@ func assemble(version, dist, library, out string) error {
 		}
 	}
 
-	// Write modlock: the library's modules and declarations, with the
+	// Write @modlock/modlock: the library's modules and declarations, with the
 	// launcher. The game's renderer and layout library stay out, since a mod
 	// never imports them.
 	files := map[string]string{}
@@ -115,7 +118,7 @@ func assemble(version, dist, library, out string) error {
 	files["LICENSE"] = "LICENSE"
 	dir := filepath.Join(out, "modlock")
 	err = writePackage(dir, map[string]any{
-		"name":                 "modlock",
+		"name":                 "@modlock/modlock",
 		"version":              version,
 		"description":          "Build, test and publish mods for Deadlock.",
 		"license":              "MIT",
@@ -130,7 +133,7 @@ func assemble(version, dist, library, out string) error {
 	if err != nil {
 		return err
 	}
-	readme := "# modlock\n\nBuild, test and publish mods for Deadlock. This package installs the\n`modlock` command line and the TypeScript library mods import:\n\n```sh\nnpm install --save-dev modlock\nnpx modlock new my-mod\n```\n\nSee https://github.com/paralin/modlock for the guide.\n"
+	readme := "# modlock\n\nBuild, test and publish mods for Deadlock. This package installs the\n`modlock` command line and the TypeScript library mods import:\n\n```sh\nnpm install --save-dev @modlock/modlock\nnpx modlock new my-mod\n```\n\nSee https://github.com/paralin/modlock for the guide.\n"
 	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(readme), 0o644); err != nil {
 		return err
 	}
