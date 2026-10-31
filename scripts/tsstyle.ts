@@ -5,10 +5,11 @@
 //
 // A body of five or more top-level statements is a sequence of actions. Blank
 // lines split it into paragraphs, and each paragraph needs a purpose comment
-// directly above it, except a lone return or a run of test declarations. A
-// purpose comment follows a blank line, and a paragraph of more than eight
-// statements holds more than one action. Findings print as file:line:column:
-// message, and the command exits with status 3 when it finds any.
+// directly above it, except a lone return. A purpose comment follows a blank
+// line, and a paragraph of more than eight statements holds more than one
+// action. Generated files and test files are omitted. Findings print as
+// file:line:column: message, and the command exits with status 3 when it finds
+// any.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -30,6 +31,9 @@ const sourcePattern = /\.[cm]?tsx?$/
 /** generatedPattern matches generated or declaration file names. */
 const generatedPattern = /(\.pb\.ts|\.d\.[cm]?ts)$/
 
+/** testPattern matches test file names, which are exempt. */
+const testPattern = /\.(test|spec)\.[cm]?tsx?$/
+
 /** directivePattern matches tool directives, which are not purpose comments. */
 const directivePattern =
   /^\/[/*]\s*(@ts-|eslint-|oxlint-|prettier-|biome-|istanbul )/
@@ -45,18 +49,6 @@ const functionTypes = new Set([
   'ObjectMethod',
   'ClassMethod',
   'ClassPrivateMethod',
-])
-
-/** testCallees names the test framework calls that declare tests and hooks. */
-const testCallees = new Set([
-  'describe',
-  'test',
-  'it',
-  'bench',
-  'beforeAll',
-  'beforeEach',
-  'afterAll',
-  'afterEach',
 ])
 
 /** Finding is one code-paragraph violation. */
@@ -79,13 +71,14 @@ interface Paragraph {
 
 /**
  * checkSource returns the code-paragraph findings in one source text. A
- * generated file returns no findings, and a file that does not parse returns
- * the parse error.
+ * generated or test file returns no findings, and a file that does not parse
+ * returns the parse error.
  */
 export function checkSource(path: string, text: string): Finding[] {
-  // Generated code follows its generator's layout.
+  // Generated code follows its generator's layout, and tests are exempt.
   if (
     generatedPattern.test(path) ||
+    testPattern.test(path) ||
     /^\/\/ (Code generated|@generated)/m.test(text.slice(0, 512))
   ) {
     return []
@@ -218,17 +211,12 @@ function reportParagraph(
   paragraph: Paragraph,
   findings: Finding[],
 ): void {
-  // A lone return completes the action before it, and a test declaration is
-  // named by its title; neither needs an outline entry.
+  // A lone return completes the action before it and needs no outline entry.
   const first = paragraph.statements[0]!
   const line = first.loc!.start.line
   const soleReturn =
     paragraph.statements.length === 1 && first.type === 'ReturnStatement'
-  if (
-    !paragraph.purpose &&
-    !soleReturn &&
-    !paragraph.statements.every(isTestDeclaration)
-  ) {
+  if (!paragraph.purpose && !soleReturn) {
     findings.push(
       finding(
         lines,
@@ -249,25 +237,6 @@ function reportParagraph(
       ),
     )
   }
-}
-
-/** isTestDeclaration reports whether a statement declares a test, suite or hook. */
-function isTestDeclaration(statement: Statement): boolean {
-  // Unwrap the call and any modifier chain such as test.skip or describe.each(table).
-  if (
-    statement.type !== 'ExpressionStatement' ||
-    statement.expression.type !== 'CallExpression'
-  ) {
-    return false
-  }
-  let callee: Node = statement.expression.callee
-  while (
-    callee.type === 'MemberExpression' ||
-    callee.type === 'CallExpression'
-  ) {
-    callee = callee.type === 'MemberExpression' ? callee.object : callee.callee
-  }
-  return callee.type === 'Identifier' && testCallees.has(callee.name)
 }
 
 /** finding builds a finding at the first non-blank column of a 1-based line. */
