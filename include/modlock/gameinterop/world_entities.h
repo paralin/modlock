@@ -39,6 +39,11 @@ class MODLOCK_API WorldEntities {
     bool (*accept_input)(void* entity, const char* input, void* activator, void* caller,
                          void* value, int output_id, void* unknown) = nullptr;
     uint32_t (*set_transmit_state)(void* component, uint32_t flags) = nullptr;
+    // The absolute-state setters Teleport calls. Move uses them rather than
+    // Teleport, which on an NPC also resets its motor and animation graph.
+    void (*set_origin)(void* entity, const float* position) = nullptr;
+    void (*set_angles)(void* entity, const float* angles) = nullptr;
+    void (*set_velocity)(void* entity, const float* velocity) = nullptr;
 
     // Offsets are the schema field offsets WorldEntities reads and writes.
     struct Offsets {
@@ -146,11 +151,12 @@ class MODLOCK_API WorldEntities {
   std::expected<bool, std::string> Exists(uint32_t handle) const;
   // ReadNpc samples one live NPC by handle; nullopt once it is gone or dead.
   std::expected<std::optional<Sample>, std::string> ReadNpc(uint32_t handle) const;
-  // Move teleports one live NPC, for modes that steer units themselves each
-  // frame; false when it is gone.
+  // Move places one live NPC through the absolute-state setters, so a mode
+  // that steers its units each frame keeps their models drawn. A missing
+  // facing or velocity stays as it is. False when the NPC is gone.
   std::expected<bool, std::string> Move(uint32_t handle, const std::array<float, 3>& position,
-                                        const std::array<float, 3>& facing,
-                                        const std::array<float, 3>& velocity);
+                                        const std::optional<std::array<float, 3>>& facing,
+                                        const std::optional<std::array<float, 3>>& velocity);
   // SetHealth sets one live NPC's health and maximum; false when it is gone.
   std::expected<bool, std::string> SetHealth(uint32_t handle, int32_t health, int32_t max_health);
   // SubclassId is the VData subclass hash for an npc_units entry name, such as

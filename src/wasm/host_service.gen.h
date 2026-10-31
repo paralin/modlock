@@ -773,7 +773,9 @@ class HostService {
   }
 
   // MoveNpc places the unit and sets its velocity, which drives its walk
-  // animation. It reports false once the unit is gone.
+  // animation. It sets the pose without a teleport, which would reset the
+  // unit's animation, so a mode can steer its units every frame. It reports
+  // false once the unit is gone.
   virtual std::expected<entities::AliveResponse, std::string> MoveNpc(
       const npcs::MoveNpcRequest& /*request*/) {
     return std::unexpected("this host does not support MoveNpc");

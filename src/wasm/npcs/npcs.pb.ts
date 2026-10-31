@@ -419,11 +419,12 @@ export interface MoveNpcRequest {
    */
   position?: Vec3
   /**
-   * Facing is where the unit faces afterwards.
+   * Facing is where the unit faces afterwards; unset keeps its facing.
    */
   facing?: EulerAngles
   /**
-   * Velocity is the unit's motion, which drives its walk animation.
+   * Velocity is the unit's motion, which drives its walk animation; unset
+   * keeps its velocity.
    */
   velocity?: Vec3
 }

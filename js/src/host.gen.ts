@@ -2619,7 +2619,9 @@ export class Npc {
 
   /**
    * move places the unit and sets its velocity, which drives its walk
-   * animation. It reports false once the unit is gone.
+   * animation. It sets the pose without a teleport, which would reset the
+   * unit's animation, so a mode can steer its units every frame. It reports
+   * false once the unit is gone.
    */
   move(position: Vector, facing?: Angles, velocity?: Vector): boolean {
     const reply = call('MoveNpc', npcsPb.MoveNpcRequest.toBinary({ npc: this.entity, position, facing, velocity }))

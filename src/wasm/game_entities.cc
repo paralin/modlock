@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <deque>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -568,8 +569,15 @@ std::expected<entities::AliveResponse, std::string> Game::MoveNpc(
   if (!world) {
     return std::unexpected(world.error());
   }
-  return Alive((*world)->Move(request.npc(), Floats(request.position()), Floats(request.facing()),
-                              Floats(request.velocity())));
+  std::optional<std::array<float, 3>> facing;
+  if (request.has_facing()) {
+    facing = Floats(request.facing());
+  }
+  std::optional<std::array<float, 3>> velocity;
+  if (request.has_velocity()) {
+    velocity = Floats(request.velocity());
+  }
+  return Alive((*world)->Move(request.npc(), Floats(request.position()), facing, velocity));
 }
 
 std::expected<entities::AliveResponse, std::string> Game::SetNpcHealth(

@@ -1857,7 +1857,9 @@ export type Npc = {
 	-- read returns the unit's state, or nothing once it is gone.
 	read: (self: Npc) -> NpcState?,
 	-- move places the unit and sets its velocity, which drives its walk
-	-- animation. It reports false once the unit is gone.
+	-- animation. It sets the pose without a teleport, which would reset the
+	-- unit's animation, so a mode can steer its units every frame. It reports
+	-- false once the unit is gone.
 	move: (self: Npc, position: Vector, facing: Angles?, velocity: Vector?) -> boolean,
 	-- setHealth sets the unit's health, and its maximum when given. It
 	-- reports false once the unit is gone.
@@ -1884,7 +1886,9 @@ function Npc.read(self: Npc): NpcState?
 end
 
 -- move places the unit and sets its velocity, which drives its walk
--- animation. It reports false once the unit is gone.
+-- animation. It sets the pose without a teleport, which would reset the
+-- unit's animation, so a mode can steer its units every frame. It reports
+-- false once the unit is gone.
 function Npc.move(self: Npc, position: Vector, facing: Angles?, velocity: Vector?): boolean
 	local response = call("MoveNpc", "MoveNpcRequest", { npc = self, position = position, facing = facing, velocity = velocity }, "AliveResponse")
 	if response == nil then

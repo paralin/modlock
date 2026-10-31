@@ -253,9 +253,10 @@ type MoveNpcRequest struct {
 	Npc           uint32 `protobuf:"varint,1,opt,name=npc,proto3" json:"npc,omitempty"`
 	// Position is the unit's new origin.
 	Position *geometry.Vec3 `protobuf:"bytes,2,opt,name=position,proto3" json:"position,omitempty"`
-	// Facing is where the unit faces afterwards.
+	// Facing is where the unit faces afterwards; unset keeps its facing.
 	Facing *geometry.EulerAngles `protobuf:"bytes,3,opt,name=facing,proto3,oneof" json:"facing,omitempty"`
-	// Velocity is the unit's motion, which drives its walk animation.
+	// Velocity is the unit's motion, which drives its walk animation; unset
+	// keeps its velocity.
 	Velocity *geometry.Vec3 `protobuf:"bytes,4,opt,name=velocity,proto3,oneof" json:"velocity,omitempty"`
 }
 

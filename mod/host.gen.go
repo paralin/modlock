@@ -1335,7 +1335,9 @@ func (n Npc) Read() (*NpcState, error) {
 }
 
 // Move places the unit and sets its velocity, which drives its walk
-// animation. It reports false once the unit is gone.
+// animation. It sets the pose without a teleport, which would reset the
+// unit's animation, so a mode can steer its units every frame. It reports
+// false once the unit is gone.
 func (n Npc) Move(position *Vector, facing *Angles, velocity *Vector) (bool, error) {
 	request := &npcspb.MoveNpcRequest{Npc: n.Entity, Position: position, Facing: facing, Velocity: velocity}
 	response := &entitiespb.AliveResponse{}

@@ -90,10 +90,11 @@ message MoveNpcRequest {
   // Position is the unit's new origin.
   modlock.geometry.Vec3 position = 2;
 
-  // Facing is where the unit faces afterwards.
+  // Facing is where the unit faces afterwards; unset keeps its facing.
   optional modlock.geometry.EulerAngles facing = 3;
 
-  // Velocity is the unit's motion, which drives its walk animation.
+  // Velocity is the unit's motion, which drives its walk animation; unset
+  // keeps its velocity.
   optional modlock.geometry.Vec3 velocity = 4;
 }
 

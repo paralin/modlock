@@ -96,6 +96,9 @@ std::expected<WorldEntities::Calls, std::string> WorldEntities::ResolveCalls(
       {"vdata.lookup-by-hash", &calls.definition},
       {"entity-instance.accept-input", &calls.accept_input},
       {"network-transmit.set-state", &calls.set_transmit_state},
+      {"entity.set-abs-origin", &calls.set_origin},
+      {"entity.set-abs-angles", &calls.set_angles},
+      {"entity.set-abs-velocity", &calls.set_velocity},
   };
   auto resolved = ResolveSignatures(server, signatures);
   if (!resolved) {
@@ -346,11 +349,11 @@ std::expected<bool, std::string> WorldEntities::SetHealth(uint32_t handle, int32
   return true;
 }
 
-std::expected<bool, std::string> WorldEntities::Move(uint32_t handle,
-                                                     const std::array<float, 3>& position,
-                                                     const std::array<float, 3>& facing,
-                                                     const std::array<float, 3>& velocity) {
-  // Teleport the entity if it still exists.
+std::expected<bool, std::string> WorldEntities::Move(
+    uint32_t handle, const std::array<float, 3>& position,
+    const std::optional<std::array<float, 3>>& facing,
+    const std::optional<std::array<float, 3>>& velocity) {
+  // Find the entity if it still exists.
   auto system = ResolveLiveEntitySystem();
   if (!system) {
     return std::unexpected(system.error());
@@ -359,7 +362,16 @@ std::expected<bool, std::string> WorldEntities::Move(uint32_t handle,
   if (!entity) {
     return false;
   }
-  TeleportEntity(entity, position, facing, velocity);
+
+  // Set its pose. An NPC's Teleport also resets its motor and animation
+  // graph, and clients stop drawing a model reset every frame.
+  if (facing) {
+    calls_.set_angles(entity, facing->data());
+  }
+  if (velocity) {
+    calls_.set_velocity(entity, velocity->data());
+  }
+  calls_.set_origin(entity, position.data());
   return true;
 }
 
