@@ -116,12 +116,14 @@ class GameServices {
   std::expected<const gameinterop::PlayerSelectionCalls*, std::string> Selection();
   std::expected<const gameinterop::AbilityDefinitions*, std::string> Abilities();
   std::expected<const gameinterop::ItemFunctions*, std::string> Items();
+  std::expected<const gameinterop::ImbueFunctions*, std::string> Imbues();
   std::expected<const gameinterop::AbilitySlots*, std::string> Slots();
   std::expected<gameinterop::CreateAbility, std::string> CreateAbility();
   std::expected<gameinterop::RespawnPawn, std::string> Respawn();
   std::expected<gameinterop::ChangeTeamKeepingHero, std::string> ChangeTeam();
   std::expected<gameinterop::ResetHeroPawn, std::string> ResetHero();
   std::expected<gameinterop::TeleportClientCamera, std::string> Teleport();
+  std::expected<gameinterop::WarpOntoZipline, std::string> Zipline();
   std::expected<const gameinterop::PawnMotion*, std::string> Motion();
   std::expected<const gameinterop::EntityDynamics*, std::string> Dynamics();
   std::expected<const gameinterop::BotCreation*, std::string> Bots();
@@ -210,12 +212,14 @@ class GameServices {
   std::optional<gameinterop::PlayerSelectionCalls> selection_;
   std::optional<gameinterop::AbilityDefinitions> abilities_;
   std::optional<gameinterop::ItemFunctions> items_;
+  std::optional<gameinterop::ImbueFunctions> imbues_;
   std::optional<gameinterop::AbilitySlots> slots_;
   gameinterop::CreateAbility create_ability_ = nullptr;
   gameinterop::RespawnPawn respawn_ = nullptr;
   gameinterop::ChangeTeamKeepingHero change_team_ = nullptr;
   gameinterop::ResetHeroPawn reset_hero_ = nullptr;
   gameinterop::TeleportClientCamera teleport_ = nullptr;
+  gameinterop::WarpOntoZipline zipline_ = nullptr;
   std::optional<gameinterop::PawnMotion> motion_;
   std::optional<gameinterop::EntityDynamics> dynamics_;
   std::optional<gameinterop::BotCreation> bots_;
@@ -447,6 +451,7 @@ class Game : public HostService {
   std::expected<void, std::string> GiveModifier(
       const abilities::GiveModifierRequest& request) override;
   std::expected<void, std::string> Teleport(const movement::TeleportRequest& request) override;
+  std::expected<void, std::string> Zipline(const movement::ZiplineRequest& request) override;
   std::expected<void, std::string> MovePlayer(const movement::MovePlayerRequest& request) override;
   std::expected<void, std::string> Steer(const movement::SteerRequest& request) override;
   std::expected<void, std::string> Drive(const movement::DriveRequest& request) override;
@@ -641,6 +646,11 @@ class Game : public HostService {
   std::expected<gameinterop::PawnObserver::Ability, std::string> OwnedAbility(
       int32_t slot, std::string_view name);
 
+  // ModifierSource is the ability that applies a modifier keyed key to slot's
+  // live hero: the ability before the key's slash when the hero owns it, and
+  // otherwise, as for a top-level modifier, the hero's first ability.
+  std::expected<uint32_t, std::string> ModifierSource(int32_t slot, std::string_view key);
+
   // ModifierWord is the word of an entity's modifier masks that holds one
   // state, and the state's bit in it.
   struct ModifierWord {
@@ -731,6 +741,14 @@ class Game : public HostService {
   // m_vecAbsOrigin or m_angAbsRotation.
   std::optional<std::array<float, 3>> SceneVector(void* entity, const std::string& field);
 
+  // NearestZiplineNode returns where the zipline node nearest pawn stands
+  // among those on lane that pawn's team may ride.
+  std::expected<std::array<float, 3>, std::string> NearestZiplineNode(void* pawn, int32_t lane);
+
+  // ImbuedAbilities returns the definition ids of the abilities that the
+  // ability with handle, owned by slot's hero, imbues; empty for most.
+  std::vector<uint32_t> ImbuedAbilities(int32_t slot, uint32_t handle);
+
   // RemoveWorld removes the objects and units and kicks the bots.
   void RemoveWorld();
 
@@ -787,7 +805,7 @@ class Game : public HostService {
   std::set<uint32_t> ffa_held_;
   std::set<int32_t> seat_failed_;
   // held_modifiers_ is the modifiers the mod holds, by player slot and
-  // "<ability>/<modifier>" key; modifiers_ resolves each held key.
+  // modifier key; modifiers_ resolves each held key.
   std::set<std::pair<int32_t, std::string>> held_modifiers_;
   std::map<std::string, gameinterop::AbilityModifier, std::less<>> modifiers_;
 

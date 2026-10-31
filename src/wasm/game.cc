@@ -78,8 +78,11 @@ std::expected<void, std::string> Game::RenewModifier(int32_t slot, const std::st
   if (*attached) {
     return {};
   }
-  const auto ability = std::string_view(key).substr(0, key.find('/'));
-  return modifier->second.Attach(observer_, slot, gameinterop::MakeMemberName(ability).hash);
+  auto source = ModifierSource(slot, key);
+  if (!source) {
+    return std::unexpected(source.error());
+  }
+  return modifier->second.Attach(observer_, slot, *source);
 }
 
 void Game::ReleaseModifier(int32_t slot, const std::string& key) {

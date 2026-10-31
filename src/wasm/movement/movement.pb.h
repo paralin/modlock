@@ -59,6 +59,8 @@ MODLOCK_API extern const ::google::protobuf::internal::DescriptorTable descripto
 namespace modlock {
 namespace wasm {
 namespace movement {
+enum Lane : int;
+extern const uint32_t Lane_internal_data_[];
 enum MovementAction : int;
 extern const uint32_t MovementAction_internal_data_[];
 class DriveCommand;
@@ -105,11 +107,18 @@ class WatchMovementRequest;
 struct WatchMovementRequestDefaultTypeInternal;
 MODLOCK_API extern WatchMovementRequestDefaultTypeInternal _WatchMovementRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull WatchMovementRequest_class_data_;
+class ZiplineRequest;
+struct ZiplineRequestDefaultTypeInternal;
+MODLOCK_API extern ZiplineRequestDefaultTypeInternal _ZiplineRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ZiplineRequest_class_data_;
 }  // namespace movement
 }  // namespace wasm
 }  // namespace modlock
 namespace google {
 namespace protobuf {
+template <>
+internal::EnumTraitsT<::modlock::wasm::movement::Lane_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::movement::Lane>;
 template <>
 internal::EnumTraitsT<::modlock::wasm::movement::MovementAction_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::movement::MovementAction>;
@@ -165,10 +174,251 @@ inline bool MovementAction_Parse(
   return ::google::protobuf::internal::ParseNamedEnum<MovementAction>(MovementAction_descriptor(), name,
                                            value);
 }
+enum Lane : int {
+  LANE_NONE = 0,
+  LANE_YELLOW = 1,
+  LANE_GREEN = 3,
+  LANE_BLUE = 4,
+  LANE_PURPLE = 6,
+  Lane_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  Lane_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t Lane_internal_data_[];
+inline constexpr Lane Lane_MIN =
+    static_cast<Lane>(0);
+inline constexpr Lane Lane_MAX =
+    static_cast<Lane>(6);
+inline bool Lane_IsValid(int value) {
+  return 0 <= value && value <= 6 && ((91u >> value) & 1) != 0;
+}
+inline constexpr int Lane_ARRAYSIZE = 6 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Lane_descriptor();
+template <typename T>
+const ::std::string& Lane_Name(T value) {
+  static_assert(::std::is_same<T, Lane>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to Lane_Name().");
+  return Lane_Name(static_cast<Lane>(value));
+}
+template <>
+inline const ::std::string& Lane_Name(Lane value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<Lane_descriptor, 0, 6>(
+      static_cast<int>(value));
+}
+inline bool Lane_Parse(
+    ::absl::string_view name, Lane* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Lane>(Lane_descriptor(), name,
+                                           value);
+}
 
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class MODLOCK_API ZiplineRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.movement.ZiplineRequest) */ {
+ public:
+  inline ZiplineRequest() : ZiplineRequest(nullptr) {}
+  ~ZiplineRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ZiplineRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ZiplineRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ZiplineRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline ZiplineRequest(const ZiplineRequest& from) : ZiplineRequest(nullptr, from) {}
+  inline ZiplineRequest(ZiplineRequest&& from) noexcept
+      : ZiplineRequest(nullptr, ::std::move(from)) {}
+  inline ZiplineRequest& operator=(const ZiplineRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ZiplineRequest& operator=(ZiplineRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ZiplineRequest& default_instance() {
+    return *reinterpret_cast<const ZiplineRequest*>(
+        &_ZiplineRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 4;
+  friend void swap(ZiplineRequest& a, ZiplineRequest& b) { a.Swap(&b); }
+  inline void Swap(ZiplineRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ZiplineRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ZiplineRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ZiplineRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ZiplineRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ZiplineRequest& from) { ZiplineRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ZiplineRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.movement.ZiplineRequest"; }
+
+  explicit ZiplineRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ZiplineRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ZiplineRequest& from);
+  ZiplineRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ZiplineRequest&& from) noexcept
+      : ZiplineRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayerFieldNumber = 1,
+    kLaneFieldNumber = 2,
+  };
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // .modlock.wasm.movement.Lane lane = 2;
+  void clear_lane() ;
+  ::modlock::wasm::movement::Lane lane() const;
+  void set_lane(::modlock::wasm::movement::Lane value);
+
+  private:
+  ::modlock::wasm::movement::Lane _internal_lane() const;
+  void _internal_set_lane(::modlock::wasm::movement::Lane value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.movement.ZiplineRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ZiplineRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int32_t player_;
+    int lane_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ZiplineRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API WatchMovementRequest final : public ::google::protobuf::Message
@@ -226,7 +476,7 @@ class MODLOCK_API WatchMovementRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const WatchMovementRequest*>(
         &_WatchMovementRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(WatchMovementRequest& a, WatchMovementRequest& b) { a.Swap(&b); }
   inline void Swap(WatchMovementRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1145,7 +1395,7 @@ class MODLOCK_API Steering final : public ::google::protobuf::Message
     return *reinterpret_cast<const Steering*>(
         &_Steering_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(Steering& a, Steering& b) { a.Swap(&b); }
   inline void Swap(Steering* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1403,7 +1653,7 @@ class MODLOCK_API SetVelocityRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetVelocityRequest*>(
         &_SetVelocityRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(SetVelocityRequest& a, SetVelocityRequest& b) { a.Swap(&b); }
   inline void Swap(SetVelocityRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2090,7 +2340,7 @@ class MODLOCK_API MovePlayerRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const MovePlayerRequest*>(
         &_MovePlayerRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(MovePlayerRequest& a, MovePlayerRequest& b) { a.Swap(&b); }
   inline void Swap(MovePlayerRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2331,7 +2581,7 @@ class MODLOCK_API DriveCommand final : public ::google::protobuf::Message
     return *reinterpret_cast<const DriveCommand*>(
         &_DriveCommand_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(DriveCommand& a, DriveCommand& b) { a.Swap(&b); }
   inline void Swap(DriveCommand* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2574,7 +2824,7 @@ class MODLOCK_API SteerRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SteerRequest*>(
         &_SteerRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(SteerRequest& a, SteerRequest& b) { a.Swap(&b); }
   inline void Swap(SteerRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2781,7 +3031,7 @@ class MODLOCK_API DriveRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const DriveRequest*>(
         &_DriveRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(DriveRequest& a, DriveRequest& b) { a.Swap(&b); }
   inline void Swap(DriveRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4509,6 +4759,60 @@ inline void TeleportRequest::set_allocated_velocity(::modlock::geometry::Vec3* P
 
 // -------------------------------------------------------------------
 
+// ZiplineRequest
+
+// int32 player = 1;
+inline void ZiplineRequest::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t ZiplineRequest::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.movement.ZiplineRequest.player)
+  return _internal_player();
+}
+inline void ZiplineRequest::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.movement.ZiplineRequest.player)
+}
+inline ::int32_t ZiplineRequest::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void ZiplineRequest::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// .modlock.wasm.movement.Lane lane = 2;
+inline void ZiplineRequest::clear_lane() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lane_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::modlock::wasm::movement::Lane ZiplineRequest::lane() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.movement.ZiplineRequest.lane)
+  return _internal_lane();
+}
+inline void ZiplineRequest::set_lane(::modlock::wasm::movement::Lane value) {
+  _internal_set_lane(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.movement.ZiplineRequest.lane)
+}
+inline ::modlock::wasm::movement::Lane ZiplineRequest::_internal_lane() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::movement::Lane>(_impl_.lane_);
+}
+inline void ZiplineRequest::_internal_set_lane(::modlock::wasm::movement::Lane value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lane_ = value;
+}
+
+// -------------------------------------------------------------------
+
 // MovePlayerRequest
 
 // int32 player = 1;
@@ -5869,6 +6173,12 @@ struct is_proto_enum<::modlock::wasm::movement::MovementAction> : std::true_type
 template <>
 inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::movement::MovementAction>() {
   return ::modlock::wasm::movement::MovementAction_descriptor();
+}
+template <>
+struct is_proto_enum<::modlock::wasm::movement::Lane> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::movement::Lane>() {
+  return ::modlock::wasm::movement::Lane_descriptor();
 }
 
 }  // namespace protobuf

@@ -165,6 +165,23 @@ _MovementAction: dict[Any, Any] = {
 }
 
 
+# Lane is one of the map's lanes, numbered as the game numbers them. The
+# three-lane map has yellow, blue and purple ziplines and no green.
+type Lane = Literal["none", "yellow", "green", "blue", "purple"]
+_Lane: dict[Any, Any] = {
+    0: "none",
+    "none": 0,
+    1: "yellow",
+    "yellow": 1,
+    3: "green",
+    "green": 3,
+    4: "blue",
+    "blue": 4,
+    6: "purple",
+    "purple": 6,
+}
+
+
 # TextAlign places text across its position.
 type TextAlign = Literal["left", "center", "right"]
 _TextAlign: dict[Any, Any] = {
@@ -247,6 +264,8 @@ class Ability:
     # recharge_end is the game time its next charge returns, or zero without
     # one.
     recharge_end: float = 0.0
+    # imbues names the abilities an imbuing item strengthens.
+    imbues: list[str] = dataclasses.field(default_factory=lambda: list[str]())
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1566,11 +1585,13 @@ class Player:
         """
         return _call("SetAbility", "AbilityOptions", _with(options, "player", self)) is not None
 
-    def give_item(self, item: str) -> bool:
+    def give_item(self, item: str, imbue: int | None = None) -> bool:
         """give_item gives the hero an item, enabled and free. A hero that owns it
-        keeps its one copy.
+        keeps its one copy. With imbue, an imbuing item strengthens the hero's
+        ability in that slot, 0 to 3, as the shop asks when one is bought; the
+        call fails, granting nothing, when the ability does not accept it.
         """
-        return _call("GiveItem", "GiveItemRequest", {"player": self, "item": item}) is not None
+        return _call("GiveItem", "GiveItemRequest", {"player": self, "item": item, "imbue": imbue}) is not None
 
     def replace_ability(self, index: int, ability: str) -> bool:
         """replace_ability puts the ability named ability, untrained, in the hero's
@@ -1583,19 +1604,22 @@ class Player:
         return _call("ReplaceAbility", "ReplaceAbilityRequest", {"player": self, "index": index, "ability": ability}) is not None
 
     def hold_modifier(self, modifier: str, active: bool | None = None) -> bool:
-        """hold_modifier keeps an ability's modifier, named "<ability>/<modifier>",
-        on the hero with no expiry, giving it back whenever the game removes it
-        or the hero returns. The hero must own the ability or item. Every hero
-        that gains the modifier from the same ability keeps it until the hold
-        ends. Releasing leaves the hero's current modifier until it dies.
+        """hold_modifier keeps a modifier, named as GiveModifier names it, on the
+        hero with no expiry, giving it back whenever the game removes it or the
+        hero returns. Every hero that gains the modifier from the same ability
+        keeps it until the hold ends. Releasing leaves the hero's current
+        modifier until it dies.
         """
         return _call("HoldModifier", "HoldModifierRequest", {"player": self, "modifier": modifier, "active": active}) is not None
 
     def give_modifier(self, modifier: str, seconds: float) -> bool:
-        """give_modifier gives the hero an ability's modifier, named
-        "<ability>/<modifier>", for seconds, as if the hero's own ability applied
-        it; a hero without that ability applies it with its first ability. The
-        game may end it sooner, as invisibility ends on a shot.
+        """give_modifier gives the hero a modifier for seconds. An ability's
+        modifier, named "<ability>/<modifier>", comes as if the hero's own
+        ability applied it; a hero without that ability, or a modifier named on
+        its own, such as Street Brawl's zipline boost
+        modifier_street_brawl_round_start_zipline_boost, applies it with the
+        hero's first ability. The game may end it sooner, as invisibility ends on
+        a shot.
         """
         return _call("GiveModifier", "GiveModifierRequest", {"player": self, "modifier": modifier, "seconds": seconds}) is not None
 
@@ -1605,6 +1629,15 @@ class Player:
         follows the hero.
         """
         return _call("Teleport", "TeleportRequest", {"player": self, "position": position, "facing": facing, "velocity": velocity}) is not None
+
+    def zipline(self, lane: Lane) -> bool:
+        """zipline puts the player's hero on a lane's zipline near the hero, riding
+        it as from the zipline key, with the zipline's intro. It never picks
+        another lane: it fails when the lane has no zipline the hero's team rides
+        on this map, or the hero has no zipline ability. For Street Brawl's fast
+        ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+        """
+        return _call("Zipline", "ZiplineRequest", {"player": self, "lane": lane}) is not None
 
     def move(self, position: Vector, facing: Angles, velocity: Vector | None = None) -> bool:
         """move carries the player's hero to a position as continuous motion,
@@ -1882,6 +1915,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(9, "cooldown_start", "float"),
             wire.Field(10, "recharge_start", "float"),
             wire.Field(11, "recharge_end", "float"),
+            wire.Field(12, "imbues", "string", repeated=True),
         ],
     ),
     "AbilityOptions": (
@@ -1901,6 +1935,7 @@ _SCHEMA: wire.Schema = {
         [
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "item", "string"),
+            wire.Field(3, "imbue", "uint32", optional=True),
         ],
     ),
     "ReplaceAbilityRequest": (
@@ -2569,6 +2604,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "position", "message", message="Vec3"),
             wire.Field(3, "facing", "message", message="EulerAngles"),
             wire.Field(4, "velocity", "message", optional=True, message="Vec3"),
+        ],
+    ),
+    "ZiplineRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "lane", "enum", enum=_Lane),
         ],
     ),
     "MovePlayerRequest": (

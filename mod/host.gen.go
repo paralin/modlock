@@ -106,6 +106,19 @@ const (
 	MovementActionAbilityExecuted = movementpb.MovementAction_MOVEMENT_ACTION_ABILITY_EXECUTED
 )
 
+// Lane is one of the map's lanes, numbered as the game numbers them. The
+// three-lane map has yellow, blue and purple ziplines and no green.
+type Lane = movementpb.Lane
+
+// The values of Lane.
+const (
+	LaneNone   = movementpb.Lane_LANE_NONE
+	LaneYellow = movementpb.Lane_LANE_YELLOW
+	LaneGreen  = movementpb.Lane_LANE_GREEN
+	LaneBlue   = movementpb.Lane_LANE_BLUE
+	LanePurple = movementpb.Lane_LANE_PURPLE
+)
+
 // TextAlign places text across its position.
 type TextAlign = objectspb.TextAlign
 
@@ -775,9 +788,11 @@ func (p Player) SetAbility(options *AbilityOptions) error {
 }
 
 // GiveItem gives the hero an item, enabled and free. A hero that owns it
-// keeps its one copy.
-func (p Player) GiveItem(item string) error {
-	return invoke("GiveItem", &abilitiespb.GiveItemRequest{Player: p.Slot, Item: item}, nil)
+// keeps its one copy. With imbue, an imbuing item strengthens the hero's
+// ability in that slot, 0 to 3, as the shop asks when one is bought; the
+// call fails, granting nothing, when the ability does not accept it.
+func (p Player) GiveItem(item string, imbue *uint32) error {
+	return invoke("GiveItem", &abilitiespb.GiveItemRequest{Player: p.Slot, Item: item, Imbue: imbue}, nil)
 }
 
 // HeroBuild reads a hero's recommended build from the host's game data:
@@ -804,19 +819,22 @@ func (p Player) ReplaceAbility(index uint32, ability string) error {
 	return invoke("ReplaceAbility", &abilitiespb.ReplaceAbilityRequest{Player: p.Slot, Index: index, Ability: ability}, nil)
 }
 
-// HoldModifier keeps an ability's modifier, named "<ability>/<modifier>",
-// on the hero with no expiry, giving it back whenever the game removes it
-// or the hero returns. The hero must own the ability or item. Every hero
-// that gains the modifier from the same ability keeps it until the hold
-// ends. Releasing leaves the hero's current modifier until it dies.
+// HoldModifier keeps a modifier, named as GiveModifier names it, on the
+// hero with no expiry, giving it back whenever the game removes it or the
+// hero returns. Every hero that gains the modifier from the same ability
+// keeps it until the hold ends. Releasing leaves the hero's current
+// modifier until it dies.
 func (p Player) HoldModifier(modifier string, active *bool) error {
 	return invoke("HoldModifier", &abilitiespb.HoldModifierRequest{Player: p.Slot, Modifier: modifier, Active: active}, nil)
 }
 
-// GiveModifier gives the hero an ability's modifier, named
-// "<ability>/<modifier>", for seconds, as if the hero's own ability applied
-// it; a hero without that ability applies it with its first ability. The
-// game may end it sooner, as invisibility ends on a shot.
+// GiveModifier gives the hero a modifier for seconds. An ability's
+// modifier, named "<ability>/<modifier>", comes as if the hero's own
+// ability applied it; a hero without that ability, or a modifier named on
+// its own, such as Street Brawl's zipline boost
+// modifier_street_brawl_round_start_zipline_boost, applies it with the
+// hero's first ability. The game may end it sooner, as invisibility ends on
+// a shot.
 func (p Player) GiveModifier(modifier string, seconds float32) error {
 	return invoke("GiveModifier", &abilitiespb.GiveModifierRequest{Player: p.Slot, Modifier: modifier, Seconds: seconds}, nil)
 }
@@ -826,6 +844,15 @@ func (p Player) GiveModifier(modifier string, seconds float32) error {
 // follows the hero.
 func (p Player) Teleport(position *Vector, facing *Angles, velocity *Vector) error {
 	return invoke("Teleport", &movementpb.TeleportRequest{Player: p.Slot, Position: position, Facing: facing, Velocity: velocity}, nil)
+}
+
+// Zipline puts the player's hero on a lane's zipline near the hero, riding
+// it as from the zipline key, with the zipline's intro. It never picks
+// another lane: it fails when the lane has no zipline the hero's team rides
+// on this map, or the hero has no zipline ability. For Street Brawl's fast
+// ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+func (p Player) Zipline(lane Lane) error {
+	return invoke("Zipline", &movementpb.ZiplineRequest{Player: p.Slot, Lane: lane}, nil)
 }
 
 // Move carries the player's hero to a position as continuous motion,

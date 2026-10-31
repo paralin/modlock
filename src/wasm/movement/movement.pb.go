@@ -81,6 +81,50 @@ func (x MovementAction) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// Lane is one of the map's lanes, numbered as the game numbers them. The
+// three-lane map has yellow, blue and purple ziplines and no green.
+type Lane int32
+
+const (
+	Lane_LANE_NONE   Lane = 0
+	Lane_LANE_YELLOW Lane = 1
+	Lane_LANE_GREEN  Lane = 3
+	Lane_LANE_BLUE   Lane = 4
+	Lane_LANE_PURPLE Lane = 6
+)
+
+// Enum value maps for Lane.
+var (
+	Lane_name = map[int32]string{
+		0: "LANE_NONE",
+		1: "LANE_YELLOW",
+		3: "LANE_GREEN",
+		4: "LANE_BLUE",
+		6: "LANE_PURPLE",
+	}
+	Lane_value = map[string]int32{
+		"LANE_NONE":   0,
+		"LANE_YELLOW": 1,
+		"LANE_GREEN":  3,
+		"LANE_BLUE":   4,
+		"LANE_PURPLE": 6,
+	}
+)
+
+func (x Lane) Enum() *Lane {
+	p := new(Lane)
+	*p = x
+	return p
+}
+
+func (x Lane) String() string {
+	name, valid := Lane_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // MovementSample is one watched hero's movement on one tick, as the game keeps
 // it. A hero whose position, velocity or ground the game does not provide has
 // no sample; another field the game did not provide is absent or zero.
@@ -442,6 +486,34 @@ func (x *TeleportRequest) GetVelocity() *geometry.Vec3 {
 		return x.Velocity
 	}
 	return nil
+}
+
+// ZiplineRequest puts one player's hero on a lane's zipline.
+type ZiplineRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Lane is the lane whose zipline the hero rides.
+	Lane Lane `protobuf:"varint,2,opt,name=lane,proto3" json:"lane,omitempty"`
+}
+
+func (x *ZiplineRequest) Reset() {
+	*x = ZiplineRequest{}
+}
+
+func (*ZiplineRequest) ProtoMessage() {}
+
+func (x *ZiplineRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ZiplineRequest) GetLane() Lane {
+	if x != nil {
+		return x.Lane
+	}
+	return Lane_LANE_NONE
 }
 
 // MovePlayerRequest moves one player's hero a step.
@@ -806,6 +878,23 @@ func (m *TeleportRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *ZiplineRequest) CloneVT() *ZiplineRequest {
+	if m == nil {
+		return (*ZiplineRequest)(nil)
+	}
+	r := new(ZiplineRequest)
+	r.Player = m.Player
+	r.Lane = m.Lane
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ZiplineRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *MovePlayerRequest) CloneVT() *MovePlayerRequest {
 	if m == nil {
 		return (*MovePlayerRequest)(nil)
@@ -1106,6 +1195,29 @@ func (this *TeleportRequest) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+func (this *ZiplineRequest) EqualVT(that *ZiplineRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Lane != that.Lane {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ZiplineRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ZiplineRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
 func (this *MovePlayerRequest) EqualVT(that *MovePlayerRequest) bool {
 	if this == that {
 		return true
@@ -1328,6 +1440,46 @@ func (x *MovementAction) UnmarshalText(b []byte) error {
 
 // UnmarshalJSON unmarshals the MovementAction from JSON.
 func (x *MovementAction) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Lane to JSON.
+func (x Lane) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), Lane_name)
+}
+
+// MarshalText marshals the Lane to text.
+func (x Lane) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), Lane_name)), nil
+}
+
+// MarshalJSON marshals the Lane to JSON.
+func (x Lane) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Lane from JSON.
+func (x *Lane) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(Lane_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read Lane enum: %v", err)
+		return
+	}
+	*x = Lane(v)
+}
+
+// UnmarshalText unmarshals the Lane from text.
+func (x *Lane) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), Lane_value)
+	if err != nil {
+		return err
+	}
+	*x = Lane(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the Lane from JSON.
+func (x *Lane) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -1803,6 +1955,56 @@ func (x *TeleportRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the TeleportRequest from JSON.
 func (x *TeleportRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ZiplineRequest message to JSON.
+func (x *ZiplineRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Lane != 0 || s.HasField("lane") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("lane")
+		x.Lane.MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ZiplineRequest to JSON.
+func (x *ZiplineRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ZiplineRequest message from JSON.
+func (x *ZiplineRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "lane":
+			s.AddField("lane")
+			x.Lane.UnmarshalProtoJSON(s)
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ZiplineRequest from JSON.
+func (x *ZiplineRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2626,6 +2828,48 @@ func (m *TeleportRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ZiplineRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ZiplineRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ZiplineRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Lane != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Lane))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *MovePlayerRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3117,6 +3361,18 @@ func (m *TeleportRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *ZiplineRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Lane)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *MovePlayerRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3243,6 +3499,10 @@ func (m *WatchMovementRequest) SizeVT() (n int) {
 }
 
 func (x MovementAction) MarshalProtoText() string {
+	return x.String()
+}
+
+func (x Lane) MarshalProtoText() string {
 	return x.String()
 }
 
@@ -3431,6 +3691,24 @@ func (x *TeleportRequest) MarshalProtoText() string {
 }
 
 func (x *TeleportRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ZiplineRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ZiplineRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Lane != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "lane")
+		protobuf_go_lite.TextWriteStringer(&sb, Lane(x.Lane))
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ZiplineRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4181,6 +4459,69 @@ func (m *TeleportRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ZiplineRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ZiplineRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ZiplineRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lane", wireType)
+			}
+			m.Lane = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Lane = Lane(_v)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

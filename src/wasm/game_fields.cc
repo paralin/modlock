@@ -21,10 +21,6 @@ namespace {
 // kMaxString bounds the bytes ReadField copies for a string field.
 constexpr size_t kMaxString = 256;
 
-// kMaxList bounds the elements of a list field the host reads or grows to, so
-// a list the game has not initialized cannot size a huge copy.
-constexpr int32_t kMaxList = 1 << 20;
-
 // IsRulesClass reports whether class_name is one of the classes that declare
 // the game rules' fields.
 bool IsRulesClass(const std::string& class_name) {
@@ -39,30 +35,6 @@ bool IsRulesClass(const std::string& class_name) {
 bool IsModelClass(const std::string& class_name) {
   return class_name == "CGameSceneNode" || class_name == "CSkeletonInstance" ||
          class_name == "CModelState" || class_name == "CBaseAnimGraphController";
-}
-
-// ListHeader is the layout of a list field: a CUtlVector, which the game's
-// networked lists share. The elements are an array of capacity entries.
-struct ListHeader {
-  int32_t size;
-  int32_t padding;
-  void* elements;
-  int32_t capacity;
-  int32_t grow;
-};
-
-static_assert(sizeof(ListHeader) == 24);
-
-// ReadList copies the header of the list field at address.
-std::expected<ListHeader, std::string> ReadList(const unsigned char* address) {
-  ListHeader list;
-  if (!gameinterop::ReadNative(address, &list, sizeof(list))) {
-    return std::unexpected("cannot read the list");
-  }
-  if (list.size < 0 || list.size > list.capacity || list.capacity > kMaxList) {
-    return std::unexpected("the list is not initialized");
-  }
-  return list;
 }
 
 // Size returns the bytes a field type occupies in the entity.

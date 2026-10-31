@@ -134,6 +134,24 @@ message TeleportRequest {
   optional modlock.geometry.Vec3 velocity = 4;
 }
 
+// Lane is one of the map's lanes, numbered as the game numbers them. The
+// three-lane map has yellow, blue and purple ziplines and no green.
+enum Lane {
+  LANE_NONE = 0;
+  LANE_YELLOW = 1;
+  LANE_GREEN = 3;
+  LANE_BLUE = 4;
+  LANE_PURPLE = 6;
+}
+
+// ZiplineRequest puts one player's hero on a lane's zipline.
+message ZiplineRequest {
+  int32 player = 1;
+
+  // Lane is the lane whose zipline the hero rides.
+  Lane lane = 2;
+}
+
 // MovePlayerRequest moves one player's hero a step.
 message MovePlayerRequest {
   int32 player = 1;

@@ -298,7 +298,9 @@ class HostService {
   }
 
   // GiveItem gives the hero an item, enabled and free. A hero that owns it
-  // keeps its one copy.
+  // keeps its one copy. With imbue, an imbuing item strengthens the hero's
+  // ability in that slot, 0 to 3, as the shop asks when one is bought; the
+  // call fails, granting nothing, when the ability does not accept it.
   virtual std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& /*request*/) {
     return std::unexpected("this host does not support GiveItem");
   }
@@ -324,20 +326,23 @@ class HostService {
     return std::unexpected("this host does not support ReplaceAbility");
   }
 
-  // HoldModifier keeps an ability's modifier, named "<ability>/<modifier>",
-  // on the hero with no expiry, giving it back whenever the game removes it
-  // or the hero returns. The hero must own the ability or item. Every hero
-  // that gains the modifier from the same ability keeps it until the hold
-  // ends. Releasing leaves the hero's current modifier until it dies.
+  // HoldModifier keeps a modifier, named as GiveModifier names it, on the
+  // hero with no expiry, giving it back whenever the game removes it or the
+  // hero returns. Every hero that gains the modifier from the same ability
+  // keeps it until the hold ends. Releasing leaves the hero's current
+  // modifier until it dies.
   virtual std::expected<void, std::string> HoldModifier(
       const abilities::HoldModifierRequest& /*request*/) {
     return std::unexpected("this host does not support HoldModifier");
   }
 
-  // GiveModifier gives the hero an ability's modifier, named
-  // "<ability>/<modifier>", for seconds, as if the hero's own ability applied
-  // it; a hero without that ability applies it with its first ability. The
-  // game may end it sooner, as invisibility ends on a shot.
+  // GiveModifier gives the hero a modifier for seconds. An ability's
+  // modifier, named "<ability>/<modifier>", comes as if the hero's own
+  // ability applied it; a hero without that ability, or a modifier named on
+  // its own, such as Street Brawl's zipline boost
+  // modifier_street_brawl_round_start_zipline_boost, applies it with the
+  // hero's first ability. The game may end it sooner, as invisibility ends on
+  // a shot.
   virtual std::expected<void, std::string> GiveModifier(
       const abilities::GiveModifierRequest& /*request*/) {
     return std::unexpected("this host does not support GiveModifier");
@@ -348,6 +353,15 @@ class HostService {
   // follows the hero.
   virtual std::expected<void, std::string> Teleport(const movement::TeleportRequest& /*request*/) {
     return std::unexpected("this host does not support Teleport");
+  }
+
+  // Zipline puts the player's hero on a lane's zipline near the hero, riding
+  // it as from the zipline key, with the zipline's intro. It never picks
+  // another lane: it fails when the lane has no zipline the hero's team rides
+  // on this map, or the hero has no zipline ability. For Street Brawl's fast
+  // ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+  virtual std::expected<void, std::string> Zipline(const movement::ZiplineRequest& /*request*/) {
+    return std::unexpected("this host does not support Zipline");
   }
 
   // MovePlayer carries the player's hero to a position as continuous motion,
@@ -1250,6 +1264,14 @@ class HostService {
              return detail::Fail("the Teleport request is malformed");
            }
            return detail::Answer(host.Teleport(request));
+         }},
+        {"Zipline",
+         [](HostService& host, const std::string& bytes) {
+           movement::ZiplineRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the Zipline request is malformed");
+           }
+           return detail::Answer(host.Zipline(request));
          }},
         {"MovePlayer",
          [](HostService& host, const std::string& bytes) {

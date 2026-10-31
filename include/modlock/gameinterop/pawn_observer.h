@@ -46,6 +46,16 @@ using TeleportClientCamera = void (*)(void*, void*, const float*, const float*);
 [[nodiscard]] MODLOCK_API std::expected<TeleportClientCamera, std::string>
 ResolveTeleportClientCamera(const ModuleImage& server);
 
+// WarpOntoZipline is the zipline ability's warp_onto_zipline: it puts the
+// ability's hero on lane's zipline at the nearest point within the ability's
+// reach of origin, or on any lane's when lane has none in reach, facing
+// forward, or the zipline when forward is zero. The intro lasts its own
+// duration plus extra_intro seconds. It reports whether the hero rides.
+using WarpOntoZipline = bool (*)(void* ability, int32_t lane, const float* origin,
+                                 const float* forward, float extra_intro);
+[[nodiscard]] MODLOCK_API std::expected<WarpOntoZipline, std::string> ResolveWarpOntoZipline(
+    const ModuleImage& server);
+
 // PawnMotion holds the absolute-state setters the inner Teleport calls.
 // Calling them directly moves an entity continuously: a Teleport every frame
 // hides an animated hero model.
@@ -188,6 +198,8 @@ struct AbilityLayout {
 // The game numbers each hero's ability and item slots. The movement abilities
 // sit in fixed slots, active items fill four slots, and every passive item and
 // triggered ability shares one unbound slot.
+inline constexpr uint16_t kLastSignatureSlot = 3;
+inline constexpr uint16_t kZipLineSlot = 9;
 inline constexpr uint16_t kMantleSlot = 0xA;
 inline constexpr uint16_t kJumpSlot = 0xC;
 inline constexpr uint16_t kSlideSlot = 0xD;
@@ -242,6 +254,24 @@ struct MODLOCK_API ItemFunctions {
   SetUpgradeBits set_bits = nullptr;
   SwapSlots swap_slots = nullptr;
   static std::expected<ItemFunctions, std::string> Resolve(const ModuleImage& server);
+};
+
+// ImbueFunctions are the checks and calls the giveitem cheat makes to imbue
+// an ability with an item: the item definition's imbue effects, which are
+// nonzero only for an imbuing item, the ability's check that it accepts the
+// item, by both definitions, then the item's imbue. They resolve apart from
+// ItemFunctions, so a game update that breaks imbues leaves giving items
+// working.
+struct MODLOCK_API ImbueFunctions {
+  using Accepts = bool (*)(void* ability_definition, void* item_definition);
+  using Imbue = void (*)(void* item, void* ability);
+  Accepts accepts = nullptr;
+  Imbue imbue = nullptr;
+  // Effects is the offset of the uint32 m_TargetAbilityEffectsToApply in an
+  // ability definition.
+  uint32_t effects = 0;
+  static std::expected<ImbueFunctions, std::string> Resolve(const ModuleImage& server,
+                                                            void* schema);
 };
 
 // PawnObserver resolves the connected human player each frame through the
@@ -566,6 +596,16 @@ class MODLOCK_API PawnObserver {
   std::expected<Ability, std::string> GrantItem(int32_t slot, uint32_t subclass_id,
                                                 const AbilityDefinitions& definitions,
                                                 const ItemFunctions& functions);
+
+  // GrantImbuingItem grants an imbuing item as GrantItem does and imbues the
+  // ability in the hero's signature slot target with it, as giveitem <item>
+  // <slot> does. The ability must accept the item before it is granted, so a
+  // refused imbue grants nothing. An owned item imbues the ability too.
+  std::expected<Ability, std::string> GrantImbuingItem(int32_t slot, uint32_t subclass_id,
+                                                       uint16_t target,
+                                                       const AbilityDefinitions& definitions,
+                                                       const ItemFunctions& functions,
+                                                       const ImbueFunctions& imbue);
 
   // Converges owned upgrade definitions and masks through engine callbacks.
   // Restores observed active-item slots through the engine slot-table owner.

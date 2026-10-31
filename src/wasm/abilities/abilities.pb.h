@@ -1959,6 +1959,7 @@ class MODLOCK_API GiveItemRequest final : public ::google::protobuf::Message
   enum : int {
     kItemFieldNumber = 2,
     kPlayerFieldNumber = 1,
+    kImbueFieldNumber = 3,
   };
   // string item = 2;
   void clear_item() ;
@@ -1985,11 +1986,22 @@ class MODLOCK_API GiveItemRequest final : public ::google::protobuf::Message
   void _internal_set_player(::int32_t value);
 
   public:
+  // optional uint32 imbue = 3;
+  bool has_imbue() const;
+  void clear_imbue() ;
+  ::uint32_t imbue() const;
+  void set_imbue(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_imbue() const;
+  void _internal_set_imbue(::uint32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.GiveItemRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
                                    0, 51,
                                    2>
       _table_;
@@ -2013,6 +2025,7 @@ class MODLOCK_API GiveItemRequest final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::internal::ArenaStringPtr item_;
     ::int32_t player_;
+    ::uint32_t imbue_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2838,6 +2851,7 @@ class MODLOCK_API Ability final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
+    kImbuesFieldNumber = 12,
     kNameFieldNumber = 1,
     kSlotFieldNumber = 2,
     kEntityFieldNumber = 3,
@@ -2850,6 +2864,28 @@ class MODLOCK_API Ability final : public ::google::protobuf::Message
     kRechargeStartFieldNumber = 10,
     kRechargeEndFieldNumber = 11,
   };
+  // repeated string imbues = 12;
+  int imbues_size() const;
+  private:
+  int _internal_imbues_size() const;
+
+  public:
+  void clear_imbues() ;
+  const ::std::string& imbues(int index) const;
+  ::std::string* PROTOBUF_NONNULL mutable_imbues(int index);
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_imbues(int index, Arg_&& value, Args_... args);
+  ::std::string* PROTOBUF_NONNULL add_imbues();
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void add_imbues(Arg_&& value, Args_... args);
+  const ::google::protobuf::RepeatedPtrField<::std::string>& imbues() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL mutable_imbues();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::std::string>& _internal_imbues() const;
+  ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_imbues();
+
+  public:
   // string name = 1;
   void clear_name() ;
   const ::std::string& name() const;
@@ -2969,8 +3005,8 @@ class MODLOCK_API Ability final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<4, 11,
-                                   0, 51,
+  static const ::google::protobuf::internal::TcParseTable<4, 12,
+                                   0, 57,
                                    2>
       _table_;
 
@@ -2991,6 +3027,7 @@ class MODLOCK_API Ability final : public ::google::protobuf::Message
         const Ability& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField<::std::string> imbues_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::int32_t slot_;
     ::uint32_t entity_;
@@ -3839,7 +3876,7 @@ inline void Ability::clear_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.name_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000001U);
+                  0x00000002U);
 }
 inline const ::std::string& Ability::name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -3849,13 +3886,13 @@ inline const ::std::string& Ability::name() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Ability::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.name)
 }
 inline ::std::string* PROTOBUF_NONNULL Ability::mutable_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::std::string* _s = _internal_mutable_name();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.Ability.name)
   return _s;
@@ -3875,10 +3912,10 @@ inline ::std::string* PROTOBUF_NONNULL Ability::_internal_mutable_name() {
 inline ::std::string* PROTOBUF_NULLABLE Ability::release_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.abilities.Ability.name)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.name_.Set("", GetArena());
@@ -3888,9 +3925,9 @@ inline ::std::string* PROTOBUF_NULLABLE Ability::release_name() {
 inline void Ability::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
   _impl_.name_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
@@ -3904,7 +3941,7 @@ inline void Ability::clear_slot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.slot_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::int32_t Ability::slot() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.slot)
@@ -3912,7 +3949,7 @@ inline ::int32_t Ability::slot() const {
 }
 inline void Ability::set_slot(::int32_t value) {
   _internal_set_slot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.slot)
 }
 inline ::int32_t Ability::_internal_slot() const {
@@ -3929,7 +3966,7 @@ inline void Ability::clear_entity() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.entity_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline ::uint32_t Ability::entity() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.entity)
@@ -3937,7 +3974,7 @@ inline ::uint32_t Ability::entity() const {
 }
 inline void Ability::set_entity(::uint32_t value) {
   _internal_set_entity(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.entity)
 }
 inline ::uint32_t Ability::_internal_entity() const {
@@ -3954,7 +3991,7 @@ inline void Ability::clear_upgrades() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.upgrades_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline ::uint32_t Ability::upgrades() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.upgrades)
@@ -3962,7 +3999,7 @@ inline ::uint32_t Ability::upgrades() const {
 }
 inline void Ability::set_upgrades(::uint32_t value) {
   _internal_set_upgrades(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.upgrades)
 }
 inline ::uint32_t Ability::_internal_upgrades() const {
@@ -3979,7 +4016,7 @@ inline void Ability::clear_charges() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.charges_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000020U);
 }
 inline ::int32_t Ability::charges() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.charges)
@@ -3987,7 +4024,7 @@ inline ::int32_t Ability::charges() const {
 }
 inline void Ability::set_charges(::int32_t value) {
   _internal_set_charges(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.charges)
 }
 inline ::int32_t Ability::_internal_charges() const {
@@ -4004,7 +4041,7 @@ inline void Ability::clear_cooldown_end() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.cooldown_end_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000020U);
+                  0x00000040U);
 }
 inline float Ability::cooldown_end() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.cooldown_end)
@@ -4012,7 +4049,7 @@ inline float Ability::cooldown_end() const {
 }
 inline void Ability::set_cooldown_end(float value) {
   _internal_set_cooldown_end(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.cooldown_end)
 }
 inline float Ability::_internal_cooldown_end() const {
@@ -4029,7 +4066,7 @@ inline void Ability::clear_id() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.id_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000040U);
+                  0x00000080U);
 }
 inline ::uint32_t Ability::id() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.id)
@@ -4037,7 +4074,7 @@ inline ::uint32_t Ability::id() const {
 }
 inline void Ability::set_id(::uint32_t value) {
   _internal_set_id(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.id)
 }
 inline ::uint32_t Ability::_internal_id() const {
@@ -4054,7 +4091,7 @@ inline void Ability::clear_state() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.state_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000080U);
+                  0x00000100U);
 }
 inline ::uint32_t Ability::state() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.state)
@@ -4062,7 +4099,7 @@ inline ::uint32_t Ability::state() const {
 }
 inline void Ability::set_state(::uint32_t value) {
   _internal_set_state(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.state)
 }
 inline ::uint32_t Ability::_internal_state() const {
@@ -4079,7 +4116,7 @@ inline void Ability::clear_cooldown_start() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.cooldown_start_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000100U);
+                  0x00000200U);
 }
 inline float Ability::cooldown_start() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.cooldown_start)
@@ -4087,7 +4124,7 @@ inline float Ability::cooldown_start() const {
 }
 inline void Ability::set_cooldown_start(float value) {
   _internal_set_cooldown_start(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.cooldown_start)
 }
 inline float Ability::_internal_cooldown_start() const {
@@ -4104,7 +4141,7 @@ inline void Ability::clear_recharge_start() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.recharge_start_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000200U);
+                  0x00000400U);
 }
 inline float Ability::recharge_start() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.recharge_start)
@@ -4112,7 +4149,7 @@ inline float Ability::recharge_start() const {
 }
 inline void Ability::set_recharge_start(float value) {
   _internal_set_recharge_start(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.recharge_start)
 }
 inline float Ability::_internal_recharge_start() const {
@@ -4129,7 +4166,7 @@ inline void Ability::clear_recharge_end() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.recharge_end_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000400U);
+                  0x00000800U);
 }
 inline float Ability::recharge_end() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.recharge_end)
@@ -4137,7 +4174,7 @@ inline float Ability::recharge_end() const {
 }
 inline void Ability::set_recharge_end(float value) {
   _internal_set_recharge_end(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.recharge_end)
 }
 inline float Ability::_internal_recharge_end() const {
@@ -4147,6 +4184,78 @@ inline float Ability::_internal_recharge_end() const {
 inline void Ability::_internal_set_recharge_end(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.recharge_end_ = value;
+}
+
+// repeated string imbues = 12;
+inline int Ability::_internal_imbues_size() const {
+  return _internal_imbues().size();
+}
+inline int Ability::imbues_size() const {
+  return _internal_imbues_size();
+}
+inline void Ability::clear_imbues() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.imbues_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::std::string* PROTOBUF_NONNULL Ability::add_imbues()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::std::string* _s =
+      _internal_mutable_imbues()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add_mutable:modlock.wasm.abilities.Ability.imbues)
+  return _s;
+}
+inline const ::std::string& Ability::imbues(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.Ability.imbues)
+  return _internal_imbues().Get(index);
+}
+inline ::std::string* PROTOBUF_NONNULL Ability::mutable_imbues(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.abilities.Ability.imbues)
+  return _internal_mutable_imbues()->Mutable(index);
+}
+template <typename Arg_, typename... Args_>
+inline void Ability::set_imbues(int index, Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::AssignToString(*_internal_mutable_imbues()->Mutable(index), ::std::forward<Arg_>(value),
+                        args... );
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.Ability.imbues)
+}
+template <typename Arg_, typename... Args_>
+inline void Ability::add_imbues(Arg_&& value, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::google::protobuf::internal::AddToRepeatedPtrField(
+      ::google::protobuf::MessageLite::internal_visibility(), GetArena(),
+      *_internal_mutable_imbues(), ::std::forward<Arg_>(value),
+      args... );
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.abilities.Ability.imbues)
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>& Ability::imbues()
+    const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.abilities.Ability.imbues)
+  return _internal_imbues();
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+Ability::mutable_imbues() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.abilities.Ability.imbues)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_imbues();
+}
+inline const ::google::protobuf::RepeatedPtrField<::std::string>&
+Ability::_internal_imbues() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.imbues_;
+}
+inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
+Ability::_internal_mutable_imbues() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.imbues_;
 }
 
 // -------------------------------------------------------------------
@@ -4480,6 +4589,35 @@ inline void GiveItemRequest::set_allocated_item(::std::string* PROTOBUF_NULLABLE
     _impl_.item_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.GiveItemRequest.item)
+}
+
+// optional uint32 imbue = 3;
+inline bool GiveItemRequest::has_imbue() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void GiveItemRequest::clear_imbue() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.imbue_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint32_t GiveItemRequest::imbue() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.GiveItemRequest.imbue)
+  return _internal_imbue();
+}
+inline void GiveItemRequest::set_imbue(::uint32_t value) {
+  _internal_set_imbue(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.GiveItemRequest.imbue)
+}
+inline ::uint32_t GiveItemRequest::_internal_imbue() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.imbue_;
+}
+inline void GiveItemRequest::_internal_set_imbue(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.imbue_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "modlock/gameinterop/entity_abi.h"
+#include "modlock/gameinterop/native_memory.h"
 #include "modlock/gameinterop/pawn_observer.h"
 #include "pawn_observer_internal.h"
 
@@ -16,6 +17,14 @@ std::expected<TeleportClientCamera, std::string> ResolveTeleportClientCamera(
     return std::unexpected(address.error());
   }
   return reinterpret_cast<TeleportClientCamera>(*address);
+}
+
+std::expected<WarpOntoZipline, std::string> ResolveWarpOntoZipline(const ModuleImage& server) {
+  auto address = ResolveSignature(server, "ability.warp-onto-zipline");
+  if (!address) {
+    return std::unexpected(address.error());
+  }
+  return reinterpret_cast<WarpOntoZipline>(*address);
 }
 
 std::expected<PawnMotion, std::string> ResolvePawnMotion(const ModuleImage& server) {
@@ -53,6 +62,75 @@ std::expected<ItemFunctions, std::string> ItemFunctions::Resolve(const ModuleIma
   }
   functions.set_bits = *bits;
   return functions;
+}
+
+std::expected<ImbueFunctions, std::string> ImbueFunctions::Resolve(const ModuleImage& server,
+                                                                   void* schema) {
+  ImbueFunctions functions{};
+  const auto effects =
+      SchemaFieldOf(schema, "server.dll", "CitadelAbilityVData", "m_TargetAbilityEffectsToApply");
+  if (!effects) {
+    return std::unexpected(effects.error());
+  }
+  functions.effects = static_cast<uint32_t>(effects->offset);
+  const SignatureCall signatures[] = {
+      {"ability.accepts-imbue", &functions.accepts},
+      {"item.imbue", &functions.imbue},
+  };
+  auto resolved = ResolveSignatures(server, signatures);
+  if (!resolved) {
+    return std::unexpected(resolved.error());
+  }
+  return functions;
+}
+
+std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantImbuingItem(
+    int32_t slot, uint32_t subclass_id, uint16_t target, const AbilityDefinitions& definitions,
+    const ItemFunctions& functions, const ImbueFunctions& imbue) {
+  // Find the item and the ability in the target slot.
+  if (target > kLastSignatureSlot) {
+    return std::unexpected("an imbue targets an ability slot from 0 to 3");
+  }
+  const auto item = definitions.Find(subclass_id);
+  if (!item) {
+    return std::unexpected(item.error());
+  }
+  const auto owned = CurrentAbilitiesForSlot(slot);
+  if (!owned) {
+    return std::unexpected(owned.error());
+  }
+  const auto ability = std::ranges::find(*owned, target, &Ability::slot);
+  if (ability == owned->end()) {
+    return std::unexpected("the hero has no ability in that slot");
+  }
+  const auto accepting = definitions.Find(ability->subclass_id);
+  if (!accepting) {
+    return std::unexpected(accepting.error());
+  }
+
+  // The item must imbue, and the ability accept it, before the hero gets it.
+  uint32_t effects = 0;
+  if (!ReadNative(static_cast<unsigned char*>(item->native_definition_pointer) + imbue.effects,
+                  &effects, sizeof(effects)) ||
+      effects == 0) {
+    return std::unexpected(item->name + " does not imbue an ability");
+  }
+  if (!imbue.accepts(accepting->native_definition_pointer, item->native_definition_pointer)) {
+    return std::unexpected(item->name + " cannot imbue " + accepting->name);
+  }
+  auto granted = GrantItem(slot, subclass_id, definitions, functions);
+  if (!granted) {
+    return std::unexpected(granted.error());
+  }
+
+  // Imbue the ability with the granted item.
+  void* item_entity = AbilityInstance(slot, granted->handle);
+  void* ability_entity = AbilityInstance(slot, ability->handle);
+  if (item_entity == nullptr || ability_entity == nullptr) {
+    return std::unexpected("the item or the ability is no longer live");
+  }
+  imbue.imbue(item_entity, ability_entity);
+  return *granted;
 }
 
 std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantItem(

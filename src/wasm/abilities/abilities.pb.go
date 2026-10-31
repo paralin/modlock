@@ -110,6 +110,8 @@ type Ability struct {
 	// RechargeEnd is the game time its next charge returns, or zero without
 	// one.
 	RechargeEnd float32 `protobuf:"fixed32,11,opt,name=recharge_end,json=rechargeEnd,proto3" json:"rechargeEnd,omitempty"`
+	// Imbues names the abilities an imbuing item strengthens.
+	Imbues []string `protobuf:"bytes,12,rep,name=imbues,proto3" json:"imbues,omitempty"`
 }
 
 func (x *Ability) Reset() {
@@ -195,6 +197,13 @@ func (x *Ability) GetRechargeEnd() float32 {
 	return 0
 }
 
+func (x *Ability) GetImbues() []string {
+	if x != nil {
+		return x.Imbues
+	}
+	return nil
+}
+
 // AbilityOptions changes one ability of a player's hero.
 type AbilityOptions struct {
 	unknownFields []byte
@@ -278,6 +287,10 @@ type GiveItemRequest struct {
 	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
 	// Item is the item's name, such as upgrade_fleetfoot_boots.
 	Item string `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	// Imbue is the ability slot, 0 to 3, whose ability an imbuing item
+	// strengthens, as the shop asks when one is bought. An imbuing item needs
+	// one, and the ability must accept it; other items take none.
+	Imbue *uint32 `protobuf:"varint,3,opt,name=imbue,proto3,oneof" json:"imbue,omitempty"`
 }
 
 func (x *GiveItemRequest) Reset() {
@@ -298,6 +311,13 @@ func (x *GiveItemRequest) GetItem() string {
 		return x.Item
 	}
 	return ""
+}
+
+func (x *GiveItemRequest) GetImbue() uint32 {
+	if x != nil && x.Imbue != nil {
+		return *x.Imbue
+	}
+	return 0
 }
 
 // ReplaceAbilityRequest puts an ability in one of a player's ability slots.
@@ -337,13 +357,12 @@ func (x *ReplaceAbilityRequest) GetAbility() string {
 	return ""
 }
 
-// HoldModifierRequest holds or releases an ability's modifier on one
-// player's hero.
+// HoldModifierRequest holds or releases a modifier on one player's hero.
 type HoldModifierRequest struct {
 	unknownFields []byte
 	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
-	// Modifier names the modifier as "<ability>/<modifier>", such as
-	// upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
+	// Modifier names the modifier as GiveModifierRequest.modifier does, such
+	// as upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
 	Modifier string `protobuf:"bytes,2,opt,name=modifier,proto3" json:"modifier,omitempty"`
 	// Active holds the modifier when true or omitted; false releases the hold.
 	Active *bool `protobuf:"varint,3,opt,name=active,proto3,oneof" json:"active,omitempty"`
@@ -376,12 +395,13 @@ func (x *HoldModifierRequest) GetActive() bool {
 	return false
 }
 
-// GiveModifierRequest gives one player's living hero an ability's modifier.
+// GiveModifierRequest gives one player's living hero a modifier.
 type GiveModifierRequest struct {
 	unknownFields []byte
 	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
-	// Modifier names the modifier as "<ability>/<modifier>", such as
-	// ability_smoke_bomb/smokebomb_modifier_invis.
+	// Modifier names an ability's modifier as "<ability>/<modifier>", such as
+	// ability_smoke_bomb/smokebomb_modifier_invis, or a modifier of its own by
+	// its name, such as modifier_street_brawl_round_start_zipline_boost.
 	Modifier string `protobuf:"bytes,2,opt,name=modifier,proto3" json:"modifier,omitempty"`
 	// Seconds is how long the modifier lasts.
 	Seconds float32 `protobuf:"fixed32,3,opt,name=seconds,proto3" json:"seconds,omitempty"`
@@ -676,6 +696,7 @@ func (m *Ability) CloneVT() *Ability {
 	r.CooldownStart = m.CooldownStart
 	r.RechargeStart = m.RechargeStart
 	r.RechargeEnd = m.RechargeEnd
+	r.Imbues = protobuf_go_lite.CloneSlice(m.Imbues)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -715,6 +736,7 @@ func (m *GiveItemRequest) CloneVT() *GiveItemRequest {
 	r := new(GiveItemRequest)
 	r.Player = m.Player
 	r.Item = m.Item
+	r.Imbue = protobuf_go_lite.ClonePtr(m.Imbue)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -999,6 +1021,9 @@ func (this *Ability) EqualVT(that *Ability) bool {
 	if this.RechargeEnd != that.RechargeEnd {
 		return false
 	}
+	if !protobuf_go_lite.EqualSlice(this.Imbues, that.Imbues) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -1058,6 +1083,9 @@ func (this *GiveItemRequest) EqualVT(that *GiveItemRequest) bool {
 		return false
 	}
 	if this.Item != that.Item {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Imbue, that.Imbue) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1525,6 +1553,11 @@ func (x *Ability) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("rechargeEnd")
 		s.WriteFloat32(x.RechargeEnd)
 	}
+	if len(x.Imbues) > 0 || s.HasField("imbues") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("imbues")
+		s.WriteStringArray(x.Imbues)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1575,6 +1608,13 @@ func (x *Ability) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "recharge_end", "rechargeEnd":
 			s.AddField("recharge_end")
 			x.RechargeEnd = s.ReadFloat32()
+		case "imbues":
+			s.AddField("imbues")
+			if s.ReadNil() {
+				x.Imbues = nil
+				return
+			}
+			x.Imbues = s.ReadStringArray()
 		}
 	})
 }
@@ -1717,6 +1757,11 @@ func (x *GiveItemRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("item")
 		s.WriteString(x.Item)
 	}
+	if x.Imbue != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("imbue")
+		s.WriteUint32(*x.Imbue)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1740,6 +1785,14 @@ func (x *GiveItemRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "item":
 			s.AddField("item")
 			x.Item = s.ReadString()
+		case "imbue":
+			s.AddField("imbue")
+			if s.ReadNil() {
+				x.Imbue = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Imbue = &t
 		}
 	})
 }
@@ -2469,6 +2522,13 @@ func (m *Ability) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Imbues) > 0 {
+		for iNdEx := len(m.Imbues) - 1; iNdEx >= 0; iNdEx-- {
+			i = protobuf_go_lite.EncodeString(dAtA, i, m.Imbues[iNdEx])
+			i--
+			dAtA[i] = 0x62
+		}
+	}
 	if m.RechargeEnd != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.RechargeEnd))))
 		i--
@@ -2622,6 +2682,11 @@ func (m *GiveItemRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Imbue != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Imbue))
+		i--
+		dAtA[i] = 0x18
 	}
 	if len(m.Item) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Item)
@@ -3134,6 +3199,7 @@ func (m *Ability) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.CooldownStart)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.RechargeStart)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.RechargeEnd)
+	n += protobuf_go_lite.SizeStringSlice(1, m.Imbues)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3163,6 +3229,7 @@ func (m *GiveItemRequest) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Item)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Imbue)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3396,6 +3463,14 @@ func (x *Ability) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "recharge_end")
 		protobuf_go_lite.TextWriteFloat32(&sb, x.RechargeEnd)
 	}
+	if len(x.Imbues) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "imbues")
+		for i, v := range x.Imbues {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteString(&sb, v)
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -3451,6 +3526,10 @@ func (x *GiveItemRequest) MarshalProtoText() string {
 	if x.Item != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "item")
 		protobuf_go_lite.TextWriteString(&sb, x.Item)
+	}
+	if x.Imbue != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "imbue")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Imbue)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3966,6 +4045,16 @@ func (m *Ability) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.RechargeEnd = float32(math.Float32frombits(v))
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Imbues", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Imbues = append(m.Imbues, v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4146,6 +4235,16 @@ func (m *GiveItemRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Item = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Imbue", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Imbue = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <span>
 #include <utility>
+#include <vector>
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/keyvalues.h"
@@ -530,8 +532,35 @@ std::expected<abilities::AbilitiesResponse, std::string> Game::Abilities(
     out->set_cooldown_start(ability.cooldown_start);
     out->set_recharge_start(ability.charge_recharge_start);
     out->set_recharge_end(ability.charge_recharge_end);
+
+    // An imbuing item names the abilities it strengthens.
+    for (const auto token : ImbuedAbilities(slot, ability.handle)) {
+      if (auto definition = (*definitions)->Find(token)) {
+        out->add_imbues(definition->name);
+      }
+    }
   }
   return response;
+}
+
+std::vector<uint32_t> Game::ImbuedAbilities(int32_t slot, uint32_t handle) {
+  // Find the ability's list of imbued abilities.
+  auto* ability = static_cast<unsigned char*>(observer_.AbilityInstance(slot, handle));
+  auto field = services_.Field("CCitadelBaseAbility", "m_vecImbuedAbilities");
+  if (ability == nullptr || !field) {
+    return {};
+  }
+  auto list = ReadList(ability + field->offset);
+  if (!list || list->size == 0) {
+    return {};
+  }
+
+  // Copy their definition ids.
+  std::vector<uint32_t> tokens(list->size);
+  if (!gameinterop::ReadNative(list->elements, tokens.data(), tokens.size() * sizeof(uint32_t))) {
+    return {};
+  }
+  return tokens;
 }
 
 std::expected<void, std::string> Game::SetAbility(const abilities::AbilityOptions& request) {
@@ -631,9 +660,25 @@ std::expected<void, std::string> Game::GiveItem(const abilities::GiveItemRequest
     return std::unexpected(pawn.error());
   }
 
-  // Grant the item to the player's hero.
-  auto item = observer_.GrantItem(
-      request.player(), gameinterop::MakeMemberName(request.item()).hash, **definitions, **items);
+  // Grant the item to the player's hero, imbuing an ability when asked.
+  const auto item_id = gameinterop::MakeMemberName(request.item()).hash;
+  if (!request.has_imbue()) {
+    auto item = observer_.GrantItem(request.player(), item_id, **definitions, **items);
+    if (!item) {
+      return std::unexpected(item.error());
+    }
+    return {};
+  }
+  if (request.imbue() > gameinterop::kLastSignatureSlot) {
+    return std::unexpected("imbue names an ability slot from 0 to 3");
+  }
+  auto imbues = services_.Imbues();
+  if (!imbues) {
+    return std::unexpected(imbues.error());
+  }
+  auto item =
+      observer_.GrantImbuingItem(request.player(), item_id, static_cast<uint16_t>(request.imbue()),
+                                 **definitions, **items, **imbues);
   if (!item) {
     return std::unexpected(item.error());
   }
@@ -676,11 +721,6 @@ std::expected<void, std::string> Game::HoldModifier(const abilities::HoldModifie
     return {};
   }
 
-  // A held modifier is named by its ability and its own name.
-  if (key.find('/') == std::string::npos) {
-    return std::unexpected("name the modifier as <ability>/<modifier>");
-  }
-
   // Resolve the modifier once for every slot that holds it.
   if (!modifiers_.contains(key)) {
     // Resolve the modifier once for its key.
@@ -709,14 +749,7 @@ std::expected<void, std::string> Game::HoldModifier(const abilities::HoldModifie
 }
 
 std::expected<void, std::string> Game::GiveModifier(const abilities::GiveModifierRequest& request) {
-  // Split the modifier's name at its ability.
-  const auto& key = request.modifier();
-  const auto slash = key.find('/');
-  if (slash == std::string::npos) {
-    return std::unexpected("name the modifier as <ability>/<modifier>");
-  }
-
-  // Resolve the server module, the schema and the hero's abilities.
+  // Resolve the server module, the schema and the ability that applies it.
   auto image = services_.Image();
   if (!image) {
     return std::unexpected(image.error());
@@ -728,32 +761,44 @@ std::expected<void, std::string> Game::GiveModifier(const abilities::GiveModifie
   if (auto pawn = LivePawn(request.player()); !pawn) {
     return std::unexpected(pawn.error());
   }
-  auto owned = observer_.CurrentAbilitiesForSlot(request.player());
-  if (!owned) {
-    return std::unexpected(owned.error());
-  }
-
-  // The modifier's own ability applies it when the hero owns that ability;
-  // otherwise the hero's first ability does.
-  auto source = gameinterop::MakeMemberName(std::string_view(key).substr(0, slash)).hash;
-  if (std::ranges::none_of(*owned,
-                           [&](const auto& ability) { return ability.subclass_id == source; })) {
-    const auto first = std::ranges::find(*owned, 0, &gameinterop::PawnObserver::Ability::slot);
-    if (first == owned->end()) {
-      return std::unexpected("the hero has no ability to apply the modifier");
-    }
-    source = first->subclass_id;
+  auto source = ModifierSource(request.player(), request.modifier());
+  if (!source) {
+    return std::unexpected(source.error());
   }
 
   // The modifier takes its duration when attached, so the shared definition
   // gets its own duration back right away.
-  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, key, request.seconds());
+  auto modifier = gameinterop::AbilityModifier::Resolve(**image, *schema, request.modifier(),
+                                                        request.seconds());
   if (!modifier) {
     return std::unexpected(modifier.error());
   }
-  auto attached = modifier->Attach(observer_, request.player(), source);
+  auto attached = modifier->Attach(observer_, request.player(), *source);
   modifier->Restore();
   return attached;
+}
+
+std::expected<uint32_t, std::string> Game::ModifierSource(int32_t slot, std::string_view key) {
+  auto owned = observer_.CurrentAbilitiesForSlot(slot);
+  if (!owned) {
+    return std::unexpected(owned.error());
+  }
+
+  // The modifier's own ability applies it when the hero owns that ability.
+  if (const auto slash = key.find('/'); slash != std::string_view::npos) {
+    const auto named = gameinterop::MakeMemberName(key.substr(0, slash)).hash;
+    if (std::ranges::find(*owned, named, &gameinterop::PawnObserver::Ability::subclass_id) !=
+        owned->end()) {
+      return named;
+    }
+  }
+
+  // Otherwise the hero's first ability does.
+  const auto first = std::ranges::find(*owned, 0, &gameinterop::PawnObserver::Ability::slot);
+  if (first == owned->end()) {
+    return std::unexpected("the hero has no ability to apply the modifier");
+  }
+  return first->subclass_id;
 }
 
 std::expected<gameinterop::PawnObserver::Ability, std::string> Game::OwnedAbility(
@@ -804,6 +849,112 @@ std::expected<void, std::string> Game::Teleport(const movement::TeleportRequest&
   // A teleport recomputes the hero's modifier states, dropping held ones.
   ApplyHolds();
   return {};
+}
+
+std::expected<void, std::string> Game::Zipline(const movement::ZiplineRequest& request) {
+  // Resolve the warp, the player's live hero and its zipline ability.
+  const auto lane = request.lane();
+  if (lane == movement::LANE_NONE) {
+    return std::unexpected("zipline needs a lane");
+  }
+  auto warp = services_.Zipline();
+  if (!warp) {
+    return std::unexpected(warp.error());
+  }
+  auto pawn = LivePawn(request.player());
+  if (!pawn) {
+    return std::unexpected(pawn.error());
+  }
+  auto owned = observer_.CurrentAbilitiesForSlot(request.player());
+  if (!owned) {
+    return std::unexpected(owned.error());
+  }
+  const auto zipline = std::ranges::find(*owned, gameinterop::kZipLineSlot,
+                                         &gameinterop::PawnObserver::Ability::slot);
+  void* ability = zipline == owned->end()
+                      ? nullptr
+                      : observer_.AbilityInstance(request.player(), zipline->handle);
+  if (ability == nullptr) {
+    return std::unexpected("the hero has no zipline ability");
+  }
+
+  // The warp falls back to any lane's zipline when the asked lane has none
+  // within the ability's reach, so start it at the lane's nearest node.
+  auto node = NearestZiplineNode(*pawn, lane);
+  if (!node) {
+    return std::unexpected(node.error());
+  }
+  const std::array<float, 3> forward{};
+  if (!(*warp)(ability, lane, node->data(), forward.data(), 0)) {
+    return std::unexpected("the hero cannot ride the zipline now");
+  }
+  return {};
+}
+
+std::expected<std::array<float, 3>, std::string> Game::NearestZiplineNode(void* pawn,
+                                                                          int32_t lane) {
+  // Find the map's zipline nodes and read the hero's team and position.
+  auto world = World();
+  if (!world) {
+    return std::unexpected(world.error());
+  }
+  auto nodes = (*world)->Find("zip_line_node");
+  if (!nodes) {
+    return std::unexpected(nodes.error());
+  }
+  auto team_field = services_.Field("CBaseEntity", "m_iTeamNum");
+  auto lane_field = services_.Field("CCitadelZipLineNode", "m_iPrimaryLane");
+  if (!team_field) {
+    return std::unexpected(team_field.error());
+  }
+  if (!lane_field) {
+    return std::unexpected(lane_field.error());
+  }
+  const auto team = [&](void* entity) {
+    uint8_t value = 0;
+    std::memcpy(&value, static_cast<unsigned char*>(entity) + team_field->offset, sizeof(value));
+    return value;
+  };
+  const auto hero_team = team(pawn);
+  const auto from = Origin(pawn);
+  if (!from) {
+    return std::unexpected("the hero has no position");
+  }
+
+  // Take the nearest node on the lane that the hero's team may ride; team 4
+  // marks a node every team rides.
+  std::optional<std::array<float, 3>> nearest;
+  float nearest_distance = 0;
+  for (const auto handle : *nodes) {
+    auto node = Entity(handle);
+    if (!node) {
+      continue;
+    }
+    void* entity = *node;
+    int16_t node_lane = 0;
+    std::memcpy(&node_lane, static_cast<unsigned char*>(entity) + lane_field->offset,
+                sizeof(node_lane));
+    const auto node_team = team(entity);
+    if (node_lane != lane || (node_team != hero_team && node_team != 4)) {
+      continue;
+    }
+    const auto at = Origin(entity);
+    if (!at) {
+      continue;
+    }
+    const float dx = (*at)[0] - (*from)[0];
+    const float dy = (*at)[1] - (*from)[1];
+    const float dz = (*at)[2] - (*from)[2];
+    const float distance = dx * dx + dy * dy + dz * dz;
+    if (!nearest || distance < nearest_distance) {
+      nearest = at;
+      nearest_distance = distance;
+    }
+  }
+  if (!nearest) {
+    return std::unexpected("this map has no zipline on that lane for the hero's team");
+  }
+  return *nearest;
 }
 
 std::expected<void, std::string> Game::MovePlayer(const movement::MovePlayerRequest& request) {

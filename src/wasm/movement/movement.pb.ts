@@ -54,6 +54,31 @@ export const MovementAction_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
+ * Lane is one of the map's lanes, numbered as the game numbers them. The
+ * three-lane map has yellow, blue and purple ziplines and no green.
+ *
+ * @generated from enum modlock.wasm.movement.Lane
+ */
+export enum Lane {
+  NONE = 0,
+  YELLOW = 1,
+  GREEN = 3,
+  BLUE = 4,
+  PURPLE = 6,
+}
+
+export const Lane_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.movement.Lane',
+  [
+    [0, 'LANE_NONE'],
+    [1, 'LANE_YELLOW'],
+    [3, 'LANE_GREEN'],
+    [4, 'LANE_BLUE'],
+    [6, 'LANE_PURPLE'],
+  ],
+)
+
+/**
  * MovementSample is one watched hero's movement on one tick, as the game keeps
  * it. A hero whose position, velocity or ground the game does not provide has
  * no sample; another field the game did not provide is absent or zero.
@@ -600,6 +625,61 @@ export const TeleportRequest: MessageType<TeleportRequest> =
         {
           const v = m.velocity
           if (v != null) Vec3.writeField(w, 4, v)
+        }
+      },
+    },
+  )
+
+/**
+ * ZiplineRequest puts one player's hero on a lane's zipline.
+ *
+ * @generated from message modlock.wasm.movement.ZiplineRequest
+ */
+export interface ZiplineRequest {
+  player?: number
+  /**
+   * Lane is the lane whose zipline the hero rides.
+   */
+  lane?: Lane
+}
+
+export const ZiplineRequest: MessageType<ZiplineRequest> =
+  /* @__PURE__ */ createMessageType<ZiplineRequest>(
+    'modlock.wasm.movement.ZiplineRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'lane', 14, 0, Lane_Enum],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ZiplineRequest,
+      ): ZiplineRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.lane = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ZiplineRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.lane
+          if (v) w.uint32(16).int32(v)
         }
       },
     },

@@ -203,6 +203,10 @@ export interface Ability {
    * one.
    */
   rechargeEnd?: number
+  /**
+   * Imbues names the abilities an imbuing item strengthens.
+   */
+  imbues?: string[]
 }
 
 export const Ability: MessageType<Ability> =
@@ -220,6 +224,7 @@ export const Ability: MessageType<Ability> =
       [9, 'cooldown_start', 2],
       [10, 'recharge_start', 2],
       [11, 'recharge_end', 2],
+      [12, 'imbues', 9, 1],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Ability): Ability => {
@@ -259,6 +264,9 @@ export const Ability: MessageType<Ability> =
               break
             case 11:
               m.rechargeEnd = r.float()
+              break
+            case 12:
+              ;(m.imbues ??= []).push(r.string())
               break
             default:
               r.skip(t)
@@ -310,6 +318,10 @@ export const Ability: MessageType<Ability> =
         {
           const v = m.rechargeEnd
           if (v != null && v !== 0) w.uint32(93).float(v)
+        }
+        {
+          const a = m.imbues
+          if (a != null) for (const e of a) w.uint32(98).string(e)
         }
       },
     },
@@ -445,6 +457,12 @@ export interface GiveItemRequest {
    * Item is the item's name, such as upgrade_fleetfoot_boots.
    */
   item?: string
+  /**
+   * Imbue is the ability slot, 0 to 3, whose ability an imbuing item
+   * strengthens, as the shop asks when one is bought. An imbuing item needs
+   * one, and the ability must accept it; other items take none.
+   */
+  imbue?: number
 }
 
 export const GiveItemRequest: MessageType<GiveItemRequest> =
@@ -453,6 +471,7 @@ export const GiveItemRequest: MessageType<GiveItemRequest> =
     () => [
       [1, 'player', 5],
       [2, 'item', 9],
+      [3, 'imbue', 13, 4],
     ],
     {
       decode: (
@@ -470,6 +489,9 @@ export const GiveItemRequest: MessageType<GiveItemRequest> =
             case 2:
               m.item = r.string()
               break
+            case 3:
+              m.imbue = r.uint32()
+              break
             default:
               r.skip(t)
           }
@@ -484,6 +506,10 @@ export const GiveItemRequest: MessageType<GiveItemRequest> =
         {
           const v = m.item
           if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.imbue
+          if (v != null) w.uint32(24).uint32(v)
         }
       },
     },
@@ -557,16 +583,15 @@ export const ReplaceAbilityRequest: MessageType<ReplaceAbilityRequest> =
   )
 
 /**
- * HoldModifierRequest holds or releases an ability's modifier on one
- * player's hero.
+ * HoldModifierRequest holds or releases a modifier on one player's hero.
  *
  * @generated from message modlock.wasm.abilities.HoldModifierRequest
  */
 export interface HoldModifierRequest {
   player?: number
   /**
-   * Modifier names the modifier as "<ability>/<modifier>", such as
-   * upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
+   * Modifier names the modifier as GiveModifierRequest.modifier does, such
+   * as upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
    */
   modifier?: string
   /**
@@ -626,15 +651,16 @@ export const HoldModifierRequest: MessageType<HoldModifierRequest> =
   )
 
 /**
- * GiveModifierRequest gives one player's living hero an ability's modifier.
+ * GiveModifierRequest gives one player's living hero a modifier.
  *
  * @generated from message modlock.wasm.abilities.GiveModifierRequest
  */
 export interface GiveModifierRequest {
   player?: number
   /**
-   * Modifier names the modifier as "<ability>/<modifier>", such as
-   * ability_smoke_bomb/smokebomb_modifier_invis.
+   * Modifier names an ability's modifier as "<ability>/<modifier>", such as
+   * ability_smoke_bomb/smokebomb_modifier_invis, or a modifier of its own by
+   * its name, such as modifier_street_brawl_round_start_zipline_boost.
    */
   modifier?: string
   /**

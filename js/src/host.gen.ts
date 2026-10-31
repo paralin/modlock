@@ -161,6 +161,26 @@ const movementActionNames: Partial<Record<number, MovementAction>> = {
   11: 'abilityExecuted',
 }
 
+/**
+ * Lane is one of the map's lanes, numbered as the game numbers them. The
+ * three-lane map has yellow, blue and purple ziplines and no green.
+ */
+export type Lane =
+  | 'none'
+  | 'yellow'
+  | 'green'
+  | 'blue'
+  | 'purple'
+
+/** laneValues encodes each Lane. */
+const laneValues: Record<Lane, movementPb.Lane> = {
+  none: 0,
+  yellow: 1,
+  green: 3,
+  blue: 4,
+  purple: 6,
+}
+
 /** TextAlign places text across its position. */
 export type TextAlign =
   | 'left'
@@ -253,6 +273,8 @@ export interface Ability {
    * one.
    */
   readonly rechargeEnd: number
+  /** imbues names the abilities an imbuing item strengthens. */
+  readonly imbues: string[]
 }
 
 /** fromAbility decodes an Ability. */
@@ -269,6 +291,7 @@ function fromAbility(message: abilitiesPb.Ability): Ability {
     cooldownStart: message.cooldownStart ?? 0,
     rechargeStart: message.rechargeStart ?? 0,
     rechargeEnd: message.rechargeEnd ?? 0,
+    imbues: message.imbues ?? [],
   }
 }
 
@@ -2295,10 +2318,12 @@ export class Player {
 
   /**
    * giveItem gives the hero an item, enabled and free. A hero that owns it
-   * keeps its one copy.
+   * keeps its one copy. With imbue, an imbuing item strengthens the hero's
+   * ability in that slot, 0 to 3, as the shop asks when one is bought; the
+   * call fails, granting nothing, when the ability does not accept it.
    */
-  giveItem(item: string): boolean {
-    return call('GiveItem', abilitiesPb.GiveItemRequest.toBinary({ player: this.slot, item })) !== undefined
+  giveItem(item: string, imbue?: number): boolean {
+    return call('GiveItem', abilitiesPb.GiveItemRequest.toBinary({ player: this.slot, item, imbue })) !== undefined
   }
 
   /**
@@ -2314,21 +2339,24 @@ export class Player {
   }
 
   /**
-   * holdModifier keeps an ability's modifier, named "<ability>/<modifier>",
-   * on the hero with no expiry, giving it back whenever the game removes it
-   * or the hero returns. The hero must own the ability or item. Every hero
-   * that gains the modifier from the same ability keeps it until the hold
-   * ends. Releasing leaves the hero's current modifier until it dies.
+   * holdModifier keeps a modifier, named as GiveModifier names it, on the
+   * hero with no expiry, giving it back whenever the game removes it or the
+   * hero returns. Every hero that gains the modifier from the same ability
+   * keeps it until the hold ends. Releasing leaves the hero's current
+   * modifier until it dies.
    */
   holdModifier(modifier: string, active?: boolean): boolean {
     return call('HoldModifier', abilitiesPb.HoldModifierRequest.toBinary({ player: this.slot, modifier, active })) !== undefined
   }
 
   /**
-   * giveModifier gives the hero an ability's modifier, named
-   * "<ability>/<modifier>", for seconds, as if the hero's own ability applied
-   * it; a hero without that ability applies it with its first ability. The
-   * game may end it sooner, as invisibility ends on a shot.
+   * giveModifier gives the hero a modifier for seconds. An ability's
+   * modifier, named "<ability>/<modifier>", comes as if the hero's own
+   * ability applied it; a hero without that ability, or a modifier named on
+   * its own, such as Street Brawl's zipline boost
+   * modifier_street_brawl_round_start_zipline_boost, applies it with the
+   * hero's first ability. The game may end it sooner, as invisibility ends on
+   * a shot.
    */
   giveModifier(modifier: string, seconds: number): boolean {
     return call('GiveModifier', abilitiesPb.GiveModifierRequest.toBinary({ player: this.slot, modifier, seconds })) !== undefined
@@ -2341,6 +2369,17 @@ export class Player {
    */
   teleport(position: Vector, facing: Angles, velocity?: Vector): boolean {
     return call('Teleport', movementPb.TeleportRequest.toBinary({ player: this.slot, position, facing, velocity })) !== undefined
+  }
+
+  /**
+   * zipline puts the player's hero on a lane's zipline near the hero, riding
+   * it as from the zipline key, with the zipline's intro. It never picks
+   * another lane: it fails when the lane has no zipline the hero's team rides
+   * on this map, or the hero has no zipline ability. For Street Brawl's fast
+   * ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+   */
+  zipline(lane: Lane): boolean {
+    return call('Zipline', movementPb.ZiplineRequest.toBinary({ player: this.slot, lane: laneValues[lane] })) !== undefined
   }
 
   /**

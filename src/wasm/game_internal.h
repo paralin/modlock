@@ -7,6 +7,7 @@
 
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/hero_definitions.h"
+#include "modlock/gameinterop/native_memory.h"
 #include "src/wasm/wasm.pb.h"
 
 // Helpers the translation units of Game and GameServices share.
@@ -42,6 +43,34 @@ inline void SetVector(geometry::Vec3* out, const std::array<float, 3>& vector) {
 // or zero for the world, entity index 0, and for nothing.
 inline uint32_t HitEntity(const std::optional<uint32_t>& handle) {
   return handle && gameinterop::EntityIndexOf(*handle) != 0 ? *handle : 0;
+}
+
+// kMaxList bounds the elements of a list field the host reads or grows to, so
+// a list the game has not initialized cannot size a huge copy.
+inline constexpr int32_t kMaxList = 1 << 20;
+
+// ListHeader is the layout of a list field: a CUtlVector, which the game's
+// networked lists share. The elements are an array of capacity entries.
+struct ListHeader {
+  int32_t size;
+  int32_t padding;
+  void* elements;
+  int32_t capacity;
+  int32_t grow;
+};
+
+static_assert(sizeof(ListHeader) == 24);
+
+// ReadList copies the header of the list field at address.
+inline std::expected<ListHeader, std::string> ReadList(const unsigned char* address) {
+  ListHeader list;
+  if (!gameinterop::ReadNative(address, &list, sizeof(list))) {
+    return std::unexpected("cannot read the list");
+  }
+  if (list.size < 0 || list.size > list.capacity || list.capacity > kMaxList) {
+    return std::unexpected("the list is not initialized");
+  }
+  return list;
 }
 
 // FindHero resolves a request's hero by its identifier or its name.

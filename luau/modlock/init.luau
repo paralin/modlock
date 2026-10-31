@@ -128,6 +128,22 @@ local MovementAction: { [any]: any } = {
 	abilityExecuted = 11,
 }
 
+-- Lane is one of the map's lanes, numbered as the game numbers them. The
+-- three-lane map has yellow, blue and purple ziplines and no green.
+export type Lane = "none" | "yellow" | "green" | "blue" | "purple"
+local Lane: { [any]: any } = {
+	[0] = "none",
+	none = 0,
+	[1] = "yellow",
+	yellow = 1,
+	[3] = "green",
+	green = 3,
+	[4] = "blue",
+	blue = 4,
+	[6] = "purple",
+	purple = 6,
+}
+
 -- TextAlign places text across its position.
 export type TextAlign = "left" | "center" | "right"
 local TextAlign: { [any]: any } = {
@@ -204,6 +220,8 @@ export type Ability = {
 	-- rechargeEnd is the game time its next charge returns, or zero without
 	-- one.
 	rechargeEnd: number,
+	-- imbues names the abilities an imbuing item strengthens.
+	imbues: { string },
 }
 
 -- AbilityOptions changes one ability of a player's hero.
@@ -1274,8 +1292,10 @@ export type Player = {
 	-- abilities. An omitted option stays as it is.
 	setAbility: (self: Player, options: AbilityOptions) -> boolean,
 	-- giveItem gives the hero an item, enabled and free. A hero that owns it
-	-- keeps its one copy.
-	giveItem: (self: Player, item: string) -> boolean,
+	-- keeps its one copy. With imbue, an imbuing item strengthens the hero's
+	-- ability in that slot, 0 to 3, as the shop asks when one is bought; the
+	-- call fails, granting nothing, when the ability does not accept it.
+	giveItem: (self: Player, item: string, imbue: number?) -> boolean,
 	-- replaceAbility puts the ability named ability, untrained, in the hero's
 	-- ability slot index, as Ability.slot, removing the ability there. An
 	-- ability from another hero loads its models and particles only if
@@ -1283,21 +1303,30 @@ export type Player = {
 	-- otherwise its first effect stalls the game on a blocking load and the
 	-- game reports an assertion.
 	replaceAbility: (self: Player, index: number, ability: string) -> boolean,
-	-- holdModifier keeps an ability's modifier, named "<ability>/<modifier>",
-	-- on the hero with no expiry, giving it back whenever the game removes it
-	-- or the hero returns. The hero must own the ability or item. Every hero
-	-- that gains the modifier from the same ability keeps it until the hold
-	-- ends. Releasing leaves the hero's current modifier until it dies.
+	-- holdModifier keeps a modifier, named as GiveModifier names it, on the
+	-- hero with no expiry, giving it back whenever the game removes it or the
+	-- hero returns. Every hero that gains the modifier from the same ability
+	-- keeps it until the hold ends. Releasing leaves the hero's current
+	-- modifier until it dies.
 	holdModifier: (self: Player, modifier: string, active: boolean?) -> boolean,
-	-- giveModifier gives the hero an ability's modifier, named
-	-- "<ability>/<modifier>", for seconds, as if the hero's own ability applied
-	-- it; a hero without that ability applies it with its first ability. The
-	-- game may end it sooner, as invisibility ends on a shot.
+	-- giveModifier gives the hero a modifier for seconds. An ability's
+	-- modifier, named "<ability>/<modifier>", comes as if the hero's own
+	-- ability applied it; a hero without that ability, or a modifier named on
+	-- its own, such as Street Brawl's zipline boost
+	-- modifier_street_brawl_round_start_zipline_boost, applies it with the
+	-- hero's first ability. The game may end it sooner, as invisibility ends on
+	-- a shot.
 	giveModifier: (self: Player, modifier: string, seconds: number) -> boolean,
 	-- teleport moves the player's hero and turns it and the camera. With a
 	-- velocity it also sets the hero's motion, as a launch, and the camera
 	-- follows the hero.
 	teleport: (self: Player, position: Vector, facing: Angles, velocity: Vector?) -> boolean,
+	-- zipline puts the player's hero on a lane's zipline near the hero, riding
+	-- it as from the zipline key, with the zipline's intro. It never picks
+	-- another lane: it fails when the lane has no zipline the hero's team rides
+	-- on this map, or the hero has no zipline ability. For Street Brawl's fast
+	-- ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+	zipline: (self: Player, lane: Lane) -> boolean,
 	-- move carries the player's hero to a position as continuous motion,
 	-- as a recording plays back. Unlike Teleport it keeps the hero's animated
 	-- model drawn when repeated every tick, and leaves the camera alone.
@@ -1551,9 +1580,11 @@ function Player.setAbility(self: Player, options: AbilityOptions): boolean
 end
 
 -- giveItem gives the hero an item, enabled and free. A hero that owns it
--- keeps its one copy.
-function Player.giveItem(self: Player, item: string): boolean
-	return call("GiveItem", "GiveItemRequest", { player = self, item = item }) ~= nil
+-- keeps its one copy. With imbue, an imbuing item strengthens the hero's
+-- ability in that slot, 0 to 3, as the shop asks when one is bought; the
+-- call fails, granting nothing, when the ability does not accept it.
+function Player.giveItem(self: Player, item: string, imbue: number?): boolean
+	return call("GiveItem", "GiveItemRequest", { player = self, item = item, imbue = imbue }) ~= nil
 end
 
 -- replaceAbility puts the ability named ability, untrained, in the hero's
@@ -1566,19 +1597,22 @@ function Player.replaceAbility(self: Player, index: number, ability: string): bo
 	return call("ReplaceAbility", "ReplaceAbilityRequest", { player = self, index = index, ability = ability }) ~= nil
 end
 
--- holdModifier keeps an ability's modifier, named "<ability>/<modifier>",
--- on the hero with no expiry, giving it back whenever the game removes it
--- or the hero returns. The hero must own the ability or item. Every hero
--- that gains the modifier from the same ability keeps it until the hold
--- ends. Releasing leaves the hero's current modifier until it dies.
+-- holdModifier keeps a modifier, named as GiveModifier names it, on the
+-- hero with no expiry, giving it back whenever the game removes it or the
+-- hero returns. Every hero that gains the modifier from the same ability
+-- keeps it until the hold ends. Releasing leaves the hero's current
+-- modifier until it dies.
 function Player.holdModifier(self: Player, modifier: string, active: boolean?): boolean
 	return call("HoldModifier", "HoldModifierRequest", { player = self, modifier = modifier, active = active }) ~= nil
 end
 
--- giveModifier gives the hero an ability's modifier, named
--- "<ability>/<modifier>", for seconds, as if the hero's own ability applied
--- it; a hero without that ability applies it with its first ability. The
--- game may end it sooner, as invisibility ends on a shot.
+-- giveModifier gives the hero a modifier for seconds. An ability's
+-- modifier, named "<ability>/<modifier>", comes as if the hero's own
+-- ability applied it; a hero without that ability, or a modifier named on
+-- its own, such as Street Brawl's zipline boost
+-- modifier_street_brawl_round_start_zipline_boost, applies it with the
+-- hero's first ability. The game may end it sooner, as invisibility ends on
+-- a shot.
 function Player.giveModifier(self: Player, modifier: string, seconds: number): boolean
 	return call("GiveModifier", "GiveModifierRequest", { player = self, modifier = modifier, seconds = seconds }) ~= nil
 end
@@ -1588,6 +1622,15 @@ end
 -- follows the hero.
 function Player.teleport(self: Player, position: Vector, facing: Angles, velocity: Vector?): boolean
 	return call("Teleport", "TeleportRequest", { player = self, position = position, facing = facing, velocity = velocity }) ~= nil
+end
+
+-- zipline puts the player's hero on a lane's zipline near the hero, riding
+-- it as from the zipline key, with the zipline's intro. It never picks
+-- another lane: it fails when the lane has no zipline the hero's team rides
+-- on this map, or the hero has no zipline ability. For Street Brawl's fast
+-- ride, give the hero modifier_street_brawl_round_start_zipline_boost too.
+function Player.zipline(self: Player, lane: Lane): boolean
+	return call("Zipline", "ZiplineRequest", { player = self, lane = lane }) ~= nil
 end
 
 -- move carries the player's hero to a position as continuous motion,
@@ -1935,6 +1978,7 @@ schema.Ability = {
 	{ number = 9, name = "cooldownStart", kind = "float" },
 	{ number = 10, name = "rechargeStart", kind = "float" },
 	{ number = 11, name = "rechargeEnd", kind = "float" },
+	{ number = 12, name = "imbues", kind = "string", repeated = true },
 }
 schema.AbilityOptions = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -1948,6 +1992,7 @@ schema.AbilityOptions = {
 schema.GiveItemRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "item", kind = "string" },
+	{ number = 3, name = "imbue", kind = "uint32", optional = true },
 }
 schema.ReplaceAbilityRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -2361,6 +2406,10 @@ schema.TeleportRequest = {
 	{ number = 2, name = "position", kind = "message", message = "Vec3" },
 	{ number = 3, name = "facing", kind = "message", message = "EulerAngles" },
 	{ number = 4, name = "velocity", kind = "message", optional = true, message = "Vec3" },
+}
+schema.ZiplineRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "lane", kind = "enum", enum = Lane },
 }
 schema.MovePlayerRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

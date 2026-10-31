@@ -192,6 +192,13 @@ std::expected<const gameinterop::ItemFunctions*, std::string> GameServices::Item
   return &*items_;
 }
 
+std::expected<const gameinterop::ImbueFunctions*, std::string> GameServices::Imbues() {
+  if (auto cached = Cache(imbues_, &gameinterop::ImbueFunctions::Resolve); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*imbues_;
+}
+
 std::expected<const gameinterop::AbilitySlots*, std::string> GameServices::Slots() {
   if (auto cached = Cache(slots_, &gameinterop::AbilitySlots::Resolve); !cached) {
     return std::unexpected(cached.error());
@@ -232,6 +239,13 @@ std::expected<gameinterop::TeleportClientCamera, std::string> GameServices::Tele
     return std::unexpected(cached.error());
   }
   return teleport_;
+}
+
+std::expected<gameinterop::WarpOntoZipline, std::string> GameServices::Zipline() {
+  if (auto cached = Cache(zipline_, &gameinterop::ResolveWarpOntoZipline); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return zipline_;
 }
 
 std::expected<const gameinterop::PawnMotion*, std::string> GameServices::Motion() {

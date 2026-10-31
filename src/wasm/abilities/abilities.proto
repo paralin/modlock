@@ -61,6 +61,9 @@ message Ability {
   // RechargeEnd is the game time its next charge returns, or zero without
   // one.
   float recharge_end = 11;
+
+  // Imbues names the abilities an imbuing item strengthens.
+  repeated string imbues = 12;
 }
 
 // AbilityOptions changes one ability of a player's hero.
@@ -96,6 +99,11 @@ message GiveItemRequest {
 
   // Item is the item's name, such as upgrade_fleetfoot_boots.
   string item = 2;
+
+  // Imbue is the ability slot, 0 to 3, whose ability an imbuing item
+  // strengthens, as the shop asks when one is bought. An imbuing item needs
+  // one, and the ability must accept it; other items take none.
+  optional uint32 imbue = 3;
 }
 
 // ReplaceAbilityRequest puts an ability in one of a player's ability slots.
@@ -109,25 +117,25 @@ message ReplaceAbilityRequest {
   string ability = 3;
 }
 
-// HoldModifierRequest holds or releases an ability's modifier on one
-// player's hero.
+// HoldModifierRequest holds or releases a modifier on one player's hero.
 message HoldModifierRequest {
   int32 player = 1;
 
-  // Modifier names the modifier as "<ability>/<modifier>", such as
-  // upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
+  // Modifier names the modifier as GiveModifierRequest.modifier does, such
+  // as upgrade_fleetfoot_boots/modifier_fleetfoot_boots.
   string modifier = 2;
 
   // Active holds the modifier when true or omitted; false releases the hold.
   optional bool active = 3;
 }
 
-// GiveModifierRequest gives one player's living hero an ability's modifier.
+// GiveModifierRequest gives one player's living hero a modifier.
 message GiveModifierRequest {
   int32 player = 1;
 
-  // Modifier names the modifier as "<ability>/<modifier>", such as
-  // ability_smoke_bomb/smokebomb_modifier_invis.
+  // Modifier names an ability's modifier as "<ability>/<modifier>", such as
+  // ability_smoke_bomb/smokebomb_modifier_invis, or a modifier of its own by
+  // its name, such as modifier_street_brawl_round_start_zipline_boost.
   string modifier = 2;
 
   // Seconds is how long the modifier lasts.

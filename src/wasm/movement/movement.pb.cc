@@ -30,6 +30,32 @@ namespace modlock {
 namespace wasm {
 namespace movement {
 
+inline constexpr ZiplineRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        player_{0},
+        lane_{static_cast< ::modlock::wasm::movement::Lane >(0)} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ZiplineRequest::ZiplineRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(ZiplineRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct ZiplineRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ZiplineRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ZiplineRequestDefaultTypeInternal() {}
+  union {
+    ZiplineRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ZiplineRequestDefaultTypeInternal _ZiplineRequest_default_instance_;
+
 inline constexpr WatchMovementRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -356,7 +382,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace wasm
 }  // namespace modlock
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[1];
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[2];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto = nullptr;
 const ::uint32_t
@@ -445,6 +471,13 @@ const ::uint32_t
         1,
         2,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::ZiplineRequest, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::ZiplineRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::ZiplineRequest, _impl_.lane_),
+        0,
+        1,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovePlayerRequest, _impl_._has_bits_),
         7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovePlayerRequest, _impl_.player_),
@@ -517,19 +550,21 @@ static const ::_pbi::MigrationSchema
         {45, sizeof(::modlock::wasm::movement::MovementCommand)},
         {62, sizeof(::modlock::wasm::movement::LandedEvent)},
         {71, sizeof(::modlock::wasm::movement::TeleportRequest)},
-        {82, sizeof(::modlock::wasm::movement::MovePlayerRequest)},
-        {93, sizeof(::modlock::wasm::movement::SteerRequest)},
-        {100, sizeof(::modlock::wasm::movement::Steering)},
-        {113, sizeof(::modlock::wasm::movement::DriveRequest)},
-        {120, sizeof(::modlock::wasm::movement::DriveCommand)},
-        {133, sizeof(::modlock::wasm::movement::SetVelocityRequest)},
-        {140, sizeof(::modlock::wasm::movement::WatchMovementRequest)},
+        {82, sizeof(::modlock::wasm::movement::ZiplineRequest)},
+        {89, sizeof(::modlock::wasm::movement::MovePlayerRequest)},
+        {100, sizeof(::modlock::wasm::movement::SteerRequest)},
+        {107, sizeof(::modlock::wasm::movement::Steering)},
+        {120, sizeof(::modlock::wasm::movement::DriveRequest)},
+        {127, sizeof(::modlock::wasm::movement::DriveCommand)},
+        {140, sizeof(::modlock::wasm::movement::SetVelocityRequest)},
+        {147, sizeof(::modlock::wasm::movement::WatchMovementRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::movement::_MovementSample_default_instance_._instance,
     &::modlock::wasm::movement::_MovementCommand_default_instance_._instance,
     &::modlock::wasm::movement::_LandedEvent_default_instance_._instance,
     &::modlock::wasm::movement::_TeleportRequest_default_instance_._instance,
+    &::modlock::wasm::movement::_ZiplineRequest_default_instance_._instance,
     &::modlock::wasm::movement::_MovePlayerRequest_default_instance_._instance,
     &::modlock::wasm::movement::_SteerRequest_default_instance_._instance,
     &::modlock::wasm::movement::_Steering_default_instance_._instance,
@@ -569,40 +604,44 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     " \001(\0132\026.modlock.geometry.Vec3\022-\n\006facing\030\003"
     " \001(\0132\035.modlock.geometry.EulerAngles\022-\n\010v"
     "elocity\030\004 \001(\0132\026.modlock.geometry.Vec3H\000\210"
-    "\001\001B\013\n\t_velocity\"\270\001\n\021MovePlayerRequest\022\016\n"
-    "\006player\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modloc"
-    "k.geometry.Vec3\022-\n\006facing\030\003 \001(\0132\035.modloc"
-    "k.geometry.EulerAngles\022-\n\010velocity\030\004 \001(\013"
-    "2\026.modlock.geometry.Vec3H\000\210\001\001B\013\n\t_veloci"
-    "ty\"c\n\014SteerRequest\022\016\n\006player\030\001 \001(\005\0226\n\010st"
-    "eering\030\002 \001(\0132\037.modlock.wasm.movement.Ste"
-    "eringH\000\210\001\001B\013\n\t_steering\"\330\001\n\010Steering\0227\n\007"
-    "command\030\001 \001(\0132&.modlock.wasm.movement.Mo"
-    "vementCommand\022(\n\010position\030\002 \001(\0132\026.modloc"
-    "k.geometry.Vec3\022(\n\010velocity\030\003 \001(\0132\026.modl"
-    "ock.geometry.Vec3\022\020\n\010grounded\030\004 \001(\010\022-\n\006f"
-    "acing\030\005 \001(\0132\035.modlock.geometry.EulerAngl"
-    "es\"e\n\014DriveRequest\022\016\n\006player\030\001 \001(\005\0229\n\007co"
-    "mmand\030\002 \001(\0132#.modlock.wasm.movement.Driv"
-    "eCommandH\000\210\001\001B\n\n\010_command\"{\n\014DriveComman"
-    "d\022-\n\006facing\030\001 \001(\0132\035.modlock.geometry.Eul"
-    "erAngles\022\017\n\007forward\030\002 \001(\002\022\014\n\004left\030\003 \001(\002\022"
-    "\014\n\004held\030\004 \001(\004\022\017\n\007pressed\030\005 \001(\004\"N\n\022SetVel"
-    "ocityRequest\022\016\n\006player\030\001 \001(\005\022(\n\010velocity"
-    "\030\002 \001(\0132\026.modlock.geometry.Vec3\"5\n\024WatchM"
-    "ovementRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005watch\030"
-    "\002 \001(\010*\216\003\n\016MovementAction\022\033\n\027MOVEMENT_ACT"
-    "ION_UNKNOWN\020\000\022\032\n\026MOVEMENT_ACTION_LANDED\020"
-    "\001\022$\n MOVEMENT_ACTION_ZIPLINE_ATTACHED\020\002\022"
-    "\037\n\033MOVEMENT_ACTION_GROUND_DASH\020\003\022\031\n\025MOVE"
-    "MENT_ACTION_SLIDE\020\004\022\036\n\032MOVEMENT_ACTION_B"
-    "OUNCE_PAD\020\005\022\035\n\031MOVEMENT_ACTION_DASH_JUMP"
-    "\020\006\022\034\n\030MOVEMENT_ACTION_AIR_JUMP\020\007\022\035\n\031MOVE"
-    "MENT_ACTION_WALL_JUMP\020\010\022\034\n\030MOVEMENT_ACTI"
-    "ON_AIR_DASH\020\t\022!\n\035MOVEMENT_ACTION_MELEE_S"
-    "TARTED\020\n\022$\n MOVEMENT_ACTION_ABILITY_EXEC"
-    "UTED\020\013B7Z5github.com/paralin/modlock/src"
-    "/wasm/movement;movementb\006proto3"
+    "\001\001B\013\n\t_velocity\"K\n\016ZiplineRequest\022\016\n\006pla"
+    "yer\030\001 \001(\005\022)\n\004lane\030\002 \001(\0162\033.modlock.wasm.m"
+    "ovement.Lane\"\270\001\n\021MovePlayerRequest\022\016\n\006pl"
+    "ayer\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modlock.g"
+    "eometry.Vec3\022-\n\006facing\030\003 \001(\0132\035.modlock.g"
+    "eometry.EulerAngles\022-\n\010velocity\030\004 \001(\0132\026."
+    "modlock.geometry.Vec3H\000\210\001\001B\013\n\t_velocity\""
+    "c\n\014SteerRequest\022\016\n\006player\030\001 \001(\005\0226\n\010steer"
+    "ing\030\002 \001(\0132\037.modlock.wasm.movement.Steeri"
+    "ngH\000\210\001\001B\013\n\t_steering\"\330\001\n\010Steering\0227\n\007com"
+    "mand\030\001 \001(\0132&.modlock.wasm.movement.Movem"
+    "entCommand\022(\n\010position\030\002 \001(\0132\026.modlock.g"
+    "eometry.Vec3\022(\n\010velocity\030\003 \001(\0132\026.modlock"
+    ".geometry.Vec3\022\020\n\010grounded\030\004 \001(\010\022-\n\006faci"
+    "ng\030\005 \001(\0132\035.modlock.geometry.EulerAngles\""
+    "e\n\014DriveRequest\022\016\n\006player\030\001 \001(\005\0229\n\007comma"
+    "nd\030\002 \001(\0132#.modlock.wasm.movement.DriveCo"
+    "mmandH\000\210\001\001B\n\n\010_command\"{\n\014DriveCommand\022-"
+    "\n\006facing\030\001 \001(\0132\035.modlock.geometry.EulerA"
+    "ngles\022\017\n\007forward\030\002 \001(\002\022\014\n\004left\030\003 \001(\002\022\014\n\004"
+    "held\030\004 \001(\004\022\017\n\007pressed\030\005 \001(\004\"N\n\022SetVeloci"
+    "tyRequest\022\016\n\006player\030\001 \001(\005\022(\n\010velocity\030\002 "
+    "\001(\0132\026.modlock.geometry.Vec3\"5\n\024WatchMove"
+    "mentRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005watch\030\002 \001"
+    "(\010*\216\003\n\016MovementAction\022\033\n\027MOVEMENT_ACTION"
+    "_UNKNOWN\020\000\022\032\n\026MOVEMENT_ACTION_LANDED\020\001\022$"
+    "\n MOVEMENT_ACTION_ZIPLINE_ATTACHED\020\002\022\037\n\033"
+    "MOVEMENT_ACTION_GROUND_DASH\020\003\022\031\n\025MOVEMEN"
+    "T_ACTION_SLIDE\020\004\022\036\n\032MOVEMENT_ACTION_BOUN"
+    "CE_PAD\020\005\022\035\n\031MOVEMENT_ACTION_DASH_JUMP\020\006\022"
+    "\034\n\030MOVEMENT_ACTION_AIR_JUMP\020\007\022\035\n\031MOVEMEN"
+    "T_ACTION_WALL_JUMP\020\010\022\034\n\030MOVEMENT_ACTION_"
+    "AIR_DASH\020\t\022!\n\035MOVEMENT_ACTION_MELEE_STAR"
+    "TED\020\n\022$\n MOVEMENT_ACTION_ABILITY_EXECUTE"
+    "D\020\013*V\n\004Lane\022\r\n\tLANE_NONE\020\000\022\017\n\013LANE_YELLO"
+    "W\020\001\022\016\n\nLANE_GREEN\020\003\022\r\n\tLANE_BLUE\020\004\022\017\n\013LA"
+    "NE_PURPLE\020\006B7Z5github.com/paralin/modloc"
+    "k/src/wasm/movement;movementb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto_deps[1] = {
@@ -612,13 +651,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto = {
     false,
     false,
-    2511,
+    2676,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto,
     "github.com/paralin/modlock/src/wasm/movement/movement.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto_deps,
     1,
-    11,
+    12,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto::offsets,
@@ -634,6 +673,12 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL MovementAction_descri
 }
 PROTOBUF_CONSTINIT const uint32_t MovementAction_internal_data_[] = {
     786432u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Lane_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[1];
+}
+PROTOBUF_CONSTINIT const uint32_t Lane_internal_data_[] = {
+    131072u, 32u, 22u, };
 // ===================================================================
 
 class MovementSample::_Internal {
@@ -2726,6 +2771,299 @@ void TeleportRequest::InternalSwap(TeleportRequest* PROTOBUF_RESTRICT PROTOBUF_N
 }
 
 ::google::protobuf::Metadata TeleportRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class ZiplineRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<ZiplineRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_._has_bits_);
+};
+
+ZiplineRequest::ZiplineRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ZiplineRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.movement.ZiplineRequest)
+}
+ZiplineRequest::ZiplineRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ZiplineRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, ZiplineRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE ZiplineRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void ZiplineRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           0,
+           offsetof(Impl_, lane_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::lane_));
+}
+ZiplineRequest::~ZiplineRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.movement.ZiplineRequest)
+  SharedDtor(*this);
+}
+inline void ZiplineRequest::SharedDtor(MessageLite& self) {
+  ZiplineRequest& this_ = static_cast<ZiplineRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL ZiplineRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) ZiplineRequest(arena);
+}
+constexpr auto ZiplineRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ZiplineRequest),
+                                            alignof(ZiplineRequest));
+}
+constexpr auto ZiplineRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_ZiplineRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &ZiplineRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<ZiplineRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &ZiplineRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<ZiplineRequest>(), &ZiplineRequest::ByteSizeLong,
+              &ZiplineRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_._cached_size_),
+          false,
+      },
+      &ZiplineRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull ZiplineRequest_class_data_ =
+        ZiplineRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+ZiplineRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&ZiplineRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(ZiplineRequest_class_data_.tc_table);
+  return ZiplineRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
+ZiplineRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    ZiplineRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::movement::ZiplineRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .modlock.wasm.movement.Lane lane = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ZiplineRequest, _impl_.lane_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_.lane_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ZiplineRequest, _impl_.player_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_.player_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_.player_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // .modlock.wasm.movement.Lane lane = 2;
+    {PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_.lane_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void ZiplineRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.movement.ZiplineRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.lane_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.lane_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL ZiplineRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const ZiplineRequest& this_ = static_cast<const ZiplineRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL ZiplineRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const ZiplineRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.movement.ZiplineRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // .modlock.wasm.movement.Lane lane = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_lane() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          2, this_._internal_lane(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.movement.ZiplineRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t ZiplineRequest::ByteSizeLong(const MessageLite& base) {
+  const ZiplineRequest& this_ = static_cast<const ZiplineRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t ZiplineRequest::ByteSizeLong() const {
+  const ZiplineRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.movement.ZiplineRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // .modlock.wasm.movement.Lane lane = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_lane() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_lane());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void ZiplineRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<ZiplineRequest*>(&to_msg);
+  auto& from = static_cast<const ZiplineRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.movement.ZiplineRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_lane() != 0) {
+        _this->_impl_.lane_ = from._impl_.lane_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void ZiplineRequest::CopyFrom(const ZiplineRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.movement.ZiplineRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void ZiplineRequest::InternalSwap(ZiplineRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_.lane_)
+      + sizeof(ZiplineRequest::_impl_.lane_)
+      - PROTOBUF_FIELD_OFFSET(ZiplineRequest, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
+}
+
+::google::protobuf::Metadata ZiplineRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================
