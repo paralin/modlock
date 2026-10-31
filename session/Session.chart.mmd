@@ -1,0 +1,26 @@
+---
+title: "Modlock play session"
+---
+stateDiagram-v2
+  s0: Starting: mods mounted, host starting
+  s1: Host gone: Wait cleans up
+  s2: Stopping: unmounting the mods
+  s3: Host up: waiting for Ready
+  s4: Stopping: ending the host
+  s5: Playing: the game runs
+  s6: Ended: mods unmounted
+  [*] --> s0
+  s0 --> s1: the host exits or crashes
+  s0 --> s2: the player ends the session or Start's context ends
+  s0 --> s3: the host dials the control link
+  s1 --> s2: the player ends the session or Start's context ends
+  s2 --> s4: Stop unmounts the mods
+  s3 --> s1: the host exits or crashes
+  s3 --> s2: the player ends the session or Start's context ends
+  s4 --> s1: Stop ends the host
+  s3 --> s5: Ready arrives and the game launches
+  s1 --> s6: the link's last events arrive
+  s5 --> s1: the host exits or crashes
+  s5 --> s2: the player ends the session or Start's context ends
+  s2 --> s6: the link's last events arrive
+  s4 --> s6: the link's last events arrive
