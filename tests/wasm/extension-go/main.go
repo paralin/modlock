@@ -1,3 +1,5 @@
+//go:build wasip1
+
 // Command extension-go serves the echo service, which answers each call with
 // the host's shout service's answer to the same payload; the hold service,
 // whose methods take and release the hold on its running build; the reach
