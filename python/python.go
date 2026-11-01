@@ -9,7 +9,6 @@ package python
 import (
 	"context"
 	"embed"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -73,8 +72,7 @@ func Node(ctx context.Context) (string, error) {
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		downloaded := dir + filepath.Ext(archive)
-		defer os.Remove(downloaded)
+		downloaded := staging + filepath.Ext(archive)
 		url := "https://nodejs.org/dist/v" + NodeVersion + "/" + archive
 		if err := fetch.File(ctx, url, downloaded); err != nil {
 			return err

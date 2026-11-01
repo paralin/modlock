@@ -26,9 +26,8 @@ func DownloadHost(ctx context.Context, version string) (string, error) {
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		// Download the archive beside the final directory, then unpack it.
-		archive := dir + ".zip"
-		defer os.Remove(archive)
+		// Download the archive beside the staging directory, then unpack it.
+		archive := staging + ".zip"
 		if err := fetch.File(ctx, fetch.Release(version, HostArchive), archive); err != nil {
 			return err
 		}

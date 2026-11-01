@@ -2,7 +2,6 @@ package scriptc
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -62,8 +61,7 @@ func install(ctx context.Context, name string, release asset, prefix string) (st
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		archive := dir + ".tar.gz"
-		defer os.Remove(archive)
+		archive := staging + ".tar.gz"
 		url := "https://github.com/paralin/scriptc/releases/download/v" + Version + "/" + release.name
 		if err := fetch.File(ctx, url, archive); err != nil {
 			return err

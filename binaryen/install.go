@@ -4,7 +4,6 @@ package binaryen
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -40,8 +39,7 @@ func WasmOpt(ctx context.Context) (string, error) {
 	}
 	err = fetch.Install(dir, func(staging string) error {
 		// Download the release and check it before unpacking.
-		path := dir + ".tar.gz"
-		defer os.Remove(path)
+		path := staging + ".tar.gz"
 		url := "https://github.com/WebAssembly/binaryen/releases/download/" + Version + "/" + archive.name
 		if err := fetch.File(ctx, url, path); err != nil {
 			return err

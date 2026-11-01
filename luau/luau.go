@@ -8,7 +8,6 @@ package luau
 import (
 	"context"
 	"embed"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -49,8 +48,7 @@ func Analyzer(ctx context.Context) (string, error) {
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		archive := dir + ".zip"
-		defer os.Remove(archive)
+		archive := staging + ".zip"
 		url := "https://github.com/luau-lang/luau/releases/download/" + Version + "/" + release.asset
 		if err := fetch.File(ctx, url, archive); err != nil {
 			return err
