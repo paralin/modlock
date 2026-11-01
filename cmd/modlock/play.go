@@ -15,6 +15,7 @@ import (
 	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/session"
+	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/pkg/errors"
 )
 
@@ -123,10 +124,12 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 		}
 	}
 
-	// Start a server unless the game cannot run here.
+	// Start a server unless the game cannot run here, naming the source
+	// lines of the mods' slow frames.
+	events := locateFrames(mods, out.host)
 	reason := "--sandbox asked for it"
 	if !c.Bool("sandbox") {
-		running, err := startServer(c, out, mods, mapName, logPath)
+		running, err := startServer(c, out, events, mods, mapName, logPath)
 		if err == nil {
 			return running, nil
 		}
@@ -154,13 +157,13 @@ func startSession(c *cli.Context, out *printer, mods []string, logPath string) (
 			host, err := session.FindHost(ctx, Version)
 			return filepath.Dir(host), err
 		},
-		Events: out.host,
+		Events: events,
 	}), nil
 }
 
 // startServer starts a local server with mods on mapName, writing its console
-// to logPath.
-func startServer(c *cli.Context, out *printer, mods []string, mapName, logPath string) (*session.Session, error) {
+// to logPath and passing the host's events to events.
+func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), mods []string, mapName, logPath string) (*session.Session, error) {
 	// Keep the server's console in a file; the mods' own lines arrive as
 	// events.
 	if err := os.MkdirAll(filepath.Dir(logPath), 0o755); err != nil {
@@ -196,7 +199,7 @@ func startServer(c *cli.Context, out *printer, mods []string, mapName, logPath s
 		Interface:  ui,
 		Relay:      c.String("ui-relay"),
 		Renderer:   renderer,
-		Events:     out.host,
+		Events:     events,
 	})
 	if err != nil {
 		return nil, err
