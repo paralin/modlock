@@ -61,7 +61,7 @@ func run(dir, ts, golang, luau string) error {
 	if len(classes) == 0 {
 		return fmt.Errorf("%s holds no entity classes", dir)
 	}
-	e, err := readEntities(dir, classes)
+	e, err := readEntities(dir, s, classes)
 	if err != nil {
 		return err
 	}

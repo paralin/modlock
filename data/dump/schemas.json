@@ -1,5 +1,5 @@
 {
- "build": "6826",
+ "build": "6839",
  "classes": [
   {
    "name": "AnimationDecodeDebugDumpElement_t",
@@ -107746,7 +107746,7 @@
   {
    "name": "CCitadel_Ability_Artist_PullBrush",
    "module": "server",
-   "size": 6472,
+   "size": 6480,
    "alignment": 8,
    "bases": [
     {
@@ -127949,7 +127949,7 @@
   {
    "name": "CCitadel_Ability_Shiv_KillingBlow",
    "module": "server",
-   "size": 8136,
+   "size": 8144,
    "alignment": 8,
    "bases": [
     {
@@ -128021,22 +128021,22 @@
     {
      "name": "m_flRecastWindowEnd",
      "type": "GameTime_t",
-     "offset": 7004
+     "offset": 7012
     },
     {
      "name": "m_BuffModifier",
      "type": "CModifierHandleTyped\u003c CCitadelModifier \u003e",
-     "offset": 8064
+     "offset": 8072
     },
     {
      "name": "m_RecastWindowModifierHandle",
      "type": "CModifierHandleTyped\u003c CCitadelModifier \u003e",
-     "offset": 8088
+     "offset": 8096
     },
     {
      "name": "m_RageDrainSuppressedHandle",
      "type": "CModifierHandleTyped\u003c CCitadelModifier \u003e",
-     "offset": 8112
+     "offset": 8120
     }
    ],
    "metadata": [
@@ -194647,39 +194647,44 @@
      ]
     },
     {
-     "name": "m_flRiseAcc",
+     "name": "m_flSlamFailSafeTime",
      "type": "float32",
      "offset": 2920
     },
     {
-     "name": "m_flRiseMaxSpeed",
+     "name": "m_flRiseAcc",
      "type": "float32",
      "offset": 2924
     },
     {
-     "name": "m_flRiseDecayFracStart",
+     "name": "m_flRiseMaxSpeed",
      "type": "float32",
      "offset": 2928
     },
     {
-     "name": "m_flRiseDecayFracEnd",
+     "name": "m_flRiseDecayFracStart",
      "type": "float32",
      "offset": 2932
     },
     {
-     "name": "m_flSlamAcc",
+     "name": "m_flRiseDecayFracEnd",
      "type": "float32",
      "offset": 2936
     },
     {
-     "name": "m_flSlamMaxSpeed",
+     "name": "m_flSlamAcc",
      "type": "float32",
      "offset": 2940
     },
     {
-     "name": "m_flSlamImpactRadius",
+     "name": "m_flSlamMaxSpeed",
      "type": "float32",
      "offset": 2944
+    },
+    {
+     "name": "m_flSlamImpactRadius",
+     "type": "float32",
+     "offset": 2948
     }
    ],
    "metadata": [
@@ -196590,6 +196595,25 @@
    ],
    "flags": [
     "MHasKV3TransferPolymorphicClassname"
+   ]
+  },
+  {
+   "name": "CModifier_CloakingDevice_Active_Invis",
+   "module": "server",
+   "size": 1776,
+   "alignment": 255,
+   "bases": [
+    {
+     "name": "CCitadel_Modifier_Invis",
+     "module": "server"
+    }
+   ],
+   "fields": [
+    {
+     "name": "m_flAmbushReadyTime",
+     "type": "GameTime_t",
+     "offset": 1768
+    }
    ]
   },
   {

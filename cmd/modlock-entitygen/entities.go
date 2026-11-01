@@ -141,8 +141,9 @@ const everyEntity = "CBaseEntity"
 
 // readEntities reads entities.json and survey.json from a game dump directory
 // and keeps the designer names whose class is one of classes and that the
-// survey saw survive their spawn.
-func readEntities(dir string, classes []*class) (*entities, error) {
+// survey saw survive their spawn. A data map also takes the keys of the
+// components its schema class holds, read from s.
+func readEntities(dir string, s *schema, classes []*class) (*entities, error) {
 	// Decode the dump and learn which names live.
 	data, err := os.ReadFile(filepath.Join(dir, "entities.json"))
 	if err != nil {
@@ -202,6 +203,9 @@ func readEntities(dir string, classes []*class) (*entities, error) {
 			}
 		}
 		gather(dm, false)
+		for _, component := range s.components(name) {
+			gather(maps[component], true)
+		}
 		return m
 	}
 

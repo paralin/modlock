@@ -101,10 +101,31 @@ const rulesRoot = "CGameRules"
 // entityRoot is the class every entity derives from.
 const entityRoot = "CEntityInstance"
 
-// isEntity reports whether the class named name derives from the entity root.
-func (s *schema) isEntity(name string) bool {
+// componentRoot is the class every entity component derives from.
+const componentRoot = "CEntityComponent"
+
+// components returns the classes of the components the class named name
+// declares, held inline or by pointer, such as the body component of
+// CBaseEntity, whose scene node takes an entity's origin and scale.
+func (s *schema) components(name string) []string {
+	c, ok := s.classes[name]
+	if !ok {
+		return nil
+	}
+	var components []string
+	for _, f := range c.fields {
+		typ := strings.TrimSuffix(f.typ, "*")
+		if s.derives(typ, componentRoot) {
+			components = append(components, typ)
+		}
+	}
+	return components
+}
+
+// derives reports whether the class named name is root or derives from it.
+func (s *schema) derives(name, root string) bool {
 	for name != "" {
-		if name == entityRoot {
+		if name == root {
 			return true
 		}
 		c, ok := s.classes[name]
@@ -114,6 +135,11 @@ func (s *schema) isEntity(name string) bool {
 		name = c.base
 	}
 	return false
+}
+
+// isEntity reports whether the class named name derives from the entity root.
+func (s *schema) isEntity(name string) bool {
+	return s.derives(name, entityRoot)
 }
 
 // kind is how the host reads one field: the wire field type and, for
