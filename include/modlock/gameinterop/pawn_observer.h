@@ -165,6 +165,10 @@ struct EntityLayout {
   std::optional<size_t> currencies;
   // Optional controller-relative PlayerDataGlobal_t scoreboard counters.
   std::optional<ScoreLayout> score;
+  // Optional controller-relative m_nHeroID and m_nPreGameHeroID of
+  // PlayerDataGlobal_t, which the client reads for its own hero's record.
+  std::optional<size_t> player_hero_id;
+  std::optional<size_t> pregame_hero_id;
   // Optional pawn-relative native stamina resource floats (AbilityResource_t
   // behind the inline ability component). Only the latch pair carries network
   // metadata; the plain floats are schema-resolved values the engine mutates
@@ -672,6 +676,17 @@ class MODLOCK_API PawnObserver {
   // resolves its handles.
   std::expected<std::pair<unsigned char*, unsigned char*>, std::string> ControllerOfSlot(
       int32_t slot);
+
+  // HeroIds are a controller's hero IDs, 0 where the schema lacks one.
+  struct HeroIds {
+    uint32_t hero = 0;
+    uint32_t pregame = 0;
+  };
+
+  // ReadHeroIds reads controller's hero IDs, and RestoreHeroIds writes back
+  // each nonzero one of ids the controller now holds as 0. The caller notifies.
+  HeroIds ReadHeroIds(const unsigned char* controller) const;
+  void RestoreHeroIds(unsigned char* controller, const HeroIds& ids) const;
 
   Seams seams_;
   bool movement_enabled_ = false;

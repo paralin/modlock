@@ -119,6 +119,9 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   const auto hero_handle = HandleOf(2, 7);
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+  const uint32_t hero_id = 13, pregame_id = 7;
+  std::memcpy(fixture.controller.data() + kPlayerHeroIdField, &hero_id, sizeof(hero_id));
+  std::memcpy(fixture.controller.data() + kPregameHeroIdField, &pregame_id, sizeof(pregame_id));
 
   // The controller records each native call in order.
   std::array<void*, 106> table{};
@@ -138,6 +141,7 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
     uint32_t bound = 0;
     std::memcpy(&bound, active->controller.data() + kHeroHandleField, sizeof(bound));
     EXPECT_EQ(bound, HandleOf(2, 7));
+    std::memset(active->controller.data() + kPlayerHeroIdField, 0, 8);
     steps.push_back("strip");
   });
   auto* hero_table_ptr = hero_table.data();
@@ -173,6 +177,14 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   EXPECT_EQ(released, 0xffffffffu);
   EXPECT_EQ(steps,
             (std::vector<std::string>{"strip", "notify", "unbind", "remove", "team", "observer"}));
+
+  // The client reads its hero's record by these IDs, so the ones the strip
+  // cleared are back before the release is published.
+  uint32_t kept = 0, kept_pregame = 0;
+  std::memcpy(&kept, fixture.controller.data() + kPlayerHeroIdField, sizeof(kept));
+  std::memcpy(&kept_pregame, fixture.controller.data() + kPregameHeroIdField, sizeof(kept_pregame));
+  EXPECT_EQ(kept, hero_id);
+  EXPECT_EQ(kept_pregame, pregame_id);
   EXPECT_EQ(removed, hero.data());
   active = nullptr;
 }
