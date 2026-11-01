@@ -289,8 +289,10 @@ func (p *printer) slowFrame(slow *control.ModSlowFrame) {
 }
 
 // describeFrames names the first limit frames of a stack, innermost first,
-// such as "update (mod.js:12) < tick (mod.js:30)".
+// such as "update (src/main.ts:12) < tick (src/main.ts:30)", with each file
+// under the working directory named from it.
 func describeFrames(frames []*profile.StackFrame, limit int) string {
+	wd, _ := os.Getwd()
 	var parts []string
 	for i, frame := range frames {
 		if i == limit {
@@ -302,6 +304,9 @@ func describeFrames(frames []*profile.StackFrame, limit int) string {
 			name = "<anonymous>"
 		}
 		if file := frame.GetFile(); file != "" {
+			if rel, err := filepath.Rel(wd, file); err == nil && filepath.IsAbs(file) && filepath.IsLocal(rel) {
+				file = filepath.ToSlash(rel)
+			}
 			name += " (" + file
 			if frame.GetLine() > 0 {
 				name += fmt.Sprintf(":%d", frame.GetLine())

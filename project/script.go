@@ -24,6 +24,11 @@ import (
 // ScriptEntry is the bundled JavaScript's file name in a built mod.
 const ScriptEntry = "mod.js"
 
+// SourceMapEntry is the file beside a dev build's script that maps its lines
+// to the mod's sources, which the session uses to name the source line of a
+// slow frame. Other builds hold none.
+const SourceMapEntry = ScriptEntry + ".map"
+
 // libraryDir is where a script project's copy of the modlock library's
 // declarations lives, so the type checker and editors resolve imports of
 // modlock. The compilers resolve modlock to the built library instead.
@@ -92,7 +97,7 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 	if mode == Release && p.Manifest.GetRuntime() == manifest.Manifest_RUNTIME_WASM {
 		module, err := p.compileScriptc(ctx, library, tsgo, output)
 		if err == nil {
-			return p.writeBuild(module, manifest.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
+			return p.writeBuild(module, nil, manifest.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
 		}
 		_, _ = fmt.Fprintf(output, "%v; the mod runs on QuickJS\n", err)
 	}
@@ -103,13 +108,17 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 		if err != nil {
 			return err
 		}
-		return p.writeBuild(bundled, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+		return p.writeBuild(bundled, nil, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
 	}
 
-	// Bundle a dev build's sources and the library into one script.
+	// Bundle a dev build's sources and the library into one script, with a
+	// map of its lines named from the build directory.
 	result := api.Build(api.BuildOptions{
 		EntryPoints:     []string{p.scriptEntry()},
 		AbsWorkingDir:   p.Dir,
+		Outfile:         filepath.Join(p.Output(), ScriptEntry),
+		Sourcemap:       api.SourceMapExternal,
+		SourcesContent:  api.SourcesContentExclude,
 		Bundle:          true,
 		Format:          api.FormatIIFE,
 		Platform:        api.PlatformNeutral,
@@ -132,7 +141,15 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 		}
 	}
 
-	return p.writeBuild(result.OutputFiles[0].Contents, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+	var script, sourceMap []byte
+	for _, file := range result.OutputFiles {
+		if strings.HasSuffix(file.Path, ".map") {
+			sourceMap = file.Contents
+		} else {
+			script = file.Contents
+		}
+	}
+	return p.writeBuild(script, sourceMap, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
 }
 
 // sheetNamespace is the esbuild namespace of a style sheet import.
@@ -198,10 +215,11 @@ func (p *Project) sheetPlugin() api.Plugin {
 	}}
 }
 
-// writeBuild replaces the built mod's entry with content, then the manifest
-// that names it, and removes the entry of the other runtime, stale, a
+// writeBuild replaces the built mod's entry with content and its source map
+// with sourceMap, removing the map when sourceMap is nil, then the manifest
+// that names the entry, and removes the entry of the other runtime, stale, a
 // script mod builds for.
-func (p *Project) writeBuild(content []byte, runtime manifest.Manifest_Runtime, entry, stale string) error {
+func (p *Project) writeBuild(content, sourceMap []byte, runtime manifest.Manifest_Runtime, entry, stale string) error {
 	// Stage the entry so a failed write leaves the previous build in place.
 	if err := os.MkdirAll(p.Output(), 0o755); err != nil {
 		return errors.Wrap(err, "create the build directory")
@@ -212,6 +230,17 @@ func (p *Project) writeBuild(content []byte, runtime manifest.Manifest_Runtime, 
 	}
 	if err := fileretry.Rename(staged, filepath.Join(p.Output(), entry)); err != nil {
 		return errors.Wrap(err, "write the build")
+	}
+
+	// Write or drop the map; a map that outlived its script would name the
+	// wrong lines, and a missing one only leaves the bundle's.
+	mapPath := filepath.Join(p.Output(), SourceMapEntry)
+	if sourceMap == nil {
+		if err := os.Remove(mapPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return errors.Wrap(err, "remove the previous source map")
+		}
+	} else if err := os.WriteFile(mapPath, sourceMap, 0o644); err != nil {
+		return errors.Wrap(err, "write the source map")
 	}
 
 	// Name it in the manifest, then drop the entry the manifest stopped naming.

@@ -9,13 +9,16 @@ import (
 	"testing"
 
 	"github.com/paralin/modlock/js"
+	"github.com/paralin/modlock/sourcemap"
 	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
 	"github.com/pkg/errors"
 )
 
 // TestBuildRelease checks that a release bundles a script mod minified with
 // Rolldown and a dev build bundles it readable with esbuild, both keeping the
-// mod's code and turning a style sheet import into the call that adds it.
+// mod's code and turning a style sheet import into the call that adds it. The
+// dev build's source map leads its lines back to the source; a release holds
+// no map.
 func TestBuildRelease(t *testing.T) {
 	if testing.Short() {
 		t.Skip("downloads Node and Rolldown")
@@ -53,6 +56,13 @@ func TestBuildRelease(t *testing.T) {
 			t.Fatal(err)
 		}
 		built[mode] = string(script)
+		_, err = os.Stat(filepath.Join(p.Output(), SourceMapEntry))
+		if mode == Release && err == nil {
+			t.Error("the release kept the dev build's source map")
+		}
+		if mode == Dev {
+			locateGreeting(t, p, main, string(script))
+		}
 	}
 	for mode, script := range built {
 		if !strings.Contains(script, "Hello from Probe!") {
@@ -120,5 +130,30 @@ func TestBundleRolldownError(t *testing.T) {
 	}
 	if got := check.Diagnostics[0].File; got != filepath.Join(dir, "main.ts") {
 		t.Errorf("diagnostic file %q, want main.ts", got)
+	}
+}
+
+// locateGreeting checks that the dev build's source map leads the bundle's
+// greeting back to its line in main.
+func locateGreeting(t *testing.T, p *Project, main, script string) {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(p.Output(), SourceMapEntry))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sources, err := sourcemap.Parse(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const greeting = "Hello from Probe!"
+	before, _, _ := strings.Cut(script, greeting)
+	line := strings.Count(before, "\n") + 1
+	column := len(before) - strings.LastIndex(before, "\n")
+	at, ok := sources.Locate(line, column)
+	source, _ := os.ReadFile(main)
+	before, _, _ = strings.Cut(string(source), greeting)
+	want := strings.Count(before, "\n") + 1
+	if !ok || filepath.Join(p.Output(), filepath.FromSlash(at.Source)) != main || at.Line != want {
+		t.Errorf("the greeting at bundle line %d maps to %+v %v, want %s:%d", line, at, ok, main, want)
 	}
 }
