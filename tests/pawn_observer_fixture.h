@@ -47,6 +47,9 @@ inline constexpr size_t kPlayStateField = 0x60;
 // controller, then its int32 counters in ScoreTotals order. Independent of
 // any production constant on purpose.
 inline constexpr size_t kPlayerDataGlobalField = 0x80;
+// Fake controller-side m_nHeroID and m_nPreGameHeroID, past the counters.
+inline constexpr size_t kPlayerHeroIdField = 0xb0;
+inline constexpr size_t kPregameHeroIdField = 0xb4;
 
 inline uint32_t HandleOf(uint32_t index, uint32_t serial) {
   return (index & 0x7FFF) | ((serial & 0x1FFFF) << 15);
@@ -179,6 +182,8 @@ inline PawnObserver::Seams HeroSeamsFor(Fixture& fixture) {
   seams.layout = []() -> std::expected<EntityLayout, std::string> {
     auto layout = FixtureLayout();
     layout.hero_pawn_handle = kHeroHandleField;
+    layout.player_hero_id = kPlayerHeroIdField;
+    layout.pregame_hero_id = kPregameHeroIdField;
     return layout;
   };
   return seams;

@@ -29,6 +29,31 @@ void* StripHero(void* pawn, uint8_t old_team) {
 
 }  // namespace
 
+PawnObserver::HeroIds PawnObserver::ReadHeroIds(const unsigned char* controller) const {
+  HeroIds ids;
+  if (layout_.player_hero_id) {
+    std::memcpy(&ids.hero, controller + *layout_.player_hero_id, sizeof(ids.hero));
+  }
+  if (layout_.pregame_hero_id) {
+    std::memcpy(&ids.pregame, controller + *layout_.pregame_hero_id, sizeof(ids.pregame));
+  }
+  return ids;
+}
+
+void PawnObserver::RestoreHeroIds(unsigned char* controller, const HeroIds& ids) const {
+  const auto restore = [controller](const std::optional<size_t>& offset, uint32_t id) {
+    uint32_t now = 0;
+    if (offset && id) {
+      std::memcpy(&now, controller + *offset, sizeof(now));
+      if (!now) {
+        std::memcpy(controller + *offset, &id, sizeof(id));
+      }
+    }
+  };
+  restore(layout_.player_hero_id, ids.hero);
+  restore(layout_.pregame_hero_id, ids.pregame);
+}
+
 std::expected<std::pair<unsigned char*, unsigned char*>, std::string>
 PawnObserver::ControllerOfSlot(int32_t slot) {
   // Check the slot and the layout.
@@ -246,6 +271,7 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
     auto* controller = static_cast<unsigned char*>(current->first);
     uint32_t hero = 0;
     std::memcpy(&hero, controller + *layout_.hero_pawn_handle, sizeof(hero));
+    const HeroIds ids = ReadHeroIds(controller);
     auto* released = IdentityOfHandle(EntityListOf(current->second), hero);
     void* stripped = released ? StripHero(InstanceOf(released), current_team) : nullptr;
     if (stripped) {
@@ -258,9 +284,13 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
     // The game's own move to the spectators releases the hero before the team
     // changes: it clears the hero handle and unbinds the pawn. A client whose
     // hero stays bound reads its hero's data after the change and crashes.
+    // The client's own hero-changed handler also reads the record of the hero
+    // ID its controller holds, without a null check, so the IDs the strip
+    // cleared go back: stock play never shows a connected player hero 0.
     if (released) {
       hero = kInvalidEHandleIndex;
       std::memcpy(controller + *layout_.hero_pawn_handle, &hero, sizeof(hero));
+      RestoreHeroIds(controller, ids);
       if (!NotifyEntityStateChanged(controller)) {
         return std::unexpected("player hero release unavailable");
       }
