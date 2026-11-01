@@ -136,6 +136,34 @@ std::expected<void, std::string> GameServices::Transmit() {
   return {};
 }
 
+std::expected<void, std::string> GameServices::Leash() {
+  // Install the retreat hook once, against the server image.
+  if (leash_) {
+    return {};
+  }
+  auto image = Image();
+  if (!image) {
+    return std::unexpected(image.error());
+  }
+  auto hook =
+      gameinterop::BotLeash::Install(**image, [this](uint32_t pawn) { return LeashGoal(pawn); });
+  if (!hook) {
+    return std::unexpected(hook.error());
+  }
+  leash_ = std::move(*hook);
+  return {};
+}
+
+std::optional<std::array<float, 3>> GameServices::LeashGoal(uint32_t pawn) {
+  for (auto* game : games_) {
+    auto found = game->leash_goals_.find(pawn);
+    if (found != game->leash_goals_.end()) {
+      return found->second;
+    }
+  }
+  return std::nullopt;
+}
+
 std::expected<void, std::string> GameServices::Commands() {
   // Install once, against the server image.
   if (usercmds_) {

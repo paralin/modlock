@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <deque>
 #include <optional>
 #include <utility>
@@ -312,6 +313,51 @@ std::expected<void, std::string> Game::RemoveBot(const players::PlayerRequest& r
   Depart(found->first);
   bots_.erase(found);
   return {};
+}
+
+std::expected<void, std::string> Game::LeashBot(const players::LeashBotRequest& request) {
+  // Only a bot has a brain to leash.
+  const auto slot = request.player();
+  if (!gameinterop::ConnectionTracker::StateForSlot(slot).is_bot) {
+    return std::unexpected("no bot plays in that slot");
+  }
+  if (request.radius() <= 0) {
+    leashes_.erase(slot);
+    return {};
+  }
+
+  // Install the hook on first use and keep the bound.
+  if (auto installed = services_.Leash(); !installed) {
+    return std::unexpected(installed.error());
+  }
+  auto& leash = leashes_[slot];
+  leash.center = Floats(request.center());
+  leash.radius = request.radius();
+  return {};
+}
+
+void Game::ApplyLeashes() {
+  // A bot past its radius walks to the center until it comes within half of
+  // it, so it does not turn at the edge while a fight pulls it back out.
+  leash_goals_.clear();
+  for (auto& [slot, leash] : leashes_) {
+    const auto sample = observer_.Observe(slot);
+    if (!sample || sample->health <= 0) {
+      leash.returning = false;
+      continue;
+    }
+    const auto dx = float(sample->x) - leash.center[0];
+    const auto dy = float(sample->y) - leash.center[1];
+    const auto distance = std::sqrt(dx * dx + dy * dy);
+    if (distance > leash.radius) {
+      leash.returning = true;
+    } else if (distance < leash.radius / 2) {
+      leash.returning = false;
+    }
+    if (leash.returning) {
+      leash_goals_[sample->pawn_handle] = leash.center;
+    }
+  }
 }
 
 std::expected<void, std::string> Game::Precache(const PrecacheOptions& request) {

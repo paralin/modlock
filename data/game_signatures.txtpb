@@ -123,6 +123,25 @@ signatures {
   shape: "void* BotDifficultyRecords(); TLS-guarded static of the parsed bot_difficulty.vdata"
 }
 
+# The bot brain's retreat check, which the schedule selector asks first. It
+# writes the move goal and the schedule and reports whether the bot retreats.
+signatures {
+  id: "bot.retreat-check"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 41 56 41 57 48 81 EC B0 00 00 00 48 8B E9 0F 29 B4 24 A0 00 00 00 48 8B 89 ?? ?? 00 00 4D 8B F0 4C 8B FA E8"
+  shape: "bool RetreatCheck(CCitadelPlayerBotNPCBrain*, Vector* goal, CGlobalSymbol* schedule)"
+}
+
+# The retreat check's far branch stores SCHED_BOT_RETREAT_WALK, after the near
+# branch's SCHED_IDLE.
+signatures {
+  id: "bot.schedule-retreat-walk"
+  modules: GAME_MODULE_SERVER
+  pattern: "76 0C 48 8B 05 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 8B CD 49 89 06"
+  rip_relative_at: 0xe
+  shape: "the CGlobalSymbol global SCHED_BOT_RETREAT_WALK"
+}
+
 signatures {
   id: "bot.create"
   modules: GAME_MODULE_SERVER

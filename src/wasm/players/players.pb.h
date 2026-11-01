@@ -147,6 +147,10 @@ class HeroTarget;
 struct HeroTargetDefaultTypeInternal;
 MODLOCK_API extern HeroTargetDefaultTypeInternal _HeroTarget_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HeroTarget_class_data_;
+class LeashBotRequest;
+struct LeashBotRequestDefaultTypeInternal;
+MODLOCK_API extern LeashBotRequestDefaultTypeInternal _LeashBotRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull LeashBotRequest_class_data_;
 class Pawn;
 struct PawnDefaultTypeInternal;
 MODLOCK_API extern PawnDefaultTypeInternal _Pawn_default_instance_;
@@ -5922,6 +5926,225 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Pawn_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API LeashBotRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.LeashBotRequest) */ {
+ public:
+  inline LeashBotRequest() : LeashBotRequest(nullptr) {}
+  ~LeashBotRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(LeashBotRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(LeashBotRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR LeashBotRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline LeashBotRequest(const LeashBotRequest& from) : LeashBotRequest(nullptr, from) {}
+  inline LeashBotRequest(LeashBotRequest&& from) noexcept
+      : LeashBotRequest(nullptr, ::std::move(from)) {}
+  inline LeashBotRequest& operator=(const LeashBotRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline LeashBotRequest& operator=(LeashBotRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const LeashBotRequest& default_instance() {
+    return *reinterpret_cast<const LeashBotRequest*>(
+        &_LeashBotRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 36;
+  friend void swap(LeashBotRequest& a, LeashBotRequest& b) { a.Swap(&b); }
+  inline void Swap(LeashBotRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(LeashBotRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  LeashBotRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<LeashBotRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const LeashBotRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const LeashBotRequest& from) { LeashBotRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(LeashBotRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.LeashBotRequest"; }
+
+  explicit LeashBotRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  LeashBotRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const LeashBotRequest& from);
+  LeashBotRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, LeashBotRequest&& from) noexcept
+      : LeashBotRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kCenterFieldNumber = 2,
+    kPlayerFieldNumber = 1,
+    kRadiusFieldNumber = 3,
+  };
+  // .modlock.geometry.Vec3 center = 2;
+  bool has_center() const;
+  void clear_center() ;
+  const ::modlock::geometry::Vec3& center() const;
+  [[nodiscard]] ::modlock::geometry::Vec3* PROTOBUF_NULLABLE release_center();
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL mutable_center();
+  void set_allocated_center(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_center(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value);
+  ::modlock::geometry::Vec3* PROTOBUF_NULLABLE unsafe_arena_release_center();
+
+  private:
+  const ::modlock::geometry::Vec3& _internal_center() const;
+  ::modlock::geometry::Vec3* PROTOBUF_NONNULL _internal_mutable_center();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // float radius = 3;
+  void clear_radius() ;
+  float radius() const;
+  void set_radius(float value);
+
+  private:
+  float _internal_radius() const;
+  void _internal_set_radius(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.LeashBotRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const LeashBotRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE center_;
+    ::int32_t player_;
+    float radius_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull LeashBotRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API HeroTarget final : public ::google::protobuf::Message
@@ -14885,6 +15108,153 @@ inline ::int32_t BotResponse::_internal_player() const {
 inline void BotResponse::_internal_set_player(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.player_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// LeashBotRequest
+
+// int32 player = 1;
+inline void LeashBotRequest::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t LeashBotRequest::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.LeashBotRequest.player)
+  return _internal_player();
+}
+inline void LeashBotRequest::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.LeashBotRequest.player)
+}
+inline ::int32_t LeashBotRequest::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void LeashBotRequest::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// .modlock.geometry.Vec3 center = 2;
+inline bool LeashBotRequest::has_center() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  PROTOBUF_ASSUME(!value || _impl_.center_ != nullptr);
+  return value;
+}
+inline const ::modlock::geometry::Vec3& LeashBotRequest::_internal_center() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::geometry::Vec3* p = _impl_.center_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::geometry::Vec3&>(::modlock::geometry::_Vec3_default_instance_);
+}
+inline const ::modlock::geometry::Vec3& LeashBotRequest::center() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.LeashBotRequest.center)
+  return _internal_center();
+}
+inline void LeashBotRequest::unsafe_arena_set_allocated_center(
+    ::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.center_);
+  }
+  _impl_.center_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.players.LeashBotRequest.center)
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE LeashBotRequest::release_center() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::geometry::Vec3* released = _impl_.center_;
+  _impl_.center_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NULLABLE LeashBotRequest::unsafe_arena_release_center() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.players.LeashBotRequest.center)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::geometry::Vec3* temp = _impl_.center_;
+  _impl_.center_ = nullptr;
+  return temp;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL LeashBotRequest::_internal_mutable_center() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.center_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::geometry::Vec3>(GetArena());
+    _impl_.center_ = reinterpret_cast<::modlock::geometry::Vec3*>(p);
+  }
+  return _impl_.center_;
+}
+inline ::modlock::geometry::Vec3* PROTOBUF_NONNULL LeashBotRequest::mutable_center()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::geometry::Vec3* _msg = _internal_mutable_center();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.players.LeashBotRequest.center)
+  return _msg;
+}
+inline void LeashBotRequest::set_allocated_center(::modlock::geometry::Vec3* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.center_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+
+  _impl_.center_ = reinterpret_cast<::modlock::geometry::Vec3*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.players.LeashBotRequest.center)
+}
+
+// float radius = 3;
+inline void LeashBotRequest::clear_radius() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.radius_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline float LeashBotRequest::radius() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.LeashBotRequest.radius)
+  return _internal_radius();
+}
+inline void LeashBotRequest::set_radius(float value) {
+  _internal_set_radius(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.LeashBotRequest.radius)
+}
+inline float LeashBotRequest::_internal_radius() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.radius_;
+}
+inline void LeashBotRequest::_internal_set_radius(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.radius_ = value;
 }
 
 #ifdef __GNUC__

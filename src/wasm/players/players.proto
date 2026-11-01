@@ -569,3 +569,15 @@ message BotOptions {
 message BotResponse {
   int32 player = 1;
 }
+
+// LeashBotRequest keeps one bot near a point.
+message LeashBotRequest {
+  int32 player = 1;
+
+  // Center is the point the bot stays near.
+  modlock.geometry.Vec3 center = 2;
+
+  // Radius is how far across the ground the bot may stray from center; zero
+  // releases it.
+  float radius = 3;
+}

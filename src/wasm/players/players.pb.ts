@@ -2931,3 +2931,71 @@ export const BotResponse: MessageType<BotResponse> =
       },
     },
   )
+
+/**
+ * LeashBotRequest keeps one bot near a point.
+ *
+ * @generated from message modlock.wasm.players.LeashBotRequest
+ */
+export interface LeashBotRequest {
+  player?: number
+  /**
+   * Center is the point the bot stays near.
+   */
+  center?: Vec3
+  /**
+   * Radius is how far across the ground the bot may stray from center; zero
+   * releases it.
+   */
+  radius?: number
+}
+
+export const LeashBotRequest: MessageType<LeashBotRequest> =
+  /* @__PURE__ */ createMessageType<LeashBotRequest>(
+    'modlock.wasm.players.LeashBotRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'center', 11, 0, Vec3.codec],
+      [3, 'radius', 2],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: LeashBotRequest,
+      ): LeashBotRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.center = Vec3.decode(r, r.delimited(), m.center ?? {})
+              break
+            case 3:
+              m.radius = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: LeashBotRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.center
+          if (v != null) Vec3.writeField(w, 2, v)
+        }
+        {
+          const v = m.radius
+          if (v != null && v !== 0) w.uint32(29).float(v)
+        }
+      },
+    },
+  )

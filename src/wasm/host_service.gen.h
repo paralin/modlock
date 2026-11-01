@@ -663,6 +663,14 @@ class HostService {
     return std::unexpected("this host does not support RemoveBot");
   }
 
+  // LeashBot keeps a bot the game drives near center. Once the bot strays
+  // farther than radius across the ground it walks back toward center,
+  // ahead of any fight, and fights again within half of it. A radius of zero
+  // releases the bot, as do removing it and stopping the mod.
+  virtual std::expected<void, std::string> LeashBot(const players::LeashBotRequest& /*request*/) {
+    return std::unexpected("this host does not support LeashBot");
+  }
+
   // BlockInput withholds buttons from every player's hero until called
   // again. Stopping the mod releases them.
   virtual std::expected<void, std::string> BlockInput(const input::InputRequest& /*request*/) {
@@ -1562,6 +1570,14 @@ class HostService {
              return detail::Fail("the RemoveBot request is malformed");
            }
            return detail::Answer(host.RemoveBot(request));
+         }},
+        {"LeashBot",
+         [](HostService& host, const std::string& bytes) {
+           players::LeashBotRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the LeashBot request is malformed");
+           }
+           return detail::Answer(host.LeashBot(request));
          }},
         {"BlockInput",
          [](HostService& host, const std::string& bytes) {

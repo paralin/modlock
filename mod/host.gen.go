@@ -1210,6 +1210,14 @@ func (p Player) RemoveBot() error {
 	return invoke("RemoveBot", &playerspb.PlayerRequest{Player: p.Slot}, nil)
 }
 
+// LeashBot keeps a bot the game drives near center. Once the bot strays
+// farther than radius across the ground it walks back toward center,
+// ahead of any fight, and fights again within half of it. A radius of zero
+// releases the bot, as do removing it and stopping the mod.
+func (p Player) LeashBot(center *Vector, radius float32) error {
+	return invoke("LeashBot", &playerspb.LeashBotRequest{Player: p.Slot, Center: center, Radius: radius}, nil)
+}
+
 // BlockInput withholds buttons from every player's hero until called
 // again. Stopping the mod releases them.
 func BlockInput(buttons uint64) error {

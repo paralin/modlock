@@ -125,6 +125,7 @@ add_library(modlock_sdk SHARED
   src/gameinterop/projectile_impact_hook.cc
   src/gameinterop/movement_hook.cc
   src/gameinterop/bot_creation.cc
+  src/gameinterop/bot_leash.cc
   src/gameinterop/bot_difficulty_definitions.cc
   src/gameinterop/command_hook.cc
   src/gameinterop/bot_hero_guard.cc

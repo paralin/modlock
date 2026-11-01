@@ -1875,6 +1875,44 @@ func (x *BotResponse) GetPlayer() int32 {
 	return 0
 }
 
+// LeashBotRequest keeps one bot near a point.
+type LeashBotRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Center is the point the bot stays near.
+	Center *geometry.Vec3 `protobuf:"bytes,2,opt,name=center,proto3" json:"center,omitempty"`
+	// Radius is how far across the ground the bot may stray from center; zero
+	// releases it.
+	Radius float32 `protobuf:"fixed32,3,opt,name=radius,proto3" json:"radius,omitempty"`
+}
+
+func (x *LeashBotRequest) Reset() {
+	*x = LeashBotRequest{}
+}
+
+func (*LeashBotRequest) ProtoMessage() {}
+
+func (x *LeashBotRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *LeashBotRequest) GetCenter() *geometry.Vec3 {
+	if x != nil {
+		return x.Center
+	}
+	return nil
+}
+
+func (x *LeashBotRequest) GetRadius() float32 {
+	if x != nil {
+		return x.Radius
+	}
+	return 0
+}
+
 func (m *RestoredEvent) CloneVT() *RestoredEvent {
 	if m == nil {
 		return (*RestoredEvent)(nil)
@@ -2696,6 +2734,24 @@ func (m *BotResponse) CloneVT() *BotResponse {
 }
 
 func (m *BotResponse) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *LeashBotRequest) CloneVT() *LeashBotRequest {
+	if m == nil {
+		return (*LeashBotRequest)(nil)
+	}
+	r := new(LeashBotRequest)
+	r.Player = m.Player
+	r.Radius = m.Radius
+	r.Center = protobuf_go_lite.CloneVTValue(m.Center)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *LeashBotRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -3919,6 +3975,32 @@ func (this *BotResponse) EqualVT(that *BotResponse) bool {
 
 func (this *BotResponse) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*BotResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *LeashBotRequest) EqualVT(that *LeashBotRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Center, that.Center) {
+		return false
+	}
+	if this.Radius != that.Radius {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *LeashBotRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*LeashBotRequest)
 	if !ok {
 		return false
 	}
@@ -6837,6 +6919,68 @@ func (x *BotResponse) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the LeashBotRequest message to JSON.
+func (x *LeashBotRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Center != nil || s.HasField("center") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("center")
+		x.Center.MarshalProtoJSON(s.WithField("center"))
+	}
+	if x.Radius != 0 || s.HasField("radius") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("radius")
+		s.WriteFloat32(x.Radius)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the LeashBotRequest to JSON.
+func (x *LeashBotRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the LeashBotRequest message from JSON.
+func (x *LeashBotRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "center":
+			if s.ReadNil() {
+				x.Center = nil
+				return
+			}
+			x.Center = &geometry.Vec3{}
+			x.Center.UnmarshalProtoJSON(s.WithField("center", true))
+		case "radius":
+			s.AddField("radius")
+			x.Radius = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the LeashBotRequest from JSON.
+func (x *LeashBotRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *RestoredEvent) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -9016,6 +9160,58 @@ func (m *BotResponse) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *LeashBotRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LeashBotRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *LeashBotRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Radius != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Radius))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.Center != nil {
+		size, err := m.Center.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *RestoredEvent) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -9726,6 +9922,22 @@ func (m *BotResponse) SizeVT() (n int) {
 	var l int
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *LeashBotRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	if m.Center != nil {
+		l = m.Center.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Radius)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10732,6 +10944,28 @@ func (x *BotResponse) MarshalProtoText() string {
 }
 
 func (x *BotResponse) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *LeashBotRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "LeashBotRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Center != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "center")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Center)
+	}
+	if x.Radius != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "radius")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Radius)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *LeashBotRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -13943,6 +14177,85 @@ func (m *BotResponse) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *LeashBotRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LeashBotRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LeashBotRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Center", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Center == nil {
+				m.Center = &geometry.Vec3{}
+			}
+			if err := m.Center.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Radius", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Radius = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

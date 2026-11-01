@@ -1382,6 +1382,11 @@ export type Player = {
 	clearScreenEffect: (self: Player, effect: ScreenEffect) -> boolean,
 	-- removeBot removes a bot the mod added.
 	removeBot: (self: Player) -> boolean,
+	-- leashBot keeps a bot the game drives near center. Once the bot strays
+	-- farther than radius across the ground it walks back toward center,
+	-- ahead of any fight, and fights again within half of it. A radius of zero
+	-- releases the bot, as do removing it and stopping the mod.
+	leashBot: (self: Player, center: Vector, radius: number) -> boolean,
 	-- blockInput withholds buttons from the player's hero until called
 	-- again, on top of the block on everyone. Zero releases the player.
 	blockInput: (self: Player, buttons: number) -> boolean,
@@ -1722,6 +1727,14 @@ end
 -- removeBot removes a bot the mod added.
 function Player.removeBot(self: Player): boolean
 	return call("RemoveBot", "PlayerRequest", { player = self }) ~= nil
+end
+
+-- leashBot keeps a bot the game drives near center. Once the bot strays
+-- farther than radius across the ground it walks back toward center,
+-- ahead of any fight, and fights again within half of it. A radius of zero
+-- releases the bot, as do removing it and stopping the mod.
+function Player.leashBot(self: Player, center: Vector, radius: number): boolean
+	return call("LeashBot", "LeashBotRequest", { player = self, center = center, radius = radius }) ~= nil
 end
 
 -- blockInput withholds buttons from the player's hero until called
@@ -2781,6 +2794,11 @@ schema.BotOptions = {
 }
 schema.BotResponse = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+}
+schema.LeashBotRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "center", kind = "message", message = "Vec3" },
+	{ number = 3, name = "radius", kind = "float" },
 }
 schema.SettingChangedEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

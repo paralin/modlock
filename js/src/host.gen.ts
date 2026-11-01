@@ -2504,6 +2504,16 @@ export class Player {
   }
 
   /**
+   * leashBot keeps a bot the game drives near center. Once the bot strays
+   * farther than radius across the ground it walks back toward center,
+   * ahead of any fight, and fights again within half of it. A radius of zero
+   * releases the bot, as do removing it and stopping the mod.
+   */
+  leashBot(center: Vector, radius: number): boolean {
+    return call('LeashBot', playersPb.LeashBotRequest.toBinary({ player: this.slot, center, radius })) !== undefined
+  }
+
+  /**
    * blockInput withholds buttons from the player's hero until called
    * again, on top of the block on everyone. Zero releases the player.
    */

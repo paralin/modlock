@@ -31,6 +31,7 @@ void Game::Frame() {
   // Apply the per-frame state each feature keeps.
   SeatPlayers();
   ApplyFreeForAll();
+  ApplyLeashes();
   ApplyHolds();
   HoldClock();
   TickRestores();
@@ -147,6 +148,8 @@ void Game::WorldEnding() {
   drives_.clear();
   held_.clear();
   ffa_held_.clear();
+  leashes_.clear();
+  leash_goals_.clear();
 
   // Release what the mod held in the world.
   ReleaseModifiers();
@@ -167,6 +170,7 @@ void Game::Leave(int32_t slot) {
   movers_.erase(slot);
   steers_.erase(slot);
   drives_.erase(slot);
+  leashes_.erase(slot);
 
   // Forget its restores, blocks, presses and what it was shown.
   restores_.erase(slot);
@@ -211,6 +215,8 @@ void Game::Clear() {
   movers_.clear();
   steers_.clear();
   drives_.clear();
+  leashes_.clear();
+  leash_goals_.clear();
 
   // Releasing the movement hook cannot fail.
   static_cast<void>(services_.Steps());

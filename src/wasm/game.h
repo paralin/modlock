@@ -22,6 +22,7 @@
 #include "modlock/gameinterop/ability_slots.h"
 #include "modlock/gameinterop/bot_creation.h"
 #include "modlock/gameinterop/bot_hero_guard.h"
+#include "modlock/gameinterop/bot_leash.h"
 #include "modlock/gameinterop/command_hook.h"
 #include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/entity_abi.h"
@@ -167,6 +168,12 @@ class GameServices {
   // Transmit installs the shared transmit hook on first use.
   std::expected<void, std::string> Transmit();
 
+  // Leash installs the shared bot retreat hook on first use.
+  std::expected<void, std::string> Leash();
+
+  // LeashGoal is where the first mod that leashes a bot walks it now.
+  std::optional<std::array<float, 3>> LeashGoal(uint32_t pawn);
+
   // Commands installs the shared user command hook on first use.
   std::expected<void, std::string> Commands();
 
@@ -251,6 +258,8 @@ class GameServices {
   // transmit_ filters what each player's client receives once a mod hides
   // an object from someone.
   std::optional<gameinterop::TransmitHook> transmit_;
+  // leash_ answers the bots' retreat checks once a mod leashes a bot.
+  std::optional<gameinterop::BotLeash> leash_;
   // usercmds_ reads the players' cameras and rewrites driven bots' commands
   // once a mod reads a pawn or drives a bot.
   std::optional<gameinterop::CommandHook> usercmds_;
@@ -510,6 +519,7 @@ class Game : public HostService {
   std::expected<players::BotResponse, std::string> AddBot(
       const players::BotOptions& request) override;
   std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) override;
+  std::expected<void, std::string> LeashBot(const players::LeashBotRequest& request) override;
   std::expected<void, std::string> BlockInput(const input::InputRequest& request) override;
   std::expected<void, std::string> BlockPlayerInput(
       const input::PlayerInputRequest& request) override;
@@ -676,6 +686,9 @@ class Game : public HostService {
   void SeatPlayers();
   // ApplyFreeForAll holds friendly fire on every living hero in free-for-all.
   void ApplyFreeForAll();
+  // ApplyLeashes chooses where each leashed bot walks from where its hero
+  // stands this frame.
+  void ApplyLeashes();
   // EnableRelations makes teammates enemies to abilities and projectiles,
   // installing the relations on first use.
   void EnableRelations();
@@ -780,6 +793,19 @@ class Game : public HostService {
   bool spawned_ = false;
   // bots_ maps each bot's slot to its name, which the console kicks by.
   std::map<int32_t, std::string> bots_;
+
+  // Leash is one bot's bound; returning is true while it walks back from past
+  // radius and has not yet come within half of it.
+  struct Leash {
+    std::array<float, 3> center{};
+    float radius = 0;
+    bool returning = false;
+  };
+
+  // leashes_ holds each leashed bot's bound by slot, and leash_goals_ the goal
+  // ApplyLeashes chose for each returning bot's hero pawn handle.
+  std::map<int32_t, Leash> leashes_;
+  std::map<uint32_t, std::array<float, 3>> leash_goals_;
   // departing_ maps each kicked bot's slot to its connection generation
   // until the slot empties or another connection takes it.
   std::map<int32_t, uint32_t> departing_;
