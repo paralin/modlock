@@ -47,6 +47,14 @@ test('after runs once, on time, and every runs on its cadence', () => {
   expect(count(runs, 'every')).toBe(2)
   frame(0.2)
   expect(count(runs, 'every')).toBe(3)
+
+  // A new map's clock starts over, and the repeat keeps its remaining delay.
+  clock = 0
+  frame(0)
+  frame(0.8)
+  expect(count(runs, 'every')).toBe(3)
+  frame(0.2)
+  expect(count(runs, 'every')).toBe(4)
 })
 
 test('a cancelled timer never runs and reports finished', () => {

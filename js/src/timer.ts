@@ -88,9 +88,20 @@ function schedule(delay: number, run: () => number | undefined): Timer {
 
 /**
  * advance moves the clock to a frame and runs the timers that came due. A
- * callback that throws ends only its own timer.
+ * callback that throws ends only its own timer. A clock that runs backward,
+ * as a new map's does, keeps each timer's remaining delay.
  */
 export function advance(seconds: number): void {
+  // Carry the timers across a clock that went back.
+  if (now !== undefined && seconds < now) {
+    const shift = seconds - now
+    for (const entry of entries) {
+      if (entry.at !== undefined) {
+        entry.at += shift
+      }
+    }
+  }
+
   // Record the clock, start the timers made before it was known, then take the
   // due ones in order. Timers a callback makes wait for the next frame.
   now = seconds

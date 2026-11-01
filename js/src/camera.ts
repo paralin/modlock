@@ -116,12 +116,35 @@ export function playCamera(
   player: Player,
   options: CameraPlayOptions,
 ): CameraMove | undefined {
+  const tracks: Track[] = []
+  for (const [param, curve] of Object.entries(options.tracks)) {
+    if (curve) tracks.push({ param: param as CameraParam, curve })
+  }
+  return playTracks(player, options, tracks)
+}
+
+/** Track is one param's curve. */
+interface Track {
+  /** param is the camera value the curve moves. */
+  readonly param: CameraParam
+  /** curve is the param's values over time. */
+  readonly curve: CameraCurve
+}
+
+/**
+ * playTracks is playCamera with its tracks listed, as a move of one param
+ * builds them: scriptc cannot key an object by a param chosen at run time.
+ */
+function playTracks(
+  player: Player,
+  options: Omit<CameraPlayOptions, 'tracks'>,
+  tracks: readonly Track[],
+): CameraMove | undefined {
   // Each move takes a context of its own unless the mod names one.
   const context = options.context ?? `modlock.camera.${++moves}`
-  const tracks = Object.entries(options.tracks) as [CameraParam, CameraCurve][]
-  const length = Math.max(0, ...tracks.map(([, curve]) => durationOf(curve)))
+  const length = Math.max(0, ...tracks.map((track) => durationOf(track.curve)))
   const send = (delay: number | undefined) =>
-    tracks.every(([param, curve]) =>
+    tracks.every(({ param, curve }) =>
       sendCurve(player, { ...options, context, param, delay }, curve),
     )
 
@@ -190,11 +213,7 @@ export function cameraPulse(
     hold(by, options.hold),
     reverse(line(rest, by, options.out, shape)),
   )
-  return playCamera(player, {
-    ...options,
-    relative: true,
-    tracks: { [param]: curve },
-  })
+  return playTracks(player, { ...options, relative: true }, [{ param, curve }])
 }
 
 /** CameraShakeOptions shakes a param around its usual value. */
@@ -232,15 +251,11 @@ export function cameraShake(
     decay: true,
   })
   const param = options.param ?? 'horizontalOffset'
-  return playCamera(player, {
-    ...options,
-    relative: true,
-    tracks: { [param]: curve },
-  })
+  return playTracks(player, { ...options, relative: true }, [{ param, curve }])
 }
 
 /** SendOptions names where one param's curve goes. */
-interface SendOptions extends CameraPlayOptions {
+interface SendOptions extends Omit<CameraPlayOptions, 'tracks'> {
   context: string
   param: CameraParam
 }

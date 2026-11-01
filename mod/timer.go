@@ -79,8 +79,18 @@ func schedule(delay time.Duration, run func() (time.Duration, bool)) *Timer {
 
 // advanceTimers moves the clock to the frame at seconds and runs the timers that
 // came due, at most once each and in the order they came due. A callback that
-// panics ends only its own timer.
+// panics ends only its own timer. A clock that runs backward, as a new map's
+// does, keeps each timer's remaining delay.
 func advanceTimers(seconds float64) {
+	// Carry the timers across a clock that went back.
+	if clock.known && seconds < clock.now {
+		shift := seconds - clock.now
+		for _, t := range clock.timers {
+			if t.started {
+				t.at += shift
+			}
+		}
+	}
 	clock.now, clock.known = seconds, true
 
 	// Start the timers made before the clock was known, then take the due ones.
