@@ -179,7 +179,11 @@ std::expected<const gameinterop::PlayerSelectionCalls*, std::string> GameService
 }
 
 std::expected<const gameinterop::AbilityDefinitions*, std::string> GameServices::Abilities() {
-  if (auto cached = Cache(abilities_, &gameinterop::AbilityDefinitions::Resolve); !cached) {
+  if (auto cached = Cache(abilities_,
+                          [](const gameinterop::ModuleImage& server) {
+                            return gameinterop::AbilityDefinitions::Resolve(server);
+                          });
+      !cached) {
     return std::unexpected(cached.error());
   }
   return &*abilities_;

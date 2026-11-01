@@ -5,14 +5,14 @@
 namespace modlock::gameinterop {
 
 std::expected<AbilityDefinitions, std::string> AbilityDefinitions::Resolve(
-    const ModuleImage& server) {
-  // LookupVDataByHash scope 4 selects abilities and items. The
-  // Windows implementation consumes EDX as a 32-bit hash, including its high bit.
+    const ModuleImage& server, Scope scope) {
+  // LookupVDataByHash takes the scope and the name's hash. The Windows
+  // implementation consumes EDX as a 32-bit hash, including its high bit.
   auto address = ResolveSignature(server, "vdata.lookup-by-hash");
   if (!address) {
     return std::unexpected(address.error());
   }
-  return AbilityDefinitions(reinterpret_cast<Lookup>(*address));
+  return AbilityDefinitions(reinterpret_cast<Lookup>(*address), scope);
 }
 
 std::expected<AbilityDefinitions::Definition, std::string> AbilityDefinitions::Find(
@@ -21,19 +21,19 @@ std::expected<AbilityDefinitions::Definition, std::string> AbilityDefinitions::F
   if (!lookup_ || !subclass_id) {
     return std::unexpected("ability definition lookup is unavailable");
   }
-  auto* definition = static_cast<unsigned char*>(lookup_(4, subclass_id));
+  auto* definition = static_cast<unsigned char*>(lookup_(scope_, subclass_id));
   if (!definition) {
     return std::unexpected("ability subclass is absent from the current engine");
   }
 
   // CEntitySubclassVDataBase: scope at +8, interned name at +16 and disabled
   // flag at +0x2a. The lookup itself checks scope; repeat it before reading the
-  // SDK header so a mismatched registry result is never treated as an ability.
+  // SDK header so a result from another scope is never treated as this one's.
   int32_t scope = 0;
   const char* name = nullptr;
   std::memcpy(&scope, definition + 8, sizeof(scope));
   std::memcpy(&name, definition + 16, sizeof(name));
-  if (scope != 4 || !name) {
+  if (scope != scope_ || !name) {
     return std::unexpected("ability definition header is invalid");
   }
   std::string copied;

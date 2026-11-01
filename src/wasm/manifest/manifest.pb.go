@@ -168,6 +168,9 @@ const (
 	// difficulties. An entry names one by its ECitadelBotDifficulty value,
 	// such as k_ECitadelBotDifficulty_Hard.
 	Definition_FILE_BOT_DIFFICULTY Definition_File = 2
+	// FILE_NPC_UNITS is scripts/npc_units.vdata, the troopers, bosses and
+	// other units, and the bot brain (npc_player_bot_brain) every bot shares.
+	Definition_FILE_NPC_UNITS Definition_File = 3
 )
 
 // Enum value maps for Definition_File.
@@ -176,11 +179,13 @@ var (
 		0: "FILE_ABILITIES",
 		1: "FILE_HEROES",
 		2: "FILE_BOT_DIFFICULTY",
+		3: "FILE_NPC_UNITS",
 	}
 	Definition_File_value = map[string]int32{
 		"FILE_ABILITIES":      0,
 		"FILE_HEROES":         1,
 		"FILE_BOT_DIFFICULTY": 2,
+		"FILE_NPC_UNITS":      3,
 	}
 )
 

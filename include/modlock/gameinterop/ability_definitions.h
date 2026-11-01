@@ -9,16 +9,25 @@
 
 namespace modlock::gameinterop {
 
-// Resolves replay subclass IDs through the engine's current ability registry.
-// The mapped server module owns the function and returned definition storage;
-// callers discard borrowed definitions on world shutdown.
+// Resolves subclass IDs through the engine's current subclass registry, in
+// one scope: abilities and items by default, or NPC units such as the bot
+// brain. The mapped server module owns the function and returned definition
+// storage; callers discard borrowed definitions on world shutdown.
 class MODLOCK_API AbilityDefinitions {
  public:
   using Lookup = void* (*)(int32_t scope, uint32_t subclass_id);
 
-  explicit AbilityDefinitions(Lookup lookup) : lookup_(lookup) {}
+  // Scope is EntitySubclassScope_t: the vdata file a subclass comes from.
+  enum Scope : int32_t {
+    kNpcUnits = 3,   // scripts/npc_units.vdata
+    kAbilities = 4,  // scripts/abilities.vdata
+  };
 
-  static std::expected<AbilityDefinitions, std::string> Resolve(const ModuleImage& server);
+  explicit AbilityDefinitions(Lookup lookup, Scope scope = kAbilities)
+      : lookup_(lookup), scope_(scope) {}
+
+  static std::expected<AbilityDefinitions, std::string> Resolve(const ModuleImage& server,
+                                                                Scope scope = kAbilities);
 
   struct Definition {
     std::string name;
@@ -33,6 +42,7 @@ class MODLOCK_API AbilityDefinitions {
 
  private:
   Lookup lookup_;
+  Scope scope_;
 };
 
 }  // namespace modlock::gameinterop

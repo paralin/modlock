@@ -260,27 +260,39 @@ class Entries {
         }
         return static_cast<unsigned char*>(*record);
       }
-      default: {
-        if (!abilities_) {
-          abilities_ = gameinterop::AbilityDefinitions::Resolve(module_);
-        }
-        if (!*abilities_) {
-          return std::unexpected(Missing{.error = abilities_->error(), .later = false});
-        }
-        auto ability = (*abilities_)->Find(gameinterop::MakeMemberName(change.entry()).hash);
-        if (!ability) {
-          return std::unexpected(Missing{.error = ability.error(), .later = true});
-        }
-        return static_cast<unsigned char*>(ability->native_definition_pointer);
-      }
+      case Definition::FILE_NPC_UNITS:
+        return FindSubclass(units_, gameinterop::AbilityDefinitions::kNpcUnits, change);
+      default:
+        return FindSubclass(abilities_, gameinterop::AbilityDefinitions::kAbilities, change);
     }
   }
 
  private:
+  using Subclasses = std::optional<std::expected<gameinterop::AbilityDefinitions, std::string>>;
+
+  // FindSubclass returns a subclass entry of one scope, resolving the scope's
+  // lookup on first use.
+  std::expected<unsigned char*, Missing> FindSubclass(Subclasses& subclasses,
+                                                      gameinterop::AbilityDefinitions::Scope scope,
+                                                      const Definition& change) {
+    if (!subclasses) {
+      subclasses = gameinterop::AbilityDefinitions::Resolve(module_, scope);
+    }
+    if (!*subclasses) {
+      return std::unexpected(Missing{.error = subclasses->error(), .later = false});
+    }
+    auto entry = (*subclasses)->Find(gameinterop::MakeMemberName(change.entry()).hash);
+    if (!entry) {
+      return std::unexpected(Missing{.error = entry.error(), .later = true});
+    }
+    return static_cast<unsigned char*>(entry->native_definition_pointer);
+  }
+
   const gameinterop::ModuleImage& module_;
   void* schema_;
   const char* module_name_;
-  std::optional<std::expected<gameinterop::AbilityDefinitions, std::string>> abilities_;
+  Subclasses abilities_;
+  Subclasses units_;
   std::optional<std::expected<gameinterop::HeroDefinitions, std::string>> heroes_;
   std::optional<std::expected<gameinterop::BotDifficultyDefinitions, std::string>> bots_;
 };

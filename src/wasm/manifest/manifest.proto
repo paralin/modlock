@@ -142,6 +142,10 @@ message Definition {
     // difficulties. An entry names one by its ECitadelBotDifficulty value,
     // such as k_ECitadelBotDifficulty_Hard.
     FILE_BOT_DIFFICULTY = 2;
+
+    // FILE_NPC_UNITS is scripts/npc_units.vdata, the troopers, bosses and
+    // other units, and the bot brain (npc_player_bot_brain) every bot shares.
+    FILE_NPC_UNITS = 3;
   }
 
   // File is the definition file that holds the entry.
