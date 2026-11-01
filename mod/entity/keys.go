@@ -5,28 +5,44 @@ package entity
 import "github.com/paralin/modlock/mod"
 
 type CBaseEntityKeys struct {
-	Globalname         *string     `key:"globalname"`
-	Vscripts           *string     `key:"vscripts"`
-	Nextthink          *int32      `key:"nextthink"`
-	Effects            *int32      `key:"effects"`
-	ResponseContext    *string     `key:"ResponseContext"`
-	SubclassId         *string     `key:"subclass_id"`
-	MaxHealth          *int32      `key:"max_health"`
-	Target             *string     `key:"target"`
-	PlatformType       *int32      `key:"platform_type"`
-	Damagefilter       *string     `key:"damagefilter"`
-	MoveType           *int32      `key:"MoveType"`
-	TeamNum            *int32      `key:"TeamNum"`
-	Teamnumber         *int32      `key:"teamnumber"`
-	Avelocity          *mod.Angles `key:"avelocity"`
-	Gravity            *float32    `key:"gravity"`
-	Friction           *float32    `key:"friction"`
-	Ltime              *float32    `key:"ltime"`
-	Velocity           *mod.Vector `key:"velocity"`
-	Spawnflags         *int32      `key:"spawnflags"`
-	Disablelowviolence *bool       `key:"disablelowviolence"`
-	LagCompensate      *bool       `key:"LagCompensate"`
-	Health             *int32      `key:"health"`
+	Globalname            *string     `key:"globalname"`
+	Vscripts              *string     `key:"vscripts"`
+	Nextthink             *int32      `key:"nextthink"`
+	Effects               *int32      `key:"effects"`
+	ResponseContext       *string     `key:"ResponseContext"`
+	SubclassId            *string     `key:"subclass_id"`
+	SubclassName          *string     `key:"subclass_name"`
+	MaxHealth             *int32      `key:"max_health"`
+	Target                *string     `key:"target"`
+	PlatformType          *int32      `key:"platform_type"`
+	Damagefilter          *string     `key:"damagefilter"`
+	MoveType              *int32      `key:"MoveType"`
+	TeamNum               *int32      `key:"TeamNum"`
+	Teamnumber            *int32      `key:"teamnumber"`
+	Avelocity             *mod.Angles `key:"avelocity"`
+	Gravity               *float32    `key:"gravity"`
+	Friction              *float32    `key:"friction"`
+	Ltime                 *float32    `key:"ltime"`
+	Velocity              *mod.Vector `key:"velocity"`
+	Spawnflags            *int32      `key:"spawnflags"`
+	Disablelowviolence    *bool       `key:"disablelowviolence"`
+	LagCompensate         *bool       `key:"LagCompensate"`
+	Health                *int32      `key:"health"`
+	Angles                *mod.Angles `key:"angles"`
+	Origin                *mod.Vector `key:"origin"`
+	Model                 *string     `key:"model"`
+	Ownername             *string     `key:"ownername"`
+	Disableshadows        *int32      `key:"disableshadows"`
+	Disablereceiveshadows *int32      `key:"disablereceiveshadows"`
+	Nodamageforces        *int32      `key:"nodamageforces"`
+	Angle                 *float32    `key:"angle"`
+	ParentAttachmentName  *string     `key:"parentAttachmentName"`
+	UseLocalOffset        *bool       `key:"useLocalOffset"`
+	UseParentRenderBounds *bool       `key:"useParentRenderBounds"`
+	PositionInLocalSpace  *bool       `key:"positionInLocalSpace"`
+	Scales                *mod.Vector `key:"scales"`
+	Scale                 *float32    `key:"scale"`
+	ModelScale            *float32    `key:"ModelScale"`
 }
 
 type CAI_ChangeHintGroupKeys struct {
@@ -50,8 +66,15 @@ type CBaseModelEntityKeys struct {
 	Fademaxdist                                                *float32    `key:"fademaxdist"`
 	Fadescale                                                  *float32    `key:"fadescale"`
 	ObjectCulling                                              *int32      `key:"object_culling"`
+	AddAttribute                                               *string     `key:"add_attribute"`
 	AddModifier                                                *string     `key:"add_modifier"`
 	ViewOfs                                                    *mod.Vector `key:"view_ofs"`
+	Rendercolor32                                              *uint32     `key:"rendercolor32"`
+	Renderamt                                                  *int32      `key:"renderamt"`
+	Mins                                                       *mod.Vector `key:"mins"`
+	Maxs                                                       *mod.Vector `key:"maxs"`
+	Skin                                                       *string     `key:"skin"`
+	Bodygroups                                                 *string     `key:"bodygroups"`
 	DestructiblePartInitialStateDestructed1                    *int32      `key:"destructible_part_initial_state_destructed_1"`
 	DestructiblePartInitialStateDestructed2                    *int32      `key:"destructible_part_initial_state_destructed_2"`
 	DestructiblePartInitialStateDestructed3                    *int32      `key:"destructible_part_initial_state_destructed_3"`
@@ -81,9 +104,11 @@ type CBaseToggleKeys struct {
 
 type CBaseTriggerKeys struct {
 	CBaseToggleKeys
-	StartDisabled   *bool   `key:"StartDisabled"`
-	Filtername      *string `key:"filtername"`
-	Useasyncqueries *bool   `key:"useasyncqueries"`
+	StartDisabled   *bool    `key:"StartDisabled"`
+	Filtername      *string  `key:"filtername"`
+	Useasyncqueries *bool    `key:"useasyncqueries"`
+	Okifnomodel     *bool    `key:"okifnomodel"`
+	Radius          *float32 `key:"radius"`
 }
 
 type CNpcFootSweepKeys struct {
@@ -199,6 +224,7 @@ type CBaseAnimGraphKeys struct {
 
 type CBasePropKeys struct {
 	CBaseAnimGraphKeys
+	PropdataOverride *string `key:"propdata_override"`
 }
 
 type CBeamKeys struct {
@@ -237,19 +263,22 @@ type CBreakablePropKeys struct {
 
 type CDynamicPropKeys struct {
 	CBreakablePropKeys
-	IdleAnim              *string `key:"IdleAnim"`
-	StartDisabled         *bool   `key:"StartDisabled"`
-	UseAnimgraph          *bool   `key:"use_animgraph"`
-	Randomizecycle        *bool   `key:"randomizecycle"`
-	IdleAnimationLoopMode *int32  `key:"IdleAnimationLoopMode"`
-	Glowstate             *int32  `key:"glowstate"`
-	Glowrange             *int32  `key:"glowrange"`
-	Glowrangemin          *int32  `key:"glowrangemin"`
-	Glowcolor             *uint32 `key:"glowcolor"`
-	Glowteam              *int32  `key:"glowteam"`
-	Forcenpcexclude       *bool   `key:"forcenpcexclude"`
-	CreateSurfaceGraph    *bool   `key:"create_surface_graph"`
-	CreateNavObstacle     *bool   `key:"CreateNavObstacle"`
+	IdleAnim                  *string `key:"IdleAnim"`
+	StartDisabled             *bool   `key:"StartDisabled"`
+	UseAnimgraph              *bool   `key:"use_animgraph"`
+	Randomizecycle            *bool   `key:"randomizecycle"`
+	IdleAnimationLoopMode     *int32  `key:"IdleAnimationLoopMode"`
+	Glowstate                 *int32  `key:"glowstate"`
+	Glowrange                 *int32  `key:"glowrange"`
+	Glowrangemin              *int32  `key:"glowrangemin"`
+	Glowcolor                 *uint32 `key:"glowcolor"`
+	Glowteam                  *int32  `key:"glowteam"`
+	Forcenpcexclude           *bool   `key:"forcenpcexclude"`
+	CreateSurfaceGraph        *bool   `key:"create_surface_graph"`
+	StartingAnim              *string `key:"StartingAnim"`
+	StartingAnimationLoopMode *string `key:"StartingAnimationLoopMode"`
+	CreateNavObstacle         *bool   `key:"CreateNavObstacle"`
+	HoldAnimation             *bool   `key:"HoldAnimation"`
 }
 
 type CBaseCombatCharacterKeys struct {
@@ -329,6 +358,7 @@ type CCitadelDevTriggerKeys struct {
 
 type CCitadel_DoorwayPortalKeys struct {
 	CBaseAnimGraphKeys
+	LoopingSound *string `key:"looping_sound"`
 }
 
 type CCitadelDruidHealingTreeKeys struct {
@@ -386,6 +416,7 @@ type CCitadelItemPickupKeys struct {
 	FallRate               *float32    `key:"fall_rate"`
 	PlaySpawnMusic         *bool       `key:"play_spawn_music"`
 	RequireGroundForPickup *bool       `key:"require_ground_for_pickup"`
+	FromCrate              *bool       `key:"from_crate"`
 	ObjectivePosition      *int32      `key:"objective_position"`
 	KillingTeam            *int32      `key:"killing_team"`
 	HomePosition           *mod.Vector `key:"home_position"`
@@ -395,6 +426,8 @@ type CCitadelItemPickupKeys struct {
 
 type CCitadelItemKothSpawnerKeys struct {
 	CCitadelItemPickupKeys
+	KothEarlyWarningTime *float32 `key:"koth_early_warning_time"`
+	KothSilentSpawn      *bool    `key:"koth_silent_spawn"`
 }
 
 type CCitadelItemPickupIdolKeys struct {
@@ -448,6 +481,10 @@ type CCitadel_PickupSpawnerKeys struct {
 
 type CBasePlayerControllerKeys struct {
 	CBaseEntityKeys
+	Fakeclient *bool   `key:"fakeclient"`
+	IsHltv     *bool   `key:"is_hltv"`
+	Playername *string `key:"playername"`
+	Reserving  *bool   `key:"reserving"`
 }
 
 type CCitadel_PointTalker_BaseKeys struct {
@@ -636,6 +673,7 @@ type CPathParticleRopeKeys struct {
 	Slack             *float32 `key:"slack"`
 	Radius            *float32 `key:"radius"`
 	ColorTint         *uint32  `key:"color_tint"`
+	PathNodes         *string  `key:"pathNodes"`
 }
 
 type CCitadelZiplinePathKeys struct {
@@ -827,6 +865,7 @@ type CEnvExplosionKeys struct {
 	CreateDebris          *bool    `key:"create_debris"`
 	IgnoredClass          *int32   `key:"ignoredClass"`
 	IgnoredEntity         *string  `key:"ignoredEntity"`
+	ExplosionType         *string  `key:"explosion_type"`
 	ExplosionCustomEffect *string  `key:"explosion_custom_effect"`
 	ExplosionCustomSound  *string  `key:"explosion_custom_sound"`
 }
@@ -860,7 +899,6 @@ type CFogControllerKeys struct {
 
 type CSpriteKeys struct {
 	CBaseModelEntityKeys
-	Scale         *float32 `key:"scale"`
 	Framerate     *float32 `key:"framerate"`
 	Frame         *float32 `key:"frame"`
 	HDRColorScale *float32 `key:"HDRColorScale"`
@@ -960,8 +998,7 @@ type CMessageKeys struct {
 
 type CEnvMuzzleFlashKeys struct {
 	CPointEntityKeys
-	Scale            *float32 `key:"scale"`
-	Parentattachment *string  `key:"parentattachment"`
+	Parentattachment *string `key:"parentattachment"`
 }
 
 type CParticleSystemKeys struct {
@@ -982,7 +1019,6 @@ type CParticleSystemKeys struct {
 type CEnvParticleGlowKeys struct {
 	CParticleSystemKeys
 	Alphascale            *float32 `key:"alphascale"`
-	Scale                 *float32 `key:"scale"`
 	Selfillumscale        *float32 `key:"selfillumscale"`
 	Colortint             *uint32  `key:"colortint"`
 	EffectTextureOverride *string  `key:"effect_textureOverride"`
@@ -1072,7 +1108,6 @@ type CEnvSparkKeys struct {
 
 type CEnvSplashKeys struct {
 	CPointEntityKeys
-	Scale *float32 `key:"scale"`
 }
 
 type CEnvTiltKeys struct {
@@ -1159,7 +1194,6 @@ type CEnvWindKeys struct {
 
 type CBasePlayerPawnKeys struct {
 	CBaseCombatCharacterKeys
-	Scale                            *int32      `key:"scale"`
 	Clip3DSkyboxNearToWorldFar       *bool       `key:"clip_3D_skybox_near_to_world_far"`
 	Clip3DSkyboxNearToWorldFarOffset *float32    `key:"clip_3D_skybox_near_to_world_far_offset"`
 	Fogdir                           *mod.Vector `key:"fogdir"`
@@ -1181,6 +1215,7 @@ type CBasePlayerPawnKeys struct {
 
 type CCitadelPlayerPawnKeys struct {
 	CBasePlayerPawnKeys
+	Nospawnheroid *int32 `key:"nospawnheroid"`
 }
 
 type CCitadelFamiliarClonePlayerPawnKeys struct {
@@ -1213,7 +1248,6 @@ type CFilterMassGreaterKeys struct {
 
 type CFilterModelKeys struct {
 	CBaseFilterKeys
-	Model *string `key:"model"`
 }
 
 type CCitadelFilterModifierKeys struct {
@@ -1276,12 +1310,19 @@ type CFogVolumeKeys struct {
 
 type CBreakableKeys struct {
 	CBaseModelEntityKeys
-	Explosion        *int32   `key:"explosion"`
-	PressureDelay    *float32 `key:"PressureDelay"`
-	Minhealthdmg     *int32   `key:"minhealthdmg"`
-	Physdamagescale  *float32 `key:"physdamagescale"`
-	PerformanceMode  *int32   `key:"PerformanceMode"`
-	OverrideBlockLOS *int32   `key:"overrideBlockLOS"`
+	Explosion        *int32      `key:"explosion"`
+	PressureDelay    *float32    `key:"PressureDelay"`
+	Minhealthdmg     *int32      `key:"minhealthdmg"`
+	Physdamagescale  *float32    `key:"physdamagescale"`
+	PerformanceMode  *int32      `key:"PerformanceMode"`
+	OverrideBlockLOS *int32      `key:"overrideBlockLOS"`
+	Material         *int32      `key:"material"`
+	Spawnobject      *int32      `key:"spawnobject"`
+	Propdata         *int32      `key:"propdata"`
+	Masscenteroffset *mod.Vector `key:"masscenteroffset"`
+	MassScale        *float32    `key:"massScale"`
+	Buoyancyscale    *float32    `key:"buoyancyscale"`
+	Fluiddragscale   *float32    `key:"fluiddragscale"`
 }
 
 type CBaseButtonKeys struct {
@@ -1310,6 +1351,9 @@ type CFuncVPhysicsClipKeys struct {
 
 type CConditionalCollidableKeys struct {
 	CBaseModelEntityKeys
+	InteractAs      *string `key:"interactAs"`
+	InteractWith    *string `key:"interactWith"`
+	InteractExclude *string `key:"interactExclude"`
 }
 
 type CBaseDoorKeys struct {
@@ -1346,7 +1390,8 @@ type CFuncElectrifiedVolumeKeys struct {
 
 type CFishPoolKeys struct {
 	CBaseEntityKeys
-	FishCount *int32 `key:"fish_count"`
+	FishCount *int32   `key:"fish_count"`
+	MaxRange  *float32 `key:"max_range"`
 }
 
 type CGunTargetKeys struct {
@@ -1384,6 +1429,7 @@ type CFuncMoveLinearKeys struct {
 	CreateMovableNavMesh                     *bool       `key:"CreateMovableNavMesh"`
 	AllowMovableNavMeshDockingOnEntireEntity *bool       `key:"AllowMovableNavMeshDockingOnEntireEntity"`
 	Authoredposition                         *int32      `key:"authoredposition"`
+	Movewithoutpushingblockers               *bool       `key:"movewithoutpushingblockers"`
 }
 
 type CFuncMoverKeys struct {
@@ -1474,7 +1520,8 @@ type CMarkupVolumeTaggedKeys struct {
 
 type CMarkupVolumeTagged_NavKeys struct {
 	CMarkupVolumeTaggedKeys
-	Flags *int32 `key:"flags"`
+	NavPropertyNavAttributes *string `key:"navProperty_NavAttributes"`
+	Flags                    *int32  `key:"flags"`
 }
 
 type CMarkupVolumeWithRefKeys struct {
@@ -1485,9 +1532,11 @@ type CMarkupVolumeWithRefKeys struct {
 
 type CMarkupVolumeTagged_NavGameKeys struct {
 	CMarkupVolumeWithRefKeys
-	SplitNavSpace      *bool  `key:"split_nav_space"`
-	FloodFillAttribute *bool  `key:"flood_fill_attribute"`
-	Flags              *int32 `key:"flags"`
+	NavPropertyNavAttributes     *string `key:"navProperty_NavAttributes"`
+	NavPropertyNavAttributesGame *string `key:"navProperty_NavAttributesGame"`
+	SplitNavSpace                *bool   `key:"split_nav_space"`
+	FloodFillAttribute           *bool   `key:"flood_fill_attribute"`
+	Flags                        *int32  `key:"flags"`
 }
 
 type CPhysBoxKeys struct {
@@ -1498,6 +1547,7 @@ type CPhysBoxKeys struct {
 	Hoverposeflags            *int32      `key:"hoverposeflags"`
 	Hoverposeposition         *mod.Vector `key:"hoverposeposition"`
 	Hoverposeangles           *mod.Angles `key:"hoverposeangles"`
+	Preferredcarryangles      *mod.Angles `key:"preferredcarryangles"`
 	Notsolid                  *bool       `key:"notsolid"`
 	Touchoutputperentitydelay *float32    `key:"touchoutputperentitydelay"`
 	Enableuseoutput           *bool       `key:"enableuseoutput"`
@@ -1509,9 +1559,10 @@ type CPhysBoxKeys struct {
 
 type CBasePlatTrainKeys struct {
 	CBaseToggleKeys
-	Noise1 *string  `key:"noise1"`
-	Noise2 *string  `key:"noise2"`
-	Volume *float32 `key:"volume"`
+	Noise1   *string  `key:"noise1"`
+	Noise2   *string  `key:"noise2"`
+	Volume   *float32 `key:"volume"`
+	Rotation *float32 `key:"rotation"`
 }
 
 type CFuncPlatKeys struct {
@@ -1521,10 +1572,13 @@ type CFuncPlatKeys struct {
 
 type CFuncRotatingKeys struct {
 	CBaseModelEntityKeys
-	Maxspeed *float32 `key:"maxspeed"`
-	Dmg      *float32 `key:"dmg"`
-	Message  *string  `key:"message"`
-	Speed    *float32 `key:"speed"`
+	Maxspeed                   *float32 `key:"maxspeed"`
+	Dmg                        *float32 `key:"dmg"`
+	Message                    *string  `key:"message"`
+	Speed                      *float32 `key:"speed"`
+	Movewithoutpushingblockers *bool    `key:"movewithoutpushingblockers"`
+	Fanfriction                *int32   `key:"fanfriction"`
+	Volume                     *int32   `key:"Volume"`
 }
 
 type CFuncRotatorKeys struct {
@@ -1582,6 +1636,7 @@ type CFuncTrackTrainKeys struct {
 	ManualSpeedChanges *bool    `key:"ManualSpeedChanges"`
 	ManualAccelSpeed   *float32 `key:"ManualAccelSpeed"`
 	ManualDecelSpeed   *float32 `key:"ManualDecelSpeed"`
+	Volume             *int32   `key:"volume"`
 }
 
 type CFuncTankTrainKeys struct {
@@ -1651,6 +1706,8 @@ type CRagdollManagerKeys struct {
 type CGameTextKeys struct {
 	CRulePointEntityKeys
 	Message *string  `key:"message"`
+	Color   *uint32  `key:"color"`
+	Color2  *uint32  `key:"color2"`
 	Channel *int32   `key:"channel"`
 	Effect  *int32   `key:"effect"`
 	X       *float32 `key:"x"`
@@ -1706,6 +1763,7 @@ type CPointClientUIWorldPanelKeys struct {
 	DisableMipGen                      *bool    `key:"disable_mip_gen"`
 	ExplicitImageLayout                *int32   `key:"explicit_image_layout"`
 	IgnoreParentOrientation            *bool    `key:"ignore_parent_orientation"`
+	CssClass                           *string  `key:"css_class"`
 }
 
 type CAssignedLaneParticleKeys struct {
@@ -1895,6 +1953,8 @@ type CPhysicsPropKeys struct {
 	Buoyancyscale                    *float32 `key:"buoyancyscale"`
 	Damagetype                       *int32   `key:"Damagetype"`
 	Acceptdamagefromheldobjects      *bool    `key:"acceptdamagefromheldobjects"`
+	Forcemotiondisabled              *bool    `key:"forcemotiondisabled"`
+	PhysStartAsleep                  *bool    `key:"phys_start_asleep"`
 	Dynamiccontinuouscontactbehavior *int32   `key:"dynamiccontinuouscontactbehavior"`
 	Glowstate                        *int32   `key:"glowstate"`
 	Glowrange                        *int32   `key:"glowrange"`
@@ -1951,6 +2011,9 @@ type CItemGenericKeys struct {
 	GlowInTriggerRadius   *bool    `key:"glow_in_trigger_radius"`
 	Glowcolor             *uint32  `key:"glowcolor"`
 	Useable               *bool    `key:"useable"`
+	AutoRemoveTimeout     *float32 `key:"auto_remove_timeout"`
+	DragOverride          *float32 `key:"drag_override"`
+	DampingOverride       *float32 `key:"damping_override"`
 }
 
 type CRopeKeyframeKeys struct {
@@ -1962,6 +2025,14 @@ type CRopeKeyframeKeys struct {
 	SegmentCount *int32   `key:"SegmentCount"`
 	Subdiv       *int32   `key:"Subdiv"`
 	ScrollSpeed  *float32 `key:"ScrollSpeed"`
+	Breakable    *int32   `key:"Breakable"`
+	Collide      *int32   `key:"Collide"`
+	Barbed       *int32   `key:"Barbed"`
+	UseWind      *int32   `key:"UseWind"`
+	Dangling     *int32   `key:"Dangling"`
+	Type         *int32   `key:"Type"`
+	RopeShader   *int32   `key:"RopeShader"`
+	RopeMaterial *string  `key:"RopeMaterial"`
 }
 
 type CPathKeyFrameKeys struct {
@@ -2053,6 +2124,71 @@ type CBarnLightKeys struct {
 
 type CLightEntityKeys struct {
 	CBaseModelEntityKeys
+	Color                    *uint32     `key:"color"`
+	SecondaryColor           *uint32     `key:"secondary_color"`
+	Brightness               *float32    `key:"brightness"`
+	Brightnessscale          *float32    `key:"brightnessscale"`
+	Range                    *float32    `key:"range"`
+	Falloff                  *float32    `key:"falloff"`
+	Attenuation0             *float32    `key:"attenuation0"`
+	Attenuation1             *float32    `key:"attenuation1"`
+	Attenuation2             *float32    `key:"attenuation2"`
+	Innerconeangle           *float32    `key:"innerconeangle"`
+	Outerconeangle           *float32    `key:"outerconeangle"`
+	Lightcookie              *string     `key:"lightcookie"`
+	Numcascades              *int32      `key:"numcascades"`
+	Cascaderenderstaticobj   *int32      `key:"cascaderenderstaticobj"`
+	Cascadecrossfade         *float32    `key:"cascadecrossfade"`
+	Cascadedistancefade      *float32    `key:"cascadedistancefade"`
+	Shadowcascadedistance0   *float32    `key:"shadowcascadedistance0"`
+	Shadowcascadedistance1   *float32    `key:"shadowcascadedistance1"`
+	Shadowcascadedistance2   *float32    `key:"shadowcascadedistance2"`
+	Shadowcascadedistance3   *float32    `key:"shadowcascadedistance3"`
+	Shadowcascaderesolution0 *int32      `key:"shadowcascaderesolution0"`
+	Shadowcascaderesolution1 *int32      `key:"shadowcascaderesolution1"`
+	Shadowcascaderesolution2 *int32      `key:"shadowcascaderesolution2"`
+	Shadowcascaderesolution3 *int32      `key:"shadowcascaderesolution3"`
+	Castshadows              *int32      `key:"castshadows"`
+	Shadowtexturewidth       *int32      `key:"shadowtexturewidth"`
+	Shadowtextureheight      *int32      `key:"shadowtextureheight"`
+	BakedLightIndexing       *bool       `key:"baked_light_indexing"`
+	Shadowpriority           *int32      `key:"shadowpriority"`
+	Bakedshadowindex         *int32      `key:"bakedshadowindex"`
+	LightPathUniqueid        *int32      `key:"light_path_uniqueid"`
+	LightMapUniqueid         *int32      `key:"light_map_uniqueid"`
+	Renderdiffuse            *bool       `key:"renderdiffuse"`
+	Renderspecular           *int32      `key:"renderspecular"`
+	Rendertransmissive       *bool       `key:"rendertransmissive"`
+	Ortholightwidth          *float32    `key:"ortholightwidth"`
+	Ortholightheight         *float32    `key:"ortholightheight"`
+	Style                    *int32      `key:"style"`
+	Pattern                  *string     `key:"pattern"`
+	Directlight              *int32      `key:"directlight"`
+	Bouncelight              *int32      `key:"bouncelight"`
+	Bouncescale              *float32    `key:"bouncescale"`
+	Shadowfademindist        *float32    `key:"shadowfademindist"`
+	Shadowfademaxdist        *float32    `key:"shadowfademaxdist"`
+	Enabled                  *bool       `key:"enabled"`
+	Flicker                  *bool       `key:"flicker"`
+	Precomputedfieldsvalid   *bool       `key:"precomputedfieldsvalid"`
+	Precomputedboundsmins    *mod.Vector `key:"precomputedboundsmins"`
+	Precomputedboundsmaxs    *mod.Vector `key:"precomputedboundsmaxs"`
+	Precomputedmaxrange      *float32    `key:"precomputedmaxrange"`
+	Precomputedobborigin     *mod.Vector `key:"precomputedobborigin"`
+	Precomputedobbangles     *mod.Angles `key:"precomputedobbangles"`
+	Precomputedobbextent     *mod.Vector `key:"precomputedobbextent"`
+	FogLighting              *int32      `key:"fog_lighting"`
+	Fogcontributionstrength  *float32    `key:"fogcontributionstrength"`
+	Nearclipplane            *float32    `key:"nearclipplane"`
+	Skycolor                 *uint32     `key:"skycolor"`
+	Skyintensity             *float32    `key:"skyintensity"`
+	Skyambientbounce         *uint32     `key:"skyambientbounce"`
+	UseSecondaryColor        *bool       `key:"use_secondary_color"`
+	CapsuleLength            *float32    `key:"capsule_length"`
+	Mixedshadows             *bool       `key:"mixedshadows"`
+	Minroughness             *float32    `key:"minroughness"`
+	AllowSstGeneration       *bool       `key:"allow_sst_generation"`
+	PvsModifyEntity          *bool       `key:"pvs_modify_entity"`
 }
 
 type CDynamicLightKeys struct {
@@ -2063,6 +2199,8 @@ type CDynamicLightKeys struct {
 	FCone           *float32 `key:"_cone"`
 	SpotlightRadius *float32 `key:"spotlight_radius"`
 	Style           *int32   `key:"style"`
+	FLight          *uint32  `key:"_light"`
+	Pitch           *float32 `key:"pitch"`
 }
 
 type CEnvironmentLightKeys struct {
@@ -2207,6 +2345,7 @@ type CMultiLightProxyKeys struct {
 
 type CLogicNavigationKeys struct {
 	CBaseEntityKeys
+	Navprop *string `key:"navprop"`
 }
 
 type CLogicNPCCounterKeys struct {
@@ -2268,6 +2407,23 @@ type CSceneListManagerKeys struct {
 
 type CLogicScriptKeys struct {
 	CPointEntityKeys
+	Group00 *string `key:"Group00"`
+	Group01 *string `key:"Group01"`
+	Group02 *string `key:"Group02"`
+	Group03 *string `key:"Group03"`
+	Group04 *string `key:"Group04"`
+	Group05 *string `key:"Group05"`
+	Group06 *string `key:"Group06"`
+	Group07 *string `key:"Group07"`
+	Group08 *string `key:"Group08"`
+	Group09 *string `key:"Group09"`
+	Group10 *string `key:"Group10"`
+	Group11 *string `key:"Group11"`
+	Group12 *string `key:"Group12"`
+	Group13 *string `key:"Group13"`
+	Group14 *string `key:"Group14"`
+	Group15 *string `key:"Group15"`
+	Group16 *string `key:"Group16"`
 }
 
 type CTimerEntityKeys struct {
@@ -2299,6 +2455,7 @@ type CMathCounterKeys struct {
 	Min           *float32 `key:"min"`
 	Max           *float32 `key:"max"`
 	StartDisabled *bool    `key:"StartDisabled"`
+	Startvalue    *int32   `key:"startvalue"`
 }
 
 type CMathRemapKeys struct {
@@ -2421,20 +2578,26 @@ type CCitadelObserverPawnKeys struct {
 
 type CPathAccompanyKeys struct {
 	CBaseEntityKeys
-	AllowAutoLead *bool `key:"allow_auto_lead"`
+	PathNodes            *string `key:"pathNodes"`
+	PathNodeRadiusScales *string `key:"pathNodeRadiusScales"`
+	DeformableProp       *string `key:"deformable_prop"`
+	AllowAutoLead        *bool   `key:"allow_auto_lead"`
 }
 
 type CPathCornerKeys struct {
 	CPointEntityKeys
-	Wait                             *float32 `key:"wait"`
-	Speed                            *float32 `key:"speed"`
-	TriggerLocomotionStop            *bool    `key:"trigger_locomotion_stop"`
-	SmoothArrival                    *bool    `key:"smooth_arrival"`
-	PathEndDistanceFromGoal          *float32 `key:"path_end_distance_from_goal"`
-	WaypointSuccessRadius            *float32 `key:"waypoint_success_radius"`
-	WaypointSuccessRadiusWhenBlocked *float32 `key:"waypoint_success_radius_when_blocked"`
-	Radius                           *float32 `key:"radius"`
-	ExactPositioning                 *bool    `key:"exact_positioning"`
+	Wait                             *float32    `key:"wait"`
+	Speed                            *float32    `key:"speed"`
+	TriggerLocomotionStop            *bool       `key:"trigger_locomotion_stop"`
+	SmoothArrival                    *bool       `key:"smooth_arrival"`
+	PathEndDistanceFromGoal          *float32    `key:"path_end_distance_from_goal"`
+	WaypointSuccessRadius            *float32    `key:"waypoint_success_radius"`
+	WaypointSuccessRadiusWhenBlocked *float32    `key:"waypoint_success_radius_when_blocked"`
+	ArrivalDirectionEntity           *string     `key:"arrival_direction_entity"`
+	ArrivalDirectionToleranceAngle   *float32    `key:"arrival_direction_tolerance_angle"`
+	ArrivalDirectionRelativePosition *mod.Vector `key:"arrival_direction_relative_position"`
+	Radius                           *float32    `key:"radius"`
+	ExactPositioning                 *bool       `key:"exact_positioning"`
 }
 
 type CPathSimpleKeys struct {
@@ -2545,6 +2708,7 @@ type CPointAngleSensorKeys struct {
 	StartDisabled *bool    `key:"StartDisabled"`
 	Lookatname    *string  `key:"lookatname"`
 	Duration      *float32 `key:"duration"`
+	Tolerance     *float32 `key:"tolerance"`
 }
 
 type CPointAngularVelocitySensorKeys struct {
@@ -2921,7 +3085,6 @@ type CScriptedSequenceKeys struct {
 type CSkyCameraKeys struct {
 	CBaseEntityKeys
 	UseAngles                        *bool       `key:"use_angles"`
-	Scale                            *int32      `key:"scale"`
 	Clip3DSkyboxNearToWorldFar       *bool       `key:"clip_3D_skybox_near_to_world_far"`
 	Clip3DSkyboxNearToWorldFarOffset *float32    `key:"clip_3D_skybox_near_to_world_far_offset"`
 	Fogdir                           *mod.Vector `key:"fogdir"`
@@ -2943,6 +3106,7 @@ type CSkyCameraKeys struct {
 
 type CSkyboxReferenceKeys struct {
 	CBaseEntityKeys
+	WorldGroupID *string `key:"worldGroupID"`
 }
 
 type CSoundEventAABBEntityKeys struct {
@@ -3177,6 +3341,8 @@ type CCitadelCatapultTriggerKeys struct {
 
 type CChangeLevelKeys struct {
 	CBaseTriggerKeys
+	Map      *string `key:"map"`
+	Landmark *string `key:"landmark"`
 }
 
 type CTriggerDetectBulletFireKeys struct {
@@ -3297,12 +3463,13 @@ type CTriggerPingLocationKeys struct {
 
 type CCitadelPortalTriggerKeys struct {
 	CBaseTriggerKeys
+	TriggerMins *mod.Vector `key:"trigger_mins"`
+	TriggerMaxs *mod.Vector `key:"trigger_maxs"`
 }
 
 type CTriggerProximityKeys struct {
 	CBaseTriggerKeys
-	Measuretarget *string  `key:"measuretarget"`
-	Radius        *float32 `key:"radius"`
+	Measuretarget *string `key:"measuretarget"`
 }
 
 type CTriggerRemoveKeys struct {
@@ -3350,12 +3517,10 @@ type CTriggerVolumeKeys struct {
 
 type CTriggerTrooperDamageReductionDetectorKeys struct {
 	CBaseTriggerKeys
-	Radius *float32 `key:"radius"`
 }
 
 type CTriggerTrooperDetectorKeys struct {
 	CBaseTriggerKeys
-	Radius *float32 `key:"radius"`
 }
 
 type CCitadelZipLineNodeKeys struct {

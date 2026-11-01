@@ -16932,6 +16932,7 @@ export type CBaseEntityKeys = {
 	effects: number?,
 	ResponseContext: string?,
 	subclass_id: string?,
+	subclass_name: string?,
 	max_health: number?,
 	target: string?,
 	platform_type: number?,
@@ -16948,8 +16949,23 @@ export type CBaseEntityKeys = {
 	disablelowviolence: boolean?,
 	LagCompensate: boolean?,
 	health: number?,
+	angles: modlock.Angles?,
+	origin: modlock.Vector?,
+	model: string?,
+	ownername: string?,
+	disableshadows: number?,
+	disablereceiveshadows: number?,
+	nodamageforces: number?,
+	angle: number?,
+	parentAttachmentName: string?,
+	useLocalOffset: boolean?,
+	useParentRenderBounds: boolean?,
+	positionInLocalSpace: boolean?,
+	scales: modlock.Vector?,
+	scale: number?,
+	ModelScale: number?,
 }
-keyMaps.CBaseEntity = { base = nil, keys = { globalname = "text", vscripts = "text", nextthink = "integer", effects = "integer", ResponseContext = "text", subclass_id = "text", max_health = "integer", target = "text", platform_type = "integer", damagefilter = "text", MoveType = "integer", TeamNum = "integer", teamnumber = "integer", avelocity = "angles", gravity = "number", friction = "number", ltime = "number", velocity = "vector", spawnflags = "integer", disablelowviolence = "boolean", LagCompensate = "boolean", health = "integer" } }
+keyMaps.CBaseEntity = { base = nil, keys = { globalname = "text", vscripts = "text", nextthink = "integer", effects = "integer", ResponseContext = "text", subclass_id = "text", subclass_name = "text", max_health = "integer", target = "text", platform_type = "integer", damagefilter = "text", MoveType = "integer", TeamNum = "integer", teamnumber = "integer", avelocity = "angles", gravity = "number", friction = "number", ltime = "number", velocity = "vector", spawnflags = "integer", disablelowviolence = "boolean", LagCompensate = "boolean", health = "integer", angles = "angles", origin = "vector", model = "text", ownername = "text", disableshadows = "integer", disablereceiveshadows = "integer", nodamageforces = "integer", angle = "number", parentAttachmentName = "text", useLocalOffset = "boolean", useParentRenderBounds = "boolean", positionInLocalSpace = "boolean", scales = "vector", scale = "number", ModelScale = "number" } }
 
 export type CAI_ChangeHintGroupKeys = CBaseEntityKeys & {
 	SearchType: number?,
@@ -16971,8 +16987,15 @@ export type CBaseModelEntityKeys = CBaseEntityKeys & {
 	fademaxdist: number?,
 	fadescale: number?,
 	object_culling: number?,
+	add_attribute: string?,
 	add_modifier: string?,
 	view_ofs: modlock.Vector?,
+	rendercolor32: number?,
+	renderamt: number?,
+	mins: modlock.Vector?,
+	maxs: modlock.Vector?,
+	skin: string?,
+	bodygroups: string?,
 	destructible_part_initial_state_destructed_1: number?,
 	destructible_part_initial_state_destructed_2: number?,
 	destructible_part_initial_state_destructed_3: number?,
@@ -16990,7 +17013,7 @@ export type CBaseModelEntityKeys = CBaseEntityKeys & {
 	destructible_part_initial_state_destructed_5_generate_breakpieces: boolean?,
 	solid: number?,
 }
-keyMaps.CBaseModelEntity = { base = "CBaseEntity", keys = { rendercolor = "color", renderfx = "integer", rendermode = "integer", rendertocubemaps = "boolean", expand_render_bounds_to_include_cloth = "boolean", NoInterpolate = "boolean", glowbackfacemult = "number", fademindist = "number", fademaxdist = "number", fadescale = "number", object_culling = "integer", add_modifier = "text", view_ofs = "vector", destructible_part_initial_state_destructed_1 = "integer", destructible_part_initial_state_destructed_2 = "integer", destructible_part_initial_state_destructed_3 = "integer", destructible_part_initial_state_destructed_4 = "integer", destructible_part_initial_state_destructed_5 = "integer", destructible_part_initial_state_destructed_1_part_index = "integer", destructible_part_initial_state_destructed_2_part_index = "integer", destructible_part_initial_state_destructed_3_part_index = "integer", destructible_part_initial_state_destructed_4_part_index = "integer", destructible_part_initial_state_destructed_5_part_index = "integer", destructible_part_initial_state_destructed_1_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_2_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_3_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_4_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_5_generate_breakpieces = "boolean", solid = "integer" } }
+keyMaps.CBaseModelEntity = { base = "CBaseEntity", keys = { rendercolor = "color", renderfx = "integer", rendermode = "integer", rendertocubemaps = "boolean", expand_render_bounds_to_include_cloth = "boolean", NoInterpolate = "boolean", glowbackfacemult = "number", fademindist = "number", fademaxdist = "number", fadescale = "number", object_culling = "integer", add_attribute = "text", add_modifier = "text", view_ofs = "vector", rendercolor32 = "color", renderamt = "integer", mins = "vector", maxs = "vector", skin = "text", bodygroups = "text", destructible_part_initial_state_destructed_1 = "integer", destructible_part_initial_state_destructed_2 = "integer", destructible_part_initial_state_destructed_3 = "integer", destructible_part_initial_state_destructed_4 = "integer", destructible_part_initial_state_destructed_5 = "integer", destructible_part_initial_state_destructed_1_part_index = "integer", destructible_part_initial_state_destructed_2_part_index = "integer", destructible_part_initial_state_destructed_3_part_index = "integer", destructible_part_initial_state_destructed_4_part_index = "integer", destructible_part_initial_state_destructed_5_part_index = "integer", destructible_part_initial_state_destructed_1_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_2_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_3_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_4_generate_breakpieces = "boolean", destructible_part_initial_state_destructed_5_generate_breakpieces = "boolean", solid = "integer" } }
 
 export type CBaseToggleKeys = CBaseModelEntityKeys & {
 	distance: number?,
@@ -17005,8 +17028,10 @@ export type CBaseTriggerKeys = CBaseToggleKeys & {
 	StartDisabled: boolean?,
 	filtername: string?,
 	useasyncqueries: boolean?,
+	okifnomodel: boolean?,
+	radius: number?,
 }
-keyMaps.CBaseTrigger = { base = "CBaseToggle", keys = { StartDisabled = "boolean", filtername = "text", useasyncqueries = "boolean" } }
+keyMaps.CBaseTrigger = { base = "CBaseToggle", keys = { StartDisabled = "boolean", filtername = "text", useasyncqueries = "boolean", okifnomodel = "boolean", radius = "number" } }
 
 export type CNpcFootSweepKeys = CBaseTriggerKeys & {
 	use_center_pusher: boolean?,
@@ -17118,8 +17143,10 @@ export type CBaseAnimGraphKeys = CBaseModelEntityKeys & {
 }
 keyMaps.CBaseAnimGraph = { base = "CBaseModelEntity", keys = { initially_populate_interp_history = "boolean" } }
 
-export type CBasePropKeys = CBaseAnimGraphKeys
-keyMaps.CBaseProp = { base = "CBaseAnimGraph", keys = {  } }
+export type CBasePropKeys = CBaseAnimGraphKeys & {
+	propdata_override: string?,
+}
+keyMaps.CBaseProp = { base = "CBaseAnimGraph", keys = { propdata_override = "text" } }
 
 export type CBeamKeys = CBaseModelEntityKeys & {
 	HDRColorScale: number?,
@@ -17168,9 +17195,12 @@ export type CDynamicPropKeys = CBreakablePropKeys & {
 	glowteam: number?,
 	forcenpcexclude: boolean?,
 	create_surface_graph: boolean?,
+	StartingAnim: string?,
+	StartingAnimationLoopMode: string?,
 	CreateNavObstacle: boolean?,
+	HoldAnimation: boolean?,
 }
-keyMaps.CDynamicProp = { base = "CBreakableProp", keys = { IdleAnim = "text", StartDisabled = "boolean", use_animgraph = "boolean", randomizecycle = "boolean", IdleAnimationLoopMode = "integer", glowstate = "integer", glowrange = "integer", glowrangemin = "integer", glowcolor = "color", glowteam = "integer", forcenpcexclude = "boolean", create_surface_graph = "boolean", CreateNavObstacle = "boolean" } }
+keyMaps.CDynamicProp = { base = "CBreakableProp", keys = { IdleAnim = "text", StartDisabled = "boolean", use_animgraph = "boolean", randomizecycle = "boolean", IdleAnimationLoopMode = "integer", glowstate = "integer", glowrange = "integer", glowrangemin = "integer", glowcolor = "color", glowteam = "integer", forcenpcexclude = "boolean", create_surface_graph = "boolean", StartingAnim = "text", StartingAnimationLoopMode = "text", CreateNavObstacle = "boolean", HoldAnimation = "boolean" } }
 
 export type CBaseCombatCharacterKeys = CBaseAnimGraphKeys & {
 	Relationship: string?,
@@ -17245,8 +17275,10 @@ export type CCitadelDevTriggerKeys = CBaseTriggerKeys & {
 }
 keyMaps.CCitadelDevTrigger = { base = "CBaseTrigger", keys = { DevTriggerType = "integer" } }
 
-export type CCitadel_DoorwayPortalKeys = CBaseAnimGraphKeys
-keyMaps.CCitadel_DoorwayPortal = { base = "CBaseAnimGraph", keys = {  } }
+export type CCitadel_DoorwayPortalKeys = CBaseAnimGraphKeys & {
+	looping_sound: string?,
+}
+keyMaps.CCitadel_DoorwayPortal = { base = "CBaseAnimGraph", keys = { looping_sound = "text" } }
 
 export type CCitadelDruidHealingTreeKeys = CBaseAnimGraphKeys & {
 	fruit_model: string?,
@@ -17301,16 +17333,20 @@ export type CCitadelItemPickupKeys = CBaseAnimGraphKeys & {
 	fall_rate: number?,
 	play_spawn_music: boolean?,
 	require_ground_for_pickup: boolean?,
+	from_crate: boolean?,
 	objective_position: number?,
 	killing_team: number?,
 	home_position: modlock.Vector?,
 	first_pickup_time: number?,
 	drop_position: modlock.Vector?,
 }
-keyMaps.CCitadelItemPickup = { base = "CBaseAnimGraph", keys = { currency_value = "integer", loot_type = "integer", model_name = "text", model_scale = "number", fall_rate = "number", play_spawn_music = "boolean", require_ground_for_pickup = "boolean", objective_position = "integer", killing_team = "integer", home_position = "vector", first_pickup_time = "number", drop_position = "vector" } }
+keyMaps.CCitadelItemPickup = { base = "CBaseAnimGraph", keys = { currency_value = "integer", loot_type = "integer", model_name = "text", model_scale = "number", fall_rate = "number", play_spawn_music = "boolean", require_ground_for_pickup = "boolean", from_crate = "boolean", objective_position = "integer", killing_team = "integer", home_position = "vector", first_pickup_time = "number", drop_position = "vector" } }
 
-export type CCitadelItemKothSpawnerKeys = CCitadelItemPickupKeys
-keyMaps.CCitadelItemKothSpawner = { base = "CCitadelItemPickup", keys = {  } }
+export type CCitadelItemKothSpawnerKeys = CCitadelItemPickupKeys & {
+	koth_early_warning_time: number?,
+	koth_silent_spawn: boolean?,
+}
+keyMaps.CCitadelItemKothSpawner = { base = "CCitadelItemPickup", keys = { koth_early_warning_time = "number", koth_silent_spawn = "boolean" } }
 
 export type CCitadelItemPickupIdolKeys = CCitadelItemPickupKeys
 keyMaps.CCitadelItemPickupIdol = { base = "CCitadelItemPickup", keys = {  } }
@@ -17358,8 +17394,13 @@ export type CCitadel_PickupSpawnerKeys = CBaseAnimGraphKeys & {
 }
 keyMaps.CCitadel_PickupSpawner = { base = "CBaseAnimGraph", keys = { pickup_subclass = "text", spawn_delay_override = "number", respawn_time_override = "number" } }
 
-export type CBasePlayerControllerKeys = CBaseEntityKeys
-keyMaps.CBasePlayerController = { base = "CBaseEntity", keys = {  } }
+export type CBasePlayerControllerKeys = CBaseEntityKeys & {
+	fakeclient: boolean?,
+	is_hltv: boolean?,
+	playername: string?,
+	reserving: boolean?,
+}
+keyMaps.CBasePlayerController = { base = "CBaseEntity", keys = { fakeclient = "boolean", is_hltv = "boolean", playername = "text", reserving = "boolean" } }
 
 export type CCitadel_PointTalker_BaseKeys = CBaseCombatCharacterKeys
 keyMaps.CCitadel_PointTalker_Base = { base = "CBaseCombatCharacter", keys = {  } }
@@ -17542,8 +17583,9 @@ export type CPathParticleRopeKeys = CBaseEntityKeys & {
 	slack: number?,
 	radius: number?,
 	color_tint: number?,
+	pathNodes: string?,
 }
-keyMaps.CPathParticleRope = { base = "CBaseEntity", keys = { start_active = "boolean", max_simulation_time = "number", effect_name = "text", particle_spacing = "number", slack = "number", radius = "number", color_tint = "color" } }
+keyMaps.CPathParticleRope = { base = "CBaseEntity", keys = { start_active = "boolean", max_simulation_time = "number", effect_name = "text", particle_spacing = "number", slack = "number", radius = "number", color_tint = "color", pathNodes = "text" } }
 
 export type CCitadelZiplinePathKeys = CPathParticleRopeKeys & {
 	lane_number: number?,
@@ -17731,10 +17773,11 @@ export type CEnvExplosionKeys = CBaseModelEntityKeys & {
 	create_debris: boolean?,
 	ignoredClass: number?,
 	ignoredEntity: string?,
+	explosion_type: string?,
 	explosion_custom_effect: string?,
 	explosion_custom_sound: string?,
 }
-keyMaps.CEnvExplosion = { base = "CBaseModelEntity", keys = { iMagnitude = "integer", iRadiusOverride = "integer", DamageForce = "number", create_debris = "boolean", ignoredClass = "integer", ignoredEntity = "text", explosion_custom_effect = "text", explosion_custom_sound = "text" } }
+keyMaps.CEnvExplosion = { base = "CBaseModelEntity", keys = { iMagnitude = "integer", iRadiusOverride = "integer", DamageForce = "number", create_debris = "boolean", ignoredClass = "integer", ignoredEntity = "text", explosion_type = "text", explosion_custom_effect = "text", explosion_custom_sound = "text" } }
 
 export type CEnvFadeKeys = CBaseEntityKeys & {
 	rendercolor: number?,
@@ -17764,14 +17807,13 @@ export type CFogControllerKeys = CBaseEntityKeys & {
 keyMaps.CFogController = { base = "CBaseEntity", keys = { use_angles = "boolean", fogdir = "vector", fogcolor = "color", fogcolor2 = "color", fogstart = "number", fogend = "number", farz = "number", fogmaxdensity = "number", fogexponent = "number", HDRColorScale = "number", foglerptime = "number", fogenable = "boolean", fogblend = "boolean", blendtobackground = "number", scattering = "number", locallightscale = "number" } }
 
 export type CSpriteKeys = CBaseModelEntityKeys & {
-	scale: number?,
 	framerate: number?,
 	frame: number?,
 	HDRColorScale: number?,
 	speed: number?,
 	GlowProxySize: number?,
 }
-keyMaps.CSprite = { base = "CBaseModelEntity", keys = { scale = "number", framerate = "number", frame = "number", HDRColorScale = "number", speed = "number", GlowProxySize = "number" } }
+keyMaps.CSprite = { base = "CBaseModelEntity", keys = { framerate = "number", frame = "number", HDRColorScale = "number", speed = "number", GlowProxySize = "number" } }
 
 export type CGradientFogKeys = CBaseEntityKeys & {
 	StartDisabled: boolean?,
@@ -17864,10 +17906,9 @@ export type CMessageKeys = CPointEntityKeys & {
 keyMaps.CMessage = { base = "CPointEntity", keys = { message = "text", messagesound = "text", messageattenuation = "integer", messagevolume = "number" } }
 
 export type CEnvMuzzleFlashKeys = CPointEntityKeys & {
-	scale: number?,
 	parentattachment: string?,
 }
-keyMaps.CEnvMuzzleFlash = { base = "CPointEntity", keys = { scale = "number", parentattachment = "text" } }
+keyMaps.CEnvMuzzleFlash = { base = "CPointEntity", keys = { parentattachment = "text" } }
 
 export type CParticleSystemKeys = CBaseModelEntityKeys & {
 	start_active: boolean?,
@@ -17886,12 +17927,11 @@ keyMaps.CParticleSystem = { base = "CBaseModelEntity", keys = { start_active = "
 
 export type CEnvParticleGlowKeys = CParticleSystemKeys & {
 	alphascale: number?,
-	scale: number?,
 	selfillumscale: number?,
 	colortint: number?,
 	effect_textureOverride: string?,
 }
-keyMaps.CEnvParticleGlow = { base = "CParticleSystem", keys = { alphascale = "number", scale = "number", selfillumscale = "number", colortint = "color", effect_textureOverride = "text" } }
+keyMaps.CEnvParticleGlow = { base = "CParticleSystem", keys = { alphascale = "number", selfillumscale = "number", colortint = "color", effect_textureOverride = "text" } }
 
 export type CPhysExplosionKeys = CPointEntityKeys & {
 	magnitude: number?,
@@ -17975,10 +18015,8 @@ export type CEnvSparkKeys = CPointEntityKeys & {
 }
 keyMaps.CEnvSpark = { base = "CPointEntity", keys = { MaxDelay = "number", Magnitude = "integer", SparkType = "integer", TrailLength = "integer" } }
 
-export type CEnvSplashKeys = CPointEntityKeys & {
-	scale: number?,
-}
-keyMaps.CEnvSplash = { base = "CPointEntity", keys = { scale = "number" } }
+export type CEnvSplashKeys = CPointEntityKeys
+keyMaps.CEnvSplash = { base = "CPointEntity", keys = {  } }
 
 export type CEnvTiltKeys = CPointEntityKeys & {
 	duration: number?,
@@ -18063,7 +18101,6 @@ export type CEnvWindKeys = CBaseEntityKeys & {
 keyMaps.CEnvWind = { base = "CBaseEntity", keys = { minwind = "integer", maxwind = "integer", windradius = "integer", mingust = "integer", maxgust = "integer", mingustdelay = "number", maxgustdelay = "number", gustduration = "number", gustdirchange = "integer" } }
 
 export type CBasePlayerPawnKeys = CBaseCombatCharacterKeys & {
-	scale: number?,
 	clip_3D_skybox_near_to_world_far: boolean?,
 	clip_3D_skybox_near_to_world_far_offset: number?,
 	fogdir: modlock.Vector?,
@@ -18082,10 +18119,12 @@ export type CBasePlayerPawnKeys = CBaseCombatCharacterKeys & {
 	scattering: number?,
 	locallightscale: number?,
 }
-keyMaps.CBasePlayerPawn = { base = "CBaseCombatCharacter", keys = { scale = "integer", clip_3D_skybox_near_to_world_far = "boolean", clip_3D_skybox_near_to_world_far_offset = "number", fogdir = "vector", fogcolor = "color", fogcolor2 = "color", fogstart = "number", fogend = "number", farz = "number", fogmaxdensity = "number", fogexponent = "number", HDRColorScale = "number", foglerptime = "number", fogenable = "boolean", fogblend = "boolean", blendtobackground = "number", scattering = "number", locallightscale = "number" } }
+keyMaps.CBasePlayerPawn = { base = "CBaseCombatCharacter", keys = { clip_3D_skybox_near_to_world_far = "boolean", clip_3D_skybox_near_to_world_far_offset = "number", fogdir = "vector", fogcolor = "color", fogcolor2 = "color", fogstart = "number", fogend = "number", farz = "number", fogmaxdensity = "number", fogexponent = "number", HDRColorScale = "number", foglerptime = "number", fogenable = "boolean", fogblend = "boolean", blendtobackground = "number", scattering = "number", locallightscale = "number" } }
 
-export type CCitadelPlayerPawnKeys = CBasePlayerPawnKeys
-keyMaps.CCitadelPlayerPawn = { base = "CBasePlayerPawn", keys = {  } }
+export type CCitadelPlayerPawnKeys = CBasePlayerPawnKeys & {
+	nospawnheroid: number?,
+}
+keyMaps.CCitadelPlayerPawn = { base = "CBasePlayerPawn", keys = { nospawnheroid = "integer" } }
 
 export type CCitadelFamiliarClonePlayerPawnKeys = CCitadelPlayerPawnKeys
 keyMaps.CCitadelFamiliarClonePlayerPawn = { base = "CCitadelPlayerPawn", keys = {  } }
@@ -18113,10 +18152,8 @@ export type CFilterMassGreaterKeys = CBaseFilterKeys & {
 }
 keyMaps.CFilterMassGreater = { base = "CBaseFilter", keys = { filtermass = "number" } }
 
-export type CFilterModelKeys = CBaseFilterKeys & {
-	model: string?,
-}
-keyMaps.CFilterModel = { base = "CBaseFilter", keys = { model = "text" } }
+export type CFilterModelKeys = CBaseFilterKeys
+keyMaps.CFilterModel = { base = "CBaseFilter", keys = {  } }
 
 export type CCitadelFilterModifierKeys = CBaseFilterKeys & {
 	modifier_name: string?,
@@ -18183,8 +18220,15 @@ export type CBreakableKeys = CBaseModelEntityKeys & {
 	physdamagescale: number?,
 	PerformanceMode: number?,
 	overrideBlockLOS: number?,
+	material: number?,
+	spawnobject: number?,
+	propdata: number?,
+	masscenteroffset: modlock.Vector?,
+	massScale: number?,
+	buoyancyscale: number?,
+	fluiddragscale: number?,
 }
-keyMaps.CBreakable = { base = "CBaseModelEntity", keys = { explosion = "integer", PressureDelay = "number", minhealthdmg = "integer", physdamagescale = "number", PerformanceMode = "integer", overrideBlockLOS = "integer" } }
+keyMaps.CBreakable = { base = "CBaseModelEntity", keys = { explosion = "integer", PressureDelay = "number", minhealthdmg = "integer", physdamagescale = "number", PerformanceMode = "integer", overrideBlockLOS = "integer", material = "integer", spawnobject = "integer", propdata = "integer", masscenteroffset = "vector", massScale = "number", buoyancyscale = "number", fluiddragscale = "number" } }
 
 export type CBaseButtonKeys = CBaseToggleKeys & {
 	movedir: modlock.Angles?,
@@ -18209,8 +18253,12 @@ keyMaps.CFuncInteractionLayerClip = { base = "CBaseModelEntity", keys = { StartD
 export type CFuncVPhysicsClipKeys = CBaseModelEntityKeys
 keyMaps.CFuncVPhysicsClip = { base = "CBaseModelEntity", keys = {  } }
 
-export type CConditionalCollidableKeys = CBaseModelEntityKeys
-keyMaps.CConditionalCollidable = { base = "CBaseModelEntity", keys = {  } }
+export type CConditionalCollidableKeys = CBaseModelEntityKeys & {
+	interactAs: string?,
+	interactWith: string?,
+	interactExclude: string?,
+}
+keyMaps.CConditionalCollidable = { base = "CBaseModelEntity", keys = { interactAs = "text", interactWith = "text", interactExclude = "text" } }
 
 export type CBaseDoorKeys = CBaseToggleKeys & {
 	movedir: modlock.Angles?,
@@ -18246,8 +18294,9 @@ keyMaps.CFuncElectrifiedVolume = { base = "CFuncBrush", keys = { effect_name = "
 
 export type CFishPoolKeys = CBaseEntityKeys & {
 	fish_count: number?,
+	max_range: number?,
 }
-keyMaps.CFishPool = { base = "CBaseEntity", keys = { fish_count = "integer" } }
+keyMaps.CFishPool = { base = "CBaseEntity", keys = { fish_count = "integer", max_range = "number" } }
 
 export type CGunTargetKeys = CBaseToggleKeys & {
 	speed: number?,
@@ -18283,8 +18332,9 @@ export type CFuncMoveLinearKeys = CBaseToggleKeys & {
 	CreateMovableNavMesh: boolean?,
 	AllowMovableNavMeshDockingOnEntireEntity: boolean?,
 	authoredposition: number?,
+	movewithoutpushingblockers: boolean?,
 }
-keyMaps.CFuncMoveLinear = { base = "CBaseToggle", keys = { movedir = "angles", speed = "number", StartSound = "text", StopSound = "text", BlockDamage = "number", StartPosition = "number", CreateNavObstacle = "boolean", CreateMovableNavMesh = "boolean", AllowMovableNavMeshDockingOnEntireEntity = "boolean", authoredposition = "integer" } }
+keyMaps.CFuncMoveLinear = { base = "CBaseToggle", keys = { movedir = "angles", speed = "number", StartSound = "text", StopSound = "text", BlockDamage = "number", StartPosition = "number", CreateNavObstacle = "boolean", CreateMovableNavMesh = "boolean", AllowMovableNavMeshDockingOnEntireEntity = "boolean", authoredposition = "integer", movewithoutpushingblockers = "boolean" } }
 
 export type CFuncMoverKeys = CBaseModelEntityKeys & {
 	path_name: string?,
@@ -18373,9 +18423,10 @@ export type CMarkupVolumeTaggedKeys = CMarkupVolumeKeys & {
 keyMaps.CMarkupVolumeTagged = { base = "CMarkupVolume", keys = { groupbyprefab = "boolean", groupbyvolume = "boolean", groupothergroups = "boolean" } }
 
 export type CMarkupVolumeTagged_NavKeys = CMarkupVolumeTaggedKeys & {
+	navProperty_NavAttributes: string?,
 	flags: number?,
 }
-keyMaps.CMarkupVolumeTagged_Nav = { base = "CMarkupVolumeTagged", keys = { flags = "integer" } }
+keyMaps.CMarkupVolumeTagged_Nav = { base = "CMarkupVolumeTagged", keys = { navProperty_NavAttributes = "text", flags = "integer" } }
 
 export type CMarkupVolumeWithRefKeys = CMarkupVolumeTaggedKeys & {
 	use_ref_position: boolean?,
@@ -18384,11 +18435,13 @@ export type CMarkupVolumeWithRefKeys = CMarkupVolumeTaggedKeys & {
 keyMaps.CMarkupVolumeWithRef = { base = "CMarkupVolumeTagged", keys = { use_ref_position = "boolean", ref_position = "vector" } }
 
 export type CMarkupVolumeTagged_NavGameKeys = CMarkupVolumeWithRefKeys & {
+	navProperty_NavAttributes: string?,
+	navProperty_NavAttributesGame: string?,
 	split_nav_space: boolean?,
 	flood_fill_attribute: boolean?,
 	flags: number?,
 }
-keyMaps.CMarkupVolumeTagged_NavGame = { base = "CMarkupVolumeWithRef", keys = { split_nav_space = "boolean", flood_fill_attribute = "boolean", flags = "integer" } }
+keyMaps.CMarkupVolumeTagged_NavGame = { base = "CMarkupVolumeWithRef", keys = { navProperty_NavAttributes = "text", navProperty_NavAttributesGame = "text", split_nav_space = "boolean", flood_fill_attribute = "boolean", flags = "integer" } }
 
 export type CPhysBoxKeys = CBreakableKeys & {
 	Damagetype: number?,
@@ -18397,6 +18450,7 @@ export type CPhysBoxKeys = CBreakableKeys & {
 	hoverposeflags: number?,
 	hoverposeposition: modlock.Vector?,
 	hoverposeangles: modlock.Angles?,
+	preferredcarryangles: modlock.Angles?,
 	notsolid: boolean?,
 	touchoutputperentitydelay: number?,
 	enableuseoutput: boolean?,
@@ -18405,14 +18459,15 @@ export type CPhysBoxKeys = CBreakableKeys & {
 	interactsWith: string?,
 	interactsExclude: string?,
 }
-keyMaps.CPhysBox = { base = "CBreakable", keys = { Damagetype = "integer", damagetoenablemotion = "integer", forcetoenablemotion = "number", hoverposeflags = "integer", hoverposeposition = "vector", hoverposeangles = "angles", notsolid = "boolean", touchoutputperentitydelay = "number", enableuseoutput = "boolean", collisionGroup = "text", interactsAs = "text", interactsWith = "text", interactsExclude = "text" } }
+keyMaps.CPhysBox = { base = "CBreakable", keys = { Damagetype = "integer", damagetoenablemotion = "integer", forcetoenablemotion = "number", hoverposeflags = "integer", hoverposeposition = "vector", hoverposeangles = "angles", preferredcarryangles = "angles", notsolid = "boolean", touchoutputperentitydelay = "number", enableuseoutput = "boolean", collisionGroup = "text", interactsAs = "text", interactsWith = "text", interactsExclude = "text" } }
 
 export type CBasePlatTrainKeys = CBaseToggleKeys & {
 	noise1: string?,
 	noise2: string?,
 	volume: number?,
+	rotation: number?,
 }
-keyMaps.CBasePlatTrain = { base = "CBaseToggle", keys = { noise1 = "text", noise2 = "text", volume = "number" } }
+keyMaps.CBasePlatTrain = { base = "CBaseToggle", keys = { noise1 = "text", noise2 = "text", volume = "number", rotation = "number" } }
 
 export type CFuncPlatKeys = CBasePlatTrainKeys & {
 	speed: number?,
@@ -18424,8 +18479,11 @@ export type CFuncRotatingKeys = CBaseModelEntityKeys & {
 	dmg: number?,
 	message: string?,
 	speed: number?,
+	movewithoutpushingblockers: boolean?,
+	fanfriction: number?,
+	Volume: number?,
 }
-keyMaps.CFuncRotating = { base = "CBaseModelEntity", keys = { maxspeed = "number", dmg = "number", message = "text", speed = "number" } }
+keyMaps.CFuncRotating = { base = "CBaseModelEntity", keys = { maxspeed = "number", dmg = "number", message = "text", speed = "number", movewithoutpushingblockers = "boolean", fanfriction = "integer", Volume = "integer" } }
 
 export type CFuncRotatorKeys = CBaseModelEntityKeys & {
 	rotate_type: number?,
@@ -18481,8 +18539,9 @@ export type CFuncTrackTrainKeys = CBaseModelEntityKeys & {
 	ManualSpeedChanges: boolean?,
 	ManualAccelSpeed: number?,
 	ManualDecelSpeed: number?,
+	volume: number?,
 }
-keyMaps.CFuncTrackTrain = { base = "CBaseModelEntity", keys = { wheels = "number", height = "number", startspeed = "number", bank = "number", dmg = "number", MoveSound = "text", MovePingSound = "text", StartSound = "text", StopSound = "text", MoveSoundMinPitch = "number", MoveSoundMaxPitch = "number", MoveSoundMinTime = "number", MoveSoundMaxTime = "number", velocitytype = "integer", orientationtype = "integer", speed = "number", ManualSpeedChanges = "boolean", ManualAccelSpeed = "number", ManualDecelSpeed = "number" } }
+keyMaps.CFuncTrackTrain = { base = "CBaseModelEntity", keys = { wheels = "number", height = "number", startspeed = "number", bank = "number", dmg = "number", MoveSound = "text", MovePingSound = "text", StartSound = "text", StopSound = "text", MoveSoundMinPitch = "number", MoveSoundMaxPitch = "number", MoveSoundMinTime = "number", MoveSoundMaxTime = "number", velocitytype = "integer", orientationtype = "integer", speed = "number", ManualSpeedChanges = "boolean", ManualAccelSpeed = "number", ManualDecelSpeed = "number", volume = "integer" } }
 
 export type CFuncTankTrainKeys = CFuncTrackTrainKeys
 keyMaps.CFuncTankTrain = { base = "CFuncTrackTrain", keys = {  } }
@@ -18545,12 +18604,14 @@ keyMaps.CRagdollManager = { base = "CBaseEntity", keys = { MaxRagdollCount = "in
 
 export type CGameTextKeys = CRulePointEntityKeys & {
 	message: string?,
+	color: number?,
+	color2: number?,
 	channel: number?,
 	effect: number?,
 	x: number?,
 	y: number?,
 }
-keyMaps.CGameText = { base = "CRulePointEntity", keys = { message = "text", channel = "integer", effect = "integer", x = "number", y = "number" } }
+keyMaps.CGameText = { base = "CRulePointEntity", keys = { message = "text", color = "color", color2 = "color", channel = "integer", effect = "integer", x = "number", y = "number" } }
 
 export type CGamePlayerZoneKeys = CRuleEntityKeys
 keyMaps.CGamePlayerZone = { base = "CRuleEntity", keys = {  } }
@@ -18599,8 +18660,9 @@ export type CPointClientUIWorldPanelKeys = CBaseClientUIEntityKeys & {
 	disable_mip_gen: boolean?,
 	explicit_image_layout: number?,
 	ignore_parent_orientation: boolean?,
+	css_class: string?,
 }
-keyMaps.CPointClientUIWorldPanel = { base = "CBaseClientUIEntity", keys = { ignore_input = "boolean", follow_player_across_teleport = "boolean", width = "number", height = "number", panel_dpi = "number", window_ui_scale = "number", interact_distance = "number", depth_offset = "number", owner_context = "integer", horizontal_align = "integer", vertical_align = "integer", orientation = "integer", allow_interaction_from_all_scene_worlds = "boolean", opaque = "boolean", ignore_depth = "boolean", visible_when_parent_nodraw = "boolean", render_backface = "boolean", lit = "boolean", enable_offscreen_indicator = "boolean", exclude_from_save_games = "boolean", grabbable = "boolean", only_render_to_texture = "boolean", disable_mip_gen = "boolean", explicit_image_layout = "integer", ignore_parent_orientation = "boolean" } }
+keyMaps.CPointClientUIWorldPanel = { base = "CBaseClientUIEntity", keys = { ignore_input = "boolean", follow_player_across_teleport = "boolean", width = "number", height = "number", panel_dpi = "number", window_ui_scale = "number", interact_distance = "number", depth_offset = "number", owner_context = "integer", horizontal_align = "integer", vertical_align = "integer", orientation = "integer", allow_interaction_from_all_scene_worlds = "boolean", opaque = "boolean", ignore_depth = "boolean", visible_when_parent_nodraw = "boolean", render_backface = "boolean", lit = "boolean", enable_offscreen_indicator = "boolean", exclude_from_save_games = "boolean", grabbable = "boolean", only_render_to_texture = "boolean", disable_mip_gen = "boolean", explicit_image_layout = "integer", ignore_parent_orientation = "boolean", css_class = "text" } }
 
 export type CAssignedLaneParticleKeys = CBaseModelEntityKeys & {
 	LaneNum: number?,
@@ -18786,6 +18848,8 @@ export type CPhysicsPropKeys = CBreakablePropKeys & {
 	buoyancyscale: number?,
 	Damagetype: number?,
 	acceptdamagefromheldobjects: boolean?,
+	forcemotiondisabled: boolean?,
+	phys_start_asleep: boolean?,
 	dynamiccontinuouscontactbehavior: number?,
 	glowstate: number?,
 	glowrange: number?,
@@ -18804,7 +18868,7 @@ export type CPhysicsPropKeys = CBreakablePropKeys & {
 	mute_impact_effects: boolean?,
 	enableuseoutput: boolean?,
 }
-keyMaps.CPhysicsProp = { base = "CBreakableProp", keys = { massscale = "number", buoyancyscale = "number", Damagetype = "integer", acceptdamagefromheldobjects = "boolean", dynamiccontinuouscontactbehavior = "integer", glowstate = "integer", glowrange = "integer", glowrangemin = "integer", glowcolor = "color", damagetoenablemotion = "integer", forcetoenablemotion = "number", CrateType = "integer", ammobalancing_removable = "boolean", updatenavwhenmoving = "boolean", forcenavcut = "boolean", forcenavignore = "boolean", nonavmeshblocker = "boolean", forcenpcexclude = "boolean", auto_convert_back_from_debris = "boolean", mute_impact_effects = "boolean", enableuseoutput = "boolean" } }
+keyMaps.CPhysicsProp = { base = "CBreakableProp", keys = { massscale = "number", buoyancyscale = "number", Damagetype = "integer", acceptdamagefromheldobjects = "boolean", forcemotiondisabled = "boolean", phys_start_asleep = "boolean", dynamiccontinuouscontactbehavior = "integer", glowstate = "integer", glowrange = "integer", glowrangemin = "integer", glowcolor = "color", damagetoenablemotion = "integer", forcetoenablemotion = "number", CrateType = "integer", ammobalancing_removable = "boolean", updatenavwhenmoving = "boolean", forcenavcut = "boolean", forcenavignore = "boolean", nonavmeshblocker = "boolean", forcenpcexclude = "boolean", auto_convert_back_from_debris = "boolean", mute_impact_effects = "boolean", enableuseoutput = "boolean" } }
 
 export type CItemCrateKeys = CPhysicsPropKeys & {
 	loot_type: number?,
@@ -18842,8 +18906,11 @@ export type CItemGenericKeys = CItemKeys & {
 	glow_in_trigger_radius: boolean?,
 	glowcolor: number?,
 	useable: boolean?,
+	auto_remove_timeout: number?,
+	drag_override: number?,
+	damping_override: number?,
 }
-keyMaps.CItemGeneric = { base = "CItem", keys = { spawn_particles = "text", spawn_sound = "text", auto_start_ambient_sound = "boolean", spawn_script_func = "text", pickup_particles = "text", pickup_sound = "text", pickup_script_func = "text", timeout_particles = "text", timeout_sound = "text", timeout_script_func = "text", pickup_filter_name = "text", allow_pickup_script_func = "text", pickup_radius_override = "number", trigger_radius = "number", trigger_sound = "text", glow_in_trigger_radius = "boolean", glowcolor = "color", useable = "boolean" } }
+keyMaps.CItemGeneric = { base = "CItem", keys = { spawn_particles = "text", spawn_sound = "text", auto_start_ambient_sound = "boolean", spawn_script_func = "text", pickup_particles = "text", pickup_sound = "text", pickup_script_func = "text", timeout_particles = "text", timeout_sound = "text", timeout_script_func = "text", pickup_filter_name = "text", allow_pickup_script_func = "text", pickup_radius_override = "number", trigger_radius = "number", trigger_sound = "text", glow_in_trigger_radius = "boolean", glowcolor = "color", useable = "boolean", auto_remove_timeout = "number", drag_override = "number", damping_override = "number" } }
 
 export type CRopeKeyframeKeys = CBaseModelEntityKeys & {
 	NextKey: string?,
@@ -18853,8 +18920,16 @@ export type CRopeKeyframeKeys = CBaseModelEntityKeys & {
 	SegmentCount: number?,
 	Subdiv: number?,
 	ScrollSpeed: number?,
+	Breakable: number?,
+	Collide: number?,
+	Barbed: number?,
+	UseWind: number?,
+	Dangling: number?,
+	Type: number?,
+	RopeShader: number?,
+	RopeMaterial: string?,
 }
-keyMaps.CRopeKeyframe = { base = "CBaseModelEntity", keys = { NextKey = "text", Slack = "integer", Width = "number", TextureScale = "number", SegmentCount = "integer", Subdiv = "integer", ScrollSpeed = "number" } }
+keyMaps.CRopeKeyframe = { base = "CBaseModelEntity", keys = { NextKey = "text", Slack = "integer", Width = "number", TextureScale = "number", SegmentCount = "integer", Subdiv = "integer", ScrollSpeed = "number", Breakable = "integer", Collide = "integer", Barbed = "integer", UseWind = "integer", Dangling = "integer", Type = "integer", RopeShader = "integer", RopeMaterial = "text" } }
 
 export type CPathKeyFrameKeys = CBaseEntityKeys & {
 	NextKey: string?,
@@ -18943,8 +19018,74 @@ export type CBarnLightKeys = CBaseModelEntityKeys & {
 }
 keyMaps.CBarnLight = { base = "CBaseModelEntity", keys = { enabled = "boolean", colormode = "integer", color = "color", colortemperature = "number", brightness = "number", brightnessscale = "number", directlight = "integer", bakedshadowindex = "integer", light_path_uniqueid = "integer", light_map_uniqueid = "integer", luminaire_shape = "integer", luminaire_size = "number", luminaire_anisotropy = "number", light_style = "text", lightcookie = "text", shape = "number", soft_x = "number", soft_y = "number", skirt = "number", skirt_near = "number", size_params = "vector", range = "number", shear = "vector", bakespeculartocubemaps = "integer", bakespeculartocubemaps_size = "vector", bakespeculartocubemaps_scale = "number", castshadows = "integer", shadowmapsize = "integer", shadowpriority = "integer", contactshadow = "boolean", forceshadowsenabled = "boolean", bouncelight = "integer", bouncescale = "number", minroughness = "number", altcolor = "vector", altcolorbrightness = "number", fog = "integer", fogstrength = "number", fogscale = "number", fogshadows = "integer", fade_size_start = "number", fade_size_end = "number", shadowfade_size_start = "number", shadowfade_size_end = "number", precomputedfieldsvalid = "boolean", precomputedboundsmins = "vector", precomputedboundsmaxs = "vector", precomputedobborigin = "vector", precomputedobbangles = "angles", precomputedobbextent = "vector", precomputedsubfrusta = "integer", precomputedobborigin0 = "vector", precomputedobbangles0 = "angles", precomputedobbextent0 = "vector", precomputedobborigin1 = "vector", precomputedobbangles1 = "angles", precomputedobbextent1 = "vector", precomputedobborigin2 = "vector", precomputedobbangles2 = "angles", precomputedobbextent2 = "vector", precomputedobborigin3 = "vector", precomputedobbangles3 = "angles", precomputedobbextent3 = "vector", precomputedobborigin4 = "vector", precomputedobbangles4 = "angles", precomputedobbextent4 = "vector", precomputedobborigin5 = "vector", precomputedobbangles5 = "angles", precomputedobbextent5 = "vector", pvs_modify_entity = "boolean", transmit_always = "boolean" } }
 
-export type CLightEntityKeys = CBaseModelEntityKeys
-keyMaps.CLightEntity = { base = "CBaseModelEntity", keys = {  } }
+export type CLightEntityKeys = CBaseModelEntityKeys & {
+	color: number?,
+	secondary_color: number?,
+	brightness: number?,
+	brightnessscale: number?,
+	range: number?,
+	falloff: number?,
+	attenuation0: number?,
+	attenuation1: number?,
+	attenuation2: number?,
+	innerconeangle: number?,
+	outerconeangle: number?,
+	lightcookie: string?,
+	numcascades: number?,
+	cascaderenderstaticobj: number?,
+	cascadecrossfade: number?,
+	cascadedistancefade: number?,
+	shadowcascadedistance0: number?,
+	shadowcascadedistance1: number?,
+	shadowcascadedistance2: number?,
+	shadowcascadedistance3: number?,
+	shadowcascaderesolution0: number?,
+	shadowcascaderesolution1: number?,
+	shadowcascaderesolution2: number?,
+	shadowcascaderesolution3: number?,
+	castshadows: number?,
+	shadowtexturewidth: number?,
+	shadowtextureheight: number?,
+	baked_light_indexing: boolean?,
+	shadowpriority: number?,
+	bakedshadowindex: number?,
+	light_path_uniqueid: number?,
+	light_map_uniqueid: number?,
+	renderdiffuse: boolean?,
+	renderspecular: number?,
+	rendertransmissive: boolean?,
+	ortholightwidth: number?,
+	ortholightheight: number?,
+	style: number?,
+	pattern: string?,
+	directlight: number?,
+	bouncelight: number?,
+	bouncescale: number?,
+	shadowfademindist: number?,
+	shadowfademaxdist: number?,
+	enabled: boolean?,
+	flicker: boolean?,
+	precomputedfieldsvalid: boolean?,
+	precomputedboundsmins: modlock.Vector?,
+	precomputedboundsmaxs: modlock.Vector?,
+	precomputedmaxrange: number?,
+	precomputedobborigin: modlock.Vector?,
+	precomputedobbangles: modlock.Angles?,
+	precomputedobbextent: modlock.Vector?,
+	fog_lighting: number?,
+	fogcontributionstrength: number?,
+	nearclipplane: number?,
+	skycolor: number?,
+	skyintensity: number?,
+	skyambientbounce: number?,
+	use_secondary_color: boolean?,
+	capsule_length: number?,
+	mixedshadows: boolean?,
+	minroughness: number?,
+	allow_sst_generation: boolean?,
+	pvs_modify_entity: boolean?,
+}
+keyMaps.CLightEntity = { base = "CBaseModelEntity", keys = { color = "color", secondary_color = "color", brightness = "number", brightnessscale = "number", range = "number", falloff = "number", attenuation0 = "number", attenuation1 = "number", attenuation2 = "number", innerconeangle = "number", outerconeangle = "number", lightcookie = "text", numcascades = "integer", cascaderenderstaticobj = "integer", cascadecrossfade = "number", cascadedistancefade = "number", shadowcascadedistance0 = "number", shadowcascadedistance1 = "number", shadowcascadedistance2 = "number", shadowcascadedistance3 = "number", shadowcascaderesolution0 = "integer", shadowcascaderesolution1 = "integer", shadowcascaderesolution2 = "integer", shadowcascaderesolution3 = "integer", castshadows = "integer", shadowtexturewidth = "integer", shadowtextureheight = "integer", baked_light_indexing = "boolean", shadowpriority = "integer", bakedshadowindex = "integer", light_path_uniqueid = "integer", light_map_uniqueid = "integer", renderdiffuse = "boolean", renderspecular = "integer", rendertransmissive = "boolean", ortholightwidth = "number", ortholightheight = "number", style = "integer", pattern = "text", directlight = "integer", bouncelight = "integer", bouncescale = "number", shadowfademindist = "number", shadowfademaxdist = "number", enabled = "boolean", flicker = "boolean", precomputedfieldsvalid = "boolean", precomputedboundsmins = "vector", precomputedboundsmaxs = "vector", precomputedmaxrange = "number", precomputedobborigin = "vector", precomputedobbangles = "angles", precomputedobbextent = "vector", fog_lighting = "integer", fogcontributionstrength = "number", nearclipplane = "number", skycolor = "color", skyintensity = "number", skyambientbounce = "color", use_secondary_color = "boolean", capsule_length = "number", mixedshadows = "boolean", minroughness = "number", allow_sst_generation = "boolean", pvs_modify_entity = "boolean" } }
 
 export type CDynamicLightKeys = CBaseModelEntityKeys & {
 	distance: number?,
@@ -18953,8 +19094,10 @@ export type CDynamicLightKeys = CBaseModelEntityKeys & {
 	_cone: number?,
 	spotlight_radius: number?,
 	style: number?,
+	_light: number?,
+	pitch: number?,
 }
-keyMaps.CDynamicLight = { base = "CBaseModelEntity", keys = { distance = "number", brightness = "integer", _inner_cone = "number", _cone = "number", spotlight_radius = "number", style = "integer" } }
+keyMaps.CDynamicLight = { base = "CBaseModelEntity", keys = { distance = "number", brightness = "integer", _inner_cone = "number", _cone = "number", spotlight_radius = "number", style = "integer", _light = "color", pitch = "number" } }
 
 export type CEnvironmentLightKeys = CBarnLightKeys & {
 	skycolor: number?,
@@ -19093,8 +19236,10 @@ export type CMultiLightProxyKeys = CBaseEntityKeys & {
 }
 keyMaps.CMultiLightProxy = { base = "CBaseEntity", keys = { light_name = "text", light_class = "text", light_radius = "number", brightness_delta = "number", screen_fade = "boolean" } }
 
-export type CLogicNavigationKeys = CBaseEntityKeys
-keyMaps.CLogicNavigation = { base = "CBaseEntity", keys = {  } }
+export type CLogicNavigationKeys = CBaseEntityKeys & {
+	navprop: string?,
+}
+keyMaps.CLogicNavigation = { base = "CBaseEntity", keys = { navprop = "text" } }
 
 export type CLogicNPCCounterKeys = CBaseEntityKeys & {
 	minCountAll: number?,
@@ -19151,8 +19296,26 @@ keyMaps.CLogicRelay = { base = "CBaseEntity", keys = { StartDisabled = "boolean"
 export type CSceneListManagerKeys = CBaseEntityKeys
 keyMaps.CSceneListManager = { base = "CBaseEntity", keys = {  } }
 
-export type CLogicScriptKeys = CPointEntityKeys
-keyMaps.CLogicScript = { base = "CPointEntity", keys = {  } }
+export type CLogicScriptKeys = CPointEntityKeys & {
+	Group00: string?,
+	Group01: string?,
+	Group02: string?,
+	Group03: string?,
+	Group04: string?,
+	Group05: string?,
+	Group06: string?,
+	Group07: string?,
+	Group08: string?,
+	Group09: string?,
+	Group10: string?,
+	Group11: string?,
+	Group12: string?,
+	Group13: string?,
+	Group14: string?,
+	Group15: string?,
+	Group16: string?,
+}
+keyMaps.CLogicScript = { base = "CPointEntity", keys = { Group00 = "text", Group01 = "text", Group02 = "text", Group03 = "text", Group04 = "text", Group05 = "text", Group06 = "text", Group07 = "text", Group08 = "text", Group09 = "text", Group10 = "text", Group11 = "text", Group12 = "text", Group13 = "text", Group14 = "text", Group15 = "text", Group16 = "text" } }
 
 export type CTimerEntityKeys = CBaseEntityKeys & {
 	StartDisabled: number?,
@@ -19182,8 +19345,9 @@ export type CMathCounterKeys = CBaseEntityKeys & {
 	min: number?,
 	max: number?,
 	StartDisabled: boolean?,
+	startvalue: number?,
 }
-keyMaps.CMathCounter = { base = "CBaseEntity", keys = { min = "number", max = "number", StartDisabled = "boolean" } }
+keyMaps.CMathCounter = { base = "CBaseEntity", keys = { min = "number", max = "number", StartDisabled = "boolean", startvalue = "integer" } }
 
 export type CMathRemapKeys = CBaseEntityKeys & {
 	in1: number?,
@@ -19302,9 +19466,12 @@ export type CCitadelObserverPawnKeys = CBasePlayerPawnKeys
 keyMaps.CCitadelObserverPawn = { base = "CBasePlayerPawn", keys = {  } }
 
 export type CPathAccompanyKeys = CBaseEntityKeys & {
+	pathNodes: string?,
+	pathNodeRadiusScales: string?,
+	deformable_prop: string?,
 	allow_auto_lead: boolean?,
 }
-keyMaps.CPathAccompany = { base = "CBaseEntity", keys = { allow_auto_lead = "boolean" } }
+keyMaps.CPathAccompany = { base = "CBaseEntity", keys = { pathNodes = "text", pathNodeRadiusScales = "text", deformable_prop = "text", allow_auto_lead = "boolean" } }
 
 export type CPathCornerKeys = CPointEntityKeys & {
 	wait: number?,
@@ -19314,10 +19481,13 @@ export type CPathCornerKeys = CPointEntityKeys & {
 	path_end_distance_from_goal: number?,
 	waypoint_success_radius: number?,
 	waypoint_success_radius_when_blocked: number?,
+	arrival_direction_entity: string?,
+	arrival_direction_tolerance_angle: number?,
+	arrival_direction_relative_position: modlock.Vector?,
 	radius: number?,
 	exact_positioning: boolean?,
 }
-keyMaps.CPathCorner = { base = "CPointEntity", keys = { wait = "number", speed = "number", trigger_locomotion_stop = "boolean", smooth_arrival = "boolean", path_end_distance_from_goal = "number", waypoint_success_radius = "number", waypoint_success_radius_when_blocked = "number", radius = "number", exact_positioning = "boolean" } }
+keyMaps.CPathCorner = { base = "CPointEntity", keys = { wait = "number", speed = "number", trigger_locomotion_stop = "boolean", smooth_arrival = "boolean", path_end_distance_from_goal = "number", waypoint_success_radius = "number", waypoint_success_radius_when_blocked = "number", arrival_direction_entity = "text", arrival_direction_tolerance_angle = "number", arrival_direction_relative_position = "vector", radius = "number", exact_positioning = "boolean" } }
 
 export type CPathSimpleKeys = CBaseEntityKeys & {
 	closed_loop: boolean?,
@@ -19426,8 +19596,9 @@ export type CPointAngleSensorKeys = CPointEntityKeys & {
 	StartDisabled: boolean?,
 	lookatname: string?,
 	duration: number?,
+	tolerance: number?,
 }
-keyMaps.CPointAngleSensor = { base = "CPointEntity", keys = { StartDisabled = "boolean", lookatname = "text", duration = "number" } }
+keyMaps.CPointAngleSensor = { base = "CPointEntity", keys = { StartDisabled = "boolean", lookatname = "text", duration = "number", tolerance = "number" } }
 
 export type CPointAngularVelocitySensorKeys = CPointEntityKeys & {
 	threshold: number?,
@@ -19796,7 +19967,6 @@ keyMaps.CScriptedSequence = { base = "CBaseEntity", keys = { m_iszEntry = "text"
 
 export type CSkyCameraKeys = CBaseEntityKeys & {
 	use_angles: boolean?,
-	scale: number?,
 	clip_3D_skybox_near_to_world_far: boolean?,
 	clip_3D_skybox_near_to_world_far_offset: number?,
 	fogdir: modlock.Vector?,
@@ -19815,10 +19985,12 @@ export type CSkyCameraKeys = CBaseEntityKeys & {
 	scattering: number?,
 	locallightscale: number?,
 }
-keyMaps.CSkyCamera = { base = "CBaseEntity", keys = { use_angles = "boolean", scale = "integer", clip_3D_skybox_near_to_world_far = "boolean", clip_3D_skybox_near_to_world_far_offset = "number", fogdir = "vector", fogcolor = "color", fogcolor2 = "color", fogstart = "number", fogend = "number", farz = "number", fogmaxdensity = "number", fogexponent = "number", HDRColorScale = "number", foglerptime = "number", fogenable = "boolean", fogblend = "boolean", blendtobackground = "number", scattering = "number", locallightscale = "number" } }
+keyMaps.CSkyCamera = { base = "CBaseEntity", keys = { use_angles = "boolean", clip_3D_skybox_near_to_world_far = "boolean", clip_3D_skybox_near_to_world_far_offset = "number", fogdir = "vector", fogcolor = "color", fogcolor2 = "color", fogstart = "number", fogend = "number", farz = "number", fogmaxdensity = "number", fogexponent = "number", HDRColorScale = "number", foglerptime = "number", fogenable = "boolean", fogblend = "boolean", blendtobackground = "number", scattering = "number", locallightscale = "number" } }
 
-export type CSkyboxReferenceKeys = CBaseEntityKeys
-keyMaps.CSkyboxReference = { base = "CBaseEntity", keys = {  } }
+export type CSkyboxReferenceKeys = CBaseEntityKeys & {
+	worldGroupID: string?,
+}
+keyMaps.CSkyboxReference = { base = "CBaseEntity", keys = { worldGroupID = "text" } }
 
 export type CSoundEventAABBEntityKeys = CSoundEventEntityKeys & {
 	box_mins: modlock.Vector?,
@@ -20049,8 +20221,11 @@ export type CCitadelCatapultTriggerKeys = CBaseTriggerKeys & {
 }
 keyMaps.CCitadelCatapultTrigger = { base = "CBaseTrigger", keys = { launch_speed = "number", pickup_trail_enabled = "boolean", pickup_subclass = "text", pickup_trail_count = "integer", pickup_trail_start_delay = "number", pickup_trail_spawn_interval = "number", pickup_trail_auto_space = "boolean", pickup_trail_trajectory_spacing = "number" } }
 
-export type CChangeLevelKeys = CBaseTriggerKeys
-keyMaps.CChangeLevel = { base = "CBaseTrigger", keys = {  } }
+export type CChangeLevelKeys = CBaseTriggerKeys & {
+	map: string?,
+	landmark: string?,
+}
+keyMaps.CChangeLevel = { base = "CBaseTrigger", keys = { map = "text", landmark = "text" } }
 
 export type CTriggerDetectBulletFireKeys = CBaseTriggerKeys & {
 	player_fire_only: boolean?,
@@ -20166,14 +20341,16 @@ export type CTriggerPingLocationKeys = CBaseTriggerKeys & {
 }
 keyMaps.CTriggerPingLocation = { base = "CBaseTrigger", keys = { ping_location = "integer" } }
 
-export type CCitadelPortalTriggerKeys = CBaseTriggerKeys
-keyMaps.CCitadelPortalTrigger = { base = "CBaseTrigger", keys = {  } }
+export type CCitadelPortalTriggerKeys = CBaseTriggerKeys & {
+	trigger_mins: modlock.Vector?,
+	trigger_maxs: modlock.Vector?,
+}
+keyMaps.CCitadelPortalTrigger = { base = "CBaseTrigger", keys = { trigger_mins = "vector", trigger_maxs = "vector" } }
 
 export type CTriggerProximityKeys = CBaseTriggerKeys & {
 	measuretarget: string?,
-	radius: number?,
 }
-keyMaps.CTriggerProximity = { base = "CBaseTrigger", keys = { measuretarget = "text", radius = "number" } }
+keyMaps.CTriggerProximity = { base = "CBaseTrigger", keys = { measuretarget = "text" } }
 
 export type CTriggerRemoveKeys = CBaseTriggerKeys
 keyMaps.CTriggerRemove = { base = "CBaseTrigger", keys = {  } }
@@ -20217,15 +20394,11 @@ export type CTriggerVolumeKeys = CBaseModelEntityKeys & {
 }
 keyMaps.CTriggerVolume = { base = "CBaseModelEntity", keys = { filtername = "text" } }
 
-export type CTriggerTrooperDamageReductionDetectorKeys = CBaseTriggerKeys & {
-	radius: number?,
-}
-keyMaps.CTriggerTrooperDamageReductionDetector = { base = "CBaseTrigger", keys = { radius = "number" } }
+export type CTriggerTrooperDamageReductionDetectorKeys = CBaseTriggerKeys
+keyMaps.CTriggerTrooperDamageReductionDetector = { base = "CBaseTrigger", keys = {  } }
 
-export type CTriggerTrooperDetectorKeys = CBaseTriggerKeys & {
-	radius: number?,
-}
-keyMaps.CTriggerTrooperDetector = { base = "CBaseTrigger", keys = { radius = "number" } }
+export type CTriggerTrooperDetectorKeys = CBaseTriggerKeys
+keyMaps.CTriggerTrooperDetector = { base = "CBaseTrigger", keys = {  } }
 
 export type CCitadelZipLineNodeKeys = CBaseModelEntityKeys & {
 	lane_number: number?,

@@ -666,7 +666,8 @@ type Entities struct {
 	// Classes are sorted by designer name.
 	Classes []*EntityClass `protobuf:"bytes,2,rep,name=classes,proto3" json:"classes,omitempty"`
 	// DataMaps are sorted by name and include every base and embedded map the
-	// classes reach.
+	// classes reach, and every server schema class's map, so the maps of the
+	// components an entity holds are here too.
 	DataMaps []*DataMap `protobuf:"bytes,3,rep,name=data_maps,json=dataMaps,proto3" json:"dataMaps,omitempty"`
 	// Inputs are sorted by entity, then name.
 	Inputs []*Input `protobuf:"bytes,4,rep,name=inputs,proto3" json:"inputs,omitempty"`
@@ -826,7 +827,8 @@ type KeyValue struct {
 	unknownFields []byte
 	// Name is the key, such as targetname.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Field is the class field the key sets, such as m_iszName.
+	// Field is the class field the key sets, such as m_iszName, or empty for a
+	// key the class parses itself, such as the scene node's scale.
 	Field string `protobuf:"bytes,2,opt,name=field,proto3" json:"field,omitempty"`
 	// Type is the value's type.
 	Type KeyType `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
