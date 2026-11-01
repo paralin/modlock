@@ -127,13 +127,14 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     name: `player ${i}`,
     self: i === 0,
     hero: i === 1 ? 0 : wraith.id,
+    steamId: i === 0 ? 76561198000000001n : undefined,
     activity: 'Free roam',
   }))
   const roster = Roster({ rows })!
   expect(kids(roster)).toHaveLength(rosterRows)
 
   // Each row's portrait edge is accented on the viewer's own row, holds the
-  // hero's portrait, and is empty without a hero.
+  // hero's portrait with the player's avatar, and is empty without a hero.
   const edge = (row: number) => kids(kids(roster)[row]!)[1]!
   expect(edge(0).props.style?.background).toBe(tones.accent)
   expect(edge(2).props.style?.background).toBe(shades.dim)
@@ -141,6 +142,10 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     src: wraith.portrait,
   })
   expect(kids(kids(edge(1))[0]!)).toHaveLength(0)
+  expect(kids(kids(edge(0))[0]!).map((child) => child.type)).toEqual([
+    'image',
+    'avatar',
+  ])
 
   // A row with onPress is a button that runs it.
   let pressed = 0
