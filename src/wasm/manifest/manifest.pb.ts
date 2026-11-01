@@ -561,6 +561,12 @@ export enum Definition_File {
    * such as k_ECitadelBotDifficulty_Hard.
    */
   BOT_DIFFICULTY = 2,
+
+  /**
+   * FILE_NPC_UNITS is scripts/npc_units.vdata, the troopers, bosses and
+   * other units, and the bot brain (npc_player_bot_brain) every bot shares.
+   */
+  NPC_UNITS = 3,
 }
 
 export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
@@ -569,5 +575,6 @@ export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
     [0, 'FILE_ABILITIES'],
     [1, 'FILE_HEROES'],
     [2, 'FILE_BOT_DIFFICULTY'],
+    [3, 'FILE_NPC_UNITS'],
   ],
 )
