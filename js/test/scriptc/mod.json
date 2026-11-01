@@ -1,0 +1,8 @@
+{
+  "slug": "library-suite",
+  "name": "Library suite",
+  "description": "The library's tests, built with scriptc to run as WebAssembly.",
+  "version": "0.0.1",
+  "language": "LANGUAGE_TYPESCRIPT",
+  "runtime": "RUNTIME_WASM"
+}

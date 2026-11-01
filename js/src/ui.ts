@@ -308,6 +308,17 @@ export interface UiElement {
 }
 
 /**
+ * ChangeHandler is the handler of any input: it takes the value the control
+ * holds, whose type each element's props narrow. The method form makes the
+ * parameter bivariant, so a handler of a text, a number or a flag fits, and
+ * the host checks the value against the handler's own type when it calls; a
+ * parameter of type never would refuse every value in a scriptc build.
+ */
+type ChangeHandler = {
+  bivarianceHack(player: Player, value: unknown): void
+}['bivarianceHack']
+
+/**
  * Props are an element's props: every intrinsic element's, by name, so the
  * encoder reads them as typed fields. A component's props pass through to it.
  */
@@ -342,7 +353,7 @@ export interface Props {
   readonly on?: boolean
   readonly options?: readonly string[]
   readonly selected?: number
-  readonly onChange?: (player: Player, value: never) => void
+  readonly onChange?: ChangeHandler
   readonly onWheel?: (player: Player, wheel: Wheel) => void
 }
 
@@ -702,7 +713,7 @@ export function change(
   }
   const changed = screens.get(player.slot)?.changes.get(node)
   if (changed) {
-    changed.handler(player, value as never)
+    changed.handler(player, value)
   }
 }
 
@@ -855,10 +866,7 @@ interface Screen {
    */
   readonly presses: Map<string, { readonly handler: (player: Player) => void }>
   /** changes maps each input's id to its handler, as presses does. */
-  readonly changes: Map<
-    string,
-    { readonly handler: (player: Player, value: never) => void }
-  >
+  readonly changes: Map<string, { readonly handler: ChangeHandler }>
   /** wheels holds only the enabled sliders that opted in to wheel events. */
   readonly wheels: Map<
     string,

@@ -16,6 +16,7 @@ import {
 import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
 import { Action, hideHud, jsx, sheet, show } from '../src/index.js'
+import { Player } from '../src/host.gen.js'
 import { change } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
@@ -45,7 +46,7 @@ function keys(lit: string) {
 
 test('a redraw sends only the nodes that changed, under their first ids', () => {
   // The first draw sends the whole screen.
-  const player = { slot: 7 } as Parameters<typeof show>[0]
+  const player = new Player(7)
   show(player, keys('W'))
   const first = sent.at(-1)!.change!
   expect(first.reset).toBe(true)
@@ -106,7 +107,7 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
 
 test("a style names the game's faces, edges, paint and motion on the wire", () => {
   // Show a title in the heading face over a bordered plate.
-  const player = { slot: 8 } as Parameters<typeof show>[0]
+  const player = new Player(8)
   show(
     player,
     jsx('panel', {
@@ -181,7 +182,7 @@ test("a style names the game's faces, edges, paint and motion on the wire", () =
 
 test('inputs carry their values and hand changes to the mod', () => {
   // Show a name entry, a slider, a disabled toggle, an avatar and a token.
-  const player = { slot: 9 } as Parameters<typeof show>[0]
+  const player = new Player(9)
   const names: string[] = []
   const wheels: number[] = []
   show(

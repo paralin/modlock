@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2023"],
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "paths": {
+      "bun:test": ["./testing.ts"],
+      "modlock": ["./node_modules/modlock"],
+      "modlock/*": ["./node_modules/modlock/*"]
+    }
+  },
+  "include": ["main.ts", "../../src/globals.d.ts"],
+  "exclude": ["build", "node_modules"]
+}

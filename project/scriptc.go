@@ -64,8 +64,9 @@ type scriptcConfig struct {
 }
 
 // writeScriptcConfig writes the scriptc build's TypeScript configuration into
-// dir, mapping the library to its source in library.
-func (p *Project) writeScriptcConfig(dir, library string) error {
+// dir, mapping the library to its source in library and keeping the project's
+// own path mappings, which name files of the mirrored project.
+func (p *Project) writeScriptcConfig(dir, library string, own map[string][]string) error {
 	// Extend the project's configuration, if it has one.
 	config := scriptcConfig{Files: []string{"entry.ts"}, Include: []string{}}
 	if project := filepath.Join(p.Dir, "tsconfig.json"); isFile(project) {
@@ -76,7 +77,11 @@ func (p *Project) writeScriptcConfig(dir, library string) error {
 	source := filepath.Join(library, js.Scriptc)
 	index := filepath.Join(source, "js", "src", "index.ts")
 	protobuf := filepath.Join(source, js.ScriptcProtobuf)
-	config.CompilerOptions.Paths = map[string][]string{
+	config.CompilerOptions.Paths = map[string][]string{}
+	for name, targets := range own {
+		config.CompilerOptions.Paths[name] = targets
+	}
+	for name, targets := range map[string][]string{
 		"modlock":                   {index},
 		"modlock/jsx-runtime":       {index},
 		"modlock/entities":          {filepath.Join(source, "js", "src", "entities.ts")},
@@ -84,6 +89,8 @@ func (p *Project) writeScriptcConfig(dir, library string) error {
 		"modlock/scriptc":           {filepath.Join(source, "js", "src", "scriptc.ts")},
 		"@aptre/protobuf-es-lite":   {filepath.Join(protobuf, "index.ts")},
 		"@aptre/protobuf-es-lite/*": {filepath.Join(protobuf, "*.ts")},
+	} {
+		config.CompilerOptions.Paths[name] = targets
 	}
 
 	// Write it.
@@ -127,8 +134,12 @@ func (p *Project) compileScriptc(ctx context.Context, library, tsgo string, outp
 	if err != nil {
 		return nil, err
 	}
+	own, err := p.projectPaths(ctx, tsgo, project)
+	if err != nil {
+		return nil, err
+	}
 	dir := filepath.Join(project, scriptcEntryDir)
-	if err := p.writeScriptcEntry(dir, library); err != nil {
+	if err := p.writeScriptcEntry(dir, library, own); err != nil {
 		return nil, err
 	}
 
@@ -167,7 +178,7 @@ func (p *Project) compileScriptc(ctx context.Context, library, tsgo string, outp
 
 // writeScriptcEntry writes the build's entry, its profile and its
 // configuration into dir, mapping the library to its source in library.
-func (p *Project) writeScriptcEntry(dir, library string) error {
+func (p *Project) writeScriptcEntry(dir, library string, own map[string][]string) error {
 	// Write the entry, which loads the project's main module.
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return errors.Wrap(err, "write the scriptc entry")
@@ -181,10 +192,44 @@ func (p *Project) writeScriptcEntry(dir, library string) error {
 	if err := os.WriteFile(filepath.Join(dir, "profile.json"), scriptc.Profile("entry.ts"), 0o644); err != nil {
 		return errors.Wrap(err, "write the scriptc profile")
 	}
-	if err := p.writeScriptcConfig(dir, library); err != nil {
+	if err := p.writeScriptcConfig(dir, library, own); err != nil {
 		return errors.Wrap(err, "write the scriptc configuration")
 	}
 	return nil
+}
+
+// projectPaths returns the project's own path mappings, such as one that
+// stands a file in for a package, with their targets in the mirrored project
+// at mirror. The library's and the protobuf runtime's mappings are the
+// build's, so the project's for them are left out.
+func (p *Project) projectPaths(ctx context.Context, tsgo, mirror string) (map[string][]string, error) {
+	// Read the project's configuration as tsgo resolves it.
+	show := exec.CommandContext(ctx, tsgo, "--project", p.Dir, "--showConfig")
+	show.Dir = p.Dir
+	shown, err := show.Output()
+	if err != nil {
+		return nil, errors.Wrap(err, "read the project's configuration")
+	}
+	var config struct {
+		CompilerOptions struct {
+			Paths map[string][]string `json:"paths"`
+		} `json:"compilerOptions"`
+	}
+	if err := json.Unmarshal(shown, &config); err != nil {
+		return nil, errors.Wrap(err, "read the project's configuration")
+	}
+
+	// Keep the mappings the build does not make, aimed at the mirror.
+	own := map[string][]string{}
+	for name, targets := range config.CompilerOptions.Paths {
+		if name == "modlock" || strings.HasPrefix(name, "modlock/") || strings.HasPrefix(name, "@aptre/protobuf-es-lite") {
+			continue
+		}
+		for _, target := range targets {
+			own[name] = append(own[name], filepath.Join(mirror, filepath.FromSlash(target)))
+		}
+	}
+	return own, nil
 }
 
 // mirrorSources copies the program's sources into mirror at their paths
