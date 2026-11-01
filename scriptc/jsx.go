@@ -11,7 +11,7 @@ import (
 
 // jsxImport binds the library's jsx in a lowered file. It joins the file's
 // first line, so every line keeps its number.
-const jsxImport = "import { jsx as __modlockJsx } from 'modlock'; "
+const jsxImport = "import { jsx as __modlockJsx, type JSX as __ModlockJSX } from 'modlock'; "
 
 // fragmentType is the type of the library's fragment element, which holds a
 // component's elements or a fragment's children.
@@ -329,7 +329,7 @@ func (l *lowerer) elementCall() (string, error) {
 
 	// Build an intrinsic element, or render a component in a fragment.
 	if isIntrinsic(name) {
-		return call(jsString(name), props(attributes, children), key), nil
+		return call(jsString(name), elementProps(name, props(attributes, children)), key), nil
 	}
 	rendered := name + "(" + props(attributes, children) + ")"
 	return call(fragmentType, "{ children: "+rendered+" }", key), nil
@@ -489,6 +489,13 @@ func call(kind, props, key string) string {
 		return "__modlockJsx(" + kind + ", " + props + ", " + key + ")"
 	}
 	return "__modlockJsx(" + kind + ", " + props + ")"
+}
+
+// elementProps types an intrinsic element's props as that element's own, as
+// the TypeScript compiler does for JSX, so an input's handler takes the value
+// the element gives it rather than the unknown value of any input.
+func elementProps(name, props string) string {
+	return "(" + props + " satisfies __ModlockJSX.IntrinsicElements[" + jsString(name) + "])"
 }
 
 // props returns the object literal holding an element's attribute members
