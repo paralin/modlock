@@ -51,9 +51,8 @@ using DisconnectFn = void (*)(void* self, int32_t slot, int reason, const char* 
 
 void PutInServerThunk(void* self, int32_t slot, const char* name, int type, uint64_t xuid) {
   void* original = g_put_in_server_original.load(std::memory_order_acquire);
-  // The engine's nonzero client type identifies a bot.
   ConnectionTracker::DispatchPutInServer(
-      slot, xuid, type != 0, name,
+      slot, xuid, static_cast<ClientType>(type), name,
       [&, original] {
         if (original != nullptr) {
           reinterpret_cast<PutInServerFn>(original)(self, slot, name, type, xuid);
@@ -141,19 +140,26 @@ void ConnectionTracker::Reset() {
   active_ = false;
 }
 
-void ConnectionTracker::DispatchPutInServer(int32_t slot, uint64_t xuid, bool is_bot,
+void ConnectionTracker::DispatchPutInServer(int32_t slot, uint64_t xuid, ClientType type,
                                             const char* name, const EngineCallback& original,
                                             std::shared_ptr<ConnectionEventSink> sink) {
   // These are connection receipts, not frame diagnostics. The server operator
   // needs every join, including a full roster and later reconnects.
   if (InteropTraceEnabled()) {
-    std::fprintf(stderr, "[modlock] interop trace: ClientPutInServer slot %d xuid %llu\n", slot,
-                 static_cast<unsigned long long>(xuid));
+    std::fprintf(stderr, "[modlock] interop trace: ClientPutInServer slot %d xuid %llu type %d\n",
+                 slot, static_cast<unsigned long long>(xuid), static_cast<int>(type));
     std::fflush(stderr);
   }
   if (original) {
     original();
   }
+
+  // SourceTV is no player: leave its slot unoccupied, so no mod seats, kicks
+  // or lists it. Its disconnect then takes the path for a slot never joined.
+  if (type == ClientType::kSourceTV) {
+    return;
+  }
+  const bool is_bot = type != ClientType::kPlayer;
   ApplyPutInServer(slot, xuid, is_bot, name);
   if (ValidSlot(slot) && sink != nullptr) {
     sink->OnConnected(slot, xuid, is_bot, name);

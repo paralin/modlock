@@ -13,6 +13,7 @@
 
 namespace {
 
+using modlock::gameinterop::ClientType;
 using modlock::gameinterop::ConnectionEventSink;
 using modlock::gameinterop::ConnectionTracker;
 
@@ -94,7 +95,7 @@ TEST(ConnectionTracker, PutInServerRecordsThenNotifiesSink) {
   std::vector<std::string> events;
   auto sink = std::make_shared<RecordingSink>(events);
   ConnectionTracker::DispatchPutInServer(
-      0, 76561198000000001ULL, false, "player",
+      0, 76561198000000001ULL, ClientType::kPlayer, "player",
       [&] {
         events.emplace_back("original");
         EXPECT_FALSE(ConnectionTracker::StateForSlot(0).occupied);
@@ -107,6 +108,17 @@ TEST(ConnectionTracker, PutInServerRecordsThenNotifiesSink) {
   EXPECT_GT(ConnectionTracker::StateForSlot(0).generation, 0u);
   EXPECT_EQ(events,
             (std::vector<std::string>{"original", "connected:0:76561198000000001:human:player"}));
+
+  // SourceTV joins through the engine but never as a player: its slot stays
+  // unoccupied, and neither its join nor its leave reaches the sink.
+  events.clear();
+  const auto revision = ConnectionTracker::Revision();
+  ConnectionTracker::DispatchPutInServer(
+      1, 0, ClientType::kSourceTV, "SourceTV", [&] { events.emplace_back("original"); }, sink);
+  EXPECT_FALSE(ConnectionTracker::StateForSlot(1).occupied);
+  EXPECT_EQ(ConnectionTracker::Revision(), revision);
+  ConnectionTracker::DispatchDisconnect(1, [&] { events.emplace_back("disconnect"); }, sink);
+  EXPECT_EQ(events, (std::vector<std::string>{"original", "disconnect"}));
 }
 
 TEST(ConnectionTracker, DisconnectNotifiesOnceBeforeOriginalAndClearsAfter) {
@@ -212,7 +224,7 @@ TEST(ConnectionTracker, ReconnectGenerationMayDisconnectBeforeOldCompletion) {
         if (!reconnected) {
           reconnected = true;
           ConnectionTracker::DispatchPutInServer(
-              8, 89, true, "reconnect-bot", [&] { ++originals; }, sink);
+              8, 89, ClientType::kBot, "reconnect-bot", [&] { ++originals; }, sink);
         }
       },
       [&] { ConnectionTracker::DispatchDisconnect(8, [&] { ++originals; }, sink); });
@@ -354,7 +366,7 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
   testing::internal::CaptureStderr();
   for (int round = 0; round < 2; ++round) {
     for (int slot = 0; slot < 12; ++slot) {
-      ConnectionTracker::DispatchPutInServer(slot, 0, true, "bot", {}, {});
+      ConnectionTracker::DispatchPutInServer(slot, 0, ClientType::kBot, "bot", {}, {});
       ConnectionTracker::DispatchDisconnect(slot, {}, {});
     }
   }

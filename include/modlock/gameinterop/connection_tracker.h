@@ -19,6 +19,14 @@ constexpr bool IsPlayerSlot(int32_t slot) {
   return slot >= 0 && slot < kMaxPlayerSlots;
 }
 
+// ClientType is the engine's ClientPutInServer client type. The game passes
+// type != 0 as the controller's fakeclient key and type == 2 as its is_hltv key.
+enum class ClientType : int {
+  kPlayer = 0,
+  kBot = 1,
+  kSourceTV = 2,
+};
+
 // ConnectionEventSink receives client lifecycle events on the engine thread.
 // OnDisconnecting runs while the slot and its world entities are still valid.
 class MODLOCK_API ConnectionEventSink {
@@ -28,8 +36,9 @@ class MODLOCK_API ConnectionEventSink {
   // OnConnected runs after the engine has accepted the client and the tracker
   // has recorded its slot state.
   //
-  // is_bot reflects the engine's nonzero client type flag. name is the
-  // engine-reported client name and may be null or empty.
+  // is_bot is true for every client type but a player's; SourceTV never
+  // connects here. name is the engine-reported client name and may be null or
+  // empty.
   virtual void OnConnected(int32_t slot, uint64_t xuid, bool is_bot, const char* name) = 0;
 
   // OnDisconnecting runs once before the engine begins disconnect teardown.
@@ -67,9 +76,11 @@ class MODLOCK_API ConnectionTracker {
       std::shared_ptr<ConnectionEventSink> sink);
 
   // DispatchPutInServer applies the live thunk order to a synthetic engine
-  // callback: original, state recording, then OnConnected. is_bot and name
-  // carry the engine callback's own client type and name arguments.
-  static void DispatchPutInServer(int32_t slot, uint64_t xuid, bool is_bot, const char* name,
+  // callback: original, state recording, then OnConnected. type and name
+  // carry the engine callback's own client type and name arguments. SourceTV
+  // takes a player slot but is no player, so its slot stays unoccupied and the
+  // sink never hears of it.
+  static void DispatchPutInServer(int32_t slot, uint64_t xuid, ClientType type, const char* name,
                                   const EngineCallback& original,
                                   std::shared_ptr<ConnectionEventSink> sink);
 
