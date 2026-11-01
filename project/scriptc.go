@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/paralin/modlock/binaryen"
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/scriptc"
 	"github.com/pkg/errors"
@@ -150,7 +151,18 @@ func (p *Project) compileScriptc(ctx context.Context, library, tsgo string, outp
 	if err != nil {
 		return nil, errors.Wrap(err, "read the scriptc build")
 	}
-	return scriptc.Fit(built)
+	fitted, err := scriptc.Fit(built)
+	if err != nil {
+		return nil, err
+	}
+
+	// Optimize the module, keeping the fitted one if wasm-opt cannot run.
+	optimized, err := binaryen.Optimize(ctx, fitted)
+	if err != nil {
+		_, _ = fmt.Fprintf(output, "%v; the module is not optimized\n", err)
+		return fitted, nil
+	}
+	return optimized, nil
 }
 
 // writeScriptcEntry writes the build's entry, its profile and its
