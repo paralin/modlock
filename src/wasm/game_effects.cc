@@ -160,8 +160,8 @@ std::expected<void, std::string> Game::Heal(const players::HealRequest& request)
   // Raise its health, at most to its maximum.
   // Sum in 64 bits, so an amount near the int32 limit heals to full.
   const int64_t maximum = sample->effective_max_health.value_or(sample->max_health);
-  const auto health = static_cast<int32_t>(
-      std::min(maximum, int64_t{sample->health} + int64_t{request.amount()}));
+  const auto health =
+      static_cast<int32_t>(std::min(maximum, int64_t{sample->health} + int64_t{request.amount()}));
   if (health <= sample->health) {
     return {};
   }

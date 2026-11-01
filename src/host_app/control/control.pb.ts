@@ -10,7 +10,7 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
-import { CallProfile } from '../../wasm/profile/profile.pb.js'
+import { CallProfile, SlowFrame } from '../../wasm/profile/profile.pb.js'
 import { Change } from '../../wasm/ui/ui.pb.js'
 
 /**
@@ -188,6 +188,7 @@ export interface HostEvent {
     | { value: PlayerMessage; case: 'message' }
     | { value: PlayerChat; case: 'chat' }
     | { value: ModCalls; case: 'calls' }
+    | { value: ModSlowFrame; case: 'slowFrame' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -204,6 +205,7 @@ export const HostEvent: MessageType<HostEvent> =
       [8, 'message', 11, 0, PlayerMessage.codec, 'body'],
       [9, 'chat', 11, 0, PlayerChat.codec, 'body'],
       [10, 'calls', 11, 0, ModCalls.codec, 'body'],
+      [11, 'slow_frame', 11, 0, ModSlowFrame.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -311,6 +313,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 11:
+              m.body = {
+                case: 'slowFrame',
+                value: ModSlowFrame.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'slowFrame' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -367,6 +379,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'calls' && o.value != null)
             ModCalls.writeField(w, 10, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'slowFrame' && o.value != null)
+            ModSlowFrame.writeField(w, 11, o.value)
         }
       },
     },
@@ -650,6 +667,60 @@ export const ModCalls: MessageType<ModCalls> =
         {
           const v = m.profile
           if (v != null) CallProfile.writeField(w, 2, v)
+        }
+      },
+    },
+  )
+
+/**
+ * ModSlowFrame is one report of a mod's slow frames.
+ *
+ * @generated from message modlock.host_app.control.ModSlowFrame
+ */
+export interface ModSlowFrame {
+  /**
+   * Mod is the mod's name.
+   */
+  mod?: string
+  /**
+   * Report is the slowest frame since the mod's last report.
+   */
+  report?: SlowFrame
+}
+
+export const ModSlowFrame: MessageType<ModSlowFrame> =
+  /* @__PURE__ */ createMessageType<ModSlowFrame>(
+    'modlock.host_app.control.ModSlowFrame',
+    () => [
+      [1, 'mod', 9],
+      [2, 'report', 11, 0, SlowFrame.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ModSlowFrame): ModSlowFrame => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.report = SlowFrame.decode(r, r.delimited(), m.report ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ModSlowFrame, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.report
+          if (v != null) SlowFrame.writeField(w, 2, v)
         }
       },
     },

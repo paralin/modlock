@@ -151,6 +151,7 @@ type HostEvent struct {
 	//	*HostEvent_Message
 	//	*HostEvent_Chat
 	//	*HostEvent_Calls
+	//	*HostEvent_SlowFrame
 	Body isHostEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -237,6 +238,13 @@ func (x *HostEvent) GetCalls() *ModCalls {
 	return nil
 }
 
+func (x *HostEvent) GetSlowFrame() *ModSlowFrame {
+	if x, ok := x.GetBody().(*HostEvent_SlowFrame); ok {
+		return x.SlowFrame
+	}
+	return nil
+}
+
 type isHostEvent_Body interface {
 	isHostEvent_Body()
 }
@@ -294,6 +302,13 @@ type HostEvent_Calls struct {
 	Calls *ModCalls `protobuf:"bytes,10,opt,name=calls,proto3,oneof"`
 }
 
+type HostEvent_SlowFrame struct {
+	// SlowFrame reports the slowest frame a mod ran since its last report and
+	// the functions it spent the time in, about once a minute while the mod
+	// runs slow.
+	SlowFrame *ModSlowFrame `protobuf:"bytes,11,opt,name=slow_frame,json=slowFrame,proto3,oneof"`
+}
+
 func (*HostEvent_Started) isHostEvent_Body() {}
 
 func (*HostEvent_Log) isHostEvent_Body() {}
@@ -313,6 +328,8 @@ func (*HostEvent_Message) isHostEvent_Body() {}
 func (*HostEvent_Chat) isHostEvent_Body() {}
 
 func (*HostEvent_Calls) isHostEvent_Body() {}
+
+func (*HostEvent_SlowFrame) isHostEvent_Body() {}
 
 // PlayerChat is a line a player said in chat, to everyone or to their team.
 type PlayerChat struct {
@@ -465,6 +482,35 @@ func (x *ModCalls) GetMod() string {
 func (x *ModCalls) GetProfile() *profile.CallProfile {
 	if x != nil {
 		return x.Profile
+	}
+	return nil
+}
+
+// ModSlowFrame is one report of a mod's slow frames.
+type ModSlowFrame struct {
+	unknownFields []byte
+	// Mod is the mod's name.
+	Mod string `protobuf:"bytes,1,opt,name=mod,proto3" json:"mod,omitempty"`
+	// Report is the slowest frame since the mod's last report.
+	Report *profile.SlowFrame `protobuf:"bytes,2,opt,name=report,proto3" json:"report,omitempty"`
+}
+
+func (x *ModSlowFrame) Reset() {
+	*x = ModSlowFrame{}
+}
+
+func (*ModSlowFrame) ProtoMessage() {}
+
+func (x *ModSlowFrame) GetMod() string {
+	if x != nil {
+		return x.Mod
+	}
+	return ""
+}
+
+func (x *ModSlowFrame) GetReport() *profile.SlowFrame {
+	if x != nil {
+		return x.Report
 	}
 	return nil
 }
@@ -850,6 +896,19 @@ func (m *HostEvent_Calls) CloneOneofVT() isHostEvent_Body {
 	return m.CloneVT()
 }
 
+func (m *HostEvent_SlowFrame) CloneVT() *HostEvent_SlowFrame {
+	if m == nil {
+		return (*HostEvent_SlowFrame)(nil)
+	}
+	r := new(HostEvent_SlowFrame)
+	r.SlowFrame = protobuf_go_lite.CloneVTValue(m.SlowFrame)
+	return r
+}
+
+func (m *HostEvent_SlowFrame) CloneOneofVT() isHostEvent_Body {
+	return m.CloneVT()
+}
+
 func (m *PlayerChat) CloneVT() *PlayerChat {
 	if m == nil {
 		return (*PlayerChat)(nil)
@@ -933,6 +992,23 @@ func (m *ModCalls) CloneVT() *ModCalls {
 }
 
 func (m *ModCalls) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ModSlowFrame) CloneVT() *ModSlowFrame {
+	if m == nil {
+		return (*ModSlowFrame)(nil)
+	}
+	r := new(ModSlowFrame)
+	r.Mod = m.Mod
+	r.Report = protobuf_go_lite.CloneVTValue(m.Report)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ModSlowFrame) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1304,6 +1380,23 @@ func (this *HostEvent_Calls) EqualVT(thatIface isHostEvent_Body) bool {
 	return true
 }
 
+func (this *HostEvent_SlowFrame) EqualVT(thatIface isHostEvent_Body) bool {
+	that, ok := thatIface.(*HostEvent_SlowFrame)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.SlowFrame, that.SlowFrame, func() *ModSlowFrame { return &ModSlowFrame{} }) {
+		return false
+	}
+	return true
+}
+
 func (this *PlayerChat) EqualVT(that *PlayerChat) bool {
 	if this == that {
 		return true
@@ -1416,6 +1509,29 @@ func (this *ModCalls) EqualVT(that *ModCalls) bool {
 
 func (this *ModCalls) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*ModCalls)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ModSlowFrame) EqualVT(that *ModSlowFrame) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Mod != that.Mod {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Report, that.Report) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ModSlowFrame) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ModSlowFrame)
 	if !ok {
 		return false
 	}
@@ -1742,6 +1858,10 @@ func (x *HostEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("calls")
 			ov.Calls.MarshalProtoJSON(s.WithField("calls"))
+		case *HostEvent_SlowFrame:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("slowFrame")
+			ov.SlowFrame.MarshalProtoJSON(s.WithField("slowFrame"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -1851,6 +1971,15 @@ func (x *HostEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Calls = &ModCalls{}
 			ov.Calls.UnmarshalProtoJSON(s.WithField("calls", true))
+		case "slow_frame", "slowFrame":
+			ov := &HostEvent_SlowFrame{}
+			x.Body = ov
+			if s.ReadNil() {
+				ov.SlowFrame = nil
+				return
+			}
+			ov.SlowFrame = &ModSlowFrame{}
+			ov.SlowFrame.UnmarshalProtoJSON(s.WithField("slow_frame", true))
 		}
 	})
 }
@@ -2119,6 +2248,60 @@ func (x *ModCalls) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the ModCalls from JSON.
 func (x *ModCalls) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ModSlowFrame message to JSON.
+func (x *ModSlowFrame) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Mod != "" || s.HasField("mod") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("mod")
+		s.WriteString(x.Mod)
+	}
+	if x.Report != nil || s.HasField("report") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("report")
+		x.Report.MarshalProtoJSON(s.WithField("report"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ModSlowFrame to JSON.
+func (x *ModSlowFrame) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ModSlowFrame message from JSON.
+func (x *ModSlowFrame) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "mod":
+			s.AddField("mod")
+			x.Mod = s.ReadString()
+		case "report":
+			if s.ReadNil() {
+				x.Report = nil
+				return
+			}
+			x.Report = &profile.SlowFrame{}
+			x.Report.UnmarshalProtoJSON(s.WithField("report", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ModSlowFrame from JSON.
+func (x *ModSlowFrame) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2807,6 +2990,30 @@ func (m *HostEvent_Calls) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *HostEvent_SlowFrame) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *HostEvent_SlowFrame) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.SlowFrame != nil {
+		size, err := m.SlowFrame.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x5a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x5a
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *PlayerChat) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3011,6 +3218,53 @@ func (m *ModCalls) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Profile != nil {
 		size, err := m.Profile.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mod) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Mod)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ModSlowFrame) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ModSlowFrame) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ModSlowFrame) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Report != nil {
+		size, err := m.Report.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -3474,6 +3728,21 @@ func (m *HostEvent_Calls) SizeVT() (n int) {
 	return n
 }
 
+func (m *HostEvent_SlowFrame) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.SlowFrame != nil {
+		l = m.SlowFrame.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *PlayerChat) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3532,6 +3801,21 @@ func (m *ModCalls) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
 	if m.Profile != nil {
 		l = m.Profile.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ModSlowFrame) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Mod)
+	if m.Report != nil {
+		l = m.Report.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += len(m.unknownFields)
@@ -3722,6 +4006,13 @@ func (x *HostEvent) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Calls)
 		}
+	case *HostEvent_SlowFrame:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "slow_frame")
+		if body.SlowFrame == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &ModSlowFrame{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.SlowFrame)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3821,6 +4112,24 @@ func (x *ModCalls) MarshalProtoText() string {
 }
 
 func (x *ModCalls) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ModSlowFrame) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ModSlowFrame")
+	if x.Mod != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "mod")
+		protobuf_go_lite.TextWriteString(&sb, x.Mod)
+	}
+	if x.Report != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "report")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Report)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ModSlowFrame) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4282,6 +4591,26 @@ func (m *HostEvent) UnmarshalVT(dAtA []byte) error {
 				m.Body = &HostEvent_Calls{Calls: v}
 			}
 			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SlowFrame", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Body.(*HostEvent_SlowFrame); ok {
+				if err := oneof.SlowFrame.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &ModSlowFrame{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Body = &HostEvent_SlowFrame{SlowFrame: v}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -4608,6 +4937,74 @@ func (m *ModCalls) UnmarshalVT(dAtA []byte) error {
 				m.Profile = &profile.CallProfile{}
 			}
 			if err := m.Profile.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ModSlowFrame) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ModSlowFrame: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ModSlowFrame: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mod", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Mod = v
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Report", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Report == nil {
+				m.Report = &profile.SlowFrame{}
+			}
+			if err := m.Report.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

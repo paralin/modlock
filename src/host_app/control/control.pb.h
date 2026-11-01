@@ -83,6 +83,10 @@ class ModLog;
 struct ModLogDefaultTypeInternal;
 extern ModLogDefaultTypeInternal _ModLog_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ModLog_class_data_;
+class ModSlowFrame;
+struct ModSlowFrameDefaultTypeInternal;
+extern ModSlowFrameDefaultTypeInternal _ModSlowFrame_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ModSlowFrame_class_data_;
 class ModStarted;
 struct ModStartedDefaultTypeInternal;
 extern ModStartedDefaultTypeInternal _ModStarted_default_instance_;
@@ -227,7 +231,7 @@ class ServerReady final : public ::google::protobuf::Message
     return *reinterpret_cast<const ServerReady*>(
         &_ServerReady_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(ServerReady& a, ServerReady& b) { a.Swap(&b); }
   inline void Swap(ServerReady* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -617,7 +621,7 @@ class PlayerMessage final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerMessage*>(
         &_PlayerMessage_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(PlayerMessage& a, PlayerMessage& b) { a.Swap(&b); }
   inline void Swap(PlayerMessage* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -870,7 +874,7 @@ class PlayerLeft final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerLeft*>(
         &_PlayerLeft_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(PlayerLeft& a, PlayerLeft& b) { a.Swap(&b); }
   inline void Swap(PlayerLeft* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1060,7 +1064,7 @@ class PlayerJoined final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerJoined*>(
         &_PlayerJoined_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(PlayerJoined& a, PlayerJoined& b) { a.Swap(&b); }
   inline void Swap(PlayerJoined* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2526,6 +2530,218 @@ class ModCalls final : public ::google::protobuf::Message
 extern const ::google::protobuf::internal::ClassDataFull ModCalls_class_data_;
 // -------------------------------------------------------------------
 
+class ModSlowFrame final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.ModSlowFrame) */ {
+ public:
+  inline ModSlowFrame() : ModSlowFrame(nullptr) {}
+  ~ModSlowFrame() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ModSlowFrame* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ModSlowFrame));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ModSlowFrame(::google::protobuf::internal::ConstantInitialized);
+
+  inline ModSlowFrame(const ModSlowFrame& from) : ModSlowFrame(nullptr, from) {}
+  inline ModSlowFrame(ModSlowFrame&& from) noexcept
+      : ModSlowFrame(nullptr, ::std::move(from)) {}
+  inline ModSlowFrame& operator=(const ModSlowFrame& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ModSlowFrame& operator=(ModSlowFrame&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ModSlowFrame& default_instance() {
+    return *reinterpret_cast<const ModSlowFrame*>(
+        &_ModSlowFrame_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 8;
+  friend void swap(ModSlowFrame& a, ModSlowFrame& b) { a.Swap(&b); }
+  inline void Swap(ModSlowFrame* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ModSlowFrame* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ModSlowFrame* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ModSlowFrame>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ModSlowFrame& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ModSlowFrame& from) { ModSlowFrame::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ModSlowFrame* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.ModSlowFrame"; }
+
+  explicit ModSlowFrame(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ModSlowFrame(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ModSlowFrame& from);
+  ModSlowFrame(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ModSlowFrame&& from) noexcept
+      : ModSlowFrame(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModFieldNumber = 1,
+    kReportFieldNumber = 2,
+  };
+  // string mod = 1;
+  void clear_mod() ;
+  const ::std::string& mod() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_mod(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_mod();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_mod();
+  void set_allocated_mod(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_mod() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_mod(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_mod();
+
+  public:
+  // .modlock.wasm.profile.SlowFrame report = 2;
+  bool has_report() const;
+  void clear_report() ;
+  const ::modlock::wasm::profile::SlowFrame& report() const;
+  [[nodiscard]] ::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE release_report();
+  ::modlock::wasm::profile::SlowFrame* PROTOBUF_NONNULL mutable_report();
+  void set_allocated_report(::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_report(::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE unsafe_arena_release_report();
+
+  private:
+  const ::modlock::wasm::profile::SlowFrame& _internal_report() const;
+  ::modlock::wasm::profile::SlowFrame* PROTOBUF_NONNULL _internal_mutable_report();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.ModSlowFrame)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   1, 49,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ModSlowFrame& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr mod_;
+    ::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE report_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull ModSlowFrame_class_data_;
+// -------------------------------------------------------------------
+
 class UiChanged final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.host_app.control.UiChanged) */ {
  public:
@@ -2581,7 +2797,7 @@ class UiChanged final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiChanged*>(
         &_UiChanged_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(UiChanged& a, UiChanged& b) { a.Swap(&b); }
   inline void Swap(UiChanged* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2816,6 +3032,7 @@ class HostEvent final : public ::google::protobuf::Message
     kMessage = 8,
     kChat = 9,
     kCalls = 10,
+    kSlowFrame = 11,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 2;
@@ -2915,6 +3132,7 @@ class HostEvent final : public ::google::protobuf::Message
     kMessageFieldNumber = 8,
     kChatFieldNumber = 9,
     kCallsFieldNumber = 10,
+    kSlowFrameFieldNumber = 11,
   };
   // .modlock.host_app.control.ModStarted started = 1;
   bool has_started() const;
@@ -3106,6 +3324,25 @@ class HostEvent final : public ::google::protobuf::Message
   ::modlock::host_app::control::ModCalls* PROTOBUF_NONNULL _internal_mutable_calls();
 
   public:
+  // .modlock.host_app.control.ModSlowFrame slow_frame = 11;
+  bool has_slow_frame() const;
+  private:
+  bool _internal_has_slow_frame() const;
+
+  public:
+  void clear_slow_frame() ;
+  const ::modlock::host_app::control::ModSlowFrame& slow_frame() const;
+  [[nodiscard]] ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE release_slow_frame();
+  ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NONNULL mutable_slow_frame();
+  void set_allocated_slow_frame(::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_slow_frame(::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE value);
+  ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE unsafe_arena_release_slow_frame();
+
+  private:
+  const ::modlock::host_app::control::ModSlowFrame& _internal_slow_frame() const;
+  ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NONNULL _internal_mutable_slow_frame();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.HostEvent)
@@ -3121,11 +3358,12 @@ class HostEvent final : public ::google::protobuf::Message
   void set_has_message();
   void set_has_chat();
   void set_has_calls();
+  void set_has_slow_frame();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 10,
-                                   10, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 11,
+                                   11, 0,
                                    2>
       _table_;
 
@@ -3157,6 +3395,7 @@ class HostEvent final : public ::google::protobuf::Message
       ::google::protobuf::Message* PROTOBUF_NULLABLE message_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE chat_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE calls_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE slow_frame_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -4239,6 +4478,88 @@ inline ::modlock::host_app::control::ModCalls* PROTOBUF_NONNULL HostEvent::mutab
   return _msg;
 }
 
+// .modlock.host_app.control.ModSlowFrame slow_frame = 11;
+inline bool HostEvent::has_slow_frame() const {
+  return body_case() == kSlowFrame;
+}
+inline bool HostEvent::_internal_has_slow_frame() const {
+  return body_case() == kSlowFrame;
+}
+inline void HostEvent::set_has_slow_frame() {
+  _impl_._oneof_case_[0] = kSlowFrame;
+}
+inline void HostEvent::clear_slow_frame() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kSlowFrame) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.slow_frame_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.slow_frame_);
+    }
+    clear_has_body();
+  }
+}
+inline ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE HostEvent::release_slow_frame() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.HostEvent.slow_frame)
+  if (body_case() == kSlowFrame) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ModSlowFrame*>(_impl_.body_.slow_frame_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.slow_frame_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::host_app::control::ModSlowFrame& HostEvent::_internal_slow_frame() const {
+  return body_case() == kSlowFrame ? static_cast<const ::modlock::host_app::control::ModSlowFrame&>(*reinterpret_cast<::modlock::host_app::control::ModSlowFrame*>(_impl_.body_.slow_frame_))
+                     : reinterpret_cast<const ::modlock::host_app::control::ModSlowFrame&>(::modlock::host_app::control::_ModSlowFrame_default_instance_);
+}
+inline const ::modlock::host_app::control::ModSlowFrame& HostEvent::slow_frame() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.HostEvent.slow_frame)
+  return _internal_slow_frame();
+}
+inline ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE HostEvent::unsafe_arena_release_slow_frame() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.HostEvent.slow_frame)
+  if (body_case() == kSlowFrame) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ModSlowFrame*>(_impl_.body_.slow_frame_);
+    _impl_.body_.slow_frame_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void HostEvent::unsafe_arena_set_allocated_slow_frame(
+    ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_slow_frame();
+    _impl_.body_.slow_frame_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.HostEvent.slow_frame)
+}
+inline ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NONNULL HostEvent::_internal_mutable_slow_frame() {
+  if (body_case() != kSlowFrame) {
+    clear_body();
+    set_has_slow_frame();
+    _impl_.body_.slow_frame_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ModSlowFrame>(GetArena()));
+  }
+  return reinterpret_cast<::modlock::host_app::control::ModSlowFrame*>(_impl_.body_.slow_frame_);
+}
+inline ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NONNULL HostEvent::mutable_slow_frame()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::host_app::control::ModSlowFrame* _msg = _internal_mutable_slow_frame();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.slow_frame)
+  return _msg;
+}
+
 inline bool HostEvent::has_body() const {
   return body_case() != BODY_NOT_SET;
 }
@@ -4929,6 +5250,168 @@ inline void ModCalls::set_allocated_profile(::modlock::wasm::profile::CallProfil
 
   _impl_.profile_ = reinterpret_cast<::modlock::wasm::profile::CallProfile*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ModCalls.profile)
+}
+
+// -------------------------------------------------------------------
+
+// ModSlowFrame
+
+// string mod = 1;
+inline void ModSlowFrame::clear_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ModSlowFrame::mod() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ModSlowFrame.mod)
+  return _internal_mod();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ModSlowFrame::set_mod(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.mod_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ModSlowFrame.mod)
+}
+inline ::std::string* PROTOBUF_NONNULL ModSlowFrame::mutable_mod()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_mod();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ModSlowFrame.mod)
+  return _s;
+}
+inline const ::std::string& ModSlowFrame::_internal_mod() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.mod_.Get();
+}
+inline void ModSlowFrame::_internal_set_mod(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ModSlowFrame::_internal_mutable_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.mod_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ModSlowFrame::release_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ModSlowFrame.mod)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.mod_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ModSlowFrame::set_allocated_mod(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.mod_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.mod_.IsDefault()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ModSlowFrame.mod)
+}
+
+// .modlock.wasm.profile.SlowFrame report = 2;
+inline bool ModSlowFrame::has_report() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  PROTOBUF_ASSUME(!value || _impl_.report_ != nullptr);
+  return value;
+}
+inline const ::modlock::wasm::profile::SlowFrame& ModSlowFrame::_internal_report() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::profile::SlowFrame* p = _impl_.report_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::profile::SlowFrame&>(::modlock::wasm::profile::_SlowFrame_default_instance_);
+}
+inline const ::modlock::wasm::profile::SlowFrame& ModSlowFrame::report() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ModSlowFrame.report)
+  return _internal_report();
+}
+inline void ModSlowFrame::unsafe_arena_set_allocated_report(
+    ::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.report_);
+  }
+  _impl_.report_ = reinterpret_cast<::modlock::wasm::profile::SlowFrame*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ModSlowFrame.report)
+}
+inline ::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE ModSlowFrame::release_report() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::profile::SlowFrame* released = _impl_.report_;
+  _impl_.report_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE ModSlowFrame::unsafe_arena_release_report() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ModSlowFrame.report)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::profile::SlowFrame* temp = _impl_.report_;
+  _impl_.report_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::profile::SlowFrame* PROTOBUF_NONNULL ModSlowFrame::_internal_mutable_report() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.report_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::profile::SlowFrame>(GetArena());
+    _impl_.report_ = reinterpret_cast<::modlock::wasm::profile::SlowFrame*>(p);
+  }
+  return _impl_.report_;
+}
+inline ::modlock::wasm::profile::SlowFrame* PROTOBUF_NONNULL ModSlowFrame::mutable_report()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::modlock::wasm::profile::SlowFrame* _msg = _internal_mutable_report();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ModSlowFrame.report)
+  return _msg;
+}
+inline void ModSlowFrame::set_allocated_report(::modlock::wasm::profile::SlowFrame* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.report_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+
+  _impl_.report_ = reinterpret_cast<::modlock::wasm::profile::SlowFrame*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ModSlowFrame.report)
 }
 
 // -------------------------------------------------------------------

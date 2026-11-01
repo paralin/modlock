@@ -14,6 +14,7 @@ import (
 	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/publish"
 	"github.com/paralin/modlock/src/host_app/control"
+	"github.com/paralin/modlock/src/wasm/profile"
 	"github.com/pkg/errors"
 )
 
@@ -262,7 +263,54 @@ func (p *printer) host(event *control.HostEvent) {
 		p.failed(event.GetFailed().GetMod(), event.GetFailed().GetError())
 	case event.GetCalls() != nil:
 		p.refused(event.GetCalls())
+	case event.GetSlowFrame() != nil:
+		p.slowFrame(event.GetSlowFrame())
 	}
+}
+
+// slowFrame prints one report of a mod's slow frames: the slowest frame, and
+// below it the call stacks most samples found, innermost call first. A frame
+// that ended before the first sample has no stacks.
+func (p *printer) slowFrame(slow *control.ModSlowFrame) {
+	report := slow.GetReport()
+	text := fmt.Sprintf("%s: a frame took %d ms", slow.GetMod(), (report.GetTookMicros()+500)/1000)
+	if host := report.GetHostMicros(); host >= 1000 {
+		text += fmt.Sprintf(", %d ms of it in host calls", (host+500)/1000)
+	}
+	if report.GetSkipped() > 0 {
+		text += fmt.Sprintf(", and the mod skipped %d frames to repay slow ones", report.GetSkipped())
+	}
+	p.mark("!", yellow, text)
+	samples := report.GetSamples()
+	for _, stack := range samples.GetStacks() {
+		line := fmt.Sprintf("%d of %d samples in %s", stack.GetSamples(), samples.GetTotal(), describeFrames(stack.GetFrames(), 4))
+		p.line(p.pad() + "  " + paint(p.color, dim, line))
+	}
+}
+
+// describeFrames names the first limit frames of a stack, innermost first,
+// such as "update (mod.js:12) < tick (mod.js:30)".
+func describeFrames(frames []*profile.StackFrame, limit int) string {
+	var parts []string
+	for i, frame := range frames {
+		if i == limit {
+			parts = append(parts, "...")
+			break
+		}
+		name := frame.GetFunction()
+		if name == "" {
+			name = "<anonymous>"
+		}
+		if file := frame.GetFile(); file != "" {
+			name += " (" + file
+			if frame.GetLine() > 0 {
+				name += fmt.Sprintf(":%d", frame.GetLine())
+			}
+			name += ")"
+		}
+		parts = append(parts, name)
+	}
+	return strings.Join(parts, " < ")
 }
 
 // refused prints the calls the host refused in one report of a mod's calls,

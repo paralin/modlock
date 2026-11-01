@@ -147,10 +147,9 @@ HeroRestore::Result HeroRestore::Settle(const Sample& sample, uint64_t tick) {
   const bool items = ItemsMatch(sample.slot);
   if (build_error_.empty() &&
       ((target_.level && sample.level != *target_.level) || !upgrades || !items)) {
-    build_error_ =
-        std::format("the build did not take: level {} of {}, abilities {}, items {}", sample.level,
-                    target_.level.value_or(sample.level), upgrades ? "match" : "differ",
-                    items ? "match" : "differ");
+    build_error_ = std::format("the build did not take: level {} of {}, abilities {}, items {}",
+                               sample.level, target_.level.value_or(sample.level),
+                               upgrades ? "match" : "differ", items ? "match" : "differ");
   }
 
   // Write health and pose even when the build failed, so the hero still

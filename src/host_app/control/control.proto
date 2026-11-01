@@ -70,6 +70,11 @@ message HostEvent {
     // Calls counts the host calls a mod made since its last report, about
     // once a minute while it calls and when its build stops.
     ModCalls calls = 10;
+
+    // SlowFrame reports the slowest frame a mod ran since its last report and
+    // the functions it spent the time in, about once a minute while the mod
+    // runs slow.
+    ModSlowFrame slow_frame = 11;
   }
 }
 
@@ -120,6 +125,15 @@ message ModCalls {
 
   // Profile counts the calls since the mod's last report.
   modlock.wasm.profile.CallProfile profile = 2;
+}
+
+// ModSlowFrame is one report of a mod's slow frames.
+message ModSlowFrame {
+  // Mod is the mod's name.
+  string mod = 1;
+
+  // Report is the slowest frame since the mod's last report.
+  modlock.wasm.profile.SlowFrame report = 2;
 }
 
 // PlayerJoined identifies a player who joined.

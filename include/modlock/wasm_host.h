@@ -62,6 +62,13 @@ class MODLOCK_API WasmHostObserver {
   // with where the time went. The players may restart a mod that stays stuck.
   virtual void Slowed(std::string_view /*mod*/, std::string_view /*report*/) {}
 
+  // SlowFrame reports the slowest frame mod ran since its last report, with
+  // the functions it spent the time in, about once a minute while the mod
+  // skips frames to repay slow ones. The report holds no stacks when the mod
+  // runs on a host that cannot sample, or the frame ended before the first
+  // sample.
+  virtual void SlowFrame(std::string_view /*mod*/, const wasm::profile::SlowFrame& /*report*/) {}
+
   // Held reports that mod took or released the hold that keeps its running
   // build through reloads. The mod may still be calling the host, so an
   // observer that replaces the mod does so after the call returns.

@@ -523,3 +523,96 @@ TEST(WasmRuntime, SharesACompiledModuleWhileItIsHeld) {
 }
 
 }  // namespace
+
+// A call that runs past sample_after is sampled on the epoch ticks, and the
+// report names the functions it spent the time in.
+TEST(WasmInstance, SamplesACallThatRunsSlow) {
+  // Load a mod whose handler spins in a function called from another, once
+  // the start event has passed.
+  Runtime runtime;
+  Recorder recorder;
+  Limits limits;
+  limits.sample_after = std::chrono::milliseconds{8};
+  auto instance = Instance::Load(runtime, Wat(R"((module
+    (memory (export "memory") 1)
+    (func $spin (local $i i32)
+      (loop
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br_if 0 (i32.lt_u (local.get $i) (i32.const 300000000)))))
+    (func $update (call $spin))
+    (func (export "modlock_event") (param i32) (result i64) (call $update) i64.const 0)))"),
+                                 limits, recorder.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+
+  // The spin names its function and its caller, and every sample found it.
+  ASSERT_TRUE((*instance)->Deliver(Event("Frame", FrameEvent{})));
+  const auto samples = (*instance)->Describe().samples();
+  ASSERT_GE(samples.total(), 3U);
+  ASSERT_GE(samples.stacks_size(), 1);
+  const auto& hot = samples.stacks(0);
+  ASSERT_GE(hot.frames_size(), 2);
+  EXPECT_EQ(hot.frames(0).function(), "spin");
+  EXPECT_EQ(hot.frames(1).function(), "update");
+  EXPECT_EQ(hot.samples(), samples.total());
+}
+
+// A call that ends within sample_after takes no sample.
+TEST(WasmInstance, DoesNotSampleAFastCall) {
+  Runtime runtime;
+  Recorder recorder;
+  Limits limits;
+  limits.sample_after = std::chrono::milliseconds{8};
+  auto instance = Instance::Load(runtime, Wat(R"((module
+    (memory (export "memory") 1)
+    (func (export "modlock_event") (param i32) (result i64) i64.const 0)))"),
+                                 limits, recorder.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+  for (int i = 0; i < 1000; ++i) {
+    ASSERT_TRUE((*instance)->Deliver(Event("Frame", FrameEvent{})));
+    ASSERT_EQ((*instance)->Describe().samples().total(), 0U);
+  }
+}
+
+// A script mod samples its own stack: QuickJS names each function with the
+// bundle's file, line and column.
+TEST(WasmInstance, SamplesAScriptModsFunctions) {
+  // Load the QuickJS runtime with a bundle that spins once started.
+  Runtime runtime;
+  Recorder recorder;
+  Limits limits;
+  limits.sample_after = std::chrono::milliseconds{8};
+  auto instance = Instance::Load(runtime, ReadFile(QUICKJS_WASM), limits, recorder.Answer());
+  ASSERT_TRUE(instance) << instance.error();
+  StartEvent start;
+  start.set_source(R"(
+let calls = 0;
+function hotLoop() {
+  const end = Date.now() + 80;
+  while (Date.now() < end) {}
+}
+function update() { hotLoop(); }
+__modlock.event = () => {
+  if (calls++ > 0) update();
+  return new Uint8Array(0);
+};
+)");
+  ASSERT_TRUE((*instance)->Deliver(Event("Start", start)));
+  EXPECT_EQ((*instance)->Describe().samples().total(), 0U);
+
+  // The frame's samples name the loop, its caller and the line in the bundle.
+  ASSERT_TRUE((*instance)->Deliver(Event("Frame", FrameEvent{})));
+  const auto samples = (*instance)->Describe().samples();
+  ASSERT_GE(samples.total(), 3U);
+  ASSERT_GE(samples.stacks_size(), 1);
+  const auto& hot = samples.stacks(0);
+  ASSERT_GE(hot.frames_size(), 3);
+  EXPECT_EQ(hot.frames(0).function(), "hotLoop");
+  EXPECT_EQ(hot.frames(0).file(), "mod.js");
+  EXPECT_EQ(hot.frames(0).line(), 5U);
+  EXPECT_EQ(hot.frames(1).function(), "update");
+  EXPECT_EQ(hot.frames(1).line(), 7U);
+
+  // The next frame starts with an empty count.
+  ASSERT_TRUE((*instance)->Deliver(Event("Frame", FrameEvent{})));
+  EXPECT_GE((*instance)->Describe().samples().total(), 3U);
+}

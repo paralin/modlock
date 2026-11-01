@@ -7,6 +7,12 @@
 // The runtime adds what the bundle needs and QuickJS lacks: __modlock with the
 // host call, a log line and UTF-8 conversion, then TextEncoder, TextDecoder and
 // console built on them.
+//
+// It also samples the bundle's call stack for the host. While a call runs
+// slow, the host sets sample_due about every 10 ms. QuickJS polls its interrupt
+// handler every few thousand operations, and the handler takes the stack when
+// it finds sample_due set, so a call that is not sampled pays one read of a
+// word per poll. The host takes the counted stacks with modlock_samples.
 
 #include <stdint.h>
 #include <stdio.h>
@@ -23,6 +29,17 @@ static JSContext* context;
 
 // result holds the last encoded Reply until the next event.
 static uint8_t* result;
+
+// sample_due is set by the host, at the address modlock_sample_flag returns,
+// when the running call is due a stack sample, and cleared here once the sample
+// is taken.
+static volatile uint32_t sample_due;
+
+// modlock_sample_flag returns the address of the word the host sets to ask for
+// a stack sample.
+__attribute__((export_name("modlock_sample_flag"))) uint32_t modlock_sample_flag(void) {
+  return (uint32_t)(uintptr_t)&sample_due;
+}
 
 // prelude defines the globals a bundle expects on top of __modlock.
 static const char prelude[] =
@@ -123,6 +140,72 @@ static const JSCFunctionListEntry host_functions[] = {
     JS_CFUNC_DEF("decodeUtf8", 1, js_decode_utf8),
 };
 
+// A stack sample is the top kSampleLines lines of QuickJS's backtrace, kept
+// as text. The table counts distinct samples; one past its capacity is only
+// counted in sample_total.
+enum { kSampleLines = 8, kSampleBytes = 1024, kSampleStacks = 16 };
+
+static struct {
+  char text[kSampleBytes];
+  uint32_t size;
+  uint32_t count;
+} sample_stacks[kSampleStacks];
+static uint32_t sample_stack_count;
+static uint32_t sample_total;
+
+// record_sample counts one backtrace, keeping its first kSampleLines lines.
+static void record_sample(const char* trace) {
+  // Cut the trace after kSampleLines lines or kSampleBytes bytes, at a line.
+  size_t size = 0;
+  size_t cut = 0;
+  int lines = 0;
+  while (trace[size] && lines < kSampleLines && size < kSampleBytes) {
+    if (trace[size++] == '\n') {
+      cut = size;
+      ++lines;
+    }
+  }
+  if (lines < kSampleLines && !trace[size]) cut = size;
+  if (cut == 0) return;
+  ++sample_total;
+
+  // Count it under the stack it repeats, or a new one while the table has room.
+  for (uint32_t i = 0; i < sample_stack_count; ++i) {
+    if (sample_stacks[i].size == cut && memcmp(sample_stacks[i].text, trace, cut) == 0) {
+      ++sample_stacks[i].count;
+      return;
+    }
+  }
+  if (sample_stack_count == kSampleStacks) return;
+  memcpy(sample_stacks[sample_stack_count].text, trace, cut);
+  sample_stacks[sample_stack_count].size = (uint32_t)cut;
+  sample_stacks[sample_stack_count].count = 1;
+  ++sample_stack_count;
+}
+
+// sample_interrupt is QuickJS's interrupt handler. It never interrupts the
+// bundle, and takes a sample when the host asked for one.
+static int sample_interrupt(JSRuntime* rt, void* opaque) {
+  if (!sample_due) return 0;
+  sample_due = 0;
+  JSValue error = JS_NewError(context);
+  if (JS_IsException(error)) {
+    JS_FreeValue(context, JS_GetException(context));
+    return 0;
+  }
+  JSValue stack = JS_GetPropertyStr(context, error, "stack");
+  const char* trace = JS_IsException(stack) ? NULL : JS_ToCString(context, stack);
+  if (trace) {
+    record_sample(trace);
+    JS_FreeCString(context, trace);
+  } else {
+    JS_FreeValue(context, JS_GetException(context));
+  }
+  JS_FreeValue(context, stack);
+  JS_FreeValue(context, error);
+  return 0;
+}
+
 // evaluate runs code as a global script named file and reports whether it
 // completed.
 static int evaluate(const uint8_t* code, size_t size, const char* file) {
@@ -154,6 +237,7 @@ static int start(const uint8_t* event, size_t size) {
   // Build the globals, then run the bundle.
   runtime = JS_NewRuntime();
   if (!runtime) return 0;
+  JS_SetInterruptHandler(runtime, sample_interrupt, NULL);
   context = JS_NewContext(runtime);
   if (!context) return 0;
   JSValue global = JS_GetGlobalObject(context);
@@ -227,4 +311,122 @@ __attribute__((export_name("modlock_event"))) uint64_t modlock_event(uint32_t si
   JS_FreeValue(context, answer);
   if (!result) return 0;
   return (uint64_t)(uintptr_t)result << 32 | answer_size;
+}
+
+// kReportBytes bounds the encoded report: a stack takes under 1.5 KiB.
+enum { kReportBytes = 32 * 1024, kStackBytes = 2048, kFrameBytes = 1280 };
+
+// put_field appends a length-delimited field to out at *at.
+static void put_field(uint8_t* out, size_t* at, uint8_t tag, const uint8_t* data, size_t size) {
+  out[(*at)++] = tag;
+  *at += put_varint(out + *at, size);
+  memcpy(out + *at, data, size);
+  *at += size;
+}
+
+// put_number appends a varint field to out at *at.
+static void put_number(uint8_t* out, size_t* at, uint8_t tag, uint64_t value) {
+  out[(*at)++] = tag;
+  *at += put_varint(out + *at, value);
+}
+
+// encode_frame encodes the StackFrame in one backtrace line, such as
+// "    at update (mod.js:12:5)", "    at <anonymous> (missing)" or
+// "    at call (native)", into out, and returns its length.
+static size_t encode_frame(const char* line, size_t size, uint8_t* out) {
+  // Split the function from the position in the parentheses.
+  while (size && line[size - 1] == '\n') --size;
+  if (size > 7 && memcmp(line, "    at ", 7) == 0) {
+    line += 7;
+    size -= 7;
+  }
+  const char* function = line;
+  size_t function_size = size;
+  const char* where = NULL;
+  size_t where_size = 0;
+  for (size_t i = 0; i + 1 < size; ++i) {
+    if (line[i] == ' ' && line[i + 1] == '(') {
+      function_size = i;
+      where = line + i + 2;
+      where_size = size - i - 2;
+      if (where_size && where[where_size - 1] == ')') --where_size;
+      break;
+    }
+  }
+  if (function_size == 11 && memcmp(function, "<anonymous>", 11) == 0) function_size = 0;
+
+  // Read ":line:column" off the end of the position, leaving the file.
+  uint64_t numbers[2] = {0, 0};
+  for (int n = 1; n >= 0 && where_size; --n) {
+    size_t digits = 0;
+    while (digits < where_size && where[where_size - 1 - digits] >= '0' &&
+           where[where_size - 1 - digits] <= '9') {
+      ++digits;
+    }
+    if (digits == 0 || digits == where_size || where[where_size - 1 - digits] != ':') {
+      numbers[0] = numbers[1] = 0;
+      break;
+    }
+    uint64_t value = 0;
+    for (size_t d = where_size - digits; d < where_size; ++d) value = value * 10 + (where[d] - '0');
+    numbers[n] = value;
+    where_size -= digits + 1;
+  }
+  if ((where_size == 7 && memcmp(where, "missing", 7) == 0) ||
+      (where_size == 6 && memcmp(where, "native", 6) == 0)) {
+    where_size = 0;
+  }
+
+  size_t at = 0;
+  if (function_size) put_field(out, &at, 0x0a, (const uint8_t*)function, function_size);
+  if (where_size) put_field(out, &at, 0x12, (const uint8_t*)where, where_size);
+  if (numbers[0]) put_number(out, &at, 0x18, numbers[0]);
+  if (numbers[1]) put_number(out, &at, 0x20, numbers[1]);
+  return at;
+}
+
+// modlock_samples returns the stacks sampled since the last call as an encoded
+// modlock.wasm.profile.StackSamples, most sampled first, with its address in
+// the high 32 bits and its length in the low 32 bits, and starts counting
+// afresh. It returns 0 when nothing was sampled.
+__attribute__((export_name("modlock_samples"))) uint64_t modlock_samples(void) {
+  static uint8_t report[kReportBytes];
+  if (sample_total == 0) return 0;
+  size_t at = 0;
+  put_number(report, &at, 0x08, sample_total);
+
+  // Emit the stacks by falling count.
+  uint8_t done[kSampleStacks] = {0};
+  for (uint32_t emitted = 0; emitted < sample_stack_count; ++emitted) {
+    uint32_t best = kSampleStacks;
+    for (uint32_t i = 0; i < sample_stack_count; ++i) {
+      if (!done[i] && (best == kSampleStacks || sample_stacks[i].count > sample_stacks[best].count)) {
+        best = i;
+      }
+    }
+    done[best] = 1;
+
+    // Encode its lines as frames, then the stack around them.
+    static uint8_t stack[kStackBytes];
+    static uint8_t frame[kFrameBytes];
+    size_t stack_at = 0;
+    const char* text = sample_stacks[best].text;
+    size_t size = sample_stacks[best].size;
+    for (size_t start = 0; start < size;) {
+      size_t end = start;
+      while (end < size && text[end] != '\n') ++end;
+      size_t frame_size = encode_frame(text + start, end - start, frame);
+      if (stack_at + frame_size + 6 <= kStackBytes) {
+        put_field(stack, &stack_at, 0x0a, frame, frame_size);
+      }
+      start = end + 1;
+    }
+    put_number(stack, &stack_at, 0x10, sample_stacks[best].count);
+    if (at + stack_at + 6 <= kReportBytes) put_field(report, &at, 0x12, stack, stack_at);
+  }
+
+  memset(sample_stacks, 0, sizeof(sample_stacks[0]) * sample_stack_count);
+  sample_stack_count = 0;
+  sample_total = 0;
+  return (uint64_t)(uintptr_t)report << 32 | at;
 }

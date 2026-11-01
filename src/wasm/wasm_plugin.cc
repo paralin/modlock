@@ -25,6 +25,27 @@ constexpr auto kFrameAllowance = std::chrono::milliseconds(8);
 // kShedLogPeriod is how often the log reports the frames a slow mod skipped.
 constexpr auto kShedLogPeriod = std::chrono::minutes(1);
 
+// Hottest describes the stack with the most samples for the log line that
+// reports a slow frame, such as "; hottest hotLoop (mod.js:5), 8 of 9 samples".
+// It returns nothing when the frame took no sample.
+std::string Hottest(const profile::StackSamples& samples) {
+  if (samples.stacks().empty() || samples.stacks(0).frames().empty()) {
+    return {};
+  }
+  const auto& stack = samples.stacks(0);
+  const auto& leaf = stack.frames(0);
+  std::string text =
+      std::format("; hottest {}", leaf.function().empty() ? "<anonymous>" : leaf.function());
+  if (!leaf.file().empty()) {
+    text += std::format(" ({}", leaf.file());
+    if (leaf.line() > 0) {
+      text += std::format(":{}", leaf.line());
+    }
+    text += ')';
+  }
+  return text + std::format(", {} of {} samples", stack.samples(), samples.total());
+}
+
 // kRestartCommand is the chat command that restarts a stopped or slow mod,
 // alone for every such mod or followed by one mod's name. kWarnPeriod is how
 // often the players hear of it, and kOfferWindow how long a slow event keeps
@@ -72,7 +93,9 @@ bool Tune(std::wstring_view module, const char* module_name,
 
 std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instantiate(
     std::span<const uint8_t> module) {
-  return wasm::Instance::Load(host_.runtime, module, wasm::Limits{},
+  wasm::Limits limits;
+  limits.sample_after = kFrameAllowance;
+  return wasm::Instance::Load(host_.runtime, module, limits,
                               [this](const wasm::Call& call) { return Call(call); });
 }
 
@@ -498,6 +521,7 @@ void WasmPlugin::Tick() {
   if (spent > slowest_ && instance_) {
     slowest_ = spent;
     slowest_report_ = instance_->Report();
+    slowest_frame_ = instance_->Describe();
   }
   if (spent > kFrameAllowance) {
     frames_resume_ = ended + spent;
@@ -507,8 +531,11 @@ void WasmPlugin::Tick() {
   if (skipped_ > 0 && ended - shed_logged_ >= kShedLogPeriod) {
     // Report the count and the slowest frame, then count afresh.
     const auto slowest = std::chrono::duration_cast<std::chrono::milliseconds>(slowest_);
-    Log(std::format("skipped {} frames to repay slow ones; the slowest took {} ms: {}", skipped_,
-                    slowest.count(), slowest_report_));
+    slowest_frame_.set_skipped(skipped_);
+    Log(std::format("skipped {} frames to repay slow ones; the slowest took {} ms: {}{}", skipped_,
+                    slowest.count(), slowest_report_, Hottest(slowest_frame_.samples())));
+    host_.Notify([&](WasmHostObserver& observer) { observer.SlowFrame(name_, slowest_frame_); });
+    slowest_frame_.Clear();
     skipped_ = 0;
     slowest_ = {};
     shed_logged_ = ended;

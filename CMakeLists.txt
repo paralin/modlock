@@ -187,6 +187,7 @@ add_library(modlock_sdk SHARED
   src/render/world_effect_game_factory.cc
   src/render/world_text_game_factory.cc
   src/wasm/instance.cc
+  src/wasm/stack_samples.cc
   src/wasm/runtime.cc
   src/wasm/definition_changes.cc
   src/wasm/game.cc
@@ -641,11 +642,11 @@ if(BUILD_TESTING)
     DEPENDS ${hello_go_sources} go.mod)
   add_custom_target(hello_go_wasm DEPENDS ${hello_go_wasm})
   add_executable(wasm_instance_test tests/wasm_instance_test.cc src/wasm/instance.cc
-    src/wasm/runtime.cc)
-  add_dependencies(wasm_instance_test hello_go_wasm luau_runtime python_runtime)
+    src/wasm/stack_samples.cc src/wasm/runtime.cc)
+  add_dependencies(wasm_instance_test hello_go_wasm luau_runtime python_runtime quickjs_runtime)
   target_include_directories(wasm_instance_test PRIVATE src)
   target_compile_definitions(wasm_instance_test PRIVATE HELLO_GO_WASM="${hello_go_wasm}"
-    LUAU_WASM="${luau_wasm}"
+    LUAU_WASM="${luau_wasm}" QUICKJS_WASM="${quickjs_wasm}"
     HELLO_LUAU_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-luau/main.luau"
     LUAU_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/luau/modlock" PYTHON_WASM="${python_wasm}"
     HELLO_PYTHON_MAIN="${CMAKE_CURRENT_SOURCE_DIR}/examples/hello-python/main.py"
