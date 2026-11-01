@@ -168,6 +168,10 @@ std::expected<EntityLayout, std::string> ResolveEntityLayout(bool movement_enabl
   const OptionalSchemaOffset optional[] = {
       {"CCitadelPlayerController", "m_hHeroPawn", 0, &layout.hero_pawn_handle},
       {"CCitadelPlayerController", "m_ePlayState", sizeof(int32_t), &layout.play_state},
+      {"CCitadelPlayerController", "m_PlayerDataGlobal.m_nHeroID", sizeof(uint32_t),
+       &layout.player_hero_id},
+      {"CCitadelPlayerController", "m_PlayerDataGlobal.m_nPreGameHeroID", sizeof(uint32_t),
+       &layout.pregame_hero_id},
       {"CBaseModelEntity", "m_vecViewOffset", kViewOffsetSize, &layout.view_offset},
       {"CCitadelPlayerPawn", "m_nCurrencies", sizeof(int32_t) * 3, &layout.currencies},
   };
