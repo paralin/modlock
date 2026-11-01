@@ -94,7 +94,8 @@ message Entities {
   // Classes are sorted by designer name.
   repeated EntityClass classes = 2;
   // DataMaps are sorted by name and include every base and embedded map the
-  // classes reach.
+  // classes reach, and every server schema class's map, so the maps of the
+  // components an entity holds are here too.
   repeated DataMap data_maps = 3;
   // Inputs are sorted by entity, then name.
   repeated Input inputs = 4;
@@ -135,7 +136,8 @@ message DataMap {
 message KeyValue {
   // Name is the key, such as targetname.
   string name = 1;
-  // Field is the class field the key sets, such as m_iszName.
+  // Field is the class field the key sets, such as m_iszName, or empty for a
+  // key the class parses itself, such as the scene node's scale.
   string field = 2;
   // Type is the value's type.
   KeyType type = 3;

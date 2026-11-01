@@ -60,9 +60,11 @@ static_assert(offsetof(TypeDescription, external_name) == 0x20);
 static_assert(offsetof(DataMap, base) == 0x18);
 static_assert(offsetof(EntityClassInfo, schema_binding) == 0x28);
 
-// The data description flag of spawn key values (FTYPEDESC_KEY), and the
-// field type of embedded data maps.
+// The data description flag of spawn key values (FTYPEDESC_KEY), the flag of
+// a key the class parses itself, which has no field, such as the scene node's
+// scale, and the field type of embedded data maps.
 constexpr int32_t kKeyFlag = 1 << 2;
+constexpr int32_t kParsedKeyFlag = 1 << 12;
 constexpr uint8_t kEmbeddedType = 10;
 
 // tier0's KeyValues3 JSON writer: bool SaveKV3AsJSON(const KeyValues3*,
@@ -125,11 +127,15 @@ void AddDataMap(const DataMap& map, dump::DataMap& out) {
     out.set_base(map.base->name);
   }
   for (const auto& field : std::span(map.fields, size_t(std::max(map.field_count, 0)))) {
-    if (field.flags & kKeyFlag) {
-      // A key field carries its external name.
+    if (field.flags & (kKeyFlag | kParsedKeyFlag)) {
+      // A key field carries its external name; a key the class parses itself
+      // has only the key's name.
+      const bool stored = field.flags & kKeyFlag;
       auto& key = *out.add_key_values();
-      key.set_name(Text(field.external_name));
-      key.set_field(Text(field.name));
+      key.set_name(Text(stored ? field.external_name : field.name));
+      if (stored) {
+        key.set_field(Text(field.name));
+      }
       key.set_type(static_cast<dump::KeyType>(field.type + 1));
       key.set_count(field.count);
     }
@@ -355,6 +361,16 @@ std::expected<dump::Entities, std::string> DescribeEntities(
       added.set_base(base->designer_name);
     }
     CollectDataMaps(info->data_map, data_maps);
+  }
+
+  // Entities also take the key values of their components, such as the scene
+  // node's origin and scale behind the body component. No entity map reaches
+  // a component's, so collect every server schema class's own map.
+  for (const auto* binding : server_classes) {
+    const auto* map = static_cast<const schema::ClassInfo*>(binding)->data_map;
+    if (server.Contains(map)) {
+      CollectDataMaps(static_cast<const DataMap*>(map), data_maps);
+    }
   }
   for (const auto& [name, map] : data_maps) {
     AddDataMap(*map, *entities.add_data_maps());

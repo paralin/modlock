@@ -37922,6 +37922,7 @@ const tableCBaseEntity = {
   effects: 'integer',
   ResponseContext: 'text',
   subclass_id: 'text',
+  subclass_name: 'text',
   max_health: 'integer',
   target: 'text',
   platform_type: 'integer',
@@ -37938,6 +37939,21 @@ const tableCBaseEntity = {
   disablelowviolence: 'boolean',
   LagCompensate: 'boolean',
   health: 'integer',
+  angles: 'angles',
+  origin: 'vector',
+  model: 'text',
+  ownername: 'text',
+  disableshadows: 'integer',
+  disablereceiveshadows: 'integer',
+  nodamageforces: 'integer',
+  angle: 'number',
+  parentAttachmentName: 'text',
+  useLocalOffset: 'boolean',
+  useParentRenderBounds: 'boolean',
+  positionInLocalSpace: 'boolean',
+  scales: 'vector',
+  scale: 'number',
+  ModelScale: 'number',
 } as const
 export interface CBaseEntityKeys extends Typed<typeof tableCBaseEntity> {}
 const keysCBaseEntity: KeyMap<CBaseEntityKeys> = { base: undefined, keys: tableCBaseEntity }
@@ -37963,8 +37979,15 @@ const tableCBaseModelEntity = {
   fademaxdist: 'number',
   fadescale: 'number',
   object_culling: 'integer',
+  add_attribute: 'text',
   add_modifier: 'text',
   view_ofs: 'vector',
+  rendercolor32: 'color',
+  renderamt: 'integer',
+  mins: 'vector',
+  maxs: 'vector',
+  skin: 'text',
+  bodygroups: 'text',
   destructible_part_initial_state_destructed_1: 'integer',
   destructible_part_initial_state_destructed_2: 'integer',
   destructible_part_initial_state_destructed_3: 'integer',
@@ -37999,6 +38022,8 @@ const tableCBaseTrigger = {
   StartDisabled: 'boolean',
   filtername: 'text',
   useasyncqueries: 'boolean',
+  okifnomodel: 'boolean',
+  radius: 'number',
 } as const
 export interface CBaseTriggerKeys extends CBaseToggleKeys, Typed<typeof tableCBaseTrigger> {}
 const keysCBaseTrigger: KeyMap<CBaseTriggerKeys> = { base: keysCBaseToggle, keys: tableCBaseTrigger }
@@ -38122,8 +38147,11 @@ const tableCBaseAnimGraph = {
 export interface CBaseAnimGraphKeys extends CBaseModelEntityKeys, Typed<typeof tableCBaseAnimGraph> {}
 const keysCBaseAnimGraph: KeyMap<CBaseAnimGraphKeys> = { base: keysCBaseModelEntity, keys: tableCBaseAnimGraph }
 
-export interface CBasePropKeys extends CBaseAnimGraphKeys {}
-const keysCBaseProp: KeyMap<CBasePropKeys> = { base: keysCBaseAnimGraph, keys: {} }
+const tableCBaseProp = {
+  propdata_override: 'text',
+} as const
+export interface CBasePropKeys extends CBaseAnimGraphKeys, Typed<typeof tableCBaseProp> {}
+const keysCBaseProp: KeyMap<CBasePropKeys> = { base: keysCBaseAnimGraph, keys: tableCBaseProp }
 
 const tableCBeam = {
   HDRColorScale: 'number',
@@ -38175,7 +38203,10 @@ const tableCDynamicProp = {
   glowteam: 'integer',
   forcenpcexclude: 'boolean',
   create_surface_graph: 'boolean',
+  StartingAnim: 'text',
+  StartingAnimationLoopMode: 'text',
   CreateNavObstacle: 'boolean',
+  HoldAnimation: 'boolean',
 } as const
 export interface CDynamicPropKeys extends CBreakablePropKeys, Typed<typeof tableCDynamicProp> {}
 const keysCDynamicProp: KeyMap<CDynamicPropKeys> = { base: keysCBreakableProp, keys: tableCDynamicProp }
@@ -38263,8 +38294,11 @@ const tableCCitadelDevTrigger = {
 export interface CCitadelDevTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelDevTrigger> {}
 const keysCCitadelDevTrigger: KeyMap<CCitadelDevTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelDevTrigger }
 
-export interface CCitadel_DoorwayPortalKeys extends CBaseAnimGraphKeys {}
-const keysCCitadel_DoorwayPortal: KeyMap<CCitadel_DoorwayPortalKeys> = { base: keysCBaseAnimGraph, keys: {} }
+const tableCCitadel_DoorwayPortal = {
+  looping_sound: 'text',
+} as const
+export interface CCitadel_DoorwayPortalKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_DoorwayPortal> {}
+const keysCCitadel_DoorwayPortal: KeyMap<CCitadel_DoorwayPortalKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadel_DoorwayPortal }
 
 const tableCCitadelDruidHealingTree = {
   fruit_model: 'text',
@@ -38325,6 +38359,7 @@ const tableCCitadelItemPickup = {
   fall_rate: 'number',
   play_spawn_music: 'boolean',
   require_ground_for_pickup: 'boolean',
+  from_crate: 'boolean',
   objective_position: 'integer',
   killing_team: 'integer',
   home_position: 'vector',
@@ -38334,8 +38369,12 @@ const tableCCitadelItemPickup = {
 export interface CCitadelItemPickupKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadelItemPickup> {}
 const keysCCitadelItemPickup: KeyMap<CCitadelItemPickupKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadelItemPickup }
 
-export interface CCitadelItemKothSpawnerKeys extends CCitadelItemPickupKeys {}
-const keysCCitadelItemKothSpawner: KeyMap<CCitadelItemKothSpawnerKeys> = { base: keysCCitadelItemPickup, keys: {} }
+const tableCCitadelItemKothSpawner = {
+  koth_early_warning_time: 'number',
+  koth_silent_spawn: 'boolean',
+} as const
+export interface CCitadelItemKothSpawnerKeys extends CCitadelItemPickupKeys, Typed<typeof tableCCitadelItemKothSpawner> {}
+const keysCCitadelItemKothSpawner: KeyMap<CCitadelItemKothSpawnerKeys> = { base: keysCCitadelItemPickup, keys: tableCCitadelItemKothSpawner }
 
 export interface CCitadelItemPickupIdolKeys extends CCitadelItemPickupKeys {}
 const keysCCitadelItemPickupIdol: KeyMap<CCitadelItemPickupIdolKeys> = { base: keysCCitadelItemPickup, keys: {} }
@@ -38387,8 +38426,14 @@ const tableCCitadel_PickupSpawner = {
 export interface CCitadel_PickupSpawnerKeys extends CBaseAnimGraphKeys, Typed<typeof tableCCitadel_PickupSpawner> {}
 const keysCCitadel_PickupSpawner: KeyMap<CCitadel_PickupSpawnerKeys> = { base: keysCBaseAnimGraph, keys: tableCCitadel_PickupSpawner }
 
-export interface CBasePlayerControllerKeys extends CBaseEntityKeys {}
-const keysCBasePlayerController: KeyMap<CBasePlayerControllerKeys> = { base: keysCBaseEntity, keys: {} }
+const tableCBasePlayerController = {
+  fakeclient: 'boolean',
+  is_hltv: 'boolean',
+  playername: 'text',
+  reserving: 'boolean',
+} as const
+export interface CBasePlayerControllerKeys extends CBaseEntityKeys, Typed<typeof tableCBasePlayerController> {}
+const keysCBasePlayerController: KeyMap<CBasePlayerControllerKeys> = { base: keysCBaseEntity, keys: tableCBasePlayerController }
 
 export interface CCitadel_PointTalker_BaseKeys extends CBaseCombatCharacterKeys {}
 const keysCCitadel_PointTalker_Base: KeyMap<CCitadel_PointTalker_BaseKeys> = { base: keysCBaseCombatCharacter, keys: {} }
@@ -38594,6 +38639,7 @@ const tableCPathParticleRope = {
   slack: 'number',
   radius: 'number',
   color_tint: 'color',
+  pathNodes: 'text',
 } as const
 export interface CPathParticleRopeKeys extends CBaseEntityKeys, Typed<typeof tableCPathParticleRope> {}
 const keysCPathParticleRope: KeyMap<CPathParticleRopeKeys> = { base: keysCBaseEntity, keys: tableCPathParticleRope }
@@ -38798,6 +38844,7 @@ const tableCEnvExplosion = {
   create_debris: 'boolean',
   ignoredClass: 'integer',
   ignoredEntity: 'text',
+  explosion_type: 'text',
   explosion_custom_effect: 'text',
   explosion_custom_sound: 'text',
 } as const
@@ -38834,7 +38881,6 @@ export interface CFogControllerKeys extends CBaseEntityKeys, Typed<typeof tableC
 const keysCFogController: KeyMap<CFogControllerKeys> = { base: keysCBaseEntity, keys: tableCFogController }
 
 const tableCSprite = {
-  scale: 'number',
   framerate: 'number',
   frame: 'number',
   HDRColorScale: 'number',
@@ -38940,7 +38986,6 @@ export interface CMessageKeys extends CPointEntityKeys, Typed<typeof tableCMessa
 const keysCMessage: KeyMap<CMessageKeys> = { base: keysCPointEntity, keys: tableCMessage }
 
 const tableCEnvMuzzleFlash = {
-  scale: 'number',
   parentattachment: 'text',
 } as const
 export interface CEnvMuzzleFlashKeys extends CPointEntityKeys, Typed<typeof tableCEnvMuzzleFlash> {}
@@ -38964,7 +39009,6 @@ const keysCParticleSystem: KeyMap<CParticleSystemKeys> = { base: keysCBaseModelE
 
 const tableCEnvParticleGlow = {
   alphascale: 'number',
-  scale: 'number',
   selfillumscale: 'number',
   colortint: 'color',
   effect_textureOverride: 'text',
@@ -39063,11 +39107,8 @@ const tableCEnvSpark = {
 export interface CEnvSparkKeys extends CPointEntityKeys, Typed<typeof tableCEnvSpark> {}
 const keysCEnvSpark: KeyMap<CEnvSparkKeys> = { base: keysCPointEntity, keys: tableCEnvSpark }
 
-const tableCEnvSplash = {
-  scale: 'number',
-} as const
-export interface CEnvSplashKeys extends CPointEntityKeys, Typed<typeof tableCEnvSplash> {}
-const keysCEnvSplash: KeyMap<CEnvSplashKeys> = { base: keysCPointEntity, keys: tableCEnvSplash }
+export interface CEnvSplashKeys extends CPointEntityKeys {}
+const keysCEnvSplash: KeyMap<CEnvSplashKeys> = { base: keysCPointEntity, keys: {} }
 
 const tableCEnvTilt = {
   duration: 'number',
@@ -39158,7 +39199,6 @@ export interface CEnvWindKeys extends CBaseEntityKeys, Typed<typeof tableCEnvWin
 const keysCEnvWind: KeyMap<CEnvWindKeys> = { base: keysCBaseEntity, keys: tableCEnvWind }
 
 const tableCBasePlayerPawn = {
-  scale: 'integer',
   clip_3D_skybox_near_to_world_far: 'boolean',
   clip_3D_skybox_near_to_world_far_offset: 'number',
   fogdir: 'vector',
@@ -39180,8 +39220,11 @@ const tableCBasePlayerPawn = {
 export interface CBasePlayerPawnKeys extends CBaseCombatCharacterKeys, Typed<typeof tableCBasePlayerPawn> {}
 const keysCBasePlayerPawn: KeyMap<CBasePlayerPawnKeys> = { base: keysCBaseCombatCharacter, keys: tableCBasePlayerPawn }
 
-export interface CCitadelPlayerPawnKeys extends CBasePlayerPawnKeys {}
-const keysCCitadelPlayerPawn: KeyMap<CCitadelPlayerPawnKeys> = { base: keysCBasePlayerPawn, keys: {} }
+const tableCCitadelPlayerPawn = {
+  nospawnheroid: 'integer',
+} as const
+export interface CCitadelPlayerPawnKeys extends CBasePlayerPawnKeys, Typed<typeof tableCCitadelPlayerPawn> {}
+const keysCCitadelPlayerPawn: KeyMap<CCitadelPlayerPawnKeys> = { base: keysCBasePlayerPawn, keys: tableCCitadelPlayerPawn }
 
 export interface CCitadelFamiliarClonePlayerPawnKeys extends CCitadelPlayerPawnKeys {}
 const keysCCitadelFamiliarClonePlayerPawn: KeyMap<CCitadelFamiliarClonePlayerPawnKeys> = { base: keysCCitadelPlayerPawn, keys: {} }
@@ -39213,11 +39256,8 @@ const tableCFilterMassGreater = {
 export interface CFilterMassGreaterKeys extends CBaseFilterKeys, Typed<typeof tableCFilterMassGreater> {}
 const keysCFilterMassGreater: KeyMap<CFilterMassGreaterKeys> = { base: keysCBaseFilter, keys: tableCFilterMassGreater }
 
-const tableCFilterModel = {
-  model: 'text',
-} as const
-export interface CFilterModelKeys extends CBaseFilterKeys, Typed<typeof tableCFilterModel> {}
-const keysCFilterModel: KeyMap<CFilterModelKeys> = { base: keysCBaseFilter, keys: tableCFilterModel }
+export interface CFilterModelKeys extends CBaseFilterKeys {}
+const keysCFilterModel: KeyMap<CFilterModelKeys> = { base: keysCBaseFilter, keys: {} }
 
 const tableCCitadelFilterModifier = {
   modifier_name: 'text',
@@ -39294,6 +39334,13 @@ const tableCBreakable = {
   physdamagescale: 'number',
   PerformanceMode: 'integer',
   overrideBlockLOS: 'integer',
+  material: 'integer',
+  spawnobject: 'integer',
+  propdata: 'integer',
+  masscenteroffset: 'vector',
+  massScale: 'number',
+  buoyancyscale: 'number',
+  fluiddragscale: 'number',
 } as const
 export interface CBreakableKeys extends CBaseModelEntityKeys, Typed<typeof tableCBreakable> {}
 const keysCBreakable: KeyMap<CBreakableKeys> = { base: keysCBaseModelEntity, keys: tableCBreakable }
@@ -39323,8 +39370,13 @@ const keysCFuncInteractionLayerClip: KeyMap<CFuncInteractionLayerClipKeys> = { b
 export interface CFuncVPhysicsClipKeys extends CBaseModelEntityKeys {}
 const keysCFuncVPhysicsClip: KeyMap<CFuncVPhysicsClipKeys> = { base: keysCBaseModelEntity, keys: {} }
 
-export interface CConditionalCollidableKeys extends CBaseModelEntityKeys {}
-const keysCConditionalCollidable: KeyMap<CConditionalCollidableKeys> = { base: keysCBaseModelEntity, keys: {} }
+const tableCConditionalCollidable = {
+  interactAs: 'text',
+  interactWith: 'text',
+  interactExclude: 'text',
+} as const
+export interface CConditionalCollidableKeys extends CBaseModelEntityKeys, Typed<typeof tableCConditionalCollidable> {}
+const keysCConditionalCollidable: KeyMap<CConditionalCollidableKeys> = { base: keysCBaseModelEntity, keys: tableCConditionalCollidable }
 
 const tableCBaseDoor = {
   movedir: 'angles',
@@ -39363,6 +39415,7 @@ const keysCFuncElectrifiedVolume: KeyMap<CFuncElectrifiedVolumeKeys> = { base: k
 
 const tableCFishPool = {
   fish_count: 'integer',
+  max_range: 'number',
 } as const
 export interface CFishPoolKeys extends CBaseEntityKeys, Typed<typeof tableCFishPool> {}
 const keysCFishPool: KeyMap<CFishPoolKeys> = { base: keysCBaseEntity, keys: tableCFishPool }
@@ -39404,6 +39457,7 @@ const tableCFuncMoveLinear = {
   CreateMovableNavMesh: 'boolean',
   AllowMovableNavMeshDockingOnEntireEntity: 'boolean',
   authoredposition: 'integer',
+  movewithoutpushingblockers: 'boolean',
 } as const
 export interface CFuncMoveLinearKeys extends CBaseToggleKeys, Typed<typeof tableCFuncMoveLinear> {}
 const keysCFuncMoveLinear: KeyMap<CFuncMoveLinearKeys> = { base: keysCBaseToggle, keys: tableCFuncMoveLinear }
@@ -39502,6 +39556,7 @@ export interface CMarkupVolumeTaggedKeys extends CMarkupVolumeKeys, Typed<typeof
 const keysCMarkupVolumeTagged: KeyMap<CMarkupVolumeTaggedKeys> = { base: keysCMarkupVolume, keys: tableCMarkupVolumeTagged }
 
 const tableCMarkupVolumeTagged_Nav = {
+  navProperty_NavAttributes: 'text',
   flags: 'integer',
 } as const
 export interface CMarkupVolumeTagged_NavKeys extends CMarkupVolumeTaggedKeys, Typed<typeof tableCMarkupVolumeTagged_Nav> {}
@@ -39515,6 +39570,8 @@ export interface CMarkupVolumeWithRefKeys extends CMarkupVolumeTaggedKeys, Typed
 const keysCMarkupVolumeWithRef: KeyMap<CMarkupVolumeWithRefKeys> = { base: keysCMarkupVolumeTagged, keys: tableCMarkupVolumeWithRef }
 
 const tableCMarkupVolumeTagged_NavGame = {
+  navProperty_NavAttributes: 'text',
+  navProperty_NavAttributesGame: 'text',
   split_nav_space: 'boolean',
   flood_fill_attribute: 'boolean',
   flags: 'integer',
@@ -39529,6 +39586,7 @@ const tableCPhysBox = {
   hoverposeflags: 'integer',
   hoverposeposition: 'vector',
   hoverposeangles: 'angles',
+  preferredcarryangles: 'angles',
   notsolid: 'boolean',
   touchoutputperentitydelay: 'number',
   enableuseoutput: 'boolean',
@@ -39544,6 +39602,7 @@ const tableCBasePlatTrain = {
   noise1: 'text',
   noise2: 'text',
   volume: 'number',
+  rotation: 'number',
 } as const
 export interface CBasePlatTrainKeys extends CBaseToggleKeys, Typed<typeof tableCBasePlatTrain> {}
 const keysCBasePlatTrain: KeyMap<CBasePlatTrainKeys> = { base: keysCBaseToggle, keys: tableCBasePlatTrain }
@@ -39559,6 +39618,9 @@ const tableCFuncRotating = {
   dmg: 'number',
   message: 'text',
   speed: 'number',
+  movewithoutpushingblockers: 'boolean',
+  fanfriction: 'integer',
+  Volume: 'integer',
 } as const
 export interface CFuncRotatingKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncRotating> {}
 const keysCFuncRotating: KeyMap<CFuncRotatingKeys> = { base: keysCBaseModelEntity, keys: tableCFuncRotating }
@@ -39619,6 +39681,7 @@ const tableCFuncTrackTrain = {
   ManualSpeedChanges: 'boolean',
   ManualAccelSpeed: 'number',
   ManualDecelSpeed: 'number',
+  volume: 'integer',
 } as const
 export interface CFuncTrackTrainKeys extends CBaseModelEntityKeys, Typed<typeof tableCFuncTrackTrain> {}
 const keysCFuncTrackTrain: KeyMap<CFuncTrackTrainKeys> = { base: keysCBaseModelEntity, keys: tableCFuncTrackTrain }
@@ -39691,6 +39754,8 @@ const keysCRagdollManager: KeyMap<CRagdollManagerKeys> = { base: keysCBaseEntity
 
 const tableCGameText = {
   message: 'text',
+  color: 'color',
+  color2: 'color',
   channel: 'integer',
   effect: 'integer',
   x: 'number',
@@ -39748,6 +39813,7 @@ const tableCPointClientUIWorldPanel = {
   disable_mip_gen: 'boolean',
   explicit_image_layout: 'integer',
   ignore_parent_orientation: 'boolean',
+  css_class: 'text',
 } as const
 export interface CPointClientUIWorldPanelKeys extends CBaseClientUIEntityKeys, Typed<typeof tableCPointClientUIWorldPanel> {}
 const keysCPointClientUIWorldPanel: KeyMap<CPointClientUIWorldPanelKeys> = { base: keysCBaseClientUIEntity, keys: tableCPointClientUIWorldPanel }
@@ -39961,6 +40027,8 @@ const tableCPhysicsProp = {
   buoyancyscale: 'number',
   Damagetype: 'integer',
   acceptdamagefromheldobjects: 'boolean',
+  forcemotiondisabled: 'boolean',
+  phys_start_asleep: 'boolean',
   dynamiccontinuouscontactbehavior: 'integer',
   glowstate: 'integer',
   glowrange: 'integer',
@@ -40021,6 +40089,9 @@ const tableCItemGeneric = {
   glow_in_trigger_radius: 'boolean',
   glowcolor: 'color',
   useable: 'boolean',
+  auto_remove_timeout: 'number',
+  drag_override: 'number',
+  damping_override: 'number',
 } as const
 export interface CItemGenericKeys extends CItemKeys, Typed<typeof tableCItemGeneric> {}
 const keysCItemGeneric: KeyMap<CItemGenericKeys> = { base: keysCItem, keys: tableCItemGeneric }
@@ -40033,6 +40104,14 @@ const tableCRopeKeyframe = {
   SegmentCount: 'integer',
   Subdiv: 'integer',
   ScrollSpeed: 'number',
+  Breakable: 'integer',
+  Collide: 'integer',
+  Barbed: 'integer',
+  UseWind: 'integer',
+  Dangling: 'integer',
+  Type: 'integer',
+  RopeShader: 'integer',
+  RopeMaterial: 'text',
 } as const
 export interface CRopeKeyframeKeys extends CBaseModelEntityKeys, Typed<typeof tableCRopeKeyframe> {}
 const keysCRopeKeyframe: KeyMap<CRopeKeyframeKeys> = { base: keysCBaseModelEntity, keys: tableCRopeKeyframe }
@@ -40127,8 +40206,75 @@ const tableCBarnLight = {
 export interface CBarnLightKeys extends CBaseModelEntityKeys, Typed<typeof tableCBarnLight> {}
 const keysCBarnLight: KeyMap<CBarnLightKeys> = { base: keysCBaseModelEntity, keys: tableCBarnLight }
 
-export interface CLightEntityKeys extends CBaseModelEntityKeys {}
-const keysCLightEntity: KeyMap<CLightEntityKeys> = { base: keysCBaseModelEntity, keys: {} }
+const tableCLightEntity = {
+  color: 'color',
+  secondary_color: 'color',
+  brightness: 'number',
+  brightnessscale: 'number',
+  range: 'number',
+  falloff: 'number',
+  attenuation0: 'number',
+  attenuation1: 'number',
+  attenuation2: 'number',
+  innerconeangle: 'number',
+  outerconeangle: 'number',
+  lightcookie: 'text',
+  numcascades: 'integer',
+  cascaderenderstaticobj: 'integer',
+  cascadecrossfade: 'number',
+  cascadedistancefade: 'number',
+  shadowcascadedistance0: 'number',
+  shadowcascadedistance1: 'number',
+  shadowcascadedistance2: 'number',
+  shadowcascadedistance3: 'number',
+  shadowcascaderesolution0: 'integer',
+  shadowcascaderesolution1: 'integer',
+  shadowcascaderesolution2: 'integer',
+  shadowcascaderesolution3: 'integer',
+  castshadows: 'integer',
+  shadowtexturewidth: 'integer',
+  shadowtextureheight: 'integer',
+  baked_light_indexing: 'boolean',
+  shadowpriority: 'integer',
+  bakedshadowindex: 'integer',
+  light_path_uniqueid: 'integer',
+  light_map_uniqueid: 'integer',
+  renderdiffuse: 'boolean',
+  renderspecular: 'integer',
+  rendertransmissive: 'boolean',
+  ortholightwidth: 'number',
+  ortholightheight: 'number',
+  style: 'integer',
+  pattern: 'text',
+  directlight: 'integer',
+  bouncelight: 'integer',
+  bouncescale: 'number',
+  shadowfademindist: 'number',
+  shadowfademaxdist: 'number',
+  enabled: 'boolean',
+  flicker: 'boolean',
+  precomputedfieldsvalid: 'boolean',
+  precomputedboundsmins: 'vector',
+  precomputedboundsmaxs: 'vector',
+  precomputedmaxrange: 'number',
+  precomputedobborigin: 'vector',
+  precomputedobbangles: 'angles',
+  precomputedobbextent: 'vector',
+  fog_lighting: 'integer',
+  fogcontributionstrength: 'number',
+  nearclipplane: 'number',
+  skycolor: 'color',
+  skyintensity: 'number',
+  skyambientbounce: 'color',
+  use_secondary_color: 'boolean',
+  capsule_length: 'number',
+  mixedshadows: 'boolean',
+  minroughness: 'number',
+  allow_sst_generation: 'boolean',
+  pvs_modify_entity: 'boolean',
+} as const
+export interface CLightEntityKeys extends CBaseModelEntityKeys, Typed<typeof tableCLightEntity> {}
+const keysCLightEntity: KeyMap<CLightEntityKeys> = { base: keysCBaseModelEntity, keys: tableCLightEntity }
 
 const tableCDynamicLight = {
   distance: 'number',
@@ -40137,6 +40283,8 @@ const tableCDynamicLight = {
   _cone: 'number',
   spotlight_radius: 'number',
   style: 'integer',
+  _light: 'color',
+  pitch: 'number',
 } as const
 export interface CDynamicLightKeys extends CBaseModelEntityKeys, Typed<typeof tableCDynamicLight> {}
 const keysCDynamicLight: KeyMap<CDynamicLightKeys> = { base: keysCBaseModelEntity, keys: tableCDynamicLight }
@@ -40297,8 +40445,11 @@ const tableCMultiLightProxy = {
 export interface CMultiLightProxyKeys extends CBaseEntityKeys, Typed<typeof tableCMultiLightProxy> {}
 const keysCMultiLightProxy: KeyMap<CMultiLightProxyKeys> = { base: keysCBaseEntity, keys: tableCMultiLightProxy }
 
-export interface CLogicNavigationKeys extends CBaseEntityKeys {}
-const keysCLogicNavigation: KeyMap<CLogicNavigationKeys> = { base: keysCBaseEntity, keys: {} }
+const tableCLogicNavigation = {
+  navprop: 'text',
+} as const
+export interface CLogicNavigationKeys extends CBaseEntityKeys, Typed<typeof tableCLogicNavigation> {}
+const keysCLogicNavigation: KeyMap<CLogicNavigationKeys> = { base: keysCBaseEntity, keys: tableCLogicNavigation }
 
 const tableCLogicNPCCounter = {
   minCountAll: 'integer',
@@ -40358,8 +40509,27 @@ const keysCLogicRelay: KeyMap<CLogicRelayKeys> = { base: keysCBaseEntity, keys: 
 export interface CSceneListManagerKeys extends CBaseEntityKeys {}
 const keysCSceneListManager: KeyMap<CSceneListManagerKeys> = { base: keysCBaseEntity, keys: {} }
 
-export interface CLogicScriptKeys extends CPointEntityKeys {}
-const keysCLogicScript: KeyMap<CLogicScriptKeys> = { base: keysCPointEntity, keys: {} }
+const tableCLogicScript = {
+  Group00: 'text',
+  Group01: 'text',
+  Group02: 'text',
+  Group03: 'text',
+  Group04: 'text',
+  Group05: 'text',
+  Group06: 'text',
+  Group07: 'text',
+  Group08: 'text',
+  Group09: 'text',
+  Group10: 'text',
+  Group11: 'text',
+  Group12: 'text',
+  Group13: 'text',
+  Group14: 'text',
+  Group15: 'text',
+  Group16: 'text',
+} as const
+export interface CLogicScriptKeys extends CPointEntityKeys, Typed<typeof tableCLogicScript> {}
+const keysCLogicScript: KeyMap<CLogicScriptKeys> = { base: keysCPointEntity, keys: tableCLogicScript }
 
 const tableCTimerEntity = {
   StartDisabled: 'integer',
@@ -40392,6 +40562,7 @@ const tableCMathCounter = {
   min: 'number',
   max: 'number',
   StartDisabled: 'boolean',
+  startvalue: 'integer',
 } as const
 export interface CMathCounterKeys extends CBaseEntityKeys, Typed<typeof tableCMathCounter> {}
 const keysCMathCounter: KeyMap<CMathCounterKeys> = { base: keysCBaseEntity, keys: tableCMathCounter }
@@ -40528,6 +40699,9 @@ export interface CCitadelObserverPawnKeys extends CBasePlayerPawnKeys {}
 const keysCCitadelObserverPawn: KeyMap<CCitadelObserverPawnKeys> = { base: keysCBasePlayerPawn, keys: {} }
 
 const tableCPathAccompany = {
+  pathNodes: 'text',
+  pathNodeRadiusScales: 'text',
+  deformable_prop: 'text',
   allow_auto_lead: 'boolean',
 } as const
 export interface CPathAccompanyKeys extends CBaseEntityKeys, Typed<typeof tableCPathAccompany> {}
@@ -40541,6 +40715,9 @@ const tableCPathCorner = {
   path_end_distance_from_goal: 'number',
   waypoint_success_radius: 'number',
   waypoint_success_radius_when_blocked: 'number',
+  arrival_direction_entity: 'text',
+  arrival_direction_tolerance_angle: 'number',
+  arrival_direction_relative_position: 'vector',
   radius: 'number',
   exact_positioning: 'boolean',
 } as const
@@ -40668,6 +40845,7 @@ const tableCPointAngleSensor = {
   StartDisabled: 'boolean',
   lookatname: 'text',
   duration: 'number',
+  tolerance: 'number',
 } as const
 export interface CPointAngleSensorKeys extends CPointEntityKeys, Typed<typeof tableCPointAngleSensor> {}
 const keysCPointAngleSensor: KeyMap<CPointAngleSensorKeys> = { base: keysCPointEntity, keys: tableCPointAngleSensor }
@@ -41072,7 +41250,6 @@ const keysCScriptedSequence: KeyMap<CScriptedSequenceKeys> = { base: keysCBaseEn
 
 const tableCSkyCamera = {
   use_angles: 'boolean',
-  scale: 'integer',
   clip_3D_skybox_near_to_world_far: 'boolean',
   clip_3D_skybox_near_to_world_far_offset: 'number',
   fogdir: 'vector',
@@ -41094,8 +41271,11 @@ const tableCSkyCamera = {
 export interface CSkyCameraKeys extends CBaseEntityKeys, Typed<typeof tableCSkyCamera> {}
 const keysCSkyCamera: KeyMap<CSkyCameraKeys> = { base: keysCBaseEntity, keys: tableCSkyCamera }
 
-export interface CSkyboxReferenceKeys extends CBaseEntityKeys {}
-const keysCSkyboxReference: KeyMap<CSkyboxReferenceKeys> = { base: keysCBaseEntity, keys: {} }
+const tableCSkyboxReference = {
+  worldGroupID: 'text',
+} as const
+export interface CSkyboxReferenceKeys extends CBaseEntityKeys, Typed<typeof tableCSkyboxReference> {}
+const keysCSkyboxReference: KeyMap<CSkyboxReferenceKeys> = { base: keysCBaseEntity, keys: tableCSkyboxReference }
 
 const tableCSoundEventAABBEntity = {
   box_mins: 'vector',
@@ -41354,8 +41534,12 @@ const tableCCitadelCatapultTrigger = {
 export interface CCitadelCatapultTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelCatapultTrigger> {}
 const keysCCitadelCatapultTrigger: KeyMap<CCitadelCatapultTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelCatapultTrigger }
 
-export interface CChangeLevelKeys extends CBaseTriggerKeys {}
-const keysCChangeLevel: KeyMap<CChangeLevelKeys> = { base: keysCBaseTrigger, keys: {} }
+const tableCChangeLevel = {
+  map: 'text',
+  landmark: 'text',
+} as const
+export interface CChangeLevelKeys extends CBaseTriggerKeys, Typed<typeof tableCChangeLevel> {}
+const keysCChangeLevel: KeyMap<CChangeLevelKeys> = { base: keysCBaseTrigger, keys: tableCChangeLevel }
 
 const tableCTriggerDetectBulletFire = {
   player_fire_only: 'boolean',
@@ -41481,12 +41665,15 @@ const tableCTriggerPingLocation = {
 export interface CTriggerPingLocationKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerPingLocation> {}
 const keysCTriggerPingLocation: KeyMap<CTriggerPingLocationKeys> = { base: keysCBaseTrigger, keys: tableCTriggerPingLocation }
 
-export interface CCitadelPortalTriggerKeys extends CBaseTriggerKeys {}
-const keysCCitadelPortalTrigger: KeyMap<CCitadelPortalTriggerKeys> = { base: keysCBaseTrigger, keys: {} }
+const tableCCitadelPortalTrigger = {
+  trigger_mins: 'vector',
+  trigger_maxs: 'vector',
+} as const
+export interface CCitadelPortalTriggerKeys extends CBaseTriggerKeys, Typed<typeof tableCCitadelPortalTrigger> {}
+const keysCCitadelPortalTrigger: KeyMap<CCitadelPortalTriggerKeys> = { base: keysCBaseTrigger, keys: tableCCitadelPortalTrigger }
 
 const tableCTriggerProximity = {
   measuretarget: 'text',
-  radius: 'number',
 } as const
 export interface CTriggerProximityKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerProximity> {}
 const keysCTriggerProximity: KeyMap<CTriggerProximityKeys> = { base: keysCBaseTrigger, keys: tableCTriggerProximity }
@@ -41539,17 +41726,11 @@ const tableCTriggerVolume = {
 export interface CTriggerVolumeKeys extends CBaseModelEntityKeys, Typed<typeof tableCTriggerVolume> {}
 const keysCTriggerVolume: KeyMap<CTriggerVolumeKeys> = { base: keysCBaseModelEntity, keys: tableCTriggerVolume }
 
-const tableCTriggerTrooperDamageReductionDetector = {
-  radius: 'number',
-} as const
-export interface CTriggerTrooperDamageReductionDetectorKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerTrooperDamageReductionDetector> {}
-const keysCTriggerTrooperDamageReductionDetector: KeyMap<CTriggerTrooperDamageReductionDetectorKeys> = { base: keysCBaseTrigger, keys: tableCTriggerTrooperDamageReductionDetector }
+export interface CTriggerTrooperDamageReductionDetectorKeys extends CBaseTriggerKeys {}
+const keysCTriggerTrooperDamageReductionDetector: KeyMap<CTriggerTrooperDamageReductionDetectorKeys> = { base: keysCBaseTrigger, keys: {} }
 
-const tableCTriggerTrooperDetector = {
-  radius: 'number',
-} as const
-export interface CTriggerTrooperDetectorKeys extends CBaseTriggerKeys, Typed<typeof tableCTriggerTrooperDetector> {}
-const keysCTriggerTrooperDetector: KeyMap<CTriggerTrooperDetectorKeys> = { base: keysCBaseTrigger, keys: tableCTriggerTrooperDetector }
+export interface CTriggerTrooperDetectorKeys extends CBaseTriggerKeys {}
+const keysCTriggerTrooperDetector: KeyMap<CTriggerTrooperDetectorKeys> = { base: keysCBaseTrigger, keys: {} }
 
 const tableCCitadelZipLineNode = {
   lane_number: 'integer',

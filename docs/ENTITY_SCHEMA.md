@@ -42,13 +42,13 @@ const spawns = findEntitiesByName('arena_spawn_red').map(entityPosition)
 description of itself and quits. It writes four documents, each following
 [`src/host_app/dump/dump.proto`](../src/host_app/dump/dump.proto) and sorted
 by name so two builds diff cleanly. [`data/dump`](../data/dump) holds them for
-the current game build, 6759:
+the current game build, 6839:
 
-| File            | Contents                                                    | Count in 6759                                                          |
+| File            | Contents                                                    | Count in 6839                                                          |
 | --------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `schemas.json`  | Every schema class with its base and fields, and every enum | 5,796 classes, 829 enums                                               |
-| `entities.json` | Designer names, their classes, key values, inputs, outputs  | 1,183 designer names, 447 data descriptions, 1,070 inputs, 433 outputs |
-| `console.json`  | Console variables and commands with their types             | 3,149 variables, 947 commands                                          |
+| `schemas.json`  | Every schema class with its base and fields, and every enum | 6,008 classes, 835 enums                                               |
+| `entities.json` | Designer names, their classes, key values, inputs, outputs  | 1,238 designer names, 472 data descriptions, 1,072 inputs, 433 outputs |
+| `console.json`  | Console variables and commands with their types             | 3,162 variables, 947 commands                                          |
 | `survey.json`   | What creating each designer name did on a dedicated server  | 1,229 constructions                                                    |
 
 The first three come from the game's own registries: the schema system, the
@@ -66,7 +66,11 @@ game update that moves a field needs no new build of a mod.
 
 A designer name points at its data description, the table a map reads when it
 places the entity. A data description adds key values and inputs to its base
-and may embed others. A key value has a name, such as `rendercolor`, and a
+and may embed others. An entity also takes the key values of the components
+its class holds: the body component's scene node takes `origin`, `angles`,
+`scale` and `ModelScale` on every entity, so `CBaseEntity`'s table carries
+them. Keys the scene node parses itself, such as `scale`, have a type but no
+field to read back. A key value has a name, such as `rendercolor`, and a
 type, such as a 32-bit color. An input has a name, such as `Color`, and the
 Pulse type of its one parameter, if it takes one.
 
@@ -192,6 +196,27 @@ moves, heals and removes the unit.
 `createPickup` makes the soul urn or the movement buff with the designer name
 and subclass each needs. `Pickup` reports whether it still lies in the world
 and removes it.
+
+### Scale
+
+Every entity takes the `SetScale` input, `inputSetScale` on `CBaseEntity`. It
+sets the scene node's absolute scale, and the server rebuilds the entity's
+physics shape at that scale, so collision and the model grow together. Send it
+once the entity has spawned:
+
+```ts
+const ball = create('citadel_hideout_ball', { position })
+ball?.inputSetScale(9)
+```
+
+The hideout ball's model spans ±7 units and its game data sets a model scale
+of 3, a radius of 21. After `inputSetScale(9)` a trace meets its collision at
+63 units, and at 7 times the scale for every value between 0.5 and 9.
+
+The `scale` and `ModelScale` spawn keys set the same scene node scale before
+spawn, but an entity whose game data sets its own model scale, as the hideout
+ball's does, replaces it while spawning, and the ball's collision stayed at 21
+units with either key. Use the input for a scale that must hold.
 
 ## Fields
 
