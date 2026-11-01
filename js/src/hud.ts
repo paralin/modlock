@@ -437,21 +437,8 @@ function rosterRow(row: RosterRow, index: number): UiElement {
   // The portrait sits in a 1px edge on a raised square, empty without a hero,
   // with the player's avatar on its lower left corner.
   const src = portraits.get(row.hero)
-  const badge: UiElement | false = row.steamId !== undefined && {
-    type: 'avatar',
-    props: {
-      steamId: row.steamId,
-      style: {
-        width: badgeSize,
-        height: badgeSize,
-        horizontalAlign: 'left',
-        verticalAlign: 'bottom',
-        borderRadius: badgeSize / 2,
-        borderWidth: 1,
-        borderColor: shades.dim,
-      },
-    },
-  }
+  const badge = row.steamId === undefined ? false : avatarBadge(row.steamId)
+  const image = src === undefined ? false : portraitImage(src)
   const portrait = element(
     'panel',
     {
@@ -464,13 +451,7 @@ function rosterRow(row: RosterRow, index: number): UiElement {
     element(
       'panel',
       { width: '100%', height: '100%', background: shades.raised },
-      [
-        src && {
-          type: 'image',
-          props: { src, style: { width: '100%', height: '100%' } },
-        },
-        badge,
-      ],
+      [image, badge],
     ),
   )
 
@@ -500,6 +481,38 @@ function rosterRow(row: RosterRow, index: number): UiElement {
       }
     : element('panel', style, [text, portrait], `row-${index}`)
   return arriving(line, { translate: [16, 0] })
+}
+
+/**
+ * portraitImage is a hero's portrait filling its square. It is built in a
+ * function with a declared result: a literal element with a nested style,
+ * held as a UiElement | false through &&, is not representable in a scriptc
+ * build's Child union.
+ */
+function portraitImage(src: string): UiElement {
+  return {
+    type: 'image',
+    props: { src, style: { width: '100%', height: '100%' } },
+  }
+}
+
+/** avatarBadge is a player's avatar on the lower left corner of a portrait. */
+function avatarBadge(steamId: bigint): UiElement {
+  return {
+    type: 'avatar',
+    props: {
+      steamId,
+      style: {
+        width: badgeSize,
+        height: badgeSize,
+        horizontalAlign: 'left',
+        verticalAlign: 'bottom',
+        borderRadius: badgeSize / 2,
+        borderWidth: 1,
+        borderColor: shades.dim,
+      },
+    },
+  }
 }
 
 /** ActionProps make a button in the game's menu look. */

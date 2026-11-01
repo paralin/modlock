@@ -8,6 +8,7 @@ import {
   percent,
   stopwatch,
 } from '../src/format.js'
+import { Player } from '../src/host.gen.js'
 import { findHero, heroes } from '../src/heroes.js'
 import {
   Pips,
@@ -26,7 +27,7 @@ import {
   teamBarBottom,
   tones,
 } from '../src/theme.js'
-import type { UiElement } from '../src/ui.js'
+import type { Child, UiElement } from '../src/ui.js'
 import {
   aimAt,
   distance,
@@ -35,12 +36,26 @@ import {
   toward,
 } from '../src/vector.js'
 
+/** isElement reports whether child is an element. */
+function isElement(child: Child): child is UiElement {
+  return typeof child === 'object' && child !== null && !Array.isArray(child)
+}
+
+/** isList reports whether child is a list; Array.isArray narrows to any[]. */
+function isList(child: Child): child is readonly Child[] {
+  return Array.isArray(child)
+}
+
 /** kids lists an element's children without the empty ones. */
 function kids(element: UiElement): UiElement[] {
   const children = element.props.children
-  return (Array.isArray(children) ? children : [children]).filter(
-    (child): child is UiElement => typeof child === 'object' && child !== null,
-  )
+  const found: UiElement[] = []
+  if (isList(children)) {
+    for (const child of children) if (isElement(child)) found.push(child)
+  } else if (isElement(children)) {
+    found.push(children)
+  }
+  return found
 }
 
 test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
@@ -63,10 +78,12 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
     keepTeamBar: true,
     children: Score({ points: [3, 1], tones: ['amber', 'sapphire'] }),
   })
-  const [block, under] = kids(strip) as [UiElement, UiElement]
+  const block = kids(strip)[0]!
+  const under = kids(strip)[1]!
   expect(block.props.style?.margin).toEqual([teamBarBottom, 0, 0, 0])
   expect(under.props.style?.margin).toEqual([objectiveBarBottom, 0, 0, 0])
-  const [heading, pill] = kids(block) as [UiElement, UiElement]
+  const heading = kids(block)[0]!
+  const pill = kids(block)[1]!
   expect(heading.props.children).toBe('Round 4')
   expect(pill.props.style).toMatchObject({
     borderWidth: 2,
@@ -74,11 +91,8 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
   })
 
   // The score colors each side in its tone, without the shadow on the pill.
-  const [near, , far] = kids(kids(pill)[0]!) as [
-    UiElement,
-    UiElement,
-    UiElement,
-  ]
+  const near = kids(kids(pill)[0]!)[0]!
+  const far = kids(kids(pill)[0]!)[2]!
   expect(near.props.style?.color).toBe(tones.amber)
   expect(far.props.style?.color).toBe(tones.sapphire)
   expect(near.props.style?.shadow).toBe(false)
@@ -133,7 +147,9 @@ test('the HUD kit draws in its tokens and finds heroes by typed name', () => {
   const pressable = { ...rows[2]!, onPress: () => pressed++, selected: true }
   const picked = kids(Roster({ rows: [pressable] })!)[0]!
   expect(picked.type).toBe('button')
-  ;(picked.props as { onPress: () => void }).onPress()
+  ;(picked.props as { onPress: (player: Player) => void }).onPress(
+    new Player(1),
+  )
   expect(pressed).toBe(1)
 
   // Only the selected row's edge takes the accent, and the key follows both.
