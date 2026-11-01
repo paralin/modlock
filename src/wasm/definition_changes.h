@@ -10,7 +10,8 @@
 namespace modlock::wasm {
 
 // ChangeDefinitions writes a manifest's definition changes into one game
-// module's parsed definitions. Ability definitions last for the process;
+// module's parsed definitions. Ability and bot difficulty definitions last for
+// the process;
 // hero definitions belong to the current world, so a caller applies the
 // changes again in each world. It fails without writing while an entry is not
 // loaded yet, so a caller retries later. An entry, property or field it can

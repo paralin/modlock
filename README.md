@@ -1403,6 +1403,11 @@ calls `onLanded` with the player and anyone they landed on.
     "fields": { "CitadelHeroData_t.m_mapStartingStats[EStatsType.EMaxHealth]": 10000 }
   },
   {
+    "file": "FILE_BOT_DIFFICULTY",
+    "entry": "k_ECitadelBotDifficulty_Hard",
+    "fields": { "CBotDifficultyDefinition.low_health": 0, "CBotDifficultyDefinition.low_health_pushed": 0 }
+  },
+  {
     "entry": "gunslinger_rocket_launcher",
     "properties": { "AbilityCooldown": 0.8, "Damage": 120 },
     "fields": { "CitadelAbilityVData.m_projectileInfo/ProjectileInfo_t.m_flSpeed": 1250 },
@@ -1416,17 +1421,24 @@ calls `onLanded` with the player and anyone they landed on.
 Each entry changes one stock definition on the server. A player's game that
 `modlock-host --connect` starts takes the ability changes too.
 
-| Field        | Value                                                                                |
-| ------------ | ------------------------------------------------------------------------------------ |
-| `file`       | `FILE_ABILITIES`, the default, for abilities and items, or `FILE_HEROES` for heroes. |
-| `entry`      | The entry to change, such as `hero_priest` or `gunslinger_rocket_launcher`.          |
-| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                 |
-| `fields`     | Float schema fields by `Class.m_field/Class.m_field` path, and their new values.     |
-| `copyFields` | Copy the field at each value's path over the field at its key's path.                |
+| Field        | Value                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `file`       | `FILE_ABILITIES`, the default, for abilities and items, `FILE_HEROES` for heroes, or `FILE_BOT_DIFFICULTY` for bot difficulties. |
+| `entry`      | The entry to change, such as `hero_priest`, `gunslinger_rocket_launcher` or `k_ECitadelBotDifficulty_Hard`.                      |
+| `properties` | Ability properties, such as `AbilityCooldown`, and their new values.                                                             |
+| `fields`     | Float schema fields by `Class.m_field/Class.m_field` path, and their new values.                                                 |
+| `copyFields` | Copy the field at each value's path over the field at its key's path.                                                            |
 
 A path's last step can end in `[Enum.Value]` to select one value of a map keyed
 by an enum, such as a hero's starting stats. The server writes the changes when
 it loads the definitions and again in each new map.
+
+A bot difficulty is named by its `ECitadelBotDifficulty` value. Every bot of
+that difficulty reads the changed record, including bots already playing, and a
+bot whose difficulty has no record in the file uses the easy one. A bot
+retreats to its base when its health falls below `low_health` percent, or
+`low_health_pushed` near an enemy tower; setting both to 0 makes it fight to
+the death.
 
 ### Settings
 

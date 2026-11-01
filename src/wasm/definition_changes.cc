@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "modlock/gameinterop/ability_definitions.h"
+#include "modlock/gameinterop/bot_difficulty_definitions.h"
 #include "modlock/gameinterop/entity_abi.h"
 #include "modlock/gameinterop/hero_definitions.h"
 #include "modlock/gameinterop/keyvalues.h"
@@ -219,7 +220,8 @@ struct Missing {
 // Entries finds each file's entries in one module.
 class Entries {
  public:
-  explicit Entries(const gameinterop::ModuleImage& module) : module_(module) {}
+  Entries(const gameinterop::ModuleImage& module, void* schema, const char* module_name)
+      : module_(module), schema_(schema), module_name_(module_name) {}
 
   // Find returns an entry's parsed data.
   std::expected<unsigned char*, Missing> Find(const Definition& change) {
@@ -236,6 +238,27 @@ class Entries {
           return std::unexpected(Missing{.error = hero.error(), .later = true});
         }
         return static_cast<unsigned char*>(hero->native_definition_pointer);
+      }
+      case Definition::FILE_BOT_DIFFICULTY: {
+        if (!bots_) {
+          bots_ = gameinterop::BotDifficultyDefinitions::Resolve(module_);
+        }
+        if (!*bots_) {
+          return std::unexpected(Missing{.error = bots_->error(), .later = false});
+        }
+        auto difficulty = gameinterop::SchemaEnumValueOf(
+            schema_, module_name_, "ECitadelBotDifficulty", change.entry().c_str());
+        if (!difficulty) {
+          return std::unexpected(Missing{.error = difficulty.error(), .later = false});
+        }
+        auto record = (*bots_)->Find(static_cast<int>(*difficulty));
+        if (!record) {
+          return std::unexpected(Missing{.error = record.error(), .later = true});
+        }
+        if (!*record) {
+          return std::unexpected(Missing{.error = "the file has no such record", .later = false});
+        }
+        return static_cast<unsigned char*>(*record);
       }
       default: {
         if (!abilities_) {
@@ -255,8 +278,11 @@ class Entries {
 
  private:
   const gameinterop::ModuleImage& module_;
+  void* schema_;
+  const char* module_name_;
   std::optional<std::expected<gameinterop::AbilityDefinitions, std::string>> abilities_;
   std::optional<std::expected<gameinterop::HeroDefinitions, std::string>> heroes_;
+  std::optional<std::expected<gameinterop::BotDifficultyDefinitions, std::string>> bots_;
 };
 
 }  // namespace
@@ -267,7 +293,7 @@ std::expected<std::vector<std::string>, std::string> ChangeDefinitions(
   // Find every entry first, so a module still loading its data takes no
   // partial change. An entry the module can never find is reported and
   // skipped.
-  Entries entries(module);
+  Entries entries(module, schema, module_name);
   std::vector<unsigned char*> found;
   std::vector<std::string> problems;
   for (const auto& change : definitions) {
