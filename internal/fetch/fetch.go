@@ -57,21 +57,35 @@ func File(ctx context.Context, url, path string) error {
 	return file.Close()
 }
 
-// Install fills dir once: it runs fill on a staging directory beside dir and
-// moves the result into place whole, so an interrupted install never looks
-// complete. It does nothing when dir exists.
+// Install fills dir once: it runs fill on a staging path beside dir and moves
+// the result into place whole, so an interrupted install never looks
+// complete. It does nothing when dir exists. Each install stages in a
+// directory of its own, so installs of one dir may run at once, in one process
+// or several; the first to finish installs, and the rest find dir in place.
 func Install(dir string, fill func(staging string) error) error {
 	if _, err := os.Stat(dir); err == nil {
 		return nil
 	}
-	staging := dir + ".tmp"
-	_ = os.RemoveAll(staging)
+
+	// Fill a path in a private directory beside dir.
+	if err := os.MkdirAll(filepath.Dir(dir), 0o755); err != nil {
+		return errors.Wrapf(err, "install %s", filepath.Base(dir))
+	}
+	private, err := os.MkdirTemp(filepath.Dir(dir), filepath.Base(dir)+".*.tmp")
+	if err != nil {
+		return errors.Wrapf(err, "install %s", filepath.Base(dir))
+	}
+	defer os.RemoveAll(private)
+	staging := filepath.Join(private, filepath.Base(dir))
 	if err := fill(staging); err != nil {
-		_ = os.RemoveAll(staging)
 		return err
 	}
+
+	// Move it into place, unless another install got there first.
 	if err := os.Rename(staging, dir); err != nil {
-		_ = os.RemoveAll(staging)
+		if _, statErr := os.Stat(dir); statErr == nil {
+			return nil
+		}
 		return errors.Wrapf(err, "install %s", filepath.Base(dir))
 	}
 	return nil
