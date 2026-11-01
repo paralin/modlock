@@ -28,6 +28,9 @@ constexpr size_t kHealthAppliedOffset = 8;
 constexpr size_t kAbilityCasterOffset = 0;
 constexpr size_t kAbilityHandleOffset = 4;
 constexpr size_t kAbilityTargetOffset = 8;
+constexpr size_t kBrokenPropOffset = 0;
+constexpr size_t kBrokenInflictorOffset = 4;
+constexpr size_t kBrokenBreakerOffset = 8;
 
 std::string AddressName(const void* address) {
   char text[32] = {};
@@ -73,6 +76,7 @@ struct EventIds {
   uint32_t health = kUnobservedEvent;
   uint32_t ability = kUnobservedEvent;
   uint32_t shield_broadcast = kUnobservedEvent;
+  uint32_t prop_broken = kUnobservedEvent;
   std::array<std::pair<uint32_t, MovementExecution>, kMovementEventNames.size()> movement{};
 };
 
@@ -85,6 +89,54 @@ std::function<bool(const DamageContactEvent&)>* g_suppress_damage = nullptr;
 AdjustDamage* g_adjust_damage = nullptr;
 safetyhook::InlineHook* g_hook = nullptr;
 safetyhook::InlineHook* g_broadcast_hook = nullptr;
+safetyhook::InlineHook* g_pickup_hook = nullptr;
+// g_interactions holds the object offsets; without them neither interaction
+// kind is observed.
+std::optional<InteractionOffsets> g_interactions;
+
+// Describe copies an interaction's object while the native call owns it. A
+// failed read still reports the interaction, without its place, so a
+// completion is never lost for want of an origin.
+void Describe(void* object, InteractionEvent& event) {
+  event.object_handle = ReferenceHandleOf(object).value_or(kInvalidEHandleIndex);
+  event.designer_name = std::string(DesignerName(object));
+  if (auto described = DescribeInteractionObject(object, *g_interactions, ReadNative, event);
+      !described) {
+    std::fprintf(stderr, "[modlock] interaction: %s\n", described.error().c_str());
+  }
+}
+
+void DispatchPropBroken(void* target, void* event_data) {
+  CombatEvent decoded;
+  if (auto value = DecodePropBroken(event_data, ReadNative)) {
+    decoded.kind = CombatEvent::Kind::kInteraction;
+    decoded.interaction = std::move(*value);
+    Describe(target, *decoded.interaction);
+  } else {
+    decoded.reason = value.error();
+  }
+  (*g_handler)(decoded);
+}
+
+void __fastcall PickupThunk(void* pickup, void* collector) {
+  // Copy the pickup and its collector before the completion applies and
+  // deactivates it; the handles name what the native call was given.
+  std::optional<CombatEvent> decoded;
+  if (g_handler && pickup) {
+    decoded.emplace();
+    decoded->kind = CombatEvent::Kind::kInteraction;
+    auto& event = decoded->interaction.emplace();
+    event.kind = InteractionKind::kPickupCollected;
+    event.actor_handle = ReferenceHandleOf(collector).value_or(kInvalidEHandleIndex);
+    Describe(pickup, event);
+  }
+
+  // Complete it once, then report the completion.
+  g_pickup_hook->call<void>(pickup, collector);
+  if (decoded && g_handler) {
+    (*g_handler)(*decoded);
+  }
+}
 
 void DecodeAndDispatch(uint32_t event, void* event_data) {
   if (g_handler == nullptr) {
@@ -142,6 +194,9 @@ __int64 __fastcall FireModifierEventThunk(uint32_t event, void* caster, void* ta
   // duplicates stay undecoded so nothing counts twice.
   if (event == g_ids.damage || event == g_ids.health || event == g_ids.ability) {
     DecodeAndDispatch(event, event_data);
+  }
+  if (event == g_ids.prop_broken && g_handler && g_interactions) {
+    DispatchPropBroken(target, event_data);
   }
   for (const auto& [id, execution] : g_ids.movement) {
     if (event != id) {
@@ -379,6 +434,69 @@ std::expected<AbilityExecutedEvent, std::string> DecodeAbilityExecuted(const voi
   return event;
 }
 
+std::expected<void, std::string> DescribeInteractionObject(const void* object,
+                                                           const InteractionOffsets& offsets,
+                                                           const BoundedReader& read,
+                                                           InteractionEvent& event) {
+  // Refuse a missing object or reader.
+  if (!object || !read) {
+    return std::unexpected("interaction: object or reader unavailable");
+  }
+  const auto* bytes = static_cast<const unsigned char*>(object);
+  if (!read(bytes + offsets.subclass, &event.subclass_id, sizeof(event.subclass_id))) {
+    return std::unexpected(Unreadable(object, "the object's subclass"));
+  }
+
+  // A pickup flying to this actor stood where its vacuum began.
+  if (event.kind == InteractionKind::kPickupCollected) {
+    uint32_t target = 0;
+    float started = 0;
+    if (!read(bytes + offsets.vacuum_target, &target, sizeof(target)) ||
+        !read(bytes + offsets.vacuum_start_time, &started, sizeof(started))) {
+      return std::unexpected(Unreadable(object, "the pickup's vacuum"));
+    }
+    if (target == event.actor_handle && started > 0 && std::isfinite(started)) {
+      if (!read(bytes + offsets.vacuum_start_position, event.origin.data(), sizeof(event.origin))) {
+        return std::unexpected(Unreadable(object, "the pickup's vacuum start"));
+      }
+      event.vacuum_start = started;
+      return {};
+    }
+  }
+
+  // Any other object stands at its absolute origin.
+  const void* body = nullptr;
+  const void* node = nullptr;
+  if (!read(bytes + offsets.body, &body, sizeof(body)) || !body ||
+      !read(static_cast<const unsigned char*>(body) + offsets.scene_node, &node, sizeof(node)) ||
+      !node ||
+      !read(static_cast<const unsigned char*>(node) + offsets.origin, event.origin.data(),
+            sizeof(event.origin))) {
+    return std::unexpected(Unreadable(object, "the object's origin"));
+  }
+  return {};
+}
+
+std::expected<InteractionEvent, std::string> DecodePropBroken(const void* event_data,
+                                                              const BoundedReader& read) {
+  // Refuse a missing payload or reader.
+  if (!event_data || !read) {
+    return std::unexpected("combat event: prop break payload unavailable");
+  }
+
+  // Read the prop, inflictor and breaker.
+  InteractionEvent event;
+  event.kind = InteractionKind::kPropBroken;
+  const auto* bytes = static_cast<const unsigned char*>(event_data);
+  if (!read(bytes + kBrokenPropOffset, &event.object_handle, sizeof(event.object_handle)) ||
+      !read(bytes + kBrokenInflictorOffset, &event.inflictor_handle,
+            sizeof(event.inflictor_handle)) ||
+      !read(bytes + kBrokenBreakerOffset, &event.actor_handle, sizeof(event.actor_handle))) {
+    return std::unexpected(Unreadable(event_data, "the prop break payload"));
+  }
+  return event;
+}
+
 struct CombatEventsHook::Impl {
   Handler handler;
   std::function<bool(const DamageContactEvent&)> suppress_damage;
@@ -386,14 +504,19 @@ struct CombatEventsHook::Impl {
 #if defined(_WIN32)
   safetyhook::InlineHook hook;
   safetyhook::InlineHook broadcast;
+  safetyhook::InlineHook pickup;
+  ObservedInteractions observed;
 
   ~Impl() {
     if (g_hook == &hook) {
       // Remove the hooks.
+      pickup.reset();
       broadcast.reset();
       hook.reset();
 
       // Clear the thunk state.
+      g_pickup_hook = nullptr;
+      g_interactions.reset();
       g_broadcast_hook = nullptr;
       g_hook = nullptr;
       g_handler = nullptr;
@@ -411,6 +534,14 @@ CombatEventsHook::CombatEventsHook(std::unique_ptr<Impl> impl) : impl_(std::move
 CombatEventsHook::CombatEventsHook(CombatEventsHook&&) noexcept = default;
 CombatEventsHook& CombatEventsHook::operator=(CombatEventsHook&&) noexcept = default;
 CombatEventsHook::~CombatEventsHook() = default;
+
+ObservedInteractions CombatEventsHook::Observed() const {
+#if defined(_WIN32)
+  return impl_ ? impl_->observed : ObservedInteractions{};
+#else
+  return {};
+#endif
+}
 
 std::expected<uint32_t, std::string> ModifierEventIndex(const ModuleImage& image,
                                                         std::string_view name) {
@@ -455,6 +586,7 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
   ids.health = resolve("MODIFIER_EVENT_HEALTH_TAKEN");
   ids.ability = resolve("MODIFIER_EVENT_ABILITY_EXECUTED");
   ids.shield_broadcast = resolve("MODIFIER_EVENT_UNIT_SHIELD_ABSORBED_DAMAGE_BROADCAST");
+  ids.prop_broken = resolve("MODIFIER_EVENT_BREAKABLE_PROP_BROKEN");
   for (size_t i = 0; i < kMovementEventNames.size(); ++i) {
     ids.movement[i] = {resolve(kMovementEventNames[i].first), kMovementEventNames[i].second};
   }
@@ -537,8 +669,39 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
     return std::unexpected("combat broadcast hook could not be created");
   }
 
+  // Interactions need the objects' fields and, for pickups, the completion;
+  // either missing disables only that feature.
+  InteractionOffsets interaction;
+  const SchemaOffset interaction_fields[] = {
+      {"CBaseEntity", "m_nSubclassID", sizeof(uint32_t), &interaction.subclass},
+      {"CBaseEntity", "m_CBodyComponent", sizeof(void*), &interaction.body},
+      {"CBodyComponent", "m_pSceneNode", sizeof(void*), &interaction.scene_node},
+      {"CGameSceneNode", "m_vecAbsOrigin", sizeof(float) * 3, &interaction.origin},
+      {"CCitadel_Pickup", "m_vVacuumStartPos", sizeof(float) * 3,
+       &interaction.vacuum_start_position},
+      {"CCitadel_Pickup", "m_flVacuumStartTime", sizeof(float), &interaction.vacuum_start_time},
+      {"CCitadel_Pickup", "m_hVacuumTarget", sizeof(uint32_t), &interaction.vacuum_target},
+  };
+  if (auto fields = ResolveSchemaOffsets(schema_system, "server.dll", interaction_fields);
+      !fields) {
+    std::fprintf(stderr, "[modlock] combat events: %s; interactions are not observed\n",
+                 fields.error().c_str());
+  } else {
+    g_interactions = interaction;
+    impl->observed.breaks = ids.prop_broken != kUnobservedEvent;
+    if (auto complete = ResolveSignature(server, "pickup.complete"); !complete) {
+      std::fprintf(stderr, "[modlock] combat events: %s; pickups are not observed\n",
+                   complete.error().c_str());
+    } else {
+      impl->pickup = safetyhook::create_inline(*complete, reinterpret_cast<void*>(&PickupThunk),
+                                               safetyhook::InlineHook::StartDisabled);
+      impl->observed.pickups = static_cast<bool>(impl->pickup);
+    }
+  }
+
   // Publish the ids, hooks and offsets to the thunks.
   g_ids = ids;
+  g_pickup_hook = impl->pickup ? &impl->pickup : nullptr;
   g_hook = &impl->hook;
   g_broadcast_hook = &impl->broadcast;
   g_damage_offsets = offsets;
@@ -558,6 +721,12 @@ std::expected<CombatEventsHook, std::string> CombatEventsHook::Install(
   }
   if (auto enabled = impl->broadcast.enable(); !enabled) {
     return std::unexpected("combat broadcast hook could not be enabled");
+  }
+  if (impl->pickup && !impl->pickup.enable()) {
+    std::fprintf(stderr,
+                 "[modlock] combat events: pickup completion hook could not be "
+                 "enabled; pickups are not observed\n");
+    impl->observed.pickups = false;
   }
   return CombatEventsHook(std::move(impl));
 

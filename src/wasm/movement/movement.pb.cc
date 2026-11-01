@@ -223,53 +223,6 @@ struct SetVelocityRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SetVelocityRequestDefaultTypeInternal _SetVelocityRequest_default_instance_;
 
-inline constexpr MovementSample::Impl_::Impl_(
-    ::_pbi::ConstantInitialized) noexcept
-      : _cached_size_{0},
-        actions_{},
-        _actions_cached_byte_size_{0},
-        casts_{},
-        _casts_cached_byte_size_{0},
-        position_{nullptr},
-        velocity_{nullptr},
-        wall_contact_{nullptr},
-        wall_normal_{nullptr},
-        wall_jump_normal_{nullptr},
-        command_{nullptr},
-        player_{0},
-        pawn_{0u},
-        grounded_{false},
-        sliding_{false},
-        mantling_{false},
-        climbing_{false},
-        dashing_{false},
-        jump_ability_{0u},
-        wall_jumps_{0},
-        mantle_ability_{0u},
-        mantle_start_{0},
-        wall_jump_facing_{0u},
-        zipline_time_{0} {}
-
-template <typename>
-PROTOBUF_CONSTEXPR MovementSample::MovementSample(::_pbi::ConstantInitialized)
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(MovementSample_class_data_.base()),
-#else   // PROTOBUF_CUSTOM_VTABLE
-    : ::google::protobuf::Message(),
-#endif  // PROTOBUF_CUSTOM_VTABLE
-      _impl_(::_pbi::ConstantInitialized()) {
-}
-struct MovementSampleDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR MovementSampleDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~MovementSampleDefaultTypeInternal() {}
-  union {
-    MovementSample _instance;
-  };
-};
-
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MovementSampleDefaultTypeInternal _MovementSample_default_instance_;
-
 inline constexpr MovePlayerRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -297,6 +250,39 @@ struct MovePlayerRequestDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MovePlayerRequestDefaultTypeInternal _MovePlayerRequest_default_instance_;
+
+inline constexpr Interaction::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        designer_name_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        origin_{nullptr},
+        kind_{static_cast< ::modlock::wasm::movement::InteractionKind >(0)},
+        entity_{0u},
+        subclass_id_{0u},
+        vacuum_start_{0},
+        inflictor_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Interaction::Interaction(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(Interaction_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct InteractionDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR InteractionDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~InteractionDefaultTypeInternal() {}
+  union {
+    Interaction _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 InteractionDefaultTypeInternal _Interaction_default_instance_;
 
 inline constexpr DriveCommand::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
@@ -353,6 +339,54 @@ struct SteerRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SteerRequestDefaultTypeInternal _SteerRequest_default_instance_;
 
+inline constexpr MovementSample::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        actions_{},
+        _actions_cached_byte_size_{0},
+        casts_{},
+        _casts_cached_byte_size_{0},
+        interactions_{},
+        position_{nullptr},
+        velocity_{nullptr},
+        wall_contact_{nullptr},
+        wall_normal_{nullptr},
+        wall_jump_normal_{nullptr},
+        command_{nullptr},
+        player_{0},
+        pawn_{0u},
+        grounded_{false},
+        sliding_{false},
+        mantling_{false},
+        climbing_{false},
+        dashing_{false},
+        jump_ability_{0u},
+        wall_jumps_{0},
+        mantle_ability_{0u},
+        mantle_start_{0},
+        wall_jump_facing_{0u},
+        zipline_time_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR MovementSample::MovementSample(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(MovementSample_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct MovementSampleDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MovementSampleDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~MovementSampleDefaultTypeInternal() {}
+  union {
+    MovementSample _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MovementSampleDefaultTypeInternal _MovementSample_default_instance_;
+
 inline constexpr DriveRequest::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -382,7 +416,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace wasm
 }  // namespace modlock
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[2];
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[3];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto = nullptr;
 const ::uint32_t
@@ -390,7 +424,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_._has_bits_),
-        24, // hasbit index offset
+        25, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.pawn_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.position_),
@@ -412,11 +446,11 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.actions_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.casts_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.command_),
-        8,
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementSample, _impl_.interactions_),
         9,
-        2,
-        3,
         10,
+        3,
+        4,
         11,
         12,
         13,
@@ -425,14 +459,33 @@ const ::uint32_t
         16,
         17,
         18,
-        4,
+        19,
         5,
         6,
-        19,
+        7,
         20,
+        21,
         0,
         1,
-        7,
+        8,
+        2,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_._has_bits_),
+        10, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.kind_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.entity_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.designer_name_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.subclass_id_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.origin_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.vacuum_start_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::Interaction, _impl_.inflictor_),
+        2,
+        3,
+        0,
+        4,
+        1,
+        5,
+        6,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::movement::MovementCommand, _impl_._has_bits_),
         10, // hasbit index offset
@@ -547,20 +600,22 @@ const ::uint32_t
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::movement::MovementSample)},
-        {45, sizeof(::modlock::wasm::movement::MovementCommand)},
-        {62, sizeof(::modlock::wasm::movement::LandedEvent)},
-        {71, sizeof(::modlock::wasm::movement::TeleportRequest)},
-        {82, sizeof(::modlock::wasm::movement::ZiplineRequest)},
-        {89, sizeof(::modlock::wasm::movement::MovePlayerRequest)},
-        {100, sizeof(::modlock::wasm::movement::SteerRequest)},
-        {107, sizeof(::modlock::wasm::movement::Steering)},
-        {120, sizeof(::modlock::wasm::movement::DriveRequest)},
-        {127, sizeof(::modlock::wasm::movement::DriveCommand)},
-        {140, sizeof(::modlock::wasm::movement::SetVelocityRequest)},
-        {147, sizeof(::modlock::wasm::movement::WatchMovementRequest)},
+        {47, sizeof(::modlock::wasm::movement::Interaction)},
+        {64, sizeof(::modlock::wasm::movement::MovementCommand)},
+        {81, sizeof(::modlock::wasm::movement::LandedEvent)},
+        {90, sizeof(::modlock::wasm::movement::TeleportRequest)},
+        {101, sizeof(::modlock::wasm::movement::ZiplineRequest)},
+        {108, sizeof(::modlock::wasm::movement::MovePlayerRequest)},
+        {119, sizeof(::modlock::wasm::movement::SteerRequest)},
+        {126, sizeof(::modlock::wasm::movement::Steering)},
+        {139, sizeof(::modlock::wasm::movement::DriveRequest)},
+        {146, sizeof(::modlock::wasm::movement::DriveCommand)},
+        {159, sizeof(::modlock::wasm::movement::SetVelocityRequest)},
+        {166, sizeof(::modlock::wasm::movement::WatchMovementRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::movement::_MovementSample_default_instance_._instance,
+    &::modlock::wasm::movement::_Interaction_default_instance_._instance,
     &::modlock::wasm::movement::_MovementCommand_default_instance_._instance,
     &::modlock::wasm::movement::_LandedEvent_default_instance_._instance,
     &::modlock::wasm::movement::_TeleportRequest_default_instance_._instance,
@@ -578,7 +633,7 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\n;github.com/paralin/modlock/src/wasm/mo"
     "vement/movement.proto\022\025modlock.wasm.move"
     "ment\0326github.com/paralin/modlock/src/geo"
-    "metry/geometry.proto\"\226\005\n\016MovementSample\022"
+    "metry/geometry.proto\"\320\005\n\016MovementSample\022"
     "\016\n\006player\030\001 \001(\005\022\014\n\004pawn\030\002 \001(\r\022(\n\010positio"
     "n\030\003 \001(\0132\026.modlock.geometry.Vec3\022(\n\010veloc"
     "ity\030\004 \001(\0132\026.modlock.geometry.Vec3\022\020\n\010gro"
@@ -594,54 +649,65 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\210\001\001\0226\n\007actions\030\024 \003(\0162%.modlock.wasm.move"
     "ment.MovementAction\022\r\n\005casts\030\025 \003(\r\022<\n\007co"
     "mmand\030\026 \001(\0132&.modlock.wasm.movement.Move"
-    "mentCommandH\001\210\001\001B\017\n\r_zipline_timeB\n\n\010_co"
-    "mmand\"}\n\017MovementCommand\022\014\n\004held\030\001 \001(\004\022\017"
-    "\n\007changed\030\002 \001(\004\022\016\n\006scroll\030\003 \001(\004\022\017\n\007forwa"
-    "rd\030\004 \001(\002\022\014\n\004left\030\005 \001(\002\022\n\n\002up\030\006 \001(\002\022\020\n\010gr"
-    "ounded\030\007 \001(\010\"8\n\013LandedEvent\022\016\n\006player\030\001 "
-    "\001(\005\022\n\n\002on\030\002 \001(\005\022\r\n\005speed\030\003 \001(\002\"\266\001\n\017Telep"
-    "ortRequest\022\016\n\006player\030\001 \001(\005\022(\n\010position\030\002"
-    " \001(\0132\026.modlock.geometry.Vec3\022-\n\006facing\030\003"
-    " \001(\0132\035.modlock.geometry.EulerAngles\022-\n\010v"
-    "elocity\030\004 \001(\0132\026.modlock.geometry.Vec3H\000\210"
-    "\001\001B\013\n\t_velocity\"K\n\016ZiplineRequest\022\016\n\006pla"
-    "yer\030\001 \001(\005\022)\n\004lane\030\002 \001(\0162\033.modlock.wasm.m"
-    "ovement.Lane\"\270\001\n\021MovePlayerRequest\022\016\n\006pl"
-    "ayer\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modlock.g"
-    "eometry.Vec3\022-\n\006facing\030\003 \001(\0132\035.modlock.g"
-    "eometry.EulerAngles\022-\n\010velocity\030\004 \001(\0132\026."
-    "modlock.geometry.Vec3H\000\210\001\001B\013\n\t_velocity\""
-    "c\n\014SteerRequest\022\016\n\006player\030\001 \001(\005\0226\n\010steer"
-    "ing\030\002 \001(\0132\037.modlock.wasm.movement.Steeri"
-    "ngH\000\210\001\001B\013\n\t_steering\"\330\001\n\010Steering\0227\n\007com"
-    "mand\030\001 \001(\0132&.modlock.wasm.movement.Movem"
-    "entCommand\022(\n\010position\030\002 \001(\0132\026.modlock.g"
-    "eometry.Vec3\022(\n\010velocity\030\003 \001(\0132\026.modlock"
-    ".geometry.Vec3\022\020\n\010grounded\030\004 \001(\010\022-\n\006faci"
-    "ng\030\005 \001(\0132\035.modlock.geometry.EulerAngles\""
-    "e\n\014DriveRequest\022\016\n\006player\030\001 \001(\005\0229\n\007comma"
-    "nd\030\002 \001(\0132#.modlock.wasm.movement.DriveCo"
-    "mmandH\000\210\001\001B\n\n\010_command\"{\n\014DriveCommand\022-"
-    "\n\006facing\030\001 \001(\0132\035.modlock.geometry.EulerA"
-    "ngles\022\017\n\007forward\030\002 \001(\002\022\014\n\004left\030\003 \001(\002\022\014\n\004"
-    "held\030\004 \001(\004\022\017\n\007pressed\030\005 \001(\004\"N\n\022SetVeloci"
-    "tyRequest\022\016\n\006player\030\001 \001(\005\022(\n\010velocity\030\002 "
-    "\001(\0132\026.modlock.geometry.Vec3\"5\n\024WatchMove"
-    "mentRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005watch\030\002 \001"
-    "(\010*\216\003\n\016MovementAction\022\033\n\027MOVEMENT_ACTION"
-    "_UNKNOWN\020\000\022\032\n\026MOVEMENT_ACTION_LANDED\020\001\022$"
-    "\n MOVEMENT_ACTION_ZIPLINE_ATTACHED\020\002\022\037\n\033"
-    "MOVEMENT_ACTION_GROUND_DASH\020\003\022\031\n\025MOVEMEN"
-    "T_ACTION_SLIDE\020\004\022\036\n\032MOVEMENT_ACTION_BOUN"
-    "CE_PAD\020\005\022\035\n\031MOVEMENT_ACTION_DASH_JUMP\020\006\022"
-    "\034\n\030MOVEMENT_ACTION_AIR_JUMP\020\007\022\035\n\031MOVEMEN"
-    "T_ACTION_WALL_JUMP\020\010\022\034\n\030MOVEMENT_ACTION_"
-    "AIR_DASH\020\t\022!\n\035MOVEMENT_ACTION_MELEE_STAR"
-    "TED\020\n\022$\n MOVEMENT_ACTION_ABILITY_EXECUTE"
-    "D\020\013*V\n\004Lane\022\r\n\tLANE_NONE\020\000\022\017\n\013LANE_YELLO"
-    "W\020\001\022\016\n\nLANE_GREEN\020\003\022\r\n\tLANE_BLUE\020\004\022\017\n\013LA"
-    "NE_PURPLE\020\006B7Z5github.com/paralin/modloc"
-    "k/src/wasm/movement;movementb\006proto3"
+    "mentCommandH\001\210\001\001\0228\n\014interactions\030\027 \003(\0132\""
+    ".modlock.wasm.movement.InteractionB\017\n\r_z"
+    "ipline_timeB\n\n\010_command\"\346\001\n\013Interaction\022"
+    "4\n\004kind\030\001 \001(\0162&.modlock.wasm.movement.In"
+    "teractionKind\022\016\n\006entity\030\002 \001(\r\022\025\n\rdesigne"
+    "r_name\030\003 \001(\t\022\023\n\013subclass_id\030\004 \001(\r\022&\n\006ori"
+    "gin\030\005 \001(\0132\026.modlock.geometry.Vec3\022\031\n\014vac"
+    "uum_start\030\006 \001(\002H\000\210\001\001\022\021\n\tinflictor\030\007 \001(\rB"
+    "\017\n\r_vacuum_start\"}\n\017MovementCommand\022\014\n\004h"
+    "eld\030\001 \001(\004\022\017\n\007changed\030\002 \001(\004\022\016\n\006scroll\030\003 \001"
+    "(\004\022\017\n\007forward\030\004 \001(\002\022\014\n\004left\030\005 \001(\002\022\n\n\002up\030"
+    "\006 \001(\002\022\020\n\010grounded\030\007 \001(\010\"8\n\013LandedEvent\022\016"
+    "\n\006player\030\001 \001(\005\022\n\n\002on\030\002 \001(\005\022\r\n\005speed\030\003 \001("
+    "\002\"\266\001\n\017TeleportRequest\022\016\n\006player\030\001 \001(\005\022(\n"
+    "\010position\030\002 \001(\0132\026.modlock.geometry.Vec3\022"
+    "-\n\006facing\030\003 \001(\0132\035.modlock.geometry.Euler"
+    "Angles\022-\n\010velocity\030\004 \001(\0132\026.modlock.geome"
+    "try.Vec3H\000\210\001\001B\013\n\t_velocity\"K\n\016ZiplineReq"
+    "uest\022\016\n\006player\030\001 \001(\005\022)\n\004lane\030\002 \001(\0162\033.mod"
+    "lock.wasm.movement.Lane\"\270\001\n\021MovePlayerRe"
+    "quest\022\016\n\006player\030\001 \001(\005\022(\n\010position\030\002 \001(\0132"
+    "\026.modlock.geometry.Vec3\022-\n\006facing\030\003 \001(\0132"
+    "\035.modlock.geometry.EulerAngles\022-\n\010veloci"
+    "ty\030\004 \001(\0132\026.modlock.geometry.Vec3H\000\210\001\001B\013\n"
+    "\t_velocity\"c\n\014SteerRequest\022\016\n\006player\030\001 \001"
+    "(\005\0226\n\010steering\030\002 \001(\0132\037.modlock.wasm.move"
+    "ment.SteeringH\000\210\001\001B\013\n\t_steering\"\330\001\n\010Stee"
+    "ring\0227\n\007command\030\001 \001(\0132&.modlock.wasm.mov"
+    "ement.MovementCommand\022(\n\010position\030\002 \001(\0132"
+    "\026.modlock.geometry.Vec3\022(\n\010velocity\030\003 \001("
+    "\0132\026.modlock.geometry.Vec3\022\020\n\010grounded\030\004 "
+    "\001(\010\022-\n\006facing\030\005 \001(\0132\035.modlock.geometry.E"
+    "ulerAngles\"e\n\014DriveRequest\022\016\n\006player\030\001 \001"
+    "(\005\0229\n\007command\030\002 \001(\0132#.modlock.wasm.movem"
+    "ent.DriveCommandH\000\210\001\001B\n\n\010_command\"{\n\014Dri"
+    "veCommand\022-\n\006facing\030\001 \001(\0132\035.modlock.geom"
+    "etry.EulerAngles\022\017\n\007forward\030\002 \001(\002\022\014\n\004lef"
+    "t\030\003 \001(\002\022\014\n\004held\030\004 \001(\004\022\017\n\007pressed\030\005 \001(\004\"N"
+    "\n\022SetVelocityRequest\022\016\n\006player\030\001 \001(\005\022(\n\010"
+    "velocity\030\002 \001(\0132\026.modlock.geometry.Vec3\"5"
+    "\n\024WatchMovementRequest\022\016\n\006player\030\001 \001(\005\022\r"
+    "\n\005watch\030\002 \001(\010*\216\003\n\016MovementAction\022\033\n\027MOVE"
+    "MENT_ACTION_UNKNOWN\020\000\022\032\n\026MOVEMENT_ACTION"
+    "_LANDED\020\001\022$\n MOVEMENT_ACTION_ZIPLINE_ATT"
+    "ACHED\020\002\022\037\n\033MOVEMENT_ACTION_GROUND_DASH\020\003"
+    "\022\031\n\025MOVEMENT_ACTION_SLIDE\020\004\022\036\n\032MOVEMENT_"
+    "ACTION_BOUNCE_PAD\020\005\022\035\n\031MOVEMENT_ACTION_D"
+    "ASH_JUMP\020\006\022\034\n\030MOVEMENT_ACTION_AIR_JUMP\020\007"
+    "\022\035\n\031MOVEMENT_ACTION_WALL_JUMP\020\010\022\034\n\030MOVEM"
+    "ENT_ACTION_AIR_DASH\020\t\022!\n\035MOVEMENT_ACTION"
+    "_MELEE_STARTED\020\n\022$\n MOVEMENT_ACTION_ABIL"
+    "ITY_EXECUTED\020\013*x\n\017InteractionKind\022\034\n\030INT"
+    "ERACTION_KIND_UNKNOWN\020\000\022%\n!INTERACTION_K"
+    "IND_PICKUP_COLLECTED\020\001\022 \n\034INTERACTION_KI"
+    "ND_PROP_BROKEN\020\002*V\n\004Lane\022\r\n\tLANE_NONE\020\000\022"
+    "\017\n\013LANE_YELLOW\020\001\022\016\n\nLANE_GREEN\020\003\022\r\n\tLANE"
+    "_BLUE\020\004\022\017\n\013LANE_PURPLE\020\006B7Z5github.com/p"
+    "aralin/modlock/src/wasm/movement;movemen"
+    "tb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto_deps[1] = {
@@ -651,13 +717,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto = {
     false,
     false,
-    2676,
+    3089,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto,
     "github.com/paralin/modlock/src/wasm/movement/movement.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto_deps,
     1,
-    12,
+    13,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto::offsets,
@@ -673,9 +739,15 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL MovementAction_descri
 }
 PROTOBUF_CONSTINIT const uint32_t MovementAction_internal_data_[] = {
     786432u, 0u, };
-const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Lane_descriptor() {
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL InteractionKind_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto);
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[1];
+}
+PROTOBUF_CONSTINIT const uint32_t InteractionKind_internal_data_[] = {
+    196608u, 0u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Lane_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto[2];
 }
 PROTOBUF_CONSTINIT const uint32_t Lane_internal_data_[] = {
     131072u, 32u, 22u, };
@@ -693,31 +765,31 @@ void MovementSample::clear_position() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.position_ != nullptr) _impl_.position_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 void MovementSample::clear_velocity() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.velocity_ != nullptr) _impl_.velocity_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 void MovementSample::clear_wall_contact() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.wall_contact_ != nullptr) _impl_.wall_contact_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000020U);
 }
 void MovementSample::clear_wall_normal() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.wall_normal_ != nullptr) _impl_.wall_normal_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000020U);
+                  0x00000040U);
 }
 void MovementSample::clear_wall_jump_normal() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.wall_jump_normal_ != nullptr) _impl_.wall_jump_normal_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000040U);
+                  0x00000080U);
 }
 MovementSample::MovementSample(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -737,7 +809,8 @@ PROTOBUF_NDEBUG_INLINE MovementSample::Impl_::Impl_(
         actions_{visibility, arena, from.actions_},
         _actions_cached_byte_size_{0},
         casts_{visibility, arena, from.casts_},
-        _casts_cached_byte_size_{0} {}
+        _casts_cached_byte_size_{0},
+        interactions_{visibility, arena, from.interactions_} {}
 
 MovementSample::MovementSample(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -753,22 +826,22 @@ MovementSample::MovementSample(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.position_ = (CheckHasBit(cached_has_bits, 0x00000004U))
+  _impl_.position_ = (CheckHasBit(cached_has_bits, 0x00000008U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_)
                 : nullptr;
-  _impl_.velocity_ = (CheckHasBit(cached_has_bits, 0x00000008U))
+  _impl_.velocity_ = (CheckHasBit(cached_has_bits, 0x00000010U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.velocity_)
                 : nullptr;
-  _impl_.wall_contact_ = (CheckHasBit(cached_has_bits, 0x00000010U))
+  _impl_.wall_contact_ = (CheckHasBit(cached_has_bits, 0x00000020U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_contact_)
                 : nullptr;
-  _impl_.wall_normal_ = (CheckHasBit(cached_has_bits, 0x00000020U))
+  _impl_.wall_normal_ = (CheckHasBit(cached_has_bits, 0x00000040U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_normal_)
                 : nullptr;
-  _impl_.wall_jump_normal_ = (CheckHasBit(cached_has_bits, 0x00000040U))
+  _impl_.wall_jump_normal_ = (CheckHasBit(cached_has_bits, 0x00000080U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_jump_normal_)
                 : nullptr;
-  _impl_.command_ = (CheckHasBit(cached_has_bits, 0x00000080U))
+  _impl_.command_ = (CheckHasBit(cached_has_bits, 0x00000100U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.command_)
                 : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
@@ -788,7 +861,8 @@ PROTOBUF_NDEBUG_INLINE MovementSample::Impl_::Impl_(
         actions_{visibility, arena},
         _actions_cached_byte_size_{0},
         casts_{visibility, arena},
-        _casts_cached_byte_size_{0} {}
+        _casts_cached_byte_size_{0},
+        interactions_{visibility, arena} {}
 
 inline void MovementSample::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -832,6 +906,10 @@ constexpr auto MovementSample::InternalNewImpl_() {
                   ::google::protobuf::Message::internal_visibility()),
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.casts_) +
           decltype(MovementSample::_impl_.casts_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.interactions_) +
+          decltype(MovementSample::_impl_.interactions_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -878,17 +956,17 @@ MovementSample::GetClassData() const {
   return MovementSample_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<5, 21, 6, 0, 2>
+const ::_pbi::TcParseTable<5, 22, 7, 0, 2>
 MovementSample::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(MovementSample, _impl_._has_bits_),
     0, // no _extensions_
-    22, 248,  // max_field_number, fast_idx_mask
+    23, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4290773008,  // skipmap
+    4286578704,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    21,  // num_field_entries
-    6,  // num_aux_entries
+    22,  // num_field_entries
+    7,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     MovementSample_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -899,77 +977,77 @@ MovementSample::_table_ = {
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // int32 player = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.player_), 8>(),
-     {8, 8, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.player_), 9>(),
+     {8, 9, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.player_)}},
     // uint32 pawn = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.pawn_), 9>(),
-     {16, 9, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.pawn_), 10>(),
+     {16, 10, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.pawn_)}},
     // .modlock.geometry.Vec3 position = 3;
     {::_pbi::TcParser::FastMtS1,
-     {26, 2, 0,
+     {26, 3, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.position_)}},
     // .modlock.geometry.Vec3 velocity = 4;
     {::_pbi::TcParser::FastMtS1,
-     {34, 3, 1,
+     {34, 4, 1,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.velocity_)}},
     {::_pbi::TcParser::MiniParse, {}},
     // bool grounded = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.grounded_), 10>(),
-     {48, 10, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.grounded_), 11>(),
+     {48, 11, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.grounded_)}},
     // bool sliding = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.sliding_), 11>(),
-     {56, 11, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.sliding_), 12>(),
+     {56, 12, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.sliding_)}},
     // bool mantling = 8;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.mantling_), 12>(),
-     {64, 12, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.mantling_), 13>(),
+     {64, 13, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantling_)}},
     // bool climbing = 9;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.climbing_), 13>(),
-     {72, 13, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.climbing_), 14>(),
+     {72, 14, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.climbing_)}},
     // bool dashing = 10;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.dashing_), 14>(),
-     {80, 14, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MovementSample, _impl_.dashing_), 15>(),
+     {80, 15, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.dashing_)}},
     // uint32 jump_ability = 11;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.jump_ability_), 15>(),
-     {88, 15, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.jump_ability_), 16>(),
+     {88, 16, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.jump_ability_)}},
     // int32 wall_jumps = 12;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.wall_jumps_), 16>(),
-     {96, 16, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.wall_jumps_), 17>(),
+     {96, 17, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jumps_)}},
     // uint32 mantle_ability = 13;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.mantle_ability_), 17>(),
-     {104, 17, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(MovementSample, _impl_.mantle_ability_), 18>(),
+     {104, 18, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_ability_)}},
     // float mantle_start = 14;
     {::_pbi::TcParser::FastF32S1,
-     {117, 18, 0,
+     {117, 19, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_start_)}},
     // .modlock.geometry.Vec3 wall_contact = 15;
     {::_pbi::TcParser::FastMtS1,
-     {122, 4, 2,
+     {122, 5, 2,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_contact_)}},
     // .modlock.geometry.Vec3 wall_normal = 16;
     {::_pbi::TcParser::FastMtS2,
-     {386, 5, 3,
+     {386, 6, 3,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_normal_)}},
     // .modlock.geometry.Vec3 wall_jump_normal = 17;
     {::_pbi::TcParser::FastMtS2,
-     {394, 6, 4,
+     {394, 7, 4,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_normal_)}},
     // uint32 wall_jump_facing = 18;
     {::_pbi::TcParser::FastV32S2,
-     {400, 19, 0,
+     {400, 20, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_facing_)}},
     // optional float zipline_time = 19;
     {::_pbi::TcParser::FastF32S2,
-     {413, 20, 0,
+     {413, 21, 0,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_)}},
     // repeated .modlock.wasm.movement.MovementAction actions = 20;
     {::_pbi::TcParser::FastV32P2,
@@ -981,9 +1059,12 @@ MovementSample::_table_ = {
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.casts_)}},
     // optional .modlock.wasm.movement.MovementCommand command = 22;
     {::_pbi::TcParser::FastMtS2,
-     {434, 7, 5,
+     {434, 8, 5,
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.command_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // repeated .modlock.wasm.movement.Interaction interactions = 23;
+    {::_pbi::TcParser::FastMtR2,
+     {442, 2, 6,
+      PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.interactions_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
@@ -996,47 +1077,49 @@ MovementSample::_table_ = {
     65535, 65535
   }}, {{
     // int32 player = 1;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.player_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.player_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // uint32 pawn = 2;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.pawn_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.pawn_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // .modlock.geometry.Vec3 position = 3;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.position_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.position_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.geometry.Vec3 velocity = 4;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.velocity_), _Internal::kHasBitsOffset + 3, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.velocity_), _Internal::kHasBitsOffset + 4, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // bool grounded = 6;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.grounded_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.grounded_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool sliding = 7;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.sliding_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.sliding_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool mantling = 8;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantling_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantling_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool climbing = 9;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.climbing_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.climbing_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool dashing = 10;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.dashing_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.dashing_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // uint32 jump_ability = 11;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.jump_ability_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.jump_ability_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // int32 wall_jumps = 12;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jumps_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jumps_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // uint32 mantle_ability = 13;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_ability_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_ability_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // float mantle_start = 14;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_start_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.mantle_start_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // .modlock.geometry.Vec3 wall_contact = 15;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_contact_), _Internal::kHasBitsOffset + 4, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_contact_), _Internal::kHasBitsOffset + 5, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.geometry.Vec3 wall_normal = 16;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_normal_), _Internal::kHasBitsOffset + 5, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_normal_), _Internal::kHasBitsOffset + 6, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .modlock.geometry.Vec3 wall_jump_normal = 17;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_normal_), _Internal::kHasBitsOffset + 6, 4, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_normal_), _Internal::kHasBitsOffset + 7, 4, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // uint32 wall_jump_facing = 18;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_facing_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.wall_jump_facing_), _Internal::kHasBitsOffset + 20, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // optional float zipline_time = 19;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_), _Internal::kHasBitsOffset + 20, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
     // repeated .modlock.wasm.movement.MovementAction actions = 20;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.actions_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedOpenEnum)},
     // repeated uint32 casts = 21;
     {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.casts_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedUInt32)},
     // optional .modlock.wasm.movement.MovementCommand command = 22;
-    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.command_), _Internal::kHasBitsOffset + 7, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.command_), _Internal::kHasBitsOffset + 8, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .modlock.wasm.movement.Interaction interactions = 23;
+    {PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.interactions_), _Internal::kHasBitsOffset + 2, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
@@ -1045,6 +1128,7 @@ MovementSample::_table_ = {
       {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
       {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
       {::_pbi::TcParser::GetTable<::modlock::wasm::movement::MovementCommand>()},
+      {::_pbi::TcParser::GetTable<::modlock::wasm::movement::Interaction>()},
   }},
   {{
   }},
@@ -1064,40 +1148,43 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _impl_.casts_.Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+      _impl_.interactions_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       ABSL_DCHECK(_impl_.position_ != nullptr);
       _impl_.position_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       ABSL_DCHECK(_impl_.velocity_ != nullptr);
       _impl_.velocity_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       ABSL_DCHECK(_impl_.wall_contact_ != nullptr);
       _impl_.wall_contact_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       ABSL_DCHECK(_impl_.wall_normal_ != nullptr);
       _impl_.wall_normal_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       ABSL_DCHECK(_impl_.wall_jump_normal_ != nullptr);
       _impl_.wall_jump_normal_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
-      ABSL_DCHECK(_impl_.command_ != nullptr);
-      _impl_.command_->Clear();
-    }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    ABSL_DCHECK(_impl_.command_ != nullptr);
+    _impl_.command_->Clear();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000fe00U)) {
     ::memset(&_impl_.player_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.jump_ability_) -
-        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.jump_ability_));
+        reinterpret_cast<char*>(&_impl_.dashing_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.dashing_));
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x001f0000U)) {
-    ::memset(&_impl_.wall_jumps_, 0, static_cast<::size_t>(
+  if (BatchCheckHasBit(cached_has_bits, 0x003f0000U)) {
+    ::memset(&_impl_.jump_ability_, 0, static_cast<::size_t>(
         reinterpret_cast<char*>(&_impl_.zipline_time_) -
-        reinterpret_cast<char*>(&_impl_.wall_jumps_)) + sizeof(_impl_.zipline_time_));
+        reinterpret_cast<char*>(&_impl_.jump_ability_)) + sizeof(_impl_.zipline_time_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -1123,7 +1210,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 player = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     if (this_._internal_player() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -1132,7 +1219,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 pawn = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
     if (this_._internal_pawn() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -1141,21 +1228,21 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // .modlock.geometry.Vec3 position = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         3, *this_._impl_.position_, this_._impl_.position_->GetCachedSize(), target,
         stream);
   }
 
   // .modlock.geometry.Vec3 velocity = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.velocity_, this_._impl_.velocity_->GetCachedSize(), target,
         stream);
   }
 
   // bool grounded = 6;
-  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
     if (this_._internal_grounded() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1164,7 +1251,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool sliding = 7;
-  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
     if (this_._internal_sliding() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1173,7 +1260,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool mantling = 8;
-  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
     if (this_._internal_mantling() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1182,7 +1269,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool climbing = 9;
-  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
     if (this_._internal_climbing() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1191,7 +1278,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // bool dashing = 10;
-  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
     if (this_._internal_dashing() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1200,7 +1287,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 jump_ability = 11;
-  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
     if (this_._internal_jump_ability() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -1209,7 +1296,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // int32 wall_jumps = 12;
-  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
     if (this_._internal_wall_jumps() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<12>(
@@ -1218,7 +1305,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // uint32 mantle_ability = 13;
-  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00040000U)) {
     if (this_._internal_mantle_ability() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -1227,7 +1314,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // float mantle_start = 14;
-  if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00080000U)) {
     if (::absl::bit_cast<::uint32_t>(this_._internal_mantle_start()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteFloatToArray(
@@ -1236,28 +1323,28 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // .modlock.geometry.Vec3 wall_contact = 15;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         15, *this_._impl_.wall_contact_, this_._impl_.wall_contact_->GetCachedSize(), target,
         stream);
   }
 
   // .modlock.geometry.Vec3 wall_normal = 16;
-  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         16, *this_._impl_.wall_normal_, this_._impl_.wall_normal_->GetCachedSize(), target,
         stream);
   }
 
   // .modlock.geometry.Vec3 wall_jump_normal = 17;
-  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         17, *this_._impl_.wall_jump_normal_, this_._impl_.wall_jump_normal_->GetCachedSize(), target,
         stream);
   }
 
   // uint32 wall_jump_facing = 18;
-  if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00100000U)) {
     if (this_._internal_wall_jump_facing() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
@@ -1266,7 +1353,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // optional float zipline_time = 19;
-  if (CheckHasBit(cached_has_bits, 0x00100000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00200000U)) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteFloatToArray(
         19, this_._internal_zipline_time(), target);
@@ -1295,10 +1382,23 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
   }
 
   // optional .modlock.wasm.movement.MovementCommand command = 22;
-  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         22, *this_._impl_.command_, this_._impl_.command_->GetCachedSize(), target,
         stream);
+  }
+
+  // repeated .modlock.wasm.movement.Interaction interactions = 23;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_interactions_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_interactions().Get(i);
+      target =
+          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+              23, repfield, repfield.GetCachedSize(),
+              target, stream);
+    }
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -1326,7 +1426,7 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  total_size += static_cast<bool>(0x00100000U & cached_has_bits) * 6;
+  total_size += static_cast<bool>(0x00200000U & cached_has_bits) * 6;
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     // repeated .modlock.wasm.movement.MovementAction actions = 20;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
@@ -1340,113 +1440,120 @@ PROTOBUF_NOINLINE void MovementSample::Clear() {
               this_._internal_casts(), 2,
               this_._impl_._casts_cached_byte_size_);
     }
+    // repeated .modlock.wasm.movement.Interaction interactions = 23;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+      total_size += 2UL * this_._internal_interactions_size();
+      for (const auto& msg : this_._internal_interactions()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
     // .modlock.geometry.Vec3 position = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.position_);
     }
     // .modlock.geometry.Vec3 velocity = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.velocity_);
     }
     // .modlock.geometry.Vec3 wall_contact = 15;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.wall_contact_);
     }
     // .modlock.geometry.Vec3 wall_normal = 16;
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.wall_normal_);
     }
     // .modlock.geometry.Vec3 wall_jump_normal = 17;
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.wall_jump_normal_);
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     // optional .modlock.wasm.movement.MovementCommand command = 22;
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.command_);
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     // int32 player = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (this_._internal_player() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_player());
       }
     }
     // uint32 pawn = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (this_._internal_pawn() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_pawn());
       }
     }
     // bool grounded = 6;
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (this_._internal_grounded() != 0) {
         total_size += 2;
       }
     }
     // bool sliding = 7;
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (this_._internal_sliding() != 0) {
         total_size += 2;
       }
     }
     // bool mantling = 8;
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (this_._internal_mantling() != 0) {
         total_size += 2;
       }
     }
     // bool climbing = 9;
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (this_._internal_climbing() != 0) {
         total_size += 2;
       }
     }
     // bool dashing = 10;
-    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       if (this_._internal_dashing() != 0) {
         total_size += 2;
       }
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x001f0000U)) {
     // uint32 jump_ability = 11;
-    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
       if (this_._internal_jump_ability() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_jump_ability());
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x000f0000U)) {
     // int32 wall_jumps = 12;
-    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
       if (this_._internal_wall_jumps() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_wall_jumps());
       }
     }
     // uint32 mantle_ability = 13;
-    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
       if (this_._internal_mantle_ability() != 0) {
         total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
             this_._internal_mantle_ability());
       }
     }
     // float mantle_start = 14;
-    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
       if (::absl::bit_cast<::uint32_t>(this_._internal_mantle_start()) != 0) {
         total_size += 5;
       }
     }
     // uint32 wall_jump_facing = 18;
-    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
       if (this_._internal_wall_jump_facing() != 0) {
         total_size += 2 + ::_pbi::WireFormatLite::UInt32Size(
                                         this_._internal_wall_jump_facing());
@@ -1479,7 +1586,12 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _this->_internal_mutable_casts()->MergeFrom(from._internal_casts());
     }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+      _this->_internal_mutable_interactions()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_interactions());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       ABSL_DCHECK(from._impl_.position_ != nullptr);
       if (_this->_impl_.position_ == nullptr) {
         _this->_impl_.position_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.position_);
@@ -1487,7 +1599,7 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.position_->MergeFrom(*from._impl_.position_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       ABSL_DCHECK(from._impl_.velocity_ != nullptr);
       if (_this->_impl_.velocity_ == nullptr) {
         _this->_impl_.velocity_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.velocity_);
@@ -1495,7 +1607,7 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.velocity_->MergeFrom(*from._impl_.velocity_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       ABSL_DCHECK(from._impl_.wall_contact_ != nullptr);
       if (_this->_impl_.wall_contact_ == nullptr) {
         _this->_impl_.wall_contact_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_contact_);
@@ -1503,7 +1615,7 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.wall_contact_->MergeFrom(*from._impl_.wall_contact_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       ABSL_DCHECK(from._impl_.wall_normal_ != nullptr);
       if (_this->_impl_.wall_normal_ == nullptr) {
         _this->_impl_.wall_normal_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_normal_);
@@ -1511,7 +1623,7 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.wall_normal_->MergeFrom(*from._impl_.wall_normal_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       ABSL_DCHECK(from._impl_.wall_jump_normal_ != nullptr);
       if (_this->_impl_.wall_jump_normal_ == nullptr) {
         _this->_impl_.wall_jump_normal_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.wall_jump_normal_);
@@ -1519,7 +1631,9 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.wall_jump_normal_->MergeFrom(*from._impl_.wall_jump_normal_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       ABSL_DCHECK(from._impl_.command_ != nullptr);
       if (_this->_impl_.command_ == nullptr) {
         _this->_impl_.command_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.command_);
@@ -1527,71 +1641,69 @@ void MovementSample::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.command_->MergeFrom(*from._impl_.command_);
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (from._internal_player() != 0) {
         _this->_impl_.player_ = from._impl_.player_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (from._internal_pawn() != 0) {
         _this->_impl_.pawn_ = from._impl_.pawn_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (from._internal_grounded() != 0) {
         _this->_impl_.grounded_ = from._impl_.grounded_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (from._internal_sliding() != 0) {
         _this->_impl_.sliding_ = from._impl_.sliding_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (from._internal_mantling() != 0) {
         _this->_impl_.mantling_ = from._impl_.mantling_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       if (from._internal_climbing() != 0) {
         _this->_impl_.climbing_ = from._impl_.climbing_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       if (from._internal_dashing() != 0) {
         _this->_impl_.dashing_ = from._impl_.dashing_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x003f0000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
       if (from._internal_jump_ability() != 0) {
         _this->_impl_.jump_ability_ = from._impl_.jump_ability_;
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x001f0000U)) {
-    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
       if (from._internal_wall_jumps() != 0) {
         _this->_impl_.wall_jumps_ = from._impl_.wall_jumps_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
       if (from._internal_mantle_ability() != 0) {
         _this->_impl_.mantle_ability_ = from._impl_.mantle_ability_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
       if (::absl::bit_cast<::uint32_t>(from._internal_mantle_start()) != 0) {
         _this->_impl_.mantle_start_ = from._impl_.mantle_start_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
       if (from._internal_wall_jump_facing() != 0) {
         _this->_impl_.wall_jump_facing_ = from._impl_.wall_jump_facing_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00200000U)) {
       _this->_impl_.zipline_time_ = from._impl_.zipline_time_;
     }
   }
@@ -1614,6 +1726,7 @@ void MovementSample::InternalSwap(MovementSample* PROTOBUF_RESTRICT PROTOBUF_NON
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.actions_.InternalSwap(&other->_impl_.actions_);
   _impl_.casts_.InternalSwap(&other->_impl_.casts_);
+  _impl_.interactions_.InternalSwap(&other->_impl_.interactions_);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(MovementSample, _impl_.zipline_time_)
       + sizeof(MovementSample::_impl_.zipline_time_)
@@ -1623,6 +1736,480 @@ void MovementSample::InternalSwap(MovementSample* PROTOBUF_RESTRICT PROTOBUF_NON
 }
 
 ::google::protobuf::Metadata MovementSample::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class Interaction::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<Interaction>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(Interaction, _impl_._has_bits_);
+};
+
+void Interaction::clear_origin() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.origin_ != nullptr) _impl_.origin_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+Interaction::Interaction(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Interaction_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.movement.Interaction)
+}
+PROTOBUF_NDEBUG_INLINE Interaction::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::movement::Interaction& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        designer_name_(arena, from.designer_name_) {}
+
+Interaction::Interaction(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const Interaction& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, Interaction_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  Interaction* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.origin_ = (CheckHasBit(cached_has_bits, 0x00000002U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.origin_)
+                : nullptr;
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, kind_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, kind_),
+           offsetof(Impl_, inflictor_) -
+               offsetof(Impl_, kind_) +
+               sizeof(Impl_::inflictor_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.movement.Interaction)
+}
+PROTOBUF_NDEBUG_INLINE Interaction::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        designer_name_(arena) {}
+
+inline void Interaction::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, origin_),
+           0,
+           offsetof(Impl_, inflictor_) -
+               offsetof(Impl_, origin_) +
+               sizeof(Impl_::inflictor_));
+}
+Interaction::~Interaction() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.movement.Interaction)
+  SharedDtor(*this);
+}
+inline void Interaction::SharedDtor(MessageLite& self) {
+  Interaction& this_ = static_cast<Interaction&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.designer_name_.Destroy();
+  delete this_._impl_.origin_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL Interaction::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) Interaction(arena);
+}
+constexpr auto Interaction::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(Interaction),
+                                            alignof(Interaction));
+}
+constexpr auto Interaction::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_Interaction_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &Interaction::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<Interaction>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &Interaction::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<Interaction>(), &Interaction::ByteSizeLong,
+              &Interaction::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(Interaction, _impl_._cached_size_),
+          false,
+      },
+      &Interaction::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmovement_2fmovement_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull Interaction_class_data_ =
+        Interaction::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+Interaction::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&Interaction_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(Interaction_class_data_.tc_table);
+  return Interaction_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<3, 7, 1, 55, 2>
+Interaction::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(Interaction, _impl_._has_bits_),
+    0, // no _extensions_
+    7, 56,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967168,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    7,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    Interaction_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::movement::Interaction>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // .modlock.wasm.movement.InteractionKind kind = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Interaction, _impl_.kind_), 2>(),
+     {8, 2, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.kind_)}},
+    // uint32 entity = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Interaction, _impl_.entity_), 3>(),
+     {16, 3, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.entity_)}},
+    // string designer_name = 3;
+    {::_pbi::TcParser::FastUS1,
+     {26, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.designer_name_)}},
+    // uint32 subclass_id = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Interaction, _impl_.subclass_id_), 4>(),
+     {32, 4, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.subclass_id_)}},
+    // .modlock.geometry.Vec3 origin = 5;
+    {::_pbi::TcParser::FastMtS1,
+     {42, 1, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.origin_)}},
+    // optional float vacuum_start = 6;
+    {::_pbi::TcParser::FastF32S1,
+     {53, 5, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.vacuum_start_)}},
+    // uint32 inflictor = 7;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Interaction, _impl_.inflictor_), 6>(),
+     {56, 6, 0,
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.inflictor_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .modlock.wasm.movement.InteractionKind kind = 1;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.kind_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+    // uint32 entity = 2;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.entity_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // string designer_name = 3;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.designer_name_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint32 subclass_id = 4;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.subclass_id_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // .modlock.geometry.Vec3 origin = 5;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.origin_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // optional float vacuum_start = 6;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.vacuum_start_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
+    // uint32 inflictor = 7;
+    {PROTOBUF_FIELD_OFFSET(Interaction, _impl_.inflictor_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::geometry::Vec3>()},
+  }},
+  {{
+    "\41\0\0\15\0\0\0\0"
+    "modlock.wasm.movement.Interaction"
+    "designer_name"
+  }},
+};
+PROTOBUF_NOINLINE void Interaction::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.movement.Interaction)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.designer_name_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(_impl_.origin_ != nullptr);
+      _impl_.origin_->Clear();
+    }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007cU)) {
+    ::memset(&_impl_.kind_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.inflictor_) -
+        reinterpret_cast<char*>(&_impl_.kind_)) + sizeof(_impl_.inflictor_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL Interaction::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const Interaction& this_ = static_cast<const Interaction&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL Interaction::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const Interaction& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.movement.Interaction)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .modlock.wasm.movement.InteractionKind kind = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_kind() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteEnumToArray(
+          1, this_._internal_kind(), target);
+    }
+  }
+
+  // uint32 entity = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (this_._internal_entity() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          2, this_._internal_entity(), target);
+    }
+  }
+
+  // string designer_name = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_designer_name().empty()) {
+      const ::std::string& _s = this_._internal_designer_name();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.movement.Interaction.designer_name");
+      target = stream->WriteStringMaybeAliased(3, _s, target);
+    }
+  }
+
+  // uint32 subclass_id = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_subclass_id() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          4, this_._internal_subclass_id(), target);
+    }
+  }
+
+  // .modlock.geometry.Vec3 origin = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        5, *this_._impl_.origin_, this_._impl_.origin_->GetCachedSize(), target,
+        stream);
+  }
+
+  // optional float vacuum_start = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteFloatToArray(
+        6, this_._internal_vacuum_start(), target);
+  }
+
+  // uint32 inflictor = 7;
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (this_._internal_inflictor() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+          7, this_._internal_inflictor(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.movement.Interaction)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t Interaction::ByteSizeLong(const MessageLite& base) {
+  const Interaction& this_ = static_cast<const Interaction&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t Interaction::ByteSizeLong() const {
+  const Interaction& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.movement.Interaction)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += static_cast<bool>(0x00000020U & cached_has_bits) * 5;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000005fU)) {
+    // string designer_name = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_designer_name().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_designer_name());
+      }
+    }
+    // .modlock.geometry.Vec3 origin = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.origin_);
+    }
+    // .modlock.wasm.movement.InteractionKind kind = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_kind() != 0) {
+        total_size += 1 +
+                      ::_pbi::WireFormatLite::EnumSize(this_._internal_kind());
+      }
+    }
+    // uint32 entity = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (this_._internal_entity() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_entity());
+      }
+    }
+    // uint32 subclass_id = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_subclass_id() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_subclass_id());
+      }
+    }
+    // uint32 inflictor = 7;
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+      if (this_._internal_inflictor() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+            this_._internal_inflictor());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void Interaction::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<Interaction*>(&to_msg);
+  auto& from = static_cast<const Interaction&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.movement.Interaction)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_designer_name().empty()) {
+        _this->_internal_set_designer_name(from._internal_designer_name());
+      } else {
+        if (_this->_impl_.designer_name_.IsDefault()) {
+          _this->_internal_set_designer_name("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      ABSL_DCHECK(from._impl_.origin_ != nullptr);
+      if (_this->_impl_.origin_ == nullptr) {
+        _this->_impl_.origin_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.origin_);
+      } else {
+        _this->_impl_.origin_->MergeFrom(*from._impl_.origin_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_kind() != 0) {
+        _this->_impl_.kind_ = from._impl_.kind_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      if (from._internal_entity() != 0) {
+        _this->_impl_.entity_ = from._impl_.entity_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_subclass_id() != 0) {
+        _this->_impl_.subclass_id_ = from._impl_.subclass_id_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      _this->_impl_.vacuum_start_ = from._impl_.vacuum_start_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+      if (from._internal_inflictor() != 0) {
+        _this->_impl_.inflictor_ = from._impl_.inflictor_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void Interaction::CopyFrom(const Interaction& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.movement.Interaction)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void Interaction::InternalSwap(Interaction* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.designer_name_, &other->_impl_.designer_name_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Interaction, _impl_.inflictor_)
+      + sizeof(Interaction::_impl_.inflictor_)
+      - PROTOBUF_FIELD_OFFSET(Interaction, _impl_.origin_)>(
+          reinterpret_cast<char*>(&_impl_.origin_),
+          reinterpret_cast<char*>(&other->_impl_.origin_));
+}
+
+::google::protobuf::Metadata Interaction::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

@@ -546,6 +546,16 @@ signatures {
   shape: "CGamePhysicsQueryInterface* global passed to TraceShape"
 }
 
+# The common pickup completion: the direct collection path and the vacuum's
+# arrival both call it with the pickup and its collector; it applies the
+# pickup, possibly to the collector's whole team, then deactivates it.
+signatures {
+  id: "pickup.complete"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 55 53 56 48 8B EC 48 83 EC 60 48 8B 81 20 03 00 00"
+  shape: "void CompletePickup(CCitadel_Pickup* pickup, CBaseEntity* collector)"
+}
+
 signatures {
   id: "preparation.damage-gate"
   modules: GAME_MODULE_SERVER

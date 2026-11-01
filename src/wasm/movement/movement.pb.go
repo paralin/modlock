@@ -81,6 +81,47 @@ func (x MovementAction) String() string {
 	return strconv.Itoa(int(x))
 }
 
+// InteractionKind names how a hero completed an interaction with a map object.
+type InteractionKind int32
+
+const (
+	InteractionKind_INTERACTION_KIND_UNKNOWN InteractionKind = 0
+	// PickupCollected is a pickup, such as a healing bat, completing its
+	// collection by this hero: on touch, or when its vacuum reaches the hero.
+	InteractionKind_INTERACTION_KIND_PICKUP_COLLECTED InteractionKind = 1
+	// PropBroken is a breakable prop, such as a crate, the game says this hero
+	// broke.
+	InteractionKind_INTERACTION_KIND_PROP_BROKEN InteractionKind = 2
+)
+
+// Enum value maps for InteractionKind.
+var (
+	InteractionKind_name = map[int32]string{
+		0: "INTERACTION_KIND_UNKNOWN",
+		1: "INTERACTION_KIND_PICKUP_COLLECTED",
+		2: "INTERACTION_KIND_PROP_BROKEN",
+	}
+	InteractionKind_value = map[string]int32{
+		"INTERACTION_KIND_UNKNOWN":          0,
+		"INTERACTION_KIND_PICKUP_COLLECTED": 1,
+		"INTERACTION_KIND_PROP_BROKEN":      2,
+	}
+)
+
+func (x InteractionKind) Enum() *InteractionKind {
+	p := new(InteractionKind)
+	*p = x
+	return p
+}
+
+func (x InteractionKind) String() string {
+	name, valid := InteractionKind_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // Lane is one of the map's lanes, numbered as the game numbers them. The
 // three-lane map has yellow, blue and purple ziplines and no green.
 type Lane int32
@@ -174,6 +215,10 @@ type MovementSample struct {
 	// Command is the movement the hero's player commanded since the last
 	// sample, absent before the game ran any of it.
 	Command *MovementCommand `protobuf:"bytes,22,opt,name=command,proto3,oneof" json:"command,omitempty"`
+	// Interactions are the map objects the hero collected or broke since the
+	// last tick, as the game's own completion named the hero. A hero who stood
+	// by, or only benefited from another's pickup, has none.
+	Interactions []*Interaction `protobuf:"bytes,23,rep,name=interactions,proto3" json:"interactions,omitempty"`
 }
 
 func (x *MovementSample) Reset() {
@@ -327,6 +372,92 @@ func (x *MovementSample) GetCommand() *MovementCommand {
 		return x.Command
 	}
 	return nil
+}
+
+func (x *MovementSample) GetInteractions() []*Interaction {
+	if x != nil {
+		return x.Interactions
+	}
+	return nil
+}
+
+// Interaction is one completed interaction with a map object.
+type Interaction struct {
+	unknownFields []byte
+	Kind          InteractionKind `protobuf:"varint,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Entity is the object's entity handle, which names it within this world
+	// only; Origin and the names identify it across sessions.
+	Entity uint32 `protobuf:"varint,2,opt,name=entity,proto3" json:"entity,omitempty"`
+	// DesignerName is the object's entity class, such as citadel_pickup_health,
+	// and SubclassId the hash of its subclass, such as the healing bat's
+	// citadel_pickup_health_float_in_world.
+	DesignerName string `protobuf:"bytes,3,opt,name=designer_name,json=designerName,proto3" json:"designerName,omitempty"`
+	SubclassId   uint32 `protobuf:"varint,4,opt,name=subclass_id,json=subclassId,proto3" json:"subclassId,omitempty"`
+	// Origin is where the object stood before the interaction moved it: a
+	// vacuumed pickup's position as its vacuum began, otherwise its origin.
+	Origin *geometry.Vec3 `protobuf:"bytes,5,opt,name=origin,proto3" json:"origin,omitempty"`
+	// VacuumStart is the game time the pickup began flying to the hero, absent
+	// for a pickup collected on touch and for a prop. The interaction itself
+	// completed on the sample's tick.
+	VacuumStart *float32 `protobuf:"fixed32,6,opt,name=vacuum_start,json=vacuumStart,proto3,oneof" json:"vacuumStart,omitempty"`
+	// Inflictor is the entity that broke a prop, such as the hero's projectile,
+	// or zero.
+	Inflictor uint32 `protobuf:"varint,7,opt,name=inflictor,proto3" json:"inflictor,omitempty"`
+}
+
+func (x *Interaction) Reset() {
+	*x = Interaction{}
+}
+
+func (*Interaction) ProtoMessage() {}
+
+func (x *Interaction) GetKind() InteractionKind {
+	if x != nil {
+		return x.Kind
+	}
+	return InteractionKind_INTERACTION_KIND_UNKNOWN
+}
+
+func (x *Interaction) GetEntity() uint32 {
+	if x != nil {
+		return x.Entity
+	}
+	return 0
+}
+
+func (x *Interaction) GetDesignerName() string {
+	if x != nil {
+		return x.DesignerName
+	}
+	return ""
+}
+
+func (x *Interaction) GetSubclassId() uint32 {
+	if x != nil {
+		return x.SubclassId
+	}
+	return 0
+}
+
+func (x *Interaction) GetOrigin() *geometry.Vec3 {
+	if x != nil {
+		return x.Origin
+	}
+	return nil
+}
+
+func (x *Interaction) GetVacuumStart() float32 {
+	if x != nil && x.VacuumStart != nil {
+		return *x.VacuumStart
+	}
+	return 0
+}
+
+func (x *Interaction) GetInflictor() uint32 {
+	if x != nil {
+		return x.Inflictor
+	}
+	return 0
 }
 
 // MovementCommand is the movement a player commanded over one tick. The
@@ -809,6 +940,7 @@ func (m *MovementSample) CloneVT() *MovementSample {
 	r.Actions = protobuf_go_lite.CloneSlice(m.Actions)
 	r.Casts = protobuf_go_lite.CloneSlice(m.Casts)
 	r.Command = protobuf_go_lite.CloneVTValue(m.Command)
+	r.Interactions = protobuf_go_lite.CloneVTSlice(m.Interactions)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -816,6 +948,28 @@ func (m *MovementSample) CloneVT() *MovementSample {
 }
 
 func (m *MovementSample) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Interaction) CloneVT() *Interaction {
+	if m == nil {
+		return (*Interaction)(nil)
+	}
+	r := new(Interaction)
+	r.Kind = m.Kind
+	r.Entity = m.Entity
+	r.DesignerName = m.DesignerName
+	r.SubclassId = m.SubclassId
+	r.Inflictor = m.Inflictor
+	r.Origin = protobuf_go_lite.CloneVTValue(m.Origin)
+	r.VacuumStart = protobuf_go_lite.ClonePtr(m.VacuumStart)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Interaction) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1091,11 +1245,52 @@ func (this *MovementSample) EqualVT(that *MovementSample) bool {
 	if !protobuf_go_lite.IsEqualVT(this.Command, that.Command) {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Interactions, that.Interactions, func() *Interaction { return &Interaction{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *MovementSample) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*MovementSample)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Interaction) EqualVT(that *Interaction) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Kind != that.Kind {
+		return false
+	}
+	if this.Entity != that.Entity {
+		return false
+	}
+	if this.DesignerName != that.DesignerName {
+		return false
+	}
+	if this.SubclassId != that.SubclassId {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Origin, that.Origin) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.VacuumStart, that.VacuumStart) {
+		return false
+	}
+	if this.Inflictor != that.Inflictor {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Interaction) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Interaction)
 	if !ok {
 		return false
 	}
@@ -1443,6 +1638,46 @@ func (x *MovementAction) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the InteractionKind to JSON.
+func (x InteractionKind) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), InteractionKind_name)
+}
+
+// MarshalText marshals the InteractionKind to text.
+func (x InteractionKind) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), InteractionKind_name)), nil
+}
+
+// MarshalJSON marshals the InteractionKind to JSON.
+func (x InteractionKind) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the InteractionKind from JSON.
+func (x *InteractionKind) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(InteractionKind_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read InteractionKind enum: %v", err)
+		return
+	}
+	*x = InteractionKind(v)
+}
+
+// UnmarshalText unmarshals the InteractionKind from text.
+func (x *InteractionKind) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), InteractionKind_value)
+	if err != nil {
+		return err
+	}
+	*x = InteractionKind(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the InteractionKind from JSON.
+func (x *InteractionKind) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the Lane to JSON.
 func (x Lane) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteEnum(int32(x), Lane_name)
@@ -1602,6 +1837,17 @@ func (x *MovementSample) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("command")
 		x.Command.MarshalProtoJSON(s.WithField("command"))
 	}
+	if len(x.Interactions) > 0 || s.HasField("interactions") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("interactions")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Interactions {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("interactions"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1723,12 +1969,129 @@ func (x *MovementSample) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Command = &MovementCommand{}
 			x.Command.UnmarshalProtoJSON(s.WithField("command", true))
+		case "interactions":
+			s.AddField("interactions")
+			if s.ReadNil() {
+				x.Interactions = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Interactions = append(x.Interactions, nil)
+					return
+				}
+				v := &Interaction{}
+				v.UnmarshalProtoJSON(s.WithField("interactions", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Interactions = append(x.Interactions, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the MovementSample from JSON.
 func (x *MovementSample) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Interaction message to JSON.
+func (x *Interaction) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Kind != 0 || s.HasField("kind") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("kind")
+		x.Kind.MarshalProtoJSON(s)
+	}
+	if x.Entity != 0 || s.HasField("entity") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("entity")
+		s.WriteUint32(x.Entity)
+	}
+	if x.DesignerName != "" || s.HasField("designerName") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("designerName")
+		s.WriteString(x.DesignerName)
+	}
+	if x.SubclassId != 0 || s.HasField("subclassId") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("subclassId")
+		s.WriteUint32(x.SubclassId)
+	}
+	if x.Origin != nil || s.HasField("origin") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("origin")
+		x.Origin.MarshalProtoJSON(s.WithField("origin"))
+	}
+	if x.VacuumStart != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("vacuumStart")
+		s.WriteFloat32(*x.VacuumStart)
+	}
+	if x.Inflictor != 0 || s.HasField("inflictor") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("inflictor")
+		s.WriteUint32(x.Inflictor)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Interaction to JSON.
+func (x *Interaction) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Interaction message from JSON.
+func (x *Interaction) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "kind":
+			s.AddField("kind")
+			x.Kind.UnmarshalProtoJSON(s)
+		case "entity":
+			s.AddField("entity")
+			x.Entity = s.ReadUint32()
+		case "designer_name", "designerName":
+			s.AddField("designer_name")
+			x.DesignerName = s.ReadString()
+		case "subclass_id", "subclassId":
+			s.AddField("subclass_id")
+			x.SubclassId = s.ReadUint32()
+		case "origin":
+			if s.ReadNil() {
+				x.Origin = nil
+				return
+			}
+			x.Origin = &geometry.Vec3{}
+			x.Origin.UnmarshalProtoJSON(s.WithField("origin", true))
+		case "vacuum_start", "vacuumStart":
+			s.AddField("vacuum_start")
+			if s.ReadNil() {
+				x.VacuumStart = nil
+				return
+			}
+			t := s.ReadFloat32()
+			x.VacuumStart = &t
+		case "inflictor":
+			s.AddField("inflictor")
+			x.Inflictor = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Interaction from JSON.
+func (x *Interaction) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2495,6 +2858,20 @@ func (m *MovementSample) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Interactions) > 0 {
+		for iNdEx := len(m.Interactions) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Interactions[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0xba
+		}
+	}
 	if m.Command != nil {
 		size, err := m.Command.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -2641,6 +3018,78 @@ func (m *MovementSample) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Player != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Interaction) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Interaction) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Interaction) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Inflictor != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Inflictor))
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.VacuumStart != nil {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(*m.VacuumStart))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if m.Origin != nil {
+		size, err := m.Origin.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.SubclassId != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.SubclassId))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.DesignerName) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.DesignerName)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Entity != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Entity))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Kind != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Kind))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -3304,6 +3753,30 @@ func (m *MovementSample) SizeVT() (n int) {
 		l = m.Command.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	for _, e := range m.Interactions {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Interaction) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Kind)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Entity)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.DesignerName)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.SubclassId)
+	if m.Origin != nil {
+		l = m.Origin.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeFixed32Ptr(1, m.VacuumStart)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Inflictor)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3502,6 +3975,10 @@ func (x MovementAction) MarshalProtoText() string {
 	return x.String()
 }
 
+func (x InteractionKind) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x Lane) MarshalProtoText() string {
 	return x.String()
 }
@@ -3601,10 +4078,60 @@ func (x *MovementSample) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "command")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Command)
 	}
+	if len(x.Interactions) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "interactions")
+		for i, v := range x.Interactions {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Interaction{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *MovementSample) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Interaction) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Interaction")
+	if x.Kind != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "kind")
+		protobuf_go_lite.TextWriteStringer(&sb, InteractionKind(x.Kind))
+	}
+	if x.Entity != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "entity")
+		protobuf_go_lite.TextWriteUint(&sb, x.Entity)
+	}
+	if x.DesignerName != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "designer_name")
+		protobuf_go_lite.TextWriteString(&sb, x.DesignerName)
+	}
+	if x.SubclassId != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "subclass_id")
+		protobuf_go_lite.TextWriteUint(&sb, x.SubclassId)
+	}
+	if x.Origin != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "origin")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Origin)
+	}
+	if x.VacuumStart != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "vacuum_start")
+		protobuf_go_lite.TextWriteFloat32(&sb, *x.VacuumStart)
+	}
+	if x.Inflictor != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "inflictor")
+		protobuf_go_lite.TextWriteUint(&sb, x.Inflictor)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Interaction) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4173,6 +4700,138 @@ func (m *MovementSample) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 23:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Interactions", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Interactions = append(m.Interactions, &Interaction{})
+			if err := m.Interactions[len(m.Interactions)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Interaction) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Interaction: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Interaction: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Kind", wireType)
+			}
+			m.Kind = 0
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			m.Kind = InteractionKind(_v)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Entity", wireType)
+			}
+			m.Entity = 0
+			m.Entity, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DesignerName", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.DesignerName = v
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubclassId", wireType)
+			}
+			m.SubclassId = 0
+			m.SubclassId, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Origin", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Origin == nil {
+				m.Origin = &geometry.Vec3{}
+			}
+			if err := m.Origin.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VacuumStart", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			v2 := float32(math.Float32frombits(v))
+			m.VacuumStart = &v2
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Inflictor", wireType)
+			}
+			m.Inflictor = 0
+			m.Inflictor, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

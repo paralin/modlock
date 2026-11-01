@@ -383,11 +383,13 @@ class Game : public HostService {
   bool Moving() const { return !movers_.empty(); }
 
   // MovementFact is one movement fact the game announced for the hero with
-  // the pawn handle; an executed ability carries the ability's handle.
+  // the pawn handle; an executed ability carries the ability's handle, and
+  // a completed interaction, with no action, the interaction.
   struct MovementFact {
     uint32_t pawn = 0;
     movement::MovementAction action = movement::MOVEMENT_ACTION_UNKNOWN;
     uint32_t ability = 0;
+    std::optional<movement::Interaction> interaction;
   };
 
   // Movement returns a sample of each watched, live hero, with the facts

@@ -1,13 +1,13 @@
 // Contract tests for the combat-event decoder seam: byte fixtures prove the
-// damage, heal, shield and ability payloads decode into their documented fields, that invalid
-// memory and impossible values surface as decode failures instead of
-// zero-filled successes, and that an absent attacker is carried raw rather
-// than fabricated. The hook owner itself is Windows-only; these tests run
-// wherever the host test suite runs.
+// damage, heal, shield, ability and prop break payloads decode into their documented fields, that
+// invalid memory and impossible values surface as decode failures instead of zero-filled successes,
+// and that an absent attacker is carried raw rather than fabricated. The hook owner itself is
+// Windows-only; these tests run wherever the host test suite runs.
 #include "modlock/gameinterop/combat_events.h"
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -22,6 +22,11 @@ using modlock::gameinterop::DamageResultOffsets;
 using modlock::gameinterop::DecodeAbilityExecuted;
 using modlock::gameinterop::DecodeDamageTaken;
 using modlock::gameinterop::DecodeHealthTaken;
+using modlock::gameinterop::DecodePropBroken;
+using modlock::gameinterop::DescribeInteractionObject;
+using modlock::gameinterop::InteractionEvent;
+using modlock::gameinterop::InteractionKind;
+using modlock::gameinterop::InteractionOffsets;
 
 constexpr DamageResultOffsets kOffsets{8, 12, 16};
 
@@ -275,6 +280,75 @@ TEST(DecodeAbilityExecuted, RejectsMissingOrUnreadablePayload) {
     ASSERT_FALSE(event) << readable;
     EXPECT_NE(event.error().find("cannot read"), std::string::npos) << event.error();
   }
+}
+
+TEST(Interactions, NameTheActorAndWhereTheObjectStood) {
+  // A prop break names the prop, inflictor and breaker; a short payload fails.
+  const uint32_t handles[3] = {0x0001'0042, 0x0002'0099, 0x0003'0007};
+  auto broken = DecodePropBroken(handles, MemoryReader(handles, sizeof(handles)));
+  ASSERT_TRUE(broken) << broken.error();
+  EXPECT_EQ(broken->kind, InteractionKind::kPropBroken);
+  EXPECT_EQ(broken->object_handle, handles[0]);
+  EXPECT_EQ(broken->inflictor_handle, handles[1]);
+  EXPECT_EQ(broken->actor_handle, handles[2]);
+  EXPECT_FALSE(DecodePropBroken(handles, MemoryReader(handles, 8)));
+
+  // An object holds its subclass, body pointer and vacuum fields; the body
+  // points at the scene node that holds its origin.
+  constexpr InteractionOffsets offsets{.subclass = 0,
+                                       .body = 8,
+                                       .scene_node = 0,
+                                       .origin = 4,
+                                       .vacuum_start_position = 16,
+                                       .vacuum_start_time = 28,
+                                       .vacuum_target = 32};
+  unsigned char node[16] = {};
+  const float stands[3] = {10, 20, 30};
+  std::memcpy(node + 4, stands, sizeof(stands));
+  void* body[1] = {node};
+  unsigned char object[36] = {};
+  const uint32_t subclass = 0xb47b'47ff;
+  const void* body_pointer = body;
+  const float vacuumed_from[3] = {-5, 6, 7};
+  const float started = 12.5F;
+  std::memcpy(object, &subclass, sizeof(subclass));
+  std::memcpy(object + 8, &body_pointer, sizeof(body_pointer));
+  std::memcpy(object + 16, vacuumed_from, sizeof(vacuumed_from));
+  std::memcpy(object + 28, &started, sizeof(started));
+  const RegionReader regions(
+      {{object, sizeof(object)}, {body, sizeof(body)}, {node, sizeof(node)}});
+  const auto read = [&regions](const void* from, void* out, size_t bytes) {
+    return regions.Read(from, out, bytes);
+  };
+
+  // The prop stands at its origin, with no vacuum.
+  ASSERT_TRUE(DescribeInteractionObject(object, offsets, read, *broken));
+  EXPECT_EQ(broken->subclass_id, subclass);
+  EXPECT_EQ(broken->origin, (std::array<float, 3>{10, 20, 30}));
+  EXPECT_FALSE(broken->vacuum_start);
+
+  // A pickup flying to its collector stood where the vacuum began.
+  const uint32_t collector = 0x0005'0011;
+  std::memcpy(object + 32, &collector, sizeof(collector));
+  InteractionEvent pickup{.kind = InteractionKind::kPickupCollected, .actor_handle = collector};
+  ASSERT_TRUE(DescribeInteractionObject(object, offsets, read, pickup));
+  EXPECT_EQ(pickup.origin, (std::array<float, 3>{-5, 6, 7}));
+  EXPECT_EQ(pickup.vacuum_start, started);
+
+  // Another player's vacuum lends this collector neither its start nor time.
+  InteractionEvent other{.kind = InteractionKind::kPickupCollected, .actor_handle = 0x0006'0012};
+  ASSERT_TRUE(DescribeInteractionObject(object, offsets, read, other));
+  EXPECT_EQ(other.origin, (std::array<float, 3>{10, 20, 30}));
+  EXPECT_FALSE(other.vacuum_start);
+
+  // An unreadable scene node is an error, not a zero origin.
+  const RegionReader no_node({{object, sizeof(object)}, {body, sizeof(body)}});
+  EXPECT_FALSE(DescribeInteractionObject(
+      object, offsets,
+      [&no_node](const void* from, void* out, size_t bytes) {
+        return no_node.Read(from, out, bytes);
+      },
+      *broken));
 }
 
 TEST(ProcessDamageContact, ReadsTheWholeHitAndPreservesSuppressionPriority) {

@@ -3169,6 +3169,7 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kMovementFieldNumber = 3,
+    kInteractionsFieldNumber = 4,
     kTickFieldNumber = 1,
     kTimeSecondsFieldNumber = 2,
   };
@@ -3189,6 +3190,25 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
   const ::modlock::wasm::movement::MovementSample& movement(int index) const;
   ::modlock::wasm::movement::MovementSample* PROTOBUF_NONNULL add_movement();
   const ::google::protobuf::RepeatedPtrField<::modlock::wasm::movement::MovementSample>& movement() const;
+  // repeated .modlock.wasm.movement.InteractionKind interactions = 4;
+  int interactions_size() const;
+  private:
+  int _internal_interactions_size() const;
+
+  public:
+  void clear_interactions() ;
+  public:
+  ::modlock::wasm::movement::InteractionKind interactions(int index) const;
+  void set_interactions(int index, ::modlock::wasm::movement::InteractionKind value);
+  void add_interactions(::modlock::wasm::movement::InteractionKind value);
+  const ::google::protobuf::RepeatedField<int>& interactions() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL mutable_interactions();
+
+  private:
+  const ::google::protobuf::RepeatedField<int>& _internal_interactions() const;
+  ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL _internal_mutable_interactions();
+
+  public:
   // uint64 tick = 1;
   void clear_tick() ;
   ::uint64_t tick() const;
@@ -3213,7 +3233,7 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    1, 0,
                                    2>
       _table_;
@@ -3236,6 +3256,8 @@ class MODLOCK_API FrameEvent final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::movement::MovementSample > movement_;
+    ::google::protobuf::RepeatedField<int> interactions_;
+    ::google::protobuf::internal::CachedSize _interactions_cached_byte_size_;
     ::uint64_t tick_;
     double time_seconds_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -3809,7 +3831,7 @@ inline void FrameEvent::clear_tick() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tick_ = ::uint64_t{0u};
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000004U);
 }
 inline ::uint64_t FrameEvent::tick() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.tick)
@@ -3817,7 +3839,7 @@ inline ::uint64_t FrameEvent::tick() const {
 }
 inline void FrameEvent::set_tick(::uint64_t value) {
   _internal_set_tick(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_set:modlock.wasm.FrameEvent.tick)
 }
 inline ::uint64_t FrameEvent::_internal_tick() const {
@@ -3834,7 +3856,7 @@ inline void FrameEvent::clear_time_seconds() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.time_seconds_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline double FrameEvent::time_seconds() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.time_seconds)
@@ -3842,7 +3864,7 @@ inline double FrameEvent::time_seconds() const {
 }
 inline void FrameEvent::set_time_seconds(double value) {
   _internal_set_time_seconds(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.FrameEvent.time_seconds)
 }
 inline double FrameEvent::_internal_time_seconds() const {
@@ -3902,6 +3924,56 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::movement::MovementS
 FrameEvent::_internal_mutable_movement() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.movement_;
+}
+
+// repeated .modlock.wasm.movement.InteractionKind interactions = 4;
+inline int FrameEvent::_internal_interactions_size() const {
+  return _internal_interactions().size();
+}
+inline int FrameEvent::interactions_size() const {
+  return _internal_interactions_size();
+}
+inline void FrameEvent::clear_interactions() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.interactions_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::modlock::wasm::movement::InteractionKind FrameEvent::interactions(int index) const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.FrameEvent.interactions)
+  return static_cast<::modlock::wasm::movement::InteractionKind>(_internal_interactions().Get(index));
+}
+inline void FrameEvent::set_interactions(int index, ::modlock::wasm::movement::InteractionKind value) {
+  _internal_mutable_interactions()->Set(index, value);
+  // @@protoc_insertion_point(field_set:modlock.wasm.FrameEvent.interactions)
+}
+inline void FrameEvent::add_interactions(::modlock::wasm::movement::InteractionKind value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_interactions()->Add(value);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:modlock.wasm.FrameEvent.interactions)
+}
+inline const ::google::protobuf::RepeatedField<int>& FrameEvent::interactions() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:modlock.wasm.FrameEvent.interactions)
+  return _internal_interactions();
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL FrameEvent::mutable_interactions()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:modlock.wasm.FrameEvent.interactions)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_interactions();
+}
+inline const ::google::protobuf::RepeatedField<int>& FrameEvent::_internal_interactions()
+    const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.interactions_;
+}
+inline ::google::protobuf::RepeatedField<int>* PROTOBUF_NONNULL
+FrameEvent::_internal_mutable_interactions() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.interactions_;
 }
 
 // -------------------------------------------------------------------

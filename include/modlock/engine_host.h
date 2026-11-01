@@ -56,6 +56,9 @@ class MODLOCK_API EngineHost {
       gameinterop::CombatEventsHook::Handler callback,
       std::function<bool(const gameinterop::DamageContactEvent&)> suppress_damage = {},
       gameinterop::AdjustDamage adjust_damage = {});
+  // ObservedInteractions reports which interactions the combat hook OnCombat
+  // installed delivers; none before it is installed.
+  gameinterop::ObservedInteractions ObservedInteractions() const;
   std::expected<Subscription, std::string> OnConnection(
       std::shared_ptr<gameinterop::ConnectionEventSink> sink);
   // OnWorld runs before as each world's map starts loading and after once it

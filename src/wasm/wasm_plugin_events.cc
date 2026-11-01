@@ -46,6 +46,28 @@ wasm::movement::MovementAction MovementActionOf(gameinterop::MovementExecution e
   return wasm::movement::MOVEMENT_ACTION_UNKNOWN;
 }
 
+// InteractionOf describes a completed interaction to a mod.
+wasm::movement::Interaction InteractionOf(const gameinterop::InteractionEvent& event) {
+  wasm::movement::Interaction out;
+  out.set_kind(event.kind == gameinterop::InteractionKind::kPropBroken
+                   ? wasm::movement::INTERACTION_KIND_PROP_BROKEN
+                   : wasm::movement::INTERACTION_KIND_PICKUP_COLLECTED);
+  out.set_entity(event.object_handle);
+  out.set_designer_name(event.designer_name);
+  out.set_subclass_id(event.subclass_id);
+  auto* origin = out.mutable_origin();
+  origin->set_x(event.origin[0]);
+  origin->set_y(event.origin[1]);
+  origin->set_z(event.origin[2]);
+  if (event.vacuum_start) {
+    out.set_vacuum_start(*event.vacuum_start);
+  }
+  if (event.inflictor_handle != gameinterop::kInvalidEHandleIndex) {
+    out.set_inflictor(event.inflictor_handle);
+  }
+  return out;
+}
+
 // Departures forwards player departures to a plugin, which owns the
 // subscription that holds it.
 class Departures final : public gameinterop::ConnectionEventSink {
@@ -290,6 +312,10 @@ void WasmPlugin::Fought(const gameinterop::CombatEvent& event, bool damaged) {
                       wasm::movement::MOVEMENT_ACTION_ABILITY_EXECUTED,
                       event.ability->ability_handle});
   }
+  if (event.interaction) {
+    facts_.push_back({.pawn = event.interaction->actor_handle,
+                      .interaction = InteractionOf(*event.interaction)});
+  }
 }
 
 void WasmPlugin::Sample(wasm::FrameEvent& frame) {
@@ -312,6 +338,13 @@ void WasmPlugin::Sample(wasm::FrameEvent& frame) {
   }
   for (auto& sample : game_.Movement(facts)) {
     *frame.add_movement() = std::move(sample);
+  }
+  const auto observed = engine_->ObservedInteractions();
+  if (observed.pickups) {
+    frame.add_interactions(wasm::movement::INTERACTION_KIND_PICKUP_COLLECTED);
+  }
+  if (observed.breaks) {
+    frame.add_interactions(wasm::movement::INTERACTION_KIND_PROP_BROKEN);
   }
 }
 

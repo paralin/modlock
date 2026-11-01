@@ -162,6 +162,19 @@ const movementActionNames: Partial<Record<number, MovementAction>> = {
 }
 
 /**
+ * InteractionKind names how a hero completed an interaction with a map object.
+ */
+export type InteractionKind =
+  | 'pickupCollected'
+  | 'propBroken'
+
+/** interactionKindNames decodes each InteractionKind; an unknown value has no name. */
+const interactionKindNames: Partial<Record<number, InteractionKind>> = {
+  1: 'pickupCollected',
+  2: 'propBroken',
+}
+
+/**
  * Lane is one of the map's lanes, numbered as the game numbers them. The
  * three-lane map has yellow, blue and purple ziplines and no green.
  */
@@ -926,6 +939,12 @@ export interface MovementSample {
    * sample, absent before the game ran any of it.
    */
   readonly command?: MovementCommand
+  /**
+   * interactions are the map objects the hero collected or broke since the
+   * last tick, as the game's own completion named the hero. A hero who stood
+   * by, or only benefited from another's pickup, has none.
+   */
+  readonly interactions: Interaction[]
 }
 
 /** fromMovementSample decodes a MovementSample. */
@@ -952,6 +971,53 @@ function fromMovementSample(message: movementPb.MovementSample): MovementSample 
     actions: known(message.actions, (v) => movementActionNames[v]),
     casts: message.casts ?? [],
     command: message.command === undefined ? undefined : fromMovementCommand(message.command),
+    interactions: (message.interactions ?? []).map((v) => fromInteraction(v)),
+  }
+}
+
+/** Interaction is one completed interaction with a map object. */
+export interface Interaction {
+  readonly kind?: InteractionKind
+  /**
+   * entity is the object's entity handle, which names it within this world
+   * only; origin and the names identify it across sessions.
+   */
+  readonly entity: number
+  /**
+   * designerName is the object's entity class, such as citadel_pickup_health,
+   * and subclassId the hash of its subclass, such as the healing bat's
+   * citadel_pickup_health_float_in_world.
+   */
+  readonly designerName: string
+  readonly subclassId: number
+  /**
+   * origin is where the object stood before the interaction moved it: a
+   * vacuumed pickup's position as its vacuum began, otherwise its origin.
+   */
+  readonly origin: Vector
+  /**
+   * vacuumStart is the game time the pickup began flying to the hero, absent
+   * for a pickup collected on touch and for a prop. The interaction itself
+   * completed on the sample's tick.
+   */
+  readonly vacuumStart?: number
+  /**
+   * inflictor is the entity that broke a prop, such as the hero's projectile,
+   * or zero.
+   */
+  readonly inflictor: number
+}
+
+/** fromInteraction decodes an Interaction. */
+function fromInteraction(message: movementPb.Interaction): Interaction {
+  return {
+    kind: interactionKindNames[message.kind ?? 0],
+    entity: message.entity ?? 0,
+    designerName: message.designerName ?? '',
+    subclassId: message.subclassId ?? 0,
+    origin: vector(message.origin),
+    vacuumStart: message.vacuumStart,
+    inflictor: message.inflictor ?? 0,
   }
 }
 
@@ -1986,6 +2052,12 @@ export interface FrameEvent {
    * new tick, and is empty otherwise.
    */
   readonly movement: MovementSample[]
+  /**
+   * interactions names the interaction kinds the host observes, sent with
+   * movement. A kind it lacks, such as on a game build whose completion it
+   * cannot find, is unknown rather than absent from the samples.
+   */
+  readonly interactions: InteractionKind[]
 }
 
 /** fromFrameEvent decodes a FrameEvent. */
@@ -1994,6 +2066,7 @@ function fromFrameEvent(message: wasmPb.FrameEvent): FrameEvent {
     tick: message.tick ?? 0n,
     timeSeconds: message.timeSeconds ?? 0,
     movement: (message.movement ?? []).map((v) => fromMovementSample(v)),
+    interactions: known(message.interactions, (v) => interactionKindNames[v]),
   }
 }
 

@@ -128,6 +128,15 @@ local MovementAction: { [any]: any } = {
 	abilityExecuted = 11,
 }
 
+-- InteractionKind names how a hero completed an interaction with a map object.
+export type InteractionKind = "pickupCollected" | "propBroken"
+local InteractionKind: { [any]: any } = {
+	[1] = "pickupCollected",
+	pickupCollected = 1,
+	[2] = "propBroken",
+	propBroken = 2,
+}
+
 -- Lane is one of the map's lanes, numbered as the game numbers them. The
 -- three-lane map has yellow, blue and purple ziplines and no green.
 export type Lane = "none" | "yellow" | "green" | "blue" | "purple"
@@ -567,6 +576,33 @@ export type MovementSample = {
 	-- command is the movement the hero's player commanded since the last
 	-- sample, absent before the game ran any of it.
 	command: MovementCommand?,
+	-- interactions are the map objects the hero collected or broke since the
+	-- last tick, as the game's own completion named the hero. A hero who stood
+	-- by, or only benefited from another's pickup, has none.
+	interactions: { Interaction },
+}
+
+-- Interaction is one completed interaction with a map object.
+export type Interaction = {
+	kind: InteractionKind?,
+	-- entity is the object's entity handle, which names it within this world
+	-- only; origin and the names identify it across sessions.
+	entity: number,
+	-- designerName is the object's entity class, such as citadel_pickup_health,
+	-- and subclassId the hash of its subclass, such as the healing bat's
+	-- citadel_pickup_health_float_in_world.
+	designerName: string,
+	subclassId: number,
+	-- origin is where the object stood before the interaction moved it: a
+	-- vacuumed pickup's position as its vacuum began, otherwise its origin.
+	origin: Vector,
+	-- vacuumStart is the game time the pickup began flying to the hero, absent
+	-- for a pickup collected on touch and for a prop. The interaction itself
+	-- completed on the sample's tick.
+	vacuumStart: number?,
+	-- inflictor is the entity that broke a prop, such as the hero's projectile,
+	-- or zero.
+	inflictor: number,
 }
 
 -- MovementCommand is the movement a player commanded over one tick. The
@@ -1143,6 +1179,10 @@ export type FrameEvent = {
 	-- movement holds one sample per watched, live hero when this frame starts a
 	-- new tick, and is empty otherwise.
 	movement: { MovementSample },
+	-- interactions names the interaction kinds the host observes, sent with
+	-- movement. A kind it lacks, such as on a game build whose completion it
+	-- cannot find, is unknown rather than absent from the samples.
+	interactions: { InteractionKind },
 }
 
 -- CommandEvent carries one command line from a player: a chat line that
@@ -2398,6 +2438,16 @@ schema.MovementSample = {
 	{ number = 20, name = "actions", kind = "enum", repeated = true, enum = MovementAction },
 	{ number = 21, name = "casts", kind = "uint32", repeated = true },
 	{ number = 22, name = "command", kind = "message", optional = true, message = "MovementCommand" },
+	{ number = 23, name = "interactions", kind = "message", repeated = true, message = "Interaction" },
+}
+schema.Interaction = {
+	{ number = 1, name = "kind", kind = "enum", enum = InteractionKind },
+	{ number = 2, name = "entity", kind = "uint32" },
+	{ number = 3, name = "designerName", kind = "string" },
+	{ number = 4, name = "subclassId", kind = "uint32" },
+	{ number = 5, name = "origin", kind = "message", message = "Vec3" },
+	{ number = 6, name = "vacuumStart", kind = "float", optional = true },
+	{ number = 7, name = "inflictor", kind = "uint32" },
 }
 schema.MovementCommand = {
 	{ number = 1, name = "held", kind = "uint64" },
@@ -2840,6 +2890,7 @@ schema.FrameEvent = {
 	{ number = 1, name = "tick", kind = "uint64" },
 	{ number = 2, name = "timeSeconds", kind = "double" },
 	{ number = 3, name = "movement", kind = "message", repeated = true, message = "MovementSample" },
+	{ number = 4, name = "interactions", kind = "enum", repeated = true, enum = InteractionKind },
 }
 schema.CommandEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

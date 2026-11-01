@@ -85,6 +85,50 @@ message MovementSample {
   // Command is the movement the hero's player commanded since the last
   // sample, absent before the game ran any of it.
   optional MovementCommand command = 22;
+
+  // Interactions are the map objects the hero collected or broke since the
+  // last tick, as the game's own completion named the hero. A hero who stood
+  // by, or only benefited from another's pickup, has none.
+  repeated Interaction interactions = 23;
+}
+
+// InteractionKind names how a hero completed an interaction with a map object.
+enum InteractionKind {
+  INTERACTION_KIND_UNKNOWN = 0;
+  // PickupCollected is a pickup, such as a healing bat, completing its
+  // collection by this hero: on touch, or when its vacuum reaches the hero.
+  INTERACTION_KIND_PICKUP_COLLECTED = 1;
+  // PropBroken is a breakable prop, such as a crate, the game says this hero
+  // broke.
+  INTERACTION_KIND_PROP_BROKEN = 2;
+}
+
+// Interaction is one completed interaction with a map object.
+message Interaction {
+  InteractionKind kind = 1;
+
+  // Entity is the object's entity handle, which names it within this world
+  // only; Origin and the names identify it across sessions.
+  uint32 entity = 2;
+
+  // DesignerName is the object's entity class, such as citadel_pickup_health,
+  // and SubclassId the hash of its subclass, such as the healing bat's
+  // citadel_pickup_health_float_in_world.
+  string designer_name = 3;
+  uint32 subclass_id = 4;
+
+  // Origin is where the object stood before the interaction moved it: a
+  // vacuumed pickup's position as its vacuum began, otherwise its origin.
+  modlock.geometry.Vec3 origin = 5;
+
+  // VacuumStart is the game time the pickup began flying to the hero, absent
+  // for a pickup collected on touch and for a prop. The interaction itself
+  // completed on the sample's tick.
+  optional float vacuum_start = 6;
+
+  // Inflictor is the entity that broke a prop, such as the hero's projectile,
+  // or zero.
+  uint32 inflictor = 7;
 }
 
 // MovementCommand is the movement a player commanded over one tick. The

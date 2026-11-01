@@ -229,6 +229,10 @@ std::vector<movement::MovementSample> Game::Movement(std::span<const MovementFac
       if (fact.pawn != sample->pawn_handle) {
         continue;
       }
+      if (fact.interaction) {
+        *out.add_interactions() = *fact.interaction;
+        continue;
+      }
       out.add_actions(fact.action);
       if (fact.action == movement::MOVEMENT_ACTION_ABILITY_EXECUTED) {
         out.add_casts(fact.ability);

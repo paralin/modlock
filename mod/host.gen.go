@@ -106,6 +106,19 @@ const (
 	MovementActionAbilityExecuted = movementpb.MovementAction_MOVEMENT_ACTION_ABILITY_EXECUTED
 )
 
+// InteractionKind names how a hero completed an interaction with a map object.
+type InteractionKind = movementpb.InteractionKind
+
+// The values of InteractionKind.
+const (
+	// PickupCollected is a pickup, such as a healing bat, completing its
+	// collection by this hero: on touch, or when its vacuum reaches the hero.
+	InteractionKindPickupCollected = movementpb.InteractionKind_INTERACTION_KIND_PICKUP_COLLECTED
+	// PropBroken is a breakable prop, such as a crate, the game says this hero
+	// broke.
+	InteractionKindPropBroken = movementpb.InteractionKind_INTERACTION_KIND_PROP_BROKEN
+)
+
 // Lane is one of the map's lanes, numbered as the game numbers them. The
 // three-lane map has yellow, blue and purple ziplines and no green.
 type Lane = movementpb.Lane
@@ -247,6 +260,9 @@ type RiftState = matchpb.RiftState
 // it. A hero whose position, velocity or ground the game does not provide has
 // no sample; another field the game did not provide is absent or zero.
 type MovementSample = movementpb.MovementSample
+
+// Interaction is one completed interaction with a map object.
+type Interaction = movementpb.Interaction
 
 // MovementCommand is the movement a player commanded over one tick. The
 // server runs a player's commands as they arrive, so a tick may run several

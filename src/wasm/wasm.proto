@@ -774,6 +774,11 @@ message FrameEvent {
   // Movement holds one sample per watched, live hero when this frame starts a
   // new tick, and is empty otherwise.
   repeated modlock.wasm.movement.MovementSample movement = 3;
+
+  // Interactions names the interaction kinds the host observes, sent with
+  // Movement. A kind it lacks, such as on a game build whose completion it
+  // cannot find, is unknown rather than absent from the samples.
+  repeated modlock.wasm.movement.InteractionKind interactions = 4;
 }
 
 // CommandEvent carries one command line from a player: a chat line that

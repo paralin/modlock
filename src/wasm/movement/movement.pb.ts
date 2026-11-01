@@ -54,6 +54,36 @@ export const MovementAction_Enum = /* @__PURE__ */ createEnumType(
 )
 
 /**
+ * InteractionKind names how a hero completed an interaction with a map object.
+ *
+ * @generated from enum modlock.wasm.movement.InteractionKind
+ */
+export enum InteractionKind {
+  UNKNOWN = 0,
+
+  /**
+   * PickupCollected is a pickup, such as a healing bat, completing its
+   * collection by this hero: on touch, or when its vacuum reaches the hero.
+   */
+  PICKUP_COLLECTED = 1,
+
+  /**
+   * PropBroken is a breakable prop, such as a crate, the game says this hero
+   * broke.
+   */
+  PROP_BROKEN = 2,
+}
+
+export const InteractionKind_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.movement.InteractionKind',
+  [
+    [0, 'INTERACTION_KIND_UNKNOWN'],
+    [1, 'INTERACTION_KIND_PICKUP_COLLECTED'],
+    [2, 'INTERACTION_KIND_PROP_BROKEN'],
+  ],
+)
+
+/**
  * Lane is one of the map's lanes, numbered as the game numbers them. The
  * three-lane map has yellow, blue and purple ziplines and no green.
  *
@@ -160,6 +190,12 @@ export interface MovementSample {
    * sample, absent before the game ran any of it.
    */
   command?: MovementCommand
+  /**
+   * Interactions are the map objects the hero collected or broke since the
+   * last tick, as the game's own completion named the hero. A hero who stood
+   * by, or only benefited from another's pickup, has none.
+   */
+  interactions?: Interaction[]
 }
 
 export const MovementSample: MessageType<MovementSample> =
@@ -187,6 +223,7 @@ export const MovementSample: MessageType<MovementSample> =
       [20, 'actions', 14, 3, MovementAction_Enum],
       [21, 'casts', 13, 3],
       [22, 'command', 11, 0, MovementCommand.codec],
+      [23, 'interactions', 11, 1, Interaction.codec],
     ],
     {
       decode: (
@@ -269,6 +306,11 @@ export const MovementSample: MessageType<MovementSample> =
                 r,
                 r.delimited(),
                 m.command ?? {},
+              )
+              break
+            case 23:
+              ;(m.interactions ??= []).push(
+                Interaction.decode(r, r.delimited(), {}),
               )
               break
             default:
@@ -369,6 +411,125 @@ export const MovementSample: MessageType<MovementSample> =
         {
           const v = m.command
           if (v != null) MovementCommand.writeField(w, 22, v)
+        }
+        {
+          const a = m.interactions
+          if (a != null) for (const e of a) Interaction.writeField(w, 23, e)
+        }
+      },
+    },
+  )
+
+/**
+ * Interaction is one completed interaction with a map object.
+ *
+ * @generated from message modlock.wasm.movement.Interaction
+ */
+export interface Interaction {
+  kind?: InteractionKind
+  /**
+   * Entity is the object's entity handle, which names it within this world
+   * only; Origin and the names identify it across sessions.
+   */
+  entity?: number
+  /**
+   * DesignerName is the object's entity class, such as citadel_pickup_health,
+   * and SubclassId the hash of its subclass, such as the healing bat's
+   * citadel_pickup_health_float_in_world.
+   */
+  designerName?: string
+  subclassId?: number
+  /**
+   * Origin is where the object stood before the interaction moved it: a
+   * vacuumed pickup's position as its vacuum began, otherwise its origin.
+   */
+  origin?: Vec3
+  /**
+   * VacuumStart is the game time the pickup began flying to the hero, absent
+   * for a pickup collected on touch and for a prop. The interaction itself
+   * completed on the sample's tick.
+   */
+  vacuumStart?: number
+  /**
+   * Inflictor is the entity that broke a prop, such as the hero's projectile,
+   * or zero.
+   */
+  inflictor?: number
+}
+
+export const Interaction: MessageType<Interaction> =
+  /* @__PURE__ */ createMessageType<Interaction>(
+    'modlock.wasm.movement.Interaction',
+    () => [
+      [1, 'kind', 14, 0, InteractionKind_Enum],
+      [2, 'entity', 13],
+      [3, 'designer_name', 9],
+      [4, 'subclass_id', 13],
+      [5, 'origin', 11, 0, Vec3.codec],
+      [6, 'vacuum_start', 2, 4],
+      [7, 'inflictor', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Interaction): Interaction => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.kind = r.int32()
+              break
+            case 2:
+              m.entity = r.uint32()
+              break
+            case 3:
+              m.designerName = r.string()
+              break
+            case 4:
+              m.subclassId = r.uint32()
+              break
+            case 5:
+              m.origin = Vec3.decode(r, r.delimited(), m.origin ?? {})
+              break
+            case 6:
+              m.vacuumStart = r.float()
+              break
+            case 7:
+              m.inflictor = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Interaction, w: Writer): void => {
+        {
+          const v = m.kind
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.entity
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.designerName
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.subclassId
+          if (v) w.uint32(32).uint32(v)
+        }
+        {
+          const v = m.origin
+          if (v != null) Vec3.writeField(w, 5, v)
+        }
+        {
+          const v = m.vacuumStart
+          if (v != null) w.uint32(53).float(v)
+        }
+        {
+          const v = m.inflictor
+          if (v) w.uint32(56).uint32(v)
         }
       },
     },

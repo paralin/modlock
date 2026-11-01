@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -123,6 +124,62 @@ struct MovementExecutedEvent {
   uint32_t pawn_handle = 0;
 };
 
+// InteractionKind names a map object's completed interaction: a pickup the
+// game's common completion handed to its collector, or a breakable prop the
+// game's break callback announced through MODIFIER_EVENT_BREAKABLE_PROP_BROKEN.
+// Starting a vacuum, an object's disappearance and the healing a pickup grants
+// are not interactions; only completion is.
+enum class InteractionKind : uint8_t {
+  kPickupCollected,
+  kPropBroken,
+};
+
+// InteractionEvent is one completed interaction, copied while the native call
+// owned its entities. actor_handle is the collector or breaker the native call
+// named, never an entity that merely benefited or stood near. origin is where
+// the object stood before the interaction moved it: a vacuumed pickup's
+// m_vVacuumStartPos, otherwise the object's absolute origin. vacuum_start is the
+// game time the pickup began flying to this collector, absent when it did not.
+struct InteractionEvent {
+  InteractionKind kind = InteractionKind::kPickupCollected;
+  uint32_t actor_handle = 0;
+  uint32_t object_handle = 0;
+  // inflictor_handle is the entity that broke a prop, such as a projectile;
+  // zero for a pickup.
+  uint32_t inflictor_handle = 0;
+  std::string designer_name;
+  uint32_t subclass_id = 0;
+  std::array<float, 3> origin{};
+  std::optional<float> vacuum_start;
+};
+
+// InteractionOffsets are the schema offsets the interaction decoder reads an
+// object through. The vacuum fields are CCitadel_Pickup's and apply only to
+// pickups.
+struct InteractionOffsets {
+  size_t subclass = 0;
+  size_t body = 0;
+  size_t scene_node = 0;
+  size_t origin = 0;
+  size_t vacuum_start_position = 0;
+  size_t vacuum_start_time = 0;
+  size_t vacuum_target = 0;
+};
+
+// DescribeInteractionObject reads one interaction's object through the
+// bounded reader: its subclass and where it stood. A pickup whose vacuum
+// target is the actor reports its vacuum start position and time; any other
+// object reports its absolute origin. The designer name is the caller's,
+// which DesignerName reads in place.
+[[nodiscard]] MODLOCK_API std::expected<void, std::string> DescribeInteractionObject(
+    const void* object, const InteractionOffsets& offsets, const BoundedReader& read,
+    InteractionEvent& event);
+
+// DecodePropBroken reads the MODIFIER_EVENT_BREAKABLE_PROP_BROKEN payload:
+// three packed handles, the box +0, the inflictor +4 and the breaker +8.
+[[nodiscard]] MODLOCK_API std::expected<InteractionEvent, std::string> DecodePropBroken(
+    const void* event_data, const BoundedReader& read);
+
 // CombatEvent is one decoded native event: the kind, the decoded values, and
 // when decoding failed, the reason. A decode failure is a capability failure
 // and must surface as kDecodeFailed, never as a zero-filled success.
@@ -133,6 +190,7 @@ struct CombatEvent {
     kShieldDamage,
     kAbilityExecuted,
     kMovementExecuted,
+    kInteraction,
     kDecodeFailed,
   };
   Kind kind = Kind::kDecodeFailed;
@@ -144,6 +202,15 @@ struct CombatEvent {
   std::optional<ShieldDamageEvent> shield;
   std::optional<AbilityExecutedEvent> ability;
   std::optional<MovementExecutedEvent> movement;
+  std::optional<InteractionEvent> interaction;
+};
+
+// ObservedInteractions reports which interactions the installed hook can
+// deliver; a game build without a signature, enumerator or field leaves its
+// kind unobserved, and consumers must treat that kind's absence as unknown.
+struct ObservedInteractions {
+  bool pickups = false;
+  bool breaks = false;
 };
 
 // DamageResultOffsets holds the runtime-resolved CTakeDamageResult field
@@ -203,8 +270,10 @@ struct DamageResultOffsets {
 // through a native detour. The thunk forwards every event
 // with all five arguments and the original return value unchanged, so native
 // modifier dispatch is never suppressed; before the call it decodes damage,
-// healing and ability execution into immutable values. The broadcast hook
-// observes shield absorption without duplicating modifier events. One hook may
+// healing, ability execution and prop breaks into immutable values. The
+// broadcast hook observes shield absorption without duplicating modifier
+// events, and the pickup hook observes each pickup's completion with its
+// collector before forwarding it once. One hook may
 // exist at a time; the handler runs on the native thread that fired the event
 // and receives no entity pointers, only decoded values.
 class MODLOCK_API CombatEventsHook {
@@ -225,6 +294,9 @@ class MODLOCK_API CombatEventsHook {
 
   CombatEventsHook(const CombatEventsHook&) = delete;
   CombatEventsHook& operator=(const CombatEventsHook&) = delete;
+
+  // Observed reports which interaction kinds this hook delivers.
+  [[nodiscard]] ObservedInteractions Observed() const;
 
  private:
   struct Impl;

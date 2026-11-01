@@ -165,6 +165,16 @@ _MovementAction: dict[Any, Any] = {
 }
 
 
+# InteractionKind names how a hero completed an interaction with a map object.
+type InteractionKind = Literal["pickup_collected", "prop_broken"]
+_InteractionKind: dict[Any, Any] = {
+    1: "pickup_collected",
+    "pickup_collected": 1,
+    2: "prop_broken",
+    "prop_broken": 2,
+}
+
+
 # Lane is one of the map's lanes, numbered as the game numbers them. The
 # three-lane map has yellow, blue and purple ziplines and no green.
 type Lane = Literal["none", "yellow", "green", "blue", "purple"]
@@ -668,6 +678,35 @@ class MovementSample:
     # command is the movement the hero's player commanded since the last
     # sample, absent before the game ran any of it.
     command: MovementCommand | None = None
+    # interactions are the map objects the hero collected or broke since the
+    # last tick, as the game's own completion named the hero. A hero who stood
+    # by, or only benefited from another's pickup, has none.
+    interactions: list[Interaction] = dataclasses.field(default_factory=lambda: list[Interaction]())
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class Interaction:
+    """Interaction is one completed interaction with a map object."""
+
+    kind: InteractionKind | None = None
+    # entity is the object's entity handle, which names it within this world
+    # only; origin and the names identify it across sessions.
+    entity: int = 0
+    # designer_name is the object's entity class, such as citadel_pickup_health,
+    # and subclass_id the hash of its subclass, such as the healing bat's
+    # citadel_pickup_health_float_in_world.
+    designer_name: str = ""
+    subclass_id: int = 0
+    # origin is where the object stood before the interaction moved it: a
+    # vacuumed pickup's position as its vacuum began, otherwise its origin.
+    origin: Vector
+    # vacuum_start is the game time the pickup began flying to the hero, absent
+    # for a pickup collected on touch and for a prop. The interaction itself
+    # completed on the sample's tick.
+    vacuum_start: float | None = None
+    # inflictor is the entity that broke a prop, such as the hero's projectile,
+    # or zero.
+    inflictor: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -1336,6 +1375,10 @@ class FrameEvent:
     # movement holds one sample per watched, live hero when this frame starts a
     # new tick, and is empty otherwise.
     movement: list[MovementSample] = dataclasses.field(default_factory=lambda: list[MovementSample]())
+    # interactions names the interaction kinds the host observes, sent with
+    # movement. A kind it lacks, such as on a game build whose completion it
+    # cannot find, is unknown rather than absent from the samples.
+    interactions: list[InteractionKind] = dataclasses.field(default_factory=lambda: list[InteractionKind]())
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2587,6 +2630,19 @@ _SCHEMA: wire.Schema = {
             wire.Field(20, "actions", "enum", repeated=True, enum=_MovementAction),
             wire.Field(21, "casts", "uint32", repeated=True),
             wire.Field(22, "command", "message", optional=True, message="MovementCommand"),
+            wire.Field(23, "interactions", "message", repeated=True, message="Interaction"),
+        ],
+    ),
+    "Interaction": (
+        Interaction,
+        [
+            wire.Field(1, "kind", "enum", enum=_InteractionKind),
+            wire.Field(2, "entity", "uint32"),
+            wire.Field(3, "designer_name", "string"),
+            wire.Field(4, "subclass_id", "uint32"),
+            wire.Field(5, "origin", "message", message="Vec3"),
+            wire.Field(6, "vacuum_start", "float", optional=True),
+            wire.Field(7, "inflictor", "uint32"),
         ],
     ),
     "MovementCommand": (
@@ -3263,6 +3319,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "tick", "uint64"),
             wire.Field(2, "time_seconds", "double"),
             wire.Field(3, "movement", "message", repeated=True, message="MovementSample"),
+            wire.Field(4, "interactions", "enum", repeated=True, enum=_InteractionKind),
         ],
     ),
     "CommandEvent": (

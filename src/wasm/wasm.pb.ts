@@ -8,7 +8,8 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
-import { MovementSample } from './movement/movement.pb.js'
+import type { InteractionKind } from './movement/movement.pb.js'
+import { InteractionKind_Enum, MovementSample } from './movement/movement.pb.js'
 
 /**
  * Call is one method call across the boundary: a mod calling the game
@@ -309,6 +310,12 @@ export interface FrameEvent {
    * new tick, and is empty otherwise.
    */
   movement?: MovementSample[]
+  /**
+   * Interactions names the interaction kinds the host observes, sent with
+   * Movement. A kind it lacks, such as on a game build whose completion it
+   * cannot find, is unknown rather than absent from the samples.
+   */
+  interactions?: InteractionKind[]
 }
 
 export const FrameEvent: MessageType<FrameEvent> =
@@ -318,6 +325,7 @@ export const FrameEvent: MessageType<FrameEvent> =
       [1, 'tick', 4],
       [2, 'time_seconds', 1],
       [3, 'movement', 11, 1, MovementSample.codec],
+      [4, 'interactions', 14, 3, InteractionKind_Enum],
     ],
     {
       decode: (r: BinaryReader, end: number, m: FrameEvent): FrameEvent => {
@@ -335,6 +343,10 @@ export const FrameEvent: MessageType<FrameEvent> =
               ;(m.movement ??= []).push(
                 MovementSample.decode(r, r.delimited(), {}),
               )
+              break
+            case 4:
+              for (const e = r.run(t), a = (m.interactions ??= []); r.pos < e;)
+                a.push(r.int32())
               break
             default:
               r.skip(t)
@@ -354,6 +366,14 @@ export const FrameEvent: MessageType<FrameEvent> =
         {
           const a = m.movement
           if (a != null) for (const e of a) MovementSample.writeField(w, 3, e)
+        }
+        {
+          const a = m.interactions
+          if (a != null && a.length > 0) {
+            const s = w.uint32(34).fork()
+            for (const e of a) w.int32(e)
+            w.join(s)
+          }
         }
       },
     },

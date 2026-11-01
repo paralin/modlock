@@ -185,6 +185,10 @@ type FrameEvent struct {
 	// Movement holds one sample per watched, live hero when this frame starts a
 	// new tick, and is empty otherwise.
 	Movement []*movement.MovementSample `protobuf:"bytes,3,rep,name=movement,proto3" json:"movement,omitempty"`
+	// Interactions names the interaction kinds the host observes, sent with
+	// Movement. A kind it lacks, such as on a game build whose completion it
+	// cannot find, is unknown rather than absent from the samples.
+	Interactions []movement.InteractionKind `protobuf:"varint,4,rep,packed,name=interactions,proto3" json:"interactions,omitempty"`
 }
 
 func (x *FrameEvent) Reset() {
@@ -210,6 +214,13 @@ func (x *FrameEvent) GetTimeSeconds() float64 {
 func (x *FrameEvent) GetMovement() []*movement.MovementSample {
 	if x != nil {
 		return x.Movement
+	}
+	return nil
+}
+
+func (x *FrameEvent) GetInteractions() []movement.InteractionKind {
+	if x != nil {
+		return x.Interactions
 	}
 	return nil
 }
@@ -560,6 +571,7 @@ func (m *FrameEvent) CloneVT() *FrameEvent {
 	r.Tick = m.Tick
 	r.TimeSeconds = m.TimeSeconds
 	r.Movement = protobuf_go_lite.CloneVTSlice(m.Movement)
+	r.Interactions = protobuf_go_lite.CloneSlice(m.Interactions)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -852,6 +864,9 @@ func (this *FrameEvent) EqualVT(that *FrameEvent) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Movement, that.Movement, func() *movement.MovementSample { return &movement.MovementSample{} }) {
+		return false
+	}
+	if !protobuf_go_lite.EqualSlice(this.Interactions, that.Interactions) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1353,6 +1368,17 @@ func (x *FrameEvent) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if len(x.Interactions) > 0 || s.HasField("interactions") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("interactions")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Interactions {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s)
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1393,6 +1419,17 @@ func (x *FrameEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 					return
 				}
 				x.Movement = append(x.Movement, v)
+			})
+		case "interactions":
+			s.AddField("interactions")
+			if s.ReadNil() {
+				x.Interactions = nil
+				return
+			}
+			s.ReadArray(func() {
+				var v movement.InteractionKind
+				v.UnmarshalProtoJSON(s)
+				x.Interactions = append(x.Interactions, v)
 			})
 		}
 	})
@@ -2091,6 +2128,11 @@ func (m *FrameEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Interactions) > 0 {
+		i = protobuf_go_lite.EncodeVarintPacked(dAtA, i, m.Interactions)
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Movement) > 0 {
 		for iNdEx := len(m.Movement) - 1; iNdEx >= 0; iNdEx-- {
 			size, err := m.Movement[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
@@ -2561,6 +2603,7 @@ func (m *FrameEvent) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += protobuf_go_lite.SizeVarintPacked(1, m.Interactions)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2789,6 +2832,14 @@ func (x *FrameEvent) MarshalProtoText() string {
 			} else {
 				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
 			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if len(x.Interactions) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "interactions")
+		for i, v := range x.Interactions {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			protobuf_go_lite.TextWriteStringer(&sb, movement.InteractionKind(v))
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
@@ -3334,6 +3385,40 @@ func (m *FrameEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType == 0 {
+				var v movement.InteractionKind
+				var _v uint64
+				_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				v = movement.InteractionKind(_v)
+				if err != nil {
+					return err
+				}
+				m.Interactions = append(m.Interactions, v)
+			} else if wireType == 2 {
+				packedStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				iNdEx = packedStart
+				var elementCount int
+				elementCount = protobuf_go_lite.PackedVarintElementCount(dAtA[iNdEx:postIndex])
+				if elementCount != 0 && len(m.Interactions) == 0 {
+					m.Interactions = make([]movement.InteractionKind, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v movement.InteractionKind
+					var _v uint64
+					_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					v = movement.InteractionKind(_v)
+					if err != nil {
+						return err
+					}
+					m.Interactions = append(m.Interactions, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Interactions", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

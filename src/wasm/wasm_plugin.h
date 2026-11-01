@@ -313,8 +313,8 @@ class WasmPlugin final : public Plugin {
   // Contact returns what the mod does with a hit between the entities with
   // the handles attacker and victim.
   PlayerScope::Contact Contact(uint32_t attacker, uint32_t victim) const;
-  // Fought queues an applied hit for a mod that wants it and a movement fact
-  // for the movement samples.
+  // Fought queues an applied hit for a mod that wants it, and a movement fact
+  // or completed interaction for the movement samples.
   void Fought(const gameinterop::CombatEvent& event, bool damaged);
   void DeliverDamaged();
   // Sample fills a frame that starts a new tick with the watched heroes'

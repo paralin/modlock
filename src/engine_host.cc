@@ -270,6 +270,10 @@ std::expected<Subscription, std::string> EngineHost::OnCombat(
   return subscription;
 }
 
+gameinterop::ObservedInteractions EngineHost::ObservedInteractions() const {
+  return impl_->combat_hook ? impl_->combat_hook->Observed() : gameinterop::ObservedInteractions{};
+}
+
 std::expected<Subscription, std::string> EngineHost::OnConnection(
     std::shared_ptr<gameinterop::ConnectionEventSink> sink) {
   // Install the connection hook for a valid sink.
