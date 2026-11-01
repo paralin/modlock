@@ -31,7 +31,7 @@ func Package(ctx context.Context, name, version string) (string, error) {
 		return "", err
 	}
 	err = fetch.Install(dir, func(staging string) error {
-		return unpack(ctx, name, version, dir+".tgz", staging)
+		return unpack(ctx, name, version, staging+".tgz", staging)
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "install %s", name)

@@ -62,6 +62,8 @@ func File(ctx context.Context, url, path string) error {
 // complete. It does nothing when dir exists. Each install stages in a
 // directory of its own, so installs of one dir may run at once, in one process
 // or several; the first to finish installs, and the rest find dir in place.
+// fill may keep scratch files, such as a downloaded archive, at staging plus a
+// suffix: they share the private directory, which Install removes.
 func Install(dir string, fill func(staging string) error) error {
 	if _, err := os.Stat(dir); err == nil {
 		return nil
