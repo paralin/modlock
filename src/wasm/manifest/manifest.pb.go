@@ -164,6 +164,10 @@ const (
 	Definition_FILE_ABILITIES Definition_File = 0
 	// FILE_HEROES is scripts/heroes.vdata, the heroes.
 	Definition_FILE_HEROES Definition_File = 1
+	// FILE_BOT_DIFFICULTY is scripts/bots/bot_difficulty.vdata, the bot
+	// difficulties. An entry names one by its ECitadelBotDifficulty value,
+	// such as k_ECitadelBotDifficulty_Hard.
+	Definition_FILE_BOT_DIFFICULTY Definition_File = 2
 )
 
 // Enum value maps for Definition_File.
@@ -171,10 +175,12 @@ var (
 	Definition_File_name = map[int32]string{
 		0: "FILE_ABILITIES",
 		1: "FILE_HEROES",
+		2: "FILE_BOT_DIFFICULTY",
 	}
 	Definition_File_value = map[string]int32{
-		"FILE_ABILITIES": 0,
-		"FILE_HEROES":    1,
+		"FILE_ABILITIES":      0,
+		"FILE_HEROES":         1,
+		"FILE_BOT_DIFFICULTY": 2,
 	}
 )
 
@@ -380,8 +386,8 @@ type Definition struct {
 	unknownFields []byte
 	// File is the definition file that holds the entry.
 	File Definition_File `protobuf:"varint,1,opt,name=file,proto3" json:"file,omitempty"`
-	// Entry is the entry's name, such as hero_priest or
-	// gunslinger_rocket_launcher.
+	// Entry is the entry's name, such as hero_priest,
+	// gunslinger_rocket_launcher or k_ECitadelBotDifficulty_Hard.
 	Entry string `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
 	// Properties replaces the values of an ability's named properties, such as
 	// AbilityCooldown. Only abilities have properties.

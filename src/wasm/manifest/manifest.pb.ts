@@ -411,8 +411,8 @@ export interface Definition {
    */
   file?: Definition_File
   /**
-   * Entry is the entry's name, such as hero_priest or
-   * gunslinger_rocket_launcher.
+   * Entry is the entry's name, such as hero_priest,
+   * gunslinger_rocket_launcher or k_ECitadelBotDifficulty_Hard.
    */
   entry?: string
   /**
@@ -554,6 +554,13 @@ export enum Definition_File {
    * FILE_HEROES is scripts/heroes.vdata, the heroes.
    */
   HEROES = 1,
+
+  /**
+   * FILE_BOT_DIFFICULTY is scripts/bots/bot_difficulty.vdata, the bot
+   * difficulties. An entry names one by its ECitadelBotDifficulty value,
+   * such as k_ECitadelBotDifficulty_Hard.
+   */
+  BOT_DIFFICULTY = 2,
 }
 
 export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
@@ -561,5 +568,6 @@ export const Definition_File_Enum = /* @__PURE__ */ createEnumType(
   [
     [0, 'FILE_ABILITIES'],
     [1, 'FILE_HEROES'],
+    [2, 'FILE_BOT_DIFFICULTY'],
   ],
 )

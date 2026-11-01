@@ -105,6 +105,24 @@ signatures {
   shape: "bool CCitadel_Ability_ZipLine::WarpOnto(int lane, const Vector* origin, const Vector* forward, float extra_intro)"
 }
 
+# The bot constructor's lookup of its difficulty record: the records getter,
+# then the find, then the fallback to the easy record.
+signatures {
+  id: "bot-difficulty.find"
+  modules: GAME_MODULE_SERVER
+  pattern: "E8 ?? ?? ?? ?? 8B D3 48 8B C8 E8 ?? ?? ?? ?? 48 89 87 ?? ?? 00 00 48 85 C0 75 ?? E8 ?? ?? ?? ?? BA 01 00 00 00"
+  call_at: 0xA
+  shape: "CBotDifficultyDefinition* FindBotDifficulty(void* records, ECitadelBotDifficulty difficulty)"
+}
+
+signatures {
+  id: "bot-difficulty.records"
+  modules: GAME_MODULE_SERVER
+  pattern: "E8 ?? ?? ?? ?? 8B D3 48 8B C8 E8 ?? ?? ?? ?? 48 89 87 ?? ?? 00 00 48 85 C0 75 ?? E8 ?? ?? ?? ?? BA 01 00 00 00"
+  call_at: 0x0
+  shape: "void* BotDifficultyRecords(); TLS-guarded static of the parsed bot_difficulty.vdata"
+}
+
 signatures {
   id: "bot.create"
   modules: GAME_MODULE_SERVER

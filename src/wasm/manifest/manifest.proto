@@ -137,13 +137,18 @@ message Definition {
 
     // FILE_HEROES is scripts/heroes.vdata, the heroes.
     FILE_HEROES = 1;
+
+    // FILE_BOT_DIFFICULTY is scripts/bots/bot_difficulty.vdata, the bot
+    // difficulties. An entry names one by its ECitadelBotDifficulty value,
+    // such as k_ECitadelBotDifficulty_Hard.
+    FILE_BOT_DIFFICULTY = 2;
   }
 
   // File is the definition file that holds the entry.
   File file = 1;
 
-  // Entry is the entry's name, such as hero_priest or
-  // gunslinger_rocket_launcher.
+  // Entry is the entry's name, such as hero_priest,
+  // gunslinger_rocket_launcher or k_ECitadelBotDifficulty_Hard.
   string entry = 2;
 
   // Properties replaces the values of an ability's named properties, such as
