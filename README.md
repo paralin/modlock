@@ -888,7 +888,7 @@ builder returns one, so they compose:
 | `curve.durationOf(c)`, `curve.valueAt(c, seconds)`                   | How long a curve plays, and its value at a time.              |
 
 `curve.ease` holds `linear`, `in`, `out`, `inOut`, `sine`, `back`, `elastic`
-and `bounce`, and any function from 0 to 1 works as an ease. The game's lerp
+and `bounce`, and `curve.shaped(fn)` makes any function from 0 to 1 an ease. The game's lerp
 draws `linear`, `ease.bias(b)` and `ease.gain(g)` itself (Valve's bias and
 gain, each linear at 0.5), so a span with one of them plays as one lerp. Any
 other span is sampled into `rate` lerps a second, 30 unless you set it. The

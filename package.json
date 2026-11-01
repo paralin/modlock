@@ -8,7 +8,7 @@
   "scripts": {
     "gen": "./scripts/gen-proto.sh --language ts",
     "prepare": "sh scripts/install-hooks.sh",
-    "typecheck": "tsrs --noEmit -p js/tsconfig.json && tsrs --noEmit -p js/test/tsconfig.json && tsrs --noEmit -p panorama/tsconfig.json && tsrs --noEmit -p panorama/browser/tsconfig.json && tsrs --noEmit -p scripts/tsconfig.json && tsrs --noEmit -p cmd/modlock-npm/tsconfig.json && tsrs --noEmit -p studio/web/tsconfig.json",
+    "typecheck": "tsrs --noEmit -p js/tsconfig.json && tsrs --noEmit -p js/test/tsconfig.json && tsrs --noEmit -p js/test/scriptc/tsconfig.json && tsrs --noEmit -p panorama/tsconfig.json && tsrs --noEmit -p panorama/browser/tsconfig.json && tsrs --noEmit -p scripts/tsconfig.json && tsrs --noEmit -p cmd/modlock-npm/tsconfig.json && tsrs --noEmit -p studio/web/tsconfig.json",
     "check": "bun run typecheck && bun run lint && bun run check:tla",
     "check:tla": "aptre-tla .",
     "lint": "oxlint .",
@@ -18,6 +18,7 @@
     "format:go": "gofmt -w",
     "format:cc": "git ls-files -z '*.cc' '*.h' ':!:third_party' ':!:*.pb.*' | xargs -0 clang-format -i",
     "test": "bun test --timeout 30000 ./panorama/ ./js/test/",
+    "test:scriptc": "go test -timeout 60m -run TestScriptcSuite -v ./js",
     "gen:items": "bun scripts/gen-items.ts"
   },
   "devDependencies": {

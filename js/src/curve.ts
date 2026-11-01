@@ -21,46 +21,59 @@ export interface LerpShape {
 /**
  * Ease maps the fraction of a span played, 0 to 1, to the fraction moved. An
  * ease with a lerp shape is one the game draws itself, so a move with it
- * plays as one lerp.
+ * plays as one lerp. It is a record rather than a function with a property,
+ * which scriptc cannot read.
  */
 export interface Ease {
-  (t: number): number
+  /** at returns the fraction moved a fraction t of the way through. */
+  readonly at: (t: number) => number
+  /** lerp is the shape the game draws the ease with, if it can. */
   readonly lerp?: LerpShape
 }
 
 /** ease holds the common easing curves. */
 export const ease = {
   /** linear moves at an even pace. */
-  linear: native((t) => t, {}),
+  linear: shaped((t) => t, {}),
   /** bias is the game's bias curve; see LerpShape. */
-  bias: (b: number): Ease => native((t) => bias(t, b), { bias: b }),
+  bias: (b: number): Ease => shaped((t) => bias(t, b), { bias: b }),
   /** gain is the game's gain curve; see LerpShape. */
-  gain: (g: number): Ease => native((t) => gain(t, g), { gain: g }),
+  gain: (g: number): Ease => shaped((t) => gain(t, g), { gain: g }),
   /** in starts slow and speeds up. */
-  in: (t: number) => t * t * t,
+  in: shaped((t) => t * t * t),
   /** out starts fast and slows to a stop. */
-  out: (t: number) => 1 - (1 - t) ** 3,
+  out: shaped((t) => 1 - (1 - t) ** 3),
   /** inOut starts and ends slow. */
-  inOut: (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (2 - 2 * t) ** 3 / 2),
+  inOut: shaped((t) => (t < 0.5 ? 4 * t * t * t : 1 - (2 - 2 * t) ** 3 / 2)),
   /** sine starts and ends slow, more gently than inOut. */
-  sine: (t: number) => (1 - Math.cos(Math.PI * t)) / 2,
+  sine: shaped((t) => (1 - Math.cos(Math.PI * t)) / 2),
   /** back passes its end a little and settles back onto it. */
-  back: (t: number) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2,
+  back: shaped((t) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2),
   /** elastic overshoots its end and rings down onto it. */
-  elastic: (t: number) =>
+  elastic: shaped((t) =>
     t <= 0 || t >= 1
       ? t
       : 2 ** (-10 * t) * Math.sin(((t * 10 - 0.75) * 2 * Math.PI) / 3) + 1,
+  ),
   /** bounce drops onto its end and bounces to rest. */
-  bounce: (t: number) => {
+  bounce: shaped((t) => {
     // Four parabolas, each a smaller bounce than the one before.
     const k = 7.5625
     if (t < 1 / 2.75) return k * t * t
     if (t < 2 / 2.75) return k * (t - 1.5 / 2.75) ** 2 + 0.75
     if (t < 2.5 / 2.75) return k * (t - 2.25 / 2.75) ** 2 + 0.9375
     return k * (t - 2.625 / 2.75) ** 2 + 0.984375
-  },
+  }),
 } as const
+
+/**
+ * shaped is the ease that moves by at, drawn by the game with lerp when it has
+ * one. It declares its result, so every ease has the one layout scriptc
+ * gives Ease.
+ */
+export function shaped(at: (t: number) => number, lerp?: LerpShape): Ease {
+  return { at, lerp }
+}
 
 /** CameraSpan is one piece of a curve. */
 export interface CameraSpan {
@@ -104,7 +117,7 @@ export function line(
   duration: number,
   shape: Ease = ease.linear,
 ): CameraCurve {
-  return [{ duration, lerp: shape.lerp, at: (u) => mix(from, to, shape(u)) }]
+  return [{ duration, lerp: shape.lerp, at: (u) => mix(from, to, shape.at(u)) }]
 }
 
 /** hold keeps a value for a duration. */
@@ -142,7 +155,7 @@ export function keyframes(
     const after = keys[i + 1]?.value ?? to.value
     spans.push({
       duration,
-      at: (u) => spline(before, from.value, to.value, after, shape(u)),
+      at: (u) => spline(before, from.value, to.value, after, shape.at(u)),
     })
   })
   return spans
@@ -204,7 +217,7 @@ export function orbit(options: OrbitOptions): CameraCurve {
     {
       duration,
       at: (u) => {
-        const t = shape(u)
+        const t = shape.at(u)
         const angle = start + t * turns * 2 * Math.PI
         return {
           x: center.x + radius * Math.cos(angle),
@@ -294,11 +307,6 @@ export function valueAt(
     left -= span.duration
   }
   return curve.at(-1)?.at(1)
-}
-
-/** native gives an ease the lerp shape the game draws it with. */
-function native(shape: (t: number) => number, lerp: LerpShape): Ease {
-  return Object.assign(shape, { lerp })
 }
 
 /** bias is Valve's Bias: t raised to the power that maps 0.5 to b. */

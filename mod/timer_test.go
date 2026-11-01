@@ -40,6 +40,17 @@ func TestAfterAndEvery(t *testing.T) {
 	if len(runs) != 4 {
 		t.Fatalf("missed the repeat at 103: %v", runs)
 	}
+
+	// A new map's clock starts over, and the repeat keeps its remaining delay.
+	frame(0)
+	frame(0.8)
+	if len(runs) != 4 {
+		t.Fatalf("ran early after the clock went back: %v", runs)
+	}
+	frame(1)
+	if len(runs) != 5 {
+		t.Fatalf("missed the repeat after the clock went back: %v", runs)
+	}
 }
 
 func TestCancelAndStartBeforeFirstFrame(t *testing.T) {

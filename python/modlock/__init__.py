@@ -4140,8 +4140,16 @@ def sequence(fn: Callable[[int], float | None]) -> Timer:
 def _advance_timers(seconds: float) -> None:
     """_advance_timers moves the clock to a frame and runs the timers that came
     due, at most once each and in the order they came due. A callback that
-    raises ends only its own timer."""
+    raises ends only its own timer. A clock that runs backward, as a new map's
+    does, keeps each timer's remaining delay."""
     global _now, _entries
+
+    # Carry the timers across a clock that went back.
+    if _now is not None and seconds < _now:
+        shift = seconds - _now
+        for entry in _entries:
+            if entry.started:
+                entry.at += shift
     _now = seconds
 
     # Start the timers made before the clock was known, then take the due ones.

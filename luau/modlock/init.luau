@@ -3712,8 +3712,18 @@ end
 
 -- advanceTimers moves the clock to a frame and runs the timers that came due,
 -- at most once each and in the order they came due. A callback that errors ends
--- only its own timer.
+-- only its own timer. A clock that runs backward, as a new map's does, keeps
+-- each timer's remaining delay.
 local function advanceTimers(seconds: number)
+	-- Carry the timers across a clock that went back.
+	if now and seconds < now then
+		local shift = seconds - now
+		for _, entry in entries do
+			if entry.at then
+				entry.at = (entry.at :: number) + shift
+			end
+		end
+	end
 	now = seconds
 
 	-- Start the timers made before the clock was known, then take the due ones.

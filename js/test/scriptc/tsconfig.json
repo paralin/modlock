@@ -10,10 +10,16 @@
     "noEmit": true,
     "paths": {
       "bun:test": ["./testing.ts"],
-      "modlock": ["./node_modules/modlock"],
-      "modlock/*": ["./node_modules/modlock/*"]
+      "modlock": ["../../src/index.ts"],
+      "modlock/jsx-runtime": ["../../src/index.ts"],
+      "modlock/*": ["../../src/*"]
     }
   },
-  "include": ["main.ts", "../../src/globals.d.ts"],
+  "include": [
+    "*.ts",
+    "../*.test.ts",
+    "../../src/globals.d.ts",
+    "../../src/scriptc.ts"
+  ],
   "exclude": ["build", "node_modules"]
 }
