@@ -39,6 +39,9 @@ const drawing = new Drawing(
     DispatchEvent: (event: string, ...values: unknown[]) =>
       $.DispatchEvent(event, ...values),
     Msg: (...values: unknown[]) => $.Msg(...values),
+    MousePosition: () => $.MousePosition(),
+    RegisterEventHandler: (event, panel, handler) =>
+      $.RegisterEventHandler(event, panel as Panel, handler),
     PlaySound: (sound: string) => {
       PlayUISoundEvent(sound)
     },

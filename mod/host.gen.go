@@ -352,6 +352,9 @@ type BotOptionsHeroId = playerspb.BotOptions_HeroId
 // SettingChangedEvent is one player's new value of one setting.
 type SettingChangedEvent = settingspb.SettingChangedEvent
 
+// Wheel reports one wheel step over a slider, anchored to its pointer position.
+type Wheel = uipb.Wheel
+
 // UiPressEvent reports a press on a button in a player's interface.
 type UiPressEvent = uipb.UiPressEvent
 
@@ -370,6 +373,9 @@ type UiInputEventOn = uipb.UiInputEvent_On
 
 // UiInputEventChoice sets UiInputEvent.Value to Choice.
 type UiInputEventChoice = uipb.UiInputEvent_Choice
+
+// UiInputEventWheel sets UiInputEvent.Value to Wheel.
+type UiInputEventWheel = uipb.UiInputEvent_Wheel
 
 // StartEvent describes the server the mod starts in.
 type StartEvent = wasmpb.StartEvent

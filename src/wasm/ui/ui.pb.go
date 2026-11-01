@@ -1113,6 +1113,8 @@ type Slider struct {
 	// Step is the distance between the values the slider stops at; zero lets
 	// it stop anywhere.
 	Step float32 `protobuf:"fixed32,4,opt,name=step,proto3" json:"step,omitempty"`
+	// Wheel enables scoped wheel events while the pointer is over the slider.
+	Wheel bool `protobuf:"varint,5,opt,name=wheel,proto3" json:"wheel,omitempty"`
 }
 
 func (x *Slider) Reset() {
@@ -1145,6 +1147,42 @@ func (x *Slider) GetMax() float32 {
 func (x *Slider) GetStep() float32 {
 	if x != nil {
 		return x.Step
+	}
+	return 0
+}
+
+func (x *Slider) GetWheel() bool {
+	if x != nil {
+		return x.Wheel
+	}
+	return false
+}
+
+// Wheel reports one wheel step over a slider, anchored to its pointer position.
+type Wheel struct {
+	unknownFields []byte
+	// Delta is 1 for up and -1 for down. It never changes the slider's value.
+	Delta float32 `protobuf:"fixed32,1,opt,name=delta,proto3" json:"delta,omitempty"`
+	// Fraction is the pointer's horizontal position, bounded from 0 to 1.
+	Fraction float32 `protobuf:"fixed32,2,opt,name=fraction,proto3" json:"fraction,omitempty"`
+}
+
+func (x *Wheel) Reset() {
+	*x = Wheel{}
+}
+
+func (*Wheel) ProtoMessage() {}
+
+func (x *Wheel) GetDelta() float32 {
+	if x != nil {
+		return x.Delta
+	}
+	return 0
+}
+
+func (x *Wheel) GetFraction() float32 {
+	if x != nil {
+		return x.Fraction
 	}
 	return 0
 }
@@ -2213,6 +2251,7 @@ type UiInputEvent struct {
 	//	*UiInputEvent_Number
 	//	*UiInputEvent_On
 	//	*UiInputEvent_Choice
+	//	*UiInputEvent_Wheel
 	Value isUiInputEvent_Value `protobuf_oneof:"value"`
 }
 
@@ -2271,6 +2310,13 @@ func (x *UiInputEvent) GetChoice() uint32 {
 	return 0
 }
 
+func (x *UiInputEvent) GetWheel() *Wheel {
+	if x, ok := x.GetValue().(*UiInputEvent_Wheel); ok {
+		return x.Wheel
+	}
+	return nil
+}
+
 type isUiInputEvent_Value interface {
 	isUiInputEvent_Value()
 }
@@ -2295,6 +2341,11 @@ type UiInputEvent_Choice struct {
 	Choice uint32 `protobuf:"varint,6,opt,name=choice,proto3,oneof"`
 }
 
+type UiInputEvent_Wheel struct {
+	// Wheel is a wheel step over a slider that opted in to wheel events.
+	Wheel *Wheel `protobuf:"bytes,7,opt,name=wheel,proto3,oneof"`
+}
+
 func (*UiInputEvent_Text) isUiInputEvent_Value() {}
 
 func (*UiInputEvent_Number) isUiInputEvent_Value() {}
@@ -2302,6 +2353,8 @@ func (*UiInputEvent_Number) isUiInputEvent_Value() {}
 func (*UiInputEvent_On) isUiInputEvent_Value() {}
 
 func (*UiInputEvent_Choice) isUiInputEvent_Value() {}
+
+func (*UiInputEvent_Wheel) isUiInputEvent_Value() {}
 
 // UiRequest changes the interface the mod shows one player.
 type UiRequest struct {
@@ -2482,6 +2535,7 @@ func (m *Slider) CloneVT() *Slider {
 	r.Min = m.Min
 	r.Max = m.Max
 	r.Step = m.Step
+	r.Wheel = m.Wheel
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2489,6 +2543,23 @@ func (m *Slider) CloneVT() *Slider {
 }
 
 func (m *Slider) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Wheel) CloneVT() *Wheel {
+	if m == nil {
+		return (*Wheel)(nil)
+	}
+	r := new(Wheel)
+	r.Delta = m.Delta
+	r.Fraction = m.Fraction
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Wheel) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -2947,6 +3018,19 @@ func (m *UiInputEvent_Choice) CloneOneofVT() isUiInputEvent_Value {
 	return m.CloneVT()
 }
 
+func (m *UiInputEvent_Wheel) CloneVT() *UiInputEvent_Wheel {
+	if m == nil {
+		return (*UiInputEvent_Wheel)(nil)
+	}
+	r := new(UiInputEvent_Wheel)
+	r.Wheel = protobuf_go_lite.CloneVTValue(m.Wheel)
+	return r
+}
+
+func (m *UiInputEvent_Wheel) CloneOneofVT() isUiInputEvent_Value {
+	return m.CloneVT()
+}
+
 func (m *UiRequest) CloneVT() *UiRequest {
 	if m == nil {
 		return (*UiRequest)(nil)
@@ -3187,11 +3271,37 @@ func (this *Slider) EqualVT(that *Slider) bool {
 	if this.Step != that.Step {
 		return false
 	}
+	if this.Wheel != that.Wheel {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
 func (this *Slider) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Slider)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Wheel) EqualVT(that *Wheel) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Delta != that.Delta {
+		return false
+	}
+	if this.Fraction != that.Fraction {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Wheel) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Wheel)
 	if !ok {
 		return false
 	}
@@ -3910,6 +4020,23 @@ func (this *UiInputEvent_Choice) EqualVT(thatIface isUiInputEvent_Value) bool {
 		return false
 	}
 	if this.Choice != that.Choice {
+		return false
+	}
+	return true
+}
+
+func (this *UiInputEvent_Wheel) EqualVT(thatIface isUiInputEvent_Value) bool {
+	that, ok := thatIface.(*UiInputEvent_Wheel)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTImplicit(this.Wheel, that.Wheel, func() *Wheel { return &Wheel{} }) {
 		return false
 	}
 	return true
@@ -4969,6 +5096,11 @@ func (x *Slider) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("step")
 		s.WriteFloat32(x.Step)
 	}
+	if x.Wheel || s.HasField("wheel") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("wheel")
+		s.WriteBool(x.Wheel)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -4998,12 +5130,65 @@ func (x *Slider) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "step":
 			s.AddField("step")
 			x.Step = s.ReadFloat32()
+		case "wheel":
+			s.AddField("wheel")
+			x.Wheel = s.ReadBool()
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Slider from JSON.
 func (x *Slider) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Wheel message to JSON.
+func (x *Wheel) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Delta != 0 || s.HasField("delta") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("delta")
+		s.WriteFloat32(x.Delta)
+	}
+	if x.Fraction != 0 || s.HasField("fraction") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("fraction")
+		s.WriteFloat32(x.Fraction)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Wheel to JSON.
+func (x *Wheel) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Wheel message from JSON.
+func (x *Wheel) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "delta":
+			s.AddField("delta")
+			x.Delta = s.ReadFloat32()
+		case "fraction":
+			s.AddField("fraction")
+			x.Fraction = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Wheel from JSON.
+func (x *Wheel) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -6531,6 +6716,10 @@ func (x *UiInputEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("choice")
 			s.WriteUint32(ov.Choice)
+		case *UiInputEvent_Wheel:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("wheel")
+			ov.Wheel.MarshalProtoJSON(s.WithField("wheel"))
 		}
 	}
 	s.WriteObjectEnd()
@@ -6576,6 +6765,15 @@ func (x *UiInputEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			ov := &UiInputEvent_Choice{}
 			x.Value = ov
 			ov.Choice = s.ReadUint32()
+		case "wheel":
+			ov := &UiInputEvent_Wheel{}
+			x.Value = ov
+			if s.ReadNil() {
+				ov.Wheel = nil
+				return
+			}
+			ov.Wheel = &Wheel{}
+			ov.Wheel.UnmarshalProtoJSON(s.WithField("wheel", true))
 		}
 	})
 }
@@ -7075,6 +7273,11 @@ func (m *Slider) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Wheel {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Wheel)
+		i--
+		dAtA[i] = 0x28
+	}
 	if m.Step != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Step))))
 		i--
@@ -7092,6 +7295,48 @@ func (m *Slider) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	}
 	if m.Value != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Value))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Wheel) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Wheel) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Wheel) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Fraction != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Fraction))))
+		i--
+		dAtA[i] = 0x15
+	}
+	if m.Delta != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Delta))))
 		i--
 		dAtA[i] = 0xd
 	}
@@ -8391,6 +8636,30 @@ func (m *UiInputEvent_Choice) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *UiInputEvent_Wheel) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *UiInputEvent_Wheel) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Wheel != nil {
+		size, err := m.Wheel.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x3a
+	} else {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, 0)
+		i--
+		dAtA[i] = 0x3a
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *UiRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -8582,6 +8851,19 @@ func (m *Slider) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Min)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Max)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Step)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Wheel)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Wheel) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Delta)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Fraction)
 	n += len(m.unknownFields)
 	return n
 }
@@ -8995,6 +9277,21 @@ func (m *UiInputEvent_Choice) SizeVT() (n int) {
 	return n
 }
 
+func (m *UiInputEvent_Wheel) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Wheel != nil {
+		l = m.Wheel.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	} else {
+		n += 2
+	}
+	return n
+}
+
 func (m *UiRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -9296,10 +9593,32 @@ func (x *Slider) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "step")
 		protobuf_go_lite.TextWriteFloat32(&sb, x.Step)
 	}
+	if x.Wheel != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "wheel")
+		protobuf_go_lite.TextWriteBool(&sb, x.Wheel)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Slider) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Wheel) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Wheel")
+	if x.Delta != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "delta")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Delta)
+	}
+	if x.Fraction != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "fraction")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Fraction)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Wheel) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -9893,6 +10212,13 @@ func (x *UiInputEvent) MarshalProtoText() string {
 	case *UiInputEvent_Choice:
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "choice")
 		protobuf_go_lite.TextWriteUint(&sb, body.Choice)
+	case *UiInputEvent_Wheel:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "wheel")
+		if body.Wheel == nil {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, &Wheel{})
+		} else {
+			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Wheel)
+		}
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -10545,6 +10871,83 @@ func (m *Slider) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Step = float32(math.Float32frombits(v))
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Wheel", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Wheel = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Wheel) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Wheel: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Wheel: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Delta", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Delta = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fraction", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Fraction = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -12450,6 +12853,26 @@ func (m *UiInputEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Value = &UiInputEvent_Choice{Choice: v}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Wheel", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if oneof, ok := m.Value.(*UiInputEvent_Wheel); ok {
+				if err := oneof.Wheel.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+			} else {
+				v := &Wheel{}
+				if err := v.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+					return err
+				}
+				m.Value = &UiInputEvent_Wheel{Wheel: v}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

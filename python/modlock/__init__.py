@@ -1262,6 +1262,16 @@ class SettingChangedEvent:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class Wheel:
+    """Wheel reports one wheel step over a slider, anchored to its pointer position."""
+
+    # delta is 1 for up and -1 for down. It never changes the slider's value.
+    delta: float = 0.0
+    # fraction is the pointer's horizontal position, bounded from 0 to 1.
+    fraction: float = 0.0
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class UiPressEvent:
     """UiPressEvent reports a press on a button in a player's interface."""
 
@@ -1282,7 +1292,7 @@ class UiInputEvent:
     # node is the id of the input.
     node: str = ""
     # value is the input's new value, in the kind its control holds.
-    value: str | float | bool | int | None = None
+    value: str | float | bool | int | Wheel | None = None
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -3189,6 +3199,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(3, "value", "string"),
         ],
     ),
+    "Wheel": (
+        Wheel,
+        [
+            wire.Field(1, "delta", "float"),
+            wire.Field(2, "fraction", "float"),
+        ],
+    ),
     "UiPressEvent": (
         UiPressEvent,
         [
@@ -3205,6 +3222,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(4, "number", "float", oneof="value"),
             wire.Field(5, "on", "bool", oneof="value"),
             wire.Field(6, "choice", "uint32", oneof="value"),
+            wire.Field(7, "wheel", "message", oneof="value", message="Wheel"),
         ],
     ),
     "Call": (

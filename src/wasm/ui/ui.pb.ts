@@ -1197,6 +1197,10 @@ export interface Slider {
    * it stop anywhere.
    */
   step?: number
+  /**
+   * Wheel enables scoped wheel events while the pointer is over the slider.
+   */
+  wheel?: boolean
 }
 
 export const Slider: MessageType<Slider> =
@@ -1207,6 +1211,7 @@ export const Slider: MessageType<Slider> =
       [2, 'min', 2],
       [3, 'max', 2],
       [4, 'step', 2],
+      [5, 'wheel', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Slider): Slider => {
@@ -1225,6 +1230,9 @@ export const Slider: MessageType<Slider> =
               break
             case 4:
               m.step = r.float()
+              break
+            case 5:
+              m.wheel = r.bool()
               break
             default:
               r.skip(t)
@@ -1248,6 +1256,64 @@ export const Slider: MessageType<Slider> =
         {
           const v = m.step
           if (v != null && v !== 0) w.uint32(37).float(v)
+        }
+        {
+          const v = m.wheel
+          if (v) w.uint32(40).bool(v)
+        }
+      },
+    },
+  )
+
+/**
+ * Wheel reports one wheel step over a slider, anchored to its pointer position.
+ *
+ * @generated from message modlock.wasm.ui.Wheel
+ */
+export interface Wheel {
+  /**
+   * Delta is 1 for up and -1 for down. It never changes the slider's value.
+   */
+  delta?: number
+  /**
+   * Fraction is the pointer's horizontal position, bounded from 0 to 1.
+   */
+  fraction?: number
+}
+
+export const Wheel: MessageType<Wheel> =
+  /* @__PURE__ */ createMessageType<Wheel>(
+    'modlock.wasm.ui.Wheel',
+    () => [
+      [1, 'delta', 2],
+      [2, 'fraction', 2],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Wheel): Wheel => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.delta = r.float()
+              break
+            case 2:
+              m.fraction = r.float()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Wheel, w: Writer): void => {
+        {
+          const v = m.delta
+          if (v != null && v !== 0) w.uint32(13).float(v)
+        }
+        {
+          const v = m.fraction
+          if (v != null && v !== 0) w.uint32(21).float(v)
         }
       },
     },
@@ -2848,6 +2914,7 @@ export interface UiInputEvent {
     | { value: number; case: 'number' }
     | { value: boolean; case: 'on' }
     | { value: number; case: 'choice' }
+    | { value: Wheel; case: 'wheel' }
 }
 
 export const UiInputEvent: MessageType<UiInputEvent> =
@@ -2860,6 +2927,7 @@ export const UiInputEvent: MessageType<UiInputEvent> =
       [4, 'number', 2, 0, 0, 'value'],
       [5, 'on', 8, 0, 0, 'value'],
       [6, 'choice', 13, 0, 0, 'value'],
+      [7, 'wheel', 11, 0, Wheel.codec, 'value'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: UiInputEvent): UiInputEvent => {
@@ -2884,6 +2952,16 @@ export const UiInputEvent: MessageType<UiInputEvent> =
               break
             case 6:
               m.value = { case: 'choice', value: r.uint32() }
+              break
+            case 7:
+              m.value = {
+                case: 'wheel',
+                value: Wheel.decode(
+                  r,
+                  r.delimited(),
+                  m.value?.case === 'wheel' ? m.value.value : {},
+                ),
+              }
               break
             default:
               r.skip(t)
@@ -2918,6 +2996,11 @@ export const UiInputEvent: MessageType<UiInputEvent> =
           const o = m.value
           if (o?.case === 'choice' && o.value != null)
             w.uint32(48).uint32(o.value)
+        }
+        {
+          const o = m.value
+          if (o?.case === 'wheel' && o.value != null)
+            Wheel.writeField(w, 7, o.value)
         }
       },
     },

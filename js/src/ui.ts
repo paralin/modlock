@@ -93,7 +93,7 @@ import {
   UiRequest,
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
-import type { Player } from './host.gen.js'
+import type { Player, Wheel } from './host.gen.js'
 import { call } from './host.js'
 
 /**
@@ -343,6 +343,7 @@ export interface Props {
   readonly options?: readonly string[]
   readonly selected?: number
   readonly onChange?: (player: Player, value: never) => void
+  readonly onWheel?: (player: Player, wheel: Wheel) => void
 }
 
 /**
@@ -431,6 +432,8 @@ export interface SliderProps extends InputProps {
   max?: number
   step?: number
   onChange?: (player: Player, value: number) => void
+  /** onWheel receives one wheel step and its pointer anchor while enabled. */
+  onWheel?: (player: Player, wheel: Wheel) => void
 }
 
 /** ToggleProps make a box the player checks, labeled by its text children. */
@@ -691,8 +694,12 @@ export function press(player: Player, node: string): void {
 export function change(
   player: Player,
   node: string,
-  value: string | number | boolean | undefined,
+  value: string | number | boolean | Wheel | undefined,
 ): void {
+  if (typeof value === 'object' && value !== null) {
+    screens.get(player.slot)?.wheels.get(node)?.handler(player, value)
+    return
+  }
   const changed = screens.get(player.slot)?.changes.get(node)
   if (changed) {
     changed.handler(player, value as never)
@@ -852,6 +859,11 @@ interface Screen {
     string,
     { readonly handler: (player: Player, value: never) => void }
   >
+  /** wheels holds only the enabled sliders that opted in to wheel events. */
+  readonly wheels: Map<
+    string,
+    { readonly handler: (player: Player, wheel: Wheel) => void }
+  >
   /** next numbers the next new node, so an id is never reused. */
   next: number
 }
@@ -909,6 +921,7 @@ class Layout {
       ids: new Map(),
       presses: new Map(),
       changes: new Map(),
+      wheels: new Map(),
       next: previous?.next ?? 0,
     }
   }
@@ -1061,6 +1074,9 @@ function input(
       }
       break
     case 'slider':
+      if (props.onWheel && !props.disabled) {
+        layout.screen.wheels.set(node.id!, { handler: props.onWheel })
+      }
       node.input = {
         case: 'slider',
         value: {
@@ -1068,6 +1084,7 @@ function input(
           min: props.min,
           max: props.max,
           step: props.step,
+          wheel: !!props.onWheel && !props.disabled,
         },
       }
       break

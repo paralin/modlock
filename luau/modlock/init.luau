@@ -1081,6 +1081,14 @@ export type SettingChangedEvent = {
 	value: string,
 }
 
+-- Wheel reports one wheel step over a slider, anchored to its pointer position.
+export type Wheel = {
+	-- delta is 1 for up and -1 for down. It never changes the slider's value.
+	delta: number,
+	-- fraction is the pointer's horizontal position, bounded from 0 to 1.
+	fraction: number,
+}
+
 -- UiPressEvent reports a press on a button in a player's interface.
 export type UiPressEvent = {
 	-- player is the player who pressed.
@@ -1097,7 +1105,7 @@ export type UiInputEvent = {
 	-- node is the id of the input.
 	node: string,
 	-- value is the input's new value, in the kind its control holds.
-	value: (string | number | boolean)?,
+	value: (string | number | boolean | Wheel)?,
 }
 
 -- StartEvent describes the server the mod starts in.
@@ -2791,6 +2799,10 @@ schema.SetPlayerSettingRequest = {
 	{ number = 2, name = "key", kind = "string" },
 	{ number = 3, name = "value", kind = "string" },
 }
+schema.Wheel = {
+	{ number = 1, name = "delta", kind = "float" },
+	{ number = 2, name = "fraction", kind = "float" },
+}
 schema.UiPressEvent = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "node", kind = "string" },
@@ -2802,6 +2814,7 @@ schema.UiInputEvent = {
 	{ number = 4, name = "number", kind = "float", oneof = "value" },
 	{ number = 5, name = "on", kind = "bool", oneof = "value" },
 	{ number = 6, name = "choice", kind = "uint32", oneof = "value" },
+	{ number = 7, name = "wheel", kind = "message", oneof = "value", message = "Wheel" },
 }
 schema.Call = {
 	{ number = 1, name = "method", kind = "string" },

@@ -8,6 +8,9 @@ interface Panel {
   enabled: boolean
   text: string
   value: number
+  readonly actuallayoutwidth: number
+  readonly actualuiscale_x: number
+  GetPositionWithinWindow(): { x: number; y: number }
   checked: boolean
   visible: boolean
   readonly style: Record<string, string | null>
@@ -42,6 +45,7 @@ interface Panel {
 /** $ is the Panorama script API. */
 declare const $: {
   Msg(...values: unknown[]): void
+  MousePosition(): { x: number; y: number }
   GetContextPanel(): Panel
   CreatePanel(
     type: string,

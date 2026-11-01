@@ -35,6 +35,8 @@ class UiTrees {
   // number, a toggle's "1" or "0" and a dropdown's the option's index. Text
   // loses control characters and what passes the entry's length, and a
   // slider's number is clamped to its range and snapped to its step.
+  // A slider that opted in to wheel input accepts "wheel:direction:fraction",
+  // with direction 1 or -1 and a finite fraction clamped from 0 to 1.
   [[nodiscard]] std::expected<ui::UiInputEvent, std::string> Input(int32_t slot,
                                                                    std::string_view node,
                                                                    std::string_view value) const;
@@ -50,11 +52,12 @@ class UiTrees {
   // Shown is what the host keeps of one node: its kind, and for an input
   // whether it is disabled and the bounds of the value it holds. length is a
   // text entry's limit in characters, min, max and step a slider's range,
-  // and options a dropdown's count.
+  // options a dropdown's count, and wheel a slider's wheel opt-in.
   struct Shown {
     ui::Kind kind = ui::KIND_PANEL;
     ui::Node::InputCase input = ui::Node::INPUT_NOT_SET;
     bool disabled = false;
+    bool wheel = false;
     uint32_t length = 0;
     float min = 0;
     float max = 1;

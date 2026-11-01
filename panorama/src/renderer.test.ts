@@ -20,6 +20,11 @@ class FakePanel {
   enabled = true
   text = ''
   value = 0
+  actuallayoutwidth = 200
+  actualuiscale_x = 2
+  GetPositionWithinWindow() {
+    return { x: 100, y: 0 }
+  }
   checked = false
   visible = true
   image = ''
@@ -145,6 +150,9 @@ beforeEach(() => {
   Object.assign(globalThis, {
     $: {
       Msg() {},
+      MousePosition() {
+        return { x: 200, y: 0 }
+      },
       CreatePanel(
         type: string,
         parent: FakePanel,
@@ -588,10 +596,10 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   expect(name!.text).toBe('Ana')
   expect(volume!.properties).toMatchObject({
     min: '0',
-    max: '10',
-    increment: '1',
+    max: '1',
+    increment: '0.1',
   })
-  expect(volume!.value).toBe(5)
+  expect(volume!.value).toBe(0.5)
 
   // The toggle carries its label and the dropdown its options.
   expect(ready!.paneltype).toBe('ToggleButton')
@@ -671,6 +679,97 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   expect(long).toBe(
     `modlockinput arena name ${Buffer.from('é'.repeat(120)).toString('base64url')}`,
   )
+})
+
+test('sliders map native fractions to ranges and send scoped wheel anchors', () => {
+  // Set up a renderer that reports the values it sends.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const changes: InputValue[] = []
+  const drawing = new Drawing(
+    $,
+    root,
+    () => {},
+    undefined,
+    (_mod, _node, value) => changes.push(value),
+  )
+  const timeline = (
+    value: number,
+    min = 0,
+    max = 323.3,
+    step = 0,
+    wheel = true,
+    disabled = false,
+  ) =>
+    screen(
+      { id: '', children: ['time'] },
+      {
+        id: 'time',
+        kind: 'KIND_INPUT',
+        disabled,
+        slider: { value, min, max, step, wheel },
+      },
+    )
+
+  // The native position is normalized even when the mod works in seconds.
+  drawing.draw(timeline(3.5))
+  let panel = root.children[0]!.children[0]!
+  expect(panel.value).toBeCloseTo(3.5 / 323.3)
+  panel.value = 0.5
+  panel.events.get('onvaluechanged')!()
+  runScheduled()
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'number',
+    value: Math.fround(161.65),
+  })
+
+  // A wheel event carries the scaled pointer position, without a seek.
+  const before = panel.value
+  expect(handlers.get(panel)!.get('ScrollUp')!()).toBe(true)
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'wheel',
+    value: { delta: 1, fraction: 0.25 },
+  })
+  expect(panel.value).toBe(before)
+  expect(inputCommand('arena', 'time', changes[changes.length - 1]!)).toBe(
+    'modlockinput arena time wheel:1:0.25',
+  )
+
+  // Leave a seek awaiting the mod's echo.
+  panel.value = 100 / 323.3
+  panel.events.get('onvaluechanged')!()
+  runScheduled()
+  expect(changes[changes.length - 1]).toEqual({ case: 'number', value: 100 })
+
+  // Zoom around the echoed value without replacing the native panel.
+  const beforeZoom = panel
+  drawing.draw(timeline(100, 90, 110))
+  panel = root.children[0]!.children[0]!
+  expect(panel).toBe(beforeZoom)
+  expect(panel.value).toBe(0.5)
+
+  // The next edit must use the new range.
+  panel.value = 0.75
+  panel.events.get('onvaluechanged')!()
+  runScheduled()
+  expect(changes[changes.length - 1]).toEqual({ case: 'number', value: 105 })
+
+  // Changed bounds use the current range and snap relative to its minimum.
+  drawing.draw(timeline(-5, -10, 10, 2.5))
+  panel = root.children[0]!.children[0]!
+  expect(panel.value).toBe(0.25)
+  panel.value = 0.31
+  panel.events.get('onvaluechanged')!()
+  runScheduled()
+  expect(changes[changes.length - 1]).toEqual({ case: 'number', value: -5 })
+
+  // Disabled, opted-out and removed sliders cannot produce wheel input.
+  drawing.draw(timeline(0, -10, 10, 2.5, false))
+  panel = root.children[0]!.children[0]!
+  expect(handlers.get(panel)!.get('ScrollUp')!()).toBe(false)
+  drawing.draw(timeline(0, -10, 10, 2.5, true, true))
+  expect(handlers.get(panel)!.get('ScrollDown')!()).toBe(false)
+  drawing.draw(screen({ id: '' }))
+  expect(handlers.get(panel)!.get('ScrollUp')!()).toBe(false)
 })
 
 test('eases panels in, cycles them and eases them out', () => {

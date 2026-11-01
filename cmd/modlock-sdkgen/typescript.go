@@ -88,16 +88,21 @@ func (w *tsWriter) pb(file *protoFile, name string) string {
 
 // writeTypeScript returns js/src/host.gen.ts.
 func writeTypeScript(s *schema) ([]byte, error) {
+	// Resolve the schema's callable surface before writing its module.
 	calls, err := s.calls()
 	if err != nil {
 		return nil, err
 	}
+
+	// Declare the types the generated classes and methods use.
 	w := &tsWriter{directions: s.directions(calls), s: s, calls: calls, imports: map[string]string{}}
 	w.pb(s.file, "Reply")
 	w.out.WriteString(typeScriptPreamble)
 	if err := w.writeTypes(); err != nil {
 		return nil, err
 	}
+
+	// Emit entity classes, their methods and the remaining free calls.
 	for _, c := range classes {
 		if err := w.writeClass(c); err != nil {
 			return nil, err
@@ -153,6 +158,7 @@ func (w *tsWriter) writeTypes() error {
 // that encodes them when a mod writes it and the table that decodes them
 // when a mod reads it.
 func (w *tsWriter) writeEnum(e *enum) {
+	// Declare the names and the conversion tables each direction needs.
 	writeDoc(&w.out, "", e.doc)
 	fmt.Fprintf(&w.out, "export type %s =\n", e.name)
 	for _, v := range e.named() {
@@ -180,11 +186,14 @@ func (w *tsWriter) writeEnum(e *enum) {
 // writeUnion writes a message holding only a oneof as a union type, with
 // its conversions.
 func (w *tsWriter) writeUnion(m *message) error {
+	// Keyed unions keep their discriminator in the public object shape.
 	o := m.oneofs[0]
 	if o.keyed {
 		w.writeKeyedUnion(m)
 		return nil
 	}
+
+	// Bare unions expose the selected value and convert it at the boundary.
 	writeDoc(&w.out, "", m.doc)
 	fmt.Fprintf(&w.out, "export type %s = %s\n\n", m.name, w.oneofType(o))
 	if w.inputs[m] {
@@ -217,6 +226,7 @@ func (w *tsWriter) writeUnion(m *message) error {
 // writeKeyedUnion writes a keyed union as a union of objects that each hold
 // one case by its name, with its conversions.
 func (w *tsWriter) writeKeyedUnion(m *message) {
+	// Keep each case in an object so its name distinguishes equal value types.
 	o := m.oneofs[0]
 	writeDoc(&w.out, "", m.doc)
 	fmt.Fprintf(&w.out, "export type %s =\n", m.name)
@@ -254,6 +264,7 @@ func (w *tsWriter) writeKeyedUnion(m *message) {
 // writeInterface writes a message as an interface, with the conversions its
 // directions need.
 func (w *tsWriter) writeInterface(m *message) error {
+	// Describe the public fields, preserving readonly output values.
 	outputOnly := w.outputs[m] && !w.inputs[m]
 	readonly := ""
 	if outputOnly {
@@ -283,6 +294,7 @@ func (w *tsWriter) writeInterface(m *message) error {
 	}
 	w.out.WriteString("}\n\n")
 
+	// Convert public inputs into their wire representation when needed.
 	if w.inputs[m] && w.converts(m) {
 		fmt.Fprintf(&w.out, "/** to%s encodes %s. */\n", m.name, article(m.name))
 		fmt.Fprintf(&w.out, "function to%s(value: %s): %s {\n  return {\n", m.name, m.name, w.pb(m.file, m.name))
@@ -308,12 +320,15 @@ func (w *tsWriter) writeInterface(m *message) error {
 		for _, f := range fields {
 			if o := f.oneof; o != nil {
 				if o.fields[0] == f {
+					// Decode the selected case before erasing its wire discriminator.
+					name := "message." + lowerCamel(o.name)
+					decoded := name + "?.value"
 					for _, c := range o.fields {
 						if w.fromValue(c, "v") != "v" {
-							return fmt.Errorf("%s: oneof %s needs a decoded case", m.name, o.name)
+							decoded = fmt.Sprintf("%s?.case === %q ? %s : (%s)", name, lowerCamel(c.name), w.fromValue(c, name+".value"), decoded)
 						}
 					}
-					fmt.Fprintf(&w.out, "    %s: message.%s?.value,\n", lowerCamel(o.name), lowerCamel(o.name))
+					fmt.Fprintf(&w.out, "    %s: %s,\n", lowerCamel(o.name), decoded)
 				}
 				continue
 			}
@@ -355,6 +370,7 @@ func (w *tsWriter) converts(m *message) bool {
 
 // writeClass writes one class with its calls as methods.
 func (w *tsWriter) writeClass(c *class) error {
+	// Write the entity identity, followed by the methods that use it.
 	writeDoc(&w.out, "", c.doc)
 	fmt.Fprintf(&w.out, "export class %s {\n", c.name)
 	writeDoc(&w.out, "  ", c.keyDoc)
@@ -421,6 +437,8 @@ func (w *tsWriter) writeCall(c *call, indent string) error {
 	if f := c.result; f.message != nil && !f.repeated && !f.optional && !f.message.isUnion() {
 		read = fmt.Sprintf("%s === undefined ? undefined : %s", value, w.fromValue(f, value))
 	}
+
+	// Close the generated method and separate free functions.
 	fmt.Fprintf(&w.out, "%sreturn %s\n%s}\n", body, read, indent)
 	if indent == "" {
 		w.out.WriteString("\n")
@@ -430,6 +448,7 @@ func (w *tsWriter) writeCall(c *call, indent string) error {
 
 // request returns the expression that encodes c's request.
 func (w *tsWriter) request(c *call) (string, error) {
+	// Empty requests cross the boundary without a message allocation.
 	m := c.method.request
 	if m.isEmpty() {
 		return "new Uint8Array()", nil
@@ -601,6 +620,7 @@ func zero(f *field) string {
 // fromValue returns the expression that decodes value, one present wire
 // value of f.
 func (w *tsWriter) fromValue(f *field, value string) string {
+	// Restore class identities and enum names before handling message values.
 	if c := classOf(f); c != nil {
 		return fmt.Sprintf("new %s(%s)", c.name, value)
 	}
@@ -679,6 +699,7 @@ func (w *tsWriter) toField(f *field, value string) string {
 // writeMod writes the interface the mod's event handlers implement and the
 // dispatch that runs them.
 func (w *tsWriter) writeMod() error {
+	// Declare the events the mod handles and their public parameter types.
 	writeDoc(&w.out, "", "ModHandlers handles the events the game delivers to the mod.")
 	w.out.WriteString("export interface ModHandlers {\n")
 	for _, m := range w.s.mod.methods {
@@ -695,11 +716,14 @@ func (w *tsWriter) writeMod() error {
 	}
 	w.out.WriteString("}\n\n")
 
+	// Decode the common call envelope before selecting an event handler.
 	writeDoc(&w.out, "", "serveMod runs the encoded Call in bytes on handlers and returns the encoded\nReply. A handler that throws answers with its error.")
 	w.out.WriteString("export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {\n")
 	fmt.Fprintf(&w.out, "  const request = %s.fromBinary(bytes)\n", w.pb(w.s.file, "Call"))
 	w.out.WriteString("  const input = request.request ?? new Uint8Array()\n")
 	w.out.WriteString("  try {\n    switch (request.method) {\n")
+
+	// Convert each event's payload and encode its handler's reply.
 	for _, m := range w.s.mod.methods {
 		event := ""
 		if !m.request.isEmpty() {
@@ -716,6 +740,8 @@ func (w *tsWriter) writeMod() error {
 		}
 		fmt.Fprintf(&w.out, "        return reply(%s.toBinary(%s))\n", w.pb(m.response.file, m.response.name), handle)
 	}
+
+	// Contain handler failures and report unsupported methods through Reply.
 	fmt.Fprintf(&w.out, "    }\n  } catch (error) {\n    return %s.toBinary({ error: String(error) })\n  }\n", w.pb(w.s.file, "Reply"))
 	fmt.Fprintf(&w.out, "  return %s.toBinary({ error: `the mod has no method ${request.method}` })\n}\n", w.pb(w.s.file, "Reply"))
 	return nil
@@ -723,6 +749,7 @@ func (w *tsWriter) writeMod() error {
 
 // writeDoc writes text as a JSDoc comment at indent.
 func writeDoc(out *bytes.Buffer, indent, text string) {
+	// Omit empty comments and keep short descriptions on one line.
 	if text == "" {
 		return
 	}

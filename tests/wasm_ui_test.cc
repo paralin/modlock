@@ -108,6 +108,7 @@ TEST(UiTrees, ChecksInputs) {
   slider->set_min(0);
   slider->set_max(10);
   slider->set_step(2.5F);
+  slider->set_wheel(true);
   add("ready")->mutable_toggle();
   auto* team = add("team")->mutable_dropdown();
   team->add_options("Red");
@@ -130,6 +131,26 @@ TEST(UiTrees, ChecksInputs) {
   EXPECT_FALSE(trees.Input(0, "ready", "yes"));
   EXPECT_EQ(trees.Input(0, "team", "1")->choice(), 1U);
   EXPECT_FALSE(trees.Input(0, "team", "2"));
+
+  // Wheel input has a bounded anchor and never becomes a seek or another control's edit.
+  const auto wheel = trees.Input(0, "volume", "wheel:-1:0.25");
+  ASSERT_TRUE(wheel);
+  EXPECT_FLOAT_EQ(wheel->wheel().delta(), -1);
+  EXPECT_FLOAT_EQ(wheel->wheel().fraction(), 0.25F);
+  EXPECT_FLOAT_EQ(trees.Input(0, "volume", "wheel:1:9")->wheel().fraction(), 1);
+  EXPECT_FALSE(trees.Input(0, "volume", "wheel:2:0.5"));
+  EXPECT_FALSE(trees.Input(0, "volume", "wheel:1:nan"));
+  EXPECT_FALSE(trees.Input(0, "volume", "wheel:1:0.5:0"));
+  EXPECT_FALSE(trees.Input(0, "name", "wheel:1:0.5"));
+  EXPECT_FALSE(trees.Input(1, "volume", "wheel:1:0.5"));
+  auto opted_out = Set("volume", modlock::wasm::ui::KIND_INPUT);
+  opted_out.mutable_set(0)->mutable_slider();
+  ASSERT_TRUE(trees.Apply(0, opted_out));
+  EXPECT_FALSE(trees.Input(0, "volume", "wheel:1:0.5"));
+  opted_out.mutable_set(0)->mutable_slider()->set_wheel(true);
+  opted_out.mutable_set(0)->set_disabled(true);
+  ASSERT_TRUE(trees.Apply(0, opted_out));
+  EXPECT_FALSE(trees.Input(0, "volume", "wheel:1:0.5"));
 
   // Another slot, a node that is no input and a disabled input take nothing.
   EXPECT_FALSE(trees.Input(1, "ready", "1"));

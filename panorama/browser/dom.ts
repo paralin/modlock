@@ -1,6 +1,9 @@
 import type { Panel, Panorama } from '../src/draw.js'
 import { cascade, parseSheet, type Rule, type Scope } from './sheets.js'
 
+/** mouse is the last pointer position in window pixels, as Panorama reports it. */
+const mouse = { x: 0, y: 0 }
+
 /**
  * DomPanel stands in for a Panorama panel with one HTML element, so a mod's
  * interface renders in a browser for layout work. It approximates Panorama
@@ -17,7 +20,10 @@ export class DomPanel implements Panel {
   readonly style: Record<string, string>
   /** sheeted holds the values the style sheets gave this panel, by name. */
   private readonly sheeted = new Map<string, string>()
-  private readonly handlers = new Map<string, (...args: unknown[]) => void>()
+  private readonly handlers = new Map<
+    string,
+    (...args: unknown[]) => boolean | void
+  >()
   private readonly attributes = new Map<string, string>()
   /** inline holds the styles code and the layout set, by camel-case name. */
   private readonly inline: Record<string, string>
@@ -91,6 +97,36 @@ export class DomPanel implements Panel {
       this.handlers.get('onfocus')?.(),
     )
     this.element.addEventListener('blur', () => this.handlers.get('onblur')?.())
+    this.element.addEventListener(
+      'wheel',
+      (event) => {
+        // Wheel events belong to the enabled control under the pointer.
+        if (!this.enabled || event.deltaY === 0) return
+        mouse.x = event.clientX
+        mouse.y = event.clientY
+        const handled = this.handlers.get(
+          event.deltaY < 0 ? 'ScrollUp' : 'ScrollDown',
+        )?.()
+        if (handled) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+      },
+      { passive: false },
+    )
+  }
+
+  get actuallayoutwidth(): number {
+    return this.element.offsetWidth
+  }
+
+  get actualuiscale_x(): number {
+    return this.element.getBoundingClientRect().width / this.element.offsetWidth
+  }
+
+  GetPositionWithinWindow(): { x: number; y: number } {
+    const bounds = this.element.getBoundingClientRect()
+    return { x: bounds.x, y: bounds.y }
   }
 
   get text(): string {
@@ -246,7 +282,10 @@ export class DomPanel implements Panel {
     this.element.classList.remove(name)
   }
 
-  SetPanelEvent(event: string, handler: (...args: unknown[]) => void) {
+  SetPanelEvent(
+    event: string,
+    handler: (...args: unknown[]) => boolean | void,
+  ) {
     this.handlers.set(event, handler)
   }
 
@@ -467,6 +506,14 @@ const nonPanels = new Set(['styles', 'scripts', 'snippets'])
  * Press, so dispatched events go nowhere.
  */
 export const domPanorama = {
+  MousePosition: () => mouse,
+  RegisterEventHandler(
+    event: string,
+    panel: DomPanel,
+    handler: () => boolean | void,
+  ) {
+    panel.SetPanelEvent(event, handler)
+  },
   CreatePanel(
     type: string,
     parent: DomPanel,

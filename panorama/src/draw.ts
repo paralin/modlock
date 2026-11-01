@@ -42,6 +42,7 @@ import {
   type Region,
   Scaling,
   type Screen,
+  type Slider,
   type Shadow,
   type Style,
   TextOverflow,
@@ -72,8 +73,14 @@ export interface Panel {
   hittest: boolean
   enabled: boolean
   text: string
-  /** value is a slider's number. */
+  /** value is a native slider's position from 0 to 1. */
   value: number
+  /** actuallayoutwidth is the panel's width in layout units. */
+  readonly actuallayoutwidth?: number
+  /** actualuiscale_x converts horizontal layout units to window pixels. */
+  readonly actualuiscale_x?: number
+  /** GetPositionWithinWindow returns the panel's origin in window pixels. */
+  GetPositionWithinWindow?(): { x: number; y: number }
   /** checked reports whether a toggle button is checked. */
   checked: boolean
   visible: boolean
@@ -117,6 +124,14 @@ export interface Panorama {
   DispatchEvent(event: string, ...values: unknown[]): void
   Msg(...values: unknown[]): void
   PlaySound?(sound: string): void
+  /** MousePosition returns the cursor's position in window pixels. */
+  MousePosition?(): { x: number; y: number }
+  /** RegisterEventHandler binds a native event to this panel's lifetime. */
+  RegisterEventHandler?(
+    event: string,
+    panel: Panel,
+    handler: (...args: never[]) => boolean | void,
+  ): void
   /**
    * Schedule runs callback after seconds. Without it, nothing eases in or
    * cycles and each edit sends at once.
@@ -212,7 +227,8 @@ export function pressCommand(mod: string, node: string): string {
  * inputCommand is the console command that sends value to the input node in
  * mod's interface, as pressCommand sends a press: text as unpadded base64url
  * of its UTF-8, cut to the 240 bytes the host takes, a number in decimal, a
- * toggle's state as 1 or 0 and a choice as its index.
+ * toggle's state as 1 or 0, a choice as its index and a wheel step as
+ * wheel:direction:fraction.
  */
 export function inputCommand(
   mod: string,
@@ -233,6 +249,8 @@ function encodeInput(value: InputValue): string {
       return value.value ? '1' : '0'
     case 'choice':
       return String(Math.trunc(finite(value.value)))
+    case 'wheel':
+      return `wheel:${finite(value.value.delta)}:${clamp(finite(value.value.fraction), 0, 1)}`
   }
 }
 
@@ -389,6 +407,7 @@ interface Drawn {
   cycle: Cycling | null
   written: Record<string, string>
   control: Control | null
+  slider: Slider | undefined
   value: string
   pending: boolean
   unanswered: string[]
@@ -725,7 +744,7 @@ export class Drawing {
   /** send sends an input's value as its panel holds it, playing its sound. */
   private send(mod: string, id: string, drawn: Drawn): void {
     const value = this.attempt('read an input', () =>
-      readInput(drawn.control, drawn.panel),
+      readInput(drawn.control, drawn.panel, drawn.slider),
     )
     if (value) {
       drawn.unanswered.push(encodeInput(value))
@@ -742,11 +761,18 @@ export class Drawing {
    * value the panel sent: the player has typed on since, and the round trip
    * would erase what they typed while it ran.
    */
-  private answer(drawn: Drawn, node: Node): void {
+  private answer(drawn: Drawn, node: Node, previous?: Drawn): void {
     // Drop an echo and the older sends it answers; anything else is the
-    // mod's own value.
+    // mod's own value. A new range maps that value to a new thumb position,
+    // so it must be written even when the value itself was sent earlier.
     const value = nodeInput(node)
-    const sent = value ? drawn.unanswered.indexOf(encodeInput(value)) : -1
+    const rangeChanged =
+      drawn.slider &&
+      (finite(drawn.slider.min) !== finite(previous?.slider?.min) ||
+        finite(drawn.slider.max) !== finite(previous?.slider?.max) ||
+        finite(drawn.slider.step) !== finite(previous?.slider?.step))
+    const sent =
+      value && !rangeChanged ? drawn.unanswered.indexOf(encodeInput(value)) : -1
     if (sent >= 0) {
       drawn.unanswered.splice(0, sent + 1)
       return
@@ -765,7 +791,7 @@ export class Drawing {
           showPlaceholder(panel)
           break
         case 'slider':
-          panel.value = finite(node.input.value.value)
+          panel.value = sliderFraction(node.input.value)
           break
         case 'toggle':
           panel.checked = !!node.input.value.on
@@ -791,6 +817,12 @@ export class Drawing {
         break
       case 'slider':
         panel.SetPanelEvent('onvaluechanged', edited)
+        this.panorama.RegisterEventHandler?.('ScrollUp', panel, () =>
+          this.wheel(mod, id, panel, 1),
+        )
+        this.panorama.RegisterEventHandler?.('ScrollDown', panel, () =>
+          this.wheel(mod, id, panel, -1),
+        )
         break
       case 'toggle':
         panel.SetPanelEvent('onactivate', edited)
@@ -812,6 +844,30 @@ export class Drawing {
         }
         panel.SetPanelEvent('oninputsubmit', edited)
     }
+  }
+
+  /** wheel sends a scoped step with the pointer anchor, without seeking. */
+  private wheel(mod: string, id: string, panel: Panel, delta: number): boolean {
+    // A removed, disabled or opted-out slider leaves the event unhandled.
+    const drawn = this.current(mod, id, panel)
+    if (!drawn?.slider?.wheel || drawn.disabled || !this.change) {
+      return false
+    }
+
+    // Both positions are window pixels; the width includes the UI scale.
+    const mouse = this.panorama.MousePosition?.()
+    const origin = panel.GetPositionWithinWindow?.()
+    const width = (panel.actuallayoutwidth ?? 0) * (panel.actualuiscale_x ?? 1)
+    if (!mouse || !origin || !(width > 0) || !Number.isFinite(mouse.x)) {
+      return false
+    }
+
+    // Wheel input has its own typed payload and never joins value echoes.
+    this.change(mod, id, {
+      case: 'wheel',
+      value: { delta, fraction: clamp((mouse.x - origin.x) / width, 0, 1) },
+    })
+    return true
   }
 
   /** labelText returns a label's text: its token's in the player's language, or its own. */
@@ -1014,6 +1070,8 @@ export class Drawing {
       cycle,
       written,
       control,
+      slider:
+        node.input?.case === 'slider' ? { ...node.input.value } : undefined,
       value,
       pending: !fresh && old.pending,
       unanswered: fresh ? [] : old.unanswered,
@@ -1056,7 +1114,7 @@ export class Drawing {
     } else if (kind === Kind.IMAGE) {
       panel.SetImage(node.image ?? '')
     } else if (control && (fresh || old.value !== value)) {
-      this.answer(each, node)
+      this.answer(each, node, old)
     }
     if (
       control === 'textEntry' &&
@@ -1588,15 +1646,16 @@ function controlMadeWith(node: Node): Record<string, string> | undefined {
       return made
     }
     case 'slider': {
-      // A slider without a range runs from 0 to 1.
+      // Native sliders keep a normalized value. Convert both directions at
+      // the renderer boundary rather than relying on creation attributes.
       const slider = node.input.value
-      const ranged = finite(slider.max) > finite(slider.min)
+      const [min, max] = sliderRange(slider)
       return {
         class: 'HorizontalSlider',
         direction: 'horizontal',
-        min: String(ranged ? finite(slider.min) : 0),
-        max: String(ranged ? finite(slider.max) : 1),
-        increment: String(Math.max(0, finite(slider.step))),
+        min: '0',
+        max: '1',
+        increment: String(Math.max(0, finite(slider.step)) / (max - min)),
       }
     }
     case 'toggle':
@@ -1634,12 +1693,16 @@ function nodeInput(node: Node): InputValue | undefined {
 function readInput(
   control: Control | null,
   panel: Panel,
+  slider?: Slider,
 ): InputValue | undefined {
   switch (control) {
     case 'textEntry':
       return { case: 'text', value: panel.text }
     case 'slider':
-      return { case: 'number', value: finite(panel.value) }
+      return {
+        case: 'number',
+        value: Math.fround(sliderValue(panel.value, slider ?? {})),
+      }
     case 'toggle':
       return { case: 'on', value: panel.checked }
     case 'dropdown': {
@@ -1652,6 +1715,29 @@ function readInput(
     default:
       return undefined
   }
+}
+
+/** sliderRange returns the mod's finite range, or the default 0 to 1. */
+function sliderRange(slider: Slider): [number, number] {
+  const min = finite(slider.min)
+  const max = finite(slider.max)
+  return max > min ? [min, max] : [0, 1]
+}
+
+/** sliderFraction maps the mod's value to the native slider's 0 to 1 range. */
+function sliderFraction(slider: Slider): number {
+  const [min, max] = sliderRange(slider)
+  return clamp((finite(slider.value) - min) / (max - min), 0, 1)
+}
+
+/** sliderValue maps native position to the mod's range and step. */
+function sliderValue(fraction: number, slider: Slider): number {
+  const [min, max] = sliderRange(slider)
+  const value = min + clamp(finite(fraction), 0, 1) * (max - min)
+  const step = finite(slider.step)
+  return step > 0
+    ? clamp(min + Math.round((value - min) / step) * step, min, max)
+    : value
 }
 
 /** soundOf returns a sound event's name, or nothing for a name the game cannot hold. */

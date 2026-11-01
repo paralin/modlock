@@ -176,6 +176,10 @@ class UiRequest;
 struct UiRequestDefaultTypeInternal;
 MODLOCK_API extern UiRequestDefaultTypeInternal _UiRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiRequest_class_data_;
+class Wheel;
+struct WheelDefaultTypeInternal;
+MODLOCK_API extern WheelDefaultTypeInternal _Wheel_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Wheel_class_data_;
 }  // namespace ui
 }  // namespace wasm
 }  // namespace modlock
@@ -746,6 +750,208 @@ inline bool Align_Parse(
 
 // -------------------------------------------------------------------
 
+class MODLOCK_API Wheel final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Wheel) */ {
+ public:
+  inline Wheel() : Wheel(nullptr) {}
+  ~Wheel() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(Wheel* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(Wheel));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR Wheel(::google::protobuf::internal::ConstantInitialized);
+
+  inline Wheel(const Wheel& from) : Wheel(nullptr, from) {}
+  inline Wheel(Wheel&& from) noexcept
+      : Wheel(nullptr, ::std::move(from)) {}
+  inline Wheel& operator=(const Wheel& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Wheel& operator=(Wheel&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Wheel& default_instance() {
+    return *reinterpret_cast<const Wheel*>(
+        &_Wheel_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 4;
+  friend void swap(Wheel& a, Wheel& b) { a.Swap(&b); }
+  inline void Swap(Wheel* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Wheel* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Wheel* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<Wheel>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Wheel& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const Wheel& from) { Wheel::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(Wheel* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.Wheel"; }
+
+  explicit Wheel(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  Wheel(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Wheel& from);
+  Wheel(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, Wheel&& from) noexcept
+      : Wheel(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kDeltaFieldNumber = 1,
+    kFractionFieldNumber = 2,
+  };
+  // float delta = 1;
+  void clear_delta() ;
+  float delta() const;
+  void set_delta(float value);
+
+  private:
+  float _internal_delta() const;
+  void _internal_set_delta(float value);
+
+  public:
+  // float fraction = 2;
+  void clear_fraction() ;
+  float fraction() const;
+  void set_fraction(float value);
+
+  private:
+  float _internal_fraction() const;
+  void _internal_set_fraction(float value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Wheel)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const Wheel& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    float delta_;
+    float fraction_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Wheel_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.UiPressEvent) */ {
  public:
@@ -801,7 +1007,7 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiPressEvent*>(
         &_UiPressEvent_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(UiPressEvent& a, UiPressEvent& b) { a.Swap(&b); }
   inline void Swap(UiPressEvent* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -953,290 +1159,6 @@ class MODLOCK_API UiPressEvent final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiPressEvent_class_data_;
 // -------------------------------------------------------------------
 
-class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.UiInputEvent) */ {
- public:
-  inline UiInputEvent() : UiInputEvent(nullptr) {}
-  ~UiInputEvent() PROTOBUF_FINAL;
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(UiInputEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
-    SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(UiInputEvent));
-  }
-#endif
-
-  template <typename = void>
-  explicit PROTOBUF_CONSTEXPR UiInputEvent(::google::protobuf::internal::ConstantInitialized);
-
-  inline UiInputEvent(const UiInputEvent& from) : UiInputEvent(nullptr, from) {}
-  inline UiInputEvent(UiInputEvent&& from) noexcept
-      : UiInputEvent(nullptr, ::std::move(from)) {}
-  inline UiInputEvent& operator=(const UiInputEvent& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline UiInputEvent& operator=(UiInputEvent&& from) noexcept {
-    if (this == &from) return *this;
-    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
-  }
-  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
-      ABSL_ATTRIBUTE_LIFETIME_BOUND {
-    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
-  }
-
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
-    return GetDescriptor();
-  }
-  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const UiInputEvent& default_instance() {
-    return *reinterpret_cast<const UiInputEvent*>(
-        &_UiInputEvent_default_instance_);
-  }
-  enum ValueCase {
-    kText = 3,
-    kNumber = 4,
-    kOn = 5,
-    kChoice = 6,
-    VALUE_NOT_SET = 0,
-  };
-  static constexpr int kIndexInFileMessages = 20;
-  friend void swap(UiInputEvent& a, UiInputEvent& b) { a.Swap(&b); }
-  inline void Swap(UiInputEvent* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
-      InternalSwap(other);
-    } else {
-      ::google::protobuf::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(UiInputEvent* PROTOBUF_NONNULL other) {
-    if (other == this) return;
-    ABSL_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  UiInputEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<UiInputEvent>(arena);
-  }
-  using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const UiInputEvent& from);
-  using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const UiInputEvent& from) { UiInputEvent::MergeImpl(*this, from); }
-
-  private:
-  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
-                        const ::google::protobuf::MessageLite& from_msg);
-
-  public:
-  bool IsInitialized() const {
-    return true;
-  }
-  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
-  #if defined(PROTOBUF_CUSTOM_VTABLE)
-  private:
-  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
-  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
-
-  public:
-  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-    return _InternalSerialize(*this, target, stream);
-  }
-  #else   // PROTOBUF_CUSTOM_VTABLE
-  ::size_t ByteSizeLong() const final;
-  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
-      ::uint8_t* PROTOBUF_NONNULL target,
-      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
-  #endif  // PROTOBUF_CUSTOM_VTABLE
-  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static void SharedDtor(MessageLite& self);
-  void InternalSwap(UiInputEvent* PROTOBUF_NONNULL other);
- private:
-  template <typename T>
-  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.UiInputEvent"; }
-
-  explicit UiInputEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  UiInputEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const UiInputEvent& from);
-  UiInputEvent(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, UiInputEvent&& from) noexcept
-      : UiInputEvent(arena) {
-    *this = ::std::move(from);
-  }
-  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
-  static void* PROTOBUF_NONNULL PlacementNew_(
-      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  static constexpr auto InternalNewImpl_();
-
- public:
-  static constexpr auto InternalGenerateClassData_();
-
-  ::google::protobuf::Metadata GetMetadata() const;
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-  enum : int {
-    kNodeFieldNumber = 2,
-    kPlayerFieldNumber = 1,
-    kTextFieldNumber = 3,
-    kNumberFieldNumber = 4,
-    kOnFieldNumber = 5,
-    kChoiceFieldNumber = 6,
-  };
-  // string node = 2;
-  void clear_node() ;
-  const ::std::string& node() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_node(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_node();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_node();
-  void set_allocated_node(::std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const ::std::string& _internal_node() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_node(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
-
-  public:
-  // int32 player = 1;
-  void clear_player() ;
-  ::int32_t player() const;
-  void set_player(::int32_t value);
-
-  private:
-  ::int32_t _internal_player() const;
-  void _internal_set_player(::int32_t value);
-
-  public:
-  // string text = 3;
-  bool has_text() const;
-  void clear_text() ;
-  const ::std::string& text() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_text(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_text();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_text();
-  void set_allocated_text(::std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const ::std::string& _internal_text() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_text(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_text();
-
-  public:
-  // float number = 4;
-  bool has_number() const;
-  void clear_number() ;
-  float number() const;
-  void set_number(float value);
-
-  private:
-  float _internal_number() const;
-  void _internal_set_number(float value);
-
-  public:
-  // bool on = 5;
-  bool has_on() const;
-  void clear_on() ;
-  bool on() const;
-  void set_on(bool value);
-
-  private:
-  bool _internal_on() const;
-  void _internal_set_on(bool value);
-
-  public:
-  // uint32 choice = 6;
-  bool has_choice() const;
-  void clear_choice() ;
-  ::uint32_t choice() const;
-  void set_choice(::uint32_t value);
-
-  private:
-  ::uint32_t _internal_choice() const;
-  void _internal_set_choice(::uint32_t value);
-
-  public:
-  void clear_value();
-  ValueCase value_case() const;
-  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.UiInputEvent)
- private:
-  class _Internal;
-  void set_has_text();
-  void set_has_number();
-  void set_has_on();
-  void set_has_choice();
-  inline bool has_value() const;
-  inline void clear_has_value();
-  friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 6,
-                                   0, 45,
-                                   2>
-      _table_;
-
-  friend class ::google::protobuf::MessageLite;
-  friend class ::google::protobuf::Arena;
-  template <typename T>
-  friend class ::google::protobuf::Arena::InternalHelper;
-  using InternalArenaConstructable_ = void;
-  using DestructorSkippable_ = void;
-  struct Impl_ {
-    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-    inline explicit Impl_(
-        ::google::protobuf::internal::InternalVisibility visibility,
-        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const UiInputEvent& from_msg);
-    ::google::protobuf::internal::HasBits<1> _has_bits_;
-    ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::internal::ArenaStringPtr node_;
-    ::int32_t player_;
-    union ValueUnion {
-      constexpr ValueUnion() : _constinit_{} {}
-      ::google::protobuf::internal::ConstantInitialized _constinit_;
-      ::google::protobuf::internal::ArenaStringPtr text_;
-      float number_;
-      bool on_;
-      ::uint32_t choice_;
-    } value_;
-    ::uint32_t _oneof_case_[1];
-    PROTOBUF_TSAN_DECLARE_MEMBER
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
-};
-
-MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiInputEvent_class_data_;
-// -------------------------------------------------------------------
-
 class MODLOCK_API Transition final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Transition) */ {
  public:
@@ -1292,7 +1214,7 @@ class MODLOCK_API Transition final : public ::google::protobuf::Message
     return *reinterpret_cast<const Transition*>(
         &_Transition_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(Transition& a, Transition& b) { a.Swap(&b); }
   inline void Swap(Transition* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1506,7 +1428,7 @@ class MODLOCK_API Transform final : public ::google::protobuf::Message
     return *reinterpret_cast<const Transform*>(
         &_Transform_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(Transform& a, Transform& b) { a.Swap(&b); }
   inline void Swap(Transform* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1772,7 +1694,7 @@ class MODLOCK_API Toggle final : public ::google::protobuf::Message
     return *reinterpret_cast<const Toggle*>(
         &_Toggle_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(Toggle& a, Toggle& b) { a.Swap(&b); }
   inline void Swap(Toggle* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2277,6 +2199,7 @@ class MODLOCK_API Slider final : public ::google::protobuf::Message
     kMinFieldNumber = 2,
     kMaxFieldNumber = 3,
     kStepFieldNumber = 4,
+    kWheelFieldNumber = 5,
   };
   // float value = 1;
   void clear_value() ;
@@ -2318,11 +2241,21 @@ class MODLOCK_API Slider final : public ::google::protobuf::Message
   void _internal_set_step(float value);
 
   public:
+  // bool wheel = 5;
+  void clear_wheel() ;
+  bool wheel() const;
+  void set_wheel(bool value);
+
+  private:
+  bool _internal_wheel() const;
+  void _internal_set_wheel(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Slider)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
                                    0, 0,
                                    2>
       _table_;
@@ -2348,6 +2281,7 @@ class MODLOCK_API Slider final : public ::google::protobuf::Message
     float min_;
     float max_;
     float step_;
+    bool wheel_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2412,7 +2346,7 @@ class MODLOCK_API Shadow final : public ::google::protobuf::Message
     return *reinterpret_cast<const Shadow*>(
         &_Shadow_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(Shadow& a, Shadow& b) { a.Swap(&b); }
   inline void Swap(Shadow* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2662,7 +2596,7 @@ class MODLOCK_API Region final : public ::google::protobuf::Message
     return *reinterpret_cast<const Region*>(
         &_Region_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(Region& a, Region& b) { a.Swap(&b); }
   inline void Swap(Region* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2934,7 +2868,7 @@ class MODLOCK_API Length final : public ::google::protobuf::Message
     kFill = 4,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(Length& a, Length& b) { a.Swap(&b); }
   inline void Swap(Length* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3176,7 +3110,7 @@ class MODLOCK_API GradientStop final : public ::google::protobuf::Message
     return *reinterpret_cast<const GradientStop*>(
         &_GradientStop_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(GradientStop& a, GradientStop& b) { a.Swap(&b); }
   inline void Swap(GradientStop* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3378,7 +3312,7 @@ class MODLOCK_API Edges final : public ::google::protobuf::Message
     return *reinterpret_cast<const Edges*>(
         &_Edges_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(Edges& a, Edges& b) { a.Swap(&b); }
   inline void Swap(Edges* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3604,7 +3538,7 @@ class MODLOCK_API Dropdown final : public ::google::protobuf::Message
     return *reinterpret_cast<const Dropdown*>(
         &_Dropdown_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(Dropdown& a, Dropdown& b) { a.Swap(&b); }
   inline void Swap(Dropdown* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3763,6 +3697,313 @@ class MODLOCK_API Dropdown final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull Dropdown_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API UiInputEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.ui.UiInputEvent) */ {
+ public:
+  inline UiInputEvent() : UiInputEvent(nullptr) {}
+  ~UiInputEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(UiInputEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(UiInputEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR UiInputEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline UiInputEvent(const UiInputEvent& from) : UiInputEvent(nullptr, from) {}
+  inline UiInputEvent(UiInputEvent&& from) noexcept
+      : UiInputEvent(nullptr, ::std::move(from)) {}
+  inline UiInputEvent& operator=(const UiInputEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UiInputEvent& operator=(UiInputEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UiInputEvent& default_instance() {
+    return *reinterpret_cast<const UiInputEvent*>(
+        &_UiInputEvent_default_instance_);
+  }
+  enum ValueCase {
+    kText = 3,
+    kNumber = 4,
+    kOn = 5,
+    kChoice = 6,
+    kWheel = 7,
+    VALUE_NOT_SET = 0,
+  };
+  static constexpr int kIndexInFileMessages = 21;
+  friend void swap(UiInputEvent& a, UiInputEvent& b) { a.Swap(&b); }
+  inline void Swap(UiInputEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UiInputEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UiInputEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<UiInputEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const UiInputEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const UiInputEvent& from) { UiInputEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(UiInputEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.ui.UiInputEvent"; }
+
+  explicit UiInputEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  UiInputEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const UiInputEvent& from);
+  UiInputEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, UiInputEvent&& from) noexcept
+      : UiInputEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kNodeFieldNumber = 2,
+    kPlayerFieldNumber = 1,
+    kTextFieldNumber = 3,
+    kNumberFieldNumber = 4,
+    kOnFieldNumber = 5,
+    kChoiceFieldNumber = 6,
+    kWheelFieldNumber = 7,
+  };
+  // string node = 2;
+  void clear_node() ;
+  const ::std::string& node() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_node(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_node();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_node();
+  void set_allocated_node(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_node() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_node(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_node();
+
+  public:
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // string text = 3;
+  bool has_text() const;
+  void clear_text() ;
+  const ::std::string& text() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_text(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_text();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_text();
+  void set_allocated_text(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_text() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_text(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_text();
+
+  public:
+  // float number = 4;
+  bool has_number() const;
+  void clear_number() ;
+  float number() const;
+  void set_number(float value);
+
+  private:
+  float _internal_number() const;
+  void _internal_set_number(float value);
+
+  public:
+  // bool on = 5;
+  bool has_on() const;
+  void clear_on() ;
+  bool on() const;
+  void set_on(bool value);
+
+  private:
+  bool _internal_on() const;
+  void _internal_set_on(bool value);
+
+  public:
+  // uint32 choice = 6;
+  bool has_choice() const;
+  void clear_choice() ;
+  ::uint32_t choice() const;
+  void set_choice(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_choice() const;
+  void _internal_set_choice(::uint32_t value);
+
+  public:
+  // .modlock.wasm.ui.Wheel wheel = 7;
+  bool has_wheel() const;
+  private:
+  bool _internal_has_wheel() const;
+
+  public:
+  void clear_wheel() ;
+  const ::modlock::wasm::ui::Wheel& wheel() const;
+  [[nodiscard]] ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE release_wheel();
+  ::modlock::wasm::ui::Wheel* PROTOBUF_NONNULL mutable_wheel();
+  void set_allocated_wheel(::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_wheel(::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE unsafe_arena_release_wheel();
+
+  private:
+  const ::modlock::wasm::ui::Wheel& _internal_wheel() const;
+  ::modlock::wasm::ui::Wheel* PROTOBUF_NONNULL _internal_mutable_wheel();
+
+  public:
+  void clear_value();
+  ValueCase value_case() const;
+  // @@protoc_insertion_point(class_scope:modlock.wasm.ui.UiInputEvent)
+ private:
+  class _Internal;
+  void set_has_text();
+  void set_has_number();
+  void set_has_on();
+  void set_has_choice();
+  void set_has_wheel();
+  inline bool has_value() const;
+  inline void clear_has_value();
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 7,
+                                   1, 45,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const UiInputEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr node_;
+    ::int32_t player_;
+    union ValueUnion {
+      constexpr ValueUnion() : _constinit_{} {}
+      ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::google::protobuf::internal::ArenaStringPtr text_;
+      float number_;
+      bool on_;
+      ::uint32_t choice_;
+      ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE wheel_;
+    } value_;
+    ::uint32_t _oneof_case_[1];
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull UiInputEvent_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Gradient final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.ui.Gradient) */ {
  public:
@@ -3818,7 +4059,7 @@ class MODLOCK_API Gradient final : public ::google::protobuf::Message
     return *reinterpret_cast<const Gradient*>(
         &_Gradient_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(Gradient& a, Gradient& b) { a.Swap(&b); }
   inline void Swap(Gradient* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4027,7 +4268,7 @@ class MODLOCK_API Style final : public ::google::protobuf::Message
     return *reinterpret_cast<const Style*>(
         &_Style_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(Style& a, Style& b) { a.Swap(&b); }
   inline void Swap(Style* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4824,7 +5065,7 @@ class MODLOCK_API Cycle final : public ::google::protobuf::Message
     return *reinterpret_cast<const Cycle*>(
         &_Cycle_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(Cycle& a, Cycle& b) { a.Swap(&b); }
   inline void Swap(Cycle* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5790,7 +6031,7 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
     return *reinterpret_cast<const Tree*>(
         &_Tree_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(Tree& a, Tree& b) { a.Swap(&b); }
   inline void Swap(Tree* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6021,7 +6262,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
     return *reinterpret_cast<const Change*>(
         &_Change_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(Change& a, Change& b) { a.Swap(&b); }
   inline void Swap(Change* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6254,7 +6495,7 @@ class MODLOCK_API UiRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const UiRequest*>(
         &_UiRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(UiRequest& a, UiRequest& b) { a.Swap(&b); }
   inline void Swap(UiRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6461,7 +6702,7 @@ class MODLOCK_API Screen final : public ::google::protobuf::Message
     return *reinterpret_cast<const Screen*>(
         &_Screen_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(Screen& a, Screen& b) { a.Swap(&b); }
   inline void Swap(Screen* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8861,6 +9102,85 @@ inline float Slider::_internal_step() const {
 inline void Slider::_internal_set_step(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.step_ = value;
+}
+
+// bool wheel = 5;
+inline void Slider::clear_wheel() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.wheel_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline bool Slider::wheel() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Slider.wheel)
+  return _internal_wheel();
+}
+inline void Slider::set_wheel(bool value) {
+  _internal_set_wheel(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Slider.wheel)
+}
+inline bool Slider::_internal_wheel() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.wheel_;
+}
+inline void Slider::_internal_set_wheel(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.wheel_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// Wheel
+
+// float delta = 1;
+inline void Wheel::clear_delta() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.delta_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline float Wheel::delta() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Wheel.delta)
+  return _internal_delta();
+}
+inline void Wheel::set_delta(float value) {
+  _internal_set_delta(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Wheel.delta)
+}
+inline float Wheel::_internal_delta() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.delta_;
+}
+inline void Wheel::_internal_set_delta(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.delta_ = value;
+}
+
+// float fraction = 2;
+inline void Wheel::clear_fraction() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.fraction_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline float Wheel::fraction() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Wheel.fraction)
+  return _internal_fraction();
+}
+inline void Wheel::set_fraction(float value) {
+  _internal_set_fraction(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Wheel.fraction)
+}
+inline float Wheel::_internal_fraction() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.fraction_;
+}
+inline void Wheel::_internal_set_fraction(float value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.fraction_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -13126,6 +13446,88 @@ inline ::uint32_t UiInputEvent::_internal_choice() const {
     return _impl_.value_.choice_;
   }
   return 0u;
+}
+
+// .modlock.wasm.ui.Wheel wheel = 7;
+inline bool UiInputEvent::has_wheel() const {
+  return value_case() == kWheel;
+}
+inline bool UiInputEvent::_internal_has_wheel() const {
+  return value_case() == kWheel;
+}
+inline void UiInputEvent::set_has_wheel() {
+  _impl_._oneof_case_[0] = kWheel;
+}
+inline void UiInputEvent::clear_wheel() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value_case() == kWheel) {
+    if (GetArena() == nullptr) {
+      delete _impl_.value_.wheel_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.value_.wheel_);
+    }
+    clear_has_value();
+  }
+}
+inline ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE UiInputEvent::release_wheel() {
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.UiInputEvent.wheel)
+  if (value_case() == kWheel) {
+    clear_has_value();
+    auto* temp = _impl_.value_.wheel_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.value_.wheel_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::wasm::ui::Wheel& UiInputEvent::_internal_wheel() const {
+  return value_case() == kWheel ? static_cast<const ::modlock::wasm::ui::Wheel&>(*_impl_.value_.wheel_)
+                     : reinterpret_cast<const ::modlock::wasm::ui::Wheel&>(::modlock::wasm::ui::_Wheel_default_instance_);
+}
+inline const ::modlock::wasm::ui::Wheel& UiInputEvent::wheel() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.UiInputEvent.wheel)
+  return _internal_wheel();
+}
+inline ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE UiInputEvent::unsafe_arena_release_wheel() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.wasm.ui.UiInputEvent.wheel)
+  if (value_case() == kWheel) {
+    clear_has_value();
+    auto* temp = _impl_.value_.wheel_;
+    _impl_.value_.wheel_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void UiInputEvent::unsafe_arena_set_allocated_wheel(
+    ::modlock::wasm::ui::Wheel* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_value();
+  if (value) {
+    set_has_wheel();
+    _impl_.value_.wheel_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.UiInputEvent.wheel)
+}
+inline ::modlock::wasm::ui::Wheel* PROTOBUF_NONNULL UiInputEvent::_internal_mutable_wheel() {
+  if (value_case() != kWheel) {
+    clear_value();
+    set_has_wheel();
+    _impl_.value_.wheel_ = 
+        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::ui::Wheel>(GetArena());
+  }
+  return _impl_.value_.wheel_;
+}
+inline ::modlock::wasm::ui::Wheel* PROTOBUF_NONNULL UiInputEvent::mutable_wheel()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::wasm::ui::Wheel* _msg = _internal_mutable_wheel();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.UiInputEvent.wheel)
+  return _msg;
 }
 
 inline bool UiInputEvent::has_value() const {

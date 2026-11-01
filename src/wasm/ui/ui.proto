@@ -302,6 +302,18 @@ message Slider {
   // Step is the distance between the values the slider stops at; zero lets
   // it stop anywhere.
   float step = 4;
+
+  // Wheel enables scoped wheel events while the pointer is over the slider.
+  bool wheel = 5;
+}
+
+// Wheel reports one wheel step over a slider, anchored to its pointer position.
+message Wheel {
+  // Delta is 1 for up and -1 for down. It never changes the slider's value.
+  float delta = 1;
+
+  // Fraction is the pointer's horizontal position, bounded from 0 to 1.
+  float fraction = 2;
 }
 
 // Toggle is a box the player checks or clears. The node's text labels it.
@@ -787,6 +799,9 @@ message UiInputEvent {
 
     // Choice is the index of a dropdown's chosen option.
     uint32 choice = 6;
+
+    // Wheel is a wheel step over a slider that opted in to wheel events.
+    Wheel wheel = 7;
   }
 }
 

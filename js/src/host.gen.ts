@@ -1878,6 +1878,26 @@ function fromSettingChangedEvent(message: settingsPb.SettingChangedEvent): Setti
   }
 }
 
+/**
+ * Wheel reports one wheel step over a slider, anchored to its pointer position.
+ */
+export interface Wheel {
+  /**
+   * delta is 1 for up and -1 for down. It never changes the slider's value.
+   */
+  readonly delta: number
+  /** fraction is the pointer's horizontal position, bounded from 0 to 1. */
+  readonly fraction: number
+}
+
+/** fromWheel decodes a Wheel. */
+function fromWheel(message: uiPb.Wheel): Wheel {
+  return {
+    delta: message.delta ?? 0,
+    fraction: message.fraction ?? 0,
+  }
+}
+
 /** UiPressEvent reports a press on a button in a player's interface. */
 export interface UiPressEvent {
   /** player is the player who pressed. */
@@ -1904,7 +1924,7 @@ export interface UiInputEvent {
   /** node is the id of the input. */
   readonly node: string
   /** value is the input's new value, in the kind its control holds. */
-  readonly value?: string | number | boolean | number
+  readonly value?: string | number | boolean | number | Wheel
 }
 
 /** fromUiInputEvent decodes an UiInputEvent. */
@@ -1912,7 +1932,7 @@ function fromUiInputEvent(message: uiPb.UiInputEvent): UiInputEvent {
   return {
     player: new Player(message.player ?? 0),
     node: message.node ?? '',
-    value: message.value?.value,
+    value: message.value?.case === "wheel" ? fromWheel(message.value.value) : (message.value?.value),
   }
 }
 

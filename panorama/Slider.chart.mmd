@@ -1,0 +1,21 @@
+---
+title: "Slider input"
+---
+stateDiagram-v2
+  s0: Slider hidden
+  s1: Slider disabled
+  s2: Drag to seek
+  s3: Drag to seek or wheel to zoom
+  [*] --> s0
+  s0 --> s1: The mod redraws
+  s0 --> s2: The mod redraws
+  s0 --> s3: The mod redraws
+  s1 --> s0: The mod redraws
+  s1 --> s2: The mod redraws
+  s1 --> s3: The mod redraws
+  s2 --> s0: The mod redraws
+  s2 --> s1: The mod redraws
+  s2 --> s3: The mod redraws
+  s3 --> s0: The mod redraws
+  s3 --> s1: The mod redraws
+  s3 --> s2: The mod redraws

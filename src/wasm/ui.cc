@@ -355,6 +355,7 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
 
   // Keep the bounds of its value; a slider without a range takes 0 to 1.
   const auto& slider = node.slider();
+  shown.wheel = node.has_slider() && slider.wheel();
   if (std::isfinite(slider.min()) && std::isfinite(slider.max()) && slider.max() > slider.min()) {
     shown.min = slider.min();
     shown.max = slider.max();
@@ -386,6 +387,32 @@ std::expected<ui::UiInputEvent, std::string> UiTrees::Input(int32_t slot, std::s
   ui::UiInputEvent event;
   event.set_player(slot);
   event.set_node(name);
+  if (value.starts_with("wheel:")) {
+    // Wheel input reaches only a visible, enabled slider that opted in.
+    if (!shown.wheel) {
+      return std::unexpected("input " + name + " does not take wheel events");
+    }
+    value.remove_prefix(6);
+    const auto separator = value.find(':');
+    float delta = 0;
+    float fraction = 0;
+    if (separator == std::string_view::npos) {
+      return std::unexpected("input " + name + " takes a wheel step and pointer fraction");
+    }
+
+    // Refuse malformed and nonfinite numbers, and bound the pointer anchor.
+    const auto step = std::from_chars(value.data(), value.data() + separator, delta);
+    const auto anchor =
+        std::from_chars(value.data() + separator + 1, value.data() + value.size(), fraction);
+    if (step.ec != std::errc() || step.ptr != value.data() + separator ||
+        anchor.ec != std::errc() || anchor.ptr != value.data() + value.size() ||
+        (delta != 1 && delta != -1) || !std::isfinite(fraction)) {
+      return std::unexpected("input " + name + " takes a wheel step and pointer fraction");
+    }
+    event.mutable_wheel()->set_delta(delta);
+    event.mutable_wheel()->set_fraction(std::clamp(fraction, 0.0F, 1.0F));
+    return event;
+  }
   switch (shown.input) {
     case ui::Node::kTextEntry: {
       const auto decoded = DecodeBase64Url(value);

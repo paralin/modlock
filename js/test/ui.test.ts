@@ -9,11 +9,12 @@ import {
   HudPart,
   Kind,
   Scaling,
+  UiInputEvent,
   UiRequest,
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
-import { Call, Reply } from '../../src/wasm/wasm.pb.js'
-import { bind } from '../src/host.js'
+import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
+import { bind, deliver } from '../src/host.js'
 import { Action, hideHud, jsx, sheet, show } from '../src/index.js'
 import { change } from '../src/ui.js'
 
@@ -182,6 +183,7 @@ test('inputs carry their values and hand changes to the mod', () => {
   // Show a name entry, a slider, a disabled toggle, an avatar and a token.
   const player = { slot: 9 } as Parameters<typeof show>[0]
   const names: string[] = []
+  const wheels: number[] = []
   show(
     player,
     jsx('panel', {
@@ -192,7 +194,14 @@ test('inputs carry their values and hand changes to the mod', () => {
           maxLength: 12,
           onChange: (_: unknown, value: string) => names.push(value),
         }),
-        jsx('slider', { value: 5, min: 0, max: 10, step: 1 }),
+        jsx('slider', {
+          value: 5,
+          min: 0,
+          max: 10,
+          step: 1,
+          onWheel: (_player, event) =>
+            wheels.push(event.delta * event.fraction),
+        }),
         jsx('toggle', {
           on: true,
           disabled: true,
@@ -218,7 +227,7 @@ test('inputs carry their values and hand changes to the mod', () => {
   })
   expect(slider!.input).toMatchObject({
     case: 'slider',
-    value: { value: 5, max: 10, step: 1 },
+    value: { value: 5, max: 10, step: 1, wheel: true },
   })
   expect(toggle!.disabled).toBe(true)
   expect(nodes.find((node) => node.kind === Kind.AVATAR)!.steamId).toBe(
@@ -231,4 +240,41 @@ test('inputs carry their values and hand changes to the mod', () => {
   change(player, entry!.id!, 'Bo')
   change(player, toggle!.id!, false)
   expect(names).toEqual(['Bo'])
+  change(player, slider!.id!, { delta: -1, fraction: 0.25 })
+  expect(wheels).toEqual([-0.25])
+  change(player, entry!.id!, { delta: 1, fraction: 0.5 })
+  expect(names).toEqual(['Bo'])
+
+  // A real host event decodes message defaults before invoking the callback.
+  const wheelReply = Reply.fromBinary(
+    deliver(
+      Call.toBinary({
+        method: 'UiInput',
+        request: UiInputEvent.toBinary({
+          player: player.slot,
+          node: slider!.id!,
+          value: { case: 'wheel', value: { delta: 1 } },
+        }),
+      }),
+    ),
+  )
+  expect(wheelReply.error).toBeUndefined()
+  deliver(
+    Call.toBinary({
+      method: 'Frame',
+      request: FrameEvent.toBinary({ timeSeconds: 1 }),
+    }),
+  )
+  expect(wheels).toEqual([-0.25, 0])
+
+  // Redrawing a disabled slider removes its wheel handler too.
+  show(
+    player,
+    jsx('slider', { disabled: true, onWheel: () => wheels.push(99) }),
+  )
+  const disabled = sent
+    .at(-1)!
+    .change!.set!.find((node) => node.kind === Kind.INPUT)!
+  change(player, disabled.id!, { delta: 1, fraction: 0.5 })
+  expect(wheels).toEqual([-0.25, 0])
 })
