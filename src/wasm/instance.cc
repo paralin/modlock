@@ -2,6 +2,7 @@
 
 #include "wasm/instance.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstring>
 #include <format>
@@ -75,13 +76,16 @@ Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
   // The epoch deadline arrives no sooner than the budget can be spent, since
   // the thread uses at most one second of processor time per second. A call
   // with budget left runs on to a new deadline; one without traps.
+  // A call past limits_.sample_after also gets a callback on every tick, which
+  // samples it.
   store_.epoch_deadline_callback(
-      [this](wasmtime::Store::Context,
+      [this](wasmtime::Store::Context context,
              uint64_t& delta) -> wasmtime::Result<wasmtime::DeadlineKind> {
         if (Left() <= Left().zero()) {
           return wasmtime::Error("the time budget is spent");
         }
-        delta = Ticks(Left());
+        Sample(context);
+        delta = NextTicks();
         return wasmtime::DeadlineKind::Continue;
       });
 }
@@ -146,17 +150,32 @@ std::expected<void, std::string> Instance::Instantiate(std::span<const uint8_t> 
   }
 
   // Run the reactor's initialization, which registers the mod's handlers.
-  auto initialize = instance.ok_ref().get(context, "_initialize");
-  auto* function = initialize ? std::get_if<wasmtime::Func>(&*initialize) : nullptr;
-  if (!function) {
-    return {};
-  }
   busy_ = true;
-  auto initialized = function->call(context, {});
-  busy_ = false;
-  if (!initialized) {
-    return std::unexpected(Stop(initialized.err().message()));
+  auto initialize = instance.ok_ref().get(context, "_initialize");
+  if (auto* function = initialize ? std::get_if<wasmtime::Func>(&*initialize) : nullptr) {
+    auto initialized = function->call(context, {});
+    if (!initialized) {
+      busy_ = false;
+      return std::unexpected(Stop(initialized.err().message()));
+    }
   }
+
+  // An interpreter samples its own stack, so ask where it reads the request.
+  auto samples = instance.ok_ref().get(context, "modlock_samples");
+  auto flag = instance.ok_ref().get(context, "modlock_sample_flag");
+  auto* samples_func = samples ? std::get_if<wasmtime::Func>(&*samples) : nullptr;
+  auto* flag_func = flag ? std::get_if<wasmtime::Func>(&*flag) : nullptr;
+  if (samples_func && flag_func) {
+    auto typed = flag_func->typed<std::tuple<>, uint32_t>(context);
+    if (typed) {
+      if (auto address = typed.ok_ref().call(context, {}); address) {
+        sample_flag_ = address.ok();
+        samples_func_ = *samples_func;
+      }
+    }
+  }
+  busy_ = false;
+  FinishSamples();
   return {};
 }
 
@@ -205,6 +224,7 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
   if (!called) {
     return std::unexpected(Stop(called.err().message()));
   }
+  FinishSamples();
 
   // Decode the reply the mod left in its memory.
   const uint64_t packed = called.ok();
@@ -270,6 +290,10 @@ wasmtime::Result<std::monostate, wasmtime::Trap> Instance::HostReadImport(wasmti
 
 void Instance::SetBudget(std::string call, std::chrono::milliseconds limit) {
   budget_ = {.call = std::move(call), .limit = limit, .began = ThreadTime()};
+  sampled_ = false;
+  guest_.reset();
+  last_sample_ = budget_.began;
+  samples_.Clear();
   ArmDeadline();
 }
 
@@ -284,8 +308,90 @@ uint64_t Instance::Ticks(std::chrono::nanoseconds left) {
   return static_cast<uint64_t>((left + kEpochTick - std::chrono::nanoseconds{1}) / kEpochTick);
 }
 
+uint64_t Instance::NextTicks() const {
+  // Wake for the sample when the call is not due one yet, and on every tick
+  // once it is.
+  const auto ticks = Ticks(Left());
+  if (limits_.sample_after <= limits_.sample_after.zero()) {
+    return ticks;
+  }
+  const auto until = limits_.sample_after - (ThreadTime() - budget_.began);
+  return std::min(ticks, std::max<uint64_t>(Ticks(until), 1));
+}
+
 void Instance::ArmDeadline() {
-  store_.context().set_epoch_deadline(Ticks(Left()));
+  store_.context().set_epoch_deadline(NextTicks());
+}
+
+void Instance::Sample(wasmtime::Store::Context context) {
+  const auto now = ThreadTime();
+  if (limits_.sample_after <= limits_.sample_after.zero() ||
+      now - budget_.began < limits_.sample_after) {
+    return;
+  }
+  sampled_ = true;
+
+  // Ask an interpreter for its own stack at its next poll.
+  if (sample_flag_) {
+    if (auto flag = Bytes(memory_->data(context), *sample_flag_, 4)) {
+      const uint32_t due = 1;
+      std::memcpy(flag->data(), &due, sizeof(due));
+    }
+    return;
+  }
+
+  // Record the Wasm stack of any other module.
+  if (!guest_) {
+    guest_ = std::make_unique<GuestSampler>(runtime_.Engine(), *module_);
+  }
+  guest_->Sample(store_, now - last_sample_);
+  last_sample_ = now;
+}
+
+void Instance::FinishSamples() {
+  if (!sampled_) {
+    return;
+  }
+  sampled_ = false;
+  StackTally tally;
+
+  // Take an interpreter's counted stacks, and clear its request.
+  if (sample_flag_) {
+    if (auto flag = Bytes(memory_->data(store_.context()), *sample_flag_, 4)) {
+      const uint32_t none = 0;
+      std::memcpy(flag->data(), &none, sizeof(none));
+    }
+    auto typed = samples_func_->typed<std::tuple<>, uint64_t>(store_.context());
+    if (!typed) {
+      return;
+    }
+    auto packed = typed.ok_ref().call(store_.context(), {});
+    if (!packed || packed.ok() == 0) {
+      return;
+    }
+    auto bytes = Bytes(memory_->data(store_.context()), static_cast<uint32_t>(packed.ok() >> 32),
+                       static_cast<uint32_t>(packed.ok()));
+    profile::StackSamples counted;
+    if (bytes && counted.ParseFromArray(bytes->data(), static_cast<int>(bytes->size()))) {
+      tally.Add(counted);
+    }
+  } else if (guest_) {
+    tally.Add(guest_->Finish());
+    guest_.reset();
+  }
+  samples_ = tally.Take();
+}
+
+profile::SlowFrame Instance::Describe() const {
+  using std::chrono::duration_cast;
+  using std::chrono::microseconds;
+  profile::SlowFrame frame;
+  frame.set_took_micros(duration_cast<microseconds>(budget_.spent).count());
+  frame.set_host_micros(duration_cast<microseconds>(budget_.host).count());
+  frame.set_slowest_host_call(budget_.slowest);
+  frame.set_slowest_host_call_micros(duration_cast<microseconds>(budget_.slowest_time).count());
+  *frame.mutable_samples() = samples_;
+  return frame;
 }
 
 std::string Instance::Report() const {

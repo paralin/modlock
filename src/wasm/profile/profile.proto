@@ -64,3 +64,67 @@ message KeyCalls {
   // each, and is refused under the key the host refused.
   Counts counts = 3;
 }
+
+// StackFrame is one function on a mod's call stack when it was sampled.
+message StackFrame {
+  // Function is the function's name, or empty for an anonymous function.
+  string function = 1;
+
+  // File is the source file the function is in, as the runtime reports it: the
+  // mod's bundle for a script mod. Empty for a compiled mod, whose
+  // functions carry no file.
+  string file = 2;
+
+  // Line is the line in the file the call was at, from 1, or 0 when the
+  // runtime could not say. The innermost frame of a script is often at 0,
+  // since the runtime only knows a line once the function calls out.
+  uint32 line = 3;
+
+  // Column is the column on that line, from 1, or 0 when unknown.
+  uint32 column = 4;
+}
+
+// HotStack is a call stack and how often it was sampled.
+message HotStack {
+  // Frames is the stack from the innermost call, the one running when
+  // sampled, outward. A host keeps the innermost frames only.
+  repeated StackFrame frames = 1;
+
+  // Samples counts the samples that found exactly this stack.
+  uint32 samples = 2;
+}
+
+// StackSamples is the stacks sampled while one call of a mod ran slowly.
+message StackSamples {
+  // Total counts every sample taken, including those of stacks not listed.
+  uint32 total = 1;
+
+  // Stacks holds the stacks with the most samples, most first.
+  repeated HotStack stacks = 2;
+}
+
+// SlowFrame is one report of the frames a mod spent too long on: the slowest
+// frame since the last report, with where it spent the time.
+message SlowFrame {
+  // TookMicros is the slowest frame's time, in microseconds of the mod's own
+  // CPU time.
+  uint64 took_micros = 1;
+
+  // HostMicros is the part of the slowest frame spent in host calls.
+  uint64 host_micros = 2;
+
+  // SlowestHostCall names the host call that took longest in that frame, or
+  // is empty when the frame made none.
+  string slowest_host_call = 3;
+
+  // SlowestHostCallMicros is that call's time.
+  uint64 slowest_host_call_micros = 4;
+
+  // Skipped counts the frames the host skipped since the last report to repay
+  // the slow ones.
+  uint32 skipped = 5;
+
+  // Samples holds the stacks sampled during the slowest frame, empty when the
+  // frame ended before the first sample.
+  StackSamples samples = 6;
+}

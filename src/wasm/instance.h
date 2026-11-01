@@ -10,8 +10,10 @@
 #include <string>
 #include <wasmtime.hh>
 
+#include "src/wasm/profile/profile.pb.h"
 #include "src/wasm/wasm.pb.h"
 #include "wasm/runtime.h"
+#include "wasm/stack_samples.h"
 
 namespace modlock::wasm {
 
@@ -37,6 +39,11 @@ struct Limits {
   // preemption or paging on a machine short of memory, spends none of it,
   // since stopping the mod would not end it.
   std::chrono::milliseconds event_budget{5000};
+  // sample_after is the processor time a call may run before the instance
+  // samples where it is: on every epoch tick from then on, about every 10 ms.
+  // A call that ends sooner is not sampled, and pays at most two extra epoch
+  // callbacks. Zero never samples.
+  std::chrono::milliseconds sample_after{0};
 };
 
 // Instance runs one WebAssembly mod in its own Wasmtime store. The mod sees
@@ -85,6 +92,10 @@ class Instance {
   // at 8 ms".
   [[nodiscard]] std::string Report() const;
 
+  // Describe returns the same as Report in a message, with the stacks sampled
+  // while the event ran. Skipped is left zero.
+  [[nodiscard]] profile::SlowFrame Describe() const;
+
  private:
   Instance(Runtime& runtime, const Limits& limits, HostCall host_call);
 
@@ -116,8 +127,18 @@ class Instance {
   std::chrono::nanoseconds Left() const;
   // Ticks returns the epoch ticks that cover left, zero once it is spent.
   static uint64_t Ticks(std::chrono::nanoseconds left);
-  // ArmDeadline sets the epoch deadline to the time left in budget_.
+  // NextTicks returns the epoch ticks until the budget is spent or, once the
+  // call is due samples, until the next sample.
+  uint64_t NextTicks() const;
+  // ArmDeadline sets the epoch deadline to NextTicks.
   void ArmDeadline();
+  // Sample takes a sample of the running call if it has run past
+  // limits_.sample_after. An interpreter module takes it itself, when it next
+  // polls its flag; any other module's Wasm stack is recorded here.
+  void Sample(wasmtime::Store::Context context);
+  // FinishSamples ends the sampling of the call that returned, folding what
+  // was sampled into samples_.
+  void FinishSamples();
   // Spent describes the returned call's time: spent in all, how much went to
   // host calls and the slowest of them.
   std::string Spent() const;
@@ -136,6 +157,20 @@ class Instance {
   wasmtime::Store store_;
   std::optional<wasmtime::Memory> memory_;
   std::optional<wasmtime::Func> event_;
+  // An interpreter module samples itself: it exports modlock_sample_flag,
+  // the address in its memory of a word that asks for a sample, and
+  // modlock_samples, which returns the stacks it counted as a StackSamples.
+  // sample_flag_ is that address, and samples_func_ the export.
+  std::optional<uint32_t> sample_flag_;
+  std::optional<wasmtime::Func> samples_func_;
+  // sampled_ is true once the running call took a sample. guest_ records the
+  // Wasm stacks of a module that does not sample itself, and last_sample_ is
+  // the thread's processor time at its last sample.
+  bool sampled_ = false;
+  std::unique_ptr<GuestSampler> guest_;
+  std::chrono::nanoseconds last_sample_{};
+  // samples_ holds the stacks sampled during the last call that returned.
+  profile::StackSamples samples_;
   // pending_ holds the encoded message host_read copies next.
   std::string pending_;
   Budget budget_;

@@ -276,3 +276,301 @@ export const KeyCalls: MessageType<KeyCalls> =
       },
     },
   )
+
+/**
+ * StackFrame is one function on a mod's call stack when it was sampled.
+ *
+ * @generated from message modlock.wasm.profile.StackFrame
+ */
+export interface StackFrame {
+  /**
+   * Function is the function's name, or empty for an anonymous function.
+   */
+  function?: string
+  /**
+   * File is the source file the function is in, as the runtime reports it: the
+   * mod's bundle for a script mod. Empty for a compiled mod, whose
+   * functions carry no file.
+   */
+  file?: string
+  /**
+   * Line is the line in the file the call was at, from 1, or 0 when the
+   * runtime could not say. The innermost frame of a script is often at 0,
+   * since the runtime only knows a line once the function calls out.
+   */
+  line?: number
+  /**
+   * Column is the column on that line, from 1, or 0 when unknown.
+   */
+  column?: number
+}
+
+export const StackFrame: MessageType<StackFrame> =
+  /* @__PURE__ */ createMessageType<StackFrame>(
+    'modlock.wasm.profile.StackFrame',
+    () => [
+      [1, 'function', 9],
+      [2, 'file', 9],
+      [3, 'line', 13],
+      [4, 'column', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: StackFrame): StackFrame => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.function = r.string()
+              break
+            case 2:
+              m.file = r.string()
+              break
+            case 3:
+              m.line = r.uint32()
+              break
+            case 4:
+              m.column = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: StackFrame, w: Writer): void => {
+        {
+          const v = m.function
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.file
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.line
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.column
+          if (v) w.uint32(32).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * HotStack is a call stack and how often it was sampled.
+ *
+ * @generated from message modlock.wasm.profile.HotStack
+ */
+export interface HotStack {
+  /**
+   * Frames is the stack from the innermost call, the one running when
+   * sampled, outward. A host keeps the innermost frames only.
+   */
+  frames?: StackFrame[]
+  /**
+   * Samples counts the samples that found exactly this stack.
+   */
+  samples?: number
+}
+
+export const HotStack: MessageType<HotStack> =
+  /* @__PURE__ */ createMessageType<HotStack>(
+    'modlock.wasm.profile.HotStack',
+    () => [
+      [1, 'frames', 11, 1, StackFrame.codec],
+      [2, 'samples', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: HotStack): HotStack => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              ;(m.frames ??= []).push(StackFrame.decode(r, r.delimited(), {}))
+              break
+            case 2:
+              m.samples = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: HotStack, w: Writer): void => {
+        {
+          const a = m.frames
+          if (a != null) for (const e of a) StackFrame.writeField(w, 1, e)
+        }
+        {
+          const v = m.samples
+          if (v) w.uint32(16).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * StackSamples is the stacks sampled while one call of a mod ran slowly.
+ *
+ * @generated from message modlock.wasm.profile.StackSamples
+ */
+export interface StackSamples {
+  /**
+   * Total counts every sample taken, including those of stacks not listed.
+   */
+  total?: number
+  /**
+   * Stacks holds the stacks with the most samples, most first.
+   */
+  stacks?: HotStack[]
+}
+
+export const StackSamples: MessageType<StackSamples> =
+  /* @__PURE__ */ createMessageType<StackSamples>(
+    'modlock.wasm.profile.StackSamples',
+    () => [
+      [1, 'total', 13],
+      [2, 'stacks', 11, 1, HotStack.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: StackSamples): StackSamples => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.total = r.uint32()
+              break
+            case 2:
+              ;(m.stacks ??= []).push(HotStack.decode(r, r.delimited(), {}))
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: StackSamples, w: Writer): void => {
+        {
+          const v = m.total
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const a = m.stacks
+          if (a != null) for (const e of a) HotStack.writeField(w, 2, e)
+        }
+      },
+    },
+  )
+
+/**
+ * SlowFrame is one report of the frames a mod spent too long on: the slowest
+ * frame since the last report, with where it spent the time.
+ *
+ * @generated from message modlock.wasm.profile.SlowFrame
+ */
+export interface SlowFrame {
+  /**
+   * TookMicros is the slowest frame's time, in microseconds of the mod's own
+   * CPU time.
+   */
+  tookMicros?: bigint
+  /**
+   * HostMicros is the part of the slowest frame spent in host calls.
+   */
+  hostMicros?: bigint
+  /**
+   * SlowestHostCall names the host call that took longest in that frame, or
+   * is empty when the frame made none.
+   */
+  slowestHostCall?: string
+  /**
+   * SlowestHostCallMicros is that call's time.
+   */
+  slowestHostCallMicros?: bigint
+  /**
+   * Skipped counts the frames the host skipped since the last report to repay
+   * the slow ones.
+   */
+  skipped?: number
+  /**
+   * Samples holds the stacks sampled during the slowest frame, empty when the
+   * frame ended before the first sample.
+   */
+  samples?: StackSamples
+}
+
+export const SlowFrame: MessageType<SlowFrame> =
+  /* @__PURE__ */ createMessageType<SlowFrame>(
+    'modlock.wasm.profile.SlowFrame',
+    () => [
+      [1, 'took_micros', 4],
+      [2, 'host_micros', 4],
+      [3, 'slowest_host_call', 9],
+      [4, 'slowest_host_call_micros', 4],
+      [5, 'skipped', 13],
+      [6, 'samples', 11, 0, StackSamples.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: SlowFrame): SlowFrame => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.tookMicros = r.uint64()
+              break
+            case 2:
+              m.hostMicros = r.uint64()
+              break
+            case 3:
+              m.slowestHostCall = r.string()
+              break
+            case 4:
+              m.slowestHostCallMicros = r.uint64()
+              break
+            case 5:
+              m.skipped = r.uint32()
+              break
+            case 6:
+              m.samples = StackSamples.decode(r, r.delimited(), m.samples ?? {})
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: SlowFrame, w: Writer): void => {
+        {
+          const v = m.tookMicros
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.hostMicros
+          if (v) w.uint32(16).uint64(v)
+        }
+        {
+          const v = m.slowestHostCall
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.slowestHostCallMicros
+          if (v) w.uint32(32).uint64(v)
+        }
+        {
+          const v = m.skipped
+          if (v) w.uint32(40).uint32(v)
+        }
+        {
+          const v = m.samples
+          if (v != null) StackSamples.writeField(w, 6, v)
+        }
+      },
+    },
+  )

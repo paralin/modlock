@@ -469,13 +469,15 @@ class WasmPlugin final : public Plugin {
   std::map<int32_t, std::pair<uint64_t, std::string>> handoff_players_;
   // frames_resume_ is when the mod's next frame is due after a slow one.
   // skipped_ counts the frames skipped since shed_logged_, the last log of
-  // them, slowest_ is the slowest frame since then, and slowest_report_
-  // describes where that frame's processor time went.
+  // them, slowest_ is the slowest frame since then, slowest_report_
+  // describes where that frame's processor time went, and slowest_frame_
+  // holds the same with the stacks sampled during it.
   std::chrono::steady_clock::time_point frames_resume_;
   std::chrono::steady_clock::time_point shed_logged_;
   int skipped_ = 0;
   std::chrono::steady_clock::duration slowest_{};
   std::string slowest_report_;
+  wasm::profile::SlowFrame slowest_frame_;
 
   // calls_ counts the mod's host calls since calls_reported_, the last time
   // they went to the observers.

@@ -261,6 +261,13 @@ void ControlLink::Called(std::string_view mod, const wasm::profile::CallProfile&
   Push(std::move(event));
 }
 
+void ControlLink::SlowFrame(std::string_view mod, const wasm::profile::SlowFrame& report) {
+  control::HostEvent event;
+  event.mutable_slow_frame()->set_mod(std::string(mod));
+  *event.mutable_slow_frame()->mutable_report() = report;
+  Push(std::move(event));
+}
+
 void ControlLink::Ui(std::string_view mod, int32_t slot, const wasm::ui::Change& change) {
   // Report the mod's interface change.
   control::HostEvent event;
