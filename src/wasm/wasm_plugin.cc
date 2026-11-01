@@ -56,7 +56,8 @@ bool Tune(std::wstring_view module, const char* module_name,
     return false;
   }
 
-  // Change the definitions and log each problem.
+  // Change the definitions, log each problem, and report the result once, so
+  // a log shows whether the changes reached the game.
   auto problems = wasm::ChangeDefinitions(*image, *schema, module_name, manifest.definitions());
   if (!problems) {
     return false;
@@ -64,6 +65,8 @@ bool Tune(std::wstring_view module, const char* module_name,
   for (const auto& problem : *problems) {
     log("definition change: " + problem);
   }
+  log(std::format("definition changes: {} in {}, {} problems", manifest.definitions().size(),
+                  module_name, problems->size()));
   return true;
 }
 
