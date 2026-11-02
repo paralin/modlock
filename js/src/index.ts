@@ -102,6 +102,21 @@ export { Cast, type CastOptions, type Want } from './cast.js'
 export { frameClock } from './frameclock.js'
 export { ground, type GroundOptions } from './ground.js'
 export { players } from './players.js'
+export {
+  afterMatch,
+  fewestPlayed,
+  leaderboard,
+  leastUsed,
+  nextMatch,
+  ratingChange,
+  ratingStep,
+  settle,
+  type Standing,
+  Standings,
+  startingRating,
+} from './rotation.js'
+export { bystanderStates, holdBystander } from './bystander.js'
+export { Strays, strayGraceSeconds } from './strays.js'
 export { type Check, ProbeRun } from './probe.js'
 export {
   poseAt,
