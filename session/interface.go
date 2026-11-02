@@ -1,13 +1,19 @@
 package session
 
 import (
+	"maps"
 	"net"
 	"net/http"
 	"net/url"
+	"path"
+	"strings"
+	"sync"
 	"testing/fstest"
 
+	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/devmount"
 	"github.com/paralin/modlock/src/host_app/control"
+	"github.com/paralin/modlock/src/wasm/ui"
 	"github.com/pkg/errors"
 )
 
@@ -40,6 +46,10 @@ type Served struct {
 	mounted *mount
 	// server serves the screen, or is nil when it does not.
 	server *http.Server
+	// mu guards addons.
+	mu sync.Mutex
+	// addons holds the content addon each mod's layouts load from, by mod.
+	addons map[string]string
 }
 
 // StartInterface mounts the renderer and the mods' content in the game and
@@ -50,7 +60,7 @@ type Served struct {
 func StartInterface(config Interface) *Served {
 	// Mount the renderer and the content, so the game draws the screen and
 	// the server and the game load the mods' resources.
-	served := &Served{config: config}
+	served := &Served{config: config, addons: contentAddons(config.Content)}
 	mounted, err := mountRenderer(config.GameDir, config.Renderer, config.bridge(), config.Content)
 	if err != nil {
 		config.fail(errors.Wrap(err, "the game shows no mod interfaces or content"))
@@ -66,7 +76,7 @@ func StartInterface(config Interface) *Served {
 		config.fail(errors.Wrap(err, "mod interfaces are off"))
 		return served
 	}
-	served.server = &http.Server{Handler: NewRelay(config.Relay, config.Screen)}
+	served.server = &http.Server{Handler: NewRelay(config.Relay, served.screen)}
 	go func() { _ = served.server.Serve(listener) }()
 	return served
 }
@@ -85,8 +95,46 @@ func (s *Served) AddContent(mod string) {
 	default:
 		if err := s.mounted.Add(content); err != nil {
 			s.config.fail(errors.Wrap(err, "the game keeps the mod's earlier content"))
+			return
+		}
+		s.mu.Lock()
+		maps.Copy(s.addons, contentAddons(content))
+		s.mu.Unlock()
+	}
+}
+
+// screen returns the player's screen with each tree naming the content addon
+// its mod's layouts load from, so the renderer resolves a layout to the
+// content this session mounted. Config.Screen builds the trees afresh on each
+// call, so setting their addons changes no other reader's.
+func (s *Served) screen() (*ui.Screen, <-chan struct{}) {
+	screen, changed := s.config.Screen()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, tree := range screen.GetTrees() {
+		tree.Addon = s.addons[tree.GetMod()]
+	}
+	return screen, changed
+}
+
+// contentAddons returns the content addon of each mod whose layouts content
+// carries, by mod: the directory under panorama/layout/ named for the mod's
+// slug and the digest of its content. Content built from one build of each mod
+// names one addon per mod.
+func contentAddons(content fstest.MapFS) map[string]string {
+	addons := make(map[string]string)
+	layouts := path.Join(check.ContentDir, "layout") + "/"
+	for name := range content {
+		rest, ok := strings.CutPrefix(name, layouts)
+		if !ok {
+			continue
+		}
+		addon, _, _ := strings.Cut(rest, "/")
+		if slug, ok := check.AddonSlug(addon); ok {
+			addons[slug] = addon
 		}
 	}
+	return addons
 }
 
 // Stop stops serving the screen and unmounts the package. A block left in

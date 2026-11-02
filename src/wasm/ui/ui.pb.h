@@ -6121,6 +6121,7 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
   enum : int {
     kNodesFieldNumber = 2,
     kModFieldNumber = 1,
+    kAddonFieldNumber = 4,
     kRegionFieldNumber = 3,
   };
   // repeated .modlock.wasm.ui.Node nodes = 2;
@@ -6155,6 +6156,21 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_mod();
 
   public:
+  // string addon = 4;
+  void clear_addon() ;
+  const ::std::string& addon() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_addon(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_addon();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_addon();
+  void set_allocated_addon(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_addon() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_addon(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_addon();
+
+  public:
   // .modlock.wasm.ui.Region region = 3;
   bool has_region() const;
   void clear_region() ;
@@ -6174,8 +6190,8 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
-                                   2, 32,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
+                                   2, 37,
                                    2>
       _table_;
 
@@ -6198,6 +6214,7 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Node > nodes_;
     ::google::protobuf::internal::ArenaStringPtr mod_;
+    ::google::protobuf::internal::ArenaStringPtr addon_;
     ::modlock::wasm::ui::Region* PROTOBUF_NULLABLE region_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -12822,7 +12839,7 @@ Tree::_internal_mutable_nodes() {
 
 // .modlock.wasm.ui.Region region = 3;
 inline bool Tree::has_region() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
   PROTOBUF_ASSUME(!value || _impl_.region_ != nullptr);
   return value;
 }
@@ -12830,7 +12847,7 @@ inline void Tree::clear_region() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.region_ != nullptr) _impl_.region_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline const ::modlock::wasm::ui::Region& Tree::_internal_region() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -12849,16 +12866,16 @@ inline void Tree::unsafe_arena_set_allocated_region(
   }
   _impl_.region_ = reinterpret_cast<::modlock::wasm::ui::Region*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.ui.Tree.region)
 }
 inline ::modlock::wasm::ui::Region* PROTOBUF_NULLABLE Tree::release_region() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::modlock::wasm::ui::Region* released = _impl_.region_;
   _impl_.region_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -12878,7 +12895,7 @@ inline ::modlock::wasm::ui::Region* PROTOBUF_NULLABLE Tree::unsafe_arena_release
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:modlock.wasm.ui.Tree.region)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::modlock::wasm::ui::Region* temp = _impl_.region_;
   _impl_.region_ = nullptr;
   return temp;
@@ -12893,7 +12910,7 @@ inline ::modlock::wasm::ui::Region* PROTOBUF_NONNULL Tree::_internal_mutable_reg
 }
 inline ::modlock::wasm::ui::Region* PROTOBUF_NONNULL Tree::mutable_region()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::modlock::wasm::ui::Region* _msg = _internal_mutable_region();
   // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Tree.region)
   return _msg;
@@ -12910,13 +12927,78 @@ inline void Tree::set_allocated_region(::modlock::wasm::ui::Region* PROTOBUF_NUL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
 
   _impl_.region_ = reinterpret_cast<::modlock::wasm::ui::Region*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Tree.region)
+}
+
+// string addon = 4;
+inline void Tree::clear_addon() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.addon_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline const ::std::string& Tree::addon() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Tree.addon)
+  return _internal_addon();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Tree::set_addon(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  _impl_.addon_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Tree.addon)
+}
+inline ::std::string* PROTOBUF_NONNULL Tree::mutable_addon()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::std::string* _s = _internal_mutable_addon();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.ui.Tree.addon)
+  return _s;
+}
+inline const ::std::string& Tree::_internal_addon() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.addon_.Get();
+}
+inline void Tree::_internal_set_addon(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.addon_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Tree::_internal_mutable_addon() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.addon_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Tree::release_addon() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.ui.Tree.addon)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  auto* released = _impl_.addon_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.addon_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Tree::set_allocated_addon(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  _impl_.addon_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.addon_.IsDefault()) {
+    _impl_.addon_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Tree.addon)
 }
 
 // -------------------------------------------------------------------

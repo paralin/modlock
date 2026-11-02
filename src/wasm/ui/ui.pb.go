@@ -2116,6 +2116,10 @@ type Tree struct {
 	// the screen with another, such as a game one mod runs inside another's.
 	// Without one, the root fills the screen.
 	Region *Region `protobuf:"bytes,3,opt,name=region,proto3" json:"region,omitempty"`
+	// Addon is the name of the mod's content addon, which holds the layouts and
+	// style sheets the tree names. The host that mounted the addon sets it; it is
+	// empty for a mod with no content.
+	Addon string `protobuf:"bytes,4,opt,name=addon,proto3" json:"addon,omitempty"`
 }
 
 func (x *Tree) Reset() {
@@ -2143,6 +2147,13 @@ func (x *Tree) GetRegion() *Region {
 		return x.Region
 	}
 	return nil
+}
+
+func (x *Tree) GetAddon() string {
+	if x != nil {
+		return x.Addon
+	}
+	return ""
 }
 
 // Region is a box on the screen, each side a fraction of the screen's width or
@@ -2888,6 +2899,7 @@ func (m *Tree) CloneVT() *Tree {
 	}
 	r := new(Tree)
 	r.Mod = m.Mod
+	r.Addon = m.Addon
 	r.Nodes = protobuf_go_lite.CloneVTSlice(m.Nodes)
 	r.Region = protobuf_go_lite.CloneVTValue(m.Region)
 	if len(m.unknownFields) > 0 {
@@ -3843,6 +3855,9 @@ func (this *Tree) EqualVT(that *Tree) bool {
 		return false
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Region, that.Region) {
+		return false
+	}
+	if this.Addon != that.Addon {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -6453,6 +6468,11 @@ func (x *Tree) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("region")
 		x.Region.MarshalProtoJSON(s.WithField("region"))
 	}
+	if x.Addon != "" || s.HasField("addon") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("addon")
+		s.WriteString(x.Addon)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6498,6 +6518,9 @@ func (x *Tree) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Region = &Region{}
 			x.Region.UnmarshalProtoJSON(s.WithField("region", true))
+		case "addon":
+			s.AddField("addon")
+			x.Addon = s.ReadString()
 		}
 	})
 }
@@ -8371,6 +8394,11 @@ func (m *Tree) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Addon) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Addon)
+		i--
+		dAtA[i] = 0x22
+	}
 	if m.Region != nil {
 		size, err := m.Region.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -9184,6 +9212,7 @@ func (m *Tree) SizeVT() (n int) {
 		l = m.Region.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Addon)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10120,6 +10149,10 @@ func (x *Tree) MarshalProtoText() string {
 	if x.Region != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "region")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Region)
+	}
+	if x.Addon != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "addon")
+		protobuf_go_lite.TextWriteString(&sb, x.Addon)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -12545,6 +12578,16 @@ func (m *Tree) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Addon", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Addon = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

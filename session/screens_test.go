@@ -2,10 +2,12 @@ package session
 
 import (
 	"bufio"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm/ui"
@@ -173,4 +175,43 @@ func shown(slot int32, mod, text string) *control.HostEvent {
 		{Id: "b", Kind: ui.Kind_KIND_BUTTON, Text: text},
 	}}
 	return &control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: mod, Slot: slot, Change: change}}}
+}
+
+// TestServedNamesContentAddons shows the renderer which content addon holds
+// each mod's layouts: the addon its content names, the rebuilt one after a
+// reload, and none for a mod with no layouts.
+func TestServedNamesContentAddons(t *testing.T) {
+	// A screen with two mods' trees, one of which ships layouts.
+	screens := NewScreens(0)
+	screens.Handle(joined(0, 76561198000000001))
+	screens.Handle(shown(0, "arena", "Ready"))
+	screens.Handle(shown(0, "plain", "Ready"))
+	content := fstest.MapFS{
+		"panorama/layout/arena-0123abcd/shop.vxml_c": {Data: []byte("layout")},
+		"panorama/styles/other-89abcdef/hud.vcss_c":  {Data: []byte("sheet")},
+		"panorama/layout/not-an-addon/shop.vxml_c":   {Data: []byte("layout")},
+		"panorama/scripts/arena-0123abcd/shop.vjs_c": {Data: []byte("script")},
+	}
+	served := &Served{config: Interface{Screen: screens.Screen}, addons: contentAddons(content)}
+	addons := func() map[string]string {
+		screen, _ := served.screen()
+		named := make(map[string]string)
+		for _, tree := range screen.GetTrees() {
+			named[tree.GetMod()] = tree.GetAddon()
+		}
+		return named
+	}
+
+	// The mod with layouts names its addon; the other names none.
+	if got := addons(); got["arena"] != "arena-0123abcd" || got["plain"] != "" || len(got) != 2 {
+		t.Fatalf("addons of the screen's trees: %v", got)
+	}
+
+	// A rebuild's content takes over the mod's addon.
+	served.mu.Lock()
+	maps.Copy(served.addons, contentAddons(fstest.MapFS{"panorama/layout/arena-4567cdef/shop.vxml_c": {}}))
+	served.mu.Unlock()
+	if got := addons(); got["arena"] != "arena-4567cdef" {
+		t.Fatalf("addon after a rebuild: %v", got)
+	}
 }

@@ -2676,6 +2676,12 @@ export interface Tree {
    * Without one, the root fills the screen.
    */
   region?: Region
+  /**
+   * Addon is the name of the mod's content addon, which holds the layouts and
+   * style sheets the tree names. The host that mounted the addon sets it; it is
+   * empty for a mod with no content.
+   */
+  addon?: string
 }
 
 export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
@@ -2684,6 +2690,7 @@ export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
     [1, 'mod', 9],
     [2, 'nodes', 11, 1, Node.codec],
     [3, 'region', 11, 0, Region.codec],
+    [4, 'addon', 9],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Tree): Tree => {
@@ -2699,6 +2706,9 @@ export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
             break
           case 3:
             m.region = Region.decode(r, r.delimited(), m.region ?? {})
+            break
+          case 4:
+            m.addon = r.string()
             break
           default:
             r.skip(t)
@@ -2718,6 +2728,10 @@ export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
       {
         const v = m.region
         if (v != null) Region.writeField(w, 3, v)
+      }
+      {
+        const v = m.addon
+        if (v) w.uint32(34).string(v)
       }
     },
   },

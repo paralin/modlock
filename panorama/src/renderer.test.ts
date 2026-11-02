@@ -4,6 +4,7 @@ import { beforeEach, expect, test } from 'bun:test'
 import { Screen } from '../../src/wasm/ui/ui.pb.js'
 import { Bridge } from './bridge.js'
 import {
+  AddonLayouts,
   Drawing,
   type InputValue,
   inputCommand,
@@ -141,15 +142,21 @@ const scheduled = new Map<number, () => void>()
  */
 const dispatched: string[][] = []
 
+/** messages holds each line $.Msg logged. */
+const messages: string[] = []
+
 beforeEach(() => {
   // Forget the last test's calls and install a fake $.
   handlers.clear()
   scheduled.clear()
   dispatched.length = 0
+  messages.length = 0
   let handles = 0
   Object.assign(globalThis, {
     $: {
-      Msg() {},
+      Msg(...values: unknown[]) {
+        messages.push(values.join(' '))
+      },
       MousePosition() {
         return { x: 200, y: 0 }
       },
@@ -966,8 +973,46 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   // empty panel.
   drawing.draw(layout('../session.xml', ''))
   expect(root.children[0]!.children[0]!.layout).toBe('')
+  messages.length = 0
   new Drawing($, root, () => {}).draw(layout('shop.xml', ''))
   expect(root.children[root.children.length - 1]!.children[0]!.layout).toBe('')
+  expect(messages).toEqual([
+    '[Modlock] arena layout shop.xml has no content to load',
+  ])
+
+  // Modlock's own layouts load a mod's layout from the addon its tree names
+  // and log once for a mod whose tree names none.
+  const own = new FakePanel('Panel', 'ModlockUi')
+  const addons = new AddonLayouts()
+  const named = (mod: string, addon: string) =>
+    Screen.fromJson({
+      trees: [
+        {
+          mod,
+          addon,
+          nodes: [
+            { id: '', children: ['a'] },
+            { id: 'a', kind: 'KIND_LAYOUT', layout: 'shop.xml' },
+          ],
+        },
+      ],
+    })
+  const installed = new Drawing($, own, () => {}, addons)
+  const arena = named('arena', 'arena-0123abcd')
+  addons.follow(arena)
+  installed.draw(arena)
+  expect(own.children[0]!.children[0]!.layout).toBe(
+    'file://{resources}/layout/arena-0123abcd/shop.xml',
+  )
+  const bare = named('bare', '')
+  messages.length = 0
+  for (let times = 0; times < 2; times++) {
+    addons.follow(bare)
+    installed.draw(bare)
+  }
+  expect(messages).toEqual([
+    '[Modlock] bare layout shop.xml has no content to load',
+  ])
 
   // Removing the tree deletes the layout's panel and lets the host rebind.
   drawing.draw(layout('shop.xml', ''))
@@ -1022,9 +1067,9 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   // layouts loads no sheets.
   styled.draw(sheets(['hud.css'], ['Leading']))
   expect(sheeted.children[0]!.children[0]!.paneltype).toBe('Label')
-  const bare = new FakePanel('Panel', 'ModlockUi')
-  new Drawing($, bare, () => {}).draw(sheets(['hud.css'], []))
-  expect(bare.children[0]!.layout).toBe('')
+  const bareRoot = new FakePanel('Panel', 'ModlockUi')
+  new Drawing($, bareRoot, () => {}).draw(sheets(['hud.css'], []))
+  expect(bareRoot.children[0]!.layout).toBe('')
 })
 
 test("hands a mod's routes to each of its layouts", () => {

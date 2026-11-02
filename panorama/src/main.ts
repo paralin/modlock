@@ -5,7 +5,7 @@
 // asks. A press runs the console command that sends it to the server.
 
 import { Bridge } from './bridge.js'
-import { Drawing, inputCommand, pressCommand } from './draw.js'
+import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
 import { Hud, cursorFreed, hiddenParts } from './hud.js'
 
 /**
@@ -31,7 +31,9 @@ root.hittest = false
 root.style.width = '100%'
 root.style.height = '100%'
 // The drawing reaches the game through $, and plays sounds through the game's
-// global sound call. Presses and edits go to the host as console commands.
+// global sound call. Presses and edits go to the host as console commands, and
+// each mod's layouts load from the content addon its tree names.
+const layouts = new AddonLayouts()
 const drawing = new Drawing(
   {
     CreatePanel: (...args: Parameters<typeof $.CreatePanel>) =>
@@ -52,7 +54,7 @@ const drawing = new Drawing(
   },
   root,
   (mod, node) => $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
-  undefined,
+  layouts,
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
 )
@@ -64,6 +66,7 @@ new Bridge(
   // The session's boot script names the page for its relay and port.
   context.GetAttributeString('modlock_bridge', defaultBridge),
   (screen) => {
+    layouts.follow(screen)
     drawing.draw(screen)
     stock.draw(hiddenParts(screen))
     freeCursor(cursorFreed(screen))
