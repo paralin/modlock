@@ -627,10 +627,10 @@ onWorld(() => {
 script or handles an event runs code in each player's game, and a publishing
 service may hold it for creators it trusts; one that only draws needs no trust.
 [`inventory`](examples/inventory) draws a layout with a script through the
-[layout element](#interfaces): the player drags items between slots, the
-script sends each move as a console command, and the mod answers with the new
-slots. Its style sheet styles the mod's frame and the layout's slots, and a
-class the mod adds fades the bag in.
+[layout element](#interfaces): the player drags items between slots with the
+cursor the mod frees, the script sends each move as a console command, and the
+mod answers with the new slots. Its style sheet styles the mod's frame and the
+layout's slots, and a class the mod adds fades the bag in.
 
 A layout includes the mod's style sheet as
 `file://{resources}/styles/{addon}/scoreboard.css`, and the sheet names the
@@ -1150,10 +1150,31 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                               |
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
+| `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                      |
 | `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. `item` prop shows its card.  |
 | `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |
 | `player.clearScreenEffect(effect)`      | End that effect, such as lifting a black screen at a round's start.                    |
 | `route(player, name, value)`            | Hand every layout of the mod `value` under `name`.                                     |
+
+A screen the player clicks, such as a pick screen, frees the cursor and withholds
+the buttons a click would fire:
+
+```tsx
+import { Buttons, freeCursor, show } from 'modlock'
+
+show(player, <PickScreen />)
+freeCursor(player, true)
+player.blockInput(Buttons.attack | Buttons.altFire | Buttons.melee)
+```
+
+The game does not stop shots, camera or movement while the cursor is up, so
+`blockInput` is the mod's job; call `player.blockInput(0n)` and `hide(player)`
+when the screen closes, and hiding gives the mouse back to aiming. The player
+can still put the cursor away with the game's own keys, and that choice holds: a screen that changes keeps it, and each
+`freeCursor(player, true)` shows the cursor again. `cursorFree(player)` reports
+whether the cursor is up, so a mod that wants it back asks again, such as
+`if (cursorFree(player) === false) freeCursor(player, true)` on a button press
+or a timer. It is `undefined` while the player has no hero.
 
 Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
 

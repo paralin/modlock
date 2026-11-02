@@ -153,6 +153,12 @@ message Node {
   // counts. Aiming returns once no mod's root frees the cursor, so a mod that
   // stops, a reset and a player who leaves all give the mouse back.
   bool free_cursor = 31;
+
+  // FreeCursorAsks counts the mod's explicit asks for the cursor. The player
+  // can put the cursor away with the game's own keys, and that choice holds
+  // until the count rises: a rise shows the cursor again while the root frees
+  // it, and a screen that changes anything else leaves the player's choice be.
+  uint32 free_cursor_asks = 33;
 }
 
 // Scaling fits a picture into its node's box.

@@ -10,7 +10,7 @@ import {
   inputCommand,
   layoutDataChanged,
 } from './draw.js'
-import { Hud, hiddenParts } from './hud.js'
+import { Hud, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -812,6 +812,15 @@ test('eases panels in, cycles them and eases them out', () => {
   expect(panel.hittest).toBe(false)
   expect(panel.deleteSeconds).toBeCloseTo(0.2)
   expect(label.deleteSeconds).toBe(-1)
+})
+
+test('reads the cursor a root frees and the times the mod asked for it', () => {
+  expect(cursorFreed(null)).toBe(false)
+  expect(cursorAsks(null)).toBe(0)
+  const asking = screen({ id: '', freeCursor: true, freeCursorAsks: 2 })
+  expect(cursorFreed(asking)).toBe(true)
+  expect(cursorAsks(asking)).toBe(2)
+  expect(cursorAsks(screen({ id: '' }))).toBe(0)
 })
 
 test("hides the game's HUD parts while a root lists them", () => {

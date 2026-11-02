@@ -6,7 +6,7 @@
 
 import { Bridge } from './bridge.js'
 import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
-import { Hud, cursorFreed, hiddenParts } from './hud.js'
+import { Hud, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
 
 /**
  * defaultBridge is the relay page a package without the session's boot script
@@ -69,16 +69,30 @@ new Bridge(
     layouts.follow(screen)
     drawing.draw(screen)
     stock.draw(hiddenParts(screen))
-    freeCursor(cursorFreed(screen))
+    freeCursor(cursorFreed(screen), cursorAsks(screen))
   },
 )
 
 /** cursorFree is the cursor state last sent to the game. */
 let cursorFree = false
 
-/** freeCursor tells the game to free or capture the cursor when it changes. */
-function freeCursor(free: boolean): void {
-  if (free === cursorFree) return
+/** cursorAsked is the count of asks for the cursor the last screen held. */
+let cursorAsked = 0
+
+/**
+ * freeCursor tells the game to free or capture the cursor when the mods'
+ * wish changes, and to free it again when a mod asks again: the player can
+ * put the cursor away with the game's own keys, which this page is not told,
+ * so a screen that changes anything else leaves the player's choice be.
+ */
+function freeCursor(free: boolean, asks: number): void {
+  // A rise in the count is an ask, which counts even when the cursor is
+  // already free here.
+  const again = free && asks !== cursorAsked
+  cursorAsked = asks
+  if (free === cursorFree && !again) return
+
+  // Tell the game.
   cursorFree = free
   $.DispatchEvent('CitadelConCommand', `hud_free_cursor ${free ? 1 : 0}`)
 }

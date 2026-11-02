@@ -1,8 +1,8 @@
 // inventory gives each player a bag of sixteen slots, drawn by the mod's own
 // layout in content/layout/inventory.xml inside a frame the mod draws. A
-// player types /inventory to open or close the bag and, holding Tab to free
-// the cursor, drags an item onto another slot. The layout sends the move as the
-// console command "inventory_move <from> <to>", and the mod sends the new
+// player types /inventory to open or close the bag, which shows their cursor
+// while it is open, and drags an item onto another slot. The layout sends the
+// move as the console command "inventory_move <from> <to>", and the mod sends the new
 // slots back as the layout's data. The style sheet content/styles/inventory.css
 // styles both, and fades the bag in when it opens. Only a host that has
 // reviewed the mod's content draws the layout, runs its script and applies the
@@ -10,7 +10,9 @@
 import './content/styles/inventory.css'
 import {
   after,
+  Buttons,
   command,
+  freeCursor,
   type Connection,
   hide,
   type Player,
@@ -49,6 +51,9 @@ const bags = new Map<bigint, Bag>()
  */
 const open = new Map<number, number>()
 
+/** bagBlock is what an open bag withholds from its player, so a click on a slot fires no weapon. */
+const bagBlock = Buttons.attack | Buttons.altFire | Buttons.melee
+
 /** connection returns the human playing in player's slot. */
 function connection(player: Player): Connection | undefined {
   return players().find((c) => c.player.slot === player.slot && !c.bot)
@@ -78,7 +83,7 @@ function draw(player: Player, bag: Bag, opened = true): void {
     player,
     <panel class={opened ? 'Bag Bag-open' : 'Bag'}>
       <label class="Bag-title">Bag</label>
-      <label class="Bag-hint">Hold Tab and drag an item to move it</label>
+      <label class="Bag-hint">Drag an item to move it</label>
       <layout src="inventory.xml" data={bag} />
     </panel>,
   )
@@ -90,9 +95,10 @@ command('inventory', (player) => {
   const c = connection(player)
   if (c === undefined) return
 
-  // Close an open bag.
+  // Close an open bag; hiding it gives the mouse back to aiming.
   if (isOpen(c)) {
     open.delete(player.slot)
+    player.blockInput(0n)
     hide(player)
     return
   }
@@ -105,6 +111,13 @@ command('inventory', (player) => {
   after(0.05, () => {
     if (isOpen(c)) draw(player, bag)
   })
+
+  // Free the cursor, which the game does not use to stop shots, so the bag
+  // withholds the weapon buttons itself. The player can put the cursor away
+  // with the game's own keys; closing the bag and opening it again brings it
+  // back.
+  freeCursor(player, true)
+  player.blockInput(bagBlock)
 })
 
 // A move swaps the two slots, so dropping onto a full slot trades places. The
