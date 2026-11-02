@@ -237,7 +237,7 @@ tools installed.
 | `modlock vpk unpack ARCHIVE DIR [PATH...]` | Write the archive's files, or those under each `PATH`, into `DIR`.                                                     |
 | `modlock vpk pack DIR ARCHIVE`             | Pack a directory into an archive; equal directories pack to equal bytes.                                               |
 | `modlock kv3 FILE`                         | Print a compiled resource's KeyValues3 data as JSON; `--blocks` lists its blocks.                                      |
-| `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                         |
+| `modlock studio`                           | Browse game assets and preview models, textures and sounds in Modlock Studio.                                          |
 
 `panorama compile` keeps every other file in `DIR` as it is, so compiled
 resources such as images ship beside the layouts; `-o` writes to another archive,
@@ -700,6 +700,10 @@ resource is not rewritten: point it at the game's own resources, or at the
 addon's name for the version you build.
 
 ## The TypeScript library
+
+The guides in [docs/](docs/README.md) build whole systems from these calls,
+such as [a rotation mode](docs/rotation.md) where a lobby takes turns
+fighting.
 
 A TypeScript or JavaScript mod imports `modlock` and registers its handlers when
 it loads. `main.ts`, or `main.js`, is the entry, and the types check as you
