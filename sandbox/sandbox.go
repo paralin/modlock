@@ -291,6 +291,9 @@ func (s *Sandbox) start(ctx context.Context, name string, build *Build) (*Mod, *
 	err = mod.Deliver(ctx, "Start", &wasm.StartEvent{Args: s.config.Args, Source: source}, wants)
 	if err == nil {
 		_ = mod.Deliver(ctx, "PlayersChanged", &players.PlayersChangedEvent{Players: []*players.Connection{player}}, nil)
+		if wants.GetJoins() {
+			_ = mod.Deliver(ctx, "PlayerJoined", &players.PlayerJoinedEvent{Connection: player}, nil)
+		}
 	}
 	if err == nil && s.config.Map != "" {
 		err = mod.Deliver(ctx, "World", &wasm.WorldEvent{Map: s.config.Map}, nil)

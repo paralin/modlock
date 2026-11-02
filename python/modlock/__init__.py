@@ -216,6 +216,374 @@ _TextVerticalAlign: dict[Any, Any] = {
 }
 
 
+# DisconnectReason is why the server dropped a connection, numbered as the
+# game's ENetworkDisconnectionReason.
+type DisconnectReason = Literal[
+    "shutdown",
+    "disconnect_by_user",
+    "disconnect_by_server",
+    "lost",
+    "overflow",
+    "steam_banned",
+    "steam_inuse",
+    "steam_ticket",
+    "steam_logon",
+    "steam_authcancelled",
+    "steam_authalreadyused",
+    "steam_authinvalid",
+    "steam_vacbanstate",
+    "steam_logged_in_elsewhere",
+    "steam_vac_check_timedout",
+    "steam_dropped",
+    "steam_ownership",
+    "serverinfo_overflow",
+    "tickmsg_overflow",
+    "stringtablemsg_overflow",
+    "deltaentmsg_overflow",
+    "tempentmsg_overflow",
+    "soundsmsg_overflow",
+    "snapshotoverflow",
+    "snapshoterror",
+    "reliableoverflow",
+    "baddeltatick",
+    "nomoresplits",
+    "timedout",
+    "disconnected",
+    "leavingsplit",
+    "differentclasstables",
+    "badrelaypassword",
+    "badspectatorpassword",
+    "hltvrestricted",
+    "nospectators",
+    "hltvunavailable",
+    "hltvstop",
+    "kicked",
+    "banadded",
+    "kickbanadded",
+    "hltvdirect",
+    "pureserver_clientextra",
+    "pureserver_mismatch",
+    "usercmd",
+    "rejected_by_game",
+    "message_parse_error",
+    "invalid_message_error",
+    "bad_server_password",
+    "direct_connect_reservation",
+    "connection_failure",
+    "no_peer_group_handlers",
+    "reconnection",
+    "loopshutdown",
+    "loopdeactivate",
+    "host_endgame",
+    "loop_levelload_activate",
+    "create_server_failed",
+    "exiting",
+    "request_hoststate_idle",
+    "request_hoststate_hltvrelay",
+    "client_consistency_fail",
+    "client_unable_to_crc_map",
+    "client_no_map",
+    "client_different_map",
+    "server_requires_steam",
+    "steam_deny_misc",
+    "steam_deny_bad_anti_cheat",
+    "server_shutdown",
+    "replay_incompatible",
+    "connect_request_timedout",
+    "server_incompatible",
+    "localproblem_manyrelays",
+    "localproblem_hostedserverprimaryrelay",
+    "localproblem_networkconfig",
+    "localproblem_other",
+    "remote_timeout",
+    "remote_timeout_connecting",
+    "remote_other",
+    "remote_badcrypt",
+    "remote_certnottrusted",
+    "unusual",
+    "internal_error",
+    "reject_badchallenge",
+    "reject_nolobby",
+    "reject_background_map",
+    "reject_single_player",
+    "reject_hidden_game",
+    "reject_lanrestrict",
+    "reject_badpassword",
+    "reject_serverfull",
+    "reject_invalidreservation",
+    "reject_failedchannel",
+    "reject_connect_from_lobby",
+    "reject_reserved_for_lobby",
+    "reject_invalidkeylength",
+    "reject_oldprotocol",
+    "reject_newprotocol",
+    "reject_invalidconnection",
+    "reject_invalidcertlen",
+    "reject_invalidsteamcertlen",
+    "reject_steam",
+    "reject_serverauthdisabled",
+    "reject_servercdkeyauthinvalid",
+    "reject_banned",
+    "kicked_teamkilling",
+    "kicked_tk_start",
+    "kicked_untrustedaccount",
+    "kicked_convictedaccount",
+    "kicked_competitivecooldown",
+    "kicked_teamhurting",
+    "kicked_hostagekilling",
+    "kicked_votedoff",
+    "kicked_idle",
+    "kicked_suicide",
+    "kicked_nosteamlogin",
+    "kicked_nosteamticket",
+    "kicked_inputautomation",
+    "kicked_vacnetabnormalbehavior",
+    "kicked_insecureclient",
+]
+_DisconnectReason: dict[Any, Any] = {
+    1: "shutdown",
+    "shutdown": 1,
+    2: "disconnect_by_user",
+    "disconnect_by_user": 2,
+    3: "disconnect_by_server",
+    "disconnect_by_server": 3,
+    4: "lost",
+    "lost": 4,
+    5: "overflow",
+    "overflow": 5,
+    6: "steam_banned",
+    "steam_banned": 6,
+    7: "steam_inuse",
+    "steam_inuse": 7,
+    8: "steam_ticket",
+    "steam_ticket": 8,
+    9: "steam_logon",
+    "steam_logon": 9,
+    10: "steam_authcancelled",
+    "steam_authcancelled": 10,
+    11: "steam_authalreadyused",
+    "steam_authalreadyused": 11,
+    12: "steam_authinvalid",
+    "steam_authinvalid": 12,
+    13: "steam_vacbanstate",
+    "steam_vacbanstate": 13,
+    14: "steam_logged_in_elsewhere",
+    "steam_logged_in_elsewhere": 14,
+    15: "steam_vac_check_timedout",
+    "steam_vac_check_timedout": 15,
+    16: "steam_dropped",
+    "steam_dropped": 16,
+    17: "steam_ownership",
+    "steam_ownership": 17,
+    18: "serverinfo_overflow",
+    "serverinfo_overflow": 18,
+    19: "tickmsg_overflow",
+    "tickmsg_overflow": 19,
+    20: "stringtablemsg_overflow",
+    "stringtablemsg_overflow": 20,
+    21: "deltaentmsg_overflow",
+    "deltaentmsg_overflow": 21,
+    22: "tempentmsg_overflow",
+    "tempentmsg_overflow": 22,
+    23: "soundsmsg_overflow",
+    "soundsmsg_overflow": 23,
+    24: "snapshotoverflow",
+    "snapshotoverflow": 24,
+    25: "snapshoterror",
+    "snapshoterror": 25,
+    26: "reliableoverflow",
+    "reliableoverflow": 26,
+    27: "baddeltatick",
+    "baddeltatick": 27,
+    28: "nomoresplits",
+    "nomoresplits": 28,
+    29: "timedout",
+    "timedout": 29,
+    30: "disconnected",
+    "disconnected": 30,
+    31: "leavingsplit",
+    "leavingsplit": 31,
+    32: "differentclasstables",
+    "differentclasstables": 32,
+    33: "badrelaypassword",
+    "badrelaypassword": 33,
+    34: "badspectatorpassword",
+    "badspectatorpassword": 34,
+    35: "hltvrestricted",
+    "hltvrestricted": 35,
+    36: "nospectators",
+    "nospectators": 36,
+    37: "hltvunavailable",
+    "hltvunavailable": 37,
+    38: "hltvstop",
+    "hltvstop": 38,
+    39: "kicked",
+    "kicked": 39,
+    40: "banadded",
+    "banadded": 40,
+    41: "kickbanadded",
+    "kickbanadded": 41,
+    42: "hltvdirect",
+    "hltvdirect": 42,
+    43: "pureserver_clientextra",
+    "pureserver_clientextra": 43,
+    44: "pureserver_mismatch",
+    "pureserver_mismatch": 44,
+    45: "usercmd",
+    "usercmd": 45,
+    46: "rejected_by_game",
+    "rejected_by_game": 46,
+    47: "message_parse_error",
+    "message_parse_error": 47,
+    48: "invalid_message_error",
+    "invalid_message_error": 48,
+    49: "bad_server_password",
+    "bad_server_password": 49,
+    50: "direct_connect_reservation",
+    "direct_connect_reservation": 50,
+    51: "connection_failure",
+    "connection_failure": 51,
+    52: "no_peer_group_handlers",
+    "no_peer_group_handlers": 52,
+    53: "reconnection",
+    "reconnection": 53,
+    54: "loopshutdown",
+    "loopshutdown": 54,
+    55: "loopdeactivate",
+    "loopdeactivate": 55,
+    56: "host_endgame",
+    "host_endgame": 56,
+    57: "loop_levelload_activate",
+    "loop_levelload_activate": 57,
+    58: "create_server_failed",
+    "create_server_failed": 58,
+    59: "exiting",
+    "exiting": 59,
+    60: "request_hoststate_idle",
+    "request_hoststate_idle": 60,
+    61: "request_hoststate_hltvrelay",
+    "request_hoststate_hltvrelay": 61,
+    62: "client_consistency_fail",
+    "client_consistency_fail": 62,
+    63: "client_unable_to_crc_map",
+    "client_unable_to_crc_map": 63,
+    64: "client_no_map",
+    "client_no_map": 64,
+    65: "client_different_map",
+    "client_different_map": 65,
+    66: "server_requires_steam",
+    "server_requires_steam": 66,
+    67: "steam_deny_misc",
+    "steam_deny_misc": 67,
+    68: "steam_deny_bad_anti_cheat",
+    "steam_deny_bad_anti_cheat": 68,
+    69: "server_shutdown",
+    "server_shutdown": 69,
+    71: "replay_incompatible",
+    "replay_incompatible": 71,
+    72: "connect_request_timedout",
+    "connect_request_timedout": 72,
+    73: "server_incompatible",
+    "server_incompatible": 73,
+    74: "localproblem_manyrelays",
+    "localproblem_manyrelays": 74,
+    75: "localproblem_hostedserverprimaryrelay",
+    "localproblem_hostedserverprimaryrelay": 75,
+    76: "localproblem_networkconfig",
+    "localproblem_networkconfig": 76,
+    77: "localproblem_other",
+    "localproblem_other": 77,
+    79: "remote_timeout",
+    "remote_timeout": 79,
+    80: "remote_timeout_connecting",
+    "remote_timeout_connecting": 80,
+    81: "remote_other",
+    "remote_other": 81,
+    82: "remote_badcrypt",
+    "remote_badcrypt": 82,
+    83: "remote_certnottrusted",
+    "remote_certnottrusted": 83,
+    84: "unusual",
+    "unusual": 84,
+    85: "internal_error",
+    "internal_error": 85,
+    128: "reject_badchallenge",
+    "reject_badchallenge": 128,
+    129: "reject_nolobby",
+    "reject_nolobby": 129,
+    130: "reject_background_map",
+    "reject_background_map": 130,
+    131: "reject_single_player",
+    "reject_single_player": 131,
+    132: "reject_hidden_game",
+    "reject_hidden_game": 132,
+    133: "reject_lanrestrict",
+    "reject_lanrestrict": 133,
+    134: "reject_badpassword",
+    "reject_badpassword": 134,
+    135: "reject_serverfull",
+    "reject_serverfull": 135,
+    136: "reject_invalidreservation",
+    "reject_invalidreservation": 136,
+    137: "reject_failedchannel",
+    "reject_failedchannel": 137,
+    138: "reject_connect_from_lobby",
+    "reject_connect_from_lobby": 138,
+    139: "reject_reserved_for_lobby",
+    "reject_reserved_for_lobby": 139,
+    140: "reject_invalidkeylength",
+    "reject_invalidkeylength": 140,
+    141: "reject_oldprotocol",
+    "reject_oldprotocol": 141,
+    142: "reject_newprotocol",
+    "reject_newprotocol": 142,
+    143: "reject_invalidconnection",
+    "reject_invalidconnection": 143,
+    144: "reject_invalidcertlen",
+    "reject_invalidcertlen": 144,
+    145: "reject_invalidsteamcertlen",
+    "reject_invalidsteamcertlen": 145,
+    146: "reject_steam",
+    "reject_steam": 146,
+    147: "reject_serverauthdisabled",
+    "reject_serverauthdisabled": 147,
+    148: "reject_servercdkeyauthinvalid",
+    "reject_servercdkeyauthinvalid": 148,
+    149: "reject_banned",
+    "reject_banned": 149,
+    150: "kicked_teamkilling",
+    "kicked_teamkilling": 150,
+    151: "kicked_tk_start",
+    "kicked_tk_start": 151,
+    152: "kicked_untrustedaccount",
+    "kicked_untrustedaccount": 152,
+    153: "kicked_convictedaccount",
+    "kicked_convictedaccount": 153,
+    154: "kicked_competitivecooldown",
+    "kicked_competitivecooldown": 154,
+    155: "kicked_teamhurting",
+    "kicked_teamhurting": 155,
+    156: "kicked_hostagekilling",
+    "kicked_hostagekilling": 156,
+    157: "kicked_votedoff",
+    "kicked_votedoff": 157,
+    158: "kicked_idle",
+    "kicked_idle": 158,
+    159: "kicked_suicide",
+    "kicked_suicide": 159,
+    160: "kicked_nosteamlogin",
+    "kicked_nosteamlogin": 160,
+    161: "kicked_nosteamticket",
+    "kicked_nosteamticket": 161,
+    162: "kicked_inputautomation",
+    "kicked_inputautomation": 162,
+    163: "kicked_vacnetabnormalbehavior",
+    "kicked_vacnetabnormalbehavior": 163,
+    164: "kicked_insecureclient",
+    "kicked_insecureclient": 164,
+}
+
+
 # ModRole is what a player is to the running mods.
 type ModRole = Literal["unspecified", "developer", "tester"]
 _ModRole: dict[Any, Any] = {
@@ -1008,6 +1376,34 @@ class PlayersChangedEvent:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class PlayerJoinedEvent:
+    """PlayerJoinedEvent reports a player who joined the mod: a human who finished
+    joining the server, a bot once added, or a player already in the game when
+    the mod starts or begins to serve them.
+    """
+
+    # connection is the player as Players lists them.
+    connection: Connection
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
+class PlayerLeftEvent:
+    """PlayerLeftEvent reports a player leaving the mod, once for each
+    PlayerJoinedEvent.
+    """
+
+    # connection is the player as the last PlayerJoinedEvent or PlayersChanged
+    # listed them.
+    connection: Connection
+    # disconnected is true when the player leaves the server, and false when
+    # they stay but the mod stops serving them.
+    disconnected: bool = False
+    # reason is why the server dropped the connection, absent when the player
+    # stays or the engine gave no reason this schema names.
+    reason: DisconnectReason | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class Connection:
     """Connection is one occupied player slot."""
 
@@ -1384,6 +1780,9 @@ class StartResult:
     damaged: bool = False
     # chat asks for a chat event for each chat line.
     chat: bool = False
+    # joins asks for a PlayerJoined event as each player the mod serves joins,
+    # and a PlayerLeft event as each leaves.
+    joins: bool = False
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2974,6 +3373,20 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "players", "message", repeated=True, message="Connection"),
         ],
     ),
+    "PlayerJoinedEvent": (
+        PlayerJoinedEvent,
+        [
+            wire.Field(1, "connection", "message", message="Connection"),
+        ],
+    ),
+    "PlayerLeftEvent": (
+        PlayerLeftEvent,
+        [
+            wire.Field(1, "connection", "message", message="Connection"),
+            wire.Field(2, "disconnected", "bool"),
+            wire.Field(3, "reason", "enum", optional=True, enum=_DisconnectReason),
+        ],
+    ),
     "PlayerRequest": (
         None,
         [
@@ -3342,6 +3755,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(2, "damage", "bool"),
             wire.Field(3, "damaged", "bool"),
             wire.Field(4, "chat", "bool"),
+            wire.Field(5, "joins", "bool"),
         ],
     ),
     "FrameEvent": (
@@ -3965,6 +4379,8 @@ _EVENTS: dict[str, tuple[str, str, str]] = {
     "Impact": ("ImpactEvent", "Empty", "impact"),
     "Landed": ("LandedEvent", "Empty", "landed"),
     "SettingChanged": ("SettingChangedEvent", "Empty", "setting_changed"),
+    "PlayerJoined": ("PlayerJoinedEvent", "Empty", "player_joined"),
+    "PlayerLeft": ("PlayerLeftEvent", "Empty", "player_left"),
     "PlayersChanged": ("PlayersChangedEvent", "Empty", "players_changed"),
 }
 
@@ -4074,6 +4490,8 @@ _services: dict[str, Service] = {}
 _starts: list[Callable[[list[str]], object]] = []
 _frames: list[Callable[[FrameEvent], object]] = []
 _chats: list[Callable[[ChatEvent], object]] = []
+_joins: list[Callable[[PlayerJoinedEvent], object]] = []
+_leaves: list[Callable[[PlayerLeftEvent], object]] = []
 _worlds: list[Callable[[str], object]] = []
 _inputs: list[Callable[[Player, Buttons, Buttons], object]] = []
 _restoreds: list[Callable[[Player, str | None], object]] = []
@@ -4320,6 +4738,23 @@ def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_player_join[F: Callable[[PlayerJoinedEvent], object]](handler: F) -> F:
+    """on_player_join calls handler once for each player the mod serves when
+    they are ready: a human who finished joining, a bot once added, and at
+    start each player already in the game."""
+    _joins.append(handler)
+    return handler
+
+
+def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
+    """on_player_leave calls handler once for each joined player who leaves
+    the mod, with the reason the server dropped them when it gave one. A
+    player who disconnects still has their slot and hero during the call. A
+    player the mod stops serving leaves too, with disconnected false."""
+    _leaves.append(handler)
+    return handler
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands."""
     _damageds.append(handler)
@@ -4360,7 +4795,11 @@ def _start(event: StartEvent) -> StartResult:
         handler(event.args)
     # Timers run from frames, so the library always takes them.
     return StartResult(
-        frames=True, damage=bool(_damages), damaged=bool(_damageds), chat=bool(_chats)
+        frames=True,
+        damage=bool(_damages),
+        damaged=bool(_damageds),
+        chat=bool(_chats),
+        joins=bool(_joins or _leaves),
     )
 
 
@@ -4471,6 +4910,17 @@ def _players_changed(event: PlayersChangedEvent) -> None:
     _roster = event.players
 
 
+# A join and a leave run at once, so the leaving player's hero still reads.
+def _player_joined(event: PlayerJoinedEvent) -> None:
+    for handler in _joins:
+        handler(event)
+
+
+def _player_left(event: PlayerLeftEvent) -> None:
+    for handler in _leaves:
+        handler(event)
+
+
 # _HANDLERS delivers each event to the handlers the mod registered.
 _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "start": _start,
@@ -4491,6 +4941,8 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "landed": _landed,
     "setting_changed": _setting_changed,
     "players_changed": _players_changed,
+    "player_joined": _player_joined,
+    "player_left": _player_left,
 }
 
 _modlock.handle(lambda data: _serve_mod(_HANDLERS, data))

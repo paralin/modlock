@@ -48,6 +48,8 @@ type handlers struct {
 	starts        []func(args []string)
 	frames        []func(*FrameEvent)
 	chats         []func(*ChatEvent)
+	joins         []func(*PlayerJoinedEvent)
+	leaves        []func(*PlayerLeftEvent)
 	worlds        []func(mapName string)
 	inputs        []func(p Player, pressed, released uint64)
 	restoreds     []func(p Player, err error)
@@ -98,6 +100,21 @@ func OnFrame(handler func(f *FrameEvent)) {
 // included, on the next server frame.
 func OnChat(handler func(line *ChatEvent)) {
 	registered.chats = append(registered.chats, handler)
+}
+
+// OnPlayerJoin calls handler once for each player the mod serves when they
+// are ready: a human who finished joining, a bot once added, and at start
+// each player already in the game.
+func OnPlayerJoin(handler func(joined *PlayerJoinedEvent)) {
+	registered.joins = append(registered.joins, handler)
+}
+
+// OnPlayerLeave calls handler once for each joined player who leaves the mod,
+// with the reason the server dropped them when it gave one. A player who
+// disconnects still has their slot and hero during the call. A player the mod
+// stops serving leaves too, with Disconnected false.
+func OnPlayerLeave(handler func(left *PlayerLeftEvent)) {
+	registered.leaves = append(registered.leaves, handler)
 }
 
 // OnWorld calls handler with the map's name each time a world loads, and at
@@ -174,6 +191,7 @@ func (h *handlers) Start(event *StartEvent) (*StartResult, error) {
 		Damage:  len(h.damages) != 0,
 		Damaged: len(h.damageds) != 0,
 		Chat:    len(h.chats) != 0,
+		Joins:   len(h.joins) != 0 || len(h.leaves) != 0,
 	}, nil
 }
 
@@ -336,6 +354,23 @@ func (h *handlers) PlayersChanged(event *PlayersChangedEvent) error {
 	h.roster = event.GetPlayers()
 	if h.roster == nil {
 		h.roster = []*Connection{}
+	}
+	return nil
+}
+
+// PlayerJoined runs the join handlers.
+func (h *handlers) PlayerJoined(event *PlayerJoinedEvent) error {
+	for _, handler := range h.joins {
+		handler(event)
+	}
+	return nil
+}
+
+// PlayerLeft runs the leave handlers at once, so the leaving player's hero
+// still reads.
+func (h *handlers) PlayerLeft(event *PlayerLeftEvent) error {
+	for _, handler := range h.leaves {
+		handler(event)
 	}
 	return nil
 }

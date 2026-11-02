@@ -42,7 +42,9 @@ class MODLOCK_API ConnectionEventSink {
   virtual void OnConnected(int32_t slot, uint64_t xuid, bool is_bot, const char* name) = 0;
 
   // OnDisconnecting runs once before the engine begins disconnect teardown.
-  virtual void OnDisconnecting(int32_t slot, uint64_t xuid) = 0;
+  // reason is the engine's ENetworkDisconnectionReason (network_connection.proto),
+  // such as kDisconnectKicked.
+  virtual void OnDisconnecting(int32_t slot, uint64_t xuid, int32_t reason) = 0;
 };
 
 // ConnectionTracker records the engine's own client lifecycle for player
@@ -85,8 +87,9 @@ class MODLOCK_API ConnectionTracker {
                                   std::shared_ptr<ConnectionEventSink> sink);
 
   // DispatchDisconnect applies the live thunk order to a synthetic engine
-  // callback: capture occupied state, OnDisconnecting, original, then clear.
-  static void DispatchDisconnect(int32_t slot, const EngineCallback& original,
+  // callback: capture occupied state, OnDisconnecting with reason, original,
+  // then clear.
+  static void DispatchDisconnect(int32_t slot, int32_t reason, const EngineCallback& original,
                                  std::shared_ptr<ConnectionEventSink> sink);
 
   // DispatchFullyConnect publishes readiness after the engine's sign-on

@@ -206,6 +206,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_services_input.cc
   src/wasm/game_watches.cc
   src/wasm/hero_restore.cc
+  src/wasm/attendance.cc
   src/wasm/input_changes.cc
   src/wasm/visibility.cc
   src/wasm/npc_restore.cc
@@ -669,7 +670,8 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${extension_go_sources} go.mod)
   add_custom_target(extension_go_wasm DEPENDS ${extension_go_wasm})
-  add_executable(wasm_host_test tests/wasm_host_test.cc src/wasm/player_scope.cc)
+  add_executable(wasm_host_test tests/wasm_host_test.cc src/wasm/player_scope.cc
+    src/wasm/attendance.cc)
   add_dependencies(wasm_host_test extension_go_wasm)
   target_include_directories(wasm_host_test PRIVATE src)
   target_compile_definitions(wasm_host_test PRIVATE EXTENSION_GO_WASM="${extension_go_wasm}")

@@ -220,6 +220,256 @@ const textVerticalAlignValues: Record<TextVerticalAlign, objectsPb.TextVerticalA
   top: 2,
 }
 
+/**
+ * DisconnectReason is why the server dropped a connection, numbered as the
+ * game's ENetworkDisconnectionReason.
+ */
+export type DisconnectReason =
+  | 'shutdown'
+  | 'disconnectByUser'
+  | 'disconnectByServer'
+  | 'lost'
+  | 'overflow'
+  | 'steamBanned'
+  | 'steamInuse'
+  | 'steamTicket'
+  | 'steamLogon'
+  | 'steamAuthcancelled'
+  | 'steamAuthalreadyused'
+  | 'steamAuthinvalid'
+  | 'steamVacbanstate'
+  | 'steamLoggedInElsewhere'
+  | 'steamVacCheckTimedout'
+  | 'steamDropped'
+  | 'steamOwnership'
+  | 'serverinfoOverflow'
+  | 'tickmsgOverflow'
+  | 'stringtablemsgOverflow'
+  | 'deltaentmsgOverflow'
+  | 'tempentmsgOverflow'
+  | 'soundsmsgOverflow'
+  | 'snapshotoverflow'
+  | 'snapshoterror'
+  | 'reliableoverflow'
+  | 'baddeltatick'
+  | 'nomoresplits'
+  | 'timedout'
+  | 'disconnected'
+  | 'leavingsplit'
+  | 'differentclasstables'
+  | 'badrelaypassword'
+  | 'badspectatorpassword'
+  | 'hltvrestricted'
+  | 'nospectators'
+  | 'hltvunavailable'
+  | 'hltvstop'
+  | 'kicked'
+  | 'banadded'
+  | 'kickbanadded'
+  | 'hltvdirect'
+  | 'pureserverClientextra'
+  | 'pureserverMismatch'
+  | 'usercmd'
+  | 'rejectedByGame'
+  | 'messageParseError'
+  | 'invalidMessageError'
+  | 'badServerPassword'
+  | 'directConnectReservation'
+  | 'connectionFailure'
+  | 'noPeerGroupHandlers'
+  | 'reconnection'
+  | 'loopshutdown'
+  | 'loopdeactivate'
+  | 'hostEndgame'
+  | 'loopLevelloadActivate'
+  | 'createServerFailed'
+  | 'exiting'
+  | 'requestHoststateIdle'
+  | 'requestHoststateHltvrelay'
+  | 'clientConsistencyFail'
+  | 'clientUnableToCrcMap'
+  | 'clientNoMap'
+  | 'clientDifferentMap'
+  | 'serverRequiresSteam'
+  | 'steamDenyMisc'
+  | 'steamDenyBadAntiCheat'
+  | 'serverShutdown'
+  | 'replayIncompatible'
+  | 'connectRequestTimedout'
+  | 'serverIncompatible'
+  | 'localproblemManyrelays'
+  | 'localproblemHostedserverprimaryrelay'
+  | 'localproblemNetworkconfig'
+  | 'localproblemOther'
+  | 'remoteTimeout'
+  | 'remoteTimeoutConnecting'
+  | 'remoteOther'
+  | 'remoteBadcrypt'
+  | 'remoteCertnottrusted'
+  | 'unusual'
+  | 'internalError'
+  | 'rejectBadchallenge'
+  | 'rejectNolobby'
+  | 'rejectBackgroundMap'
+  | 'rejectSinglePlayer'
+  | 'rejectHiddenGame'
+  | 'rejectLanrestrict'
+  | 'rejectBadpassword'
+  | 'rejectServerfull'
+  | 'rejectInvalidreservation'
+  | 'rejectFailedchannel'
+  | 'rejectConnectFromLobby'
+  | 'rejectReservedForLobby'
+  | 'rejectInvalidkeylength'
+  | 'rejectOldprotocol'
+  | 'rejectNewprotocol'
+  | 'rejectInvalidconnection'
+  | 'rejectInvalidcertlen'
+  | 'rejectInvalidsteamcertlen'
+  | 'rejectSteam'
+  | 'rejectServerauthdisabled'
+  | 'rejectServercdkeyauthinvalid'
+  | 'rejectBanned'
+  | 'kickedTeamkilling'
+  | 'kickedTkStart'
+  | 'kickedUntrustedaccount'
+  | 'kickedConvictedaccount'
+  | 'kickedCompetitivecooldown'
+  | 'kickedTeamhurting'
+  | 'kickedHostagekilling'
+  | 'kickedVotedoff'
+  | 'kickedIdle'
+  | 'kickedSuicide'
+  | 'kickedNosteamlogin'
+  | 'kickedNosteamticket'
+  | 'kickedInputautomation'
+  | 'kickedVacnetabnormalbehavior'
+  | 'kickedInsecureclient'
+
+/** disconnectReasonNames decodes each DisconnectReason; an unknown value has no name. */
+const disconnectReasonNames: Partial<Record<number, DisconnectReason>> = {
+  1: 'shutdown',
+  2: 'disconnectByUser',
+  3: 'disconnectByServer',
+  4: 'lost',
+  5: 'overflow',
+  6: 'steamBanned',
+  7: 'steamInuse',
+  8: 'steamTicket',
+  9: 'steamLogon',
+  10: 'steamAuthcancelled',
+  11: 'steamAuthalreadyused',
+  12: 'steamAuthinvalid',
+  13: 'steamVacbanstate',
+  14: 'steamLoggedInElsewhere',
+  15: 'steamVacCheckTimedout',
+  16: 'steamDropped',
+  17: 'steamOwnership',
+  18: 'serverinfoOverflow',
+  19: 'tickmsgOverflow',
+  20: 'stringtablemsgOverflow',
+  21: 'deltaentmsgOverflow',
+  22: 'tempentmsgOverflow',
+  23: 'soundsmsgOverflow',
+  24: 'snapshotoverflow',
+  25: 'snapshoterror',
+  26: 'reliableoverflow',
+  27: 'baddeltatick',
+  28: 'nomoresplits',
+  29: 'timedout',
+  30: 'disconnected',
+  31: 'leavingsplit',
+  32: 'differentclasstables',
+  33: 'badrelaypassword',
+  34: 'badspectatorpassword',
+  35: 'hltvrestricted',
+  36: 'nospectators',
+  37: 'hltvunavailable',
+  38: 'hltvstop',
+  39: 'kicked',
+  40: 'banadded',
+  41: 'kickbanadded',
+  42: 'hltvdirect',
+  43: 'pureserverClientextra',
+  44: 'pureserverMismatch',
+  45: 'usercmd',
+  46: 'rejectedByGame',
+  47: 'messageParseError',
+  48: 'invalidMessageError',
+  49: 'badServerPassword',
+  50: 'directConnectReservation',
+  51: 'connectionFailure',
+  52: 'noPeerGroupHandlers',
+  53: 'reconnection',
+  54: 'loopshutdown',
+  55: 'loopdeactivate',
+  56: 'hostEndgame',
+  57: 'loopLevelloadActivate',
+  58: 'createServerFailed',
+  59: 'exiting',
+  60: 'requestHoststateIdle',
+  61: 'requestHoststateHltvrelay',
+  62: 'clientConsistencyFail',
+  63: 'clientUnableToCrcMap',
+  64: 'clientNoMap',
+  65: 'clientDifferentMap',
+  66: 'serverRequiresSteam',
+  67: 'steamDenyMisc',
+  68: 'steamDenyBadAntiCheat',
+  69: 'serverShutdown',
+  71: 'replayIncompatible',
+  72: 'connectRequestTimedout',
+  73: 'serverIncompatible',
+  74: 'localproblemManyrelays',
+  75: 'localproblemHostedserverprimaryrelay',
+  76: 'localproblemNetworkconfig',
+  77: 'localproblemOther',
+  79: 'remoteTimeout',
+  80: 'remoteTimeoutConnecting',
+  81: 'remoteOther',
+  82: 'remoteBadcrypt',
+  83: 'remoteCertnottrusted',
+  84: 'unusual',
+  85: 'internalError',
+  128: 'rejectBadchallenge',
+  129: 'rejectNolobby',
+  130: 'rejectBackgroundMap',
+  131: 'rejectSinglePlayer',
+  132: 'rejectHiddenGame',
+  133: 'rejectLanrestrict',
+  134: 'rejectBadpassword',
+  135: 'rejectServerfull',
+  136: 'rejectInvalidreservation',
+  137: 'rejectFailedchannel',
+  138: 'rejectConnectFromLobby',
+  139: 'rejectReservedForLobby',
+  140: 'rejectInvalidkeylength',
+  141: 'rejectOldprotocol',
+  142: 'rejectNewprotocol',
+  143: 'rejectInvalidconnection',
+  144: 'rejectInvalidcertlen',
+  145: 'rejectInvalidsteamcertlen',
+  146: 'rejectSteam',
+  147: 'rejectServerauthdisabled',
+  148: 'rejectServercdkeyauthinvalid',
+  149: 'rejectBanned',
+  150: 'kickedTeamkilling',
+  151: 'kickedTkStart',
+  152: 'kickedUntrustedaccount',
+  153: 'kickedConvictedaccount',
+  154: 'kickedCompetitivecooldown',
+  155: 'kickedTeamhurting',
+  156: 'kickedHostagekilling',
+  157: 'kickedVotedoff',
+  158: 'kickedIdle',
+  159: 'kickedSuicide',
+  160: 'kickedNosteamlogin',
+  161: 'kickedNosteamticket',
+  162: 'kickedInputautomation',
+  163: 'kickedVacnetabnormalbehavior',
+  164: 'kickedInsecureclient',
+}
+
 /** ModRole is what a player is to the running mods. */
 export type ModRole =
   | 'unspecified'
@@ -1472,6 +1722,54 @@ function fromPlayersChangedEvent(message: playersPb.PlayersChangedEvent): Player
   }
 }
 
+/**
+ * PlayerJoinedEvent reports a player who joined the mod: a human who finished
+ * joining the server, a bot once added, or a player already in the game when
+ * the mod starts or begins to serve them.
+ */
+export interface PlayerJoinedEvent {
+  /** connection is the player as Players lists them. */
+  readonly connection: Connection
+}
+
+/** fromPlayerJoinedEvent decodes a PlayerJoinedEvent. */
+function fromPlayerJoinedEvent(message: playersPb.PlayerJoinedEvent): PlayerJoinedEvent {
+  return {
+    connection: fromConnection(message.connection ?? {}),
+  }
+}
+
+/**
+ * PlayerLeftEvent reports a player leaving the mod, once for each
+ * PlayerJoinedEvent.
+ */
+export interface PlayerLeftEvent {
+  /**
+   * connection is the player as the last PlayerJoinedEvent or PlayersChanged
+   * listed them.
+   */
+  readonly connection: Connection
+  /**
+   * disconnected is true when the player leaves the server, and false when
+   * they stay but the mod stops serving them.
+   */
+  readonly disconnected: boolean
+  /**
+   * reason is why the server dropped the connection, absent when the player
+   * stays or the engine gave no reason this schema names.
+   */
+  readonly reason?: DisconnectReason
+}
+
+/** fromPlayerLeftEvent decodes a PlayerLeftEvent. */
+function fromPlayerLeftEvent(message: playersPb.PlayerLeftEvent): PlayerLeftEvent {
+  return {
+    connection: fromConnection(message.connection ?? {}),
+    disconnected: message.disconnected ?? false,
+    reason: message.reason === undefined ? undefined : disconnectReasonNames[message.reason],
+  }
+}
+
 /** Connection is one occupied player slot. */
 export interface Connection {
   /** player is the connection's server slot. */
@@ -2069,6 +2367,11 @@ export interface StartResult {
   damaged: boolean
   /** chat asks for a chat event for each chat line. */
   chat: boolean
+  /**
+   * joins asks for a PlayerJoined event as each player the mod serves joins,
+   * and a PlayerLeft event as each leaves.
+   */
+  joins: boolean
 }
 
 /** FrameEvent identifies one server frame. */
@@ -3472,6 +3775,20 @@ export interface ModHandlers {
    */
   settingChanged(event: SettingChangedEvent): void
   /**
+   * playerJoined reports each player the mod serves once they are ready: a
+   * human who finished joining, a bot once added, and at start each player
+   * already in the game. It follows the PlayersChanged that lists them.
+   */
+  playerJoined(event: PlayerJoinedEvent): void
+  /**
+   * playerLeft reports each joined player leaving the mod, once. A player who
+   * disconnects is reported before the engine removes them, so their slot
+   * and hero still read, and before the PlayersChanged that drops them. A
+   * disconnect the mod causes during its own event, such as removing a bot,
+   * arrives after that event returns.
+   */
+  playerLeft(event: PlayerLeftEvent): void
+  /**
    * playersChanged reports the occupied player slots before the first event
    * after Start, and again before the next event whenever a player joins,
    * finishes joining or leaves, so a mod lists players without a call.
@@ -3534,6 +3851,12 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'SettingChanged':
         handlers.settingChanged(fromSettingChangedEvent(settingsPb.SettingChangedEvent.fromBinary(input)))
+        return reply()
+      case 'PlayerJoined':
+        handlers.playerJoined(fromPlayerJoinedEvent(playersPb.PlayerJoinedEvent.fromBinary(input)))
+        return reply()
+      case 'PlayerLeft':
+        handlers.playerLeft(fromPlayerLeftEvent(playersPb.PlayerLeftEvent.fromBinary(input)))
         return reply()
       case 'PlayersChanged':
         handlers.playersChanged(fromPlayersChangedEvent(playersPb.PlayersChangedEvent.fromBinary(input)))

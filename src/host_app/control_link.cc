@@ -330,7 +330,7 @@ void ControlLink::OnConnected(int32_t slot, uint64_t xuid, bool bot, const char*
   Push(std::move(event));
 }
 
-void ControlLink::OnDisconnecting(int32_t slot, uint64_t) {
+void ControlLink::OnDisconnecting(int32_t slot, uint64_t, int32_t) {
   names_.erase(slot);
   control::HostEvent event;
   event.mutable_left()->set_slot(slot);

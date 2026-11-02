@@ -87,6 +87,8 @@ _services: dict[str, Service] = {}
 _starts: list[Callable[[list[str]], object]] = []
 _frames: list[Callable[[FrameEvent], object]] = []
 _chats: list[Callable[[ChatEvent], object]] = []
+_joins: list[Callable[[PlayerJoinedEvent], object]] = []
+_leaves: list[Callable[[PlayerLeftEvent], object]] = []
 _worlds: list[Callable[[str], object]] = []
 _inputs: list[Callable[[Player, Buttons, Buttons], object]] = []
 _restoreds: list[Callable[[Player, str | None], object]] = []
@@ -333,6 +335,23 @@ def on_chat[F: Callable[[ChatEvent], object]](handler: F) -> F:
     return handler
 
 
+def on_player_join[F: Callable[[PlayerJoinedEvent], object]](handler: F) -> F:
+    """on_player_join calls handler once for each player the mod serves when
+    they are ready: a human who finished joining, a bot once added, and at
+    start each player already in the game."""
+    _joins.append(handler)
+    return handler
+
+
+def on_player_leave[F: Callable[[PlayerLeftEvent], object]](handler: F) -> F:
+    """on_player_leave calls handler once for each joined player who leaves
+    the mod, with the reason the server dropped them when it gave one. A
+    player who disconnects still has their slot and hero during the call. A
+    player the mod stops serving leaves too, with disconnected false."""
+    _leaves.append(handler)
+    return handler
+
+
 def on_damaged[F: Callable[[DamagedEvent], object]](handler: F) -> F:
     """on_damaged calls handler on the frame after each hit lands."""
     _damageds.append(handler)
@@ -373,7 +392,11 @@ def _start(event: StartEvent) -> StartResult:
         handler(event.args)
     # Timers run from frames, so the library always takes them.
     return StartResult(
-        frames=True, damage=bool(_damages), damaged=bool(_damageds), chat=bool(_chats)
+        frames=True,
+        damage=bool(_damages),
+        damaged=bool(_damageds),
+        chat=bool(_chats),
+        joins=bool(_joins or _leaves),
     )
 
 
@@ -484,6 +507,17 @@ def _players_changed(event: PlayersChangedEvent) -> None:
     _roster = event.players
 
 
+# A join and a leave run at once, so the leaving player's hero still reads.
+def _player_joined(event: PlayerJoinedEvent) -> None:
+    for handler in _joins:
+        handler(event)
+
+
+def _player_left(event: PlayerLeftEvent) -> None:
+    for handler in _leaves:
+        handler(event)
+
+
 # _HANDLERS delivers each event to the handlers the mod registered.
 _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "start": _start,
@@ -504,6 +538,8 @@ _HANDLERS: dict[str, Callable[[Any], Any]] = {
     "landed": _landed,
     "setting_changed": _setting_changed,
     "players_changed": _players_changed,
+    "player_joined": _player_joined,
+    "player_left": _player_left,
 }
 
 _modlock.handle(lambda data: _serve_mod(_HANDLERS, data))

@@ -61,6 +61,8 @@ namespace wasm {
 namespace players {
 enum CameraParam : int;
 extern const uint32_t CameraParam_internal_data_[];
+enum DisconnectReason : int;
+extern const uint32_t DisconnectReason_internal_data_[];
 enum ModRole : int;
 extern const uint32_t ModRole_internal_data_[];
 class AdjustSoulsRequest;
@@ -155,6 +157,14 @@ class PawnResponse;
 struct PawnResponseDefaultTypeInternal;
 MODLOCK_API extern PawnResponseDefaultTypeInternal _PawnResponse_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PawnResponse_class_data_;
+class PlayerJoinedEvent;
+struct PlayerJoinedEventDefaultTypeInternal;
+MODLOCK_API extern PlayerJoinedEventDefaultTypeInternal _PlayerJoinedEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerJoinedEvent_class_data_;
+class PlayerLeftEvent;
+struct PlayerLeftEventDefaultTypeInternal;
+MODLOCK_API extern PlayerLeftEventDefaultTypeInternal _PlayerLeftEvent_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerLeftEvent_class_data_;
 class PlayerRequest;
 struct PlayerRequestDefaultTypeInternal;
 MODLOCK_API extern PlayerRequestDefaultTypeInternal _PlayerRequest_default_instance_;
@@ -216,6 +226,9 @@ template <>
 internal::EnumTraitsT<::modlock::wasm::players::CameraParam_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::players::CameraParam>;
 template <>
+internal::EnumTraitsT<::modlock::wasm::players::DisconnectReason_internal_data_>
+    internal::EnumTraitsImpl::value<::modlock::wasm::players::DisconnectReason>;
+template <>
 internal::EnumTraitsT<::modlock::wasm::players::ModRole_internal_data_>
     internal::EnumTraitsImpl::value<::modlock::wasm::players::ModRole>;
 }  // namespace protobuf
@@ -224,6 +237,161 @@ internal::EnumTraitsT<::modlock::wasm::players::ModRole_internal_data_>
 namespace modlock {
 namespace wasm {
 namespace players {
+enum DisconnectReason : int {
+  DISCONNECT_REASON_UNKNOWN = 0,
+  DISCONNECT_REASON_SHUTDOWN = 1,
+  DISCONNECT_REASON_DISCONNECT_BY_USER = 2,
+  DISCONNECT_REASON_DISCONNECT_BY_SERVER = 3,
+  DISCONNECT_REASON_LOST = 4,
+  DISCONNECT_REASON_OVERFLOW = 5,
+  DISCONNECT_REASON_STEAM_BANNED = 6,
+  DISCONNECT_REASON_STEAM_INUSE = 7,
+  DISCONNECT_REASON_STEAM_TICKET = 8,
+  DISCONNECT_REASON_STEAM_LOGON = 9,
+  DISCONNECT_REASON_STEAM_AUTHCANCELLED = 10,
+  DISCONNECT_REASON_STEAM_AUTHALREADYUSED = 11,
+  DISCONNECT_REASON_STEAM_AUTHINVALID = 12,
+  DISCONNECT_REASON_STEAM_VACBANSTATE = 13,
+  DISCONNECT_REASON_STEAM_LOGGED_IN_ELSEWHERE = 14,
+  DISCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT = 15,
+  DISCONNECT_REASON_STEAM_DROPPED = 16,
+  DISCONNECT_REASON_STEAM_OWNERSHIP = 17,
+  DISCONNECT_REASON_SERVERINFO_OVERFLOW = 18,
+  DISCONNECT_REASON_TICKMSG_OVERFLOW = 19,
+  DISCONNECT_REASON_STRINGTABLEMSG_OVERFLOW = 20,
+  DISCONNECT_REASON_DELTAENTMSG_OVERFLOW = 21,
+  DISCONNECT_REASON_TEMPENTMSG_OVERFLOW = 22,
+  DISCONNECT_REASON_SOUNDSMSG_OVERFLOW = 23,
+  DISCONNECT_REASON_SNAPSHOTOVERFLOW = 24,
+  DISCONNECT_REASON_SNAPSHOTERROR = 25,
+  DISCONNECT_REASON_RELIABLEOVERFLOW = 26,
+  DISCONNECT_REASON_BADDELTATICK = 27,
+  DISCONNECT_REASON_NOMORESPLITS = 28,
+  DISCONNECT_REASON_TIMEDOUT = 29,
+  DISCONNECT_REASON_DISCONNECTED = 30,
+  DISCONNECT_REASON_LEAVINGSPLIT = 31,
+  DISCONNECT_REASON_DIFFERENTCLASSTABLES = 32,
+  DISCONNECT_REASON_BADRELAYPASSWORD = 33,
+  DISCONNECT_REASON_BADSPECTATORPASSWORD = 34,
+  DISCONNECT_REASON_HLTVRESTRICTED = 35,
+  DISCONNECT_REASON_NOSPECTATORS = 36,
+  DISCONNECT_REASON_HLTVUNAVAILABLE = 37,
+  DISCONNECT_REASON_HLTVSTOP = 38,
+  DISCONNECT_REASON_KICKED = 39,
+  DISCONNECT_REASON_BANADDED = 40,
+  DISCONNECT_REASON_KICKBANADDED = 41,
+  DISCONNECT_REASON_HLTVDIRECT = 42,
+  DISCONNECT_REASON_PURESERVER_CLIENTEXTRA = 43,
+  DISCONNECT_REASON_PURESERVER_MISMATCH = 44,
+  DISCONNECT_REASON_USERCMD = 45,
+  DISCONNECT_REASON_REJECTED_BY_GAME = 46,
+  DISCONNECT_REASON_MESSAGE_PARSE_ERROR = 47,
+  DISCONNECT_REASON_INVALID_MESSAGE_ERROR = 48,
+  DISCONNECT_REASON_BAD_SERVER_PASSWORD = 49,
+  DISCONNECT_REASON_DIRECT_CONNECT_RESERVATION = 50,
+  DISCONNECT_REASON_CONNECTION_FAILURE = 51,
+  DISCONNECT_REASON_NO_PEER_GROUP_HANDLERS = 52,
+  DISCONNECT_REASON_RECONNECTION = 53,
+  DISCONNECT_REASON_LOOPSHUTDOWN = 54,
+  DISCONNECT_REASON_LOOPDEACTIVATE = 55,
+  DISCONNECT_REASON_HOST_ENDGAME = 56,
+  DISCONNECT_REASON_LOOP_LEVELLOAD_ACTIVATE = 57,
+  DISCONNECT_REASON_CREATE_SERVER_FAILED = 58,
+  DISCONNECT_REASON_EXITING = 59,
+  DISCONNECT_REASON_REQUEST_HOSTSTATE_IDLE = 60,
+  DISCONNECT_REASON_REQUEST_HOSTSTATE_HLTVRELAY = 61,
+  DISCONNECT_REASON_CLIENT_CONSISTENCY_FAIL = 62,
+  DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_MAP = 63,
+  DISCONNECT_REASON_CLIENT_NO_MAP = 64,
+  DISCONNECT_REASON_CLIENT_DIFFERENT_MAP = 65,
+  DISCONNECT_REASON_SERVER_REQUIRES_STEAM = 66,
+  DISCONNECT_REASON_STEAM_DENY_MISC = 67,
+  DISCONNECT_REASON_STEAM_DENY_BAD_ANTI_CHEAT = 68,
+  DISCONNECT_REASON_SERVER_SHUTDOWN = 69,
+  DISCONNECT_REASON_REPLAY_INCOMPATIBLE = 71,
+  DISCONNECT_REASON_CONNECT_REQUEST_TIMEDOUT = 72,
+  DISCONNECT_REASON_SERVER_INCOMPATIBLE = 73,
+  DISCONNECT_REASON_LOCALPROBLEM_MANYRELAYS = 74,
+  DISCONNECT_REASON_LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY = 75,
+  DISCONNECT_REASON_LOCALPROBLEM_NETWORKCONFIG = 76,
+  DISCONNECT_REASON_LOCALPROBLEM_OTHER = 77,
+  DISCONNECT_REASON_REMOTE_TIMEOUT = 79,
+  DISCONNECT_REASON_REMOTE_TIMEOUT_CONNECTING = 80,
+  DISCONNECT_REASON_REMOTE_OTHER = 81,
+  DISCONNECT_REASON_REMOTE_BADCRYPT = 82,
+  DISCONNECT_REASON_REMOTE_CERTNOTTRUSTED = 83,
+  DISCONNECT_REASON_UNUSUAL = 84,
+  DISCONNECT_REASON_INTERNAL_ERROR = 85,
+  DISCONNECT_REASON_REJECT_BADCHALLENGE = 128,
+  DISCONNECT_REASON_REJECT_NOLOBBY = 129,
+  DISCONNECT_REASON_REJECT_BACKGROUND_MAP = 130,
+  DISCONNECT_REASON_REJECT_SINGLE_PLAYER = 131,
+  DISCONNECT_REASON_REJECT_HIDDEN_GAME = 132,
+  DISCONNECT_REASON_REJECT_LANRESTRICT = 133,
+  DISCONNECT_REASON_REJECT_BADPASSWORD = 134,
+  DISCONNECT_REASON_REJECT_SERVERFULL = 135,
+  DISCONNECT_REASON_REJECT_INVALIDRESERVATION = 136,
+  DISCONNECT_REASON_REJECT_FAILEDCHANNEL = 137,
+  DISCONNECT_REASON_REJECT_CONNECT_FROM_LOBBY = 138,
+  DISCONNECT_REASON_REJECT_RESERVED_FOR_LOBBY = 139,
+  DISCONNECT_REASON_REJECT_INVALIDKEYLENGTH = 140,
+  DISCONNECT_REASON_REJECT_OLDPROTOCOL = 141,
+  DISCONNECT_REASON_REJECT_NEWPROTOCOL = 142,
+  DISCONNECT_REASON_REJECT_INVALIDCONNECTION = 143,
+  DISCONNECT_REASON_REJECT_INVALIDCERTLEN = 144,
+  DISCONNECT_REASON_REJECT_INVALIDSTEAMCERTLEN = 145,
+  DISCONNECT_REASON_REJECT_STEAM = 146,
+  DISCONNECT_REASON_REJECT_SERVERAUTHDISABLED = 147,
+  DISCONNECT_REASON_REJECT_SERVERCDKEYAUTHINVALID = 148,
+  DISCONNECT_REASON_REJECT_BANNED = 149,
+  DISCONNECT_REASON_KICKED_TEAMKILLING = 150,
+  DISCONNECT_REASON_KICKED_TK_START = 151,
+  DISCONNECT_REASON_KICKED_UNTRUSTEDACCOUNT = 152,
+  DISCONNECT_REASON_KICKED_CONVICTEDACCOUNT = 153,
+  DISCONNECT_REASON_KICKED_COMPETITIVECOOLDOWN = 154,
+  DISCONNECT_REASON_KICKED_TEAMHURTING = 155,
+  DISCONNECT_REASON_KICKED_HOSTAGEKILLING = 156,
+  DISCONNECT_REASON_KICKED_VOTEDOFF = 157,
+  DISCONNECT_REASON_KICKED_IDLE = 158,
+  DISCONNECT_REASON_KICKED_SUICIDE = 159,
+  DISCONNECT_REASON_KICKED_NOSTEAMLOGIN = 160,
+  DISCONNECT_REASON_KICKED_NOSTEAMTICKET = 161,
+  DISCONNECT_REASON_KICKED_INPUTAUTOMATION = 162,
+  DISCONNECT_REASON_KICKED_VACNETABNORMALBEHAVIOR = 163,
+  DISCONNECT_REASON_KICKED_INSECURECLIENT = 164,
+  DisconnectReason_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::min(),
+  DisconnectReason_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      ::std::numeric_limits<::int32_t>::max(),
+};
+
+extern const uint32_t DisconnectReason_internal_data_[];
+inline constexpr DisconnectReason DisconnectReason_MIN =
+    static_cast<DisconnectReason>(0);
+inline constexpr DisconnectReason DisconnectReason_MAX =
+    static_cast<DisconnectReason>(164);
+inline bool DisconnectReason_IsValid(int value) {
+  return ::google::protobuf::internal::ValidateEnum(value, DisconnectReason_internal_data_);
+}
+inline constexpr int DisconnectReason_ARRAYSIZE = 164 + 1;
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL DisconnectReason_descriptor();
+template <typename T>
+const ::std::string& DisconnectReason_Name(T value) {
+  static_assert(::std::is_same<T, DisconnectReason>::value ||
+                    ::std::is_integral<T>::value,
+                "Incorrect type passed to DisconnectReason_Name().");
+  return DisconnectReason_Name(static_cast<DisconnectReason>(value));
+}
+template <>
+inline const ::std::string& DisconnectReason_Name(DisconnectReason value) {
+  return ::google::protobuf::internal::NameOfDenseEnum<DisconnectReason_descriptor, 0, 164>(
+      static_cast<int>(value));
+}
+inline bool DisconnectReason_Parse(
+    ::absl::string_view name, DisconnectReason* PROTOBUF_NONNULL value) {
+  return ::google::protobuf::internal::ParseNamedEnum<DisconnectReason>(DisconnectReason_descriptor(), name,
+                                           value);
+}
 enum ModRole : int {
   MOD_ROLE_UNSPECIFIED = 0,
   MOD_ROLE_DEVELOPER = 1,
@@ -361,7 +529,7 @@ class MODLOCK_API WatchRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const WatchRequest*>(
         &_WatchRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(WatchRequest& a, WatchRequest& b) { a.Swap(&b); }
   inline void Swap(WatchRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -576,7 +744,7 @@ class MODLOCK_API TimerTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const TimerTarget*>(
         &_TimerTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(TimerTarget& a, TimerTarget& b) { a.Swap(&b); }
   inline void Swap(TimerTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -830,7 +998,7 @@ class MODLOCK_API StartingSoulsRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const StartingSoulsRequest*>(
         &_StartingSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 26;
+  static constexpr int kIndexInFileMessages = 28;
   friend void swap(StartingSoulsRequest& a, StartingSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(StartingSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1032,7 +1200,7 @@ class MODLOCK_API SetStaminaRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetStaminaRequest*>(
         &_SetStaminaRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 29;
+  static constexpr int kIndexInFileMessages = 31;
   friend void swap(SetStaminaRequest& a, SetStaminaRequest& b) { a.Swap(&b); }
   inline void Swap(SetStaminaRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1239,7 +1407,7 @@ class MODLOCK_API SelectHeroRequest final : public ::google::protobuf::Message
     kHeroId = 3,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(SelectHeroRequest& a, SelectHeroRequest& b) { a.Swap(&b); }
   inline void Swap(SelectHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1483,7 +1651,7 @@ class MODLOCK_API Score final : public ::google::protobuf::Message
     return *reinterpret_cast<const Score*>(
         &_Score_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(Score& a, Score& b) { a.Swap(&b); }
   inline void Swap(Score* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1964,7 +2132,7 @@ class MODLOCK_API ResetHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ResetHeroRequest*>(
         &_ResetHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 27;
+  static constexpr int kIndexInFileMessages = 29;
   friend void swap(ResetHeroRequest& a, ResetHeroRequest& b) { a.Swap(&b); }
   inline void Swap(ResetHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2166,7 +2334,7 @@ class MODLOCK_API PlayerRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayerRequest*>(
         &_PlayerRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(PlayerRequest& a, PlayerRequest& b) { a.Swap(&b); }
   inline void Swap(PlayerRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2356,7 +2524,7 @@ class MODLOCK_API HeroResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroResponse*>(
         &_HeroResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(HeroResponse& a, HeroResponse& b) { a.Swap(&b); }
   inline void Swap(HeroResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2546,7 +2714,7 @@ class MODLOCK_API HealRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HealRequest*>(
         &_HealRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 28;
+  static constexpr int kIndexInFileMessages = 30;
   friend void swap(HealRequest& a, HealRequest& b) { a.Swap(&b); }
   inline void Swap(HealRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2748,7 +2916,7 @@ class MODLOCK_API FreezeRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FreezeRequest*>(
         &_FreezeRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 24;
+  static constexpr int kIndexInFileMessages = 26;
   friend void swap(FreezeRequest& a, FreezeRequest& b) { a.Swap(&b); }
   inline void Swap(FreezeRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2951,7 +3119,7 @@ class MODLOCK_API EquipmentTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const EquipmentTarget*>(
         &_EquipmentTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(EquipmentTarget& a, EquipmentTarget& b) { a.Swap(&b); }
   inline void Swap(EquipmentTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3166,7 +3334,7 @@ class MODLOCK_API ConnectionRoles final : public ::google::protobuf::Message
     return *reinterpret_cast<const ConnectionRoles*>(
         &_ConnectionRoles_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(ConnectionRoles& a, ConnectionRoles& b) { a.Swap(&b); }
   inline void Swap(ConnectionRoles* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3390,7 +3558,7 @@ class MODLOCK_API Connection final : public ::google::protobuf::Message
     return *reinterpret_cast<const Connection*>(
         &_Connection_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(Connection& a, Connection& b) { a.Swap(&b); }
   inline void Swap(Connection* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3667,7 +3835,7 @@ class MODLOCK_API ClearCameraRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ClearCameraRequest*>(
         &_ClearCameraRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 22;
+  static constexpr int kIndexInFileMessages = 24;
   friend void swap(ClearCameraRequest& a, ClearCameraRequest& b) { a.Swap(&b); }
   inline void Swap(ClearCameraRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3875,7 +4043,7 @@ class MODLOCK_API ChangeTeamRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ChangeTeamRequest*>(
         &_ChangeTeamRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 23;
+  static constexpr int kIndexInFileMessages = 25;
   friend void swap(ChangeTeamRequest& a, ChangeTeamRequest& b) { a.Swap(&b); }
   inline void Swap(ChangeTeamRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4077,7 +4245,7 @@ class MODLOCK_API CameraLag final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraLag*>(
         &_CameraLag_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 20;
+  static constexpr int kIndexInFileMessages = 22;
   friend void swap(CameraLag& a, CameraLag& b) { a.Swap(&b); }
   inline void Swap(CameraLag* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4320,7 +4488,7 @@ class MODLOCK_API CameraHold final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraHold*>(
         &_CameraHold_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 16;
+  static constexpr int kIndexInFileMessages = 18;
   friend void swap(CameraHold& a, CameraHold& b) { a.Swap(&b); }
   inline void Swap(CameraHold* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4511,7 +4679,7 @@ class MODLOCK_API BotResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const BotResponse*>(
         &_BotResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 35;
+  static constexpr int kIndexInFileMessages = 37;
   friend void swap(BotResponse& a, BotResponse& b) { a.Swap(&b); }
   inline void Swap(BotResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4701,7 +4869,7 @@ class MODLOCK_API AdjustSoulsRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const AdjustSoulsRequest*>(
         &_AdjustSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 25;
+  static constexpr int kIndexInFileMessages = 27;
   friend void swap(AdjustSoulsRequest& a, AdjustSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(AdjustSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4916,7 +5084,7 @@ class MODLOCK_API RolesTable final : public ::google::protobuf::Message
     return *reinterpret_cast<const RolesTable*>(
         &_RolesTable_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(RolesTable& a, RolesTable& b) { a.Swap(&b); }
   inline void Swap(RolesTable* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5152,7 +5320,7 @@ class MODLOCK_API PlayersResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const PlayersResponse*>(
         &_PlayersResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(PlayersResponse& a, PlayersResponse& b) { a.Swap(&b); }
   inline void Swap(PlayersResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5491,6 +5659,421 @@ class MODLOCK_API PlayersChangedEvent final : public ::google::protobuf::Message
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayersChangedEvent_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API PlayerLeftEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.PlayerLeftEvent) */ {
+ public:
+  inline PlayerLeftEvent() : PlayerLeftEvent(nullptr) {}
+  ~PlayerLeftEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerLeftEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerLeftEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerLeftEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerLeftEvent(const PlayerLeftEvent& from) : PlayerLeftEvent(nullptr, from) {}
+  inline PlayerLeftEvent(PlayerLeftEvent&& from) noexcept
+      : PlayerLeftEvent(nullptr, ::std::move(from)) {}
+  inline PlayerLeftEvent& operator=(const PlayerLeftEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerLeftEvent& operator=(PlayerLeftEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerLeftEvent& default_instance() {
+    return *reinterpret_cast<const PlayerLeftEvent*>(
+        &_PlayerLeftEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 3;
+  friend void swap(PlayerLeftEvent& a, PlayerLeftEvent& b) { a.Swap(&b); }
+  inline void Swap(PlayerLeftEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerLeftEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerLeftEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerLeftEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerLeftEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerLeftEvent& from) { PlayerLeftEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerLeftEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.PlayerLeftEvent"; }
+
+  explicit PlayerLeftEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerLeftEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerLeftEvent& from);
+  PlayerLeftEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerLeftEvent&& from) noexcept
+      : PlayerLeftEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kConnectionFieldNumber = 1,
+    kDisconnectedFieldNumber = 2,
+    kReasonFieldNumber = 3,
+  };
+  // .modlock.wasm.players.Connection connection = 1;
+  bool has_connection() const;
+  void clear_connection() ;
+  const ::modlock::wasm::players::Connection& connection() const;
+  [[nodiscard]] ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE release_connection();
+  ::modlock::wasm::players::Connection* PROTOBUF_NONNULL mutable_connection();
+  void set_allocated_connection(::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_connection(::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE unsafe_arena_release_connection();
+
+  private:
+  const ::modlock::wasm::players::Connection& _internal_connection() const;
+  ::modlock::wasm::players::Connection* PROTOBUF_NONNULL _internal_mutable_connection();
+
+  public:
+  // bool disconnected = 2;
+  void clear_disconnected() ;
+  bool disconnected() const;
+  void set_disconnected(bool value);
+
+  private:
+  bool _internal_disconnected() const;
+  void _internal_set_disconnected(bool value);
+
+  public:
+  // optional .modlock.wasm.players.DisconnectReason reason = 3;
+  bool has_reason() const;
+  void clear_reason() ;
+  ::modlock::wasm::players::DisconnectReason reason() const;
+  void set_reason(::modlock::wasm::players::DisconnectReason value);
+
+  private:
+  ::modlock::wasm::players::DisconnectReason _internal_reason() const;
+  void _internal_set_reason(::modlock::wasm::players::DisconnectReason value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.PlayerLeftEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerLeftEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE connection_;
+    bool disconnected_;
+    int reason_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerLeftEvent_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API PlayerJoinedEvent final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.PlayerJoinedEvent) */ {
+ public:
+  inline PlayerJoinedEvent() : PlayerJoinedEvent(nullptr) {}
+  ~PlayerJoinedEvent() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlayerJoinedEvent* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlayerJoinedEvent));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR PlayerJoinedEvent(::google::protobuf::internal::ConstantInitialized);
+
+  inline PlayerJoinedEvent(const PlayerJoinedEvent& from) : PlayerJoinedEvent(nullptr, from) {}
+  inline PlayerJoinedEvent(PlayerJoinedEvent&& from) noexcept
+      : PlayerJoinedEvent(nullptr, ::std::move(from)) {}
+  inline PlayerJoinedEvent& operator=(const PlayerJoinedEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlayerJoinedEvent& operator=(PlayerJoinedEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PlayerJoinedEvent& default_instance() {
+    return *reinterpret_cast<const PlayerJoinedEvent*>(
+        &_PlayerJoinedEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 2;
+  friend void swap(PlayerJoinedEvent& a, PlayerJoinedEvent& b) { a.Swap(&b); }
+  inline void Swap(PlayerJoinedEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlayerJoinedEvent* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PlayerJoinedEvent* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<PlayerJoinedEvent>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const PlayerJoinedEvent& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const PlayerJoinedEvent& from) { PlayerJoinedEvent::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlayerJoinedEvent* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.PlayerJoinedEvent"; }
+
+  explicit PlayerJoinedEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlayerJoinedEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlayerJoinedEvent& from);
+  PlayerJoinedEvent(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlayerJoinedEvent&& from) noexcept
+      : PlayerJoinedEvent(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kConnectionFieldNumber = 1,
+  };
+  // .modlock.wasm.players.Connection connection = 1;
+  bool has_connection() const;
+  void clear_connection() ;
+  const ::modlock::wasm::players::Connection& connection() const;
+  [[nodiscard]] ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE release_connection();
+  ::modlock::wasm::players::Connection* PROTOBUF_NONNULL mutable_connection();
+  void set_allocated_connection(::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_connection(::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value);
+  ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE unsafe_arena_release_connection();
+
+  private:
+  const ::modlock::wasm::players::Connection& _internal_connection() const;
+  ::modlock::wasm::players::Connection* PROTOBUF_NONNULL _internal_mutable_connection();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.PlayerJoinedEvent)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlayerJoinedEvent& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE connection_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull PlayerJoinedEvent_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API Pawn final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.players.Pawn) */ {
  public:
@@ -5546,7 +6129,7 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     return *reinterpret_cast<const Pawn*>(
         &_Pawn_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(Pawn& a, Pawn& b) { a.Swap(&b); }
   inline void Swap(Pawn* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5979,7 +6562,7 @@ class MODLOCK_API HeroTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroTarget*>(
         &_HeroTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 31;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(HeroTarget& a, HeroTarget& b) { a.Swap(&b); }
   inline void Swap(HeroTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6333,7 +6916,7 @@ class MODLOCK_API FreeCameraRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const FreeCameraRequest*>(
         &_FreeCameraRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(FreeCameraRequest& a, FreeCameraRequest& b) { a.Swap(&b); }
   inline void Swap(FreeCameraRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6562,7 +7145,7 @@ class MODLOCK_API CameraValue final : public ::google::protobuf::Message
     kPosition = 2,
     VALUE_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(CameraValue& a, CameraValue& b) { a.Swap(&b); }
   inline void Swap(CameraValue* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -6789,7 +7372,7 @@ class MODLOCK_API BotOptions final : public ::google::protobuf::Message
     kHeroId = 4,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 34;
+  static constexpr int kIndexInFileMessages = 36;
   friend void swap(BotOptions& a, BotOptions& b) { a.Swap(&b); }
   inline void Swap(BotOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7055,7 +7638,7 @@ class MODLOCK_API RestoreHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RestoreHeroRequest*>(
         &_RestoreHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 30;
+  static constexpr int kIndexInFileMessages = 32;
   friend void swap(RestoreHeroRequest& a, RestoreHeroRequest& b) { a.Swap(&b); }
   inline void Swap(RestoreHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7262,7 +7845,7 @@ class MODLOCK_API PawnResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const PawnResponse*>(
         &_PawnResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(PawnResponse& a, PawnResponse& b) { a.Swap(&b); }
   inline void Swap(PawnResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7457,7 +8040,7 @@ class MODLOCK_API CameraSpring final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraSpring*>(
         &_CameraSpring_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 18;
+  static constexpr int kIndexInFileMessages = 20;
   friend void swap(CameraSpring& a, CameraSpring& b) { a.Swap(&b); }
   inline void Swap(CameraSpring* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7691,7 +8274,7 @@ class MODLOCK_API CameraLerp final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraLerp*>(
         &_CameraLerp_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 19;
+  static constexpr int kIndexInFileMessages = 21;
   friend void swap(CameraLerp& a, CameraLerp& b) { a.Swap(&b); }
   inline void Swap(CameraLerp* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7942,7 +8525,7 @@ class MODLOCK_API CameraApproach final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraApproach*>(
         &_CameraApproach_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 17;
+  static constexpr int kIndexInFileMessages = 19;
   friend void swap(CameraApproach& a, CameraApproach& b) { a.Swap(&b); }
   inline void Swap(CameraApproach* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8210,7 +8793,7 @@ class MODLOCK_API CameraMotion final : public ::google::protobuf::Message
     kLag = 5,
     MOTION_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 17;
   friend void swap(CameraMotion& a, CameraMotion& b) { a.Swap(&b); }
   inline void Swap(CameraMotion* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8506,7 +9089,7 @@ class MODLOCK_API CameraOptions final : public ::google::protobuf::Message
     return *reinterpret_cast<const CameraOptions*>(
         &_CameraOptions_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 21;
+  static constexpr int kIndexInFileMessages = 23;
   friend void swap(CameraOptions& a, CameraOptions& b) { a.Swap(&b); }
   inline void Swap(CameraOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -8916,6 +9499,266 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::players::Connection
 PlayersChangedEvent::_internal_mutable_players() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.players_;
+}
+
+// -------------------------------------------------------------------
+
+// PlayerJoinedEvent
+
+// .modlock.wasm.players.Connection connection = 1;
+inline bool PlayerJoinedEvent::has_connection() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  PROTOBUF_ASSUME(!value || _impl_.connection_ != nullptr);
+  return value;
+}
+inline void PlayerJoinedEvent::clear_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.connection_ != nullptr) _impl_.connection_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::modlock::wasm::players::Connection& PlayerJoinedEvent::_internal_connection() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::players::Connection* p = _impl_.connection_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::players::Connection&>(::modlock::wasm::players::_Connection_default_instance_);
+}
+inline const ::modlock::wasm::players::Connection& PlayerJoinedEvent::connection() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PlayerJoinedEvent.connection)
+  return _internal_connection();
+}
+inline void PlayerJoinedEvent::unsafe_arena_set_allocated_connection(
+    ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.connection_);
+  }
+  _impl_.connection_ = reinterpret_cast<::modlock::wasm::players::Connection*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.players.PlayerJoinedEvent.connection)
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE PlayerJoinedEvent::release_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Connection* released = _impl_.connection_;
+  _impl_.connection_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE PlayerJoinedEvent::unsafe_arena_release_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.players.PlayerJoinedEvent.connection)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Connection* temp = _impl_.connection_;
+  _impl_.connection_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NONNULL PlayerJoinedEvent::_internal_mutable_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.connection_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::players::Connection>(GetArena());
+    _impl_.connection_ = reinterpret_cast<::modlock::wasm::players::Connection*>(p);
+  }
+  return _impl_.connection_;
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NONNULL PlayerJoinedEvent::mutable_connection()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Connection* _msg = _internal_mutable_connection();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.players.PlayerJoinedEvent.connection)
+  return _msg;
+}
+inline void PlayerJoinedEvent::set_allocated_connection(::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.connection_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+
+  _impl_.connection_ = reinterpret_cast<::modlock::wasm::players::Connection*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.players.PlayerJoinedEvent.connection)
+}
+
+// -------------------------------------------------------------------
+
+// PlayerLeftEvent
+
+// .modlock.wasm.players.Connection connection = 1;
+inline bool PlayerLeftEvent::has_connection() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  PROTOBUF_ASSUME(!value || _impl_.connection_ != nullptr);
+  return value;
+}
+inline void PlayerLeftEvent::clear_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.connection_ != nullptr) _impl_.connection_->Clear();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::modlock::wasm::players::Connection& PlayerLeftEvent::_internal_connection() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::modlock::wasm::players::Connection* p = _impl_.connection_;
+  return p != nullptr ? *p : reinterpret_cast<const ::modlock::wasm::players::Connection&>(::modlock::wasm::players::_Connection_default_instance_);
+}
+inline const ::modlock::wasm::players::Connection& PlayerLeftEvent::connection() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PlayerLeftEvent.connection)
+  return _internal_connection();
+}
+inline void PlayerLeftEvent::unsafe_arena_set_allocated_connection(
+    ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.connection_);
+  }
+  _impl_.connection_ = reinterpret_cast<::modlock::wasm::players::Connection*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.wasm.players.PlayerLeftEvent.connection)
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE PlayerLeftEvent::release_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Connection* released = _impl_.connection_;
+  _impl_.connection_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NULLABLE PlayerLeftEvent::unsafe_arena_release_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.wasm.players.PlayerLeftEvent.connection)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Connection* temp = _impl_.connection_;
+  _impl_.connection_ = nullptr;
+  return temp;
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NONNULL PlayerLeftEvent::_internal_mutable_connection() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.connection_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::players::Connection>(GetArena());
+    _impl_.connection_ = reinterpret_cast<::modlock::wasm::players::Connection*>(p);
+  }
+  return _impl_.connection_;
+}
+inline ::modlock::wasm::players::Connection* PROTOBUF_NONNULL PlayerLeftEvent::mutable_connection()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::modlock::wasm::players::Connection* _msg = _internal_mutable_connection();
+  // @@protoc_insertion_point(field_mutable:modlock.wasm.players.PlayerLeftEvent.connection)
+  return _msg;
+}
+inline void PlayerLeftEvent::set_allocated_connection(::modlock::wasm::players::Connection* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.connection_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = value->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+
+  _impl_.connection_ = reinterpret_cast<::modlock::wasm::players::Connection*>(value);
+  // @@protoc_insertion_point(field_set_allocated:modlock.wasm.players.PlayerLeftEvent.connection)
+}
+
+// bool disconnected = 2;
+inline void PlayerLeftEvent::clear_disconnected() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.disconnected_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline bool PlayerLeftEvent::disconnected() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PlayerLeftEvent.disconnected)
+  return _internal_disconnected();
+}
+inline void PlayerLeftEvent::set_disconnected(bool value) {
+  _internal_set_disconnected(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.PlayerLeftEvent.disconnected)
+}
+inline bool PlayerLeftEvent::_internal_disconnected() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.disconnected_;
+}
+inline void PlayerLeftEvent::_internal_set_disconnected(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.disconnected_ = value;
+}
+
+// optional .modlock.wasm.players.DisconnectReason reason = 3;
+inline bool PlayerLeftEvent::has_reason() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  return value;
+}
+inline void PlayerLeftEvent::clear_reason() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::modlock::wasm::players::DisconnectReason PlayerLeftEvent::reason() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.PlayerLeftEvent.reason)
+  return _internal_reason();
+}
+inline void PlayerLeftEvent::set_reason(::modlock::wasm::players::DisconnectReason value) {
+  _internal_set_reason(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.PlayerLeftEvent.reason)
+}
+inline ::modlock::wasm::players::DisconnectReason PlayerLeftEvent::_internal_reason() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return static_cast<::modlock::wasm::players::DisconnectReason>(_impl_.reason_);
+}
+inline void PlayerLeftEvent::_internal_set_reason(::modlock::wasm::players::DisconnectReason value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.reason_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -14900,6 +15743,12 @@ inline void BotResponse::_internal_set_player(::int32_t value) {
 namespace google {
 namespace protobuf {
 
+template <>
+struct is_proto_enum<::modlock::wasm::players::DisconnectReason> : std::true_type {};
+template <>
+inline const EnumDescriptor* PROTOBUF_NONNULL GetEnumDescriptor<::modlock::wasm::players::DisconnectReason>() {
+  return ::modlock::wasm::players::DisconnectReason_descriptor();
+}
 template <>
 struct is_proto_enum<::modlock::wasm::players::ModRole> : std::true_type {};
 template <>

@@ -158,6 +158,134 @@ const (
 	TextVerticalAlignTop = objectspb.TextVerticalAlign_TEXT_VERTICAL_ALIGN_TOP
 )
 
+// DisconnectReason is why the server dropped a connection, numbered as the
+// game's ENetworkDisconnectionReason.
+type DisconnectReason = playerspb.DisconnectReason
+
+// The values of DisconnectReason.
+const (
+	DisconnectReasonShutdown                             = playerspb.DisconnectReason_DISCONNECT_REASON_SHUTDOWN
+	DisconnectReasonDisconnectByUser                     = playerspb.DisconnectReason_DISCONNECT_REASON_DISCONNECT_BY_USER
+	DisconnectReasonDisconnectByServer                   = playerspb.DisconnectReason_DISCONNECT_REASON_DISCONNECT_BY_SERVER
+	DisconnectReasonLost                                 = playerspb.DisconnectReason_DISCONNECT_REASON_LOST
+	DisconnectReasonOverflow                             = playerspb.DisconnectReason_DISCONNECT_REASON_OVERFLOW
+	DisconnectReasonSteamBanned                          = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_BANNED
+	DisconnectReasonSteamInuse                           = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_INUSE
+	DisconnectReasonSteamTicket                          = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_TICKET
+	DisconnectReasonSteamLogon                           = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_LOGON
+	DisconnectReasonSteamAuthcancelled                   = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_AUTHCANCELLED
+	DisconnectReasonSteamAuthalreadyused                 = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_AUTHALREADYUSED
+	DisconnectReasonSteamAuthinvalid                     = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_AUTHINVALID
+	DisconnectReasonSteamVacbanstate                     = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_VACBANSTATE
+	DisconnectReasonSteamLoggedInElsewhere               = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_LOGGED_IN_ELSEWHERE
+	DisconnectReasonSteamVacCheckTimedout                = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT
+	DisconnectReasonSteamDropped                         = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_DROPPED
+	DisconnectReasonSteamOwnership                       = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_OWNERSHIP
+	DisconnectReasonServerinfoOverflow                   = playerspb.DisconnectReason_DISCONNECT_REASON_SERVERINFO_OVERFLOW
+	DisconnectReasonTickmsgOverflow                      = playerspb.DisconnectReason_DISCONNECT_REASON_TICKMSG_OVERFLOW
+	DisconnectReasonStringtablemsgOverflow               = playerspb.DisconnectReason_DISCONNECT_REASON_STRINGTABLEMSG_OVERFLOW
+	DisconnectReasonDeltaentmsgOverflow                  = playerspb.DisconnectReason_DISCONNECT_REASON_DELTAENTMSG_OVERFLOW
+	DisconnectReasonTempentmsgOverflow                   = playerspb.DisconnectReason_DISCONNECT_REASON_TEMPENTMSG_OVERFLOW
+	DisconnectReasonSoundsmsgOverflow                    = playerspb.DisconnectReason_DISCONNECT_REASON_SOUNDSMSG_OVERFLOW
+	DisconnectReasonSnapshotoverflow                     = playerspb.DisconnectReason_DISCONNECT_REASON_SNAPSHOTOVERFLOW
+	DisconnectReasonSnapshoterror                        = playerspb.DisconnectReason_DISCONNECT_REASON_SNAPSHOTERROR
+	DisconnectReasonReliableoverflow                     = playerspb.DisconnectReason_DISCONNECT_REASON_RELIABLEOVERFLOW
+	DisconnectReasonBaddeltatick                         = playerspb.DisconnectReason_DISCONNECT_REASON_BADDELTATICK
+	DisconnectReasonNomoresplits                         = playerspb.DisconnectReason_DISCONNECT_REASON_NOMORESPLITS
+	DisconnectReasonTimedout                             = playerspb.DisconnectReason_DISCONNECT_REASON_TIMEDOUT
+	DisconnectReasonDisconnected                         = playerspb.DisconnectReason_DISCONNECT_REASON_DISCONNECTED
+	DisconnectReasonLeavingsplit                         = playerspb.DisconnectReason_DISCONNECT_REASON_LEAVINGSPLIT
+	DisconnectReasonDifferentclasstables                 = playerspb.DisconnectReason_DISCONNECT_REASON_DIFFERENTCLASSTABLES
+	DisconnectReasonBadrelaypassword                     = playerspb.DisconnectReason_DISCONNECT_REASON_BADRELAYPASSWORD
+	DisconnectReasonBadspectatorpassword                 = playerspb.DisconnectReason_DISCONNECT_REASON_BADSPECTATORPASSWORD
+	DisconnectReasonHltvrestricted                       = playerspb.DisconnectReason_DISCONNECT_REASON_HLTVRESTRICTED
+	DisconnectReasonNospectators                         = playerspb.DisconnectReason_DISCONNECT_REASON_NOSPECTATORS
+	DisconnectReasonHltvunavailable                      = playerspb.DisconnectReason_DISCONNECT_REASON_HLTVUNAVAILABLE
+	DisconnectReasonHltvstop                             = playerspb.DisconnectReason_DISCONNECT_REASON_HLTVSTOP
+	DisconnectReasonKicked                               = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED
+	DisconnectReasonBanadded                             = playerspb.DisconnectReason_DISCONNECT_REASON_BANADDED
+	DisconnectReasonKickbanadded                         = playerspb.DisconnectReason_DISCONNECT_REASON_KICKBANADDED
+	DisconnectReasonHltvdirect                           = playerspb.DisconnectReason_DISCONNECT_REASON_HLTVDIRECT
+	DisconnectReasonPureserverClientextra                = playerspb.DisconnectReason_DISCONNECT_REASON_PURESERVER_CLIENTEXTRA
+	DisconnectReasonPureserverMismatch                   = playerspb.DisconnectReason_DISCONNECT_REASON_PURESERVER_MISMATCH
+	DisconnectReasonUsercmd                              = playerspb.DisconnectReason_DISCONNECT_REASON_USERCMD
+	DisconnectReasonRejectedByGame                       = playerspb.DisconnectReason_DISCONNECT_REASON_REJECTED_BY_GAME
+	DisconnectReasonMessageParseError                    = playerspb.DisconnectReason_DISCONNECT_REASON_MESSAGE_PARSE_ERROR
+	DisconnectReasonInvalidMessageError                  = playerspb.DisconnectReason_DISCONNECT_REASON_INVALID_MESSAGE_ERROR
+	DisconnectReasonBadServerPassword                    = playerspb.DisconnectReason_DISCONNECT_REASON_BAD_SERVER_PASSWORD
+	DisconnectReasonDirectConnectReservation             = playerspb.DisconnectReason_DISCONNECT_REASON_DIRECT_CONNECT_RESERVATION
+	DisconnectReasonConnectionFailure                    = playerspb.DisconnectReason_DISCONNECT_REASON_CONNECTION_FAILURE
+	DisconnectReasonNoPeerGroupHandlers                  = playerspb.DisconnectReason_DISCONNECT_REASON_NO_PEER_GROUP_HANDLERS
+	DisconnectReasonReconnection                         = playerspb.DisconnectReason_DISCONNECT_REASON_RECONNECTION
+	DisconnectReasonLoopshutdown                         = playerspb.DisconnectReason_DISCONNECT_REASON_LOOPSHUTDOWN
+	DisconnectReasonLoopdeactivate                       = playerspb.DisconnectReason_DISCONNECT_REASON_LOOPDEACTIVATE
+	DisconnectReasonHostEndgame                          = playerspb.DisconnectReason_DISCONNECT_REASON_HOST_ENDGAME
+	DisconnectReasonLoopLevelloadActivate                = playerspb.DisconnectReason_DISCONNECT_REASON_LOOP_LEVELLOAD_ACTIVATE
+	DisconnectReasonCreateServerFailed                   = playerspb.DisconnectReason_DISCONNECT_REASON_CREATE_SERVER_FAILED
+	DisconnectReasonExiting                              = playerspb.DisconnectReason_DISCONNECT_REASON_EXITING
+	DisconnectReasonRequestHoststateIdle                 = playerspb.DisconnectReason_DISCONNECT_REASON_REQUEST_HOSTSTATE_IDLE
+	DisconnectReasonRequestHoststateHltvrelay            = playerspb.DisconnectReason_DISCONNECT_REASON_REQUEST_HOSTSTATE_HLTVRELAY
+	DisconnectReasonClientConsistencyFail                = playerspb.DisconnectReason_DISCONNECT_REASON_CLIENT_CONSISTENCY_FAIL
+	DisconnectReasonClientUnableToCrcMap                 = playerspb.DisconnectReason_DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_MAP
+	DisconnectReasonClientNoMap                          = playerspb.DisconnectReason_DISCONNECT_REASON_CLIENT_NO_MAP
+	DisconnectReasonClientDifferentMap                   = playerspb.DisconnectReason_DISCONNECT_REASON_CLIENT_DIFFERENT_MAP
+	DisconnectReasonServerRequiresSteam                  = playerspb.DisconnectReason_DISCONNECT_REASON_SERVER_REQUIRES_STEAM
+	DisconnectReasonSteamDenyMisc                        = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_DENY_MISC
+	DisconnectReasonSteamDenyBadAntiCheat                = playerspb.DisconnectReason_DISCONNECT_REASON_STEAM_DENY_BAD_ANTI_CHEAT
+	DisconnectReasonServerShutdown                       = playerspb.DisconnectReason_DISCONNECT_REASON_SERVER_SHUTDOWN
+	DisconnectReasonReplayIncompatible                   = playerspb.DisconnectReason_DISCONNECT_REASON_REPLAY_INCOMPATIBLE
+	DisconnectReasonConnectRequestTimedout               = playerspb.DisconnectReason_DISCONNECT_REASON_CONNECT_REQUEST_TIMEDOUT
+	DisconnectReasonServerIncompatible                   = playerspb.DisconnectReason_DISCONNECT_REASON_SERVER_INCOMPATIBLE
+	DisconnectReasonLocalproblemManyrelays               = playerspb.DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_MANYRELAYS
+	DisconnectReasonLocalproblemHostedserverprimaryrelay = playerspb.DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY
+	DisconnectReasonLocalproblemNetworkconfig            = playerspb.DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_NETWORKCONFIG
+	DisconnectReasonLocalproblemOther                    = playerspb.DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_OTHER
+	DisconnectReasonRemoteTimeout                        = playerspb.DisconnectReason_DISCONNECT_REASON_REMOTE_TIMEOUT
+	DisconnectReasonRemoteTimeoutConnecting              = playerspb.DisconnectReason_DISCONNECT_REASON_REMOTE_TIMEOUT_CONNECTING
+	DisconnectReasonRemoteOther                          = playerspb.DisconnectReason_DISCONNECT_REASON_REMOTE_OTHER
+	DisconnectReasonRemoteBadcrypt                       = playerspb.DisconnectReason_DISCONNECT_REASON_REMOTE_BADCRYPT
+	DisconnectReasonRemoteCertnottrusted                 = playerspb.DisconnectReason_DISCONNECT_REASON_REMOTE_CERTNOTTRUSTED
+	DisconnectReasonUnusual                              = playerspb.DisconnectReason_DISCONNECT_REASON_UNUSUAL
+	DisconnectReasonInternalError                        = playerspb.DisconnectReason_DISCONNECT_REASON_INTERNAL_ERROR
+	DisconnectReasonRejectBadchallenge                   = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_BADCHALLENGE
+	DisconnectReasonRejectNolobby                        = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_NOLOBBY
+	DisconnectReasonRejectBackgroundMap                  = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_BACKGROUND_MAP
+	DisconnectReasonRejectSinglePlayer                   = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_SINGLE_PLAYER
+	DisconnectReasonRejectHiddenGame                     = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_HIDDEN_GAME
+	DisconnectReasonRejectLanrestrict                    = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_LANRESTRICT
+	DisconnectReasonRejectBadpassword                    = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_BADPASSWORD
+	DisconnectReasonRejectServerfull                     = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_SERVERFULL
+	DisconnectReasonRejectInvalidreservation             = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDRESERVATION
+	DisconnectReasonRejectFailedchannel                  = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_FAILEDCHANNEL
+	DisconnectReasonRejectConnectFromLobby               = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_CONNECT_FROM_LOBBY
+	DisconnectReasonRejectReservedForLobby               = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_RESERVED_FOR_LOBBY
+	DisconnectReasonRejectInvalidkeylength               = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDKEYLENGTH
+	DisconnectReasonRejectOldprotocol                    = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_OLDPROTOCOL
+	DisconnectReasonRejectNewprotocol                    = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_NEWPROTOCOL
+	DisconnectReasonRejectInvalidconnection              = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDCONNECTION
+	DisconnectReasonRejectInvalidcertlen                 = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDCERTLEN
+	DisconnectReasonRejectInvalidsteamcertlen            = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDSTEAMCERTLEN
+	DisconnectReasonRejectSteam                          = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_STEAM
+	DisconnectReasonRejectServerauthdisabled             = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_SERVERAUTHDISABLED
+	DisconnectReasonRejectServercdkeyauthinvalid         = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_SERVERCDKEYAUTHINVALID
+	DisconnectReasonRejectBanned                         = playerspb.DisconnectReason_DISCONNECT_REASON_REJECT_BANNED
+	DisconnectReasonKickedTeamkilling                    = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_TEAMKILLING
+	DisconnectReasonKickedTkStart                        = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_TK_START
+	DisconnectReasonKickedUntrustedaccount               = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_UNTRUSTEDACCOUNT
+	DisconnectReasonKickedConvictedaccount               = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_CONVICTEDACCOUNT
+	DisconnectReasonKickedCompetitivecooldown            = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_COMPETITIVECOOLDOWN
+	DisconnectReasonKickedTeamhurting                    = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_TEAMHURTING
+	DisconnectReasonKickedHostagekilling                 = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_HOSTAGEKILLING
+	DisconnectReasonKickedVotedoff                       = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_VOTEDOFF
+	DisconnectReasonKickedIdle                           = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_IDLE
+	DisconnectReasonKickedSuicide                        = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_SUICIDE
+	DisconnectReasonKickedNosteamlogin                   = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_NOSTEAMLOGIN
+	DisconnectReasonKickedNosteamticket                  = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_NOSTEAMTICKET
+	DisconnectReasonKickedInputautomation                = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_INPUTAUTOMATION
+	DisconnectReasonKickedVacnetabnormalbehavior         = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_VACNETABNORMALBEHAVIOR
+	DisconnectReasonKickedInsecureclient                 = playerspb.DisconnectReason_DISCONNECT_REASON_KICKED_INSECURECLIENT
+)
+
 // ModRole is what a player is to the running mods.
 type ModRole = playerspb.ModRole
 
@@ -318,6 +446,15 @@ type RestoredEvent = playerspb.RestoredEvent
 
 // PlayersChangedEvent holds every occupied player slot, as Players lists them.
 type PlayersChangedEvent = playerspb.PlayersChangedEvent
+
+// PlayerJoinedEvent reports a player who joined the mod: a human who finished
+// joining the server, a bot once added, or a player already in the game when
+// the mod starts or begins to serve them.
+type PlayerJoinedEvent = playerspb.PlayerJoinedEvent
+
+// PlayerLeftEvent reports a player leaving the mod, once for each
+// PlayerJoinedEvent.
+type PlayerLeftEvent = playerspb.PlayerLeftEvent
 
 // Connection is one occupied player slot.
 type Connection = playerspb.Connection
@@ -1632,6 +1769,16 @@ type modHandlers interface {
 	// such as on the player's profile. A mod's own SetPlayerSetting reports
 	// nothing.
 	SettingChanged(event *SettingChangedEvent) error
+	// PlayerJoined reports each player the mod serves once they are ready: a
+	// human who finished joining, a bot once added, and at start each player
+	// already in the game. It follows the PlayersChanged that lists them.
+	PlayerJoined(event *PlayerJoinedEvent) error
+	// PlayerLeft reports each joined player leaving the mod, once. A player who
+	// disconnects is reported before the engine removes them, so their slot
+	// and hero still read, and before the PlayersChanged that drops them. A
+	// disconnect the mod causes during its own event, such as removing a bot,
+	// arrives after that event returns.
+	PlayerLeft(event *PlayerLeftEvent) error
 	// PlayersChanged reports the occupied player slots before the first event
 	// after Start, and again before the next event whenever a player joins,
 	// finishes joining or leaves, so a mod lists players without a call.
@@ -1743,6 +1890,18 @@ func serveMod(handlers modHandlers, call *wasmpb.Call) *wasmpb.Reply {
 			return &wasmpb.Reply{Error: err.Error()}
 		}
 		return answer(nil, handlers.SettingChanged(event))
+	case "PlayerJoined":
+		event := &PlayerJoinedEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.PlayerJoined(event))
+	case "PlayerLeft":
+		event := &PlayerLeftEvent{}
+		if err := event.UnmarshalVT(call.GetRequest()); err != nil {
+			return &wasmpb.Reply{Error: err.Error()}
+		}
+		return answer(nil, handlers.PlayerLeft(event))
 	case "PlayersChanged":
 		event := &PlayersChangedEvent{}
 		if err := event.UnmarshalVT(call.GetRequest()); err != nil {

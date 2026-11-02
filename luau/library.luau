@@ -108,6 +108,8 @@ local services: { [string]: Service } = {}
 local starts: { (args: { string }) -> () } = {}
 local frames: { (frame: FrameEvent) -> () } = {}
 local chats: { (line: ChatEvent) -> () } = {}
+local joins: { (joined: PlayerJoinedEvent) -> () } = {}
+local leaves: { (left: PlayerLeftEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
 local inputs: { (player: Player, pressed: number, released: number) -> () } = {}
 local restoreds: { (player: Player, error: string?) -> () } = {}
@@ -332,6 +334,21 @@ function modlock.onChat(handler: (line: ChatEvent) -> ())
 	table.insert(chats, handler)
 end
 
+-- onPlayerJoin calls handler once for each player the mod serves when they
+-- are ready: a human who finished joining, a bot once added, and at start
+-- each player already in the game.
+function modlock.onPlayerJoin(handler: (joined: PlayerJoinedEvent) -> ())
+	table.insert(joins, handler)
+end
+
+-- onPlayerLeave calls handler once for each joined player who leaves the mod,
+-- with the reason the server dropped them when it gave one. A player who
+-- disconnects still has their slot and hero during the call. A player the
+-- mod stops serving leaves too, with disconnected false.
+function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
+	table.insert(leaves, handler)
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -369,7 +386,13 @@ local handlers: ModHandlers = {
 			handler(event.args)
 		end
 		-- Timers run from frames, so the library always takes them.
-		return { frames = true, damage = #damages ~= 0, damaged = #damageds ~= 0, chat = #chats ~= 0 }
+		return {
+			frames = true,
+			damage = #damages ~= 0,
+			damaged = #damageds ~= 0,
+			chat = #chats ~= 0,
+			joins = #joins ~= 0 or #leaves ~= 0,
+		}
 	end,
 
 	frame = function(event)
@@ -494,6 +517,19 @@ local handlers: ModHandlers = {
 
 	playersChanged = function(event)
 		roster = event.players
+	end,
+
+	-- A join and a leave run at once, so the leaving player's hero still reads.
+	playerJoined = function(event)
+		for _, handler in joins do
+			handler(event)
+		end
+	end,
+
+	playerLeft = function(event)
+		for _, handler in leaves do
+			handler(event)
+		end
 	end,
 }
 

@@ -72,14 +72,14 @@ wasm::movement::Interaction InteractionOf(const gameinterop::InteractionEvent& e
 // subscription that holds it.
 class Departures final : public gameinterop::ConnectionEventSink {
  public:
-  explicit Departures(std::function<void(int32_t)> leave) : leave_(std::move(leave)) {}
+  explicit Departures(std::function<void(int32_t, int32_t)> leave) : leave_(std::move(leave)) {}
 
   void OnConnected(int32_t, uint64_t, bool, const char*) override {}
 
-  void OnDisconnecting(int32_t slot, uint64_t) override { leave_(slot); }
+  void OnDisconnecting(int32_t slot, uint64_t, int32_t reason) override { leave_(slot, reason); }
 
  private:
-  std::function<void(int32_t)> leave_;
+  std::function<void(int32_t, int32_t)> leave_;
 };
 
 }  // namespace
@@ -200,8 +200,8 @@ void WasmPlugin::ListenToPlayers() {
   } else {
     Log(std::string("console commands are unavailable: ") + commands.error());
   }
-  if (auto departures = engine_->OnConnection(
-          std::make_shared<Departures>([this](int32_t slot) { Leave(slot); }))) {
+  if (auto departures = engine_->OnConnection(std::make_shared<Departures>(
+          [this](int32_t slot, int32_t reason) { Leave(slot, reason); }))) {
     players_.Add(std::move(*departures));
   } else {
     Log(std::string("interfaces may outlive their players: ") + departures.error());

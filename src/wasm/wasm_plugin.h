@@ -21,6 +21,7 @@
 #include "modlock/wasm_host.h"
 #include "modlock/wasm_settings.h"
 #include "quake/player_movement.h"
+#include "wasm/attendance.h"
 #include "wasm/build.h"
 #include "wasm/call_profile.h"
 #include "wasm/files.h"
@@ -350,7 +351,10 @@ class WasmPlugin final : public Plugin {
   // Chat delivers one chat line to a mod that asked for chat.
   void Chat(const gameinterop::NativeChatHook::Message& line);
   void ShowUi(int32_t slot, const ui::Change& change);
-  void Leave(int32_t slot);
+  // Leave drops the player in slot from the mod, which hears them leave if
+  // they joined. reason is the engine's disconnect reason when they leave
+  // the server, and nullopt when they stay but the mod stops serving them.
+  void Leave(int32_t slot, std::optional<int32_t> reason);
   // HandOn hands the player's metric totals to the host's metrics, or logs
   // them, and forgets them.
   void HandOn(int32_t slot);
@@ -434,6 +438,11 @@ class WasmPlugin final : public Plugin {
   wasm::ModClient mod_;
   bool sending_ = false;
   std::optional<std::pair<uint64_t, uint64_t>> reported_;
+  // attendance_ is the players the running instance heard join, and
+  // deferred_leaves_ the leaves that came during one of its events, which
+  // the next report delivers.
+  Attendance attendance_;
+  std::vector<wasm::players::PlayerLeftEvent> deferred_leaves_;
   // wants_ is the running instance's start answer: the events it consumes.
   wasm::StartResult wants_;
   // scope_ is the players the mod serves, across instances.

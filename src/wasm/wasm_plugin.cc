@@ -239,6 +239,8 @@ std::expected<void, std::string> WasmPlugin::Begin(bool reloaded) {
   event.set_check_only(check_only_);
   event.set_source(source_.data(), source_.size());
   reported_.reset();
+  attendance_.Clear();
+  deferred_leaves_.clear();
   game_.StartFreeForAll(manifest_.free_for_all());
   game_.StartContentAddon(manifest_.content_addon().empty()
                               ? manifest_.slug() + "-" + manifest_.version()
@@ -494,6 +496,12 @@ void WasmPlugin::Tick() {
   // Run the game's frame work, and deliver the frame to a mod that wants it.
   if (GameOpen()) {
     Play();
+  }
+
+  // A mod that wants joins but not frames hears them on the frame they
+  // happen; a frame reports them before the mod sees it.
+  if (wants_.joins() && !wants_.frames()) {
+    ReportPlayers();
   }
   if (!wants_.frames() || !instance_) {
     return;

@@ -31,8 +31,10 @@ constexpr size_t kHandoffLimit = 64 * 1024;
 
 std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call) {
   // Every event after Start sees the current players, which the report
-  // before it carries; a nested event is refused, so it reports nothing.
-  if (!sending_ && call.method() != "Start" && call.method() != "PlayersChanged") {
+  // before it carries; a nested event is refused, so it reports nothing. The
+  // report's own events go without one.
+  if (!sending_ && call.method() != "Start" && call.method() != "PlayersChanged" &&
+      call.method() != "PlayerJoined" && call.method() != "PlayerLeft") {
     ReportPlayers();
   }
   if (!instance_) {
@@ -69,6 +71,11 @@ std::expected<wasm::Reply, std::string> WasmPlugin::Send(const wasm::Call& call)
 }
 
 void WasmPlugin::ReportPlayers() {
+  // Leaves that came during an event go first, since the players are gone.
+  for (auto& left : std::exchange(deferred_leaves_, {})) {
+    static_cast<void>(mod_.PlayerLeft(left));
+  }
+
   // Report only a changed set of players.
   if (!GameOpen() || !instance_) {
     return;
@@ -88,9 +95,24 @@ void WasmPlugin::ReportPlayers() {
     return;
   }
   scope_.Keep(*players->mutable_players());
+
+  // A mod that wants joins hears the players that left unseen before the
+  // report, and those that joined after it, so each leave precedes the
+  // report that drops the player and each join follows the one that adds
+  // them.
+  Attendance::Changes changes;
+  if (wants_.joins()) {
+    changes = attendance_.Reconcile(players->players());
+  }
+  for (const auto& left : changes.left) {
+    static_cast<void>(mod_.PlayerLeft(left));
+  }
   wasm::players::PlayersChangedEvent event;
   *event.mutable_players() = std::move(*players->mutable_players());
   static_cast<void>(mod_.PlayersChanged(event));
+  for (const auto& joined : changes.joined) {
+    static_cast<void>(mod_.PlayerJoined(joined));
+  }
 }
 
 bool WasmPlugin::Command(int32_t slot, std::string_view line) {
@@ -152,7 +174,17 @@ void WasmPlugin::ShowUi(int32_t slot, const ui::Change& change) {
   host_.Notify([&](WasmHostObserver& observer) { observer.Ui(name_, slot, change); });
 }
 
-void WasmPlugin::Leave(int32_t slot) {
+void WasmPlugin::Leave(int32_t slot, std::optional<int32_t> reason) {
+  // The mod hears the leave while the player's slot and hero still read,
+  // or after its current event, which a nested event cannot interrupt.
+  if (auto left = attendance_.Leave(slot, reason)) {
+    if (sending_) {
+      deferred_leaves_.push_back(std::move(*left));
+    } else {
+      static_cast<void>(mod_.PlayerLeft(*left));
+    }
+  }
+
   // Hand on the player's metrics and drop their state.
   HandOn(slot);
   handoff_players_.erase(slot);
@@ -179,7 +211,7 @@ void WasmPlugin::Scope(WasmScope scope) {
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     if (scope_.Serves(slot) && !next.Serves(slot) &&
         gameinterop::ConnectionTracker::StateForSlot(slot).occupied) {
-      Leave(slot);
+      Leave(slot, std::nullopt);
     }
   }
 

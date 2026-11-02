@@ -9,10 +9,24 @@ import {
   LogRequest,
   Reply,
   ServerCommandRequest,
+  StartEvent,
+  StartResult,
 } from '../../src/wasm/wasm.pb.js'
+import {
+  DisconnectReason,
+  PlayerJoinedEvent,
+  PlayerLeftEvent,
+} from '../../src/wasm/players/players.pb.js'
 import { apply, arena } from '../src/console.js'
 import { bind, deliver as dispatch } from '../src/host.js'
-import { command, onChat, onFrame, ProbeRun } from '../src/index.js'
+import {
+  command,
+  onChat,
+  onFrame,
+  onPlayerJoin,
+  onPlayerLeave,
+  ProbeRun,
+} from '../src/index.js'
 
 /** lines holds the log lines and console commands the mod sent the host. */
 const lines: string[] = []
@@ -87,6 +101,39 @@ test('a command is claimed at once and runs with the next frame', () => {
   expect(seen).toEqual([])
   frame(10.032)
   expect(seen).toEqual(['chat 2 gg true', 'frame'])
+
+  // A mod that handles joins asks for them, and a join and a leave run at
+  // once, so the leaving player's hero still reads.
+  onPlayerJoin(({ connection }) =>
+    seen.push(`join ${connection.player.slot} ${connection.name}`),
+  )
+  onPlayerLeave(({ connection, disconnected, reason }) =>
+    seen.push(`leave ${connection.player.slot} ${disconnected} ${reason}`),
+  )
+  const started = deliver('Start', StartEvent.toBinary({}))
+  expect(
+    StartResult.fromBinary(started.response ?? new Uint8Array()).joins,
+  ).toBe(true)
+  seen.length = 0
+  const connection = { player: 4, name: 'bot', bot: true, ready: true }
+  deliver('PlayerJoined', PlayerJoinedEvent.toBinary({ connection }))
+  deliver(
+    'PlayerLeft',
+    PlayerLeftEvent.toBinary({
+      connection,
+      disconnected: true,
+      reason: DisconnectReason.KICKED,
+    }),
+  )
+  deliver(
+    'PlayerLeft',
+    PlayerLeftEvent.toBinary({ connection, disconnected: false }),
+  )
+  expect(seen).toEqual([
+    'join 4 bot',
+    'leave 4 true kicked',
+    'leave 4 false undefined',
+  ])
 })
 
 test('a command that throws does not stop the frame', () => {
