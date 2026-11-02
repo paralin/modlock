@@ -158,9 +158,14 @@ func (p *Project) compileScriptc(ctx context.Context, library, tsgo string, outp
 	build.Stderr = &diagnostics
 	err = build.Run()
 
-	// Print what keeps the mod from compiling, naming the sources.
-	_, _ = sources.WriteString(output, diagnostics.String())
+	// Print what keeps the mod from compiling, naming the sources, and name
+	// the first error in the returned one.
+	named := sources.Replace(diagnostics.String())
+	_, _ = io.WriteString(output, named)
 	if err != nil {
+		if first := firstScriptcError(named); first != "" {
+			return nil, errors.Errorf("scriptc cannot compile the mod: %s", first)
+		}
 		return nil, errors.Wrap(err, "scriptc cannot compile the mod")
 	}
 
@@ -333,4 +338,15 @@ func isFile(path string) bool {
 func inDir(path, dir string) bool {
 	rel, err := filepath.Rel(dir, path)
 	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// firstScriptcError returns the first error line of scriptc's diagnostics,
+// such as "main.ts:3:54 - error SC2020: ...", or "" when they hold none.
+func firstScriptcError(diagnostics string) string {
+	for line := range strings.Lines(diagnostics) {
+		if strings.Contains(line, " - error ") {
+			return strings.TrimSpace(line)
+		}
+	}
+	return ""
 }

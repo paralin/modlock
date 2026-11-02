@@ -94,21 +94,30 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 	}
 
 	// Compile a release build with scriptc when the mod asks and scriptc can.
+	var fallback error
 	if mode == Release && p.Manifest.GetRuntime() == manifest.Manifest_RUNTIME_WASM {
 		module, err := p.compileScriptc(ctx, library, tsgo, output)
 		if err == nil {
 			return p.writeBuild(module, nil, manifest.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
 		}
-		_, _ = fmt.Fprintf(output, "%v; the mod runs on QuickJS\n", err)
+		fallback = err
 	}
 
-	// Bundle and minify a release with Rolldown.
+	// Bundle and minify a release with Rolldown. A mod that asked for
+	// WebAssembly still builds, so it stays playable, and the build ends on a
+	// warning that names why, below the diagnostics where it is seen.
 	if mode == Release {
 		bundled, err := p.bundleRolldown(ctx, library, output)
 		if err != nil {
 			return err
 		}
-		return p.writeBuild(bundled, nil, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+		if err := p.writeBuild(bundled, nil, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry); err != nil {
+			return err
+		}
+		if fallback != nil {
+			_, _ = fmt.Fprintf(output, "warning: the mod asks for RUNTIME_WASM, but %v, so this build runs on QuickJS\n", fallback)
+		}
+		return nil
 	}
 
 	// Bundle a dev build's sources and the library into one script, with a
