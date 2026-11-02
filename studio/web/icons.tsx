@@ -29,6 +29,7 @@ export type IconName =
   | 'model'
   | 'texture'
   | 'material'
+  | 'sound'
   | 'data'
   | 'search'
   | 'solid'
@@ -65,6 +66,9 @@ const paths: Record<IconName, ReactNode> = {
       <circle cx="8" cy="8" r="5.5" />
       <path d="M5 6.5a3.5 3.5 0 0 1 3-2" />
     </>
+  ),
+  sound: (
+    <path d="M2 6h3l4-3v10l-4-3H2zM11 5a5 5 0 0 1 0 6M13 3a8 8 0 0 1 0 10" />
   ),
   data: (
     <>

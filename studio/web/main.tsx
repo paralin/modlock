@@ -2,7 +2,14 @@
 // asset in the viewport, its properties on the right, and a status bar.
 import { useEffect, useReducer, useRef, type Dispatch } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Listing, Model, Resource, Texture, World } from '../studio.pb.js'
+import {
+  Listing,
+  Model,
+  Resource,
+  Sound,
+  Texture,
+  World,
+} from '../studio.pb.js'
 import { fetchMessage, kindOf, route } from './api.js'
 import { Icon } from './icons.js'
 import { collisionCounts, hasCollision, hasMeshes } from './models.js'
@@ -16,6 +23,7 @@ import {
   type Event,
   type Studio,
 } from './state.js'
+import { SoundPreview } from './sound-preview.js'
 import { buildTree } from './tree.js'
 
 // select puts a file in the address's hash, which selects it, so a link or
@@ -43,6 +51,12 @@ function load(
   // Maps, models and textures draw in the viewport; anything else shows its
   // data.
   switch (kindOf(name)) {
+    case 'sound':
+      viewer.clear()
+      void fetchMessage(Sound, route('sound', name), signal)
+        .then((sound) => dispatch({ type: 'sound', name, sound }))
+        .catch(fail)
+      return
     case 'map':
       void fetchMessage(World, route('world', name), signal)
         .then(async (world) => {
@@ -85,7 +99,10 @@ function load(
 function drawsInViewport(asset: Asset): boolean {
   if (asset.state === 'model' || asset.state === 'map') return true
   if (asset.state === 'texture') return asset.unavailable === null
-  return asset.state === 'loading' && kindOf(asset.name) !== 'data'
+  return (
+    asset.state === 'loading' &&
+    ['map', 'model', 'texture'].includes(kindOf(asset.name))
+  )
 }
 
 // App is the whole page, driven by one reducer.
@@ -212,6 +229,13 @@ function App() {
         <div className="stage">
           <canvas ref={canvas} hidden={!drawsInViewport(asset)} />
           <StageNote asset={asset} />
+          {asset.state === 'sound' && (
+            <SoundPreview
+              key={asset.name}
+              name={asset.name}
+              sound={asset.sound}
+            />
+          )}
           {asset.state === 'data' && (
             <pre className="data">{asset.resource.json}</pre>
           )}
@@ -348,8 +372,7 @@ function StageNote(props: { asset: Asset }) {
   // Only the idle, failed and unavailable states leave the stage empty.
   const { asset } = props
   let note = ''
-  if (asset.state === 'idle')
-    note = 'Choose a map, model, texture or material in the outliner'
+  if (asset.state === 'idle') note = 'Choose an asset in the outliner'
   if (asset.state === 'failed') note = asset.message
   if (asset.state === 'lost')
     note = 'The graphics card reset. Drawing resumes when it is back.'
@@ -363,7 +386,19 @@ function StageNote(props: { asset: Asset }) {
   )
     note = 'This model has no meshes or collision shapes'
   if (!note) return null
-  return <p className="stage-note">{note}</p>
+  return (
+    <p className="stage-note">
+      {note}
+      {asset.state === 'failed' && kindOf(asset.name) === 'sound' && (
+        <>
+          {' '}
+          <button className="link" onClick={() => location.reload()}>
+            Reload to retry
+          </button>
+        </>
+      )}
+    </p>
+  )
 }
 
 // StatusBar shows the archive's state and what the viewport draws.

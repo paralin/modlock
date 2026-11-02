@@ -36,6 +36,7 @@ const emptyCounts = (): Record<Filter, number> => ({
   model: 0,
   texture: 0,
   material: 0,
+  sound: 0,
   data: 0,
 })
 

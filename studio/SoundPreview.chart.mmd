@@ -1,0 +1,23 @@
+---
+title: "Sound preview"
+---
+stateDiagram-v2
+  s0: idle
+  s1: loading
+  s2: failed
+  s3: ready
+  s4: unsupported
+  s5: playing
+  [*] --> s0
+  s0 --> s1: Select
+  s1 --> s2: Loaded
+  s1 --> s3: Loaded
+  s1 --> s4: Loaded
+  s2 --> s1: Retry or Select
+  s3 --> s1: Select
+  s3 --> s2: Fail
+  s3 --> s5: Play
+  s4 --> s1: Select
+  s5 --> s1: Select
+  s5 --> s2: Fail
+  s5 --> s3: Stop

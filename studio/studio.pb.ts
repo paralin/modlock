@@ -1635,3 +1635,93 @@ export const Fragment: MessageType<Fragment> =
       },
     },
   )
+
+/**
+ * Sound describes one compiled sound; audio is served separately with range support.
+ *
+ * @generated from message modlock.studio.Sound
+ */
+export interface Sound {
+  /**
+   * Format is the stored encoding, such as MP3 or PCM16.
+   */
+  format?: string
+  /**
+   * Sample_rate is the number of samples per second.
+   */
+  sampleRate?: number
+  /**
+   * Channels is the number of audio channels.
+   */
+  channels?: number
+  /**
+   * Duration is the playback length in seconds.
+   */
+  duration?: number
+  /**
+   * Unavailable explains why this sound cannot be previewed, or is empty.
+   */
+  unavailable?: string
+}
+
+export const Sound: MessageType<Sound> =
+  /* @__PURE__ */ createMessageType<Sound>(
+    'modlock.studio.Sound',
+    () => [
+      [1, 'format', 9],
+      [2, 'sample_rate', 13],
+      [3, 'channels', 13],
+      [4, 'duration', 2],
+      [5, 'unavailable', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: Sound): Sound => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.format = r.string()
+              break
+            case 2:
+              m.sampleRate = r.uint32()
+              break
+            case 3:
+              m.channels = r.uint32()
+              break
+            case 4:
+              m.duration = r.float()
+              break
+            case 5:
+              m.unavailable = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: Sound, w: Writer): void => {
+        {
+          const v = m.format
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.sampleRate
+          if (v) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.channels
+          if (v) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.duration
+          if (v != null && v !== 0) w.uint32(37).float(v)
+        }
+        {
+          const v = m.unavailable
+          if (v) w.uint32(42).string(v)
+        }
+      },
+    },
+  )

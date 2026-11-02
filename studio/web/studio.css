@@ -554,3 +554,24 @@ button {
     flex-basis: 100%;
   }
 }
+
+/* Sound playback uses native controls and the existing viewport. */
+.sound-preview {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.sound-preview audio {
+  width: min(100%, 480px);
+}
+
+.outliner .segmented button {
+  min-width: 24px;
+  padding-inline: var(--space-1);
+}

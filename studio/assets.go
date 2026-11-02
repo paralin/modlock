@@ -88,16 +88,22 @@ func (a *Assets) Err() error {
 
 // routes adds the asset routes to mux.
 func (a *Assets) routes(mux *http.ServeMux) {
+	// Keep every asset request readable when the install is unavailable.
 	if a.err != nil {
 		mux.HandleFunc("GET /api/assets/", func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, a.err.Error(), http.StatusServiceUnavailable)
 		})
 		return
 	}
+
+	// Register the archive listing and each supported preview.
 	mux.HandleFunc("GET /api/assets/list", a.list)
 	mux.HandleFunc("GET /api/assets/model/{name...}", a.model)
+	mux.HandleFunc("GET /api/assets/sound/{name...}", a.sound)
 	mux.HandleFunc("GET /api/assets/buffer/{mesh}/{kind}/{index}/{name...}", a.buffer)
 	mux.HandleFunc("GET /api/assets/texture/{name...}", a.texture)
+
+	// Serve texture mip payloads and structured resource data.
 	mux.HandleFunc("GET /api/assets/mips/{from}/{name...}", a.mips)
 	mux.HandleFunc("GET /api/assets/resource/{name...}", a.resource)
 	mux.HandleFunc("GET /api/assets/world/{name...}", a.world)
