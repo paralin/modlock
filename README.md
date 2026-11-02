@@ -751,6 +751,10 @@ build, and which it downloads the first time. `modlock build --release` builds
 the same way to check the published build before you publish. When scriptc
 cannot compile part of the mod, the build lists each place and the reason, and
 bundles the mod for QuickJS instead.
+A WebAssembly build runs a module's top level as it loads, before the host can
+answer, so a call made there returns `false` or `undefined` and reaches the
+host as Start begins, where QuickJS makes it too. Make a call whose answer the
+mod needs in `onStart`.
 
 Before it ships the WebAssembly build, the build plays it in the sandbox beside
 the QuickJS bundle: Start, a player, the world and five seconds of frames, with

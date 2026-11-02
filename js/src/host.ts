@@ -10,9 +10,21 @@ export type Transport = (call: Uint8Array) => Uint8Array
 /** Dispatch answers one encoded Call the host delivers with its encoded Reply. */
 export type Dispatch = (call: Uint8Array) => Uint8Array
 
-/** unbound answers every call before a runtime binds the host as refused. */
-const unbound: Transport = () =>
-  Reply.toBinary({ error: 'the host is not bound yet' })
+/** refused is the Reply to a call no host can answer yet. */
+const refused = Reply.toBinary({ error: 'the host is not bound yet' })
+
+/**
+ * early holds the calls the mod made before a runtime bound the host, in
+ * order. A scriptc module's top level runs as it loads, before its first
+ * event binds the host, while QuickJS evaluates the bundle in Start.
+ */
+const early: Uint8Array[] = []
+
+/** unbound keeps each call for the host and answers it as refused. */
+const unbound: Transport = (call) => {
+  early.push(call)
+  return refused
+}
 
 /** transport carries calls to the host; the runtime's entry binds it. */
 let transport: Transport = unbound
@@ -20,9 +32,15 @@ let transport: Transport = unbound
 /** dispatch delivers the host's events to the library's handlers. */
 let dispatch: Dispatch | undefined
 
-/** bind routes the mod's host calls through t from now on. */
+/**
+ * bind routes the mod's host calls through t from now on, first sending the
+ * calls made before any runtime bound the host. A scriptc build binds as its
+ * first event, Start, begins, so in both runtimes a module's top-level calls
+ * reach the host at the start of Start.
+ */
 export function bind(t: Transport): void {
   transport = t
+  for (const call of early.splice(0)) t(call)
 }
 
 /** serveEvents answers each event the host delivers with d. */

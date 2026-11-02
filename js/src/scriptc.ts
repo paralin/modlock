@@ -16,12 +16,14 @@ export function event(
   call: (data: Uint8Array) => number,
   read: (data: Uint8Array) => void,
 ): Uint8Array {
+  // Read the Call before binding, since binding sends the calls the module
+  // made as it loaded and each reply replaces the bytes the host holds.
+  const request = new Uint8Array(size)
+  read(request)
   bind((data) => {
     const reply = new Uint8Array(call(data))
     read(reply)
     return reply
   })
-  const request = new Uint8Array(size)
-  read(request)
   return deliver(request)
 }

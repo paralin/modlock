@@ -13,6 +13,10 @@ let answer = Reply.toBinary({})
 
 /** sent holds the Calls the transport carried, decoded. */
 const sent: { method: string; request: Uint8Array }[] = []
+
+// A call before any runtime binds the host, as a scriptc module's top level
+// makes, fails at once and reaches the host when one binds.
+const earlyAnswer = call('Watch', new Uint8Array([7]))
 bind((bytes) => {
   const decoded = Call.fromBinary(bytes)
   sent.push({
@@ -20,6 +24,12 @@ bind((bytes) => {
     request: decoded.request ?? new Uint8Array(),
   })
   return answer
+})
+const early = sent.splice(0)
+
+test('a call made before the host is bound reaches it once bound', () => {
+  expect(earlyAnswer).toBeUndefined()
+  expect(early).toEqual([{ method: 'Watch', request: new Uint8Array([7]) }])
 })
 
 test('a call frames its method and request as the generated codec reads them', () => {
