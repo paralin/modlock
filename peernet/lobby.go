@@ -31,8 +31,7 @@ func (s *Service) holdLobby(ctx context.Context, req *LobbyRequest, mods []strin
 	defer s.relay.Hold(nil)
 	retry := time.Second
 	var last *LobbyState
-	var applied *control.ServiceReply
-	var lastResult *control.ServiceResult
+	application := &lobbyApplication{}
 	for {
 		// Hold the lobby with the current sign-in, reporting only changes,
 		// since a refresh of the relay repeats the lobby's state.
@@ -46,11 +45,10 @@ func (s *Service) holdLobby(ctx context.Context, req *LobbyRequest, mods []strin
 				open.ManifestJson = manifest
 			}
 		}
-		err := s.holdLobbySocket(ctx, token, open, changed, results, &lastResult, func(state *publish.DevLobbyState) {
+		err := s.holdLobbySocket(ctx, token, open, changed, results, application, func(state *publish.DevLobbyState) {
 			retry = time.Second
 			s.relay.Hold(state.GetRelay())
-			if next := state.GetSetup(); next != nil && !next.EqualVT(applied) {
-				applied = next
+			if next := state.GetSetup(); application.offer(next) {
 				setup(next)
 			}
 			if next := lobbyState(state); !next.EqualVT(last) {
@@ -91,7 +89,7 @@ var errLobbyRefused = errors.New("the service refused the lobby")
 // holdLobbySocket opens one dev lobby socket with token, passes each of the
 // service's states to answered, and holds the socket until it drops or ctx
 // ends. It returns errLobbyRefused after a refusal.
-func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publish.DevLobbyOpen, changed <-chan struct{}, results <-chan *control.ServiceResult, lastResult **control.ServiceResult, answered func(*publish.DevLobbyState)) error {
+func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publish.DevLobbyOpen, changed <-chan struct{}, results <-chan *control.ServiceResult, application *lobbyApplication, answered func(*publish.DevLobbyState)) error {
 	// Open the socket.
 	dial, cancel := context.WithTimeout(ctx, lobbyAnswerTimeout)
 	defer cancel()
@@ -125,8 +123,8 @@ func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publi
 	}
 
 	// Replay the last adoption result if its earlier connection dropped.
-	if *lastResult != nil {
-		data, err := (*lastResult).MarshalVT()
+	if application.result != nil {
+		data, err := application.result.MarshalVT()
 		if err != nil {
 			return err
 		}
@@ -160,7 +158,7 @@ func (s *Service) holdLobbySocket(ctx context.Context, token string, open *publi
 	for {
 		select {
 		case result := <-results:
-			*lastResult = result
+			application.adopt(result)
 			data, err := result.MarshalVT()
 			if err != nil {
 				return err

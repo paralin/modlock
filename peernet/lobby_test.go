@@ -72,13 +72,13 @@ func TestLobbySetupReconnect(t *testing.T) {
 	}
 	service := &Service{origin: server.URL, key: key}
 	results := make(chan *control.ServiceResult, 1)
-	var last *control.ServiceResult
-	for attempt := range 2 {
-		err := service.holdLobbySocket(ctx, "signed-in", &publish.DevLobbyOpen{ModName: "Arena", Secret: 7, ManifestJson: []byte("local manifest")}, nil, results, &last, func(state *publish.DevLobbyState) {
+	application := &lobbyApplication{}
+	for range 2 {
+		err := service.holdLobbySocket(ctx, "signed-in", &publish.DevLobbyOpen{ModName: "Arena", Secret: 7, ManifestJson: []byte("local manifest")}, nil, results, application, func(state *publish.DevLobbyState) {
 			if !state.GetSetup().EqualVT(reply) {
 				t.Error("the opaque setup changed", state)
 			}
-			if attempt == 0 {
+			if application.offer(state.GetSetup()) {
 				results <- &control.ServiceResult{Id: reply.GetId()}
 			}
 		})
@@ -96,4 +96,15 @@ func TestLobbySetupReconnect(t *testing.T) {
 			t.Fatal(ctx.Err())
 		}
 	}
+	// A refused newer setup must not restart the previous successful game.
+	refused := reply.CloneVT()
+	refused.Id = "apply-2"
+	if !application.offer(refused) {
+		t.Fatal("a new setup was skipped")
+	}
+	application.adopt(&control.ServiceResult{Id: refused.GetId(), Error: "reload failed"})
+	if application.offer(reply) {
+		t.Fatal("a failed Apply restarted the earlier game")
+	}
+
 }
