@@ -141,7 +141,8 @@ void Game::WorldEnding() {
   }
   spawned_ = false;
 
-  // Drop the per-world player state.
+  // Drop the per-world player state and reapply host seats on the next map.
+  assignments_.WorldEnding();
   frozen_.clear();
   steers_.clear();
   drives_.clear();

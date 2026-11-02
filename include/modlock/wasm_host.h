@@ -15,6 +15,7 @@
 #include "modlock/plugin_library.h"
 #include "modlock/wasm_metrics.h"
 #include "modlock/wasm_settings.h"
+#include "src/wasm/match/match.pb.h"
 #include "src/wasm/players/players.pb.h"
 #include "src/wasm/profile/profile.pb.h"
 #include "src/wasm/ui/ui.pb.h"
@@ -172,6 +173,12 @@ class MODLOCK_API WasmHost {
   // settings already hold the new value.
   void SettingChanged(std::string_view mod, uint64_t steam_id, std::string_view key,
                       std::string_view value);
+
+  // AssignTeams supplies a mod's initial teams and observers by Steam ID.
+  // Each seat applies on join or assignment change, survives a mod reload,
+  // and leaves later team changes to the mod. An empty table releases it.
+  [[nodiscard]] std::expected<void, std::string> AssignTeams(
+      std::string_view mod, const wasm::match::TeamAssignments& request);
 
   // SetRoles replaces the players' roles in the table's mod, or in every mod
   // without a table of its own when it names none. The mods read them on each

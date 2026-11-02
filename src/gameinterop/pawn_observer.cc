@@ -612,6 +612,9 @@ void PawnObserver::Invalidate() {
   layout_ = {};
   ability_layout_.reset();
   trace_slot_occupied_ = false;
+
+  // The old world cannot publish a pawn it was still creating.
+  pending_selections_.clear();
 }
 
 std::expected<PawnObserver::Located, std::string> PawnObserver::Locate(int32_t slot) const {

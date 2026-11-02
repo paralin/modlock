@@ -194,6 +194,16 @@ void WasmHost::SettingChanged(std::string_view mod, uint64_t steam_id, std::stri
   }
 }
 
+std::expected<void, std::string> WasmHost::AssignTeams(
+    std::string_view mod, const wasm::match::TeamAssignments& request) {
+  // The instance owns its seating for as long as it runs.
+  const auto found = impl_->plugins.find(mod);
+  if (found == impl_->plugins.end()) {
+    return std::unexpected("no running mod is named " + std::string(mod));
+  }
+  return found->second->AssignTeams(request);
+}
+
 void WasmHost::SetRoles(wasm::players::RolesTable roles) {
   auto& current = impl_->roles[roles.mod()];
   if (roles.SerializeAsString() == current.SerializeAsString()) {

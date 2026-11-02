@@ -381,6 +381,9 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
       // Replicate the transition once; later spectator checks leave it alone.
       std::memcpy(play_state, &kActive, sizeof(kActive));
       if (!NotifyEntityStateChanged(current->first)) {
+        // A missing notification call ran nothing in the engine. Restore the
+        // previous state so the next request retries this transition.
+        std::memcpy(play_state, &state, sizeof(state));
         return std::unexpected("spectator play state did not replicate");
       }
     }
@@ -398,7 +401,8 @@ std::optional<uint8_t> PawnObserver::ControllerTeam(int32_t slot) {
 
 std::expected<bool, std::string> PawnObserver::SeatForChoice(int32_t slot, uint64_t steam_id,
                                                              uint32_t generation, int32_t team,
-                                                             const PlayerSelectionCalls& calls) {
+                                                             const PlayerSelectionCalls& calls,
+                                                             bool assigned) {
   // Check the request, the layout and the team change.
   if (!IsPlayerSlot(slot) || !steam_id || team < 2 || team > 3 || !calls.create_pawn ||
       !seams_.slot_state || !seams_.entity_system) {
@@ -445,12 +449,12 @@ std::expected<bool, std::string> PawnObserver::SeatForChoice(int32_t slot, uint6
     return static_cast<unsigned char*>(controller);
   };
 
-  // Seat only a player who has not yet joined a team.
+  // Seat a new player or an observer who now has a playing seat.
   auto controller = borrow();
   if (!controller) {
     return std::unexpected(controller.error());
   }
-  if ((*controller)[layout_.team] != 0) {
+  if ((*controller)[layout_.team] >= 2 && !assigned) {
     return false;
   }
   auto* table = *reinterpret_cast<void***>(*controller);
@@ -461,10 +465,12 @@ std::expected<bool, std::string> PawnObserver::SeatForChoice(int32_t slot, uint6
   // The game's own join runs these three steps in order: ChangeTeam, the hero
   // pawn, then the play state. The client then leaves the team screen, but
   // its hero picker stays closed; something else in the stock join opens it.
-  reinterpret_cast<void (*)(void*, int)>(table[*change_team])(*controller, team);
-  controller = borrow();
-  if (!controller) {
-    return std::unexpected(controller.error());
+  if ((*controller)[layout_.team] != team) {
+    reinterpret_cast<void (*)(void*, int)>(table[*change_team])(*controller, team);
+    controller = borrow();
+    if (!controller) {
+      return std::unexpected(controller.error());
+    }
   }
 
   // Create the hero pawn unless the controller holds one.
@@ -475,12 +481,40 @@ std::expected<bool, std::string> PawnObserver::SeatForChoice(int32_t slot, uint6
     return std::unexpected(system.error());
   }
   if (!IdentityOfHandle(EntityListOf(*system), hero)) {
-    calls.create_pawn(*controller, team);
+    // An assignment waits for the pawn already requested for this connection.
+    const auto pending = pending_selections_.find(slot);
+    if (assigned && pending != pending_selections_.end() && pending->second.steam_id == steam_id &&
+        pending->second.generation == generation && pending->second.team == team) {
+      return std::unexpected("native pawn creation awaiting controller publication");
+    }
+    void* created = calls.create_pawn(*controller, team);
     controller = borrow();
     if (!controller) {
       return std::unexpected(controller.error());
     }
+
+    // Host seats confirm only after the controller publishes the created pawn.
+    if (assigned) {
+      // Borrow the published actor only after a successful creation request.
+      if (!created) {
+        return std::unexpected("native pawn creation failed");
+      }
+      pending_selections_.insert_or_assign(slot, PendingSelection{steam_id, generation, team});
+      system = seams_.entity_system();
+      if (!system) {
+        return std::unexpected(system.error());
+      }
+      std::memcpy(&hero, *controller + *layout_.hero_pawn_handle, sizeof(hero));
+      auto* published = IdentityOfHandle(EntityListOf(*system), hero);
+      if (!published) {
+        return std::unexpected("native pawn creation awaiting controller publication");
+      }
+      if (InstanceOf(published) != created) {
+        return std::unexpected("player pawn changed during creation");
+      }
+    }
   }
+  pending_selections_.erase(slot);
 
   // Mark the player as choosing a hero.
   constexpr int32_t kChoosingHero = 2;  // EPlayerPlayState::EPlayerChoosingHero

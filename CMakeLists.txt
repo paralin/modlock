@@ -195,6 +195,7 @@ add_library(modlock_sdk SHARED
   src/wasm/game_effects.cc
   src/wasm/game_entities.cc
   src/wasm/game_fields.cc
+  src/wasm/game_seating.cc
   src/wasm/game_heroes.cc
   src/wasm/game_builds.cc
   ${CMAKE_CURRENT_BINARY_DIR}/src/wasm/hero_builds_data.cc
@@ -653,6 +654,11 @@ if(BUILD_TESTING)
     PYTHON_LIBRARY="${CMAKE_CURRENT_SOURCE_DIR}/python/modlock")
   target_link_libraries(wasm_instance_test PRIVATE modlock::sdk wasmtime::wasmtime gtest_main)
   add_test(NAME wasm_instance_test COMMAND wasm_instance_test)
+  add_executable(team_seating_test tests/team_seating_test.cc)
+  target_include_directories(team_seating_test PRIVATE src)
+  target_link_libraries(team_seating_test PRIVATE modlock::sdk gtest_main)
+  add_test(NAME team_seating_test COMMAND team_seating_test)
+
   # wasm_host_test runs a Go mod that serves and calls extension services.
   set(extension_go_wasm ${CMAKE_CURRENT_BINARY_DIR}/extension-go.wasm)
   file(GLOB_RECURSE extension_go_sources CONFIGURE_DEPENDS mod/*.go tests/wasm/extension-go/*.go

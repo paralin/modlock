@@ -431,8 +431,8 @@ class MODLOCK_API PawnObserver {
   // yet.
   std::optional<Sample> Observe(int32_t slot = kSessionSlot);
 
-  // Invalidate drops the schema layout resolved for the current world. The next observation
-  // resolves a fresh world layout.
+  // Invalidate drops the current world's schema layout and pending pawn requests. The next
+  // observation resolves a fresh world layout.
   void Invalidate();
 
   // Prepare resolves the world's layout and the module lookups a first
@@ -498,14 +498,16 @@ class MODLOCK_API PawnObserver {
   // It is empty when the slot has no controller.
   std::optional<uint8_t> ControllerTeam(int32_t slot);
 
-  // SeatForChoice joins a player who has no team to team 2 or 3 as the game's
-  // own changeteam does: it changes the team, creates the hero pawn and leaves
-  // the player choosing a hero. The client shows no team screen, but its hero
-  // picker does not open either, so the caller selects the hero.
-  // It returns false and does nothing when the player already has a team.
+  // SeatForChoice joins a player with no playing team to team 2 or 3 as the
+  // game's own changeteam does: it changes the team, creates the hero pawn
+  // and leaves the player choosing a hero. The client leaves the team screen;
+  // the caller opens its picker or selects a hero. With assigned true it also
+  // corrects a player on another team who has not selected a hero yet.
+  // Otherwise an existing playing team returns false without changing it.
   std::expected<bool, std::string> SeatForChoice(int32_t slot, uint64_t steam_id,
                                                  uint32_t generation, int32_t team,
-                                                 const PlayerSelectionCalls& calls);
+                                                 const PlayerSelectionCalls& calls,
+                                                 bool assigned = false);
 
   // RespawnPlayer requests native respawn only for this connection's dead hero pawn.
   // Subsequent observation establishes readiness; the native call may replace the pawn.

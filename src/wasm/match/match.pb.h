@@ -30,6 +30,10 @@
 #include "google/protobuf/message_lite.h"
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
+#include "google/protobuf/map.h"  // IWYU pragma: export
+#include "google/protobuf/map_type_handler.h"  // IWYU pragma: export
+#include "google/protobuf/map_entry.h"
+#include "google/protobuf/map_field.h"
 #include "google/protobuf/unknown_field_set.h"
 #include "../../geometry/geometry.pb.h"
 // @@protoc_insertion_point(includes)
@@ -90,6 +94,14 @@ class StartRiftRequest;
 struct StartRiftRequestDefaultTypeInternal;
 MODLOCK_API extern StartRiftRequestDefaultTypeInternal _StartRiftRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull StartRiftRequest_class_data_;
+class TeamAssignments;
+struct TeamAssignmentsDefaultTypeInternal;
+MODLOCK_API extern TeamAssignmentsDefaultTypeInternal _TeamAssignments_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TeamAssignments_class_data_;
+class TeamAssignments_AssignmentsEntry_DoNotUse;
+struct TeamAssignments_AssignmentsEntry_DoNotUseDefaultTypeInternal;
+MODLOCK_API extern TeamAssignments_AssignmentsEntry_DoNotUseDefaultTypeInternal _TeamAssignments_AssignmentsEntry_DoNotUse_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TeamAssignments_AssignmentsEntry_DoNotUse_class_data_;
 }  // namespace match
 }  // namespace wasm
 }  // namespace modlock
@@ -105,6 +117,45 @@ namespace match {
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class TeamAssignments_AssignmentsEntry_DoNotUse final
+    : public ::google::protobuf::internal::MapEntry<::uint64_t, ::int32_t,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_UINT64,
+                             ::google::protobuf::internal::WireFormatLite::TYPE_INT32> {
+ public:
+  using SuperType =
+      ::google::protobuf::internal::MapEntry<::uint64_t, ::int32_t,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_UINT64,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_INT32>;
+  TeamAssignments_AssignmentsEntry_DoNotUse();
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR TeamAssignments_AssignmentsEntry_DoNotUse(::google::protobuf::internal::ConstantInitialized);
+  explicit TeamAssignments_AssignmentsEntry_DoNotUse(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr const void* PROTOBUF_NONNULL internal_default_instance() {
+    return &_TeamAssignments_AssignmentsEntry_DoNotUse_default_instance_;
+  }
+
+
+  static constexpr auto InternalGenerateClassData_();
+
+ private:
+  friend class ::google::protobuf::MessageLite;
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmatch_2fmatch_2eproto;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+};
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TeamAssignments_AssignmentsEntry_DoNotUse_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API SetTeamSeatingRequest final : public ::google::protobuf::Message
@@ -542,7 +593,7 @@ class MODLOCK_API RiftState final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftState*>(
         &_RiftState_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(RiftState& a, RiftState& b) { a.Swap(&b); }
   inline void Swap(RiftState* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -792,7 +843,7 @@ class MODLOCK_API PauseRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const PauseRequest*>(
         &_PauseRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages = 4;
   friend void swap(PauseRequest& a, PauseRequest& b) { a.Swap(&b); }
   inline void Swap(PauseRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -982,7 +1033,7 @@ class MODLOCK_API MatchClockResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const MatchClockResponse*>(
         &_MatchClockResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages = 5;
   friend void swap(MatchClockResponse& a, MatchClockResponse& b) { a.Swap(&b); }
   inline void Swap(MatchClockResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1172,7 +1223,7 @@ class MODLOCK_API HoldMatchClockRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const HoldMatchClockRequest*>(
         &_HoldMatchClockRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 4;
+  static constexpr int kIndexInFileMessages = 6;
   friend void swap(HoldMatchClockRequest& a, HoldMatchClockRequest& b) { a.Swap(&b); }
   inline void Swap(HoldMatchClockRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1308,6 +1359,204 @@ class MODLOCK_API HoldMatchClockRequest final : public ::google::protobuf::Messa
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull HoldMatchClockRequest_class_data_;
 // -------------------------------------------------------------------
 
+class MODLOCK_API TeamAssignments final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.match.TeamAssignments) */ {
+ public:
+  inline TeamAssignments() : TeamAssignments(nullptr) {}
+  ~TeamAssignments() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(TeamAssignments* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(TeamAssignments));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR TeamAssignments(::google::protobuf::internal::ConstantInitialized);
+
+  inline TeamAssignments(const TeamAssignments& from) : TeamAssignments(nullptr, from) {}
+  inline TeamAssignments(TeamAssignments&& from) noexcept
+      : TeamAssignments(nullptr, ::std::move(from)) {}
+  inline TeamAssignments& operator=(const TeamAssignments& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TeamAssignments& operator=(TeamAssignments&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const TeamAssignments& default_instance() {
+    return *reinterpret_cast<const TeamAssignments*>(
+        &_TeamAssignments_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 3;
+  friend void swap(TeamAssignments& a, TeamAssignments& b) { a.Swap(&b); }
+  inline void Swap(TeamAssignments* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TeamAssignments* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  TeamAssignments* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<TeamAssignments>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const TeamAssignments& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const TeamAssignments& from) { TeamAssignments::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(TeamAssignments* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.match.TeamAssignments"; }
+
+  explicit TeamAssignments(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  TeamAssignments(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TeamAssignments& from);
+  TeamAssignments(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TeamAssignments&& from) noexcept
+      : TeamAssignments(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kAssignmentsFieldNumber = 1,
+  };
+  // map<uint64, int32> assignments = 1;
+  int assignments_size() const;
+  private:
+  int _internal_assignments_size() const;
+
+  public:
+  void clear_assignments() ;
+  const ::google::protobuf::Map<::uint64_t, ::int32_t>& assignments() const;
+  ::google::protobuf::Map<::uint64_t, ::int32_t>* PROTOBUF_NONNULL mutable_assignments();
+
+  private:
+  const ::google::protobuf::Map<::uint64_t, ::int32_t>& _internal_assignments() const;
+  ::google::protobuf::Map<::uint64_t, ::int32_t>* PROTOBUF_NONNULL _internal_mutable_assignments();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.match.TeamAssignments)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   1, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const TeamAssignments& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::MapField<TeamAssignments_AssignmentsEntry_DoNotUse, ::uint64_t, ::int32_t,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_UINT64,
+                      ::google::protobuf::internal::WireFormatLite::TYPE_INT32>
+        assignments_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmatch_2fmatch_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TeamAssignments_class_data_;
+// -------------------------------------------------------------------
+
 class MODLOCK_API StartRiftRequest final : public ::google::protobuf::Message
 /* @@protoc_insertion_point(class_definition:modlock.wasm.match.StartRiftRequest) */ {
  public:
@@ -1363,7 +1612,7 @@ class MODLOCK_API StartRiftRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const StartRiftRequest*>(
         &_StartRiftRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(StartRiftRequest& a, StartRiftRequest& b) { a.Swap(&b); }
   inline void Swap(StartRiftRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1558,7 +1807,7 @@ class MODLOCK_API RiftResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const RiftResponse*>(
         &_RiftResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 5;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(RiftResponse& a, RiftResponse& b) { a.Swap(&b); }
   inline void Swap(RiftResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1765,6 +2014,44 @@ inline bool SetTeamSeatingRequest::_internal_enabled() const {
 inline void SetTeamSeatingRequest::_internal_set_enabled(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.enabled_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// TeamAssignments
+
+// map<uint64, int32> assignments = 1;
+inline int TeamAssignments::_internal_assignments_size() const {
+  return _internal_assignments().size();
+}
+inline int TeamAssignments::assignments_size() const {
+  return _internal_assignments_size();
+}
+inline void TeamAssignments::clear_assignments() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.assignments_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::google::protobuf::Map<::uint64_t, ::int32_t>& TeamAssignments::_internal_assignments() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.assignments_.GetMap();
+}
+inline const ::google::protobuf::Map<::uint64_t, ::int32_t>& TeamAssignments::assignments() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_map:modlock.wasm.match.TeamAssignments.assignments)
+  return _internal_assignments();
+}
+inline ::google::protobuf::Map<::uint64_t, ::int32_t>* PROTOBUF_NONNULL TeamAssignments::_internal_mutable_assignments() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.assignments_.MutableMap();
+}
+inline ::google::protobuf::Map<::uint64_t, ::int32_t>* PROTOBUF_NONNULL TeamAssignments::mutable_assignments()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_map:modlock.wasm.match.TeamAssignments.assignments)
+  return _internal_mutable_assignments();
 }
 
 // -------------------------------------------------------------------

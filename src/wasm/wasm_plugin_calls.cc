@@ -167,6 +167,10 @@ void WasmPlugin::Leave(int32_t slot) {
   ShowUi(slot, reset);
 }
 
+bool PluginGame::Serves(int32_t slot) const {
+  return plugin_.Scoped().Serves(slot);
+}
+
 void WasmPlugin::Scope(WasmScope scope) {
   // Each occupied slot the old scope served and the new one does not leaves
   // the mod.

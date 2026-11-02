@@ -90,6 +90,7 @@ class PluginGame final : public wasm::Game {
   static bool AnswersWithoutGame(std::string_view method);
 
  private:
+  bool Serves(int32_t slot) const override;
   std::expected<void, std::string> Log(const wasm::LogRequest& request) override;
   std::expected<void, std::string> Ui(const wasm::ui::UiRequest& request) override;
   std::expected<wasm::players::PlayersResponse, std::string> Players() override;
@@ -193,6 +194,11 @@ class WasmPlugin final : public Plugin {
   // a disconnected player does, and the mod hears its new player list before
   // its next event.
   void Scope(WasmScope scope);
+
+  // AssignTeams gives this instance the host's initial team assignments.
+  std::expected<void, std::string> AssignTeams(const match::TeamAssignments& request) {
+    return game_.AssignTeams(request);
+  }
 
   // Scoped is the part of the server the mod serves.
   const PlayerScope& Scoped() const { return scope_; }

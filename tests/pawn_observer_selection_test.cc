@@ -104,6 +104,18 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   fixture.image.SetIdentity(2, pawn.data(), 9, 0);
   const uint32_t handle = HandleOf(2, 9);
   std::memcpy(fixture.controller.data() + kPawnHandleField, &handle, sizeof(handle));
+
+  // Failed replication must leave assignment pending even though the camera
+  // exists, so a later request retries the active-state notification.
+  const auto notify = table[28];
+  table[28] = nullptr;
+  EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
+  int32_t pending_state = 0;
+  std::memcpy(&pending_state, fixture.controller.data() + kPlayStateField, sizeof(pending_state));
+  EXPECT_EQ(pending_state, awaiting_hero);
+
+  // Restoring the engine's notification finishes the same camera exactly once.
+  table[28] = notify;
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
@@ -271,12 +283,64 @@ TEST(PawnObserver, SeatingJoinsATeamlessPlayerAndLeavesThemChoosingAHero) {
   EXPECT_EQ(steps, (std::vector<std::string>{"team:3", "pawn:3", "notify:2"}));
   EXPECT_EQ(observer.ControllerTeam(0), 3);
 
+  // An observer promoted into a playing seat follows the same native join.
+  fixture.controller[kTeamField] = 1;
+  steps.clear();
+  const auto promoted = observer.SeatForChoice(0, fixture.xuid, 3, 2, calls);
+  ASSERT_TRUE(promoted) << promoted.error();
+  EXPECT_TRUE(*promoted);
+  EXPECT_EQ(observer.ControllerTeam(0), 2);
+  EXPECT_EQ(steps, (std::vector<std::string>{"team:2", "pawn:2", "notify:2"}));
+
   // A player who has a team is left alone.
   steps.clear();
   const auto again = observer.SeatForChoice(0, fixture.xuid, 3, 2, calls);
   ASSERT_TRUE(again) << again.error();
   EXPECT_FALSE(*again);
   EXPECT_TRUE(steps.empty());
+
+  // A host assignment cannot confirm a team change whose pawn creation failed.
+  const auto failed = observer.SeatForChoice(0, fixture.xuid, 3, 3, calls, true);
+  ASSERT_FALSE(failed);
+  EXPECT_NE(failed.error().find("creation failed"), std::string::npos);
+  EXPECT_EQ(observer.ControllerTeam(0), 3);
+  EXPECT_EQ(steps, (std::vector<std::string>{"team:3", "pawn:3"}));
+
+  // A returned pawn can precede controller publication; retries must wait
+  // without spawning another pawn or repeating the native team change.
+  static void* created = nullptr;
+  auto hero_pawn = MakeController(0);
+  created = hero_pawn.data();
+  calls.create_pawn = +[](void*, int team) -> void* {
+    steps.push_back("pawn:" + std::to_string(team));
+    return created;
+  };
+  steps.clear();
+  EXPECT_FALSE(observer.SeatForChoice(0, fixture.xuid, 3, 3, calls, true));
+  EXPECT_FALSE(observer.SeatForChoice(0, fixture.xuid, 3, 3, calls, true));
+  EXPECT_EQ(steps, (std::vector<std::string>{"pawn:3"}));
+
+  // A new world cannot finish the old world's pending creation, even when
+  // the same connection survives. It must request its own pawn.
+  auto next_world_pawn = MakeController(0);
+  created = next_world_pawn.data();
+  observer.Invalidate();
+  steps.clear();
+  EXPECT_FALSE(observer.SeatForChoice(0, fixture.xuid, 3, 3, calls, true));
+  EXPECT_EQ(steps, (std::vector<std::string>{"pawn:3"}));
+
+  // Once published, the same request finishes the chooser state and succeeds.
+  fixture.image.SetIdentity(3, created, 8, 0);
+  const auto published = HandleOf(3, 8);
+  std::memcpy(fixture.controller.data() + kHeroHandleField, &published, sizeof(published));
+
+  // Finishing a pending join notifies its chooser without recreating the pawn.
+  steps.clear();
+  const auto corrected = observer.SeatForChoice(0, fixture.xuid, 3, 3, calls, true);
+  ASSERT_TRUE(corrected) << corrected.error();
+  EXPECT_TRUE(*corrected);
+  EXPECT_EQ(steps, (std::vector<std::string>{"notify:2"}));
+  created = nullptr;
   active = nullptr;
 }
 

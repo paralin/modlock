@@ -18,6 +18,15 @@ message SetTeamSeatingRequest {
   bool enabled = 1;
 }
 
+// TeamAssignments is the host's initial seating table for one running mod.
+message TeamAssignments {
+  // Assignments seats humans by Steam ID: 1 observes, 2 and 3 play. A host
+  // supplies this table before the mod starts. Each assignment applies once
+  // per connection, again when its team changes, and retries until ready.
+  // An empty table leaves team choice to the mod and the game.
+  map<uint64, int32> assignments = 1;
+}
+
 // PauseRequest pauses or resumes the game.
 message PauseRequest {
   bool paused = 1;

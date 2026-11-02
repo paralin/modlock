@@ -842,6 +842,8 @@ bool Game::FreeForAllCommand(std::string_view line) const {
 }
 
 void Game::SeatPlayers() {
+  SeatAssignedPlayers();
+
   // Seat players only while seating or free-for-all is on.
   if (!free_for_all_ && !team_seating_) {
     return;
@@ -854,14 +856,14 @@ void Game::SeatPlayers() {
     for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
       // Count each side and collect the humans without a team.
       const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
-      if (!state.occupied) {
+      if (!state.occupied || !Serves(slot)) {
         continue;
       }
       const auto team = observer_.ControllerTeam(slot);
       if (!team) {
         continue;
       }
-      if (*team == 0 && !state.is_bot && state.xuid != 0) {
+      if (*team == 0 && !state.is_bot && state.xuid != 0 && !assignments_.Contains(state.xuid)) {
         unseated.push_back(slot);
       } else if (*team < sides.size()) {
         ++sides[*team];

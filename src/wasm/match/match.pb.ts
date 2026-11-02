@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
-import { createMessageType } from '@aptre/protobuf-es-lite/message'
+import { createMessageType, newMap } from '@aptre/protobuf-es-lite/message'
 import type {
   BinaryReader,
   Writer,
@@ -93,6 +93,67 @@ export const SetTeamSeatingRequest: MessageType<SetTeamSeatingRequest> =
         {
           const v = m.enabled
           if (v) w.uint32(8).bool(v)
+        }
+      },
+    },
+  )
+
+/**
+ * TeamAssignments is the host's initial seating table for one running mod.
+ *
+ * @generated from message modlock.wasm.match.TeamAssignments
+ */
+export interface TeamAssignments {
+  /**
+   * Assignments seats humans by Steam ID: 1 observes, 2 and 3 play. A host
+   * supplies this table before the mod starts. Each assignment applies once
+   * per connection, again when its team changes, and retries until ready.
+   * An empty table leaves team choice to the mod and the game.
+   */
+  assignments?: { [key: string]: number }
+}
+
+export const TeamAssignments: MessageType<TeamAssignments> =
+  /* @__PURE__ */ createMessageType<TeamAssignments>(
+    'modlock.wasm.match.TeamAssignments',
+    () => [[1, 'assignments', 5, 264]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: TeamAssignments,
+      ): TeamAssignments => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1: {
+              const [k, v] = r.entry(
+                (r) => r.uint64().toString(),
+                (r) => r.int32(),
+                '0',
+                0,
+              )
+              m.assignments ??= newMap()
+              m.assignments[k] = v
+              break
+            }
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: TeamAssignments, w: Writer): void => {
+        {
+          const o = m.assignments
+          if (o != null)
+            for (const [k, v] of Object.entries(o)) {
+              const s = w.uint32(10).fork()
+              w.uint32(8).uint64(BigInt(k))
+              w.uint32(16).int32(v)
+              w.join(s)
+            }
         }
       },
     },

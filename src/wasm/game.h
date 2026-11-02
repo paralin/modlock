@@ -47,6 +47,7 @@
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
 #include "wasm/npc_restore.h"
+#include "wasm/team_seating.h"
 #include "wasm/visibility.h"
 
 namespace modlock::wasm {
@@ -364,6 +365,10 @@ class Game : public HostService {
   // Heroes returns every live hero this frame.
   std::vector<Hero> Heroes();
 
+  // AssignTeams applies host seats on join and assignment change. The table
+  // survives Clear, so a build reload keeps confirmed seats and pending joins.
+  std::expected<void, std::string> AssignTeams(const match::TeamAssignments& request);
+
   // StartFreeForAll sets whether free-for-all is on as a mod starts, from its
   // manifest, and turns team seating off. SetFreeForAll and SetTeamSeating
   // change them while the mod runs.
@@ -406,6 +411,9 @@ class Game : public HostService {
   std::vector<combat::LaunchEvent> TakeLaunches() { return std::exchange(launches_, {}); }
 
  protected:
+  // Serves reports whether this game currently controls the player's slot.
+  virtual bool Serves(int32_t) const { return true; }
+
   // Players lists the occupied player slots; a host may add what it knows of
   // each player.
   std::expected<players::PlayersResponse, std::string> Players() override;
@@ -688,6 +696,13 @@ class Game : public HostService {
   // them.
   void ApplyHolds();
 
+  // SeatAssignedPlayers retries pending host seats and records a seat only
+  // after its native operation succeeds for the same connection generation.
+  void SeatAssignedPlayers();
+  // SeatAssignedPlayer applies one pending host seat without choosing a hero.
+  std::expected<void, std::string> SeatAssignedPlayer(int32_t slot, uint32_t generation,
+                                                      uint64_t steam_id, int32_t team);
+
   // SeatPlayers seats each player who has no team on the smaller side, with
   // no hero, while team seating or free-for-all is on. A host that cannot
   // seat a player leaves the game's own team screen to them.
@@ -822,6 +837,9 @@ class Game : public HostService {
   // each failure is logged once.
   bool free_for_all_ = false;
   bool team_seating_ = false;
+  // assignments_ survives Clear: the host owns it, independently of the mod.
+  TeamSeating assignments_;
+
   // addon_ is the running mod's content addon.
   std::string addon_;
   std::set<uint32_t> ffa_held_;

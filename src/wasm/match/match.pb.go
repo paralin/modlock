@@ -7,6 +7,7 @@ package match
 import (
 	fmt "fmt"
 	io "io"
+	maps "maps"
 	math "math"
 	slices "slices"
 
@@ -53,6 +54,29 @@ func (x *SetTeamSeatingRequest) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+// TeamAssignments is the host's initial seating table for one running mod.
+type TeamAssignments struct {
+	unknownFields []byte
+	// Assignments seats humans by Steam ID: 1 observes, 2 and 3 play. A host
+	// supplies this table before the mod starts. Each assignment applies once
+	// per connection, again when its team changes, and retries until ready.
+	// An empty table leaves team choice to the mod and the game.
+	Assignments map[uint64]int32 `protobuf:"bytes,1,rep,name=assignments,proto3" json:"assignments,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+}
+
+func (x *TeamAssignments) Reset() {
+	*x = TeamAssignments{}
+}
+
+func (*TeamAssignments) ProtoMessage() {}
+
+func (x *TeamAssignments) GetAssignments() map[uint64]int32 {
+	if x != nil {
+		return x.Assignments
+	}
+	return nil
 }
 
 // PauseRequest pauses or resumes the game.
@@ -213,6 +237,32 @@ func (x *StartRiftRequest) GetPosition() *geometry.Vec3 {
 	return nil
 }
 
+type TeamAssignments_AssignmentsEntry struct {
+	unknownFields []byte
+	Key           uint64 `protobuf:"varint,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         int32  `protobuf:"varint,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *TeamAssignments_AssignmentsEntry) Reset() {
+	*x = TeamAssignments_AssignmentsEntry{}
+}
+
+func (*TeamAssignments_AssignmentsEntry) ProtoMessage() {}
+
+func (x *TeamAssignments_AssignmentsEntry) GetKey() uint64 {
+	if x != nil {
+		return x.Key
+	}
+	return 0
+}
+
+func (x *TeamAssignments_AssignmentsEntry) GetValue() int32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
 func (m *SetFreeForAllRequest) CloneVT() *SetFreeForAllRequest {
 	if m == nil {
 		return (*SetFreeForAllRequest)(nil)
@@ -242,6 +292,22 @@ func (m *SetTeamSeatingRequest) CloneVT() *SetTeamSeatingRequest {
 }
 
 func (m *SetTeamSeatingRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *TeamAssignments) CloneVT() *TeamAssignments {
+	if m == nil {
+		return (*TeamAssignments)(nil)
+	}
+	r := new(TeamAssignments)
+	r.Assignments = protobuf_go_lite.CloneMap(m.Assignments)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *TeamAssignments) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -380,6 +446,26 @@ func (this *SetTeamSeatingRequest) EqualVT(that *SetTeamSeatingRequest) bool {
 
 func (this *SetTeamSeatingRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*SetTeamSeatingRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *TeamAssignments) EqualVT(that *TeamAssignments) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.EqualMap(this.Assignments, that.Assignments) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *TeamAssignments) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*TeamAssignments)
 	if !ok {
 		return false
 	}
@@ -602,6 +688,113 @@ func (x *SetTeamSeatingRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the SetTeamSeatingRequest from JSON.
 func (x *SetTeamSeatingRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the TeamAssignments_AssignmentsEntry message to JSON.
+func (x *TeamAssignments_AssignmentsEntry) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Key != 0 || s.HasField("key") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("key")
+		s.WriteUint64(x.Key)
+	}
+	if x.Value != 0 || s.HasField("value") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("value")
+		s.WriteInt32(x.Value)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the TeamAssignments_AssignmentsEntry to JSON.
+func (x *TeamAssignments_AssignmentsEntry) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TeamAssignments_AssignmentsEntry message from JSON.
+func (x *TeamAssignments_AssignmentsEntry) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "key":
+			s.AddField("key")
+			x.Key = s.ReadUint64()
+		case "value":
+			s.AddField("value")
+			x.Value = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the TeamAssignments_AssignmentsEntry from JSON.
+func (x *TeamAssignments_AssignmentsEntry) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the TeamAssignments message to JSON.
+func (x *TeamAssignments) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Assignments != nil || s.HasField("assignments") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("assignments")
+		s.WriteObjectStart()
+		var wroteElement bool
+		for _, k := range slices.Sorted(maps.Keys(x.Assignments)) {
+			v := x.Assignments[k]
+			s.WriteMoreIf(&wroteElement)
+			s.WriteObjectUint64Field(k)
+			s.WriteInt32(v)
+		}
+		s.WriteObjectEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the TeamAssignments to JSON.
+func (x *TeamAssignments) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the TeamAssignments message from JSON.
+func (x *TeamAssignments) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "assignments":
+			s.AddField("assignments")
+			if s.ReadNil() {
+				x.Assignments = nil
+				return
+			}
+			x.Assignments = make(map[uint64]int32)
+			s.ReadUint64Map(func(key uint64) {
+				x.Assignments[key] = s.ReadInt32()
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the TeamAssignments from JSON.
+func (x *TeamAssignments) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -984,6 +1177,53 @@ func (m *SetTeamSeatingRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *TeamAssignments) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TeamAssignments) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *TeamAssignments) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Assignments) > 0 {
+		for k := range m.Assignments {
+			v := m.Assignments[k]
+			baseI := i
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(v))
+			i--
+			dAtA[i] = 0x10
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(k))
+			i--
+			dAtA[i] = 0x8
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *PauseRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -1263,6 +1503,22 @@ func (m *SetTeamSeatingRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *TeamAssignments) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	for k, v := range m.Assignments {
+		_ = k
+		_ = v
+		mapEntrySize := protobuf_go_lite.SizeVarintValue(1, k) + protobuf_go_lite.SizeVarintValue(1, v)
+		n += protobuf_go_lite.SizeMessage(1, mapEntrySize)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *PauseRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -1365,6 +1621,45 @@ func (x *SetTeamSeatingRequest) MarshalProtoText() string {
 }
 
 func (x *SetTeamSeatingRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *TeamAssignments_AssignmentsEntry) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AssignmentsEntry")
+	if x.Key != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "key")
+		protobuf_go_lite.TextWriteUint(&sb, x.Key)
+	}
+	if x.Value != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "value")
+		protobuf_go_lite.TextWriteInt(&sb, x.Value)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *TeamAssignments_AssignmentsEntry) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *TeamAssignments) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "TeamAssignments")
+	if len(x.Assignments) > 0 {
+		protobuf_go_lite.TextWriteMapStart(&sb, initialLen, "assignments")
+		for _, k := range slices.Sorted(maps.Keys(x.Assignments)) {
+			v := x.Assignments[k]
+			protobuf_go_lite.TextWriteMapEntryPrefix(&sb)
+			protobuf_go_lite.TextWriteUint(&sb, k)
+			protobuf_go_lite.TextWriteMapKeyValueSeparator(&sb)
+			protobuf_go_lite.TextWriteInt(&sb, v)
+		}
+		protobuf_go_lite.TextWriteMapEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *TeamAssignments) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -1555,6 +1850,91 @@ func (m *SetTeamSeatingRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Enabled = bool(v)
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *TeamAssignments) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TeamAssignments: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TeamAssignments: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Assignments", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			iNdEx = msgStart
+			if m.Assignments == nil {
+				m.Assignments = make(map[uint64]int32)
+			}
+			var mapkey uint64
+			var mapvalue int32
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+				if err != nil {
+					return err
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					mapkey, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else if fieldNum == 2 {
+					mapvalue, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+					if err != nil {
+						return err
+					}
+				} else {
+					iNdEx = entryPreIndex
+					iNdEx, err = protobuf_go_lite.SkipWithin(dAtA, iNdEx, postIndex)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			m.Assignments[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
