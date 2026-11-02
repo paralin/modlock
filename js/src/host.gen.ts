@@ -484,7 +484,7 @@ function fromLaunchEvent(message: combatPb.LaunchEvent): LaunchEvent {
     entity: message.entity ?? 0,
     name: message.name ?? '',
     owner: message.owner ?? 0,
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     position: vector(message.position),
   }
 }
@@ -517,7 +517,7 @@ function fromImpactEvent(message: combatPb.ImpactEvent): ImpactEvent {
     entity: message.entity ?? 0,
     name: message.name ?? '',
     owner: message.owner ?? 0,
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     start: vector(message.start),
     end: vector(message.end),
     position: vector(message.position),
@@ -842,7 +842,7 @@ export interface InputEvent {
 /** fromInputEvent decodes an InputEvent. */
 function fromInputEvent(message: inputPb.InputEvent): InputEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     pressed: message.pressed ?? 0n,
     released: message.released ?? 0n,
   }
@@ -950,7 +950,7 @@ export interface MovementSample {
 /** fromMovementSample decodes a MovementSample. */
 function fromMovementSample(message: movementPb.MovementSample): MovementSample {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     pawn: message.pawn ?? 0,
     position: vector(message.position),
     velocity: vector(message.velocity),
@@ -1070,7 +1070,7 @@ export interface LandedEvent {
 /** fromLandedEvent decodes a LandedEvent. */
 function fromLandedEvent(message: movementPb.LandedEvent): LandedEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     on: message.on ?? 0,
     speed: message.speed ?? 0,
   }
@@ -1431,7 +1431,7 @@ export interface RestoredEvent {
 /** fromRestoredEvent decodes a RestoredEvent. */
 function fromRestoredEvent(message: playersPb.RestoredEvent): RestoredEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     error: message.error ?? '',
   }
 }
@@ -1478,7 +1478,7 @@ export interface Connection {
 /** fromConnection decodes a Connection. */
 function fromConnection(message: playersPb.Connection): Connection {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     steamId: message.steamId ?? 0n,
     name: message.name ?? '',
     bot: message.bot ?? false,
@@ -1946,7 +1946,7 @@ export interface SettingChangedEvent {
 /** fromSettingChangedEvent decodes a SettingChangedEvent. */
 function fromSettingChangedEvent(message: settingsPb.SettingChangedEvent): SettingChangedEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     key: message.key ?? '',
     value: message.value ?? '',
   }
@@ -1983,7 +1983,7 @@ export interface UiPressEvent {
 /** fromUiPressEvent decodes an UiPressEvent. */
 function fromUiPressEvent(message: uiPb.UiPressEvent): UiPressEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     node: message.node ?? '',
   }
 }
@@ -2004,7 +2004,7 @@ export interface UiInputEvent {
 /** fromUiInputEvent decodes an UiInputEvent. */
 function fromUiInputEvent(message: uiPb.UiInputEvent): UiInputEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     node: message.node ?? '',
     value: message.value?.case === "wheel" ? fromWheel(message.value.value) : (message.value?.value),
   }
@@ -2093,7 +2093,7 @@ export interface CommandEvent {
 /** fromCommandEvent decodes a CommandEvent. */
 function fromCommandEvent(message: wasmPb.CommandEvent): CommandEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     line: message.line ?? '',
   }
 }
@@ -2119,7 +2119,7 @@ export interface ChatEvent {
 /** fromChatEvent decodes a ChatEvent. */
 function fromChatEvent(message: wasmPb.ChatEvent): ChatEvent {
   return {
-    player: new Player(message.player ?? 0),
+    player: Player.of(message.player ?? 0),
     text: message.text ?? '',
     all: message.all ?? false,
     lane: message.lane ?? 0,
@@ -2197,6 +2197,9 @@ function toPrecacheOptions(value: PrecacheOptions): wasmPb.PrecacheOptions {
   }
 }
 
+/** playerObjects holds the Player of each slot that Player.of made. */
+const playerObjects = new Map<number, Player>()
+
 /** Player addresses one connected player by their server slot. */
 export class Player {
   /** slot identifies the player on the server. */
@@ -2204,6 +2207,26 @@ export class Player {
 
   constructor(slot: number) {
     this.slot = slot
+  }
+
+  /**
+   * of returns the Player for slot, the same object each time until release
+   * forgets it, so === tells whether two values are the same player.
+   */
+  static of(slot: number): Player {
+    let object = playerObjects.get(slot)
+    if (object === undefined) {
+      object = new Player(slot)
+      playerObjects.set(slot, object)
+    }
+    return object
+  }
+
+  /**
+   * release forgets the Player for slot, so the next Player.of makes a new one.
+   */
+  static release(slot: number): void {
+    playerObjects.delete(slot)
   }
 
   /** chat sends a server chat line to the player. */
@@ -3086,7 +3109,7 @@ export function addBot(options: BotOptions): Player | undefined {
   const reply = call('AddBot', playersPb.BotOptions.toBinary(toBotOptions(options)))
   if (reply === undefined) return undefined
   const response = playersPb.BotResponse.fromBinary(reply)
-  return new Player(response.player ?? 0)
+  return Player.of(response.player ?? 0)
 }
 
 /**
