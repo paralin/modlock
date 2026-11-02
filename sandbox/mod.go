@@ -5,7 +5,6 @@ package sandbox
 
 import (
 	"context"
-	"io"
 	"time"
 
 	"github.com/paralin/modlock/src/wasm"
@@ -74,7 +73,7 @@ func Load(ctx context.Context, module []byte, options Options) (*Mod, error) {
 	}
 
 	// Compile the module, check its boundary and instantiate it.
-	if err := m.instantiate(ctx, module, options.Output); err != nil {
+	if err := m.instantiate(ctx, module, options); err != nil {
 		_ = m.runtime.Close(ctx)
 		return nil, err
 	}
@@ -82,7 +81,7 @@ func Load(ctx context.Context, module []byte, options Options) (*Mod, error) {
 }
 
 // instantiate compiles, links and initializes module.
-func (m *Mod) instantiate(ctx context.Context, module []byte, output io.Writer) error {
+func (m *Mod) instantiate(ctx context.Context, module []byte, options Options) error {
 	// Compile the module and check its boundary.
 	compiled, err := m.runtime.CompileModule(ctx, module)
 	if err != nil {
@@ -107,8 +106,19 @@ func (m *Mod) instantiate(ctx context.Context, module []byte, output io.Writer) 
 	defer cancel()
 	// The mod reads the system clocks, as in the game, whose WASI has them.
 	moduleConfig := wazero.NewModuleConfig().WithStartFunctions().WithSysWalltime().WithSysNanotime()
-	if output != nil {
+	if output := options.Output; output != nil {
 		moduleConfig = moduleConfig.WithStdout(output).WithStderr(output)
+	}
+	if clock := options.Clock; clock != nil {
+		moduleConfig = moduleConfig.
+			WithWalltime(func() (int64, int32) {
+				now := clock()
+				return now.Unix(), int32(now.Nanosecond())
+			}, 1).
+			WithNanotime(func() int64 { return clock().UnixNano() }, 1)
+	}
+	if options.Random != nil {
+		moduleConfig = moduleConfig.WithRandSource(options.Random)
 	}
 	m.instance, err = m.runtime.InstantiateModule(started, compiled, moduleConfig)
 	if err != nil {

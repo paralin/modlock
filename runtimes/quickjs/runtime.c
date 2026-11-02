@@ -132,6 +132,17 @@ static JSValue js_decode_utf8(JSContext* ctx, JSValueConst self, int argc, JSVal
   return JS_NewStringLen(ctx, (const char*)bytes, size);
 }
 
+// js_math_random replaces QuickJS's clock-seeded generator: each draw takes 8
+// bytes from WASI random_get, which this libc's arc4random_buf reads directly,
+// and scales the top 53 bits to [0, 1). A host that fixes random_get fixes
+// the mod's numbers, and a compiled mod that draws the same way agrees.
+static JSValue js_math_random(JSContext* ctx, JSValueConst this_val, int argc,
+                              JSValueConst* argv) {
+  uint64_t r;
+  arc4random_buf(&r, sizeof r);
+  return JS_NewFloat64(ctx, (double)(r >> 11) * 0x1.0p-53);
+}
+
 // host_functions are __modlock's native members.
 static const JSCFunctionListEntry host_functions[] = {
     JS_CFUNC_DEF("hostCall", 1, js_host_call),
@@ -245,6 +256,9 @@ static int start(const uint8_t* event, size_t size) {
   JS_SetPropertyFunctionList(context, host, host_functions,
                              sizeof(host_functions) / sizeof(host_functions[0]));
   JS_SetPropertyStr(context, global, "__modlock", host);
+  JSValue math = JS_GetPropertyStr(context, global, "Math");
+  JS_SetPropertyStr(context, math, "random", JS_NewCFunction(context, js_math_random, "random", 0));
+  JS_FreeValue(context, math);
   JS_FreeValue(context, global);
   return evaluate((const uint8_t*)prelude, sizeof(prelude) - 1, "prelude.js") &&
          evaluate(source, source_size, "mod.js");
