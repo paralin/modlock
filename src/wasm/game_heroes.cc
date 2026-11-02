@@ -65,6 +65,7 @@ std::expected<void, std::string> Game::Spectate(const players::PlayerRequest& re
     return std::unexpected("no player is in that slot");
   }
 
+  watched_.erase(request.player());
   return observer_.SelectPlayer(request.player(), state.xuid, state.generation, 1, nullptr,
                                 **selection);
 }
@@ -135,6 +136,7 @@ std::expected<void, std::string> Game::Watch(const players::WatchRequest& reques
   if (auto camera = ObserveFrom(request.player(), mode, request.target()); !camera) {
     return std::unexpected(camera.error());
   }
+  watched_[request.player()] = request.target();
   return {};
 }
 
@@ -146,6 +148,7 @@ std::expected<void, std::string> Game::FreeCamera(const players::FreeCameraReque
   }
 
   // Roam with no target, then place the camera at the requested pose.
+  watched_.erase(request.player());
   auto camera = ObserveFrom(request.player(), kObserveRoaming, gameinterop::kInvalidEHandleIndex);
   if (!camera) {
     return std::unexpected(camera.error());
@@ -158,6 +161,7 @@ std::expected<void, std::string> Game::FreeCamera(const players::FreeCameraReque
 
 std::expected<void, std::string> Game::Unwatch(const players::PlayerRequest& request) {
   // Return the player's camera to their hero.
+  watched_.erase(request.player());
   auto selection = services_.Selection();
   if (!selection) {
     return std::unexpected(selection.error());

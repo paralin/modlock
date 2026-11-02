@@ -199,7 +199,7 @@ void GameServices::Withhold(gameinterop::TransmitSet& set) {
   }
 }
 
-void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set) {
+void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set) const {
   // A player inside an apart game receives no hero from outside it, and one
   // outside receives none from inside. The heroes are read each update, since
   // a respawn or a hero swap changes their handles.
@@ -207,6 +207,9 @@ void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set
     return;
   }
   const bool inside = (game.apart_ >> set.Slot()) & 1;
+  if (!inside && WatchesInside(set.Slot(), game.apart_)) {
+    return;
+  }
   for (int32_t slot = 0; slot < gameinterop::kMaxPlayerSlots; ++slot) {
     if (((game.apart_ >> slot) & 1) == inside) {
       continue;
@@ -215,6 +218,24 @@ void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set
       set.Withhold(*hero);
     }
   }
+}
+
+bool GameServices::WatchesInside(int32_t slot, uint64_t apart) const {
+  // A watcher outside an apart game receives every hero while their camera
+  // follows one inside it, so the camera has a hero to follow; the players
+  // inside still never receive the watcher's.
+  for (const auto* game : games_) {
+    const auto watched = game->watched_.find(slot);
+    if (watched == game->watched_.end()) {
+      continue;
+    }
+    const auto target = game->observer_.SlotOfPawn(watched->second);
+    if (target && *target >= 0 && *target < gameinterop::kMaxPlayerSlots &&
+        ((apart >> *target) & 1)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void GameServices::Impact(void* entity, const gameinterop::TraceResult& contact,

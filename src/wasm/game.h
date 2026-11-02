@@ -185,7 +185,11 @@ class GameServices {
 
   // WithholdApart keeps from one player the heroes game's apart players and
   // the others may not see of each other.
-  static void WithholdApart(const Game& game, gameinterop::TransmitSet& set);
+  void WithholdApart(const Game& game, gameinterop::TransmitSet& set) const;
+
+  // WatchesInside reports whether the player in slot watches, through any
+  // mod's Watch, a hero among the apart slot bits.
+  bool WatchesInside(int32_t slot, uint64_t apart) const;
 
   // Steps installs or removes the server movement hook to match what the
   // mods need of it.
@@ -782,6 +786,10 @@ class Game : public HostService {
   bool rebuild_panels_ = false;
   // apart_ is the slot bits of the players Apart keeps out of sight.
   uint64_t apart_ = 0;
+  // watched_ maps each player Watch points at a hero to that hero's entity
+  // handle, until another camera call or Unwatch. A player watching a hero
+  // inside an apart game receives that game's heroes.
+  std::map<int32_t, uint32_t> watched_;
   // fog_ is the world's fog controller, which the fog objects need; it is
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;
