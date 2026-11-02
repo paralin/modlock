@@ -57,7 +57,7 @@ constexpr auto kCallsPeriod = std::chrono::minutes(1);
 constexpr auto kOfferWindow = std::chrono::minutes(5);
 
 // kDepartWait bounds how long a new instance waits for the bots its
-// predecessor kicked to leave.
+// predecessor removed to leave.
 constexpr auto kDepartWait = std::chrono::seconds(5);
 
 }  // namespace

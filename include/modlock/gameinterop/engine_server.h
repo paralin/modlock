@@ -14,6 +14,10 @@ namespace modlock::gameinterop {
 // SOURCE2ENGINETOSERVER_INTERFACE_VERSION).
 inline constexpr char kEngineToServerVersion[] = "Source2EngineToServer001";
 
+// kDisconnectKicked is NETWORK_DISCONNECT_KICKED, the reason the console's kick
+// gives.
+inline constexpr int32_t kDisconnectKicked = 39;
+
 // EngineServer is a resolved live IVEngineServer2 instance. It issues console
 // commands through the engine's own parser - identical to typing them at the
 // server console - so automated setup rides exactly the path an operator would.
@@ -41,6 +45,15 @@ class MODLOCK_API EngineServer {
   // (IVEngineServer2::ServerCommand, sourcesdk public/eiface.h).
   // Returns false when the interface or command slot is unavailable.
   [[nodiscard]] bool ServerCommand(const char* command) const;
+
+  // DisconnectClient ends the connection in slot with reason, an
+  // ENetworkDisconnectionReason (network_connection.proto), and
+  // internal_reason, the text the server logs
+  // (IVEngineServer2::DisconnectClient). A client the engine is processing
+  // leaves once that work ends, so the slot can stay held after the call.
+  // Returns false when the interface or its slot is unavailable.
+  [[nodiscard]] bool DisconnectClient(int32_t slot, int32_t reason,
+                                      const char* internal_reason) const;
 
  private:
   void* instance_ = nullptr;
