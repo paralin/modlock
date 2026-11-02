@@ -62,10 +62,12 @@ func (p *Project) scriptEntry() string {
 }
 
 // buildScript type checks a TypeScript or JavaScript project. A release build
-// of a mod that asks for RUNTIME_WASM compiles it with scriptc; any other
-// build, or a mod scriptc cannot compile, bundles it with the library into
-// one script for QuickJS: a release with Rolldown, minified, and a dev build
-// with esbuild, which needs no download and keeps the script readable.
+// of a mod that asks for RUNTIME_WASM compiles it with scriptc and ships the
+// module once checkTwin finds it behaves as the QuickJS bundle does; any other
+// build, or a module scriptc cannot compile or that differs, bundles it with
+// the library into one script for QuickJS: a release with Rolldown, minified,
+// and a dev build with esbuild, which needs no download and keeps the script
+// readable.
 func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) error {
 	// Install the library's declarations and the type checker.
 	library, err := js.Library(ctx)
@@ -93,23 +95,26 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 		}
 	}
 
-	// Compile a release build with scriptc when the mod asks and scriptc can.
-	var fallback error
-	if mode == Release && p.Manifest.GetRuntime() == manifest.Manifest_RUNTIME_WASM {
-		module, err := p.compileScriptc(ctx, library, tsgo, output)
-		if err == nil {
-			return p.writeBuild(module, nil, manifest.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
-		}
-		fallback = err
-	}
-
-	// Bundle and minify a release with Rolldown. A mod that asked for
-	// WebAssembly still builds, so it stays playable, and the build ends on a
-	// warning that names why, below the diagnostics where it is seen.
+	// Bundle and minify a release with Rolldown, then compile it with scriptc
+	// when the mod asks and scriptc can, shipping the module only when it
+	// behaves as the bundle does. A mod that asked for WebAssembly still
+	// builds, so it stays playable, and the build ends on a warning that
+	// names why, below the diagnostics where it is seen.
 	if mode == Release {
 		bundled, err := p.bundleRolldown(ctx, library, output)
 		if err != nil {
 			return err
+		}
+		var fallback error
+		if p.Manifest.GetRuntime() == manifest.Manifest_RUNTIME_WASM {
+			module, err := p.compileScriptc(ctx, library, tsgo, output)
+			if err == nil {
+				err = p.checkTwin(ctx, output, module, bundled)
+			}
+			if err == nil {
+				return p.writeBuild(module, nil, manifest.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
+			}
+			fallback = err
 		}
 		if err := p.writeBuild(bundled, nil, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry); err != nil {
 			return err

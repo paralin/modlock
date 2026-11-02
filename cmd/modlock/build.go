@@ -14,7 +14,9 @@ func buildCommand(out *printer) *cli.Command {
 		Description: "A script mod builds for QuickJS, which takes a moment. When its mod.json sets\n" +
 			"\"runtime\": \"RUNTIME_WASM\", publish compiles it with scriptc instead, and otherwise\n" +
 			"bundles and minifies it with Rolldown; --release builds that way here, to check the\n" +
-			"published build.",
+			"published build. A WebAssembly build ships only when it behaves as the QuickJS\n" +
+			"bundle does over a sandbox session; otherwise the build names the first difference\n" +
+			"and ships the bundle.",
 		Flags: []cli.Flag{releaseFlag},
 		Action: func(c *cli.Context) error {
 			// Open and build the project.

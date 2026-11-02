@@ -2,6 +2,7 @@ package sandbox
 
 import (
 	"io"
+	"time"
 
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/tetratelabs/wazero"
@@ -21,4 +22,11 @@ type Options struct {
 	// rather than compiling it, which can take a minute for a large module.
 	// It suits a mod loaded to run a few calls, such as a check.
 	Interpret bool
+	// Clock is the time the mod reads from both WASI clocks, or nil for the
+	// system clocks. A check that compares two runs gives each the same
+	// clock, so the time a mod reads cannot tell the runs apart.
+	Clock func() time.Time
+	// Random is the source of the mod's WASI random bytes, or nil for the
+	// system's.
+	Random io.Reader
 }
