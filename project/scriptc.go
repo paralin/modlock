@@ -150,13 +150,22 @@ func (p *Project) compileScriptc(ctx context.Context, library, tsgo string, outp
 		return nil, err
 	}
 
-	// Compile a WASI reactor in the entry's directory.
+	// Compile a WASI reactor in the entry's directory. scriptc's cycle
+	// collector now and then crashes the compiler on a program the next run
+	// compiles, so a run that a signal ends is tried again, up to three runs.
 	var diagnostics bytes.Buffer
-	build := exec.CommandContext(ctx, compiler, "build", "--lib", "--profile", "profile.json", "-o", Entry)
-	build.Dir = dir
-	build.Env = append(os.Environ(), "SCRIPTC_TARGET=wasm32-wasi", "SCRIPTC_RUNTIME_PACK="+runtimePack)
-	build.Stderr = &diagnostics
-	err = build.Run()
+	for attempt := 1; ; attempt++ {
+		diagnostics.Reset()
+		build := exec.CommandContext(ctx, compiler, "build", "--lib", "--profile", "profile.json", "-o", Entry)
+		build.Dir = dir
+		build.Env = append(os.Environ(), "SCRIPTC_TARGET=wasm32-wasi", "SCRIPTC_RUNTIME_PACK="+runtimePack)
+		build.Stderr = &diagnostics
+		err = build.Run()
+		if attempt == 3 || !crashed(ctx, err) {
+			break
+		}
+		_, _ = fmt.Fprintf(output, "scriptc crashed (%v); compiling again\n", err)
+	}
 
 	// Print what keeps the mod from compiling, naming the sources, and name
 	// the first error in the returned one.
@@ -349,4 +358,11 @@ func firstScriptcError(diagnostics string) string {
 		}
 	}
 	return ""
+}
+
+// crashed reports whether err is a run of a program that a signal ended while
+// ctx was live; canceling ctx kills the program with a signal too.
+func crashed(ctx context.Context, err error) bool {
+	var exit *exec.ExitError
+	return ctx.Err() == nil && errors.As(err, &exit) && exit.ExitCode() == -1
 }
