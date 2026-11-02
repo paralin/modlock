@@ -5,6 +5,7 @@ package modlock.wasm.manifest;
 option go_package = "github.com/paralin/modlock/src/wasm/manifest;manifest";
 
 import "github.com/paralin/modlock/src/wasm/metrics/metrics.proto";
+import "github.com/paralin/modlock/src/wasm/scores/scores.proto";
 import "github.com/paralin/modlock/src/wasm/settings/settings.proto";
 
 // Manifest describes a mod in its mod.json. A source project's manifest names
@@ -101,6 +102,10 @@ message Manifest {
   // change keeps its addon and every resource path in it. A mod built
   // without it ships the addon <slug>-<version>.
   string content_addon = 13;
+
+  // Boards are the rankings the mod reports scores to through the host's
+  // scores service.
+  repeated modlock.wasm.scores.Board boards = 14;
 }
 
 // Movement selects the movement model heroes walk and jump with.

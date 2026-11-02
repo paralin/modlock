@@ -135,6 +135,17 @@ export { type HeroSnapshot, restoreHero } from './restore.js'
 export { type ReplayedHit, replayDamage } from './replayed-damage.js'
 export { type CatalogEntry, Dropper, dropperButtons } from './dropper.js'
 export {
+  type BoardPage,
+  type BoardRead,
+  type BoardRow,
+  BoardWindow,
+  type MatchPlace,
+  readBoard,
+  reportMatch,
+  reportScore,
+  type ScoreOptions,
+} from './scores.js'
+export {
   decodeSpot,
   encodeSpot,
   LoadedSpot,

@@ -15,6 +15,7 @@ import (
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
 	metrics "github.com/paralin/modlock/src/wasm/metrics"
+	scores "github.com/paralin/modlock/src/wasm/scores"
 	settings "github.com/paralin/modlock/src/wasm/settings"
 )
 
@@ -247,6 +248,9 @@ type Manifest struct {
 	// change keeps its addon and every resource path in it. A mod built
 	// without it ships the addon <slug>-<version>.
 	ContentAddon string `protobuf:"bytes,13,opt,name=content_addon,json=contentAddon,proto3" json:"contentAddon,omitempty"`
+	// Boards are the rankings the mod reports scores to through the host's
+	// scores service.
+	Boards []*scores.Board `protobuf:"bytes,14,rep,name=boards,proto3" json:"boards,omitempty"`
 }
 
 func (x *Manifest) Reset() {
@@ -344,6 +348,13 @@ func (x *Manifest) GetContentAddon() string {
 		return x.ContentAddon
 	}
 	return ""
+}
+
+func (x *Manifest) GetBoards() []*scores.Board {
+	if x != nil {
+		return x.Boards
+	}
+	return nil
 }
 
 // Movement selects the movement model heroes walk and jump with.
@@ -545,6 +556,7 @@ func (m *Manifest) CloneVT() *Manifest {
 	r.Definitions = protobuf_go_lite.CloneVTSlice(m.Definitions)
 	r.Settings = protobuf_go_lite.CloneVTSlice(m.Settings)
 	r.Metrics = protobuf_go_lite.CloneVTSlice(m.Metrics)
+	r.Boards = protobuf_go_lite.CloneVTSlice(m.Boards)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -636,6 +648,9 @@ func (this *Manifest) EqualVT(that *Manifest) bool {
 		return false
 	}
 	if this.ContentAddon != that.ContentAddon {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Boards, that.Boards, func() *scores.Board { return &scores.Board{} }) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -878,6 +893,17 @@ func (x *Manifest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("contentAddon")
 		s.WriteString(x.ContentAddon)
 	}
+	if len(x.Boards) > 0 || s.HasField("boards") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("boards")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Boards {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("boards"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -983,6 +1009,24 @@ func (x *Manifest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "content_addon", "contentAddon":
 			s.AddField("content_addon")
 			x.ContentAddon = s.ReadString()
+		case "boards":
+			s.AddField("boards")
+			if s.ReadNil() {
+				x.Boards = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Boards = append(x.Boards, nil)
+					return
+				}
+				v := &scores.Board{}
+				v.UnmarshalProtoJSON(s.WithField("boards", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Boards = append(x.Boards, v)
+			})
 		}
 	})
 }
@@ -1428,6 +1472,18 @@ func (m *Manifest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.Boards) > 0 {
+		for iNdEx := len(m.Boards) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Boards[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x72
+		}
+	}
 	if len(m.ContentAddon) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.ContentAddon)
 		i--
@@ -1687,6 +1743,10 @@ func (m *Manifest) SizeVT() (n int) {
 	}
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.FreeForAll)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ContentAddon)
+	for _, e := range m.Boards {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -1820,6 +1880,18 @@ func (x *Manifest) MarshalProtoText() string {
 	if x.ContentAddon != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "content_addon")
 		protobuf_go_lite.TextWriteString(&sb, x.ContentAddon)
+	}
+	if len(x.Boards) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "boards")
+		for i, v := range x.Boards {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &scores.Board{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -2129,6 +2201,19 @@ func (m *Manifest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.ContentAddon = v
+		case 14:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Boards", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Boards = append(m.Boards, &scores.Board{})
+			if err := m.Boards[len(m.Boards)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
