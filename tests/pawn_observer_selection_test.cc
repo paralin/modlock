@@ -61,8 +61,19 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   fixture.generation = 3;
   fixture.controller[kTeamField] = 1;
 
-  // Fail on any team change.
+  // First entry has not selected a hero and still awaits assignment.
+  const int32_t awaiting_hero = 1;
+  std::memcpy(fixture.controller.data() + kPlayStateField, &awaiting_hero, sizeof(awaiting_hero));
+
+  // Fail on any team change, and record the state replicated to the client.
+  static std::vector<int32_t> play_states;
+  play_states.clear();
   std::array<void*, 106> table{};
+  table[28] = reinterpret_cast<void*>(+[](void* controller, const void*) {
+    int32_t state = -1;
+    std::memcpy(&state, static_cast<unsigned char*>(controller) + kPlayStateField, sizeof(state));
+    play_states.push_back(state);
+  });
   table[105] =
       reinterpret_cast<void*>(+[](void*, int) { ADD_FAILURE() << "already on spectator team"; });
   auto* table_ptr = table.data();
@@ -85,6 +96,7 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
+  EXPECT_TRUE(play_states.empty());
 
   // Once the same connection publishes a pawn, selection becomes ready and
   // later observer checks must reuse it rather than creating another actor.
@@ -95,6 +107,12 @@ TEST(PawnObserver, SpectatorSelectionNeedsNoHeroAndDoesNotCreateCombatPawn) {
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_TRUE(observer.SelectPlayer(0, fixture.xuid, 3, 1, nullptr, calls));
   EXPECT_EQ(observer_spawns, 1);
+
+  // Joining as an observer finishes assignment without a hero selection.
+  EXPECT_EQ(play_states, (std::vector<int32_t>{0}));
+  int32_t play_state = -1;
+  std::memcpy(&play_state, fixture.controller.data() + kPlayStateField, sizeof(play_state));
+  EXPECT_EQ(play_state, 0);
 
   // Another player's identity is refused.
   EXPECT_FALSE(observer.SelectPlayer(0, fixture.xuid + 1, 3, 1, nullptr, calls));
@@ -119,6 +137,8 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   const auto hero_handle = HandleOf(2, 7);
   std::memcpy(fixture.controller.data() + kHeroHandleField, &hero_handle, sizeof(hero_handle));
   std::memcpy(fixture.controller.data() + kPawnHandleField, &hero_handle, sizeof(hero_handle));
+
+  // Keep both hero identifiers visible while changing teams.
   const uint32_t hero_id = 13, pregame_id = 7;
   std::memcpy(fixture.controller.data() + kPlayerHeroIdField, &hero_id, sizeof(hero_id));
   std::memcpy(fixture.controller.data() + kPregameHeroIdField, &pregame_id, sizeof(pregame_id));
@@ -136,6 +156,7 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   // The hero records its strip, which must see the old team and the binding.
   std::array<void*, 108> hero_table{};
   hero_table[107] = reinterpret_cast<void*>(+[](void*, int old_team, int new_team) {
+    // Observe the old binding before the strip changes the hero fields.
     EXPECT_EQ(old_team, 2);
     EXPECT_EQ(new_team, 1);
     uint32_t bound = 0;
@@ -146,6 +167,8 @@ TEST(PawnObserver, SpectatorSelectionReleasesTheHeroBeforeTheTeamChanges) {
   });
   auto* hero_table_ptr = hero_table.data();
   std::memcpy(hero.data(), &hero_table_ptr, sizeof(hero_table_ptr));
+
+  // Record native removal and pawn unbinding after the strip.
   modlock::gameinterop::PlayerSelectionCalls calls;
   static void* removed = nullptr;
   removed = nullptr;

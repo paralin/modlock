@@ -16,6 +16,7 @@ namespace {
 // hero. It returns pawn once stripped, or nullptr when the reaction is not
 // found in this game build, and the pawn keeps its hero.
 void* StripHero(void* pawn, uint8_t old_team) {
+  // Resolve the pawn's native reaction to changing teams.
   const auto slot = ResolveVirtualSlot("pawn.team-changed");
   auto** table = *static_cast<void***>(pawn);
   if (!slot || !table || !table[*slot]) {
@@ -365,6 +366,24 @@ std::expected<void, std::string> PawnObserver::SelectPlayer(int32_t slot, uint64
   current = borrow();
   if (!current) {
     return std::unexpected(current.error());
+  }
+
+  // A spectator has finished joining without selecting a hero. Leaving the
+  // initial awaiting-assignment state keeps the client's picker input active,
+  // so the observer can move but the mouse cannot turn its camera.
+  if (team == 1 && layout_.play_state) {
+    // Read the state after the observer is ready and the connection is checked.
+    constexpr int32_t kActive = 0;  // EPlayerPlayState::EPlayerActive
+    int32_t state = 0;
+    auto* play_state = static_cast<unsigned char*>(current->first) + *layout_.play_state;
+    std::memcpy(&state, play_state, sizeof(state));
+    if (state != kActive) {
+      // Replicate the transition once; later spectator checks leave it alone.
+      std::memcpy(play_state, &kActive, sizeof(kActive));
+      if (!NotifyEntityStateChanged(current->first)) {
+        return std::unexpected("spectator play state did not replicate");
+      }
+    }
   }
   return {};
 }

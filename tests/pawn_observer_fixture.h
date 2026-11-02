@@ -178,12 +178,15 @@ inline PawnObserver::Seams SeamsFor(Fixture& fixture) {
 // HeroSeamsFor also locates the controller's hero handle, which player
 // selection and respawn need.
 inline PawnObserver::Seams HeroSeamsFor(Fixture& fixture) {
+  // Extend the entity layout with selection's controller fields.
   auto seams = SeamsFor(fixture);
   seams.layout = []() -> std::expected<EntityLayout, std::string> {
+    // Provide the controller fields that selection reads and writes.
     auto layout = FixtureLayout();
     layout.hero_pawn_handle = kHeroHandleField;
     layout.player_hero_id = kPlayerHeroIdField;
     layout.pregame_hero_id = kPregameHeroIdField;
+    layout.play_state = kPlayStateField;
     return layout;
   };
   return seams;
@@ -338,6 +341,7 @@ inline modlock::gameinterop::StaminaLayout StaminaFixtureLayout() {
 inline PawnObserver::Seams StaminaSeams(ItemFixture& fixture) {
   auto seams = fixture.Seams();
   seams.layout = []() -> std::expected<EntityLayout, std::string> {
+    // Provide the controller fields that selection reads and writes.
     auto layout = FixtureLayout();
     layout.stamina = StaminaFixtureLayout();
     return layout;
