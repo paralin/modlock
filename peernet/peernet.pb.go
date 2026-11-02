@@ -719,6 +719,7 @@ type SessionEvent struct {
 	// Types that are assignable to Body:
 	//	*SessionEvent_Screen
 	//	*SessionEvent_Chat
+	//	*SessionEvent_Present
 	Body isSessionEvent_Body `protobuf_oneof:"body"`
 }
 
@@ -749,6 +750,13 @@ func (x *SessionEvent) GetChat() *control.PlayerChat {
 	return nil
 }
 
+func (x *SessionEvent) GetPresent() bool {
+	if x, ok := x.GetBody().(*SessionEvent_Present); ok {
+		return x.Present
+	}
+	return false
+}
+
 type isSessionEvent_Body interface {
 	isSessionEvent_Body()
 }
@@ -763,9 +771,20 @@ type SessionEvent_Chat struct {
 	Chat *control.PlayerChat `protobuf:"bytes,2,opt,name=chat,proto3,oneof"`
 }
 
+type SessionEvent_Present struct {
+	// present reports whether the guest has signed on to the server, which
+	// the host sees when the server puts them in the game. Each watch sends
+	// it first, before its first screen, then each time it changes, so a
+	// watch whose first event is a screen comes from a host that does not
+	// report it.
+	Present bool `protobuf:"varint,3,opt,name=present,proto3,oneof"`
+}
+
 func (*SessionEvent_Screen) isSessionEvent_Body() {}
 
 func (*SessionEvent_Chat) isSessionEvent_Body() {}
+
+func (*SessionEvent_Present) isSessionEvent_Body() {}
 
 type ScreenFrame_ChangesEntry struct {
 	unknownFields []byte
@@ -1287,6 +1306,19 @@ func (m *SessionEvent_Chat) CloneVT() *SessionEvent_Chat {
 }
 
 func (m *SessionEvent_Chat) CloneOneofVT() isSessionEvent_Body {
+	return m.CloneVT()
+}
+
+func (m *SessionEvent_Present) CloneVT() *SessionEvent_Present {
+	if m == nil {
+		return (*SessionEvent_Present)(nil)
+	}
+	r := new(SessionEvent_Present)
+	r.Present = m.Present
+	return r
+}
+
+func (m *SessionEvent_Present) CloneOneofVT() isSessionEvent_Body {
 	return m.CloneVT()
 }
 
@@ -1961,6 +1993,23 @@ func (this *SessionEvent_Chat) EqualVT(thatIface isSessionEvent_Body) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTImplicit(this.Chat, that.Chat, func() *control.PlayerChat { return &control.PlayerChat{} }) {
+		return false
+	}
+	return true
+}
+
+func (this *SessionEvent_Present) EqualVT(thatIface isSessionEvent_Body) bool {
+	that, ok := thatIface.(*SessionEvent_Present)
+	if !ok {
+		return false
+	}
+	if this == that {
+		return true
+	}
+	if this == nil && that != nil || this != nil && that == nil {
+		return false
+	}
+	if this.Present != that.Present {
 		return false
 	}
 	return true
@@ -2952,6 +3001,10 @@ func (x *SessionEvent) MarshalProtoJSON(s *json.MarshalState) {
 			s.WriteMoreIf(&wroteField)
 			s.WriteObjectField("chat")
 			ov.Chat.MarshalProtoJSON(s.WithField("chat"))
+		case *SessionEvent_Present:
+			s.WriteMoreIf(&wroteField)
+			s.WriteObjectField("present")
+			s.WriteBool(ov.Present)
 		}
 	}
 	s.WriteObjectEnd()
@@ -2989,6 +3042,11 @@ func (x *SessionEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			ov.Chat = &control.PlayerChat{}
 			ov.Chat.UnmarshalProtoJSON(s.WithField("chat", true))
+		case "present":
+			s.AddField("present")
+			ov := &SessionEvent_Present{}
+			x.Body = ov
+			ov.Present = s.ReadBool()
 		}
 	})
 }
@@ -3991,6 +4049,19 @@ func (m *SessionEvent_Chat) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SessionEvent_Present) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *SessionEvent_Present) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i = protobuf_go_lite.EncodeBool(dAtA, i, m.Present)
+	i--
+	dAtA[i] = 0x18
+	return len(dAtA) - i, nil
+}
+
 func (m *GetPeerRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -4409,6 +4480,16 @@ func (m *SessionEvent_Chat) SizeVT() (n int) {
 	return n
 }
 
+func (m *SessionEvent_Present) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeBoolValue(1)
+	return n
+}
+
 func (x AdmissionState) MarshalProtoText() string {
 	return x.String()
 }
@@ -4775,6 +4856,9 @@ func (x *SessionEvent) MarshalProtoText() string {
 		} else {
 			protobuf_go_lite.TextWriteTextMarshaler(&sb, body.Chat)
 		}
+	case *SessionEvent_Present:
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "present")
+		protobuf_go_lite.TextWriteBool(&sb, body.Present)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -5953,6 +6037,17 @@ func (m *SessionEvent) UnmarshalVT(dAtA []byte) error {
 				m.Body = &SessionEvent_Chat{Chat: v}
 			}
 			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Present", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.Body = &SessionEvent_Present{Present: b}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

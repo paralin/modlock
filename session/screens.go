@@ -102,18 +102,18 @@ func (s *Screens) Screen() (*ui.Screen, <-chan struct{}) {
 	return s.trees[s.slot].screen(), s.changed
 }
 
-// Player returns the screen of the person with the Steam ID account, empty
-// while they are not in the server, and a channel that closes when it may
-// have changed.
-func (s *Screens) Player(account uint64) (*ui.Screen, <-chan struct{}) {
+// Player returns the screen of the person with the Steam ID account, whether
+// they are in the server, and a channel that closes when either may have
+// changed. The screen is empty while they are not in the server.
+func (s *Screens) Player(account uint64) (*ui.Screen, bool, <-chan struct{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for slot, person := range s.players {
 		if person == account {
-			return s.trees[slot].screen(), s.changed
+			return s.trees[slot].screen(), true, s.changed
 		}
 	}
-	return &ui.Screen{}, s.changed
+	return &ui.Screen{}, false, s.changed
 }
 
 // Snapshot returns the events that bring new Screens to this one's state:

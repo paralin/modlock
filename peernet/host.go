@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"testing/fstest"
 	"time"
 
 	"github.com/aperturerobotics/controllerbus/bus"
@@ -299,10 +300,10 @@ type sessionServer struct {
 	chat *session.Chat
 }
 
-// Watch streams what the guest sees: the whole screen first, then at most
-// one frame of changes and new chat lines each FrameGap. Comparing screens
-// instead of queuing the mods' changes means a slow guest gets the newest
-// screen, never a backlog.
+// Watch streams what the guest sees: whether they are in the server and the
+// whole screen first, then at most one frame of changes, presence and new
+// chat lines each FrameGap. Comparing screens instead of queuing the mods'
+// changes means a slow guest gets the newest screen, never a backlog.
 func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) error {
 	// Refuse a guest without the join code.
 	ctx := strm.Context()
@@ -310,8 +311,9 @@ func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) e
 		return errors.New("the join code names another session")
 	}
 
-	// Send the screen whole, then each change and each line said from now on.
-	sent := &ui.Screen{}
+	// Send presence and the screen whole, then each change and each line
+	// said from now on.
+	sent, wasPresent := &ui.Screen{}, false
 	_, said, _ := s.chat.Since(math.MaxUint64)
 	for reset := true; ; reset = false {
 		lines, next, spoken := s.chat.Since(said)
@@ -322,8 +324,14 @@ func (s *sessionServer) Watch(req *WatchRequest, strm SRPCSession_WatchStream) e
 		}
 		said = next
 
-		// Send the screen's changes, if any.
-		screen, changed := s.screens.Player(req.GetSteamId())
+		// Send presence when it changes, then the screen's changes, if any.
+		screen, present, changed := s.screens.Player(req.GetSteamId())
+		if reset || present != wasPresent {
+			if err := strm.Send(&SessionEvent{Body: &SessionEvent_Present{Present: present}}); err != nil {
+				return err
+			}
+			wasPresent = present
+		}
 		if changes := session.Changes(sent, screen); reset || len(changes) != 0 {
 			frame := &ScreenFrame{Changes: changes, Reset_: reset}
 			if err := strm.Send(&SessionEvent{Body: &SessionEvent_Screen{Screen: frame}}); err != nil {
@@ -352,13 +360,17 @@ func (s *sessionServer) Content(req *ContentRequest, strm SRPCSession_ContentStr
 	if err != nil {
 		return err
 	}
+	return sendContent(files, strm.Send)
+}
 
-	// Send each file in parts, in path order.
+// sendContent sends each file of files in parts of at most contentPart bytes,
+// in path order. An empty file is one empty part.
+func sendContent(files fstest.MapFS, send func(*ContentPart) error) error {
 	for _, path := range slices.Sorted(maps.Keys(files)) {
 		data := files[path].Data
 		for first := true; first || len(data) != 0; first = false {
 			n := min(len(data), contentPart)
-			if err := strm.Send(&ContentPart{Path: path, Data: data[:n]}); err != nil {
+			if err := send(&ContentPart{Path: path, Data: data[:n]}); err != nil {
 				return err
 			}
 			data = data[n:]
@@ -411,11 +423,14 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 	}
 
 	// Send the mods' content, then the address, so the game mounts the
-	// content before it starts. Without the content the game still plays,
-	// drawing the mods' resources as errors.
+	// content before it starts. Without the content the game still plays a
+	// stock map, drawing the mods' resources as errors.
 	host := NewSRPCSessionClient(srpc.NewClient(stream_srpc.NewOpenStreamFunc(s.node.GetBus(), SessionProtocolID, s.local, code.Host, 0)))
-	for _, part := range fetchContent(ctx, host, code.Session) {
-		if err := send(&JoinEvent{Body: &JoinEvent_Content{Content: part}}); err != nil {
+	if files, err := FetchContent(ctx, host, code.Session, nil); err == nil {
+		err = sendContent(files, func(part *ContentPart) error {
+			return send(&JoinEvent{Body: &JoinEvent_Content{Content: part}})
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -444,30 +459,53 @@ func (s *Service) Join(req *JoinRequest, strm SRPCPeerNet_JoinStream) error {
 	return nil
 }
 
-// contentWait bounds fetching a session's content, so a host that never
-// answers delays the game only this long.
-const contentWait = 2 * time.Minute
+// contentQuiet bounds the wait for each part of a session's content, so a
+// host that stops answering fails the fetch this long after its last part,
+// while a large map that keeps arriving takes as long as it needs.
+const contentQuiet = time.Minute
 
-// fetchContent returns every part of the session's content, or nothing when
-// the host cannot send all of it, since a partial file would break the
-// package.
-func fetchContent(ctx context.Context, host SRPCSessionClient, session uint64) []*ContentPart {
-	ctx, cancel := context.WithTimeout(ctx, contentWait)
+// FetchContent returns the content addons of the session the host serves, as
+// session.ReadContent read them on the host: each mod's compiled Panorama
+// content and assets, and the archive of each map a mod ships, as
+// maps/<map>.vpk. It returns every file or an error, never part of one, since
+// a partial file breaks the package. progress, when set, receives the bytes
+// received so far after each part.
+func FetchContent(ctx context.Context, host SRPCSessionClient, session uint64, progress func(uint64)) (fstest.MapFS, error) {
+	// Fail the fetch when the host stays quiet past contentQuiet.
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	quiet := time.AfterFunc(contentQuiet, cancel)
+	defer quiet.Stop()
 	parts, err := host.Content(ctx, &ContentRequest{Session: session})
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	var all []*ContentPart
+	defer parts.Close()
+
+	// Join each file's parts, which arrive in order.
+	files := fstest.MapFS{}
+	var received uint64
 	for {
 		part, err := parts.Recv()
 		switch {
 		case errors.Is(err, io.EOF):
-			return all
+			return files, nil
+		case err != nil && ctx.Err() != nil && !quiet.Stop():
+			return nil, errors.New("the host stopped sending its content")
 		case err != nil:
-			return nil
+			return nil, err
 		}
-		all = append(all, part)
+		quiet.Reset(contentQuiet)
+		file := files[part.GetPath()]
+		if file == nil {
+			file = &fstest.MapFile{Mode: 0o644}
+			files[part.GetPath()] = file
+		}
+		file.Data = append(file.Data, part.GetData()...)
+		received += uint64(len(part.GetData()))
+		if progress != nil {
+			progress(received)
+		}
 	}
 }
 
@@ -481,7 +519,9 @@ func (s *Service) watch(ctx context.Context, host SRPCSessionClient, req *WatchR
 		for err == nil {
 			var event *SessionEvent
 			if event, err = events.Recv(); err == nil {
-				err = send(joinEvent(event))
+				if forward := joinEvent(event); forward != nil {
+					err = send(forward)
+				}
 			}
 		}
 
@@ -494,10 +534,16 @@ func (s *Service) watch(ctx context.Context, host SRPCSessionClient, req *WatchR
 	}
 }
 
-// joinEvent returns the Join event that reports a session event.
+// joinEvent returns the Join event that reports a session event, or nil for
+// one a Join does not carry: the guest's presence, which Join reports as the
+// game's arrival.
 func joinEvent(event *SessionEvent) *JoinEvent {
-	if line := event.GetChat(); line != nil {
-		return &JoinEvent{Body: &JoinEvent_Chat{Chat: line}}
+	switch body := event.GetBody().(type) {
+	case *SessionEvent_Chat:
+		return &JoinEvent{Body: &JoinEvent_Chat{Chat: body.Chat}}
+	case *SessionEvent_Screen:
+		return &JoinEvent{Body: &JoinEvent_Screen{Screen: body.Screen}}
+	default:
+		return nil
 	}
-	return &JoinEvent{Body: &JoinEvent_Screen{Screen: event.GetScreen()}}
 }
