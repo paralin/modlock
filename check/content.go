@@ -74,6 +74,16 @@ func AddonName(slug string, digest []byte) string {
 	return slug + "-" + hex.EncodeToString(digest[:4])
 }
 
+// AddonSlug returns the slug of the mod whose content addon is addon, as
+// AddonName builds it, or false for a name that does not end in a digest.
+func AddonSlug(addon string) (string, bool) {
+	at := strings.LastIndex(addon, "-")
+	if at <= 0 || !addonDigestPattern.MatchString(addon[at+1:]) {
+		return "", false
+	}
+	return addon[:at], true
+}
+
 // ContentAddon reports whether manifest's content_addon is empty or names an
 // addon of its own mod: its slug and an eight digit digest.
 func ContentAddon(manifest *manifestpb.Manifest) error {

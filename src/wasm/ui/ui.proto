@@ -749,6 +749,11 @@ message Tree {
   // the screen with another, such as a game one mod runs inside another's.
   // Without one, the root fills the screen.
   Region region = 3;
+
+  // Addon is the name of the mod's content addon, which holds the layouts and
+  // style sheets the tree names. The host that mounted the addon sets it; it is
+  // empty for a mod with no content.
+  string addon = 4;
 }
 
 // Region is a box on the screen, each side a fraction of the screen's width or

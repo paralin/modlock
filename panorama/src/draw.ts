@@ -14,7 +14,8 @@
 //
 // A layout node is the one exception to stock panels: a host that has
 // reviewed a mod's content addon passes Layouts, and the drawing loads the
-// mod's layout into the node's panel; without Layouts the panel stays empty.
+// mod's layout into the node's panel; without Layouts the panel stays empty
+// and the drawing logs it once.
 // The same hosts load the mod's style sheets, which the root lists: the first
 // into the mod's root panel, and each later one into a panel nested inside the
 // one before, so the mod's classes match only its own panels and a later
@@ -173,6 +174,38 @@ export interface Layouts {
    * host binds its keys again.
    */
   unloaded(): void
+}
+
+/**
+ * AddonLayouts loads each mod's layouts from the content addon its tree names,
+ * the one a Modlock session mounted: follow it to each screen before drawing
+ * the screen. A mod whose tree names no addon has no layouts to load.
+ */
+export class AddonLayouts implements Layouts {
+  /** addons holds the content addon each mod's tree last named, by mod. */
+  private readonly addons = new Map<string, string>()
+
+  /** follow records the addon each of screen's trees names. */
+  follow(screen: Screen | null): void {
+    for (const tree of screen?.trees ?? []) {
+      this.addons.set(tree.mod ?? '', tree.addon ?? '')
+    }
+  }
+
+  url(mod: string, path: string): string | null {
+    const addon = this.addons.get(mod)
+    return addon ? addonLayout(addon, path) : null
+  }
+
+  unloaded(): void {}
+}
+
+/**
+ * addonLayout returns the URL of the layout at path, a path isLayoutPath
+ * accepts, inside the content addon addon, where the build writes it.
+ */
+export function addonLayout(addon: string, path: string): string {
+  return `file://{resources}/layout/${addon}/${path}`
 }
 
 /**
@@ -442,6 +475,9 @@ export class Drawing {
     private readonly layouts?: Layouts,
     private readonly change?: Change,
   ) {}
+
+  /** refused holds the files the drawing has logged as not loaded. */
+  private readonly refused = new Set<string>()
 
   /** writing is true while the drawing writes an input's value. */
   private writing = false
@@ -920,13 +956,19 @@ export class Drawing {
       kind === Kind.LAYOUT && isLayoutPath(path)
         ? (this.layouts?.url(mod, path) ?? null)
         : null
+    if (kind === Kind.LAYOUT && !layout) {
+      this.refuse(mod, 'layout', path)
+    }
     const data = node.data ?? ''
     const sheets =
       id === '' && this.layouts
         ? (node.sheets ?? [])
             .filter(isSheetPath)
-            .map((sheet) => [sheet, this.layouts!.url(mod, sheetLayout(sheet))])
-            .filter((pair): pair is [string, string] => pair[1] !== null)
+            .flatMap((sheet): [string, string][] => {
+              const url = this.layouts!.url(mod, sheetLayout(sheet))
+              if (url === null) this.refuse(mod, 'style sheet', sheet)
+              return url === null ? [] : [[sheet, url]]
+            })
         : []
     const sheeted = JSON.stringify(sheets)
 
@@ -1172,6 +1214,17 @@ export class Drawing {
       last = childPanel
     }
     return panel
+  }
+
+  /**
+   * refuse logs once that the host gave mod's file at path, of the given kind,
+   * no URL, so the panel draws empty.
+   */
+  private refuse(mod: string, kind: string, path: string): void {
+    const file = `${mod}/${path}`
+    if (this.refused.has(file)) return
+    this.refused.add(file)
+    this.panorama.Msg(`[Modlock] ${mod} ${kind} ${path} has no content to load`)
   }
 
   /**

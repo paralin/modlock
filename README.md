@@ -1220,10 +1220,12 @@ and runs no mod code, and a button press comes back to its `onPress`. The host
 clears it when the player leaves or the mod stops.
 
 `<layout src="shop.xml" data={stock} />` is the one element that runs code in
-the player's game: it loads a layout from the mod's content addon. Only a host
-that has reviewed the mod's content loads it, by passing `Layouts` to the
-`Drawing` in `panorama/src/draw.ts`; Modlock's own renderer draws an empty
-panel. The `modlock dev` preview page draws the layout from the mod's latest
+the player's game: it loads a layout from the mod's content addon. Modlock's own
+renderer loads the layouts of the content its session mounted, and a host with
+its own interface script loads them by passing `Layouts` to the `Drawing` in
+`panorama/src/draw.ts`, such as `AddonLayouts`, which follows the `addon` each
+screen's tree names. A layout with no content to load draws an empty panel and
+logs one line in the game's console. The `modlock dev` preview page draws the layout from the mod's latest
 build, with its panels, inline styles and style sheets, but runs none of its
 scripts.
 
