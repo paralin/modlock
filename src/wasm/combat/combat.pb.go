@@ -428,6 +428,55 @@ func (x *HitOptions) GetAbility() uint32 {
 	return 0
 }
 
+// KillOptions forces a hero or unit's death through the game's damage path.
+type KillOptions struct {
+	unknownFields []byte
+	// Victim is the hero or unit to kill. World entities, props and buildings
+	// are refused because their damage events crash clients.
+	Victim uint32 `protobuf:"varint,1,opt,name=victim,proto3" json:"victim,omitempty"`
+	// Attacker receives the game's kill credit and rewards. Without an attacker
+	// the death is environmental and grants neither credit nor rewards.
+	Attacker *uint32 `protobuf:"varint,2,opt,name=attacker,proto3,oneof" json:"attacker,omitempty"`
+	// Inflictor delivered the killing blow; the default is the attacker.
+	Inflictor *uint32 `protobuf:"varint,3,opt,name=inflictor,proto3,oneof" json:"inflictor,omitempty"`
+	// Ability is the ability entity responsible for the kill, when applicable.
+	Ability *uint32 `protobuf:"varint,4,opt,name=ability,proto3,oneof" json:"ability,omitempty"`
+}
+
+func (x *KillOptions) Reset() {
+	*x = KillOptions{}
+}
+
+func (*KillOptions) ProtoMessage() {}
+
+func (x *KillOptions) GetVictim() uint32 {
+	if x != nil {
+		return x.Victim
+	}
+	return 0
+}
+
+func (x *KillOptions) GetAttacker() uint32 {
+	if x != nil && x.Attacker != nil {
+		return *x.Attacker
+	}
+	return 0
+}
+
+func (x *KillOptions) GetInflictor() uint32 {
+	if x != nil && x.Inflictor != nil {
+		return *x.Inflictor
+	}
+	return 0
+}
+
+func (x *KillOptions) GetAbility() uint32 {
+	if x != nil && x.Ability != nil {
+		return *x.Ability
+	}
+	return 0
+}
+
 // TraceOptions describes a line to test against the world. Layers are bits
 // of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
 // 18 player and 19 NPC.
@@ -691,6 +740,25 @@ func (m *HitOptions) CloneVT() *HitOptions {
 }
 
 func (m *HitOptions) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *KillOptions) CloneVT() *KillOptions {
+	if m == nil {
+		return (*KillOptions)(nil)
+	}
+	r := new(KillOptions)
+	r.Victim = m.Victim
+	r.Attacker = protobuf_go_lite.ClonePtr(m.Attacker)
+	r.Inflictor = protobuf_go_lite.ClonePtr(m.Inflictor)
+	r.Ability = protobuf_go_lite.ClonePtr(m.Ability)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *KillOptions) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -970,6 +1038,35 @@ func (this *HitOptions) EqualVT(that *HitOptions) bool {
 
 func (this *HitOptions) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*HitOptions)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *KillOptions) EqualVT(that *KillOptions) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Victim != that.Victim {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Attacker, that.Attacker) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Inflictor, that.Inflictor) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Ability, that.Ability) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *KillOptions) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*KillOptions)
 	if !ok {
 		return false
 	}
@@ -1638,6 +1735,87 @@ func (x *HitOptions) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the KillOptions message to JSON.
+func (x *KillOptions) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Victim != 0 || s.HasField("victim") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("victim")
+		s.WriteUint32(x.Victim)
+	}
+	if x.Attacker != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("attacker")
+		s.WriteUint32(*x.Attacker)
+	}
+	if x.Inflictor != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("inflictor")
+		s.WriteUint32(*x.Inflictor)
+	}
+	if x.Ability != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(*x.Ability)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the KillOptions to JSON.
+func (x *KillOptions) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the KillOptions message from JSON.
+func (x *KillOptions) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "victim":
+			s.AddField("victim")
+			x.Victim = s.ReadUint32()
+		case "attacker":
+			s.AddField("attacker")
+			if s.ReadNil() {
+				x.Attacker = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Attacker = &t
+		case "inflictor":
+			s.AddField("inflictor")
+			if s.ReadNil() {
+				x.Inflictor = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Inflictor = &t
+		case "ability":
+			s.AddField("ability")
+			if s.ReadNil() {
+				x.Ability = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Ability = &t
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the KillOptions from JSON.
+func (x *KillOptions) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the TraceOptions message to JSON.
 func (x *TraceOptions) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -2280,6 +2458,58 @@ func (m *HitOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *KillOptions) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *KillOptions) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *KillOptions) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Ability != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Ability))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Inflictor != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Inflictor))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Attacker != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Attacker))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Victim != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Victim))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *TraceOptions) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -2569,6 +2799,20 @@ func (m *HitOptions) SizeVT() (n int) {
 	return n
 }
 
+func (m *KillOptions) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Victim)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Attacker)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Inflictor)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Ability)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *TraceOptions) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -2839,6 +3083,32 @@ func (x *HitOptions) MarshalProtoText() string {
 }
 
 func (x *HitOptions) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *KillOptions) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "KillOptions")
+	if x.Victim != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "victim")
+		protobuf_go_lite.TextWriteUint(&sb, x.Victim)
+	}
+	if x.Attacker != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "attacker")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Attacker)
+	}
+	if x.Inflictor != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "inflictor")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Inflictor)
+	}
+	if x.Ability != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Ability)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *KillOptions) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -3554,6 +3824,88 @@ func (m *HitOptions) UnmarshalVT(dAtA []byte) error {
 			}
 			m.HitGroup = &v
 		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Ability = &v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *KillOptions) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: KillOptions: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: KillOptions: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Victim", wireType)
+			}
+			m.Victim = 0
+			m.Victim, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attacker", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Attacker = &v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Inflictor", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Inflictor = &v
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
 			}

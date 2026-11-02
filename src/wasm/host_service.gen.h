@@ -849,6 +849,12 @@ class HostService {
     return std::unexpected("this host does not support Damage");
   }
 
+  // KillEntity forces a hero or unit to die, optionally crediting an attacker.
+  // Already dead victims succeed without another death or reward.
+  virtual std::expected<void, std::string> KillEntity(const combat::KillOptions& /*request*/) {
+    return std::unexpected("this host does not support KillEntity");
+  }
+
   // Trace returns where a line first hits something, or nothing when it hits
   // nothing or the world's collision is not ready.
   virtual std::expected<combat::TraceResponse, std::string> Trace(
@@ -1759,6 +1765,14 @@ class HostService {
              return detail::Fail("the Damage request is malformed");
            }
            return detail::Answer(host.Damage(request));
+         }},
+        {"KillEntity",
+         [](HostService& host, const std::string& bytes) {
+           combat::KillOptions request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the KillEntity request is malformed");
+           }
+           return detail::Answer(host.KillEntity(request));
          }},
         {"Trace",
          [](HostService& host, const std::string& bytes) {

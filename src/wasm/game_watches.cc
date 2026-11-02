@@ -82,9 +82,6 @@ std::expected<void, std::string> Game::Kill(const players::PlayerRequest& reques
   if (!sample) {
     return std::unexpected(sample.error());
   }
-  if (sample->health <= 0) {
-    return {};
-  }
   return (*damage)->Kill(sample->pawn);
 }
 

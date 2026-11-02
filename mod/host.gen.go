@@ -223,6 +223,9 @@ type ProjectileOptions = combatpb.ProjectileOptions
 // HitOptions describes damage the mod deals.
 type HitOptions = combatpb.HitOptions
 
+// KillOptions forces a hero or unit's death through the game's damage path.
+type KillOptions = combatpb.KillOptions
+
 // TraceOptions describes a line to test against the world. Layers are bits
 // of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
 // 18 player and 19 NPC.
@@ -1467,6 +1470,12 @@ func ClearMap() error {
 // include its own hits.
 func Damage(options *HitOptions) error {
 	return invoke("Damage", options, nil)
+}
+
+// KillEntity forces a hero or unit to die, optionally crediting an attacker.
+// Already dead victims succeed without another death or reward.
+func KillEntity(options *KillOptions) error {
+	return invoke("KillEntity", options, nil)
 }
 
 // Trace returns where a line first hits something, or nothing when it hits

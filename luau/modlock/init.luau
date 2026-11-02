@@ -384,6 +384,20 @@ export type HitOptions = {
 	ability: number?,
 }
 
+-- KillOptions forces a hero or unit's death through the game's damage path.
+export type KillOptions = {
+	-- victim is the hero or unit to kill. World entities, props and buildings
+	-- are refused because their damage events crash clients.
+	victim: number,
+	-- attacker receives the game's kill credit and rewards. Without an attacker
+	-- the death is environmental and grants neither credit nor rewards.
+	attacker: number?,
+	-- inflictor delivered the killing blow; the default is the attacker.
+	inflictor: number?,
+	-- ability is the ability entity responsible for the kill, when applicable.
+	ability: number?,
+}
+
 -- TraceOptions describes a line to test against the world. Layers are bits
 -- of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
 -- 18 player and 19 NPC.
@@ -2154,6 +2168,12 @@ schema.HitOptions = {
 	{ number = 5, name = "hitGroup", kind = "int32", optional = true },
 	{ number = 6, name = "ability", kind = "uint32", optional = true },
 }
+schema.KillOptions = {
+	{ number = 1, name = "victim", kind = "uint32" },
+	{ number = 2, name = "attacker", kind = "uint32", optional = true },
+	{ number = 3, name = "inflictor", kind = "uint32", optional = true },
+	{ number = 4, name = "ability", kind = "uint32", optional = true },
+}
 schema.TraceOptions = {
 	{ number = 1, name = "start", kind = "message", message = "Vec3" },
 	{ number = 2, name = "end", kind = "message", message = "Vec3" },
@@ -3353,6 +3373,12 @@ end
 -- include its own hits.
 function modlock.damage(options: HitOptions): boolean
 	return call("Damage", "HitOptions", options) ~= nil
+end
+
+-- killEntity forces a hero or unit to die, optionally crediting an attacker.
+-- Already dead victims succeed without another death or reward.
+function modlock.killEntity(options: KillOptions): boolean
+	return call("KillEntity", "KillOptions", options) ~= nil
 end
 
 -- trace returns where a line first hits something, or nothing when it hits

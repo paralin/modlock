@@ -563,6 +563,7 @@ class Game : public HostService {
       const entities::RemoveEntitiesRequest& request) override;
   std::expected<void, std::string> ClearMap() override;
   std::expected<void, std::string> Damage(const combat::HitOptions& request) override;
+  std::expected<void, std::string> KillEntity(const combat::KillOptions& request) override;
   std::expected<combat::TraceResponse, std::string> Trace(
       const combat::TraceOptions& request) override;
   std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override;
@@ -743,7 +744,10 @@ class Game : public HostService {
   // the call.
   std::expected<void*, std::string> LivePawn(int32_t slot) const;
 
-  // Entity resolves a handle to the live entity it names.
+  // Combatant resolves a hero or unit that can safely receive damage events.
+  std::expected<void*, std::string> Combatant(uint32_t handle);
+
+  // Entity resolves a handle to its live entity.
   std::expected<void*, std::string> Entity(uint32_t handle) const;
 
   // ObserveFrom binds slot's camera, as Watch and FreeCamera do, sets its

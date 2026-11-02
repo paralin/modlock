@@ -95,3 +95,26 @@ dispatch-table preservation, move ownership, and restore-before-clear ordering.
 The independent hello plugin checks the installed SDK and plugin admission.
 Windows builds check native code paths; a live game run is needed to validate
 patterns and ABI layouts against a new game binary.
+
+## Attributed damage and deaths
+
+`damage({ victim, attacker, inflictor, ability, amount })` deals ordinary damage
+through the engine. Entity handles include their generation: a stale handle
+fails instead of selecting a replacement entity. `inflictor` defaults to the
+attacker and `ability` may be omitted.
+
+`killEntity({ victim, attacker, inflictor, ability })` forces a hero or unit to
+die and credits the attacker through the game's own damage and reward logic.
+It bypasses resistance and damage modification, suppresses item procs, and
+succeeds without another reward when the victim is already dead. A living pawn
+at zero health still receives its death transition. The caller releases any
+mode-owned immortality before killing.
+
+Omitting `attacker` keeps the death environmental and suppresses credit and
+rewards, as `player.kill()` does. Both damage and forced kills reject the world,
+props and buildings because clients cannot safely process their damage events.
+
+For a ring-out, the mode records the recent responsible enemy hit or throw,
+checks that the same source pawn still exists, and passes its handle as the
+attacker when the victim falls. The engine decides the resulting kill, assists
+and rewards; mods should not rewrite scoreboard fields themselves.

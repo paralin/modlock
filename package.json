@@ -19,7 +19,8 @@
     "format:cc": "git ls-files -z '*.cc' '*.h' ':!:third_party' ':!:*.pb.*' | xargs -0 clang-format -i",
     "test": "bun test --timeout 30000 ./panorama/ ./js/test/",
     "test:scriptc": "go test -timeout 60m -run TestScriptcSuite -v ./js",
-    "gen:items": "bun scripts/gen-items.ts"
+    "gen:items": "bun scripts/gen-items.ts",
+    "format:cc:files": "clang-format -i"
   },
   "devDependencies": {
     "@aptre/common": "0.38.0",

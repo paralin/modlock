@@ -667,6 +667,86 @@ export const HitOptions: MessageType<HitOptions> =
   )
 
 /**
+ * KillOptions forces a hero or unit's death through the game's damage path.
+ *
+ * @generated from message modlock.wasm.combat.KillOptions
+ */
+export interface KillOptions {
+  /**
+   * Victim is the hero or unit to kill. World entities, props and buildings
+   * are refused because their damage events crash clients.
+   */
+  victim?: number
+  /**
+   * Attacker receives the game's kill credit and rewards. Without an attacker
+   * the death is environmental and grants neither credit nor rewards.
+   */
+  attacker?: number
+  /**
+   * Inflictor delivered the killing blow; the default is the attacker.
+   */
+  inflictor?: number
+  /**
+   * Ability is the ability entity responsible for the kill, when applicable.
+   */
+  ability?: number
+}
+
+export const KillOptions: MessageType<KillOptions> =
+  /* @__PURE__ */ createMessageType<KillOptions>(
+    'modlock.wasm.combat.KillOptions',
+    () => [
+      [1, 'victim', 13],
+      [2, 'attacker', 13, 4],
+      [3, 'inflictor', 13, 4],
+      [4, 'ability', 13, 4],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: KillOptions): KillOptions => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.victim = r.uint32()
+              break
+            case 2:
+              m.attacker = r.uint32()
+              break
+            case 3:
+              m.inflictor = r.uint32()
+              break
+            case 4:
+              m.ability = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: KillOptions, w: Writer): void => {
+        {
+          const v = m.victim
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.attacker
+          if (v != null) w.uint32(16).uint32(v)
+        }
+        {
+          const v = m.inflictor
+          if (v != null) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.ability
+          if (v != null) w.uint32(32).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
  * TraceOptions describes a line to test against the world. Layers are bits
  * of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
  * 18 player and 19 NPC.

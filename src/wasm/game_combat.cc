@@ -18,21 +18,9 @@ std::expected<void, std::string> Game::Damage(const combat::HitOptions& request)
   if (!damage) {
     return std::unexpected(damage.error());
   }
-  auto victim = Entity(request.victim());
+  auto victim = Combatant(request.victim());
   if (!victim) {
     return std::unexpected(victim.error());
-  }
-
-  // Only heroes and units take hits: the client crashes on a damage event for
-  // the world, a prop or a building.
-  auto victim_class = gameinterop::SchemaClassOfEntity(*victim, gameinterop::ReadNative);
-  if (!victim_class) {
-    return std::unexpected(victim_class.error());
-  }
-  if (!services_.Derives(*victim_class, "CBaseCombatCharacter")) {
-    return std::unexpected("the victim is a " +
-                           std::string(gameinterop::SchemaClassNameOf(*victim_class)) +
-                           ", not a hero or unit");
   }
 
   // A hit nobody dealt is a hazard: it may kill and credits no one.
@@ -59,6 +47,57 @@ std::expected<void, std::string> Game::Damage(const combat::HitOptions& request)
     ability = *found;
   }
   return (*damage)->Hit(*victim, *inflictor, *attacker, ability, request.amount(), hit_group);
+}
+
+std::expected<void*, std::string> Game::Combatant(uint32_t handle) {
+  // Damage events for the world, props or buildings crash clients.
+  auto victim = Entity(handle);
+  if (!victim) {
+    return std::unexpected(victim.error());
+  }
+  auto type = gameinterop::SchemaClassOfEntity(*victim, gameinterop::ReadNative);
+  if (!type) {
+    return std::unexpected(type.error());
+  }
+  if (!services_.Derives(*type, "CBaseCombatCharacter")) {
+    return std::unexpected("the victim is a " + std::string(gameinterop::SchemaClassNameOf(*type)) +
+                           ", not a hero or unit");
+  }
+  return *victim;
+}
+
+std::expected<void, std::string> Game::KillEntity(const combat::KillOptions& request) {
+  // Resolve a live combat entity before invoking the game's death path.
+  auto damage = services_.Damage();
+  if (!damage) {
+    return std::unexpected(damage.error());
+  }
+  auto victim = Combatant(request.victim());
+  if (!victim) {
+    return std::unexpected(victim.error());
+  }
+  if (request.attacker() == 0) {
+    return (*damage)->Kill(*victim);
+  }
+
+  // Preserve generation-checked source handles; stale sources cannot get credit.
+  auto attacker = Entity(request.attacker());
+  if (!attacker) {
+    return std::unexpected(attacker.error());
+  }
+  auto inflictor = request.inflictor() == 0 ? attacker : Entity(request.inflictor());
+  if (!inflictor) {
+    return std::unexpected(inflictor.error());
+  }
+  void* ability = nullptr;
+  if (request.ability() != 0) {
+    auto found = Entity(request.ability());
+    if (!found) {
+      return std::unexpected(found.error());
+    }
+    ability = *found;
+  }
+  return (*damage)->Kill(*victim, *attacker, *inflictor, ability);
 }
 
 std::expected<void, std::string> Game::AdjustSouls(const players::AdjustSoulsRequest& request) {

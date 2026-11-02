@@ -600,6 +600,10 @@ service Host {
   // include its own hits.
   rpc Damage(modlock.wasm.combat.HitOptions) returns (Empty);
 
+  // KillEntity forces a hero or unit to die, optionally crediting an attacker.
+  // Already dead victims succeed without another death or reward.
+  rpc KillEntity(modlock.wasm.combat.KillOptions) returns (Empty);
+
   // Trace returns where a line first hits something, or nothing when it hits
   // nothing or the world's collision is not ready.
   rpc Trace(modlock.wasm.combat.TraceOptions) returns (modlock.wasm.combat.TraceResponse);

@@ -1,5 +1,6 @@
 #include "modlock/gameinterop/native_damage.h"
 
+#include <algorithm>
 #include <cstring>
 #include <initializer_list>
 #include <memory>
@@ -27,6 +28,7 @@ std::expected<NativeDamage, std::string> NativeDamage::Resolve(const ModuleImage
   auto size = SchemaClassSizeOf(schema_system, "server.dll", "CTakeDamageInfo");
   auto flags = SchemaFieldOf(schema_system, "server.dll", "CTakeDamageInfo", "m_nDamageFlags");
   auto health = SchemaFieldOf(schema_system, "server.dll", "CBaseEntity", "m_iHealth");
+  auto life = SchemaFieldOf(schema_system, "server.dll", "CBaseEntity", "m_lifeState");
   auto ability = SchemaFieldOf(schema_system, "server.dll", "CTakeDamageInfo", "m_hAbility");
   auto hit_group = SchemaFieldOf(schema_system, "server.dll", "CTakeDamageInfo", "m_iHitGroupId");
   if (!hit_group) {
@@ -46,9 +48,13 @@ std::expected<NativeDamage, std::string> NativeDamage::Resolve(const ModuleImage
   if (!ability) {
     return std::unexpected(ability.error());
   }
+  if (!life) {
+    return std::unexpected(life.error());
+  }
   if (flags->size < sizeof(uint64_t) || flags->offset > *size ||
       *size - flags->offset < sizeof(uint64_t) || health->size < sizeof(int32_t) ||
-      ability->size < sizeof(uint32_t) || hit_group->size < sizeof(int32_t)) {
+      life->size < sizeof(uint8_t) || ability->size < sizeof(uint32_t) ||
+      hit_group->size < sizeof(int32_t)) {
     return std::unexpected("native damage field storage is incomplete");
   }
 
@@ -56,14 +62,24 @@ std::expected<NativeDamage, std::string> NativeDamage::Resolve(const ModuleImage
   calls.size_ = *size;
   calls.flags_offset_ = flags->offset;
   calls.health_offset_ = health->offset;
+  calls.life_state_offset_ = life->offset;
   calls.ability_offset_ = ability->offset;
   calls.hit_group_offset_ = hit_group->offset;
 
-  // Collect the flags that keep a hazard's damage exact and uncredited.
+  // Forced deaths bypass mitigation and procs while preserving engine credit.
   for (const char* name : {"DFLAG_SUPPRESS_DAMAGE_MODIFICATION", "DFLAG_ALLOW_SUICIDE",
-                           "DFLAG_SUPPRESS_DIRECT_GOLD_BOUNTY", "DFLAG_SUPPRESS_COINS_GOLD_BOUNTY",
-                           "DFLAG_SUPPRESS_KILL_CREDIT", "DFLAG_SUPPRESS_DEATH_CREDIT",
                            "DFLAG_DO_NOT_PROC", "DFLAG_IGNORE_RESISTANCES"}) {
+    auto flag = SchemaEnumValueOf(schema_system, "server.dll", "TakeDamageFlags_t", name);
+    if (!flag) {
+      return std::unexpected(flag.error());
+    }
+    calls.kill_flags_ |= static_cast<uint64_t>(*flag);
+  }
+
+  // Environmental damage additionally suppresses credit and rewards.
+  calls.hazard_flags_ = calls.kill_flags_;
+  for (const char* name : {"DFLAG_SUPPRESS_DIRECT_GOLD_BOUNTY", "DFLAG_SUPPRESS_COINS_GOLD_BOUNTY",
+                           "DFLAG_SUPPRESS_KILL_CREDIT", "DFLAG_SUPPRESS_DEATH_CREDIT"}) {
     auto flag = SchemaEnumValueOf(schema_system, "server.dll", "TakeDamageFlags_t", name);
     if (!flag) {
       return std::unexpected(flag.error());
@@ -73,20 +89,25 @@ std::expected<NativeDamage, std::string> NativeDamage::Resolve(const ModuleImage
   return calls;
 }
 
-std::expected<void, std::string> NativeDamage::Kill(void* pawn) const {
-  // Only a live pawn with health is killed.
+std::expected<void, std::string> NativeDamage::Kill(void* pawn, void* attacker, void* inflictor,
+                                                    void* ability) const {
+  // A living zero-health pawn still needs its death transition.
   if (!pawn || !ReferenceHandleOf(pawn)) {
     return std::unexpected("elimination pawn is absent");
   }
-  int32_t health = 0;
-  std::memcpy(&health, static_cast<const std::byte*>(pawn) + health_offset_, sizeof(health));
-  if (health <= 0) {
+  uint8_t life = 0;
+  std::memcpy(&life, static_cast<const std::byte*>(pawn) + life_state_offset_, sizeof(life));
+  if (life != 0) {
     return {};
   }
+  int32_t health = 0;
+  std::memcpy(&health, static_cast<const std::byte*>(pawn) + health_offset_, sizeof(health));
 
-  // Deal its health as forced, uncredited damage.
+  // Use the engine's ordinary attribution with forced, exact lethal damage.
   constexpr uint64_t kForceDeath = 0x10;
-  return Apply(pawn, pawn, pawn, nullptr, static_cast<float>(health), hazard_flags_ | kForceDeath);
+  const auto flags = (attacker ? kill_flags_ : hazard_flags_) | kForceDeath;
+  return Apply(pawn, inflictor ? inflictor : (attacker ? attacker : pawn),
+               attacker ? attacker : pawn, ability, static_cast<float>(std::max(1, health)), flags);
 }
 
 std::expected<void, std::string> NativeDamage::Hazard(void* pawn, float amount) const {

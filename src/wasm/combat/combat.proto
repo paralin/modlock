@@ -146,6 +146,23 @@ message HitOptions {
   optional uint32 ability = 6;
 }
 
+// KillOptions forces a hero or unit's death through the game's damage path.
+message KillOptions {
+  // Victim is the hero or unit to kill. World entities, props and buildings
+  // are refused because their damage events crash clients.
+  uint32 victim = 1;
+
+  // Attacker receives the game's kill credit and rewards. Without an attacker
+  // the death is environmental and grants neither credit nor rewards.
+  optional uint32 attacker = 2;
+
+  // Inflictor delivered the killing blow; the default is the attacker.
+  optional uint32 inflictor = 3;
+
+  // Ability is the ability entity responsible for the kill, when applicable.
+  optional uint32 ability = 4;
+}
+
 // TraceOptions describes a line to test against the world. Layers are bits
 // of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
 // 18 player and 19 NPC.

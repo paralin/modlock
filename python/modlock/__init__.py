@@ -451,6 +451,22 @@ class HitOptions:
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
+class KillOptions:
+    """KillOptions forces a hero or unit's death through the game's damage path."""
+
+    # victim is the hero or unit to kill. World entities, props and buildings
+    # are refused because their damage events crash clients.
+    victim: int = 0
+    # attacker receives the game's kill credit and rewards. Without an attacker
+    # the death is environmental and grants neither credit nor rewards.
+    attacker: int | None = None
+    # inflictor delivered the killing blow; the default is the attacker.
+    inflictor: int | None = None
+    # ability is the ability entity responsible for the kill, when applicable.
+    ability: int | None = None
+
+
+@dataclasses.dataclass(slots=True, kw_only=True)
 class TraceOptions:
     """TraceOptions describes a line to test against the world. Layers are bits
     of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
@@ -2158,6 +2174,15 @@ _SCHEMA: wire.Schema = {
             wire.Field(6, "ability", "uint32", optional=True),
         ],
     ),
+    "KillOptions": (
+        KillOptions,
+        [
+            wire.Field(1, "victim", "uint32"),
+            wire.Field(2, "attacker", "uint32", optional=True),
+            wire.Field(3, "inflictor", "uint32", optional=True),
+            wire.Field(4, "ability", "uint32", optional=True),
+        ],
+    ),
     "TraceOptions": (
         TraceOptions,
         [
@@ -3827,6 +3852,13 @@ def damage(options: HitOptions) -> bool:
     include its own hits.
     """
     return _call("Damage", "HitOptions", options) is not None
+
+
+def kill_entity(options: KillOptions) -> bool:
+    """kill_entity forces a hero or unit to die, optionally crediting an attacker.
+    Already dead victims succeed without another death or reward.
+    """
+    return _call("KillEntity", "KillOptions", options) is not None
 
 
 def trace(options: TraceOptions) -> TraceHit | None:

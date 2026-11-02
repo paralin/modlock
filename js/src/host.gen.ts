@@ -587,6 +587,28 @@ function toHitOptions(value: HitOptions): combatPb.HitOptions {
 }
 
 /**
+ * KillOptions forces a hero or unit's death through the game's damage path.
+ */
+export interface KillOptions {
+  /**
+   * victim is the hero or unit to kill. World entities, props and buildings
+   * are refused because their damage events crash clients.
+   */
+  victim: number
+  /**
+   * attacker receives the game's kill credit and rewards. Without an attacker
+   * the death is environmental and grants neither credit nor rewards.
+   */
+  attacker?: number
+  /** inflictor delivered the killing blow; the default is the attacker. */
+  inflictor?: number
+  /**
+   * ability is the ability entity responsible for the kill, when applicable.
+   */
+  ability?: number
+}
+
+/**
  * TraceOptions describes a line to test against the world. Layers are bits
  * of the game's collision layers: bit 0 is solid, 2 trigger, 4 player clip,
  * 18 player and 19 NPC.
@@ -3283,6 +3305,14 @@ export function clearMap(): boolean {
  */
 export function damage(options: HitOptions): boolean {
   return call('Damage', combatPb.HitOptions.toBinary(toHitOptions(options))) !== undefined
+}
+
+/**
+ * killEntity forces a hero or unit to die, optionally crediting an attacker.
+ * Already dead victims succeed without another death or reward.
+ */
+export function killEntity(options: KillOptions): boolean {
+  return call('KillEntity', combatPb.KillOptions.toBinary(options)) !== undefined
 }
 
 /**

@@ -23,7 +23,7 @@ test('disconnected controllers do not retain abandoned heroes while joining hero
   keepPlayers([])
   bind((bytes) => {
     const call = Call.fromBinary(bytes)
-    let response = new Uint8Array()
+    let response: Uint8Array = new Uint8Array()
     switch (call.method) {
       case 'FindEntities':
         response = EntitiesResponse.toBinary({

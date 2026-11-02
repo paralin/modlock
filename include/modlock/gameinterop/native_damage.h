@@ -17,9 +17,11 @@ class MODLOCK_API NativeDamage {
  public:
   static std::expected<NativeDamage, std::string> Resolve(const ModuleImage& server,
                                                           void* schema_system);
-  // Kill requests a native death without awarding gold or kill credit. The pawn
-  // is borrowed only for this call and may be destroyed by the native operation.
-  std::expected<void, std::string> Kill(void* pawn) const;
+  // Kill forces a native death. An attacker receives the engine's kill credit
+  // and rewards; a null attacker preserves environmental, unrewarded death.
+  // Borrowed entities may be destroyed by this call. Dead victims are unchanged.
+  std::expected<void, std::string> Kill(void* pawn, void* attacker = nullptr,
+                                        void* inflictor = nullptr, void* ability = nullptr) const;
   // Hazard applies fixed environmental health damage without mitigation,
   // rewards or item procs. The pawn may die during this synchronous call.
   std::expected<void, std::string> Hazard(void* pawn, float amount) const;
@@ -40,9 +42,11 @@ class MODLOCK_API NativeDamage {
   size_t size_ = 0;
   size_t flags_offset_ = 0;
   size_t health_offset_ = 0;
+  size_t life_state_offset_ = 0;
   size_t ability_offset_ = 0;
   size_t hit_group_offset_ = 0;
   uint64_t hazard_flags_ = 0;
+  uint64_t kill_flags_ = 0;
 };
 
 }  // namespace modlock::gameinterop
