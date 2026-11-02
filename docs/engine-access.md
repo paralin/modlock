@@ -114,7 +114,10 @@ Omitting `attacker` keeps the death environmental and suppresses credit and
 rewards, as `player.kill()` does. Both damage and forced kills reject the world,
 props and buildings because clients cannot safely process their damage events.
 
-For a ring-out, the mode records the recent responsible enemy hit or throw,
-checks that the same source pawn still exists, and passes its handle as the
-attacker when the victim falls. The engine decides the resulting kill, assists
-and rewards; mods should not rewrite scoreboard fields themselves.
+To credit a death the engine would not attribute, such as a hero knocked out
+of the play area or into a hazard, the mod keeps the handle of the last enemy
+that hit or pushed the victim. When the victim dies, it passes that handle as
+`attacker` to `killEntity`. Because handles carry their generation, a source
+that has since died or left fails instead of crediting another entity. The
+engine then awards the kill, assists and rewards; mods should not write
+scoreboard fields themselves.
