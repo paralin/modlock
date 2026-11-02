@@ -647,7 +647,8 @@ inline constexpr Tree::Impl_::Impl_(
         addon_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
-        region_{nullptr} {}
+        region_{nullptr},
+        generation_{::uint64_t{0u}} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Tree::Tree(::_pbi::ConstantInitialized)
@@ -674,6 +675,7 @@ inline constexpr Change::Impl_::Impl_(
       : _cached_size_{0},
         set_{},
         removed_{},
+        generation_{::uint64_t{0u}},
         reset_{false} {}
 
 template <typename>
@@ -1052,24 +1054,28 @@ const ::uint32_t
         3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.reset_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.set_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.removed_),
-        2,
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Change, _impl_.generation_),
+        3,
         0,
         1,
+        2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_._has_bits_),
-        7, // hasbit index offset
+        8, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_.mod_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_.nodes_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_.region_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_.addon_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Tree, _impl_.generation_),
         1,
         0,
         3,
         2,
+        4,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::ui::Region, _impl_._has_bits_),
         7, // hasbit index offset
@@ -1140,12 +1146,12 @@ static const ::_pbi::MigrationSchema
         {276, sizeof(::modlock::wasm::ui::Length)},
         {283, sizeof(::modlock::wasm::ui::Edges)},
         {294, sizeof(::modlock::wasm::ui::Change)},
-        {303, sizeof(::modlock::wasm::ui::Tree)},
-        {314, sizeof(::modlock::wasm::ui::Region)},
-        {325, sizeof(::modlock::wasm::ui::Screen)},
-        {330, sizeof(::modlock::wasm::ui::UiPressEvent)},
-        {337, sizeof(::modlock::wasm::ui::UiInputEvent)},
-        {356, sizeof(::modlock::wasm::ui::UiRequest)},
+        {305, sizeof(::modlock::wasm::ui::Tree)},
+        {318, sizeof(::modlock::wasm::ui::Region)},
+        {329, sizeof(::modlock::wasm::ui::Screen)},
+        {334, sizeof(::modlock::wasm::ui::UiPressEvent)},
+        {341, sizeof(::modlock::wasm::ui::UiInputEvent)},
+        {360, sizeof(::modlock::wasm::ui::UiRequest)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::ui::_Node_VariablesEntry_DoNotUse_default_instance_._instance,
@@ -1265,70 +1271,71 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "nt\030\002 \001(\002H\000\022\026\n\014fit_children\030\003 \001(\010H\000\022\016\n\004fi"
     "ll\030\004 \001(\002H\000B\007\n\005value\"A\n\005Edges\022\013\n\003top\030\001 \001("
     "\002\022\r\n\005right\030\002 \001(\002\022\016\n\006bottom\030\003 \001(\002\022\014\n\004left"
-    "\030\004 \001(\002\"L\n\006Change\022\r\n\005reset\030\001 \001(\010\022\"\n\003set\030\002"
+    "\030\004 \001(\002\"`\n\006Change\022\r\n\005reset\030\001 \001(\010\022\"\n\003set\030\002"
     " \003(\0132\025.modlock.wasm.ui.Node\022\017\n\007removed\030\003"
-    " \003(\t\"q\n\004Tree\022\013\n\003mod\030\001 \001(\t\022$\n\005nodes\030\002 \003(\013"
-    "2\025.modlock.wasm.ui.Node\022\'\n\006region\030\003 \001(\0132"
-    "\027.modlock.wasm.ui.Region\022\r\n\005addon\030\004 \001(\t\""
-    "B\n\006Region\022\014\n\004left\030\001 \001(\002\022\013\n\003top\030\002 \001(\002\022\r\n\005"
-    "width\030\003 \001(\002\022\016\n\006height\030\004 \001(\002\".\n\006Screen\022$\n"
-    "\005trees\030\001 \003(\0132\025.modlock.wasm.ui.Tree\",\n\014U"
-    "iPressEvent\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001("
-    "\t\"\240\001\n\014UiInputEvent\022\016\n\006player\030\001 \001(\005\022\014\n\004no"
-    "de\030\002 \001(\t\022\016\n\004text\030\003 \001(\tH\000\022\020\n\006number\030\004 \001(\002"
-    "H\000\022\014\n\002on\030\005 \001(\010H\000\022\020\n\006choice\030\006 \001(\rH\000\022\'\n\005wh"
-    "eel\030\007 \001(\0132\026.modlock.wasm.ui.WheelH\000B\007\n\005v"
-    "alue\"D\n\tUiRequest\022\016\n\006player\030\001 \001(\005\022\'\n\006cha"
-    "nge\030\002 \001(\0132\027.modlock.wasm.ui.Change*\230\001\n\007S"
-    "caling\022\023\n\017SCALING_DEFAULT\020\000\022\017\n\013SCALING_F"
-    "IT\020\001\022\021\n\rSCALING_COVER\020\002\022\023\n\017SCALING_STRET"
-    "CH\020\003\022\025\n\021SCALING_FIT_WIDTH\020\004\022\026\n\022SCALING_F"
-    "IT_HEIGHT\020\005\022\020\n\014SCALING_NONE\020\006*\215\001\n\010HeroLo"
-    "ok\022\023\n\017HERO_LOOK_SMALL\020\000\022\022\n\016HERO_LOOK_CAR"
-    "D\020\001\022\022\n\016HERO_LOOK_ICON\020\002\022\026\n\022HERO_LOOK_VER"
-    "TICAL\020\003\022\025\n\021HERO_LOOK_TOP_BAR\020\004\022\025\n\021HERO_L"
-    "OOK_MINIMAP\020\005*\343\001\n\007HudPart\022\024\n\020HUD_PART_UN"
-    "KNOWN\020\000\022\025\n\021HUD_PART_LEVEL_UP\020\001\022\027\n\023HUD_PA"
-    "RT_OWN_HEALTH\020\002\022\024\n\020HUD_PART_TOP_BAR\020\003\022\021\n"
-    "\rHUD_PART_AMMO\020\004\022\022\n\016HUD_PART_SOULS\020\005\022\024\n\020"
-    "HUD_PART_MINIMAP\020\006\022\026\n\022HUD_PART_ABILITIES"
-    "\020\007\022\023\n\017HUD_PART_STATUS\020\010\022\022\n\016HUD_PART_STAT"
-    "S\020\t*\236\001\n\004Kind\022\016\n\nKIND_PANEL\020\000\022\016\n\nKIND_LAB"
-    "EL\020\001\022\016\n\nKIND_IMAGE\020\002\022\017\n\013KIND_BUTTON\020\003\022\017\n"
-    "\013KIND_LAYOUT\020\004\022\016\n\nKIND_ROUTE\020\005\022\023\n\017KIND_H"
-    "ERO_IMAGE\020\006\022\016\n\nKIND_INPUT\020\007\022\017\n\013KIND_AVAT"
-    "AR\020\010*p\n\010Overflow\022\024\n\020OVERFLOW_DEFAULT\020\000\022\023"
-    "\n\017OVERFLOW_SQUISH\020\001\022\021\n\rOVERFLOW_CLIP\020\002\022\023"
-    "\n\017OVERFLOW_SCROLL\020\003\022\021\n\rOVERFLOW_SHOW\020\004*\215"
-    "\001\n\rGradientShape\022\027\n\023GRADIENT_SHAPE_DOWN\020"
-    "\000\022\030\n\024GRADIENT_SHAPE_RIGHT\020\001\022\025\n\021GRADIENT_"
-    "SHAPE_UP\020\002\022\027\n\023GRADIENT_SHAPE_LEFT\020\003\022\031\n\025G"
-    "RADIENT_SHAPE_RADIAL\020\004*\236\001\n\006Weight\022\022\n\016WEI"
-    "GHT_DEFAULT\020\000\022\017\n\013WEIGHT_THIN\020\001\022\020\n\014WEIGHT"
-    "_LIGHT\020\002\022\021\n\rWEIGHT_NORMAL\020\003\022\021\n\rWEIGHT_ME"
-    "DIUM\020\004\022\024\n\020WEIGHT_SEMI_BOLD\020\005\022\017\n\013WEIGHT_B"
-    "OLD\020\006\022\020\n\014WEIGHT_BLACK\020\007*w\n\014TextOverflow\022"
-    "\031\n\025TEXT_OVERFLOW_DEFAULT\020\000\022\032\n\026TEXT_OVERF"
-    "LOW_ELLIPSIS\020\001\022\030\n\024TEXT_OVERFLOW_SHRINK\020\002"
-    "\022\026\n\022TEXT_OVERFLOW_CLIP\020\003*R\n\nDecoration\022\023"
-    "\n\017DECORATION_NONE\020\000\022\030\n\024DECORATION_UNDERL"
-    "INE\020\001\022\025\n\021DECORATION_STRIKE\020\002*\\\n\006Easing\022\023"
-    "\n\017EASING_EASE_OUT\020\000\022\022\n\016EASING_EASE_IN\020\001\022"
-    "\026\n\022EASING_EASE_IN_OUT\020\002\022\021\n\rEASING_LINEAR"
-    "\020\003*G\n\004Face\022\020\n\014FACE_DEFAULT\020\000\022\r\n\tFACE_BOD"
-    "Y\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n\nFACE_SERIF\020\003*]\n\004F"
-    "low\022\r\n\tFLOW_NONE\020\000\022\r\n\tFLOW_DOWN\020\001\022\016\n\nFLO"
-    "W_RIGHT\020\002\022\022\n\016FLOW_DOWN_WRAP\020\003\022\023\n\017FLOW_RI"
-    "GHT_WRAP\020\004*9\n\005Align\022\017\n\013ALIGN_START\020\000\022\020\n\014"
-    "ALIGN_CENTER\020\001\022\r\n\tALIGN_END\020\002B+Z)github."
-    "com/paralin/modlock/src/wasm/ui;uib\006prot"
-    "o3"
+    " \003(\t\022\022\n\ngeneration\030\004 \001(\004\"\205\001\n\004Tree\022\013\n\003mod"
+    "\030\001 \001(\t\022$\n\005nodes\030\002 \003(\0132\025.modlock.wasm.ui."
+    "Node\022\'\n\006region\030\003 \001(\0132\027.modlock.wasm.ui.R"
+    "egion\022\r\n\005addon\030\004 \001(\t\022\022\n\ngeneration\030\005 \001(\004"
+    "\"B\n\006Region\022\014\n\004left\030\001 \001(\002\022\013\n\003top\030\002 \001(\002\022\r\n"
+    "\005width\030\003 \001(\002\022\016\n\006height\030\004 \001(\002\".\n\006Screen\022$"
+    "\n\005trees\030\001 \003(\0132\025.modlock.wasm.ui.Tree\",\n\014"
+    "UiPressEvent\022\016\n\006player\030\001 \001(\005\022\014\n\004node\030\002 \001"
+    "(\t\"\240\001\n\014UiInputEvent\022\016\n\006player\030\001 \001(\005\022\014\n\004n"
+    "ode\030\002 \001(\t\022\016\n\004text\030\003 \001(\tH\000\022\020\n\006number\030\004 \001("
+    "\002H\000\022\014\n\002on\030\005 \001(\010H\000\022\020\n\006choice\030\006 \001(\rH\000\022\'\n\005w"
+    "heel\030\007 \001(\0132\026.modlock.wasm.ui.WheelH\000B\007\n\005"
+    "value\"D\n\tUiRequest\022\016\n\006player\030\001 \001(\005\022\'\n\006ch"
+    "ange\030\002 \001(\0132\027.modlock.wasm.ui.Change*\230\001\n\007"
+    "Scaling\022\023\n\017SCALING_DEFAULT\020\000\022\017\n\013SCALING_"
+    "FIT\020\001\022\021\n\rSCALING_COVER\020\002\022\023\n\017SCALING_STRE"
+    "TCH\020\003\022\025\n\021SCALING_FIT_WIDTH\020\004\022\026\n\022SCALING_"
+    "FIT_HEIGHT\020\005\022\020\n\014SCALING_NONE\020\006*\215\001\n\010HeroL"
+    "ook\022\023\n\017HERO_LOOK_SMALL\020\000\022\022\n\016HERO_LOOK_CA"
+    "RD\020\001\022\022\n\016HERO_LOOK_ICON\020\002\022\026\n\022HERO_LOOK_VE"
+    "RTICAL\020\003\022\025\n\021HERO_LOOK_TOP_BAR\020\004\022\025\n\021HERO_"
+    "LOOK_MINIMAP\020\005*\343\001\n\007HudPart\022\024\n\020HUD_PART_U"
+    "NKNOWN\020\000\022\025\n\021HUD_PART_LEVEL_UP\020\001\022\027\n\023HUD_P"
+    "ART_OWN_HEALTH\020\002\022\024\n\020HUD_PART_TOP_BAR\020\003\022\021"
+    "\n\rHUD_PART_AMMO\020\004\022\022\n\016HUD_PART_SOULS\020\005\022\024\n"
+    "\020HUD_PART_MINIMAP\020\006\022\026\n\022HUD_PART_ABILITIE"
+    "S\020\007\022\023\n\017HUD_PART_STATUS\020\010\022\022\n\016HUD_PART_STA"
+    "TS\020\t*\236\001\n\004Kind\022\016\n\nKIND_PANEL\020\000\022\016\n\nKIND_LA"
+    "BEL\020\001\022\016\n\nKIND_IMAGE\020\002\022\017\n\013KIND_BUTTON\020\003\022\017"
+    "\n\013KIND_LAYOUT\020\004\022\016\n\nKIND_ROUTE\020\005\022\023\n\017KIND_"
+    "HERO_IMAGE\020\006\022\016\n\nKIND_INPUT\020\007\022\017\n\013KIND_AVA"
+    "TAR\020\010*p\n\010Overflow\022\024\n\020OVERFLOW_DEFAULT\020\000\022"
+    "\023\n\017OVERFLOW_SQUISH\020\001\022\021\n\rOVERFLOW_CLIP\020\002\022"
+    "\023\n\017OVERFLOW_SCROLL\020\003\022\021\n\rOVERFLOW_SHOW\020\004*"
+    "\215\001\n\rGradientShape\022\027\n\023GRADIENT_SHAPE_DOWN"
+    "\020\000\022\030\n\024GRADIENT_SHAPE_RIGHT\020\001\022\025\n\021GRADIENT"
+    "_SHAPE_UP\020\002\022\027\n\023GRADIENT_SHAPE_LEFT\020\003\022\031\n\025"
+    "GRADIENT_SHAPE_RADIAL\020\004*\236\001\n\006Weight\022\022\n\016WE"
+    "IGHT_DEFAULT\020\000\022\017\n\013WEIGHT_THIN\020\001\022\020\n\014WEIGH"
+    "T_LIGHT\020\002\022\021\n\rWEIGHT_NORMAL\020\003\022\021\n\rWEIGHT_M"
+    "EDIUM\020\004\022\024\n\020WEIGHT_SEMI_BOLD\020\005\022\017\n\013WEIGHT_"
+    "BOLD\020\006\022\020\n\014WEIGHT_BLACK\020\007*w\n\014TextOverflow"
+    "\022\031\n\025TEXT_OVERFLOW_DEFAULT\020\000\022\032\n\026TEXT_OVER"
+    "FLOW_ELLIPSIS\020\001\022\030\n\024TEXT_OVERFLOW_SHRINK\020"
+    "\002\022\026\n\022TEXT_OVERFLOW_CLIP\020\003*R\n\nDecoration\022"
+    "\023\n\017DECORATION_NONE\020\000\022\030\n\024DECORATION_UNDER"
+    "LINE\020\001\022\025\n\021DECORATION_STRIKE\020\002*\\\n\006Easing\022"
+    "\023\n\017EASING_EASE_OUT\020\000\022\022\n\016EASING_EASE_IN\020\001"
+    "\022\026\n\022EASING_EASE_IN_OUT\020\002\022\021\n\rEASING_LINEA"
+    "R\020\003*G\n\004Face\022\020\n\014FACE_DEFAULT\020\000\022\r\n\tFACE_BO"
+    "DY\020\001\022\016\n\nFACE_BLOCK\020\002\022\016\n\nFACE_SERIF\020\003*]\n\004"
+    "Flow\022\r\n\tFLOW_NONE\020\000\022\r\n\tFLOW_DOWN\020\001\022\016\n\nFL"
+    "OW_RIGHT\020\002\022\022\n\016FLOW_DOWN_WRAP\020\003\022\023\n\017FLOW_R"
+    "IGHT_WRAP\020\004*9\n\005Align\022\017\n\013ALIGN_START\020\000\022\020\n"
+    "\014ALIGN_CENTER\020\001\022\r\n\tALIGN_END\020\002B+Z)github"
+    ".com/paralin/modlock/src/wasm/ui;uib\006pro"
+    "to3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto = {
     false,
     false,
-    5922,
+    5963,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto,
     "github.com/paralin/modlock/src/wasm/ui/ui.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fui_2fui_2eproto_once,
@@ -8998,7 +9005,13 @@ Change::Change(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
-  _impl_.reset_ = from._impl_.reset_;
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, generation_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, generation_),
+           offsetof(Impl_, reset_) -
+               offsetof(Impl_, generation_) +
+               sizeof(Impl_::reset_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.ui.Change)
 }
@@ -9011,7 +9024,12 @@ PROTOBUF_NDEBUG_INLINE Change::Impl_::Impl_(
 
 inline void Change::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.reset_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, generation_),
+           0,
+           offsetof(Impl_, reset_) -
+               offsetof(Impl_, generation_) +
+               sizeof(Impl_::reset_));
 }
 Change::~Change() {
   // @@protoc_insertion_point(destructor:modlock.wasm.ui.Change)
@@ -9086,16 +9104,16 @@ Change::GetClassData() const {
   return Change_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 1, 38, 2>
+const ::_pbi::TcParseTable<2, 4, 1, 38, 2>
 Change::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Change, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4,  // num_field_entries
     1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Change_class_data_.base(),
@@ -9105,10 +9123,13 @@ Change::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::ui::Change>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // uint64 generation = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Change, _impl_.generation_), 2>(),
+     {32, 2, 0,
+      PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_)}},
     // bool reset = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Change, _impl_.reset_), 2>(),
-     {8, 2, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Change, _impl_.reset_), 3>(),
+     {8, 3, 0,
       PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_)}},
     // repeated .modlock.wasm.ui.Node set = 2;
     {::_pbi::TcParser::FastMtR1,
@@ -9122,11 +9143,13 @@ Change::_table_ = {
     65535, 65535
   }}, {{
     // bool reset = 1;
-    {PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // repeated .modlock.wasm.ui.Node set = 2;
     {PROTOBUF_FIELD_OFFSET(Change, _impl_.set_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated string removed = 3;
     {PROTOBUF_FIELD_OFFSET(Change, _impl_.removed_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
+    // uint64 generation = 4;
+    {PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::ui::Node>()},
@@ -9153,7 +9176,11 @@ PROTOBUF_NOINLINE void Change::Clear() {
       _impl_.removed_.Clear();
     }
   }
-  _impl_.reset_ = false;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000cU)) {
+    ::memset(&_impl_.generation_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.reset_) -
+        reinterpret_cast<char*>(&_impl_.generation_)) + sizeof(_impl_.reset_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -9178,7 +9205,7 @@ PROTOBUF_NOINLINE void Change::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // bool reset = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (this_._internal_reset() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -9209,6 +9236,15 @@ PROTOBUF_NOINLINE void Change::Clear() {
     }
   }
 
+  // uint64 generation = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (this_._internal_generation() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          4, this_._internal_generation(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -9234,7 +9270,7 @@ PROTOBUF_NOINLINE void Change::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     // repeated .modlock.wasm.ui.Node set = 2;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_set_size();
@@ -9251,8 +9287,15 @@ PROTOBUF_NOINLINE void Change::Clear() {
             this_._internal_removed().Get(i));
       }
     }
-    // bool reset = 1;
+    // uint64 generation = 4;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (this_._internal_generation() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_generation());
+      }
+    }
+    // bool reset = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (this_._internal_reset() != 0) {
         total_size += 2;
       }
@@ -9277,7 +9320,7 @@ void Change::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_set()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -9289,6 +9332,11 @@ void Change::MergeImpl(::google::protobuf::MessageLite& to_msg,
           from._internal_removed());
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      if (from._internal_generation() != 0) {
+        _this->_impl_.generation_ = from._impl_.generation_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (from._internal_reset() != 0) {
         _this->_impl_.reset_ = from._impl_.reset_;
       }
@@ -9313,7 +9361,12 @@ void Change::InternalSwap(Change* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.set_.InternalSwap(&other->_impl_.set_);
   _impl_.removed_.InternalSwap(&other->_impl_.removed_);
-  swap(_impl_.reset_, other->_impl_.reset_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Change, _impl_.reset_)
+      + sizeof(Change::_impl_.reset_)
+      - PROTOBUF_FIELD_OFFSET(Change, _impl_.generation_)>(
+          reinterpret_cast<char*>(&_impl_.generation_),
+          reinterpret_cast<char*>(&other->_impl_.generation_));
 }
 
 ::google::protobuf::Metadata Change::GetMetadata() const {
@@ -9365,6 +9418,7 @@ Tree::Tree(
   _impl_.region_ = (CheckHasBit(cached_has_bits, 0x00000008U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.region_)
                 : nullptr;
+  _impl_.generation_ = from._impl_.generation_;
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.ui.Tree)
 }
@@ -9378,7 +9432,12 @@ PROTOBUF_NDEBUG_INLINE Tree::Impl_::Impl_(
 
 inline void Tree::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.region_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, region_),
+           0,
+           offsetof(Impl_, generation_) -
+               offsetof(Impl_, region_) +
+               sizeof(Impl_::generation_));
 }
 Tree::~Tree() {
   // @@protoc_insertion_point(destructor:modlock.wasm.ui.Tree)
@@ -9452,16 +9511,16 @@ Tree::GetClassData() const {
   return Tree_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 2, 37, 2>
+const ::_pbi::TcParseTable<3, 5, 2, 37, 2>
 Tree::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Tree, _impl_._has_bits_),
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    5, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967264,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    5,  // num_field_entries
     2,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Tree_class_data_.base(),
@@ -9471,10 +9530,7 @@ Tree::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::ui::Tree>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // string addon = 4;
-    {::_pbi::TcParser::FastUS1,
-     {34, 2, 0,
-      PROTOBUF_FIELD_OFFSET(Tree, _impl_.addon_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string mod = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 1, 0,
@@ -9487,6 +9543,16 @@ Tree::_table_ = {
     {::_pbi::TcParser::FastMtS1,
      {26, 3, 1,
       PROTOBUF_FIELD_OFFSET(Tree, _impl_.region_)}},
+    // string addon = 4;
+    {::_pbi::TcParser::FastUS1,
+     {34, 2, 0,
+      PROTOBUF_FIELD_OFFSET(Tree, _impl_.addon_)}},
+    // uint64 generation = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Tree, _impl_.generation_), 4>(),
+     {40, 4, 0,
+      PROTOBUF_FIELD_OFFSET(Tree, _impl_.generation_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -9498,6 +9564,8 @@ Tree::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Tree, _impl_.region_), _Internal::kHasBitsOffset + 3, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // string addon = 4;
     {PROTOBUF_FIELD_OFFSET(Tree, _impl_.addon_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // uint64 generation = 5;
+    {PROTOBUF_FIELD_OFFSET(Tree, _impl_.generation_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::modlock::wasm::ui::Node>()},
@@ -9533,6 +9601,7 @@ PROTOBUF_NOINLINE void Tree::Clear() {
       _impl_.region_->Clear();
     }
   }
+  _impl_.generation_ = ::uint64_t{0u};
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -9596,6 +9665,15 @@ PROTOBUF_NOINLINE void Tree::Clear() {
     }
   }
 
+  // uint64 generation = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (this_._internal_generation() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+          5, this_._internal_generation(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -9621,7 +9699,7 @@ PROTOBUF_NOINLINE void Tree::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
     // repeated .modlock.wasm.ui.Node nodes = 2;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_nodes_size();
@@ -9648,6 +9726,13 @@ PROTOBUF_NOINLINE void Tree::Clear() {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.region_);
     }
+    // uint64 generation = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (this_._internal_generation() != 0) {
+        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+            this_._internal_generation());
+      }
+    }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
@@ -9668,7 +9753,7 @@ void Tree::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_nodes()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -9700,6 +9785,11 @@ void Tree::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.region_->MergeFrom(*from._impl_.region_);
       }
     }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      if (from._internal_generation() != 0) {
+        _this->_impl_.generation_ = from._impl_.generation_;
+      }
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -9723,7 +9813,12 @@ void Tree::InternalSwap(Tree* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _impl_.nodes_.InternalSwap(&other->_impl_.nodes_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.mod_, &other->_impl_.mod_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.addon_, &other->_impl_.addon_, arena);
-  swap(_impl_.region_, other->_impl_.region_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Tree, _impl_.generation_)
+      + sizeof(Tree::_impl_.generation_)
+      - PROTOBUF_FIELD_OFFSET(Tree, _impl_.region_)>(
+          reinterpret_cast<char*>(&_impl_.region_),
+          reinterpret_cast<char*>(&other->_impl_.region_));
 }
 
 ::google::protobuf::Metadata Tree::GetMetadata() const {

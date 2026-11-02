@@ -50,20 +50,16 @@ func (m *Mirror) Screen() (*ui.Screen, <-chan struct{}) {
 // a reset with no nodes for a tree that is gone. It returns nothing when the
 // screens match.
 func Changes(from, to *ui.Screen) map[string]*ui.Change {
-	// Index the old trees' nodes by id.
-	old := make(map[string]map[string]*ui.Node, len(from.GetTrees()))
+	// Index the old trees with their layout lifetimes.
+	old := make(map[string]*ui.Tree, len(from.GetTrees()))
 	for _, tree := range from.GetTrees() {
-		nodes := make(map[string]*ui.Node, len(tree.GetNodes()))
-		for _, node := range tree.GetNodes() {
-			nodes[node.GetId()] = node
-		}
-		old[tree.GetMod()] = nodes
+		old[tree.GetMod()] = tree
 	}
 
 	// Change each new tree, and clear each one that is gone.
 	changes := make(map[string]*ui.Change)
 	for _, tree := range to.GetTrees() {
-		if change := treeChange(old[tree.GetMod()], tree.GetNodes()); change != nil {
+		if change := treeChange(old[tree.GetMod()], tree); change != nil {
 			changes[tree.GetMod()] = change
 		}
 		delete(old, tree.GetMod())
@@ -74,17 +70,23 @@ func Changes(from, to *ui.Screen) map[string]*ui.Change {
 	return changes
 }
 
-// treeChange returns the change that turns a tree with the nodes old into one
-// with nodes, or nil when they match. A tree absent before is sent whole.
-func treeChange(old map[string]*ui.Node, nodes []*ui.Node) *ui.Change {
+// treeChange returns the nodes and lifetime that turn before into after, or
+// nil when they match. A new lifetime starts with the whole tree.
+func treeChange(before, after *ui.Tree) *ui.Change {
 	// Send a new tree whole.
-	if old == nil {
-		return &ui.Change{Reset_: true, Set: nodes}
+	if before == nil || before.GetGeneration() != after.GetGeneration() {
+		return &ui.Change{Reset_: true, Set: after.GetNodes(), Generation: after.GetGeneration()}
+	}
+
+	// Index the previous nodes without changing the sampled screen.
+	old := make(map[string]*ui.Node, len(before.GetNodes()))
+	for _, node := range before.GetNodes() {
+		old[node.GetId()] = node
 	}
 
 	// Set the nodes that differ, and remove those that are gone.
 	change := &ui.Change{}
-	for _, node := range nodes {
+	for _, node := range after.GetNodes() {
 		if !node.EqualVT(old[node.GetId()]) {
 			change.Set = append(change.Set, node)
 		}

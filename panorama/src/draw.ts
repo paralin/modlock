@@ -462,8 +462,11 @@ interface Drawn {
 
 /** Drawing keeps the panels of every mod's tree under one parent. */
 export class Drawing {
-  /** mods holds each mod's drawn nodes by id; the root's id is empty. */
-  private readonly mods = new Map<string, Map<string, Drawn>>()
+  /** mods holds each mod's lifetime and drawn nodes; the root's id is empty. */
+  private readonly mods = new Map<
+    string,
+    { generation: bigint; nodes: Map<string, Drawn> }
+  >()
 
   /** routes holds each mod's routes, the value of each by name. */
   private readonly routes = new Map<string, Map<string, string>>()
@@ -496,8 +499,8 @@ export class Drawing {
     )
     for (const [mod, drawn] of this.mods) {
       if (!trees.has(mod)) {
-        drawn.get('')?.panel.DeleteAsync(0)
-        this.unloaded ||= [...drawn.values()].some(
+        drawn.nodes.get('')?.panel.DeleteAsync(0)
+        this.unloaded ||= [...drawn.nodes.values()].some(
           (each) => each.layout !== null,
         )
         this.mods.delete(mod)
@@ -539,8 +542,20 @@ export class Drawing {
     const sent = this.routes.get(mod) ?? new Map<string, string>()
     this.routes.set(mod, routes)
 
-    // Draw the mod's tree from its root, reusing the panels drawn last time.
-    const previous = this.mods.get(mod) ?? new Map<string, Drawn>()
+    // A clear followed by a redraw can share one sampled screen. Its new
+    // generation still replaces the previous layout and its script state.
+    const old = this.mods.get(mod)
+    const generation = tree.generation ?? 0n
+    if (old && old.generation !== generation) {
+      old.nodes.get('')?.panel.DeleteAsync(0)
+      this.unloaded ||= [...old.nodes.values()].some(
+        (each) => each.layout !== null,
+      )
+    }
+
+    // Reuse panels only within the same UI lifetime.
+    const previous =
+      old?.generation === generation ? old.nodes : new Map<string, Drawn>()
     const drawn = new Map<string, Drawn>()
     const root = nodes.get('') ?? { id: '' }
     this.drawNode(mod, root, this.parent, previous, drawn, nodes, tree.region)
@@ -581,7 +596,7 @@ export class Drawing {
         this.leave(old)
       }
     }
-    this.mods.set(mod, drawn)
+    this.mods.set(mod, { generation, nodes: drawn })
   }
 
   /**
@@ -619,7 +634,7 @@ export class Drawing {
    * the game still holds.
    */
   private current(mod: string, id: string, panel: Panel): Drawn | undefined {
-    const drawn = this.mods.get(mod)?.get(id)
+    const drawn = this.mods.get(mod)?.nodes.get(id)
     return drawn?.panel === panel && panel.IsValid() ? drawn : undefined
   }
 
@@ -657,7 +672,7 @@ export class Drawing {
    */
   private point(mod: string, id: string, over: boolean): void {
     // Skip a repeated event and a panel the game has dropped.
-    const drawn = this.mods.get(mod)?.get(id)
+    const drawn = this.mods.get(mod)?.nodes.get(id)
     if (!drawn || drawn.over === over || !drawn.panel.IsValid()) {
       return
     }
@@ -924,7 +939,7 @@ export class Drawing {
 
   /** activate presses a button that is not disabled, playing its sound. */
   private activate(mod: string, id: string): void {
-    const drawn = this.mods.get(mod)?.get(id)
+    const drawn = this.mods.get(mod)?.nodes.get(id)
     if (drawn?.disabled) {
       return
     }

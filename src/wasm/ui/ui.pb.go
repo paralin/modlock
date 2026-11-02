@@ -2088,6 +2088,10 @@ type Change struct {
 	Set []*Node `protobuf:"bytes,2,rep,name=set,proto3" json:"set,omitempty"`
 	// Removed holds the ids of the nodes to drop.
 	Removed []string `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
+	// Generation identifies the lifetime of the UI tree. Screen relays set it
+	// so a reset survives coalescing with the next redraw. Zero leaves the
+	// current generation unchanged.
+	Generation uint64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
 }
 
 func (x *Change) Reset() {
@@ -2117,6 +2121,13 @@ func (x *Change) GetRemoved() []string {
 	return nil
 }
 
+func (x *Change) GetGeneration() uint64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
 // Tree is one mod's whole tree for one player.
 type Tree struct {
 	unknownFields []byte
@@ -2132,6 +2143,9 @@ type Tree struct {
 	// style sheets the tree names. The host that mounted the addon sets it; it is
 	// empty for a mod with no content.
 	Addon string `protobuf:"bytes,4,opt,name=addon,proto3" json:"addon,omitempty"`
+	// Generation changes when the mod clears this player's UI. A renderer
+	// replaces the old panels when it changes, even if their nodes match.
+	Generation uint64 `protobuf:"varint,5,opt,name=generation,proto3" json:"generation,omitempty"`
 }
 
 func (x *Tree) Reset() {
@@ -2166,6 +2180,13 @@ func (x *Tree) GetAddon() string {
 		return x.Addon
 	}
 	return ""
+}
+
+func (x *Tree) GetGeneration() uint64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
 }
 
 // Region is a box on the screen, each side a fraction of the screen's width or
@@ -2894,6 +2915,7 @@ func (m *Change) CloneVT() *Change {
 	}
 	r := new(Change)
 	r.Reset_ = m.Reset_
+	r.Generation = m.Generation
 	r.Set = protobuf_go_lite.CloneVTSlice(m.Set)
 	r.Removed = protobuf_go_lite.CloneSlice(m.Removed)
 	if len(m.unknownFields) > 0 {
@@ -2913,6 +2935,7 @@ func (m *Tree) CloneVT() *Tree {
 	r := new(Tree)
 	r.Mod = m.Mod
 	r.Addon = m.Addon
+	r.Generation = m.Generation
 	r.Nodes = protobuf_go_lite.CloneVTSlice(m.Nodes)
 	r.Region = protobuf_go_lite.CloneVTValue(m.Region)
 	if len(m.unknownFields) > 0 {
@@ -3847,6 +3870,9 @@ func (this *Change) EqualVT(that *Change) bool {
 	if !protobuf_go_lite.EqualSlice(this.Removed, that.Removed) {
 		return false
 	}
+	if this.Generation != that.Generation {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -3874,6 +3900,9 @@ func (this *Tree) EqualVT(that *Tree) bool {
 		return false
 	}
 	if this.Addon != that.Addon {
+		return false
+	}
+	if this.Generation != that.Generation {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -6409,6 +6438,11 @@ func (x *Change) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("removed")
 		s.WriteStringArray(x.Removed)
 	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint64(x.Generation)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -6454,6 +6488,9 @@ func (x *Change) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				return
 			}
 			x.Removed = s.ReadStringArray()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint64()
 		}
 	})
 }
@@ -6496,6 +6533,11 @@ func (x *Tree) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("addon")
 		s.WriteString(x.Addon)
+	}
+	if x.Generation != 0 || s.HasField("generation") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("generation")
+		s.WriteUint64(x.Generation)
 	}
 	s.WriteObjectEnd()
 }
@@ -6545,6 +6587,9 @@ func (x *Tree) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "addon":
 			s.AddField("addon")
 			x.Addon = s.ReadString()
+		case "generation":
+			s.AddField("generation")
+			x.Generation = s.ReadUint64()
 		}
 	})
 }
@@ -8369,6 +8414,11 @@ func (m *Change) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x20
+	}
 	if len(m.Removed) > 0 {
 		for iNdEx := len(m.Removed) - 1; iNdEx >= 0; iNdEx-- {
 			i = protobuf_go_lite.EncodeString(dAtA, i, m.Removed[iNdEx])
@@ -8424,6 +8474,11 @@ func (m *Tree) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	_ = l
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Generation != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Generation))
+		i--
+		dAtA[i] = 0x28
 	}
 	if len(m.Addon) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Addon)
@@ -9225,6 +9280,7 @@ func (m *Change) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += protobuf_go_lite.SizeStringSlice(1, m.Removed)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9245,6 +9301,7 @@ func (m *Tree) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Addon)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Generation)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10156,6 +10213,10 @@ func (x *Change) MarshalProtoText() string {
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
 	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -10189,6 +10250,10 @@ func (x *Tree) MarshalProtoText() string {
 	if x.Addon != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "addon")
 		protobuf_go_lite.TextWriteString(&sb, x.Addon)
+	}
+	if x.Generation != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "generation")
+		protobuf_go_lite.TextWriteUint(&sb, x.Generation)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -12542,6 +12607,15 @@ func (m *Change) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Removed = append(m.Removed, v)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -12633,6 +12707,15 @@ func (m *Tree) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Addon = v
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Generation", wireType)
+			}
+			m.Generation = 0
+			m.Generation, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

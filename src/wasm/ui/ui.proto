@@ -741,6 +741,11 @@ message Change {
 
   // Removed holds the ids of the nodes to drop.
   repeated string removed = 3;
+
+  // Generation identifies the lifetime of the UI tree. Screen relays set it
+  // so a reset survives coalescing with the next redraw. Zero leaves the
+  // current generation unchanged.
+  uint64 generation = 4;
 }
 
 // Tree is one mod's whole tree for one player.
@@ -760,6 +765,10 @@ message Tree {
   // style sheets the tree names. The host that mounted the addon sets it; it is
   // empty for a mod with no content.
   string addon = 4;
+
+  // Generation changes when the mod clears this player's UI. A renderer
+  // replaces the old panels when it changes, even if their nodes match.
+  uint64 generation = 5;
 }
 
 // Region is a box on the screen, each side a fraction of the screen's width or

@@ -72,6 +72,28 @@ func TestScreensServeEachPlayer(t *testing.T) {
 		t.Fatalf("the mirror shows %v", screen)
 	}
 
+	// A reload clears and redraws before the guest samples. Identical nodes
+	// still start another lifetime, carried through a daemon snapshot and diff.
+	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: "arena", Change: &ui.Change{Reset_: true}}}})
+	screens.Handle(shown(0, "arena", "Go"))
+	relay := NewScreens(0)
+	for _, event := range screens.Snapshot() {
+		relay.Handle(event)
+	}
+
+	// The guest's sampled delta preserves the lifetime, even though its
+	// previous frame and the replacement contain the same nodes.
+	reloaded, _, _ := relay.Player(guest)
+	changes = Changes(now, reloaded)
+	if !changes["arena"].GetReset_() || changes["arena"].GetGeneration() != now.GetTrees()[0].GetGeneration()+1 {
+		t.Fatalf("the reload lost its lifetime: %v", changes)
+	}
+	mirror.Apply(changes, false)
+	if screen, _ := mirror.Screen(); !screen.EqualVT(reloaded) {
+		t.Fatalf("the mirrored reload differs: %v", screen)
+	}
+	now = reloaded
+
 	// A tree the mod hides is cleared on the mirror, and a player who
 	// leaves has an empty screen.
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: "arena", Change: &ui.Change{Reset_: true}}}})

@@ -969,10 +969,26 @@ test('loads layouts and style sheets a host allows and hands them data', () => {
   expect(panel.attributes.get('modlock_data')).toBe('{"gold":2}')
   expect(dispatched).toEqual([['PlaySoundEffect', layoutDataChanged]])
 
+  // A reload replaces the layout even when its nodes and URL match, then
+  // ordinary draws retain only that replacement.
+  const beforeReload = root.children[0]!
+  const reloaded = layout('shop.xml', '{"gold":2}')
+  reloaded.trees![0]!.generation = 2n
+  drawing.draw(reloaded)
+  expect(beforeReload.valid).toBe(false)
+  const replacementRoot = root.children[0]!
+  const replacement = root.children[0]!.children[0]!
+  expect(replacement).not.toBe(panel)
+  expect(replacement.layout).toBe('file://arena/shop.xml')
+  expect(root.children).toHaveLength(1)
+  drawing.draw(reloaded)
+  expect(root.children[0]!.children[0]).toBe(replacement)
+  expect(unloaded).toBe(1)
+
   // A layout that failed to load tries again on the next draw.
   drawing.draw(layout('missing.xml', ''))
-  expect(panel.valid).toBe(false)
-  expect(unloaded).toBe(1)
+  expect(replacementRoot.valid).toBe(false)
+  expect(unloaded).toBe(2)
   const missing = root.children[0]!.children[0]!
   drawing.draw(layout('missing.xml', ''))
   expect(root.children[0]!.children[0]).toBe(missing)

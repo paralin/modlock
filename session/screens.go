@@ -131,7 +131,7 @@ func (s *Screens) Snapshot() []*control.HostEvent {
 	// Send every tree whole.
 	for _, slot := range slices.Sorted(maps.Keys(s.trees)) {
 		for _, tree := range s.trees[slot].screen().GetTrees() {
-			change := &ui.Change{Reset_: true, Set: tree.GetNodes()}
+			change := &ui.Change{Reset_: true, Set: tree.GetNodes(), Generation: tree.GetGeneration()}
 			update := &control.UiChanged{Mod: tree.GetMod(), Slot: slot, Change: change}
 			events = append(events, &control.HostEvent{Body: &control.HostEvent_Ui{Ui: update}})
 		}
@@ -139,31 +139,42 @@ func (s *Screens) Snapshot() []*control.HostEvent {
 	return events
 }
 
-// trees holds one player's mod trees: each mod's nodes by id.
-type trees map[string]map[string]*ui.Node
+// trees holds one player's mod trees, retaining cleared lifetimes so the next
+// redraw cannot reuse a layout from before the clear.
+type trees map[string]*tree
+
+// tree keeps a mod's current nodes and the lifetime of their panels.
+type tree struct {
+	// nodes holds the current nodes by id, empty while the mod hides its UI.
+	nodes map[string]*ui.Node
+	// generation changes on a clear and travels with subsequent redraws.
+	generation uint64
+}
 
 // apply applies change to mod's tree.
 func (t trees) apply(mod string, change *ui.Change) {
 	// Start the mod's tree over on a reset.
-	nodes := t[mod]
-	if nodes == nil || change.GetReset_() {
-		nodes = make(map[string]*ui.Node)
+	current := t[mod]
+	if current == nil {
+		current = &tree{generation: 1}
+		t[mod] = current
+	}
+	if change.GetGeneration() != 0 {
+		current.generation = change.GetGeneration()
+	} else if change.GetReset_() && len(change.GetSet()) == 0 {
+		current.generation++
+	}
+	if current.nodes == nil || change.GetReset_() {
+		current.nodes = make(map[string]*ui.Node)
 	}
 
 	// Set and remove the changed nodes.
 	for _, node := range change.GetSet() {
-		nodes[node.GetId()] = node
+		current.nodes[node.GetId()] = node
 	}
 	for _, id := range change.GetRemoved() {
-		delete(nodes, id)
+		delete(current.nodes, id)
 	}
-
-	// Keep only a tree that still has nodes.
-	if len(nodes) == 0 {
-		delete(t, mod)
-		return
-	}
-	t[mod] = nodes
 }
 
 // screen returns the trees as a screen, in a stable order. The nodes are
@@ -171,9 +182,13 @@ func (t trees) apply(mod string, change *ui.Change) {
 func (t trees) screen() *ui.Screen {
 	screen := &ui.Screen{}
 	for _, mod := range slices.Sorted(maps.Keys(t)) {
-		tree := &ui.Tree{Mod: mod}
-		for _, id := range slices.Sorted(maps.Keys(t[mod])) {
-			tree.Nodes = append(tree.Nodes, t[mod][id])
+		current := t[mod]
+		if len(current.nodes) == 0 {
+			continue
+		}
+		tree := &ui.Tree{Mod: mod, Generation: current.generation}
+		for _, id := range slices.Sorted(maps.Keys(current.nodes)) {
+			tree.Nodes = append(tree.Nodes, current.nodes[id])
 		}
 		screen.Trees = append(screen.Trees, tree)
 	}

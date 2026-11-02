@@ -2623,6 +2623,12 @@ export interface Change {
    * Removed holds the ids of the nodes to drop.
    */
   removed?: string[]
+  /**
+   * Generation identifies the lifetime of the UI tree. Screen relays set it
+   * so a reset survives coalescing with the next redraw. Zero leaves the
+   * current generation unchanged.
+   */
+  generation?: bigint
 }
 
 export const Change: MessageType<Change> =
@@ -2632,6 +2638,7 @@ export const Change: MessageType<Change> =
       [1, 'reset', 8],
       [2, 'set', 11, 1, Node.codec],
       [3, 'removed', 9, 1],
+      [4, 'generation', 4],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Change): Change => {
@@ -2647,6 +2654,9 @@ export const Change: MessageType<Change> =
               break
             case 3:
               ;(m.removed ??= []).push(r.string())
+              break
+            case 4:
+              m.generation = r.uint64()
               break
             default:
               r.skip(t)
@@ -2666,6 +2676,10 @@ export const Change: MessageType<Change> =
         {
           const a = m.removed
           if (a != null) for (const e of a) w.uint32(26).string(e)
+        }
+        {
+          const v = m.generation
+          if (v) w.uint32(32).uint64(v)
         }
       },
     },
@@ -2697,6 +2711,11 @@ export interface Tree {
    * empty for a mod with no content.
    */
   addon?: string
+  /**
+   * Generation changes when the mod clears this player's UI. A renderer
+   * replaces the old panels when it changes, even if their nodes match.
+   */
+  generation?: bigint
 }
 
 export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
@@ -2706,6 +2725,7 @@ export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
     [2, 'nodes', 11, 1, Node.codec],
     [3, 'region', 11, 0, Region.codec],
     [4, 'addon', 9],
+    [5, 'generation', 4],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Tree): Tree => {
@@ -2724,6 +2744,9 @@ export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
             break
           case 4:
             m.addon = r.string()
+            break
+          case 5:
+            m.generation = r.uint64()
             break
           default:
             r.skip(t)
@@ -2747,6 +2770,10 @@ export const Tree: MessageType<Tree> = /* @__PURE__ */ createMessageType<Tree>(
       {
         const v = m.addon
         if (v) w.uint32(34).string(v)
+      }
+      {
+        const v = m.generation
+        if (v) w.uint32(40).uint64(v)
       }
     },
   },

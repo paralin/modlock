@@ -6135,6 +6135,7 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
     kModFieldNumber = 1,
     kAddonFieldNumber = 4,
     kRegionFieldNumber = 3,
+    kGenerationFieldNumber = 5,
   };
   // repeated .modlock.wasm.ui.Node nodes = 2;
   int nodes_size() const;
@@ -6198,11 +6199,21 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
   ::modlock::wasm::ui::Region* PROTOBUF_NONNULL _internal_mutable_region();
 
   public:
+  // uint64 generation = 5;
+  void clear_generation() ;
+  ::uint64_t generation() const;
+  void set_generation(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_generation() const;
+  void _internal_set_generation(::uint64_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.ui.Tree)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
                                    2, 37,
                                    2>
       _table_;
@@ -6228,6 +6239,7 @@ class MODLOCK_API Tree final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr mod_;
     ::google::protobuf::internal::ArenaStringPtr addon_;
     ::modlock::wasm::ui::Region* PROTOBUF_NULLABLE region_;
+    ::uint64_t generation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -6381,6 +6393,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
   enum : int {
     kSetFieldNumber = 2,
     kRemovedFieldNumber = 3,
+    kGenerationFieldNumber = 4,
     kResetFieldNumber = 1,
   };
   // repeated .modlock.wasm.ui.Node set = 2;
@@ -6422,6 +6435,16 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
   ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL _internal_mutable_removed();
 
   public:
+  // uint64 generation = 4;
+  void clear_generation() ;
+  ::uint64_t generation() const;
+  void set_generation(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_generation() const;
+  void _internal_set_generation(::uint64_t value);
+
+  public:
   // bool reset = 1;
   void clear_reset() ;
   bool reset() const;
@@ -6436,7 +6459,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    1, 38,
                                    2>
       _table_;
@@ -6460,6 +6483,7 @@ class MODLOCK_API Change final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::modlock::wasm::ui::Node > set_;
     ::google::protobuf::RepeatedPtrField<::std::string> removed_;
+    ::uint64_t generation_;
     bool reset_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -12601,7 +12625,7 @@ inline void Change::clear_reset() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.reset_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline bool Change::reset() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Change.reset)
@@ -12609,7 +12633,7 @@ inline bool Change::reset() const {
 }
 inline void Change::set_reset(bool value) {
   _internal_set_reset(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Change.reset)
 }
 inline bool Change::_internal_reset() const {
@@ -12747,6 +12771,31 @@ inline ::google::protobuf::RepeatedPtrField<::std::string>* PROTOBUF_NONNULL
 Change::_internal_mutable_removed() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.removed_;
+}
+
+// uint64 generation = 4;
+inline void Change::clear_generation() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = ::uint64_t{0u};
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::uint64_t Change::generation() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Change.generation)
+  return _internal_generation();
+}
+inline void Change::set_generation(::uint64_t value) {
+  _internal_set_generation(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Change.generation)
+}
+inline ::uint64_t Change::_internal_generation() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generation_;
+}
+inline void Change::_internal_set_generation(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -13036,6 +13085,31 @@ inline void Tree::set_allocated_addon(::std::string* PROTOBUF_NULLABLE value) {
     _impl_.addon_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.ui.Tree.addon)
+}
+
+// uint64 generation = 5;
+inline void Tree::clear_generation() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = ::uint64_t{0u};
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline ::uint64_t Tree::generation() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Tree.generation)
+  return _internal_generation();
+}
+inline void Tree::set_generation(::uint64_t value) {
+  _internal_set_generation(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Tree.generation)
+}
+inline ::uint64_t Tree::_internal_generation() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.generation_;
+}
+inline void Tree::_internal_set_generation(::uint64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.generation_ = value;
 }
 
 // -------------------------------------------------------------------
