@@ -139,6 +139,7 @@ export {
   type HeroProps,
   hide,
   hideHud,
+  cursorFree,
   freeCursor,
   type HudPart,
   type ImageProps,

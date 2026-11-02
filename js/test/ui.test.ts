@@ -15,7 +15,7 @@ import {
 } from '../../src/wasm/ui/ui.pb.js'
 import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
-import { Action, hideHud, jsx, sheet, show } from '../src/index.js'
+import { Action, freeCursor, hideHud, jsx, sheet, show } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
 import { change } from '../src/ui.js'
 
@@ -84,6 +84,21 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
   ])
   hideHud(player, [])
   expect(sent.at(-1)!.change!.set![0]!.hideHud ?? []).toEqual([])
+
+  // Each ask for the cursor reaches the root, even when nothing else changed,
+  // so a player who put the cursor away gets it back; asking it away does not
+  // count as an ask, and a redraw leaves the count alone.
+  freeCursor(player, true)
+  expect(sent.at(-1)!.change!.set![0]!.freeCursor).toBe(true)
+  expect(sent.at(-1)!.change!.set![0]!.freeCursorAsks).toBe(1)
+  freeCursor(player, true)
+  expect(sent.at(-1)!.change!.set![0]!.freeCursorAsks).toBe(2)
+  const asked = sent.length
+  show(player, keys('A'))
+  expect(sent.length).toBe(asked)
+  freeCursor(player, false)
+  expect(sent.at(-1)!.change!.set![0]!.freeCursorAsks).toBe(2)
+  expect(sent.at(-1)!.change!.set![0]!.freeCursor ?? false).toBe(false)
 
   // A sheet reaches the root of every interface the mod shows, once, and a
   // path leaving the addon adds nothing.

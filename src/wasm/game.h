@@ -575,8 +575,9 @@ class Game : public HostService {
   // FieldAddress resolves a schema field of entity whose storage holds a
   // value of type, or a list of them when list is set, refusing an entity
   // that is not of class_name. A game rules class resolves on the game rules
-  // proxy entity to the field of the rules object, and a model part class
-  // through the entity's body component.
+  // proxy entity to the field of the rules object, a model part class
+  // through the entity's body component, and a movement services class
+  // through the pawn's movement services.
   std::expected<unsigned char*, std::string> FieldAddress(void* entity,
                                                           const std::string& class_name,
                                                           const std::string& field,
@@ -587,6 +588,13 @@ class Game : public HostService {
   // actual is the entity's schema class.
   std::expected<unsigned char*, std::string> ModelPart(void* entity, const void* actual,
                                                        const std::string& class_name);
+
+  // MovementServices returns the address of the field at offset in the
+  // movement services of entity, a pawn that must derive pawn_class. actual
+  // is the entity's schema class.
+  std::expected<unsigned char*, std::string> MovementServices(void* entity, const void* actual,
+                                                              const std::string& pawn_class,
+                                                              size_t offset);
 
   // StoreField writes a schema field of entity without telling the network
   // it changed.

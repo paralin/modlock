@@ -773,6 +773,13 @@ export interface Node {
    */
   freeCursor?: boolean
   /**
+   * FreeCursorAsks counts the mod's explicit asks for the cursor. The player
+   * can put the cursor away with the game's own keys, and that choice holds
+   * until the count rises: a rise shows the cursor again while the root frees
+   * it, and a screen that changes anything else leaves the player's choice be.
+   */
+  freeCursorAsks?: number
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -825,6 +832,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [30, 'sheets', 9, 1],
     [31, 'free_cursor', 8],
     [32, 'item', 13],
+    [33, 'free_cursor_asks', 13],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -964,6 +972,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 32:
             m.item = r.uint32()
+            break
+          case 33:
+            m.freeCursorAsks = r.uint32()
             break
           default:
             r.skip(t)
@@ -1113,6 +1124,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.item
         if (v) w.uint32(256).uint32(v)
+      }
+      {
+        const v = m.freeCursorAsks
+        if (v) w.uint32(264).uint32(v)
       }
     },
   },

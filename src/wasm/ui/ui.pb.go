@@ -802,6 +802,11 @@ type Node struct {
 	// counts. Aiming returns once no mod's root frees the cursor, so a mod that
 	// stops, a reset and a player who leaves all give the mouse back.
 	FreeCursor bool `protobuf:"varint,31,opt,name=free_cursor,json=freeCursor,proto3" json:"freeCursor,omitempty"`
+	// FreeCursorAsks counts the mod's explicit asks for the cursor. The player
+	// can put the cursor away with the game's own keys, and that choice holds
+	// until the count rises: a rise shows the cursor again while the root frees
+	// it, and a screen that changes anything else leaves the player's choice be.
+	FreeCursorAsks uint32 `protobuf:"varint,33,opt,name=free_cursor_asks,json=freeCursorAsks,proto3" json:"freeCursorAsks,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1039,6 +1044,13 @@ func (x *Node) GetFreeCursor() bool {
 		return x.FreeCursor
 	}
 	return false
+}
+
+func (x *Node) GetFreeCursorAsks() uint32 {
+	if x != nil {
+		return x.FreeCursorAsks
+	}
+	return 0
 }
 
 type isNode_Input interface {
@@ -2450,6 +2462,7 @@ func (m *Node) CloneVT() *Node {
 	r.Token = m.Token
 	r.SteamId = m.SteamId
 	r.FreeCursor = m.FreeCursor
+	r.FreeCursorAsks = m.FreeCursorAsks
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -3164,6 +3177,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if this.Item != that.Item {
+		return false
+	}
+	if this.FreeCursorAsks != that.FreeCursorAsks {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4838,6 +4854,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("item")
 		s.WriteUint32(x.Item)
 	}
+	if x.FreeCursorAsks != 0 || s.HasField("freeCursorAsks") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("freeCursorAsks")
+		s.WriteUint32(x.FreeCursorAsks)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5022,6 +5043,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "item":
 			s.AddField("item")
 			x.Item = s.ReadUint32()
+		case "free_cursor_asks", "freeCursorAsks":
+			s.AddField("free_cursor_asks")
+			x.FreeCursorAsks = s.ReadUint32()
 		}
 	})
 }
@@ -6903,6 +6927,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.FreeCursorAsks != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.FreeCursorAsks))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x88
 	}
 	if m.Item != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Item))
@@ -8798,6 +8829,7 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringSlice(2, m.Sheets)
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.FreeCursor)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Item)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.FreeCursorAsks)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9579,6 +9611,10 @@ func (x *Node) MarshalProtoText() string {
 	if x.Item != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "item")
 		protobuf_go_lite.TextWriteUint(&sb, x.Item)
+	}
+	if x.FreeCursorAsks != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "free_cursor_asks")
+		protobuf_go_lite.TextWriteUint(&sb, x.FreeCursorAsks)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -10744,6 +10780,15 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 			}
 			m.Item = 0
 			m.Item, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 33:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FreeCursorAsks", wireType)
+			}
+			m.FreeCursorAsks = 0
+			m.FreeCursorAsks, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

@@ -100,6 +100,19 @@ export function cursorFreed(screen: Screen | null): boolean {
   )
 }
 
+/**
+ * cursorAsks counts the times the mods behind screen's roots asked for the
+ * cursor; it rises when a mod asks again after the player put the cursor away.
+ */
+export function cursorAsks(screen: Screen | null): number {
+  return (screen?.trees ?? []).reduce(
+    (total, tree) =>
+      total +
+      (tree.nodes?.find((node) => (node.id ?? '') === '')?.freeCursorAsks ?? 0),
+    0,
+  )
+}
+
 /** Hud collapses the parts of the game's HUD it is told to hide. */
 export class Hud {
   /** hidden holds the parts some root lists. */

@@ -93,7 +93,7 @@ import {
   UiRequest,
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
-import type { Player, Wheel } from './host.gen.js'
+import { type Player, readField, type Wheel } from './host.gen.js'
 import { call } from './host.js'
 
 /**
@@ -603,11 +603,36 @@ export function hideHud(player: Player, parts: readonly HudPart[]): boolean {
 /**
  * freeCursor shows player's mouse cursor without Tab held while free is true,
  * so they can click the mod's panels, such as a pick screen; false gives the
- * mouse back to aiming.
+ * mouse back to aiming. Each call with true shows the cursor again, even when
+ * the player put it away with the game's own keys; a screen that changes
+ * without a call leaves their choice be. The game does not stop the player's
+ * shots, camera or movement while the cursor is up: a screen that must not
+ * fire a weapon calls player.blockInput for the buttons it takes.
  */
 export function freeCursor(player: Player, free: boolean): boolean {
-  views.set(player.slot, { ...view(player), cursor: free })
+  const current = view(player)
+  views.set(player.slot, {
+    ...current,
+    cursor: free,
+    asks: free ? current.asks + 1 : current.asks,
+  })
   return draw(player)
+}
+
+/**
+ * cursorFree reports whether player's mouse cursor is up now, whether the mod
+ * freed it with freeCursor or the player did with the game's own keys. It is
+ * undefined while the player has no hero to read.
+ */
+export function cursorFree(player: Player): boolean | undefined {
+  const pawn = player.pawn()
+  if (pawn === undefined) return undefined
+  return readField(
+    pawn.entity,
+    'CCitadelPlayer_MovementServices',
+    'm_bHasFreeCursor',
+    'bool',
+  ) as boolean | undefined
 }
 
 /**
@@ -739,6 +764,8 @@ interface View {
   readonly hud: readonly HudPart[]
   /** cursor is true while the mod frees the player's mouse cursor. */
   readonly cursor: boolean
+  /** asks counts the mod's calls that freed the cursor. */
+  readonly asks: number
   /** routes maps each route's name to its value as JSON. */
   readonly routes: ReadonlyMap<string, string>
   notices: readonly Notice[]
@@ -778,6 +805,7 @@ function view(player: Player): View {
       root: undefined,
       hud: [],
       cursor: false,
+      asks: 0,
       routes: new Map(),
       notices: [],
     }
@@ -794,13 +822,27 @@ function draw(player: Player): boolean {
   ]
   const previous = screens.get(player.slot)
   const hud = current.hud.map((part) => hudParts[part])
-  const next = render(previous, root, hud, current.cursor, current.routes)
+  const next = render(
+    previous,
+    root,
+    hud,
+    current.cursor,
+    current.asks,
+    current.routes,
+  )
   const change = diff(previous, next)
 
   // Send the change; a failed send means the player may have left, so send
   // the screen whole.
   if (change && !send(player.slot, change)) {
-    const whole = render(undefined, root, hud, current.cursor, current.routes)
+    const whole = render(
+      undefined,
+      root,
+      hud,
+      current.cursor,
+      current.asks,
+      current.routes,
+    )
     if (!send(player.slot, diff(undefined, whole)!)) {
       screens.delete(player.slot)
       return false
@@ -891,6 +933,7 @@ function render(
   root: Child,
   hud: readonly WireHudPart[],
   cursor: boolean,
+  asks: number,
   routes: ReadonlyMap<string, string>,
 ): Screen {
   // The root is the full-screen panel the elements hang from, and it lists
@@ -903,6 +946,7 @@ function render(
     children: place(layout, root, '/'),
     hideHud: [...hud],
     freeCursor: cursor,
+    freeCursorAsks: asks,
     sheets: [...sheets],
   })
 
