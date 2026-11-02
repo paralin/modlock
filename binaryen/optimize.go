@@ -49,6 +49,13 @@ func Optimize(ctx context.Context, wasm []byte) ([]byte, error) {
 	// Run wasm-opt over it.
 	args := append([]string{"-O2"}, features...)
 	cmd := exec.CommandContext(ctx, tool, append(args, input, "-o", output)...)
+	cmd.Env = os.Environ()
+	if _, set := os.LookupEnv("BINARYEN_CORES"); !set {
+		// Binaryen's parallel -O2 passes race on large modules and crash
+		// (segfaults, SIGFPE, assertion failures), more often under load.
+		// One thread passes every run and makes the output reproducible.
+		cmd.Env = append(cmd.Env, "BINARYEN_CORES=1")
+	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
