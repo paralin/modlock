@@ -157,6 +157,10 @@ const (
 	// HUD_PART_STATUS is the game's own mark in the top-left corner, for a
 	// frame that names the session there instead.
 	HudPart_HUD_PART_STATUS HudPart = 8
+	// HUD_PART_STATS is the block of the player's weapon, spirit and vitality
+	// stats at the lower left. The souls, items and status icons beside it
+	// stay.
+	HudPart_HUD_PART_STATS HudPart = 9
 )
 
 // Enum value maps for HudPart.
@@ -171,6 +175,7 @@ var (
 		6: "HUD_PART_MINIMAP",
 		7: "HUD_PART_ABILITIES",
 		8: "HUD_PART_STATUS",
+		9: "HUD_PART_STATS",
 	}
 	HudPart_value = map[string]int32{
 		"HUD_PART_UNKNOWN":    0,
@@ -182,6 +187,7 @@ var (
 		"HUD_PART_MINIMAP":    6,
 		"HUD_PART_ABILITIES":  7,
 		"HUD_PART_STATUS":     8,
+		"HUD_PART_STATS":      9,
 	}
 )
 

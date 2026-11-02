@@ -175,6 +175,13 @@ export enum HudPart {
    * frame that names the session there instead.
    */
   STATUS = 8,
+
+  /**
+   * HUD_PART_STATS is the block of the player's weapon, spirit and vitality
+   * stats at the lower left. The souls, items and status icons beside it
+   * stay.
+   */
+  STATS = 9,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -189,6 +196,7 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [6, 'HUD_PART_MINIMAP'],
     [7, 'HUD_PART_ABILITIES'],
     [8, 'HUD_PART_STATUS'],
+    [9, 'HUD_PART_STATS'],
   ],
 )
 

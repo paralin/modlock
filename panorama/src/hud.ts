@@ -65,6 +65,7 @@ const finders: Partial<Record<HudPart, (hud: HudPanel) => HudPanel[]>> = {
   [HudPart.SOULS]: (hud) => ownPanel(hud, 'gold_and_ap_container'),
   [HudPart.MINIMAP]: (hud) => ownPanel(hud, 'minimap_persp'),
   [HudPart.ABILITIES]: (hud) => ownPanel(hud, 'AbilitiesContainer'),
+  [HudPart.STATS]: (hud) => ownPanel(hud, 'hudPlayerStats'),
   // The corner mark sits outside the game's HUD, under the interface's root.
   [HudPart.STATUS]: (hud) => ownPanel(top(hud), 'DefaultStatus'),
 }
