@@ -74,7 +74,7 @@ void DisconnectThunk(void* self, int32_t slot, int reason, const char* name, uin
                      const char* network_id) {
   void* original = g_disconnect_original.load(std::memory_order_acquire);
   ConnectionTracker::DispatchDisconnect(
-      slot,
+      slot, reason,
       [&, original] {
         if (original != nullptr) {
           reinterpret_cast<DisconnectFn>(original)(self, slot, reason, name, xuid, network_id);
@@ -186,11 +186,13 @@ void ConnectionTracker::DispatchFullyConnect(int32_t slot, const EngineCallback&
   }
 }
 
-void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& original,
+void ConnectionTracker::DispatchDisconnect(int32_t slot, int32_t reason,
+                                           const EngineCallback& original,
                                            std::shared_ptr<ConnectionEventSink> sink) {
   // Trace the disconnect.
   if (InteropTraceEnabled()) {
-    std::fprintf(stderr, "[modlock] interop trace: ClientDisconnect slot %d\n", slot);
+    std::fprintf(stderr, "[modlock] interop trace: ClientDisconnect slot %d reason %d\n", slot,
+                 reason);
     std::fflush(stderr);
   }
 
@@ -221,7 +223,7 @@ void ConnectionTracker::DispatchDisconnect(int32_t slot, const EngineCallback& o
   // Tell the sink, then run the engine's call.
   const uint64_t generation = g_generation[slot].load(std::memory_order_acquire);
   if (sink != nullptr) {
-    sink->OnDisconnecting(slot, state.xuid);
+    sink->OnDisconnecting(slot, state.xuid, reason);
   }
   if (original) {
     original();

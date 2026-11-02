@@ -10,12 +10,14 @@
 
 #include "gtest/gtest.h"
 #include "modlock/gameinterop/connection_tracker.h"
+#include "modlock/gameinterop/engine_server.h"
 
 namespace {
 
 using modlock::gameinterop::ClientType;
 using modlock::gameinterop::ConnectionEventSink;
 using modlock::gameinterop::ConnectionTracker;
+using modlock::gameinterop::kDisconnectKicked;
 
 class RecordingSink final : public ConnectionEventSink {
  public:
@@ -29,8 +31,9 @@ class RecordingSink final : public ConnectionEventSink {
     EXPECT_EQ(ConnectionTracker::StateForSlot(slot).xuid, xuid);
   }
 
-  void OnDisconnecting(int32_t slot, uint64_t xuid) override {
-    events_.push_back("disconnecting:" + std::to_string(slot) + ":" + std::to_string(xuid));
+  void OnDisconnecting(int32_t slot, uint64_t xuid, int32_t reason) override {
+    events_.push_back("disconnecting:" + std::to_string(slot) + ":" + std::to_string(xuid) + ":" +
+                      std::to_string(reason));
     EXPECT_TRUE(ConnectionTracker::StateForSlot(slot).occupied);
     EXPECT_EQ(ConnectionTracker::StateForSlot(slot).xuid, xuid);
     if (entity_live_ != nullptr) {
@@ -50,7 +53,7 @@ class CleanupSink final : public ConnectionEventSink {
   void OnConnected(int32_t /*slot*/, uint64_t /*xuid*/, bool /*is_bot*/,
                    const char* /*name*/) override {}
 
-  void OnDisconnecting(int32_t /*slot*/, uint64_t /*xuid*/) override {
+  void OnDisconnecting(int32_t /*slot*/, uint64_t /*xuid*/, int32_t /*reason*/) override {
     EXPECT_TRUE(entity_live_);
     entity_live_ = false;
   }
@@ -76,7 +79,7 @@ class CallbackSink final : public ConnectionEventSink {
     }
   }
 
-  void OnDisconnecting(int32_t /*slot*/, uint64_t /*xuid*/) override {
+  void OnDisconnecting(int32_t /*slot*/, uint64_t /*xuid*/, int32_t /*reason*/) override {
     ++disconnecting_;
     if (on_disconnect_) {
       on_disconnect_();
@@ -117,18 +120,18 @@ TEST(ConnectionTracker, PutInServerRecordsThenNotifiesSink) {
       1, 0, ClientType::kSourceTV, "SourceTV", [&] { events.emplace_back("original"); }, sink);
   EXPECT_FALSE(ConnectionTracker::StateForSlot(1).occupied);
   EXPECT_EQ(ConnectionTracker::Revision(), revision);
-  ConnectionTracker::DispatchDisconnect(1, [&] { events.emplace_back("disconnect"); }, sink);
+  ConnectionTracker::DispatchDisconnect(1, 0, [&] { events.emplace_back("disconnect"); }, sink);
   EXPECT_EQ(events, (std::vector<std::string>{"original", "disconnect"}));
 }
 
 TEST(ConnectionTracker, DisconnectNotifiesOnceBeforeOriginalAndClearsAfter) {
-  // Seat a player whose entity the engine callback removes.
+  // Seat a player whose entity the engine callback removes, then kick them.
   ConnectionTracker::ApplyPutInServer(3, 42, false, "p3");
   std::vector<std::string> events;
   bool entity_live = true;
   auto sink = std::make_shared<RecordingSink>(events, &entity_live);
   ConnectionTracker::DispatchDisconnect(
-      3,
+      3, kDisconnectKicked,
       [&] {
         events.emplace_back("original");
         entity_live = false;
@@ -138,15 +141,15 @@ TEST(ConnectionTracker, DisconnectNotifiesOnceBeforeOriginalAndClearsAfter) {
       sink);
 
   // The sink hears first, and the slot clears after.
-  EXPECT_EQ(events, (std::vector<std::string>{"disconnecting:3:42", "original"}));
+  EXPECT_EQ(events, (std::vector<std::string>{"disconnecting:3:42:39", "original"}));
   EXPECT_FALSE(ConnectionTracker::StateForSlot(3).occupied);
 
   // A duplicate engine callback cannot emit another disconnecting event after
   // the tracker has cleared the slot.
   ConnectionTracker::DispatchDisconnect(
-      3, [&] { events.emplace_back("duplicate original"); }, sink);
+      3, 0, [&] { events.emplace_back("duplicate original"); }, sink);
   EXPECT_EQ(events,
-            (std::vector<std::string>{"disconnecting:3:42", "original", "duplicate original"}));
+            (std::vector<std::string>{"disconnecting:3:42:39", "original", "duplicate original"}));
 }
 
 TEST(ConnectionTracker, DisconnectSinkCleansEntityBeforeEngineOriginal) {
@@ -158,7 +161,7 @@ TEST(ConnectionTracker, DisconnectSinkCleansEntityBeforeEngineOriginal) {
 
   // The engine callback runs after the cleanup.
   ConnectionTracker::DispatchDisconnect(
-      7,
+      7, 0,
       [&] {
         ++originals;
         EXPECT_FALSE(entity_live);
@@ -178,7 +181,7 @@ TEST(ConnectionTracker, DispatchRetainsSinkThroughEngineCallback) {
   auto sink = std::make_shared<RecordingSink>(events);
   std::weak_ptr<ConnectionEventSink> weak_sink = sink;
   ConnectionTracker::DispatchDisconnect(
-      4,
+      4, 0,
       [&] {
         sink.reset();
         EXPECT_FALSE(weak_sink.expired());
@@ -197,11 +200,11 @@ TEST(ConnectionTracker, ReentrantDisconnectDispatchesOnce) {
   int originals = 0;
   std::shared_ptr<CallbackSink> sink;
   sink = std::make_shared<CallbackSink>(connected, disconnecting, [&] {
-    ConnectionTracker::DispatchDisconnect(5, [&] { ++originals; }, sink);
+    ConnectionTracker::DispatchDisconnect(5, 0, [&] { ++originals; }, sink);
   });
 
   // Disconnect them.
-  ConnectionTracker::DispatchDisconnect(5, [&] { ++originals; }, sink);
+  ConnectionTracker::DispatchDisconnect(5, 0, [&] { ++originals; }, sink);
 
   // The sink hears once and the engine once.
   EXPECT_EQ(connected, 0);
@@ -227,10 +230,10 @@ TEST(ConnectionTracker, ReconnectGenerationMayDisconnectBeforeOldCompletion) {
               8, 89, ClientType::kBot, "reconnect-bot", [&] { ++originals; }, sink);
         }
       },
-      [&] { ConnectionTracker::DispatchDisconnect(8, [&] { ++originals; }, sink); });
+      [&] { ConnectionTracker::DispatchDisconnect(8, 0, [&] { ++originals; }, sink); });
 
   // Disconnect them.
-  ConnectionTracker::DispatchDisconnect(8, [&] { ++originals; }, sink);
+  ConnectionTracker::DispatchDisconnect(8, 0, [&] { ++originals; }, sink);
 
   // Each generation's events arrive, and the slot ends empty.
   EXPECT_EQ(connected, 1);
@@ -249,7 +252,7 @@ TEST(ConnectionTracker, ReconnectDuringDisconnectSinkSurvivesOuterCompletion) {
       connected, disconnecting, [&] { ConnectionTracker::ApplyPutInServer(6, 67, false, "p6b"); });
 
   // Disconnect them.
-  ConnectionTracker::DispatchDisconnect(6, [&] { ++originals; }, sink);
+  ConnectionTracker::DispatchDisconnect(6, 0, [&] { ++originals; }, sink);
 
   // The reconnect survives the outer disconnect.
   EXPECT_EQ(disconnecting, 1);
@@ -281,7 +284,7 @@ TEST(ConnectionTracker, UnoccupiedDisconnectCannotEraseReconnectFromOriginal) {
   // A callback for an empty slot may seat a player.
   ConnectionTracker::ApplyDisconnect(10);
   ConnectionTracker::DispatchDisconnect(
-      10, [] { ConnectionTracker::ApplyPutInServer(10, 1010, false, "p10"); }, nullptr);
+      10, 0, [] { ConnectionTracker::ApplyPutInServer(10, 1010, false, "p10"); }, nullptr);
   const auto state = ConnectionTracker::StateForSlot(10);
   EXPECT_TRUE(state.occupied);
   EXPECT_EQ(state.xuid, 1010u);
@@ -367,7 +370,7 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
   for (int round = 0; round < 2; ++round) {
     for (int slot = 0; slot < 12; ++slot) {
       ConnectionTracker::DispatchPutInServer(slot, 0, ClientType::kBot, "bot", {}, {});
-      ConnectionTracker::DispatchDisconnect(slot, {}, {});
+      ConnectionTracker::DispatchDisconnect(slot, 0, {}, {});
     }
   }
 
@@ -392,7 +395,7 @@ TEST(ConnectionTracker, TraceReceiptsCoverTheFullRosterAndReconnects) {
     if (first != std::string::npos) {
       EXPECT_NE(trace.find(receipt, first + receipt.size()), std::string::npos);
     }
-    EXPECT_NE(trace.find("ClientDisconnect slot " + std::to_string(slot) + "\n"),
+    EXPECT_NE(trace.find("ClientDisconnect slot " + std::to_string(slot) + " reason 0\n"),
               std::string::npos);
   }
 }

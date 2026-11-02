@@ -204,7 +204,7 @@ library makes.
 | `modlock new DIR`       | Create a mod project in `DIR`.                                                                                                               |
 | `modlock build`         | Check the mod and write the built mod to `build/`.                                                                                           |
 | `modlock dev`           | Build the mod, run it in a local server, and join it; `--watch` reloads it on each save.                                                     |
-| `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and projects reload on save unless `--watch=false`. |
+| `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and projects reload on save unless `--watch=false`.              |
 | `modlock join CODE`     | Join a session another PC hosts, by its join code or its dev lobby's link, and launch Deadlock into it.                                      |
 | `modlock publish`       | Build and check the mod, then [publish it](#publishing).                                                                                     |
 | `modlock update`        | Install the newest release over this `modlock`; `--check` only says whether one is out.                                                      |
@@ -755,10 +755,27 @@ empty text forgets it.
 | `onStart(handler)`                                  | When the server starts the mod, with its `--arg` values.      |
 | `onWorld(handler)`                                  | As each world loads, with its map; at start if one has.       |
 | `onFrame(handler)`                                  | Once per server frame.                                        |
+| `onPlayerJoin(handler)`                             | As each player the mod serves is ready; at start for each.    |
+| `onPlayerLeave(handler)`                            | Once per joined player who leaves, while their hero reads.    |
 | `onDamage(handler)`, `onDamaged(handler)`           | Before each hit lands, to block or change it; after it lands. |
 | `onLanded(handler)`                                 | When a hero lands under the manifest's movement model.        |
 | `onSettingChanged(handler)`                         | When a player changes a setting outside the mod.              |
 | `watchProjectiles(options)`, `onLaunch`, `onImpact` | On a watched projectile's first frame, and on its impact.     |
+
+A join and a leave carry the player's `connection`, with their slot, SteamID64
+and name. A leave also says whether the player `disconnected` from the server,
+false when they stay but the mod stops serving them, and the `reason` the
+server gave, such as `'kicked'` or `'disconnectByUser'`, when it gave one. Each
+joined player leaves exactly once, and a player who disconnects leaves before
+the server removes them, so their hero still reads:
+
+```ts
+onPlayerLeave(({ connection, disconnected, reason }) => {
+  if (disconnected) {
+    log(`${connection.name} left (${reason ?? 'no reason'})`)
+  }
+})
+```
 
 ### Timers
 

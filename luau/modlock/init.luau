@@ -175,6 +175,252 @@ local TextVerticalAlign: { [any]: any } = {
 	top = 2,
 }
 
+-- DisconnectReason is why the server dropped a connection, numbered as the
+-- game's ENetworkDisconnectionReason.
+export type DisconnectReason = "shutdown" | "disconnectByUser" | "disconnectByServer" | "lost" | "overflow" | "steamBanned" | "steamInuse" | "steamTicket" | "steamLogon" | "steamAuthcancelled" | "steamAuthalreadyused" | "steamAuthinvalid" | "steamVacbanstate" | "steamLoggedInElsewhere" | "steamVacCheckTimedout" | "steamDropped" | "steamOwnership" | "serverinfoOverflow" | "tickmsgOverflow" | "stringtablemsgOverflow" | "deltaentmsgOverflow" | "tempentmsgOverflow" | "soundsmsgOverflow" | "snapshotoverflow" | "snapshoterror" | "reliableoverflow" | "baddeltatick" | "nomoresplits" | "timedout" | "disconnected" | "leavingsplit" | "differentclasstables" | "badrelaypassword" | "badspectatorpassword" | "hltvrestricted" | "nospectators" | "hltvunavailable" | "hltvstop" | "kicked" | "banadded" | "kickbanadded" | "hltvdirect" | "pureserverClientextra" | "pureserverMismatch" | "usercmd" | "rejectedByGame" | "messageParseError" | "invalidMessageError" | "badServerPassword" | "directConnectReservation" | "connectionFailure" | "noPeerGroupHandlers" | "reconnection" | "loopshutdown" | "loopdeactivate" | "hostEndgame" | "loopLevelloadActivate" | "createServerFailed" | "exiting" | "requestHoststateIdle" | "requestHoststateHltvrelay" | "clientConsistencyFail" | "clientUnableToCrcMap" | "clientNoMap" | "clientDifferentMap" | "serverRequiresSteam" | "steamDenyMisc" | "steamDenyBadAntiCheat" | "serverShutdown" | "replayIncompatible" | "connectRequestTimedout" | "serverIncompatible" | "localproblemManyrelays" | "localproblemHostedserverprimaryrelay" | "localproblemNetworkconfig" | "localproblemOther" | "remoteTimeout" | "remoteTimeoutConnecting" | "remoteOther" | "remoteBadcrypt" | "remoteCertnottrusted" | "unusual" | "internalError" | "rejectBadchallenge" | "rejectNolobby" | "rejectBackgroundMap" | "rejectSinglePlayer" | "rejectHiddenGame" | "rejectLanrestrict" | "rejectBadpassword" | "rejectServerfull" | "rejectInvalidreservation" | "rejectFailedchannel" | "rejectConnectFromLobby" | "rejectReservedForLobby" | "rejectInvalidkeylength" | "rejectOldprotocol" | "rejectNewprotocol" | "rejectInvalidconnection" | "rejectInvalidcertlen" | "rejectInvalidsteamcertlen" | "rejectSteam" | "rejectServerauthdisabled" | "rejectServercdkeyauthinvalid" | "rejectBanned" | "kickedTeamkilling" | "kickedTkStart" | "kickedUntrustedaccount" | "kickedConvictedaccount" | "kickedCompetitivecooldown" | "kickedTeamhurting" | "kickedHostagekilling" | "kickedVotedoff" | "kickedIdle" | "kickedSuicide" | "kickedNosteamlogin" | "kickedNosteamticket" | "kickedInputautomation" | "kickedVacnetabnormalbehavior" | "kickedInsecureclient"
+local DisconnectReason: { [any]: any } = {
+	[1] = "shutdown",
+	shutdown = 1,
+	[2] = "disconnectByUser",
+	disconnectByUser = 2,
+	[3] = "disconnectByServer",
+	disconnectByServer = 3,
+	[4] = "lost",
+	lost = 4,
+	[5] = "overflow",
+	overflow = 5,
+	[6] = "steamBanned",
+	steamBanned = 6,
+	[7] = "steamInuse",
+	steamInuse = 7,
+	[8] = "steamTicket",
+	steamTicket = 8,
+	[9] = "steamLogon",
+	steamLogon = 9,
+	[10] = "steamAuthcancelled",
+	steamAuthcancelled = 10,
+	[11] = "steamAuthalreadyused",
+	steamAuthalreadyused = 11,
+	[12] = "steamAuthinvalid",
+	steamAuthinvalid = 12,
+	[13] = "steamVacbanstate",
+	steamVacbanstate = 13,
+	[14] = "steamLoggedInElsewhere",
+	steamLoggedInElsewhere = 14,
+	[15] = "steamVacCheckTimedout",
+	steamVacCheckTimedout = 15,
+	[16] = "steamDropped",
+	steamDropped = 16,
+	[17] = "steamOwnership",
+	steamOwnership = 17,
+	[18] = "serverinfoOverflow",
+	serverinfoOverflow = 18,
+	[19] = "tickmsgOverflow",
+	tickmsgOverflow = 19,
+	[20] = "stringtablemsgOverflow",
+	stringtablemsgOverflow = 20,
+	[21] = "deltaentmsgOverflow",
+	deltaentmsgOverflow = 21,
+	[22] = "tempentmsgOverflow",
+	tempentmsgOverflow = 22,
+	[23] = "soundsmsgOverflow",
+	soundsmsgOverflow = 23,
+	[24] = "snapshotoverflow",
+	snapshotoverflow = 24,
+	[25] = "snapshoterror",
+	snapshoterror = 25,
+	[26] = "reliableoverflow",
+	reliableoverflow = 26,
+	[27] = "baddeltatick",
+	baddeltatick = 27,
+	[28] = "nomoresplits",
+	nomoresplits = 28,
+	[29] = "timedout",
+	timedout = 29,
+	[30] = "disconnected",
+	disconnected = 30,
+	[31] = "leavingsplit",
+	leavingsplit = 31,
+	[32] = "differentclasstables",
+	differentclasstables = 32,
+	[33] = "badrelaypassword",
+	badrelaypassword = 33,
+	[34] = "badspectatorpassword",
+	badspectatorpassword = 34,
+	[35] = "hltvrestricted",
+	hltvrestricted = 35,
+	[36] = "nospectators",
+	nospectators = 36,
+	[37] = "hltvunavailable",
+	hltvunavailable = 37,
+	[38] = "hltvstop",
+	hltvstop = 38,
+	[39] = "kicked",
+	kicked = 39,
+	[40] = "banadded",
+	banadded = 40,
+	[41] = "kickbanadded",
+	kickbanadded = 41,
+	[42] = "hltvdirect",
+	hltvdirect = 42,
+	[43] = "pureserverClientextra",
+	pureserverClientextra = 43,
+	[44] = "pureserverMismatch",
+	pureserverMismatch = 44,
+	[45] = "usercmd",
+	usercmd = 45,
+	[46] = "rejectedByGame",
+	rejectedByGame = 46,
+	[47] = "messageParseError",
+	messageParseError = 47,
+	[48] = "invalidMessageError",
+	invalidMessageError = 48,
+	[49] = "badServerPassword",
+	badServerPassword = 49,
+	[50] = "directConnectReservation",
+	directConnectReservation = 50,
+	[51] = "connectionFailure",
+	connectionFailure = 51,
+	[52] = "noPeerGroupHandlers",
+	noPeerGroupHandlers = 52,
+	[53] = "reconnection",
+	reconnection = 53,
+	[54] = "loopshutdown",
+	loopshutdown = 54,
+	[55] = "loopdeactivate",
+	loopdeactivate = 55,
+	[56] = "hostEndgame",
+	hostEndgame = 56,
+	[57] = "loopLevelloadActivate",
+	loopLevelloadActivate = 57,
+	[58] = "createServerFailed",
+	createServerFailed = 58,
+	[59] = "exiting",
+	exiting = 59,
+	[60] = "requestHoststateIdle",
+	requestHoststateIdle = 60,
+	[61] = "requestHoststateHltvrelay",
+	requestHoststateHltvrelay = 61,
+	[62] = "clientConsistencyFail",
+	clientConsistencyFail = 62,
+	[63] = "clientUnableToCrcMap",
+	clientUnableToCrcMap = 63,
+	[64] = "clientNoMap",
+	clientNoMap = 64,
+	[65] = "clientDifferentMap",
+	clientDifferentMap = 65,
+	[66] = "serverRequiresSteam",
+	serverRequiresSteam = 66,
+	[67] = "steamDenyMisc",
+	steamDenyMisc = 67,
+	[68] = "steamDenyBadAntiCheat",
+	steamDenyBadAntiCheat = 68,
+	[69] = "serverShutdown",
+	serverShutdown = 69,
+	[71] = "replayIncompatible",
+	replayIncompatible = 71,
+	[72] = "connectRequestTimedout",
+	connectRequestTimedout = 72,
+	[73] = "serverIncompatible",
+	serverIncompatible = 73,
+	[74] = "localproblemManyrelays",
+	localproblemManyrelays = 74,
+	[75] = "localproblemHostedserverprimaryrelay",
+	localproblemHostedserverprimaryrelay = 75,
+	[76] = "localproblemNetworkconfig",
+	localproblemNetworkconfig = 76,
+	[77] = "localproblemOther",
+	localproblemOther = 77,
+	[79] = "remoteTimeout",
+	remoteTimeout = 79,
+	[80] = "remoteTimeoutConnecting",
+	remoteTimeoutConnecting = 80,
+	[81] = "remoteOther",
+	remoteOther = 81,
+	[82] = "remoteBadcrypt",
+	remoteBadcrypt = 82,
+	[83] = "remoteCertnottrusted",
+	remoteCertnottrusted = 83,
+	[84] = "unusual",
+	unusual = 84,
+	[85] = "internalError",
+	internalError = 85,
+	[128] = "rejectBadchallenge",
+	rejectBadchallenge = 128,
+	[129] = "rejectNolobby",
+	rejectNolobby = 129,
+	[130] = "rejectBackgroundMap",
+	rejectBackgroundMap = 130,
+	[131] = "rejectSinglePlayer",
+	rejectSinglePlayer = 131,
+	[132] = "rejectHiddenGame",
+	rejectHiddenGame = 132,
+	[133] = "rejectLanrestrict",
+	rejectLanrestrict = 133,
+	[134] = "rejectBadpassword",
+	rejectBadpassword = 134,
+	[135] = "rejectServerfull",
+	rejectServerfull = 135,
+	[136] = "rejectInvalidreservation",
+	rejectInvalidreservation = 136,
+	[137] = "rejectFailedchannel",
+	rejectFailedchannel = 137,
+	[138] = "rejectConnectFromLobby",
+	rejectConnectFromLobby = 138,
+	[139] = "rejectReservedForLobby",
+	rejectReservedForLobby = 139,
+	[140] = "rejectInvalidkeylength",
+	rejectInvalidkeylength = 140,
+	[141] = "rejectOldprotocol",
+	rejectOldprotocol = 141,
+	[142] = "rejectNewprotocol",
+	rejectNewprotocol = 142,
+	[143] = "rejectInvalidconnection",
+	rejectInvalidconnection = 143,
+	[144] = "rejectInvalidcertlen",
+	rejectInvalidcertlen = 144,
+	[145] = "rejectInvalidsteamcertlen",
+	rejectInvalidsteamcertlen = 145,
+	[146] = "rejectSteam",
+	rejectSteam = 146,
+	[147] = "rejectServerauthdisabled",
+	rejectServerauthdisabled = 147,
+	[148] = "rejectServercdkeyauthinvalid",
+	rejectServercdkeyauthinvalid = 148,
+	[149] = "rejectBanned",
+	rejectBanned = 149,
+	[150] = "kickedTeamkilling",
+	kickedTeamkilling = 150,
+	[151] = "kickedTkStart",
+	kickedTkStart = 151,
+	[152] = "kickedUntrustedaccount",
+	kickedUntrustedaccount = 152,
+	[153] = "kickedConvictedaccount",
+	kickedConvictedaccount = 153,
+	[154] = "kickedCompetitivecooldown",
+	kickedCompetitivecooldown = 154,
+	[155] = "kickedTeamhurting",
+	kickedTeamhurting = 155,
+	[156] = "kickedHostagekilling",
+	kickedHostagekilling = 156,
+	[157] = "kickedVotedoff",
+	kickedVotedoff = 157,
+	[158] = "kickedIdle",
+	kickedIdle = 158,
+	[159] = "kickedSuicide",
+	kickedSuicide = 159,
+	[160] = "kickedNosteamlogin",
+	kickedNosteamlogin = 160,
+	[161] = "kickedNosteamticket",
+	kickedNosteamticket = 161,
+	[162] = "kickedInputautomation",
+	kickedInputautomation = 162,
+	[163] = "kickedVacnetabnormalbehavior",
+	kickedVacnetabnormalbehavior = 163,
+	[164] = "kickedInsecureclient",
+	kickedInsecureclient = 164,
+}
+
 -- ModRole is what a player is to the running mods.
 export type ModRole = "unspecified" | "developer" | "tester"
 local ModRole: { [any]: any } = {
@@ -867,6 +1113,28 @@ export type PlayersChangedEvent = {
 	players: { Connection },
 }
 
+-- PlayerJoinedEvent reports a player who joined the mod: a human who finished
+-- joining the server, a bot once added, or a player already in the game when
+-- the mod starts or begins to serve them.
+export type PlayerJoinedEvent = {
+	-- connection is the player as Players lists them.
+	connection: Connection,
+}
+
+-- PlayerLeftEvent reports a player leaving the mod, once for each
+-- PlayerJoinedEvent.
+export type PlayerLeftEvent = {
+	-- connection is the player as the last PlayerJoinedEvent or PlayersChanged
+	-- listed them.
+	connection: Connection,
+	-- disconnected is true when the player leaves the server, and false when
+	-- they stay but the mod stops serving them.
+	disconnected: boolean,
+	-- reason is why the server dropped the connection, absent when the player
+	-- stays or the engine gave no reason this schema names.
+	reason: DisconnectReason?,
+}
+
 -- Connection is one occupied player slot.
 export type Connection = {
 	-- player is the connection's server slot.
@@ -1188,6 +1456,9 @@ export type StartResult = {
 	damaged: boolean,
 	-- chat asks for a chat event for each chat line.
 	chat: boolean,
+	-- joins asks for a PlayerJoined event as each player the mod serves joins,
+	-- and a PlayerLeft event as each leaves.
+	joins: boolean,
 }
 
 -- FrameEvent identifies one server frame.
@@ -2668,6 +2939,14 @@ schema.RestoredEvent = {
 schema.PlayersChangedEvent = {
 	{ number = 1, name = "players", kind = "message", repeated = true, message = "Connection" },
 }
+schema.PlayerJoinedEvent = {
+	{ number = 1, name = "connection", kind = "message", message = "Connection" },
+}
+schema.PlayerLeftEvent = {
+	{ number = 1, name = "connection", kind = "message", message = "Connection" },
+	{ number = 2, name = "disconnected", kind = "bool" },
+	{ number = 3, name = "reason", kind = "enum", optional = true, enum = DisconnectReason },
+}
 schema.PlayerRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 }
@@ -2911,6 +3190,7 @@ schema.StartResult = {
 	{ number = 2, name = "damage", kind = "bool" },
 	{ number = 3, name = "damaged", kind = "bool" },
 	{ number = 4, name = "chat", kind = "bool" },
+	{ number = 5, name = "joins", kind = "bool" },
 }
 schema.FrameEvent = {
 	{ number = 1, name = "tick", kind = "uint64" },
@@ -3508,6 +3788,16 @@ export type ModHandlers = {
 	-- such as on the player's profile. A mod's own SetPlayerSetting reports
 	-- nothing.
 	settingChanged: (event: SettingChangedEvent) -> (),
+	-- playerJoined reports each player the mod serves once they are ready: a
+	-- human who finished joining, a bot once added, and at start each player
+	-- already in the game. It follows the PlayersChanged that lists them.
+	playerJoined: (event: PlayerJoinedEvent) -> (),
+	-- playerLeft reports each joined player leaving the mod, once. A player who
+	-- disconnects is reported before the engine removes them, so their slot
+	-- and hero still read, and before the PlayersChanged that drops them. A
+	-- disconnect the mod causes during its own event, such as removing a bot,
+	-- arrives after that event returns.
+	playerLeft: (event: PlayerLeftEvent) -> (),
 	-- playersChanged reports the occupied player slots before the first event
 	-- after Start, and again before the next event whenever a player joins,
 	-- finishes joining or leaves, so a mod lists players without a call.
@@ -3533,6 +3823,8 @@ local events: { [string]: { request: string, response: string, handler: string }
 	Impact = { request = "ImpactEvent", response = "Empty", handler = "impact" },
 	Landed = { request = "LandedEvent", response = "Empty", handler = "landed" },
 	SettingChanged = { request = "SettingChangedEvent", response = "Empty", handler = "settingChanged" },
+	PlayerJoined = { request = "PlayerJoinedEvent", response = "Empty", handler = "playerJoined" },
+	PlayerLeft = { request = "PlayerLeftEvent", response = "Empty", handler = "playerLeft" },
 	PlayersChanged = { request = "PlayersChangedEvent", response = "Empty", handler = "playersChanged" },
 }
 
@@ -3667,6 +3959,8 @@ local services: { [string]: Service } = {}
 local starts: { (args: { string }) -> () } = {}
 local frames: { (frame: FrameEvent) -> () } = {}
 local chats: { (line: ChatEvent) -> () } = {}
+local joins: { (joined: PlayerJoinedEvent) -> () } = {}
+local leaves: { (left: PlayerLeftEvent) -> () } = {}
 local worlds: { (map: string) -> () } = {}
 local inputs: { (player: Player, pressed: number, released: number) -> () } = {}
 local restoreds: { (player: Player, error: string?) -> () } = {}
@@ -3891,6 +4185,21 @@ function modlock.onChat(handler: (line: ChatEvent) -> ())
 	table.insert(chats, handler)
 end
 
+-- onPlayerJoin calls handler once for each player the mod serves when they
+-- are ready: a human who finished joining, a bot once added, and at start
+-- each player already in the game.
+function modlock.onPlayerJoin(handler: (joined: PlayerJoinedEvent) -> ())
+	table.insert(joins, handler)
+end
+
+-- onPlayerLeave calls handler once for each joined player who leaves the mod,
+-- with the reason the server dropped them when it gave one. A player who
+-- disconnects still has their slot and hero during the call. A player the
+-- mod stops serving leaves too, with disconnected false.
+function modlock.onPlayerLeave(handler: (left: PlayerLeftEvent) -> ())
+	table.insert(leaves, handler)
+end
+
 -- onDamaged calls handler on the frame after each hit lands.
 function modlock.onDamaged(handler: (hit: DamagedEvent) -> ())
 	table.insert(damageds, handler)
@@ -3928,7 +4237,13 @@ local handlers: ModHandlers = {
 			handler(event.args)
 		end
 		-- Timers run from frames, so the library always takes them.
-		return { frames = true, damage = #damages ~= 0, damaged = #damageds ~= 0, chat = #chats ~= 0 }
+		return {
+			frames = true,
+			damage = #damages ~= 0,
+			damaged = #damageds ~= 0,
+			chat = #chats ~= 0,
+			joins = #joins ~= 0 or #leaves ~= 0,
+		}
 	end,
 
 	frame = function(event)
@@ -4053,6 +4368,19 @@ local handlers: ModHandlers = {
 
 	playersChanged = function(event)
 		roster = event.players
+	end,
+
+	-- A join and a leave run at once, so the leaving player's hero still reads.
+	playerJoined = function(event)
+		for _, handler in joins do
+			handler(event)
+		end
+	end,
+
+	playerLeft = function(event)
+		for _, handler in leaves do
+			handler(event)
+		end
 	end,
 }
 

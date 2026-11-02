@@ -2003,6 +2003,22 @@ class ModClient {
     return Send<void>("SettingChanged", event);
   }
 
+  // PlayerJoined reports each player the mod serves once they are ready: a
+  // human who finished joining, a bot once added, and at start each player
+  // already in the game. It follows the PlayersChanged that lists them.
+  std::expected<void, std::string> PlayerJoined(const players::PlayerJoinedEvent& event) {
+    return Send<void>("PlayerJoined", event);
+  }
+
+  // PlayerLeft reports each joined player leaving the mod, once. A player who
+  // disconnects is reported before the engine removes them, so their slot
+  // and hero still read, and before the PlayersChanged that drops them. A
+  // disconnect the mod causes during its own event, such as removing a bot,
+  // arrives after that event returns.
+  std::expected<void, std::string> PlayerLeft(const players::PlayerLeftEvent& event) {
+    return Send<void>("PlayerLeft", event);
+  }
+
   // PlayersChanged reports the occupied player slots before the first event
   // after Start, and again before the next event whenever a player joins,
   // finishes joining or leaves, so a mod lists players without a call.

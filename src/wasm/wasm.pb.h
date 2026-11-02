@@ -489,6 +489,7 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
     kDamageFieldNumber = 2,
     kDamagedFieldNumber = 3,
     kChatFieldNumber = 4,
+    kJoinsFieldNumber = 5,
   };
   // bool frames = 1;
   void clear_frames() ;
@@ -530,11 +531,21 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
   void _internal_set_chat(bool value);
 
   public:
+  // bool joins = 5;
+  void clear_joins() ;
+  bool joins() const;
+  void set_joins(bool value);
+
+  private:
+  bool _internal_joins() const;
+  void _internal_set_joins(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.StartResult)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
+  static const ::google::protobuf::internal::TcParseTable<3, 5,
                                    0, 0,
                                    2>
       _table_;
@@ -560,6 +571,7 @@ class MODLOCK_API StartResult final : public ::google::protobuf::Message
     bool damage_;
     bool damaged_;
     bool chat_;
+    bool joins_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -3820,6 +3832,31 @@ inline bool StartResult::_internal_chat() const {
 inline void StartResult::_internal_set_chat(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.chat_ = value;
+}
+
+// bool joins = 5;
+inline void StartResult::clear_joins() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.joins_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline bool StartResult::joins() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.StartResult.joins)
+  return _internal_joins();
+}
+inline void StartResult::set_joins(bool value) {
+  _internal_set_joins(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.StartResult.joins)
+}
+inline bool StartResult::_internal_joins() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.joins_;
+}
+inline void StartResult::_internal_set_joins(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.joins_ = value;
 }
 
 // -------------------------------------------------------------------

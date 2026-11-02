@@ -235,6 +235,11 @@ export interface StartResult {
    * Chat asks for a Chat event for each chat line.
    */
   chat?: boolean
+  /**
+   * Joins asks for a PlayerJoined event as each player the mod serves joins,
+   * and a PlayerLeft event as each leaves.
+   */
+  joins?: boolean
 }
 
 export const StartResult: MessageType<StartResult> =
@@ -245,6 +250,7 @@ export const StartResult: MessageType<StartResult> =
       [2, 'damage', 8],
       [3, 'damaged', 8],
       [4, 'chat', 8],
+      [5, 'joins', 8],
     ],
     {
       decode: (r: BinaryReader, end: number, m: StartResult): StartResult => {
@@ -263,6 +269,9 @@ export const StartResult: MessageType<StartResult> =
               break
             case 4:
               m.chat = r.bool()
+              break
+            case 5:
+              m.joins = r.bool()
               break
             default:
               r.skip(t)
@@ -286,6 +295,10 @@ export const StartResult: MessageType<StartResult> =
         {
           const v = m.chat
           if (v) w.uint32(32).bool(v)
+        }
+        {
+          const v = m.joins
+          if (v) w.uint32(40).bool(v)
         }
       },
     },

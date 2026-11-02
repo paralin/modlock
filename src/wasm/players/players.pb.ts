@@ -12,6 +12,263 @@ import type {
 import { EulerAngles, Vec3 } from '../../geometry/geometry.pb.js'
 
 /**
+ * DisconnectReason is why the server dropped a connection, numbered as the
+ * game's ENetworkDisconnectionReason.
+ *
+ * @generated from enum modlock.wasm.players.DisconnectReason
+ */
+export enum DisconnectReason {
+  UNKNOWN = 0,
+  SHUTDOWN = 1,
+  DISCONNECT_BY_USER = 2,
+  DISCONNECT_BY_SERVER = 3,
+  LOST = 4,
+  OVERFLOW = 5,
+  STEAM_BANNED = 6,
+  STEAM_INUSE = 7,
+  STEAM_TICKET = 8,
+  STEAM_LOGON = 9,
+  STEAM_AUTHCANCELLED = 10,
+  STEAM_AUTHALREADYUSED = 11,
+  STEAM_AUTHINVALID = 12,
+  STEAM_VACBANSTATE = 13,
+  STEAM_LOGGED_IN_ELSEWHERE = 14,
+  STEAM_VAC_CHECK_TIMEDOUT = 15,
+  STEAM_DROPPED = 16,
+  STEAM_OWNERSHIP = 17,
+  SERVERINFO_OVERFLOW = 18,
+  TICKMSG_OVERFLOW = 19,
+  STRINGTABLEMSG_OVERFLOW = 20,
+  DELTAENTMSG_OVERFLOW = 21,
+  TEMPENTMSG_OVERFLOW = 22,
+  SOUNDSMSG_OVERFLOW = 23,
+  SNAPSHOTOVERFLOW = 24,
+  SNAPSHOTERROR = 25,
+  RELIABLEOVERFLOW = 26,
+  BADDELTATICK = 27,
+  NOMORESPLITS = 28,
+  TIMEDOUT = 29,
+  DISCONNECTED = 30,
+  LEAVINGSPLIT = 31,
+  DIFFERENTCLASSTABLES = 32,
+  BADRELAYPASSWORD = 33,
+  BADSPECTATORPASSWORD = 34,
+  HLTVRESTRICTED = 35,
+  NOSPECTATORS = 36,
+  HLTVUNAVAILABLE = 37,
+  HLTVSTOP = 38,
+  KICKED = 39,
+  BANADDED = 40,
+  KICKBANADDED = 41,
+  HLTVDIRECT = 42,
+  PURESERVER_CLIENTEXTRA = 43,
+  PURESERVER_MISMATCH = 44,
+  USERCMD = 45,
+  REJECTED_BY_GAME = 46,
+  MESSAGE_PARSE_ERROR = 47,
+  INVALID_MESSAGE_ERROR = 48,
+  BAD_SERVER_PASSWORD = 49,
+  DIRECT_CONNECT_RESERVATION = 50,
+  CONNECTION_FAILURE = 51,
+  NO_PEER_GROUP_HANDLERS = 52,
+  RECONNECTION = 53,
+  LOOPSHUTDOWN = 54,
+  LOOPDEACTIVATE = 55,
+  HOST_ENDGAME = 56,
+  LOOP_LEVELLOAD_ACTIVATE = 57,
+  CREATE_SERVER_FAILED = 58,
+  EXITING = 59,
+  REQUEST_HOSTSTATE_IDLE = 60,
+  REQUEST_HOSTSTATE_HLTVRELAY = 61,
+  CLIENT_CONSISTENCY_FAIL = 62,
+  CLIENT_UNABLE_TO_CRC_MAP = 63,
+  CLIENT_NO_MAP = 64,
+  CLIENT_DIFFERENT_MAP = 65,
+  SERVER_REQUIRES_STEAM = 66,
+  STEAM_DENY_MISC = 67,
+  STEAM_DENY_BAD_ANTI_CHEAT = 68,
+  SERVER_SHUTDOWN = 69,
+  REPLAY_INCOMPATIBLE = 71,
+  CONNECT_REQUEST_TIMEDOUT = 72,
+  SERVER_INCOMPATIBLE = 73,
+  LOCALPROBLEM_MANYRELAYS = 74,
+  LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY = 75,
+  LOCALPROBLEM_NETWORKCONFIG = 76,
+  LOCALPROBLEM_OTHER = 77,
+  REMOTE_TIMEOUT = 79,
+  REMOTE_TIMEOUT_CONNECTING = 80,
+  REMOTE_OTHER = 81,
+  REMOTE_BADCRYPT = 82,
+  REMOTE_CERTNOTTRUSTED = 83,
+  UNUSUAL = 84,
+  INTERNAL_ERROR = 85,
+  REJECT_BADCHALLENGE = 128,
+  REJECT_NOLOBBY = 129,
+  REJECT_BACKGROUND_MAP = 130,
+  REJECT_SINGLE_PLAYER = 131,
+  REJECT_HIDDEN_GAME = 132,
+  REJECT_LANRESTRICT = 133,
+  REJECT_BADPASSWORD = 134,
+  REJECT_SERVERFULL = 135,
+  REJECT_INVALIDRESERVATION = 136,
+  REJECT_FAILEDCHANNEL = 137,
+  REJECT_CONNECT_FROM_LOBBY = 138,
+  REJECT_RESERVED_FOR_LOBBY = 139,
+  REJECT_INVALIDKEYLENGTH = 140,
+  REJECT_OLDPROTOCOL = 141,
+  REJECT_NEWPROTOCOL = 142,
+  REJECT_INVALIDCONNECTION = 143,
+  REJECT_INVALIDCERTLEN = 144,
+  REJECT_INVALIDSTEAMCERTLEN = 145,
+  REJECT_STEAM = 146,
+  REJECT_SERVERAUTHDISABLED = 147,
+  REJECT_SERVERCDKEYAUTHINVALID = 148,
+  REJECT_BANNED = 149,
+  KICKED_TEAMKILLING = 150,
+  KICKED_TK_START = 151,
+  KICKED_UNTRUSTEDACCOUNT = 152,
+  KICKED_CONVICTEDACCOUNT = 153,
+  KICKED_COMPETITIVECOOLDOWN = 154,
+  KICKED_TEAMHURTING = 155,
+  KICKED_HOSTAGEKILLING = 156,
+  KICKED_VOTEDOFF = 157,
+  KICKED_IDLE = 158,
+  KICKED_SUICIDE = 159,
+  KICKED_NOSTEAMLOGIN = 160,
+  KICKED_NOSTEAMTICKET = 161,
+  KICKED_INPUTAUTOMATION = 162,
+  KICKED_VACNETABNORMALBEHAVIOR = 163,
+  KICKED_INSECURECLIENT = 164,
+}
+
+export const DisconnectReason_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.players.DisconnectReason',
+  [
+    [0, 'DISCONNECT_REASON_UNKNOWN'],
+    [1, 'DISCONNECT_REASON_SHUTDOWN'],
+    [2, 'DISCONNECT_REASON_DISCONNECT_BY_USER'],
+    [3, 'DISCONNECT_REASON_DISCONNECT_BY_SERVER'],
+    [4, 'DISCONNECT_REASON_LOST'],
+    [5, 'DISCONNECT_REASON_OVERFLOW'],
+    [6, 'DISCONNECT_REASON_STEAM_BANNED'],
+    [7, 'DISCONNECT_REASON_STEAM_INUSE'],
+    [8, 'DISCONNECT_REASON_STEAM_TICKET'],
+    [9, 'DISCONNECT_REASON_STEAM_LOGON'],
+    [10, 'DISCONNECT_REASON_STEAM_AUTHCANCELLED'],
+    [11, 'DISCONNECT_REASON_STEAM_AUTHALREADYUSED'],
+    [12, 'DISCONNECT_REASON_STEAM_AUTHINVALID'],
+    [13, 'DISCONNECT_REASON_STEAM_VACBANSTATE'],
+    [14, 'DISCONNECT_REASON_STEAM_LOGGED_IN_ELSEWHERE'],
+    [15, 'DISCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT'],
+    [16, 'DISCONNECT_REASON_STEAM_DROPPED'],
+    [17, 'DISCONNECT_REASON_STEAM_OWNERSHIP'],
+    [18, 'DISCONNECT_REASON_SERVERINFO_OVERFLOW'],
+    [19, 'DISCONNECT_REASON_TICKMSG_OVERFLOW'],
+    [20, 'DISCONNECT_REASON_STRINGTABLEMSG_OVERFLOW'],
+    [21, 'DISCONNECT_REASON_DELTAENTMSG_OVERFLOW'],
+    [22, 'DISCONNECT_REASON_TEMPENTMSG_OVERFLOW'],
+    [23, 'DISCONNECT_REASON_SOUNDSMSG_OVERFLOW'],
+    [24, 'DISCONNECT_REASON_SNAPSHOTOVERFLOW'],
+    [25, 'DISCONNECT_REASON_SNAPSHOTERROR'],
+    [26, 'DISCONNECT_REASON_RELIABLEOVERFLOW'],
+    [27, 'DISCONNECT_REASON_BADDELTATICK'],
+    [28, 'DISCONNECT_REASON_NOMORESPLITS'],
+    [29, 'DISCONNECT_REASON_TIMEDOUT'],
+    [30, 'DISCONNECT_REASON_DISCONNECTED'],
+    [31, 'DISCONNECT_REASON_LEAVINGSPLIT'],
+    [32, 'DISCONNECT_REASON_DIFFERENTCLASSTABLES'],
+    [33, 'DISCONNECT_REASON_BADRELAYPASSWORD'],
+    [34, 'DISCONNECT_REASON_BADSPECTATORPASSWORD'],
+    [35, 'DISCONNECT_REASON_HLTVRESTRICTED'],
+    [36, 'DISCONNECT_REASON_NOSPECTATORS'],
+    [37, 'DISCONNECT_REASON_HLTVUNAVAILABLE'],
+    [38, 'DISCONNECT_REASON_HLTVSTOP'],
+    [39, 'DISCONNECT_REASON_KICKED'],
+    [40, 'DISCONNECT_REASON_BANADDED'],
+    [41, 'DISCONNECT_REASON_KICKBANADDED'],
+    [42, 'DISCONNECT_REASON_HLTVDIRECT'],
+    [43, 'DISCONNECT_REASON_PURESERVER_CLIENTEXTRA'],
+    [44, 'DISCONNECT_REASON_PURESERVER_MISMATCH'],
+    [45, 'DISCONNECT_REASON_USERCMD'],
+    [46, 'DISCONNECT_REASON_REJECTED_BY_GAME'],
+    [47, 'DISCONNECT_REASON_MESSAGE_PARSE_ERROR'],
+    [48, 'DISCONNECT_REASON_INVALID_MESSAGE_ERROR'],
+    [49, 'DISCONNECT_REASON_BAD_SERVER_PASSWORD'],
+    [50, 'DISCONNECT_REASON_DIRECT_CONNECT_RESERVATION'],
+    [51, 'DISCONNECT_REASON_CONNECTION_FAILURE'],
+    [52, 'DISCONNECT_REASON_NO_PEER_GROUP_HANDLERS'],
+    [53, 'DISCONNECT_REASON_RECONNECTION'],
+    [54, 'DISCONNECT_REASON_LOOPSHUTDOWN'],
+    [55, 'DISCONNECT_REASON_LOOPDEACTIVATE'],
+    [56, 'DISCONNECT_REASON_HOST_ENDGAME'],
+    [57, 'DISCONNECT_REASON_LOOP_LEVELLOAD_ACTIVATE'],
+    [58, 'DISCONNECT_REASON_CREATE_SERVER_FAILED'],
+    [59, 'DISCONNECT_REASON_EXITING'],
+    [60, 'DISCONNECT_REASON_REQUEST_HOSTSTATE_IDLE'],
+    [61, 'DISCONNECT_REASON_REQUEST_HOSTSTATE_HLTVRELAY'],
+    [62, 'DISCONNECT_REASON_CLIENT_CONSISTENCY_FAIL'],
+    [63, 'DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_MAP'],
+    [64, 'DISCONNECT_REASON_CLIENT_NO_MAP'],
+    [65, 'DISCONNECT_REASON_CLIENT_DIFFERENT_MAP'],
+    [66, 'DISCONNECT_REASON_SERVER_REQUIRES_STEAM'],
+    [67, 'DISCONNECT_REASON_STEAM_DENY_MISC'],
+    [68, 'DISCONNECT_REASON_STEAM_DENY_BAD_ANTI_CHEAT'],
+    [69, 'DISCONNECT_REASON_SERVER_SHUTDOWN'],
+    [71, 'DISCONNECT_REASON_REPLAY_INCOMPATIBLE'],
+    [72, 'DISCONNECT_REASON_CONNECT_REQUEST_TIMEDOUT'],
+    [73, 'DISCONNECT_REASON_SERVER_INCOMPATIBLE'],
+    [74, 'DISCONNECT_REASON_LOCALPROBLEM_MANYRELAYS'],
+    [75, 'DISCONNECT_REASON_LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY'],
+    [76, 'DISCONNECT_REASON_LOCALPROBLEM_NETWORKCONFIG'],
+    [77, 'DISCONNECT_REASON_LOCALPROBLEM_OTHER'],
+    [79, 'DISCONNECT_REASON_REMOTE_TIMEOUT'],
+    [80, 'DISCONNECT_REASON_REMOTE_TIMEOUT_CONNECTING'],
+    [81, 'DISCONNECT_REASON_REMOTE_OTHER'],
+    [82, 'DISCONNECT_REASON_REMOTE_BADCRYPT'],
+    [83, 'DISCONNECT_REASON_REMOTE_CERTNOTTRUSTED'],
+    [84, 'DISCONNECT_REASON_UNUSUAL'],
+    [85, 'DISCONNECT_REASON_INTERNAL_ERROR'],
+    [128, 'DISCONNECT_REASON_REJECT_BADCHALLENGE'],
+    [129, 'DISCONNECT_REASON_REJECT_NOLOBBY'],
+    [130, 'DISCONNECT_REASON_REJECT_BACKGROUND_MAP'],
+    [131, 'DISCONNECT_REASON_REJECT_SINGLE_PLAYER'],
+    [132, 'DISCONNECT_REASON_REJECT_HIDDEN_GAME'],
+    [133, 'DISCONNECT_REASON_REJECT_LANRESTRICT'],
+    [134, 'DISCONNECT_REASON_REJECT_BADPASSWORD'],
+    [135, 'DISCONNECT_REASON_REJECT_SERVERFULL'],
+    [136, 'DISCONNECT_REASON_REJECT_INVALIDRESERVATION'],
+    [137, 'DISCONNECT_REASON_REJECT_FAILEDCHANNEL'],
+    [138, 'DISCONNECT_REASON_REJECT_CONNECT_FROM_LOBBY'],
+    [139, 'DISCONNECT_REASON_REJECT_RESERVED_FOR_LOBBY'],
+    [140, 'DISCONNECT_REASON_REJECT_INVALIDKEYLENGTH'],
+    [141, 'DISCONNECT_REASON_REJECT_OLDPROTOCOL'],
+    [142, 'DISCONNECT_REASON_REJECT_NEWPROTOCOL'],
+    [143, 'DISCONNECT_REASON_REJECT_INVALIDCONNECTION'],
+    [144, 'DISCONNECT_REASON_REJECT_INVALIDCERTLEN'],
+    [145, 'DISCONNECT_REASON_REJECT_INVALIDSTEAMCERTLEN'],
+    [146, 'DISCONNECT_REASON_REJECT_STEAM'],
+    [147, 'DISCONNECT_REASON_REJECT_SERVERAUTHDISABLED'],
+    [148, 'DISCONNECT_REASON_REJECT_SERVERCDKEYAUTHINVALID'],
+    [149, 'DISCONNECT_REASON_REJECT_BANNED'],
+    [150, 'DISCONNECT_REASON_KICKED_TEAMKILLING'],
+    [151, 'DISCONNECT_REASON_KICKED_TK_START'],
+    [152, 'DISCONNECT_REASON_KICKED_UNTRUSTEDACCOUNT'],
+    [153, 'DISCONNECT_REASON_KICKED_CONVICTEDACCOUNT'],
+    [154, 'DISCONNECT_REASON_KICKED_COMPETITIVECOOLDOWN'],
+    [155, 'DISCONNECT_REASON_KICKED_TEAMHURTING'],
+    [156, 'DISCONNECT_REASON_KICKED_HOSTAGEKILLING'],
+    [157, 'DISCONNECT_REASON_KICKED_VOTEDOFF'],
+    [158, 'DISCONNECT_REASON_KICKED_IDLE'],
+    [159, 'DISCONNECT_REASON_KICKED_SUICIDE'],
+    [160, 'DISCONNECT_REASON_KICKED_NOSTEAMLOGIN'],
+    [161, 'DISCONNECT_REASON_KICKED_NOSTEAMTICKET'],
+    [162, 'DISCONNECT_REASON_KICKED_INPUTAUTOMATION'],
+    [163, 'DISCONNECT_REASON_KICKED_VACNETABNORMALBEHAVIOR'],
+    [164, 'DISCONNECT_REASON_KICKED_INSECURECLIENT'],
+  ],
+)
+
+/**
  * ModRole is what a player is to the running mods.
  *
  * @generated from enum modlock.wasm.players.ModRole
@@ -181,6 +438,134 @@ export const PlayersChangedEvent: MessageType<PlayersChangedEvent> =
         {
           const a = m.players
           if (a != null) for (const e of a) Connection.writeField(w, 1, e)
+        }
+      },
+    },
+  )
+
+/**
+ * PlayerJoinedEvent reports a player who joined the mod: a human who finished
+ * joining the server, a bot once added, or a player already in the game when
+ * the mod starts or begins to serve them.
+ *
+ * @generated from message modlock.wasm.players.PlayerJoinedEvent
+ */
+export interface PlayerJoinedEvent {
+  /**
+   * Connection is the player as Players lists them.
+   */
+  connection?: Connection
+}
+
+export const PlayerJoinedEvent: MessageType<PlayerJoinedEvent> =
+  /* @__PURE__ */ createMessageType<PlayerJoinedEvent>(
+    'modlock.wasm.players.PlayerJoinedEvent',
+    () => [[1, 'connection', 11, 0, Connection.codec]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: PlayerJoinedEvent,
+      ): PlayerJoinedEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.connection = Connection.decode(
+                r,
+                r.delimited(),
+                m.connection ?? {},
+              )
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: PlayerJoinedEvent, w: Writer): void => {
+        {
+          const v = m.connection
+          if (v != null) Connection.writeField(w, 1, v)
+        }
+      },
+    },
+  )
+
+/**
+ * PlayerLeftEvent reports a player leaving the mod, once for each
+ * PlayerJoinedEvent.
+ *
+ * @generated from message modlock.wasm.players.PlayerLeftEvent
+ */
+export interface PlayerLeftEvent {
+  /**
+   * Connection is the player as the last PlayerJoinedEvent or PlayersChanged
+   * listed them.
+   */
+  connection?: Connection
+  /**
+   * Disconnected is true when the player leaves the server, and false when
+   * they stay but the mod stops serving them.
+   */
+  disconnected?: boolean
+  /**
+   * Reason is why the server dropped the connection, absent when the player
+   * stays or the engine gave no reason this schema names.
+   */
+  reason?: DisconnectReason
+}
+
+export const PlayerLeftEvent: MessageType<PlayerLeftEvent> =
+  /* @__PURE__ */ createMessageType<PlayerLeftEvent>(
+    'modlock.wasm.players.PlayerLeftEvent',
+    () => [
+      [1, 'connection', 11, 0, Connection.codec],
+      [2, 'disconnected', 8],
+      [3, 'reason', 14, 4, DisconnectReason_Enum],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: PlayerLeftEvent,
+      ): PlayerLeftEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.connection = Connection.decode(
+                r,
+                r.delimited(),
+                m.connection ?? {},
+              )
+              break
+            case 2:
+              m.disconnected = r.bool()
+              break
+            case 3:
+              m.reason = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: PlayerLeftEvent, w: Writer): void => {
+        {
+          const v = m.connection
+          if (v != null) Connection.writeField(w, 1, v)
+        }
+        {
+          const v = m.disconnected
+          if (v) w.uint32(16).bool(v)
+        }
+        {
+          const v = m.reason
+          if (v != null) w.uint32(24).int32(v)
         }
       },
     },

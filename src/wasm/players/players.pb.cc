@@ -684,6 +684,58 @@ struct PlayersChangedEventDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayersChangedEventDefaultTypeInternal _PlayersChangedEvent_default_instance_;
 
+inline constexpr PlayerLeftEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        connection_{nullptr},
+        disconnected_{false},
+        reason_{static_cast< ::modlock::wasm::players::DisconnectReason >(0)} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PlayerLeftEvent::PlayerLeftEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PlayerLeftEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PlayerLeftEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PlayerLeftEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PlayerLeftEventDefaultTypeInternal() {}
+  union {
+    PlayerLeftEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerLeftEventDefaultTypeInternal _PlayerLeftEvent_default_instance_;
+
+inline constexpr PlayerJoinedEvent::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        connection_{nullptr} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR PlayerJoinedEvent::PlayerJoinedEvent(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(PlayerJoinedEvent_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct PlayerJoinedEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PlayerJoinedEventDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PlayerJoinedEventDefaultTypeInternal() {}
+  union {
+    PlayerJoinedEvent _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PlayerJoinedEventDefaultTypeInternal _PlayerJoinedEvent_default_instance_;
+
 inline constexpr Pawn::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -1047,7 +1099,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
 }  // namespace wasm
 }  // namespace modlock
 static const ::_pb::EnumDescriptor* PROTOBUF_NONNULL
-    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[2];
+    file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[3];
 static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_service_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto = nullptr;
 const ::uint32_t
@@ -1065,6 +1117,20 @@ const ::uint32_t
         4, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayersChangedEvent, _impl_.players_),
         0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerJoinedEvent, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerJoinedEvent, _impl_.connection_),
+        0,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerLeftEvent, _impl_._has_bits_),
+        6, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerLeftEvent, _impl_.connection_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerLeftEvent, _impl_.disconnected_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerLeftEvent, _impl_.reason_),
+        0,
+        1,
+        2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::players::PlayerRequest, _impl_._has_bits_),
         4, // hasbit index offset
@@ -1440,44 +1506,48 @@ static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::players::RestoredEvent)},
         {7, sizeof(::modlock::wasm::players::PlayersChangedEvent)},
-        {12, sizeof(::modlock::wasm::players::PlayerRequest)},
-        {17, sizeof(::modlock::wasm::players::PlayersResponse)},
-        {22, sizeof(::modlock::wasm::players::Connection)},
-        {39, sizeof(::modlock::wasm::players::RolesTable)},
-        {48, sizeof(::modlock::wasm::players::ConnectionRoles)},
-        {57, sizeof(::modlock::wasm::players::PawnResponse)},
-        {62, sizeof(::modlock::wasm::players::Pawn)},
-        {101, sizeof(::modlock::wasm::players::Score)},
-        {120, sizeof(::modlock::wasm::players::SelectHeroRequest)},
-        {133, sizeof(::modlock::wasm::players::HeroResponse)},
-        {138, sizeof(::modlock::wasm::players::WatchRequest)},
-        {147, sizeof(::modlock::wasm::players::FreeCameraRequest)},
-        {156, sizeof(::modlock::wasm::players::CameraValue)},
-        {161, sizeof(::modlock::wasm::players::CameraMotion)},
-        {169, sizeof(::modlock::wasm::players::CameraHold)},
-        {174, sizeof(::modlock::wasm::players::CameraApproach)},
-        {189, sizeof(::modlock::wasm::players::CameraSpring)},
-        {200, sizeof(::modlock::wasm::players::CameraLerp)},
-        {213, sizeof(::modlock::wasm::players::CameraLag)},
-        {226, sizeof(::modlock::wasm::players::CameraOptions)},
-        {247, sizeof(::modlock::wasm::players::ClearCameraRequest)},
-        {254, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
-        {261, sizeof(::modlock::wasm::players::FreezeRequest)},
-        {268, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
-        {277, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
-        {284, sizeof(::modlock::wasm::players::ResetHeroRequest)},
-        {291, sizeof(::modlock::wasm::players::HealRequest)},
-        {298, sizeof(::modlock::wasm::players::SetStaminaRequest)},
-        {305, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
-        {312, sizeof(::modlock::wasm::players::HeroTarget)},
-        {337, sizeof(::modlock::wasm::players::EquipmentTarget)},
-        {346, sizeof(::modlock::wasm::players::TimerTarget)},
-        {361, sizeof(::modlock::wasm::players::BotOptions)},
-        {376, sizeof(::modlock::wasm::players::BotResponse)},
+        {12, sizeof(::modlock::wasm::players::PlayerJoinedEvent)},
+        {17, sizeof(::modlock::wasm::players::PlayerLeftEvent)},
+        {26, sizeof(::modlock::wasm::players::PlayerRequest)},
+        {31, sizeof(::modlock::wasm::players::PlayersResponse)},
+        {36, sizeof(::modlock::wasm::players::Connection)},
+        {53, sizeof(::modlock::wasm::players::RolesTable)},
+        {62, sizeof(::modlock::wasm::players::ConnectionRoles)},
+        {71, sizeof(::modlock::wasm::players::PawnResponse)},
+        {76, sizeof(::modlock::wasm::players::Pawn)},
+        {115, sizeof(::modlock::wasm::players::Score)},
+        {134, sizeof(::modlock::wasm::players::SelectHeroRequest)},
+        {147, sizeof(::modlock::wasm::players::HeroResponse)},
+        {152, sizeof(::modlock::wasm::players::WatchRequest)},
+        {161, sizeof(::modlock::wasm::players::FreeCameraRequest)},
+        {170, sizeof(::modlock::wasm::players::CameraValue)},
+        {175, sizeof(::modlock::wasm::players::CameraMotion)},
+        {183, sizeof(::modlock::wasm::players::CameraHold)},
+        {188, sizeof(::modlock::wasm::players::CameraApproach)},
+        {203, sizeof(::modlock::wasm::players::CameraSpring)},
+        {214, sizeof(::modlock::wasm::players::CameraLerp)},
+        {227, sizeof(::modlock::wasm::players::CameraLag)},
+        {240, sizeof(::modlock::wasm::players::CameraOptions)},
+        {261, sizeof(::modlock::wasm::players::ClearCameraRequest)},
+        {268, sizeof(::modlock::wasm::players::ChangeTeamRequest)},
+        {275, sizeof(::modlock::wasm::players::FreezeRequest)},
+        {282, sizeof(::modlock::wasm::players::AdjustSoulsRequest)},
+        {291, sizeof(::modlock::wasm::players::StartingSoulsRequest)},
+        {298, sizeof(::modlock::wasm::players::ResetHeroRequest)},
+        {305, sizeof(::modlock::wasm::players::HealRequest)},
+        {312, sizeof(::modlock::wasm::players::SetStaminaRequest)},
+        {319, sizeof(::modlock::wasm::players::RestoreHeroRequest)},
+        {326, sizeof(::modlock::wasm::players::HeroTarget)},
+        {351, sizeof(::modlock::wasm::players::EquipmentTarget)},
+        {360, sizeof(::modlock::wasm::players::TimerTarget)},
+        {375, sizeof(::modlock::wasm::players::BotOptions)},
+        {390, sizeof(::modlock::wasm::players::BotResponse)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::players::_RestoredEvent_default_instance_._instance,
     &::modlock::wasm::players::_PlayersChangedEvent_default_instance_._instance,
+    &::modlock::wasm::players::_PlayerJoinedEvent_default_instance_._instance,
+    &::modlock::wasm::players::_PlayerLeftEvent_default_instance_._instance,
     &::modlock::wasm::players::_PlayerRequest_default_instance_._instance,
     &::modlock::wasm::players::_PlayersResponse_default_instance_._instance,
     &::modlock::wasm::players::_Connection_default_instance_._instance,
@@ -1521,138 +1591,272 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "ry/geometry.proto\".\n\rRestoredEvent\022\016\n\006pl"
     "ayer\030\001 \001(\005\022\r\n\005error\030\002 \001(\t\"H\n\023PlayersChan"
     "gedEvent\0221\n\007players\030\001 \003(\0132 .modlock.wasm"
-    ".players.Connection\"\037\n\rPlayerRequest\022\016\n\006"
-    "player\030\001 \001(\005\"D\n\017PlayersResponse\0221\n\007playe"
-    "rs\030\001 \003(\0132 .modlock.wasm.players.Connecti"
-    "on\"\232\001\n\nConnection\022\016\n\006player\030\001 \001(\005\022\020\n\010ste"
-    "am_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003bot\030\004 \001(\010\022\r"
-    "\n\005ready\030\005 \001(\010\022\022\n\ngeneration\030\006 \001(\r\022,\n\005rol"
-    "es\030\007 \003(\0162\035.modlock.wasm.players.ModRole\""
-    "\204\001\n\nRolesTable\022:\n\013connections\030\001 \003(\0132%.mo"
-    "dlock.wasm.players.ConnectionRoles\022-\n\006hu"
-    "mans\030\002 \003(\0162\035.modlock.wasm.players.ModRol"
-    "e\022\013\n\003mod\030\003 \001(\t\"e\n\017ConnectionRoles\022\020\n\010ste"
-    "am_id\030\001 \001(\004\022\022\n\ngeneration\030\002 \001(\r\022,\n\005roles"
-    "\030\003 \003(\0162\035.modlock.wasm.players.ModRole\"8\n"
-    "\014PawnResponse\022(\n\004pawn\030\001 \001(\0132\032.modlock.wa"
-    "sm.players.Pawn\"\235\005\n\004Pawn\022\016\n\006entity\030\001 \001(\r"
-    "\022\014\n\004hero\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006health\030\004"
-    " \001(\005\022\022\n\nmax_health\030\005 \001(\005\022(\n\010position\030\006 \001"
-    "(\0132\026.modlock.geometry.Vec3\0221\n\neye_angles"
-    "\030\007 \001(\0132\035.modlock.geometry.EulerAngles\0224\n"
-    "\rcamera_angles\030\010 \001(\0132\035.modlock.geometry."
-    "EulerAngles\022\024\n\007stamina\030\t \001(\002H\000\210\001\001\022\030\n\013max"
-    "_stamina\030\n \001(\002H\001\210\001\001\022\022\n\ngeneration\030\013 \001(\r\022"
-    "\r\n\005souls\030\014 \001(\005\022,\n\014eye_position\030\r \001(\0132\026.m"
-    "odlock.geometry.Vec3\022(\n\010velocity\030\016 \001(\0132\026"
-    ".modlock.geometry.Vec3\022\031\n\014carrying_urn\030\017"
-    " \001(\010H\002\210\001\001\022/\n\005score\030\020 \001(\0132\033.modlock.wasm."
-    "players.ScoreH\003\210\001\001\0224\n\017camera_position\030\021 "
-    "\001(\0132\026.modlock.geometry.Vec3H\004\210\001\001\022!\n\024effe"
-    "ctive_max_health\030\022 \001(\005H\005\210\001\001B\n\n\010_staminaB"
-    "\016\n\014_max_staminaB\017\n\r_carrying_urnB\010\n\006_sco"
-    "reB\022\n\020_camera_positionB\027\n\025_effective_max"
-    "_health\"\230\001\n\005Score\022\r\n\005kills\030\001 \001(\005\022\016\n\006deat"
-    "hs\030\002 \001(\005\022\017\n\007assists\030\003 \001(\005\022\021\n\tlast_hits\030\004"
-    " \001(\005\022\016\n\006denies\030\005 \001(\005\022\023\n\013hero_damage\030\006 \001("
-    "\005\022\024\n\014hero_healing\030\007 \001(\005\022\021\n\tnet_worth\030\010 \001"
-    "(\005\"a\n\021SelectHeroRequest\022\016\n\006player\030\001 \001(\005\022"
-    "\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001(\rH\000\022"
-    "\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroResponse\022\014\n"
-    "\004hero\030\001 \001(\r\"L\n\014WatchRequest\022\016\n\006player\030\001 "
-    "\001(\005\022\016\n\006target\030\002 \001(\r\022\022\n\005chase\030\003 \001(\010H\000\210\001\001B"
-    "\010\n\006_chase\"|\n\021FreeCameraRequest\022\016\n\006player"
-    "\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modlock.geome"
-    "try.Vec3\022-\n\006facing\030\003 \001(\0132\035.modlock.geome"
-    "try.EulerAngles\"T\n\013CameraValue\022\020\n\006number"
-    "\030\001 \001(\002H\000\022*\n\010position\030\002 \001(\0132\026.modlock.geo"
-    "metry.Vec3H\000B\007\n\005value\"\234\002\n\014CameraMotion\0220"
-    "\n\004hold\030\001 \001(\0132 .modlock.wasm.players.Came"
-    "raHoldH\000\0228\n\010approach\030\002 \001(\0132$.modlock.was"
-    "m.players.CameraApproachH\000\0224\n\006spring\030\003 \001"
-    "(\0132\".modlock.wasm.players.CameraSpringH\000"
-    "\0220\n\004lerp\030\004 \001(\0132 .modlock.wasm.players.Ca"
-    "meraLerpH\000\022.\n\003lag\030\005 \001(\0132\037.modlock.wasm.p"
-    "layers.CameraLagH\000B\010\n\006motion\"0\n\nCameraHo"
-    "ld\022\025\n\010duration\030\001 \001(\002H\000\210\001\001B\013\n\t_duration\"\243"
-    "\002\n\016CameraApproach\0225\n\005value\030\001 \001(\0132!.modlo"
-    "ck.wasm.players.CameraValueH\000\210\001\001\022\022\n\005spee"
-    "d\030\002 \001(\002H\001\210\001\001\022\032\n\rdefault_speed\030\003 \001(\002H\002\210\001\001"
-    "\022\031\n\014acceleration\030\004 \001(\002H\003\210\001\001\022\031\n\014min_durat"
-    "ion\030\005 \001(\002H\004\210\001\001\022\032\n\rchase_default\030\006 \001(\010H\005\210"
-    "\001\001B\010\n\006_valueB\010\n\006_speedB\020\n\016_default_speed"
-    "B\017\n\r_accelerationB\017\n\r_min_durationB\020\n\016_c"
-    "hase_default\"\305\001\n\014CameraSpring\0225\n\005value\030\001"
-    " \001(\0132!.modlock.wasm.players.CameraValueH"
-    "\000\210\001\001\022\025\n\010strength\030\002 \001(\002H\001\210\001\001\022\026\n\tmin_speed"
-    "\030\003 \001(\002H\002\210\001\001\022\031\n\014max_duration\030\004 \001(\002H\003\210\001\001B\010"
-    "\n\006_valueB\013\n\t_strengthB\014\n\n_min_speedB\017\n\r_"
-    "max_duration\"\312\001\n\nCameraLerp\0220\n\005start\030\001 \001"
-    "(\0132!.modlock.wasm.players.CameraValue\022.\n"
-    "\003end\030\002 \001(\0132!.modlock.wasm.players.Camera"
-    "Value\022\021\n\004bias\030\003 \001(\002H\000\210\001\001\022\021\n\004gain\030\004 \001(\002H\001"
-    "\210\001\001\022\025\n\010duration\030\005 \001(\002H\002\210\001\001B\007\n\005_biasB\007\n\005_"
-    "gainB\013\n\t_duration\"\361\001\n\tCameraLag\022\031\n\014min_d"
-    "uration\030\001 \001(\002H\000\210\001\001\022\025\n\010lag_time\030\002 \001(\002H\001\210\001"
-    "\001\022\026\n\tmax_speed\030\003 \001(\002H\002\210\001\001\022\034\n\017spring_stre"
-    "ngth\030\004 \001(\002H\003\210\001\001\022\"\n\025keep_target_on_screen"
-    "\030\005 \001(\010H\004\210\001\001B\017\n\r_min_durationB\013\n\t_lag_tim"
-    "eB\014\n\n_max_speedB\022\n\020_spring_strengthB\030\n\026_"
-    "keep_target_on_screen\"\315\002\n\rCameraOptions\022"
-    "\016\n\006player\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001\0220\n"
-    "\005param\030\003 \001(\0162!.modlock.wasm.players.Came"
-    "raParam\0222\n\006motion\030\004 \001(\0132\".modlock.wasm.p"
-    "layers.CameraMotion\022\022\n\005delay\030\005 \001(\002H\001\210\001\001\022"
-    "\025\n\010relative\030\006 \001(\010H\002\210\001\001\022\025\n\010priority\030\007 \001(\r"
-    "H\003\210\001\001\022\023\n\006shared\030\010 \001(\010H\004\210\001\001\022\023\n\006target\030\t \001"
-    "(\rH\005\210\001\001B\n\n\010_contextB\010\n\006_delayB\013\n\t_relati"
-    "veB\013\n\t_priorityB\t\n\007_sharedB\t\n\007_target\"F\n"
-    "\022ClearCameraRequest\022\016\n\006player\030\001 \001(\005\022\024\n\007c"
-    "ontext\030\002 \001(\tH\000\210\001\001B\n\n\010_context\"1\n\021ChangeT"
-    "eamRequest\022\016\n\006player\030\001 \001(\005\022\014\n\004team\030\002 \001(\005"
-    "\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005\022\023\n\006fro"
-    "zen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"S\n\022AdjustSouls"
-    "Request\022\016\n\006player\030\001 \001(\005\022\r\n\005delta\030\002 \001(\005\022\023"
-    "\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024Starti"
-    "ngSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005souls\030"
-    "\002 \001(\005\"1\n\020ResetHeroRequest\022\016\n\006player\030\001 \001("
-    "\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealRequest\022\016\n\006playe"
-    "r\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4\n\021SetStaminaReq"
-    "uest\022\016\n\006player\030\001 \001(\005\022\017\n\007stamina\030\002 \001(\002\"V\n"
-    "\022RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\0220\n\006t"
-    "arget\030\002 \001(\0132 .modlock.wasm.players.HeroT"
-    "arget\"\323\003\n\nHeroTarget\022(\n\010position\030\001 \001(\0132\026"
-    ".modlock.geometry.Vec3\022-\n\006facing\030\002 \001(\0132\035"
-    ".modlock.geometry.EulerAngles\022\022\n\005fresh\030\003"
-    " \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210\001\001\022\023\n\006health\030"
-    "\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 \001(\005H\003\210\001\001\022\027\n\017u"
-    "pgrade_bonuses\030\007 \003(\002\0228\n\tabilities\030\010 \003(\0132"
-    "%.modlock.wasm.players.EquipmentTarget\0224"
-    "\n\005items\030\t \003(\0132%.modlock.wasm.players.Equ"
-    "ipmentTarget\022\032\n\rreplace_items\030\n \001(\010H\004\210\001\001"
-    "\0221\n\006timers\030\013 \003(\0132!.modlock.wasm.players."
-    "TimerTargetB\010\n\006_freshB\010\n\006_levelB\t\n\007_heal"
-    "thB\r\n\013_max_healthB\020\n\016_replace_items\"H\n\017E"
-    "quipmentTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 \001(\005"
-    "H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013TimerT"
-    "arget\022\n\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n\016co"
-    "oldown_start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_end\030"
-    "\004 \001(\002H\001\210\001\001\022\033\n\016recharge_start\030\005 \001(\002H\002\210\001\001\022"
-    "\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldown_"
-    "startB\017\n\r_cooldown_endB\021\n\017_recharge_star"
-    "tB\017\n\r_recharge_end\"\224\001\n\nBotOptions\022\014\n\004nam"
-    "e\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name\030\003 \001(\t"
-    "H\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010position\030\005 \001(\0132"
-    "\026.modlock.geometry.Vec3H\001\210\001\001B\006\n\004heroB\013\n\t"
-    "_position\"\035\n\013BotResponse\022\016\n\006player\030\001 \001(\005"
-    "*P\n\007ModRole\022\030\n\024MOD_ROLE_UNSPECIFIED\020\000\022\026\n"
-    "\022MOD_ROLE_DEVELOPER\020\001\022\023\n\017MOD_ROLE_TESTER"
-    "\020\002*\247\001\n\013CameraParam\022\031\n\025CAMERA_PARAM_DISTA"
-    "NCE\020\000\022\036\n\032CAMERA_PARAM_FIELD_OF_VIEW\020\001\022\027\n"
-    "\023CAMERA_PARAM_TARGET\020\002\022 \n\034CAMERA_PARAM_V"
-    "ERTICAL_OFFSET\020\003\022\"\n\036CAMERA_PARAM_HORIZON"
-    "TAL_OFFSET\020\004B5Z3github.com/paralin/modlo"
-    "ck/src/wasm/players;playersb\006proto3"
+    ".players.Connection\"I\n\021PlayerJoinedEvent"
+    "\0224\n\nconnection\030\001 \001(\0132 .modlock.wasm.play"
+    "ers.Connection\"\245\001\n\017PlayerLeftEvent\0224\n\nco"
+    "nnection\030\001 \001(\0132 .modlock.wasm.players.Co"
+    "nnection\022\024\n\014disconnected\030\002 \001(\010\022;\n\006reason"
+    "\030\003 \001(\0162&.modlock.wasm.players.Disconnect"
+    "ReasonH\000\210\001\001B\t\n\007_reason\"\037\n\rPlayerRequest\022"
+    "\016\n\006player\030\001 \001(\005\"D\n\017PlayersResponse\0221\n\007pl"
+    "ayers\030\001 \003(\0132 .modlock.wasm.players.Conne"
+    "ction\"\232\001\n\nConnection\022\016\n\006player\030\001 \001(\005\022\020\n\010"
+    "steam_id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003bot\030\004 \001("
+    "\010\022\r\n\005ready\030\005 \001(\010\022\022\n\ngeneration\030\006 \001(\r\022,\n\005"
+    "roles\030\007 \003(\0162\035.modlock.wasm.players.ModRo"
+    "le\"\204\001\n\nRolesTable\022:\n\013connections\030\001 \003(\0132%"
+    ".modlock.wasm.players.ConnectionRoles\022-\n"
+    "\006humans\030\002 \003(\0162\035.modlock.wasm.players.Mod"
+    "Role\022\013\n\003mod\030\003 \001(\t\"e\n\017ConnectionRoles\022\020\n\010"
+    "steam_id\030\001 \001(\004\022\022\n\ngeneration\030\002 \001(\r\022,\n\005ro"
+    "les\030\003 \003(\0162\035.modlock.wasm.players.ModRole"
+    "\"8\n\014PawnResponse\022(\n\004pawn\030\001 \001(\0132\032.modlock"
+    ".wasm.players.Pawn\"\235\005\n\004Pawn\022\016\n\006entity\030\001 "
+    "\001(\r\022\014\n\004hero\030\002 \001(\r\022\014\n\004team\030\003 \001(\005\022\016\n\006healt"
+    "h\030\004 \001(\005\022\022\n\nmax_health\030\005 \001(\005\022(\n\010position\030"
+    "\006 \001(\0132\026.modlock.geometry.Vec3\0221\n\neye_ang"
+    "les\030\007 \001(\0132\035.modlock.geometry.EulerAngles"
+    "\0224\n\rcamera_angles\030\010 \001(\0132\035.modlock.geomet"
+    "ry.EulerAngles\022\024\n\007stamina\030\t \001(\002H\000\210\001\001\022\030\n\013"
+    "max_stamina\030\n \001(\002H\001\210\001\001\022\022\n\ngeneration\030\013 \001"
+    "(\r\022\r\n\005souls\030\014 \001(\005\022,\n\014eye_position\030\r \001(\0132"
+    "\026.modlock.geometry.Vec3\022(\n\010velocity\030\016 \001("
+    "\0132\026.modlock.geometry.Vec3\022\031\n\014carrying_ur"
+    "n\030\017 \001(\010H\002\210\001\001\022/\n\005score\030\020 \001(\0132\033.modlock.wa"
+    "sm.players.ScoreH\003\210\001\001\0224\n\017camera_position"
+    "\030\021 \001(\0132\026.modlock.geometry.Vec3H\004\210\001\001\022!\n\024e"
+    "ffective_max_health\030\022 \001(\005H\005\210\001\001B\n\n\010_stami"
+    "naB\016\n\014_max_staminaB\017\n\r_carrying_urnB\010\n\006_"
+    "scoreB\022\n\020_camera_positionB\027\n\025_effective_"
+    "max_health\"\230\001\n\005Score\022\r\n\005kills\030\001 \001(\005\022\016\n\006d"
+    "eaths\030\002 \001(\005\022\017\n\007assists\030\003 \001(\005\022\021\n\tlast_hit"
+    "s\030\004 \001(\005\022\016\n\006denies\030\005 \001(\005\022\023\n\013hero_damage\030\006"
+    " \001(\005\022\024\n\014hero_healing\030\007 \001(\005\022\021\n\tnet_worth\030"
+    "\010 \001(\005\"a\n\021SelectHeroRequest\022\016\n\006player\030\001 \001"
+    "(\005\022\023\n\thero_name\030\002 \001(\tH\000\022\021\n\007hero_id\030\003 \001(\r"
+    "H\000\022\014\n\004team\030\004 \001(\005B\006\n\004hero\"\034\n\014HeroResponse"
+    "\022\014\n\004hero\030\001 \001(\r\"L\n\014WatchRequest\022\016\n\006player"
+    "\030\001 \001(\005\022\016\n\006target\030\002 \001(\r\022\022\n\005chase\030\003 \001(\010H\000\210"
+    "\001\001B\010\n\006_chase\"|\n\021FreeCameraRequest\022\016\n\006pla"
+    "yer\030\001 \001(\005\022(\n\010position\030\002 \001(\0132\026.modlock.ge"
+    "ometry.Vec3\022-\n\006facing\030\003 \001(\0132\035.modlock.ge"
+    "ometry.EulerAngles\"T\n\013CameraValue\022\020\n\006num"
+    "ber\030\001 \001(\002H\000\022*\n\010position\030\002 \001(\0132\026.modlock."
+    "geometry.Vec3H\000B\007\n\005value\"\234\002\n\014CameraMotio"
+    "n\0220\n\004hold\030\001 \001(\0132 .modlock.wasm.players.C"
+    "ameraHoldH\000\0228\n\010approach\030\002 \001(\0132$.modlock."
+    "wasm.players.CameraApproachH\000\0224\n\006spring\030"
+    "\003 \001(\0132\".modlock.wasm.players.CameraSprin"
+    "gH\000\0220\n\004lerp\030\004 \001(\0132 .modlock.wasm.players"
+    ".CameraLerpH\000\022.\n\003lag\030\005 \001(\0132\037.modlock.was"
+    "m.players.CameraLagH\000B\010\n\006motion\"0\n\nCamer"
+    "aHold\022\025\n\010duration\030\001 \001(\002H\000\210\001\001B\013\n\t_duratio"
+    "n\"\243\002\n\016CameraApproach\0225\n\005value\030\001 \001(\0132!.mo"
+    "dlock.wasm.players.CameraValueH\000\210\001\001\022\022\n\005s"
+    "peed\030\002 \001(\002H\001\210\001\001\022\032\n\rdefault_speed\030\003 \001(\002H\002"
+    "\210\001\001\022\031\n\014acceleration\030\004 \001(\002H\003\210\001\001\022\031\n\014min_du"
+    "ration\030\005 \001(\002H\004\210\001\001\022\032\n\rchase_default\030\006 \001(\010"
+    "H\005\210\001\001B\010\n\006_valueB\010\n\006_speedB\020\n\016_default_sp"
+    "eedB\017\n\r_accelerationB\017\n\r_min_durationB\020\n"
+    "\016_chase_default\"\305\001\n\014CameraSpring\0225\n\005valu"
+    "e\030\001 \001(\0132!.modlock.wasm.players.CameraVal"
+    "ueH\000\210\001\001\022\025\n\010strength\030\002 \001(\002H\001\210\001\001\022\026\n\tmin_sp"
+    "eed\030\003 \001(\002H\002\210\001\001\022\031\n\014max_duration\030\004 \001(\002H\003\210\001"
+    "\001B\010\n\006_valueB\013\n\t_strengthB\014\n\n_min_speedB\017"
+    "\n\r_max_duration\"\312\001\n\nCameraLerp\0220\n\005start\030"
+    "\001 \001(\0132!.modlock.wasm.players.CameraValue"
+    "\022.\n\003end\030\002 \001(\0132!.modlock.wasm.players.Cam"
+    "eraValue\022\021\n\004bias\030\003 \001(\002H\000\210\001\001\022\021\n\004gain\030\004 \001("
+    "\002H\001\210\001\001\022\025\n\010duration\030\005 \001(\002H\002\210\001\001B\007\n\005_biasB\007"
+    "\n\005_gainB\013\n\t_duration\"\361\001\n\tCameraLag\022\031\n\014mi"
+    "n_duration\030\001 \001(\002H\000\210\001\001\022\025\n\010lag_time\030\002 \001(\002H"
+    "\001\210\001\001\022\026\n\tmax_speed\030\003 \001(\002H\002\210\001\001\022\034\n\017spring_s"
+    "trength\030\004 \001(\002H\003\210\001\001\022\"\n\025keep_target_on_scr"
+    "een\030\005 \001(\010H\004\210\001\001B\017\n\r_min_durationB\013\n\t_lag_"
+    "timeB\014\n\n_max_speedB\022\n\020_spring_strengthB\030"
+    "\n\026_keep_target_on_screen\"\315\002\n\rCameraOptio"
+    "ns\022\016\n\006player\030\001 \001(\005\022\024\n\007context\030\002 \001(\tH\000\210\001\001"
+    "\0220\n\005param\030\003 \001(\0162!.modlock.wasm.players.C"
+    "ameraParam\0222\n\006motion\030\004 \001(\0132\".modlock.was"
+    "m.players.CameraMotion\022\022\n\005delay\030\005 \001(\002H\001\210"
+    "\001\001\022\025\n\010relative\030\006 \001(\010H\002\210\001\001\022\025\n\010priority\030\007 "
+    "\001(\rH\003\210\001\001\022\023\n\006shared\030\010 \001(\010H\004\210\001\001\022\023\n\006target\030"
+    "\t \001(\rH\005\210\001\001B\n\n\010_contextB\010\n\006_delayB\013\n\t_rel"
+    "ativeB\013\n\t_priorityB\t\n\007_sharedB\t\n\007_target"
+    "\"F\n\022ClearCameraRequest\022\016\n\006player\030\001 \001(\005\022\024"
+    "\n\007context\030\002 \001(\tH\000\210\001\001B\n\n\010_context\"1\n\021Chan"
+    "geTeamRequest\022\016\n\006player\030\001 \001(\005\022\014\n\004team\030\002 "
+    "\001(\005\"\?\n\rFreezeRequest\022\016\n\006player\030\001 \001(\005\022\023\n\006"
+    "frozen\030\002 \001(\010H\000\210\001\001B\t\n\007_frozen\"S\n\022AdjustSo"
+    "ulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005delta\030\002 \001("
+    "\005\022\023\n\006silent\030\003 \001(\010H\000\210\001\001B\t\n\007_silent\"5\n\024Sta"
+    "rtingSoulsRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005sou"
+    "ls\030\002 \001(\005\"1\n\020ResetHeroRequest\022\016\n\006player\030\001"
+    " \001(\005\022\r\n\005souls\030\002 \001(\005\"-\n\013HealRequest\022\016\n\006pl"
+    "ayer\030\001 \001(\005\022\016\n\006amount\030\002 \001(\005\"4\n\021SetStamina"
+    "Request\022\016\n\006player\030\001 \001(\005\022\017\n\007stamina\030\002 \001(\002"
+    "\"V\n\022RestoreHeroRequest\022\016\n\006player\030\001 \001(\005\0220"
+    "\n\006target\030\002 \001(\0132 .modlock.wasm.players.He"
+    "roTarget\"\323\003\n\nHeroTarget\022(\n\010position\030\001 \001("
+    "\0132\026.modlock.geometry.Vec3\022-\n\006facing\030\002 \001("
+    "\0132\035.modlock.geometry.EulerAngles\022\022\n\005fres"
+    "h\030\003 \001(\010H\000\210\001\001\022\022\n\005level\030\004 \001(\005H\001\210\001\001\022\023\n\006heal"
+    "th\030\005 \001(\005H\002\210\001\001\022\027\n\nmax_health\030\006 \001(\005H\003\210\001\001\022\027"
+    "\n\017upgrade_bonuses\030\007 \003(\002\0228\n\tabilities\030\010 \003"
+    "(\0132%.modlock.wasm.players.EquipmentTarge"
+    "t\0224\n\005items\030\t \003(\0132%.modlock.wasm.players."
+    "EquipmentTarget\022\032\n\rreplace_items\030\n \001(\010H\004"
+    "\210\001\001\0221\n\006timers\030\013 \003(\0132!.modlock.wasm.playe"
+    "rs.TimerTargetB\010\n\006_freshB\010\n\006_levelB\t\n\007_h"
+    "ealthB\r\n\013_max_healthB\020\n\016_replace_items\"H"
+    "\n\017EquipmentTarget\022\n\n\002id\030\001 \001(\r\022\021\n\004slot\030\002 "
+    "\001(\005H\000\210\001\001\022\r\n\005state\030\003 \001(\rB\007\n\005_slot\"\342\001\n\013Tim"
+    "erTarget\022\n\n\002id\030\001 \001(\r\022\017\n\007charges\030\002 \001(\005\022\033\n"
+    "\016cooldown_start\030\003 \001(\002H\000\210\001\001\022\031\n\014cooldown_e"
+    "nd\030\004 \001(\002H\001\210\001\001\022\033\n\016recharge_start\030\005 \001(\002H\002\210"
+    "\001\001\022\031\n\014recharge_end\030\006 \001(\002H\003\210\001\001B\021\n\017_cooldo"
+    "wn_startB\017\n\r_cooldown_endB\021\n\017_recharge_s"
+    "tartB\017\n\r_recharge_end\"\224\001\n\nBotOptions\022\014\n\004"
+    "name\030\001 \001(\t\022\014\n\004team\030\002 \001(\005\022\023\n\thero_name\030\003 "
+    "\001(\tH\000\022\021\n\007hero_id\030\004 \001(\rH\000\022-\n\010position\030\005 \001"
+    "(\0132\026.modlock.geometry.Vec3H\001\210\001\001B\006\n\004heroB"
+    "\013\n\t_position\"\035\n\013BotResponse\022\016\n\006player\030\001 "
+    "\001(\005*\342\'\n\020DisconnectReason\022\035\n\031DISCONNECT_R"
+    "EASON_UNKNOWN\020\000\022\036\n\032DISCONNECT_REASON_SHU"
+    "TDOWN\020\001\022(\n$DISCONNECT_REASON_DISCONNECT_"
+    "BY_USER\020\002\022*\n&DISCONNECT_REASON_DISCONNEC"
+    "T_BY_SERVER\020\003\022\032\n\026DISCONNECT_REASON_LOST\020"
+    "\004\022\036\n\032DISCONNECT_REASON_OVERFLOW\020\005\022\"\n\036DIS"
+    "CONNECT_REASON_STEAM_BANNED\020\006\022!\n\035DISCONN"
+    "ECT_REASON_STEAM_INUSE\020\007\022\"\n\036DISCONNECT_R"
+    "EASON_STEAM_TICKET\020\010\022!\n\035DISCONNECT_REASO"
+    "N_STEAM_LOGON\020\t\022)\n%DISCONNECT_REASON_STE"
+    "AM_AUTHCANCELLED\020\n\022+\n\'DISCONNECT_REASON_"
+    "STEAM_AUTHALREADYUSED\020\013\022\'\n#DISCONNECT_RE"
+    "ASON_STEAM_AUTHINVALID\020\014\022\'\n#DISCONNECT_R"
+    "EASON_STEAM_VACBANSTATE\020\r\022/\n+DISCONNECT_"
+    "REASON_STEAM_LOGGED_IN_ELSEWHERE\020\016\022.\n*DI"
+    "SCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT"
+    "\020\017\022#\n\037DISCONNECT_REASON_STEAM_DROPPED\020\020\022"
+    "%\n!DISCONNECT_REASON_STEAM_OWNERSHIP\020\021\022)"
+    "\n%DISCONNECT_REASON_SERVERINFO_OVERFLOW\020"
+    "\022\022&\n\"DISCONNECT_REASON_TICKMSG_OVERFLOW\020"
+    "\023\022-\n)DISCONNECT_REASON_STRINGTABLEMSG_OV"
+    "ERFLOW\020\024\022*\n&DISCONNECT_REASON_DELTAENTMS"
+    "G_OVERFLOW\020\025\022)\n%DISCONNECT_REASON_TEMPEN"
+    "TMSG_OVERFLOW\020\026\022(\n$DISCONNECT_REASON_SOU"
+    "NDSMSG_OVERFLOW\020\027\022&\n\"DISCONNECT_REASON_S"
+    "NAPSHOTOVERFLOW\020\030\022#\n\037DISCONNECT_REASON_S"
+    "NAPSHOTERROR\020\031\022&\n\"DISCONNECT_REASON_RELI"
+    "ABLEOVERFLOW\020\032\022\"\n\036DISCONNECT_REASON_BADD"
+    "ELTATICK\020\033\022\"\n\036DISCONNECT_REASON_NOMORESP"
+    "LITS\020\034\022\036\n\032DISCONNECT_REASON_TIMEDOUT\020\035\022\""
+    "\n\036DISCONNECT_REASON_DISCONNECTED\020\036\022\"\n\036DI"
+    "SCONNECT_REASON_LEAVINGSPLIT\020\037\022*\n&DISCON"
+    "NECT_REASON_DIFFERENTCLASSTABLES\020 \022&\n\"DI"
+    "SCONNECT_REASON_BADRELAYPASSWORD\020!\022*\n&DI"
+    "SCONNECT_REASON_BADSPECTATORPASSWORD\020\"\022$"
+    "\n DISCONNECT_REASON_HLTVRESTRICTED\020#\022\"\n\036"
+    "DISCONNECT_REASON_NOSPECTATORS\020$\022%\n!DISC"
+    "ONNECT_REASON_HLTVUNAVAILABLE\020%\022\036\n\032DISCO"
+    "NNECT_REASON_HLTVSTOP\020&\022\034\n\030DISCONNECT_RE"
+    "ASON_KICKED\020\'\022\036\n\032DISCONNECT_REASON_BANAD"
+    "DED\020(\022\"\n\036DISCONNECT_REASON_KICKBANADDED\020"
+    ")\022 \n\034DISCONNECT_REASON_HLTVDIRECT\020*\022,\n(D"
+    "ISCONNECT_REASON_PURESERVER_CLIENTEXTRA\020"
+    "+\022)\n%DISCONNECT_REASON_PURESERVER_MISMAT"
+    "CH\020,\022\035\n\031DISCONNECT_REASON_USERCMD\020-\022&\n\"D"
+    "ISCONNECT_REASON_REJECTED_BY_GAME\020.\022)\n%D"
+    "ISCONNECT_REASON_MESSAGE_PARSE_ERROR\020/\022+"
+    "\n\'DISCONNECT_REASON_INVALID_MESSAGE_ERRO"
+    "R\0200\022)\n%DISCONNECT_REASON_BAD_SERVER_PASS"
+    "WORD\0201\0220\n,DISCONNECT_REASON_DIRECT_CONNE"
+    "CT_RESERVATION\0202\022(\n$DISCONNECT_REASON_CO"
+    "NNECTION_FAILURE\0203\022,\n(DISCONNECT_REASON_"
+    "NO_PEER_GROUP_HANDLERS\0204\022\"\n\036DISCONNECT_R"
+    "EASON_RECONNECTION\0205\022\"\n\036DISCONNECT_REASO"
+    "N_LOOPSHUTDOWN\0206\022$\n DISCONNECT_REASON_LO"
+    "OPDEACTIVATE\0207\022\"\n\036DISCONNECT_REASON_HOST"
+    "_ENDGAME\0208\022-\n)DISCONNECT_REASON_LOOP_LEV"
+    "ELLOAD_ACTIVATE\0209\022*\n&DISCONNECT_REASON_C"
+    "REATE_SERVER_FAILED\020:\022\035\n\031DISCONNECT_REAS"
+    "ON_EXITING\020;\022,\n(DISCONNECT_REASON_REQUES"
+    "T_HOSTSTATE_IDLE\020<\0221\n-DISCONNECT_REASON_"
+    "REQUEST_HOSTSTATE_HLTVRELAY\020=\022-\n)DISCONN"
+    "ECT_REASON_CLIENT_CONSISTENCY_FAIL\020>\022.\n*"
+    "DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_M"
+    "AP\020\?\022#\n\037DISCONNECT_REASON_CLIENT_NO_MAP\020"
+    "@\022*\n&DISCONNECT_REASON_CLIENT_DIFFERENT_"
+    "MAP\020A\022+\n\'DISCONNECT_REASON_SERVER_REQUIR"
+    "ES_STEAM\020B\022%\n!DISCONNECT_REASON_STEAM_DE"
+    "NY_MISC\020C\022/\n+DISCONNECT_REASON_STEAM_DEN"
+    "Y_BAD_ANTI_CHEAT\020D\022%\n!DISCONNECT_REASON_"
+    "SERVER_SHUTDOWN\020E\022)\n%DISCONNECT_REASON_R"
+    "EPLAY_INCOMPATIBLE\020G\022.\n*DISCONNECT_REASO"
+    "N_CONNECT_REQUEST_TIMEDOUT\020H\022)\n%DISCONNE"
+    "CT_REASON_SERVER_INCOMPATIBLE\020I\022-\n)DISCO"
+    "NNECT_REASON_LOCALPROBLEM_MANYRELAYS\020J\022;"
+    "\n7DISCONNECT_REASON_LOCALPROBLEM_HOSTEDS"
+    "ERVERPRIMARYRELAY\020K\0220\n,DISCONNECT_REASON"
+    "_LOCALPROBLEM_NETWORKCONFIG\020L\022(\n$DISCONN"
+    "ECT_REASON_LOCALPROBLEM_OTHER\020M\022$\n DISCO"
+    "NNECT_REASON_REMOTE_TIMEOUT\020O\022/\n+DISCONN"
+    "ECT_REASON_REMOTE_TIMEOUT_CONNECTING\020P\022\""
+    "\n\036DISCONNECT_REASON_REMOTE_OTHER\020Q\022%\n!DI"
+    "SCONNECT_REASON_REMOTE_BADCRYPT\020R\022+\n\'DIS"
+    "CONNECT_REASON_REMOTE_CERTNOTTRUSTED\020S\022\035"
+    "\n\031DISCONNECT_REASON_UNUSUAL\020T\022$\n DISCONN"
+    "ECT_REASON_INTERNAL_ERROR\020U\022*\n%DISCONNEC"
+    "T_REASON_REJECT_BADCHALLENGE\020\200\001\022%\n DISCO"
+    "NNECT_REASON_REJECT_NOLOBBY\020\201\001\022,\n\'DISCON"
+    "NECT_REASON_REJECT_BACKGROUND_MAP\020\202\001\022+\n&"
+    "DISCONNECT_REASON_REJECT_SINGLE_PLAYER\020\203"
+    "\001\022)\n$DISCONNECT_REASON_REJECT_HIDDEN_GAM"
+    "E\020\204\001\022)\n$DISCONNECT_REASON_REJECT_LANREST"
+    "RICT\020\205\001\022)\n$DISCONNECT_REASON_REJECT_BADP"
+    "ASSWORD\020\206\001\022(\n#DISCONNECT_REASON_REJECT_S"
+    "ERVERFULL\020\207\001\0220\n+DISCONNECT_REASON_REJECT"
+    "_INVALIDRESERVATION\020\210\001\022+\n&DISCONNECT_REA"
+    "SON_REJECT_FAILEDCHANNEL\020\211\001\0220\n+DISCONNEC"
+    "T_REASON_REJECT_CONNECT_FROM_LOBBY\020\212\001\0220\n"
+    "+DISCONNECT_REASON_REJECT_RESERVED_FOR_L"
+    "OBBY\020\213\001\022.\n)DISCONNECT_REASON_REJECT_INVA"
+    "LIDKEYLENGTH\020\214\001\022)\n$DISCONNECT_REASON_REJ"
+    "ECT_OLDPROTOCOL\020\215\001\022)\n$DISCONNECT_REASON_"
+    "REJECT_NEWPROTOCOL\020\216\001\022/\n*DISCONNECT_REAS"
+    "ON_REJECT_INVALIDCONNECTION\020\217\001\022,\n\'DISCON"
+    "NECT_REASON_REJECT_INVALIDCERTLEN\020\220\001\0221\n,"
+    "DISCONNECT_REASON_REJECT_INVALIDSTEAMCER"
+    "TLEN\020\221\001\022#\n\036DISCONNECT_REASON_REJECT_STEA"
+    "M\020\222\001\0220\n+DISCONNECT_REASON_REJECT_SERVERA"
+    "UTHDISABLED\020\223\001\0224\n/DISCONNECT_REASON_REJE"
+    "CT_SERVERCDKEYAUTHINVALID\020\224\001\022$\n\037DISCONNE"
+    "CT_REASON_REJECT_BANNED\020\225\001\022)\n$DISCONNECT"
+    "_REASON_KICKED_TEAMKILLING\020\226\001\022&\n!DISCONN"
+    "ECT_REASON_KICKED_TK_START\020\227\001\022.\n)DISCONN"
+    "ECT_REASON_KICKED_UNTRUSTEDACCOUNT\020\230\001\022.\n"
+    ")DISCONNECT_REASON_KICKED_CONVICTEDACCOU"
+    "NT\020\231\001\0221\n,DISCONNECT_REASON_KICKED_COMPET"
+    "ITIVECOOLDOWN\020\232\001\022)\n$DISCONNECT_REASON_KI"
+    "CKED_TEAMHURTING\020\233\001\022,\n\'DISCONNECT_REASON"
+    "_KICKED_HOSTAGEKILLING\020\234\001\022&\n!DISCONNECT_"
+    "REASON_KICKED_VOTEDOFF\020\235\001\022\"\n\035DISCONNECT_"
+    "REASON_KICKED_IDLE\020\236\001\022%\n DISCONNECT_REAS"
+    "ON_KICKED_SUICIDE\020\237\001\022*\n%DISCONNECT_REASO"
+    "N_KICKED_NOSTEAMLOGIN\020\240\001\022+\n&DISCONNECT_R"
+    "EASON_KICKED_NOSTEAMTICKET\020\241\001\022-\n(DISCONN"
+    "ECT_REASON_KICKED_INPUTAUTOMATION\020\242\001\0224\n/"
+    "DISCONNECT_REASON_KICKED_VACNETABNORMALB"
+    "EHAVIOR\020\243\001\022,\n\'DISCONNECT_REASON_KICKED_I"
+    "NSECURECLIENT\020\244\001*P\n\007ModRole\022\030\n\024MOD_ROLE_"
+    "UNSPECIFIED\020\000\022\026\n\022MOD_ROLE_DEVELOPER\020\001\022\023\n"
+    "\017MOD_ROLE_TESTER\020\002*\247\001\n\013CameraParam\022\031\n\025CA"
+    "MERA_PARAM_DISTANCE\020\000\022\036\n\032CAMERA_PARAM_FI"
+    "ELD_OF_VIEW\020\001\022\027\n\023CAMERA_PARAM_TARGET\020\002\022 "
+    "\n\034CAMERA_PARAM_VERTICAL_OFFSET\020\003\022\"\n\036CAME"
+    "RA_PARAM_HORIZONTAL_OFFSET\020\004B5Z3github.c"
+    "om/paralin/modlock/src/wasm/players;play"
+    "ersb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps[1] = {
@@ -1662,13 +1866,13 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto = {
     false,
     false,
-    5515,
+    10851,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
     "github.com/paralin/modlock/src/wasm/players/players.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_once,
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto_deps,
     1,
-    36,
+    38,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto::offsets,
@@ -1678,15 +1882,21 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2
 namespace modlock {
 namespace wasm {
 namespace players {
-const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ModRole_descriptor() {
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL DisconnectReason_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto);
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[0];
+}
+PROTOBUF_CONSTINIT const uint32_t DisconnectReason_internal_data_[] = {
+    4587520u, 96u, 65278u, 4227858432u, 2147483647u, };
+const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ModRole_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto);
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[1];
 }
 PROTOBUF_CONSTINIT const uint32_t ModRole_internal_data_[] = {
     196608u, 0u, };
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL CameraParam_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto);
-  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[1];
+  return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto[2];
 }
 PROTOBUF_CONSTINIT const uint32_t CameraParam_internal_data_[] = {
     327680u, 0u, };
@@ -2281,6 +2491,621 @@ void PlayersChangedEvent::InternalSwap(PlayersChangedEvent* PROTOBUF_RESTRICT PR
 }
 
 ::google::protobuf::Metadata PlayersChangedEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PlayerJoinedEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PlayerJoinedEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlayerJoinedEvent, _impl_._has_bits_);
+};
+
+PlayerJoinedEvent::PlayerJoinedEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerJoinedEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.players.PlayerJoinedEvent)
+}
+PROTOBUF_NDEBUG_INLINE PlayerJoinedEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::players::PlayerJoinedEvent& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+PlayerJoinedEvent::PlayerJoinedEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PlayerJoinedEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerJoinedEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  PlayerJoinedEvent* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.connection_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.connection_)
+                : nullptr;
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.players.PlayerJoinedEvent)
+}
+PROTOBUF_NDEBUG_INLINE PlayerJoinedEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void PlayerJoinedEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.connection_ = {};
+}
+PlayerJoinedEvent::~PlayerJoinedEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.players.PlayerJoinedEvent)
+  SharedDtor(*this);
+}
+inline void PlayerJoinedEvent::SharedDtor(MessageLite& self) {
+  PlayerJoinedEvent& this_ = static_cast<PlayerJoinedEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.connection_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PlayerJoinedEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlayerJoinedEvent(arena);
+}
+constexpr auto PlayerJoinedEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(PlayerJoinedEvent),
+                                            alignof(PlayerJoinedEvent));
+}
+constexpr auto PlayerJoinedEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PlayerJoinedEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PlayerJoinedEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PlayerJoinedEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlayerJoinedEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PlayerJoinedEvent>(), &PlayerJoinedEvent::ByteSizeLong,
+              &PlayerJoinedEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlayerJoinedEvent, _impl_._cached_size_),
+          false,
+      },
+      &PlayerJoinedEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlayerJoinedEvent_class_data_ =
+        PlayerJoinedEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlayerJoinedEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlayerJoinedEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlayerJoinedEvent_class_data_.tc_table);
+  return PlayerJoinedEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 1, 0, 2>
+PlayerJoinedEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PlayerJoinedEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    PlayerJoinedEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::players::PlayerJoinedEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // .modlock.wasm.players.Connection connection = 1;
+    {::_pbi::TcParser::FastMtS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(PlayerJoinedEvent, _impl_.connection_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .modlock.wasm.players.Connection connection = 1;
+    {PROTOBUF_FIELD_OFFSET(PlayerJoinedEvent, _impl_.connection_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::players::Connection>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void PlayerJoinedEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.players.PlayerJoinedEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    ABSL_DCHECK(_impl_.connection_ != nullptr);
+    _impl_.connection_->Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlayerJoinedEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlayerJoinedEvent& this_ = static_cast<const PlayerJoinedEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlayerJoinedEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlayerJoinedEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.players.PlayerJoinedEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .modlock.wasm.players.Connection connection = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        1, *this_._impl_.connection_, this_._impl_.connection_->GetCachedSize(), target,
+        stream);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.players.PlayerJoinedEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlayerJoinedEvent::ByteSizeLong(const MessageLite& base) {
+  const PlayerJoinedEvent& this_ = static_cast<const PlayerJoinedEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlayerJoinedEvent::ByteSizeLong() const {
+  const PlayerJoinedEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.players.PlayerJoinedEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+   {
+    // .modlock.wasm.players.Connection connection = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.connection_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlayerJoinedEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<PlayerJoinedEvent*>(&to_msg);
+  auto& from = static_cast<const PlayerJoinedEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.players.PlayerJoinedEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    ABSL_DCHECK(from._impl_.connection_ != nullptr);
+    if (_this->_impl_.connection_ == nullptr) {
+      _this->_impl_.connection_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.connection_);
+    } else {
+      _this->_impl_.connection_->MergeFrom(*from._impl_.connection_);
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void PlayerJoinedEvent::CopyFrom(const PlayerJoinedEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.players.PlayerJoinedEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlayerJoinedEvent::InternalSwap(PlayerJoinedEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  swap(_impl_.connection_, other->_impl_.connection_);
+}
+
+::google::protobuf::Metadata PlayerJoinedEvent::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class PlayerLeftEvent::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<PlayerLeftEvent>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_._has_bits_);
+};
+
+PlayerLeftEvent::PlayerLeftEvent(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerLeftEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.players.PlayerLeftEvent)
+}
+PROTOBUF_NDEBUG_INLINE PlayerLeftEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::players::PlayerLeftEvent& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0} {}
+
+PlayerLeftEvent::PlayerLeftEvent(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PlayerLeftEvent& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, PlayerLeftEvent_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  PlayerLeftEvent* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.connection_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+                ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.connection_)
+                : nullptr;
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, disconnected_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, disconnected_),
+           offsetof(Impl_, reason_) -
+               offsetof(Impl_, disconnected_) +
+               sizeof(Impl_::reason_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.players.PlayerLeftEvent)
+}
+PROTOBUF_NDEBUG_INLINE PlayerLeftEvent::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0} {}
+
+inline void PlayerLeftEvent::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, connection_),
+           0,
+           offsetof(Impl_, reason_) -
+               offsetof(Impl_, connection_) +
+               sizeof(Impl_::reason_));
+}
+PlayerLeftEvent::~PlayerLeftEvent() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.players.PlayerLeftEvent)
+  SharedDtor(*this);
+}
+inline void PlayerLeftEvent::SharedDtor(MessageLite& self) {
+  PlayerLeftEvent& this_ = static_cast<PlayerLeftEvent&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.connection_;
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL PlayerLeftEvent::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlayerLeftEvent(arena);
+}
+constexpr auto PlayerLeftEvent::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(PlayerLeftEvent),
+                                            alignof(PlayerLeftEvent));
+}
+constexpr auto PlayerLeftEvent::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_PlayerLeftEvent_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &PlayerLeftEvent::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<PlayerLeftEvent>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlayerLeftEvent::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<PlayerLeftEvent>(), &PlayerLeftEvent::ByteSizeLong,
+              &PlayerLeftEvent::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_._cached_size_),
+          false,
+      },
+      &PlayerLeftEvent::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlayerLeftEvent_class_data_ =
+        PlayerLeftEvent::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlayerLeftEvent::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlayerLeftEvent_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlayerLeftEvent_class_data_.tc_table);
+  return PlayerLeftEvent_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 3, 1, 0, 2>
+PlayerLeftEvent::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_._has_bits_),
+    0, // no _extensions_
+    3, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967288,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    3,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    PlayerLeftEvent_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::players::PlayerLeftEvent>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+    // .modlock.wasm.players.Connection connection = 1;
+    {::_pbi::TcParser::FastMtS1,
+     {10, 0, 0,
+      PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.connection_)}},
+    // bool disconnected = 2;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(PlayerLeftEvent, _impl_.disconnected_), 1>(),
+     {16, 1, 0,
+      PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.disconnected_)}},
+    // optional .modlock.wasm.players.DisconnectReason reason = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PlayerLeftEvent, _impl_.reason_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.reason_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // .modlock.wasm.players.Connection connection = 1;
+    {PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.connection_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // bool disconnected = 2;
+    {PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.disconnected_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    // optional .modlock.wasm.players.DisconnectReason reason = 3;
+    {PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.reason_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
+  }},
+  {{
+      {::_pbi::TcParser::GetTable<::modlock::wasm::players::Connection>()},
+  }},
+  {{
+  }},
+};
+PROTOBUF_NOINLINE void PlayerLeftEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.players.PlayerLeftEvent)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    ABSL_DCHECK(_impl_.connection_ != nullptr);
+    _impl_.connection_->Clear();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
+    ::memset(&_impl_.disconnected_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.reason_) -
+        reinterpret_cast<char*>(&_impl_.disconnected_)) + sizeof(_impl_.reason_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlayerLeftEvent::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlayerLeftEvent& this_ = static_cast<const PlayerLeftEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlayerLeftEvent::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlayerLeftEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.players.PlayerLeftEvent)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // .modlock.wasm.players.Connection connection = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        1, *this_._impl_.connection_, this_._impl_.connection_->GetCachedSize(), target,
+        stream);
+  }
+
+  // bool disconnected = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_disconnected() != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteBoolToArray(
+          2, this_._internal_disconnected(), target);
+    }
+  }
+
+  // optional .modlock.wasm.players.DisconnectReason reason = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+        3, this_._internal_reason(), target);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.players.PlayerLeftEvent)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlayerLeftEvent::ByteSizeLong(const MessageLite& base) {
+  const PlayerLeftEvent& this_ = static_cast<const PlayerLeftEvent&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlayerLeftEvent::ByteSizeLong() const {
+  const PlayerLeftEvent& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.players.PlayerLeftEvent)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    // .modlock.wasm.players.Connection connection = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.connection_);
+    }
+    // bool disconnected = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_disconnected() != 0) {
+        total_size += 2;
+      }
+    }
+    // optional .modlock.wasm.players.DisconnectReason reason = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      total_size += 1 +
+                    ::_pbi::WireFormatLite::EnumSize(this_._internal_reason());
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlayerLeftEvent::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<PlayerLeftEvent*>(&to_msg);
+  auto& from = static_cast<const PlayerLeftEvent&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  ::google::protobuf::Arena* arena = _this->GetArena();
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.players.PlayerLeftEvent)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      ABSL_DCHECK(from._impl_.connection_ != nullptr);
+      if (_this->_impl_.connection_ == nullptr) {
+        _this->_impl_.connection_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.connection_);
+      } else {
+        _this->_impl_.connection_->MergeFrom(*from._impl_.connection_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_disconnected() != 0) {
+        _this->_impl_.disconnected_ = from._impl_.disconnected_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_impl_.reason_ = from._impl_.reason_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void PlayerLeftEvent::CopyFrom(const PlayerLeftEvent& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.players.PlayerLeftEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlayerLeftEvent::InternalSwap(PlayerLeftEvent* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.reason_)
+      + sizeof(PlayerLeftEvent::_impl_.reason_)
+      - PROTOBUF_FIELD_OFFSET(PlayerLeftEvent, _impl_.connection_)>(
+          reinterpret_cast<char*>(&_impl_.connection_),
+          reinterpret_cast<char*>(&other->_impl_.connection_));
+}
+
+::google::protobuf::Metadata PlayerLeftEvent::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

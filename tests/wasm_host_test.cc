@@ -4,7 +4,8 @@
 // until it releases the hold. A mod that stops stays stopped until a player
 // or a reload restarts it. A mod limited to some players reaches only them,
 // changes the whole server only while it holds the world, which one limited
-// mod holds at a time, and rules only the hits of its players.
+// mod holds at a time, and rules only the hits of its players. A mod hears
+// exactly one leave for each player it heard join.
 #include "modlock/wasm_host.h"
 
 #include <cctype>
@@ -16,6 +17,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "wasm/attendance.h"
 #include "wasm/call_profile.h"
 #include "wasm/player_scope.h"
 
@@ -210,6 +212,74 @@ TEST(PlayerScope, LimitedScopeRulesOnlyItsPlayersHits) {
   EXPECT_EQ(scope.Hit(std::nullopt, std::nullopt), Contact::kHear);
   EXPECT_EQ(scope.Apart(), 0u);
   EXPECT_TRUE(scope.World());
+}
+
+TEST(Attendance, PairsEachJoinWithOneLeave) {
+  namespace players = modlock::wasm::players;
+  // Connection is a roster entry for slot.
+  auto connection = [](int32_t slot, uint32_t generation, bool ready) {
+    players::Connection entry;
+    entry.set_player(slot);
+    entry.set_steam_id(76561198000000000ULL + slot);
+    entry.set_generation(generation);
+    entry.set_ready(ready);
+    return entry;
+  };
+  google::protobuf::RepeatedPtrField<players::Connection> roster;
+  *roster.Add() = connection(1, 1, true);
+  *roster.Add() = connection(2, 1, false);
+
+  // Only a ready player joins, once; one still joining joins when ready.
+  modlock::wasm::Attendance attendance;
+  auto changes = attendance.Reconcile(roster);
+  ASSERT_EQ(changes.joined.size(), 1u);
+  EXPECT_EQ(changes.joined[0].connection().steam_id(), 76561198000000001ULL);
+  EXPECT_TRUE(changes.left.empty());
+  EXPECT_TRUE(attendance.Reconcile(roster).joined.empty());
+  roster[1].set_ready(true);
+  changes = attendance.Reconcile(roster);
+  ASSERT_EQ(changes.joined.size(), 1u);
+  EXPECT_EQ(changes.joined[0].connection().player(), 2);
+
+  // A kick leaves with its reason, while the player is still listed, and
+  // the report that drops them adds no second leave.
+  auto kicked = attendance.Leave(1, players::DISCONNECT_REASON_KICKED);
+  ASSERT_TRUE(kicked);
+  EXPECT_TRUE(kicked->disconnected());
+  EXPECT_EQ(kicked->reason(), players::DISCONNECT_REASON_KICKED);
+  EXPECT_EQ(kicked->connection().steam_id(), 76561198000000001ULL);
+  EXPECT_FALSE(attendance.Leave(1, players::DISCONNECT_REASON_KICKED));
+  roster.DeleteSubrange(0, 1);
+  EXPECT_TRUE(attendance.Reconcile(roster).left.empty());
+
+  // A player the mod stops serving leaves without disconnecting.
+  auto unserved = attendance.Leave(2, std::nullopt);
+  ASSERT_TRUE(unserved);
+  EXPECT_FALSE(unserved->disconnected());
+  EXPECT_FALSE(unserved->has_reason());
+
+  // Served again, they join again; a disconnect the engine gives no reason
+  // for leaves without one.
+  EXPECT_EQ(attendance.Reconcile(roster).joined.size(), 1u);
+  auto unexplained = attendance.Leave(2, 0);
+  ASSERT_TRUE(unexplained);
+  EXPECT_TRUE(unexplained->disconnected());
+  EXPECT_FALSE(unexplained->has_reason());
+
+  // A report that shows a missed disconnect, a missing slot or a new
+  // connection in the slot, leaves the old one without a reason.
+  attendance.Clear();
+  EXPECT_EQ(attendance.Reconcile(roster).joined.size(), 1u);
+  roster[0] = connection(2, 2, true);
+  changes = attendance.Reconcile(roster);
+  ASSERT_EQ(changes.left.size(), 1u);
+  EXPECT_EQ(changes.left[0].connection().generation(), 1u);
+  EXPECT_TRUE(changes.left[0].disconnected());
+  EXPECT_FALSE(changes.left[0].has_reason());
+  ASSERT_EQ(changes.joined.size(), 1u);
+  EXPECT_EQ(changes.joined[0].connection().generation(), 2u);
+  roster.Clear();
+  EXPECT_EQ(attendance.Reconcile(roster).left.size(), 1u);
 }
 
 TEST(WasmHost, HeldModKeepsItsBuildUntilReleased) {

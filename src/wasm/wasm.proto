@@ -730,6 +730,18 @@ service Mod {
   // nothing.
   rpc SettingChanged(modlock.wasm.settings.SettingChangedEvent) returns (Empty);
 
+  // PlayerJoined reports each player the mod serves once they are ready: a
+  // human who finished joining, a bot once added, and at start each player
+  // already in the game. It follows the PlayersChanged that lists them.
+  rpc PlayerJoined(modlock.wasm.players.PlayerJoinedEvent) returns (Empty);
+
+  // PlayerLeft reports each joined player leaving the mod, once. A player who
+  // disconnects is reported before the engine removes them, so their slot
+  // and hero still read, and before the PlayersChanged that drops them. A
+  // disconnect the mod causes during its own event, such as removing a bot,
+  // arrives after that event returns.
+  rpc PlayerLeft(modlock.wasm.players.PlayerLeftEvent) returns (Empty);
+
   // PlayersChanged reports the occupied player slots before the first event
   // after Start, and again before the next event whenever a player joins,
   // finishes joining or leaves, so a mod lists players without a call.
@@ -765,6 +777,10 @@ message StartResult {
 
   // Chat asks for a Chat event for each chat line.
   bool chat = 4;
+
+  // Joins asks for a PlayerJoined event as each player the mod serves joins,
+  // and a PlayerLeft event as each leaves.
+  bool joins = 5;
 }
 
 // FrameEvent identifies one server frame.

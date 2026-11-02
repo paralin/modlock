@@ -139,6 +139,9 @@ type StartResult struct {
 	Damaged bool `protobuf:"varint,3,opt,name=damaged,proto3" json:"damaged,omitempty"`
 	// Chat asks for a Chat event for each chat line.
 	Chat bool `protobuf:"varint,4,opt,name=chat,proto3" json:"chat,omitempty"`
+	// Joins asks for a PlayerJoined event as each player the mod serves joins,
+	// and a PlayerLeft event as each leaves.
+	Joins bool `protobuf:"varint,5,opt,name=joins,proto3" json:"joins,omitempty"`
 }
 
 func (x *StartResult) Reset() {
@@ -171,6 +174,13 @@ func (x *StartResult) GetDamaged() bool {
 func (x *StartResult) GetChat() bool {
 	if x != nil {
 		return x.Chat
+	}
+	return false
+}
+
+func (x *StartResult) GetJoins() bool {
+	if x != nil {
+		return x.Joins
 	}
 	return false
 }
@@ -553,6 +563,7 @@ func (m *StartResult) CloneVT() *StartResult {
 	r.Damage = m.Damage
 	r.Damaged = m.Damaged
 	r.Chat = m.Chat
+	r.Joins = m.Joins
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -838,6 +849,9 @@ func (this *StartResult) EqualVT(that *StartResult) bool {
 		return false
 	}
 	if this.Chat != that.Chat {
+		return false
+	}
+	if this.Joins != that.Joins {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1301,6 +1315,11 @@ func (x *StartResult) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("chat")
 		s.WriteBool(x.Chat)
 	}
+	if x.Joins || s.HasField("joins") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("joins")
+		s.WriteBool(x.Joins)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1330,6 +1349,9 @@ func (x *StartResult) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "chat":
 			s.AddField("chat")
 			x.Chat = s.ReadBool()
+		case "joins":
+			s.AddField("joins")
+			x.Joins = s.ReadBool()
 		}
 	})
 }
@@ -2076,6 +2098,11 @@ func (m *StartResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Joins {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Joins)
+		i--
+		dAtA[i] = 0x28
+	}
 	if m.Chat {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Chat)
 		i--
@@ -2587,6 +2614,7 @@ func (m *StartResult) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Damage)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Damaged)
 	n += protobuf_go_lite.SizeBoolNonZero(1, m.Chat)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Joins)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2804,6 +2832,10 @@ func (x *StartResult) MarshalProtoText() string {
 	if x.Chat != false {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "chat")
 		protobuf_go_lite.TextWriteBool(&sb, x.Chat)
+	}
+	if x.Joins != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "joins")
+		protobuf_go_lite.TextWriteBool(&sb, x.Joins)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3308,6 +3340,16 @@ func (m *StartResult) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Chat = bool(v)
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Joins", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Joins = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

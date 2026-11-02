@@ -37,10 +37,12 @@ class ConnectionDispatch final : public gameinterop::ConnectionEventSink {
     connected.Dispatch(slot, xuid, bot, name);
   }
 
-  void OnDisconnecting(int32_t slot, uint64_t xuid) override { disconnecting.Dispatch(slot, xuid); }
+  void OnDisconnecting(int32_t slot, uint64_t xuid, int32_t reason) override {
+    disconnecting.Dispatch(slot, xuid, reason);
+  }
 
   Callbacks<void(int32_t, uint64_t, bool, const char*)> connected;
-  Callbacks<void(int32_t, uint64_t)> disconnecting;
+  Callbacks<void(int32_t, uint64_t, int32_t)> disconnecting;
 };
 
 }  // namespace
@@ -289,8 +291,10 @@ std::expected<Subscription, std::string> EngineHost::OnConnection(
       [sink](int32_t slot, uint64_t xuid, bool bot, const char* name) {
         sink->OnConnected(slot, xuid, bot, name);
       });
-  subscription.Add(impl_->connections->disconnecting.Add(
-      [sink](int32_t slot, uint64_t xuid) { sink->OnDisconnecting(slot, xuid); }));
+  subscription.Add(
+      impl_->connections->disconnecting.Add([sink](int32_t slot, uint64_t xuid, int32_t reason) {
+        sink->OnDisconnecting(slot, xuid, reason);
+      }));
   return subscription;
 }
 

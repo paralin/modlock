@@ -28,6 +28,8 @@ import {
   log as logLine,
   type ModHandlers,
   Player,
+  type PlayerJoinedEvent,
+  type PlayerLeftEvent,
   serveMod,
 } from './host.gen.js'
 import { serveEvents } from './host.js'
@@ -231,6 +233,27 @@ export function onChat(handler: (line: ChatEvent) => void): void {
   chats.push(handler)
 }
 
+/**
+ * onPlayerJoin calls handler once for each player the mod serves when they
+ * are ready: a human who finished joining, a bot once added, and at start
+ * each player already in the game.
+ */
+export function onPlayerJoin(
+  handler: (joined: PlayerJoinedEvent) => void,
+): void {
+  joins.push(handler)
+}
+
+/**
+ * onPlayerLeave calls handler once for each joined player who leaves the mod,
+ * with the reason the server dropped them when it gave one. A player who
+ * disconnects still has their slot and hero during the call. A player the
+ * mod stops serving leaves too, with disconnected false.
+ */
+export function onPlayerLeave(handler: (left: PlayerLeftEvent) => void): void {
+  leaves.push(handler)
+}
+
 /** onFrame calls handler once per server frame. */
 export function onFrame(handler: (frame: FrameEvent) => void): void {
   frames.push(handler)
@@ -360,6 +383,8 @@ const services = new Map<string, { readonly handler: Service }>()
 const starts: ((args: readonly string[]) => void)[] = []
 const frames: ((frame: FrameEvent) => void)[] = []
 const chats: ((line: ChatEvent) => void)[] = []
+const joins: ((joined: PlayerJoinedEvent) => void)[] = []
+const leaves: ((left: PlayerLeftEvent) => void)[] = []
 const worlds: ((map: string) => void)[] = []
 const inputs: ((player: Player, pressed: bigint, released: bigint) => void)[] =
   []
@@ -385,6 +410,7 @@ const handlers: ModHandlers = {
       damage: damages.length !== 0,
       damaged: damageds.length !== 0,
       chat: chats.length !== 0,
+      joins: joins.length !== 0 || leaves.length !== 0,
     }
   },
 
@@ -514,6 +540,19 @@ const handlers: ModHandlers = {
 
   playersChanged(event) {
     keepPlayers(event.players)
+  },
+
+  // A join and a leave run at once, so the leaving player's hero still reads.
+  playerJoined(event) {
+    for (const handler of joins) {
+      handler(event)
+    }
+  },
+
+  playerLeft(event) {
+    for (const handler of leaves) {
+      handler(event)
+    }
   },
 }
 

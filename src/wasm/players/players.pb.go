@@ -16,6 +16,398 @@ import (
 	geometry "github.com/paralin/modlock/src/geometry"
 )
 
+// DisconnectReason is why the server dropped a connection, numbered as the
+// game's ENetworkDisconnectionReason.
+type DisconnectReason int32
+
+const (
+	DisconnectReason_DISCONNECT_REASON_UNKNOWN                               DisconnectReason = 0
+	DisconnectReason_DISCONNECT_REASON_SHUTDOWN                              DisconnectReason = 1
+	DisconnectReason_DISCONNECT_REASON_DISCONNECT_BY_USER                    DisconnectReason = 2
+	DisconnectReason_DISCONNECT_REASON_DISCONNECT_BY_SERVER                  DisconnectReason = 3
+	DisconnectReason_DISCONNECT_REASON_LOST                                  DisconnectReason = 4
+	DisconnectReason_DISCONNECT_REASON_OVERFLOW                              DisconnectReason = 5
+	DisconnectReason_DISCONNECT_REASON_STEAM_BANNED                          DisconnectReason = 6
+	DisconnectReason_DISCONNECT_REASON_STEAM_INUSE                           DisconnectReason = 7
+	DisconnectReason_DISCONNECT_REASON_STEAM_TICKET                          DisconnectReason = 8
+	DisconnectReason_DISCONNECT_REASON_STEAM_LOGON                           DisconnectReason = 9
+	DisconnectReason_DISCONNECT_REASON_STEAM_AUTHCANCELLED                   DisconnectReason = 10
+	DisconnectReason_DISCONNECT_REASON_STEAM_AUTHALREADYUSED                 DisconnectReason = 11
+	DisconnectReason_DISCONNECT_REASON_STEAM_AUTHINVALID                     DisconnectReason = 12
+	DisconnectReason_DISCONNECT_REASON_STEAM_VACBANSTATE                     DisconnectReason = 13
+	DisconnectReason_DISCONNECT_REASON_STEAM_LOGGED_IN_ELSEWHERE             DisconnectReason = 14
+	DisconnectReason_DISCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT              DisconnectReason = 15
+	DisconnectReason_DISCONNECT_REASON_STEAM_DROPPED                         DisconnectReason = 16
+	DisconnectReason_DISCONNECT_REASON_STEAM_OWNERSHIP                       DisconnectReason = 17
+	DisconnectReason_DISCONNECT_REASON_SERVERINFO_OVERFLOW                   DisconnectReason = 18
+	DisconnectReason_DISCONNECT_REASON_TICKMSG_OVERFLOW                      DisconnectReason = 19
+	DisconnectReason_DISCONNECT_REASON_STRINGTABLEMSG_OVERFLOW               DisconnectReason = 20
+	DisconnectReason_DISCONNECT_REASON_DELTAENTMSG_OVERFLOW                  DisconnectReason = 21
+	DisconnectReason_DISCONNECT_REASON_TEMPENTMSG_OVERFLOW                   DisconnectReason = 22
+	DisconnectReason_DISCONNECT_REASON_SOUNDSMSG_OVERFLOW                    DisconnectReason = 23
+	DisconnectReason_DISCONNECT_REASON_SNAPSHOTOVERFLOW                      DisconnectReason = 24
+	DisconnectReason_DISCONNECT_REASON_SNAPSHOTERROR                         DisconnectReason = 25
+	DisconnectReason_DISCONNECT_REASON_RELIABLEOVERFLOW                      DisconnectReason = 26
+	DisconnectReason_DISCONNECT_REASON_BADDELTATICK                          DisconnectReason = 27
+	DisconnectReason_DISCONNECT_REASON_NOMORESPLITS                          DisconnectReason = 28
+	DisconnectReason_DISCONNECT_REASON_TIMEDOUT                              DisconnectReason = 29
+	DisconnectReason_DISCONNECT_REASON_DISCONNECTED                          DisconnectReason = 30
+	DisconnectReason_DISCONNECT_REASON_LEAVINGSPLIT                          DisconnectReason = 31
+	DisconnectReason_DISCONNECT_REASON_DIFFERENTCLASSTABLES                  DisconnectReason = 32
+	DisconnectReason_DISCONNECT_REASON_BADRELAYPASSWORD                      DisconnectReason = 33
+	DisconnectReason_DISCONNECT_REASON_BADSPECTATORPASSWORD                  DisconnectReason = 34
+	DisconnectReason_DISCONNECT_REASON_HLTVRESTRICTED                        DisconnectReason = 35
+	DisconnectReason_DISCONNECT_REASON_NOSPECTATORS                          DisconnectReason = 36
+	DisconnectReason_DISCONNECT_REASON_HLTVUNAVAILABLE                       DisconnectReason = 37
+	DisconnectReason_DISCONNECT_REASON_HLTVSTOP                              DisconnectReason = 38
+	DisconnectReason_DISCONNECT_REASON_KICKED                                DisconnectReason = 39
+	DisconnectReason_DISCONNECT_REASON_BANADDED                              DisconnectReason = 40
+	DisconnectReason_DISCONNECT_REASON_KICKBANADDED                          DisconnectReason = 41
+	DisconnectReason_DISCONNECT_REASON_HLTVDIRECT                            DisconnectReason = 42
+	DisconnectReason_DISCONNECT_REASON_PURESERVER_CLIENTEXTRA                DisconnectReason = 43
+	DisconnectReason_DISCONNECT_REASON_PURESERVER_MISMATCH                   DisconnectReason = 44
+	DisconnectReason_DISCONNECT_REASON_USERCMD                               DisconnectReason = 45
+	DisconnectReason_DISCONNECT_REASON_REJECTED_BY_GAME                      DisconnectReason = 46
+	DisconnectReason_DISCONNECT_REASON_MESSAGE_PARSE_ERROR                   DisconnectReason = 47
+	DisconnectReason_DISCONNECT_REASON_INVALID_MESSAGE_ERROR                 DisconnectReason = 48
+	DisconnectReason_DISCONNECT_REASON_BAD_SERVER_PASSWORD                   DisconnectReason = 49
+	DisconnectReason_DISCONNECT_REASON_DIRECT_CONNECT_RESERVATION            DisconnectReason = 50
+	DisconnectReason_DISCONNECT_REASON_CONNECTION_FAILURE                    DisconnectReason = 51
+	DisconnectReason_DISCONNECT_REASON_NO_PEER_GROUP_HANDLERS                DisconnectReason = 52
+	DisconnectReason_DISCONNECT_REASON_RECONNECTION                          DisconnectReason = 53
+	DisconnectReason_DISCONNECT_REASON_LOOPSHUTDOWN                          DisconnectReason = 54
+	DisconnectReason_DISCONNECT_REASON_LOOPDEACTIVATE                        DisconnectReason = 55
+	DisconnectReason_DISCONNECT_REASON_HOST_ENDGAME                          DisconnectReason = 56
+	DisconnectReason_DISCONNECT_REASON_LOOP_LEVELLOAD_ACTIVATE               DisconnectReason = 57
+	DisconnectReason_DISCONNECT_REASON_CREATE_SERVER_FAILED                  DisconnectReason = 58
+	DisconnectReason_DISCONNECT_REASON_EXITING                               DisconnectReason = 59
+	DisconnectReason_DISCONNECT_REASON_REQUEST_HOSTSTATE_IDLE                DisconnectReason = 60
+	DisconnectReason_DISCONNECT_REASON_REQUEST_HOSTSTATE_HLTVRELAY           DisconnectReason = 61
+	DisconnectReason_DISCONNECT_REASON_CLIENT_CONSISTENCY_FAIL               DisconnectReason = 62
+	DisconnectReason_DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_MAP              DisconnectReason = 63
+	DisconnectReason_DISCONNECT_REASON_CLIENT_NO_MAP                         DisconnectReason = 64
+	DisconnectReason_DISCONNECT_REASON_CLIENT_DIFFERENT_MAP                  DisconnectReason = 65
+	DisconnectReason_DISCONNECT_REASON_SERVER_REQUIRES_STEAM                 DisconnectReason = 66
+	DisconnectReason_DISCONNECT_REASON_STEAM_DENY_MISC                       DisconnectReason = 67
+	DisconnectReason_DISCONNECT_REASON_STEAM_DENY_BAD_ANTI_CHEAT             DisconnectReason = 68
+	DisconnectReason_DISCONNECT_REASON_SERVER_SHUTDOWN                       DisconnectReason = 69
+	DisconnectReason_DISCONNECT_REASON_REPLAY_INCOMPATIBLE                   DisconnectReason = 71
+	DisconnectReason_DISCONNECT_REASON_CONNECT_REQUEST_TIMEDOUT              DisconnectReason = 72
+	DisconnectReason_DISCONNECT_REASON_SERVER_INCOMPATIBLE                   DisconnectReason = 73
+	DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_MANYRELAYS               DisconnectReason = 74
+	DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY DisconnectReason = 75
+	DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_NETWORKCONFIG            DisconnectReason = 76
+	DisconnectReason_DISCONNECT_REASON_LOCALPROBLEM_OTHER                    DisconnectReason = 77
+	DisconnectReason_DISCONNECT_REASON_REMOTE_TIMEOUT                        DisconnectReason = 79
+	DisconnectReason_DISCONNECT_REASON_REMOTE_TIMEOUT_CONNECTING             DisconnectReason = 80
+	DisconnectReason_DISCONNECT_REASON_REMOTE_OTHER                          DisconnectReason = 81
+	DisconnectReason_DISCONNECT_REASON_REMOTE_BADCRYPT                       DisconnectReason = 82
+	DisconnectReason_DISCONNECT_REASON_REMOTE_CERTNOTTRUSTED                 DisconnectReason = 83
+	DisconnectReason_DISCONNECT_REASON_UNUSUAL                               DisconnectReason = 84
+	DisconnectReason_DISCONNECT_REASON_INTERNAL_ERROR                        DisconnectReason = 85
+	DisconnectReason_DISCONNECT_REASON_REJECT_BADCHALLENGE                   DisconnectReason = 128
+	DisconnectReason_DISCONNECT_REASON_REJECT_NOLOBBY                        DisconnectReason = 129
+	DisconnectReason_DISCONNECT_REASON_REJECT_BACKGROUND_MAP                 DisconnectReason = 130
+	DisconnectReason_DISCONNECT_REASON_REJECT_SINGLE_PLAYER                  DisconnectReason = 131
+	DisconnectReason_DISCONNECT_REASON_REJECT_HIDDEN_GAME                    DisconnectReason = 132
+	DisconnectReason_DISCONNECT_REASON_REJECT_LANRESTRICT                    DisconnectReason = 133
+	DisconnectReason_DISCONNECT_REASON_REJECT_BADPASSWORD                    DisconnectReason = 134
+	DisconnectReason_DISCONNECT_REASON_REJECT_SERVERFULL                     DisconnectReason = 135
+	DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDRESERVATION             DisconnectReason = 136
+	DisconnectReason_DISCONNECT_REASON_REJECT_FAILEDCHANNEL                  DisconnectReason = 137
+	DisconnectReason_DISCONNECT_REASON_REJECT_CONNECT_FROM_LOBBY             DisconnectReason = 138
+	DisconnectReason_DISCONNECT_REASON_REJECT_RESERVED_FOR_LOBBY             DisconnectReason = 139
+	DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDKEYLENGTH               DisconnectReason = 140
+	DisconnectReason_DISCONNECT_REASON_REJECT_OLDPROTOCOL                    DisconnectReason = 141
+	DisconnectReason_DISCONNECT_REASON_REJECT_NEWPROTOCOL                    DisconnectReason = 142
+	DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDCONNECTION              DisconnectReason = 143
+	DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDCERTLEN                 DisconnectReason = 144
+	DisconnectReason_DISCONNECT_REASON_REJECT_INVALIDSTEAMCERTLEN            DisconnectReason = 145
+	DisconnectReason_DISCONNECT_REASON_REJECT_STEAM                          DisconnectReason = 146
+	DisconnectReason_DISCONNECT_REASON_REJECT_SERVERAUTHDISABLED             DisconnectReason = 147
+	DisconnectReason_DISCONNECT_REASON_REJECT_SERVERCDKEYAUTHINVALID         DisconnectReason = 148
+	DisconnectReason_DISCONNECT_REASON_REJECT_BANNED                         DisconnectReason = 149
+	DisconnectReason_DISCONNECT_REASON_KICKED_TEAMKILLING                    DisconnectReason = 150
+	DisconnectReason_DISCONNECT_REASON_KICKED_TK_START                       DisconnectReason = 151
+	DisconnectReason_DISCONNECT_REASON_KICKED_UNTRUSTEDACCOUNT               DisconnectReason = 152
+	DisconnectReason_DISCONNECT_REASON_KICKED_CONVICTEDACCOUNT               DisconnectReason = 153
+	DisconnectReason_DISCONNECT_REASON_KICKED_COMPETITIVECOOLDOWN            DisconnectReason = 154
+	DisconnectReason_DISCONNECT_REASON_KICKED_TEAMHURTING                    DisconnectReason = 155
+	DisconnectReason_DISCONNECT_REASON_KICKED_HOSTAGEKILLING                 DisconnectReason = 156
+	DisconnectReason_DISCONNECT_REASON_KICKED_VOTEDOFF                       DisconnectReason = 157
+	DisconnectReason_DISCONNECT_REASON_KICKED_IDLE                           DisconnectReason = 158
+	DisconnectReason_DISCONNECT_REASON_KICKED_SUICIDE                        DisconnectReason = 159
+	DisconnectReason_DISCONNECT_REASON_KICKED_NOSTEAMLOGIN                   DisconnectReason = 160
+	DisconnectReason_DISCONNECT_REASON_KICKED_NOSTEAMTICKET                  DisconnectReason = 161
+	DisconnectReason_DISCONNECT_REASON_KICKED_INPUTAUTOMATION                DisconnectReason = 162
+	DisconnectReason_DISCONNECT_REASON_KICKED_VACNETABNORMALBEHAVIOR         DisconnectReason = 163
+	DisconnectReason_DISCONNECT_REASON_KICKED_INSECURECLIENT                 DisconnectReason = 164
+)
+
+// Enum value maps for DisconnectReason.
+var (
+	DisconnectReason_name = map[int32]string{
+		0:   "DISCONNECT_REASON_UNKNOWN",
+		1:   "DISCONNECT_REASON_SHUTDOWN",
+		2:   "DISCONNECT_REASON_DISCONNECT_BY_USER",
+		3:   "DISCONNECT_REASON_DISCONNECT_BY_SERVER",
+		4:   "DISCONNECT_REASON_LOST",
+		5:   "DISCONNECT_REASON_OVERFLOW",
+		6:   "DISCONNECT_REASON_STEAM_BANNED",
+		7:   "DISCONNECT_REASON_STEAM_INUSE",
+		8:   "DISCONNECT_REASON_STEAM_TICKET",
+		9:   "DISCONNECT_REASON_STEAM_LOGON",
+		10:  "DISCONNECT_REASON_STEAM_AUTHCANCELLED",
+		11:  "DISCONNECT_REASON_STEAM_AUTHALREADYUSED",
+		12:  "DISCONNECT_REASON_STEAM_AUTHINVALID",
+		13:  "DISCONNECT_REASON_STEAM_VACBANSTATE",
+		14:  "DISCONNECT_REASON_STEAM_LOGGED_IN_ELSEWHERE",
+		15:  "DISCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT",
+		16:  "DISCONNECT_REASON_STEAM_DROPPED",
+		17:  "DISCONNECT_REASON_STEAM_OWNERSHIP",
+		18:  "DISCONNECT_REASON_SERVERINFO_OVERFLOW",
+		19:  "DISCONNECT_REASON_TICKMSG_OVERFLOW",
+		20:  "DISCONNECT_REASON_STRINGTABLEMSG_OVERFLOW",
+		21:  "DISCONNECT_REASON_DELTAENTMSG_OVERFLOW",
+		22:  "DISCONNECT_REASON_TEMPENTMSG_OVERFLOW",
+		23:  "DISCONNECT_REASON_SOUNDSMSG_OVERFLOW",
+		24:  "DISCONNECT_REASON_SNAPSHOTOVERFLOW",
+		25:  "DISCONNECT_REASON_SNAPSHOTERROR",
+		26:  "DISCONNECT_REASON_RELIABLEOVERFLOW",
+		27:  "DISCONNECT_REASON_BADDELTATICK",
+		28:  "DISCONNECT_REASON_NOMORESPLITS",
+		29:  "DISCONNECT_REASON_TIMEDOUT",
+		30:  "DISCONNECT_REASON_DISCONNECTED",
+		31:  "DISCONNECT_REASON_LEAVINGSPLIT",
+		32:  "DISCONNECT_REASON_DIFFERENTCLASSTABLES",
+		33:  "DISCONNECT_REASON_BADRELAYPASSWORD",
+		34:  "DISCONNECT_REASON_BADSPECTATORPASSWORD",
+		35:  "DISCONNECT_REASON_HLTVRESTRICTED",
+		36:  "DISCONNECT_REASON_NOSPECTATORS",
+		37:  "DISCONNECT_REASON_HLTVUNAVAILABLE",
+		38:  "DISCONNECT_REASON_HLTVSTOP",
+		39:  "DISCONNECT_REASON_KICKED",
+		40:  "DISCONNECT_REASON_BANADDED",
+		41:  "DISCONNECT_REASON_KICKBANADDED",
+		42:  "DISCONNECT_REASON_HLTVDIRECT",
+		43:  "DISCONNECT_REASON_PURESERVER_CLIENTEXTRA",
+		44:  "DISCONNECT_REASON_PURESERVER_MISMATCH",
+		45:  "DISCONNECT_REASON_USERCMD",
+		46:  "DISCONNECT_REASON_REJECTED_BY_GAME",
+		47:  "DISCONNECT_REASON_MESSAGE_PARSE_ERROR",
+		48:  "DISCONNECT_REASON_INVALID_MESSAGE_ERROR",
+		49:  "DISCONNECT_REASON_BAD_SERVER_PASSWORD",
+		50:  "DISCONNECT_REASON_DIRECT_CONNECT_RESERVATION",
+		51:  "DISCONNECT_REASON_CONNECTION_FAILURE",
+		52:  "DISCONNECT_REASON_NO_PEER_GROUP_HANDLERS",
+		53:  "DISCONNECT_REASON_RECONNECTION",
+		54:  "DISCONNECT_REASON_LOOPSHUTDOWN",
+		55:  "DISCONNECT_REASON_LOOPDEACTIVATE",
+		56:  "DISCONNECT_REASON_HOST_ENDGAME",
+		57:  "DISCONNECT_REASON_LOOP_LEVELLOAD_ACTIVATE",
+		58:  "DISCONNECT_REASON_CREATE_SERVER_FAILED",
+		59:  "DISCONNECT_REASON_EXITING",
+		60:  "DISCONNECT_REASON_REQUEST_HOSTSTATE_IDLE",
+		61:  "DISCONNECT_REASON_REQUEST_HOSTSTATE_HLTVRELAY",
+		62:  "DISCONNECT_REASON_CLIENT_CONSISTENCY_FAIL",
+		63:  "DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_MAP",
+		64:  "DISCONNECT_REASON_CLIENT_NO_MAP",
+		65:  "DISCONNECT_REASON_CLIENT_DIFFERENT_MAP",
+		66:  "DISCONNECT_REASON_SERVER_REQUIRES_STEAM",
+		67:  "DISCONNECT_REASON_STEAM_DENY_MISC",
+		68:  "DISCONNECT_REASON_STEAM_DENY_BAD_ANTI_CHEAT",
+		69:  "DISCONNECT_REASON_SERVER_SHUTDOWN",
+		71:  "DISCONNECT_REASON_REPLAY_INCOMPATIBLE",
+		72:  "DISCONNECT_REASON_CONNECT_REQUEST_TIMEDOUT",
+		73:  "DISCONNECT_REASON_SERVER_INCOMPATIBLE",
+		74:  "DISCONNECT_REASON_LOCALPROBLEM_MANYRELAYS",
+		75:  "DISCONNECT_REASON_LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY",
+		76:  "DISCONNECT_REASON_LOCALPROBLEM_NETWORKCONFIG",
+		77:  "DISCONNECT_REASON_LOCALPROBLEM_OTHER",
+		79:  "DISCONNECT_REASON_REMOTE_TIMEOUT",
+		80:  "DISCONNECT_REASON_REMOTE_TIMEOUT_CONNECTING",
+		81:  "DISCONNECT_REASON_REMOTE_OTHER",
+		82:  "DISCONNECT_REASON_REMOTE_BADCRYPT",
+		83:  "DISCONNECT_REASON_REMOTE_CERTNOTTRUSTED",
+		84:  "DISCONNECT_REASON_UNUSUAL",
+		85:  "DISCONNECT_REASON_INTERNAL_ERROR",
+		128: "DISCONNECT_REASON_REJECT_BADCHALLENGE",
+		129: "DISCONNECT_REASON_REJECT_NOLOBBY",
+		130: "DISCONNECT_REASON_REJECT_BACKGROUND_MAP",
+		131: "DISCONNECT_REASON_REJECT_SINGLE_PLAYER",
+		132: "DISCONNECT_REASON_REJECT_HIDDEN_GAME",
+		133: "DISCONNECT_REASON_REJECT_LANRESTRICT",
+		134: "DISCONNECT_REASON_REJECT_BADPASSWORD",
+		135: "DISCONNECT_REASON_REJECT_SERVERFULL",
+		136: "DISCONNECT_REASON_REJECT_INVALIDRESERVATION",
+		137: "DISCONNECT_REASON_REJECT_FAILEDCHANNEL",
+		138: "DISCONNECT_REASON_REJECT_CONNECT_FROM_LOBBY",
+		139: "DISCONNECT_REASON_REJECT_RESERVED_FOR_LOBBY",
+		140: "DISCONNECT_REASON_REJECT_INVALIDKEYLENGTH",
+		141: "DISCONNECT_REASON_REJECT_OLDPROTOCOL",
+		142: "DISCONNECT_REASON_REJECT_NEWPROTOCOL",
+		143: "DISCONNECT_REASON_REJECT_INVALIDCONNECTION",
+		144: "DISCONNECT_REASON_REJECT_INVALIDCERTLEN",
+		145: "DISCONNECT_REASON_REJECT_INVALIDSTEAMCERTLEN",
+		146: "DISCONNECT_REASON_REJECT_STEAM",
+		147: "DISCONNECT_REASON_REJECT_SERVERAUTHDISABLED",
+		148: "DISCONNECT_REASON_REJECT_SERVERCDKEYAUTHINVALID",
+		149: "DISCONNECT_REASON_REJECT_BANNED",
+		150: "DISCONNECT_REASON_KICKED_TEAMKILLING",
+		151: "DISCONNECT_REASON_KICKED_TK_START",
+		152: "DISCONNECT_REASON_KICKED_UNTRUSTEDACCOUNT",
+		153: "DISCONNECT_REASON_KICKED_CONVICTEDACCOUNT",
+		154: "DISCONNECT_REASON_KICKED_COMPETITIVECOOLDOWN",
+		155: "DISCONNECT_REASON_KICKED_TEAMHURTING",
+		156: "DISCONNECT_REASON_KICKED_HOSTAGEKILLING",
+		157: "DISCONNECT_REASON_KICKED_VOTEDOFF",
+		158: "DISCONNECT_REASON_KICKED_IDLE",
+		159: "DISCONNECT_REASON_KICKED_SUICIDE",
+		160: "DISCONNECT_REASON_KICKED_NOSTEAMLOGIN",
+		161: "DISCONNECT_REASON_KICKED_NOSTEAMTICKET",
+		162: "DISCONNECT_REASON_KICKED_INPUTAUTOMATION",
+		163: "DISCONNECT_REASON_KICKED_VACNETABNORMALBEHAVIOR",
+		164: "DISCONNECT_REASON_KICKED_INSECURECLIENT",
+	}
+	DisconnectReason_value = map[string]int32{
+		"DISCONNECT_REASON_UNKNOWN":                               0,
+		"DISCONNECT_REASON_SHUTDOWN":                              1,
+		"DISCONNECT_REASON_DISCONNECT_BY_USER":                    2,
+		"DISCONNECT_REASON_DISCONNECT_BY_SERVER":                  3,
+		"DISCONNECT_REASON_LOST":                                  4,
+		"DISCONNECT_REASON_OVERFLOW":                              5,
+		"DISCONNECT_REASON_STEAM_BANNED":                          6,
+		"DISCONNECT_REASON_STEAM_INUSE":                           7,
+		"DISCONNECT_REASON_STEAM_TICKET":                          8,
+		"DISCONNECT_REASON_STEAM_LOGON":                           9,
+		"DISCONNECT_REASON_STEAM_AUTHCANCELLED":                   10,
+		"DISCONNECT_REASON_STEAM_AUTHALREADYUSED":                 11,
+		"DISCONNECT_REASON_STEAM_AUTHINVALID":                     12,
+		"DISCONNECT_REASON_STEAM_VACBANSTATE":                     13,
+		"DISCONNECT_REASON_STEAM_LOGGED_IN_ELSEWHERE":             14,
+		"DISCONNECT_REASON_STEAM_VAC_CHECK_TIMEDOUT":              15,
+		"DISCONNECT_REASON_STEAM_DROPPED":                         16,
+		"DISCONNECT_REASON_STEAM_OWNERSHIP":                       17,
+		"DISCONNECT_REASON_SERVERINFO_OVERFLOW":                   18,
+		"DISCONNECT_REASON_TICKMSG_OVERFLOW":                      19,
+		"DISCONNECT_REASON_STRINGTABLEMSG_OVERFLOW":               20,
+		"DISCONNECT_REASON_DELTAENTMSG_OVERFLOW":                  21,
+		"DISCONNECT_REASON_TEMPENTMSG_OVERFLOW":                   22,
+		"DISCONNECT_REASON_SOUNDSMSG_OVERFLOW":                    23,
+		"DISCONNECT_REASON_SNAPSHOTOVERFLOW":                      24,
+		"DISCONNECT_REASON_SNAPSHOTERROR":                         25,
+		"DISCONNECT_REASON_RELIABLEOVERFLOW":                      26,
+		"DISCONNECT_REASON_BADDELTATICK":                          27,
+		"DISCONNECT_REASON_NOMORESPLITS":                          28,
+		"DISCONNECT_REASON_TIMEDOUT":                              29,
+		"DISCONNECT_REASON_DISCONNECTED":                          30,
+		"DISCONNECT_REASON_LEAVINGSPLIT":                          31,
+		"DISCONNECT_REASON_DIFFERENTCLASSTABLES":                  32,
+		"DISCONNECT_REASON_BADRELAYPASSWORD":                      33,
+		"DISCONNECT_REASON_BADSPECTATORPASSWORD":                  34,
+		"DISCONNECT_REASON_HLTVRESTRICTED":                        35,
+		"DISCONNECT_REASON_NOSPECTATORS":                          36,
+		"DISCONNECT_REASON_HLTVUNAVAILABLE":                       37,
+		"DISCONNECT_REASON_HLTVSTOP":                              38,
+		"DISCONNECT_REASON_KICKED":                                39,
+		"DISCONNECT_REASON_BANADDED":                              40,
+		"DISCONNECT_REASON_KICKBANADDED":                          41,
+		"DISCONNECT_REASON_HLTVDIRECT":                            42,
+		"DISCONNECT_REASON_PURESERVER_CLIENTEXTRA":                43,
+		"DISCONNECT_REASON_PURESERVER_MISMATCH":                   44,
+		"DISCONNECT_REASON_USERCMD":                               45,
+		"DISCONNECT_REASON_REJECTED_BY_GAME":                      46,
+		"DISCONNECT_REASON_MESSAGE_PARSE_ERROR":                   47,
+		"DISCONNECT_REASON_INVALID_MESSAGE_ERROR":                 48,
+		"DISCONNECT_REASON_BAD_SERVER_PASSWORD":                   49,
+		"DISCONNECT_REASON_DIRECT_CONNECT_RESERVATION":            50,
+		"DISCONNECT_REASON_CONNECTION_FAILURE":                    51,
+		"DISCONNECT_REASON_NO_PEER_GROUP_HANDLERS":                52,
+		"DISCONNECT_REASON_RECONNECTION":                          53,
+		"DISCONNECT_REASON_LOOPSHUTDOWN":                          54,
+		"DISCONNECT_REASON_LOOPDEACTIVATE":                        55,
+		"DISCONNECT_REASON_HOST_ENDGAME":                          56,
+		"DISCONNECT_REASON_LOOP_LEVELLOAD_ACTIVATE":               57,
+		"DISCONNECT_REASON_CREATE_SERVER_FAILED":                  58,
+		"DISCONNECT_REASON_EXITING":                               59,
+		"DISCONNECT_REASON_REQUEST_HOSTSTATE_IDLE":                60,
+		"DISCONNECT_REASON_REQUEST_HOSTSTATE_HLTVRELAY":           61,
+		"DISCONNECT_REASON_CLIENT_CONSISTENCY_FAIL":               62,
+		"DISCONNECT_REASON_CLIENT_UNABLE_TO_CRC_MAP":              63,
+		"DISCONNECT_REASON_CLIENT_NO_MAP":                         64,
+		"DISCONNECT_REASON_CLIENT_DIFFERENT_MAP":                  65,
+		"DISCONNECT_REASON_SERVER_REQUIRES_STEAM":                 66,
+		"DISCONNECT_REASON_STEAM_DENY_MISC":                       67,
+		"DISCONNECT_REASON_STEAM_DENY_BAD_ANTI_CHEAT":             68,
+		"DISCONNECT_REASON_SERVER_SHUTDOWN":                       69,
+		"DISCONNECT_REASON_REPLAY_INCOMPATIBLE":                   71,
+		"DISCONNECT_REASON_CONNECT_REQUEST_TIMEDOUT":              72,
+		"DISCONNECT_REASON_SERVER_INCOMPATIBLE":                   73,
+		"DISCONNECT_REASON_LOCALPROBLEM_MANYRELAYS":               74,
+		"DISCONNECT_REASON_LOCALPROBLEM_HOSTEDSERVERPRIMARYRELAY": 75,
+		"DISCONNECT_REASON_LOCALPROBLEM_NETWORKCONFIG":            76,
+		"DISCONNECT_REASON_LOCALPROBLEM_OTHER":                    77,
+		"DISCONNECT_REASON_REMOTE_TIMEOUT":                        79,
+		"DISCONNECT_REASON_REMOTE_TIMEOUT_CONNECTING":             80,
+		"DISCONNECT_REASON_REMOTE_OTHER":                          81,
+		"DISCONNECT_REASON_REMOTE_BADCRYPT":                       82,
+		"DISCONNECT_REASON_REMOTE_CERTNOTTRUSTED":                 83,
+		"DISCONNECT_REASON_UNUSUAL":                               84,
+		"DISCONNECT_REASON_INTERNAL_ERROR":                        85,
+		"DISCONNECT_REASON_REJECT_BADCHALLENGE":                   128,
+		"DISCONNECT_REASON_REJECT_NOLOBBY":                        129,
+		"DISCONNECT_REASON_REJECT_BACKGROUND_MAP":                 130,
+		"DISCONNECT_REASON_REJECT_SINGLE_PLAYER":                  131,
+		"DISCONNECT_REASON_REJECT_HIDDEN_GAME":                    132,
+		"DISCONNECT_REASON_REJECT_LANRESTRICT":                    133,
+		"DISCONNECT_REASON_REJECT_BADPASSWORD":                    134,
+		"DISCONNECT_REASON_REJECT_SERVERFULL":                     135,
+		"DISCONNECT_REASON_REJECT_INVALIDRESERVATION":             136,
+		"DISCONNECT_REASON_REJECT_FAILEDCHANNEL":                  137,
+		"DISCONNECT_REASON_REJECT_CONNECT_FROM_LOBBY":             138,
+		"DISCONNECT_REASON_REJECT_RESERVED_FOR_LOBBY":             139,
+		"DISCONNECT_REASON_REJECT_INVALIDKEYLENGTH":               140,
+		"DISCONNECT_REASON_REJECT_OLDPROTOCOL":                    141,
+		"DISCONNECT_REASON_REJECT_NEWPROTOCOL":                    142,
+		"DISCONNECT_REASON_REJECT_INVALIDCONNECTION":              143,
+		"DISCONNECT_REASON_REJECT_INVALIDCERTLEN":                 144,
+		"DISCONNECT_REASON_REJECT_INVALIDSTEAMCERTLEN":            145,
+		"DISCONNECT_REASON_REJECT_STEAM":                          146,
+		"DISCONNECT_REASON_REJECT_SERVERAUTHDISABLED":             147,
+		"DISCONNECT_REASON_REJECT_SERVERCDKEYAUTHINVALID":         148,
+		"DISCONNECT_REASON_REJECT_BANNED":                         149,
+		"DISCONNECT_REASON_KICKED_TEAMKILLING":                    150,
+		"DISCONNECT_REASON_KICKED_TK_START":                       151,
+		"DISCONNECT_REASON_KICKED_UNTRUSTEDACCOUNT":               152,
+		"DISCONNECT_REASON_KICKED_CONVICTEDACCOUNT":               153,
+		"DISCONNECT_REASON_KICKED_COMPETITIVECOOLDOWN":            154,
+		"DISCONNECT_REASON_KICKED_TEAMHURTING":                    155,
+		"DISCONNECT_REASON_KICKED_HOSTAGEKILLING":                 156,
+		"DISCONNECT_REASON_KICKED_VOTEDOFF":                       157,
+		"DISCONNECT_REASON_KICKED_IDLE":                           158,
+		"DISCONNECT_REASON_KICKED_SUICIDE":                        159,
+		"DISCONNECT_REASON_KICKED_NOSTEAMLOGIN":                   160,
+		"DISCONNECT_REASON_KICKED_NOSTEAMTICKET":                  161,
+		"DISCONNECT_REASON_KICKED_INPUTAUTOMATION":                162,
+		"DISCONNECT_REASON_KICKED_VACNETABNORMALBEHAVIOR":         163,
+		"DISCONNECT_REASON_KICKED_INSECURECLIENT":                 164,
+	}
+)
+
+func (x DisconnectReason) Enum() *DisconnectReason {
+	p := new(DisconnectReason)
+	*p = x
+	return p
+}
+
+func (x DisconnectReason) String() string {
+	name, valid := DisconnectReason_name[int32(x)]
+	if valid {
+		return name
+	}
+	return strconv.Itoa(int(x))
+}
+
 // ModRole is what a player is to the running mods.
 type ModRole int32
 
@@ -152,6 +544,70 @@ func (x *PlayersChangedEvent) GetPlayers() []*Connection {
 		return x.Players
 	}
 	return nil
+}
+
+// PlayerJoinedEvent reports a player who joined the mod: a human who finished
+// joining the server, a bot once added, or a player already in the game when
+// the mod starts or begins to serve them.
+type PlayerJoinedEvent struct {
+	unknownFields []byte
+	// Connection is the player as Players lists them.
+	Connection *Connection `protobuf:"bytes,1,opt,name=connection,proto3" json:"connection,omitempty"`
+}
+
+func (x *PlayerJoinedEvent) Reset() {
+	*x = PlayerJoinedEvent{}
+}
+
+func (*PlayerJoinedEvent) ProtoMessage() {}
+
+func (x *PlayerJoinedEvent) GetConnection() *Connection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
+// PlayerLeftEvent reports a player leaving the mod, once for each
+// PlayerJoinedEvent.
+type PlayerLeftEvent struct {
+	unknownFields []byte
+	// Connection is the player as the last PlayerJoinedEvent or PlayersChanged
+	// listed them.
+	Connection *Connection `protobuf:"bytes,1,opt,name=connection,proto3" json:"connection,omitempty"`
+	// Disconnected is true when the player leaves the server, and false when
+	// they stay but the mod stops serving them.
+	Disconnected bool `protobuf:"varint,2,opt,name=disconnected,proto3" json:"disconnected,omitempty"`
+	// Reason is why the server dropped the connection, absent when the player
+	// stays or the engine gave no reason this schema names.
+	Reason *DisconnectReason `protobuf:"varint,3,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
+}
+
+func (x *PlayerLeftEvent) Reset() {
+	*x = PlayerLeftEvent{}
+}
+
+func (*PlayerLeftEvent) ProtoMessage() {}
+
+func (x *PlayerLeftEvent) GetConnection() *Connection {
+	if x != nil {
+		return x.Connection
+	}
+	return nil
+}
+
+func (x *PlayerLeftEvent) GetDisconnected() bool {
+	if x != nil {
+		return x.Disconnected
+	}
+	return false
+}
+
+func (x *PlayerLeftEvent) GetReason() DisconnectReason {
+	if x != nil && x.Reason != nil {
+		return *x.Reason
+	}
+	return DisconnectReason_DISCONNECT_REASON_UNKNOWN
 }
 
 // PlayerRequest addresses one player.
@@ -1914,6 +2370,40 @@ func (m *PlayersChangedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *PlayerJoinedEvent) CloneVT() *PlayerJoinedEvent {
+	if m == nil {
+		return (*PlayerJoinedEvent)(nil)
+	}
+	r := new(PlayerJoinedEvent)
+	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PlayerJoinedEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *PlayerLeftEvent) CloneVT() *PlayerLeftEvent {
+	if m == nil {
+		return (*PlayerLeftEvent)(nil)
+	}
+	r := new(PlayerLeftEvent)
+	r.Disconnected = m.Disconnected
+	r.Connection = protobuf_go_lite.CloneVTValue(m.Connection)
+	r.Reason = protobuf_go_lite.ClonePtr(m.Reason)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *PlayerLeftEvent) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *PlayerRequest) CloneVT() *PlayerRequest {
 	if m == nil {
 		return (*PlayerRequest)(nil)
@@ -2742,6 +3232,52 @@ func (this *PlayersChangedEvent) EqualVT(that *PlayersChangedEvent) bool {
 
 func (this *PlayersChangedEvent) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*PlayersChangedEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *PlayerJoinedEvent) EqualVT(that *PlayerJoinedEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PlayerJoinedEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PlayerJoinedEvent)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *PlayerLeftEvent) EqualVT(that *PlayerLeftEvent) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Connection, that.Connection) {
+		return false
+	}
+	if this.Disconnected != that.Disconnected {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Reason, that.Reason) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PlayerLeftEvent) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*PlayerLeftEvent)
 	if !ok {
 		return false
 	}
@@ -3931,6 +4467,46 @@ func (this *BotResponse) EqualMessageVT(thatMsg any) bool {
 	return this.EqualVT(that)
 }
 
+// MarshalProtoJSON marshals the DisconnectReason to JSON.
+func (x DisconnectReason) MarshalProtoJSON(s *json.MarshalState) {
+	s.WriteEnum(int32(x), DisconnectReason_name)
+}
+
+// MarshalText marshals the DisconnectReason to text.
+func (x DisconnectReason) MarshalText() ([]byte, error) {
+	return []byte(json.GetEnumString(int32(x), DisconnectReason_name)), nil
+}
+
+// MarshalJSON marshals the DisconnectReason to JSON.
+func (x DisconnectReason) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the DisconnectReason from JSON.
+func (x *DisconnectReason) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	v := s.ReadEnum(DisconnectReason_value)
+	if err := s.Err(); err != nil {
+		s.SetErrorf("could not read DisconnectReason enum: %v", err)
+		return
+	}
+	*x = DisconnectReason(v)
+}
+
+// UnmarshalText unmarshals the DisconnectReason from text.
+func (x *DisconnectReason) UnmarshalText(b []byte) error {
+	i, err := json.ParseEnumString(string(b), DisconnectReason_value)
+	if err != nil {
+		return err
+	}
+	*x = DisconnectReason(i)
+	return nil
+}
+
+// UnmarshalJSON unmarshals the DisconnectReason from JSON.
+func (x *DisconnectReason) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the ModRole to JSON.
 func (x ModRole) MarshalProtoJSON(s *json.MarshalState) {
 	s.WriteEnum(int32(x), ModRole_name)
@@ -4121,6 +4697,120 @@ func (x *PlayersChangedEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the PlayersChangedEvent from JSON.
 func (x *PlayersChangedEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the PlayerJoinedEvent message to JSON.
+func (x *PlayerJoinedEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Connection != nil || s.HasField("connection") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connection")
+		x.Connection.MarshalProtoJSON(s.WithField("connection"))
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PlayerJoinedEvent to JSON.
+func (x *PlayerJoinedEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PlayerJoinedEvent message from JSON.
+func (x *PlayerJoinedEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "connection":
+			if s.ReadNil() {
+				x.Connection = nil
+				return
+			}
+			x.Connection = &Connection{}
+			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PlayerJoinedEvent from JSON.
+func (x *PlayerJoinedEvent) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the PlayerLeftEvent message to JSON.
+func (x *PlayerLeftEvent) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Connection != nil || s.HasField("connection") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("connection")
+		x.Connection.MarshalProtoJSON(s.WithField("connection"))
+	}
+	if x.Disconnected || s.HasField("disconnected") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("disconnected")
+		s.WriteBool(x.Disconnected)
+	}
+	if x.Reason != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("reason")
+		(*x.Reason).MarshalProtoJSON(s)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the PlayerLeftEvent to JSON.
+func (x *PlayerLeftEvent) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the PlayerLeftEvent message from JSON.
+func (x *PlayerLeftEvent) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "connection":
+			if s.ReadNil() {
+				x.Connection = nil
+				return
+			}
+			x.Connection = &Connection{}
+			x.Connection.UnmarshalProtoJSON(s.WithField("connection", true))
+		case "disconnected":
+			s.AddField("disconnected")
+			x.Disconnected = s.ReadBool()
+		case "reason":
+			s.AddField("reason")
+			if s.ReadNil() {
+				x.Reason = nil
+				return
+			}
+			var v DisconnectReason
+			v.UnmarshalProtoJSON(s)
+			x.Reason = &v
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the PlayerLeftEvent from JSON.
+func (x *PlayerLeftEvent) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -6929,6 +7619,100 @@ func (m *PlayersChangedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *PlayerJoinedEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlayerJoinedEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PlayerJoinedEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Connection != nil {
+		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PlayerLeftEvent) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PlayerLeftEvent) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *PlayerLeftEvent) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Reason != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Reason))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Disconnected {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Disconnected)
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Connection != nil {
+		size, err := m.Connection.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *PlayerRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -9048,6 +9832,36 @@ func (m *PlayersChangedEvent) SizeVT() (n int) {
 	return n
 }
 
+func (m *PlayerJoinedEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Connection != nil {
+		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *PlayerLeftEvent) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Connection != nil {
+		l = m.Connection.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Disconnected)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Reason)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *PlayerRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -9736,6 +10550,10 @@ func (m *BotResponse) SizeVT() (n int) {
 	return n
 }
 
+func (x DisconnectReason) MarshalProtoText() string {
+	return x.String()
+}
+
 func (x ModRole) MarshalProtoText() string {
 	return x.String()
 }
@@ -9781,6 +10599,42 @@ func (x *PlayersChangedEvent) MarshalProtoText() string {
 }
 
 func (x *PlayersChangedEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *PlayerJoinedEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PlayerJoinedEvent")
+	if x.Connection != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PlayerJoinedEvent) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *PlayerLeftEvent) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "PlayerLeftEvent")
+	if x.Connection != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "connection")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Connection)
+	}
+	if x.Disconnected != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "disconnected")
+		protobuf_go_lite.TextWriteBool(&sb, x.Disconnected)
+	}
+	if x.Reason != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "reason")
+		protobuf_go_lite.TextWriteStringer(&sb, x.Reason)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *PlayerLeftEvent) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -10836,6 +11690,144 @@ func (m *PlayersChangedEvent) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *PlayerJoinedEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlayerJoinedEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlayerJoinedEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connection", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Connection == nil {
+				m.Connection = &Connection{}
+			}
+			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *PlayerLeftEvent) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PlayerLeftEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PlayerLeftEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Connection", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Connection == nil {
+				m.Connection = &Connection{}
+			}
+			if err := m.Connection.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Disconnected", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Disconnected = bool(v)
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
+			}
+			var v DisconnectReason
+			var _v uint64
+			_v, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+			v = DisconnectReason(_v)
+			if err != nil {
+				return err
+			}
+			m.Reason = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
