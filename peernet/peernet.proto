@@ -29,9 +29,9 @@ service PeerNet {
 // Session is the service a hosting PC's daemon serves to its guests' daemons
 // over their peer link, on SessionProtocolID.
 service Session {
-  // Watch streams what the guest sees: what the mods show them, the whole
-  // screen first and then only what changed, and each chat line said from
-  // the call on.
+  // Watch streams what the guest sees: whether they are in the server, what
+  // the mods show them, the whole screen first and then only what changed,
+  // and each chat line said from the call on.
   rpc Watch(WatchRequest) returns (stream SessionEvent);
 
   // Content streams the content addons of the hosted mods, which the guest
@@ -219,5 +219,11 @@ message SessionEvent {
     ScreenFrame screen = 1;
     // chat is a line a player said in the game.
     modlock.host_app.control.PlayerChat chat = 2;
+    // present reports whether the guest has signed on to the server, which
+    // the host sees when the server puts them in the game. Each watch sends
+    // it first, before its first screen, then each time it changes, so a
+    // watch whose first event is a screen comes from a host that does not
+    // report it.
+    bool present = 3;
   }
 }

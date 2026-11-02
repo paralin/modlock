@@ -54,12 +54,15 @@ func TestScreensServeEachPlayer(t *testing.T) {
 
 	// The other player's screen reaches a mirror whole.
 	mirror := NewMirror()
-	sent, _ := screens.Player(guest)
+	sent, present, _ := screens.Player(guest)
+	if !present {
+		t.Fatal("a joined guest is not in the server")
+	}
 	mirror.Apply(Changes(&ui.Screen{}, sent), true)
 
 	// A later change reaches it as the one node that changed.
 	screens.Handle(shown(0, "arena", "Go"))
-	now, _ := screens.Player(guest)
+	now, _, _ := screens.Player(guest)
 	changes := Changes(sent, now)
 	if len(changes) != 1 || changes["arena"].GetReset_() || len(changes["arena"].GetSet()) != 1 {
 		t.Fatalf("the change was not one node: %v", changes)
@@ -72,14 +75,14 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	// A tree the mod hides is cleared on the mirror, and a player who
 	// leaves has an empty screen.
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: "arena", Change: &ui.Change{Reset_: true}}}})
-	gone, _ := screens.Player(guest)
+	gone, _, _ := screens.Player(guest)
 	mirror.Apply(Changes(now, gone), false)
 	if screen, _ := mirror.Screen(); len(screen.GetTrees()) != 0 {
 		t.Fatalf("the hidden tree stayed: %v", screen)
 	}
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Left{Left: &control.PlayerLeft{Slot: 1}}})
-	if screen, _ := screens.Player(local); len(screen.GetTrees()) != 0 {
-		t.Fatalf("a player who left kept a screen: %v", screen)
+	if screen, present, _ := screens.Player(local); present || len(screen.GetTrees()) != 0 {
+		t.Fatalf("a player who left kept a screen: %v, present %v", screen, present)
 	}
 }
 
@@ -192,7 +195,7 @@ func TestServedNamesContentAddons(t *testing.T) {
 		"panorama/layout/not-an-addon/shop.vxml_c":   {Data: []byte("layout")},
 		"panorama/scripts/arena-0123abcd/shop.vjs_c": {Data: []byte("script")},
 	}
-	served := &Served{config: Interface{Screen: screens.Screen}, addons: contentAddons(content)}
+	served := &Served{config: Interface{Screen: screens.Screen}, addons: ContentAddons(content)}
 	addons := func() map[string]string {
 		screen, _ := served.screen()
 		named := make(map[string]string)
@@ -209,7 +212,7 @@ func TestServedNamesContentAddons(t *testing.T) {
 
 	// A rebuild's content takes over the mod's addon.
 	served.mu.Lock()
-	maps.Copy(served.addons, contentAddons(fstest.MapFS{"panorama/layout/arena-4567cdef/shop.vxml_c": {}}))
+	maps.Copy(served.addons, ContentAddons(fstest.MapFS{"panorama/layout/arena-4567cdef/shop.vxml_c": {}}))
 	served.mu.Unlock()
 	if got := addons(); got["arena"] != "arena-4567cdef" {
 		t.Fatalf("addon after a rebuild: %v", got)

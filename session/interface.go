@@ -60,7 +60,7 @@ type Served struct {
 func StartInterface(config Interface) *Served {
 	// Mount the renderer and the content, so the game draws the screen and
 	// the server and the game load the mods' resources.
-	served := &Served{config: config, addons: contentAddons(config.Content)}
+	served := &Served{config: config, addons: ContentAddons(config.Content)}
 	mounted, err := mountRenderer(config.GameDir, config.Renderer, config.bridge(), config.Content)
 	if err != nil {
 		config.fail(errors.Wrap(err, "the game shows no mod interfaces or content"))
@@ -98,7 +98,7 @@ func (s *Served) AddContent(mod string) {
 			return
 		}
 		s.mu.Lock()
-		maps.Copy(s.addons, contentAddons(content))
+		maps.Copy(s.addons, ContentAddons(content))
 		s.mu.Unlock()
 	}
 }
@@ -117,11 +117,11 @@ func (s *Served) screen() (*ui.Screen, <-chan struct{}) {
 	return screen, changed
 }
 
-// contentAddons returns the content addon of each mod whose layouts content
+// ContentAddons returns the content addon of each mod whose layouts content
 // carries, by mod: the directory under panorama/layout/ named for the mod's
 // slug and the digest of its content. Content built from one build of each mod
 // names one addon per mod.
-func contentAddons(content fstest.MapFS) map[string]string {
+func ContentAddons(content fstest.MapFS) map[string]string {
 	addons := make(map[string]string)
 	layouts := path.Join(check.ContentDir, "layout") + "/"
 	for name := range content {
