@@ -19,8 +19,8 @@ func studioCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:  "studio",
 		Usage: "open Modlock Studio in a browser to browse the game's assets",
-		Description: "Modlock Studio reads the game's models, materials and textures from your own\n" +
-			"Deadlock install, found through Steam or DEADLOCK_DIR, and draws them in the page.",
+		Description: "Modlock Studio reads the game's models, materials, textures and sounds from your own\n" +
+			"Deadlock install, found through Steam or DEADLOCK_DIR, and previews them in the page.",
 		Flags: []cli.Flag{
 			&cli.IntFlag{Name: "port", Value: 7777, Usage: "the loopback `PORT` to serve on, or a free one when taken"},
 		},

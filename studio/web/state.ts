@@ -1,6 +1,6 @@
 // Studio's state machine: the archive, the outliner, the selected asset and
 // the viewport's display options, moved only by the events below.
-import type { Model, Resource, Texture, World } from '../studio.pb.js'
+import type { Model, Resource, Sound, Texture, World } from '../studio.pb.js'
 import type { Shading, Stats, WorldStats } from './scene.js'
 import { ancestors, type Filter, type Tree } from './tree.js'
 
@@ -46,6 +46,7 @@ export type Asset =
       // unavailable says why this browser cannot draw it, or is null.
       unavailable: string | null
     }
+  | { state: 'sound'; name: string; sound: Sound }
   | { state: 'data'; name: string; resource: Resource }
   | { state: 'failed'; name: string; message: string }
   // lost is a file whose drawing the browser dropped when the GPU reset; it
@@ -107,6 +108,7 @@ export type Event =
   | { type: 'texture'; name: string; texture: Texture }
   | { type: 'shown'; name: string; width: number; height: number }
   | { type: 'unavailable'; name: string; reason: string }
+  | { type: 'sound'; name: string; sound: Sound }
   | { type: 'data'; name: string; resource: Resource }
   | { type: 'failed'; name: string; message: string }
   | { type: 'shading'; shading: Shading }
@@ -149,7 +151,12 @@ export function reduce(studio: Studio, event: Event): Studio {
       return { ...studio, asset: reduceView(studio.asset, event) }
     case 'lost': {
       const { asset } = studio
-      if (asset.state === 'idle') return studio
+      if (
+        asset.state === 'idle' ||
+        asset.state === 'sound' ||
+        asset.state === 'data'
+      )
+        return studio
       const { name } = asset
       if (studio.reset === name) {
         const message = 'The graphics card reset twice drawing this file.'
@@ -212,6 +219,8 @@ function reduceAsset(asset: Asset, event: Event): Asset {
   // Move to the state the result names.
   const name = asset.name
   switch (event.type) {
+    case 'sound':
+      return { state: 'sound', name, sound: event.sound }
     case 'model':
       return {
         state: 'model',

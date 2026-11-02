@@ -321,3 +321,17 @@ message Fragment {
   // Tint is the fragment's sRGB color tint; empty means the placement's.
   repeated float tint = 3;
 }
+
+// Sound describes one compiled sound; audio is served separately with range support.
+message Sound {
+  // Format is the stored encoding, such as MP3 or PCM16.
+  string format = 1;
+  // Sample_rate is the number of samples per second.
+  uint32 sample_rate = 2;
+  // Channels is the number of audio channels.
+  uint32 channels = 3;
+  // Duration is the playback length in seconds.
+  float duration = 4;
+  // Unavailable explains why this sound cannot be previewed, or is empty.
+  string unavailable = 5;
+}

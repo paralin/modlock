@@ -25,6 +25,7 @@ const filters: { filter: Filter; label: string }[] = [
   { filter: 'model', label: 'Models' },
   { filter: 'texture', label: 'Textures' },
   { filter: 'material', label: 'Materials' },
+  { filter: 'sound', label: 'Sounds' },
   { filter: 'all', label: 'All' },
 ]
 

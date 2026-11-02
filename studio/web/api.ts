@@ -33,11 +33,12 @@ export async function fetchMessage<T extends object>(
 }
 
 // Kind is how the page shows a file.
-export type Kind = 'map' | 'model' | 'texture' | 'material' | 'data'
+export type Kind = 'map' | 'model' | 'texture' | 'material' | 'sound' | 'data'
 
 // kindOf returns how the page shows a file, by its extension.
 export function kindOf(name: string): Kind {
   // Match the extensions the page draws, and show the rest as data.
+  if (name.endsWith('.vsnd_c')) return 'sound'
   if (name.endsWith('.vwrld_c')) return 'map'
   if (name.endsWith('.vmdl_c')) return 'model'
   if (name.endsWith('.vtex_c')) return 'texture'

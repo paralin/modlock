@@ -962,6 +962,62 @@ func (x *Fragment) GetTint() []float32 {
 	return nil
 }
 
+// Sound describes one compiled sound; audio is served separately with range support.
+type Sound struct {
+	unknownFields []byte
+	// Format is the stored encoding, such as MP3 or PCM16.
+	Format string `protobuf:"bytes,1,opt,name=format,proto3" json:"format,omitempty"`
+	// Sample_rate is the number of samples per second.
+	SampleRate uint32 `protobuf:"varint,2,opt,name=sample_rate,json=sampleRate,proto3" json:"sampleRate,omitempty"`
+	// Channels is the number of audio channels.
+	Channels uint32 `protobuf:"varint,3,opt,name=channels,proto3" json:"channels,omitempty"`
+	// Duration is the playback length in seconds.
+	Duration float32 `protobuf:"fixed32,4,opt,name=duration,proto3" json:"duration,omitempty"`
+	// Unavailable explains why this sound cannot be previewed, or is empty.
+	Unavailable string `protobuf:"bytes,5,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
+}
+
+func (x *Sound) Reset() {
+	*x = Sound{}
+}
+
+func (*Sound) ProtoMessage() {}
+
+func (x *Sound) GetFormat() string {
+	if x != nil {
+		return x.Format
+	}
+	return ""
+}
+
+func (x *Sound) GetSampleRate() uint32 {
+	if x != nil {
+		return x.SampleRate
+	}
+	return 0
+}
+
+func (x *Sound) GetChannels() uint32 {
+	if x != nil {
+		return x.Channels
+	}
+	return 0
+}
+
+func (x *Sound) GetDuration() float32 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
+}
+
+func (x *Sound) GetUnavailable() string {
+	if x != nil {
+		return x.Unavailable
+	}
+	return ""
+}
+
 type Model_MaterialsEntry struct {
 	unknownFields []byte
 	Key           string    `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1473,6 +1529,26 @@ func (m *Fragment) CloneVT() *Fragment {
 }
 
 func (m *Fragment) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *Sound) CloneVT() *Sound {
+	if m == nil {
+		return (*Sound)(nil)
+	}
+	r := new(Sound)
+	r.Format = m.Format
+	r.SampleRate = m.SampleRate
+	r.Channels = m.Channels
+	r.Duration = m.Duration
+	r.Unavailable = m.Unavailable
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Sound) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -1990,6 +2066,38 @@ func (this *Fragment) EqualVT(that *Fragment) bool {
 
 func (this *Fragment) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*Fragment)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *Sound) EqualVT(that *Sound) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Format != that.Format {
+		return false
+	}
+	if this.SampleRate != that.SampleRate {
+		return false
+	}
+	if this.Channels != that.Channels {
+		return false
+	}
+	if this.Duration != that.Duration {
+		return false
+	}
+	if this.Unavailable != that.Unavailable {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Sound) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Sound)
 	if !ok {
 		return false
 	}
@@ -3952,6 +4060,80 @@ func (x *Fragment) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the Sound message to JSON.
+func (x *Sound) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Format != "" || s.HasField("format") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("format")
+		s.WriteString(x.Format)
+	}
+	if x.SampleRate != 0 || s.HasField("sampleRate") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sampleRate")
+		s.WriteUint32(x.SampleRate)
+	}
+	if x.Channels != 0 || s.HasField("channels") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("channels")
+		s.WriteUint32(x.Channels)
+	}
+	if x.Duration != 0 || s.HasField("duration") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("duration")
+		s.WriteFloat32(x.Duration)
+	}
+	if x.Unavailable != "" || s.HasField("unavailable") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("unavailable")
+		s.WriteString(x.Unavailable)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Sound to JSON.
+func (x *Sound) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Sound message from JSON.
+func (x *Sound) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "format":
+			s.AddField("format")
+			x.Format = s.ReadString()
+		case "sample_rate", "sampleRate":
+			s.AddField("sample_rate")
+			x.SampleRate = s.ReadUint32()
+		case "channels":
+			s.AddField("channels")
+			x.Channels = s.ReadUint32()
+		case "duration":
+			s.AddField("duration")
+			x.Duration = s.ReadFloat32()
+		case "unavailable":
+			s.AddField("unavailable")
+			x.Unavailable = s.ReadString()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Sound from JSON.
+func (x *Sound) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 func (m *Listing) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -5079,6 +5261,63 @@ func (m *Fragment) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Sound) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Sound) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Sound) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Unavailable) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Unavailable)
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.Duration != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Duration))))
+		i--
+		dAtA[i] = 0x25
+	}
+	if m.Channels != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Channels))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.SampleRate != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.SampleRate))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Format) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Format)
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Listing) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -5402,6 +5641,21 @@ func (m *Fragment) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.DrawCall)
 	n += protobuf_go_lite.SizeFixed32Packed(1, m.Transform)
 	n += protobuf_go_lite.SizeFixed32Packed(1, m.Tint)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *Sound) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Format)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.SampleRate)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Channels)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Duration)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Unavailable)
 	n += len(m.unknownFields)
 	return n
 }
@@ -6196,6 +6450,36 @@ func (x *Fragment) MarshalProtoText() string {
 }
 
 func (x *Fragment) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Sound) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Sound")
+	if x.Format != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "format")
+		protobuf_go_lite.TextWriteString(&sb, x.Format)
+	}
+	if x.SampleRate != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sample_rate")
+		protobuf_go_lite.TextWriteUint(&sb, x.SampleRate)
+	}
+	if x.Channels != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "channels")
+		protobuf_go_lite.TextWriteUint(&sb, x.Channels)
+	}
+	if x.Duration != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "duration")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Duration)
+	}
+	if x.Unavailable != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "unavailable")
+		protobuf_go_lite.TextWriteString(&sb, x.Unavailable)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Sound) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -8172,6 +8456,99 @@ func (m *Fragment) UnmarshalVT(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field Tint", wireType)
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Sound) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Sound: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Sound: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Format", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Format = v
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SampleRate", wireType)
+			}
+			m.SampleRate = 0
+			m.SampleRate, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Channels", wireType)
+			}
+			m.Channels = 0
+			m.Channels, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 4:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Duration = float32(math.Float32frombits(v))
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Unavailable", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Unavailable = v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

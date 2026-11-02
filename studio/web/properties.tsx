@@ -26,6 +26,20 @@ export function Properties(props: {
       )}
       {asset.state === 'model' && <ModelProperties {...props} asset={asset} />}
       {asset.state === 'texture' && <TextureProperties asset={asset} />}
+      {asset.state === 'sound' && (
+        <Section title="Sound">
+          <Field label="Encoding">
+            {asset.sound.format || 'Voice container'}
+          </Field>
+          <Field label="Duration">
+            {(asset.sound.duration ?? 0).toFixed(2)} s
+          </Field>
+          <Field label="Sample rate">
+            {(asset.sound.sampleRate ?? 0).toLocaleString()} Hz
+          </Field>
+          <Field label="Channels">{asset.sound.channels ?? 0}</Field>
+        </Section>
+      )}
       {asset.state === 'data' && (
         <DataProperties asset={asset} onSelect={props.onSelect} />
       )}
