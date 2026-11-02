@@ -198,9 +198,11 @@ that dies and seat it again.
 Swapping a player's hero, or moving them to the spectators and back, can leave
 the old hero in the world with nobody driving it, and the game revives it on
 its own respawn timer. Keep one `Strays` and call `sweep(now)` each frame: once
-a hero has belonged to no connected player for `strayGraceSeconds`, it loses
-its abilities, is killed once, and has its respawn held off for good. The
-sweep looks once a second, so it costs one entity listing a second.
+a hero has belonged to no player for `strayGraceSeconds`, it is killed once
+and has its respawn held off for good. A hero still counts as a player's while
+its controller names it, so a player who is joining or spectating keeps
+theirs. The sweep looks once a second, so it costs one entity listing and two
+field reads per hero a second.
 
 ```ts
 import { onFrame, Strays } from 'modlock'
@@ -209,6 +211,5 @@ const strays = new Strays()
 onFrame(({ timeSeconds }) => strays.sweep(timeSeconds))
 ```
 
-The abilities go first because an ability left on a hero nobody drives can
-still run, and some ask the game for their player's input, which crashes the
-server when there is no player.
+The sweep leaves a stray's abilities in place: killing the ability entities of
+a live hero pawn has ended the server process.
