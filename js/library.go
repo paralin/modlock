@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strings"
@@ -112,6 +113,11 @@ const banner = "/*! Includes protobuf-es-lite under the Apache License 2.0: http
 // sources are the paths under the Modlock source that Build reads. Under the
 // message roots it reads only the generated TypeScript messages.
 var sources = append([]string{"js/src", "js/tsconfig.json", "panorama/src", "panorama/browser", "studio/web", "studio/studio.pb.ts"}, messageRoots...)
+
+// escapingImport matches a declaration's import of a module outside the
+// declarations' directory, such as a generated message, which a script
+// project's installed library does not hold.
+var escapingImport = regexp.MustCompile(`(?:from|import\()\s*['"]\.\./[^'"]*['"]`)
 
 // messageRoots are the directories whose generated messages the library and
 // renderer import.
@@ -397,6 +403,9 @@ func Build(ctx context.Context, source, out string) error {
 		}
 		if files[name], err = os.ReadFile(filepath.Join(declared, name)); err != nil {
 			return err
+		}
+		if outside := escapingImport.Find(files[name]); outside != nil {
+			return errors.Errorf("declare the library: %s imports %s, which the installed library lacks; declare its public types in the module", name, outside)
 		}
 	}
 

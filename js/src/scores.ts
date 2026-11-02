@@ -8,10 +8,18 @@
 import * as scoresPb from '../../src/wasm/scores/scores.pb.js'
 import { callService, log, type Player } from './host.gen.js'
 
-export { Window as BoardWindow } from '../../src/wasm/scores/scores.pb.js'
-
 /** service names the host service that keeps scores. */
 const service = 'scores'
+
+/** BoardWindow is a span of time a board keeps standings for, in UTC; a week starts Monday. */
+export type BoardWindow = 'allTime' | 'day' | 'week'
+
+/** windowValues encodes each BoardWindow. */
+const windowValues: Record<BoardWindow, scoresPb.Window> = {
+  allTime: scoresPb.Window.ALL_TIME,
+  day: scoresPb.Window.DAY,
+  week: scoresPb.Window.WEEK,
+}
 
 /** ScoreOptions describe where a score ranks and the run it came from. */
 export interface ScoreOptions {
@@ -40,7 +48,7 @@ export interface BoardRead {
   /** partition names a value for each of the board's partitions. */
   partition?: Record<string, string>
   /** window is one of the board's windows; all time by default. */
-  window?: scoresPb.Window
+  window?: BoardWindow
   /** offset skips that many rows from the top. */
   offset?: number
   /** limit bounds the rows; ten by default. */
@@ -142,7 +150,7 @@ export function readBoard(
   const query = scoresPb.BoardQuery.toBinary({
     board,
     partition: read.partition,
-    window: read.window,
+    window: read.window && windowValues[read.window],
     offset: read.offset,
     limit: read.limit,
     player: read.player?.slot,
