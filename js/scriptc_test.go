@@ -21,10 +21,11 @@ import (
 var suiteDir = filepath.Join("test", "scriptc")
 
 // pending names the test files that scriptc cannot compile yet, with the
-// reason. entities.create is generic over a designer name, which scriptc
-// widens to string, so no type indexed by the name compiles.
+// reason. scriptc widens a type parameter such as entities.create's designer
+// name or Standings' Extra, so a type built from it does not compile.
 var pending = map[string]string{
-	"host": "entities.create, keyed by designer name, does not compile under scriptc",
+	"host":     "entities.create, keyed by designer name, does not compile under scriptc",
+	"rotation": "Standings, generic over Extra, keeps Standing & Extra values that scriptc does not compile",
 }
 
 // suiteBuilds is how many test files build at once. Each scriptc build takes

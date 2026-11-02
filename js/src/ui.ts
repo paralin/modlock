@@ -984,12 +984,14 @@ class Layout {
   /** add records a node. */
   add(node: Node): void {
     // Steam id is Node's only bigint. Convert it once instead of calling a
-    // replacer for every property of every node and its nested styles.
-    const encoded = JSON.stringify(
+    // replacer for every property of every node and its nested styles. The
+    // value is unknown to JSON.stringify, since scriptc stringifies unknown
+    // but not Node's full record type.
+    const value: unknown =
       node.steamId === undefined
         ? node
-        : { ...node, steamId: String(node.steamId) },
-    )
+        : { ...node, steamId: String(node.steamId) }
+    const encoded = JSON.stringify(value)
     this.screen.nodes.set(node.id!, { node, encoded })
   }
 
