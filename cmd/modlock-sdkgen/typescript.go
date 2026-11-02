@@ -543,19 +543,17 @@ func (w *tsWriter) oneofType(o *oneof) string {
 // cases' types, as o's wire form. Each case must differ in its typeof.
 func (w *tsWriter) oneofValue(o *oneof, value string) (string, error) {
 	seen := map[string]bool{}
-	expr := ""
+	expr := "undefined"
 	for _, f := range slices.Backward(o.fields) {
-
+		// Every JavaScript type selects one public arm.
 		kind := typeOf(f)
 		if seen[kind] {
 			return "", fmt.Errorf("oneof %s has two cases of typeof %s", o.name, kind)
 		}
 		seen[kind] = true
-		encoded := fmt.Sprintf("{ case: '%s' as const, value: %s }", lowerCamel(f.name), w.toValue(f, value))
-		if expr == "" {
-			expr = encoded
-			continue
-		}
+
+		// Preserve that arm's layout when scriptc converts it to the wire record.
+		encoded := fmt.Sprintf("{ case: '%s' as const, value: %s }", lowerCamel(f.name), w.toValue(f, fmt.Sprintf("(%s as %s)", value, w.tsBase(f))))
 		expr = fmt.Sprintf("typeof %s === '%s' ? %s : %s", value, kind, encoded, expr)
 	}
 	return expr, nil

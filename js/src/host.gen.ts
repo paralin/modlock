@@ -662,7 +662,7 @@ export type FieldValue = boolean | number | bigint | string | Vector
 
 /** toFieldValue encodes a FieldValue. */
 function toFieldValue(value: FieldValue): fieldsPb.FieldValue {
-  return { value: typeof value === 'boolean' ? { case: 'boolean' as const, value: value } : typeof value === 'number' ? { case: 'number' as const, value: value } : typeof value === 'bigint' ? { case: 'integer' as const, value: value } : typeof value === 'string' ? { case: 'text' as const, value: value } : { case: 'vector' as const, value: value } }
+  return { value: typeof value === 'boolean' ? { case: 'boolean' as const, value: (value as boolean) } : typeof value === 'number' ? { case: 'number' as const, value: (value as number) } : typeof value === 'bigint' ? { case: 'integer' as const, value: (value as bigint) } : typeof value === 'string' ? { case: 'text' as const, value: (value as string) } : typeof value === 'object' ? { case: 'vector' as const, value: (value as Vector) } : undefined }
 }
 
 /** fromFieldValue decodes a FieldValue, or undefined when it holds none. */
@@ -1613,7 +1613,7 @@ export type CameraValue = number | Vector
 
 /** toCameraValue encodes a CameraValue. */
 function toCameraValue(value: CameraValue): playersPb.CameraValue {
-  return { value: typeof value === 'number' ? { case: 'number' as const, value: value } : { case: 'position' as const, value: value } }
+  return { value: typeof value === 'number' ? { case: 'number' as const, value: (value as number) } : typeof value === 'object' ? { case: 'position' as const, value: (value as Vector) } : undefined }
 }
 
 /** CameraMotion is how an operation moves its param. */
@@ -1928,7 +1928,7 @@ function toBotOptions(value: BotOptions): playersPb.BotOptions {
   return {
     name: value.name,
     team: int32(value.team),
-    hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: value.hero } : { case: 'heroId' as const, value: value.hero },
+    hero: value.hero === undefined ? undefined : typeof value.hero === 'string' ? { case: 'heroName' as const, value: (value.hero as string) } : typeof value.hero === 'number' ? { case: 'heroId' as const, value: (value.hero as number) } : undefined,
     position: value.position,
   }
 }
@@ -2309,7 +2309,7 @@ export class Player {
    * frame.
    */
   selectHero(hero: string | number, team: number): number | undefined {
-    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: hero } : { case: 'heroId' as const, value: hero }, team: int32(team) }))
+    const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: (hero as string) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) }))
     if (reply === undefined) return undefined
     const response = playersPb.HeroResponse.fromBinary(reply)
     return response.hero ?? 0
