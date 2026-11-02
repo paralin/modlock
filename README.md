@@ -1225,9 +1225,9 @@ renderer loads the layouts of the content its session mounted, and a host with
 its own interface script loads them by passing `Layouts` to the `Drawing` in
 `panorama/src/draw.ts`, such as `AddonLayouts`, which follows the `addon` each
 screen's tree names. A layout with no content to load draws an empty panel and
-logs one line in the game's console. The `modlock dev` preview page draws the layout from the mod's latest
-build, with its panels, inline styles and style sheets, but runs none of its
-scripts.
+logs one line in the game's console. The `modlock dev` preview page draws the
+layout from the mod's latest build, with its panels, inline styles and style
+sheets, but runs none of its scripts.
 
 `import './content/styles/hud.css'` adds that style sheet to every interface
 the mod shows, after the sheets added before it, so a later sheet wins a tie;
