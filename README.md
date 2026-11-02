@@ -119,8 +119,10 @@ to `build/server.log`.
 ### With a second player
 
 `modlock play --lobby` runs the mods on your PC and opens a Hyperline
-friends lobby. Add `--watch` to rebuild and reload a mod project on each save;
-watching takes one project, while play without it accepts several built mods.
+friends lobby. A source project rebuilds and reloads on each save by default;
+`--watch=false` uses its existing build, building it first if needed. Watching
+takes one project. Built mods run directly, including several together; pass
+`--watch=false` when playing several source projects.
 On another PC, `modlock join LINK` launches Deadlock and joins the server after
 the player joins the lobby. Each guest downloads the mod's content from the
 host before joining and sees their own player interface. Content changed after
@@ -137,8 +139,8 @@ host stops. This path uses Hyperline signaling but requires a direct connection
 between the PCs. If a lobby cannot open, `--lobby` falls back to a join code
 and reports why. Hosting is unavailable in the sandbox; local play continues.
 
-The former `modlock host` command is now `modlock play --lobby --watch`.
-Its `--no-lobby` variant is now `modlock play --host --watch`.
+The former `modlock host` command is now `modlock play --lobby`.
+Its `--no-lobby` variant is now `modlock play --host`.
 
 ### Without the game
 
@@ -202,7 +204,7 @@ library makes.
 | `modlock new DIR`       | Create a mod project in `DIR`.                                                                                                               |
 | `modlock build`         | Check the mod and write the built mod to `build/`.                                                                                           |
 | `modlock dev`           | Build the mod, run it in a local server, and join it; `--watch` reloads it on each save.                                                     |
-| `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and `--watch` rebuilds one project on save. |
+| `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and projects reload on save unless `--watch=false`. |
 | `modlock join CODE`     | Join a session another PC hosts, by its join code or its dev lobby's link, and launch Deadlock into it.                                      |
 | `modlock publish`       | Build and check the mod, then [publish it](#publishing).                                                                                     |
 | `modlock update`        | Install the newest release over this `modlock`; `--check` only says whether one is out.                                                      |

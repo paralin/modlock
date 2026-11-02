@@ -44,37 +44,28 @@ var interfaceFlags = []cli.Flag{
 	},
 }
 
-// playCommand runs built mods locally, optionally watching a project or
-// serving the session to friends.
+// playCommand runs built mods locally and watches source projects by default,
+// optionally serving the session to friends.
 func playCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:        "play",
 		Usage:       "play mods locally or let friends join this PC's server",
-		Description: "Play built mods or projects, building projects with missing output. Without the game, use the sandbox. --watch builds and watches one project.\n\nExamples:\n  modlock play\n  modlock play --lobby\n  modlock play --lobby --watch\n  modlock play --host",
+		Description: "Play built mods or watch one source project, rebuilding on each save. --watch=false uses existing builds, building projects with missing output. Without the game, use the sandbox.\n\nExamples:\n  modlock play\n  modlock play --lobby\n  modlock play --watch=false\n  modlock play --host",
 		ArgsUsage:   "[MOD...]",
 		Flags: append(slices.Clone(sessionFlags),
 			releaseFlag,
-			&cli.BoolFlag{Name: "watch", Usage: "build one mod project and reload it on each save"},
+			&cli.BoolFlag{Name: "watch", Value: true, Usage: "build one mod project and reload it on each save; --watch=false uses existing builds"},
 			&cli.BoolFlag{Name: "host", Usage: "let friends join this PC's server with a join code"},
 			&cli.BoolFlag{Name: "lobby", Usage: "let friends join this PC's server through a Hyperline lobby"},
 			&cli.UintFlag{Name: "preview-port", Value: previewPort, Usage: "the watched project's browser preview port; 0 turns it off"},
 		),
 		Action: func(c *cli.Context) error {
-			// Watching uses the project builder and keeps hosting independent.
-			if c.Bool("watch") {
-				if c.Args().Len() > 1 {
-					return errors.New("--watch takes one mod project; pass one directory")
-				}
-				return runDev(c, out, "play")
-			}
-
 			// Take each mod as a built mod or a project's build, building a
 			// project that has none yet, or every project with --release.
 			paths := c.Args().Slice()
 			if len(paths) == 0 {
 				paths = []string{"."}
 			}
-			out.header("play", strings.Join(paths, " "))
 			mods := make([]string, 0, len(paths))
 			for _, path := range paths {
 				dir, err := filepath.Abs(path)
@@ -83,7 +74,17 @@ func playCommand(out *printer) *cli.Command {
 				}
 				opened, err := project.Open(dir)
 				if err == nil {
+					// Watch source projects, while built mods run directly.
+					if c.Bool("watch") {
+						if len(paths) > 1 {
+							return errors.New("watching takes one mod project; pass --watch=false to play several mods")
+						}
+						return runDev(c, out, "play")
+					}
 					dir = opened.Output()
+				}
+				if len(mods) == 0 {
+					out.header("play", strings.Join(paths, " "))
 				}
 				_, err = os.Stat(filepath.Join(dir, project.ManifestFile))
 				if err != nil && opened == nil {
