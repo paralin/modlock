@@ -251,6 +251,14 @@ std::expected<float, std::string> ConsoleVariables::ReadFloat(const char* name) 
   return Load<float>(*value);
 }
 
+std::expected<int32_t, std::string> ConsoleVariables::ReadInt32(const char* name) const {
+  auto value = Value(name, kInt32Type, "a 32-bit integer");
+  if (!value) {
+    return std::unexpected(value.error());
+  }
+  return Load<int32_t>(*value);
+}
+
 std::expected<void, std::string> ConsoleVariables::SetBool(const char* name, bool value) const {
   auto slot = Value(name, kBoolType, "Boolean");
   if (!slot) {

@@ -25,11 +25,17 @@ export interface HeroSnapshot {
   /** health and maxHealth are the hero's health and its base maximum. */
   health: number
   maxHealth: number
-  /** level is the hero's level. */
+  /**
+   * level is the hero's level. The restore also sets the hero's souls to what
+   * the level needs, since the game raises a level its souls pass and never
+   * lowers one: a richer hero loses souls, from its wallet first, and a poorer
+   * one gains them.
+   */
   level?: number
   /**
    * souls is the souls the hero holds unspent, once the build is in place.
-   * The build a snapshot lists is not paid for from them.
+   * The build a snapshot lists is not paid for from them. They are set after
+   * the level, so souls past the level's band raise the level again.
    */
   souls?: number
   /** upgradeBonuses are the three stat bonuses purchases add. */

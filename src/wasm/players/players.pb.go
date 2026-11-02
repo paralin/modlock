@@ -1567,7 +1567,13 @@ type HeroTarget struct {
 	// of health, max health, upgrade bonuses and timers. A bot's ability
 	// upgrades may grow while the restore runs.
 	Fresh *bool `protobuf:"varint,3,opt,name=fresh,proto3,oneof" json:"fresh,omitempty"`
-	// Level sets the hero's level.
+	// Level sets the hero's level, and its souls to what that level needs. The
+	// game raises a level once the hero's souls pass the next one and never
+	// lowers one, so a level held with other souls would change within a
+	// second. A hero with more souls than the level's band loses them, from its
+	// wallet first; one with fewer gains wallet souls. A hero whose souls
+	// already fit the level keeps them, and the restore fails if they cannot be
+	// moved there.
 	Level *int32 `protobuf:"varint,4,opt,name=level,proto3,oneof" json:"level,omitempty"`
 	// Health and MaxHealth set the hero's health and its base maximum. Both
 	// are required unless the target is fresh.

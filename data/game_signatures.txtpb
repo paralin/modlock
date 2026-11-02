@@ -502,6 +502,16 @@ signatures {
   shape: "CCitadelPlayerPawn::ModifyCurrency"
 }
 
+# The souls a pawn's hero needs to reach a level: the hero data's
+# m_unRequiredGold for the level, clamped to the hero's last level, or zero
+# when the pawn has no hero.
+signatures {
+  id: "pawn.required-souls"
+  modules: GAME_MODULE_SERVER
+  pattern: "40 53 48 83 EC 20 8B DA E8 ?? ?? ?? ?? 48 85 C0 74 13 85 DB 7E 0F 8B D3 48 8B C8 48 83 C4 20 5B E9 ?? ?? ?? ?? 33 C0 48 83 C4 20 5B C3"
+  shape: "int RequiredSouls(CCitadelPlayerPawn*, int level)"
+}
+
 signatures {
   id: "pawn.reset-hero"
   modules: GAME_MODULE_SERVER

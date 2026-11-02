@@ -15,8 +15,8 @@ namespace modlock::gameinterop {
 
 namespace {
 
-// RestoreIntegerField writes a networked integer field of pawn and
-// replicates it.
+// RestoreIntegerField writes a networked integer field of pawn, or the first
+// integer of a networked integer array, and replicates it.
 bool RestoreIntegerField(void* pawn, const char* class_name, const char* field_name,
                          int32_t value) {
   // Find the field.
@@ -28,7 +28,7 @@ bool RestoreIntegerField(void* pawn, const char* class_name, const char* field_n
     return false;
   }
   auto field = SchemaFieldOf(*schema, "server.dll", class_name, field_name);
-  if (!field || field->size != sizeof(int32_t) || !field->networked) {
+  if (!field || field->size < sizeof(int32_t) || !field->networked) {
     return false;
   }
 
@@ -230,6 +230,10 @@ bool RestorePawnHealth(void* pawn, int32_t health, int32_t network_max_health) {
 bool RestorePawnLevel(void* pawn, int32_t level) {
   return level >= 0 && level <= kMaxHeroLevel &&
          RestoreIntegerField(pawn, "CCitadelPlayerPawn", "m_nLevel", level);
+}
+
+bool RestorePawnSpentSouls(void* pawn, int32_t spent) {
+  return RestoreIntegerField(pawn, "CCitadelPlayerPawn", "m_nSpentCurrencies", spent);
 }
 
 std::optional<std::array<float, 3>> ReadPawnUpgradeBonuses(void* pawn) {

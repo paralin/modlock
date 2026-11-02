@@ -174,6 +174,7 @@ std::expected<EntityLayout, std::string> ResolveEntityLayout(bool movement_enabl
        &layout.pregame_hero_id},
       {"CBaseModelEntity", "m_vecViewOffset", kViewOffsetSize, &layout.view_offset},
       {"CCitadelPlayerPawn", "m_nCurrencies", sizeof(int32_t) * 3, &layout.currencies},
+      {"CCitadelPlayerPawn", "m_nSpentCurrencies", sizeof(int32_t), &layout.spent_souls},
   };
   ResolveOptionalSchemaOffsets(*schema_system, "server.dll", optional);
 

@@ -132,6 +132,7 @@ class GameServices {
   std::expected<render::WorldEffectGameFactory*, std::string> Effects();
   std::expected<const gameinterop::NativeDamage*, std::string> Damage();
   std::expected<gameinterop::ModifyCurrency, std::string> Currency();
+  std::expected<gameinterop::RequiredSouls, std::string> RequiredSouls();
   std::expected<const gameinterop::NativeSound*, std::string> Sound();
   std::expected<const gameinterop::GamePause*, std::string> Pause();
   std::expected<gameinterop::MatchClock*, std::string> Clock();
@@ -231,6 +232,7 @@ class GameServices {
   std::unique_ptr<render::WorldEffectGameFactory> effects_;
   std::optional<gameinterop::NativeDamage> damage_;
   gameinterop::ModifyCurrency currency_ = nullptr;
+  gameinterop::RequiredSouls required_souls_ = nullptr;
   std::optional<gameinterop::NativeSound> sound_;
   std::optional<gameinterop::GamePause> pause_;
   std::optional<gameinterop::MatchClock> clock_;
@@ -616,6 +618,9 @@ class Game : public HostService {
   // Keep stores a created object and returns its response.
   objects::ObjectResponse Keep(Object object);
 
+  // HoldLevelSouls gives the slot's hero the souls its restored level needs,
+  // so the game's progression keeps the level.
+  std::expected<void, std::string> HoldLevelSouls(int32_t slot, int32_t level);
   // ApplyRestore performs one stage of a hero restore's writes.
   bool ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& target,
                     HeroRestore::Stage stage);

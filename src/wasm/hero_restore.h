@@ -35,7 +35,8 @@ struct RestoreTarget {
   // ability upgrades may grow while the restore runs, since bots keep
   // spending ability points.
   bool fresh = false;
-  // level is absent to keep the hero's level.
+  // level is absent to keep the hero's level. A level also sets the hero's
+  // souls to its amount, so the game's progression keeps it.
   std::optional<int32_t> level;
   int32_t health = 0;
   int32_t max_health = 0;

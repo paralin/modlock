@@ -1803,7 +1803,15 @@ export interface HeroTarget {
    * upgrades may grow while the restore runs.
    */
   fresh?: boolean
-  /** level sets the hero's level. */
+  /**
+   * level sets the hero's level, and its souls to what that level needs. The
+   * game raises a level once the hero's souls pass the next one and never
+   * lowers one, so a level held with other souls would change within a
+   * second. A hero with more souls than the level's band loses them, from its
+   * wallet first; one with fewer gains wallet souls. A hero whose souls
+   * already fit the level keeps them, and the restore fails if they cannot be
+   * moved there.
+   */
   level?: number
   /**
    * health and maxHealth set the hero's health and its base maximum. Both

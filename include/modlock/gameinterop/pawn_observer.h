@@ -74,7 +74,13 @@ struct PawnMotion {
 [[nodiscard]] MODLOCK_API bool RestorePawnHealth(void* pawn, int32_t health,
                                                  int32_t network_max_health);
 // RestorePawnLevel restores the schema-checked level and requests replication.
+// The game's own progression undoes it within a frame when the pawn's souls
+// are outside the level's band; PawnObserver::HoldLevelSouls moves them in.
 [[nodiscard]] MODLOCK_API bool RestorePawnLevel(void* pawn, int32_t level);
+// RestorePawnSpentSouls restores the pawn's total souls spent and requests
+// replication. The game counts spent and unspent souls together toward a
+// level, so this moves a hero's level progress without touching its wallet.
+[[nodiscard]] MODLOCK_API bool RestorePawnSpentSouls(void* pawn, int32_t spent);
 // RestorePawnUpgradeBonuses restores the weapon, armor and tech bonuses of the
 // pawn's existing upgrade bonus modifier and notifies replication. It fails
 // when the pawn has no such modifier or the running build's layout is not
@@ -163,6 +169,8 @@ struct EntityLayout {
   std::optional<size_t> play_state;
   // Optional inline EGold/EAbilityPoints/EAbilityUnlocks currency prefix.
   std::optional<size_t> currencies;
+  // Optional EGold element of m_nSpentCurrencies, the souls the hero has spent.
+  std::optional<size_t> spent_souls;
   // Optional controller-relative PlayerDataGlobal_t scoreboard counters.
   std::optional<ScoreLayout> score;
   // Optional controller-relative m_nHeroID and m_nPreGameHeroID of
@@ -232,6 +240,13 @@ struct ItemTarget {
 using ModifyCurrency = void (*)(void*, uint32_t, int32_t, uint32_t, uint8_t, uint8_t, uint8_t,
                                 void*, void*);
 MODLOCK_API std::expected<ModifyCurrency, std::string> ResolveModifyCurrency(
+    const ModuleImage& server);
+
+// RequiredSouls returns the souls the pawn's hero needs to reach level, from
+// the hero data's level table, clamped to the hero's last level. It returns
+// zero when the pawn has no hero.
+using RequiredSouls = int32_t (*)(void* pawn, int32_t level);
+MODLOCK_API std::expected<RequiredSouls, std::string> ResolveRequiredSouls(
     const ModuleImage& server);
 
 using SetUpgradeBits = void (*)(void* ability, uint32_t bits);
@@ -386,6 +401,9 @@ class MODLOCK_API PawnObserver {
     int32_t max_health = 0;
     int32_t level = 0;
     std::optional<std::array<int32_t, 3>> currencies;
+    // SpentSouls is the total souls the hero has spent. Native progression
+    // counts it with the wallet's souls.
+    std::optional<int32_t> spent_souls;
     std::array<float, 3> eye_angles{};
     std::array<float, 3> camera_angles{};
     std::optional<std::array<float, 3>> eye_position;
@@ -530,6 +548,19 @@ class MODLOCK_API PawnObserver {
   // plays the native soul pickup feedback; a silent one does not.
   std::expected<Sample, std::string> AdjustSouls(int32_t slot, int32_t delta, bool silent,
                                                  ModifyCurrency modify);
+  // HoldLevelSouls brings the slot's souls into the band in which the game's
+  // own progression keeps the hero at level: from the souls the level needs
+  // up to, not including, those the next level needs. Progression counts the
+  // wallet and the souls spent, less starting_souls (the game's starting gold
+  // convar), and raises the level one step per frame while it passes the next
+  // level's amount, and it never lowers one. A hero already in the band is
+  // left alone. A hero above the band loses wallet souls first and spent souls
+  // only when the wallet cannot cover it; one below gains wallet souls. The
+  // result is the observed hero, or an error that leaves the level for the
+  // caller to report.
+  std::expected<Sample, std::string> HoldLevelSouls(int32_t slot, int32_t level,
+                                                    int32_t starting_souls, RequiredSouls required,
+                                                    ModifyCurrency modify);
   // PrepareStartingSouls grants the shortfall to the selected starting wallet.
   // Existing funds and purchases survive; native progression owns earned levels.
   std::expected<Sample, std::string> PrepareStartingSouls(int32_t slot, int32_t souls,

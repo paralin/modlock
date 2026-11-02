@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "modlock/gameinterop/console_variables.h"
 #include "modlock/gameinterop/native_memory.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
@@ -198,6 +199,33 @@ std::expected<void, std::string> Game::RestoreHero(const players::RestoreHeroReq
   return {};
 }
 
+std::expected<void, std::string> Game::HoldLevelSouls(int32_t slot, int32_t level) {
+  // Resolve the native calls and the souls progression leaves out of a level.
+  auto required = services_.RequiredSouls();
+  if (!required) {
+    return std::unexpected(required.error());
+  }
+  auto currency = services_.Currency();
+  if (!currency) {
+    return std::unexpected(currency.error());
+  }
+  auto variables = gameinterop::ConsoleVariables::Resolve();
+  if (!variables) {
+    return std::unexpected(variables.error());
+  }
+  auto starting = variables->ReadInt32("citadel_player_starting_gold");
+  if (!starting) {
+    return std::unexpected(starting.error());
+  }
+
+  // Move the hero's souls into the level's band.
+  auto held = observer_.HoldLevelSouls(slot, level, *starting, *required, *currency);
+  if (!held) {
+    return std::unexpected(held.error());
+  }
+  return {};
+}
+
 bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& target,
                         HeroRestore::Stage stage) {
   // Log a step that fails, and borrow the player's pawn.
@@ -245,6 +273,15 @@ bool Game::ApplyRestore(const HeroRestore::Sample& sample, const RestoreTarget& 
       return false;
     }
     pawn = observer_.PawnForSlot(slot);
+    if (target.level) {
+      // The game raises a level its souls pass and never lowers one, so the
+      // restored level holds only with souls inside its band. A hero whose
+      // thresholds cannot be read keeps the level written; the settle reports it.
+      if (auto held = HoldLevelSouls(slot, *target.level); !held) {
+        log("level souls", held.error());
+      }
+      pawn = observer_.PawnForSlot(slot);
+    }
     if (!target.fresh && target.upgrade_bonuses) {
       if (auto done = gameinterop::RestorePawnUpgradeBonuses(pawn, *target.upgrade_bonuses);
           !done) {

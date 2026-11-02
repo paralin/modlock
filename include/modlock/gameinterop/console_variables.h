@@ -49,6 +49,9 @@ class MODLOCK_API ConsoleVariables {
   [[nodiscard]] std::expected<bool, std::string> ReadBool(const char* name) const;
   // ReadFloat copies the current slot-zero value, refusing non-float variables.
   [[nodiscard]] std::expected<float, std::string> ReadFloat(const char* name) const;
+  // ReadInt32 copies the current slot-zero value, refusing non-32-bit-integer
+  // variables.
+  [[nodiscard]] std::expected<int32_t, std::string> ReadInt32(const char* name) const;
   // SetBool, SetFloat and SetInt32 write the slot-zero value of a Boolean, 32-bit float or
   // 32-bit integer variable, refusing other types. No change callback runs.
   [[nodiscard]] std::expected<void, std::string> SetBool(const char* name, bool value) const;
