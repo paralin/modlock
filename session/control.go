@@ -107,6 +107,12 @@ func (c *Control) Run(ctx context.Context, handle func(*control.HostEvent)) erro
 			}
 			return nil
 		}
+
+		// UI lifetimes belong to the screen owner, not the mod that filled
+		// the native request. Peer snapshots enter through another path.
+		if change := event.GetUi().GetChange(); change != nil {
+			change.Generation = 0
+		}
 		handle(event)
 	}
 }
@@ -132,6 +138,7 @@ func (c *Control) send(ctx context.Context, conn net.Conn) {
 
 // readMessage reads one framed message into message.
 func readMessage(reader io.Reader, message interface{ UnmarshalVT([]byte) error }) error {
+	// Bound the payload before allocating its frame.
 	var header [4]byte
 	if _, err := io.ReadFull(reader, header[:]); err != nil {
 		return err
@@ -140,6 +147,8 @@ func readMessage(reader io.Reader, message interface{ UnmarshalVT([]byte) error 
 	if size > maxMessage {
 		return errors.Errorf("the host sent a %d byte message", size)
 	}
+
+	// Decode the complete frame, without consuming the following message.
 	data := make([]byte, size)
 	if _, err := io.ReadFull(reader, data); err != nil {
 		return err

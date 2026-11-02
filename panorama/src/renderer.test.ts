@@ -553,6 +553,27 @@ test("draws the game's faces, styles, motion, hover and hero pictures", () => {
     textOverflow: 'ellipsis',
     textDecoration: 'line-through',
   })
+
+  // Replacing a lifetime dismisses a child tooltip before dropping its root.
+  live.draw(tree(go(), ...rest))
+  const hovered = shown()[0]!
+  hovered.events.get('onmouseover')!()
+  const restarted = tree(go(), ...rest)
+  restarted.trees![0]!.generation = 2n
+  dispatched.length = 0
+  live.draw(restarted)
+  expect(dispatched).toEqual([
+    ['UIHideTextTooltip', hovered],
+  ] as unknown as string[][])
+
+  // Removing the whole mod dismisses the replacement's tooltip too.
+  const replacement = shown()[0]!
+  replacement.events.get('onmouseover')!()
+  dispatched.length = 0
+  live.draw(null)
+  expect(dispatched).toEqual([
+    ['UIHideTextTooltip', replacement],
+  ] as unknown as string[][])
 })
 
 test('draws inputs, avatars and game text, and sends edits', () => {

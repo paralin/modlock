@@ -2,6 +2,7 @@ package session
 
 import (
 	"maps"
+	"math/rand/v2"
 	"slices"
 	"sync"
 
@@ -156,7 +157,7 @@ func (t trees) apply(mod string, change *ui.Change) {
 	// Start the mod's tree over on a reset.
 	current := t[mod]
 	if current == nil {
-		current = &tree{generation: 1}
+		current = &tree{generation: newGeneration()}
 		t[mod] = current
 	}
 	if change.GetGeneration() != 0 {
@@ -174,6 +175,16 @@ func (t trees) apply(mod string, change *ui.Change) {
 	}
 	for _, id := range change.GetRemoved() {
 		delete(current.nodes, id)
+	}
+}
+
+// newGeneration gives a new screen owner a nonzero lifetime that does not
+// restart at the same counter after its process or session restarts.
+func newGeneration() uint64 {
+	for {
+		if generation := rand.Uint64(); generation != 0 {
+			return generation
+		}
 	}
 }
 

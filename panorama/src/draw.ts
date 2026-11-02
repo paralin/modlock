@@ -499,6 +499,9 @@ export class Drawing {
     )
     for (const [mod, drawn] of this.mods) {
       if (!trees.has(mod)) {
+        for (const each of drawn.nodes.values()) {
+          this.untip(each)
+        }
         drawn.nodes.get('')?.panel.DeleteAsync(0)
         this.unloaded ||= [...drawn.nodes.values()].some(
           (each) => each.layout !== null,
@@ -547,6 +550,9 @@ export class Drawing {
     const old = this.mods.get(mod)
     const generation = tree.generation ?? 0n
     if (old && old.generation !== generation) {
+      for (const each of old.nodes.values()) {
+        this.untip(each)
+      }
       old.nodes.get('')?.panel.DeleteAsync(0)
       this.unloaded ||= [...old.nodes.values()].some(
         (each) => each.layout !== null,
