@@ -12,7 +12,7 @@ import (
 // Version is the scriptc release that builds script mods. It comes from the
 // paralin/scriptc fork, which carries compiler fixes upstream has not
 // released yet.
-const Version = "0.4.7-paralin.1"
+const Version = "0.4.7-paralin.2"
 
 // asset is one file of the release and its SHA-256.
 type asset struct{ name, sum string }
@@ -20,15 +20,15 @@ type asset struct{ name, sum string }
 // compilers maps each system to the release asset holding its standalone
 // compiler.
 var compilers = map[string]asset{
-	"darwin/arm64":  {"scriptc-" + Version + "-darwin-arm64.tar.gz", "b6ae9a6cd4edf026d5463592b2bdcfd8534506912b37264873f0ba278125bd50"},
-	"linux/amd64":   {"scriptc-" + Version + "-linux-x64-gnu.tar.gz", "91b291bc457aeca0896736ffc1ab0f25af539d16885cf82f989f518810f85891"},
-	"linux/arm64":   {"scriptc-" + Version + "-linux-arm64-gnu.tar.gz", "61dfe6593215a615c747561ddbb96f43d071051663deb9e93cac46d4580ef37e"},
-	"windows/amd64": {"scriptc-" + Version + "-win32-x64-msvc.tar.gz", "d3702f392073617488ed551326133c7c8facde4e29c1a286b5c2602e0e1cc862"},
+	"darwin/arm64":  {"scriptc-" + Version + "-darwin-arm64.tar.gz", "44a531dbd1b9af48a1d9a33ecaac39206570a6d9f6d8a2ecb19506dc854b136c"},
+	"linux/amd64":   {"scriptc-" + Version + "-linux-x64-gnu.tar.gz", "8a1b26965fef74d2bc2f912338a69276210f5d800784a2e569b073c94e9b37cf"},
+	"linux/arm64":   {"scriptc-" + Version + "-linux-arm64-gnu.tar.gz", "421ee897b4ad66232aa646d135e81094c42024e78a2f899c7101ddb1bcee867e"},
+	"windows/amd64": {"scriptc-" + Version + "-win32-x64-msvc.tar.gz", "b76093540b270fa2c441dc5d8d453e325a253f20d66a157411c61e93b919e0e0"},
 }
 
 // runtimePack is the release asset holding the wasm32-wasi runtime pack, an
 // npm package archive.
-var runtimePack = asset{"scriptc-runtime-wasm32-wasi-" + Version + ".tgz", "66349662752bc88a5f519c2ae69e204897fba2b1be75e2299ffa9b9b3681f6c0"}
+var runtimePack = asset{"scriptc-runtime-wasm32-wasi-" + Version + ".tgz", "e5679a24c189349bf7185d27957688dcccf94f06cc7754c53167070710f1959b"}
 
 // Compiler returns the scriptc compiler for this system and the runtime pack
 // it links WebAssembly modules against.
