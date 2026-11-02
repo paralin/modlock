@@ -289,7 +289,7 @@ class WasmPlugin final : public Plugin {
   // stopped or a running one.
   void Restart();
   // Succeed halts the running instance and starts instance, with build when
-  // a reload brought one, once the bots the halted instance kicked have left.
+  // a reload brought one, once the bots the halted instance removed have left.
   std::expected<void, std::string> Succeed(std::unique_ptr<wasm::Instance> instance,
                                            std::optional<Build> build);
   // Arrive starts the instance that Succeed holds back, when its
@@ -385,8 +385,8 @@ class WasmPlugin final : public Plugin {
   std::optional<Build> waiting_;
 
   // Successor is an instance that waits until a deadline for the bots its
-  // predecessor kicked to leave, since a bot it adds under a leaving bot's
-  // name takes that bot's queued kick.
+  // predecessor removed to leave, so it starts without seeing them as
+  // players.
   struct Successor {
     std::unique_ptr<wasm::Instance> instance;
     std::optional<Build> build;

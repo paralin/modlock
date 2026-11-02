@@ -262,10 +262,10 @@ void Game::RemoveWorld() {
   created_.clear();
   visibility_.Clear();
 
-  // Only the engine's kick removes a bot's connection.
+  // Only the engine removes a bot's connection.
   if (auto server = services_.Server()) {
-    for (const auto& [slot, name] : bots_) {
-      if ((*server)->ServerCommand(("kick \"" + name + "\"\n").c_str())) {
+    for (const auto slot : bots_) {
+      if ((*server)->DisconnectClient(slot, gameinterop::kDisconnectKicked, "removed by its mod")) {
         Depart(slot);
       }
     }

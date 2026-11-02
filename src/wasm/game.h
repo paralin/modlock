@@ -341,9 +341,8 @@ class Game : public HostService {
   std::expected<void, std::string> Apart(uint64_t slots);
 
   // Departing reports whether a bot the mod removed still holds its slot.
-  // The engine runs a kick from its command buffer after the call returns,
-  // so a bot added before then under the same name can take the kick meant
-  // for the one leaving.
+  // The engine finishes the disconnect of a client it is processing after
+  // the call returns, so the slot can stay held for a moment.
   bool Departing();
 
   // Hero is one live hero this frame. Velocity is absent when the game's
@@ -759,10 +758,10 @@ class Game : public HostService {
   // ability with handle, owned by slot's hero, imbues; empty for most.
   std::vector<uint32_t> ImbuedAbilities(int32_t slot, uint32_t handle);
 
-  // RemoveWorld removes the objects and units and kicks the bots.
+  // RemoveWorld removes the objects, units and bots.
   void RemoveWorld();
 
-  // Depart records that the bot in slot was kicked.
+  // Depart records that the bot in slot was disconnected.
   void Depart(int32_t slot);
 
   // services_ outlives the game.
@@ -788,9 +787,9 @@ class Game : public HostService {
   std::optional<gameinterop::WorldEntities> world_;
   std::set<uint32_t> created_;
   bool spawned_ = false;
-  // bots_ maps each bot's slot to its name, which the console kicks by.
-  std::map<int32_t, std::string> bots_;
-  // departing_ maps each kicked bot's slot to its connection generation
+  // bots_ is the slots of the bots the mod added.
+  std::set<int32_t> bots_;
+  // departing_ maps each removed bot's slot to its connection generation
   // until the slot empties or another connection takes it.
   std::map<int32_t, uint32_t> departing_;
   std::set<int32_t> frozen_;

@@ -282,13 +282,13 @@ std::expected<players::BotResponse, std::string> Game::AddBot(const players::Bot
     return std::unexpected(bots.error());
   }
 
-  // Create the bot and remember it, so Clear can kick it.
+  // Create the bot and remember its slot, so Clear can remove it.
   auto slot = (*bots)->Create(request.name().c_str(), request.team(),
                               static_cast<uint32_t>(hero->id), Floats(request.position()));
   if (!slot) {
     return std::unexpected(slot.error());
   }
-  bots_.emplace(*slot, request.name());
+  bots_.insert(*slot);
   players::BotResponse response;
   response.set_player(*slot);
   return response;
@@ -301,15 +301,15 @@ std::expected<void, std::string> Game::RemoveBot(const players::PlayerRequest& r
     return std::unexpected("the mod added no bot in that slot");
   }
 
-  // Kick the bot through the server console.
+  // Disconnect the bot's slot.
   auto server = services_.Server();
   if (!server) {
     return std::unexpected(server.error());
   }
-  if (!(*server)->ServerCommand(("kick \"" + found->second + "\"\n").c_str())) {
-    return std::unexpected("the server console is unavailable");
+  if (!(*server)->DisconnectClient(*found, gameinterop::kDisconnectKicked, "removed by its mod")) {
+    return std::unexpected("the server cannot disconnect clients");
   }
-  Depart(found->first);
+  Depart(*found);
   bots_.erase(found);
   return {};
 }

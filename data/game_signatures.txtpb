@@ -651,6 +651,18 @@ slots {
   shape: "void IVEngineServer2::ServerCommand(const char* command)"
 }
 
+# DisconnectClient passes the reason and its internal text straight to the
+# slot's client. KickClient, nine entries later, starts with the same short
+# thunk as four other entries, so no entry pattern can tell it apart.
+slots {
+  id: "engine-server.disconnect-client"
+  module: "engine2.dll"
+  class_name: "CEngineServer"
+  index: 88
+  pattern: "48 8B 05 ?? ?? ?? ?? 45 8B D0 48 85 C0"
+  shape: "void IVEngineServer2::DisconnectClient(CPlayerSlot slot, ENetworkDisconnectionReason reason, const char* internal_reason)"
+}
+
 # The pawn overrides GetMaxHealth to evaluate progression and modifiers; the
 # base version reads m_iMaxHealth.
 slots {

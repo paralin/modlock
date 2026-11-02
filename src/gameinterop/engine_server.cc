@@ -111,4 +111,32 @@ bool EngineServer::ServerCommand(const char* command) const {
 #endif
 }
 
+bool EngineServer::DisconnectClient(int32_t slot, int32_t reason,
+                                    const char* internal_reason) const {
+#if defined(_WIN32)
+  // Find the disconnect slot in the instance's table.
+  if (instance_ == nullptr) {
+    return false;
+  }
+  const auto index = ResolveVirtualSlot("engine-server.disconnect-client");
+  if (!index) {
+    return false;
+  }
+  void** table = DispatchTableOf(instance_);
+  if (table == nullptr || table[*index] == nullptr) {
+    return false;
+  }
+
+  // Call it. The engine checks the slot against its client list.
+  using DisconnectClientFn = void (*)(void* self, int32_t slot, int32_t reason, const char* text);
+  reinterpret_cast<DisconnectClientFn>(table[*index])(instance_, slot, reason, internal_reason);
+  return true;
+#else
+  (void)slot;
+  (void)reason;
+  (void)internal_reason;
+  return false;
+#endif
+}
+
 }  // namespace modlock::gameinterop
