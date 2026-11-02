@@ -68,11 +68,16 @@ export class Hook {
   /**
    * update reads the thrower's hook at game time now, keeps it fully upgraded
    * and sets the length of any cooldown a throw started. It reports nothing
-   * for a hero without the hook.
+   * for a hero without the hook. A caller that already read this frame's
+   * abilities passes them to avoid another read.
    */
-  update(player: HookPlayer, now: number): HookRead | undefined {
+  update(
+    player: HookPlayer,
+    now: number,
+    abilities: readonly HookAbility[] = player.abilities(),
+  ): HookRead | undefined {
     // Find the hook and read the hero it holds.
-    const ability = player.abilities().find((a) => a.name === hookAbility)
+    const ability = abilities.find((a) => a.name === hookAbility)
     if (!ability) {
       return undefined
     }

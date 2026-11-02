@@ -983,9 +983,12 @@ class Layout {
 
   /** add records a node. */
   add(node: Node): void {
-    // An avatar's Steam id is a bigint, which JSON writes as its digits here.
-    const encoded = JSON.stringify(node, (_, value: unknown) =>
-      typeof value === 'bigint' ? String(value) : value,
+    // Steam id is Node's only bigint. Convert it once instead of calling a
+    // replacer for every property of every node and its nested styles.
+    const encoded = JSON.stringify(
+      node.steamId === undefined
+        ? node
+        : { ...node, steamId: String(node.steamId) },
     )
     this.screen.nodes.set(node.id!, { node, encoded })
   }
