@@ -197,6 +197,7 @@ void Game::Clear() {
     request.set_player(slot);
     static_cast<void>(Unwatch(request));
   }
+  watched_.clear();
 
   // Remove the world's objects and unfreeze the frozen heroes.
   RemoveWorld();
