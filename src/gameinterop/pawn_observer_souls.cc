@@ -19,6 +19,14 @@ std::expected<ModifyCurrency, std::string> ResolveModifyCurrency(const ModuleIma
   return reinterpret_cast<ModifyCurrency>(*address);
 }
 
+std::expected<RequiredSouls, std::string> ResolveRequiredSouls(const ModuleImage& server) {
+  auto address = ResolveSignature(server, "pawn.required-souls");
+  if (!address) {
+    return std::unexpected(address.error());
+  }
+  return reinterpret_cast<RequiredSouls>(*address);
+}
+
 std::expected<PawnObserver::Sample, std::string> PawnObserver::AdjustSouls(int32_t slot,
                                                                            int32_t delta,
                                                                            bool silent,
@@ -53,6 +61,61 @@ std::expected<PawnObserver::Sample, std::string> PawnObserver::AdjustSouls(int32
              nullptr, nullptr);
     }
     return std::unexpected("native wallet did not apply the adjustment");
+  }
+  return *after;
+}
+
+std::expected<PawnObserver::Sample, std::string> PawnObserver::HoldLevelSouls(
+    int32_t slot, int32_t level, int32_t starting_souls, RequiredSouls required,
+    ModifyCurrency modify) {
+  // Read the wallet and the thresholds of the level and the next one.
+  auto before = Observe(slot);
+  if (!required || !modify || !before || !before->currencies || !before->spent_souls ||
+      !before->pawn) {
+    return std::unexpected("native level progression unavailable");
+  }
+  void* const pawn = before->pawn;
+  const int32_t low = required(pawn, std::max(level, 1));
+  const int32_t next = required(pawn, level + 1);
+  if (level > 1 && low <= 0) {
+    return std::unexpected("the hero's level thresholds are unavailable");
+  }
+
+  // The last level has no next threshold: the game clamps it to its own.
+  const bool last_level = next <= low;
+  const int64_t wallet = (*before->currencies)[0];
+  const int64_t worth = wallet + *before->spent_souls - starting_souls;
+  if (worth >= low && (last_level || worth < next)) {
+    return *before;
+  }
+
+  // Move the souls to the level's own amount. A grant adds to the wallet; a
+  // loss takes from the wallet first, as a hero loses souls on death, and
+  // from the spent souls only for what the wallet cannot cover.
+  const int64_t delta = low - worth;
+  if (delta > 0) {
+    modify(pawn, 0, static_cast<int32_t>(delta), 7, 1, 1, 0, nullptr, nullptr);
+  } else {
+    const int64_t from_wallet = std::min(std::max(wallet, int64_t{0}), -delta);
+    if (from_wallet > 0) {
+      modify(pawn, 0, -static_cast<int32_t>(from_wallet), 9, 1, 0, 0, nullptr, nullptr);
+    }
+    const int64_t from_spent = -delta - from_wallet;
+    if (from_spent > 0 &&
+        !RestorePawnSpentSouls(pawn, static_cast<int32_t>(*before->spent_souls - from_spent))) {
+      return std::unexpected("the hero's spent souls could not be written");
+    }
+  }
+
+  // Check that the pawn is the same and its souls now fit the level.
+  auto after = Observe(slot);
+  if (!after || after->pawn_handle != before->pawn_handle || !after->currencies ||
+      !after->spent_souls) {
+    return std::unexpected("native wallet changed owner during the level adjustment");
+  }
+  const int64_t held = (*after->currencies)[0] + *after->spent_souls - starting_souls;
+  if (held < low || (!last_level && held >= next)) {
+    return std::unexpected("native wallet did not reach the level's souls");
   }
   return *after;
 }

@@ -341,6 +341,13 @@ std::expected<gameinterop::ModifyCurrency, std::string> GameServices::Currency()
   return currency_;
 }
 
+std::expected<gameinterop::RequiredSouls, std::string> GameServices::RequiredSouls() {
+  if (auto cached = Cache(required_souls_, &gameinterop::ResolveRequiredSouls); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return required_souls_;
+}
+
 std::expected<const gameinterop::NativeSound*, std::string> GameServices::Sound() {
   if (auto cached = Cache(sound_, &gameinterop::NativeSound::TryCreate); !cached) {
     return std::unexpected(cached.error());

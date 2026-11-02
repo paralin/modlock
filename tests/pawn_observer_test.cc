@@ -5,6 +5,7 @@
 // recorded byte snapshots of the pinned sourcesdk layouts.
 #include "modlock/gameinterop/pawn_observer.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -191,6 +192,103 @@ TEST(PawnObserver, ResetsStartingEconomyBeforeGrantingHigherLowerAndZeroBudgets)
   EXPECT_FALSE(observer.ResetStartingSouls(0, 20000, grant, reconnect));
   EXPECT_EQ(grants, 4u);
   active_fixture = nullptr;
+}
+
+TEST(PawnObserver, HoldLevelSoulsMovesTheHeroIntoTheLevelsBand) {
+  // Seat a player with a hero pawn whose wallet and spent souls are observed.
+  Fixture fixture;
+  fixture.occupied = true;
+  fixture.controller = MakeController(HandleOf(2, 7));
+  Instance pawn{}, body{}, scene{};
+  WritePointer(pawn.data() + kBodyComponentField, body.data());
+  WritePointer(body.data() + kSceneNodeField, scene.data());
+  const uint32_t hero = 14;
+  std::memcpy(pawn.data() + kHeroField, &hero, sizeof(hero));
+  pawn[kTeamField] = 2;
+  fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
+  fixture.image.SetIdentity(2, pawn.data(), 7, 0);
+  auto seams = SeamsFor(fixture);
+  seams.layout = []() -> std::expected<EntityLayout, std::string> {
+    auto layout = FixtureLayout();
+    layout.currencies = 0x80;
+    layout.spent_souls = 0xa0;
+    return layout;
+  };
+  seams.ability_layout = []() -> std::expected<modlock::gameinterop::AbilityLayout, std::string> {
+    return modlock::gameinterop::AbilityLayout{};
+  };
+  PawnObserver observer{std::move(seams)};
+  const auto set = [&pawn](int32_t wallet, int32_t spent) {
+    std::memcpy(pawn.data() + 0x80, &wallet, sizeof(wallet));
+    std::memcpy(pawn.data() + 0xa0, &spent, sizeof(spent));
+  };
+
+  // Levels 1 to 3 start at 0, 600 and 1500 souls and the game clamps level 4
+  // to level 3's own amount, so level 3 is the last.
+  const auto required = +[](void*, int32_t level) -> int32_t {
+    constexpr std::array<int32_t, 3> table{0, 600, 1500};
+    return table[static_cast<size_t>(std::clamp(level, 1, 3) - 1)];
+  };
+
+  // A loss comes out of the wallet as a death does, and a grant adds to it.
+  static unsigned calls;
+  calls = 0;
+  const auto modify = +[](void* entity, uint32_t type, int32_t amount, uint32_t source,
+                          uint8_t silent, uint8_t force, uint8_t spend, void*, void*) {
+    ++calls;
+    EXPECT_EQ(type, 0u);
+    EXPECT_EQ(silent, 1);
+    EXPECT_EQ(spend, 0);
+    EXPECT_EQ(source, amount > 0 ? 7u : 9u);
+    EXPECT_EQ(force, amount > 0 ? 1 : 0);
+    auto* address = static_cast<unsigned char*>(entity) + 0x80;
+    int32_t balance;
+    std::memcpy(&balance, address, sizeof(balance));
+    balance += amount;
+    std::memcpy(address, &balance, sizeof(balance));
+  };
+  const auto worth = [&pawn](int32_t starting) {
+    int32_t wallet, spent;
+    std::memcpy(&wallet, pawn.data() + 0x80, sizeof(wallet));
+    std::memcpy(&spent, pawn.data() + 0xa0, sizeof(spent));
+    return wallet + spent - starting;
+  };
+
+  // A hero past level 1 with a full purse is lowered to the level's amount.
+  set(50600, 0);
+  auto held = observer.HoldLevelSouls(0, 1, 600, required, modify);
+  ASSERT_TRUE(held) << held.error();
+  EXPECT_EQ(worth(600), 0);
+  EXPECT_EQ(calls, 1u);
+
+  // A hero already inside the band is left alone.
+  set(1000, 200);
+  held = observer.HoldLevelSouls(0, 2, 600, required, modify);
+  ASSERT_TRUE(held) << held.error();
+  EXPECT_EQ(worth(600), 600);
+  EXPECT_EQ(calls, 1u);
+
+  // A poorer hero is granted up to the level.
+  held = observer.HoldLevelSouls(0, 3, 600, required, modify);
+  ASSERT_TRUE(held) << held.error();
+  EXPECT_EQ(worth(600), 1500);
+  EXPECT_EQ(calls, 2u);
+
+  // The last level has no ceiling, so a rich hero keeps its souls there.
+  set(50000, 0);
+  held = observer.HoldLevelSouls(0, 3, 600, required, modify);
+  ASSERT_TRUE(held) << held.error();
+  EXPECT_EQ(worth(600), 49400);
+  EXPECT_EQ(calls, 2u);
+
+  // A hero whose thresholds cannot be read is refused before any change.
+  const auto unknown = +[](void*, int32_t) -> int32_t {
+    return 0;
+  };
+  set(50600, 0);
+  EXPECT_FALSE(observer.HoldLevelSouls(0, 2, 600, unknown, modify));
+  EXPECT_EQ(worth(600), 50000);
+  EXPECT_EQ(calls, 2u);
 }
 
 TEST(PawnObserver, ObservesRetainedDeadHeroAfterActivePawnBecomesSpectator) {

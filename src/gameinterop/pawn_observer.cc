@@ -115,6 +115,16 @@ std::optional<std::array<int32_t, 3>> ReadCurrencies(const EntityLayout& layout,
   return currencies;
 }
 
+// ReadSpentSouls reads the souls the pawn has spent when their field resolved.
+std::optional<int32_t> ReadSpentSouls(const EntityLayout& layout, const unsigned char* pawn) {
+  if (!layout.spent_souls) {
+    return std::nullopt;
+  }
+  int32_t spent = 0;
+  std::memcpy(&spent, pawn + *layout.spent_souls, sizeof(spent));
+  return spent;
+}
+
 // ReadScore reads the scoreboard totals from the controller's player data. It
 // borrows the engine-owned controller only for the read.
 std::optional<ScoreTotals> ReadScore(const EntityLayout& layout, const void* controller) {
@@ -584,6 +594,7 @@ std::optional<PawnObserver::Sample> PawnObserver::Observe(int32_t slot) {
                 .max_health = max_health,
                 .level = level,
                 .currencies = ReadCurrencies(layout_, bytes),
+                .spent_souls = ReadSpentSouls(layout_, bytes),
                 .eye_angles = eye_angles,
                 .camera_angles = camera_angles,
                 .eye_position = eye_position,
