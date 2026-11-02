@@ -118,24 +118,27 @@ to `build/server.log`.
 
 ### With a second player
 
-`modlock host` runs the mod like `modlock dev --watch` and prints a join code.
-On another PC, `modlock join CODE` links to the host, launches Deadlock and
-joins the host's server, so both players play each reload. Before the game
-starts, the guest takes the mod's content from the host and mounts it, so it
-draws the mod's models and particles; content changed after that loads when the
-guest joins again. The guest's game shows the mod's interface for the guest's
-own player, which the host streams to it over the same link. The two PCs find each other through hyperline.gg's
-signaling, which needs `modlock login` on both (`modlock publish` saves the
-same sign-in), and then link directly over WebRTC. The code carries the
-session's secret: anyone holding it can join until the host stops.
+`modlock play --lobby` runs the mods on your PC and opens a Hyperline
+friends lobby. Add `--watch` to rebuild and reload a mod project on each save;
+watching takes one project, while play without it accepts several built mods.
+On another PC, `modlock join LINK` launches Deadlock and joins the server after
+the player joins the lobby. Each guest downloads the mod's content from the
+host before joining and sees their own player interface. Content changed after
+that loads when the guest joins again.
 
-A creator who may publish mods also gets a dev lobby: `modlock host` prints the
-lobby's page on hyperline.gg in place of the code, and only the creator's
-friends can join it there, or with `modlock join LINK` after joining the lobby.
-While the lobby is open, links to the host may pass through hyperline.gg's
-relay when the routers block a direct link. Without a lobby, which
-`modlock host --no-lobby` skips, no game traffic passes through hyperline.gg
-and two PCs whose routers block a direct link cannot play together.
+Both PCs sign in with `modlock login` (`modlock publish` saves the same
+sign-in). A creator who may publish mods can open a lobby; only the creator's
+friends can join it. The PCs link directly over WebRTC, with Hyperline's relay
+available while the lobby is open when routers block a direct connection.
+
+Use `modlock play --host` for a join code without a lobby, then
+`modlock join CODE` on the other PC. Anyone holding the code can join until the
+host stops. This path uses Hyperline signaling but requires a direct connection
+between the PCs. If a lobby cannot open, `--lobby` falls back to a join code
+and reports why. Hosting is unavailable in the sandbox; local play continues.
+
+The former `modlock host` command is now `modlock play --lobby --watch`.
+Its `--no-lobby` variant is now `modlock play --host --watch`.
 
 ### Without the game
 
@@ -199,8 +202,7 @@ library makes.
 | `modlock new DIR`       | Create a mod project in `DIR`.                                                                                                               |
 | `modlock build`         | Check the mod and write the built mod to `build/`.                                                                                           |
 | `modlock dev`           | Build the mod, run it in a local server, and join it; `--watch` reloads it on each save.                                                     |
-| `modlock play [MOD...]` | Run built mods in a local server and join it, building a project that has no build yet.                                                      |
-| `modlock host`          | Run the mod like `dev --watch` and print a join code that lets a player on another PC join.                                                  |
+| `modlock play [MOD...]` | Play locally; `--lobby` opens a friends lobby, `--host` shares a join code, and `--watch` rebuilds one project on save. |
 | `modlock join CODE`     | Join a session another PC hosts, by its join code or its dev lobby's link, and launch Deadlock into it.                                      |
 | `modlock publish`       | Build and check the mod, then [publish it](#publishing).                                                                                     |
 | `modlock update`        | Install the newest release over this `modlock`; `--check` only says whether one is out.                                                      |

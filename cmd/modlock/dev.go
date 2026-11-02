@@ -14,7 +14,6 @@ import (
 	"github.com/aperturerobotics/cli"
 	modcli "github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/js"
-	"github.com/paralin/modlock/peernet"
 	"github.com/paralin/modlock/preview"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/pkg/errors"
@@ -45,15 +44,14 @@ func devCommand(out *printer) *cli.Command {
 			},
 		),
 		Action: func(c *cli.Context) error {
-			return runDev(c, out, "dev", false)
+			return runDev(c, out, "dev")
 		},
 	}
 }
 
 // runDev runs command, which builds the mod and runs it in a local server,
-// rebuilding and reloading it on each save when watching. A host session
-// always watches and serves the server to guests.
-func runDev(c *cli.Context, out *printer, command string, host bool) error {
+// rebuilding and reloading it on each save when watching. Hosting is optional.
+func runDev(c *cli.Context, out *printer, command string) error {
 	// Open the project.
 	opened, err := openProject(c)
 	if err != nil {
@@ -63,7 +61,7 @@ func runDev(c *cli.Context, out *printer, command string, host bool) error {
 
 	// Serve the preview page, which takes the player's input once
 	// the mods run in the sandbox.
-	watch := host || c.Bool("watch")
+	watch := c.Bool("watch")
 	var box atomic.Pointer[sandbox.Sandbox]
 	if port := c.Uint("preview-port"); port != 0 {
 		servePreview(c.Context, out, int(port), opened.Output(), watch, func(ctx context.Context, in *modcli.Input) string {
@@ -75,11 +73,7 @@ func runDev(c *cli.Context, out *printer, command string, host bool) error {
 	}
 
 	// Keep every player's interface from the first event, for guests.
-	var feed *hostFeed
-	if host {
-		feed = newHostFeed()
-		out.tap(feed.observe)
-	}
+	feed := observeHosting(c, out)
 
 	// Build now and, with --watch, after each save. The first good
 	// build starts the server and each later one reloads the mod; a
@@ -148,12 +142,8 @@ func runDev(c *cli.Context, out *printer, command string, host bool) error {
 		}
 	}
 	defer running.Stop()
-	if host {
-		var lobby *peernet.LobbyRequest
-		if !c.Bool("no-lobby") {
-			lobby = &peernet.LobbyRequest{ModName: opened.Manifest.GetName(), Version: opened.Manifest.GetVersion()}
-		}
-		go hostSession(c, out, running, feed, lobby, []string{opened.Output()})
+	if feed != nil {
+		go hostSession(c, out, running, feed, []string{opened.Output()})
 	}
 	return waitSession(c, out, running)
 }

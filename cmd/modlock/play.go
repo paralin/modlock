@@ -44,14 +44,30 @@ var interfaceFlags = []cli.Flag{
 	},
 }
 
-// playCommand runs built mods in a local server.
+// playCommand runs built mods locally, optionally watching a project or
+// serving the session to friends.
 func playCommand(out *printer) *cli.Command {
 	return &cli.Command{
-		Name:      "play",
-		Usage:     "run built mods or mod projects in a local server and join it, or in the sandbox without the game",
-		ArgsUsage: "[MOD...]",
-		Flags:     append(slices.Clone(sessionFlags), releaseFlag),
+		Name:        "play",
+		Usage:       "play mods locally or let friends join this PC's server",
+		Description: "Play built mods or projects, building projects with missing output. Without the game, use the sandbox. --watch builds and watches one project.\n\nExamples:\n  modlock play\n  modlock play --lobby\n  modlock play --lobby --watch\n  modlock play --host",
+		ArgsUsage:   "[MOD...]",
+		Flags: append(slices.Clone(sessionFlags),
+			releaseFlag,
+			&cli.BoolFlag{Name: "watch", Usage: "build one mod project and reload it on each save"},
+			&cli.BoolFlag{Name: "host", Usage: "let friends join this PC's server with a join code"},
+			&cli.BoolFlag{Name: "lobby", Usage: "let friends join this PC's server through a Hyperline lobby"},
+			&cli.UintFlag{Name: "preview-port", Value: previewPort, Usage: "the watched project's browser preview port; 0 turns it off"},
+		),
 		Action: func(c *cli.Context) error {
+			// Watching uses the project builder and keeps hosting independent.
+			if c.Bool("watch") {
+				if c.Args().Len() > 1 {
+					return errors.New("--watch takes one mod project; pass one directory")
+				}
+				return runDev(c, out, "play")
+			}
+
 			// Take each mod as a built mod or a project's build, building a
 			// project that has none yet, or every project with --release.
 			paths := c.Args().Slice()
@@ -83,6 +99,9 @@ func playCommand(out *printer) *cli.Command {
 				mods = append(mods, dir)
 			}
 
+			// Capture guest interfaces before starting the server.
+			feed := observeHosting(c, out)
+
 			// Run the session until the server stops.
 			cache, err := os.UserCacheDir()
 			if err != nil {
@@ -93,6 +112,9 @@ func playCommand(out *printer) *cli.Command {
 				return err
 			}
 			defer running.Stop()
+			if feed != nil {
+				go hostSession(c, out, running, feed, mods)
+			}
 			return waitSession(c, out, running)
 		},
 	}
@@ -217,6 +239,7 @@ func startServer(c *cli.Context, out *printer, events func(*control.HostEvent), 
 // readRenderer returns the built renderer the game draws the mods'
 // interfaces with.
 func readRenderer(ctx context.Context) (*session.Renderer, error) {
+	// Read the renderer and layout from the installed library.
 	library, err := js.Library(ctx)
 	if err != nil {
 		return nil, err

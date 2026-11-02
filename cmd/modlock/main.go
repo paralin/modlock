@@ -49,7 +49,6 @@ func main() {
 			newCommand(out),
 			buildCommand(out),
 			devCommand(out),
-			hostCommand(out),
 			joinCommand(out),
 			lfsCommand(out),
 			playCommand(out),

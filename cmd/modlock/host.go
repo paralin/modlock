@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"net/url"
-	"slices"
 	"strconv"
 	"sync"
 	"testing/fstest"
@@ -12,6 +11,7 @@ import (
 	"github.com/aperturerobotics/cli"
 	modcli "github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/peernet"
+	"github.com/paralin/modlock/project"
 	modpublish "github.com/paralin/modlock/publish"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/session"
@@ -20,44 +20,40 @@ import (
 	"github.com/s4wave/spacewave/net/peer"
 )
 
-// hostCommand runs a mod like modlock dev --watch and serves its server to
-// guests on other PCs through this PC's peer.
-func hostCommand(out *printer) *cli.Command {
-	return &cli.Command{
-		Name:      "host",
-		Usage:     "run the mod like dev --watch and let players on other PCs join with modlock join",
-		ArgsUsage: "[DIRECTORY]",
-		Flags: append(
-			slices.Clone(sessionFlags),
-			&cli.UintFlag{
-				Name:  "preview-port",
-				Value: previewPort,
-				Usage: "the loopback port of the page that draws the mod's interface; 0 turns it off",
-			},
-			&cli.BoolFlag{
-				Name:  "no-lobby",
-				Usage: "host by join code alone, without a lobby on hyperline.gg",
-			},
-		),
-		Action: func(c *cli.Context) error {
-			out.brief = true
-			return runDev(c, out, "host", true)
-		},
+// observeHosting captures guest interfaces before a shared session starts.
+// Local sessions leave the event stream untouched.
+func observeHosting(c *cli.Context, out *printer) *hostFeed {
+	if !c.Bool("host") && !c.Bool("lobby") {
+		return nil
 	}
+	feed := newHostFeed()
+	out.tap(feed.observe)
+	return feed
 }
 
 // hostSession serves running to guests until the command ends, and sends the
 // daemon each player's interface and chat from feed, and the content addons
-// of the mods built at mods, which guests mount. With lobby set it puts
-// the session on hyperline.gg as a dev lobby and prints its link, falling back
-// to the join code when no lobby opens; with lobby nil it prints the join code.
+// of the mods built at mods, which guests mount. With --lobby it asks for a
+// Hyperline lobby and prints its link, falling back to the join code when
+// the lobby cannot open; --host alone prints the join code.
 // The server itself reports each player who joins or leaves. Hosting is
 // optional: when it cannot start, the session keeps running for this PC alone.
-func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, lobby *peernet.LobbyRequest, mods []string) {
+func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, mods []string) {
 	// Only a game server can take guests.
 	if _, sandboxed := running.(*sandbox.Sandbox); sandboxed {
 		out.mark("!", yellow, "guests join only a game server, not the sandbox")
 		return
+	}
+
+	// Use the first mod's metadata for the lobby, as play selects its map.
+	var lobby *peernet.LobbyRequest
+	if c.Bool("lobby") {
+		manifest, err := project.ReadManifest(mods[0])
+		if err != nil {
+			out.mark("!", yellow, "hosting is off: "+err.Error())
+			return
+		}
+		lobby = &peernet.LobbyRequest{ModName: manifest.GetName(), Version: manifest.GetVersion()}
 	}
 
 	// Ask the daemon to host the server's port.
@@ -113,6 +109,7 @@ type hostOutput struct {
 
 // show prints what event changed, or with --json reports where hosting stands.
 func (o *hostOutput) show(event *peernet.HostEvent) {
+	// Keep machine output on the protobuf event stream.
 	if o.out.json {
 		o.report(event)
 		return
@@ -279,7 +276,7 @@ func (f *hostFeed) stop() {
 func joinCommand(out *printer) *cli.Command {
 	return &cli.Command{
 		Name:      "join",
-		Usage:     "join a session another PC hosts with modlock host, by its join code or lobby link, and launch Deadlock into it",
+		Usage:     "join a session another PC hosts with modlock play --host or --lobby, by its join code or lobby link, and launch Deadlock into it",
 		ArgsUsage: "CODE|LINK",
 		Flags: append([]cli.Flag{
 			&cli.BoolFlag{Name: "no-game", Usage: "only serve the session; join it yourself with the console line"},
@@ -289,7 +286,7 @@ func joinCommand(out *printer) *cli.Command {
 			// Read the code, or the lobby link that names it.
 			arg := c.Args().First()
 			if arg == "" {
-				return errors.New("pass the join code or lobby link modlock host printed")
+				return errors.New("pass the join code or lobby link modlock play printed")
 			}
 			out.brief = true
 			out.header("join", arg)
@@ -356,7 +353,7 @@ func joinCommand(out *printer) *cli.Command {
 	}
 }
 
-// joinCode returns the join code arg names: a code modlock host printed, or
+// joinCode returns the join code arg names: a code modlock play printed, or
 // the link of a dev lobby at origin, whose host session the service names to
 // a member. The saved sign-in goes only to origin.
 func joinCode(ctx context.Context, arg, origin string) (string, error) {
@@ -410,6 +407,7 @@ func launchGuest(c *cli.Context, out *printer, address string) {
 // With the interfaces off it mounts only the content. A game already running
 // loads neither until it restarts.
 func mountGuest(c *cli.Context, out *printer, steam *session.Steam, mirror *session.Mirror, content fstest.MapFS) func() {
+	// Find the game before mounting any guest content.
 	gameDir, err := steam.Deadlock()
 	if err != nil {
 		out.mark("!", yellow, "mod content and interfaces are off: "+err.Error())
