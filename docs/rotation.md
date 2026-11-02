@@ -137,8 +137,9 @@ show(
 A player waiting for their turn can keep a hero in the world rather than
 leaving it: seated in the stands, on a hero the fight does not use, watching
 the ring. `holdBystander(entity)` keeps the hero out of play: it cannot
-move, shoot, cast or zoom, and nothing can hurt it or target it with an
-ability, so it stands beside the fight without touching it.
+move, shoot, cast or zoom. Both teams' abilities cannot target it, bullets and
+melee pass over it, and displacement cannot pull it out of its seat, so it
+stands beside the fight without touching it.
 `holdBystander(entity, false)` gives it back before the player fights.
 
 Teleport the hero to its seat facing the ring, then pin the camera on the
