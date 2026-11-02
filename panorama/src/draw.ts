@@ -77,8 +77,10 @@ export interface Panel {
   value: number
   /** actuallayoutwidth is the panel's width in layout units. */
   readonly actuallayoutwidth?: number
+  readonly actuallayoutheight?: number
   /** actualuiscale_x converts horizontal layout units to window pixels. */
   readonly actualuiscale_x?: number
+  readonly actualuiscale_y?: number
   /** GetPositionWithinWindow returns the panel's origin in window pixels. */
   GetPositionWithinWindow?(): { x: number; y: number }
   /** checked reports whether a toggle button is checked. */
@@ -86,12 +88,15 @@ export interface Panel {
   visible: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
+  GetParent?(): Panel | null
   GetChild(index: number): Panel | null
   FindChildTraverse(id: string): Panel | null
   MoveChildBefore(child: Panel, before: Panel): void
   MoveChildAfter(child: Panel, after: Panel): void
   SetImage(path: string): void
   SetPanelEvent(event: string, handler: () => void): void
+  SetAcceptsFocus?(accepts: boolean): void
+  SetFocus?(): void
   SetAttributeString(name: string, value: string): void
   AddClass(name: string): void
   RemoveClass(name: string): void
@@ -434,6 +439,9 @@ export class Drawing {
 
   /** routes holds each mod's routes, the value of each by name. */
   private readonly routes = new Map<string, Map<string, string>>()
+  private modal:
+    | { mod: string; root: Panel; cancel: string; pending: boolean }
+    | undefined
 
   constructor(
     private readonly panorama: Panorama,
@@ -441,7 +449,14 @@ export class Drawing {
     private readonly press: Press,
     private readonly layouts?: Layouts,
     private readonly change?: Change,
-  ) {}
+  ) {
+    panorama.RegisterEventHandler?.('ScrollUp', parent, () =>
+      this.pointedWheel(1),
+    )
+    panorama.RegisterEventHandler?.('ScrollDown', parent, () =>
+      this.pointedWheel(-1),
+    )
+  }
 
   /** writing is true while the drawing writes an input's value. */
   private writing = false
@@ -473,6 +488,7 @@ export class Drawing {
     for (const [mod, tree] of trees) {
       this.drawTree(mod, tree)
     }
+    this.focusModal(trees)
 
     // Tell the layouts to read again, and let the host bind its keys again
     // once layouts are gone.
@@ -484,6 +500,103 @@ export class Drawing {
       this.unloaded = false
       this.layouts?.unloaded()
     }
+  }
+
+  /** focusModal gives only the top visible modal the native cancel action. */
+  private focusModal(trees: Map<string, Tree>): void {
+    let next:
+      | { mod: string; root: Panel; cancel: string; pending: boolean }
+      | undefined
+    for (const [mod, tree] of trees) {
+      const route = this.routes.get(mod)?.get('modlock.modals')
+      if (!route) continue
+      let entries: unknown
+      try {
+        entries = JSON.parse(route)
+      } catch {
+        continue
+      }
+      if (!Array.isArray(entries)) continue
+      const nodes = new Map(
+        (tree.nodes ?? []).map((node) => [node.id ?? '', node]),
+      )
+      for (const value of entries as unknown[]) {
+        if (typeof value !== 'object' || value === null) continue
+        const entry = value as Record<string, unknown>
+        if (
+          !entry ||
+          typeof entry.root !== 'string' ||
+          typeof entry.cancel !== 'string'
+        )
+          continue
+        const root = this.mods.get(mod)?.get(entry.root)?.panel
+        const action = this.mods.get(mod)?.get(entry.cancel)
+        if (
+          !root?.visible ||
+          !root.IsValid() ||
+          !action ||
+          action.disabled ||
+          nodes.get(entry.cancel)?.kind !== Kind.BUTTON ||
+          !nodes.get(entry.root)?.children?.includes(entry.cancel)
+        )
+          continue
+        next = { mod, root, cancel: entry.cancel, pending: false }
+      }
+    }
+    if (next?.root === this.modal?.root && next?.cancel === this.modal?.cancel)
+      return
+    this.modal?.root.SetAcceptsFocus?.(false)
+    this.modal = next
+    if (!next) return
+    const modal = next
+    modal.root.SetAcceptsFocus?.(true)
+    modal.root.SetPanelEvent('oncancel', () => {
+      if (this.modal !== modal) return false
+      if (!modal.pending) {
+        modal.pending = true
+        this.press(modal.mod, modal.cancel)
+        this.panorama.Schedule?.(0.25, () => {
+          if (this.modal === modal) modal.pending = false
+        })
+      }
+      return true
+    })
+    modal.root.SetFocus?.()
+  }
+
+  /** pointedWheel handles native scroll routed through the UI root. */
+  private pointedWheel(delta: number): boolean {
+    const mouse = this.panorama.MousePosition?.()
+    if (!mouse) return false
+    for (const [mod, nodes] of [...this.mods].reverse()) {
+      if (this.modal && mod !== this.modal.mod) continue
+      for (const [id, drawn] of [...nodes].reverse()) {
+        if (!drawn.slider?.wheel || drawn.disabled || !drawn.panel.visible)
+          continue
+        const panel = drawn.panel
+        if (this.modal) {
+          let ancestor: Panel | null = panel
+          while (ancestor && ancestor !== this.modal.root)
+            ancestor = ancestor.GetParent?.() ?? null
+          if (!ancestor) continue
+        }
+        const origin = panel.GetPositionWithinWindow?.()
+        const width =
+          (panel.actuallayoutwidth ?? 0) * (panel.actualuiscale_x ?? 1)
+        const height =
+          (panel.actuallayoutheight ?? 0) * (panel.actualuiscale_y ?? 1)
+        if (
+          origin &&
+          mouse.x >= origin.x &&
+          mouse.x <= origin.x + width &&
+          mouse.y >= origin.y &&
+          mouse.y <= origin.y + height
+        ) {
+          return this.wheel(mod, id, panel, delta)
+        }
+      }
+    }
+    return false
   }
 
   /** drawTree draws one mod's nodes from its root down, in its region. */
@@ -997,6 +1110,8 @@ export class Drawing {
       given = ''
       if (kind === Kind.BUTTON) {
         panel.SetPanelEvent('onactivate', () => this.activate(mod, id))
+        if (node.classes?.includes('modlock-modal-action'))
+          panel.SetAcceptsFocus?.(false)
       }
       if (control) {
         this.listen(mod, id, panel, node)

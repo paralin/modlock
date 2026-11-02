@@ -97,6 +97,12 @@ export class DomPanel implements Panel {
       this.handlers.get('onfocus')?.(),
     )
     this.element.addEventListener('blur', () => this.handlers.get('onblur')?.())
+    this.element.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.handlers.get('oncancel')?.()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+    })
     this.element.addEventListener(
       'wheel',
       (event) => {
@@ -120,8 +126,18 @@ export class DomPanel implements Panel {
     return this.element.offsetWidth
   }
 
+  get actuallayoutheight(): number {
+    return this.element.offsetHeight
+  }
+
   get actualuiscale_x(): number {
     return this.element.getBoundingClientRect().width / this.element.offsetWidth
+  }
+
+  get actualuiscale_y(): number {
+    return (
+      this.element.getBoundingClientRect().height / this.element.offsetHeight
+    )
   }
 
   GetPositionWithinWindow(): { x: number; y: number } {

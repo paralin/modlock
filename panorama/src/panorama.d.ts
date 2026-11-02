@@ -9,7 +9,9 @@ interface Panel {
   text: string
   value: number
   readonly actuallayoutwidth: number
+  readonly actuallayoutheight: number
   readonly actualuiscale_x: number
+  readonly actualuiscale_y: number
   GetPositionWithinWindow(): { x: number; y: number }
   checked: boolean
   visible: boolean
@@ -23,6 +25,8 @@ interface Panel {
   SetImage(path: string): void
   SetURL(url: string): void
   SetPanelEvent(event: string, handler: () => void): void
+  SetAcceptsFocus(accepts: boolean): void
+  SetFocus(): boolean
   SetAttributeString(name: string, value: string): void
   GetAttributeString(name: string, fallback: string): string
   BLoadLayout(

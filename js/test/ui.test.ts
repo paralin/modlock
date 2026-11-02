@@ -17,7 +17,7 @@ import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
 import { Action, hideHud, jsx, sheet, show } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
-import { change } from '../src/ui.js'
+import { change, press } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
 // records it.
@@ -26,6 +26,35 @@ bind((encoded) => {
   const call = Call.fromBinary(encoded)
   if (call.method === 'Ui') sent.push(UiRequest.fromBinary(call.request))
   return Reply.toBinary({})
+})
+
+test('modal cancel uses a scoped button and expires with the screen', () => {
+  const player = new Player(25)
+  let closed = 0
+  show(
+    player,
+    jsx('panel', {
+      onCancel: () => closed++,
+      children: jsx('label', { children: 'Review' }),
+    }),
+  )
+  const nodes = sent.at(-1)!.change!.set!
+  const modal = (
+    JSON.parse(
+      nodes.find((node) => node.route === 'modlock.modals')!.data!,
+    ) as { root: string; cancel: string }[]
+  )[0]!
+  expect(nodes.find((node) => node.id === modal.cancel)!.kind).toBe(Kind.BUTTON)
+  expect(
+    nodes
+      .find((node) => node.id === modal.root)!
+      .children!.includes(modal.cancel),
+  ).toBe(true)
+  press(player, modal.cancel)
+  expect(closed).toBe(1)
+  show(player, undefined)
+  press(player, modal.cancel)
+  expect(closed).toBe(1)
 })
 
 /** keys is a panel of one label per key, the latest of them lit. */

@@ -1202,6 +1202,14 @@ disabled input or one the player no longer sees. The mod's value stays the
 truth: the player's edit shows until the mod draws a new value, so a mod that
 keeps the value it is handed keeps the input in step.
 
+`<panel onCancel={(player) => close(player)}>` marks a modal. While it is
+visible, the top modal takes keyboard focus and Escape calls its handler.
+Stop drawing it to release focus; subsequent Escape presses keep the game's
+normal menu behavior. The action uses the same player-scoped validation as
+a button press. Sliders with `onWheel(player, { delta, fraction })` zoom or
+scroll without changing their value: `delta` is 1 upward or -1 downward,
+and `fraction` is the pointer's horizontal position from 0 to 1.
+
 The HUD kit draws in the stock HUD's look from shared tokens: `<Text role>`
 sets a type role, `<Plate>` and `<Pill>` hold text over a bright sky, `<Pips>`
 counts as the round counter does, `<Tag>` labels a status, `<Banner>`

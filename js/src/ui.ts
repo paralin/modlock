@@ -338,6 +338,7 @@ export interface Props {
   readonly sound?: string
   readonly disabled?: boolean
   readonly onPress?: (player: Player) => void
+  readonly onCancel?: (player: Player) => void
   readonly enter?: Style
   readonly exit?: Style
   readonly cycle?: Cycle
@@ -395,6 +396,8 @@ export interface Cycle {
 /** PanelProps lay out a panel, which groups its children. */
 export interface PanelProps extends ElementProps {
   children?: Child
+  /** onCancel closes this modal on Escape before the game's menu handles it. */
+  onCancel?: (player: Player) => void
 }
 
 /**
@@ -903,6 +906,16 @@ function render(
     sheets: [...sheets],
   })
 
+  // Modal actions reuse checked button presses; the route carries only their local node identities.
+  if (layout.modals.length) {
+    layout.add({
+      id: 'route:modlock.modals',
+      kind: Kind.ROUTE,
+      route: 'modlock.modals',
+      data: JSON.stringify(layout.modals),
+    })
+  }
+
   // A route's id holds a colon, which no element's id does.
   for (const [name, data] of routes) {
     layout.add({ id: `route:${name}`, kind: Kind.ROUTE, route: name, data })
@@ -919,6 +932,7 @@ function render(
  */
 class Layout {
   readonly screen: Screen
+  readonly modals: { root: string; cancel: string }[] = []
   private readonly previous: Screen | undefined
 
   /** The layout continues previous's id counter and keeps its ids. */
@@ -1043,6 +1057,19 @@ function place(layout: Layout, child: Child, at: string): string[] {
       break
     default:
       node.kind = Kind.PANEL
+      if (props.onCancel) {
+        const cancel = layout.id(`${at}!cancel`)
+        layout.screen.presses.set(cancel, { handler: props.onCancel })
+        layout.add({
+          id: cancel,
+          kind: Kind.BUTTON,
+          classes: ['modlock-modal-action'],
+          style: wireStyle({ width: 0, height: 0, opacity: 0 }),
+        })
+        layout.modals.push({ root: node.id!, cancel })
+        node.children = [...place(layout, props.children, `${at}/`), cancel]
+        break
+      }
       node.children = place(layout, props.children, `${at}/`)
   }
   layout.add(node)

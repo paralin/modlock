@@ -21,7 +21,18 @@ class FakePanel {
   text = ''
   value = 0
   actuallayoutwidth = 200
+  actuallayoutheight = 22
   actualuiscale_x = 2
+  actualuiscale_y = 2
+  acceptsFocus = false
+  focusCount = 0
+  SetAcceptsFocus(accepts: boolean) {
+    this.acceptsFocus = accepts
+  }
+  SetFocus() {
+    this.focusCount++
+    return true
+  }
   GetPositionWithinWindow() {
     return { x: 100, y: 0 }
   }
@@ -32,7 +43,7 @@ class FakePanel {
   layout = ''
   valid = true
   style: Record<string, string | null> = {}
-  events = new Map<string, () => void>()
+  events = new Map<string, () => boolean | void>()
   attributes = new Map<string, string>()
   classes: string[] = []
   classChanges: string[] = []
@@ -73,7 +84,7 @@ class FakePanel {
   SetURL(url: string) {
     this.url = url
   }
-  SetPanelEvent(event: string, handler: () => void) {
+  SetPanelEvent(event: string, handler: () => boolean | void) {
     this.events.set(event, handler)
   }
   SetAttributeString(name: string, value: string) {
@@ -730,8 +741,13 @@ test('sliders map native fractions to ranges and send scoped wheel anchors', () 
     value: { delta: 1, fraction: 0.25 },
   })
   expect(panel.value).toBe(before)
+  expect(handlers.get(root)!.get('ScrollDown')!()).toBe(true)
+  expect(changes[changes.length - 1]).toEqual({
+    case: 'wheel',
+    value: { delta: -1, fraction: 0.25 },
+  })
   expect(inputCommand('arena', 'time', changes[changes.length - 1]!)).toBe(
-    'modlockinput arena time wheel:1:0.25',
+    'modlockinput arena time wheel:-1:0.25',
   )
 
   // Leave a seek awaiting the mod's echo.
@@ -770,6 +786,40 @@ test('sliders map native fractions to ranges and send scoped wheel anchors', () 
   expect(handlers.get(panel)!.get('ScrollDown')!()).toBe(false)
   drawing.draw(screen({ id: '' }))
   expect(handlers.get(panel)!.get('ScrollUp')!()).toBe(false)
+  expect(handlers.get(root)!.get('ScrollUp')!()).toBe(false)
+})
+
+test('Escape closes only the current modal and leaves the next press to the game', () => {
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const pressed: string[] = []
+  const drawing = new Drawing($, root, (_mod, node) => pressed.push(node))
+  const modal = () =>
+    screen(
+      { id: '', children: ['review'] },
+      { id: 'review', children: ['close'] },
+      { id: 'close', kind: 'KIND_BUTTON', classes: ['modlock-modal-action'] },
+      {
+        id: 'modal-route',
+        kind: 'KIND_ROUTE',
+        route: 'modlock.modals',
+        data: JSON.stringify([{ root: 'review', cancel: 'close' }]),
+      },
+    )
+  drawing.draw(modal())
+  const review = root.children[0]!.children[0]!
+  const cancel = review.events.get('oncancel')!
+  expect(review.acceptsFocus).toBe(true)
+  expect(review.focusCount).toBe(1)
+  drawing.draw(modal())
+  expect(review.focusCount).toBe(1)
+  expect(cancel()).toBe(true)
+  expect(cancel()).toBe(true)
+  expect(pressed).toEqual(['close'])
+  drawing.draw(screen({ id: '' }))
+  expect(cancel()).toBe(false)
+  expect(review.acceptsFocus).toBe(false)
+  drawing.draw(modal())
+  expect(root.children[0]!.children[0]!.focusCount).toBe(1)
 })
 
 test('eases panels in, cycles them and eases them out', () => {
