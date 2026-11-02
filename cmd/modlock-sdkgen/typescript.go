@@ -370,12 +370,29 @@ func (w *tsWriter) converts(m *message) bool {
 
 // writeClass writes one class with its calls as methods.
 func (w *tsWriter) writeClass(c *class) error {
+	// An interned class keeps its objects in a table by number.
+	table := lowerCamel(c.name) + "Objects"
+	if c.interned {
+		writeDoc(&w.out, "", fmt.Sprintf("%s holds the %s of each %s that %s.of made.", table, c.name, c.key, c.name))
+		fmt.Fprintf(&w.out, "const %s = new Map<number, %s>()\n\n", table, c.name)
+	}
+
 	// Write the entity identity, followed by the methods that use it.
 	writeDoc(&w.out, "", c.doc)
 	fmt.Fprintf(&w.out, "export class %s {\n", c.name)
 	writeDoc(&w.out, "  ", c.keyDoc)
 	fmt.Fprintf(&w.out, "  readonly %s: number\n\n", c.key)
 	fmt.Fprintf(&w.out, "  constructor(%s: number) {\n    this.%s = %s\n  }\n", c.key, c.key, c.key)
+	if c.interned {
+		w.out.WriteString("\n")
+		writeDoc(&w.out, "  ", fmt.Sprintf("of returns the %s for %s, the same object each time until release\nforgets it, so === tells whether two values are the same %s.", c.name, c.key, lowerCamel(c.noun)))
+		fmt.Fprintf(&w.out, "  static of(%s: number): %s {\n", c.key, c.name)
+		fmt.Fprintf(&w.out, "    let object = %s.get(%s)\n", table, c.key)
+		fmt.Fprintf(&w.out, "    if (object === undefined) {\n      object = new %s(%s)\n      %s.set(%s, object)\n    }\n", c.name, c.key, table, c.key)
+		w.out.WriteString("    return object\n  }\n\n")
+		writeDoc(&w.out, "  ", fmt.Sprintf("release forgets the %s for %s, so the next %s.of makes a new one.", c.name, c.key, c.name))
+		fmt.Fprintf(&w.out, "  static release(%s: number): void {\n    %s.delete(%s)\n  }\n", c.key, table, c.key)
+	}
 	for _, call := range w.calls {
 		if call.class == c {
 			w.out.WriteString("\n")
@@ -621,7 +638,10 @@ func zero(f *field) string {
 // value of f.
 func (w *tsWriter) fromValue(f *field, value string) string {
 	// Restore class identities and enum names before handling message values.
-	if c := classOf(f); c != nil {
+	switch c := classOf(f); {
+	case c != nil && c.interned:
+		return fmt.Sprintf("%s.of(%s)", c.name, value)
+	case c != nil:
 		return fmt.Sprintf("new %s(%s)", c.name, value)
 	}
 	if f.enum != nil {

@@ -15,7 +15,13 @@ import {
   ServerCommandRequest,
 } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
-import { Cast, type Connection, onFrame, type Want } from '../src/index.js'
+import {
+  Cast,
+  type Connection,
+  onFrame,
+  players,
+  type Want,
+} from '../src/index.js'
 
 /** Hero is the stand-in game's hero for one slot. */
 interface Hero {
@@ -141,6 +147,13 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   const [member] = cast.members()
   expect(cast.pawn(member!.player)?.hero).toBe(7)
 
+  // Each report hands the same connection the same Player, so === tells two
+  // values for one player apart from values for another.
+  const adaPlayer = member!.player
+  report([{ ...ada, ready: true }, bot])
+  expect(players()[0]!.player).toBe(adaPlayer)
+  expect(players()[1]!.player).not.toBe(adaPlayer)
+
   // Her want changes to come back 3 seconds after a fall, read on the next
   // frame. A fallen hero is asked back once its delay passes, once a second.
   member!.want = { hero: 7, team: 3, respawn: 3 }
@@ -171,6 +184,8 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   report([{ ...ada, ready: true, generation: 2 }])
   frame(30)
   expect(events).toEqual(['leave Ada', 'join Ada'])
+  expect(cast.members()[0]!.player).not.toBe(adaPlayer)
+  expect(cast.members()[0]!.player).toBe(players()[0]!.player)
   report([])
   frame(31)
   expect(events).toEqual(['leave Ada', 'join Ada', 'leave Ada'])

@@ -332,19 +332,23 @@ type class struct {
 	goType string
 	// noun is the word a method name drops, such as Object in MoveObject.
 	noun string
+	// interned keeps one object for each number in languages that compare
+	// objects by identity, so == tells whether two values are the same thing.
+	interned bool
 }
 
 // classes are the classes of the mod libraries.
 var classes = []*class{
 	{
-		name:   "Player",
-		doc:    "Player addresses one connected player by their server slot.",
-		field:  "player",
-		key:    "slot",
-		goKey:  "Slot",
-		goType: "int32",
-		keyDoc: "slot identifies the player on the server.",
-		noun:   "Player",
+		name:     "Player",
+		doc:      "Player addresses one connected player by their server slot.",
+		field:    "player",
+		key:      "slot",
+		goKey:    "Slot",
+		goType:   "int32",
+		keyDoc:   "slot identifies the player on the server.",
+		noun:     "Player",
+		interned: true,
 	},
 	{
 		name:   "WorldObject",
