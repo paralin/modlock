@@ -11,6 +11,7 @@ import { holdModifierState } from './host.gen.js'
 export const bystanderStates: readonly string[] = [
   'MODIFIER_STATE_IMMOBILIZED',
   'MODIFIER_STATE_DISARMED',
+  'MODIFIER_STATE_MELEE_DISABLED',
   'MODIFIER_STATE_SILENCED',
   'MODIFIER_STATE_INVULNERABLE',
   'MODIFIER_STATE_TECH_UNTARGETABLE_BY_ENEMIES',

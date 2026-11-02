@@ -12,6 +12,7 @@
 // reports it. Only a pawn both checks disown is a stray.
 
 import { damage, findEntities, log, readField, writeField } from './host.gen.js'
+import { holdBystander } from './bystander.js'
 import { players } from './players.js'
 
 /** strayGraceSeconds is how long a hero pawn belongs to no player before it is laid down. */
@@ -74,6 +75,7 @@ export class Strays {
  * pawn whose controller is gone, or names another hero, is not.
  */
 function ownHero(entity: number): boolean {
+  // A controller must still hold this hero on behalf of a connection.
   const controller = readField(
     entity,
     'CBasePlayerPawn',
@@ -81,6 +83,17 @@ function ownHero(entity: number): boolean {
     'handle',
   )
   if (typeof controller !== 'number') {
+    return false
+  }
+
+  // Disconnecting and disconnected controllers may keep naming old heroes.
+  const connected = readField(
+    controller,
+    'CBasePlayerController',
+    'm_iConnected',
+    'int32',
+  )
+  if (connected === 3 || connected === 4) {
     return false
   }
   const hero = readField(
@@ -99,6 +112,7 @@ function ownHero(entity: number): boolean {
  */
 function layDown(entity: number): void {
   // Kill it if it stands, then hold its respawn past any session.
+  holdBystander(entity, false)
   const health = readField(entity, 'CBaseEntity', 'm_iHealth', 'int32')
   if (typeof health === 'number' && health > 0) {
     damage({ victim: entity, amount: strayBlow })
