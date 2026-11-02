@@ -835,10 +835,11 @@ test("hides the game's HUD parts while a root lists them", () => {
   const clip = add(crosshair, 'ammo_panel')
   const lowAmmo = add(game, 'low_ammo_label')
 
-  // Lay out the souls, the minimap and the abilities.
+  // Lay out the souls, the minimap, the abilities and the stats.
   const souls = add(game, 'gold_and_ap_container')
   const minimap = add(game, 'minimap_persp')
   const abilities = add(game, 'AbilitiesContainer')
+  const stats = add(game, 'hudPlayerStats')
 
   // Sweep through the fake $.Schedule.
   const hud = new Hud(game, (_, callback) => $.Schedule(0, callback))
@@ -894,16 +895,21 @@ test("hides the game's HUD parts while a root lists them", () => {
   expect(scores.style.visibility).toBeNull()
   expect(chat.style.visibility).toBeUndefined()
 
-  // The souls, minimap and abilities collapse whole.
+  // The souls, minimap, abilities and stats collapse whole.
   hud.draw(
     hiddenParts(
       screen({
         id: '',
-        hideHud: ['HUD_PART_SOULS', 'HUD_PART_MINIMAP', 'HUD_PART_ABILITIES'],
+        hideHud: [
+          'HUD_PART_SOULS',
+          'HUD_PART_MINIMAP',
+          'HUD_PART_ABILITIES',
+          'HUD_PART_STATS',
+        ],
       }),
     ),
   )
-  for (const panel of [souls, minimap, abilities])
+  for (const panel of [souls, minimap, abilities, stats])
     expect(panel.style.visibility).toBe('collapse')
   expect(health.style.visibility).toBeUndefined()
 

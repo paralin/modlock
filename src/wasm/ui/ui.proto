@@ -239,6 +239,11 @@ enum HudPart {
   // HUD_PART_STATUS is the game's own mark in the top-left corner, for a
   // frame that names the session there instead.
   HUD_PART_STATUS = 8;
+
+  // HUD_PART_STATS is the block of the player's weapon, spirit and vitality
+  // stats at the lower left. The souls, items and status icons beside it
+  // stay.
+  HUD_PART_STATS = 9;
 }
 
 // Kind selects the panel a node draws.

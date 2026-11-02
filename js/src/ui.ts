@@ -272,7 +272,9 @@ export interface Style {
  * and clock across the top, 'ammo' the clip ring, count and ammo warnings at
  * the crosshair, 'souls' the souls and level readout, 'minimap' the minimap
  * with its hints and district name, 'abilities' the ability and active item
- * bar. Whatever a part does not name stays, such as the crosshair and chat.
+ * bar, 'status' the game's mark in the top-left corner, 'stats' the weapon,
+ * spirit and vitality stats at the lower left. Whatever a part does not name
+ * stays, such as the crosshair and chat.
  */
 export type HudPart =
   | 'levelUp'
@@ -283,6 +285,7 @@ export type HudPart =
   | 'minimap'
   | 'abilities'
   | 'status'
+  | 'stats'
 
 /** Child is anything an element may hold. Text becomes a label. */
 export type Child =
@@ -1210,6 +1213,7 @@ const hudParts = {
   minimap: WireHudPart.MINIMAP,
   abilities: WireHudPart.ABILITIES,
   status: WireHudPart.STATUS,
+  stats: WireHudPart.STATS,
 } as const
 
 /** faces maps each typeface to its wire value. */
