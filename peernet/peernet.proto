@@ -148,6 +148,8 @@ message HostEvent {
     // lobby is where the dev lobby stands, after join_code and on each
     // change, when start asked for one.
     LobbyState lobby = 4;
+    // setup is a changed applied configuration from the lobby.
+    modlock.host_app.control.ServiceReply setup = 5;
   }
 }
 

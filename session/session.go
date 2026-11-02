@@ -159,6 +159,11 @@ func (s *Session) Reload(ctx context.Context, path string) error {
 	return s.control.Reload(ctx, path)
 }
 
+// SetService installs a lobby's applied configuration before restarting its mod.
+func (s *Session) SetService(ctx context.Context, reply *control.ServiceReply) error {
+	return s.control.SetService(ctx, reply)
+}
+
 // Wait waits for the host to exit and its last events to arrive.
 func (s *Session) Wait() error {
 	// Wait for the host, then close the link and the interfaces it fed.

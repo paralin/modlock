@@ -4,6 +4,8 @@ package modlock.publish;
 
 option go_package = "github.com/paralin/modlock/publish;publish";
 
+import "github.com/paralin/modlock/src/host_app/control/control.proto";
+
 // The messages of hyperline.gg's publishing API, which modlock publish uses by
 // default. Each request and response body is one binary message; the field
 // numbers are the service's. The command line also saves Session.
@@ -113,10 +115,15 @@ message DevLobbyOpen {
 
   // Secret admits a guest's game to the host session.
   uint64 secret = 3;
+
+  // ManifestJson is the built mod.json, parsed by the store as for publication.
+  bytes manifest_json = 4;
 }
 
 // DevLobbyState is the service's answer on the dev lobby socket.
 message DevLobbyState {
+  // Setup is the lobby's applied configuration for the hosted mod.
+  modlock.host_app.control.ServiceReply setup = 4;
   oneof state {
     // Url is the open lobby's page.
     string url = 1;

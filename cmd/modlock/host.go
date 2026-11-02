@@ -84,6 +84,14 @@ func hostSession(c *cli.Context, out *printer, running server, feed *hostFeed, m
 			}
 			return
 		}
+		if setup := event.GetSetup(); setup != nil {
+			session := running.(*session.Session)
+			setup = setup.CloneVT()
+			setup.Path = mods[0]
+			if err := session.SetService(c.Context, setup); err != nil {
+				out.mark("!", yellow, "lobby settings could not be applied: "+err.Error())
+			}
+		}
 		shown.show(event)
 	}
 }
@@ -214,7 +222,7 @@ func newHostFeed() *hostFeed {
 func (f *hostFeed) observe(event *modcli.Event) {
 	// Take only the events that change what a guest sees.
 	host := event.GetHost()
-	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil {
+	if host.GetJoined() == nil && host.GetLeft() == nil && host.GetUi() == nil && host.GetChat() == nil && host.GetStarted() == nil && host.GetServiceApplied() == nil {
 		return
 	}
 

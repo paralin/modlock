@@ -21,6 +21,7 @@ import (
 	"github.com/aperturerobotics/starpc/srpc"
 	"github.com/paralin/modlock/gamelink"
 	"github.com/paralin/modlock/session"
+	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm/ui"
 	"github.com/pkg/errors"
 	"github.com/s4wave/spacewave/net/link"
@@ -199,6 +200,8 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 	// Follow the server's players, interfaces and chat until the caller
 	// stops.
 	screens, chat := session.NewScreens(0), session.NewChat()
+	manifestChanged := make(chan struct{}, 1)
+	results := make(chan *control.ServiceResult, 16)
 	go func() {
 		defer cancel()
 		for {
@@ -207,6 +210,19 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 				return
 			}
 			event := in.GetServer()
+			if result := event.GetServiceApplied(); result != nil {
+				select {
+				case results <- result:
+				case <-ctx.Done():
+					return
+				}
+			}
+			if event.GetStarted().GetReloaded() {
+				select {
+				case manifestChanged <- struct{}{}:
+				default:
+				}
+			}
 			if line := event.GetChat(); line != nil {
 				chat.Add(line)
 			}
@@ -251,8 +267,10 @@ func (s *Service) Host(strm SRPCPeerNet_HostStream) error {
 		}()
 		go func() {
 			defer close(lobbyDone)
-			s.holdLobby(ctx, lobby, code.Session, func(state *LobbyState) {
+			s.holdLobby(ctx, lobby, start.GetStart().GetMods(), manifestChanged, results, code.Session, func(state *LobbyState) {
 				h.events(&HostEvent{Body: &HostEvent_Lobby{Lobby: state}})
+			}, func(setup *control.ServiceReply) {
+				h.events(&HostEvent{Body: &HostEvent_Setup{Setup: setup}})
 			})
 		}()
 	}

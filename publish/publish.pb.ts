@@ -9,6 +9,7 @@ import type {
   BinaryReader,
   Writer,
 } from '@aptre/protobuf-es-lite/binary-encoding'
+import { ServiceReply } from '../src/host_app/control/control.pb.js'
 
 /**
  * ReviewState is a release's review decision.
@@ -476,6 +477,10 @@ export interface DevLobbyOpen {
    * Secret admits a guest's game to the host session.
    */
   secret?: bigint
+  /**
+   * ManifestJson is the built mod.json, parsed by the store as for publication.
+   */
+  manifestJson?: Uint8Array
 }
 
 export const DevLobbyOpen: MessageType<DevLobbyOpen> =
@@ -485,6 +490,7 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
       [1, 'mod_name', 9],
       [2, 'version', 9],
       [3, 'secret', 4],
+      [4, 'manifest_json', 12],
     ],
     {
       decode: (r: BinaryReader, end: number, m: DevLobbyOpen): DevLobbyOpen => {
@@ -500,6 +506,9 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
               break
             case 3:
               m.secret = r.uint64()
+              break
+            case 4:
+              m.manifestJson = r.bytes()
               break
             default:
               r.skip(t)
@@ -520,6 +529,10 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
           const v = m.secret
           if (v) w.uint32(24).uint64(v)
         }
+        {
+          const v = m.manifestJson
+          if (v != null && v.length !== 0) w.uint32(34).bytes(v)
+        }
       },
     },
   )
@@ -530,6 +543,10 @@ export const DevLobbyOpen: MessageType<DevLobbyOpen> =
  * @generated from message modlock.publish.DevLobbyState
  */
 export interface DevLobbyState {
+  /**
+   * Setup is the lobby's applied configuration for the hosted mod.
+   */
+  setup?: ServiceReply
   /**
    * Relay is the TURN servers the host session may link through while its
    * lobby is open, unset when the service has none. The service sends the
@@ -552,6 +569,7 @@ export const DevLobbyState: MessageType<DevLobbyState> =
       [1, 'url', 9, 0, 0, 'state'],
       [2, 'refused', 11, 0, Error.codec, 'state'],
       [3, 'relay', 11, 0, Relay.codec],
+      [4, 'setup', 11, 0, ServiceReply.codec],
     ],
     {
       decode: (
@@ -579,6 +597,9 @@ export const DevLobbyState: MessageType<DevLobbyState> =
             case 3:
               m.relay = Relay.decode(r, r.delimited(), m.relay ?? {})
               break
+            case 4:
+              m.setup = ServiceReply.decode(r, r.delimited(), m.setup ?? {})
+              break
             default:
               r.skip(t)
           }
@@ -598,6 +619,10 @@ export const DevLobbyState: MessageType<DevLobbyState> =
         {
           const v = m.relay
           if (v != null) Relay.writeField(w, 3, v)
+        }
+        {
+          const v = m.setup
+          if (v != null) ServiceReply.writeField(w, 4, v)
         }
       },
     },

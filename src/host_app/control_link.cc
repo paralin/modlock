@@ -11,6 +11,7 @@
 
 #include <array>
 #include <iostream>
+#include <optional>
 #include <utility>
 
 namespace modlock::host_app {
@@ -222,6 +223,43 @@ void ControlLink::RunRequests(WasmHost& mods) {
           event.mutable_failed()->set_error(reloaded.error());
           Push(std::move(event));
         }
+        break;
+      }
+      case control::ControlRequest::kService: {
+        // Install the answer before the mod starts again and reads it.
+        const auto& reply = request.service();
+        const auto key = std::make_tuple(reply.mod(), reply.service(), reply.method());
+        const auto previous = replies_->find(key);
+        const auto old = previous == replies_->end() ? std::optional<std::string>()
+                                                     : std::optional(previous->second);
+        replies_->insert_or_assign(key, reply.payload());
+        mods.Provide(
+            reply.service(),
+            [replies = replies_, service = reply.service()](
+                std::string_view mod, std::string_view method,
+                std::string_view) -> std::expected<std::string, std::string> {
+              const auto found = replies->find({std::string(mod), service, std::string(method)});
+              if (found == replies->end()) {
+                return std::unexpected("This mod has no controller-provided service answer");
+              }
+              return found->second;
+            });
+        auto reloaded = mods.Reload(reply.path());
+        control::HostEvent result;
+        result.mutable_service_applied()->set_id(reply.id());
+        if (!reloaded) {
+          if (old) {
+            replies_->insert_or_assign(key, *old);
+          } else {
+            replies_->erase(key);
+          }
+          result.mutable_service_applied()->set_error(reloaded.error());
+          control::HostEvent event;
+          event.mutable_failed()->set_mod(reply.mod());
+          event.mutable_failed()->set_error(reloaded.error());
+          Push(std::move(event));
+        }
+        Push(std::move(result));
         break;
       }
       case control::ControlRequest::kRoles:

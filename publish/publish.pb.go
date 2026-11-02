@@ -12,6 +12,7 @@ import (
 
 	protobuf_go_lite "github.com/aperturerobotics/protobuf-go-lite"
 	json "github.com/aperturerobotics/protobuf-go-lite/json"
+	control "github.com/paralin/modlock/src/host_app/control"
 )
 
 // ReviewState is a release's review decision.
@@ -304,6 +305,8 @@ type DevLobbyOpen struct {
 	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	// Secret admits a guest's game to the host session.
 	Secret uint64 `protobuf:"varint,3,opt,name=secret,proto3" json:"secret,omitempty"`
+	// ManifestJson is the built mod.json, parsed by the store as for publication.
+	ManifestJson []byte `protobuf:"bytes,4,opt,name=manifest_json,json=manifestJson,proto3" json:"manifestJson,omitempty"`
 }
 
 func (x *DevLobbyOpen) Reset() {
@@ -333,9 +336,18 @@ func (x *DevLobbyOpen) GetSecret() uint64 {
 	return 0
 }
 
+func (x *DevLobbyOpen) GetManifestJson() []byte {
+	if x != nil {
+		return x.ManifestJson
+	}
+	return nil
+}
+
 // DevLobbyState is the service's answer on the dev lobby socket.
 type DevLobbyState struct {
 	unknownFields []byte
+	// Setup is the lobby's applied configuration for the hosted mod.
+	Setup *control.ServiceReply `protobuf:"bytes,4,opt,name=setup,proto3" json:"setup,omitempty"`
 	// Types that are assignable to State:
 	//	*DevLobbyState_Url
 	//	*DevLobbyState_Refused
@@ -351,6 +363,13 @@ func (x *DevLobbyState) Reset() {
 }
 
 func (*DevLobbyState) ProtoMessage() {}
+
+func (x *DevLobbyState) GetSetup() *control.ServiceReply {
+	if x != nil {
+		return x.Setup
+	}
+	return nil
+}
 
 func (m *DevLobbyState) GetState() isDevLobbyState_State {
 	if m != nil {
@@ -631,6 +650,7 @@ func (m *DevLobbyOpen) CloneVT() *DevLobbyOpen {
 	r.ModName = m.ModName
 	r.Version = m.Version
 	r.Secret = m.Secret
+	r.ManifestJson = protobuf_go_lite.CloneBytes(m.ManifestJson)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -646,6 +666,7 @@ func (m *DevLobbyState) CloneVT() *DevLobbyState {
 		return (*DevLobbyState)(nil)
 	}
 	r := new(DevLobbyState)
+	r.Setup = protobuf_go_lite.CloneVTValue(m.Setup)
 	if m.State != nil {
 		r.State = m.State.(interface{ CloneOneofVT() isDevLobbyState_State }).CloneOneofVT()
 	}
@@ -925,6 +946,9 @@ func (this *DevLobbyOpen) EqualVT(that *DevLobbyOpen) bool {
 	if this.Secret != that.Secret {
 		return false
 	}
+	if !protobuf_go_lite.EqualBytes(this.ManifestJson, that.ManifestJson) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -955,6 +979,9 @@ func (this *DevLobbyState) EqualVT(that *DevLobbyState) bool {
 		}
 	}
 	if !protobuf_go_lite.IsEqualVT(this.Relay, that.Relay) {
+		return false
+	}
+	if !protobuf_go_lite.IsEqualVT(this.Setup, that.Setup) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1509,6 +1536,11 @@ func (x *DevLobbyOpen) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("secret")
 		s.WriteUint64(x.Secret)
 	}
+	if len(x.ManifestJson) > 0 || s.HasField("manifestJson") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("manifestJson")
+		s.WriteBytes(x.ManifestJson)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1535,6 +1567,9 @@ func (x *DevLobbyOpen) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "secret":
 			s.AddField("secret")
 			x.Secret = s.ReadUint64()
+		case "manifest_json", "manifestJson":
+			s.AddField("manifest_json")
+			x.ManifestJson = s.ReadBytes()
 		}
 	})
 }
@@ -1568,6 +1603,11 @@ func (x *DevLobbyState) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("relay")
 		x.Relay.MarshalProtoJSON(s.WithField("relay"))
+	}
+	if x.Setup != nil || s.HasField("setup") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("setup")
+		x.Setup.MarshalProtoJSON(s.WithField("setup"))
 	}
 	s.WriteObjectEnd()
 }
@@ -1607,6 +1647,13 @@ func (x *DevLobbyState) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			x.Relay = &Relay{}
 			x.Relay.UnmarshalProtoJSON(s.WithField("relay", true))
+		case "setup":
+			if s.ReadNil() {
+				x.Setup = nil
+				return
+			}
+			x.Setup = &control.ServiceReply{}
+			x.Setup.UnmarshalProtoJSON(s.WithField("setup", true))
 		}
 	})
 }
@@ -2157,6 +2204,11 @@ func (m *DevLobbyOpen) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if len(m.ManifestJson) > 0 {
+		i = protobuf_go_lite.EncodeBytes(dAtA, i, m.ManifestJson)
+		i--
+		dAtA[i] = 0x22
+	}
 	if m.Secret != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Secret))
 		i--
@@ -2212,6 +2264,16 @@ func (m *DevLobbyState) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.Setup != nil {
+		size, err := m.Setup.MarshalToSizedBufferVT(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x22
 	}
 	if m.Relay != nil {
 		size, err := m.Relay.MarshalToSizedBufferVT(dAtA[:i])
@@ -2530,6 +2592,7 @@ func (m *DevLobbyOpen) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.ModName)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Version)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Secret)
+	n += protobuf_go_lite.SizeBytesNonEmpty(1, m.ManifestJson)
 	n += len(m.unknownFields)
 	return n
 }
@@ -2545,6 +2608,10 @@ func (m *DevLobbyState) SizeVT() (n int) {
 	}
 	if m.Relay != nil {
 		l = m.Relay.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	if m.Setup != nil {
+		l = m.Setup.SizeVT()
 		n += protobuf_go_lite.SizeMessage(1, l)
 	}
 	n += len(m.unknownFields)
@@ -2778,6 +2845,10 @@ func (x *DevLobbyOpen) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "secret")
 		protobuf_go_lite.TextWriteUint(&sb, x.Secret)
 	}
+	if len(x.ManifestJson) != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "manifest_json")
+		protobuf_go_lite.TextWriteBytes(&sb, x.ManifestJson)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -2803,6 +2874,10 @@ func (x *DevLobbyState) MarshalProtoText() string {
 	if x.Relay != nil {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "relay")
 		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Relay)
+	}
+	if x.Setup != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "setup")
+		protobuf_go_lite.TextWriteTextMarshaler(&sb, x.Setup)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -3385,6 +3460,14 @@ func (m *DevLobbyOpen) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ManifestJson", wireType)
+			}
+			m.ManifestJson, iNdEx, err = protobuf_go_lite.DecodeBytesAppend(m.ManifestJson, dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -3470,6 +3553,21 @@ func (m *DevLobbyState) UnmarshalVT(dAtA []byte) error {
 				m.Relay = &Relay{}
 			}
 			if err := m.Relay.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Setup", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			if m.Setup == nil {
+				m.Setup = &control.ServiceReply{}
+			}
+			if err := m.Setup.UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

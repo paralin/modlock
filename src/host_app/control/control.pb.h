@@ -115,6 +115,14 @@ class ServerReady;
 struct ServerReadyDefaultTypeInternal;
 extern ServerReadyDefaultTypeInternal _ServerReady_default_instance_;
 extern const ::google::protobuf::internal::ClassDataFull ServerReady_class_data_;
+class ServiceReply;
+struct ServiceReplyDefaultTypeInternal;
+extern ServiceReplyDefaultTypeInternal _ServiceReply_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ServiceReply_class_data_;
+class ServiceResult;
+struct ServiceResultDefaultTypeInternal;
+extern ServiceResultDefaultTypeInternal _ServiceResult_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull ServiceResult_class_data_;
 class UiChanged;
 struct UiChangedDefaultTypeInternal;
 extern UiChangedDefaultTypeInternal _UiChanged_default_instance_;
@@ -174,6 +182,498 @@ inline bool MessageKind_Parse(
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class ServiceResult final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.ServiceResult) */ {
+ public:
+  inline ServiceResult() : ServiceResult(nullptr) {}
+  ~ServiceResult() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ServiceResult* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ServiceResult));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ServiceResult(::google::protobuf::internal::ConstantInitialized);
+
+  inline ServiceResult(const ServiceResult& from) : ServiceResult(nullptr, from) {}
+  inline ServiceResult(ServiceResult&& from) noexcept
+      : ServiceResult(nullptr, ::std::move(from)) {}
+  inline ServiceResult& operator=(const ServiceResult& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ServiceResult& operator=(ServiceResult&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ServiceResult& default_instance() {
+    return *reinterpret_cast<const ServiceResult*>(
+        &_ServiceResult_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 15;
+  friend void swap(ServiceResult& a, ServiceResult& b) { a.Swap(&b); }
+  inline void Swap(ServiceResult* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ServiceResult* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ServiceResult* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ServiceResult>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ServiceResult& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ServiceResult& from) { ServiceResult::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ServiceResult* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.ServiceResult"; }
+
+  explicit ServiceResult(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ServiceResult(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ServiceResult& from);
+  ServiceResult(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ServiceResult&& from) noexcept
+      : ServiceResult(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kIdFieldNumber = 1,
+    kErrorFieldNumber = 2,
+  };
+  // string id = 1;
+  void clear_id() ;
+  const ::std::string& id() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_id(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_id();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_id();
+  void set_allocated_id(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_id() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_id(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_id();
+
+  public:
+  // string error = 2;
+  void clear_error() ;
+  const ::std::string& error() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_error(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_error();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_error();
+  void set_allocated_error(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_error() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_error(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_error();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.ServiceResult)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 54,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ServiceResult& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr id_;
+    ::google::protobuf::internal::ArenaStringPtr error_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull ServiceResult_class_data_;
+// -------------------------------------------------------------------
+
+class ServiceReply final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.host_app.control.ServiceReply) */ {
+ public:
+  inline ServiceReply() : ServiceReply(nullptr) {}
+  ~ServiceReply() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(ServiceReply* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(ServiceReply));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR ServiceReply(::google::protobuf::internal::ConstantInitialized);
+
+  inline ServiceReply(const ServiceReply& from) : ServiceReply(nullptr, from) {}
+  inline ServiceReply(ServiceReply&& from) noexcept
+      : ServiceReply(nullptr, ::std::move(from)) {}
+  inline ServiceReply& operator=(const ServiceReply& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ServiceReply& operator=(ServiceReply&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ServiceReply& default_instance() {
+    return *reinterpret_cast<const ServiceReply*>(
+        &_ServiceReply_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 14;
+  friend void swap(ServiceReply& a, ServiceReply& b) { a.Swap(&b); }
+  inline void Swap(ServiceReply* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ServiceReply* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ServiceReply* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<ServiceReply>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ServiceReply& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const ServiceReply& from) { ServiceReply::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(ServiceReply* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.host_app.control.ServiceReply"; }
+
+  explicit ServiceReply(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  ServiceReply(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ServiceReply& from);
+  ServiceReply(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ServiceReply&& from) noexcept
+      : ServiceReply(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kModFieldNumber = 1,
+    kServiceFieldNumber = 2,
+    kMethodFieldNumber = 3,
+    kPayloadFieldNumber = 4,
+    kPathFieldNumber = 5,
+    kIdFieldNumber = 6,
+  };
+  // string mod = 1;
+  void clear_mod() ;
+  const ::std::string& mod() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_mod(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_mod();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_mod();
+  void set_allocated_mod(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_mod() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_mod(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_mod();
+
+  public:
+  // string service = 2;
+  void clear_service() ;
+  const ::std::string& service() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_service(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_service();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_service();
+  void set_allocated_service(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_service() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_service(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_service();
+
+  public:
+  // string method = 3;
+  void clear_method() ;
+  const ::std::string& method() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_method(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_method();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_method();
+  void set_allocated_method(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_method() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_method(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_method();
+
+  public:
+  // bytes payload = 4;
+  void clear_payload() ;
+  const ::std::string& payload() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_payload(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_payload();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_payload();
+  void set_allocated_payload(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_payload() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_payload(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_payload();
+
+  public:
+  // string path = 5;
+  void clear_path() ;
+  const ::std::string& path() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_path(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_path();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_path();
+  void set_allocated_path(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_path() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_path(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_path();
+
+  public:
+  // string id = 6;
+  void clear_id() ;
+  const ::std::string& id() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_id(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_id();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_id();
+  void set_allocated_id(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_id() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_id(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_id();
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.host_app.control.ServiceReply)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
+                                   0, 68,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const ServiceReply& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr mod_;
+    ::google::protobuf::internal::ArenaStringPtr service_;
+    ::google::protobuf::internal::ArenaStringPtr method_;
+    ::google::protobuf::internal::ArenaStringPtr payload_;
+    ::google::protobuf::internal::ArenaStringPtr path_;
+    ::google::protobuf::internal::ArenaStringPtr id_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fcontrol_2fcontrol_2eproto;
+};
+
+extern const ::google::protobuf::internal::ClassDataFull ServiceReply_class_data_;
 // -------------------------------------------------------------------
 
 class ServerReady final : public ::google::protobuf::Message
@@ -2141,6 +2641,7 @@ class ControlRequest final : public ::google::protobuf::Message
   enum BodyCase {
     kReload = 1,
     kRoles = 2,
+    kService = 3,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 0;
@@ -2232,6 +2733,7 @@ class ControlRequest final : public ::google::protobuf::Message
   enum : int {
     kReloadFieldNumber = 1,
     kRolesFieldNumber = 2,
+    kServiceFieldNumber = 3,
   };
   // .modlock.host_app.control.ReloadRequest reload = 1;
   bool has_reload() const;
@@ -2271,6 +2773,25 @@ class ControlRequest final : public ::google::protobuf::Message
   ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL _internal_mutable_roles();
 
   public:
+  // .modlock.host_app.control.ServiceReply service = 3;
+  bool has_service() const;
+  private:
+  bool _internal_has_service() const;
+
+  public:
+  void clear_service() ;
+  const ::modlock::host_app::control::ServiceReply& service() const;
+  [[nodiscard]] ::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE release_service();
+  ::modlock::host_app::control::ServiceReply* PROTOBUF_NONNULL mutable_service();
+  void set_allocated_service(::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_service(::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE value);
+  ::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE unsafe_arena_release_service();
+
+  private:
+  const ::modlock::host_app::control::ServiceReply& _internal_service() const;
+  ::modlock::host_app::control::ServiceReply* PROTOBUF_NONNULL _internal_mutable_service();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.ControlRequest)
@@ -2278,11 +2799,12 @@ class ControlRequest final : public ::google::protobuf::Message
   class _Internal;
   void set_has_reload();
   void set_has_roles();
+  void set_has_service();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 2,
-                                   2, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 3,
+                                   3, 0,
                                    2>
       _table_;
 
@@ -2304,8 +2826,9 @@ class ControlRequest final : public ::google::protobuf::Message
     union BodyUnion {
       constexpr BodyUnion() : _constinit_{} {}
       ::google::protobuf::internal::ConstantInitialized _constinit_;
-      ::modlock::host_app::control::ReloadRequest* PROTOBUF_NULLABLE reload_;
-      ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE roles_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE reload_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE roles_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE service_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -3033,6 +3556,7 @@ class HostEvent final : public ::google::protobuf::Message
     kChat = 9,
     kCalls = 10,
     kSlowFrame = 11,
+    kServiceApplied = 12,
     BODY_NOT_SET = 0,
   };
   static constexpr int kIndexInFileMessages = 2;
@@ -3133,6 +3657,7 @@ class HostEvent final : public ::google::protobuf::Message
     kChatFieldNumber = 9,
     kCallsFieldNumber = 10,
     kSlowFrameFieldNumber = 11,
+    kServiceAppliedFieldNumber = 12,
   };
   // .modlock.host_app.control.ModStarted started = 1;
   bool has_started() const;
@@ -3343,6 +3868,25 @@ class HostEvent final : public ::google::protobuf::Message
   ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NONNULL _internal_mutable_slow_frame();
 
   public:
+  // .modlock.host_app.control.ServiceResult service_applied = 12;
+  bool has_service_applied() const;
+  private:
+  bool _internal_has_service_applied() const;
+
+  public:
+  void clear_service_applied() ;
+  const ::modlock::host_app::control::ServiceResult& service_applied() const;
+  [[nodiscard]] ::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE release_service_applied();
+  ::modlock::host_app::control::ServiceResult* PROTOBUF_NONNULL mutable_service_applied();
+  void set_allocated_service_applied(::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_service_applied(::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE value);
+  ::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE unsafe_arena_release_service_applied();
+
+  private:
+  const ::modlock::host_app::control::ServiceResult& _internal_service_applied() const;
+  ::modlock::host_app::control::ServiceResult* PROTOBUF_NONNULL _internal_mutable_service_applied();
+
+  public:
   void clear_body();
   BodyCase body_case() const;
   // @@protoc_insertion_point(class_scope:modlock.host_app.control.HostEvent)
@@ -3359,11 +3903,12 @@ class HostEvent final : public ::google::protobuf::Message
   void set_has_chat();
   void set_has_calls();
   void set_has_slow_frame();
+  void set_has_service_applied();
   inline bool has_body() const;
   inline void clear_has_body();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 11,
-                                   11, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 12,
+                                   12, 0,
                                    2>
       _table_;
 
@@ -3396,6 +3941,7 @@ class HostEvent final : public ::google::protobuf::Message
       ::google::protobuf::Message* PROTOBUF_NULLABLE chat_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE calls_;
       ::google::protobuf::Message* PROTOBUF_NULLABLE slow_frame_;
+      ::google::protobuf::Message* PROTOBUF_NULLABLE service_applied_;
     } body_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::uint32_t _oneof_case_[1];
@@ -3448,7 +3994,7 @@ inline ::modlock::host_app::control::ReloadRequest* PROTOBUF_NULLABLE ControlReq
   // @@protoc_insertion_point(field_release:modlock.host_app.control.ControlRequest.reload)
   if (body_case() == kReload) {
     clear_has_body();
-    auto* temp = _impl_.body_.reload_;
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ReloadRequest*>(_impl_.body_.reload_);
     if (GetArena() != nullptr) {
       temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
     }
@@ -3459,7 +4005,7 @@ inline ::modlock::host_app::control::ReloadRequest* PROTOBUF_NULLABLE ControlReq
   }
 }
 inline const ::modlock::host_app::control::ReloadRequest& ControlRequest::_internal_reload() const {
-  return body_case() == kReload ? static_cast<const ::modlock::host_app::control::ReloadRequest&>(*_impl_.body_.reload_)
+  return body_case() == kReload ? static_cast<const ::modlock::host_app::control::ReloadRequest&>(*reinterpret_cast<::modlock::host_app::control::ReloadRequest*>(_impl_.body_.reload_))
                      : reinterpret_cast<const ::modlock::host_app::control::ReloadRequest&>(::modlock::host_app::control::_ReloadRequest_default_instance_);
 }
 inline const ::modlock::host_app::control::ReloadRequest& ControlRequest::reload() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -3470,7 +4016,7 @@ inline ::modlock::host_app::control::ReloadRequest* PROTOBUF_NULLABLE ControlReq
   // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.ControlRequest.reload)
   if (body_case() == kReload) {
     clear_has_body();
-    auto* temp = _impl_.body_.reload_;
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ReloadRequest*>(_impl_.body_.reload_);
     _impl_.body_.reload_ = nullptr;
     return temp;
   } else {
@@ -3485,7 +4031,7 @@ inline void ControlRequest::unsafe_arena_set_allocated_reload(
   clear_body();
   if (value) {
     set_has_reload();
-    _impl_.body_.reload_ = value;
+    _impl_.body_.reload_ = reinterpret_cast<::google::protobuf::Message*>(value);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ControlRequest.reload)
 }
@@ -3493,10 +4039,10 @@ inline ::modlock::host_app::control::ReloadRequest* PROTOBUF_NONNULL ControlRequ
   if (body_case() != kReload) {
     clear_body();
     set_has_reload();
-    _impl_.body_.reload_ = 
-        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ReloadRequest>(GetArena());
+    _impl_.body_.reload_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ReloadRequest>(GetArena()));
   }
-  return _impl_.body_.reload_;
+  return reinterpret_cast<::modlock::host_app::control::ReloadRequest*>(_impl_.body_.reload_);
 }
 inline ::modlock::host_app::control::ReloadRequest* PROTOBUF_NONNULL ControlRequest::mutable_reload()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -3519,7 +4065,7 @@ inline ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE ControlRequest::r
   // @@protoc_insertion_point(field_release:modlock.host_app.control.ControlRequest.roles)
   if (body_case() == kRoles) {
     clear_has_body();
-    auto* temp = _impl_.body_.roles_;
+    auto* temp = reinterpret_cast<::modlock::wasm::players::RolesTable*>(_impl_.body_.roles_);
     if (GetArena() != nullptr) {
       temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
     }
@@ -3530,7 +4076,7 @@ inline ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE ControlRequest::r
   }
 }
 inline const ::modlock::wasm::players::RolesTable& ControlRequest::_internal_roles() const {
-  return body_case() == kRoles ? static_cast<const ::modlock::wasm::players::RolesTable&>(*_impl_.body_.roles_)
+  return body_case() == kRoles ? static_cast<const ::modlock::wasm::players::RolesTable&>(*reinterpret_cast<::modlock::wasm::players::RolesTable*>(_impl_.body_.roles_))
                      : reinterpret_cast<const ::modlock::wasm::players::RolesTable&>(::modlock::wasm::players::_RolesTable_default_instance_);
 }
 inline const ::modlock::wasm::players::RolesTable& ControlRequest::roles() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -3541,7 +4087,7 @@ inline ::modlock::wasm::players::RolesTable* PROTOBUF_NULLABLE ControlRequest::u
   // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.ControlRequest.roles)
   if (body_case() == kRoles) {
     clear_has_body();
-    auto* temp = _impl_.body_.roles_;
+    auto* temp = reinterpret_cast<::modlock::wasm::players::RolesTable*>(_impl_.body_.roles_);
     _impl_.body_.roles_ = nullptr;
     return temp;
   } else {
@@ -3556,7 +4102,7 @@ inline void ControlRequest::unsafe_arena_set_allocated_roles(
   clear_body();
   if (value) {
     set_has_roles();
-    _impl_.body_.roles_ = value;
+    _impl_.body_.roles_ = reinterpret_cast<::google::protobuf::Message*>(value);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ControlRequest.roles)
 }
@@ -3564,15 +4110,97 @@ inline ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL ControlRequest::_i
   if (body_case() != kRoles) {
     clear_body();
     set_has_roles();
-    _impl_.body_.roles_ = 
-        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::players::RolesTable>(GetArena());
+    _impl_.body_.roles_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::wasm::players::RolesTable>(GetArena()));
   }
-  return _impl_.body_.roles_;
+  return reinterpret_cast<::modlock::wasm::players::RolesTable*>(_impl_.body_.roles_);
 }
 inline ::modlock::wasm::players::RolesTable* PROTOBUF_NONNULL ControlRequest::mutable_roles()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::modlock::wasm::players::RolesTable* _msg = _internal_mutable_roles();
   // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControlRequest.roles)
+  return _msg;
+}
+
+// .modlock.host_app.control.ServiceReply service = 3;
+inline bool ControlRequest::has_service() const {
+  return body_case() == kService;
+}
+inline bool ControlRequest::_internal_has_service() const {
+  return body_case() == kService;
+}
+inline void ControlRequest::set_has_service() {
+  _impl_._oneof_case_[0] = kService;
+}
+inline void ControlRequest::clear_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kService) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.service_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.service_);
+    }
+    clear_has_body();
+  }
+}
+inline ::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE ControlRequest::release_service() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ControlRequest.service)
+  if (body_case() == kService) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ServiceReply*>(_impl_.body_.service_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.service_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::host_app::control::ServiceReply& ControlRequest::_internal_service() const {
+  return body_case() == kService ? static_cast<const ::modlock::host_app::control::ServiceReply&>(*reinterpret_cast<::modlock::host_app::control::ServiceReply*>(_impl_.body_.service_))
+                     : reinterpret_cast<const ::modlock::host_app::control::ServiceReply&>(::modlock::host_app::control::_ServiceReply_default_instance_);
+}
+inline const ::modlock::host_app::control::ServiceReply& ControlRequest::service() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ControlRequest.service)
+  return _internal_service();
+}
+inline ::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE ControlRequest::unsafe_arena_release_service() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.ControlRequest.service)
+  if (body_case() == kService) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ServiceReply*>(_impl_.body_.service_);
+    _impl_.body_.service_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ControlRequest::unsafe_arena_set_allocated_service(
+    ::modlock::host_app::control::ServiceReply* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_service();
+    _impl_.body_.service_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.ControlRequest.service)
+}
+inline ::modlock::host_app::control::ServiceReply* PROTOBUF_NONNULL ControlRequest::_internal_mutable_service() {
+  if (body_case() != kService) {
+    clear_body();
+    set_has_service();
+    _impl_.body_.service_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ServiceReply>(GetArena()));
+  }
+  return reinterpret_cast<::modlock::host_app::control::ServiceReply*>(_impl_.body_.service_);
+}
+inline ::modlock::host_app::control::ServiceReply* PROTOBUF_NONNULL ControlRequest::mutable_service()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::host_app::control::ServiceReply* _msg = _internal_mutable_service();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ControlRequest.service)
   return _msg;
 }
 
@@ -4557,6 +5185,88 @@ inline ::modlock::host_app::control::ModSlowFrame* PROTOBUF_NONNULL HostEvent::m
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::modlock::host_app::control::ModSlowFrame* _msg = _internal_mutable_slow_frame();
   // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.slow_frame)
+  return _msg;
+}
+
+// .modlock.host_app.control.ServiceResult service_applied = 12;
+inline bool HostEvent::has_service_applied() const {
+  return body_case() == kServiceApplied;
+}
+inline bool HostEvent::_internal_has_service_applied() const {
+  return body_case() == kServiceApplied;
+}
+inline void HostEvent::set_has_service_applied() {
+  _impl_._oneof_case_[0] = kServiceApplied;
+}
+inline void HostEvent::clear_service_applied() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (body_case() == kServiceApplied) {
+    if (GetArena() == nullptr) {
+      delete _impl_.body_.service_applied_;
+    } else if (::google::protobuf::internal::DebugHardenClearOneofMessageOnArena()) {
+      ::google::protobuf::internal::MaybePoisonAfterClear(_impl_.body_.service_applied_);
+    }
+    clear_has_body();
+  }
+}
+inline ::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE HostEvent::release_service_applied() {
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.HostEvent.service_applied)
+  if (body_case() == kServiceApplied) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ServiceResult*>(_impl_.body_.service_applied_);
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.body_.service_applied_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::modlock::host_app::control::ServiceResult& HostEvent::_internal_service_applied() const {
+  return body_case() == kServiceApplied ? static_cast<const ::modlock::host_app::control::ServiceResult&>(*reinterpret_cast<::modlock::host_app::control::ServiceResult*>(_impl_.body_.service_applied_))
+                     : reinterpret_cast<const ::modlock::host_app::control::ServiceResult&>(::modlock::host_app::control::_ServiceResult_default_instance_);
+}
+inline const ::modlock::host_app::control::ServiceResult& HostEvent::service_applied() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.HostEvent.service_applied)
+  return _internal_service_applied();
+}
+inline ::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE HostEvent::unsafe_arena_release_service_applied() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:modlock.host_app.control.HostEvent.service_applied)
+  if (body_case() == kServiceApplied) {
+    clear_has_body();
+    auto* temp = reinterpret_cast<::modlock::host_app::control::ServiceResult*>(_impl_.body_.service_applied_);
+    _impl_.body_.service_applied_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void HostEvent::unsafe_arena_set_allocated_service_applied(
+    ::modlock::host_app::control::ServiceResult* PROTOBUF_NULLABLE value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_body();
+  if (value) {
+    set_has_service_applied();
+    _impl_.body_.service_applied_ = reinterpret_cast<::google::protobuf::Message*>(value);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:modlock.host_app.control.HostEvent.service_applied)
+}
+inline ::modlock::host_app::control::ServiceResult* PROTOBUF_NONNULL HostEvent::_internal_mutable_service_applied() {
+  if (body_case() != kServiceApplied) {
+    clear_body();
+    set_has_service_applied();
+    _impl_.body_.service_applied_ = reinterpret_cast<::google::protobuf::Message*>(
+        ::google::protobuf::Message::DefaultConstruct<::modlock::host_app::control::ServiceResult>(GetArena()));
+  }
+  return reinterpret_cast<::modlock::host_app::control::ServiceResult*>(_impl_.body_.service_applied_);
+}
+inline ::modlock::host_app::control::ServiceResult* PROTOBUF_NONNULL HostEvent::mutable_service_applied()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::modlock::host_app::control::ServiceResult* _msg = _internal_mutable_service_applied();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.HostEvent.service_applied)
   return _msg;
 }
 
@@ -6065,6 +6775,534 @@ inline void UiChanged::set_allocated_change(::modlock::wasm::ui::Change* PROTOBU
 
   _impl_.change_ = reinterpret_cast<::modlock::wasm::ui::Change*>(value);
   // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.UiChanged.change)
+}
+
+// -------------------------------------------------------------------
+
+// ServiceReply
+
+// string mod = 1;
+inline void ServiceReply::clear_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ServiceReply::mod() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceReply.mod)
+  return _internal_mod();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceReply::set_mod(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.mod_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceReply.mod)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::mutable_mod()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_mod();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceReply.mod)
+  return _s;
+}
+inline const ::std::string& ServiceReply::_internal_mod() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.mod_.Get();
+}
+inline void ServiceReply::_internal_set_mod(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.mod_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::_internal_mutable_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.mod_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceReply::release_mod() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceReply.mod)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.mod_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceReply::set_allocated_mod(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.mod_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.mod_.IsDefault()) {
+    _impl_.mod_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceReply.mod)
+}
+
+// string service = 2;
+inline void ServiceReply::clear_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& ServiceReply::service() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceReply.service)
+  return _internal_service();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceReply::set_service(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.service_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceReply.service)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::mutable_service()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_service();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceReply.service)
+  return _s;
+}
+inline const ::std::string& ServiceReply::_internal_service() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.service_.Get();
+}
+inline void ServiceReply::_internal_set_service(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.service_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::_internal_mutable_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.service_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceReply::release_service() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceReply.service)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.service_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.service_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceReply::set_allocated_service(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.service_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.service_.IsDefault()) {
+    _impl_.service_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceReply.service)
+}
+
+// string method = 3;
+inline void ServiceReply::clear_method() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline const ::std::string& ServiceReply::method() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceReply.method)
+  return _internal_method();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceReply::set_method(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  _impl_.method_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceReply.method)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::mutable_method()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::std::string* _s = _internal_mutable_method();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceReply.method)
+  return _s;
+}
+inline const ::std::string& ServiceReply::_internal_method() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.method_.Get();
+}
+inline void ServiceReply::_internal_set_method(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.method_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::_internal_mutable_method() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.method_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceReply::release_method() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceReply.method)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  auto* released = _impl_.method_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.method_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceReply::set_allocated_method(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  _impl_.method_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.method_.IsDefault()) {
+    _impl_.method_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceReply.method)
+}
+
+// bytes payload = 4;
+inline void ServiceReply::clear_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline const ::std::string& ServiceReply::payload() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceReply.payload)
+  return _internal_payload();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceReply::set_payload(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  _impl_.payload_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceReply.payload)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::mutable_payload()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ::std::string* _s = _internal_mutable_payload();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceReply.payload)
+  return _s;
+}
+inline const ::std::string& ServiceReply::_internal_payload() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.payload_.Get();
+}
+inline void ServiceReply::_internal_set_payload(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::_internal_mutable_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.payload_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceReply::release_payload() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceReply.payload)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  auto* released = _impl_.payload_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.payload_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceReply::set_allocated_payload(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  }
+  _impl_.payload_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.payload_.IsDefault()) {
+    _impl_.payload_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceReply.payload)
+}
+
+// string path = 5;
+inline void ServiceReply::clear_path() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.path_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000010U);
+}
+inline const ::std::string& ServiceReply::path() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceReply.path)
+  return _internal_path();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceReply::set_path(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  _impl_.path_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceReply.path)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::mutable_path()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ::std::string* _s = _internal_mutable_path();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceReply.path)
+  return _s;
+}
+inline const ::std::string& ServiceReply::_internal_path() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.path_.Get();
+}
+inline void ServiceReply::_internal_set_path(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.path_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::_internal_mutable_path() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.path_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceReply::release_path() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceReply.path)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000010U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  auto* released = _impl_.path_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.path_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceReply::set_allocated_path(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  }
+  _impl_.path_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.path_.IsDefault()) {
+    _impl_.path_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceReply.path)
+}
+
+// string id = 6;
+inline void ServiceReply::clear_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000020U);
+}
+inline const ::std::string& ServiceReply::id() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceReply.id)
+  return _internal_id();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceReply::set_id(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  _impl_.id_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceReply.id)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::mutable_id()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ::std::string* _s = _internal_mutable_id();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceReply.id)
+  return _s;
+}
+inline const ::std::string& ServiceReply::_internal_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.id_.Get();
+}
+inline void ServiceReply::_internal_set_id(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceReply::_internal_mutable_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.id_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceReply::release_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceReply.id)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000020U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  auto* released = _impl_.id_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.id_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceReply::set_allocated_id(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  }
+  _impl_.id_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.id_.IsDefault()) {
+    _impl_.id_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceReply.id)
+}
+
+// -------------------------------------------------------------------
+
+// ServiceResult
+
+// string id = 1;
+inline void ServiceResult::clear_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& ServiceResult::id() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceResult.id)
+  return _internal_id();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceResult::set_id(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.id_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceResult.id)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceResult::mutable_id()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_id();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceResult.id)
+  return _s;
+}
+inline const ::std::string& ServiceResult::_internal_id() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.id_.Get();
+}
+inline void ServiceResult::_internal_set_id(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.id_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceResult::_internal_mutable_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.id_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceResult::release_id() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceResult.id)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.id_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.id_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceResult::set_allocated_id(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.id_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.id_.IsDefault()) {
+    _impl_.id_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceResult.id)
+}
+
+// string error = 2;
+inline void ServiceResult::clear_error() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.error_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline const ::std::string& ServiceResult::error() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:modlock.host_app.control.ServiceResult.error)
+  return _internal_error();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void ServiceResult::set_error(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  _impl_.error_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:modlock.host_app.control.ServiceResult.error)
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceResult::mutable_error()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ::std::string* _s = _internal_mutable_error();
+  // @@protoc_insertion_point(field_mutable:modlock.host_app.control.ServiceResult.error)
+  return _s;
+}
+inline const ::std::string& ServiceResult::_internal_error() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.error_.Get();
+}
+inline void ServiceResult::_internal_set_error(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.error_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL ServiceResult::_internal_mutable_error() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.error_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE ServiceResult::release_error() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:modlock.host_app.control.ServiceResult.error)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  auto* released = _impl_.error_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.error_.Set("", GetArena());
+  }
+  return released;
+}
+inline void ServiceResult::set_allocated_error(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  }
+  _impl_.error_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.error_.IsDefault()) {
+    _impl_.error_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:modlock.host_app.control.ServiceResult.error)
 }
 
 #ifdef __GNUC__

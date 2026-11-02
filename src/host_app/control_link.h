@@ -5,11 +5,13 @@
 #include <cstdint>
 #include <deque>
 #include <expected>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <string_view>
 #include <thread>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -56,6 +58,12 @@ class ControlLink final : public WasmHostObserver, public gameinterop::Connectio
   void OnDisconnecting(int32_t slot, uint64_t xuid) override;
 
  private:
+  // ServiceReplies stores one mod's answer for each service method.
+  using ServiceReplies = std::map<std::tuple<std::string, std::string, std::string>, std::string>;
+  // replies_ outlives the control link when a host extension still holds it.
+  // All access runs on the engine thread.
+  std::shared_ptr<ServiceReplies> replies_ = std::make_shared<ServiceReplies>();
+
   explicit ControlLink(intptr_t socket);
 
   void Push(control::HostEvent event);

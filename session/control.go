@@ -51,6 +51,11 @@ func (c *Control) Reload(ctx context.Context, path string) error {
 	})
 }
 
+// SetService installs a service answer and restarts its mod with that answer.
+func (c *Control) SetService(ctx context.Context, reply *control.ServiceReply) error {
+	return c.request(ctx, &control.ControlRequest{Body: &control.ControlRequest_Service{Service: reply}})
+}
+
 // SetRoles replaces the players' roles, which the mods read on each
 // connection. Requests made before the host connects wait for it.
 func (c *Control) SetRoles(ctx context.Context, roles *players.RolesTable) error {

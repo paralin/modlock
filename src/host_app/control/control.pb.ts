@@ -59,6 +59,7 @@ export interface ControlRequest {
     | { value?: undefined; case: undefined }
     | { value: ReloadRequest; case: 'reload' }
     | { value: RolesTable; case: 'roles' }
+    | { value: ServiceReply; case: 'service' }
 }
 
 export const ControlRequest: MessageType<ControlRequest> =
@@ -67,6 +68,7 @@ export const ControlRequest: MessageType<ControlRequest> =
     () => [
       [1, 'reload', 11, 0, ReloadRequest.codec, 'body'],
       [2, 'roles', 11, 0, RolesTable.codec, 'body'],
+      [3, 'service', 11, 0, ServiceReply.codec, 'body'],
     ],
     {
       decode: (
@@ -98,6 +100,16 @@ export const ControlRequest: MessageType<ControlRequest> =
                 ),
               }
               break
+            case 3:
+              m.body = {
+                case: 'service',
+                value: ServiceReply.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'service' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -114,6 +126,11 @@ export const ControlRequest: MessageType<ControlRequest> =
           const o = m.body
           if (o?.case === 'roles' && o.value != null)
             RolesTable.writeField(w, 2, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'service' && o.value != null)
+            ServiceReply.writeField(w, 3, o.value)
         }
       },
     },
@@ -189,6 +206,7 @@ export interface HostEvent {
     | { value: PlayerChat; case: 'chat' }
     | { value: ModCalls; case: 'calls' }
     | { value: ModSlowFrame; case: 'slowFrame' }
+    | { value: ServiceResult; case: 'serviceApplied' }
 }
 
 export const HostEvent: MessageType<HostEvent> =
@@ -206,6 +224,7 @@ export const HostEvent: MessageType<HostEvent> =
       [9, 'chat', 11, 0, PlayerChat.codec, 'body'],
       [10, 'calls', 11, 0, ModCalls.codec, 'body'],
       [11, 'slow_frame', 11, 0, ModSlowFrame.codec, 'body'],
+      [12, 'service_applied', 11, 0, ServiceResult.codec, 'body'],
     ],
     {
       decode: (r: BinaryReader, end: number, m: HostEvent): HostEvent => {
@@ -323,6 +342,16 @@ export const HostEvent: MessageType<HostEvent> =
                 ),
               }
               break
+            case 12:
+              m.body = {
+                case: 'serviceApplied',
+                value: ServiceResult.decode(
+                  r,
+                  r.delimited(),
+                  m.body?.case === 'serviceApplied' ? m.body.value : {},
+                ),
+              }
+              break
             default:
               r.skip(t)
           }
@@ -384,6 +413,11 @@ export const HostEvent: MessageType<HostEvent> =
           const o = m.body
           if (o?.case === 'slowFrame' && o.value != null)
             ModSlowFrame.writeField(w, 11, o.value)
+        }
+        {
+          const o = m.body
+          if (o?.case === 'serviceApplied' && o.value != null)
+            ServiceResult.writeField(w, 12, o.value)
         }
       },
     },
@@ -1028,6 +1062,165 @@ export const UiChanged: MessageType<UiChanged> =
         {
           const v = m.change
           if (v != null) Change.writeField(w, 3, v)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceReply supplies a host extension's answer for one mod. The controller
+ * sends it only when an applied configuration changes; the mod restarts after
+ * the host installs the answer.
+ *
+ * @generated from message modlock.host_app.control.ServiceReply
+ */
+export interface ServiceReply {
+  /**
+   * Mod is the running mod's slug.
+   */
+  mod?: string
+  /**
+   * Service and Method select the extension call this answer serves.
+   */
+  service?: string
+  method?: string
+  /**
+   * Payload is the service's encoded answer, opaque to Modlock.
+   */
+  payload?: Uint8Array
+  /**
+   * Path is the local build to reload after installing the answer.
+   */
+  path?: string
+  /**
+   * Id identifies this applied configuration, opaque to the host.
+   */
+  id?: string
+}
+
+export const ServiceReply: MessageType<ServiceReply> =
+  /* @__PURE__ */ createMessageType<ServiceReply>(
+    'modlock.host_app.control.ServiceReply',
+    () => [
+      [1, 'mod', 9],
+      [2, 'service', 9],
+      [3, 'method', 9],
+      [4, 'payload', 12],
+      [5, 'path', 9],
+      [6, 'id', 9],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ServiceReply): ServiceReply => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.mod = r.string()
+              break
+            case 2:
+              m.service = r.string()
+              break
+            case 3:
+              m.method = r.string()
+              break
+            case 4:
+              m.payload = r.bytes()
+              break
+            case 5:
+              m.path = r.string()
+              break
+            case 6:
+              m.id = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceReply, w: Writer): void => {
+        {
+          const v = m.mod
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.service
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.method
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(34).bytes(v)
+        }
+        {
+          const v = m.path
+          if (v) w.uint32(42).string(v)
+        }
+        {
+          const v = m.id
+          if (v) w.uint32(50).string(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceResult acknowledges adoption of one cached service configuration.
+ *
+ * @generated from message modlock.host_app.control.ServiceResult
+ */
+export interface ServiceResult {
+  /**
+   * Id matches the ServiceReply this result confirms.
+   */
+  id?: string
+  /**
+   * Error is empty when the mod restarted with the new configuration.
+   */
+  error?: string
+}
+
+export const ServiceResult: MessageType<ServiceResult> =
+  /* @__PURE__ */ createMessageType<ServiceResult>(
+    'modlock.host_app.control.ServiceResult',
+    () => [
+      [1, 'id', 9],
+      [2, 'error', 9],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ServiceResult,
+      ): ServiceResult => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.id = r.string()
+              break
+            case 2:
+              m.error = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceResult, w: Writer): void => {
+        {
+          const v = m.id
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.error
+          if (v) w.uint32(18).string(v)
         }
       },
     },
