@@ -288,9 +288,12 @@ bool WasmPlugin::Hit(const gameinterop::DamageContactEvent& contact) {
 }
 
 PlayerScope::Contact WasmPlugin::Contact(uint32_t attacker, uint32_t victim) const {
-  // Only a limited mod pays for the players' slots.
+  // An unlimited mod hears every hit but one between two players of another
+  // mod's apart game, such as a duel played beside the server's game, which
+  // is that game's alone; a limited mod rules by its scope.
   if (!scope_.Limited()) {
-    return PlayerScope::Contact::kHear;
+    return game_.ApartElsewhere(attacker, victim) ? PlayerScope::Contact::kPass
+                                                  : PlayerScope::Contact::kHear;
   }
   return scope_.Hit(game_.SlotOfPawn(attacker), game_.SlotOfPawn(victim));
 }

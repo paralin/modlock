@@ -220,6 +220,28 @@ void GameServices::WithholdApart(const Game& game, gameinterop::TransmitSet& set
   }
 }
 
+bool GameServices::ApartBesides(const Game& game) const {
+  for (const auto* each : games_) {
+    if (each != &game && each->apart_) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const Game* GameServices::ApartGame(int32_t attacker, int32_t victim) const {
+  if (attacker < 0 || attacker >= gameinterop::kMaxPlayerSlots || victim < 0 ||
+      victim >= gameinterop::kMaxPlayerSlots) {
+    return nullptr;
+  }
+  for (const auto* game : games_) {
+    if (((game->apart_ >> attacker) & 1) && ((game->apart_ >> victim) & 1)) {
+      return game;
+    }
+  }
+  return nullptr;
+}
+
 bool GameServices::WatchesInside(int32_t slot, uint64_t apart) const {
   // A watcher outside an apart game receives every hero while their camera
   // follows one inside it, so the camera has a hero to follow; the players
