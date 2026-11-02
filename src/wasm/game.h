@@ -191,6 +191,13 @@ class GameServices {
   // mod's Watch, a hero among the apart slot bits.
   bool WatchesInside(int32_t slot, uint64_t apart) const;
 
+  // ApartBesides reports whether a game other than game plays apart.
+  bool ApartBesides(const Game& game) const;
+
+  // ApartGame returns the apart game both players play in, or null when they
+  // do not share one.
+  const Game* ApartGame(int32_t attacker, int32_t victim) const;
+
   // Steps installs or removes the server movement hook to match what the
   // mods need of it.
   std::expected<void, std::string> Steps();
@@ -345,6 +352,12 @@ class Game : public HostService {
   // shows every hero to everyone again. It survives Clear and world changes,
   // since it follows the mod's scope rather than what the mod placed.
   std::expected<void, std::string> Apart(uint64_t slots);
+
+  // ApartElsewhere reports whether a hit by the attacker entity on the victim
+  // lies between two players of another mod's apart game, whose hits are that
+  // game's alone to rule. It reads the heroes' slots only while another game
+  // plays apart.
+  bool ApartElsewhere(uint32_t attacker, uint32_t victim) const;
 
   // Departing reports whether a bot the mod removed still holds its slot.
   // The engine finishes the disconnect of a client it is processing after

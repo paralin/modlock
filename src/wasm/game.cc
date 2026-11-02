@@ -190,6 +190,19 @@ std::expected<void, std::string> Game::Apart(uint64_t slots) {
   return slots ? services_.Transmit() : std::expected<void, std::string>{};
 }
 
+bool Game::ApartElsewhere(uint32_t attacker, uint32_t victim) const {
+  if (!services_.ApartBesides(*this)) {
+    return false;
+  }
+  const auto by = SlotOfPawn(attacker);
+  const auto on = by ? SlotOfPawn(victim) : std::nullopt;
+  if (!by || !on) {
+    return false;
+  }
+  const auto* game = services_.ApartGame(*by, *on);
+  return game && game != this;
+}
+
 void Game::Clear() {
   // Stop watching every player.
   for (const auto slot : observer_.WatchingSlots()) {
