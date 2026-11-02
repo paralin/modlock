@@ -2,21 +2,16 @@
 // move to the spectators or a reload can leave the old hero standing in the
 // world, and the game revives it with no player on its own respawn timer.
 // Removing a hero pawn leaves its abilities and items networked, which closes
-// clients, and the Kill input only kills it. An ability left on a pawn no
-// player drives can still run, and the server aborts when one asks for the
-// player's command, as Lash's Down Strike did after a swap. So a stray loses
-// its abilities, is killed once, and has its respawn held off for good; a dead
-// hero draws nothing.
+// clients, and killing one alone lets the game revive it. So a stray is
+// killed once and has its respawn held off for good; a dead hero draws
+// nothing and casts nothing.
+//
+// A pawn is held when a connected player's hero is it, or when its own
+// controller's hero is it: a player still joining, or watching from the
+// spectators, has a controller that names their hero before the player
+// reports it. Only a pawn both checks disown is a stray.
 
-import {
-  damage,
-  findEntities,
-  fireInput,
-  log,
-  readField,
-  readFieldList,
-  writeField,
-} from './host.gen.js'
+import { damage, findEntities, log, readField, writeField } from './host.gen.js'
 import { players } from './players.js'
 
 /** strayGraceSeconds is how long a hero pawn belongs to no player before it is laid down. */
@@ -38,9 +33,9 @@ export class Strays {
   private sweptAt = -Infinity
 
   /**
-   * sweep lays down each hero pawn that has belonged to no connected player
-   * for strayGraceSeconds, at most once a second. The game sets a dead
-   * pawn's respawn when it dies, so the hold repeats on each sweep.
+   * sweep lays down each hero pawn that has belonged to no player for
+   * strayGraceSeconds, at most once a second. The game sets a dead pawn's
+   * respawn when it dies, so the hold repeats on each sweep.
    */
   sweep(now: number): void {
     // Look at most once a second.
@@ -61,7 +56,7 @@ export class Strays {
     // Lay a pawn down once it has belonged to no one for the grace period.
     const since = new Map<number, number>()
     for (const entity of findEntities('player')) {
-      if (held.has(entity)) {
+      if (held.has(entity) || ownHero(entity)) {
         continue
       }
       const first = this.since.get(entity) ?? now
@@ -75,27 +70,34 @@ export class Strays {
 }
 
 /**
- * layDown strips a stray hero pawn of its abilities, kills it if it stands,
- * and keeps its respawn out of reach.
+ * ownHero reports whether the hero pawn entity is its controller's hero. A
+ * pawn whose controller is gone, or names another hero, is not.
  */
-function layDown(entity: number): void {
-  // Strip the abilities first, so none runs on the pawn with no player.
-  const abilities = readFieldList(
+function ownHero(entity: number): boolean {
+  const controller = readField(
     entity,
-    'CCitadelPlayerPawn',
-    'm_CCitadelAbilityComponent.m_vecAbilities',
+    'CBasePlayerPawn',
+    'm_hController',
     'handle',
   )
-  let stripped = 0
-  for (const ability of abilities) {
-    if (typeof ability === 'number' && fireInput(ability, 'Kill')) {
-      stripped++
-    }
+  if (typeof controller !== 'number') {
+    return false
   }
-  if (stripped > 0) {
-    log(`stripped ${stripped} abilities from a stray hero pawn ${entity}`)
-  }
+  const hero = readField(
+    controller,
+    'CCitadelPlayerController',
+    'm_hHeroPawn',
+    'handle',
+  )
+  return hero === entity
+}
 
+/**
+ * layDown kills a stray hero pawn if it stands and keeps its respawn out of
+ * reach. Its abilities stay: killing ability entities on a live hero pawn
+ * has ended the server process.
+ */
+function layDown(entity: number): void {
   // Kill it if it stands, then hold its respawn past any session.
   const health = readField(entity, 'CBaseEntity', 'm_iHealth', 'int32')
   if (typeof health === 'number' && health > 0) {
