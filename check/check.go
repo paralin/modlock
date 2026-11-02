@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"regexp"
 
+	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/settings"
@@ -60,6 +61,9 @@ func Mod(ctx context.Context, dist fs.FS) (*manifest.Manifest, error) {
 		return nil, err
 	}
 	if err := metrics.Validate(m); err != nil {
+		return nil, err
+	}
+	if err := boards.Validate(m); err != nil {
 		return nil, err
 	}
 

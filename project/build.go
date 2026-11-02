@@ -13,6 +13,7 @@ import (
 	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/internal/filelock"
 	"github.com/paralin/modlock/internal/fileretry"
+	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/wasm/manifest"
@@ -63,6 +64,9 @@ func (p *Project) Build(ctx context.Context, output io.Writer, mode Mode) error 
 		return err
 	}
 	if err := metrics.Validate(p.Manifest); err != nil {
+		return err
+	}
+	if err := boards.Validate(p.Manifest); err != nil {
 		return err
 	}
 	if err := p.shipMap(); err != nil {

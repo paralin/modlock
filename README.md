@@ -502,7 +502,31 @@ const corner = player.setting('corner') === 'left' ? 'left' : 'right'
 scorer.addMetric('brawl.defeats', 1)
 ```
 
-[The manifest](#the-manifest) lists every kind of setting and metric.
+A board ranks players against each other, such as the fastest clear of each
+course. Declare it under `boards` and report each finished run:
+
+```json
+"boards": [
+  {
+    "name": "trial.time",
+    "label": "Fastest clear",
+    "unit": "UNIT_MILLISECONDS",
+    "order": "ORDER_ASCENDING",
+    "keep": "KEEP_BEST",
+    "partitions": [{ "name": "course" }],
+    "windows": ["WINDOW_ALL_TIME", "WINDOW_WEEK"]
+  }
+]
+```
+
+```ts
+reportScore(player, 'trial.time', elapsedMs, {
+  partition: { course: 'canyon' },
+  key: runId,
+})
+```
+
+[The manifest](#the-manifest) lists every kind of setting, metric and board.
 
 ### 8. Split it into modules
 
@@ -826,6 +850,8 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 | `player.abilities()`, `setAbility`, `replaceAbility`, `giveModifier`, `holdModifier`            | Read or change abilities, their timers and charges, modifiers.    |
 | `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)`          | Read or change the player's settings.                             |
 | `player.addMetric(name, value, label?)`                                                         | Add to the player's total of a metric.                            |
+| `reportScore(player, board, value, options?)`, `reportMatch(board, places, options?)`           | Report a score or a match's places to a board.                    |
+| `readBoard(board, read?)`                                                                       | Read a page of a board, such as its top five.                     |
 | `player.handoff(text)`, `handedOff()`                                                           | Hand the player's state to the next build, and read it back.      |
 | `player.watchMovement(true)`                                                                    | Add the hero's movement, landings and wall jumps to each frame.   |
 | `playCamera(player, options)`, `cameraPulse`, `cameraShake`                                     | Play curves on the camera; see [Camera moves](#camera-moves).     |
@@ -1453,6 +1479,7 @@ Every project has a `mod.json` at its root:
 | `definitions` |          | [Definition changes](#definitions) to heroes and abilities.                                        |
 | `settings`    |          | [Choices](#settings) each player makes about the mod.                                              |
 | `metrics`     |          | [Totals](#metrics) the mod keeps for each player.                                                  |
+| `boards`      |          | [Rankings](#boards) the mod reports scores to.                                                     |
 
 ### Map
 
@@ -1589,6 +1616,58 @@ of `player.addMetric(name, value, label)`. The host keeps the totals in memory
 and hands them on once, when the player leaves or the mod stops. Without a
 host service that takes them, the mod logs them, so `modlock dev` shows a
 session's totals as it ends. Bots keep no totals.
+
+### Boards
+
+```json
+"boards": [
+  {
+    "name": "aim.score",
+    "label": "Best score",
+    "unit": "UNIT_NUMBER",
+    "order": "ORDER_DESCENDING",
+    "keep": "KEEP_BEST",
+    "partitions": [
+      { "name": "scenario" },
+      { "name": "difficulty", "values": ["easy", "medium", "hard"] }
+    ],
+    "windows": ["WINDOW_ALL_TIME", "WINDOW_WEEK", "WINDOW_DAY"],
+    "tier": "TIER_ADMITTED",
+    "lowest": "0",
+    "highest": "100000"
+  }
+]
+```
+
+| Field               | Value                                                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `name`              | The name the code reports to: letters, digits, underscores and dots.                                                        |
+| `label`             | The board's title on screen.                                                                                                |
+| `unit`              | `UNIT_NUMBER` or `UNIT_MILLISECONDS`.                                                                                       |
+| `order`             | `ORDER_DESCENDING` ranks the highest value first; `ORDER_ASCENDING` the lowest, as for a time.                              |
+| `keep`              | What a player's standing keeps; see below.                                                                                  |
+| `rating`            | `RATING_ELO` or `RATING_GLICKO2`, for a `KEEP_RATING` board.                                                                |
+| `partitions`        | Up to four dimensions that split the board into separate rankings, each with optional allowed values.                       |
+| `windows`           | `WINDOW_ALL_TIME`, `WINDOW_DAY` and `WINDOW_WEEK`; all time alone by default. Windows follow UTC, and a week starts Monday. |
+| `tier`              | The least trusted server whose scores rank: `TIER_HOSTED`, `TIER_ADMITTED` or `TIER_DEDICATED`.                             |
+| `lowest`, `highest` | The plausible values; a host holds a score outside them for review.                                                         |
+| `version`           | Raise it to start a fresh ranking when the unit, order, keep rule, rating or partitions change.                             |
+| `hud`               | `HUD_END_CARD` asks the host to show the player's place after each score.                                                   |
+
+| Keep          | Keeps                                              |
+| ------------- | -------------------------------------------------- |
+| `KEEP_BEST`   | The best value by the board's order.               |
+| `KEEP_SUM`    | The sum of the values.                             |
+| `KEEP_COUNT`  | How many scores the player reported.               |
+| `KEEP_LATEST` | The latest value.                                  |
+| `KEEP_RATING` | A rating each `reportMatch` moves from the places. |
+
+A score names a value for each partition and an optional `key` for its run, so a
+resent score counts once, and a `tiebreak` that ranks equal values lower first.
+The host's scores service ranks them; it decides who may report and how far it
+trusts each server. Without a host service that keeps scores, `modlock dev`
+checks each score against its board and logs it, and the mod logs a score the
+host does not take.
 
 ### The built manifest
 

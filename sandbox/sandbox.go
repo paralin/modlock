@@ -460,6 +460,9 @@ func (s *Sandbox) answer(build *Build, call *wasm.Call) *wasm.Reply {
 	case "CallService":
 		request := &wasm.ServiceCall{}
 		_ = request.UnmarshalVT(call.GetRequest())
+		if request.GetService() == scoresService {
+			return s.scores(manifest, request)
+		}
 		return &wasm.Reply{Error: "this host provides no service " + request.GetService()}
 	}
 

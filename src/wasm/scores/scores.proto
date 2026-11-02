@@ -1,0 +1,290 @@
+syntax = "proto3";
+
+package modlock.wasm.scores;
+
+option go_package = "github.com/paralin/modlock/src/wasm/scores;scores";
+
+// Board is one ranking a mod declares in its manifest, such as the fastest
+// clear of each course. A host that serves the scores service keeps one
+// standing per player in each partition and window the board declares.
+message Board {
+  // Unit is what a board's values measure, so a surface can show them.
+  enum Unit {
+    // UNIT_UNKNOWN is an unset or unsupported unit.
+    UNIT_UNKNOWN = 0;
+
+    // UNIT_NUMBER is a plain number, such as points or a level.
+    UNIT_NUMBER = 1;
+
+    // UNIT_MILLISECONDS is a duration in milliseconds.
+    UNIT_MILLISECONDS = 2;
+  }
+
+  // Order is which values rank first.
+  enum Order {
+    // ORDER_UNKNOWN is an unset or unsupported order.
+    ORDER_UNKNOWN = 0;
+
+    // ORDER_DESCENDING ranks the highest value first, as for points.
+    ORDER_DESCENDING = 1;
+
+    // ORDER_ASCENDING ranks the lowest value first, as for a time.
+    ORDER_ASCENDING = 2;
+  }
+
+  // Keep is what a standing keeps of a player's scores.
+  enum Keep {
+    // KEEP_UNKNOWN is an unset or unsupported rule.
+    KEEP_UNKNOWN = 0;
+
+    // KEEP_BEST keeps the best value by the board's order.
+    KEEP_BEST = 1;
+
+    // KEEP_SUM adds the values.
+    KEEP_SUM = 2;
+
+    // KEEP_COUNT counts the scores.
+    KEEP_COUNT = 3;
+
+    // KEEP_LATEST keeps the value of the latest score.
+    KEEP_LATEST = 4;
+
+    // KEEP_RATING keeps a rating moved by each match the board's rating
+    // rates; the board takes matches, not scores.
+    KEEP_RATING = 5;
+  }
+
+  // Rating is how a rating board moves its players from a match's places.
+  enum Rating {
+    // RATING_UNKNOWN is an unset or unsupported rating.
+    RATING_UNKNOWN = 0;
+
+    // RATING_ELO rates each pair of players in a match by Elo.
+    RATING_ELO = 1;
+
+    // RATING_GLICKO2 rates by Glicko-2, which keeps a deviation that marks
+    // a new player's rating as provisional and settles it faster.
+    RATING_GLICKO2 = 2;
+  }
+
+  // Name names the board in the mod's code: up to 64 letters, digits,
+  // underscores and dots, starting with a letter or an underscore.
+  string name = 1;
+
+  // Label is the board's title on screen, such as "Fastest clear".
+  string label = 2;
+
+  Unit unit = 3;
+
+  Order order = 4;
+
+  Keep keep = 5;
+
+  // Rating is how a KEEP_RATING board rates; other boards leave it unset.
+  Rating rating = 6;
+
+  // Partitions split the board into separate rankings, such as one per
+  // course. Every score names a value for each.
+  repeated Partition partitions = 7;
+
+  // Windows are the time ranges a standing is kept for. Empty keeps all
+  // time alone.
+  repeated Window windows = 8;
+
+  // Tier is the least trusted host whose scores rank. Unset ranks every
+  // host's.
+  Tier tier = 9;
+
+  // Lowest is the lowest plausible value. A host holds a score below it
+  // for review rather than ranking it.
+  optional int64 lowest = 10;
+
+  // Highest is the highest plausible value. A host holds a score above it
+  // for review rather than ranking it.
+  optional int64 highest = 11;
+
+  // Version starts a fresh ranking when raised; each version keeps its own
+  // standings. Raise it when the unit, order, keep rule, rating or
+  // partitions change, since the old standings no longer compare.
+  uint32 version = 12;
+
+  // Hud asks the host to draw the board on the player's HUD.
+  Hud hud = 13;
+}
+
+// Partition is one dimension a board splits its rankings by.
+message Partition {
+  // Name names the dimension: up to 32 letters, digits, underscores and
+  // dots, starting with a letter or an underscore.
+  string name = 1;
+
+  // Values are the values a score may name: letters, digits, dots,
+  // underscores and hyphens. Empty accepts any such value.
+  repeated string values = 2;
+}
+
+// Window is a time range a board keeps standings for. Windows follow UTC.
+enum Window {
+  // WINDOW_UNKNOWN is an unset or unsupported window.
+  WINDOW_UNKNOWN = 0;
+
+  // WINDOW_ALL_TIME keeps every score.
+  WINDOW_ALL_TIME = 1;
+
+  // WINDOW_DAY keeps the scores of one UTC day.
+  WINDOW_DAY = 2;
+
+  // WINDOW_WEEK keeps the scores of one week from Monday 00:00 UTC.
+  WINDOW_WEEK = 3;
+}
+
+// Tier is how far a host trusts the server a score came from, from least to
+// most trusted.
+enum Tier {
+  // TIER_UNKNOWN is an unset tier; as a board's minimum it ranks every host.
+  TIER_UNKNOWN = 0;
+
+  // TIER_HOSTED is a server a player runs on their own PC.
+  TIER_HOSTED = 1;
+
+  // TIER_ADMITTED is a player's own PC that the backend admitted to run this
+  // release for this run.
+  TIER_ADMITTED = 2;
+
+  // TIER_DEDICATED is a dedicated server the backend runs.
+  TIER_DEDICATED = 3;
+}
+
+// Hud is how the host draws a board on the player's HUD.
+enum Hud {
+  // HUD_UNKNOWN draws nothing; the mod draws its own.
+  HUD_UNKNOWN = 0;
+
+  // HUD_END_CARD shows the player's place after each score, such as "New
+  // best, 38th this week".
+  HUD_END_CARD = 1;
+}
+
+// ScoreReport reports one score for one player, the request of the scores
+// service's Report method.
+message ScoreReport {
+  // Board names a board the manifest declares.
+  string board = 1;
+
+  // Player is the player's server slot.
+  int32 player = 2;
+
+  // Value is the score in the board's unit.
+  int64 value = 3;
+
+  // Tiebreak ranks equal values, lower first, such as fewer deaths. Report
+  // a negated value to rank a higher one first. Equal tiebreaks rank the
+  // earlier score first.
+  int64 tiebreak = 4;
+
+  // Partition names a value for each of the board's partitions.
+  map<string, string> partition = 5;
+
+  // Key identifies the run the score came from, so a resent report counts
+  // once. Empty lets the host make one.
+  string key = 6;
+
+  // EarnedAtUnixMillis is when the player earned the score; zero takes the
+  // host's clock. It decides the windows the score falls in.
+  int64 earned_at_unix_millis = 7;
+
+  // Evidence names what shows the run, such as a recording, for a host
+  // that keeps it.
+  string evidence = 8;
+}
+
+// MatchReport reports one match's places on a rating or match board, the
+// request of the scores service's Match method.
+message MatchReport {
+  // Board names a board the manifest declares.
+  string board = 1;
+
+  // Places are the players' finishing places.
+  repeated Place places = 2;
+
+  // Partition names a value for each of the board's partitions.
+  map<string, string> partition = 3;
+
+  // Key identifies the match, so a resent report counts once.
+  string key = 4;
+
+  // EarnedAtUnixMillis is when the match ended; zero takes the host's clock.
+  int64 earned_at_unix_millis = 5;
+
+  // Evidence names what shows the match, such as a recording.
+  string evidence = 6;
+}
+
+// Place is one player's finishing place in a match.
+message Place {
+  // Player is the player's server slot.
+  int32 player = 1;
+
+  // Place is 1 for the winner. Players who tie, such as one team's members,
+  // share a place.
+  uint32 place = 2;
+
+  // Value is the player's score in the match, for a board that keeps one.
+  int64 value = 3;
+}
+
+// BoardQuery reads a page of one board, the request of the scores service's
+// Read method.
+message BoardQuery {
+  // Board names a board the manifest declares.
+  string board = 1;
+
+  // Partition names a value for each of the board's partitions.
+  map<string, string> partition = 2;
+
+  // Window is one of the board's windows; unset reads all time.
+  Window window = 3;
+
+  // Offset skips that many rows from the top.
+  uint32 offset = 4;
+
+  // Limit bounds the rows; zero reads ten.
+  uint32 limit = 5;
+
+  // Player asks for this player's own row too, by server slot.
+  optional int32 player = 6;
+}
+
+// BoardPage is a page of one board, the response of the Read method.
+message BoardPage {
+  // Rows are the standings in rank order.
+  repeated Standing rows = 1;
+
+  // Player is the asked player's row, when they hold a standing.
+  Standing player = 2;
+
+  // Loading is set while the host has not read the board yet; reading again
+  // on a later frame returns it.
+  bool loading = 3;
+}
+
+// Standing is one player's place on one board, partition and window.
+message Standing {
+  // Rank is 1 for the top row.
+  uint32 rank = 1;
+
+  // SteamId is the player's SteamID64.
+  uint64 steam_id = 2;
+
+  // Name is the player's name as the host shows it.
+  string name = 3;
+
+  // Value is the kept value in the board's unit.
+  int64 value = 4;
+
+  // Tiebreak is the kept score's tiebreak.
+  int64 tiebreak = 5;
+
+  // Count is how many scores the standing kept.
+  uint32 count = 6;
+}

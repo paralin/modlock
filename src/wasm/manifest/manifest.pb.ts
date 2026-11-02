@@ -4,6 +4,7 @@
 
 import { Setting } from '../settings/settings.pb.js'
 import { Metric } from '../metrics/metrics.pb.js'
+import { Board } from '../scores/scores.pb.js'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType, newMap } from '@aptre/protobuf-es-lite/message'
 import type {
@@ -85,6 +86,11 @@ export interface Manifest {
    * without it ships the addon <slug>-<version>.
    */
   contentAddon?: string
+  /**
+   * Boards are the rankings the mod reports scores to through the host's
+   * scores service.
+   */
+  boards?: Board[]
 }
 
 export const Manifest: MessageType<Manifest> =
@@ -104,6 +110,7 @@ export const Manifest: MessageType<Manifest> =
       [11, 'metrics', 11, 1, Metric.codec],
       [12, 'free_for_all', 8],
       [13, 'content_addon', 9],
+      [14, 'boards', 11, 1, Board.codec],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Manifest): Manifest => {
@@ -151,6 +158,9 @@ export const Manifest: MessageType<Manifest> =
               break
             case 13:
               m.contentAddon = r.string()
+              break
+            case 14:
+              ;(m.boards ??= []).push(Board.decode(r, r.delimited(), {}))
               break
             default:
               r.skip(t)
@@ -210,6 +220,10 @@ export const Manifest: MessageType<Manifest> =
         {
           const v = m.contentAddon
           if (v) w.uint32(106).string(v)
+        }
+        {
+          const a = m.boards
+          if (a != null) for (const e of a) Board.writeField(w, 14, e)
         }
       },
     },
