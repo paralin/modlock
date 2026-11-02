@@ -138,7 +138,7 @@ export {
   type BoardPage,
   type BoardRead,
   type BoardRow,
-  BoardWindow,
+  type BoardWindow,
   type MatchPlace,
   readBoard,
   reportMatch,

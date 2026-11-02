@@ -6,6 +6,7 @@
     "lib": ["es2023"],
     "types": [],
     "strict": true,
+    "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "declaration": true,
     "emitDeclarationOnly": true,
