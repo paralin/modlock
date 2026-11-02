@@ -2089,8 +2089,11 @@ type Change struct {
 	// Removed holds the ids of the nodes to drop.
 	Removed []string `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
 	// Generation identifies the lifetime of the UI tree. Screen relays set it
-	// so a reset survives coalescing with the next redraw. Zero leaves the
-	// current generation unchanged.
+	// so a reset survives coalescing with the next redraw. Zero keeps the
+	// current generation, except an empty reset starts the next lifetime.
+	// Raw native events have this field cleared before the screen owner
+	// handles them; a mod cannot select its lifetime. Peer snapshots and
+	// deltas carry the screen owner's nonzero generation unchanged.
 	Generation uint64 `protobuf:"varint,4,opt,name=generation,proto3" json:"generation,omitempty"`
 }
 

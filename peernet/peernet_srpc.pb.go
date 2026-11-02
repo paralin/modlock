@@ -322,9 +322,9 @@ type SRPCSessionClient interface {
 	// SRPCClient returns the underlying SRPC client.
 	SRPCClient() srpc.Client
 
-	// Watch streams what the guest sees: what the mods show them, the whole
-	// screen first and then only what changed, and each chat line said from
-	// the call on.
+	// Watch streams what the guest sees: whether they are in the server, what
+	// the mods show them, the whole screen first and then only what changed,
+	// and each chat line said from the call on.
 	Watch(ctx context.Context, in *WatchRequest) (SRPCSession_WatchClient, error)
 	// Content streams the content addons of the hosted mods, which the guest
 	// mounts before its game starts so it draws the mods' models, materials,
@@ -417,9 +417,9 @@ func (x *srpcSession_ContentClient) RecvTo(m *ContentPart) error {
 }
 
 type SRPCSessionServer interface {
-	// Watch streams what the guest sees: what the mods show them, the whole
-	// screen first and then only what changed, and each chat line said from
-	// the call on.
+	// Watch streams what the guest sees: whether they are in the server, what
+	// the mods show them, the whole screen first and then only what changed,
+	// and each chat line said from the call on.
 	Watch(*WatchRequest, SRPCSession_WatchStream) error
 	// Content streams the content addons of the hosted mods, which the guest
 	// mounts before its game starts so it draws the mods' models, materials,

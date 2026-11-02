@@ -94,6 +94,26 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	}
 	now = reloaded
 
+	// A new owner starts another lifetime even with the same mod and nodes.
+	restarted := NewScreens(0)
+	restarted.Handle(joined(0, guest))
+	restarted.Handle(shown(0, "arena", "Go"))
+	fresh, _, _ := restarted.Player(guest)
+	if !Changes(sent, fresh)["arena"].GetReset_() {
+		t.Fatal("the restarted owner reused its initial lifetime")
+	}
+	changes = Changes(now, fresh)
+	if !changes["arena"].GetReset_() || changes["arena"].GetGeneration() == now.GetTrees()[0].GetGeneration() {
+		t.Fatalf("the restarted owner reused its lifetime: %v", changes)
+	}
+
+	// Mirroring the new owner preserves its stamp through the next relay.
+	mirror.Apply(changes, false)
+	if screen, _ := mirror.Screen(); !screen.EqualVT(fresh) {
+		t.Fatalf("the restarted screen differs: %v", screen)
+	}
+	now = fresh
+
 	// A tree the mod hides is cleared on the mirror, and a player who
 	// leaves has an empty screen.
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: "arena", Change: &ui.Change{Reset_: true}}}})

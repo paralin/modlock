@@ -743,8 +743,11 @@ message Change {
   repeated string removed = 3;
 
   // Generation identifies the lifetime of the UI tree. Screen relays set it
-  // so a reset survives coalescing with the next redraw. Zero leaves the
-  // current generation unchanged.
+  // so a reset survives coalescing with the next redraw. Zero keeps the
+  // current generation, except an empty reset starts the next lifetime.
+  // Raw native events have this field cleared before the screen owner
+  // handles them; a mod cannot select its lifetime. Peer snapshots and
+  // deltas carry the screen owner's nonzero generation unchanged.
   uint64 generation = 4;
 }
 
