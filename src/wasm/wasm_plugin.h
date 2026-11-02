@@ -155,6 +155,9 @@ class WasmPlugin final : public Plugin {
   // Instantiate loads module, answering its host calls through this plugin.
   std::expected<std::unique_ptr<wasm::Instance>, std::string> Instantiate(
       std::span<const uint8_t> module);
+  // OpenTrace opens the trace of a build about to load when the server asks
+  // for traces, or returns null.
+  std::unique_ptr<wasm::TraceWriter> OpenTrace();
 
   // Attach takes the first loaded instance and the build it runs.
   void Attach(std::unique_ptr<wasm::Instance> instance, Build build) {

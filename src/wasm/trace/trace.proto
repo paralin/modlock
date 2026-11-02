@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package modlock.wasm.trace;
+
+option go_package = "github.com/paralin/modlock/src/wasm/trace;trace";
+
+import "github.com/paralin/modlock/src/wasm/wasm.proto";
+
+// Record is one entry of a mod's trace, the inputs the host gave one running
+// build: an event it delivered, or a host call the mod made and the reply it
+// got. A trace file holds records one after another, each after its length as
+// a varint. The host calls after an event were made while the mod handled
+// it; those before the first event were made while the module initialized.
+message Record {
+  oneof entry {
+    // Event is an event the host delivered.
+    Event event = 1;
+
+    // Call is a host call the mod made.
+    HostCall call = 2;
+  }
+}
+
+// Event is one event the host delivered to the mod.
+message Event {
+  // Call is the event as the mod's modlock_event read it.
+  modlock.wasm.Call call = 1;
+
+  // UnixNanos is the host's wall clock, in nanoseconds since 1970, when it
+  // delivered the event.
+  int64 unix_nanos = 2;
+}
+
+// HostCall is one host call and the host's reply.
+message HostCall {
+  // Call is the call the mod made.
+  modlock.wasm.Call call = 1;
+
+  // Reply is the host's answer.
+  modlock.wasm.Reply reply = 2;
+}

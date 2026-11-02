@@ -14,6 +14,7 @@
 #include "src/wasm/wasm.pb.h"
 #include "wasm/runtime.h"
 #include "wasm/stack_samples.h"
+#include "wasm/trace_writer.h"
 
 namespace modlock::wasm {
 
@@ -69,10 +70,12 @@ class Instance {
   // Load compiles module in runtime, or reuses its compiled copy,
   // instantiates it and runs its _initialize export within
   // limits.start_budget. host_call answers the mod's calls for the instance
-  // lifetime, starting during initialization. runtime must outlive the
-  // instance.
+  // lifetime, starting during initialization. trace, when given, records
+  // each host call and delivered event from initialization on. runtime must
+  // outlive the instance.
   [[nodiscard]] static std::expected<std::unique_ptr<Instance>, std::string> Load(
-      Runtime& runtime, std::span<const uint8_t> module, const Limits& limits, HostCall host_call);
+      Runtime& runtime, std::span<const uint8_t> module, const Limits& limits, HostCall host_call,
+      std::unique_ptr<TraceWriter> trace = nullptr);
 
   // Deliver hands call to the mod and returns its reply, within
   // limits.start_budget for the Start event and limits.event_budget for any
@@ -97,7 +100,8 @@ class Instance {
   [[nodiscard]] profile::SlowFrame Describe() const;
 
  private:
-  Instance(Runtime& runtime, const Limits& limits, HostCall host_call);
+  Instance(Runtime& runtime, const Limits& limits, HostCall host_call,
+           std::unique_ptr<TraceWriter> trace);
 
   std::expected<void, std::string> Instantiate(std::span<const uint8_t> module);
   std::expected<void, std::string> DefineImports(wasmtime::Linker& linker);
@@ -153,6 +157,8 @@ class Instance {
   std::shared_ptr<const wasmtime::Module> module_;
   Limits limits_;
   HostCall host_call_;
+  // trace_ records the instance's inputs, or is null.
+  std::unique_ptr<TraceWriter> trace_;
   // store_ owns the instance, its memory and its WASI state.
   wasmtime::Store store_;
   std::optional<wasmtime::Memory> memory_;

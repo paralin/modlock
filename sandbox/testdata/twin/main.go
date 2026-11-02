@@ -27,10 +27,12 @@ func init() {
 		}
 	})
 
-	// Log the draw, the time and the dagger every thirtieth frame.
+	// Log the dagger, the entity's name, the draw and the time every
+	// thirtieth frame.
 	mod.OnFrame(func(f *mod.FrameEvent) {
 		if f.Tick%30 == 0 {
-			mod.Log("dagger", dagger, rand.IntN(1000), time.Now().UnixMilli())
+			name, _ := mod.EntityName(7)
+			mod.Log("dagger", dagger, name, rand.IntN(1000), time.Now().UnixMilli())
 		}
 	})
 }

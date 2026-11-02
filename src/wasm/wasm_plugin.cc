@@ -3,6 +3,8 @@
 #include "wasm/wasm_plugin.h"
 
 #include <chrono>
+#include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <iostream>
 #include <memory>
@@ -56,6 +58,13 @@ constexpr auto kWarnPeriod = std::chrono::minutes(1);
 constexpr auto kCallsPeriod = std::chrono::minutes(1);
 constexpr auto kOfferWindow = std::chrono::minutes(5);
 
+// kTraceDirVariable names the environment variable that turns on tracing:
+// when it names a directory, each build a mod loads records its inputs there
+// as <slug>-<unix milliseconds>.trace, at most kTraceBytes of them, for a twin to
+// replay. Tracing is for test and playtest servers; it is off by default.
+constexpr const char* kTraceDirVariable = "MODLOCK_TRACE_DIR";
+constexpr uint64_t kTraceBytes = uint64_t{256} << 20;
+
 // kDepartWait bounds how long a new instance waits for the bots its
 // predecessor removed to leave.
 constexpr auto kDepartWait = std::chrono::seconds(5);
@@ -95,8 +104,29 @@ std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instanti
     std::span<const uint8_t> module) {
   wasm::Limits limits;
   limits.sample_after = kFrameAllowance;
-  return wasm::Instance::Load(host_.runtime, module, limits,
-                              [this](const wasm::Call& call) { return Call(call); });
+  return wasm::Instance::Load(
+      host_.runtime, module, limits, [this](const wasm::Call& call) { return Call(call); },
+      OpenTrace());
+}
+
+std::unique_ptr<wasm::TraceWriter> WasmPlugin::OpenTrace() {
+  // Trace only when the server asks; a trace that cannot open leaves the mod
+  // running untraced.
+  const char* dir = std::getenv(kTraceDirVariable);
+  if (dir == nullptr || dir[0] == '\0') {
+    return nullptr;
+  }
+  const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+                          std::chrono::system_clock::now().time_since_epoch())
+                          .count();
+  const auto path = std::filesystem::path(dir) / std::format("{}-{}.trace", slug_, millis);
+  auto trace = wasm::TraceWriter::Open(path, kTraceBytes);
+  if (!trace) {
+    Log("not tracing: " + trace.error());
+    return nullptr;
+  }
+  Log("tracing to " + path.string());
+  return std::move(*trace);
 }
 
 bool WasmPlugin::Start() {

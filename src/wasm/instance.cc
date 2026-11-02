@@ -66,10 +66,12 @@ std::optional<std::span<uint8_t>> CallerBytes(wasmtime::Caller& caller, uint32_t
 
 }  // namespace
 
-Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
+Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call,
+                   std::unique_ptr<TraceWriter> trace)
     : runtime_(runtime),
       limits_(limits),
       host_call_(std::move(host_call)),
+      trace_(std::move(trace)),
       store_(runtime.Engine()) {
   store_.limiter(limits_.memory_bytes, -1, -1, -1, -1);
 
@@ -93,8 +95,10 @@ Instance::Instance(Runtime& runtime, const Limits& limits, HostCall host_call)
 Instance::~Instance() = default;
 
 std::expected<std::unique_ptr<Instance>, std::string> Instance::Load(
-    Runtime& runtime, std::span<const uint8_t> module, const Limits& limits, HostCall host_call) {
-  std::unique_ptr<Instance> instance(new Instance(runtime, limits, std::move(host_call)));
+    Runtime& runtime, std::span<const uint8_t> module, const Limits& limits, HostCall host_call,
+    std::unique_ptr<TraceWriter> trace) {
+  std::unique_ptr<Instance> instance(
+      new Instance(runtime, limits, std::move(host_call), std::move(trace)));
   if (auto instantiated = instance->Instantiate(module); !instantiated) {
     return std::unexpected(instantiated.error());
   }
@@ -214,6 +218,9 @@ std::expected<Reply, std::string> Instance::Deliver(const Call& call) {
   }
 
   // Pass the call, timing the mod within its budget.
+  if (trace_) {
+    trace_->Event(call, std::chrono::system_clock::now());
+  }
   call.SerializeToString(&pending_);
   SetBudget(call.method(), call.method() == "Start" ? limits_.start_budget : limits_.event_budget);
   busy_ = true;
@@ -260,9 +267,13 @@ wasmtime::Result<uint32_t, wasmtime::Trap> Instance::HostCallImport(wasmtime::Ca
   // return. The report times each call on the steady clock instead, since
   // Wine answers thread time in 10 ms steps that round most calls to 0 or 10.
   const auto entered = std::chrono::steady_clock::now();
-  host_call_(call).SerializeToString(&pending_);
+  const Reply reply = host_call_(call);
   const auto spent = std::chrono::duration_cast<std::chrono::nanoseconds>(
       std::chrono::steady_clock::now() - entered);
+  if (trace_) {
+    trace_->HostCall(call, reply);
+  }
+  reply.SerializeToString(&pending_);
   budget_.host += spent;
   if (spent > budget_.slowest_time) {
     budget_.slowest = call.method();

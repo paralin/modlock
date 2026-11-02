@@ -187,6 +187,7 @@ add_library(modlock_sdk SHARED
   src/render/world_effect_game_factory.cc
   src/render/world_text_game_factory.cc
   src/wasm/instance.cc
+  src/wasm/trace_writer.cc
   src/wasm/stack_samples.cc
   src/wasm/runtime.cc
   src/wasm/definition_changes.cc
@@ -644,7 +645,7 @@ if(BUILD_TESTING)
     DEPENDS ${hello_go_sources} go.mod)
   add_custom_target(hello_go_wasm DEPENDS ${hello_go_wasm})
   add_executable(wasm_instance_test tests/wasm_instance_test.cc src/wasm/instance.cc
-    src/wasm/stack_samples.cc src/wasm/runtime.cc)
+    src/wasm/trace_writer.cc src/wasm/stack_samples.cc src/wasm/runtime.cc)
   add_dependencies(wasm_instance_test hello_go_wasm luau_runtime python_runtime quickjs_runtime)
   target_include_directories(wasm_instance_test PRIVATE src)
   target_compile_definitions(wasm_instance_test PRIVATE HELLO_GO_WASM="${hello_go_wasm}"

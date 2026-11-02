@@ -1,8 +1,10 @@
 // Contract tests for the WebAssembly mod sandbox: the Go, Luau and Python
-// example mods answer events through the protobuf boundary, and a trap, a
+// example mods answer events through the protobuf boundary, a trace records
+// the session's inputs in order, and a trap, a
 // runaway loop, an oversized memory or a bad boundary call stops only that
 // mod. Mods share compiled modules through the runtime.
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -25,10 +27,12 @@ using modlock::wasm::Reply;
 using modlock::wasm::Runtime;
 using modlock::wasm::StartEvent;
 using modlock::wasm::StartResult;
+using modlock::wasm::TraceWriter;
 using modlock::wasm::effects::ChatRequest;
 using modlock::wasm::fields::FieldResponse;
 using modlock::wasm::fields::ReadFieldRequest;
 using modlock::wasm::fields::WriteFieldRequest;
+using modlock::wasm::trace::Record;
 
 // ReadFile returns the bytes of a built module.
 std::vector<uint8_t> ReadFile(const char* path) {
@@ -143,11 +147,42 @@ Message Parse(const std::string& bytes) {
   return message;
 }
 
+// ReadTrace returns the method of each record in the trace at path, with
+// "call " before a host call's, and stops at the first record that does not
+// read.
+std::vector<std::string> ReadTrace(const std::filesystem::path& path) {
+  const auto bytes = ReadFile(path.string().c_str());
+  std::vector<std::string> methods;
+  for (size_t at = 0; at < bytes.size();) {
+    // Read the varint length, then the record.
+    uint64_t size = 0;
+    for (int shift = 0; at < bytes.size(); shift += 7) {
+      size |= uint64_t{bytes[at] & 0x7fu} << shift;
+      if ((bytes[at++] & 0x80) == 0) {
+        break;
+      }
+    }
+    Record record;
+    if (at + size > bytes.size() ||
+        !record.ParseFromArray(bytes.data() + at, static_cast<int>(size))) {
+      break;
+    }
+    at += size;
+    methods.push_back(record.has_event() ? record.event().call().method()
+                                         : "call " + record.call().call().method());
+  }
+  return methods;
+}
+
 TEST(WasmInstance, GoModAnswersEvents) {
-  // Load the Go example.
+  // Load the Go example, tracing its session.
   Runtime runtime;
   Recorder recorder;
-  auto instance = Instance::Load(runtime, ReadFile(HELLO_GO_WASM), Limits{}, recorder.Answer());
+  const auto trace_path = std::filesystem::path(testing::TempDir()) / "go-mod.trace";
+  auto trace = TraceWriter::Open(trace_path, uint64_t{1} << 20);
+  ASSERT_TRUE(trace) << trace.error();
+  auto instance = Instance::Load(runtime, ReadFile(HELLO_GO_WASM), Limits{}, recorder.Answer(),
+                                 std::move(*trace));
   ASSERT_TRUE(instance) << instance.error();
 
   // Start asks for frames because the mod registered a frame handler.
@@ -185,6 +220,20 @@ TEST(WasmInstance, GoModAnswersEvents) {
   EXPECT_EQ(chat.text(), "Hello from Go!");
   EXPECT_EQ(recorder.calls[1].method(), "Log");
   EXPECT_EQ(Parse<LogRequest>(recorder.calls[1].request()).message(), "first frame at tick 7");
+
+  // The trace holds each event, and each host call after the event that made
+  // it.
+  instance->reset();
+  EXPECT_EQ(ReadTrace(trace_path), (std::vector<std::string>{"Start", "Command", "Command", "Frame",
+                                                             "call Chat", "call Log", "Frame"}));
+
+  // A trace that reaches its limit keeps only the records before it.
+  auto small = TraceWriter::Open(trace_path, 30);
+  ASSERT_TRUE(small) << small.error();
+  (*small)->Event(Event("Start", StartEvent{}), std::chrono::system_clock::now());
+  (*small)->Event(Command(3, "hello"), std::chrono::system_clock::now());
+  small->reset();
+  EXPECT_EQ(ReadTrace(trace_path), (std::vector<std::string>{"Start"}));
 }
 
 TEST(WasmInstance, LuauModAnswersEvents) {

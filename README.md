@@ -767,6 +767,14 @@ which a mod sends a group of console variables does not change the game. The
 check builds the QuickJS runtime with the zig that scriptc uses, once per
 version.
 
+The same check replays real sessions. A game server started with
+`MODLOCK_TRACE_DIR` set to a directory records each WebAssembly mod it runs to
+`<slug>-<unix milliseconds>.trace` there: every event with the time it arrived
+and every host call with the reply it got, up to 256 MiB a session. Copy a
+trace into the project's `traces/` directory and each release build replays it
+to both builds, answering each call with the recorded reply. `modlock publish`
+does not ship `traces/`.
+
 A failed call logs why and returns `false` or `undefined`; it never stops the
 mod. Everything a mod places leaves with the world. Stopping or reloading the
 mod removes it and releases frozen heroes, modifier states and input.
