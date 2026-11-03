@@ -10,7 +10,7 @@ import {
   inputCommand,
   layoutDataChanged,
 } from './draw.js'
-import { Hud, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
+import { Cursor, Hud, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -835,13 +835,39 @@ test('eases panels in, cycles them and eases them out', () => {
   expect(label.deleteSeconds).toBe(-1)
 })
 
-test('reads the cursor a root frees and the times the mod asked for it', () => {
+test('frees the cursor a root asks for and hands the keyboard back when it captures it', () => {
   expect(cursorFreed(null)).toBe(false)
   expect(cursorAsks(null)).toBe(0)
   const asking = screen({ id: '', freeCursor: true, freeCursorAsks: 2 })
   expect(cursorFreed(asking)).toBe(true)
   expect(cursorAsks(asking)).toBe(2)
   expect(cursorAsks(screen({ id: '' }))).toBe(0)
+
+  // The cursor starts captured, so a screen that frees nothing sends nothing.
+  const sent: unknown[][] = []
+  const hud = new FakePanel('CitadelHud', 'Hud')
+  const cursor = new Cursor((...event) => sent.push(event), hud)
+  cursor.set(false, 0)
+  expect(sent).toEqual([])
+
+  // A root that frees the cursor frees it once, and again when its mod asks
+  // again after the player put it away.
+  cursor.set(true, 1)
+  cursor.set(true, 1)
+  cursor.set(true, 2)
+  expect(sent).toEqual([
+    ['CitadelConCommand', 'hud_free_cursor 1'],
+    ['CitadelConCommand', 'hud_free_cursor 1'],
+  ])
+
+  // Capturing it drops the focus a clicked panel holds in the HUD before the
+  // game takes the cursor, so movement and the camera answer at once.
+  sent.length = 0
+  cursor.set(false, 0)
+  expect(sent).toEqual([
+    ['DropInputFocus', hud],
+    ['CitadelConCommand', 'hud_free_cursor 0'],
+  ])
 })
 
 test("hides the game's HUD parts while a root lists them", () => {
