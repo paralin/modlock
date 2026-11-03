@@ -58,8 +58,8 @@ const profile = `{
 `
 
 // Profile returns the scriptc profile that builds the module at entry, a path
-// relative to the profile, into one that Fit accepts. The entry declares
-// host_call and host_read and exports event.
+// relative to the profile, into one that Fit accepts. The program declares
+// host_call and host_read, and the entry exports event.
 func Profile(entry string) []byte {
 	quoted, _ := json.Marshal(entry)
 	return fmt.Appendf(nil, profile, quoted)

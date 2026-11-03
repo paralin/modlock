@@ -22,23 +22,15 @@ import (
 // project.
 const scriptcEntryDir = ".scriptc"
 
-// scriptcEntry is the build's entry. It loads the mod's main module, which
-// registers the mod's handlers, and exports the library's event dispatch,
-// since scriptc exports only functions the entry declares. The host
-// callbacks bind only in the entry, so it hands them to the library, each in
-// a closure: scriptc 0.3.4 traps on a callback passed as a bare value.
-const scriptcEntry = `import '../%s'
-import { event as dispatch } from 'modlock/scriptc'
-
-declare function host_call(data: Uint8Array): number
-declare function host_read(data: Uint8Array): void
+// scriptcEntry is the build's entry. It loads the library's scriptc module,
+// which binds the host callbacks, before the mod's main module, so the main
+// module's top level can call the host, and exports the library's event
+// dispatch, since scriptc exports only functions the entry declares.
+const scriptcEntry = `import { event as dispatch } from 'modlock/scriptc'
+import '../%s'
 
 export function event(size: number): Uint8Array {
-  return dispatch(
-    size,
-    (data) => host_call(data),
-    (data) => host_read(data),
-  )
+  return dispatch(size)
 }
 `
 
