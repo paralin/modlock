@@ -65,20 +65,25 @@ class ClientMod final : public Plugin {
 
   void Tick() override {
     if (!tuned_) {
-      tuned_ = Tune(L"client.dll", "client.dll", build_.manifest, Log);
+      tuned_ = Tune(L"client.dll", "client.dll", build_.manifest, untuned_, Log);
     }
   }
 
   void Stop() override {
     hook_.reset();
     movement_.reset();
+    Untune(L"client.dll", untuned_);
+    tuned_ = false;
   }
 
  private:
   static void Log(std::string_view text) { std::cerr << "client mod: " << text << '\n'; }
 
   Build build_;
+  // tuned_ is true once the build's definition changes are written, and
+  // untuned_ keeps the game's own values they overwrote until the mod stops.
   bool tuned_ = false;
+  wasm::DefinitionUndo untuned_;
   // hook_ runs movement_ in the client's prediction; it goes first.
   std::optional<quake::PlayerMovement> movement_;
   std::optional<gameinterop::MovementHook> hook_;

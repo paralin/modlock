@@ -24,6 +24,7 @@
 #include "wasm/attendance.h"
 #include "wasm/build.h"
 #include "wasm/call_profile.h"
+#include "wasm/definition_changes.h"
 #include "wasm/files.h"
 #include "wasm/game.h"
 #include "wasm/instance.h"
@@ -72,12 +73,16 @@ struct Mods {
   }
 };
 
-// Tune writes manifest's definition changes into the loaded game module and
-// returns whether that is done. A module whose definitions have not loaded
-// yet is tried again on a later call.
+// Tune writes manifest's definition changes into the loaded game module,
+// keeping what they overwrite in undo, and returns whether that is done. A
+// module whose definitions have not loaded yet is tried again on a later call.
 bool Tune(std::wstring_view module, const char* module_name,
-          const wasm::manifest::Manifest& manifest,
+          const wasm::manifest::Manifest& manifest, wasm::DefinitionUndo& undo,
           const std::function<void(std::string_view)>& log);
+
+// Untune writes back the game's own definition values that undo keeps, while
+// module is still loaded.
+void Untune(std::wstring_view module, wasm::DefinitionUndo& undo);
 
 // PluginGame is one mod's game with the calls that reach its plugin: its log,
 // its interface and the services the host provides.
@@ -380,10 +385,13 @@ class WasmPlugin final : public Plugin {
   std::vector<uint8_t> module_;
   std::vector<uint8_t> source_;
   // manifest_ and collision_ are the running build's; tuned_ is true once the
-  // manifest's definition changes are written in the current world.
+  // manifest's definition changes are written in the current world, and
+  // untuned_ keeps the game's own values they overwrote until the instance
+  // halts.
   wasm::manifest::Manifest manifest_;
   std::vector<uint8_t> collision_;
   bool tuned_ = false;
+  wasm::DefinitionUndo untuned_;
   // data_ is the running build's data/ directory.
   std::filesystem::path data_;
   // clock_error_ is the last reason the server clock could not be read, so

@@ -63,7 +63,7 @@ constexpr auto kDepartWait = std::chrono::seconds(5);
 }  // namespace
 
 bool Tune(std::wstring_view module, const char* module_name,
-          const wasm::manifest::Manifest& manifest,
+          const wasm::manifest::Manifest& manifest, wasm::DefinitionUndo& undo,
           const std::function<void(std::string_view)>& log) {
   // A manifest without definition changes needs no tuning.
   if (manifest.definitions().empty()) {
@@ -79,7 +79,8 @@ bool Tune(std::wstring_view module, const char* module_name,
 
   // Change the definitions, log each problem, and report the result once, so
   // a log shows whether the changes reached the game.
-  auto problems = wasm::ChangeDefinitions(*image, *schema, module_name, manifest.definitions());
+  auto problems =
+      wasm::ChangeDefinitions(*image, *schema, module_name, manifest.definitions(), undo);
   if (!problems) {
     return false;
   }
@@ -89,6 +90,15 @@ bool Tune(std::wstring_view module, const char* module_name,
   log(std::format("definition changes: {} in {}, {} problems", manifest.definitions().size(),
                   module_name, problems->size()));
   return true;
+}
+
+void Untune(std::wstring_view module, wasm::DefinitionUndo& undo) {
+  // A module already unloaded took its definitions with it.
+  if (!gameinterop::MappedModuleImage::ForModule(module)) {
+    undo = {};
+    return;
+  }
+  undo.Restore();
 }
 
 std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instantiate(
@@ -131,6 +141,8 @@ bool WasmPlugin::Start() {
     Log(std::string("player commands are unavailable: ") + world.error());
   }
   if (auto ending = engine_->OnWorldEnding([this] {
+        // The world's hero definitions end with it.
+        untuned_.ForgetWorld();
         world_due_ = false;
         game_.WorldEnding();
       })) {
@@ -279,6 +291,11 @@ void WasmPlugin::Halt() {
     static_cast<void>(host_.game.StepWith(nullptr));
   }
 
+  // The game's own definitions come back, and the next instance writes its
+  // build's changes again.
+  Untune(L"server.dll", untuned_);
+  tuned_ = false;
+
   // Drop the movement, the subscriptions and the game state.
   movement_.reset();
   hero_slots_.clear();
@@ -426,8 +443,8 @@ bool WasmPlugin::GameOpen() const {
 void WasmPlugin::Play() {
   // Change the server's definitions once per world.
   if (!tuned_) {
-    tuned_ =
-        Tune(L"server.dll", "server.dll", manifest_, [this](std::string_view text) { Log(text); });
+    tuned_ = Tune(L"server.dll", "server.dll", manifest_, untuned_,
+                  [this](std::string_view text) { Log(text); });
   }
 
   // Run the game's frame work.

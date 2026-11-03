@@ -2,6 +2,7 @@
 
 #include "wasm/definition_changes.h"
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <map>
@@ -51,7 +52,8 @@ bool ForEachMapNode(unsigned char* map, size_t element_size, Visit visit) {
 // the cache the game reads property values through. The schema supplies the
 // property record's size, which follows each node's key pointer.
 void SetProperties(unsigned char* definition, void* schema, const char* module,
-                   std::map<std::string, float> values, std::vector<std::string>& problems) {
+                   std::map<std::string, float> values, DefinitionUndo& undo,
+                   std::vector<std::string>& problems) {
   // An empty request touches nothing.
   if (values.empty()) {
     return;
@@ -79,8 +81,9 @@ void SetProperties(unsigned char* definition, void* schema, const char* module,
           return;
         }
         const std::array<float, 2> parsed{found->second, found->second};
-        std::memcpy(element + sizeof(key) + cache->offset + sizeof(void*), parsed.data(),
-                    sizeof(parsed));
+        auto* storage = element + sizeof(key) + cache->offset + sizeof(void*);
+        undo.Save(storage, sizeof(parsed), false);
+        std::memcpy(storage, parsed.data(), sizeof(parsed));
         values.erase(found);
       });
   if (!valid) {
@@ -179,12 +182,13 @@ unsigned char* Locate(unsigned char* definition, const Place& place) {
   return found;
 }
 
-// Change applies one entry's properties, fields and copies, and adds its
-// problems.
+// Change applies one entry's properties, fields and copies, keeping what
+// they overwrite in undo, and adds its problems.
 void Change(const Definition& change, unsigned char* definition, void* schema, const char* module,
-            std::vector<std::string>& problems) {
+            DefinitionUndo& undo, std::vector<std::string>& problems) {
+  const bool world = change.file() == Definition::FILE_HEROES;
   SetProperties(definition, schema, module,
-                {change.properties().begin(), change.properties().end()}, problems);
+                {change.properties().begin(), change.properties().end()}, undo, problems);
   for (const auto& [path, value] : change.fields()) {
     auto place = ResolvePath(schema, module, path);
     auto* storage = place && place->size == sizeof(value) ? Locate(definition, *place) : nullptr;
@@ -195,6 +199,7 @@ void Change(const Definition& change, unsigned char* definition, void* schema, c
                                                          : "no such map key"));
       continue;
     }
+    undo.Save(storage, sizeof(value), world);
     std::memcpy(storage, &value, sizeof(value));
   }
   for (const auto& [target, source] : change.copy_fields()) {
@@ -206,6 +211,7 @@ void Change(const Definition& change, unsigned char* definition, void* schema, c
       problems.push_back(target + ": cannot copy " + source);
       continue;
     }
+    undo.Save(to_storage, to->size, world);
     std::memmove(to_storage, from_storage, to->size);
   }
 }
@@ -299,9 +305,29 @@ class Entries {
 
 }  // namespace
 
+void DefinitionUndo::Save(unsigned char* storage, size_t size, bool world) {
+  if (std::ranges::any_of(saved_, [&](const Saved& saved) { return saved.storage == storage; })) {
+    return;
+  }
+  saved_.push_back(Saved{.storage = storage, .value = {storage, storage + size}, .world = world});
+}
+
+void DefinitionUndo::Restore() {
+  // Write back newest first, so a place saved twice through overlapping
+  // changes ends at its oldest value.
+  for (auto saved = saved_.rbegin(); saved != saved_.rend(); ++saved) {
+    std::memcpy(saved->storage, saved->value.data(), saved->value.size());
+  }
+  saved_.clear();
+}
+
+void DefinitionUndo::ForgetWorld() {
+  std::erase_if(saved_, [](const Saved& saved) { return saved.world; });
+}
+
 std::expected<std::vector<std::string>, std::string> ChangeDefinitions(
     const gameinterop::ModuleImage& module, void* schema, const char* module_name,
-    const google::protobuf::RepeatedPtrField<Definition>& definitions) {
+    const google::protobuf::RepeatedPtrField<Definition>& definitions, DefinitionUndo& undo) {
   // Find every entry first, so a module still loading its data takes no
   // partial change. An entry the module can never find is reported and
   // skipped.
@@ -325,7 +351,7 @@ std::expected<std::vector<std::string>, std::string> ChangeDefinitions(
       continue;
     }
     std::vector<std::string> own;
-    Change(definitions[index], found[index], schema, module_name, own);
+    Change(definitions[index], found[index], schema, module_name, undo, own);
     for (auto& problem : own) {
       problems.push_back(definitions[index].entry() + ": " + problem);
     }
