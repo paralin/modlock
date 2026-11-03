@@ -8,7 +8,9 @@
 // A member may carry a want: to sit on a hero and team, and to come back a
 // while after its hero falls. The mode gives one want for every member or a
 // function that reads it from the member each frame, so a want follows the
-// member's own state. Each frame Cast compares the want with what the
+// member's own state. A human whose want leaves the hero free still gets one
+// when the game leaves them on a team without a hero, as its own spawn on
+// joining can, since nothing else would ever seat them. Each frame Cast compares the want with what the
 // member's hero shows, asks the game again at most once a second while they
 // differ, and stops asking once they match. That is a reconciliation loop: a
 // lost or refused ask is only asked again, never reported as a failure.
@@ -43,8 +45,9 @@ export interface Want {
 
 /**
  * changeSeconds is how long Cast leaves a member without a hero after they
- * had one. The game's own Change Hero removes the hero before it spawns the
- * new one, and seating the member in that gap would override their pick.
+ * had one, or after they joined when their hero is free. The game's own
+ * Change Hero removes the hero before it spawns the new one, and seating the
+ * member in that gap would override their pick.
  */
 const changeSeconds = 3
 
@@ -84,6 +87,8 @@ interface Seat<M> {
   hero: number
   /** heroLostAt is when the member last went from a hero to none. */
   heroLostAt: number
+  /** joinedAt is when the member joined. */
+  joinedAt: number
   /** askedAt is when Cast last asked the game for the want. */
   askedAt: number
 }
@@ -129,7 +134,7 @@ export class Cast<M> {
    */
   frame(seconds: number): void {
     if (this.reported !== undefined) {
-      this.settle(this.reported)
+      this.settle(this.reported, seconds)
       this.reported = undefined
     }
     for (const seat of this.seats.values()) {
@@ -137,8 +142,11 @@ export class Cast<M> {
     }
   }
 
-  /** settle ends the members whose connection left and makes the new ones. */
-  private settle(players: readonly Connection[]): void {
+  /**
+   * settle ends the members whose connection left and makes the new ones,
+   * joined at now.
+   */
+  private settle(players: readonly Connection[], now: number): void {
     // A member leaves when their slot empties or a new connection takes it.
     const present = new Map(players.map((c) => [c.player.slot, c]))
     for (const [slot, seat] of this.seats) {
@@ -166,6 +174,7 @@ export class Cast<M> {
         fellAt: -Infinity,
         hero: 0,
         heroLostAt: -Infinity,
+        joinedAt: now,
         askedAt: -Infinity,
       })
     }
@@ -198,7 +207,8 @@ export class Cast<M> {
     // Ask at most once a second, first for the seat, then for the hero back.
     if (now - seat.askedAt < 1 || changing) return
     const want = this.wantOf(seat)
-    const { hero, respawn } = want
+    const { respawn } = want
+    const hero = want.hero ?? this.stranded(seat, now)
     if (hero !== undefined && !this.seated(seat, want, hero)) {
       seat.askedAt = now
       this.seat(seat, want, hero)
@@ -212,6 +222,24 @@ export class Cast<M> {
       seat.askedAt = now
       seat.connection.player.respawn()
     }
+  }
+
+  /**
+   * stranded returns 'any' for a human whose hero is free when the game has
+   * left them on a team without one for changeSeconds since they joined, and
+   * otherwise leaves the hero free. Such a pawn never gets a hero on its own,
+   * while a player still choosing one has no pawn and a spectator stands on
+   * team 1. A bot is left to the game, which seats it.
+   */
+  private stranded(seat: Seat<M>, now: number): 'any' | undefined {
+    const { pawn } = seat
+    const team = pawn?.team
+    const heroless = pawn?.hero === 0 && (team === 2 || team === 3)
+    return heroless &&
+      !seat.connection.bot &&
+      now - seat.joinedAt >= changeSeconds
+      ? 'any'
+      : undefined
   }
 
   /** wantOf is what the member in seat wants now. */

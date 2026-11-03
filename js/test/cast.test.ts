@@ -106,10 +106,11 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   // A mode keeps a member per human, each carrying its want: hero 7 for
   // team 3, back 3 seconds after a fall. It kicks bots.
   const events: string[] = []
+  let joining: Want = { hero: 7, team: 3 }
   const cast = new Cast({
     join: (c: Connection) => {
       events.push(`join ${c.name}`)
-      const want: Want = { hero: 7, team: 3 }
+      const want: Want = joining
       return { name: c.name, player: c.player, want }
     },
     leave: (member) => events.push(`leave ${member.name}`),
@@ -179,15 +180,25 @@ test('a cast keeps one member per human and gets them the hero they want', () =>
   expect(frame(19.9)).toEqual([])
   expect(frame(20)).toEqual(['SelectHero 1 6 2'])
 
-  // A reconnect is a leave and a join; a leave ends the member.
+  // A reconnect is a leave and a join. She comes back with her hero free,
+  // and the game's own spawn on joining leaves her on a team without one,
+  // which no pick will fill: Cast seats her on any hero once the change
+  // window passes.
   events.length = 0
+  joining = {}
+  heroes.set(1, { hero: 0, team: 3, health: 0 })
   report([{ ...ada, ready: true, generation: 2 }])
-  frame(30)
+  expect(frame(30)).toEqual([])
   expect(events).toEqual(['leave Ada', 'join Ada'])
   expect(cast.members()[0]!.player).not.toBe(adaPlayer)
   expect(cast.members()[0]!.player).toBe(players()[0]!.player)
+  expect(frame(32.9)).toEqual([])
+  expect(frame(33)).toEqual(['SelectHero 1 6 2'])
+  expect(frame(34)).toEqual([])
+
+  // A leave ends the member.
   report([])
-  frame(31)
+  frame(35)
   expect(events).toEqual(['leave Ada', 'join Ada', 'leave Ada'])
   expect(cast.size).toBe(0)
 })
