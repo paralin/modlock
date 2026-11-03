@@ -464,6 +464,9 @@ class WasmPlugin final : public Plugin {
   // amount the mod chose for the hit being decided, from suppression to
   // adjustment, which the engine runs back to back.
   Subscription combat_;
+  // combat_unavailable_ is true once the combat hook failed to install in this
+  // world; the next world and a new scope try again.
+  bool combat_unavailable_ = false;
   std::optional<float> adjusted_;
   // damaged_ queues applied hits and facts_ movement facts, which the engine
   // may report off the engine thread, until a frame delivers them.

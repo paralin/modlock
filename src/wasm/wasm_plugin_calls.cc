@@ -227,6 +227,7 @@ void WasmPlugin::Scope(WasmScope scope) {
   // A limited mod rules hits even when it wants none, so listen again with
   // the new scope.
   combat_.Reset();
+  combat_unavailable_ = false;
   adjusted_.reset();
   if (map_) {
     ListenToCombat();

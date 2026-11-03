@@ -117,6 +117,7 @@ bool WasmPlugin::Start() {
                                   // changes are written again.
                                   map_ = std::string(map);
                                   tuned_ = false;
+                                  combat_unavailable_ = false;
                                   host_.game.WorldReady();
                                   game_.WorldReady();
                                   ListenForRestart();

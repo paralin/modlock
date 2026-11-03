@@ -180,20 +180,21 @@ void WasmPlugin::ListenToPlayers() {
   // "/hello there" in chat arrives as "hello there", as does the console
   // command of the same line. Chat also accepts ".", "+" or "-" in place of
   // the slash, for players whose chat keeps a slash line to itself.
-  auto chats = engine_->OnChat([this](const gameinterop::NativeChatHook::Message& line) {
-    if (wants_.chat()) {
-      Chat(line);
-    }
-    const std::string_view text = line.text;
-    if (!text.empty() && std::string_view("/.+-").contains(text.front())) {
-      Command(line.slot, text.substr(1));
-    }
-  });
-  if (!chats) {
-    Log(std::string("player commands are unavailable: ") + chats.error());
-    return;
+  // Each subscription stands alone: a hook that cannot install disables its
+  // feature and leaves the others running.
+  if (auto chats = engine_->OnChat([this](const gameinterop::NativeChatHook::Message& line) {
+        if (wants_.chat()) {
+          Chat(line);
+        }
+        const std::string_view text = line.text;
+        if (!text.empty() && std::string_view("/.+-").contains(text.front())) {
+          Command(line.slot, text.substr(1));
+        }
+      })) {
+    players_.Add(std::move(*chats));
+  } else {
+    Log(std::string("chat commands are unavailable: ") + chats.error());
   }
-  players_.Add(std::move(*chats));
   if (auto commands = engine_->OnCommand(
           [this](int32_t slot, std::string_view line) { return Command(slot, line); })) {
     players_.Add(std::move(*commands));
@@ -206,12 +207,14 @@ void WasmPlugin::ListenToPlayers() {
   } else {
     Log(std::string("interfaces may outlive their players: ") + departures.error());
   }
-  std::cerr << name_ << ": player commands ready\n";
+  if (players_.Active()) {
+    std::cerr << name_ << ": player commands ready\n";
+  }
 }
 
 void WasmPlugin::ListenToCombat() {
   // Listen once, while a mod wants damage, moves players or serves some.
-  if (combat_.Active() || !instance_ ||
+  if (combat_.Active() || !instance_ || combat_unavailable_ ||
       (!wants_.damage() && !wants_.damaged() && !game_.Moving() && !scope_.Limited())) {
     return;
   }
@@ -239,6 +242,9 @@ void WasmPlugin::ListenToCombat() {
                             const gameinterop::CombatEvent& event) { Fought(event, damaged); },
                         std::move(suppress), std::move(adjust));
   if (!combat) {
+    // The hook installs from the game's code, so it fails the same way until
+    // the next world; trying again on every frame would only repeat the log.
+    combat_unavailable_ = true;
     Log(std::string("damage events are unavailable: ") + combat.error());
     return;
   }
@@ -414,6 +420,7 @@ void WasmPlugin::Unsubscribe() {
   // Drop the player and combat subscriptions.
   players_.Reset();
   combat_.Reset();
+  combat_unavailable_ = false;
   adjusted_.reset();
   sampled_.reset();
 
