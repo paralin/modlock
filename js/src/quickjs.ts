@@ -15,5 +15,14 @@ interface Bridge {
 }
 
 const bridge = (globalThis as unknown as { __modlock: Bridge }).__modlock
-bind((call) => bridge.hostCall(call))
-bridge.event = deliver
+
+/** host carries a call to the runtime's bridge. */
+const host: Transport = (call) => bridge.hostCall(call)
+
+// Each Call the host delivers binds the bridge again, as the scriptc entry
+// does, so a transport bound during one event lasts only until the next.
+bind(host)
+bridge.event = (call) => {
+  bind(host)
+  return deliver(call)
+}

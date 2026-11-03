@@ -45,16 +45,29 @@ interface PluginContext {
 }
 
 /**
- * library resolves modlock and each path under it to the built library, ahead
- * of the project's tsconfig paths, which may map modlock to the library's
- * source for the type check and scriptc.
+ * library resolves modlock and each path under it. A project that maps
+ * modlock to its own TypeScript source, as the library's suite does, bundles
+ * that source, with its QuickJS entry for modlock itself, so the project and
+ * the library share one module graph as in its scriptc build. Any other
+ * project gets the built library, ahead of tsconfig paths that may name
+ * only its types.
  */
 const library = {
   name: 'modlock-library',
-  resolveId(this: PluginContext, source: string, importer?: string) {
+  async resolveId(this: PluginContext, source: string, importer?: string) {
+    // Imports outside modlock resolve as usual.
     if (source !== 'modlock' && !source.startsWith('modlock/')) {
       return null
     }
+
+    // The project's own paths win only when they lead to TypeScript source.
+    const mapped = source === 'modlock' ? 'modlock/quickjs' : source
+    const own = await this.resolve(mapped, importer, { skipSelf: true })
+    if (own && own.id.endsWith('.ts') && !own.id.endsWith('.d.ts')) {
+      return own
+    }
+
+    // Otherwise the same path under the built library.
     const target = options.library + source.slice('modlock'.length)
     return this.resolve(target, importer, { skipSelf: true })
   },
