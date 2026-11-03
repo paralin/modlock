@@ -29,11 +29,22 @@ var twinEpoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 //
 // Each event goes to the reference first, recording its calls, then to the
 // candidate, so a Twin holds one event's calls and takes twice its time.
+//
+// The candidate loads during the first event, after the reference has run it:
+// a module's initialization runs its top level, which QuickJS runs inside
+// Start, so the calls the top level makes belong to that event's comparison.
+//
+// A line a build writes to its standard output counts as a Log call, as the
+// sandbox logs both alike: QuickJS's console makes Log calls, while a scriptc
+// module's console writes its standard output.
 type Twin struct {
 	// reference is the build whose behavior is the oracle.
 	reference *Mod
-	// candidate is the build checked against it.
+	// candidate is the build checked against it, nil until the first event
+	// loads it.
 	candidate *Mod
+	// load loads the candidate.
+	load func(context.Context) (*Mod, error)
 	// answer replies to the reference's calls.
 	answer func(*wasm.Call) *wasm.Reply
 	// now is the clock both builds read.
@@ -73,9 +84,9 @@ func (d *Divergence) Error() string {
 	return fmt.Sprintf("event %d (%s): the reference %s, the candidate %s", d.Event, d.Method, d.Reference, d.Candidate)
 }
 
-// NewTwin loads the reference and candidate modules. answer replies to the
-// reference's calls, or is nil to answer each empty, as the sandbox does;
-// cache keeps compiled modules, or is nil.
+// NewTwin loads the reference module and keeps the candidate for the first
+// event to load. answer replies to the reference's calls, or is nil to answer
+// each empty, as the sandbox does; cache keeps compiled modules, or is nil.
 func NewTwin(ctx context.Context, reference, candidate []byte, answer func(*wasm.Call) *wasm.Reply, cache wazero.CompilationCache) (*Twin, error) {
 	// Hold the clock and the replies both builds read.
 	t := &Twin{answer: answer, now: twinEpoch}
@@ -88,16 +99,15 @@ func NewTwin(ctx context.Context, reference, candidate []byte, answer func(*wasm
 	clock := func() time.Time { return t.now.Truncate(time.Millisecond) }
 	var seed [32]byte
 
-	// Load the reference, which records its calls, then the candidate.
+	// Load the reference, which records its calls; the first event loads the
+	// candidate.
 	var err error
-	t.reference, err = Load(ctx, reference, Options{Calls: t.record, Cache: cache, Clock: clock, Random: rand.NewChaCha8(seed)})
+	t.reference, err = Load(ctx, reference, Options{Calls: t.record, Output: logLines(t.record), Cache: cache, Clock: clock, Random: rand.NewChaCha8(seed)})
 	if err != nil {
 		return nil, err
 	}
-	t.candidate, err = Load(ctx, candidate, Options{Calls: t.replay, Cache: cache, Clock: clock, Random: rand.NewChaCha8(seed)})
-	if err != nil {
-		_ = t.reference.Close(ctx)
-		return nil, err
+	t.load = func(ctx context.Context) (*Mod, error) {
+		return Load(ctx, candidate, Options{Calls: t.replay, Output: logLines(t.replay), Cache: cache, Clock: clock, Random: rand.NewChaCha8(seed)})
 	}
 	return t, nil
 }
@@ -112,11 +122,21 @@ func (t *Twin) Advance(d time.Duration) {
 // *Divergence when the builds' calls, answers or failures differ, and
 // otherwise the reference's own error.
 func (t *Twin) Deliver(ctx context.Context, method string, request message, response message) error {
-	// Run the event on the reference, then on the candidate.
+	// Run the event on the reference, then on the candidate. The first event
+	// also compares the calls each build made while it loaded.
+	if t.events > 0 {
+		t.recorded, t.taken, t.made = t.recorded[:0], t.taken[:0], t.made[:0]
+	}
 	t.events++
-	t.recorded, t.taken, t.made = t.recorded[:0], t.taken[:0], t.made[:0]
 	var refAnswer, candAnswer raw
 	refErr := t.reference.Deliver(ctx, method, request, &refAnswer)
+	if t.candidate == nil {
+		candidate, err := t.load(ctx)
+		if err != nil {
+			return err
+		}
+		t.candidate = candidate
+	}
 	candErr := t.candidate.Deliver(ctx, method, request, &candAnswer)
 
 	// Compare their calls, then whether each failed, then their answers.
@@ -143,11 +163,14 @@ func (t *Twin) Deliver(ctx context.Context, method string, request message, resp
 
 // Stopped reports whether a trap or an exhausted budget stopped either build.
 func (t *Twin) Stopped() bool {
-	return t.reference.Stopped() || t.candidate.Stopped()
+	return t.reference.Stopped() || t.candidate != nil && t.candidate.Stopped()
 }
 
 // Close stops both builds.
 func (t *Twin) Close(ctx context.Context) error {
+	if t.candidate == nil {
+		return t.reference.Close(ctx)
+	}
 	return errors.Join(t.reference.Close(ctx), t.candidate.Close(ctx))
 }
 
@@ -188,6 +211,15 @@ func (t *Twin) Play(ctx context.Context, source []byte, mapName string, frames i
 // Events counts the events delivered so far.
 func (t *Twin) Events() int {
 	return t.events
+}
+
+// logLines passes each line a build writes to its standard output to calls as
+// a Log call.
+func logLines(calls func(*wasm.Call) *wasm.Reply) *lines {
+	return &lines{write: func(line string) {
+		request, _ := (&wasm.LogRequest{Message: line}).MarshalVT()
+		calls(&wasm.Call{Method: "Log", Request: request})
+	}}
 }
 
 // record answers one of the reference's calls and keeps it.

@@ -91,7 +91,9 @@ func runSuiteFile(t *testing.T, config []byte, name string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	main := "import { run } from '../../testing.js'\nimport '../../../" + name + ".test.js'\n\nrun()\n"
+	// The entry loads modlock as every mod's does, so QuickJS finds the event
+	// handler the library installs and the twin compares complete mods.
+	main := "import 'modlock'\nimport { run } from '../../testing.js'\nimport '../../../" + name + ".test.js'\n\nrun()\n"
 	for file, data := range map[string][]byte{"tsconfig.json": rebased, "mod.json": manifest, "main.ts": []byte(main)} {
 		if err := os.WriteFile(filepath.Join(dir, file), data, 0o644); err != nil {
 			t.Fatal(err)
