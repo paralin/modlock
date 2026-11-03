@@ -150,7 +150,7 @@ export function readBoard(
   const query = scoresPb.BoardQuery.toBinary({
     board,
     partition: read.partition,
-    window: read.window && windowValues[read.window],
+    window: read.window === undefined ? undefined : windowValues[read.window],
     offset: read.offset,
     limit: read.limit,
     player: read.player?.slot,

@@ -37,6 +37,27 @@ interface Problem {
 /** PluginContext is the part of a plugin hook's context this script calls. */
 interface PluginContext {
   error: (error: { message: string; id?: string }) => never
+  resolve: (
+    source: string,
+    importer?: string,
+    options?: { skipSelf?: boolean },
+  ) => Promise<{ id: string } | null>
+}
+
+/**
+ * library resolves modlock and each path under it to the built library, ahead
+ * of the project's tsconfig paths, which may map modlock to the library's
+ * source for the type check and scriptc.
+ */
+const library = {
+  name: 'modlock-library',
+  resolveId(this: PluginContext, source: string, importer?: string) {
+    if (source !== 'modlock' && !source.startsWith('modlock/')) {
+      return null
+    }
+    const target = options.library + source.slice('modlock'.length)
+    return this.resolve(target, importer, { skipSelf: true })
+  },
 }
 
 /** sheetPrefix marks the id of a style sheet import. */
@@ -109,16 +130,21 @@ try {
   const bundle = await rolldown({
     input: options.entry,
     cwd: options.dir,
+    // Resolve through the project's tsconfig paths, as its type check does,
+    // so an aliased import such as a test stand-in bundles rather than
+    // becoming an undefined global.
+    tsconfig: existsSync(resolve(options.dir, 'tsconfig.json'))
+      ? resolve(options.dir, 'tsconfig.json')
+      : false,
     platform: 'neutral',
     resolve: {
-      alias: { modlock: options.library },
       mainFields: ['module', 'main'],
     },
     transform: {
       target: 'es2023',
       jsx: { runtime: 'automatic', importSource: 'modlock' },
     },
-    plugins: [sheets],
+    plugins: [library, sheets],
     logLevel: 'silent',
   })
   const { output } = await bundle.generate({
