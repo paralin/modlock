@@ -317,6 +317,11 @@ int main(int argc, char** argv) {
     // Load each plugin, built mod or native library.
     const auto path = std::filesystem::absolute(library);
     const bool built = path.extension() == ".wasm" || std::filesystem::is_directory(path);
+    if (built && !options.launch.connect.empty()) {
+      // A mod runs on the server, so the client it serves stays the game's own.
+      std::cerr << "[modlock] " << library << " runs on the server; the client skips it\n";
+      continue;
+    }
     auto plugin = built ? mods.Load(path, context) : modlock::LoadPluginLibrary(path, context);
     if (!plugin) {
       std::cerr << plugin.error() << '\n';

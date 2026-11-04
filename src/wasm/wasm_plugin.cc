@@ -60,18 +60,18 @@ constexpr auto kOfferWindow = std::chrono::minutes(5);
 // predecessor removed to leave.
 constexpr auto kDepartWait = std::chrono::seconds(5);
 
-}  // namespace
-
-bool Tune(std::wstring_view module, const char* module_name,
-          const wasm::manifest::Manifest& manifest, wasm::DefinitionUndo& undo,
+// Tune writes manifest's definition changes into the loaded server.dll,
+// keeping what they overwrite in undo, and returns whether that is done.
+// Definitions that have not loaded yet are tried again on a later call.
+bool Tune(const wasm::manifest::Manifest& manifest, wasm::DefinitionUndo& undo,
           const std::function<void(std::string_view)>& log) {
   // A manifest without definition changes needs no tuning.
   if (manifest.definitions().empty()) {
     return true;
   }
 
-  // Wait for the module and the schema system to load.
-  auto image = gameinterop::MappedModuleImage::ForModule(module);
+  // Wait for the server and the schema system to load.
+  auto image = gameinterop::MappedModuleImage::ForModule(L"server.dll");
   auto schema = gameinterop::ResolveSchemaSystem();
   if (!image || !schema) {
     return false;
@@ -80,26 +80,30 @@ bool Tune(std::wstring_view module, const char* module_name,
   // Change the definitions, log each problem, and report the result once, so
   // a log shows whether the changes reached the game.
   auto problems =
-      wasm::ChangeDefinitions(*image, *schema, module_name, manifest.definitions(), undo);
+      wasm::ChangeDefinitions(*image, *schema, "server.dll", manifest.definitions(), undo);
   if (!problems) {
     return false;
   }
   for (const auto& problem : *problems) {
     log("definition change: " + problem);
   }
-  log(std::format("definition changes: {} in {}, {} problems", manifest.definitions().size(),
-                  module_name, problems->size()));
+  log(std::format("definition changes: {} in server.dll, {} problems",
+                  manifest.definitions().size(), problems->size()));
   return true;
 }
 
-void Untune(std::wstring_view module, wasm::DefinitionUndo& undo) {
-  // A module already unloaded took its definitions with it.
-  if (!gameinterop::MappedModuleImage::ForModule(module)) {
+// Untune writes back the game's own definition values that undo keeps, while
+// server.dll is still loaded.
+void Untune(wasm::DefinitionUndo& undo) {
+  // A server already unloaded took its definitions with it.
+  if (!gameinterop::MappedModuleImage::ForModule(L"server.dll")) {
     undo = {};
     return;
   }
   undo.Restore();
 }
+
+}  // namespace
 
 std::expected<std::unique_ptr<wasm::Instance>, std::string> WasmPlugin::Instantiate(
     std::span<const uint8_t> module) {
@@ -293,7 +297,7 @@ void WasmPlugin::Halt() {
 
   // The game's own definitions come back, and the next instance writes its
   // build's changes again.
-  Untune(L"server.dll", untuned_);
+  Untune(untuned_);
   tuned_ = false;
 
   // Drop the movement, the subscriptions and the game state.
@@ -443,8 +447,7 @@ bool WasmPlugin::GameOpen() const {
 void WasmPlugin::Play() {
   // Change the server's definitions once per world.
   if (!tuned_) {
-    tuned_ = Tune(L"server.dll", "server.dll", manifest_, untuned_,
-                  [this](std::string_view text) { Log(text); });
+    tuned_ = Tune(manifest_, untuned_, [this](std::string_view text) { Log(text); });
   }
 
   // Run the game's frame work.

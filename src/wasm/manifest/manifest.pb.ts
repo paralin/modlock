@@ -332,12 +332,6 @@ export interface Movement {
    * Scale is game units per Quake unit; zero means 1.
    */
   scale?: number
-  /**
-   * Unpredicted_buttons are left out of the commands the client predicts.
-   * They name inputs the mod remaps or blocks on the server, so the client
-   * predicts no cast or shot the server will not make.
-   */
-  unpredictedButtons?: bigint
 }
 
 export const Movement: MessageType<Movement> =
@@ -346,7 +340,6 @@ export const Movement: MessageType<Movement> =
     () => [
       [1, 'model', 14, 0, Movement_Model_Enum],
       [2, 'scale', 2],
-      [3, 'unpredicted_buttons', 4],
     ],
     {
       decode: (r: BinaryReader, end: number, m: Movement): Movement => {
@@ -359,9 +352,6 @@ export const Movement: MessageType<Movement> =
               break
             case 2:
               m.scale = r.float()
-              break
-            case 3:
-              m.unpredictedButtons = r.uint64()
               break
             default:
               r.skip(t)
@@ -377,10 +367,6 @@ export const Movement: MessageType<Movement> =
         {
           const v = m.scale
           if (v != null && v !== 0) w.uint32(21).float(v)
-        }
-        {
-          const v = m.unpredictedButtons
-          if (v) w.uint32(24).uint64(v)
         }
       },
     },

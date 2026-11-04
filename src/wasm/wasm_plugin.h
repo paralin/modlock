@@ -73,17 +73,6 @@ struct Mods {
   }
 };
 
-// Tune writes manifest's definition changes into the loaded game module,
-// keeping what they overwrite in undo, and returns whether that is done. A
-// module whose definitions have not loaded yet is tried again on a later call.
-bool Tune(std::wstring_view module, const char* module_name,
-          const wasm::manifest::Manifest& manifest, wasm::DefinitionUndo& undo,
-          const std::function<void(std::string_view)>& log);
-
-// Untune writes back the game's own definition values that undo keeps, while
-// module is still loaded.
-void Untune(std::wstring_view module, wasm::DefinitionUndo& undo);
-
 // PluginGame is one mod's game with the calls that reach its plugin: its log,
 // its interface and the services the host provides.
 class PluginGame final : public wasm::Game {

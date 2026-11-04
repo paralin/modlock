@@ -89,7 +89,6 @@ namespace signatures {
 enum GameModule : int {
   GAME_MODULE_UNKNOWN = 0,
   GAME_MODULE_SERVER = 1,
-  GAME_MODULE_CLIENT = 2,
   GAME_MODULE_ENGINE = 3,
   GameModule_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
@@ -103,7 +102,7 @@ inline constexpr GameModule GameModule_MIN =
 inline constexpr GameModule GameModule_MAX =
     static_cast<GameModule>(3);
 inline bool GameModule_IsValid(int value) {
-  return 0 <= value && value <= 3;
+  return 0 <= value && value <= 3 && ((11u >> value) & 1) != 0;
 }
 inline constexpr int GameModule_ARRAYSIZE = 3 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL GameModule_descriptor();

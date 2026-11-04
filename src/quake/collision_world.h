@@ -18,7 +18,7 @@ struct Trace {
   bool all_solid = false;
 };
 
-// CollisionWorld supplies the same world to authoritative and predicted movement.
+// CollisionWorld supplies the world that player movement traces against.
 // Queries are synchronous; the caller retains the world through the movement step.
 // Standing-box traces use QuakeWorld player contact semantics. Point traces use
 // server entity semantics: a solid start can report contact with fraction one.

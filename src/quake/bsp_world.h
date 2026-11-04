@@ -12,8 +12,8 @@
 namespace modlock::quake {
 
 // BspWorld owns Quake v29 world-model collision. Hull zero traces points;
-// hull one traces the standing Quake player. Authority and prediction consume
-// identical compiled planes and liquid contents.
+// hull one traces the standing Quake player against the compiled planes and
+// liquid contents.
 class BspWorld final : public CollisionWorld {
  public:
   // Decode owns the collision data or reports malformed, cyclic or unsupported

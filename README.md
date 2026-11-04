@@ -1505,18 +1505,17 @@ that asks for no map.
 ### Movement
 
 ```json
-"movement": { "model": "MODEL_QUAKEWORLD", "scale": 1.25, "unpredictedButtons": "8753143351297" }
+"movement": { "model": "MODEL_QUAKEWORLD", "scale": 1.25 }
 ```
 
-| Field                | Value                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------ |
-| `model`              | `MODEL_QUAKEWORLD`: heroes move by QuakeWorld's rules against the Quake collision in `maps/<map>.bsp`. |
-| `scale`              | Game units per Quake unit.                                                                             |
-| `unpredictedButtons` | A bit mask of the buttons the mod remaps or blocks on the server.                                      |
+| Field   | Value                                                                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------ |
+| `model` | `MODEL_QUAKEWORLD`: heroes move by QuakeWorld's rules against the Quake collision in `maps/<map>.bsp`. |
+| `scale` | Game units per Quake unit.                                                                             |
 
-The player's game predicts the same movement. It leaves out the unpredicted
-buttons, so it predicts no cast or shot the server will not make. Each landing
-calls `onLanded` with the player and anyone they landed on.
+The server runs the movement. A player's game stays stock: it predicts the
+game's own movement and the server corrects it. Each landing calls `onLanded`
+with the player and anyone they landed on.
 
 ### Definitions
 
@@ -1548,8 +1547,8 @@ calls `onLanded` with the player and anyone they landed on.
 ]
 ```
 
-Each entry changes one stock definition on the server. A player's game that
-`modlock-host --connect` starts takes the ability changes too.
+Each entry changes one stock definition on the server; players' games keep
+their own definitions.
 
 | Field        | Value                                                                                                                                                                          |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -2032,7 +2031,7 @@ modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 | `--game-dir DIR`     | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`).                                                                 |
 | `--map NAME`         | Start on `NAME` (default `dl_midtown`).                                                                                                          |
 | `--hostport PORT`    | Serve on UDP `PORT` (default 27067).                                                                                                             |
-| `--connect ADDRESS`  | Run a client that joins `ADDRESS`, with the plugin loaded in the client.                                                                         |
+| `--connect ADDRESS`  | Run a stock client that joins `ADDRESS`. Built mods run on the server, so the client skips them.                                                 |
 | `--engine-args ARGS` | Append engine command-line arguments in either role.                                                                                             |
 | `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
 

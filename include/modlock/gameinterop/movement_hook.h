@@ -27,8 +27,8 @@ struct MovementCall {
   int32_t slot = -1;
   // move_type is the pawn's native MoveType_t; preparation freezes use kNone.
   uint8_t move_type = 0;
-  // command is the client command number on the client. The server stores the
-  // previously processed number and must not use it as a command identity.
+  // command is the number of the previously processed client command; the
+  // command being stepped is command + 1.
   int32_t command = 0;
   std::array<float, 3> angles{};
   float forward = 0;
@@ -47,17 +47,15 @@ struct MovementCall {
   uint32_t ground_entity = 0;
 };
 
-// MovementHook detours the native ProcessMovement of one game module. The
-// handler runs synchronously on that module's movement thread for every step,
-// including client prediction replays. The native step always runs afterward,
-// because client prediction depends on its per-command bookkeeping. Returning
-// true then publishes the handler's origin, velocity and ground entity over the
-// native motion. Publishing does not notify replication; the server handler
-// notifies the pawn when its networked ground entity changes.
-// One hook per module may exist; destruction removes the detour.
+// MovementHook detours the server's native ProcessMovement. The handler runs
+// synchronously on the server's movement thread for every step. The native
+// step always runs afterward for its per-command bookkeeping. Returning true
+// then publishes the handler's origin, velocity and ground entity over the
+// native motion. Publishing does not notify replication; the handler notifies
+// the pawn when its networked ground entity changes. One hook may exist at a
+// time; destruction removes the detour.
 class MODLOCK_API MovementHook {
  public:
-  enum class Module { kServer, kClient };
   using Handler = std::function<bool(MovementCall&)>;
 
   // kJumpButton is the native InButtonState bit for jump.
@@ -67,7 +65,7 @@ class MODLOCK_API MovementHook {
   // kWalking is the MoveType_t of a pawn under ordinary player movement.
   static constexpr uint8_t kWalking = 2;
 
-  static std::expected<MovementHook, std::string> Install(Module module, Handler handler);
+  static std::expected<MovementHook, std::string> Install(Handler handler);
   MovementHook(MovementHook&&) noexcept;
   MovementHook& operator=(MovementHook&&) noexcept;
   ~MovementHook();

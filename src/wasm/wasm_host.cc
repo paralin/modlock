@@ -9,87 +9,10 @@
 #include "wasm/wasm_plugin.h"
 
 namespace modlock {
-namespace {
 
-using wasm::Build;
 using wasm::Mods;
 using wasm::ReadBuild;
-using wasm::Tune;
 using wasm::WasmPlugin;
-
-// ClientMod runs the part of a mod that lives in a player's game: the
-// manifest's ability tuning and its movement model's prediction. The server
-// runs the mod itself, so the player's game runs no sandbox.
-class ClientMod final : public Plugin {
- public:
-  explicit ClientMod(Build build) : build_(std::move(build)) {}
-
-  uint32_t InterfaceVersion() const override { return PluginInterfaceVersion; }
-
-  const char* Name() const override { return build_.name.c_str(); }
-
-  bool Start() override {
-    // Only a QuakeWorld mod predicts movement.
-    const auto& movement = build_.manifest.movement();
-    if (movement.model() != wasm::manifest::Movement::MODEL_QUAKEWORLD) {
-      return true;
-    }
-
-    // Build the client's movement model.
-    auto created = quake::PlayerMovement::Create(quake::PlayerMovement::Side::kClient,
-                                                 build_.collision, movement.scale());
-    if (!created) {
-      Log("movement prediction is unavailable: " + created.error());
-      return true;
-    }
-    movement_ = std::move(*created);
-
-    // Step each predicted command through it.
-    auto hook = gameinterop::MovementHook::Install(
-        gameinterop::MovementHook::Module::kClient, [this](gameinterop::MovementCall& call) {
-          // The client's ability data loads before its first predicted command.
-          Tick();
-          for (auto& state : call.buttons) {
-            state &= ~build_.manifest.movement().unpredicted_buttons();
-          }
-          return movement_->Step(call);
-        });
-    if (!hook) {
-      Log("movement prediction is unavailable: " + hook.error());
-      movement_.reset();
-      return true;
-    }
-    hook_ = std::move(*hook);
-    return true;
-  }
-
-  void Tick() override {
-    if (!tuned_) {
-      tuned_ = Tune(L"client.dll", "client.dll", build_.manifest, untuned_, Log);
-    }
-  }
-
-  void Stop() override {
-    hook_.reset();
-    movement_.reset();
-    Untune(L"client.dll", untuned_);
-    tuned_ = false;
-  }
-
- private:
-  static void Log(std::string_view text) { std::cerr << "client mod: " << text << '\n'; }
-
-  Build build_;
-  // tuned_ is true once the build's definition changes are written, and
-  // untuned_ keeps the game's own values they overwrote until the mod stops.
-  bool tuned_ = false;
-  wasm::DefinitionUndo untuned_;
-  // hook_ runs movement_ in the client's prediction; it goes first.
-  std::optional<quake::PlayerMovement> movement_;
-  std::optional<gameinterop::MovementHook> hook_;
-};
-
-}  // namespace
 
 // Impl holds the host's mods.
 struct WasmHost::Impl : Mods {};
@@ -112,13 +35,10 @@ void WasmHost::Unobserve(WasmHostObserver* observer) {
 
 std::expected<std::unique_ptr<Plugin>, std::string> WasmHost::Load(
     const std::filesystem::path& path, const PluginContext& context, std::string_view name) {
-  // Read the build; a client launch runs it as a client mod.
+  // Read the build.
   auto build = ReadBuild(path, impl_->interpreters);
   if (!build) {
     return std::unexpected(build.error());
-  }
-  if (context.launch != nullptr && !context.launch->connect.empty()) {
-    return std::make_unique<ClientMod>(std::move(*build));
   }
   std::string instance_name = name.empty() ? build->name : std::string(name);
   if (impl_->plugins.contains(instance_name)) {
