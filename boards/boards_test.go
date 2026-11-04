@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	scorespb "github.com/paralin/modlock/src/wasm/scores"
 )
 
@@ -22,7 +22,7 @@ func TestValidate(t *testing.T) {
 	}
 	rating := &scorespb.Board{Name: "duel", Unit: scorespb.Board_UNIT_NUMBER, Order: scorespb.Board_ORDER_DESCENDING,
 		Keep: scorespb.Board_KEEP_RATING, Rating: scorespb.Board_RATING_ELO}
-	if err := Validate(&manifestpb.Manifest{Boards: []*scorespb.Board{trial(), rating}}); err != nil {
+	if err := Validate(&wasm.Manifest{Boards: []*scorespb.Board{trial(), rating}}); err != nil {
 		t.Fatalf("valid boards refused: %v", err)
 	}
 
@@ -41,12 +41,12 @@ func TestValidate(t *testing.T) {
 	} {
 		board := trial()
 		change(board)
-		err := Validate(&manifestpb.Manifest{Boards: []*scorespb.Board{board}})
+		err := Validate(&wasm.Manifest{Boards: []*scorespb.Board{board}})
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: got %v", want, err)
 		}
 	}
-	if err := Validate(&manifestpb.Manifest{Boards: []*scorespb.Board{trial(), trial()}}); err == nil {
+	if err := Validate(&wasm.Manifest{Boards: []*scorespb.Board{trial(), trial()}}); err == nil {
 		t.Error("a board declared twice was accepted")
 	}
 

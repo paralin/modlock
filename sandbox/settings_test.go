@@ -8,8 +8,6 @@ import (
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm"
-	filespb "github.com/paralin/modlock/src/wasm/files"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
 	settingspb "github.com/paralin/modlock/src/wasm/settings"
 )
 
@@ -19,7 +17,7 @@ import (
 // the mod writes its own, and a name that leaves the mod's files is refused.
 func TestKept(t *testing.T) {
 	// Declare one choice and ship one file, keeping both across sessions.
-	manifest := &manifestpb.Manifest{Slug: "hud", Settings: []*settingspb.Setting{{
+	manifest := &wasm.Manifest{Slug: "hud", Settings: []*settingspb.Setting{{
 		Key:     "layout",
 		Label:   "Layout",
 		Kind:    settingspb.Setting_KIND_CHOICE,
@@ -60,17 +58,17 @@ func TestKept(t *testing.T) {
 	}
 
 	// Read the shipped file, then the written one in the next session.
-	readFile := func(s *Sandbox, name string) (*filespb.ReadFileResponse, string) {
-		request, _ := (&filespb.ReadFileRequest{Path: name}).MarshalVT()
+	readFile := func(s *Sandbox, name string) (*wasm.ReadFileResponse, string) {
+		request, _ := (&wasm.ReadFileRequest{Path: name}).MarshalVT()
 		reply := s.answer(build, &wasm.Call{Method: "ReadFile", Request: request})
-		response := &filespb.ReadFileResponse{}
+		response := &wasm.ReadFileResponse{}
 		if err := response.UnmarshalVT(reply.GetResponse()); err != nil {
 			t.Fatal(err)
 		}
 		return response, reply.GetError()
 	}
 	writeFile := func(s *Sandbox, name, text string) string {
-		request, _ := (&filespb.WriteFileRequest{Path: name, Text: text}).MarshalVT()
+		request, _ := (&wasm.WriteFileRequest{Path: name, Text: text}).MarshalVT()
 		return s.answer(build, &wasm.Call{Method: "WriteFile", Request: request}).GetError()
 	}
 	if got, _ := readFile(first, "maps/areas.yaml"); got.GetText() != "shipped" {

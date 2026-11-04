@@ -6,7 +6,7 @@
 
 namespace modlock::wasm {
 
-std::expected<void, std::string> Game::AssignTeams(const match::TeamAssignments& request) {
+std::expected<void, std::string> Game::AssignTeams(const wasm::TeamAssignments& request) {
   return assignments_.Assign(request);
 }
 

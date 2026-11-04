@@ -129,8 +129,8 @@ class HostService {
   // wrote or the server's operator placed, else the one the mod ships under
   // data/. A file in neither reads as unset. Names that leave the mod's
   // directories are refused.
-  virtual std::expected<files::ReadFileResponse, std::string> ReadFile(
-      const files::ReadFileRequest& /*request*/) {
+  virtual std::expected<ReadFileResponse, std::string> ReadFile(
+      const ReadFileRequest& /*request*/) {
     return std::unexpected("this host does not support ReadFile");
   }
 
@@ -139,7 +139,7 @@ class HostService {
   // as they are. The write is whole or not at all, and the host refuses one
   // past its quota of 4 MiB per mod. A host that keeps no files refuses every
   // write.
-  virtual std::expected<void, std::string> WriteFile(const files::WriteFileRequest& /*request*/) {
+  virtual std::expected<void, std::string> WriteFile(const WriteFileRequest& /*request*/) {
     return std::unexpected("this host does not support WriteFile");
   }
 
@@ -159,12 +159,12 @@ class HostService {
   // update, whose new build reads it back with HandedOff. The host holds it
   // in memory and never writes it to disk, so it ends when the mod stops or
   // the server restarts. The host refuses state past 64 KiB.
-  virtual std::expected<void, std::string> Handoff(const handoff::HandoffRequest& /*request*/) {
+  virtual std::expected<void, std::string> Handoff(const HandoffRequest& /*request*/) {
     return std::unexpected("this host does not support Handoff");
   }
 
   // HandedOff returns the game's handoff state, or empty.
-  virtual std::expected<handoff::HandedOffResponse, std::string> HandedOff() {
+  virtual std::expected<HandedOffResponse, std::string> HandedOff() {
     return std::unexpected("this host does not support HandedOff");
   }
 
@@ -172,13 +172,12 @@ class HostService {
   // panels their HUD shows. It lasts only through a reload of the mod in the
   // same game, in memory, as the game's does, and ends early when the player
   // leaves; only that player reads it back, and a bot keeps none.
-  virtual std::expected<void, std::string> PlayerHandoff(
-      const handoff::HandoffPlayerRequest& /*request*/) {
+  virtual std::expected<void, std::string> PlayerHandoff(const HandoffPlayerRequest& /*request*/) {
     return std::unexpected("this host does not support PlayerHandoff");
   }
 
   // PlayerHandedOff returns the player's handoff state, or empty.
-  virtual std::expected<handoff::HandedOffResponse, std::string> PlayerHandedOff(
+  virtual std::expected<HandedOffResponse, std::string> PlayerHandedOff(
       const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support PlayerHandedOff");
   }
@@ -566,8 +565,7 @@ class HostService {
   // has hero 0 a hero with SelectHero. Turning it off releases the friendly
   // fire holds and restores stock team relations; players keep their teams.
   // Clients still draw teammates as allies.
-  virtual std::expected<void, std::string> SetFreeForAll(
-      const match::SetFreeForAllRequest& /*request*/) {
+  virtual std::expected<void, std::string> SetFreeForAll(const SetFreeForAllRequest& /*request*/) {
     return std::unexpected("this host does not support SetFreeForAll");
   }
 
@@ -579,7 +577,7 @@ class HostService {
   // SelectHero. Free-for-all seats players this
   // way whatever this says. Turning it off leaves players on their teams.
   virtual std::expected<void, std::string> SetTeamSeating(
-      const match::SetTeamSeatingRequest& /*request*/) {
+      const SetTeamSeatingRequest& /*request*/) {
     return std::unexpected("this host does not support SetTeamSeating");
   }
 
@@ -679,27 +677,26 @@ class HostService {
 
   // BlockInput withholds buttons from every player's hero until called
   // again. Stopping the mod releases them.
-  virtual std::expected<void, std::string> BlockInput(const input::InputRequest& /*request*/) {
+  virtual std::expected<void, std::string> BlockInput(const InputRequest& /*request*/) {
     return std::unexpected("this host does not support BlockInput");
   }
 
   // BlockPlayerInput withholds buttons from the player's hero until called
   // again, on top of the block on everyone. Zero releases the player.
-  virtual std::expected<void, std::string> BlockPlayerInput(
-      const input::PlayerInputRequest& /*request*/) {
+  virtual std::expected<void, std::string> BlockPlayerInput(const PlayerInputRequest& /*request*/) {
     return std::unexpected("this host does not support BlockPlayerInput");
   }
 
   // Press presses buttons at the player's next input, even through a block.
   // A bot presses them as a player would.
-  virtual std::expected<void, std::string> Press(const input::PlayerInputRequest& /*request*/) {
+  virtual std::expected<void, std::string> Press(const PlayerInputRequest& /*request*/) {
     return std::unexpected("this host does not support Press");
   }
 
   // WatchInput replaces the buttons whose presses and releases arrive as
   // Input events. Watching does not withhold a press; block it with
   // BlockInput.
-  virtual std::expected<void, std::string> WatchInput(const input::InputRequest& /*request*/) {
+  virtual std::expected<void, std::string> WatchInput(const InputRequest& /*request*/) {
     return std::unexpected("this host does not support WatchInput");
   }
 
@@ -708,7 +705,7 @@ class HostService {
   // from button uses the to ability again as soon as it is ready. A zero from
   // stops remapping, and stopping the mod does too. BlockInput applies after
   // the remap.
-  virtual std::expected<void, std::string> RemapInput(const input::RemapInputRequest& /*request*/) {
+  virtual std::expected<void, std::string> RemapInput(const RemapInputRequest& /*request*/) {
     return std::unexpected("this host does not support RemapInput");
   }
 
@@ -888,29 +885,29 @@ class HostService {
 
   // Pause stops or resumes the game clock, as the pause command would.
   // Stopping the mod resumes it.
-  virtual std::expected<void, std::string> Pause(const match::PauseRequest& /*request*/) {
+  virtual std::expected<void, std::string> Pause(const PauseRequest& /*request*/) {
     return std::unexpected("this host does not support Pause");
   }
 
   // MatchClock returns the match time in seconds that the scoreboard shows.
-  virtual std::expected<match::MatchClockResponse, std::string> MatchClock() {
+  virtual std::expected<MatchClockResponse, std::string> MatchClock() {
     return std::unexpected("this host does not support MatchClock");
   }
 
   // HoldMatchClock keeps the match time at seconds every frame until called
   // again; omitted seconds let it run.
   virtual std::expected<void, std::string> HoldMatchClock(
-      const match::HoldMatchClockRequest& /*request*/) {
+      const HoldMatchClockRequest& /*request*/) {
     return std::unexpected("this host does not support HoldMatchClock");
   }
 
   // Rift reads the Rift objective's state.
-  virtual std::expected<match::RiftResponse, std::string> Rift() {
+  virtual std::expected<RiftResponse, std::string> Rift() {
     return std::unexpected("this host does not support Rift");
   }
 
   // StartRift opens the Rift objective at position now.
-  virtual std::expected<void, std::string> StartRift(const match::StartRiftRequest& /*request*/) {
+  virtual std::expected<void, std::string> StartRift(const StartRiftRequest& /*request*/) {
     return std::unexpected("this host does not support StartRift");
   }
 
@@ -949,7 +946,7 @@ class HostService {
 
   // Buttons returns the buttons a player holds, as Buttons bits, while the
   // player is alive or dead.
-  virtual std::expected<input::ButtonsResponse, std::string> Buttons(
+  virtual std::expected<ButtonsResponse, std::string> Buttons(
       const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Buttons");
   }
@@ -1060,7 +1057,7 @@ class HostService {
          }},
         {"ReadFile",
          [](HostService& host, const std::string& bytes) {
-           files::ReadFileRequest request;
+           ReadFileRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the ReadFile request is malformed");
            }
@@ -1068,7 +1065,7 @@ class HostService {
          }},
         {"WriteFile",
          [](HostService& host, const std::string& bytes) {
-           files::WriteFileRequest request;
+           WriteFileRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the WriteFile request is malformed");
            }
@@ -1084,7 +1081,7 @@ class HostService {
          }},
         {"Handoff",
          [](HostService& host, const std::string& bytes) {
-           handoff::HandoffRequest request;
+           HandoffRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the Handoff request is malformed");
            }
@@ -1097,7 +1094,7 @@ class HostService {
          }},
         {"PlayerHandoff",
          [](HostService& host, const std::string& bytes) {
-           handoff::HandoffPlayerRequest request;
+           HandoffPlayerRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the PlayerHandoff request is malformed");
            }
@@ -1473,7 +1470,7 @@ class HostService {
          }},
         {"SetFreeForAll",
          [](HostService& host, const std::string& bytes) {
-           match::SetFreeForAllRequest request;
+           SetFreeForAllRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the SetFreeForAll request is malformed");
            }
@@ -1481,7 +1478,7 @@ class HostService {
          }},
         {"SetTeamSeating",
          [](HostService& host, const std::string& bytes) {
-           match::SetTeamSeatingRequest request;
+           SetTeamSeatingRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the SetTeamSeating request is malformed");
            }
@@ -1593,7 +1590,7 @@ class HostService {
          }},
         {"BlockInput",
          [](HostService& host, const std::string& bytes) {
-           input::InputRequest request;
+           InputRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the BlockInput request is malformed");
            }
@@ -1601,7 +1598,7 @@ class HostService {
          }},
         {"BlockPlayerInput",
          [](HostService& host, const std::string& bytes) {
-           input::PlayerInputRequest request;
+           PlayerInputRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the BlockPlayerInput request is malformed");
            }
@@ -1609,7 +1606,7 @@ class HostService {
          }},
         {"Press",
          [](HostService& host, const std::string& bytes) {
-           input::PlayerInputRequest request;
+           PlayerInputRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the Press request is malformed");
            }
@@ -1617,7 +1614,7 @@ class HostService {
          }},
         {"WatchInput",
          [](HostService& host, const std::string& bytes) {
-           input::InputRequest request;
+           InputRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the WatchInput request is malformed");
            }
@@ -1625,7 +1622,7 @@ class HostService {
          }},
         {"RemapInput",
          [](HostService& host, const std::string& bytes) {
-           input::RemapInputRequest request;
+           RemapInputRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the RemapInput request is malformed");
            }
@@ -1814,7 +1811,7 @@ class HostService {
          }},
         {"Pause",
          [](HostService& host, const std::string& bytes) {
-           match::PauseRequest request;
+           PauseRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the Pause request is malformed");
            }
@@ -1827,7 +1824,7 @@ class HostService {
          }},
         {"HoldMatchClock",
          [](HostService& host, const std::string& bytes) {
-           match::HoldMatchClockRequest request;
+           HoldMatchClockRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the HoldMatchClock request is malformed");
            }
@@ -1840,7 +1837,7 @@ class HostService {
          }},
         {"StartRift",
          [](HostService& host, const std::string& bytes) {
-           match::StartRiftRequest request;
+           StartRiftRequest request;
            if (!request.ParseFromString(bytes)) {
              return detail::Fail("the StartRift request is malformed");
            }
@@ -1986,7 +1983,7 @@ class ModClient {
 
   // Input reports one player's presses of watched buttons, before the next
   // frame. A block in place still withholds them from the hero.
-  std::expected<void, std::string> Input(const input::InputEvent& event) {
+  std::expected<void, std::string> Input(const InputEvent& event) {
     return Send<void>("Input", event);
   }
 

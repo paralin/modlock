@@ -367,7 +367,7 @@ class Game : public HostService {
 
   // AssignTeams applies host seats on join and assignment change. The table
   // survives Clear, so a build reload keeps confirmed seats and pending joins.
-  std::expected<void, std::string> AssignTeams(const match::TeamAssignments& request);
+  std::expected<void, std::string> AssignTeams(const wasm::TeamAssignments& request);
 
   // StartFreeForAll sets whether free-for-all is on as a mod starts, from its
   // manifest, and turns team seating off. SetFreeForAll and SetTeamSeating
@@ -503,9 +503,9 @@ class Game : public HostService {
   std::expected<void, std::string> HoldModifierState(
       const abilities::HoldModifierStateRequest& request) override;
   std::expected<void, std::string> SetFreeForAll(
-      const match::SetFreeForAllRequest& request) override;
+      const wasm::SetFreeForAllRequest& request) override;
   std::expected<void, std::string> SetTeamSeating(
-      const match::SetTeamSeatingRequest& request) override;
+      const wasm::SetTeamSeatingRequest& request) override;
   std::expected<objects::ObjectResponse, std::string> CreateModel(
       const objects::ModelOptions& request) override;
   std::expected<objects::ObjectResponse, std::string> CreateText(
@@ -527,12 +527,12 @@ class Game : public HostService {
   std::expected<players::BotResponse, std::string> AddBot(
       const players::BotOptions& request) override;
   std::expected<void, std::string> RemoveBot(const players::PlayerRequest& request) override;
-  std::expected<void, std::string> BlockInput(const input::InputRequest& request) override;
+  std::expected<void, std::string> BlockInput(const wasm::InputRequest& request) override;
   std::expected<void, std::string> BlockPlayerInput(
-      const input::PlayerInputRequest& request) override;
-  std::expected<void, std::string> Press(const input::PlayerInputRequest& request) override;
-  std::expected<void, std::string> WatchInput(const input::InputRequest& request) override;
-  std::expected<void, std::string> RemapInput(const input::RemapInputRequest& request) override;
+      const wasm::PlayerInputRequest& request) override;
+  std::expected<void, std::string> Press(const wasm::PlayerInputRequest& request) override;
+  std::expected<void, std::string> WatchInput(const wasm::InputRequest& request) override;
+  std::expected<void, std::string> RemapInput(const wasm::RemapInputRequest& request) override;
   std::expected<entities::EntityResponse, std::string> CreateEntity(
       const entities::EntityOptions& request) override;
   std::expected<entities::AliveResponse, std::string> FireInput(
@@ -569,19 +569,19 @@ class Game : public HostService {
   std::expected<combat::TraceResponse, std::string> Trace(
       const combat::TraceOptions& request) override;
   std::expected<void, std::string> RestoreNpcs(const npcs::RestoreNpcsRequest& request) override;
-  std::expected<void, std::string> Pause(const match::PauseRequest& request) override;
-  std::expected<match::MatchClockResponse, std::string> MatchClock() override;
+  std::expected<void, std::string> Pause(const wasm::PauseRequest& request) override;
+  std::expected<wasm::MatchClockResponse, std::string> MatchClock() override;
   std::expected<void, std::string> HoldMatchClock(
-      const match::HoldMatchClockRequest& request) override;
-  std::expected<match::RiftResponse, std::string> Rift() override;
-  std::expected<void, std::string> StartRift(const match::StartRiftRequest& request) override;
+      const wasm::HoldMatchClockRequest& request) override;
+  std::expected<wasm::RiftResponse, std::string> Rift() override;
+  std::expected<void, std::string> StartRift(const wasm::StartRiftRequest& request) override;
   std::expected<void, std::string> MoveEntity(const entities::MoveEntityRequest& request) override;
   std::expected<void, std::string> PushEntity(const entities::PushEntityRequest& request) override;
   std::expected<void, std::string> EmitSound(const effects::EmitSoundRequest& request) override;
   std::expected<void, std::string> Kill(const players::PlayerRequest& request) override;
   std::expected<void, std::string> SetVelocity(
       const movement::SetVelocityRequest& request) override;
-  std::expected<input::ButtonsResponse, std::string> Buttons(
+  std::expected<wasm::ButtonsResponse, std::string> Buttons(
       const players::PlayerRequest& request) override;
   std::expected<void, std::string> WatchMovement(
       const movement::WatchMovementRequest& request) override;

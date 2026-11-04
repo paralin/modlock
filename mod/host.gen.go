@@ -12,10 +12,6 @@ import (
 	effectspb "github.com/paralin/modlock/src/wasm/effects"
 	entitiespb "github.com/paralin/modlock/src/wasm/entities"
 	fieldspb "github.com/paralin/modlock/src/wasm/fields"
-	filespb "github.com/paralin/modlock/src/wasm/files"
-	handoffpb "github.com/paralin/modlock/src/wasm/handoff"
-	inputpb "github.com/paralin/modlock/src/wasm/input"
-	matchpb "github.com/paralin/modlock/src/wasm/match"
 	metricspb "github.com/paralin/modlock/src/wasm/metrics"
 	movementpb "github.com/paralin/modlock/src/wasm/movement"
 	npcspb "github.com/paralin/modlock/src/wasm/npcs"
@@ -381,11 +377,11 @@ type EntityOptions = entitiespb.EntityOptions
 type KeyValue = entitiespb.KeyValue
 
 // InputEvent is one player's watched buttons that went down or up.
-type InputEvent = inputpb.InputEvent
+type InputEvent = wasmpb.InputEvent
 
 // RiftState is the Rift objective's timing as the game holds it. Times are
 // game times in seconds, or zero when unset.
-type RiftState = matchpb.RiftState
+type RiftState = wasmpb.RiftState
 
 // MovementSample is one watched hero's movement on one tick, as the game keeps
 // it. A hero whose position, velocity or ground the game does not provide has
@@ -753,8 +749,8 @@ func (p Player) AddMetric(name string, value float64, label *string) error {
 // data/. A file in neither reads as unset. Names that leave the mod's
 // directories are refused.
 func ReadFile(path string) (*string, error) {
-	request := &filespb.ReadFileRequest{Path: path}
-	response := &filespb.ReadFileResponse{}
+	request := &wasmpb.ReadFileRequest{Path: path}
+	response := &wasmpb.ReadFileResponse{}
 	if err := invoke("ReadFile", request, response); err != nil {
 		return nil, err
 	}
@@ -767,7 +763,7 @@ func ReadFile(path string) (*string, error) {
 // past its quota of 4 MiB per mod. A host that keeps no files refuses every
 // write.
 func WriteFile(path, text string) error {
-	return invoke("WriteFile", &filespb.WriteFileRequest{Path: path, Text: text}, nil)
+	return invoke("WriteFile", &wasmpb.WriteFileRequest{Path: path, Text: text}, nil)
 }
 
 // HoldReload keeps the running build through a reload while held is true,
@@ -786,12 +782,12 @@ func HoldReload(held bool) error {
 // in memory and never writes it to disk, so it ends when the mod stops or
 // the server restarts. The host refuses state past 64 KiB.
 func Handoff(text string) error {
-	return invoke("Handoff", &handoffpb.HandoffRequest{Text: text}, nil)
+	return invoke("Handoff", &wasmpb.HandoffRequest{Text: text}, nil)
 }
 
 // HandedOff returns the game's handoff state, or empty.
 func HandedOff() (string, error) {
-	response := &handoffpb.HandedOffResponse{}
+	response := &wasmpb.HandedOffResponse{}
 	if err := invoke("HandedOff", &wasmpb.Empty{}, response); err != nil {
 		return "", err
 	}
@@ -803,13 +799,13 @@ func HandedOff() (string, error) {
 // same game, in memory, as the game's does, and ends early when the player
 // leaves; only that player reads it back, and a bot keeps none.
 func (p Player) Handoff(text string) error {
-	return invoke("PlayerHandoff", &handoffpb.HandoffPlayerRequest{Player: p.Slot, Text: text}, nil)
+	return invoke("PlayerHandoff", &wasmpb.HandoffPlayerRequest{Player: p.Slot, Text: text}, nil)
 }
 
 // HandedOff returns the player's handoff state, or empty.
 func (p Player) HandedOff() (string, error) {
 	request := &playerspb.PlayerRequest{Player: p.Slot}
-	response := &handoffpb.HandedOffResponse{}
+	response := &wasmpb.HandedOffResponse{}
 	if err := invoke("PlayerHandedOff", request, response); err != nil {
 		return "", err
 	}
@@ -1256,7 +1252,7 @@ func HoldModifierState(entity uint32, state string, active *bool) error {
 // fire holds and restores stock team relations; players keep their teams.
 // Clients still draw teammates as allies.
 func SetFreeForAll(enabled bool) error {
-	return invoke("SetFreeForAll", &matchpb.SetFreeForAllRequest{Enabled: enabled}, nil)
+	return invoke("SetFreeForAll", &wasmpb.SetFreeForAllRequest{Enabled: enabled}, nil)
 }
 
 // SetTeamSeating turns team seating on or off for the running mod. While
@@ -1267,7 +1263,7 @@ func SetFreeForAll(enabled bool) error {
 // SelectHero. Free-for-all seats players this
 // way whatever this says. Turning it off leaves players on their teams.
 func SetTeamSeating(enabled bool) error {
-	return invoke("SetTeamSeating", &matchpb.SetTeamSeatingRequest{Enabled: enabled}, nil)
+	return invoke("SetTeamSeating", &wasmpb.SetTeamSeatingRequest{Enabled: enabled}, nil)
 }
 
 // CreateModel places a model in the world, solid when the options ask.
@@ -1382,26 +1378,26 @@ func (p Player) RemoveBot() error {
 // BlockInput withholds buttons from every player's hero until called
 // again. Stopping the mod releases them.
 func BlockInput(buttons uint64) error {
-	return invoke("BlockInput", &inputpb.InputRequest{Buttons: buttons}, nil)
+	return invoke("BlockInput", &wasmpb.InputRequest{Buttons: buttons}, nil)
 }
 
 // BlockInput withholds buttons from the player's hero until called
 // again, on top of the block on everyone. Zero releases the player.
 func (p Player) BlockInput(buttons uint64) error {
-	return invoke("BlockPlayerInput", &inputpb.PlayerInputRequest{Player: p.Slot, Buttons: buttons}, nil)
+	return invoke("BlockPlayerInput", &wasmpb.PlayerInputRequest{Player: p.Slot, Buttons: buttons}, nil)
 }
 
 // Press presses buttons at the player's next input, even through a block.
 // A bot presses them as a player would.
 func (p Player) Press(buttons uint64) error {
-	return invoke("Press", &inputpb.PlayerInputRequest{Player: p.Slot, Buttons: buttons}, nil)
+	return invoke("Press", &wasmpb.PlayerInputRequest{Player: p.Slot, Buttons: buttons}, nil)
 }
 
 // WatchInput replaces the buttons whose presses and releases arrive as
 // Input events. Watching does not withhold a press; block it with
 // BlockInput.
 func WatchInput(buttons uint64) error {
-	return invoke("WatchInput", &inputpb.InputRequest{Buttons: buttons}, nil)
+	return invoke("WatchInput", &wasmpb.InputRequest{Buttons: buttons}, nil)
 }
 
 // RemapInput makes the from buttons act as the to buttons for every
@@ -1410,7 +1406,7 @@ func WatchInput(buttons uint64) error {
 // stops remapping, and stopping the mod does too. BlockInput applies after
 // the remap.
 func RemapInput(from, to uint64, repeat *bool) error {
-	return invoke("RemapInput", &inputpb.RemapInputRequest{From: from, To: to, Repeat: repeat}, nil)
+	return invoke("RemapInput", &wasmpb.RemapInputRequest{From: from, To: to, Repeat: repeat}, nil)
 }
 
 // CallService calls method of a service the host provides outside Modlock,
@@ -1650,12 +1646,12 @@ func RestoreNpcs(npcs []*NpcTarget) error {
 // Pause stops or resumes the game clock, as the pause command would.
 // Stopping the mod resumes it.
 func Pause(paused bool) error {
-	return invoke("Pause", &matchpb.PauseRequest{Paused: paused}, nil)
+	return invoke("Pause", &wasmpb.PauseRequest{Paused: paused}, nil)
 }
 
 // MatchClock returns the match time in seconds that the scoreboard shows.
 func MatchClock() (float32, error) {
-	response := &matchpb.MatchClockResponse{}
+	response := &wasmpb.MatchClockResponse{}
 	if err := invoke("MatchClock", &wasmpb.Empty{}, response); err != nil {
 		return 0, err
 	}
@@ -1665,12 +1661,12 @@ func MatchClock() (float32, error) {
 // HoldMatchClock keeps the match time at seconds every frame until called
 // again; omitted seconds let it run.
 func HoldMatchClock(seconds *float32) error {
-	return invoke("HoldMatchClock", &matchpb.HoldMatchClockRequest{Seconds: seconds}, nil)
+	return invoke("HoldMatchClock", &wasmpb.HoldMatchClockRequest{Seconds: seconds}, nil)
 }
 
 // Rift reads the Rift objective's state.
 func Rift() (*RiftState, error) {
-	response := &matchpb.RiftResponse{}
+	response := &wasmpb.RiftResponse{}
 	if err := invoke("Rift", &wasmpb.Empty{}, response); err != nil {
 		return nil, err
 	}
@@ -1679,7 +1675,7 @@ func Rift() (*RiftState, error) {
 
 // StartRift opens the Rift objective at position now.
 func StartRift(position *Vector) error {
-	return invoke("StartRift", &matchpb.StartRiftRequest{Position: position}, nil)
+	return invoke("StartRift", &wasmpb.StartRiftRequest{Position: position}, nil)
 }
 
 // MoveEntity places any entity, such as a projectile, and replaces its
@@ -1716,7 +1712,7 @@ func (p Player) SetVelocity(velocity *Vector) error {
 // player is alive or dead.
 func (p Player) Buttons() (uint64, error) {
 	request := &playerspb.PlayerRequest{Player: p.Slot}
-	response := &inputpb.ButtonsResponse{}
+	response := &wasmpb.ButtonsResponse{}
 	if err := invoke("Buttons", request, response); err != nil {
 		return 0, err
 	}

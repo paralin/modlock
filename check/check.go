@@ -16,7 +16,6 @@ import (
 	"github.com/paralin/modlock/sandbox"
 	"github.com/paralin/modlock/settings"
 	"github.com/paralin/modlock/src/wasm"
-	"github.com/paralin/modlock/src/wasm/manifest"
 	"github.com/pkg/errors"
 )
 
@@ -38,7 +37,7 @@ func Slug(slug string) error {
 }
 
 // Mod checks the built mod in dist and returns its manifest.
-func Mod(ctx context.Context, dist fs.FS) (*manifest.Manifest, error) {
+func Mod(ctx context.Context, dist fs.FS) (*wasm.Manifest, error) {
 	// Read the build and check its manifest.
 	build, err := sandbox.ReadBuild(dist)
 	if err != nil {
@@ -69,7 +68,7 @@ func Mod(ctx context.Context, dist fs.FS) (*manifest.Manifest, error) {
 
 	// Run a module; an interpreted mod's runtime is Modlock's own.
 	switch {
-	case m.GetRuntime() == manifest.Manifest_RUNTIME_WASM:
+	case m.GetRuntime() == wasm.Manifest_RUNTIME_WASM:
 		return m, Module(ctx, build.Entry)
 	case sandbox.Interpreter(m.GetRuntime()) != "":
 		return m, nil

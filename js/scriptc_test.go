@@ -13,7 +13,7 @@ import (
 
 	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/sandbox"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 )
 
 // suiteDir is the scriptc suite's directory: the bun:test stand-in, the
@@ -113,7 +113,7 @@ func runSuiteFile(t *testing.T, config []byte, name string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if runtime := built.GetRuntime(); runtime != manifestpb.Manifest_RUNTIME_WASM {
+	if runtime := built.GetRuntime(); runtime != wasm.Manifest_RUNTIME_WASM {
 		t.Fatalf("built for %s, not WebAssembly:\n%s", runtime, output.String())
 	}
 	module, err := os.ReadFile(filepath.Join(suite.Output(), project.Entry))

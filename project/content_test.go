@@ -8,7 +8,7 @@ import (
 
 	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/source2/panorama"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 )
 
 // TestContent builds a project's content, compiled models included, into its
@@ -35,7 +35,7 @@ func TestContent(t *testing.T) {
 	write("content/styles/panel.css", ".Mark { background-image: url('file://{images}/{addon}/mark.png'); }")
 	write("content/layout/.panel.xml.swp", "swap")
 	write("content/models/pawn.vmdl_c", "compiled")
-	manifest := &manifestpb.Manifest{Slug: "parry", Version: "1.2.0", Language: manifestpb.Manifest_LANGUAGE_TYPESCRIPT}
+	manifest := &wasm.Manifest{Slug: "parry", Version: "1.2.0", Language: wasm.Manifest_LANGUAGE_TYPESCRIPT}
 	p := &Project{Dir: dir, Manifest: manifest}
 
 	// Build the content and read it back. The addon is named by its content,

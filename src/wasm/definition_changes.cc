@@ -18,7 +18,7 @@
 namespace modlock::wasm {
 namespace {
 
-using manifest::Definition;
+using wasm::Definition;
 
 // ForEachMapNode calls visit with the key and value of each used node of the
 // CUtlMap at map, whose key and value together span element_size bytes. The

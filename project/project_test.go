@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 )
 
 // TestManifestRoundTrip checks that Open reads what WriteManifest writes,
@@ -15,12 +15,12 @@ import (
 func TestManifestRoundTrip(t *testing.T) {
 	// Write a source manifest.
 	dir := t.TempDir()
-	written := &manifest.Manifest{
+	written := &wasm.Manifest{
 		Slug:     "parry-ball",
 		Name:     `Parry "Ball"`,
 		Version:  "0.1.0",
-		Language: manifest.Manifest_LANGUAGE_GO,
-		Movement: &manifest.Movement{Model: manifest.Movement_MODEL_QUAKEWORLD, Scale: 1.25},
+		Language: wasm.Manifest_LANGUAGE_GO,
+		Movement: &wasm.Movement{Model: wasm.Movement_MODEL_QUAKEWORLD, Scale: 1.25},
 	}
 	if err := WriteManifest(filepath.Join(dir, ManifestFile), written); err != nil {
 		t.Fatal(err)
@@ -52,7 +52,7 @@ func TestManifestRoundTrip(t *testing.T) {
 	if err := os.MkdirAll(opened.Output(), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := opened.writeBuiltManifest(manifest.Manifest_RUNTIME_WASM, Entry); err != nil {
+	if err := opened.writeBuiltManifest(wasm.Manifest_RUNTIME_WASM, Entry); err != nil {
 		t.Fatal(err)
 	}
 	built, err := os.ReadFile(filepath.Join(opened.Output(), ManifestFile))

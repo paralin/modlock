@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"maps"
+	"path"
 	"regexp"
 	"slices"
 	"strings"
@@ -79,9 +80,10 @@ type tsWriter struct {
 }
 
 // pb returns the TypeScript name of name, a type declared in file, importing
-// its generated module under the Go package's name suffixed with Pb.
+// its generated module under the schema file's name suffixed with Pb. Several
+// schema files can share one Go package but generate separate TypeScript modules.
 func (w *tsWriter) pb(file *protoFile, name string) string {
-	alias := file.goName + "Pb"
+	alias := lowerCamel(strings.TrimSuffix(path.Base(file.path), ".proto")) + "Pb"
 	w.imports[alias] = "../../" + strings.TrimSuffix(file.path, ".proto") + ".pb.js"
 	return alias + "." + name
 }

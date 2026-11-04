@@ -16,7 +16,7 @@ import (
 	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/metrics"
 	"github.com/paralin/modlock/settings"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -81,13 +81,13 @@ func (p *Project) Build(ctx context.Context, output io.Writer, mode Mode) error 
 
 	// Compile the mod for its language.
 	switch p.Manifest.GetLanguage() {
-	case manifest.Manifest_LANGUAGE_GO:
+	case wasm.Manifest_LANGUAGE_GO:
 		return p.buildGo(ctx, output)
-	case manifest.Manifest_LANGUAGE_TYPESCRIPT, manifest.Manifest_LANGUAGE_JAVASCRIPT:
+	case wasm.Manifest_LANGUAGE_TYPESCRIPT, wasm.Manifest_LANGUAGE_JAVASCRIPT:
 		return p.buildScript(ctx, output, mode)
-	case manifest.Manifest_LANGUAGE_LUAU:
+	case wasm.Manifest_LANGUAGE_LUAU:
 		return p.buildLuau(ctx, output)
-	case manifest.Manifest_LANGUAGE_PYTHON:
+	case wasm.Manifest_LANGUAGE_PYTHON:
 		return p.buildPython(ctx, output)
 	default:
 		return errors.Errorf("modlock cannot build %s mods yet", p.Manifest.GetLanguage())
@@ -131,7 +131,7 @@ func (p *Project) buildGo(ctx context.Context, output io.Writer) error {
 	if err := fileretry.Rename(staged, filepath.Join(p.Output(), Entry)); err != nil {
 		return errors.Wrap(err, "write the module")
 	}
-	return p.writeBuiltManifest(manifest.Manifest_RUNTIME_WASM, Entry)
+	return p.writeBuiltManifest(wasm.Manifest_RUNTIME_WASM, Entry)
 }
 
 // shipMap copies the map files the manifest names from the project's maps

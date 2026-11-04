@@ -7,7 +7,6 @@ import (
 
 	"github.com/paralin/modlock/boards"
 	"github.com/paralin/modlock/src/wasm"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
 	scorespb "github.com/paralin/modlock/src/wasm/scores"
 )
 
@@ -18,7 +17,7 @@ const scoresService = "scores"
 // each report against the boards manifest declares and logs it as it would be
 // reported, and reads every board as empty. A report the declaration refuses
 // fails, so the mod's author sees why.
-func (s *Sandbox) scores(manifest *manifestpb.Manifest, call *wasm.ServiceCall) *wasm.Reply {
+func (s *Sandbox) scores(manifest *wasm.Manifest, call *wasm.ServiceCall) *wasm.Reply {
 	// Decode the method's request and find its board.
 	mod := manifest.GetSlug()
 	var board string

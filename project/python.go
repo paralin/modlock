@@ -12,7 +12,7 @@ import (
 
 	"github.com/paralin/modlock/cli"
 	"github.com/paralin/modlock/python"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -64,7 +64,7 @@ func (p *Project) buildPython(ctx context.Context, output io.Writer) error {
 
 	// Zip the sources with the library's package; the runtime builds in its
 	// bridge, so the stub stays out.
-	return p.writeSources(manifest.Manifest_RUNTIME_PYTHON, sources, python.Library, func(name string) string {
+	return p.writeSources(wasm.Manifest_RUNTIME_PYTHON, sources, python.Library, func(name string) string {
 		if path.Ext(name) != ".py" {
 			return ""
 		}

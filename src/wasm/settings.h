@@ -4,13 +4,13 @@
 #include <string>
 #include <string_view>
 
-#include "src/wasm/manifest/manifest.pb.h"
+#include "src/wasm/manifest.pb.h"
 #include "src/wasm/settings/settings.pb.h"
 
 namespace modlock::wasm {
 
 // FindSetting returns the setting named key that manifest declares, or null.
-const settings::Setting* FindSetting(const manifest::Manifest& manifest, std::string_view key);
+const settings::Setting* FindSetting(const wasm::Manifest& manifest, std::string_view key);
 
 // Canonical returns value as the setting holds it, or nothing when the
 // setting does not accept it: a choice's value, "true" or "false", or a

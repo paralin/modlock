@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"slices"
 
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	scorespb "github.com/paralin/modlock/src/wasm/scores"
 	"github.com/pkg/errors"
 )
@@ -33,7 +33,7 @@ var (
 )
 
 // Find returns the board named name that manifest declares, or nil.
-func Find(manifest *manifestpb.Manifest, name string) *scorespb.Board {
+func Find(manifest *wasm.Manifest, name string) *scorespb.Board {
 	for _, board := range manifest.GetBoards() {
 		if board.GetName() == name {
 			return board
@@ -52,7 +52,7 @@ func Windows(board *scorespb.Board) []scorespb.Window {
 }
 
 // Validate checks the boards manifest declares.
-func Validate(manifest *manifestpb.Manifest) error {
+func Validate(manifest *wasm.Manifest) error {
 	boards := manifest.GetBoards()
 	if len(boards) > limit {
 		return errors.Errorf("mod.json declares more than %d boards", limit)

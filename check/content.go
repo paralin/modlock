@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/paralin/modlock/source2/panorama"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -61,7 +61,7 @@ var addonDigestPattern = regexp.MustCompile(`^[0-9a-f]{8}$`)
 // layout it loads for the life of the game, so changed content gets a new
 // name, while a release that changes only code keeps the addon the game
 // already loaded. A slug belongs to one mod.
-func Addon(manifest *manifestpb.Manifest) string {
+func Addon(manifest *wasm.Manifest) string {
 	if addon := manifest.GetContentAddon(); addon != "" {
 		return addon
 	}
@@ -86,7 +86,7 @@ func AddonSlug(addon string) (string, bool) {
 
 // ContentAddon reports whether manifest's content_addon is empty or names an
 // addon of its own mod: its slug and an eight digit digest.
-func ContentAddon(manifest *manifestpb.Manifest) error {
+func ContentAddon(manifest *wasm.Manifest) error {
 	addon := manifest.GetContentAddon()
 	if addon == "" {
 		return nil

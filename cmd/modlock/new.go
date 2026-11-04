@@ -6,17 +6,17 @@ import (
 
 	"github.com/aperturerobotics/cli"
 	"github.com/paralin/modlock/project"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
 // languages maps each --language name to the manifest's language.
-var languages = map[string]manifest.Manifest_Language{
-	"typescript": manifest.Manifest_LANGUAGE_TYPESCRIPT,
-	"javascript": manifest.Manifest_LANGUAGE_JAVASCRIPT,
-	"luau":       manifest.Manifest_LANGUAGE_LUAU,
-	"python":     manifest.Manifest_LANGUAGE_PYTHON,
-	"go":         manifest.Manifest_LANGUAGE_GO,
+var languages = map[string]wasm.Manifest_Language{
+	"typescript": wasm.Manifest_LANGUAGE_TYPESCRIPT,
+	"javascript": wasm.Manifest_LANGUAGE_JAVASCRIPT,
+	"luau":       wasm.Manifest_LANGUAGE_LUAU,
+	"python":     wasm.Manifest_LANGUAGE_PYTHON,
+	"go":         wasm.Manifest_LANGUAGE_GO,
 }
 
 // newCommand creates a mod project.

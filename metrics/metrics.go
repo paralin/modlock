@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	metricspb "github.com/paralin/modlock/src/wasm/metrics"
 	"github.com/pkg/errors"
 )
@@ -29,7 +29,7 @@ var (
 )
 
 // Find returns the metric named name that manifest declares, or nil.
-func Find(manifest *manifestpb.Manifest, name string) *metricspb.Metric {
+func Find(manifest *wasm.Manifest, name string) *metricspb.Metric {
 	for _, metric := range manifest.GetMetrics() {
 		if metric.GetName() == name {
 			return metric
@@ -48,7 +48,7 @@ func Labeled(metric *metricspb.Metric, label string) bool {
 }
 
 // Validate checks the metrics manifest declares.
-func Validate(manifest *manifestpb.Manifest) error {
+func Validate(manifest *wasm.Manifest) error {
 	metrics := manifest.GetMetrics()
 	if len(metrics) > limit {
 		return errors.Errorf("mod.json declares more than %d metrics", limit)

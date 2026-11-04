@@ -17,7 +17,7 @@ import (
 	"github.com/paralin/modlock/internal/fileretry"
 	"github.com/paralin/modlock/internal/npm"
 	"github.com/paralin/modlock/js"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -44,8 +44,8 @@ const libraryPackage = `{
 `
 
 // scriptMain returns the source entry of a TypeScript or JavaScript project.
-func scriptMain(language manifest.Manifest_Language) string {
-	if language == manifest.Manifest_LANGUAGE_JAVASCRIPT {
+func scriptMain(language wasm.Manifest_Language) string {
+	if language == wasm.Manifest_LANGUAGE_JAVASCRIPT {
 		return "main.js"
 	}
 	return "main.ts"
@@ -106,17 +106,17 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 			return err
 		}
 		var fallback error
-		if p.Manifest.GetRuntime() == manifest.Manifest_RUNTIME_WASM {
+		if p.Manifest.GetRuntime() == wasm.Manifest_RUNTIME_WASM {
 			module, err := p.compileScriptc(ctx, library, tsgo, output)
 			if err == nil {
 				err = p.checkTwin(ctx, output, module, bundled)
 			}
 			if err == nil {
-				return p.writeBuild(module, nil, manifest.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
+				return p.writeBuild(module, nil, wasm.Manifest_RUNTIME_WASM, Entry, ScriptEntry)
 			}
 			fallback = err
 		}
-		if err := p.writeBuild(bundled, nil, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry); err != nil {
+		if err := p.writeBuild(bundled, nil, wasm.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry); err != nil {
 			return err
 		}
 		if fallback != nil {
@@ -163,7 +163,7 @@ func (p *Project) buildScript(ctx context.Context, output io.Writer, mode Mode) 
 			script = file.Contents
 		}
 	}
-	return p.writeBuild(script, sourceMap, manifest.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
+	return p.writeBuild(script, sourceMap, wasm.Manifest_RUNTIME_QUICKJS, ScriptEntry, Entry)
 }
 
 // sheetNamespace is the esbuild namespace of a style sheet import.
@@ -233,7 +233,7 @@ func (p *Project) sheetPlugin() api.Plugin {
 // with sourceMap, removing the map when sourceMap is nil, then the manifest
 // that names the entry, and removes the entry of the other runtime, stale, a
 // script mod builds for.
-func (p *Project) writeBuild(content, sourceMap []byte, runtime manifest.Manifest_Runtime, entry, stale string) error {
+func (p *Project) writeBuild(content, sourceMap []byte, runtime wasm.Manifest_Runtime, entry, stale string) error {
 	// Stage the entry so a failed write leaves the previous build in place.
 	if err := os.MkdirAll(p.Output(), 0o755); err != nil {
 		return errors.Wrap(err, "create the build directory")

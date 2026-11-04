@@ -24,13 +24,13 @@ std::expected<std::vector<uint8_t>, std::string> ReadFile(const std::filesystem:
 
 // InterpreterFile names the interpreter module that runs an interpreted
 // runtime, or is empty for a compiled one.
-std::string_view InterpreterFile(wasm::manifest::Manifest::Runtime runtime) {
+std::string_view InterpreterFile(wasm::Manifest::Runtime runtime) {
   switch (runtime) {
-    case wasm::manifest::Manifest::RUNTIME_QUICKJS:
+    case wasm::Manifest::RUNTIME_QUICKJS:
       return "quickjs.wasm";
-    case wasm::manifest::Manifest::RUNTIME_LUAU:
+    case wasm::Manifest::RUNTIME_LUAU:
       return "luau.wasm";
-    case wasm::manifest::Manifest::RUNTIME_PYTHON:
+    case wasm::Manifest::RUNTIME_PYTHON:
       return "python.wasm";
     default:
       return {};
@@ -58,7 +58,7 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
   if (!text) {
     return std::unexpected(text.error());
   }
-  wasm::manifest::Manifest manifest;
+  wasm::Manifest manifest;
   google::protobuf::json::ParseOptions options;
   options.ignore_unknown_fields = true;
   const auto parsed = google::protobuf::json::JsonStringToMessage(
@@ -78,14 +78,14 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
     return std::unexpected(entry.error());
   }
   Build build{.name = manifest.slug(), .data = path / "data"};
-  if (manifest.movement().model() == wasm::manifest::Movement::MODEL_QUAKEWORLD) {
+  if (manifest.movement().model() == wasm::Movement::MODEL_QUAKEWORLD) {
     auto collision = ReadFile(path / "maps" / (manifest.map() + ".bsp"));
     if (!collision) {
       return std::unexpected(collision.error());
     }
     build.collision = std::move(*collision);
   }
-  if (manifest.runtime() == wasm::manifest::Manifest::RUNTIME_WASM) {
+  if (manifest.runtime() == wasm::Manifest::RUNTIME_WASM) {
     build.module = std::move(*entry);
   } else {
     // Other runtimes run their source in the host's interpreter.

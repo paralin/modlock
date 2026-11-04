@@ -63,7 +63,7 @@ constexpr auto kDepartWait = std::chrono::seconds(5);
 // Tune writes manifest's definition changes into the loaded server.dll,
 // keeping what they overwrite in undo, and returns whether that is done.
 // Definitions that have not loaded yet are tried again on a later call.
-bool Tune(const wasm::manifest::Manifest& manifest, wasm::DefinitionUndo& undo,
+bool Tune(const wasm::Manifest& manifest, wasm::DefinitionUndo& undo,
           const std::function<void(std::string_view)>& log) {
   // A manifest without definition changes needs no tuning.
   if (manifest.definitions().empty()) {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/sourcemap"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -24,7 +24,7 @@ func TestBuildRelease(t *testing.T) {
 		t.Skip("downloads Node and Rolldown")
 	}
 	ctx := context.Background()
-	p, err := New(ctx, filepath.Join(t.TempDir(), "probe"), "", manifestpb.Manifest_LANGUAGE_TYPESCRIPT, "", io.Discard)
+	p, err := New(ctx, filepath.Join(t.TempDir(), "probe"), "", wasm.Manifest_LANGUAGE_TYPESCRIPT, "", io.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestBundleRolldownError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p := &Project{Dir: dir, Manifest: &manifestpb.Manifest{}}
+	p := &Project{Dir: dir, Manifest: &wasm.Manifest{}}
 	_, err = p.bundleRolldown(ctx, library, io.Discard)
 	var check *CheckError
 	if !errors.As(err, &check) {

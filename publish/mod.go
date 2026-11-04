@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/paralin/modlock/check"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -16,7 +16,7 @@ type Mod struct {
 	// Dir is the built mod's directory.
 	Dir string
 	// Manifest is its mod.json.
-	Manifest *manifest.Manifest
+	Manifest *wasm.Manifest
 	// Notes say what the release changed, for providers that show them.
 	Notes string
 }

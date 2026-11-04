@@ -94,7 +94,7 @@ std::expected<void, std::string> Game::SetVelocity(const movement::SetVelocityRe
   return {};
 }
 
-std::expected<input::ButtonsResponse, std::string> Game::Buttons(
+std::expected<wasm::ButtonsResponse, std::string> Game::Buttons(
     const players::PlayerRequest& request) {
   // Resolve the controller's pawn fields.
   auto pawn_field = services_.Field("CBasePlayerController", "m_hPawn");
@@ -131,7 +131,7 @@ std::expected<input::ButtonsResponse, std::string> Game::Buttons(
   if (controller == all.end()) {
     return std::unexpected("the player is not connected");
   }
-  input::ButtonsResponse response;
+  wasm::ButtonsResponse response;
   for (const auto& field : {*pawn_field, *hero_field}) {
     // Read the pawn's movement services.
     uint32_t handle = 0;

@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/paralin/modlock/src/host_app/control"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/paralin/modlock/src/wasm/ui"
 )
 
@@ -98,12 +98,12 @@ func (f *Frame) line() string {
 }
 
 // readManifest reads the mod.json of the mod built at dir.
-func readManifest(dir string) (*manifest.Manifest, error) {
+func readManifest(dir string) (*wasm.Manifest, error) {
 	data, err := os.ReadFile(filepath.Join(dir, "mod.json"))
 	if err != nil {
 		return nil, err
 	}
-	mod := &manifest.Manifest{}
+	mod := &wasm.Manifest{}
 	return mod, mod.UnmarshalJSON(data)
 }
 

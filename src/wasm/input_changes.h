@@ -38,7 +38,7 @@ class InputChanges {
   void Watch(uint64_t buttons);
 
   // Remap makes remap's from buttons act as its to buttons for every player.
-  void Remap(const input::RemapInputRequest& remap);
+  void Remap(const wasm::RemapInputRequest& remap);
 
   // Blocked returns the buttons withheld from the player in slot.
   uint64_t Blocked(int32_t slot) const;
@@ -72,7 +72,7 @@ class InputChanges {
   uint64_t blocked_ = 0;
   std::map<int32_t, uint64_t> slot_blocked_;
   std::map<int32_t, uint64_t> presses_;
-  input::RemapInputRequest remap_;
+  wasm::RemapInputRequest remap_;
   uint64_t watched_ = 0;
   std::vector<ButtonChange> changes_;
 };

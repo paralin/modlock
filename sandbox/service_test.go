@@ -5,7 +5,6 @@ import (
 
 	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm"
-	"github.com/paralin/modlock/src/wasm/manifest"
 	scorespb "github.com/paralin/modlock/src/wasm/scores"
 )
 
@@ -18,7 +17,7 @@ func TestCallService(t *testing.T) {
 	s := &Sandbox{config: Config{Events: func(event *control.HostEvent) {
 		logged = append(logged, event.GetLog().GetText())
 	}}}
-	build := &Build{Manifest: &manifest.Manifest{Slug: "trial", Boards: []*scorespb.Board{{
+	build := &Build{Manifest: &wasm.Manifest{Slug: "trial", Boards: []*scorespb.Board{{
 		Name: "trial.time", Unit: scorespb.Board_UNIT_MILLISECONDS, Order: scorespb.Board_ORDER_ASCENDING,
 		Keep: scorespb.Board_KEEP_BEST, Partitions: []*scorespb.Partition{{Name: "course", Values: []string{"canyon"}}},
 	}}}}

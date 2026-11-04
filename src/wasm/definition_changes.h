@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "modlock/gameinterop/game_symbols.h"
-#include "src/wasm/manifest/manifest.pb.h"
+#include "src/wasm/manifest.pb.h"
 
 namespace modlock::wasm {
 
@@ -48,7 +48,6 @@ class DefinitionUndo {
 // resolve is skipped and reported in the returned problems.
 std::expected<std::vector<std::string>, std::string> ChangeDefinitions(
     const gameinterop::ModuleImage& module, void* schema, const char* module_name,
-    const google::protobuf::RepeatedPtrField<manifest::Definition>& definitions,
-    DefinitionUndo& undo);
+    const google::protobuf::RepeatedPtrField<wasm::Definition>& definitions, DefinitionUndo& undo);
 
 }  // namespace modlock::wasm

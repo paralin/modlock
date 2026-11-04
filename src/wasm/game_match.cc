@@ -7,7 +7,7 @@
 
 namespace modlock::wasm {
 
-std::expected<void, std::string> Game::Pause(const match::PauseRequest& request) {
+std::expected<void, std::string> Game::Pause(const wasm::PauseRequest& request) {
   return SetPaused(request.paused());
 }
 
@@ -24,7 +24,7 @@ std::expected<void, std::string> Game::SetPaused(bool paused) {
   return {};
 }
 
-std::expected<match::MatchClockResponse, std::string> Game::MatchClock() {
+std::expected<wasm::MatchClockResponse, std::string> Game::MatchClock() {
   // Resolve the match clock and the server's time.
   auto clock = services_.Clock();
   if (!clock) {
@@ -44,12 +44,12 @@ std::expected<match::MatchClockResponse, std::string> Game::MatchClock() {
   if (!seconds) {
     return std::unexpected(seconds.error());
   }
-  match::MatchClockResponse response;
+  wasm::MatchClockResponse response;
   response.set_seconds(*seconds);
   return response;
 }
 
-std::expected<void, std::string> Game::HoldMatchClock(const match::HoldMatchClockRequest& request) {
+std::expected<void, std::string> Game::HoldMatchClock(const wasm::HoldMatchClockRequest& request) {
   // No seconds releases the hold.
   if (!request.has_seconds()) {
     held_clock_.reset();
@@ -118,7 +118,7 @@ std::expected<void, std::string> Game::ReplicateClock() {
   return {};
 }
 
-std::expected<match::RiftResponse, std::string> Game::Rift() {
+std::expected<wasm::RiftResponse, std::string> Game::Rift() {
   // Read the rift's state.
   auto rift = services_.Rift();
   if (!rift) {
@@ -130,7 +130,7 @@ std::expected<match::RiftResponse, std::string> Game::Rift() {
   }
 
   // Copy the scoring state into the response.
-  match::RiftResponse response;
+  wasm::RiftResponse response;
   auto* out = response.mutable_state();
   out->set_scoring_team(state->scoring_team);
   out->set_scoring_time(state->scoring_time);
@@ -143,7 +143,7 @@ std::expected<match::RiftResponse, std::string> Game::Rift() {
   return response;
 }
 
-std::expected<void, std::string> Game::StartRift(const match::StartRiftRequest& request) {
+std::expected<void, std::string> Game::StartRift(const wasm::StartRiftRequest& request) {
   auto rift = services_.Rift();
   if (!rift) {
     return std::unexpected(rift.error());

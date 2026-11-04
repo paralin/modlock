@@ -14,9 +14,6 @@ import (
 	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/paralin/modlock/src/wasm/effects"
-	filespb "github.com/paralin/modlock/src/wasm/files"
-	"github.com/paralin/modlock/src/wasm/handoff"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
 	metricspb "github.com/paralin/modlock/src/wasm/metrics"
 	"github.com/paralin/modlock/src/wasm/players"
 	settingspb "github.com/paralin/modlock/src/wasm/settings"
@@ -310,7 +307,7 @@ func (s *Sandbox) start(ctx context.Context, name string, build *Build) (*Mod, *
 func (s *Sandbox) module(ctx context.Context, build *Build) ([]byte, []byte, error) {
 	// A WebAssembly mod is its own module.
 	runtime := build.Manifest.GetRuntime()
-	if runtime == manifestpb.Manifest_RUNTIME_WASM {
+	if runtime == wasm.Manifest_RUNTIME_WASM {
 		return build.Entry, nil, nil
 	}
 
@@ -479,13 +476,13 @@ func (s *Sandbox) handOff(mod string, call *wasm.Call) *wasm.Reply {
 	sets := true
 	switch call.GetMethod() {
 	case "Handoff":
-		request := &handoff.HandoffRequest{}
+		request := &wasm.HandoffRequest{}
 		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
 			return &wasm.Reply{Error: "the Handoff request is malformed"}
 		}
 		text, slot = request.GetText(), player.GetPlayer()
 	case "PlayerHandoff":
-		request := &handoff.HandoffPlayerRequest{}
+		request := &wasm.HandoffPlayerRequest{}
 		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
 			return &wasm.Reply{Error: "the PlayerHandoff request is malformed"}
 		}
@@ -518,7 +515,7 @@ func (s *Sandbox) handOff(mod string, call *wasm.Call) *wasm.Reply {
 		}
 		return &wasm.Reply{}
 	}
-	response := &handoff.HandedOffResponse{}
+	response := &wasm.HandedOffResponse{}
 	if slot == player.GetPlayer() {
 		response.Text = s.handoff[key]
 	}
@@ -537,7 +534,7 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 
 	// Write the file, or read it and leave the text unset when it is missing.
 	if call.GetMethod() == "WriteFile" {
-		request := &filespb.WriteFileRequest{}
+		request := &wasm.WriteFileRequest{}
 		if err := request.UnmarshalVT(call.GetRequest()); err != nil {
 			return &wasm.Reply{Error: "the WriteFile request is malformed"}
 		}
@@ -546,7 +543,7 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 		}
 		return &wasm.Reply{}
 	}
-	request := &filespb.ReadFileRequest{}
+	request := &wasm.ReadFileRequest{}
 	if err := request.UnmarshalVT(call.GetRequest()); err != nil {
 		return &wasm.Reply{Error: "the ReadFile request is malformed"}
 	}
@@ -554,7 +551,7 @@ func (s *Sandbox) file(build *Build, call *wasm.Call) *wasm.Reply {
 	if err != nil {
 		return &wasm.Reply{Error: err.Error()}
 	}
-	response := &filespb.ReadFileResponse{}
+	response := &wasm.ReadFileResponse{}
 	if found {
 		response.Text = &text
 	}
@@ -576,7 +573,7 @@ func (s *Sandbox) message(mod string, slot int32, kind control.MessageKind, titl
 // setting returns the player's value of a setting manifest declares: the
 // kept value while the setting accepts it, or its default. An undeclared
 // setting reads empty.
-func (s *Sandbox) setting(manifest *manifestpb.Manifest, slot int32, key string) string {
+func (s *Sandbox) setting(manifest *wasm.Manifest, slot int32, key string) string {
 	declared := settings.Find(manifest, key)
 	if declared == nil {
 		return ""
@@ -593,7 +590,7 @@ func (s *Sandbox) setting(manifest *manifestpb.Manifest, slot int32, key string)
 
 // setSetting keeps the player's new value of a setting manifest declares,
 // logging a value the setting refuses.
-func (s *Sandbox) setSetting(manifest *manifestpb.Manifest, slot int32, key, value string) {
+func (s *Sandbox) setSetting(manifest *wasm.Manifest, slot int32, key, value string) {
 	// Accept only a value of a declared setting.
 	mod := manifest.GetSlug()
 	declared := settings.Find(manifest, key)
@@ -618,7 +615,7 @@ func (s *Sandbox) setSetting(manifest *manifestpb.Manifest, slot int32, key, val
 
 // addMetric adds to the stand-in player's total of a metric manifest
 // declares, logging a call the declaration refuses.
-func (s *Sandbox) addMetric(manifest *manifestpb.Manifest, request *metricspb.AddMetricRequest) {
+func (s *Sandbox) addMetric(manifest *wasm.Manifest, request *metricspb.AddMetricRequest) {
 	// Count only a declared metric and label.
 	mod := manifest.GetSlug()
 	declared := metrics.Find(manifest, request.GetName())

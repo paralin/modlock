@@ -9,10 +9,10 @@ import "github.com/paralin/modlock/src/wasm/combat/combat.proto";
 import "github.com/paralin/modlock/src/wasm/effects/effects.proto";
 import "github.com/paralin/modlock/src/wasm/entities/entities.proto";
 import "github.com/paralin/modlock/src/wasm/fields/fields.proto";
-import "github.com/paralin/modlock/src/wasm/files/files.proto";
-import "github.com/paralin/modlock/src/wasm/input/input.proto";
-import "github.com/paralin/modlock/src/wasm/handoff/handoff.proto";
-import "github.com/paralin/modlock/src/wasm/match/match.proto";
+import "github.com/paralin/modlock/src/wasm/files.proto";
+import "github.com/paralin/modlock/src/wasm/input.proto";
+import "github.com/paralin/modlock/src/wasm/handoff.proto";
+import "github.com/paralin/modlock/src/wasm/match.proto";
 import "github.com/paralin/modlock/src/wasm/metrics/metrics.proto";
 import "github.com/paralin/modlock/src/wasm/movement/movement.proto";
 import "github.com/paralin/modlock/src/wasm/npcs/npcs.proto";
@@ -124,14 +124,14 @@ service Host {
   // wrote or the server's operator placed, else the one the mod ships under
   // data/. A file in neither reads as unset. Names that leave the mod's
   // directories are refused.
-  rpc ReadFile(modlock.wasm.files.ReadFileRequest) returns (modlock.wasm.files.ReadFileResponse);
+  rpc ReadFile(modlock.wasm.ReadFileRequest) returns (modlock.wasm.ReadFileResponse);
 
   // WriteFile replaces one of the mod's files in the host's copy, which
   // outlives a restart and an update of the mod; the files the mod ships stay
   // as they are. The write is whole or not at all, and the host refuses one
   // past its quota of 4 MiB per mod. A host that keeps no files refuses every
   // write.
-  rpc WriteFile(modlock.wasm.files.WriteFileRequest) returns (Empty);
+  rpc WriteFile(modlock.wasm.WriteFileRequest) returns (Empty);
 
   // HoldReload keeps the running build through a reload while held is true,
   // such as while a player is partway through something a new build would
@@ -146,19 +146,19 @@ service Host {
   // update, whose new build reads it back with HandedOff. The host holds it
   // in memory and never writes it to disk, so it ends when the mod stops or
   // the server restarts. The host refuses state past 64 KiB.
-  rpc Handoff(modlock.wasm.handoff.HandoffRequest) returns (Empty);
+  rpc Handoff(modlock.wasm.HandoffRequest) returns (Empty);
 
   // HandedOff returns the game's handoff state, or empty.
-  rpc HandedOff(Empty) returns (modlock.wasm.handoff.HandedOffResponse);
+  rpc HandedOff(Empty) returns (modlock.wasm.HandedOffResponse);
 
   // PlayerHandoff replaces the handoff state for the player, such as the
   // panels their HUD shows. It lasts only through a reload of the mod in the
   // same game, in memory, as the game's does, and ends early when the player
   // leaves; only that player reads it back, and a bot keeps none.
-  rpc PlayerHandoff(modlock.wasm.handoff.HandoffPlayerRequest) returns (Empty);
+  rpc PlayerHandoff(modlock.wasm.HandoffPlayerRequest) returns (Empty);
 
   // PlayerHandedOff returns the player's handoff state, or empty.
-  rpc PlayerHandedOff(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.handoff.HandedOffResponse);
+  rpc PlayerHandedOff(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.HandedOffResponse);
 
   // SelectHero gives the player a hero on a team, 2 or 3, and returns the
   // hero's identifier as Pawn.hero reports it. The hero appears on a later
@@ -423,7 +423,7 @@ service Host {
   // has hero 0 a hero with SelectHero. Turning it off releases the friendly
   // fire holds and restores stock team relations; players keep their teams.
   // Clients still draw teammates as allies.
-  rpc SetFreeForAll(modlock.wasm.match.SetFreeForAllRequest) returns (Empty);
+  rpc SetFreeForAll(modlock.wasm.SetFreeForAllRequest) returns (Empty);
 
   // SetTeamSeating turns team seating on or off for the running mod. While
   // on, the host seats each player who joins with no team on the smaller
@@ -432,7 +432,7 @@ service Host {
   // the mod gives each seated player whose pawn has hero 0 a hero with
   // SelectHero. Free-for-all seats players this
   // way whatever this says. Turning it off leaves players on their teams.
-  rpc SetTeamSeating(modlock.wasm.match.SetTeamSeatingRequest) returns (Empty);
+  rpc SetTeamSeating(modlock.wasm.SetTeamSeatingRequest) returns (Empty);
 
   // CreateModel places a model in the world, solid when the options ask.
   // The world removes it when the world ends; stopping the mod removes it
@@ -494,27 +494,27 @@ service Host {
 
   // BlockInput withholds buttons from every player's hero until called
   // again. Stopping the mod releases them.
-  rpc BlockInput(modlock.wasm.input.InputRequest) returns (Empty);
+  rpc BlockInput(modlock.wasm.InputRequest) returns (Empty);
 
   // BlockPlayerInput withholds buttons from the player's hero until called
   // again, on top of the block on everyone. Zero releases the player.
-  rpc BlockPlayerInput(modlock.wasm.input.PlayerInputRequest) returns (Empty);
+  rpc BlockPlayerInput(modlock.wasm.PlayerInputRequest) returns (Empty);
 
   // Press presses buttons at the player's next input, even through a block.
   // A bot presses them as a player would.
-  rpc Press(modlock.wasm.input.PlayerInputRequest) returns (Empty);
+  rpc Press(modlock.wasm.PlayerInputRequest) returns (Empty);
 
   // WatchInput replaces the buttons whose presses and releases arrive as
   // Input events. Watching does not withhold a press; block it with
   // BlockInput.
-  rpc WatchInput(modlock.wasm.input.InputRequest) returns (Empty);
+  rpc WatchInput(modlock.wasm.InputRequest) returns (Empty);
 
   // RemapInput makes the from buttons act as the to buttons for every
   // player's hero until called again; from reads as up. With repeat, a held
   // from button uses the to ability again as soon as it is ready. A zero from
   // stops remapping, and stopping the mod does too. BlockInput applies after
   // the remap.
-  rpc RemapInput(modlock.wasm.input.RemapInputRequest) returns (Empty);
+  rpc RemapInput(modlock.wasm.RemapInputRequest) returns (Empty);
 
   // Ui changes the interface the mod shows the player. The host keeps each
   // player's tree until the mod stops or the player leaves.
@@ -628,20 +628,20 @@ service Host {
 
   // Pause stops or resumes the game clock, as the pause command would.
   // Stopping the mod resumes it.
-  rpc Pause(modlock.wasm.match.PauseRequest) returns (Empty);
+  rpc Pause(modlock.wasm.PauseRequest) returns (Empty);
 
   // MatchClock returns the match time in seconds that the scoreboard shows.
-  rpc MatchClock(Empty) returns (modlock.wasm.match.MatchClockResponse);
+  rpc MatchClock(Empty) returns (modlock.wasm.MatchClockResponse);
 
   // HoldMatchClock keeps the match time at seconds every frame until called
   // again; omitted seconds let it run.
-  rpc HoldMatchClock(modlock.wasm.match.HoldMatchClockRequest) returns (Empty);
+  rpc HoldMatchClock(modlock.wasm.HoldMatchClockRequest) returns (Empty);
 
   // Rift reads the Rift objective's state.
-  rpc Rift(Empty) returns (modlock.wasm.match.RiftResponse);
+  rpc Rift(Empty) returns (modlock.wasm.RiftResponse);
 
   // StartRift opens the Rift objective at position now.
-  rpc StartRift(modlock.wasm.match.StartRiftRequest) returns (Empty);
+  rpc StartRift(modlock.wasm.StartRiftRequest) returns (Empty);
 
   // MoveEntity places any entity, such as a projectile, and replaces its
   // facing and motion when given. Without a position it leaves the entity
@@ -665,7 +665,7 @@ service Host {
 
   // Buttons returns the buttons a player holds, as Buttons bits, while the
   // player is alive or dead.
-  rpc Buttons(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.input.ButtonsResponse);
+  rpc Buttons(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.ButtonsResponse);
 
   // WatchMovement adds a player's hero to the movement samples of each Frame
   // event on a new tick, or removes it.
@@ -716,7 +716,7 @@ service Mod {
 
   // Input reports one player's presses of watched buttons, before the next
   // frame. A block in place still withholds them from the hero.
-  rpc Input(modlock.wasm.input.InputEvent) returns (Empty);
+  rpc Input(modlock.wasm.InputEvent) returns (Empty);
 
   // Restored ends one RestoreHero, before the next frame.
   rpc Restored(modlock.wasm.players.RestoredEvent) returns (Empty);

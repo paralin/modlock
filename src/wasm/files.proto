@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package modlock.wasm.files;
+package modlock.wasm;
 
-option go_package = "github.com/paralin/modlock/src/wasm/files;files";
+option go_package = "github.com/paralin/modlock/src/wasm;wasm";
 
 // ReadFileRequest names one of the mod's files.
 message ReadFileRequest {

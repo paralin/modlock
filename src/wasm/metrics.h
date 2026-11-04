@@ -5,13 +5,13 @@
 #include <string_view>
 #include <utility>
 
-#include "src/wasm/manifest/manifest.pb.h"
+#include "src/wasm/manifest.pb.h"
 #include "src/wasm/metrics/metrics.pb.h"
 
 namespace modlock::wasm {
 
 // FindMetric returns the metric named name that manifest declares, or null.
-const metrics::Metric* FindMetric(const manifest::Manifest& manifest, std::string_view name);
+const metrics::Metric* FindMetric(const wasm::Manifest& manifest, std::string_view name);
 
 // Labeled reports whether a call may label metric with label: one of its
 // labels, or empty for a metric without labels.

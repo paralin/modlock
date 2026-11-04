@@ -13,7 +13,7 @@ import (
 	"github.com/paralin/modlock/js"
 	"github.com/paralin/modlock/luau"
 	"github.com/paralin/modlock/python"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -88,7 +88,7 @@ def hello(player: modlock.Player, args: str) -> None:
 // not exist or be empty. A Go project fetches the Modlock library at
 // version, such as "v0.2.0" or "latest"; a script, Luau or Python project receives this
 // release's library. output receives the tools' messages.
-func New(ctx context.Context, dir, name string, language manifestpb.Manifest_Language, version string, output io.Writer) (*Project, error) {
+func New(ctx context.Context, dir, name string, language wasm.Manifest_Language, version string, output io.Writer) (*Project, error) {
 	// Name the mod after its directory.
 	dir, err := filepath.Abs(dir)
 	if err != nil {
@@ -109,16 +109,16 @@ func New(ctx context.Context, dir, name string, language manifestpb.Manifest_Lan
 	greeting := "Hello from " + name + "!"
 	var files map[string]string
 	switch language {
-	case manifestpb.Manifest_LANGUAGE_GO:
+	case wasm.Manifest_LANGUAGE_GO:
 		expand := strings.NewReplacer("{{slug}}", slug, "{{greeting}}", strconv.Quote(greeting))
 		files = map[string]string{
 			"go.mod":     "module " + slug + "\n\ngo 1.25.0\n",
 			"main.go":    expand.Replace(goMain),
 			".gitignore": "/" + BuildDir + "/\n",
 		}
-	case manifestpb.Manifest_LANGUAGE_TYPESCRIPT, manifestpb.Manifest_LANGUAGE_JAVASCRIPT:
+	case wasm.Manifest_LANGUAGE_TYPESCRIPT, wasm.Manifest_LANGUAGE_JAVASCRIPT:
 		scripts := ""
-		if language == manifestpb.Manifest_LANGUAGE_JAVASCRIPT {
+		if language == wasm.Manifest_LANGUAGE_JAVASCRIPT {
 			scripts = "\n    \"allowJs\": true,\n    \"checkJs\": true,"
 		}
 		files = map[string]string{
@@ -126,13 +126,13 @@ func New(ctx context.Context, dir, name string, language manifestpb.Manifest_Lan
 			"tsconfig.json":      strings.ReplaceAll(scriptConfig, "{{scripts}}", scripts),
 			".gitignore":         "/" + BuildDir + "/\n/node_modules/\n",
 		}
-	case manifestpb.Manifest_LANGUAGE_LUAU:
+	case wasm.Manifest_LANGUAGE_LUAU:
 		files = map[string]string{
 			"main.luau":  strings.ReplaceAll(luauMain, "{{greeting}}", strconv.Quote(greeting)),
 			".luaurc":    luauConfig,
 			".gitignore": "/" + BuildDir + "/\n/.modlock/\n",
 		}
-	case manifestpb.Manifest_LANGUAGE_PYTHON:
+	case wasm.Manifest_LANGUAGE_PYTHON:
 		files = map[string]string{
 			"main.py":            strings.ReplaceAll(pythonMain, "{{greeting}}", strconv.Quote(greeting)),
 			"pyrightconfig.json": pythonConfig,
@@ -146,7 +146,7 @@ func New(ctx context.Context, dir, name string, language manifestpb.Manifest_Lan
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, errors.Wrap(err, "create the project")
 	}
-	manifest := &manifestpb.Manifest{Slug: slug, Name: name, Version: "0.1.0", Language: language}
+	manifest := &wasm.Manifest{Slug: slug, Name: name, Version: "0.1.0", Language: language}
 	if err := WriteManifest(filepath.Join(dir, ManifestFile), manifest); err != nil {
 		return nil, err
 	}
@@ -159,11 +159,11 @@ func New(ctx context.Context, dir, name string, language manifestpb.Manifest_Lan
 	// Install the library.
 	created := &Project{Dir: dir, Manifest: manifest}
 	switch language {
-	case manifestpb.Manifest_LANGUAGE_LUAU:
+	case wasm.Manifest_LANGUAGE_LUAU:
 		return created, installTree(dir, luau.Library)
-	case manifestpb.Manifest_LANGUAGE_PYTHON:
+	case wasm.Manifest_LANGUAGE_PYTHON:
 		return created, installTree(dir, python.Library)
-	case manifestpb.Manifest_LANGUAGE_TYPESCRIPT, manifestpb.Manifest_LANGUAGE_JAVASCRIPT:
+	case wasm.Manifest_LANGUAGE_TYPESCRIPT, wasm.Manifest_LANGUAGE_JAVASCRIPT:
 		library, err := js.Library(ctx)
 		if err != nil {
 			return nil, err

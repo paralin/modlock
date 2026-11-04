@@ -99,15 +99,15 @@ class PluginGame final : public wasm::Game {
       const wasm::metrics::AddMetricRequest& request) override;
   std::expected<void, std::string> HoldReload(
       const wasm::abilities::HoldReloadRequest& request) override;
-  std::expected<void, std::string> Handoff(const wasm::handoff::HandoffRequest& request) override;
-  std::expected<wasm::handoff::HandedOffResponse, std::string> HandedOff() override;
+  std::expected<void, std::string> Handoff(const wasm::HandoffRequest& request) override;
+  std::expected<wasm::HandedOffResponse, std::string> HandedOff() override;
   std::expected<void, std::string> PlayerHandoff(
-      const wasm::handoff::HandoffPlayerRequest& request) override;
-  std::expected<wasm::handoff::HandedOffResponse, std::string> PlayerHandedOff(
+      const wasm::HandoffPlayerRequest& request) override;
+  std::expected<wasm::HandedOffResponse, std::string> PlayerHandedOff(
       const wasm::players::PlayerRequest& request) override;
-  std::expected<wasm::files::ReadFileResponse, std::string> ReadFile(
-      const wasm::files::ReadFileRequest& request) override;
-  std::expected<void, std::string> WriteFile(const wasm::files::WriteFileRequest& request) override;
+  std::expected<wasm::ReadFileResponse, std::string> ReadFile(
+      const wasm::ReadFileRequest& request) override;
+  std::expected<void, std::string> WriteFile(const wasm::WriteFileRequest& request) override;
   void Impacted(const wasm::combat::ImpactEvent& event) override;
 
   // plugin_ owns the game; host_ holds the players' roles.
@@ -191,7 +191,7 @@ class WasmPlugin final : public Plugin {
   void Scope(WasmScope scope);
 
   // AssignTeams gives this instance the host's initial team assignments.
-  std::expected<void, std::string> AssignTeams(const match::TeamAssignments& request) {
+  std::expected<void, std::string> AssignTeams(const wasm::TeamAssignments& request) {
     return game_.AssignTeams(request);
   }
 
@@ -377,7 +377,7 @@ class WasmPlugin final : public Plugin {
   // manifest's definition changes are written in the current world, and
   // untuned_ keeps the game's own values they overwrote until the instance
   // halts.
-  wasm::manifest::Manifest manifest_;
+  wasm::Manifest manifest_;
   std::vector<uint8_t> collision_;
   bool tuned_ = false;
   wasm::DefinitionUndo untuned_;

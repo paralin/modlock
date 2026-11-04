@@ -86,8 +86,7 @@ class Departures final : public gameinterop::ConnectionEventSink {
 
 void WasmPlugin::Move() {
   // Only a running QuakeWorld mod moves players, and only once.
-  if (movement_ || !instance_ ||
-      manifest_.movement().model() != wasm::manifest::Movement::MODEL_QUAKEWORLD) {
+  if (movement_ || !instance_ || manifest_.movement().model() != wasm::Movement::MODEL_QUAKEWORLD) {
     return;
   }
 
@@ -386,7 +385,7 @@ void WasmPlugin::DeliverGameEvents() {
     if (!instance_) {
       return;
     }
-    wasm::input::InputEvent event;
+    wasm::InputEvent event;
     event.set_player(change.slot);
     event.set_pressed(change.pressed);
     event.set_released(change.released);

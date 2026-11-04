@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/paralin/modlock/src/wasm/metrics"
 )
 
 // TestValidate checks which declarations a build accepts.
 func TestValidate(t *testing.T) {
 	// Accept well-formed metrics and refuse each kind of bad one.
-	good := &manifest.Manifest{Metrics: []*metrics.Metric{
+	good := &wasm.Manifest{Metrics: []*metrics.Metric{
 		{Name: "hud.opened", Kind: metrics.Metric_KIND_COUNT, Labels: []string{"classic", "compact"}},
 		{Name: "best_combo", Kind: metrics.Metric_KIND_MAX},
 	}}
@@ -25,7 +25,7 @@ func TestValidate(t *testing.T) {
 		}
 		return out
 	}
-	if err := Validate(&manifest.Manifest{Metrics: []*metrics.Metric{
+	if err := Validate(&wasm.Manifest{Metrics: []*metrics.Metric{
 		{Name: "level", Kind: metrics.Metric_KIND_MAX, Labels: labels(64)},
 	}}); err != nil {
 		t.Fatalf("Validate(64 labels) = %v", err)
@@ -37,11 +37,11 @@ func TestValidate(t *testing.T) {
 		"label": {Name: "runs", Kind: metrics.Metric_KIND_SUM, Labels: []string{"two words"}},
 		"twice": {Name: "runs", Kind: metrics.Metric_KIND_SUM, Labels: []string{"a", "a"}},
 	} {
-		if Validate(&manifest.Manifest{Metrics: []*metrics.Metric{metric}}) == nil {
+		if Validate(&wasm.Manifest{Metrics: []*metrics.Metric{metric}}) == nil {
 			t.Errorf("Validate accepted a bad %s", name)
 		}
 	}
-	twice := &manifest.Manifest{Metrics: []*metrics.Metric{good.Metrics[1], good.Metrics[1]}}
+	twice := &wasm.Manifest{Metrics: []*metrics.Metric{good.Metrics[1], good.Metrics[1]}}
 	if Validate(twice) == nil {
 		t.Error("Validate accepted a metric declared twice")
 	}

@@ -14,7 +14,7 @@ import (
 	"github.com/aperturerobotics/protobuf-go-lite/json"
 	"github.com/paralin/modlock/check"
 	"github.com/paralin/modlock/internal/fileretry"
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +29,7 @@ type Project struct {
 	// Dir is the project directory.
 	Dir string
 	// Manifest is the project's mod.json.
-	Manifest *manifestpb.Manifest
+	Manifest *wasm.Manifest
 }
 
 // Open reads the project in dir.
@@ -51,20 +51,20 @@ func Open(dir string) (*Project, error) {
 	if err := check.Version(manifest.GetVersion()); err != nil {
 		return nil, err
 	}
-	if manifest.GetLanguage() == manifestpb.Manifest_LANGUAGE_UNKNOWN {
+	if manifest.GetLanguage() == wasm.Manifest_LANGUAGE_UNKNOWN {
 		return nil, errors.New("mod.json names no language")
 	}
 	return &Project{Dir: dir, Manifest: manifest}, nil
 }
 
 // ReadManifest reads the mod.json in dir, a project or a built mod.
-func ReadManifest(dir string) (*manifestpb.Manifest, error) {
+func ReadManifest(dir string) (*wasm.Manifest, error) {
 	// Read and parse the file.
 	data, err := os.ReadFile(filepath.Join(dir, ManifestFile))
 	if err != nil {
 		return nil, errors.Wrap(err, "read mod.json")
 	}
-	manifest := &manifestpb.Manifest{}
+	manifest := &wasm.Manifest{}
 	if err := manifest.UnmarshalJSON(data); err != nil {
 		return nil, errors.Wrap(err, "parse mod.json")
 	}
@@ -78,7 +78,7 @@ func (p *Project) Output() string {
 
 // WriteManifest writes manifest to path as indented JSON, one field per line,
 // with enums by name. It replaces path whole.
-func WriteManifest(path string, manifest *manifestpb.Manifest) error {
+func WriteManifest(path string, manifest *wasm.Manifest) error {
 	data, err := json.MarshalerConfig{}.Marshal(manifest)
 	if err != nil {
 		return errors.Wrap(err, "encode mod.json")
@@ -90,10 +90,10 @@ func WriteManifest(path string, manifest *manifestpb.Manifest) error {
 // naming the runtime and entry in place of the language. Fields Modlock does
 // not read, such as a store's description of the mod, pass through
 // unchanged, so the store a mod publishes to reads them from the built mod.
-func (p *Project) writeBuiltManifest(runtime manifestpb.Manifest_Runtime, entry string) error {
+func (p *Project) writeBuiltManifest(runtime wasm.Manifest_Runtime, entry string) error {
 	// Encode the manifest's fields, naming the runtime and the entry.
 	built := p.Manifest.CloneVT()
-	built.Language = manifestpb.Manifest_LANGUAGE_UNKNOWN
+	built.Language = wasm.Manifest_LANGUAGE_UNKNOWN
 	built.Runtime = runtime
 	built.Entry = entry
 	data, err := json.MarshalerConfig{}.Marshal(built)

@@ -514,44 +514,43 @@ std::expected<void, std::string> PluginGame::HoldReload(
   return {};
 }
 
-std::expected<void, std::string> PluginGame::Handoff(const wasm::handoff::HandoffRequest& request) {
+std::expected<void, std::string> PluginGame::Handoff(const wasm::HandoffRequest& request) {
   return plugin_.Handoff(std::nullopt, request.text());
 }
 
-std::expected<wasm::handoff::HandedOffResponse, std::string> PluginGame::HandedOff() {
-  wasm::handoff::HandedOffResponse response;
+std::expected<wasm::HandedOffResponse, std::string> PluginGame::HandedOff() {
+  wasm::HandedOffResponse response;
   response.set_text(plugin_.HandedOff(std::nullopt));
   return response;
 }
 
 std::expected<void, std::string> PluginGame::PlayerHandoff(
-    const wasm::handoff::HandoffPlayerRequest& request) {
+    const wasm::HandoffPlayerRequest& request) {
   return plugin_.Handoff(request.player(), request.text());
 }
 
-std::expected<wasm::handoff::HandedOffResponse, std::string> PluginGame::PlayerHandedOff(
+std::expected<wasm::HandedOffResponse, std::string> PluginGame::PlayerHandedOff(
     const wasm::players::PlayerRequest& request) {
-  wasm::handoff::HandedOffResponse response;
+  wasm::HandedOffResponse response;
   response.set_text(plugin_.HandedOff(request.player()));
   return response;
 }
 
-std::expected<wasm::files::ReadFileResponse, std::string> PluginGame::ReadFile(
-    const wasm::files::ReadFileRequest& request) {
+std::expected<wasm::ReadFileResponse, std::string> PluginGame::ReadFile(
+    const wasm::ReadFileRequest& request) {
   // Read the file and wrap it, leaving the text unset for a missing file.
   auto text = plugin_.Files().Read(request.path());
   if (!text) {
     return std::unexpected(text.error());
   }
-  wasm::files::ReadFileResponse response;
+  wasm::ReadFileResponse response;
   if (*text) {
     response.set_text(std::move(**text));
   }
   return response;
 }
 
-std::expected<void, std::string> PluginGame::WriteFile(
-    const wasm::files::WriteFileRequest& request) {
+std::expected<void, std::string> PluginGame::WriteFile(const wasm::WriteFileRequest& request) {
   return plugin_.Files().Write(request.path(), request.text());
 }
 

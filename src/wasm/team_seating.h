@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 
-#include "src/wasm/match/match.pb.h"
+#include "src/wasm/match.pb.h"
 
 namespace modlock::wasm {
 
@@ -16,7 +16,7 @@ namespace modlock::wasm {
 class TeamSeating {
  public:
   // Assign replaces the roster atomically; unchanged seats keep confirmation.
-  std::expected<void, std::string> Assign(const match::TeamAssignments& request) {
+  std::expected<void, std::string> Assign(const wasm::TeamAssignments& request) {
     // Validate the replacement before changing a confirmed seat.
     std::map<uint64_t, int32_t> next;
     for (const auto& [steam_id, team] : request.assignments()) {

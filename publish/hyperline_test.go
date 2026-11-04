@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 )
 
 // TestPublish uploads a mod, its map and its client content with a saved session and reads back
@@ -35,7 +35,7 @@ func TestPublish(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	mod := &Mod{Dir: dir, Manifest: &manifest.Manifest{Slug: "hello", Version: "1.0.0", Entry: "mod.wasm", Map: "hl_court"}, Notes: "Faster rounds"}
+	mod := &Mod{Dir: dir, Manifest: &wasm.Manifest{Slug: "hello", Version: "1.0.0", Entry: "mod.wasm", Map: "hl_court"}, Notes: "Faster rounds"}
 
 	// Serve the release endpoint, recording what each upload carried.
 	var uploaded []string

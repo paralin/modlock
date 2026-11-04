@@ -18,7 +18,7 @@ std::string NumberText(double number) {
 
 }  // namespace
 
-const settings::Setting* FindSetting(const manifest::Manifest& manifest, std::string_view key) {
+const settings::Setting* FindSetting(const wasm::Manifest& manifest, std::string_view key) {
   for (const auto& setting : manifest.settings()) {
     if (setting.key() == key) {
       return &setting;

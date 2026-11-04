@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strconv"
 
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	settingspb "github.com/paralin/modlock/src/wasm/settings"
 	"github.com/pkg/errors"
 )
@@ -33,7 +33,7 @@ var (
 )
 
 // Find returns the setting named key that manifest declares, or nil.
-func Find(manifest *manifestpb.Manifest, key string) *settingspb.Setting {
+func Find(manifest *wasm.Manifest, key string) *settingspb.Setting {
 	for _, setting := range manifest.GetSettings() {
 		if setting.GetKey() == key {
 			return setting
@@ -88,7 +88,7 @@ func Default(setting *settingspb.Setting) string {
 }
 
 // Validate checks the settings manifest declares.
-func Validate(manifest *manifestpb.Manifest) error {
+func Validate(manifest *wasm.Manifest) error {
 	settings := manifest.GetSettings()
 	if len(settings) > limit {
 		return errors.Errorf("mod.json declares more than %d settings", limit)

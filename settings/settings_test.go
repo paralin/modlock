@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/paralin/modlock/src/wasm/settings"
 )
 
@@ -35,12 +35,12 @@ func TestValidate(t *testing.T) {
 	} {
 		setting := layout()
 		test.edit(setting)
-		err := Validate(&manifest.Manifest{Settings: []*settings.Setting{setting}})
+		err := Validate(&wasm.Manifest{Settings: []*settings.Setting{setting}})
 		if test.fail == "" && err != nil || test.fail != "" && (err == nil || !strings.Contains(err.Error(), test.fail)) {
 			t.Errorf("%s: got %v, want %q", name, err, test.fail)
 		}
 	}
-	if err := Validate(&manifest.Manifest{Settings: []*settings.Setting{layout(), layout()}}); err == nil {
+	if err := Validate(&wasm.Manifest{Settings: []*settings.Setting{layout(), layout()}}); err == nil {
 		t.Error("accepted a setting declared twice")
 	}
 }

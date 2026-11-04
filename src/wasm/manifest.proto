@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package modlock.wasm.manifest;
+package modlock.wasm;
 
-option go_package = "github.com/paralin/modlock/src/wasm/manifest;manifest";
+option go_package = "github.com/paralin/modlock/src/wasm;wasm";
 
 import "github.com/paralin/modlock/src/wasm/metrics/metrics.proto";
 import "github.com/paralin/modlock/src/wasm/scores/scores.proto";

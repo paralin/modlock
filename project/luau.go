@@ -10,7 +10,7 @@ import (
 	"slices"
 
 	"github.com/paralin/modlock/luau"
-	"github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -82,7 +82,7 @@ func (p *Project) buildLuau(ctx context.Context, output io.Writer) error {
 			}
 		}
 	}
-	return p.writeSources(manifest.Manifest_RUNTIME_LUAU, sources, luau.Library, func(name string) string {
+	return p.writeSources(wasm.Manifest_RUNTIME_LUAU, sources, luau.Library, func(name string) string {
 		if unused[name] {
 			return ""
 		}

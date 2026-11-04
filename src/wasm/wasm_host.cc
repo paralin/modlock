@@ -119,8 +119,8 @@ void WasmHost::SettingChanged(std::string_view mod, uint64_t steam_id, std::stri
   }
 }
 
-std::expected<void, std::string> WasmHost::AssignTeams(
-    std::string_view mod, const wasm::match::TeamAssignments& request) {
+std::expected<void, std::string> WasmHost::AssignTeams(std::string_view mod,
+                                                       const wasm::TeamAssignments& request) {
   // The instance owns its seating for as long as it runs.
   const auto found = impl_->plugins.find(mod);
   if (found == impl_->plugins.end()) {

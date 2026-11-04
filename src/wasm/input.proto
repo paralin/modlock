@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package modlock.wasm.input;
+package modlock.wasm;
 
-option go_package = "github.com/paralin/modlock/src/wasm/input;input";
+option go_package = "github.com/paralin/modlock/src/wasm;wasm";
 
 // InputEvent is one player's watched buttons that went down or up.
 message InputEvent {

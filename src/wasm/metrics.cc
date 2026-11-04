@@ -7,7 +7,7 @@
 
 namespace modlock::wasm {
 
-const metrics::Metric* FindMetric(const manifest::Manifest& manifest, std::string_view name) {
+const metrics::Metric* FindMetric(const wasm::Manifest& manifest, std::string_view name) {
   for (const auto& metric : manifest.metrics()) {
     if (metric.name() == name) {
       return &metric;

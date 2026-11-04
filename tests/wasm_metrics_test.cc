@@ -6,9 +6,9 @@
 namespace modlock::wasm {
 namespace {
 
-manifest::Manifest Declared() {
+wasm::Manifest Declared() {
   // Declare a labeled count.
-  manifest::Manifest manifest;
+  wasm::Manifest manifest;
   auto& opened = *manifest.add_metrics();
   opened.set_name("hud.opened");
   opened.set_kind(metrics::Metric::KIND_COUNT);

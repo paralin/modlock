@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "src/wasm/manifest/manifest.pb.h"
+#include "src/wasm/manifest.pb.h"
 #include "wasm/instance.h"
 
 namespace modlock::wasm {
@@ -20,7 +20,7 @@ struct Build {
   // source holds an interpreted mod's entry, which module evaluates at start.
   std::vector<uint8_t> source;
   // manifest is the mod's mod.json; a bare .wasm file has an empty one.
-  wasm::manifest::Manifest manifest;
+  wasm::Manifest manifest;
   // collision holds the map's Quake collision when the manifest's movement
   // model needs it.
   std::vector<uint8_t> collision;

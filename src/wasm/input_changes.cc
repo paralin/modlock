@@ -28,7 +28,7 @@ void InputChanges::Watch(uint64_t buttons) {
   watched_ = buttons;
 }
 
-void InputChanges::Remap(const input::RemapInputRequest& remap) {
+void InputChanges::Remap(const wasm::RemapInputRequest& remap) {
   remap_ = remap;
 }
 

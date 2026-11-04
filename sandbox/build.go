@@ -3,7 +3,7 @@ package sandbox
 import (
 	"io/fs"
 
-	manifestpb "github.com/paralin/modlock/src/wasm/manifest"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -16,7 +16,7 @@ const DataDir = "data"
 // Build is a built mod as the host reads it.
 type Build struct {
 	// Manifest is the mod's mod.json.
-	Manifest *manifestpb.Manifest
+	Manifest *wasm.Manifest
 	// Entry is the file the manifest names: the module of a WebAssembly mod,
 	// or the source an interpreter runs.
 	Entry []byte
@@ -31,7 +31,7 @@ func ReadBuild(dist fs.FS) (*Build, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "read mod.json")
 	}
-	manifest := &manifestpb.Manifest{}
+	manifest := &wasm.Manifest{}
 	if err := manifest.UnmarshalJSON(data); err != nil {
 		return nil, errors.Wrap(err, "parse mod.json")
 	}
@@ -54,13 +54,13 @@ func ReadBuild(dist fs.FS) (*Build, error) {
 
 // Interpreter names the module in Modlock's host package that runs an
 // interpreted runtime, or is empty for WebAssembly and unknown runtimes.
-func Interpreter(runtime manifestpb.Manifest_Runtime) string {
+func Interpreter(runtime wasm.Manifest_Runtime) string {
 	switch runtime {
-	case manifestpb.Manifest_RUNTIME_QUICKJS:
+	case wasm.Manifest_RUNTIME_QUICKJS:
 		return "quickjs.wasm"
-	case manifestpb.Manifest_RUNTIME_LUAU:
+	case wasm.Manifest_RUNTIME_LUAU:
 		return "luau.wasm"
-	case manifestpb.Manifest_RUNTIME_PYTHON:
+	case wasm.Manifest_RUNTIME_PYTHON:
 		return "python.wasm"
 	default:
 		return ""

@@ -814,7 +814,7 @@ void Game::EnableRelations() {
   }
 }
 
-std::expected<void, std::string> Game::SetFreeForAll(const match::SetFreeForAllRequest& request) {
+std::expected<void, std::string> Game::SetFreeForAll(const wasm::SetFreeForAllRequest& request) {
   if (free_for_all_ == request.enabled()) {
     return {};
   }
@@ -827,7 +827,7 @@ std::expected<void, std::string> Game::SetFreeForAll(const match::SetFreeForAllR
   return {};
 }
 
-std::expected<void, std::string> Game::SetTeamSeating(const match::SetTeamSeatingRequest& request) {
+std::expected<void, std::string> Game::SetTeamSeating(const wasm::SetTeamSeatingRequest& request) {
   team_seating_ = request.enabled();
   return {};
 }

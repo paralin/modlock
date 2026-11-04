@@ -7,7 +7,7 @@
 TEST(TeamSeating, JoinsReconnectsAndReplacementsKeepOnlyCurrentConfirmations) {
   // The host assigns two playing sides and an observer before they connect.
   modlock::wasm::TeamSeating seating;
-  modlock::wasm::match::TeamAssignments roster;
+  modlock::wasm::TeamAssignments roster;
   auto& teams = *roster.mutable_assignments();
   teams[11] = 2;
   teams[22] = 3;
