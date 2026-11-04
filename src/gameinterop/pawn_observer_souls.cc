@@ -27,37 +27,35 @@ std::expected<RequiredSouls, std::string> ResolveRequiredSouls(const ModuleImage
   return reinterpret_cast<RequiredSouls>(*address);
 }
 
-std::expected<PawnObserver::Sample, std::string> PawnObserver::AdjustSouls(int32_t slot,
-                                                                           int32_t delta,
-                                                                           bool silent,
-                                                                           ModifyCurrency modify) {
+std::expected<PawnObserver::Sample, std::string> PawnObserver::AdjustCurrency(
+    int32_t slot, uint32_t currency, int32_t delta, bool silent, ModifyCurrency modify) {
   // Read the wallet and check that it covers a spend.
   auto before = Observe(slot);
-  if (!modify || !before || !before->currencies) {
+  if (!modify || !before || !before->currencies || currency >= before->currencies->size()) {
     return std::unexpected("native wallet unavailable");
   }
-  const auto balance = (*before->currencies)[0];
+  const auto balance = (*before->currencies)[currency];
   if (delta == 0) {
     return *before;
   }
   if (delta < 0 && balance < -delta) {
-    return std::unexpected("not enough souls");
+    return std::unexpected("the wallet holds less than the spend");
   }
 
-  // EGold=0, ECheats=7. A grant forces gain; a spend only removes souls.
-  modify(PawnForSlot(slot), 0, delta, 7, silent ? 1 : 0, delta > 0 ? 1 : 0, delta < 0 ? 1 : 0,
-         nullptr, nullptr);
+  // ECheats=7. A grant forces gain; a spend only removes the currency.
+  modify(PawnForSlot(slot), currency, delta, 7, silent ? 1 : 0, delta > 0 ? 1 : 0,
+         delta < 0 ? 1 : 0, nullptr, nullptr);
   auto after = Observe(slot);
   if (!after || after->pawn_handle != before->pawn_handle || !after->currencies) {
     return std::unexpected("native wallet changed owner during adjustment");
   }
 
   // Native gain modifiers may scale a grant; a spend must remove exactly delta.
-  const auto applied = (*after->currencies)[0] - balance;
+  const auto applied = (*after->currencies)[currency] - balance;
   if (delta < 0 ? applied != delta : applied <= 0) {
     // A spend that removed a different amount is rolled back to the balance.
     if (delta < 0 && applied != 0) {
-      modify(PawnForSlot(slot), 0, -applied, 7, 1, applied < 0 ? 1 : 0, applied > 0 ? 1 : 0,
+      modify(PawnForSlot(slot), currency, -applied, 7, 1, applied < 0 ? 1 : 0, applied > 0 ? 1 : 0,
              nullptr, nullptr);
     }
     return std::unexpected("native wallet did not apply the adjustment");

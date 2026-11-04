@@ -971,14 +971,19 @@ func HeroBuild(hero string) ([]*BuildCategory, error) {
 	return response.GetCategories(), nil
 }
 
-// ReplaceAbility puts the ability named ability, untrained, in the hero's
-// ability slot index, as Ability.slot, removing the ability there. An
-// ability from another hero loads its models and particles only if
-// Precache named that hero and those resources before the world loaded;
-// otherwise its first effect stalls the game on a blocking load and the
-// game reports an assertion.
-func (p Player) ReplaceAbility(index uint32, ability string) error {
-	return invoke("ReplaceAbility", &abilitiespb.ReplaceAbilityRequest{Player: p.Slot, Index: index, Ability: ability}, nil)
+// ReplaceAbility puts the ability named ability, untrained unless keep
+// carries the old one's progress, in the hero's ability slot index, as
+// Ability.slot, removing the ability there. The game trains and upgrades an
+// ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+// presses the slot's ability key to spend ability points on it, and training
+// an untrained one costs an ability unlock. A hero change or ResetHero gives
+// the hero its own abilities again, so a mod that keeps a swap replaces
+// again then. An ability from another hero loads its models and particles
+// only if Precache named that hero and those resources before the world
+// loaded; otherwise its first effect stalls the game on a blocking load and
+// the game reports an assertion.
+func (p Player) ReplaceAbility(index uint32, ability string, keep *bool) error {
+	return invoke("ReplaceAbility", &abilitiespb.ReplaceAbilityRequest{Player: p.Slot, Index: index, Ability: ability, Keep: keep}, nil)
 }
 
 // HoldModifier keeps a modifier, named as GiveModifier names it, on the
@@ -1050,6 +1055,14 @@ func (p Player) Drive(command *DriveCommand) error {
 // nothing. Silent skips the pickup's sound and number.
 func (p Player) AdjustSouls(delta int32, silent *bool) error {
 	return invoke("AdjustSouls", &playerspb.AdjustSoulsRequest{Player: p.Slot, Delta: delta, Silent: silent}, nil)
+}
+
+// AdjustAbilityPoints gives the player ability points and ability unlocks,
+// or takes them when negative, as Pawn.ability_points and
+// Pawn.ability_unlocks read them. A spend larger than the player holds
+// fails and spends nothing.
+func (p Player) AdjustAbilityPoints(points, unlocks int32) error {
+	return invoke("AdjustAbilityPoints", &playerspb.AdjustAbilityPointsRequest{Player: p.Slot, Points: points, Unlocks: unlocks}, nil)
 }
 
 // StartingSouls sets the souls the player's hero spawns with.

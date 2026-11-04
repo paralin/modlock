@@ -1473,6 +1473,10 @@ class Pawn:
     # effective_max_health is the maximum the hero's health bar shows, health
     # from items included. Absent when the game's own reading is unavailable.
     effective_max_health: int | None = None
+    # ability_points is the ability points the player holds unspent.
+    ability_points: int = 0
+    # ability_unlocks is the ability unlocks the player holds unspent.
+    ability_unlocks: int = 0
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -2067,15 +2071,20 @@ class Player:
         """
         return _call("GiveItem", "GiveItemRequest", {"player": self, "item": item, "imbue": imbue}) is not None
 
-    def replace_ability(self, index: int, ability: str) -> bool:
-        """replace_ability puts the ability named ability, untrained, in the hero's
-        ability slot index, as Ability.slot, removing the ability there. An
-        ability from another hero loads its models and particles only if
-        Precache named that hero and those resources before the world loaded;
-        otherwise its first effect stalls the game on a blocking load and the
-        game reports an assertion.
+    def replace_ability(self, index: int, ability: str, keep: bool | None = None) -> bool:
+        """replace_ability puts the ability named ability, untrained unless keep
+        carries the old one's progress, in the hero's ability slot index, as
+        Ability.slot, removing the ability there. The game trains and upgrades an
+        ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+        presses the slot's ability key to spend ability points on it, and training
+        an untrained one costs an ability unlock. A hero change or ResetHero gives
+        the hero its own abilities again, so a mod that keeps a swap replaces
+        again then. An ability from another hero loads its models and particles
+        only if Precache named that hero and those resources before the world
+        loaded; otherwise its first effect stalls the game on a blocking load and
+        the game reports an assertion.
         """
-        return _call("ReplaceAbility", "ReplaceAbilityRequest", {"player": self, "index": index, "ability": ability}) is not None
+        return _call("ReplaceAbility", "ReplaceAbilityRequest", {"player": self, "index": index, "ability": ability, "keep": keep}) is not None
 
     def hold_modifier(self, modifier: str, active: bool | None = None) -> bool:
         """hold_modifier keeps a modifier, named as GiveModifier names it, on the
@@ -2147,6 +2156,14 @@ class Player:
         nothing. Silent skips the pickup's sound and number.
         """
         return _call("AdjustSouls", "AdjustSoulsRequest", {"player": self, "delta": delta, "silent": silent}) is not None
+
+    def adjust_ability_points(self, points: int, unlocks: int) -> bool:
+        """adjust_ability_points gives the player ability points and ability unlocks,
+        or takes them when negative, as Pawn.ability_points and
+        Pawn.ability_unlocks read them. A spend larger than the player holds
+        fails and spends nothing.
+        """
+        return _call("AdjustAbilityPoints", "AdjustAbilityPointsRequest", {"player": self, "points": points, "unlocks": unlocks}) is not None
 
     def starting_souls(self, souls: int) -> bool:
         """starting_souls sets the souls the player's hero spawns with."""
@@ -2420,6 +2437,7 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "index", "uint32"),
             wire.Field(3, "ability", "string"),
+            wire.Field(4, "keep", "bool", optional=True),
         ],
     ),
     "HoldModifierRequest": (
@@ -3432,6 +3450,8 @@ _SCHEMA: wire.Schema = {
             wire.Field(16, "score", "message", optional=True, message="Score"),
             wire.Field(17, "camera_position", "message", optional=True, message="Vec3"),
             wire.Field(18, "effective_max_health", "int32", optional=True),
+            wire.Field(19, "ability_points", "int32"),
+            wire.Field(20, "ability_unlocks", "int32"),
         ],
     ),
     "Score": (
@@ -3582,6 +3602,14 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "delta", "int32"),
             wire.Field(3, "silent", "bool", optional=True),
+        ],
+    ),
+    "AdjustAbilityPointsRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "points", "int32"),
+            wire.Field(3, "unlocks", "int32"),
         ],
     ),
     "StartingSoulsRequest": (

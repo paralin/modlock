@@ -115,6 +115,12 @@ message ReplaceAbilityRequest {
 
   // Ability is the new ability's name, such as ability_viper_slide.
   string ability = 3;
+
+  // Keep carries the replaced ability's progress to the new one: trained or
+  // not, its bought upgrades, its cooldown, and its charges when both
+  // abilities hold charges. The ability points and unlocks the player spent
+  // stay spent, and the game upgrades the new ability from there.
+  optional bool keep = 4;
 }
 
 // HoldModifierRequest holds or releases a modifier on one player's hero.

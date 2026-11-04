@@ -315,12 +315,17 @@ class HostService {
     return std::unexpected("this host does not support HeroBuild");
   }
 
-  // ReplaceAbility puts the ability named ability, untrained, in the hero's
-  // ability slot index, as Ability.slot, removing the ability there. An
-  // ability from another hero loads its models and particles only if
-  // Precache named that hero and those resources before the world loaded;
-  // otherwise its first effect stalls the game on a blocking load and the
-  // game reports an assertion.
+  // ReplaceAbility puts the ability named ability, untrained unless keep
+  // carries the old one's progress, in the hero's ability slot index, as
+  // Ability.slot, removing the ability there. The game trains and upgrades an
+  // ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+  // presses the slot's ability key to spend ability points on it, and training
+  // an untrained one costs an ability unlock. A hero change or ResetHero gives
+  // the hero its own abilities again, so a mod that keeps a swap replaces
+  // again then. An ability from another hero loads its models and particles
+  // only if Precache named that hero and those resources before the world
+  // loaded; otherwise its first effect stalls the game on a blocking load and
+  // the game reports an assertion.
   virtual std::expected<void, std::string> ReplaceAbility(
       const abilities::ReplaceAbilityRequest& /*request*/) {
     return std::unexpected("this host does not support ReplaceAbility");
@@ -399,6 +404,15 @@ class HostService {
   virtual std::expected<void, std::string> AdjustSouls(
       const players::AdjustSoulsRequest& /*request*/) {
     return std::unexpected("this host does not support AdjustSouls");
+  }
+
+  // AdjustAbilityPoints gives the player ability points and ability unlocks,
+  // or takes them when negative, as Pawn.ability_points and
+  // Pawn.ability_unlocks read them. A spend larger than the player holds
+  // fails and spends nothing.
+  virtual std::expected<void, std::string> AdjustAbilityPoints(
+      const players::AdjustAbilityPointsRequest& /*request*/) {
+    return std::unexpected("this host does not support AdjustAbilityPoints");
   }
 
   // StartingSouls sets the souls the player's hero spawns with.
@@ -1312,6 +1326,14 @@ class HostService {
              return detail::Fail("the AdjustSouls request is malformed");
            }
            return detail::Answer(host.AdjustSouls(request));
+         }},
+        {"AdjustAbilityPoints",
+         [](HostService& host, const std::string& bytes) {
+           players::AdjustAbilityPointsRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the AdjustAbilityPoints request is malformed");
+           }
+           return detail::Answer(host.AdjustAbilityPoints(request));
          }},
         {"StartingSouls",
          [](HostService& host, const std::string& bytes) {

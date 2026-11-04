@@ -1,5 +1,6 @@
 //go:build deps_only
 
+#include <array>
 #include <iostream>
 #include <span>
 #include <utility>
@@ -110,9 +111,41 @@ std::expected<void, std::string> Game::AdjustSouls(const players::AdjustSoulsReq
     return std::unexpected(pawn.error());
   }
   auto adjusted =
-      observer_.AdjustSouls(request.player(), request.delta(), request.silent(), *currency);
+      observer_.AdjustCurrency(request.player(), 0, request.delta(), request.silent(), *currency);
   if (!adjusted) {
     return std::unexpected(adjusted.error());
+  }
+  return {};
+}
+
+std::expected<void, std::string> Game::AdjustAbilityPoints(
+    const players::AdjustAbilityPointsRequest& request) {
+  // Check that the live player holds every spend before changing either.
+  auto currency = services_.Currency();
+  if (!currency) {
+    return std::unexpected(currency.error());
+  }
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
+  }
+  const auto sample = observer_.Observe(request.player());
+  if (!sample || !sample->currencies) {
+    return std::unexpected("native wallet unavailable");
+  }
+  // EAbilityPoints=1, EAbilityUnlocks=2.
+  const std::array changes{std::pair{1u, request.points()}, std::pair{2u, request.unlocks()}};
+  for (const auto [type, delta] : changes) {
+    if (delta < 0 && (*sample->currencies)[type] < -delta) {
+      return std::unexpected("the player holds fewer ability points or unlocks than the spend");
+    }
+  }
+
+  // Apply each change silently.
+  for (const auto [type, delta] : changes) {
+    if (auto adjusted = observer_.AdjustCurrency(request.player(), type, delta, true, *currency);
+        !adjusted) {
+      return std::unexpected(adjusted.error());
+    }
   }
   return {};
 }

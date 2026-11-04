@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <optional>
 #include <span>
 #include <utility>
 #include <vector>
@@ -708,13 +709,50 @@ std::expected<void, std::string> Game::ReplaceAbility(
     return std::unexpected(create.error());
   }
 
-  // Replace the ability on the player's live hero.
-  if (auto pawn = LivePawn(request.player()); !pawn) {
+  // Find the ability the slot holds now, whose progress keep carries.
+  const auto player = request.player();
+  const auto slot = static_cast<uint16_t>(request.index());
+  if (auto pawn = LivePawn(player); !pawn) {
     return std::unexpected(pawn.error());
   }
-  return (*slots)->Replace(observer_, request.player(), static_cast<uint16_t>(request.index()),
-                           gameinterop::MakeMemberName(request.ability()).hash, **definitions,
-                           *create);
+  std::optional<gameinterop::PawnObserver::Ability> old;
+  if (request.keep()) {
+    auto owned = observer_.CurrentAbilitiesForSlot(player);
+    if (!owned) {
+      return std::unexpected(owned.error());
+    }
+    if (auto found = std::ranges::find(*owned, slot, &gameinterop::PawnObserver::Ability::slot);
+        found != owned->end()) {
+      old = *found;
+    }
+  }
+
+  // Replace the ability, created with the old one's upgrade bits.
+  const uint16_t upgrades = old ? static_cast<uint16_t>(old->upgrade_info >> 16) : 0;
+  if (auto replaced = (*slots)->Replace(observer_, player, slot,
+                                        gameinterop::MakeMemberName(request.ability()).hash,
+                                        upgrades, **definitions, *create);
+      !replaced || !old) {
+    return replaced;
+  }
+
+  // Carry the cooldown, and the charges when both abilities hold them.
+  auto owned = observer_.CurrentAbilitiesForSlot(player);
+  if (!owned) {
+    return std::unexpected(owned.error());
+  }
+  auto fresh = std::ranges::find(*owned, slot, &gameinterop::PawnObserver::Ability::slot);
+  if (fresh == owned->end() || fresh->handle == old->handle) {
+    return {};
+  }
+  fresh->cooldown_start = old->cooldown_start;
+  fresh->cooldown_end = old->cooldown_end;
+  fresh->charge_recharge_start = old->charge_recharge_start;
+  fresh->charge_recharge_end = old->charge_recharge_end;
+  if (old->charges > 0 && fresh->charges > 0) {
+    fresh->charges = std::min(old->charges, fresh->charges);
+  }
+  return observer_.ApplyAbilityTimers(player, std::span(&*fresh, 1));
 }
 
 std::expected<void, std::string> Game::HoldModifier(const abilities::HoldModifierRequest& request) {

@@ -65,6 +65,10 @@ enum DisconnectReason : int;
 extern const uint32_t DisconnectReason_internal_data_[];
 enum ModRole : int;
 extern const uint32_t ModRole_internal_data_[];
+class AdjustAbilityPointsRequest;
+struct AdjustAbilityPointsRequestDefaultTypeInternal;
+MODLOCK_API extern AdjustAbilityPointsRequestDefaultTypeInternal _AdjustAbilityPointsRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AdjustAbilityPointsRequest_class_data_;
 class AdjustSoulsRequest;
 struct AdjustSoulsRequestDefaultTypeInternal;
 MODLOCK_API extern AdjustSoulsRequestDefaultTypeInternal _AdjustSoulsRequest_default_instance_;
@@ -744,7 +748,7 @@ class MODLOCK_API TimerTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const TimerTarget*>(
         &_TimerTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 35;
+  static constexpr int kIndexInFileMessages = 36;
   friend void swap(TimerTarget& a, TimerTarget& b) { a.Swap(&b); }
   inline void Swap(TimerTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -998,7 +1002,7 @@ class MODLOCK_API StartingSoulsRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const StartingSoulsRequest*>(
         &_StartingSoulsRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 28;
+  static constexpr int kIndexInFileMessages = 29;
   friend void swap(StartingSoulsRequest& a, StartingSoulsRequest& b) { a.Swap(&b); }
   inline void Swap(StartingSoulsRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1200,7 +1204,7 @@ class MODLOCK_API SetStaminaRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const SetStaminaRequest*>(
         &_SetStaminaRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 31;
+  static constexpr int kIndexInFileMessages = 32;
   friend void swap(SetStaminaRequest& a, SetStaminaRequest& b) { a.Swap(&b); }
   inline void Swap(SetStaminaRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2132,7 +2136,7 @@ class MODLOCK_API ResetHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const ResetHeroRequest*>(
         &_ResetHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 29;
+  static constexpr int kIndexInFileMessages = 30;
   friend void swap(ResetHeroRequest& a, ResetHeroRequest& b) { a.Swap(&b); }
   inline void Swap(ResetHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2714,7 +2718,7 @@ class MODLOCK_API HealRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HealRequest*>(
         &_HealRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 30;
+  static constexpr int kIndexInFileMessages = 31;
   friend void swap(HealRequest& a, HealRequest& b) { a.Swap(&b); }
   inline void Swap(HealRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3119,7 +3123,7 @@ class MODLOCK_API EquipmentTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const EquipmentTarget*>(
         &_EquipmentTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 34;
+  static constexpr int kIndexInFileMessages = 35;
   friend void swap(EquipmentTarget& a, EquipmentTarget& b) { a.Swap(&b); }
   inline void Swap(EquipmentTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4679,7 +4683,7 @@ class MODLOCK_API BotResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const BotResponse*>(
         &_BotResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 37;
+  static constexpr int kIndexInFileMessages = 38;
   friend void swap(BotResponse& a, BotResponse& b) { a.Swap(&b); }
   inline void Swap(BotResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -5027,6 +5031,220 @@ class MODLOCK_API AdjustSoulsRequest final : public ::google::protobuf::Message
 };
 
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AdjustSoulsRequest_class_data_;
+// -------------------------------------------------------------------
+
+class MODLOCK_API AdjustAbilityPointsRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.players.AdjustAbilityPointsRequest) */ {
+ public:
+  inline AdjustAbilityPointsRequest() : AdjustAbilityPointsRequest(nullptr) {}
+  ~AdjustAbilityPointsRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(AdjustAbilityPointsRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(AdjustAbilityPointsRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR AdjustAbilityPointsRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline AdjustAbilityPointsRequest(const AdjustAbilityPointsRequest& from) : AdjustAbilityPointsRequest(nullptr, from) {}
+  inline AdjustAbilityPointsRequest(AdjustAbilityPointsRequest&& from) noexcept
+      : AdjustAbilityPointsRequest(nullptr, ::std::move(from)) {}
+  inline AdjustAbilityPointsRequest& operator=(const AdjustAbilityPointsRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline AdjustAbilityPointsRequest& operator=(AdjustAbilityPointsRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const AdjustAbilityPointsRequest& default_instance() {
+    return *reinterpret_cast<const AdjustAbilityPointsRequest*>(
+        &_AdjustAbilityPointsRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 28;
+  friend void swap(AdjustAbilityPointsRequest& a, AdjustAbilityPointsRequest& b) { a.Swap(&b); }
+  inline void Swap(AdjustAbilityPointsRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(AdjustAbilityPointsRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  AdjustAbilityPointsRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<AdjustAbilityPointsRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const AdjustAbilityPointsRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const AdjustAbilityPointsRequest& from) { AdjustAbilityPointsRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(AdjustAbilityPointsRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.players.AdjustAbilityPointsRequest"; }
+
+  explicit AdjustAbilityPointsRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  AdjustAbilityPointsRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const AdjustAbilityPointsRequest& from);
+  AdjustAbilityPointsRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, AdjustAbilityPointsRequest&& from) noexcept
+      : AdjustAbilityPointsRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayerFieldNumber = 1,
+    kPointsFieldNumber = 2,
+    kUnlocksFieldNumber = 3,
+  };
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // int32 points = 2;
+  void clear_points() ;
+  ::int32_t points() const;
+  void set_points(::int32_t value);
+
+  private:
+  ::int32_t _internal_points() const;
+  void _internal_set_points(::int32_t value);
+
+  public:
+  // int32 unlocks = 3;
+  void clear_unlocks() ;
+  ::int32_t unlocks() const;
+  void set_unlocks(::int32_t value);
+
+  private:
+  ::int32_t _internal_unlocks() const;
+  void _internal_set_unlocks(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.players.AdjustAbilityPointsRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const AdjustAbilityPointsRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int32_t player_;
+    ::int32_t points_;
+    ::int32_t unlocks_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fplayers_2fplayers_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull AdjustAbilityPointsRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API RolesTable final : public ::google::protobuf::Message
@@ -6234,6 +6452,8 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     kSoulsFieldNumber = 12,
     kCarryingUrnFieldNumber = 15,
     kEffectiveMaxHealthFieldNumber = 18,
+    kAbilityPointsFieldNumber = 19,
+    kAbilityUnlocksFieldNumber = 20,
   };
   // .modlock.geometry.Vec3 position = 6;
   bool has_position() const;
@@ -6454,11 +6674,31 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
   void _internal_set_effective_max_health(::int32_t value);
 
   public:
+  // int32 ability_points = 19;
+  void clear_ability_points() ;
+  ::int32_t ability_points() const;
+  void set_ability_points(::int32_t value);
+
+  private:
+  ::int32_t _internal_ability_points() const;
+  void _internal_set_ability_points(::int32_t value);
+
+  public:
+  // int32 ability_unlocks = 20;
+  void clear_ability_unlocks() ;
+  ::int32_t ability_unlocks() const;
+  void set_ability_unlocks(::int32_t value);
+
+  private:
+  ::int32_t _internal_ability_unlocks() const;
+  void _internal_set_ability_unlocks(::int32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.players.Pawn)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 18,
+  static const ::google::protobuf::internal::TcParseTable<5, 20,
                                    7, 0,
                                    2>
       _table_;
@@ -6498,6 +6738,8 @@ class MODLOCK_API Pawn final : public ::google::protobuf::Message
     ::int32_t souls_;
     bool carrying_urn_;
     ::int32_t effective_max_health_;
+    ::int32_t ability_points_;
+    ::int32_t ability_unlocks_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -6562,7 +6804,7 @@ class MODLOCK_API HeroTarget final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroTarget*>(
         &_HeroTarget_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 33;
+  static constexpr int kIndexInFileMessages = 34;
   friend void swap(HeroTarget& a, HeroTarget& b) { a.Swap(&b); }
   inline void Swap(HeroTarget* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7372,7 +7614,7 @@ class MODLOCK_API BotOptions final : public ::google::protobuf::Message
     kHeroId = 4,
     HERO_NOT_SET = 0,
   };
-  static constexpr int kIndexInFileMessages = 36;
+  static constexpr int kIndexInFileMessages = 37;
   friend void swap(BotOptions& a, BotOptions& b) { a.Swap(&b); }
   inline void Swap(BotOptions* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -7638,7 +7880,7 @@ class MODLOCK_API RestoreHeroRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const RestoreHeroRequest*>(
         &_RestoreHeroRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 32;
+  static constexpr int kIndexInFileMessages = 33;
   friend void swap(RestoreHeroRequest& a, RestoreHeroRequest& b) { a.Swap(&b); }
   inline void Swap(RestoreHeroRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -11428,6 +11670,56 @@ inline void Pawn::_internal_set_effective_max_health(::int32_t value) {
   _impl_.effective_max_health_ = value;
 }
 
+// int32 ability_points = 19;
+inline void Pawn::clear_ability_points() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_points_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00040000U);
+}
+inline ::int32_t Pawn::ability_points() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.Pawn.ability_points)
+  return _internal_ability_points();
+}
+inline void Pawn::set_ability_points(::int32_t value) {
+  _internal_set_ability_points(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.Pawn.ability_points)
+}
+inline ::int32_t Pawn::_internal_ability_points() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_points_;
+}
+inline void Pawn::_internal_set_ability_points(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_points_ = value;
+}
+
+// int32 ability_unlocks = 20;
+inline void Pawn::clear_ability_unlocks() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_unlocks_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00080000U);
+}
+inline ::int32_t Pawn::ability_unlocks() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.Pawn.ability_unlocks)
+  return _internal_ability_unlocks();
+}
+inline void Pawn::set_ability_unlocks(::int32_t value) {
+  _internal_set_ability_unlocks(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.Pawn.ability_unlocks)
+}
+inline ::int32_t Pawn::_internal_ability_unlocks() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_unlocks_;
+}
+inline void Pawn::_internal_set_ability_unlocks(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_unlocks_ = value;
+}
+
 // -------------------------------------------------------------------
 
 // Score
@@ -14241,6 +14533,85 @@ inline bool AdjustSoulsRequest::_internal_silent() const {
 inline void AdjustSoulsRequest::_internal_set_silent(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.silent_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// AdjustAbilityPointsRequest
+
+// int32 player = 1;
+inline void AdjustAbilityPointsRequest::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t AdjustAbilityPointsRequest::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.AdjustAbilityPointsRequest.player)
+  return _internal_player();
+}
+inline void AdjustAbilityPointsRequest::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.AdjustAbilityPointsRequest.player)
+}
+inline ::int32_t AdjustAbilityPointsRequest::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void AdjustAbilityPointsRequest::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// int32 points = 2;
+inline void AdjustAbilityPointsRequest::clear_points() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.points_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::int32_t AdjustAbilityPointsRequest::points() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.AdjustAbilityPointsRequest.points)
+  return _internal_points();
+}
+inline void AdjustAbilityPointsRequest::set_points(::int32_t value) {
+  _internal_set_points(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.AdjustAbilityPointsRequest.points)
+}
+inline ::int32_t AdjustAbilityPointsRequest::_internal_points() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.points_;
+}
+inline void AdjustAbilityPointsRequest::_internal_set_points(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.points_ = value;
+}
+
+// int32 unlocks = 3;
+inline void AdjustAbilityPointsRequest::clear_unlocks() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.unlocks_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000004U);
+}
+inline ::int32_t AdjustAbilityPointsRequest::unlocks() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.players.AdjustAbilityPointsRequest.unlocks)
+  return _internal_unlocks();
+}
+inline void AdjustAbilityPointsRequest::set_unlocks(::int32_t value) {
+  _internal_set_unlocks(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.players.AdjustAbilityPointsRequest.unlocks)
+}
+inline ::int32_t AdjustAbilityPointsRequest::_internal_unlocks() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.unlocks_;
+}
+inline void AdjustAbilityPointsRequest::_internal_set_unlocks(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.unlocks_ = value;
 }
 
 // -------------------------------------------------------------------

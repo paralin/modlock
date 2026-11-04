@@ -328,6 +328,11 @@ type ReplaceAbilityRequest struct {
 	Index uint32 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
 	// Ability is the new ability's name, such as ability_viper_slide.
 	Ability string `protobuf:"bytes,3,opt,name=ability,proto3" json:"ability,omitempty"`
+	// Keep carries the replaced ability's progress to the new one: trained or
+	// not, its bought upgrades, its cooldown, and its charges when both
+	// abilities hold charges. The ability points and unlocks the player spent
+	// stay spent, and the game upgrades the new ability from there.
+	Keep *bool `protobuf:"varint,4,opt,name=keep,proto3,oneof" json:"keep,omitempty"`
 }
 
 func (x *ReplaceAbilityRequest) Reset() {
@@ -355,6 +360,13 @@ func (x *ReplaceAbilityRequest) GetAbility() string {
 		return x.Ability
 	}
 	return ""
+}
+
+func (x *ReplaceAbilityRequest) GetKeep() bool {
+	if x != nil && x.Keep != nil {
+		return *x.Keep
+	}
+	return false
 }
 
 // HoldModifierRequest holds or releases a modifier on one player's hero.
@@ -755,6 +767,7 @@ func (m *ReplaceAbilityRequest) CloneVT() *ReplaceAbilityRequest {
 	r.Player = m.Player
 	r.Index = m.Index
 	r.Ability = m.Ability
+	r.Keep = protobuf_go_lite.ClonePtr(m.Keep)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -1112,6 +1125,9 @@ func (this *ReplaceAbilityRequest) EqualVT(that *ReplaceAbilityRequest) bool {
 		return false
 	}
 	if this.Ability != that.Ability {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Keep, that.Keep) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1825,6 +1841,11 @@ func (x *ReplaceAbilityRequest) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("ability")
 		s.WriteString(x.Ability)
 	}
+	if x.Keep != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("keep")
+		s.WriteBool(*x.Keep)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -1851,6 +1872,14 @@ func (x *ReplaceAbilityRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "ability":
 			s.AddField("ability")
 			x.Ability = s.ReadString()
+		case "keep":
+			s.AddField("keep")
+			if s.ReadNil() {
+				x.Keep = nil
+				return
+			}
+			t := s.ReadBool()
+			x.Keep = &t
 		}
 	})
 }
@@ -2730,6 +2759,11 @@ func (m *ReplaceAbilityRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error)
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.Keep != nil {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, *m.Keep)
+		i--
+		dAtA[i] = 0x20
+	}
 	if len(m.Ability) > 0 {
 		i = protobuf_go_lite.EncodeString(dAtA, i, m.Ability)
 		i--
@@ -3243,6 +3277,7 @@ func (m *ReplaceAbilityRequest) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Index)
 	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Ability)
+	n += protobuf_go_lite.SizeBoolPtr(1, m.Keep)
 	n += len(m.unknownFields)
 	return n
 }
@@ -3552,6 +3587,10 @@ func (x *ReplaceAbilityRequest) MarshalProtoText() string {
 	if x.Ability != "" {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
 		protobuf_go_lite.TextWriteString(&sb, x.Ability)
+	}
+	if x.Keep != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "keep")
+		protobuf_go_lite.TextWriteBool(&sb, *x.Keep)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -4316,6 +4355,17 @@ func (m *ReplaceAbilityRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Ability = v
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Keep", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			b := bool(v)
+			m.Keep = &b
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

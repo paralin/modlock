@@ -372,6 +372,8 @@ std::expected<players::PawnResponse, std::string> Game::Pawn(
   pawn->set_generation(sample->session_generation);
   if (sample->currencies) {
     pawn->set_souls((*sample->currencies)[0]);
+    pawn->set_ability_points((*sample->currencies)[1]);
+    pawn->set_ability_unlocks((*sample->currencies)[2]);
   }
 
   // Copy the pawn's eye and velocity when the sample has them.

@@ -19,9 +19,12 @@ class MODLOCK_API AbilitySlots {
   static std::expected<AbilitySlots, std::string> Resolve(const ModuleImage& server, void* schema);
 
   // Replace puts the ability subclass in a player's ability slot, removing the
-  // ability there. A slot that already holds subclass is left alone.
+  // ability there. A slot that already holds subclass is left alone. upgrades
+  // holds the new ability's upgrade bits: bit 0 trains it and bits 1 to 3 buy
+  // its tiers. The game trains an ability with VData m_bStartTrained either way.
   std::expected<void, std::string> Replace(PawnObserver& observer, int32_t player, uint16_t slot,
-                                           uint32_t subclass, const AbilityDefinitions& definitions,
+                                           uint32_t subclass, uint16_t upgrades,
+                                           const AbilityDefinitions& definitions,
                                            CreateAbility create) const;
 
   // Remove takes the ability out of a player's ability slot; an empty slot is
