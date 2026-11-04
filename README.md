@@ -1876,8 +1876,8 @@ beside `modlock-host` and hands it the mod's source in the start event.
 The WebAssembly host is built on Modlock's C++ framework, which also serves
 [native plugins](#native-plugins):
 
-- **Plugin host.** `modlock-host` runs a server or client and loads mods and
-  plugins.
+- **Plugin host.** `modlock-host` runs a server that loads mods and plugins,
+  or the game's own client.
 - **Engine events.** `EngineHost` delivers frames, chat, commands, damage,
   connections, respawns and worlds.
 - **Entities and rendering.** World text, particles and effects; player pawns;
@@ -2031,12 +2031,13 @@ modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 | `--game-dir DIR`     | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`).                                                                 |
 | `--map NAME`         | Start on `NAME` (default `dl_midtown`).                                                                                                          |
 | `--hostport PORT`    | Serve on UDP `PORT` (default 27067).                                                                                                             |
-| `--connect ADDRESS`  | Run a stock client that joins `ADDRESS`. Built mods run on the server, so the client skips them.                                                 |
+| `--connect ADDRESS`  | Run the game's own client, unchanged, that joins `ADDRESS`. It takes no plugin, control link or dump.                                            |
 | `--engine-args ARGS` | Append engine command-line arguments in either role.                                                                                             |
 | `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
 
-Clients run with `-insecure` and cannot join VAC-secured servers. See
-`modlock-host --help` for every option.
+Modlock never changes a game client: mods, plugins and engine patches run only
+in a server launch. A client runs with `-insecure` and cannot join VAC-secured
+servers. See `modlock-host --help` for every option.
 
 ## Plugin contract
 

@@ -143,20 +143,24 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     impl_->directories.push_back(cookie);
   }
 
-  // Without the shared port a second engine on this machine exits at startup;
-  // a failure leaves only that second-process case unsupported.
-  if (auto shared =
-          host_app::ShareVConsolePort(impl_->paths.engine2_dll.parent_path() / "vconcomm.dll");
-      !shared) {
-    std::cerr << "[modlock] " << shared.error() << '\n';
-  }
+  // A client launch runs the game's own client, so only a server launch
+  // changes how the engine behaves.
+  if (launch.connect.empty()) {
+    // Without the shared port a second engine on this machine exits at
+    // startup; a failure leaves only that second-process case unsupported.
+    if (auto shared =
+            host_app::ShareVConsolePort(impl_->paths.engine2_dll.parent_path() / "vconcomm.dll");
+        !shared) {
+      std::cerr << "[modlock] " << shared.error() << '\n';
+    }
 
-  // A failed engine assertion opens a modal dialog that holds the engine
-  // thread until someone answers it, which no one does on a server. tier0
-  // skips the dialog when this variable is set. Its runtime copies the
-  // environment as it loads, so the variable is set before the game modules.
-  if (launch.connect.empty() && !SetEnvironmentVariableW(L"NO_GAME_ASSERT_DIALOG", L"1")) {
-    std::cerr << "[modlock] engine assertions may open dialogs: error " << GetLastError() << '\n';
+    // A failed engine assertion opens a modal dialog that holds the engine
+    // thread until someone answers it, which no one does on a server. tier0
+    // skips the dialog when this variable is set. Its runtime copies the
+    // environment as it loads, so the variable is set before the game modules.
+    if (!SetEnvironmentVariableW(L"NO_GAME_ASSERT_DIALOG", L"1")) {
+      std::cerr << "[modlock] engine assertions may open dialogs: error " << GetLastError() << '\n';
+    }
   }
 #endif
 
