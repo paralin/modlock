@@ -94,9 +94,6 @@ class MODLOCK_API EngineHost {
   // EnsureConnectionHook installs the tracker that chat and command hooks
   // consult to admit only connected players.
   std::expected<void, std::string> EnsureConnectionHook();
-  // GuardEntityIndex makes the client's entity index getter safe for a null
-  // entity; a client launch calls it once after client.dll loads.
-  void GuardEntityIndex();
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };

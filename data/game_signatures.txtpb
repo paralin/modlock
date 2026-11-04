@@ -301,17 +301,6 @@ signatures {
   shape: "CBaseEntity::EmitSoundParams"
 }
 
-# The client's entity index getter: (entity, int* index) writes the index of
-# the entity's identity in the entity list, or -1 without one, and returns the
-# pointer it was given. It reads the entity unchecked, so a null entity
-# crashes its caller.
-signatures {
-  id: "entity.index-of"
-  modules: GAME_MODULE_CLIENT
-  pattern: "48 83 EC 08 4C 8B 0D ?? ?? ?? ?? 4C 8B DA 48 8B 49 10 49 83 C1 10 48 85 C9 75 0E C7 02 FF FF FF FF 48 8B C2 48 83 C4 08 C3"
-  shape: "int32* EntityIndexOf(CEntityInstance*, int32* index); writes -1 for an entity without an identity"
-}
-
 signatures {
   id: "entity.remove"
   modules: GAME_MODULE_SERVER

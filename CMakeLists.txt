@@ -136,7 +136,6 @@ add_library(modlock_sdk SHARED
   src/gameinterop/engine_server.cc
   src/gameinterop/entity_abi.cc
   src/gameinterop/entity_dynamics.cc
-  src/gameinterop/entity_index_guard.cc
   src/gameinterop/frame_hook.cc
   src/gameinterop/full_updates.cc
   src/gameinterop/free_for_all_relations.cc
