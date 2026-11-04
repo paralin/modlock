@@ -33,7 +33,8 @@ struct LaunchConfig {
 
 // BuildClientCommandLine renders the engine command line of a game client that
 // joins config.connect. The client reads and writes the player's own settings;
-// -insecure keeps it off VAC-secured servers while it carries plugin hooks.
+// -insecure lets it join the host's insecure server and keeps it off
+// VAC-secured ones.
 [[nodiscard]] MODLOCK_API std::string BuildClientCommandLine(const LaunchConfig& config);
 
 // Source2Main is the exported engine entry point (engine2.dll). Once called,
