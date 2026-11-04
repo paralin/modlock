@@ -9,6 +9,7 @@
 #include "modlock/gameinterop/client_command_hook.h"
 #include "modlock/gameinterop/engine_server.h"
 #include "modlock/gameinterop/entity_abi.h"
+#include "modlock/gameinterop/entity_index_guard.h"
 #include "modlock/gameinterop/frame_hook.h"
 #include "modlock/gameinterop/game_rules.h"
 #include "modlock/gameinterop/mapped_module_image.h"
@@ -91,6 +92,7 @@ struct EngineHost::Impl {
   std::optional<gameinterop::GameRulesHooks> rules;
   std::optional<gameinterop::SetPawnObservation> pawn_assignment;
   std::optional<gameinterop::ServerAddonsHook> addons;
+  std::optional<gameinterop::EntityIndexGuard> entity_index_guard;
 
   ~Impl() {
 #if defined(_WIN32)
@@ -172,8 +174,28 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     }
     impl_->modules.push_back(std::move(*loaded));
   }
+
+  // A client guards its entity index getter from the first frame, whatever
+  // plugins load. A missing signature leaves only this guard off.
+  if (!launch.connect.empty()) {
+    GuardEntityIndex();
+  }
   impl_->opened = true;
   return {};
+}
+
+void EngineHost::GuardEntityIndex() {
+  auto image = gameinterop::MappedModuleImage::ForModule(L"client.dll");
+  if (!image) {
+    std::cerr << "[modlock] entity index guard unavailable: " << image.error() << '\n';
+    return;
+  }
+  auto guard = gameinterop::EntityIndexGuard::Install(*image);
+  if (!guard) {
+    std::cerr << "[modlock] entity index guard unavailable: " << guard.error() << '\n';
+    return;
+  }
+  impl_->entity_index_guard.emplace(std::move(*guard));
 }
 
 std::expected<int, std::string> EngineHost::Run(const net::LaunchConfig& launch) {
