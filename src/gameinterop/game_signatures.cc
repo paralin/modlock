@@ -50,8 +50,6 @@ uint8_t Module(int module) {
   switch (module) {
     case signatures::GAME_MODULE_SERVER:
       return static_cast<uint8_t>(GameModule::kServer);
-    case signatures::GAME_MODULE_CLIENT:
-      return static_cast<uint8_t>(GameModule::kClient);
     case signatures::GAME_MODULE_ENGINE:
       return static_cast<uint8_t>(GameModule::kEngine);
     default:

@@ -363,10 +363,6 @@ type Movement struct {
 	Model         Movement_Model `protobuf:"varint,1,opt,name=model,proto3" json:"model,omitempty"`
 	// Scale is game units per Quake unit; zero means 1.
 	Scale float32 `protobuf:"fixed32,2,opt,name=scale,proto3" json:"scale,omitempty"`
-	// Unpredicted_buttons are left out of the commands the client predicts.
-	// They name inputs the mod remaps or blocks on the server, so the client
-	// predicts no cast or shot the server will not make.
-	UnpredictedButtons uint64 `protobuf:"varint,3,opt,name=unpredicted_buttons,json=unpredictedButtons,proto3" json:"unpredictedButtons,omitempty"`
 }
 
 func (x *Movement) Reset() {
@@ -385,13 +381,6 @@ func (x *Movement) GetModel() Movement_Model {
 func (x *Movement) GetScale() float32 {
 	if x != nil {
 		return x.Scale
-	}
-	return 0
-}
-
-func (x *Movement) GetUnpredictedButtons() uint64 {
-	if x != nil {
-		return x.UnpredictedButtons
 	}
 	return 0
 }
@@ -574,7 +563,6 @@ func (m *Movement) CloneVT() *Movement {
 	r := new(Movement)
 	r.Model = m.Model
 	r.Scale = m.Scale
-	r.UnpredictedButtons = m.UnpredictedButtons
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -674,9 +662,6 @@ func (this *Movement) EqualVT(that *Movement) bool {
 		return false
 	}
 	if this.Scale != that.Scale {
-		return false
-	}
-	if this.UnpredictedButtons != that.UnpredictedButtons {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -1094,11 +1079,6 @@ func (x *Movement) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("scale")
 		s.WriteFloat32(x.Scale)
 	}
-	if x.UnpredictedButtons != 0 || s.HasField("unpredictedButtons") {
-		s.WriteMoreIf(&wroteField)
-		s.WriteObjectField("unpredictedButtons")
-		s.WriteUint64(x.UnpredictedButtons)
-	}
 	s.WriteObjectEnd()
 }
 
@@ -1122,9 +1102,6 @@ func (x *Movement) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "scale":
 			s.AddField("scale")
 			x.Scale = s.ReadFloat32()
-		case "unpredicted_buttons", "unpredictedButtons":
-			s.AddField("unpredicted_buttons")
-			x.UnpredictedButtons = s.ReadUint64()
 		}
 	})
 }
@@ -1607,11 +1584,6 @@ func (m *Movement) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
-	if m.UnpredictedButtons != 0 {
-		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.UnpredictedButtons))
-		i--
-		dAtA[i] = 0x18
-	}
 	if m.Scale != 0 {
 		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Scale))))
 		i--
@@ -1759,7 +1731,6 @@ func (m *Movement) SizeVT() (n int) {
 	_ = l
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Model)
 	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Scale)
-	n += protobuf_go_lite.SizeVarintNonZero(1, m.UnpredictedButtons)
 	n += len(m.unknownFields)
 	return n
 }
@@ -1914,10 +1885,6 @@ func (x *Movement) MarshalProtoText() string {
 	if x.Scale != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "scale")
 		protobuf_go_lite.TextWriteFloat32(&sb, x.Scale)
-	}
-	if x.UnpredictedButtons != 0 {
-		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "unpredicted_buttons")
-		protobuf_go_lite.TextWriteUint(&sb, x.UnpredictedButtons)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -2280,15 +2247,6 @@ func (m *Movement) UnmarshalVT(dAtA []byte) error {
 			}
 			v = uint32(_v32)
 			m.Scale = float32(math.Float32frombits(v))
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UnpredictedButtons", wireType)
-			}
-			m.UnpredictedButtons = 0
-			m.UnpredictedButtons, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
-			if err != nil {
-				return err
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

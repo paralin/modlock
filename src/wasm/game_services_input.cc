@@ -308,7 +308,6 @@ std::expected<void, std::string> GameServices::Steps() {
     return {};
   }
   auto hook = gameinterop::MovementHook::Install(
-      gameinterop::MovementHook::Module::kServer,
       [this](gameinterop::MovementCall& call) { return Step(call); });
   if (!hook) {
     return std::unexpected(hook.error());

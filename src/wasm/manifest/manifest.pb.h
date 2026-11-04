@@ -443,7 +443,6 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
   enum : int {
     kModelFieldNumber = 1,
     kScaleFieldNumber = 2,
-    kUnpredictedButtonsFieldNumber = 3,
   };
   // .modlock.wasm.manifest.Movement.Model model = 1;
   void clear_model() ;
@@ -465,21 +464,11 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
   void _internal_set_scale(float value);
 
   public:
-  // uint64 unpredicted_buttons = 3;
-  void clear_unpredicted_buttons() ;
-  ::uint64_t unpredicted_buttons() const;
-  void set_unpredicted_buttons(::uint64_t value);
-
-  private:
-  ::uint64_t _internal_unpredicted_buttons() const;
-  void _internal_set_unpredicted_buttons(::uint64_t value);
-
-  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.manifest.Movement)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
                                    0, 0,
                                    2>
       _table_;
@@ -503,7 +492,6 @@ class MODLOCK_API Movement final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     int model_;
     float scale_;
-    ::uint64_t unpredicted_buttons_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2212,31 +2200,6 @@ inline float Movement::_internal_scale() const {
 inline void Movement::_internal_set_scale(float value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.scale_ = value;
-}
-
-// uint64 unpredicted_buttons = 3;
-inline void Movement::clear_unpredicted_buttons() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.unpredicted_buttons_ = ::uint64_t{0u};
-  ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
-}
-inline ::uint64_t Movement::unpredicted_buttons() const {
-  // @@protoc_insertion_point(field_get:modlock.wasm.manifest.Movement.unpredicted_buttons)
-  return _internal_unpredicted_buttons();
-}
-inline void Movement::set_unpredicted_buttons(::uint64_t value) {
-  _internal_set_unpredicted_buttons(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_set:modlock.wasm.manifest.Movement.unpredicted_buttons)
-}
-inline ::uint64_t Movement::_internal_unpredicted_buttons() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.unpredicted_buttons_;
-}
-inline void Movement::_internal_set_unpredicted_buttons(::uint64_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.unpredicted_buttons_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -163,8 +163,8 @@ TEST(QuakeMovement, LongOddCommandUsesReferenceSubdivision) {
   EXPECT_EQ(split.velocity, twice.velocity);
 }
 
-PlayerMovement Create(PlayerMovement::Side side) {
-  auto movement = PlayerMovement::Create(side, BoxRoom(), kScale);
+PlayerMovement Create() {
+  auto movement = PlayerMovement::Create(BoxRoom(), kScale);
   EXPECT_TRUE(movement) << movement.error();
   return std::move(*movement);
 }
@@ -204,7 +204,7 @@ float Speed(const MovementCall& call) {
 
 TEST(PlayerMovement, RunsAtQuakeSpeedOnTheFloor) {
   // Run forward on the floor for a second.
-  auto movement = Create(PlayerMovement::Side::kServer);
+  auto movement = Create();
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 64; ++number) {
     commands.push_back(Command(number, 1, false));
@@ -216,32 +216,9 @@ TEST(PlayerMovement, RunsAtQuakeSpeedOnTheFloor) {
   EXPECT_GT(moved.back().origin[0], 100);
 }
 
-TEST(PlayerMovement, ServerAndClientSplitTheSameCommandsAt77Hz) {
-  // The server's command field is the previous number, so server command n - 1
-  // is client command n; both must produce the same state, strafe-hopping.
-  auto server = Create(PlayerMovement::Side::kServer);
-  auto client = Create(PlayerMovement::Side::kClient);
-  std::vector<MovementCall> on_server, on_client;
-  for (int32_t number = 1; number <= 320; ++number) {
-    // Build each command, and the server's copy with the previous number.
-    const float yaw = std::fmod(number * 1.7f, 360.f);
-    auto call = Command(number, 1, number % 40 < 20, yaw);
-    call.left = number % 2 ? 1.f : -1.f;
-    on_client.push_back(call);
-    call.command = number - 1;
-    on_server.push_back(call);
-  }
-  const auto a = Simulate(server, on_server, {0, 0, 0}, {});
-  const auto b = Simulate(client, on_client, {0, 0, 0}, {});
-  for (size_t i = 0; i < a.size(); ++i) {
-    ASSERT_EQ(a[i].origin, b[i].origin) << "command " << i + 1;
-    ASSERT_EQ(a[i].velocity, b[i].velocity) << "command " << i + 1;
-  }
-}
-
 TEST(PlayerMovement, JumpsOnceUntilTheButtonIsReleased) {
   // Hold jump for 160 commands.
-  auto movement = Create(PlayerMovement::Side::kServer);
+  auto movement = Create();
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 160; ++number) {
     commands.push_back(Command(number, 0, true));
@@ -263,7 +240,7 @@ TEST(PlayerMovement, JumpsOnceUntilTheButtonIsReleased) {
 
 TEST(PlayerMovement, TheMantleKeyJumps) {
   // Hold the mantle key for 120 commands.
-  auto movement = Create(PlayerMovement::Side::kClient);
+  auto movement = Create();
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 120; ++number) {
     auto call = Command(number, 0, false);
@@ -284,7 +261,7 @@ TEST(PlayerMovement, TheMantleKeyJumps) {
 
 TEST(PlayerMovement, LaunchedPlayersSlideDownTheWalls) {
   // Launch a player at the wall.
-  auto movement = Create(PlayerMovement::Side::kServer);
+  auto movement = Create();
   std::vector<MovementCall> commands;
   for (int32_t number = 1; number <= 96; ++number) {
     commands.push_back(Command(number, 0, false));
@@ -302,38 +279,9 @@ TEST(PlayerMovement, LaunchedPlayersSlideDownTheWalls) {
   EXPECT_LT(flight.back().origin[2], 900) << "the player keeps falling along the wall";
 }
 
-TEST(PlayerMovement, SubdividedCommandsMatchTheServer) {
-  // Build both sides.
-  auto server = Create(PlayerMovement::Side::kServer);
-  auto client = Create(PlayerMovement::Side::kClient);
-
-  // Hold jump across commands, splitting each one at its midpoint as the
-  // engine does when input changes within a tick.
-  std::vector<MovementCall> commands;
-  for (int32_t number = 1; number <= 48; ++number) {
-    for (const auto& fractions : {std::array<float, 2>{0, 0.5f}, std::array<float, 2>{0.5f, 1}}) {
-      auto call = Command(number, 1, true);
-      call.fractions = fractions;
-      commands.push_back(call);
-    }
-  }
-
-  // The server's command field holds the previously processed number.
-  auto on_server = commands;
-  for (auto& call : on_server) {
-    --call.command;
-  }
-  const auto authority = Simulate(server, on_server, {0, 0, 0}, {});
-  const auto predicted = Simulate(client, commands, {0, 0, 0}, {});
-  for (size_t i = 0; i < commands.size(); ++i) {
-    EXPECT_EQ(predicted[i].origin, authority[i].origin) << "step " << i;
-    EXPECT_EQ(predicted[i].velocity, authority[i].velocity) << "step " << i;
-  }
-}
-
 TEST(PlayerMovement, PlayersStandOnHeadsAndReportLandings) {
   // Stack two players, dropping the upper one from a height.
-  auto movement = Create(PlayerMovement::Side::kServer);
+  auto movement = Create();
   int jumper = 0, below = 0;
   movement.SetPlayers({{.pawn = &jumper, .handle = 11, .feet = {0, 0, 200}},
                        {.pawn = &below, .handle = 22, .feet = {0, 0, 0}}});
@@ -359,51 +307,16 @@ TEST(PlayerMovement, PlayersStandOnHeadsAndReportLandings) {
   EXPECT_EQ(landings[0].player, 11u);
   EXPECT_EQ(landings[0].on, 22u);
   EXPECT_GT(landings[0].speed, 300 * kScale);
-
-  // A client predicts the same landing without reporting it.
-  auto client = Create(PlayerMovement::Side::kClient);
-  client.SetPlayers({{.pawn = &jumper, .handle = 11, .feet = {0, 0, 200}},
-                     {.pawn = &below, .handle = 22, .feet = {0, 0, 0}}});
-
-  // Drop the upper one onto the head in one command.
-  auto call = Command(1, 0, false);
-  call.pawn = &jumper;
-  call.origin = {0, 0, 71};
-  call.velocity = {0, 0, -900};
-  call.ground_entity = MovementHook::kNoGround;
-  ASSERT_TRUE(client.Step(call));
-  EXPECT_TRUE(client.TakeLandings().empty());
 }
 
 TEST(PlayerMovement, LeavesFrozenPawnsToNativeMovement) {
   // A frozen pawn's command is left to the game.
-  auto movement = Create(PlayerMovement::Side::kServer);
+  auto movement = Create();
   auto frozen = Command(1, 1, true);
   frozen.move_type = 0;
   frozen.origin = {-240, 0, 930};
   EXPECT_FALSE(movement.Step(frozen));
   EXPECT_EQ(frozen.origin, (std::array<float, 3>{-240, 0, 930}));
-}
-
-TEST(PlayerMovement, ClientReplayReproducesPredictedCommands) {
-  // Predict a run of commands with jumps.
-  auto predicted = Create(PlayerMovement::Side::kClient);
-  std::vector<MovementCall> commands;
-  for (int32_t number = 1; number <= 96; ++number) {
-    const bool jump = number % 40 < 30;
-    commands.push_back(Command(number, number % 3 ? 1.f : 0.5f, jump, number * 2.5f));
-  }
-  const auto first = Simulate(predicted, commands, {0, 0, 0}, {});
-
-  // Replay from an acknowledged command, restoring its authoritative state.
-  const size_t acknowledged = 51;
-  const std::vector replayed_commands(commands.begin() + acknowledged + 1, commands.end());
-  const auto replayed = Simulate(predicted, replayed_commands, first[acknowledged].origin,
-                                 first[acknowledged].velocity, first[acknowledged].ground_entity);
-  for (size_t i = 0; i < replayed.size(); ++i) {
-    EXPECT_EQ(replayed[i].origin, first[acknowledged + 1 + i].origin) << "command " << i;
-    EXPECT_EQ(replayed[i].velocity, first[acknowledged + 1 + i].velocity) << "command " << i;
-  }
 }
 
 }  // namespace

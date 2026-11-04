@@ -15,13 +15,13 @@
 namespace modlock::gameinterop {
 namespace {
 
-// CMoveData has no schema. These offsets were observed in both modules of the
-// September 18 2026 build by recording scripted input, prediction replays and
-// solver output against schema-resolved pawn state. The step copies the
-// command's axes to the last impulses at +0x20, but the walk reads the move
-// axes at +0x2c (build 6819 CCitadelPlayer_MovementServices::ProcessMovement).
-// Likewise the view sits at +0x08, but the walk and air steps turn the axes by
-// the wish angles at +0xe8 (build 6819 FUN_180b14340).
+// CMoveData has no schema. These offsets were observed in server.dll of the
+// September 18 2026 build by recording scripted input and solver output
+// against schema-resolved pawn state. The step copies the command's axes to
+// the last impulses at +0x20, but the walk reads the move axes at +0x2c (build
+// 6819 CCitadelPlayer_MovementServices::ProcessMovement). Likewise the view
+// sits at +0x08, but the walk and air steps turn the axes by the wish angles
+// at +0xe8 (build 6819 FUN_180b14340).
 constexpr size_t kMoveAngles = 0x08;
 constexpr size_t kMoveWishAngles = 0xe8;
 constexpr size_t kMoveImpulses = 0x20;
@@ -39,7 +39,7 @@ void Read(const unsigned char* base, size_t offset, T& value) {
   std::memcpy(&value, base + offset, sizeof(value));
 }
 
-// Layout holds the schema offsets of one module's movement services and pawn.
+// Layout holds the schema offsets of the server's movement services and pawn.
 // The component's network chainer begins with its owning entity pointer.
 struct Layout {
   size_t buttons = 0;
@@ -51,10 +51,8 @@ struct Layout {
   size_t move_type = 0;
 };
 
-// Resolve reads the layout after the module has registered its schema. The
-// client module prefixes its entity classes with C_.
-std::expected<Layout, std::string> Resolve(const char* module, const char* entity,
-                                           const char* pawn) {
+// Resolve reads the layout after server.dll has registered its schema.
+std::expected<Layout, std::string> Resolve() {
   // Resolve each movement field's offset through the schema.
   auto schema = ResolveSchemaSystem();
   if (!schema) {
@@ -67,22 +65,19 @@ std::expected<Layout, std::string> Resolve(const char* module, const char* entit
       {"CPlayer_MovementServices", "m_nButtons", 0, &layout.buttons},
       {"CPlayer_MovementServices", "m_nLastCommandNumberProcessed", 0, &layout.command},
       {"CPlayerPawnComponent", "__m_pChainEntity", 0, &layout.chain},
-      {pawn, "m_pMovementServices", 0, &layout.services},
-      {pawn, "m_hController", 0, &layout.controller},
-      {entity, "m_hGroundEntity", 0, &layout.ground},
-      {entity, "m_MoveType", 0, &layout.move_type},
+      {"CBasePlayerPawn", "m_pMovementServices", 0, &layout.services},
+      {"CBasePlayerPawn", "m_hController", 0, &layout.controller},
+      {"CBaseEntity", "m_hGroundEntity", 0, &layout.ground},
+      {"CBaseEntity", "m_MoveType", 0, &layout.move_type},
   };
-  if (auto resolved = ResolveSchemaOffsets(*schema, module, fields); !resolved) {
+  if (auto resolved = ResolveSchemaOffsets(*schema, "server.dll", fields); !resolved) {
     return std::unexpected(resolved.error());
   }
   return layout;
 }
 
-// Hook is the process-wide state of one module's detour.
+// Hook is the process-wide state of the detour.
 struct Hook {
-  const char* module_name = nullptr;
-  const char* entity_class = nullptr;
-  const char* pawn_class = nullptr;
   MovementHook::Handler* handler = nullptr;
 #if defined(_WIN32)
   safetyhook::InlineHook* detour = nullptr;
@@ -91,12 +86,7 @@ struct Hook {
   bool layout_failed = false;
 };
 
-std::array<Hook, 2> g_hooks{Hook{.module_name = "server.dll",
-                                 .entity_class = "CBaseEntity",
-                                 .pawn_class = "CBasePlayerPawn"},
-                            Hook{.module_name = "client.dll",
-                                 .entity_class = "C_BaseEntity",
-                                 .pawn_class = "C_BasePlayerPawn"}};
+Hook g_hook;
 
 // PawnOf returns the component's owner only when that pawn points back to the
 // same movement services, so a stale or foreign chain never receives writes.
@@ -116,15 +106,14 @@ void Dispatch(Hook& hook, void* services, void* data) {
 #if defined(_WIN32)
   // Resolve the layout once; without it movement stays native.
   if (!hook.layout && !hook.layout_failed) {
-    auto layout = Resolve(hook.module_name, hook.entity_class, hook.pawn_class);
+    auto layout = Resolve();
     if (layout) {
       hook.layout = *layout;
     }
     hook.layout_failed = !layout;
     if (!layout) {
-      std::fprintf(stderr,
-                   "[modlock] %s movement layout unavailable (%s); native movement retained\n",
-                   hook.module_name, layout.error().c_str());
+      std::fprintf(stderr, "[modlock] movement layout unavailable (%s); native movement retained\n",
+                   layout.error().c_str());
     }
   }
   if (!hook.layout) {
@@ -166,8 +155,8 @@ void Dispatch(Hook& hook, void* services, void* data) {
   }
 
   // The handler may rewrite buttons even when it leaves movement native. The
-  // native step always runs for its per-command bookkeeping, which client
-  // prediction requires; a replacement result then overwrites its motion.
+  // native step always runs for its per-command bookkeeping; a replacement
+  // result then overwrites its motion.
   const bool replaced = (*hook.handler)(call);
   if (call.buttons != buttons) {
     std::memcpy(static_cast<unsigned char*>(services) + hook.layout->buttons + kButtonStates,
@@ -204,12 +193,8 @@ void Dispatch(Hook& hook, void* services, void* data) {
 #endif
 }
 
-void ServerThunk(void* services, void* data) {
-  Dispatch(g_hooks[0], services, data);
-}
-
-void ClientThunk(void* services, void* data) {
-  Dispatch(g_hooks[1], services, data);
+void Thunk(void* services, void* data) {
+  Dispatch(g_hook, services, data);
 }
 
 }  // namespace
@@ -227,9 +212,7 @@ struct MovementHook::Impl {
 #if defined(_WIN32)
     detour.reset();
 #endif
-    *hook = Hook{.module_name = hook->module_name,
-                 .entity_class = hook->entity_class,
-                 .pawn_class = hook->pawn_class};
+    *hook = Hook{};
   }
 };
 
@@ -239,17 +222,16 @@ MovementHook::MovementHook(MovementHook&&) noexcept = default;
 MovementHook& MovementHook::operator=(MovementHook&&) noexcept = default;
 MovementHook::~MovementHook() = default;
 
-std::expected<MovementHook, std::string> MovementHook::Install(Module module, Handler handler) {
+std::expected<MovementHook, std::string> MovementHook::Install(Handler handler) {
 #if defined(_WIN32)
-  // Install once per module.
-  auto& hook = g_hooks[module == Module::kServer ? 0 : 1];
+  // Install once.
+  auto& hook = g_hook;
   if (hook.handler || !handler) {
     return std::unexpected("movement hook already installed or empty");
   }
 
   // Resolve the native movement step.
-  const auto image =
-      MappedModuleImage::ForModule(module == Module::kServer ? L"server.dll" : L"client.dll");
+  const auto image = MappedModuleImage::ForModule(L"server.dll");
   if (!image) {
     return std::unexpected(image.error());
   }
@@ -258,11 +240,10 @@ std::expected<MovementHook, std::string> MovementHook::Install(Module module, Ha
     return std::unexpected(target.error());
   }
 
-  // Detour it through the module's thunk, disabled until wired.
+  // Detour it through the thunk, disabled until wired.
   auto impl = std::make_unique<Impl>();
   impl->handler = std::move(handler);
-  const auto thunk = module == Module::kServer ? &ServerThunk : &ClientThunk;
-  impl->detour = safetyhook::create_inline(*target, reinterpret_cast<void*>(thunk),
+  impl->detour = safetyhook::create_inline(*target, reinterpret_cast<void*>(&Thunk),
                                            safetyhook::InlineHook::StartDisabled);
   if (!impl->detour) {
     return std::unexpected("cannot create native movement hook");
@@ -277,7 +258,6 @@ std::expected<MovementHook, std::string> MovementHook::Install(Module module, Ha
   }
   return MovementHook(std::move(impl));
 #else
-  (void)module;
   (void)handler;
   return std::unexpected("native movement replacement requires Windows");
 #endif

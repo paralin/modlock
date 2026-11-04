@@ -469,7 +469,6 @@ signatures {
 signatures {
   id: "movement.process"
   modules: GAME_MODULE_SERVER
-  modules: GAME_MODULE_CLIENT
   pattern: "48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 70 48 8D 05 ?? ?? ?? ?? 48 C7 44 24 28 ?? ?? 00 00 48 89 44 24 20 4C 8D 44 24 40 0F 10 44 24 20 48 8D 05 ?? ?? ?? ?? 48 8B F2"
   shape: "ProcessMovement(movement services, CMoveData*)"
 }
@@ -636,7 +635,6 @@ signatures {
 signatures {
   id: "vdata.lookup-by-hash"
   modules: GAME_MODULE_SERVER
-  modules: GAME_MODULE_CLIENT
   pattern: "40 53 48 83 EC ?? 89 54 24 ?? 8B D9"
   shape: "void* LookupVData(int kind, uint32 hash); EDX is the full 32-bit hash"
 }

@@ -126,10 +126,10 @@ message Movement {
   // Scale is game units per Quake unit; zero means 1.
   float scale = 2;
 
-  // Unpredicted_buttons are left out of the commands the client predicts.
-  // They name inputs the mod remaps or blocks on the server, so the client
-  // predicts no cast or shot the server will not make.
-  uint64 unpredicted_buttons = 3;
+  // Players' games run the game's own movement prediction, which the server
+  // corrects; no field configures it.
+  reserved 3;
+  reserved "unpredicted_buttons";
 }
 
 // Definition changes one entry of a game definition file where the game keeps

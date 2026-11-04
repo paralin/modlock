@@ -209,18 +209,18 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fga
     "\005 \001(\rH\000\022\r\n\005shape\030\006 \001(\tB\010\n\006target\"l\n\013Virt"
     "ualSlot\022\n\n\002id\030\001 \001(\t\022\016\n\006module\030\002 \001(\t\022\022\n\nc"
     "lass_name\030\003 \001(\t\022\r\n\005index\030\004 \001(\r\022\017\n\007patter"
-    "n\030\005 \001(\t\022\r\n\005shape\030\006 \001(\t*m\n\nGameModule\022\027\n\023"
+    "n\030\005 \001(\t\022\r\n\005shape\030\006 \001(\t*o\n\nGameModule\022\027\n\023"
     "GAME_MODULE_UNKNOWN\020\000\022\026\n\022GAME_MODULE_SER"
-    "VER\020\001\022\026\n\022GAME_MODULE_CLIENT\020\002\022\026\n\022GAME_MO"
-    "DULE_ENGINE\020\003BBZ@github.com/paralin/modl"
-    "ock/src/gameinterop/signatures;signature"
-    "sb\006proto3"
+    "VER\020\001\022\026\n\022GAME_MODULE_ENGINE\020\003\"\004\010\002\020\002*\022GAM"
+    "E_MODULE_CLIENTBBZ@github.com/paralin/mo"
+    "dlock/src/gameinterop/signatures;signatu"
+    "resb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fsignatures_2fsignatures_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fsignatures_2fsignatures_2eproto = {
     false,
     false,
-    729,
+    731,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fsignatures_2fsignatures_2eproto,
     "github.com/paralin/modlock/src/gameinterop/signatures/signatures.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fsignatures_2fsignatures_2eproto_once,
@@ -241,7 +241,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL GameModule_descriptor
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fgameinterop_2fsignatures_2fsignatures_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t GameModule_internal_data_[] = {
-    262144u, 0u, };
+    131072u, 32u, 2u, };
 // ===================================================================
 
 class GameSignatureFile::_Internal {

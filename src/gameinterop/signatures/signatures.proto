@@ -12,8 +12,10 @@ enum GameModule {
   // GAME_MODULE_SERVER is server.dll.
   GAME_MODULE_SERVER = 1;
 
-  // GAME_MODULE_CLIENT is client.dll.
-  GAME_MODULE_CLIENT = 2;
+  // Modlock leaves the game client's own code unchanged, so no entry scans
+  // client.dll.
+  reserved 2;
+  reserved "GAME_MODULE_CLIENT";
 
   // GAME_MODULE_ENGINE is engine2.dll.
   GAME_MODULE_ENGINE = 3;

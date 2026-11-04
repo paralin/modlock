@@ -18,16 +18,14 @@ constexpr float kOriginHeight = 24;
 constexpr float kCommandSpeed = 400;
 
 // kTickMilliseconds is Deadlock's simulation interval. A command's duration
-// depends only on its own share of ticks: the server executes each command at a
-// later tick than the client predicted it, so absolute tick bounds must not
-// influence the step.
+// depends only on its own share of ticks, so the tick the server executes it
+// at leaves the step unchanged.
 constexpr double kTickMilliseconds = 1000.0 / 64;
 
 // Steps is how many Quake moves share a command. QuakeWorld caps each move's
 // air gain, so strafe gain grows with the move rate; competitive QuakeWorld
 // runs 77 moves a second. Every fifth command takes two half moves, 76.8 a
-// second, keyed by command number so the server and the predicting client
-// split the same commands.
+// second, keyed by command number.
 int Steps(int32_t command) {
   const auto at = [](int64_t number) {
     return number * 6 / 5;
@@ -44,32 +42,12 @@ float Milliseconds(const gameinterop::MovementCall& call) {
 }  // namespace
 
 std::expected<PlayerMovement, std::string> PlayerMovement::Create(
-    Side side, std::span<const uint8_t> collision, float scale) {
+    std::span<const uint8_t> collision, float scale) {
   auto world = BspWorld::Decode(collision);
   if (!world) {
     return std::unexpected("Quake collision: " + world.error());
   }
-  return PlayerMovement(side, std::move(*world), scale > 0 ? scale : 1);
-}
-
-bool PlayerMovement::JumpHeld(const MovementCall& call) const {
-  if (side_ == Side::kServer) {
-    const auto found = server_pawns_.find(call.services);
-    return found != server_pawns_.end() && found->second.jump_held;
-  }
-
-  // A later subdivision of the same command continues from the earlier one.
-  const int32_t previous_command = call.fractions[0] > 0 ? call.command : call.command - 1;
-  const auto& previous = client_latches_[static_cast<uint8_t>(previous_command)];
-  return previous.command == previous_command && previous.held;
-}
-
-void PlayerMovement::RetainJumpHeld(const MovementCall& call, bool held) {
-  if (side_ == Side::kServer) {
-    server_pawns_[call.services].jump_held = held;
-    return;
-  }
-  client_latches_[static_cast<uint8_t>(call.command)] = {call.command, held};
+  return PlayerMovement(std::move(*world), scale > 0 ? scale : 1);
 }
 
 void PlayerMovement::Land(uint32_t player, const MovementState& state,
@@ -93,11 +71,11 @@ bool PlayerMovement::Step(MovementCall& call) {
     state.velocity[axis] = call.velocity[axis] / scale_;
   }
   state.origin[2] += kOriginHeight;
-  state.jump_held = JumpHeld(call);
+  auto& pawn = pawns_[call.services];
+  state.jump_held = pawn.jump_held;
 
-  // The server's command field holds the previously processed number.
-  const int32_t number = side_ == Side::kServer ? call.command + 1 : call.command;
-  const int steps = Steps(number);
+  // The command field holds the previously processed number.
+  const int steps = Steps(call.command + 1);
   const MovementCommand command{
       .angles = call.angles,
       .forward = call.forward * kCommandSpeed,
@@ -132,15 +110,12 @@ bool PlayerMovement::Step(MovementCall& call) {
   for (int step = 0; step < steps; ++step) {
     next = Move(next, command, scene).state;
   }
-  RetainJumpHeld(call, next.jump_held);
-  if (side_ == Side::kServer) {
-    auto& pawn = server_pawns_[call.services];
-    const bool grounded = next.ground_entity >= 0;
-    if (grounded && !pawn.grounded && self && fall < 0) {
-      Land(*self, next, handles, fall);
-    }
-    pawn.grounded = grounded;
+  pawn.jump_held = next.jump_held;
+  const bool grounded = next.ground_entity >= 0;
+  if (grounded && !pawn.grounded && self && fall < 0) {
+    Land(*self, next, handles, fall);
   }
+  pawn.grounded = grounded;
 
   // Standing on a player is grounded; the pawn keeps the world as its ground.
   if (call.ground_entity != MovementHook::kNoGround) {

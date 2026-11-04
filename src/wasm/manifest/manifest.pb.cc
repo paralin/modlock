@@ -34,8 +34,7 @@ inline constexpr Movement::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
         model_{static_cast< ::modlock::wasm::manifest::Movement_Model >(0)},
-        scale_{0},
-        unpredicted_buttons_{::uint64_t{0u}} {}
+        scale_{0} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Movement::Movement(::_pbi::ConstantInitialized)
@@ -234,13 +233,11 @@ const ::uint32_t
         3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Movement, _impl_._has_bits_),
-        6, // hasbit index offset
+        5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Movement, _impl_.model_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Movement, _impl_.scale_),
-        PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Movement, _impl_.unpredicted_buttons_),
         0,
         1,
-        2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse, _impl_._has_bits_),
         5, // hasbit index offset
@@ -281,10 +278,10 @@ static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::modlock::wasm::manifest::Manifest)},
         {31, sizeof(::modlock::wasm::manifest::Movement)},
-        {40, sizeof(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse)},
-        {47, sizeof(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse)},
-        {54, sizeof(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse)},
-        {61, sizeof(::modlock::wasm::manifest::Definition)},
+        {38, sizeof(::modlock::wasm::manifest::Definition_PropertiesEntry_DoNotUse)},
+        {45, sizeof(::modlock::wasm::manifest::Definition_FieldsEntry_DoNotUse)},
+        {52, sizeof(::modlock::wasm::manifest::Definition_CopyFieldsEntry_DoNotUse)},
+        {59, sizeof(::modlock::wasm::manifest::Definition)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::manifest::_Manifest_default_instance_._instance,
@@ -321,26 +318,26 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "\022\024\n\020LANGUAGE_UNKNOWN\020\000\022\017\n\013LANGUAGE_GO\020\001\022"
     "\027\n\023LANGUAGE_TYPESCRIPT\020\002\022\027\n\023LANGUAGE_JAV"
     "ASCRIPT\020\003\022\021\n\rLANGUAGE_LUAU\020\004\022\023\n\017LANGUAGE"
-    "_PYTHON\020\005\"\235\001\n\010Movement\0224\n\005model\030\001 \001(\0162%."
+    "_PYTHON\020\005\"\233\001\n\010Movement\0224\n\005model\030\001 \001(\0162%."
     "modlock.wasm.manifest.Movement.Model\022\r\n\005"
-    "scale\030\002 \001(\002\022\033\n\023unpredicted_buttons\030\003 \001(\004"
-    "\"/\n\005Model\022\020\n\014MODEL_NATIVE\020\000\022\024\n\020MODEL_QUA"
-    "KEWORLD\020\001\"\216\004\n\nDefinition\0224\n\004file\030\001 \001(\0162&"
-    ".modlock.wasm.manifest.Definition.File\022\r"
-    "\n\005entry\030\002 \001(\t\022E\n\nproperties\030\003 \003(\01321.modl"
-    "ock.wasm.manifest.Definition.PropertiesE"
-    "ntry\022=\n\006fields\030\004 \003(\0132-.modlock.wasm.mani"
-    "fest.Definition.FieldsEntry\022F\n\013copy_fiel"
-    "ds\030\005 \003(\01321.modlock.wasm.manifest.Definit"
-    "ion.CopyFieldsEntry\0321\n\017PropertiesEntry\022\013"
-    "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013Fields"
-    "Entry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n"
-    "\017CopyFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002"
-    " \001(\t:\0028\001\"X\n\004File\022\022\n\016FILE_ABILITIES\020\000\022\017\n\013"
-    "FILE_HEROES\020\001\022\027\n\023FILE_BOT_DIFFICULTY\020\002\022\022"
-    "\n\016FILE_NPC_UNITS\020\003B7Z5github.com/paralin"
-    "/modlock/src/wasm/manifest;manifestb\006pro"
-    "to3"
+    "scale\030\002 \001(\002\"/\n\005Model\022\020\n\014MODEL_NATIVE\020\000\022\024"
+    "\n\020MODEL_QUAKEWORLD\020\001J\004\010\003\020\004R\023unpredicted_"
+    "buttons\"\216\004\n\nDefinition\0224\n\004file\030\001 \001(\0162&.m"
+    "odlock.wasm.manifest.Definition.File\022\r\n\005"
+    "entry\030\002 \001(\t\022E\n\nproperties\030\003 \003(\01321.modloc"
+    "k.wasm.manifest.Definition.PropertiesEnt"
+    "ry\022=\n\006fields\030\004 \003(\0132-.modlock.wasm.manife"
+    "st.Definition.FieldsEntry\022F\n\013copy_fields"
+    "\030\005 \003(\01321.modlock.wasm.manifest.Definitio"
+    "n.CopyFieldsEntry\0321\n\017PropertiesEntry\022\013\n\003"
+    "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\032-\n\013FieldsEn"
+    "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001\0321\n\017C"
+    "opyFieldsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001"
+    "(\t:\0028\001\"X\n\004File\022\022\n\016FILE_ABILITIES\020\000\022\017\n\013FI"
+    "LE_HEROES\020\001\022\027\n\023FILE_BOT_DIFFICULTY\020\002\022\022\n\016"
+    "FILE_NPC_UNITS\020\003B7Z5github.com/paralin/m"
+    "odlock/src/wasm/manifest;manifestb\006proto"
+    "3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto_deps[3] = {
@@ -352,7 +349,7 @@ static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto = {
     false,
     false,
-    1763,
+    1761,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto,
     "github.com/paralin/modlock/src/wasm/manifest/manifest.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fmanifest_2fmanifest_2eproto_once,
@@ -1256,9 +1253,9 @@ inline void Movement::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, model_),
            0,
-           offsetof(Impl_, unpredicted_buttons_) -
+           offsetof(Impl_, scale_) -
                offsetof(Impl_, model_) +
-               sizeof(Impl_::unpredicted_buttons_));
+               sizeof(Impl_::scale_));
 }
 Movement::~Movement() {
   // @@protoc_insertion_point(destructor:modlock.wasm.manifest.Movement)
@@ -1317,16 +1314,16 @@ Movement::GetClassData() const {
   return Movement_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 0, 2>
+const ::_pbi::TcParseTable<1, 2, 0, 0, 2>
 Movement::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Movement, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    2, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    2,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     Movement_class_data_.base(),
@@ -1336,19 +1333,14 @@ Movement::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::manifest::Movement>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    // .modlock.wasm.manifest.Movement.Model model = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Movement, _impl_.model_), 0>(),
-     {8, 0, 0,
-      PROTOBUF_FIELD_OFFSET(Movement, _impl_.model_)}},
     // float scale = 2;
     {::_pbi::TcParser::FastF32S1,
      {21, 1, 0,
       PROTOBUF_FIELD_OFFSET(Movement, _impl_.scale_)}},
-    // uint64 unpredicted_buttons = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Movement, _impl_.unpredicted_buttons_), 2>(),
-     {24, 2, 0,
-      PROTOBUF_FIELD_OFFSET(Movement, _impl_.unpredicted_buttons_)}},
+    // .modlock.wasm.manifest.Movement.Model model = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Movement, _impl_.model_), 0>(),
+     {8, 0, 0,
+      PROTOBUF_FIELD_OFFSET(Movement, _impl_.model_)}},
   }}, {{
     65535, 65535
   }}, {{
@@ -1356,8 +1348,6 @@ Movement::_table_ = {
     {PROTOBUF_FIELD_OFFSET(Movement, _impl_.model_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kOpenEnum)},
     // float scale = 2;
     {PROTOBUF_FIELD_OFFSET(Movement, _impl_.scale_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kFloat)},
-    // uint64 unpredicted_buttons = 3;
-    {PROTOBUF_FIELD_OFFSET(Movement, _impl_.unpredicted_buttons_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
   }},
   // no aux_entries
   {{
@@ -1371,10 +1361,10 @@ PROTOBUF_NOINLINE void Movement::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     ::memset(&_impl_.model_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.unpredicted_buttons_) -
-        reinterpret_cast<char*>(&_impl_.model_)) + sizeof(_impl_.unpredicted_buttons_));
+        reinterpret_cast<char*>(&_impl_.scale_) -
+        reinterpret_cast<char*>(&_impl_.model_)) + sizeof(_impl_.scale_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -1417,15 +1407,6 @@ PROTOBUF_NOINLINE void Movement::Clear() {
     }
   }
 
-  // uint64 unpredicted_buttons = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-    if (this_._internal_unpredicted_buttons() != 0) {
-      target = stream->EnsureSpace(target);
-      target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
-          3, this_._internal_unpredicted_buttons(), target);
-    }
-  }
-
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -1451,7 +1432,7 @@ PROTOBUF_NOINLINE void Movement::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     // .modlock.wasm.manifest.Movement.Model model = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (this_._internal_model() != 0) {
@@ -1463,13 +1444,6 @@ PROTOBUF_NOINLINE void Movement::Clear() {
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       if (::absl::bit_cast<::uint32_t>(this_._internal_scale()) != 0) {
         total_size += 5;
-      }
-    }
-    // uint64 unpredicted_buttons = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      if (this_._internal_unpredicted_buttons() != 0) {
-        total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
-            this_._internal_unpredicted_buttons());
       }
     }
   }
@@ -1491,7 +1465,7 @@ void Movement::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (from._internal_model() != 0) {
         _this->_impl_.model_ = from._impl_.model_;
@@ -1500,11 +1474,6 @@ void Movement::MergeImpl(::google::protobuf::MessageLite& to_msg,
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       if (::absl::bit_cast<::uint32_t>(from._internal_scale()) != 0) {
         _this->_impl_.scale_ = from._impl_.scale_;
-      }
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      if (from._internal_unpredicted_buttons() != 0) {
-        _this->_impl_.unpredicted_buttons_ = from._impl_.unpredicted_buttons_;
       }
     }
   }
@@ -1526,8 +1495,8 @@ void Movement::InternalSwap(Movement* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Movement, _impl_.unpredicted_buttons_)
-      + sizeof(Movement::_impl_.unpredicted_buttons_)
+      PROTOBUF_FIELD_OFFSET(Movement, _impl_.scale_)
+      + sizeof(Movement::_impl_.scale_)
       - PROTOBUF_FIELD_OFFSET(Movement, _impl_.model_)>(
           reinterpret_cast<char*>(&_impl_.model_),
           reinterpret_cast<char*>(&other->_impl_.model_));

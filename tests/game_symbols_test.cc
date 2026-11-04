@@ -80,11 +80,11 @@ TEST(GameSignatures, TableIsSortedUniqueAndParses) {
 TEST(GameSignatures, ModulesNameTheirFiles) {
   // Each module names its file, and a signature may span modules.
   EXPECT_EQ(modlock::gameinterop::GameModuleFile(GameModule::kServer), "server.dll");
-  EXPECT_EQ(modlock::gameinterop::GameModuleFile(GameModule::kClient), "client.dll");
   EXPECT_EQ(modlock::gameinterop::GameModuleFile(GameModule::kEngine), "engine2.dll");
-  const GameSignature shared{.modules = GameModule::kServer | GameModule::kClient};
-  EXPECT_TRUE(shared.In(GameModule::kClient));
-  EXPECT_FALSE(shared.In(GameModule::kEngine));
+  const GameSignature shared{.modules = GameModule::kServer | GameModule::kEngine};
+  EXPECT_TRUE(shared.In(GameModule::kEngine));
+  const GameSignature server{.modules = static_cast<uint8_t>(GameModule::kServer)};
+  EXPECT_FALSE(server.In(GameModule::kEngine));
 }
 
 TEST(GameSymbols, EveryTargetRequiresOneMatch) {
@@ -178,7 +178,7 @@ TEST(GameSignatureLoad, BrokenEntriesAreSkippedAlone) {
   const auto load = LoadGameSignatures(GameDataFile(R"(
 signatures {
   id: "b.call"
-  modules: GAME_MODULE_CLIENT
+  modules: GAME_MODULE_SERVER
   modules: GAME_MODULE_ENGINE
   pattern: "E8 ?? ?? ?? ??"
   call_at: 0
@@ -212,7 +212,7 @@ slots { id: "s.no-class" module: "a.dll" index: 3 pattern: "CC" }
 
   // The second spans two modules, and a missing id finds nothing.
   EXPECT_EQ(signatures[1].id, "b.call");
-  EXPECT_EQ(signatures[1].modules, GameModule::kClient | GameModule::kEngine);
+  EXPECT_EQ(signatures[1].modules, GameModule::kServer | GameModule::kEngine);
   EXPECT_EQ(signatures[1].target, SignatureTarget::kCall);
   EXPECT_EQ(FindGameSignature("pawn.respawn"), nullptr);
 

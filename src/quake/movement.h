@@ -56,7 +56,6 @@ struct MovementResult {
 };
 
 // Move applies one command, including the original subdivision of commands above 50 ms.
-// The collision world and profile are identical for prediction and authority.
 MovementResult Move(const MovementState& state, const MovementCommand& command,
                     const CollisionWorld& world, const MovementProfile& profile = {});
 

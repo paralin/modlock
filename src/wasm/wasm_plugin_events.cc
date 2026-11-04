@@ -92,8 +92,7 @@ void WasmPlugin::Move() {
   }
 
   // Build the server's movement model.
-  auto movement = quake::PlayerMovement::Create(quake::PlayerMovement::Side::kServer, collision_,
-                                                manifest_.movement().scale());
+  auto movement = quake::PlayerMovement::Create(collision_, manifest_.movement().scale());
   if (!movement) {
     Log("movement is unavailable: " + movement.error());
     return;

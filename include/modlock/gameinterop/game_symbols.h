@@ -37,8 +37,7 @@ class MODLOCK_API ModuleImage {
 // bits so one signature can name every module that shares a function.
 enum class GameModule : uint8_t {
   kServer = 1 << 0,
-  kClient = 1 << 1,
-  kEngine = 1 << 2,
+  kEngine = 1 << 1,
 };
 
 constexpr uint8_t operator|(GameModule a, GameModule b) {

@@ -276,8 +276,8 @@ endif()
 
 target_link_libraries(modlock_sdk PRIVATE ${CMAKE_DL_LIBS})
 
-# The server and each predicting client must compute identical Quake movement,
-# so its arithmetic is strict IEEE with no fused multiply-add.
+# Quake movement must compute the same result on every platform its tests run
+# on, so its arithmetic is strict IEEE with no fused multiply-add.
 set(modlock_quake_sources
   src/quake/bsp_world.cc
   src/quake/collision_hull.cc

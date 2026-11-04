@@ -146,7 +146,7 @@ class PeImage final : public ModuleImage {
 // ModulePath returns where the module named file lives under a Deadlock
 // install: the game's own modules beside its content, the rest in the engine.
 fs::path ModulePath(const fs::path& game, std::string_view file) {
-  if (file == "server.dll" || file == "client.dll") {
+  if (file == "server.dll") {
     return game / "game" / "citadel" / "bin" / "win64" / file;
   }
   return game / "game" / "bin" / "win64" / file;
@@ -268,7 +268,7 @@ struct Install {
   std::map<std::string, PeImage> modules;
 };
 
-constexpr GameModule kModules[] = {GameModule::kServer, GameModule::kClient, GameModule::kEngine};
+constexpr GameModule kModules[] = {GameModule::kServer, GameModule::kEngine};
 
 // LoadInstall maps every module the signature table names and, with slots,
 // every module a virtual slot names.

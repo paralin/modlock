@@ -49,8 +49,6 @@ std::string_view GameModuleFile(GameModule module) {
   switch (module) {
     case GameModule::kServer:
       return "server.dll";
-    case GameModule::kClient:
-      return "client.dll";
     case GameModule::kEngine:
       return "engine2.dll";
   }
