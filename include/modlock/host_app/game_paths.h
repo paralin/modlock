@@ -17,8 +17,6 @@ struct GamePaths {
   std::filesystem::path engine2_dll;
   // server_dll resolves under <game>/game/citadel/bin/win64/server.dll.
   std::filesystem::path server_dll;
-  // client_dll sits beside server_dll; only a client launch maps it.
-  std::filesystem::path client_dll;
 };
 
 // ResolveGamePaths lays out the expected module paths for a game install

@@ -42,17 +42,6 @@ TEST(NetListenBoot, CommandLineCarriesOverrides) {
   EXPECT_NE(line.find("+map dl_bomb"), std::string::npos);
 }
 
-TEST(NetListenBoot, ClientCommandLineJoinsWithoutServerFlags) {
-  // The line connects without server flags.
-  const std::string line = modlock::net::BuildClientCommandLine({.connect = "127.0.0.1:27079"});
-  EXPECT_NE(line.find("+connect 127.0.0.1:27079"), std::string::npos);
-  EXPECT_NE(line.find("-insecure"), std::string::npos);
-  EXPECT_NE(line.find("+deadlock_early_development_warning_disabled 1"), std::string::npos);
-  EXPECT_EQ(line.find("-dedicated"), std::string::npos);
-  EXPECT_EQ(line.find("-playtest"), std::string::npos);
-  EXPECT_EQ(line.find("+map"), std::string::npos);
-}
-
 TEST(NetListenBoot, HandoffRefusesWithoutMappedEngine) {
   // No game module is mapped in a test process; the handoff must refuse
   // instead of starting. The error names the missing precondition.

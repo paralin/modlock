@@ -117,8 +117,7 @@ const std::expected<int, std::string>& EngineHost::Result() const {
   return impl_->result;
 }
 
-std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& game_dir,
-                                                  const net::LaunchConfig& launch) {
+std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& game_dir) {
   // Open once, after the game install checks out.
   if (impl_->opened || !impl_->modules.empty()) {
     return std::unexpected("game modules already opened");
@@ -143,33 +142,25 @@ std::expected<void, std::string> EngineHost::Open(const std::filesystem::path& g
     impl_->directories.push_back(cookie);
   }
 
-  // A client launch runs the game's own client, so only a server launch
-  // changes how the engine behaves.
-  if (launch.connect.empty()) {
-    // Without the shared port a second engine on this machine exits at
-    // startup; a failure leaves only that second-process case unsupported.
-    if (auto shared =
-            host_app::ShareVConsolePort(impl_->paths.engine2_dll.parent_path() / "vconcomm.dll");
-        !shared) {
-      std::cerr << "[modlock] " << shared.error() << '\n';
-    }
+  // Without the shared port a second engine on this machine exits at startup;
+  // a failure leaves only that second-process case unsupported.
+  if (auto shared =
+          host_app::ShareVConsolePort(impl_->paths.engine2_dll.parent_path() / "vconcomm.dll");
+      !shared) {
+    std::cerr << "[modlock] " << shared.error() << '\n';
+  }
 
-    // A failed engine assertion opens a modal dialog that holds the engine
-    // thread until someone answers it, which no one does on a server. tier0
-    // skips the dialog when this variable is set. Its runtime copies the
-    // environment as it loads, so the variable is set before the game modules.
-    if (!SetEnvironmentVariableW(L"NO_GAME_ASSERT_DIALOG", L"1")) {
-      std::cerr << "[modlock] engine assertions may open dialogs: error " << GetLastError() << '\n';
-    }
+  // A failed engine assertion opens a modal dialog that holds the engine
+  // thread until someone answers it, which no one does on a server. tier0
+  // skips the dialog when this variable is set. Its runtime copies the
+  // environment as it loads, so the variable is set before the game modules.
+  if (!SetEnvironmentVariableW(L"NO_GAME_ASSERT_DIALOG", L"1")) {
+    std::cerr << "[modlock] engine assertions may open dialogs: error " << GetLastError() << '\n';
   }
 #endif
 
-  // Load the game modules, adding the client when connecting.
-  auto planned = host_app::PlanModuleLoads(impl_->paths);
-  if (!launch.connect.empty()) {
-    planned.push_back({.name = "client.dll", .path = impl_->paths.client_dll});
-  }
-  for (const auto& module : planned) {
+  // Load the game modules.
+  for (const auto& module : host_app::PlanModuleLoads(impl_->paths)) {
     auto loaded = impl_->loader.Load(module.path);
     if (!loaded) {
       return std::unexpected(module.name + ": " + loaded.error());

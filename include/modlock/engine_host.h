@@ -32,12 +32,8 @@ class MODLOCK_API EngineHost {
   EngineHost(const EngineHost&) = delete;
   EngineHost& operator=(const EngineHost&) = delete;
 
-  // Open validates a game installation and loads the modules its launch role
-  // requires, once. A client launch also loads client.dll and leaves the
-  // engine unchanged: only a server launch patches imports or sets the
-  // assertion dialog off.
-  std::expected<void, std::string> Open(const std::filesystem::path& game_dir,
-                                        const net::LaunchConfig& launch);
+  // Open validates a game installation and loads the server's modules, once.
+  std::expected<void, std::string> Open(const std::filesystem::path& game_dir);
   // Opened reports whether Open loaded the game; until it does, no game
   // runs and no game event fires.
   bool Opened() const;

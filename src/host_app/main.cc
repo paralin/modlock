@@ -32,8 +32,6 @@ void Help() {
                "  --game-dir PATH     Deadlock installation (or DEADLOCK_DIR)\n"
                "  --hostport PORT     Server UDP port (default 27067)\n"
                "  --map NAME          Startup map (default dl_midtown)\n"
-               "  --connect ADDRESS   Run the game's own client, unchanged, that joins ADDRESS\n"
-               "                      instead of a server; takes no plugin, control or dump\n"
                "  --engine-args ARGS  Append engine command-line arguments\n"
                "  --settings PATH     Keep players' mod settings in the JSON file PATH\n"
                "  --files DIRECTORY   Keep the files mods write in DIRECTORY, one\n"
@@ -121,9 +119,7 @@ struct Options {
   const char* const* plugin_argv = nullptr;
 };
 
-// The characters a connect address and a map name may hold.
-constexpr std::string_view kAddressCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:-";
+// The characters a map name may hold.
 constexpr std::string_view kMapCharacters =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_/-";
 
@@ -158,14 +154,8 @@ std::expected<void, ExitCode> SetOption(Options& options, std::string_view argum
     return {};
   }
 
-  // Check the address and map, and parse the port.
-  if (argument == "--connect") {
-    if (!OnlyCharacters(value, kAddressCharacters)) {
-      std::cerr << "The connect address must be a host name or address with an optional port.\n";
-      return std::unexpected(2);
-    }
-    options.launch.connect = value;
-  } else if (argument == "--map") {
+  // Check the map, and parse the port.
+  if (argument == "--map") {
     if (!OnlyCharacters(value, kMapCharacters)) {
       std::cerr << "The map must be a Source 2 map name.\n";
       return std::unexpected(2);
@@ -223,7 +213,7 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
 
     // Every other option takes one.
     if (argument != "--plugin" && argument != "--game-dir" && argument != "--hostport" &&
-        argument != "--map" && argument != "--connect" && argument != "--engine-args" &&
+        argument != "--map" && argument != "--engine-args" &&
         argument != "--control" && argument != "--settings" && argument != "--files" &&
         argument != "--dump" && argument != "--game-data") {
       std::cerr << "Unknown option: " << argument << ". Use --help for usage.\n";
@@ -238,38 +228,7 @@ std::expected<Options, ExitCode> ParseOptions(int argc, char** argv) {
     }
   }
 
-  // A client launch runs the game's own client, which Modlock never changes,
-  // so everything that runs inside the game belongs to a server launch.
-  if (!options.launch.connect.empty() &&
-      (!options.libraries.empty() || !options.control.empty() || !options.dump_directory.empty() ||
-       options.check_only || options.plugin_argv)) {
-    std::cerr << "--connect runs the game's own client unchanged; --plugin, --control, --dump "
-                 "and --check-plugin need a server launch.\n";
-    return std::unexpected(2);
-  }
   return options;
-}
-
-// RunClient opens the game and runs its own client, which joins the server at
-// the launch's connect address. The host loads the game's modules and hands
-// the engine its command line; it installs no hook and loads no plugin.
-int RunClient(const Options& options) {
-  if (options.game_dir.empty()) {
-    std::cerr << "Set DEADLOCK_DIR or pass --game-dir with your Deadlock installation.\n";
-    return 2;
-  }
-  modlock::EngineHost engine;
-  if (auto opened = engine.Open(std::filesystem::absolute(options.game_dir), options.launch);
-      !opened) {
-    std::cerr << opened.error() << '\n';
-    return 1;
-  }
-  auto result = engine.Run(options.launch);
-  if (!result) {
-    std::cerr << result.error() << '\n';
-    return 1;
-  }
-  return *result;
 }
 
 }  // namespace
@@ -285,10 +244,6 @@ int main(int argc, char** argv) {
     return parsed.error();
   }
   Options& options = *parsed;
-  if (!options.launch.connect.empty()) {
-    return RunClient(options);
-  }
-
   // A server launch needs a plugin or a dump.
   if (options.libraries.empty() && options.dump_directory.empty()) {
     std::cerr << "Select a plugin with --plugin PATH. Use --help for usage.\n";
@@ -307,7 +262,7 @@ int main(int argc, char** argv) {
       std::cerr << "Set DEADLOCK_DIR or pass --game-dir with your Deadlock installation.\n";
       return 2;
     }
-    if (auto opened = engine.Open(std::filesystem::absolute(options.game_dir), options.launch);
+    if (auto opened = engine.Open(std::filesystem::absolute(options.game_dir));
         !opened) {
       std::cerr << opened.error() << '\n';
       return 1;
