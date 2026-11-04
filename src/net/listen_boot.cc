@@ -41,13 +41,6 @@ std::string BuildDedicatedCommandLine(const LaunchConfig& config) {
   return line;
 }
 
-std::string BuildClientCommandLine(const LaunchConfig& config) {
-  // The early-development notice is modal at startup and holds keyboard focus
-  // until dismissed; dismissing it stores this same setting.
-  return "-console -insecure -novid +deadlock_early_development_warning_disabled 1 +connect " +
-         config.connect;
-}
-
 std::expected<int, std::string> RunEngine(const LaunchConfig& config,
                                           const std::filesystem::path& engine_bin_dir) {
 #if defined(_WIN32)
@@ -71,8 +64,7 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
   // of bin/win64, holds citadel and core; the -game argument names the mod
   // directory inside it, as stock dedicated servers do.
   const auto game_dir = engine_bin_dir.parent_path().parent_path();
-  std::string command_line =
-      config.connect.empty() ? BuildDedicatedCommandLine(config) : BuildClientCommandLine(config);
+  std::string command_line = BuildDedicatedCommandLine(config);
   command_line += " -game \"" + (game_dir / "citadel").string() + "\"";
   if (!config.engine_arguments.empty()) {
     command_line += " " + config.engine_arguments;
@@ -84,19 +76,14 @@ std::expected<int, std::string> RunEngine(const LaunchConfig& config,
     return std::unexpected("stage base-dir: directory does not exist: " + game_dir.string());
   }
 
-  // Stage 5: handoff. Blocking by design: Source2Main runs the server or
-  // client frame loop until shutdown. A client owns a visible game window; a
-  // dedicated server has no console, so its messages reach stdout.
-  const bool client = !config.connect.empty();
-  if (!client) {
-    if (auto listening = host_app::ListenEngineLog(engine); !listening) {
-      std::cerr << "[modlock] " << listening.error() << '\n';
-    }
+  // Stage 5: handoff. Blocking by design: Source2Main runs the server's
+  // frame loop until shutdown. A dedicated server has no console, so its
+  // messages reach stdout.
+  if (auto listening = host_app::ListenEngineLog(engine); !listening) {
+    std::cerr << "[modlock] " << listening.error() << '\n';
   }
-  const int code =
-      source2_main(client ? ::GetModuleHandleW(nullptr) : nullptr, nullptr, command_line.c_str(),
-                   client ? SW_SHOWDEFAULT : 0, game_dir.string().c_str(), "citadel");
-  return code;
+  return source2_main(nullptr, nullptr, command_line.c_str(), 0, game_dir.string().c_str(),
+                      "citadel");
 #else
   (void)config;
   (void)engine_bin_dir;

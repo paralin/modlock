@@ -2038,13 +2038,11 @@ modlock-host --game-dir <Deadlock installation> --plugin <hello library>
 | `--game-dir DIR`     | Run a listen server from the Deadlock installation at `DIR` (or `DEADLOCK_DIR`).                                                                 |
 | `--map NAME`         | Start on `NAME` (default `dl_midtown`).                                                                                                          |
 | `--hostport PORT`    | Serve on UDP `PORT` (default 27067).                                                                                                             |
-| `--connect ADDRESS`  | Run the game's own client, unchanged, that joins `ADDRESS`. It takes no plugin, control link or dump.                                            |
-| `--engine-args ARGS` | Append engine command-line arguments in either role.                                                                                             |
+| `--engine-args ARGS` | Append engine command-line arguments.                                                                                                            |
 | `-- ARGS`            | Pass the remaining arguments to the plugin.                                                                                                      |
 
-Modlock never changes a game client: mods, plugins and engine patches run only
-in a server launch. A client runs with `-insecure` and cannot join VAC-secured
-servers. See `modlock-host --help` for every option.
+`modlock-host` runs only a dedicated server; players join it with the game's
+own, unchanged client. See `modlock-host --help` for every option.
 
 ## Plugin contract
 

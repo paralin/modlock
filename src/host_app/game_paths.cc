@@ -11,7 +11,6 @@ GamePaths ResolveGamePaths(const std::filesystem::path& game_dir) {
       .root = game_dir,
       .engine2_dll = game_dir / "game" / "bin" / "win64" / "engine2.dll",
       .server_dll = game_dir / "game" / "citadel" / "bin" / "win64" / "server.dll",
-      .client_dll = game_dir / "game" / "citadel" / "bin" / "win64" / "client.dll",
   };
 }
 
