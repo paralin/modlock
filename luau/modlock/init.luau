@@ -1201,6 +1201,10 @@ export type Pawn = {
 	-- effectiveMaxHealth is the maximum the hero's health bar shows, health
 	-- from items included. Absent when the game's own reading is unavailable.
 	effectiveMaxHealth: number?,
+	-- abilityPoints is the ability points the player holds unspent.
+	abilityPoints: number,
+	-- abilityUnlocks is the ability unlocks the player holds unspent.
+	abilityUnlocks: number,
 }
 
 -- Score is one player's scoreboard counters since the match began, as the
@@ -1635,13 +1639,18 @@ export type Player = {
 	-- ability in that slot, 0 to 3, as the shop asks when one is bought; the
 	-- call fails, granting nothing, when the ability does not accept it.
 	giveItem: (self: Player, item: string, imbue: number?) -> boolean,
-	-- replaceAbility puts the ability named ability, untrained, in the hero's
-	-- ability slot index, as Ability.slot, removing the ability there. An
-	-- ability from another hero loads its models and particles only if
-	-- Precache named that hero and those resources before the world loaded;
-	-- otherwise its first effect stalls the game on a blocking load and the
-	-- game reports an assertion.
-	replaceAbility: (self: Player, index: number, ability: string) -> boolean,
+	-- replaceAbility puts the ability named ability, untrained unless keep
+	-- carries the old one's progress, in the hero's ability slot index, as
+	-- Ability.slot, removing the ability there. The game trains and upgrades an
+	-- ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+	-- presses the slot's ability key to spend ability points on it, and training
+	-- an untrained one costs an ability unlock. A hero change or ResetHero gives
+	-- the hero its own abilities again, so a mod that keeps a swap replaces
+	-- again then. An ability from another hero loads its models and particles
+	-- only if Precache named that hero and those resources before the world
+	-- loaded; otherwise its first effect stalls the game on a blocking load and
+	-- the game reports an assertion.
+	replaceAbility: (self: Player, index: number, ability: string, keep: boolean?) -> boolean,
 	-- holdModifier keeps a modifier, named as GiveModifier names it, on the
 	-- hero with no expiry, giving it back whenever the game removes it or the
 	-- hero returns. Every hero that gains the modifier from the same ability
@@ -1689,6 +1698,11 @@ export type Player = {
 	-- negative. A spend larger than the player's souls fails and spends
 	-- nothing. Silent skips the pickup's sound and number.
 	adjustSouls: (self: Player, delta: number, silent: boolean?) -> boolean,
+	-- adjustAbilityPoints gives the player ability points and ability unlocks,
+	-- or takes them when negative, as Pawn.ability_points and
+	-- Pawn.ability_unlocks read them. A spend larger than the player holds
+	-- fails and spends nothing.
+	adjustAbilityPoints: (self: Player, points: number, unlocks: number) -> boolean,
 	-- startingSouls sets the souls the player's hero spawns with.
 	startingSouls: (self: Player, souls: number) -> boolean,
 	-- resetHero rebuilds the player's hero as it first spawned, without items,
@@ -1926,14 +1940,19 @@ function Player.giveItem(self: Player, item: string, imbue: number?): boolean
 	return call("GiveItem", "GiveItemRequest", { player = self, item = item, imbue = imbue }) ~= nil
 end
 
--- replaceAbility puts the ability named ability, untrained, in the hero's
--- ability slot index, as Ability.slot, removing the ability there. An
--- ability from another hero loads its models and particles only if
--- Precache named that hero and those resources before the world loaded;
--- otherwise its first effect stalls the game on a blocking load and the
--- game reports an assertion.
-function Player.replaceAbility(self: Player, index: number, ability: string): boolean
-	return call("ReplaceAbility", "ReplaceAbilityRequest", { player = self, index = index, ability = ability }) ~= nil
+-- replaceAbility puts the ability named ability, untrained unless keep
+-- carries the old one's progress, in the hero's ability slot index, as
+-- Ability.slot, removing the ability there. The game trains and upgrades an
+-- ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+-- presses the slot's ability key to spend ability points on it, and training
+-- an untrained one costs an ability unlock. A hero change or ResetHero gives
+-- the hero its own abilities again, so a mod that keeps a swap replaces
+-- again then. An ability from another hero loads its models and particles
+-- only if Precache named that hero and those resources before the world
+-- loaded; otherwise its first effect stalls the game on a blocking load and
+-- the game reports an assertion.
+function Player.replaceAbility(self: Player, index: number, ability: string, keep: boolean?): boolean
+	return call("ReplaceAbility", "ReplaceAbilityRequest", { player = self, index = index, ability = ability, keep = keep }) ~= nil
 end
 
 -- holdModifier keeps a modifier, named as GiveModifier names it, on the
@@ -2005,6 +2024,14 @@ end
 -- nothing. Silent skips the pickup's sound and number.
 function Player.adjustSouls(self: Player, delta: number, silent: boolean?): boolean
 	return call("AdjustSouls", "AdjustSoulsRequest", { player = self, delta = delta, silent = silent }) ~= nil
+end
+
+-- adjustAbilityPoints gives the player ability points and ability unlocks,
+-- or takes them when negative, as Pawn.ability_points and
+-- Pawn.ability_unlocks read them. A spend larger than the player holds
+-- fails and spends nothing.
+function Player.adjustAbilityPoints(self: Player, points: number, unlocks: number): boolean
+	return call("AdjustAbilityPoints", "AdjustAbilityPointsRequest", { player = self, points = points, unlocks = unlocks }) ~= nil
 end
 
 -- startingSouls sets the souls the player's hero spawns with.
@@ -2341,6 +2368,7 @@ schema.ReplaceAbilityRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "index", kind = "uint32" },
 	{ number = 3, name = "ability", kind = "string" },
+	{ number = 4, name = "keep", kind = "bool", optional = true },
 }
 schema.HoldModifierRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
@@ -2981,6 +3009,8 @@ schema.Pawn = {
 	{ number = 16, name = "score", kind = "message", optional = true, message = "Score" },
 	{ number = 17, name = "cameraPosition", kind = "message", optional = true, message = "Vec3" },
 	{ number = 18, name = "effectiveMaxHealth", kind = "int32", optional = true },
+	{ number = 19, name = "abilityPoints", kind = "int32" },
+	{ number = 20, name = "abilityUnlocks", kind = "int32" },
 }
 schema.Score = {
 	{ number = 1, name = "kills", kind = "int32" },
@@ -3080,6 +3110,11 @@ schema.AdjustSoulsRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "delta", kind = "int32" },
 	{ number = 3, name = "silent", kind = "bool", optional = true },
+}
+schema.AdjustAbilityPointsRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "points", kind = "int32" },
+	{ number = 3, name = "unlocks", kind = "int32" },
 }
 schema.StartingSoulsRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

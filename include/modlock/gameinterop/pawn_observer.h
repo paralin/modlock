@@ -545,11 +545,13 @@ class MODLOCK_API PawnObserver {
   // pawn. Release restores the acquired pawn's movement mode and damage setting.
   std::expected<void, std::string> SetPreparationFrozen(int32_t slot, bool frozen);
 
-  // AdjustSouls adds delta souls to the slot's wallet, or spends -delta. A
-  // spend larger than the balance fails without changing it. A visible grant
-  // plays the native soul pickup feedback; a silent one does not.
-  std::expected<Sample, std::string> AdjustSouls(int32_t slot, int32_t delta, bool silent,
-                                                 ModifyCurrency modify);
+  // AdjustCurrency adds delta of one currency to the slot's wallet, or spends
+  // -delta: 0 is souls, 1 ability points and 2 ability unlocks, as Sample's
+  // currencies holds them. A spend larger than the balance fails without
+  // changing it. A visible soul grant plays the native pickup feedback; a
+  // silent one does not.
+  std::expected<Sample, std::string> AdjustCurrency(int32_t slot, uint32_t currency, int32_t delta,
+                                                    bool silent, ModifyCurrency modify);
   // HoldLevelSouls brings the slot's souls into the band in which the game's
   // own progression keeps the hero at level: from the souls the level needs
   // up to, not including, those the next level needs. Progression counts the

@@ -283,6 +283,7 @@ class MODLOCK_API ReplaceAbilityRequest final : public ::google::protobuf::Messa
     kAbilityFieldNumber = 3,
     kPlayerFieldNumber = 1,
     kIndexFieldNumber = 2,
+    kKeepFieldNumber = 4,
   };
   // string ability = 3;
   void clear_ability() ;
@@ -319,11 +320,22 @@ class MODLOCK_API ReplaceAbilityRequest final : public ::google::protobuf::Messa
   void _internal_set_index(::uint32_t value);
 
   public:
+  // optional bool keep = 4;
+  bool has_keep() const;
+  void clear_keep() ;
+  bool keep() const;
+  void set_keep(bool value);
+
+  private:
+  bool _internal_keep() const;
+  void _internal_set_keep(bool value);
+
+  public:
   // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.ReplaceAbilityRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 3,
+  static const ::google::protobuf::internal::TcParseTable<2, 4,
                                    0, 60,
                                    2>
       _table_;
@@ -348,6 +360,7 @@ class MODLOCK_API ReplaceAbilityRequest final : public ::google::protobuf::Messa
     ::google::protobuf::internal::ArenaStringPtr ability_;
     ::int32_t player_;
     ::uint32_t index_;
+    bool keep_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -4737,6 +4750,35 @@ inline void ReplaceAbilityRequest::set_allocated_ability(::std::string* PROTOBUF
     _impl_.ability_.Set("", GetArena());
   }
   // @@protoc_insertion_point(field_set_allocated:modlock.wasm.abilities.ReplaceAbilityRequest.ability)
+}
+
+// optional bool keep = 4;
+inline bool ReplaceAbilityRequest::has_keep() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  return value;
+}
+inline void ReplaceAbilityRequest::clear_keep() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.keep_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000008U);
+}
+inline bool ReplaceAbilityRequest::keep() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.ReplaceAbilityRequest.keep)
+  return _internal_keep();
+}
+inline void ReplaceAbilityRequest::set_keep(bool value) {
+  _internal_set_keep(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.ReplaceAbilityRequest.keep)
+}
+inline bool ReplaceAbilityRequest::_internal_keep() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.keep_;
+}
+inline void ReplaceAbilityRequest::_internal_set_keep(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.keep_ = value;
 }
 
 // -------------------------------------------------------------------

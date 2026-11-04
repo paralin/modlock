@@ -37,7 +37,8 @@ inline constexpr ReplaceAbilityRequest::Impl_::Impl_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         player_{0},
-        index_{0u} {}
+        index_{0u},
+        keep_{false} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR ReplaceAbilityRequest::ReplaceAbilityRequest(::_pbi::ConstantInitialized)
@@ -571,13 +572,15 @@ const ::uint32_t
         2,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::ReplaceAbilityRequest, _impl_._has_bits_),
-        6, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::ReplaceAbilityRequest, _impl_.player_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::ReplaceAbilityRequest, _impl_.index_),
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::ReplaceAbilityRequest, _impl_.ability_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::ReplaceAbilityRequest, _impl_.keep_),
         1,
         2,
         0,
+        3,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::HoldModifierRequest, _impl_._has_bits_),
         6, // hasbit index offset
@@ -654,15 +657,15 @@ static const ::_pbi::MigrationSchema
         {44, sizeof(::modlock::wasm::abilities::AbilityOptions)},
         {61, sizeof(::modlock::wasm::abilities::GiveItemRequest)},
         {70, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
-        {79, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
-        {88, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
-        {97, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
-        {104, sizeof(::modlock::wasm::abilities::ActiveResponse)},
-        {109, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
-        {118, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
-        {123, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
-        {128, sizeof(::modlock::wasm::abilities::BuildCategory)},
-        {137, sizeof(::modlock::wasm::abilities::BuildItem)},
+        {81, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
+        {90, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
+        {99, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
+        {106, sizeof(::modlock::wasm::abilities::ActiveResponse)},
+        {111, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
+        {120, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
+        {125, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
+        {130, sizeof(::modlock::wasm::abilities::BuildCategory)},
+        {139, sizeof(::modlock::wasm::abilities::BuildItem)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_HoldReloadRequest_default_instance_._instance,
@@ -704,31 +707,32 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "sB\017\n\r_cooldown_endB\017\n\r_recharge_endB\016\n\014_"
     "max_charges\"M\n\017GiveItemRequest\022\016\n\006player"
     "\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001"
-    "B\010\n\006_imbue\"G\n\025ReplaceAbilityRequest\022\016\n\006p"
+    "B\010\n\006_imbue\"c\n\025ReplaceAbilityRequest\022\016\n\006p"
     "layer\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022\017\n\007ability\030\003 "
-    "\001(\t\"W\n\023HoldModifierRequest\022\016\n\006player\030\001 \001"
-    "(\005\022\020\n\010modifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001"
-    "\001B\t\n\007_active\"H\n\023GiveModifierRequest\022\016\n\006p"
-    "layer\030\001 \001(\005\022\020\n\010modifier\030\002 \001(\t\022\017\n\007seconds"
-    "\030\003 \001(\002\"5\n\024ModifierStateRequest\022\016\n\006entity"
-    "\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\" \n\016ActiveResponse\022"
-    "\016\n\006active\030\001 \001(\010\"Y\n\030HoldModifierStateRequ"
-    "est\022\016\n\006entity\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006ac"
-    "tive\030\003 \001(\010H\000\210\001\001B\t\n\007_active\" \n\020HeroBuildR"
-    "equest\022\014\n\004hero\030\001 \001(\t\"N\n\021HeroBuildRespons"
-    "e\0229\n\ncategories\030\001 \003(\0132%.modlock.wasm.abi"
-    "lities.BuildCategory\"d\n\rBuildCategory\022\014\n"
-    "\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\0220\n\005item"
-    "s\030\003 \003(\0132!.modlock.wasm.abilities.BuildIt"
-    "em\"-\n\tBuildItem\022\014\n\004item\030\001 \001(\t\022\022\n\nannotat"
-    "ion\030\002 \001(\tB9Z7github.com/paralin/modlock/"
-    "src/wasm/abilities;abilitiesb\006proto3"
+    "\001(\t\022\021\n\004keep\030\004 \001(\010H\000\210\001\001B\007\n\005_keep\"W\n\023HoldM"
+    "odifierRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010modifi"
+    "er\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_active"
+    "\"H\n\023GiveModifierRequest\022\016\n\006player\030\001 \001(\005\022"
+    "\020\n\010modifier\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\"5\n\024Mo"
+    "difierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n\005st"
+    "ate\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active\030\001 "
+    "\001(\010\"Y\n\030HoldModifierStateRequest\022\016\n\006entit"
+    "y\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000"
+    "\210\001\001B\t\n\007_active\" \n\020HeroBuildRequest\022\014\n\004he"
+    "ro\030\001 \001(\t\"N\n\021HeroBuildResponse\0229\n\ncategor"
+    "ies\030\001 \003(\0132%.modlock.wasm.abilities.Build"
+    "Category\"d\n\rBuildCategory\022\014\n\004name\030\001 \001(\t\022"
+    "\023\n\013description\030\002 \001(\t\0220\n\005items\030\003 \003(\0132!.mo"
+    "dlock.wasm.abilities.BuildItem\"-\n\tBuildI"
+    "tem\022\014\n\004item\030\001 \001(\t\022\022\n\nannotation\030\002 \001(\tB9Z"
+    "7github.com/paralin/modlock/src/wasm/abi"
+    "lities;abilitiesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto = {
     false,
     false,
-    1556,
+    1584,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
     "github.com/paralin/modlock/src/wasm/abilities/abilities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once,
@@ -3038,9 +3042,9 @@ ReplaceAbilityRequest::ReplaceAbilityRequest(
                offsetof(Impl_, player_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, player_),
-           offsetof(Impl_, index_) -
+           offsetof(Impl_, keep_) -
                offsetof(Impl_, player_) +
-               sizeof(Impl_::index_));
+               sizeof(Impl_::keep_));
 
   // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.ReplaceAbilityRequest)
 }
@@ -3055,9 +3059,9 @@ inline void ReplaceAbilityRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE ar
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, player_),
            0,
-           offsetof(Impl_, index_) -
+           offsetof(Impl_, keep_) -
                offsetof(Impl_, player_) +
-               sizeof(Impl_::index_));
+               sizeof(Impl_::keep_));
 }
 ReplaceAbilityRequest::~ReplaceAbilityRequest() {
   // @@protoc_insertion_point(destructor:modlock.wasm.abilities.ReplaceAbilityRequest)
@@ -3117,16 +3121,16 @@ ReplaceAbilityRequest::GetClassData() const {
   return ReplaceAbilityRequest_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 60, 2>
+const ::_pbi::TcParseTable<2, 4, 0, 60, 2>
 ReplaceAbilityRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     ReplaceAbilityRequest_class_data_.base(),
@@ -3136,7 +3140,10 @@ ReplaceAbilityRequest::_table_ = {
     ::_pbi::TcParser::GetTable<::modlock::wasm::abilities::ReplaceAbilityRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    // optional bool keep = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ReplaceAbilityRequest, _impl_.keep_), 3>(),
+     {32, 3, 0,
+      PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.keep_)}},
     // int32 player = 1;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ReplaceAbilityRequest, _impl_.player_), 1>(),
      {8, 1, 0,
@@ -3158,6 +3165,8 @@ ReplaceAbilityRequest::_table_ = {
     {PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.index_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
     // string ability = 3;
     {PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.ability_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // optional bool keep = 4;
+    {PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.keep_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
   }},
   // no aux_entries
   {{
@@ -3177,10 +3186,10 @@ PROTOBUF_NOINLINE void ReplaceAbilityRequest::Clear() {
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     _impl_.ability_.ClearNonDefaultToEmpty();
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000006U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000eU)) {
     ::memset(&_impl_.player_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.index_) -
-        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.index_));
+        reinterpret_cast<char*>(&_impl_.keep_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.keep_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -3233,6 +3242,13 @@ PROTOBUF_NOINLINE void ReplaceAbilityRequest::Clear() {
     }
   }
 
+  // optional bool keep = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(
+        4, this_._internal_keep(), target);
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -3258,6 +3274,7 @@ PROTOBUF_NOINLINE void ReplaceAbilityRequest::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
+  total_size += static_cast<bool>(0x00000008U & cached_has_bits) * 2;
   if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     // string ability = 3;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
@@ -3299,7 +3316,7 @@ void ReplaceAbilityRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       if (!from._internal_ability().empty()) {
         _this->_internal_set_ability(from._internal_ability());
@@ -3318,6 +3335,9 @@ void ReplaceAbilityRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
       if (from._internal_index() != 0) {
         _this->_impl_.index_ = from._impl_.index_;
       }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      _this->_impl_.keep_ = from._impl_.keep_;
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -3341,8 +3361,8 @@ void ReplaceAbilityRequest::InternalSwap(ReplaceAbilityRequest* PROTOBUF_RESTRIC
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.ability_, &other->_impl_.ability_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.index_)
-      + sizeof(ReplaceAbilityRequest::_impl_.index_)
+      PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.keep_)
+      + sizeof(ReplaceAbilityRequest::_impl_.keep_)
       - PROTOBUF_FIELD_OFFSET(ReplaceAbilityRequest, _impl_.player_)>(
           reinterpret_cast<char*>(&_impl_.player_),
           reinterpret_cast<char*>(&other->_impl_.player_));

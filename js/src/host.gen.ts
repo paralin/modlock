@@ -1863,6 +1863,10 @@ export interface Pawn {
    * from items included. Absent when the game's own reading is unavailable.
    */
   readonly effectiveMaxHealth?: number
+  /** abilityPoints is the ability points the player holds unspent. */
+  readonly abilityPoints: number
+  /** abilityUnlocks is the ability unlocks the player holds unspent. */
+  readonly abilityUnlocks: number
 }
 
 /** fromPawn decodes a Pawn. */
@@ -1886,6 +1890,8 @@ function fromPawn(message: playersPb.Pawn): Pawn {
     score: message.score === undefined ? undefined : fromScore(message.score),
     cameraPosition: message.cameraPosition === undefined ? undefined : vector(message.cameraPosition),
     effectiveMaxHealth: message.effectiveMaxHealth,
+    abilityPoints: message.abilityPoints ?? 0,
+    abilityUnlocks: message.abilityUnlocks ?? 0,
   }
 }
 
@@ -2776,15 +2782,20 @@ export class Player {
   }
 
   /**
-   * replaceAbility puts the ability named ability, untrained, in the hero's
-   * ability slot index, as Ability.slot, removing the ability there. An
-   * ability from another hero loads its models and particles only if
-   * Precache named that hero and those resources before the world loaded;
-   * otherwise its first effect stalls the game on a blocking load and the
-   * game reports an assertion.
+   * replaceAbility puts the ability named ability, untrained unless keep
+   * carries the old one's progress, in the hero's ability slot index, as
+   * Ability.slot, removing the ability there. The game trains and upgrades an
+   * ability in slots 0 to 3 by its slot, so a player holds the upgrade key and
+   * presses the slot's ability key to spend ability points on it, and training
+   * an untrained one costs an ability unlock. A hero change or ResetHero gives
+   * the hero its own abilities again, so a mod that keeps a swap replaces
+   * again then. An ability from another hero loads its models and particles
+   * only if Precache named that hero and those resources before the world
+   * loaded; otherwise its first effect stalls the game on a blocking load and
+   * the game reports an assertion.
    */
-  replaceAbility(index: number, ability: string): boolean {
-    return call('ReplaceAbility', abilitiesPb.ReplaceAbilityRequest.toBinary({ player: this.slot, index, ability })) !== undefined
+  replaceAbility(index: number, ability: string, keep?: boolean): boolean {
+    return call('ReplaceAbility', abilitiesPb.ReplaceAbilityRequest.toBinary({ player: this.slot, index, ability, keep })) !== undefined
   }
 
   /**
@@ -2872,6 +2883,16 @@ export class Player {
    */
   adjustSouls(delta: number, silent?: boolean): boolean {
     return call('AdjustSouls', playersPb.AdjustSoulsRequest.toBinary({ player: this.slot, delta: int32(delta), silent })) !== undefined
+  }
+
+  /**
+   * adjustAbilityPoints gives the player ability points and ability unlocks,
+   * or takes them when negative, as Pawn.ability_points and
+   * Pawn.ability_unlocks read them. A spend larger than the player holds
+   * fails and spends nothing.
+   */
+  adjustAbilityPoints(points: number, unlocks: number): boolean {
+    return call('AdjustAbilityPoints', playersPb.AdjustAbilityPointsRequest.toBinary({ player: this.slot, points: int32(points), unlocks: int32(unlocks) })) !== undefined
   }
 
   /** startingSouls sets the souls the player's hero spawns with. */

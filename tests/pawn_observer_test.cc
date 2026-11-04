@@ -483,6 +483,14 @@ TEST(PawnObserver, ResolvesAddressedSlotZeroControllerAndPawn) {
   EXPECT_EQ((*prepared->currencies)[2], 4);
   ASSERT_TRUE(observer.PrepareAbilityPoints(0, ability_grant));
 
+  // A spend of ability points takes exactly that many; an overspend takes none.
+  auto spent = observer.AdjustCurrency(0, 1, -5, true, ability_grant);
+  ASSERT_TRUE(spent);
+  EXPECT_EQ((*spent->currencies)[1], 27);
+  EXPECT_FALSE(observer.AdjustCurrency(0, 2, -5, true, ability_grant));
+  EXPECT_EQ((*observer.Observe()->currencies)[2], 4);
+  EXPECT_FALSE(observer.AdjustCurrency(0, 3, 1, true, ability_grant));
+
   // The sample carries the score, identity and health.
   ASSERT_TRUE(sample->score);
   EXPECT_EQ(*sample->score, totals);

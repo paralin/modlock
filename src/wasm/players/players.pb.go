@@ -870,6 +870,10 @@ type Pawn struct {
 	// EffectiveMaxHealth is the maximum the hero's health bar shows, health
 	// from items included. Absent when the game's own reading is unavailable.
 	EffectiveMaxHealth *int32 `protobuf:"varint,18,opt,name=effective_max_health,json=effectiveMaxHealth,proto3,oneof" json:"effectiveMaxHealth,omitempty"`
+	// AbilityPoints is the ability points the player holds unspent.
+	AbilityPoints int32 `protobuf:"varint,19,opt,name=ability_points,json=abilityPoints,proto3" json:"abilityPoints,omitempty"`
+	// AbilityUnlocks is the ability unlocks the player holds unspent.
+	AbilityUnlocks int32 `protobuf:"varint,20,opt,name=ability_unlocks,json=abilityUnlocks,proto3" json:"abilityUnlocks,omitempty"`
 }
 
 func (x *Pawn) Reset() {
@@ -1000,6 +1004,20 @@ func (x *Pawn) GetCameraPosition() *geometry.Vec3 {
 func (x *Pawn) GetEffectiveMaxHealth() int32 {
 	if x != nil && x.EffectiveMaxHealth != nil {
 		return *x.EffectiveMaxHealth
+	}
+	return 0
+}
+
+func (x *Pawn) GetAbilityPoints() int32 {
+	if x != nil {
+		return x.AbilityPoints
+	}
+	return 0
+}
+
+func (x *Pawn) GetAbilityUnlocks() int32 {
+	if x != nil {
+		return x.AbilityUnlocks
 	}
 	return 0
 }
@@ -1870,6 +1888,46 @@ func (x *AdjustSoulsRequest) GetSilent() bool {
 	return false
 }
 
+// AdjustAbilityPointsRequest changes one player's unspent ability points and
+// ability unlocks.
+type AdjustAbilityPointsRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Points adds ability points, or spends them when negative. The game
+	// charges points for each upgrade and for training some abilities.
+	Points int32 `protobuf:"varint,2,opt,name=points,proto3" json:"points,omitempty"`
+	// Unlocks adds ability unlocks, or spends them when negative. The game
+	// charges an unlock to train an ability.
+	Unlocks int32 `protobuf:"varint,3,opt,name=unlocks,proto3" json:"unlocks,omitempty"`
+}
+
+func (x *AdjustAbilityPointsRequest) Reset() {
+	*x = AdjustAbilityPointsRequest{}
+}
+
+func (*AdjustAbilityPointsRequest) ProtoMessage() {}
+
+func (x *AdjustAbilityPointsRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *AdjustAbilityPointsRequest) GetPoints() int32 {
+	if x != nil {
+		return x.Points
+	}
+	return 0
+}
+
+func (x *AdjustAbilityPointsRequest) GetUnlocks() int32 {
+	if x != nil {
+		return x.Unlocks
+	}
+	return 0
+}
+
 // StartingSoulsRequest sets the souls one player's hero spawns with.
 type StartingSoulsRequest struct {
 	unknownFields []byte
@@ -2522,6 +2580,8 @@ func (m *Pawn) CloneVT() *Pawn {
 	r.MaxHealth = m.MaxHealth
 	r.Generation = m.Generation
 	r.Souls = m.Souls
+	r.AbilityPoints = m.AbilityPoints
+	r.AbilityUnlocks = m.AbilityUnlocks
 	r.Position = protobuf_go_lite.CloneVTValue(m.Position)
 	r.EyeAngles = protobuf_go_lite.CloneVTValue(m.EyeAngles)
 	r.CameraAngles = protobuf_go_lite.CloneVTValue(m.CameraAngles)
@@ -2979,6 +3039,24 @@ func (m *AdjustSoulsRequest) CloneVT() *AdjustSoulsRequest {
 }
 
 func (m *AdjustSoulsRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *AdjustAbilityPointsRequest) CloneVT() *AdjustAbilityPointsRequest {
+	if m == nil {
+		return (*AdjustAbilityPointsRequest)(nil)
+	}
+	r := new(AdjustAbilityPointsRequest)
+	r.Player = m.Player
+	r.Points = m.Points
+	r.Unlocks = m.Unlocks
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *AdjustAbilityPointsRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -3492,6 +3570,12 @@ func (this *Pawn) EqualVT(that *Pawn) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualPtr(this.EffectiveMaxHealth, that.EffectiveMaxHealth) {
+		return false
+	}
+	if this.AbilityPoints != that.AbilityPoints {
+		return false
+	}
+	if this.AbilityUnlocks != that.AbilityUnlocks {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4145,6 +4229,32 @@ func (this *AdjustSoulsRequest) EqualVT(that *AdjustSoulsRequest) bool {
 
 func (this *AdjustSoulsRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*AdjustSoulsRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *AdjustAbilityPointsRequest) EqualVT(that *AdjustAbilityPointsRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Points != that.Points {
+		return false
+	}
+	if this.Unlocks != that.Unlocks {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AdjustAbilityPointsRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*AdjustAbilityPointsRequest)
 	if !ok {
 		return false
 	}
@@ -5332,6 +5442,16 @@ func (x *Pawn) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("effectiveMaxHealth")
 		s.WriteInt32(*x.EffectiveMaxHealth)
 	}
+	if x.AbilityPoints != 0 || s.HasField("abilityPoints") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("abilityPoints")
+		s.WriteInt32(x.AbilityPoints)
+	}
+	if x.AbilityUnlocks != 0 || s.HasField("abilityUnlocks") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("abilityUnlocks")
+		s.WriteInt32(x.AbilityUnlocks)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5451,6 +5571,12 @@ func (x *Pawn) UnmarshalProtoJSON(s *json.UnmarshalState) {
 			}
 			t := s.ReadInt32()
 			x.EffectiveMaxHealth = &t
+		case "ability_points", "abilityPoints":
+			s.AddField("ability_points")
+			x.AbilityPoints = s.ReadInt32()
+		case "ability_unlocks", "abilityUnlocks":
+			s.AddField("ability_unlocks")
+			x.AbilityUnlocks = s.ReadInt32()
 		}
 	})
 }
@@ -6766,6 +6892,64 @@ func (x *AdjustSoulsRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
+// MarshalProtoJSON marshals the AdjustAbilityPointsRequest message to JSON.
+func (x *AdjustAbilityPointsRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Points != 0 || s.HasField("points") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("points")
+		s.WriteInt32(x.Points)
+	}
+	if x.Unlocks != 0 || s.HasField("unlocks") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("unlocks")
+		s.WriteInt32(x.Unlocks)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the AdjustAbilityPointsRequest to JSON.
+func (x *AdjustAbilityPointsRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the AdjustAbilityPointsRequest message from JSON.
+func (x *AdjustAbilityPointsRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "points":
+			s.AddField("points")
+			x.Points = s.ReadInt32()
+		case "unlocks":
+			s.AddField("unlocks")
+			x.Unlocks = s.ReadInt32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the AdjustAbilityPointsRequest from JSON.
+func (x *AdjustAbilityPointsRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
 // MarshalProtoJSON marshals the StartingSoulsRequest message to JSON.
 func (x *StartingSoulsRequest) MarshalProtoJSON(s *json.MarshalState) {
 	if x == nil {
@@ -8033,6 +8217,20 @@ func (m *Pawn) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	if m.unknownFields != nil {
 		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
 	}
+	if m.AbilityUnlocks != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AbilityUnlocks))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xa0
+	}
+	if m.AbilityPoints != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AbilityPoints))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x98
+	}
 	if m.EffectiveMaxHealth != nil {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.EffectiveMaxHealth))
 		i--
@@ -9236,6 +9434,53 @@ func (m *AdjustSoulsRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *AdjustAbilityPointsRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AdjustAbilityPointsRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *AdjustAbilityPointsRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Unlocks != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Unlocks))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Points != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Points))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *StartingSoulsRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -9992,6 +10237,8 @@ func (m *Pawn) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
 	n += protobuf_go_lite.SizeVarintPtr(2, m.EffectiveMaxHealth)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.AbilityPoints)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.AbilityUnlocks)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10368,6 +10615,19 @@ func (m *AdjustSoulsRequest) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
 	n += protobuf_go_lite.SizeVarintNonZero(1, m.Delta)
 	n += protobuf_go_lite.SizeBoolPtr(1, m.Silent)
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *AdjustAbilityPointsRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Points)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Unlocks)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10865,6 +11125,14 @@ func (x *Pawn) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "effective_max_health")
 		protobuf_go_lite.TextWriteInt(&sb, *x.EffectiveMaxHealth)
 	}
+	if x.AbilityPoints != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability_points")
+		protobuf_go_lite.TextWriteInt(&sb, x.AbilityPoints)
+	}
+	if x.AbilityUnlocks != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability_unlocks")
+		protobuf_go_lite.TextWriteInt(&sb, x.AbilityUnlocks)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
@@ -11320,6 +11588,28 @@ func (x *AdjustSoulsRequest) MarshalProtoText() string {
 }
 
 func (x *AdjustSoulsRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *AdjustAbilityPointsRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AdjustAbilityPointsRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Points != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "points")
+		protobuf_go_lite.TextWriteInt(&sb, x.Points)
+	}
+	if x.Unlocks != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "unlocks")
+		protobuf_go_lite.TextWriteInt(&sb, x.Unlocks)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *AdjustAbilityPointsRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -12581,6 +12871,24 @@ func (m *Pawn) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.EffectiveMaxHealth = &v
+		case 19:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AbilityPoints", wireType)
+			}
+			m.AbilityPoints = 0
+			m.AbilityPoints, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 20:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AbilityUnlocks", wireType)
+			}
+			m.AbilityUnlocks = 0
+			m.AbilityUnlocks, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
@@ -14094,6 +14402,76 @@ func (m *AdjustSoulsRequest) UnmarshalVT(dAtA []byte) error {
 			}
 			b := bool(v)
 			m.Silent = &b
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *AdjustAbilityPointsRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AdjustAbilityPointsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AdjustAbilityPointsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Points", wireType)
+			}
+			m.Points = 0
+			m.Points, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Unlocks", wireType)
+			}
+			m.Unlocks = 0
+			m.Unlocks, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

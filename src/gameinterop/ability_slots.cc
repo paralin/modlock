@@ -50,6 +50,7 @@ std::expected<AbilitySlots, std::string> AbilitySlots::Resolve(const ModuleImage
 
 std::expected<void, std::string> AbilitySlots::Replace(PawnObserver& observer, int32_t player,
                                                        uint16_t slot, uint32_t subclass,
+                                                       uint16_t upgrades,
                                                        const AbilityDefinitions& definitions,
                                                        CreateAbility create) const {
   // Find the ability in the slot; a match needs no change.
@@ -77,7 +78,7 @@ std::expected<void, std::string> AbilitySlots::Replace(PawnObserver& observer, i
   if (!pawn || !create) {
     return std::unexpected("native ability creation unavailable");
   }
-  create(pawn + component_, definition->native_definition_pointer, slot, 0, true, nullptr);
+  create(pawn + component_, definition->native_definition_pointer, slot, upgrades, true, nullptr);
 
   // Read back the new ownership.
   owned = observer.CurrentAbilitiesForSlot(player);

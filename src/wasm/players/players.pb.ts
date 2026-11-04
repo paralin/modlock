@@ -1051,6 +1051,14 @@ export interface Pawn {
    * from items included. Absent when the game's own reading is unavailable.
    */
   effectiveMaxHealth?: number
+  /**
+   * AbilityPoints is the ability points the player holds unspent.
+   */
+  abilityPoints?: number
+  /**
+   * AbilityUnlocks is the ability unlocks the player holds unspent.
+   */
+  abilityUnlocks?: number
 }
 
 export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
@@ -1074,6 +1082,8 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
     [16, 'score', 11, 0, Score.codec],
     [17, 'camera_position', 11, 0, Vec3.codec],
     [18, 'effective_max_health', 5, 4],
+    [19, 'ability_points', 5],
+    [20, 'ability_unlocks', 5],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Pawn): Pawn => {
@@ -1146,6 +1156,12 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
             break
           case 18:
             m.effectiveMaxHealth = r.int32()
+            break
+          case 19:
+            m.abilityPoints = r.int32()
+            break
+          case 20:
+            m.abilityUnlocks = r.int32()
             break
           default:
             r.skip(t)
@@ -1225,6 +1241,14 @@ export const Pawn: MessageType<Pawn> = /* @__PURE__ */ createMessageType<Pawn>(
       {
         const v = m.effectiveMaxHealth
         if (v != null) w.uint32(144).int32(v)
+      }
+      {
+        const v = m.abilityPoints
+        if (v) w.uint32(152).int32(v)
+      }
+      {
+        const v = m.abilityUnlocks
+        if (v) w.uint32(160).int32(v)
       }
     },
   },
@@ -2563,6 +2587,76 @@ export const AdjustSoulsRequest: MessageType<AdjustSoulsRequest> =
         {
           const v = m.silent
           if (v != null) w.uint32(24).bool(v)
+        }
+      },
+    },
+  )
+
+/**
+ * AdjustAbilityPointsRequest changes one player's unspent ability points and
+ * ability unlocks.
+ *
+ * @generated from message modlock.wasm.players.AdjustAbilityPointsRequest
+ */
+export interface AdjustAbilityPointsRequest {
+  player?: number
+  /**
+   * Points adds ability points, or spends them when negative. The game
+   * charges points for each upgrade and for training some abilities.
+   */
+  points?: number
+  /**
+   * Unlocks adds ability unlocks, or spends them when negative. The game
+   * charges an unlock to train an ability.
+   */
+  unlocks?: number
+}
+
+export const AdjustAbilityPointsRequest: MessageType<AdjustAbilityPointsRequest> =
+  /* @__PURE__ */ createMessageType<AdjustAbilityPointsRequest>(
+    'modlock.wasm.players.AdjustAbilityPointsRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'points', 5],
+      [3, 'unlocks', 5],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: AdjustAbilityPointsRequest,
+      ): AdjustAbilityPointsRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.points = r.int32()
+              break
+            case 3:
+              m.unlocks = r.int32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: AdjustAbilityPointsRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.points
+          if (v) w.uint32(16).int32(v)
+        }
+        {
+          const v = m.unlocks
+          if (v) w.uint32(24).int32(v)
         }
       },
     },

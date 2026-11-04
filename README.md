@@ -876,11 +876,18 @@ does the same over a list of your own with `name` and `title`. A `Hook` watches
 one Bebop's hook: `update(player, now)` each frame reports the hero it holds
 and each new throw, keeps it fully upgraded and sets its cooldown.
 
-`replaceAbility(index, name)` honors an explicit main slot, 0 to 3, including
-an ultimate placed on another ability key. The same definition can occupy
-several main slots as separate native ability entities. Replacements start
-untrained. Use `restoreHero` ability targets with their definition ID and slot
-to train each copy; `setAbility` addresses the first matching name.
+`replaceAbility(index, name, keep?)` honors an explicit main slot, 0 to 3,
+including an ultimate placed on another ability key. The same definition can
+occupy several main slots as separate native ability entities. Replacements
+start untrained; with `keep` the new ability takes the old one's training,
+bought upgrades, cooldown and charges. The game trains and upgrades main
+slots by slot, so a player holds the upgrade key and presses the slot's
+ability key, and training an untrained replacement costs an ability unlock.
+`adjustAbilityPoints(points, unlocks)` gives or takes them, and the hero's
+`abilityPoints` and `abilityUnlocks` read what is left. A hero change or
+`resetHero` restores the hero's own abilities, so reapply a swap then. Use
+`restoreHero` ability targets with their definition ID and slot to train each
+copy; `setAbility` addresses the first matching name.
 
 ### Vectors and HUD text
 

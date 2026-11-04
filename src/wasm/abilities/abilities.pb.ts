@@ -530,6 +530,13 @@ export interface ReplaceAbilityRequest {
    * Ability is the new ability's name, such as ability_viper_slide.
    */
   ability?: string
+  /**
+   * Keep carries the replaced ability's progress to the new one: trained or
+   * not, its bought upgrades, its cooldown, and its charges when both
+   * abilities hold charges. The ability points and unlocks the player spent
+   * stay spent, and the game upgrades the new ability from there.
+   */
+  keep?: boolean
 }
 
 export const ReplaceAbilityRequest: MessageType<ReplaceAbilityRequest> =
@@ -539,6 +546,7 @@ export const ReplaceAbilityRequest: MessageType<ReplaceAbilityRequest> =
       [1, 'player', 5],
       [2, 'index', 13],
       [3, 'ability', 9],
+      [4, 'keep', 8, 4],
     ],
     {
       decode: (
@@ -559,6 +567,9 @@ export const ReplaceAbilityRequest: MessageType<ReplaceAbilityRequest> =
             case 3:
               m.ability = r.string()
               break
+            case 4:
+              m.keep = r.bool()
+              break
             default:
               r.skip(t)
           }
@@ -577,6 +588,10 @@ export const ReplaceAbilityRequest: MessageType<ReplaceAbilityRequest> =
         {
           const v = m.ability
           if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.keep
+          if (v != null) w.uint32(32).bool(v)
         }
       },
     },

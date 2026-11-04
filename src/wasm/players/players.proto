@@ -315,6 +315,12 @@ message Pawn {
   // EffectiveMaxHealth is the maximum the hero's health bar shows, health
   // from items included. Absent when the game's own reading is unavailable.
   optional int32 effective_max_health = 18;
+
+  // AbilityPoints is the ability points the player holds unspent.
+  int32 ability_points = 19;
+
+  // AbilityUnlocks is the ability unlocks the player holds unspent.
+  int32 ability_unlocks = 20;
 }
 
 // Score is one player's scoreboard counters since the match began, as the
@@ -581,6 +587,20 @@ message AdjustSoulsRequest {
 
   // Silent hides the game's souls notice.
   optional bool silent = 3;
+}
+
+// AdjustAbilityPointsRequest changes one player's unspent ability points and
+// ability unlocks.
+message AdjustAbilityPointsRequest {
+  int32 player = 1;
+
+  // Points adds ability points, or spends them when negative. The game
+  // charges points for each upgrade and for training some abilities.
+  int32 points = 2;
+
+  // Unlocks adds ability unlocks, or spends them when negative. The game
+  // charges an unlock to train an ability.
+  int32 unlocks = 3;
 }
 
 // StartingSoulsRequest sets the souls one player's hero spawns with.

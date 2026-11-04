@@ -471,6 +471,8 @@ class Game : public HostService {
   std::expected<void, std::string> Steer(const movement::SteerRequest& request) override;
   std::expected<void, std::string> Drive(const movement::DriveRequest& request) override;
   std::expected<void, std::string> AdjustSouls(const players::AdjustSoulsRequest& request) override;
+  std::expected<void, std::string> AdjustAbilityPoints(
+      const players::AdjustAbilityPointsRequest& request) override;
   std::expected<void, std::string> StartingSouls(
       const players::StartingSoulsRequest& request) override;
   std::expected<void, std::string> ResetHero(const players::ResetHeroRequest& request) override;
