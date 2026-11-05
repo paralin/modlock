@@ -102,7 +102,10 @@ service Host {
   // answer from the last PlayersChanged instead, once one arrived.
   rpc Players(Empty) returns (modlock.wasm.players.PlayersResponse);
 
-  // Pawn returns the player's hero this frame, or nothing without one.
+  // Pawn returns the player's pawn this frame: the hero, or the game's
+  // placeholder with hero 0 that a player joining on a team holds until a hero
+  // is selected. It returns nothing for a spectator and before the game has
+  // made a pawn. The pawn's entity changes whenever the game replaces it.
   rpc Pawn(modlock.wasm.players.PlayerRequest) returns (modlock.wasm.players.PawnResponse);
 
   // PlayerSetting returns the player's value of a setting the manifest
@@ -195,7 +198,8 @@ service Host {
   // hero back to it. Stopping the mod returns every such player.
   rpc Unwatch(modlock.wasm.players.PlayerRequest) returns (Empty);
 
-  // Respawn revives the player's dead hero.
+  // Respawn revives the player's dead hero. A pawn with hero 0 has no hero to
+  // revive; the call fails until SelectHero gives it one.
   rpc Respawn(modlock.wasm.players.PlayerRequest) returns (Empty);
 
   // ChangeTeam moves the player's hero, living or dead, to team 2 or 3 where
@@ -338,7 +342,8 @@ service Host {
   // seconds: the build first, then health, stamina and pose once it settles,
   // then charges and cooldowns. A Restored event reports when the result has
   // held for a second, or why it could not. A new call replaces the running
-  // one.
+  // one. A pawn with hero 0 has no hero to restore; the call fails until
+  // SelectHero gives it one.
   rpc RestoreHero(modlock.wasm.players.RestoreHeroRequest) returns (Empty);
 
   // ScreenEffect plays a full-screen effect on the player's view. Effects of

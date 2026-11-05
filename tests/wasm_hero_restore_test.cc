@@ -41,6 +41,7 @@ struct World {
     sample.slot = 2;
     sample.steam_id = 7;
     sample.pawn_handle = 42;
+    sample.hero_id = 13;
     sample.health = 500;
     sample.max_health = 600;
     sample.effective_max_health = 650;
@@ -290,6 +291,11 @@ TEST(HeroRestore, RejectsMalformedTargets) {
 
   // A dead hero is refused.
   world.sample.health = 0;
+  EXPECT_FALSE(HeroRestore::Create(world.sample, Exact(), world.Engine()));
+
+  // The placeholder pawn of a player with no hero yet is refused, alive.
+  world.sample.health = 500;
+  world.sample.hero_id = 0;
   EXPECT_FALSE(HeroRestore::Create(world.sample, Exact(), world.Engine()));
 }
 

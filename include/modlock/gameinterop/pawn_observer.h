@@ -510,6 +510,7 @@ class MODLOCK_API PawnObserver {
                                                  bool assigned = false);
 
   // RespawnPlayer requests native respawn only for this connection's dead hero pawn.
+  // A pawn without a hero, the game's placeholder before a hero is selected, is refused.
   // Subsequent observation establishes readiness; the native call may replace the pawn.
   std::expected<void, std::string> RespawnPlayer(int32_t slot, uint32_t generation,
                                                  RespawnPawn respawn);

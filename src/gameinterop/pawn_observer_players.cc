@@ -563,6 +563,15 @@ std::expected<void, std::string> PawnObserver::RespawnPlayer(int32_t slot, uint3
     return std::unexpected("player hero pawn unavailable");
   }
 
+  // A pawn without a hero is the game's placeholder for a player who has not
+  // been given one; respawning it only prints "unknown respawned" and leaves
+  // it without a hero.
+  uint32_t hero_id = 0;
+  std::memcpy(&hero_id, static_cast<const char*>(pawn) + layout_.hero_id, sizeof(hero_id));
+  if (hero_id == 0) {
+    return std::unexpected("player has no hero to respawn; select one first");
+  }
+
   // Respawn a dead hero.
   int32_t health = 0;
   std::memcpy(&health, static_cast<const char*>(pawn) + layout_.health, sizeof(health));

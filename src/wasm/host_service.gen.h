@@ -96,7 +96,10 @@ class HostService {
     return std::unexpected("this host does not support Players");
   }
 
-  // Pawn returns the player's hero this frame, or nothing without one.
+  // Pawn returns the player's pawn this frame: the hero, or the game's
+  // placeholder with hero 0 that a player joining on a team holds until a hero
+  // is selected. It returns nothing for a spectator and before the game has
+  // made a pawn. The pawn's entity changes whenever the game replaces it.
   virtual std::expected<players::PawnResponse, std::string> Pawn(
       const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Pawn");
@@ -234,7 +237,8 @@ class HostService {
     return std::unexpected("this host does not support Unwatch");
   }
 
-  // Respawn revives the player's dead hero.
+  // Respawn revives the player's dead hero. A pawn with hero 0 has no hero to
+  // revive; the call fails until SelectHero gives it one.
   virtual std::expected<void, std::string> Respawn(const players::PlayerRequest& /*request*/) {
     return std::unexpected("this host does not support Respawn");
   }
@@ -441,7 +445,8 @@ class HostService {
   // seconds: the build first, then health, stamina and pose once it settles,
   // then charges and cooldowns. A Restored event reports when the result has
   // held for a second, or why it could not. A new call replaces the running
-  // one.
+  // one. A pawn with hero 0 has no hero to restore; the call fails until
+  // SelectHero gives it one.
   virtual std::expected<void, std::string> RestoreHero(
       const players::RestoreHeroRequest& /*request*/) {
     return std::unexpected("this host does not support RestoreHero");

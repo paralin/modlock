@@ -248,17 +248,21 @@ message ConnectionRoles {
   repeated ModRole roles = 3;
 }
 
-// PawnResponse holds the player's hero, absent without a live one.
+// PawnResponse holds the player's pawn, absent for a spectator or before the
+// game has made one.
 message PawnResponse {
   Pawn pawn = 1;
 }
 
-// Pawn is one player's hero this frame.
+// Pawn is one player's pawn this frame: their hero, or the game's placeholder
+// before a hero is selected.
 message Pawn {
-  // Entity is the hero's entity handle, which ReadField reads.
+  // Entity is the pawn's entity handle, which ReadField reads. It changes
+  // whenever the game replaces the pawn.
   uint32 entity = 1;
 
-  // Hero identifies the hero, as SelectHero returns it.
+  // Hero identifies the hero, as SelectHero returns it, or is 0 for a
+  // placeholder pawn that has none yet.
   uint32 hero = 2;
 
   // Team is the hero's team number.

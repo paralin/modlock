@@ -930,7 +930,8 @@ export const ConnectionRoles: MessageType<ConnectionRoles> =
   )
 
 /**
- * PawnResponse holds the player's hero, absent without a live one.
+ * PawnResponse holds the player's pawn, absent for a spectator or before the
+ * game has made one.
  *
  * @generated from message modlock.wasm.players.PawnResponse
  */
@@ -967,17 +968,20 @@ export const PawnResponse: MessageType<PawnResponse> =
   )
 
 /**
- * Pawn is one player's hero this frame.
+ * Pawn is one player's pawn this frame: their hero, or the game's placeholder
+ * before a hero is selected.
  *
  * @generated from message modlock.wasm.players.Pawn
  */
 export interface Pawn {
   /**
-   * Entity is the hero's entity handle, which ReadField reads.
+   * Entity is the pawn's entity handle, which ReadField reads. It changes
+   * whenever the game replaces the pawn.
    */
   entity?: number
   /**
-   * Hero identifies the hero, as SelectHero returns it.
+   * Hero identifies the hero, as SelectHero returns it, or is 0 for a
+   * placeholder pawn that has none yet.
    */
   hero?: number
   /**

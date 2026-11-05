@@ -1156,11 +1156,14 @@ export type Connection = {
 	roles: { ModRole },
 }
 
--- Pawn is one player's hero this frame.
+-- Pawn is one player's pawn this frame: their hero, or the game's placeholder
+-- before a hero is selected.
 export type Pawn = {
-	-- entity is the hero's entity handle, which ReadField reads.
+	-- entity is the pawn's entity handle, which ReadField reads. It changes
+	-- whenever the game replaces the pawn.
 	entity: number,
-	-- hero identifies the hero, as SelectHero returns it.
+	-- hero identifies the hero, as SelectHero returns it, or is 0 for a
+	-- placeholder pawn that has none yet.
 	hero: number,
 	-- team is the hero's team number.
 	team: number,
@@ -1556,7 +1559,10 @@ export type Player = {
 	centerText: (self: Player, text: string) -> boolean,
 	-- announce shows a game announcement with a title to the player.
 	announce: (self: Player, title: string, text: string) -> boolean,
-	-- pawn returns the player's hero this frame, or nothing without one.
+	-- pawn returns the player's pawn this frame: the hero, or the game's
+	-- placeholder with hero 0 that a player joining on a team holds until a hero
+	-- is selected. It returns nothing for a spectator and before the game has
+	-- made a pawn. The pawn's entity changes whenever the game replaces it.
 	pawn: (self: Player) -> Pawn?,
 	-- setting returns the player's value of a setting the manifest
 	-- declares: the value they chose, or the setting's default. A bot has the
@@ -1605,7 +1611,8 @@ export type Player = {
 	-- unwatch returns a player watching or flying the free camera from their
 	-- hero back to it. Stopping the mod returns every such player.
 	unwatch: (self: Player) -> boolean,
-	-- respawn revives the player's dead hero.
+	-- respawn revives the player's dead hero. A pawn with hero 0 has no hero to
+	-- revive; the call fails until SelectHero gives it one.
 	respawn: (self: Player) -> boolean,
 	-- changeTeam moves the player's hero, living or dead, to team 2 or 3 where
 	-- it stands, for a human or a bot alike. The hero keeps its hero,
@@ -1717,7 +1724,8 @@ export type Player = {
 	-- seconds: the build first, then health, stamina and pose once it settles,
 	-- then charges and cooldowns. A Restored event reports when the result has
 	-- held for a second, or why it could not. A new call replaces the running
-	-- one.
+	-- one. A pawn with hero 0 has no hero to restore; the call fails until
+	-- SelectHero gives it one.
 	restoreHero: (self: Player, target: HeroTarget) -> boolean,
 	-- screenEffect plays a full-screen effect on the player's view. Effects of
 	-- one kind stack. The player's hero must be alive.
@@ -1768,7 +1776,10 @@ function Player.announce(self: Player, title: string, text: string): boolean
 	return call("Announce", "AnnounceRequest", { player = self, title = title, text = text }) ~= nil
 end
 
--- pawn returns the player's hero this frame, or nothing without one.
+-- pawn returns the player's pawn this frame: the hero, or the game's
+-- placeholder with hero 0 that a player joining on a team holds until a hero
+-- is selected. It returns nothing for a spectator and before the game has
+-- made a pawn. The pawn's entity changes whenever the game replaces it.
 function Player.pawn(self: Player): Pawn?
 	local response = call("Pawn", "PlayerRequest", { player = self }, "PawnResponse")
 	if response == nil then
@@ -1872,7 +1883,8 @@ function Player.unwatch(self: Player): boolean
 	return call("Unwatch", "PlayerRequest", { player = self }) ~= nil
 end
 
--- respawn revives the player's dead hero.
+-- respawn revives the player's dead hero. A pawn with hero 0 has no hero to
+-- revive; the call fails until SelectHero gives it one.
 function Player.respawn(self: Player): boolean
 	return call("Respawn", "PlayerRequest", { player = self }) ~= nil
 end
@@ -2060,7 +2072,8 @@ end
 -- seconds: the build first, then health, stamina and pose once it settles,
 -- then charges and cooldowns. A Restored event reports when the result has
 -- held for a second, or why it could not. A new call replaces the running
--- one.
+-- one. A pawn with hero 0 has no hero to restore; the call fails until
+-- SelectHero gives it one.
 function Player.restoreHero(self: Player, target: HeroTarget): boolean
 	return call("RestoreHero", "RestoreHeroRequest", { player = self, target = target }) ~= nil
 end

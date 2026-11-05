@@ -1808,11 +1808,20 @@ function fromConnection(message: playersPb.Connection): Connection {
   }
 }
 
-/** Pawn is one player's hero this frame. */
+/**
+ * Pawn is one player's pawn this frame: their hero, or the game's placeholder
+ * before a hero is selected.
+ */
 export interface Pawn {
-  /** entity is the hero's entity handle, which ReadField reads. */
+  /**
+   * entity is the pawn's entity handle, which ReadField reads. It changes
+   * whenever the game replaces the pawn.
+   */
   readonly entity: number
-  /** hero identifies the hero, as SelectHero returns it. */
+  /**
+   * hero identifies the hero, as SelectHero returns it, or is 0 for a
+   * placeholder pawn that has none yet.
+   */
   readonly hero: number
   /** team is the hero's team number. */
   readonly team: number
@@ -2578,7 +2587,12 @@ export class Player {
     return call('Announce', effectsPb.AnnounceRequest.toBinary({ player: this.slot, title, text })) !== undefined
   }
 
-  /** pawn returns the player's hero this frame, or nothing without one. */
+  /**
+   * pawn returns the player's pawn this frame: the hero, or the game's
+   * placeholder with hero 0 that a player joining on a team holds until a hero
+   * is selected. It returns nothing for a spectator and before the game has
+   * made a pawn. The pawn's entity changes whenever the game replaces it.
+   */
   pawn(): Pawn | undefined {
     const reply = call('Pawn', playersPb.PlayerRequest.toBinary({ player: this.slot }))
     if (reply === undefined) return undefined
@@ -2700,7 +2714,10 @@ export class Player {
     return call('Unwatch', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
   }
 
-  /** respawn revives the player's dead hero. */
+  /**
+   * respawn revives the player's dead hero. A pawn with hero 0 has no hero to
+   * revive; the call fails until SelectHero gives it one.
+   */
   respawn(): boolean {
     return call('Respawn', playersPb.PlayerRequest.toBinary({ player: this.slot })) !== undefined
   }
@@ -2926,7 +2943,8 @@ export class Player {
    * seconds: the build first, then health, stamina and pose once it settles,
    * then charges and cooldowns. A Restored event reports when the result has
    * held for a second, or why it could not. A new call replaces the running
-   * one.
+   * one. A pawn with hero 0 has no hero to restore; the call fails until
+   * SelectHero gives it one.
    */
   restoreHero(target: HeroTarget): boolean {
     return call('RestoreHero', playersPb.RestoreHeroRequest.toBinary({ player: this.slot, target: toHeroTarget(target) })) !== undefined

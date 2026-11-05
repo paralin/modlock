@@ -805,7 +805,8 @@ func (x *ConnectionRoles) GetRoles() []ModRole {
 	return nil
 }
 
-// PawnResponse holds the player's hero, absent without a live one.
+// PawnResponse holds the player's pawn, absent for a spectator or before the
+// game has made one.
 type PawnResponse struct {
 	unknownFields []byte
 	Pawn          *Pawn `protobuf:"bytes,1,opt,name=pawn,proto3" json:"pawn,omitempty"`
@@ -824,12 +825,15 @@ func (x *PawnResponse) GetPawn() *Pawn {
 	return nil
 }
 
-// Pawn is one player's hero this frame.
+// Pawn is one player's pawn this frame: their hero, or the game's placeholder
+// before a hero is selected.
 type Pawn struct {
 	unknownFields []byte
-	// Entity is the hero's entity handle, which ReadField reads.
+	// Entity is the pawn's entity handle, which ReadField reads. It changes
+	// whenever the game replaces the pawn.
 	Entity uint32 `protobuf:"varint,1,opt,name=entity,proto3" json:"entity,omitempty"`
-	// Hero identifies the hero, as SelectHero returns it.
+	// Hero identifies the hero, as SelectHero returns it, or is 0 for a
+	// placeholder pawn that has none yet.
 	Hero uint32 `protobuf:"varint,2,opt,name=hero,proto3" json:"hero,omitempty"`
 	// Team is the hero's team number.
 	Team int32 `protobuf:"varint,3,opt,name=team,proto3" json:"team,omitempty"`

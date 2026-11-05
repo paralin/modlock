@@ -566,6 +566,8 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   Instance spectator{}, hero{};
   expected_pawn = hero.data();
   respawned = 0;
+  const uint32_t hero_id = 13;
+  std::memcpy(hero.data() + kHeroField, &hero_id, sizeof(hero_id));
 
   // Register them and name the hero.
   fixture.image.SetIdentity(1, fixture.controller.data(), 1, 0);
@@ -593,6 +595,14 @@ TEST(PawnObserver, RespawnUsesDeadHeroHandleAndRejectsStaleConnections) {
   ASSERT_TRUE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
   ASSERT_TRUE(observer.RespawnPlayer(0, 3, respawn));
+  EXPECT_EQ(respawned, 1);
+
+  // A dead placeholder pawn, which has no hero, is refused.
+  const int32_t dead = 0;
+  const uint32_t no_hero = 0;
+  std::memcpy(hero.data() + kHealthField, &dead, sizeof(dead));
+  std::memcpy(hero.data() + kHeroField, &no_hero, sizeof(no_hero));
+  EXPECT_FALSE(observer.RespawnPlayer(0, 3, respawn));
   EXPECT_EQ(respawned, 1);
 
   // A stale hero handle is refused.

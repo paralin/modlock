@@ -48,7 +48,11 @@ bool Finite(const std::array<float, 3>& values) {
 
 std::expected<HeroRestore, std::string> HeroRestore::Create(const Sample& pawn,
                                                             RestoreTarget target, Engine engine) {
-  // The pawn must be alive and the target well formed.
+  // The pawn must be a living hero and the target well formed. A pawn without
+  // a hero never reports the maximum health a restore settles on.
+  if (pawn.hero_id == 0) {
+    return std::unexpected("the player has no hero yet");
+  }
   if (pawn.health <= 0) {
     return std::unexpected("the player has no live hero");
   }
