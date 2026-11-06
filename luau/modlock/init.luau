@@ -1489,7 +1489,8 @@ export type FrameEvent = {
 export type CommandEvent = {
 	-- player is the player who typed the command.
 	player: Player,
-	-- line is the complete command line, starting with the command name.
+	-- line is the complete command line, starting with the command name in
+	-- lower case, whatever case the player typed; the arguments keep theirs.
 	line: string,
 }
 

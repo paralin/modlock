@@ -242,7 +242,8 @@ type CommandEvent struct {
 	unknownFields []byte
 	// Player is the player who typed the command.
 	Player int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
-	// Line is the complete command line, starting with the command name.
+	// Line is the complete command line, starting with the command name in
+	// lower case, whatever case the player typed; the arguments keep theirs.
 	Line string `protobuf:"bytes,2,opt,name=line,proto3" json:"line,omitempty"`
 }
 

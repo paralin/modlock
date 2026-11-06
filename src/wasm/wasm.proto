@@ -824,7 +824,8 @@ message CommandEvent {
   // Player is the player who typed the command.
   int32 player = 1;
 
-  // Line is the complete command line, starting with the command name.
+  // Line is the complete command line, starting with the command name in
+  // lower case, whatever case the player typed; the arguments keep theirs.
   string line = 2;
 }
 

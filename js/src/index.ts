@@ -217,8 +217,9 @@ export function serve(service: string, handler: Service): void {
  * command calls handler when a player types /name in chat or their client
  * sends the console command name to the server. The handler runs with the
  * next server frame, before the frame handlers, and receives the text after
- * the name, trimmed of surrounding spaces. Registering a name again replaces
- * its handler.
+ * the name, trimmed of surrounding spaces. Names are lower case and match
+ * whatever case the player types. Registering a name again replaces its
+ * handler.
  */
 export function command(
   name: string,

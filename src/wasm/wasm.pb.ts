@@ -405,7 +405,8 @@ export interface CommandEvent {
    */
   player?: number
   /**
-   * Line is the complete command line, starting with the command name.
+   * Line is the complete command line, starting with the command name in
+   * lower case, whatever case the player typed; the arguments keep theirs.
    */
   line?: string
 }

@@ -2,6 +2,8 @@
 
 #include "wasm/wasm_plugin.h"
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <format>
 #include <iostream>
@@ -331,7 +333,11 @@ void WasmPlugin::ListenForRestart() {
       return;
     }
     text.remove_prefix(1);
-    if (!text.starts_with(kRestartCommand)) {
+    if (text.size() < kRestartCommand.size() ||
+        !std::ranges::equal(text.substr(0, kRestartCommand.size()), kRestartCommand,
+                            [](unsigned char a, unsigned char b) {
+                              return std::tolower(a) == b;
+                            })) {
       return;
     }
     text.remove_prefix(kRestartCommand.size());

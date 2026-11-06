@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <format>
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -115,7 +117,15 @@ void WasmPlugin::ReportPlayers() {
   }
 }
 
-bool WasmPlugin::Command(int32_t slot, std::string_view line) {
+bool WasmPlugin::Command(int32_t slot, std::string_view raw_line) {
+  // A command's name does not depend on case, so "/RESTART" is "/restart".
+  // Only the name changes: its arguments keep the case the player typed.
+  std::string lowered(raw_line);
+  const auto name_end = std::min(lowered.find(' '), lowered.size());
+  std::transform(lowered.begin(), lowered.begin() + name_end, lowered.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  const std::string_view line = lowered;
+
   // A player the mod does not serve neither presses its buttons nor reaches
   // its commands.
   if (!scope_.Serves(slot)) {
