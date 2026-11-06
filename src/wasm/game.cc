@@ -136,6 +136,7 @@ void Game::WorldEnding() {
   // Remove the world's objects and forget its entities.
   RemoveWorld();
   world_.reset();
+  scaled_.clear();
   if (services_.effects_) {
     services_.effects_->InvalidateAfterEngineReset();
   }
@@ -200,8 +201,17 @@ void Game::Clear() {
   }
   watched_.clear();
 
-  // Remove the world's objects and unfreeze the frozen heroes.
+  // Remove the world's objects, put back the scale of each entity the mod
+  // rescaled and unfreeze the frozen heroes. A handle whose entity is gone
+  // no longer resolves, so a reused index keeps its own scale.
   RemoveWorld();
+  if (world_) {
+    for (const auto& [entity, scale] : scaled_) {
+      static_cast<void>(
+          world_->FireInput(entity, "SetAbsScale", gameinterop::EntityValue{scale}, std::nullopt));
+    }
+  }
+  scaled_.clear();
   for (const auto slot : frozen_) {
     if (observer_.Observe(slot)) {
       static_cast<void>(observer_.SetPreparationFrozen(slot, false));

@@ -2,12 +2,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <deque>
 #include <optional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
-#include "modlock/gameinterop/connection_tracker.h"
 #include "modlock/gameinterop/keyvalues.h"
 #include "wasm/game.h"
 #include "wasm/game_internal.h"
@@ -15,6 +16,15 @@
 namespace modlock::wasm {
 
 namespace {
+
+// EqualsInput reports whether name is input in any case, as Source matches
+// input names.
+bool EqualsInput(std::string_view name, std::string_view input) {
+  return std::ranges::equal(name, input, [](char a, char b) {
+    return std::tolower(static_cast<unsigned char>(a)) ==
+           std::tolower(static_cast<unsigned char>(b));
+  });
+}
 
 // Value converts an entity value to the world's form, or nothing when it has
 // none. The result borrows value's text.
@@ -430,6 +440,21 @@ std::expected<entities::AliveResponse, std::string> Game::FireInput(
   std::optional<uint32_t> activator;
   if (request.has_activator()) {
     activator = request.activator();
+  }
+
+  // The first rescale of an entity the mod did not create records the scale
+  // it had, which Clear puts back. Source matches input names in any case.
+  if (!created_.contains(request.entity()) && !scaled_.contains(request.entity()) &&
+      EqualsInput(request.input(), "SetAbsScale")) {
+    fields::ReadFieldRequest read;
+    read.set_entity(request.entity());
+    read.set_class_name("CGameSceneNode");
+    read.set_field("m_flScale");
+    read.set_type(fields::FIELD_TYPE_FLOAT32);
+    if (auto scale = ReadField(read);
+        scale && scale->value().value_case() == fields::FieldValue::kNumber) {
+      scaled_[request.entity()] = static_cast<float>(scale->value().number());
+    }
   }
   return Alive(
       (*world)->FireInput(request.entity(), request.input(), Value(request.value()), activator));

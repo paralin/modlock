@@ -820,6 +820,10 @@ class Game : public HostService {
   // the units' placement finishes.
   std::optional<gameinterop::WorldEntities> world_;
   std::set<uint32_t> created_;
+  // scaled_ maps each entity the mod rescaled but did not create, such as a
+  // hero, to the scale it had before the mod's first SetAbsScale; Clear puts
+  // it back, so the next mod in the game starts from the game's own sizes.
+  std::map<uint32_t, float> scaled_;
   bool spawned_ = false;
   // bots_ is the slots of the bots the mod added.
   std::set<int32_t> bots_;
