@@ -14,6 +14,8 @@ import (
 // such as a vector or a color, has no typed setter.
 var consoleTypes = map[dump.ConsoleVariableType]string{
 	dump.ConsoleVariableType_CONSOLE_VARIABLE_TYPE_BOOL:    "bool",
+	dump.ConsoleVariableType_CONSOLE_VARIABLE_TYPE_INT8:    "int8",
+	dump.ConsoleVariableType_CONSOLE_VARIABLE_TYPE_UINT8:   "uint8",
 	dump.ConsoleVariableType_CONSOLE_VARIABLE_TYPE_INT16:   "int16",
 	dump.ConsoleVariableType_CONSOLE_VARIABLE_TYPE_UINT16:  "uint16",
 	dump.ConsoleVariableType_CONSOLE_VARIABLE_TYPE_INT32:   "int32",

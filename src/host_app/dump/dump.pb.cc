@@ -999,30 +999,32 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fho
     "ION_STATUS_UNSPECIFIED\020\000\022\035\n\031CONSTRUCTION"
     "_STATUS_ALIVE\020\001\022 \n\034CONSTRUCTION_STATUS_V"
     "ANISHED\020\002\022\036\n\032CONSTRUCTION_STATUS_FAILED\020"
-    "\003\022\037\n\033CONSTRUCTION_STATUS_CRASHED\020\004*\332\004\n\023C"
+    "\003\022\037\n\033CONSTRUCTION_STATUS_CRASHED\020\004*\233\005\n\023C"
     "onsoleVariableType\022!\n\035CONSOLE_VARIABLE_T"
     "YPE_UNKNOWN\020\000\022\036\n\032CONSOLE_VARIABLE_TYPE_B"
-    "OOL\020\001\022\037\n\033CONSOLE_VARIABLE_TYPE_INT16\020\002\022 "
-    "\n\034CONSOLE_VARIABLE_TYPE_UINT16\020\003\022\037\n\033CONS"
-    "OLE_VARIABLE_TYPE_INT32\020\004\022 \n\034CONSOLE_VAR"
-    "IABLE_TYPE_UINT32\020\005\022\037\n\033CONSOLE_VARIABLE_"
-    "TYPE_INT64\020\006\022 \n\034CONSOLE_VARIABLE_TYPE_UI"
-    "NT64\020\007\022!\n\035CONSOLE_VARIABLE_TYPE_FLOAT32\020"
-    "\010\022!\n\035CONSOLE_VARIABLE_TYPE_FLOAT64\020\t\022 \n\034"
-    "CONSOLE_VARIABLE_TYPE_STRING\020\n\022\037\n\033CONSOL"
-    "E_VARIABLE_TYPE_COLOR\020\013\022!\n\035CONSOLE_VARIA"
-    "BLE_TYPE_VECTOR2\020\014\022!\n\035CONSOLE_VARIABLE_T"
-    "YPE_VECTOR3\020\r\022!\n\035CONSOLE_VARIABLE_TYPE_V"
-    "ECTOR4\020\016\022 \n\034CONSOLE_VARIABLE_TYPE_QANGLE"
-    "\020\017\022#\n\037CONSOLE_VARIABLE_TYPE_VECTOR_WS\020\020B"
-    "3Z1github.com/paralin/modlock/src/host_a"
-    "pp/dump;dumpb\006proto3"
+    "OOL\020\001\022\036\n\032CONSOLE_VARIABLE_TYPE_INT8\020\002\022\037\n"
+    "\033CONSOLE_VARIABLE_TYPE_UINT8\020\003\022\037\n\033CONSOL"
+    "E_VARIABLE_TYPE_INT16\020\004\022 \n\034CONSOLE_VARIA"
+    "BLE_TYPE_UINT16\020\005\022\037\n\033CONSOLE_VARIABLE_TY"
+    "PE_INT32\020\006\022 \n\034CONSOLE_VARIABLE_TYPE_UINT"
+    "32\020\007\022\037\n\033CONSOLE_VARIABLE_TYPE_INT64\020\010\022 \n"
+    "\034CONSOLE_VARIABLE_TYPE_UINT64\020\t\022!\n\035CONSO"
+    "LE_VARIABLE_TYPE_FLOAT32\020\n\022!\n\035CONSOLE_VA"
+    "RIABLE_TYPE_FLOAT64\020\013\022 \n\034CONSOLE_VARIABL"
+    "E_TYPE_STRING\020\014\022\037\n\033CONSOLE_VARIABLE_TYPE"
+    "_COLOR\020\r\022!\n\035CONSOLE_VARIABLE_TYPE_VECTOR"
+    "2\020\016\022!\n\035CONSOLE_VARIABLE_TYPE_VECTOR3\020\017\022!"
+    "\n\035CONSOLE_VARIABLE_TYPE_VECTOR4\020\020\022 \n\034CON"
+    "SOLE_VARIABLE_TYPE_QANGLE\020\021\022#\n\037CONSOLE_V"
+    "ARIABLE_TYPE_VECTOR_WS\020\022B3Z1github.com/p"
+    "aralin/modlock/src/host_app/dump;dumpb\006p"
+    "roto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fdump_2fdump_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fdump_2fdump_2eproto = {
     false,
     false,
-    4340,
+    4405,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fdump_2fdump_2eproto,
     "github.com/paralin/modlock/src/host_app/dump/dump.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fdump_2fdump_2eproto_once,
@@ -1055,7 +1057,7 @@ const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ConsoleVariableType_d
   return file_level_enum_descriptors_github_2ecom_2fparalin_2fmodlock_2fsrc_2fhost_5fapp_2fdump_2fdump_2eproto[2];
 }
 PROTOBUF_CONSTINIT const uint32_t ConsoleVariableType_internal_data_[] = {
-    1114112u, 0u, };
+    1245184u, 0u, };
 // ===================================================================
 
 class Schemas::_Internal {

@@ -100,7 +100,7 @@ TEST(ConsoleVariables, NamedExposureAndBooleanReadbackRefuseMissingOrWrongData) 
   EXPECT_FALSE(variables->Expose(nullptr));
 
   // A variable of another type is not read as a Boolean.
-  const int16_t integer_type = 3;
+  const int16_t integer_type = 5;
   std::memcpy(fixture.data.data() + 0x28, &integer_type, sizeof(integer_type));
   auto wrong_type = variables->ReadBool("citadel_trooper_spawn_enabled");
   ASSERT_FALSE(wrong_type);
@@ -159,7 +159,7 @@ TEST(ConsoleVariables, TypedWritesRefuseOtherTypes) {
   EXPECT_FALSE(variables->SetInt32("citadel_trooper_spawn_enabled", 2));
 
   // Retype it as a float, which then takes a float.
-  const int16_t float_type = 7;
+  const int16_t float_type = 9;
   std::memcpy(fixture.data.data() + 0x28, &float_type, sizeof(float_type));
   ASSERT_TRUE(variables->SetFloat("citadel_trooper_spawn_enabled", 57.5f));
   float value;
@@ -172,7 +172,7 @@ TEST(ConsoleVariables, TypedWritesRefuseOtherTypes) {
   EXPECT_FALSE(variables->SetBool("citadel_trooper_spawn_enabled", true));
 
   // Retype it as an integer, which then takes an integer.
-  const int16_t integer_type = 3;
+  const int16_t integer_type = 5;
   std::memcpy(fixture.data.data() + 0x28, &integer_type, sizeof(integer_type));
   ASSERT_TRUE(variables->SetInt32("citadel_trooper_spawn_enabled", -2));
   int32_t integer;
@@ -191,7 +191,7 @@ TEST(ConsoleVariables, ListingIncludesDevelopmentEntriesWithFormattedValues) {
   Fixture fixture;
   auto variables = ConsoleVariables::Bind(fixture.registry.data());
   ASSERT_TRUE(variables);
-  const int16_t float_type = 7;
+  const int16_t float_type = 9;
   std::memcpy(fixture.data.data() + 0x28, &float_type, sizeof(float_type));
   const auto* default_value = &fixture.default_value;
   std::memcpy(fixture.data.data() + 0x08, &default_value, sizeof(default_value));
@@ -205,7 +205,7 @@ TEST(ConsoleVariables, ListingIncludesDevelopmentEntriesWithFormattedValues) {
   // The variable carries its type, flags and formatted values.
   const auto& variable = (*listed)[1];
   EXPECT_EQ(variable.name, "citadel_trooper_spawn_enabled");
-  EXPECT_EQ(variable.type, 7);
+  EXPECT_EQ(variable.type, 9);
   EXPECT_EQ(variable.flags, 0x100004012u);
   EXPECT_EQ(variable.default_value, "0.25");
   EXPECT_EQ(variable.min, "");

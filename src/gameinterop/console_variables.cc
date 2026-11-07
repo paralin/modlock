@@ -48,10 +48,29 @@ constexpr size_t kValueOffset = 0x58;
 constexpr size_t kCommandHelpOffset = 0x08;
 constexpr size_t kCommandFlagsOffset = 0x10;
 
-// EConVarType values the typed accessors check.
-constexpr int16_t kBoolType = 0;
-constexpr int16_t kInt32Type = 3;
-constexpr int16_t kFloat32Type = 7;
+// EConVarType as tier0 numbers it. An entry's type is this number, so a build
+// that inserts a type moves every later one. int8 and uint8 follow bool since
+// build 6853.
+enum ConVarType : int16_t {
+  kBoolType,
+  kInt8Type,
+  kUint8Type,
+  kInt16Type,
+  kUint16Type,
+  kInt32Type,
+  kUint32Type,
+  kInt64Type,
+  kUint64Type,
+  kFloat32Type,
+  kFloat64Type,
+  kStringType,
+  kColorType,
+  kVector2Type,
+  kVector3Type,
+  kVector4Type,
+  kQAngleType,
+  kVectorWorldSpaceType,
+};
 
 // Load copies the element at index of type T from bytes.
 template <typename T>
@@ -128,27 +147,31 @@ std::string FormatValue(int16_t type, const std::byte* value) {
     return {};
   }
   switch (type) {
-    case 0:
+    case kBoolType:
       return Load<uint8_t>(value) ? "true" : "false";
-    case 1:
+    case kInt8Type:
+      return std::to_string(Load<int8_t>(value));
+    case kUint8Type:
+      return std::to_string(Load<uint8_t>(value));
+    case kInt16Type:
       return std::to_string(Load<int16_t>(value));
-    case 2:
+    case kUint16Type:
       return std::to_string(Load<uint16_t>(value));
-    case 3:
+    case kInt32Type:
       return std::to_string(Load<int32_t>(value));
-    case 4:
+    case kUint32Type:
       return std::to_string(Load<uint32_t>(value));
-    case 5:
+    case kInt64Type:
       return std::to_string(Load<int64_t>(value));
-    case 6:
+    case kUint64Type:
       return std::to_string(Load<uint64_t>(value));
-    case 7:
+    case kFloat32Type:
       return Decimal(Load<float>(value));
-    case 8:
+    case kFloat64Type:
       return Decimal(Load<double>(value));
-    case 9:
+    case kStringType:
       return Text(Load<const char*>(value));
-    case 10: {
+    case kColorType: {
       std::string text = "[";
       for (size_t i = 0; i < 4; ++i) {
         if (i) {
@@ -158,13 +181,13 @@ std::string FormatValue(int16_t type, const std::byte* value) {
       }
       return text + "]";
     }
-    case 11:
+    case kVector2Type:
       return Floats(value, 2);
-    case 12:
-    case 14:
-    case 15:
+    case kVector3Type:
+    case kQAngleType:
+    case kVectorWorldSpaceType:
       return Floats(value, 3);
-    case 13:
+    case kVector4Type:
       return Floats(value, 4);
     default:
       return {};

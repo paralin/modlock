@@ -16,7 +16,7 @@ struct ConsoleVariableInfo {
   std::string name;
   std::string help;
   uint64_t flags = 0;
-  // type is the EConVarType: 0 Boolean through 15 world-space vector.
+  // type is the EConVarType: 0 Boolean through 17 world-space vector.
   int16_t type = 0;
   std::string default_value;
   std::string min;

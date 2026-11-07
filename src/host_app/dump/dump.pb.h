@@ -280,21 +280,23 @@ inline bool ConstructionStatus_Parse(
 enum ConsoleVariableType : int {
   CONSOLE_VARIABLE_TYPE_UNKNOWN = 0,
   CONSOLE_VARIABLE_TYPE_BOOL = 1,
-  CONSOLE_VARIABLE_TYPE_INT16 = 2,
-  CONSOLE_VARIABLE_TYPE_UINT16 = 3,
-  CONSOLE_VARIABLE_TYPE_INT32 = 4,
-  CONSOLE_VARIABLE_TYPE_UINT32 = 5,
-  CONSOLE_VARIABLE_TYPE_INT64 = 6,
-  CONSOLE_VARIABLE_TYPE_UINT64 = 7,
-  CONSOLE_VARIABLE_TYPE_FLOAT32 = 8,
-  CONSOLE_VARIABLE_TYPE_FLOAT64 = 9,
-  CONSOLE_VARIABLE_TYPE_STRING = 10,
-  CONSOLE_VARIABLE_TYPE_COLOR = 11,
-  CONSOLE_VARIABLE_TYPE_VECTOR2 = 12,
-  CONSOLE_VARIABLE_TYPE_VECTOR3 = 13,
-  CONSOLE_VARIABLE_TYPE_VECTOR4 = 14,
-  CONSOLE_VARIABLE_TYPE_QANGLE = 15,
-  CONSOLE_VARIABLE_TYPE_VECTOR_WS = 16,
+  CONSOLE_VARIABLE_TYPE_INT8 = 2,
+  CONSOLE_VARIABLE_TYPE_UINT8 = 3,
+  CONSOLE_VARIABLE_TYPE_INT16 = 4,
+  CONSOLE_VARIABLE_TYPE_UINT16 = 5,
+  CONSOLE_VARIABLE_TYPE_INT32 = 6,
+  CONSOLE_VARIABLE_TYPE_UINT32 = 7,
+  CONSOLE_VARIABLE_TYPE_INT64 = 8,
+  CONSOLE_VARIABLE_TYPE_UINT64 = 9,
+  CONSOLE_VARIABLE_TYPE_FLOAT32 = 10,
+  CONSOLE_VARIABLE_TYPE_FLOAT64 = 11,
+  CONSOLE_VARIABLE_TYPE_STRING = 12,
+  CONSOLE_VARIABLE_TYPE_COLOR = 13,
+  CONSOLE_VARIABLE_TYPE_VECTOR2 = 14,
+  CONSOLE_VARIABLE_TYPE_VECTOR3 = 15,
+  CONSOLE_VARIABLE_TYPE_VECTOR4 = 16,
+  CONSOLE_VARIABLE_TYPE_QANGLE = 17,
+  CONSOLE_VARIABLE_TYPE_VECTOR_WS = 18,
   ConsoleVariableType_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   ConsoleVariableType_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -305,11 +307,11 @@ extern const uint32_t ConsoleVariableType_internal_data_[];
 inline constexpr ConsoleVariableType ConsoleVariableType_MIN =
     static_cast<ConsoleVariableType>(0);
 inline constexpr ConsoleVariableType ConsoleVariableType_MAX =
-    static_cast<ConsoleVariableType>(16);
+    static_cast<ConsoleVariableType>(18);
 inline bool ConsoleVariableType_IsValid(int value) {
-  return 0 <= value && value <= 16;
+  return 0 <= value && value <= 18;
 }
-inline constexpr int ConsoleVariableType_ARRAYSIZE = 16 + 1;
+inline constexpr int ConsoleVariableType_ARRAYSIZE = 18 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL ConsoleVariableType_descriptor();
 template <typename T>
 const ::std::string& ConsoleVariableType_Name(T value) {
@@ -320,7 +322,7 @@ const ::std::string& ConsoleVariableType_Name(T value) {
 }
 template <>
 inline const ::std::string& ConsoleVariableType_Name(ConsoleVariableType value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<ConsoleVariableType_descriptor, 0, 16>(
+  return ::google::protobuf::internal::NameOfDenseEnum<ConsoleVariableType_descriptor, 0, 18>(
       static_cast<int>(value));
 }
 inline bool ConsoleVariableType_Parse(
