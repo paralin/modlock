@@ -23,7 +23,7 @@
     "format:cc:files": "clang-format -i"
   },
   "devDependencies": {
-    "@aptre/common": "0.38.0",
+    "@aptre/common": "0.38.2",
     "@aptre/protobuf-es-lite": "1.2.6",
     "@babel/parser": "8.0.8",
     "@babel/types": "8.0.8",
