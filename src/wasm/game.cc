@@ -172,6 +172,7 @@ void Game::Leave(int32_t slot) {
 
   // Forget its restores, blocks, presses and what it was shown.
   restores_.erase(slot);
+  picks_.Forget(slot);
   input_.Leave(slot);
   visibility_.Leave(slot);
 

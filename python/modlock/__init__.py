@@ -1967,7 +1967,9 @@ class Player:
     def select_hero(self, hero: str | int, team: int) -> int | None:
         """select_hero gives the player a hero on a team, 2 or 3, and returns the
         hero's identifier as Pawn.hero reports it. The hero appears on a later
-        frame.
+        frame. A hero the player picked through the game's Change Hero wins: the
+        game removes the old hero before it spawns the pick, and a call in that
+        gap, up to 5 seconds, fails and leaves the pick to land.
         """
         response = _call("SelectHero", "SelectHeroRequest", {"player": self, "hero": hero, "team": team}, "HeroResponse")
         if response is None:

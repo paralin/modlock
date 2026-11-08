@@ -1586,7 +1586,9 @@ export type Player = {
 	handedOff: (self: Player) -> string?,
 	-- selectHero gives the player a hero on a team, 2 or 3, and returns the
 	-- hero's identifier as Pawn.hero reports it. The hero appears on a later
-	-- frame.
+	-- frame. A hero the player picked through the game's Change Hero wins: the
+	-- game removes the old hero before it spawns the pick, and a call in that
+	-- gap, up to 5 seconds, fails and leaves the pick to land.
 	selectHero: (self: Player, hero: (string | number), team: number) -> number?,
 	-- spectate moves the player to the spectators, without a hero. The player
 	-- watches until a hero selection seats them again.
@@ -1833,7 +1835,9 @@ end
 
 -- selectHero gives the player a hero on a team, 2 or 3, and returns the
 -- hero's identifier as Pawn.hero reports it. The hero appears on a later
--- frame.
+-- frame. A hero the player picked through the game's Change Hero wins: the
+-- game removes the old hero before it spawns the pick, and a call in that
+-- gap, up to 5 seconds, fails and leaves the pick to land.
 function Player.selectHero(self: Player, hero: (string | number), team: number): number?
 	local response = call("SelectHero", "SelectHeroRequest", { player = self, hero = hero, team = team }, "HeroResponse")
 	if response == nil then

@@ -2654,7 +2654,9 @@ export class Player {
   /**
    * selectHero gives the player a hero on a team, 2 or 3, and returns the
    * hero's identifier as Pawn.hero reports it. The hero appears on a later
-   * frame.
+   * frame. A hero the player picked through the game's Change Hero wins: the
+   * game removes the old hero before it spawns the pick, and a call in that
+   * gap, up to 5 seconds, fails and leaves the pick to land.
    */
   selectHero(hero: string | number, team: number): number | undefined {
     const reply = call('SelectHero', playersPb.SelectHeroRequest.toBinary({ player: this.slot, hero: typeof hero === 'string' ? { case: 'heroName' as const, value: (hero as string) } : typeof hero === 'number' ? { case: 'heroId' as const, value: (hero as number) } : undefined, team: int32(team) }))

@@ -193,8 +193,10 @@ void WasmPlugin::ListenToPlayers() {
   } else {
     Log(std::string("chat commands are unavailable: ") + chats.error());
   }
-  if (auto commands = engine_->OnCommand(
-          [this](int32_t slot, std::string_view line) { return Command(slot, line); })) {
+  if (auto commands = engine_->OnCommand([this](int32_t slot, std::string_view line) {
+        game_.ClientCommand(slot, line);
+        return Command(slot, line);
+      })) {
     players_.Add(std::move(*commands));
   } else {
     Log(std::string("console commands are unavailable: ") + commands.error());

@@ -43,6 +43,7 @@
 #include "modlock/render/world_effect_game_factory.h"
 #include "modlock/render/world_text_game_factory.h"
 #include "src/wasm/wasm.pb.h"
+#include "wasm/hero_picks.h"
 #include "wasm/hero_restore.h"
 #include "wasm/host_service.gen.h"
 #include "wasm/input_changes.h"
@@ -388,6 +389,11 @@ class Game : public HostService {
   // FreeForAllCommand reports whether free-for-all consumes a player's console
   // line. Seating is the host's, so it drops the team commands.
   bool FreeForAllCommand(std::string_view line) const;
+
+  // ClientCommand notes a console command a player sent the game that the
+  // host follows: a selecthero pick from the game's Change Hero, which
+  // SelectHero leaves to land.
+  void ClientCommand(int32_t slot, std::string_view line);
 
   // Moving reports whether the mod watches any player's movement.
   bool Moving() const { return !movers_.empty(); }
@@ -811,6 +817,8 @@ class Game : public HostService {
   // handle, until another camera call or Unwatch. A player watching a hero
   // inside an apart game receives that game's heroes.
   std::map<int32_t, uint32_t> watched_;
+  // picks_ holds each player's own Change Hero pick until it lands.
+  HeroPicks picks_;
   // fog_ is the world's fog controller, which the fog objects need; it is
   // created with the first and removed after the objects.
   std::unique_ptr<render::WorldEffect> fog_;

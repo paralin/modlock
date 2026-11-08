@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstring>
 #include <optional>
 #include <span>
@@ -17,6 +18,41 @@
 #include "wasm/game_internal.h"
 
 namespace modlock::wasm {
+namespace {
+
+// SteadySeconds is the time on a clock that never pauses or steps, in seconds.
+double SteadySeconds() {
+  return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+}  // namespace
+
+void Game::ClientCommand(int32_t slot, std::string_view line) {
+  // Read the hero a selecthero pick names, as the client sends it.
+  constexpr std::string_view kSelectHero = "selecthero ";
+  if (!line.starts_with(kSelectHero)) {
+    return;
+  }
+  auto name = line.substr(kSelectHero.size());
+  while (!name.empty() && (name.front() == ' ' || name.front() == '"')) {
+    name.remove_prefix(1);
+  }
+  while (!name.empty() && (name.back() == ' ' || name.back() == '"')) {
+    name.remove_suffix(1);
+  }
+
+  // Note the pick for the player's connection.
+  auto heroes = services_.Heroes();
+  if (!heroes) {
+    return;
+  }
+  const auto hero = (*heroes)->Find(name);
+  const auto state = gameinterop::ConnectionTracker::StateForSlot(slot);
+  if (!hero || hero->id <= 0 || !state.occupied || state.is_bot) {
+    return;
+  }
+  picks_.Picked(slot, state.generation, static_cast<uint32_t>(hero->id), SteadySeconds());
+}
 
 std::expected<players::HeroResponse, std::string> Game::SelectHero(
     const players::SelectHeroRequest& request) {
@@ -41,6 +77,20 @@ std::expected<players::HeroResponse, std::string> Game::SelectHero(
   }
   if (state.is_bot) {
     return std::unexpected("a bot keeps the hero AddBot gave it");
+  }
+
+  // The game's Change Hero removes the player's hero before it spawns the
+  // one they picked. Their pick wins over a seat asked for in that gap.
+  const auto live = Live(request.player());
+  const uint32_t current = live ? live->hero_id : 0;
+  if (const auto arriving =
+          picks_.Arriving(request.player(), state.generation, current, SteadySeconds())) {
+    if (*arriving != static_cast<uint32_t>(hero->id)) {
+      return std::unexpected("the player is changing to a hero they picked");
+    }
+    players::HeroResponse response;
+    response.set_hero(*arriving);
+    return response;
   }
   auto selected =
       observer_.SelectPlayer(request.player(), state.xuid, state.generation, request.team(),
