@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"path"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/paralin/modlock/source2/panorama"
@@ -24,6 +25,37 @@ const ContentDir = "panorama"
 // session mounts beside the content addon, and maps/<map>.bsp for the Quake
 // collision its movement model walks on.
 const MapsDir = "maps"
+
+// ModMapPrefix starts the name of every map a mod ships. Hyperline plays any
+// other map as a stock Deadlock map, which the mod may not replace.
+const ModMapPrefix = "hl_"
+
+// StockMaps are the Deadlock maps a mod may play without shipping one.
+var StockMaps = []string{"dl_midtown"}
+
+// MapName reports whether name, mod.json's map, is a map every player has: a
+// stock Deadlock map, or an hl_ map the mod ships. No map plays dl_midtown.
+// A map compiled into the game's own citadel/maps under another name loads
+// for its author and fails for everyone else.
+func MapName(name string) error {
+	if name == "" || strings.HasPrefix(name, ModMapPrefix) || slices.Contains(StockMaps, name) {
+		return nil
+	}
+	return errors.Errorf("mod.json's map %q is not a Deadlock map; name the mod's own map %s<name> and put it in %s/%s<name>.vpk", name, ModMapPrefix, MapsDir, ModMapPrefix)
+}
+
+// Map checks that the built mod in dist plays a map every player has: a stock
+// map, or an hl_ map whose maps/<map>.vpk the build ships.
+func Map(dist fs.FS, name string) error {
+	if err := MapName(name); err != nil || !strings.HasPrefix(name, ModMapPrefix) {
+		return err
+	}
+	shipped := path.Join(MapsDir, name+".vpk")
+	if _, err := fs.Stat(dist, shipped); err != nil {
+		return errors.Errorf("mod.json plays the map %s, but the build has no %s; put the compiled map in the project's %s", name, shipped, shipped)
+	}
+	return nil
+}
 
 // AssetDirs are the built mod's directories of compiled game resources that
 // its content addon carries beside the Panorama content, each under the

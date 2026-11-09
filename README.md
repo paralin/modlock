@@ -1509,6 +1509,12 @@ Every project has a `mod.json` at its root:
 `citadel/maps`, or `dl_midtown`, which hyperline.gg also plays for a mod
 that asks for no map.
 
+A mod plays a stock Deadlock map, `dl_midtown`, or its own map. Name its own
+map `hl_<name>` and put the compiled map in the project's `maps/hl_<name>.vpk`;
+`build` ships it and `publish` refuses a build without it. Any other name is
+refused: a map only in your game's `citadel/maps` loads for you and for no
+one else.
+
 ### Movement
 
 ```json

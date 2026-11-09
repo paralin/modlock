@@ -69,3 +69,30 @@ func build(t *testing.T, name string) []byte {
 	}
 	return module
 }
+
+// TestMap accepts no map, a stock map, or an hl_ map the build ships, and
+// refuses a map only its author's game has, such as one compiled into
+// citadel/maps under another name, or an hl_ map the build left out.
+func TestMap(t *testing.T) {
+	shipped := fstest.MapFS{"maps/hl_arena_pit.vpk": {Data: []byte("vpk")}}
+	for _, test := range []struct {
+		name string
+		dist fstest.MapFS
+		fail string
+	}{
+		{"", nil, ""},
+		{"dl_midtown", nil, ""},
+		{"hl_arena_pit", shipped, ""},
+		{"hl_arena_pit", nil, "has no maps/hl_arena_pit.vpk"},
+		{"arena_pit_v1", nil, "hl_<name>"},
+		{"dl_hideout", nil, "hl_<name>"},
+	} {
+		err := Map(test.dist, test.name)
+		switch {
+		case test.fail == "" && err != nil:
+			t.Fatal(test.name, err)
+		case test.fail != "" && (err == nil || !strings.Contains(err.Error(), test.fail)):
+			t.Fatalf("%s: got %v, want an error containing %q", test.name, err, test.fail)
+		}
+	}
+}
