@@ -23,6 +23,7 @@ import {
   jsx,
   sheet,
   show,
+  uiSound,
 } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
 import { change } from '../src/ui.js'
@@ -162,6 +163,32 @@ test("an ability names the game's window by its id and its hero's slot", () => {
   expect(
     sent.at(-1)!.change!.set!.find((node) => node.ability)!.abilityPlayer,
   ).toBe(5)
+})
+
+test('a sound rides the root as a numbered cue, the last few kept', () => {
+  // Each sound takes the next number, with its cut, and the screen stays.
+  const player = new Player(10)
+  show(player, jsx('panel', { tooltip: 'board' }))
+  uiSound(player, 'UI.ItemDraft.Start')
+  uiSound(player, 'UI.ItemDraft.Pick', { seconds: 0.5 })
+  const root = () =>
+    sent.at(-1)!.change!.set!.find((node) => (node.id ?? '') === '')!
+  const [first, second] = root().cues!
+  expect(first!.sound).toBe('UI.ItemDraft.Start')
+  expect(first!.seconds ?? 0).toBe(0)
+  expect(second!.sound).toBe('UI.ItemDraft.Pick')
+  expect(second!.seconds).toBe(0.5)
+  expect(second!.number).toBe(first!.number! + 1)
+  expect(sent.at(-1)!.change!.reset ?? false).toBe(false)
+  expect(sent.at(-1)!.change!.removed ?? []).toEqual([])
+
+  // Only the last eight ride, the newest last; another player hears none.
+  for (let n = 0; n < 9; n++) uiSound(player, `Cue.${n}`)
+  expect(root().cues!.map((cue) => cue.sound)).toEqual(
+    [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `Cue.${n}`),
+  )
+  show(new Player(11), jsx('panel', {}))
+  expect(root().cues ?? []).toEqual([])
 })
 
 test("a style names the game's faces, edges, paint and motion on the wire", () => {

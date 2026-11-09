@@ -46,8 +46,9 @@ const drawing = new Drawing(
     MousePosition: () => $.MousePosition(),
     RegisterEventHandler: (event, panel, handler) =>
       $.RegisterEventHandler(event, panel as Panel, handler),
-    PlaySound: (sound: string) => {
-      PlayUISoundEvent(sound)
+    PlaySound: (sound: string) => PlayUISoundEvent(sound),
+    StopSound: (playing: number) => {
+      StopUISoundEvent(playing)
     },
     Schedule: (seconds: number, callback: () => void) => {
       $.Schedule(seconds, callback)
@@ -74,11 +75,11 @@ const stock = new StockGuard(
 // The game says the player is leaving as they ask to, and as it shuts the
 // map down; a server that just goes away says neither, and the guard's lease
 // runs out instead. Both events go on to other handlers, and close the
-// tooltips and windows the mods' panels opened.
+// tooltips and windows the mods' panels opened and the sounds they started.
 for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
   $.RegisterForUnhandledEvent(event, () => {
     stock.leave()
-    drawing.untipAll()
+    drawing.release()
     return false
   })
 }

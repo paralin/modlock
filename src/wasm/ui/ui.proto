@@ -169,6 +169,27 @@ message Node {
   // until the count rises: a rise shows the cursor again while the root frees
   // it, and a screen that changes anything else leaves the player's choice be.
   uint32 free_cursor_asks = 33;
+
+  // Cues are sounds the player's game plays for them alone, each once; only
+  // the root's list counts. The renderer plays each cue numbered above the
+  // newest it has played for the mod, notes the list it first sees without
+  // playing it, so a reloaded renderer plays nothing old, and plays a new UI
+  // lifetime's list from its start. The list keeps only the last few cues.
+  repeated Cue cues = 36;
+}
+
+// Cue is one sound played to one player.
+message Cue {
+  // Number orders the mod's cues for the player; a later cue has a higher
+  // number.
+  uint32 number = 1;
+
+  // Sound is the game's sound event, named as Node's sound is.
+  string sound = 2;
+
+  // Seconds cuts the sound after that long, keeping only its start; zero
+  // plays it out.
+  float seconds = 3;
 }
 
 // Scaling fits a picture into its node's box.

@@ -815,6 +815,14 @@ export interface Node {
    */
   freeCursorAsks?: number
   /**
+   * Cues are sounds the player's game plays for them alone, each once; only
+   * the root's list counts. The renderer plays each cue numbered above the
+   * newest it has played for the mod, notes the list it first sees without
+   * playing it, so a reloaded renderer plays nothing old, and plays a new UI
+   * lifetime's list from its start. The list keeps only the last few cues.
+   */
+  cues?: Cue[]
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -870,6 +878,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [33, 'free_cursor_asks', 13],
     [34, 'ability', 13],
     [35, 'ability_player', 13],
+    [36, 'cues', 11, 1, Cue.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1018,6 +1027,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 35:
             m.abilityPlayer = r.uint32()
+            break
+          case 36:
+            ;(m.cues ??= []).push(Cue.decode(r, r.delimited(), {}))
             break
           default:
             r.skip(t)
@@ -1179,6 +1191,77 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.abilityPlayer
         if (v) w.uint32(280).uint32(v)
+      }
+      {
+        const a = m.cues
+        if (a != null) for (const e of a) Cue.writeField(w, 36, e)
+      }
+    },
+  },
+)
+
+/**
+ * Cue is one sound played to one player.
+ *
+ * @generated from message modlock.wasm.ui.Cue
+ */
+export interface Cue {
+  /**
+   * Number orders the mod's cues for the player; a later cue has a higher
+   * number.
+   */
+  number?: number
+  /**
+   * Sound is the game's sound event, named as Node's sound is.
+   */
+  sound?: string
+  /**
+   * Seconds cuts the sound after that long, keeping only its start; zero
+   * plays it out.
+   */
+  seconds?: number
+}
+
+export const Cue: MessageType<Cue> = /* @__PURE__ */ createMessageType<Cue>(
+  'modlock.wasm.ui.Cue',
+  () => [
+    [1, 'number', 13],
+    [2, 'sound', 9],
+    [3, 'seconds', 2],
+  ],
+  {
+    decode: (r: BinaryReader, end: number, m: Cue): Cue => {
+      while (r.pos < end) {
+        const t = r.tag()
+        if ((t & 7) === 4) return m
+        switch (t >>> 3) {
+          case 1:
+            m.number = r.uint32()
+            break
+          case 2:
+            m.sound = r.string()
+            break
+          case 3:
+            m.seconds = r.float()
+            break
+          default:
+            r.skip(t)
+        }
+      }
+      return m
+    },
+    encode: (m: Cue, w: Writer): void => {
+      {
+        const v = m.number
+        if (v) w.uint32(8).uint32(v)
+      }
+      {
+        const v = m.sound
+        if (v) w.uint32(18).string(v)
+      }
+      {
+        const v = m.seconds
+        if (v != null && v !== 0) w.uint32(29).float(v)
       }
     },
   },

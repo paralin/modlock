@@ -832,6 +832,12 @@ type Node struct {
 	// until the count rises: a rise shows the cursor again while the root frees
 	// it, and a screen that changes anything else leaves the player's choice be.
 	FreeCursorAsks uint32 `protobuf:"varint,33,opt,name=free_cursor_asks,json=freeCursorAsks,proto3" json:"freeCursorAsks,omitempty"`
+	// Cues are sounds the player's game plays for them alone, each once; only
+	// the root's list counts. The renderer plays each cue numbered above the
+	// newest it has played for the mod, notes the list it first sees without
+	// playing it, so a reloaded renderer plays nothing old, and plays a new UI
+	// lifetime's list from its start. The list keeps only the last few cues.
+	Cues []*Cue `protobuf:"bytes,36,rep,name=cues,proto3" json:"cues,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1092,6 +1098,13 @@ func (x *Node) GetFreeCursorAsks() uint32 {
 	return 0
 }
 
+func (x *Node) GetCues() []*Cue {
+	if x != nil {
+		return x.Cues
+	}
+	return nil
+}
+
 type isNode_Input interface {
 	isNode_Input()
 }
@@ -1119,6 +1132,46 @@ func (*Node_Slider) isNode_Input() {}
 func (*Node_Toggle) isNode_Input() {}
 
 func (*Node_Dropdown) isNode_Input() {}
+
+// Cue is one sound played to one player.
+type Cue struct {
+	unknownFields []byte
+	// Number orders the mod's cues for the player; a later cue has a higher
+	// number.
+	Number uint32 `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
+	// Sound is the game's sound event, named as Node's sound is.
+	Sound string `protobuf:"bytes,2,opt,name=sound,proto3" json:"sound,omitempty"`
+	// Seconds cuts the sound after that long, keeping only its start; zero
+	// plays it out.
+	Seconds float32 `protobuf:"fixed32,3,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
+
+func (x *Cue) Reset() {
+	*x = Cue{}
+}
+
+func (*Cue) ProtoMessage() {}
+
+func (x *Cue) GetNumber() uint32 {
+	if x != nil {
+		return x.Number
+	}
+	return 0
+}
+
+func (x *Cue) GetSound() string {
+	if x != nil {
+		return x.Sound
+	}
+	return ""
+}
+
+func (x *Cue) GetSeconds() float32 {
+	if x != nil {
+		return x.Seconds
+	}
+	return 0
+}
 
 // TextEntry is a box the player types a line of text into.
 type TextEntry struct {
@@ -2541,6 +2594,7 @@ func (m *Node) CloneVT() *Node {
 	r.Cycle = protobuf_go_lite.CloneVTValue(m.Cycle)
 	r.Classes = protobuf_go_lite.CloneSlice(m.Classes)
 	r.Sheets = protobuf_go_lite.CloneSlice(m.Sheets)
+	r.Cues = protobuf_go_lite.CloneVTSlice(m.Cues)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2600,6 +2654,24 @@ func (m *Node_Dropdown) CloneVT() *Node_Dropdown {
 }
 
 func (m *Node_Dropdown) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *Cue) CloneVT() *Cue {
+	if m == nil {
+		return (*Cue)(nil)
+	}
+	r := new(Cue)
+	r.Number = m.Number
+	r.Sound = m.Sound
+	r.Seconds = m.Seconds
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *Cue) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -3255,6 +3327,9 @@ func (this *Node) EqualVT(that *Node) bool {
 	if this.AbilityPlayer != that.AbilityPlayer {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Cues, that.Cues, func() *Cue { return &Cue{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -3332,6 +3407,32 @@ func (this *Node_Dropdown) EqualVT(thatIface isNode_Input) bool {
 		return false
 	}
 	return true
+}
+
+func (this *Cue) EqualVT(that *Cue) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Number != that.Number {
+		return false
+	}
+	if this.Sound != that.Sound {
+		return false
+	}
+	if this.Seconds != that.Seconds {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Cue) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*Cue)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *TextEntry) EqualVT(that *TextEntry) bool {
@@ -4948,6 +5049,17 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("abilityPlayer")
 		s.WriteUint32(x.AbilityPlayer)
 	}
+	if len(x.Cues) > 0 || s.HasField("cues") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("cues")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Cues {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("cues"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5141,12 +5253,88 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "ability_player", "abilityPlayer":
 			s.AddField("ability_player")
 			x.AbilityPlayer = s.ReadUint32()
+		case "cues":
+			s.AddField("cues")
+			if s.ReadNil() {
+				x.Cues = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Cues = append(x.Cues, nil)
+					return
+				}
+				v := &Cue{}
+				v.UnmarshalProtoJSON(s.WithField("cues", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Cues = append(x.Cues, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Node from JSON.
 func (x *Node) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the Cue message to JSON.
+func (x *Cue) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Number != 0 || s.HasField("number") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("number")
+		s.WriteUint32(x.Number)
+	}
+	if x.Sound != "" || s.HasField("sound") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("sound")
+		s.WriteString(x.Sound)
+	}
+	if x.Seconds != 0 || s.HasField("seconds") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("seconds")
+		s.WriteFloat32(x.Seconds)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the Cue to JSON.
+func (x *Cue) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the Cue message from JSON.
+func (x *Cue) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "number":
+			s.AddField("number")
+			x.Number = s.ReadUint32()
+		case "sound":
+			s.AddField("sound")
+			x.Sound = s.ReadString()
+		case "seconds":
+			s.AddField("seconds")
+			x.Seconds = s.ReadFloat32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the Cue from JSON.
+func (x *Cue) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -7039,6 +7227,20 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.Cues) > 0 {
+		for iNdEx := len(m.Cues) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Cues[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2
+			i--
+			dAtA[i] = 0xa2
+		}
+	}
 	if m.AbilityPlayer != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AbilityPlayer))
 		i--
@@ -7378,6 +7580,53 @@ func (m *Node_Dropdown) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		dAtA[i] = 0x1
 		i--
 		dAtA[i] = 0xb2
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Cue) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Cue) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *Cue) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Seconds != 0 {
+		i = protobuf_go_lite.EncodeFixed32(dAtA, i, uint32(math.Float32bits(float32(m.Seconds))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if len(m.Sound) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Sound)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Number != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Number))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -8967,6 +9216,10 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.FreeCursorAsks)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Ability)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.AbilityPlayer)
+	for _, e := range m.Cues {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -9028,6 +9281,19 @@ func (m *Node_Dropdown) SizeVT() (n int) {
 	} else {
 		n += 3
 	}
+	return n
+}
+
+func (m *Cue) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Number)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Sound)
+	n += protobuf_go_lite.SizeFixed32NonZero(1, m.Seconds)
+	n += len(m.unknownFields)
 	return n
 }
 
@@ -9763,10 +10029,44 @@ func (x *Node) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability_player")
 		protobuf_go_lite.TextWriteUint(&sb, x.AbilityPlayer)
 	}
+	if len(x.Cues) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "cues")
+		for i, v := range x.Cues {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &Cue{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Node) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *Cue) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "Cue")
+	if x.Number != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "number")
+		protobuf_go_lite.TextWriteUint(&sb, x.Number)
+	}
+	if x.Sound != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "sound")
+		protobuf_go_lite.TextWriteString(&sb, x.Sound)
+	}
+	if x.Seconds != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "seconds")
+		protobuf_go_lite.TextWriteFloat32(&sb, x.Seconds)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *Cue) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -10965,6 +11265,93 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
+		case 36:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Cues", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Cues = append(m.Cues, &Cue{})
+			if err := m.Cues[len(m.Cues)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *Cue) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Cue: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Cue: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Number", wireType)
+			}
+			m.Number = 0
+			m.Number, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sound", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Sound = v
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seconds", wireType)
+			}
+			var v uint32
+			var _v32 uint32
+			_v32, iNdEx, err = protobuf_go_lite.DecodeFixed32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			v = uint32(_v32)
+			m.Seconds = float32(math.Float32frombits(v))
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

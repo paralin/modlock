@@ -645,11 +645,90 @@ test("opens the game's ability window over a node and closes it", () => {
   )!
   again.events.get('onmouseover')!()
   dispatched.length = 0
-  drawing.untipAll()
-  drawing.untipAll()
+  drawing.release()
+  drawing.release()
   expect(dispatched).toEqual([
     ['CitadelHideAbilityDetailsTooltip', again],
   ] as unknown as string[][])
+})
+
+test('plays each cue once, cuts it on time and stops it as the player leaves', () => {
+  // Play through a fake game that numbers each sound it starts.
+  const sounds: string[] = []
+  let started = 0
+  const drawing = new Drawing(
+    {
+      ...$,
+      PlaySound(sound: string) {
+        sounds.push(`play ${sound} ${++started}`)
+        return started
+      },
+      StopSound(playing: number) {
+        sounds.push(`stop ${playing}`)
+      },
+    },
+    new FakePanel('Panel', 'ModlockUi'),
+    () => {},
+  )
+  const cues = (generation: number, ...list: [number, string, number?][]) =>
+    Screen.fromJson({
+      trees: [
+        {
+          mod: 'arena',
+          generation: String(generation),
+          nodes: [
+            {
+              id: '',
+              cues: list.map(([number, sound, seconds]) => ({
+                number,
+                sound,
+                seconds: seconds ?? 0,
+              })),
+            },
+          ],
+        },
+      ],
+    })
+
+  // The first screen's cues may be long over and play nothing; each later
+  // cue plays once, in order, however many screens repeat it.
+  drawing.draw(cues(1, [1, 'Old']))
+  drawing.draw(cues(1, [1, 'Old'], [3, 'Third'], [2, 'Second', 0.5]))
+  drawing.draw(cues(1, [1, 'Old'], [3, 'Third'], [2, 'Second', 0.5]))
+  expect(sounds).toEqual(['play Second 1', 'play Third 2'])
+
+  // A cut stops its sound once, on time, and not again on leaving.
+  expect(scheduled.size).toBe(1)
+  runScheduled()
+  expect(sounds.slice(2)).toEqual(['stop 1'])
+
+  // A sound stopped by leaving is not cut again.
+  sounds.length = 0
+  drawing.draw(cues(1, [3, 'Third'], [4, 'Short', 0.5]))
+  drawing.release()
+  runScheduled()
+  expect(sounds).toEqual(['play Short 3', 'stop 2', 'stop 3'])
+
+  // A new lifetime plays all its cues and stops the old one's sounds.
+  sounds.length = 0
+  drawing.draw(cues(1, [4, 'Short', 0.5], [5, 'Long']))
+  drawing.draw(cues(2, [1, 'Fresh']))
+  expect(sounds).toEqual(['play Long 4', 'stop 4', 'play Fresh 5'])
+
+  // Leaving stops what plays; the screens that follow play nothing old.
+  sounds.length = 0
+  drawing.release()
+  drawing.draw(cues(2, [1, 'Fresh']))
+  expect(sounds).toEqual(['stop 5'])
+
+  // A mod gone from the screen stops its sounds and, back, plays only the
+  // cues after its first screen, not those it sent while gone.
+  sounds.length = 0
+  drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next']))
+  drawing.draw(null)
+  drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next'], [3, 'Missed']))
+  drawing.draw(cues(2, [1, 'Fresh'], [2, 'Next'], [3, 'Missed'], [4, 'Last']))
+  expect(sounds).toEqual(['play Next 6', 'stop 6', 'play Last 7'])
 })
 
 test('draws inputs, avatars and game text, and sends edits', () => {

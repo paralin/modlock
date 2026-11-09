@@ -1256,6 +1256,7 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | --------------------------------------- | -------------------------------------------------------------------------------------- |
 | `show(player, element)`, `hide(player)` | Show a player an interface written in JSX, or remove it.                               |
 | `toast(player, text, seconds?)`         | Show a player a short notice that fades.                                               |
+| `uiSound(player, sound, { seconds? })`  | Play a game sound event to one player once, hero or not; `seconds` cuts it short.      |
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
 | `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                      |

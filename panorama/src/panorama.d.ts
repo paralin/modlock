@@ -70,3 +70,5 @@ declare const $: {
 
 /** PlayUISoundEvent plays one of the game's interface sound events. */
 declare function PlayUISoundEvent(sound: string): number
+/** StopUISoundEvent stops a sound PlayUISoundEvent started. */
+declare function StopUISoundEvent(playing: number): void

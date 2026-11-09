@@ -188,6 +188,7 @@ export {
   toast,
   type Transition,
   type UiElement,
+  uiSound,
 } from './ui.js'
 
 /** LogPart is a value log writes as text. */

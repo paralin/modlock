@@ -57,6 +57,11 @@
 // when the player leaves, by the menu, to the hideout or with a server that
 // goes away, so a mod has nothing to clean up.
 //
+// uiSound plays one of the game's sound events, such as
+// 'UI.ItemDraft.Start', in one player's game alone, once, with or without a
+// hero on the map; { seconds } cuts it after that long. A player who leaves
+// hears what was playing stop.
+//
 // sheet adds a style sheet from the mod's content addon to every interface
 // the mod shows, such as sheet('hud.css') for content/styles/hud.css, and an
 // element's class names the sheet's classes:
@@ -72,6 +77,7 @@ import { itemId } from './item-id.js'
 import {
   Align,
   type Change,
+  type Cue,
   type Cycle as WireCycle,
   Decoration,
   Easing,
@@ -740,6 +746,26 @@ export function toast(player: Player, text: string, seconds = 4): boolean {
   return draw(player)
 }
 
+/**
+ * uiSound plays the game's sound event sound, such as 'UI.ItemDraft.Start', in
+ * player's game alone, once; seconds cuts it after that long, keeping only its
+ * start. It plays with the next screen the player reads, and not at all if
+ * the player reads it only after the mod's next few sounds.
+ */
+export function uiSound(
+  player: Player,
+  sound: string,
+  options: { readonly seconds?: number } = {},
+): boolean {
+  const current = view(player)
+  const cue = { number: nextCue++, sound, seconds: options.seconds ?? 0 }
+  views.set(player.slot, {
+    ...current,
+    cues: [...current.cues, cue].slice(-maxCues),
+  })
+  return draw(player)
+}
+
 /** press runs the handler of the button the player pressed. */
 export function press(player: Player, node: string): void {
   const pressed = screens.get(player.slot)?.presses.get(node)
@@ -790,6 +816,8 @@ interface View {
   readonly asks: number
   /** routes maps each route's name to its value as JSON. */
   readonly routes: ReadonlyMap<string, string>
+  /** cues are the last sounds played, which the renderer plays once each. */
+  readonly cues: readonly Cue[]
   notices: readonly Notice[]
 }
 
@@ -808,6 +836,15 @@ let now = 0
 
 /** nextNotice numbers the next notice, which keys it in the stack. */
 let nextNotice = 0
+
+/** nextCue numbers the next sound, so the renderer plays each once. */
+let nextCue = 1
+
+/**
+ * maxCues is how many sounds the root keeps, so a player whose screens come
+ * slower than the mod plays sounds misses none of the last few.
+ */
+const maxCues = 8
 
 /** maxNotices bounds the stack; a newer notice pushes out the oldest. */
 const maxNotices = 4
@@ -829,6 +866,7 @@ function view(player: Player): View {
       cursor: false,
       asks: 0,
       routes: new Map(),
+      cues: [],
       notices: [],
     }
   )
@@ -851,6 +889,7 @@ function draw(player: Player): boolean {
     current.cursor,
     current.asks,
     current.routes,
+    current.cues,
   )
   const change = diff(previous, next)
 
@@ -864,6 +903,7 @@ function draw(player: Player): boolean {
       current.cursor,
       current.asks,
       current.routes,
+      current.cues,
     )
     if (!send(player.slot, diff(undefined, whole)!)) {
       screens.delete(player.slot)
@@ -957,10 +997,11 @@ function render(
   cursor: boolean,
   asks: number,
   routes: ReadonlyMap<string, string>,
+  cues: readonly Cue[],
 ): Screen {
   // The root is the full-screen panel the elements hang from, and it lists
-  // the parts of the game's HUD to hide, whether the cursor is free and the
-  // mod's sheets.
+  // the parts of the game's HUD to hide, whether the cursor is free, the
+  // mod's sheets and its last sounds.
   const layout = new Layout(previous)
   layout.add({
     id: '',
@@ -970,6 +1011,7 @@ function render(
     freeCursor: cursor,
     freeCursorAsks: asks,
     sheets: [...sheets],
+    cues: [...cues],
   })
 
   // A route's id holds a colon, which no element's id does.
