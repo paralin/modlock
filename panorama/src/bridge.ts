@@ -13,6 +13,17 @@ import { unpackBytes } from './packed.js'
  */
 const titlePrefix = 'modlock:frame:'
 
+/**
+ * linePrefix marks a part of any other line the relay streams, as JSON. The
+ * relay sends the line "alive" every few seconds while the server lists the
+ * player and the screen is unchanged, so the renderer can tell a quiet stream
+ * from one gone dead.
+ */
+const linePrefix = 'modlock:snapshot:'
+
+/** aliveLine is the relay's keepalive. */
+const aliveLine = 'alive'
+
 /** loadDeadline is how long a page may take to load before it is loaded again. */
 const loadDeadline = 10
 
@@ -31,6 +42,7 @@ export class Bridge {
     private readonly statePanel: Panel,
     private readonly stateURL: string,
     private readonly show: (screen: Screen | null) => void,
+    private readonly alive: () => void = () => {},
   ) {
     // Registering the navigation event lets the panel navigate.
     $.RegisterEventHandler('HTMLStartRequest', statePanel, () => false)
@@ -49,12 +61,34 @@ export class Bridge {
     })
   }
 
+  /** acknowledge tells the page the title was read, so it sends the next. */
+  private acknowledge(): void {
+    this.acked = !this.acked
+    this.statePanel.SetURL(`${this.stateURL}#${this.acked ? 1 : 0}`)
+  }
+
   /** read takes one state title: a part of a screen, or the page's status. */
   private read(title: string): boolean {
     // A title means the page loaded; cancel its load deadline.
     if (this.loading !== undefined) {
       $.CancelScheduled(this.loading)
       this.loading = undefined
+    }
+
+    // The keepalive is acknowledged like a part, so the page reads on.
+    if (title.startsWith(linePrefix)) {
+      if (title === this.lastTitle) return false
+      this.lastTitle = title
+      this.acknowledge()
+      try {
+        const part = JSON.parse(title.slice(linePrefix.length)) as {
+          chunk?: unknown
+        }
+        if (part.chunk === aliveLine) this.alive()
+      } catch {
+        $.Msg('[Modlock] could not read a line from the relay')
+      }
+      return false
     }
 
     // A status title means the stream is not delivering; drop the screen
@@ -95,8 +129,7 @@ export class Bridge {
         throw new Error('a part of the screen is missing')
       }
       parts.text += chunk
-      this.acked = !this.acked
-      this.statePanel.SetURL(`${this.stateURL}#${this.acked ? 1 : 0}`)
+      this.acknowledge()
       if (parts.text.length < parts.total) {
         return false
       }

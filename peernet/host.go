@@ -529,7 +529,9 @@ func FetchContent(ctx context.Context, host SRPCSessionClient, session uint64, p
 
 // watch forwards what the player sees from the host until ctx ends, watching
 // again after a lost stream. Each watch starts with the whole screen, so the
-// guest never applies a change to a screen it lacks.
+// guest never applies a change to a screen it lacks. A lost stream clears the
+// screen: the host that holds it may be gone with its server, and a screen
+// left standing would keep the game's HUD hidden in the player's next game.
 func (s *Service) watch(ctx context.Context, host SRPCSessionClient, req *WatchRequest, send func(*JoinEvent) error) {
 	for {
 		// Forward each frame and line until the stream ends.
@@ -541,6 +543,11 @@ func (s *Service) watch(ctx context.Context, host SRPCSessionClient, req *WatchR
 					err = send(forward)
 				}
 			}
+		}
+
+		// Clear the screen until the next watch sends it whole.
+		if ctx.Err() == nil {
+			_ = send(&JoinEvent{Body: &JoinEvent_Screen{Screen: &ScreenFrame{Reset_: true}}})
 		}
 
 		// Watch again after a pause, unless the call ended.

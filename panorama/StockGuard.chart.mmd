@@ -1,0 +1,41 @@
+---
+title: "The game's HUD under Modlock's stock guard"
+---
+stateDiagram-v2
+  s0: In the hideout: the game's own HUD
+  s1: On the mod's server: the game's own HUD
+  s2: In another game: the game's own HUD
+  s3: On the mod's server: the mod hides parts
+  s4: On the mod's server: parts hidden until the next tick
+  s5: In the hideout: parts hidden until the next tick
+  s6: In another game: the mod hides parts
+  s7: In another game: parts hidden until the next tick
+  [*] --> s0
+  s0 --> s1: You join the mod's server
+  s0 --> s2: You leave, and the game says so
+  s1 --> s0: You leave, and the game says so
+  s1 --> s2: You leave, and the game says so or The server goes away unannounced
+  s2 --> s1: You join the mod's server
+  s2 --> s0: You leave, and the game says so
+  s1 --> s3: The guard's tick
+  s3 --> s4: The renderer reloads or Thirty seconds pass with no title
+  s3 --> s5: You leave, and the game says so
+  s3 --> s6: The server goes away unannounced
+  s3 --> s7: You leave, and the game says so
+  s2 --> s6: The guard's tick
+  s4 --> s5: You leave, and the game says so
+  s4 --> s1: The guard's tick
+  s4 --> s7: The server goes away unannounced or You leave, and the game says so
+  s4 --> s3: A screen arrives
+  s3 --> s1: The guard's tick
+  s5 --> s7: You leave, and the game says so
+  s5 --> s0: The guard's tick
+  s5 --> s4: You join the mod's server
+  s6 --> s5: You leave, and the game says so
+  s6 --> s7: The renderer reloads or Thirty seconds pass with no title
+  s6 --> s4: You join the mod's server
+  s7 --> s5: You leave, and the game says so
+  s7 --> s6: A screen arrives or A screen sent before you left arrives
+  s7 --> s4: You join the mod's server
+  s7 --> s2: The guard's tick
+  s6 --> s2: The guard's tick

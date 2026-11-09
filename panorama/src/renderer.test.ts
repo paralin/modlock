@@ -10,7 +10,14 @@ import {
   inputCommand,
   layoutDataChanged,
 } from './draw.js'
-import { Cursor, Hud, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
+import {
+  CONNECTED_TO_HIDEOUT,
+  HIDDEN_MARK,
+  LEASE_SECONDS,
+  StockGuard,
+  WALK_SECONDS,
+} from './guard.js'
+import { Cursor, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -870,9 +877,8 @@ test('frees the cursor a root asks for and hands the keyboard back when it captu
   ])
 })
 
-test("hides the game's HUD parts while a root lists them", () => {
-  // Build the game's HUD: the health beside the abilities, and the
-  // announcements that hold a level-up notice.
+/** gameHud builds the game's HUD with a panel for each part a test hides. */
+function gameHud() {
   const game = new FakePanel('CitadelHud', 'Hud')
   const add = (parent: FakePanel, id: string, ...classes: string[]) => {
     const panel = $.CreatePanel('Panel', parent, id) as unknown as FakePanel
@@ -903,88 +909,297 @@ test("hides the game's HUD parts while a root lists them", () => {
   const minimap = add(game, 'minimap_persp')
   const abilities = add(game, 'AbilitiesContainer')
   const stats = add(game, 'hudPlayerStats')
+  return {
+    game,
+    add,
+    health,
+    bars,
+    shields,
+    held,
+    announcements,
+    boon,
+    scores,
+    chat,
+    crosshair,
+    clip,
+    lowAmmo,
+    souls,
+    minimap,
+    abilities,
+    stats,
+  }
+}
 
-  // Sweep through the fake $.Schedule.
-  const hud = new Hud(game, (_, callback) => $.Schedule(0, callback))
+/** clock is a guard's host on a fake clock, ticking through the fake $.Schedule. */
+function clock() {
+  const host = {
+    time: 1000,
+    Schedule: (_: number, callback: () => void) => {
+      $.Schedule(0, callback)
+    },
+    now: () => host.time,
+  }
+  return host
+}
 
-  // Hiding the player's health collapses its panels and keeps the rest.
-  hud.draw(hiddenParts(screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH'] })))
-  expect(bars.style.visibility).toBe('collapse')
-  expect(shields.style.visibility).toBe('collapse')
-  expect(held.style.visibility).toBeUndefined()
-  expect(boon.style.visibility).toBeUndefined()
+/** parts reads the parts a screen whose one root hides names claims. */
+function parts(...names: string[]) {
+  return hiddenParts(screen({ id: '', hideHud: names }))
+}
 
-  // A level-up notice the game shows later collapses on the next sweep.
-  hud.draw(
-    hiddenParts(
-      screen({ id: '', hideHud: ['HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP'] }),
-    ),
+test("hides the game's HUD parts while a live screen claims them", () => {
+  const hud = gameHud()
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+
+  // Hiding the player's health hides its panels, marked as shown, and keeps
+  // the rest.
+  stock.screen(parts('HUD_PART_OWN_HEALTH'))
+  expect(hud.bars.visible).toBe(false)
+  expect(hud.bars.attributes.get(HIDDEN_MARK)).toBe('shown')
+  expect(hud.shields.visible).toBe(false)
+  expect(hud.held.visible).toBe(true)
+  expect(hud.boon.visible).toBe(true)
+
+  // A level-up notice the game shows later hides on the next tick.
+  stock.screen(parts('HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP'))
+  expect(hud.boon.visible).toBe(false)
+  expect(hud.scores.visible).toBe(true)
+  const later = hud.add(
+    hud.announcements,
+    '',
+    'LevelUpBlock',
+    'PowerIncreaseBlock',
   )
-  expect(boon.style.visibility).toBe('collapse')
-  expect(scores.style.visibility).toBeUndefined()
-  const later = add(announcements, '', 'LevelUpBlock', 'PowerIncreaseBlock')
   expect(scheduled.size).toBe(1)
   runScheduled()
-  expect(later.style.visibility).toBe('collapse')
+  expect(later.visible).toBe(false)
 
-  // The top bar collapses all but its chat.
-  hud.draw(
-    hiddenParts(
-      screen({
-        id: '',
-        hideHud: [
-          'HUD_PART_OWN_HEALTH',
-          'HUD_PART_LEVEL_UP',
-          'HUD_PART_TOP_BAR',
-        ],
-      }),
+  // The top bar hides all but its chat.
+  stock.screen(
+    parts('HUD_PART_OWN_HEALTH', 'HUD_PART_LEVEL_UP', 'HUD_PART_TOP_BAR'),
+  )
+  expect(hud.scores.visible).toBe(false)
+  expect(hud.chat.visible).toBe(true)
+
+  // Ammo hides only its own panels, not the crosshair, and the parts
+  // dropped show again.
+  stock.screen(parts('HUD_PART_LEVEL_UP', 'HUD_PART_AMMO'))
+  expect(hud.clip.visible).toBe(false)
+  expect(hud.lowAmmo.visible).toBe(false)
+  expect(hud.crosshair.visible).toBe(true)
+  expect(hud.scores.visible).toBe(true)
+  expect(hud.scores.attributes.get(HIDDEN_MARK)).toBe('')
+  expect(hud.bars.visible).toBe(true)
+
+  // The souls, minimap, abilities and stats hide whole.
+  stock.screen(
+    parts(
+      'HUD_PART_SOULS',
+      'HUD_PART_MINIMAP',
+      'HUD_PART_ABILITIES',
+      'HUD_PART_STATS',
     ),
   )
-  expect(scores.style.visibility).toBe('collapse')
-  expect(clip.style.visibility).toBeUndefined()
+  for (const panel of [hud.souls, hud.minimap, hud.abilities, hud.stats])
+    expect(panel.visible).toBe(false)
+  expect(hud.health.visible).toBe(true)
 
-  // Ammo collapses only its own panels, not the crosshair.
-  hud.draw(
-    hiddenParts(
-      screen({
-        id: '',
-        hideHud: ['HUD_PART_LEVEL_UP', 'HUD_PART_AMMO'],
-      }),
-    ),
-  )
-  expect(clip.style.visibility).toBe('collapse')
-  expect(lowAmmo.style.visibility).toBe('collapse')
-  expect(crosshair.style.visibility).toBeUndefined()
-  expect(scores.style.visibility).toBeNull()
-  expect(chat.style.visibility).toBeUndefined()
-
-  // The souls, minimap, abilities and stats collapse whole.
-  hud.draw(
-    hiddenParts(
-      screen({
-        id: '',
-        hideHud: [
-          'HUD_PART_SOULS',
-          'HUD_PART_MINIMAP',
-          'HUD_PART_ABILITIES',
-          'HUD_PART_STATS',
-        ],
-      }),
-    ),
-  )
-  for (const panel of [souls, minimap, abilities, stats])
-    expect(panel.style.visibility).toBe('collapse')
-  expect(health.style.visibility).toBeUndefined()
-
-  // Once no root lists them, the parts show again and the sweeps stop.
-  hud.draw(hiddenParts(screen({ id: '', hideHud: ['HUD_PART_LEVEL_UP'] })))
-  expect(bars.style.visibility).toBeNull()
-  expect(scores.style.visibility).toBeNull()
-  expect(later.style.visibility).toBe('collapse')
-  hud.draw([])
-  expect(later.style.visibility).toBeNull()
+  // A relay that ended shows everything again, and the ticks stop.
+  stock.screen(null)
+  for (const panel of [hud.souls, hud.boon, later, hud.clip])
+    expect(panel.visible).toBe(true)
   runScheduled()
   expect(scheduled.size).toBe(0)
+})
+
+test('shows again a panel the guard hid only if it showed before', () => {
+  // A panel the game keeps hidden, as gameplay_hud is until a team is
+  // joined, is marked unseen and left hidden on restore.
+  const hud = gameHud()
+  hud.minimap.visible = false
+  const stock = new StockGuard(hud.game, clock())
+  stock.screen(parts('HUD_PART_MINIMAP', 'HUD_PART_SOULS'))
+  expect(hud.minimap.attributes.get(HIDDEN_MARK)).toBe('unseen')
+  stock.screen([])
+  expect(hud.minimap.visible).toBe(false)
+  expect(hud.minimap.attributes.get(HIDDEN_MARK)).toBe('')
+  expect(hud.souls.visible).toBe(true)
+})
+
+test('hides again a panel the game showed again', () => {
+  // The game showing a hidden panel again is undone on the next tick.
+  const hud = gameHud()
+  const stock = new StockGuard(hud.game, clock())
+  stock.screen(parts('HUD_PART_SOULS'))
+  hud.souls.visible = true
+  runScheduled()
+  expect(hud.souls.visible).toBe(false)
+  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('shown')
+})
+
+test('gives the HUD back at once when the player leaves', () => {
+  // A disconnect or shutdown restores the HUD without waiting for the lease.
+  const hud = gameHud()
+  const stock = new StockGuard(hud.game, clock())
+  stock.screen(parts('HUD_PART_SOULS'))
+  stock.leave()
+  expect(hud.souls.visible).toBe(true)
+
+  // A late screen read after the leave hides again only on the mod's
+  // server; in the hideout it changes nothing.
+  hud.game.classes.push(CONNECTED_TO_HIDEOUT)
+  stock.screen(parts('HUD_PART_SOULS'))
+  expect(hud.souls.visible).toBe(true)
+  runScheduled()
+  expect(hud.souls.visible).toBe(true)
+})
+
+test('gives the HUD back in the hideout without an event', () => {
+  // The hideout class alone restores on the next tick.
+  const hud = gameHud()
+  const stock = new StockGuard(hud.game, clock())
+  stock.screen(parts('HUD_PART_SOULS'))
+  hud.game.classes.push(CONNECTED_TO_HIDEOUT)
+  runScheduled()
+  expect(hud.souls.visible).toBe(true)
+
+  // The ticks stop with nothing hidden; back on the mod's server, the next
+  // title brings the claim back.
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+  hud.game.classes.length = 0
+  stock.alive()
+  expect(hud.souls.visible).toBe(false)
+})
+
+test('gives the HUD back when the titles stop for the lease', () => {
+  // A server that just goes away sends no event and no null; the lease runs
+  // out instead, unless the relay's keepalive renews it.
+  const hud = gameHud()
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+  stock.screen(parts('HUD_PART_SOULS'))
+  host.time += LEASE_SECONDS - 1
+  stock.alive()
+  host.time += LEASE_SECONDS - 1
+  runScheduled()
+  expect(hud.souls.visible).toBe(false)
+  host.time += 1
+  runScheduled()
+  expect(hud.souls.visible).toBe(true)
+
+  // With nothing hidden the ticks stop, and a title brings the claim back.
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+  stock.alive()
+  expect(hud.souls.visible).toBe(false)
+})
+
+test('shows what an earlier guard hid, without its memory', () => {
+  // A reloaded script's guard restores every mark its predecessor left.
+  const hud = gameHud()
+  new StockGuard(hud.game, clock()).screen(
+    parts('HUD_PART_SOULS', 'HUD_PART_TOP_BAR'),
+  )
+  scheduled.clear()
+  hud.clip.style.visibility = 'collapse'
+  new StockGuard(hud.game, clock())
+  expect(hud.souls.visible).toBe(true)
+  expect(hud.scores.visible).toBe(true)
+  expect(hud.souls.attributes.get(HIDDEN_MARK)).toBe('')
+  expect(hud.clip.style.visibility).toBeNull()
+  expect(scheduled.size).toBe(0)
+})
+
+test("hides the hero picker and the Broker's countdown", () => {
+  // The picker sits in the game's HUD; the Broker's popup under the
+  // interface's root, read only while the player stands at his booth.
+  const hud = gameHud()
+  const top = new FakePanel('Panel', 'Root')
+  hud.game.parent = top
+  top.children.push(hud.game)
+  const picker = hud.add(hud.game, 'join_team')
+  const actions = hud.add(hud.game, 'context_action_container')
+  const popup = hud.add(top, 'ModsCorruptContainer')
+  const countdown = hud.add(popup, 'Countdown')
+  const stock = new StockGuard(hud.game, clock())
+
+  // The picker hides at once, the countdown once the player is at the booth.
+  stock.screen(parts('HUD_PART_HERO_PICKER', 'HUD_PART_BROKER_COUNTDOWN'))
+  expect(picker.visible).toBe(false)
+  expect(countdown.visible).toBe(true)
+  actions.classes.push('in_corrupted_shop_zone')
+  runScheduled()
+  expect(countdown.visible).toBe(false)
+
+  // Away from the booth the countdown still comes back when it is dropped.
+  actions.classes.length = 0
+  runScheduled()
+  stock.screen([])
+  expect(countdown.visible).toBe(true)
+  expect(picker.visible).toBe(true)
+})
+
+test('hides the whole HUD but the interfaces and tooltips that stay', () => {
+  // The HUD holds Modlock's root, the layout that reads the screens beside
+  // one of the game's panels, Hyperline's panel and the game's tooltips.
+  const hud = gameHud()
+  const host = clock()
+  const layouts = hud.add(hud.game, 'HudLayouts')
+  const layout = hud.add(layouts, '')
+  const inner = hud.add(layout, '')
+  const beside = hud.add(layouts, 'GameLayout')
+  const stays = [
+    hud.add(hud.game, 'ModlockUi'),
+    hud.add(hud.game, 'HyperlineResident'),
+    hud.add(hud.game, 'TooltipManager'),
+    layout,
+  ]
+  const stock = new StockGuard(hud.game, host, [layout])
+
+  // Everything else hides, and the way down to the layout shows.
+  stock.screen(parts('HUD_PART_ALL'))
+  for (const panel of [hud.health, hud.announcements, hud.souls, beside])
+    expect(panel.visible).toBe(false)
+  for (const panel of [...stays, layouts, inner])
+    expect(panel.visible).toBe(true)
+
+  // A panel the game adds hides once the kept walk is old, not each tick.
+  const added = hud.add(hud.game, 'Added')
+  runScheduled()
+  expect(added.visible).toBe(true)
+  host.time += WALK_SECONDS
+  runScheduled()
+  expect(added.visible).toBe(false)
+
+  // A kept panel the game removes walks again at once.
+  const later = hud.add(hud.game, 'Later')
+  hud.souls.DeleteAsync(0)
+  runScheduled()
+  expect(later.visible).toBe(false)
+
+  // A panel that comes to hold one that stays shows again on the next walk.
+  hud.add(hud.minimap, 'HyperlineLate')
+  host.time += WALK_SECONDS
+  runScheduled()
+  expect(hud.minimap.visible).toBe(true)
+  expect(hud.minimap.attributes.get(HIDDEN_MARK)).toBe('')
+
+  // Dropped, it all comes back.
+  stock.screen([])
+  for (const panel of [hud.health, hud.announcements, beside, added, later])
+    expect(panel.visible).toBe(true)
+})
+
+test('a reloaded guard finds every mark the whole HUD walk passes', () => {
+  // A marked panel no finder names any more, deep in the HUD, comes back.
+  const hud = gameHud()
+  hud.held.visible = false
+  hud.held.attributes.set(HIDDEN_MARK, 'shown')
+  new StockGuard(hud.game, clock())
+  expect(hud.held.visible).toBe(true)
+  expect(hud.held.attributes.get(HIDDEN_MARK)).toBe('')
 })
 
 test('loads layouts and style sheets a host allows and hands them data', () => {
@@ -1249,4 +1464,37 @@ test('reads screens in acknowledged parts', () => {
   expect(shown.length).toBe(1)
   title('')
   expect(shown).toEqual([shown[0]!, null])
+})
+
+test("acknowledges the relay's keepalive and reports it", () => {
+  // The relay's alive line arrives as a JSON line part, which the bridge
+  // acknowledges so the page reads on, and reports once.
+  const state = new FakePanel('HTML', 'ModlockUiState')
+  const shown: (Screen | null)[] = []
+  let alive = 0
+  new Bridge(
+    state,
+    'https://relay/bridge.html',
+    (screen) => shown.push(screen),
+    () => alive++,
+  )
+  const title = (text: string) =>
+    handlers.get(state)!.get('HTMLTitle')!(state.id, text)
+  const line = (id: number, chunk: string) =>
+    `modlock:snapshot:${JSON.stringify({ id, offset: 0, total: chunk.length, chunk })}`
+  title(line(1, 'alive'))
+  expect(state.url).toBe('https://relay/bridge.html#1')
+  expect(alive).toBe(1)
+
+  // A repeated title is not read twice, a later keepalive is, and any other
+  // line is acknowledged without a report.
+  title(line(1, 'alive'))
+  expect(alive).toBe(1)
+  title(line(2, 'alive'))
+  expect(alive).toBe(2)
+  expect(state.url).toBe('https://relay/bridge.html#0')
+  title(line(3, '%7B%7D'))
+  expect(alive).toBe(2)
+  expect(state.url).toBe('https://relay/bridge.html#1')
+  expect(shown).toEqual([])
 })

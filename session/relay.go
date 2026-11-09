@@ -22,6 +22,19 @@ const RelayAgent = "Source2 HTML"
 // faster than the game draws them; the stream sends the newest screen instead.
 const FrameGap = 50 * time.Millisecond
 
+// Keepalive is the longest the stream stays quiet: while the screen is
+// unchanged it writes AliveLine this often. The renderer gives the game's HUD
+// back once its titles stop for its lease, 30 s, so a quiet stream must still
+// show it is delivering; sending the screen again would cost a board's
+// several acknowledged title parts.
+const Keepalive = 5 * time.Second
+
+// AliveLine is the stream's keepalive. The relay page carries a line that is
+// not a packed screen as a JSON line part, which the renderer acknowledges.
+// The screen says whether the player is in the server, so the keepalive only
+// says the stream delivers; it follows any change on the same stream.
+const AliveLine = "alive\n"
+
 // ScreenSource returns a player's screen and a channel that closes when it
 // may have changed.
 type ScreenSource func() (*ui.Screen, <-chan struct{})
@@ -37,11 +50,13 @@ type Relay struct {
 	origin string
 	// screen is the player's screen.
 	screen ScreenSource
+	// keepalive is the longest the stream stays quiet, Keepalive but in tests.
+	keepalive time.Duration
 }
 
 // NewRelay returns a Relay serving screen to the relay page at origin.
 func NewRelay(origin string, screen ScreenSource) *Relay {
-	return &Relay{origin: origin, screen: screen}
+	return &Relay{origin: origin, screen: screen, keepalive: Keepalive}
 }
 
 // ServeHTTP serves the screen stream to the relay page.
@@ -87,49 +102,64 @@ func (r *Relay) admit(w http.ResponseWriter, request *http.Request) bool {
 	return true
 }
 
-// stream writes the player's screen, then each changed screen, until the page
-// goes away.
+// stream writes the player's screen, then each changed screen, and the
+// keepalive after each quiet Keepalive, until the page goes away.
 func (r *Relay) stream(w http.ResponseWriter, request *http.Request) {
 	// Write packed lines of text, flushing each one.
 	controller := http.NewResponseController(w)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	var line []byte
 	var sent *ui.Screen
+	quiet := false
 	for sequence := uint64(1); ; {
-		// Send the screen as one packed line, unless it is the one sent.
+		// Send the screen as one packed line, unless it is the one sent, and
+		// the keepalive after a quiet wait.
 		screen, changed := r.screen()
-		if sent == nil || !screen.EqualVT(sent) {
+		switch {
+		case sent == nil || !screen.EqualVT(sent):
 			frame, err := screen.MarshalVT()
 			if err != nil {
 				return
 			}
 			line = panorama.AppendPackedLine(line[:0], sequence, frame)
+			sent, sequence = screen, sequence+1
+		case quiet:
+			line = append(line[:0], AliveLine...)
+		default:
+			line = line[:0]
+		}
+		if len(line) != 0 {
 			if _, err := w.Write(line); err != nil || controller.Flush() != nil {
 				return
 			}
-			sent, sequence = screen, sequence+1
 		}
 
 		// Wait for a change, then let the page draw before the next frame.
-		if !wait(request, changed) {
+		var open bool
+		if quiet, open = wait(request, changed, r.keepalive); !open {
 			return
 		}
 	}
 }
 
-// wait waits for changed, then for FrameGap, and reports whether the request
-// is still open.
-func wait(request *http.Request, changed <-chan struct{}) bool {
+// wait waits for changed, then for FrameGap, or for keepalive with no change.
+// It reports whether it waited out keepalive and whether the request is still
+// open.
+func wait(request *http.Request, changed <-chan struct{}, keepalive time.Duration) (quiet, open bool) {
+	timer := time.NewTimer(keepalive)
+	defer timer.Stop()
 	select {
 	case <-changed:
+	case <-timer.C:
+		return true, true
 	case <-request.Context().Done():
-		return false
+		return false, false
 	}
 	select {
 	case <-time.After(FrameGap):
-		return true
+		return false, true
 	case <-request.Context().Done():
-		return false
+		return false, false
 	}
 }
 

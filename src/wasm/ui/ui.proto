@@ -250,6 +250,20 @@ enum HudPart {
   // stats at the lower left. The souls, items and status icons beside it
   // stay.
   HUD_PART_STATS = 9;
+
+  // HUD_PART_HERO_PICKER is the screen the game shows a player who has not
+  // picked a hero yet, with its team and spectate buttons, for a mod that
+  // gives the hero itself.
+  HUD_PART_HERO_PICKER = 10;
+
+  // HUD_PART_BROKER_COUNTDOWN is the countdown in the Broker's window while
+  // the player stands at his booth, for a mod whose Broker keeps no time.
+  HUD_PART_BROKER_COUNTDOWN = 11;
+
+  // HUD_PART_ALL is the whole of the game's HUD, for a screen that takes the
+  // player's whole view, such as a draft before the match. The mods' own
+  // interfaces, Hyperline's and the game's tooltips stay.
+  HUD_PART_ALL = 12;
 }
 
 // Kind selects the panel a node draws.

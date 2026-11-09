@@ -1,0 +1,60 @@
+[
+  {
+    "name": "Modlock's Hud before the guard: hides on a screen, shows from memory",
+    "replace": [["Edge == Design = \"edge\"", "Edge == TRUE"]],
+    "expect": "NoHideWhileBarred"
+  },
+  {
+    "name": "No tick: the guard hides on its tick but never restores",
+    "replace": [["ELSE IF Marked THEN FALSE ELSE hidden", "ELSE hidden"]],
+    "expect": "Returns"
+  },
+  {
+    "name": "No lease: a stream gone silent keeps the guard allowed",
+    "replace": [
+      [
+        "Allowed == fresh /\\ ~left /\\ game # \"hideout\"",
+        "Allowed == ~left /\\ game # \"hideout\""
+      ]
+    ],
+    "expect": "LeaveReturns"
+  },
+  {
+    "name": "No hideout rule: a late screen hides in the hideout",
+    "replace": [
+      [
+        "Allowed == fresh /\\ ~left /\\ game # \"hideout\"",
+        "Allowed == fresh /\\ ~left"
+      ]
+    ],
+    "expect": "HideoutImmediate"
+  },
+  {
+    "name": "No leave events: the HUD waits for the lease after leaving",
+    "replace": [
+      [
+        "Allowed == fresh /\\ ~left /\\ game # \"hideout\"",
+        "Allowed == fresh /\\ game # \"hideout\""
+      ]
+    ],
+    "expect": "LeaveWithoutLease"
+  },
+  {
+    "name": "Restore from memory, not marks: a reload strands its writes",
+    "replace": [
+      ["Marked == hidden", "Marked == memory"],
+      ["  /\\ memory' = memory\n", "  /\\ memory' = Want\n"]
+    ],
+    "expect": "LeaveWithoutLease"
+  },
+  {
+    "name": "Handlers without the gate: a dead script's handler presses",
+    "replace": [["Gate(h) == h = \"live\" /\\ Allowed", "Gate(h) == TRUE"]],
+    "expect": "PressOnlyWhileAllowed"
+  },
+  {
+    "name": "Keepalive before the screen: a player let go keeps the lease",
+    "replace": [["/\\ (listed \\/ ~claims) /\\ ~fresh", "/\\ ~fresh"]],
+    "expect": "LeaveReturns"
+  }
+]

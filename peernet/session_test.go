@@ -3,6 +3,7 @@ package peernet
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"github.com/aperturerobotics/starpc/srpc"
 	"github.com/paralin/modlock/session"
 	"github.com/paralin/modlock/src/host_app/control"
+	"github.com/paralin/modlock/src/wasm/ui"
 )
 
 // TestSessionServesContentAndPresence walks a guest through a hosted
@@ -92,4 +94,83 @@ func TestSessionServesContentAndPresence(t *testing.T) {
 	present(true)
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Left{Left: &control.PlayerLeft{Slot: 1}}})
 	present(false)
+}
+
+// TestWatchClearsALostScreen clears the guest's screen when its stream from
+// the host is lost, so a host gone with its server leaves no screen that
+// keeps the game's HUD hidden, and the next watch sends the screen whole.
+func TestWatchClearsALostScreen(t *testing.T) {
+	// A host showing the guest a tree, whose first stream breaks after the
+	// screen arrives.
+	const code, guest = 7, 76561198000000002
+	screens := session.NewScreens(0)
+	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Joined{Joined: &control.PlayerJoined{Slot: 1, SteamId: guest}}})
+	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Ui{Ui: &control.UiChanged{Mod: "arena", Slot: 1, Change: &ui.Change{Reset_: true, Set: []*ui.Node{{Id: ""}}}}}})
+	mux := srpc.NewMux()
+	if err := SRPCRegisterSession(mux, &sessionServer{session: code, screens: screens, chat: session.NewChat()}); err != nil {
+		t.Fatal(err)
+	}
+	host := &breakingHost{SRPCSessionClient: NewSRPCSessionClient(srpc.NewClient(srpc.NewServerPipe(srpc.NewServer(mux))))}
+
+	// The guest mirrors each screen frame it is sent.
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	mirror := session.NewMirror()
+	frames := make(chan int, 16)
+	go (&Service{}).watch(ctx, host, &WatchRequest{Session: code, SteamId: guest}, func(event *JoinEvent) error {
+		if frame := event.GetScreen(); frame != nil {
+			mirror.Apply(frame.GetChanges(), frame.GetReset_())
+			screen, _ := mirror.Screen()
+			frames <- len(screen.GetTrees())
+		}
+		return nil
+	})
+
+	// The screen arrives, the lost stream clears it, and the next watch
+	// sends it whole.
+	for _, want := range []int{1, 0, 1} {
+		select {
+		case trees := <-frames:
+			if trees != want {
+				t.Fatalf("the guest's screen holds %d trees, want %d", trees, want)
+			}
+		case <-ctx.Done():
+			t.Fatal("no screen arrived")
+		}
+	}
+}
+
+// breakingHost is a host whose first watch stream fails after one screen.
+type breakingHost struct {
+	SRPCSessionClient
+	// watched counts the watches.
+	watched int
+}
+
+// Watch watches the host, breaking the first stream.
+func (h *breakingHost) Watch(ctx context.Context, req *WatchRequest) (SRPCSession_WatchClient, error) {
+	events, err := h.SRPCSessionClient.Watch(ctx, req)
+	h.watched++
+	if err != nil || h.watched > 1 {
+		return events, err
+	}
+	return &breakingStream{SRPCSession_WatchClient: events}, nil
+}
+
+// breakingStream fails after its first screen.
+type breakingStream struct {
+	SRPCSession_WatchClient
+	// screened records that the screen was received.
+	screened bool
+}
+
+// Recv receives the next event, or fails once the screen has arrived.
+func (s *breakingStream) Recv() (*SessionEvent, error) {
+	if s.screened {
+		_ = s.Close()
+		return nil, errors.New("the host is gone")
+	}
+	event, err := s.SRPCSession_WatchClient.Recv()
+	_, s.screened = event.GetBody().(*SessionEvent_Screen)
+	return event, err
 }

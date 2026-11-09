@@ -322,6 +322,9 @@ enum HudPart : int {
   HUD_PART_ABILITIES = 7,
   HUD_PART_STATUS = 8,
   HUD_PART_STATS = 9,
+  HUD_PART_HERO_PICKER = 10,
+  HUD_PART_BROKER_COUNTDOWN = 11,
+  HUD_PART_ALL = 12,
   HudPart_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   HudPart_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -332,11 +335,11 @@ extern const uint32_t HudPart_internal_data_[];
 inline constexpr HudPart HudPart_MIN =
     static_cast<HudPart>(0);
 inline constexpr HudPart HudPart_MAX =
-    static_cast<HudPart>(9);
+    static_cast<HudPart>(12);
 inline bool HudPart_IsValid(int value) {
-  return 0 <= value && value <= 9;
+  return 0 <= value && value <= 12;
 }
-inline constexpr int HudPart_ARRAYSIZE = 9 + 1;
+inline constexpr int HudPart_ARRAYSIZE = 12 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL HudPart_descriptor();
 template <typename T>
 const ::std::string& HudPart_Name(T value) {
@@ -347,7 +350,7 @@ const ::std::string& HudPart_Name(T value) {
 }
 template <>
 inline const ::std::string& HudPart_Name(HudPart value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<HudPart_descriptor, 0, 9>(
+  return ::google::protobuf::internal::NameOfDenseEnum<HudPart_descriptor, 0, 12>(
       static_cast<int>(value));
 }
 inline bool HudPart_Parse(

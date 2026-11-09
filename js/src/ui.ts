@@ -53,7 +53,9 @@
 //
 // hideHud hides parts of the game's own HUD from a player, such as their
 // health bar or the notice for each boon, until the mod lists them no more,
-// hides the player's interface, or stops.
+// hides the player's interface, or stops. Modlock gives them back on its own
+// when the player leaves, by the menu, to the hideout or with a server that
+// goes away, so a mod has nothing to clean up.
 //
 // sheet adds a style sheet from the mod's content addon to every interface
 // the mod shows, such as sheet('hud.css') for content/styles/hud.css, and an
@@ -273,8 +275,11 @@ export interface Style {
  * the crosshair, 'souls' the souls and level readout, 'minimap' the minimap
  * with its hints and district name, 'abilities' the ability and active item
  * bar, 'status' the game's mark in the top-left corner, 'stats' the weapon,
- * spirit and vitality stats at the lower left. Whatever a part does not name
- * stays, such as the crosshair and chat.
+ * spirit and vitality stats at the lower left, 'heroPicker' the screen a
+ * player without a hero picks one on, 'brokerCountdown' the countdown in the
+ * Broker's window, and 'all' the whole HUD but the mods' own interfaces and
+ * the game's tooltips, for a screen that takes the player's whole view.
+ * Whatever a part does not name stays, such as the crosshair and chat.
  */
 export type HudPart =
   | 'levelUp'
@@ -286,6 +291,9 @@ export type HudPart =
   | 'abilities'
   | 'status'
   | 'stats'
+  | 'heroPicker'
+  | 'brokerCountdown'
+  | 'all'
 
 /** Child is anything an element may hold. Text becomes a label. */
 export type Child =
@@ -1263,6 +1271,9 @@ const hudParts = {
   abilities: WireHudPart.ABILITIES,
   status: WireHudPart.STATUS,
   stats: WireHudPart.STATS,
+  heroPicker: WireHudPart.HERO_PICKER,
+  brokerCountdown: WireHudPart.BROKER_COUNTDOWN,
+  all: WireHudPart.ALL,
 } as const
 
 /** faces maps each typeface to its wire value. */

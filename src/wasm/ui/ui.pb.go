@@ -161,33 +161,50 @@ const (
 	// stats at the lower left. The souls, items and status icons beside it
 	// stay.
 	HudPart_HUD_PART_STATS HudPart = 9
+	// HUD_PART_HERO_PICKER is the screen the game shows a player who has not
+	// picked a hero yet, with its team and spectate buttons, for a mod that
+	// gives the hero itself.
+	HudPart_HUD_PART_HERO_PICKER HudPart = 10
+	// HUD_PART_BROKER_COUNTDOWN is the countdown in the Broker's window while
+	// the player stands at his booth, for a mod whose Broker keeps no time.
+	HudPart_HUD_PART_BROKER_COUNTDOWN HudPart = 11
+	// HUD_PART_ALL is the whole of the game's HUD, for a screen that takes the
+	// player's whole view, such as a draft before the match. The mods' own
+	// interfaces, Hyperline's and the game's tooltips stay.
+	HudPart_HUD_PART_ALL HudPart = 12
 )
 
 // Enum value maps for HudPart.
 var (
 	HudPart_name = map[int32]string{
-		0: "HUD_PART_UNKNOWN",
-		1: "HUD_PART_LEVEL_UP",
-		2: "HUD_PART_OWN_HEALTH",
-		3: "HUD_PART_TOP_BAR",
-		4: "HUD_PART_AMMO",
-		5: "HUD_PART_SOULS",
-		6: "HUD_PART_MINIMAP",
-		7: "HUD_PART_ABILITIES",
-		8: "HUD_PART_STATUS",
-		9: "HUD_PART_STATS",
+		0:  "HUD_PART_UNKNOWN",
+		1:  "HUD_PART_LEVEL_UP",
+		2:  "HUD_PART_OWN_HEALTH",
+		3:  "HUD_PART_TOP_BAR",
+		4:  "HUD_PART_AMMO",
+		5:  "HUD_PART_SOULS",
+		6:  "HUD_PART_MINIMAP",
+		7:  "HUD_PART_ABILITIES",
+		8:  "HUD_PART_STATUS",
+		9:  "HUD_PART_STATS",
+		10: "HUD_PART_HERO_PICKER",
+		11: "HUD_PART_BROKER_COUNTDOWN",
+		12: "HUD_PART_ALL",
 	}
 	HudPart_value = map[string]int32{
-		"HUD_PART_UNKNOWN":    0,
-		"HUD_PART_LEVEL_UP":   1,
-		"HUD_PART_OWN_HEALTH": 2,
-		"HUD_PART_TOP_BAR":    3,
-		"HUD_PART_AMMO":       4,
-		"HUD_PART_SOULS":      5,
-		"HUD_PART_MINIMAP":    6,
-		"HUD_PART_ABILITIES":  7,
-		"HUD_PART_STATUS":     8,
-		"HUD_PART_STATS":      9,
+		"HUD_PART_UNKNOWN":          0,
+		"HUD_PART_LEVEL_UP":         1,
+		"HUD_PART_OWN_HEALTH":       2,
+		"HUD_PART_TOP_BAR":          3,
+		"HUD_PART_AMMO":             4,
+		"HUD_PART_SOULS":            5,
+		"HUD_PART_MINIMAP":          6,
+		"HUD_PART_ABILITIES":        7,
+		"HUD_PART_STATUS":           8,
+		"HUD_PART_STATS":            9,
+		"HUD_PART_HERO_PICKER":      10,
+		"HUD_PART_BROKER_COUNTDOWN": 11,
+		"HUD_PART_ALL":              12,
 	}
 )
 

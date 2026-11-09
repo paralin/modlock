@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/paralin/modlock/src/host_app/control"
 	"github.com/paralin/modlock/src/wasm/ui"
@@ -125,6 +126,46 @@ func TestScreensServeEachPlayer(t *testing.T) {
 	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Left{Left: &control.PlayerLeft{Slot: 1}}})
 	if screen, present, _ := screens.Player(local); present || len(screen.GetTrees()) != 0 {
 		t.Fatalf("a player who left kept a screen: %v, present %v", screen, present)
+	}
+}
+
+// TestRelayKeepsAlive writes the keepalive while the screen is unchanged,
+// and a changed screen before any keepalive after it, so a quiet stream still
+// shows the renderer it delivers.
+func TestRelayKeepsAlive(t *testing.T) {
+	// A relay that keeps alive every 20 ms.
+	screens := NewScreens(1)
+	screens.Handle(joined(0, 1))
+	screens.Handle(shown(0, "arena", "Ready"))
+	relay := NewRelay(relayOrigin, screens.Screen)
+	relay.keepalive = 20 * time.Millisecond
+	server := httptest.NewServer(relay)
+	defer server.Close()
+	client := &http.Client{Timeout: 10 * time.Second}
+	response, err := client.Do(relayRequest(t, server.URL+"/panorama/stream"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	lines := bufio.NewScanner(response.Body)
+
+	// The screen comes first, then a keepalive for each quiet wait.
+	if screen := next(t, lines); label(screen) != "Ready" {
+		t.Fatalf("unexpected screen %v", screen)
+	}
+	for range 2 {
+		if !lines.Scan() || lines.Text()+"\n" != AliveLine {
+			t.Fatalf("expected the keepalive, read %q", lines.Text())
+		}
+	}
+
+	// A player who leaves gets the empty screen before the next keepalive.
+	screens.Handle(&control.HostEvent{Body: &control.HostEvent_Left{Left: &control.PlayerLeft{Slot: 0}}})
+	for lines.Scan() && lines.Text()+"\n" == AliveLine {
+	}
+	sequence, _, _ := strings.Cut(lines.Text(), ":")
+	if sequence != "~2" {
+		t.Fatalf("expected the second screen, read %q", lines.Text())
 	}
 }
 

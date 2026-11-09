@@ -1,12 +1,14 @@
 // The Modlock renderer draws the interfaces mods show the local player. Its
 // layout holds the relay panel; this script draws each mod's tree with stock
-// panels over the game's HUD, which stays on screen in every match, and hides
-// the parts of that HUD the trees' roots list, freeing the cursor while one
-// asks. A press runs the console command that sends it to the server.
+// panels over the game's HUD, which stays on screen in every match, and its
+// stock guard hides the parts of that HUD the trees' roots list while the
+// screen is live, freeing the cursor while one asks. A press runs the console
+// command that sends it to the server.
 
 import { Bridge } from './bridge.js'
 import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
-import { Cursor, Hud, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
+import { StockGuard } from './guard.js'
+import { Cursor, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
 
 /**
  * defaultBridge is the relay page a package without the session's boot script
@@ -58,9 +60,26 @@ const drawing = new Drawing(
   (mod, node, value) =>
     $.DispatchEvent('CitadelConCommand', inputCommand(mod, node, value)),
 )
-const stock = new Hud(game, (seconds, callback) => {
-  $.Schedule(seconds, callback)
-})
+const stock = new StockGuard(
+  game,
+  {
+    Schedule: (seconds, callback) => {
+      $.Schedule(seconds, callback)
+    },
+    now: () => Date.now() / 1000,
+  },
+  // Hiding the whole HUD leaves this layout, which reads the screens.
+  [context],
+)
+// The game says the player is leaving as they ask to, and as it shuts the
+// map down; a server that just goes away says neither, and the guard's lease
+// runs out instead. Both events go on to other handlers.
+for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
+  $.RegisterForUnhandledEvent(event, () => {
+    stock.leave()
+    return false
+  })
+}
 const cursor = new Cursor((event, ...values) => {
   $.DispatchEvent(event, ...values)
 }, game)
@@ -71,7 +90,8 @@ new Bridge(
   (screen) => {
     layouts.follow(screen)
     drawing.draw(screen)
-    stock.draw(hiddenParts(screen))
+    stock.screen(screen ? hiddenParts(screen) : null)
     cursor.set(cursorFreed(screen), cursorAsks(screen))
   },
+  () => stock.alive(),
 )

@@ -182,6 +182,26 @@ export enum HudPart {
    * stay.
    */
   STATS = 9,
+
+  /**
+   * HUD_PART_HERO_PICKER is the screen the game shows a player who has not
+   * picked a hero yet, with its team and spectate buttons, for a mod that
+   * gives the hero itself.
+   */
+  HERO_PICKER = 10,
+
+  /**
+   * HUD_PART_BROKER_COUNTDOWN is the countdown in the Broker's window while
+   * the player stands at his booth, for a mod whose Broker keeps no time.
+   */
+  BROKER_COUNTDOWN = 11,
+
+  /**
+   * HUD_PART_ALL is the whole of the game's HUD, for a screen that takes the
+   * player's whole view, such as a draft before the match. The mods' own
+   * interfaces, Hyperline's and the game's tooltips stay.
+   */
+  ALL = 12,
 }
 
 export const HudPart_Enum = /* @__PURE__ */ createEnumType(
@@ -197,6 +217,9 @@ export const HudPart_Enum = /* @__PURE__ */ createEnumType(
     [7, 'HUD_PART_ABILITIES'],
     [8, 'HUD_PART_STATUS'],
     [9, 'HUD_PART_STATS'],
+    [10, 'HUD_PART_HERO_PICKER'],
+    [11, 'HUD_PART_BROKER_COUNTDOWN'],
+    [12, 'HUD_PART_ALL'],
   ],
 )
 
