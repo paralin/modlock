@@ -585,6 +585,73 @@ test("draws the game's faces, styles, motion, hover and hero pictures", () => {
   ] as unknown as string[][])
 })
 
+test("opens the game's ability window over a node and closes it", () => {
+  // A plain panel with an ability takes the pointer, and its window wins over
+  // its tooltip and its item's card, with the numbers of the slot's hero.
+  const root = new FakePanel('Panel', 'ModlockUi')
+  const drawing = new Drawing($, root, () => {})
+  const cell = (extra: JsonObject = {}): JsonObject => ({
+    id: 'cell',
+    tooltip: 'Hook',
+    item: 630839635,
+    ability: 1234,
+    abilityPlayer: 0,
+    ...extra,
+  })
+  const tree = (...nodes: JsonObject[]) =>
+    screen(
+      { id: '', children: nodes.map((node) => node.id as string) },
+      ...nodes,
+    )
+  drawing.draw(tree({ id: 'cell', ability: 1234 }))
+  const panel = root.children[0]!.children[0]!
+  expect(panel.hittest).toBe(true)
+  drawing.draw(tree(cell()))
+  panel.events.get('onmouseover')!()
+  panel.events.get('onmouseout')!()
+  expect(dispatched).toEqual([
+    ['CitadelShowAbilityDetailsTooltip', panel, 1234, 0],
+    ['CitadelHideAbilityDetailsTooltip', panel],
+  ] as unknown as string[][])
+
+  // Another hero's numbers, or another ability, open the window anew under
+  // the pointer.
+  dispatched.length = 0
+  panel.events.get('onmouseover')!()
+  drawing.draw(tree(cell({ abilityPlayer: 3 })))
+  expect(root.children[0]!.children[0]).toBe(panel)
+  drawing.draw(tree(cell({ abilityPlayer: 3, ability: 5678 })))
+  drawing.draw(tree(cell({ abilityPlayer: 3, ability: 5678 })))
+  expect(dispatched).toEqual([
+    ['CitadelShowAbilityDetailsTooltip', panel, 1234, 0],
+    ['CitadelHideAbilityDetailsTooltip', panel],
+    ['CitadelShowAbilityDetailsTooltip', panel, 1234, 3],
+    ['CitadelHideAbilityDetailsTooltip', panel],
+    ['CitadelShowAbilityDetailsTooltip', panel, 5678, 3],
+  ] as unknown as string[][])
+
+  // Removing the node closes its window.
+  dispatched.length = 0
+  drawing.draw(tree({ id: 'other' }))
+  expect(dispatched).toEqual([
+    ['CitadelHideAbilityDetailsTooltip', panel],
+  ] as unknown as string[][])
+
+  // Leaving the game closes every window still open.
+  const before = [...root.children[0]!.children]
+  drawing.draw(tree(cell()))
+  const again = root.children[0]!.children.find(
+    (each) => !before.includes(each),
+  )!
+  again.events.get('onmouseover')!()
+  dispatched.length = 0
+  drawing.untipAll()
+  drawing.untipAll()
+  expect(dispatched).toEqual([
+    ['CitadelHideAbilityDetailsTooltip', again],
+  ] as unknown as string[][])
+})
+
 test('draws inputs, avatars and game text, and sends edits', () => {
   // Draw an entry, a slider, a toggle, a dropdown, an avatar and a token.
   const root = new FakePanel('Panel', 'ModlockUi')

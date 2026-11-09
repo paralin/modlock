@@ -755,6 +755,14 @@ type Node struct {
 	// shop card the game shows while the pointer is over the node, in place of
 	// the tooltip. A node with an item takes the pointer.
 	Item uint32 `protobuf:"varint,32,opt,name=item,proto3" json:"item,omitempty"`
+	// Ability is an ability's id, the game's string token of its class name as
+	// item's is, whose window the game shows while the pointer is over the
+	// node, in place of the tooltip and the shop card, in the player's
+	// language. A node with an ability takes the pointer.
+	Ability uint32 `protobuf:"varint,34,opt,name=ability,proto3" json:"ability,omitempty"`
+	// AbilityPlayer is the player slot whose hero the ability's window reads
+	// its numbers from; that hero must stand on the map.
+	AbilityPlayer uint32 `protobuf:"varint,35,opt,name=ability_player,json=abilityPlayer,proto3" json:"abilityPlayer,omitempty"`
 	// Sound is the game's sound event a button plays when pressed, such as
 	// "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
 	Sound string `protobuf:"bytes,13,opt,name=sound,proto3" json:"sound,omitempty"`
@@ -919,6 +927,20 @@ func (x *Node) GetTooltip() string {
 func (x *Node) GetItem() uint32 {
 	if x != nil {
 		return x.Item
+	}
+	return 0
+}
+
+func (x *Node) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
+func (x *Node) GetAbilityPlayer() uint32 {
+	if x != nil {
+		return x.AbilityPlayer
 	}
 	return 0
 }
@@ -2494,6 +2516,8 @@ func (m *Node) CloneVT() *Node {
 	r.Route = m.Route
 	r.Tooltip = m.Tooltip
 	r.Item = m.Item
+	r.Ability = m.Ability
+	r.AbilityPlayer = m.AbilityPlayer
 	r.Sound = m.Sound
 	r.HoverSound = m.HoverSound
 	r.Disabled = m.Disabled
@@ -3223,6 +3247,12 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if this.FreeCursorAsks != that.FreeCursorAsks {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	if this.AbilityPlayer != that.AbilityPlayer {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -4908,6 +4938,16 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("freeCursorAsks")
 		s.WriteUint32(x.FreeCursorAsks)
 	}
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	if x.AbilityPlayer != 0 || s.HasField("abilityPlayer") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("abilityPlayer")
+		s.WriteUint32(x.AbilityPlayer)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5095,6 +5135,12 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "free_cursor_asks", "freeCursorAsks":
 			s.AddField("free_cursor_asks")
 			x.FreeCursorAsks = s.ReadUint32()
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		case "ability_player", "abilityPlayer":
+			s.AddField("ability_player")
+			x.AbilityPlayer = s.ReadUint32()
 		}
 	})
 }
@@ -6992,6 +7038,20 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.AbilityPlayer != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.AbilityPlayer))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x98
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0x90
 	}
 	if m.FreeCursorAsks != 0 {
 		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.FreeCursorAsks))
@@ -8905,6 +8965,8 @@ func (m *Node) SizeVT() (n int) {
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.FreeCursor)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.Item)
 	n += protobuf_go_lite.SizeVarintNonZero(2, m.FreeCursorAsks)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.Ability)
+	n += protobuf_go_lite.SizeVarintNonZero(2, m.AbilityPlayer)
 	n += len(m.unknownFields)
 	return n
 }
@@ -9692,6 +9754,14 @@ func (x *Node) MarshalProtoText() string {
 	if x.FreeCursorAsks != 0 {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "free_cursor_asks")
 		protobuf_go_lite.TextWriteUint(&sb, x.FreeCursorAsks)
+	}
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	if x.AbilityPlayer != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability_player")
+		protobuf_go_lite.TextWriteUint(&sb, x.AbilityPlayer)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -10874,6 +10944,24 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 			}
 			m.FreeCursorAsks = 0
 			m.FreeCursorAsks, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 34:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 35:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AbilityPlayer", wireType)
+			}
+			m.AbilityPlayer = 0
+			m.AbilityPlayer, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
 			if err != nil {
 				return err
 			}

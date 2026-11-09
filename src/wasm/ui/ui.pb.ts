@@ -715,6 +715,18 @@ export interface Node {
    */
   item?: number
   /**
+   * Ability is an ability's id, the game's string token of its class name as
+   * item's is, whose window the game shows while the pointer is over the
+   * node, in place of the tooltip and the shop card, in the player's
+   * language. A node with an ability takes the pointer.
+   */
+  ability?: number
+  /**
+   * AbilityPlayer is the player slot whose hero the ability's window reads
+   * its numbers from; that hero must stand on the map.
+   */
+  abilityPlayer?: number
+  /**
    * Sound is the game's sound event a button plays when pressed, such as
    * "UI.MainMenu.Activate": one or more letters, digits, '_', '-' and '.'.
    */
@@ -856,6 +868,8 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [31, 'free_cursor', 8],
     [32, 'item', 13],
     [33, 'free_cursor_asks', 13],
+    [34, 'ability', 13],
+    [35, 'ability_player', 13],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -998,6 +1012,12 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 33:
             m.freeCursorAsks = r.uint32()
+            break
+          case 34:
+            m.ability = r.uint32()
+            break
+          case 35:
+            m.abilityPlayer = r.uint32()
             break
           default:
             r.skip(t)
@@ -1151,6 +1171,14 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const v = m.freeCursorAsks
         if (v) w.uint32(264).uint32(v)
+      }
+      {
+        const v = m.ability
+        if (v) w.uint32(272).uint32(v)
+      }
+      {
+        const v = m.abilityPlayer
+        if (v) w.uint32(280).uint32(v)
       }
     },
   },

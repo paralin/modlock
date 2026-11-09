@@ -413,8 +413,11 @@ interface Cycling {
   count: number
 }
 
-/** Tip is what a node's panel shows under the pointer: nothing, its text or its item's shop card. */
-type Tip = '' | 'text' | 'item'
+/**
+ * Tip is what a node's panel shows under the pointer: nothing, its text, its
+ * item's shop card or its ability's window.
+ */
+type Tip = '' | 'text' | 'item' | 'ability'
 
 /**
  * Drawn is one node's panel, its parent, the properties it was made with as
@@ -448,6 +451,8 @@ interface Drawn {
   focused: boolean
   tooltip: string
   item: number
+  ability: number
+  abilityPlayer: number
   tipped: Tip
   sound: string
   hoverSound: string
@@ -490,6 +495,19 @@ export class Drawing {
 
   /** changed records that this draw changed a loaded layout's data or routes. */
   private changed = false
+
+  /**
+   * untipAll hides every tooltip, shop card and ability window the mods'
+   * panels show, as the player leaves: the game's windows stand outside the
+   * panels and outlast them.
+   */
+  untipAll(): void {
+    for (const drawn of this.mods.values()) {
+      for (const each of drawn.nodes.values()) {
+        this.untip(each)
+      }
+    }
+  }
 
   /** draw makes the panels match screen, keeping each panel whose node stays. */
   draw(screen: Screen | null): void {
@@ -683,29 +701,16 @@ export class Drawing {
       return
     }
 
-    // Tick, show the item's shop card or the tooltip, or hide them, then
-    // repaint in the new state. The card's second value is the game's
-    // default, as its own shop hover sends.
+    // Tick, show the ability's window, the item's shop card or the tooltip,
+    // or hide them, then repaint in the new state. The card's second value is
+    // the game's default, as its own shop hover sends.
     drawn.over = over
     if (over && drawn.hoverSound) {
       this.panorama.PlaySound?.(drawn.hoverSound)
     }
-    if (over && drawn.item) {
-      this.panorama.DispatchEvent(
-        'CitadelShowModHoverTooltip',
-        drawn.panel,
-        drawn.item,
-        0,
-      )
-      drawn.tipped = 'item'
-    } else if (over && drawn.tooltip) {
-      this.panorama.DispatchEvent(
-        'UIShowTextTooltip',
-        drawn.panel,
-        drawn.tooltip,
-      )
-      drawn.tipped = 'text'
-    } else if (!over) {
+    if (over) {
+      this.tip(drawn)
+    } else {
       this.untip(drawn)
     }
     this.paint(drawn)
@@ -720,11 +725,47 @@ export class Drawing {
     }
   }
 
-  /** untip hides the tooltip or shop card a node's panel shows. */
+  /**
+   * tip shows what a node's panel shows under the pointer: its ability's
+   * window, else its item's shop card, else its tooltip.
+   */
+  private tip(drawn: Drawn): void {
+    if (drawn.ability) {
+      this.panorama.DispatchEvent(
+        'CitadelShowAbilityDetailsTooltip',
+        drawn.panel,
+        drawn.ability,
+        drawn.abilityPlayer,
+      )
+      drawn.tipped = 'ability'
+    } else if (drawn.item) {
+      this.panorama.DispatchEvent(
+        'CitadelShowModHoverTooltip',
+        drawn.panel,
+        drawn.item,
+        0,
+      )
+      drawn.tipped = 'item'
+    } else if (drawn.tooltip) {
+      this.panorama.DispatchEvent(
+        'UIShowTextTooltip',
+        drawn.panel,
+        drawn.tooltip,
+      )
+      drawn.tipped = 'text'
+    }
+  }
+
+  /** untip hides the tooltip, shop card or ability window a node's panel shows. */
   private untip(drawn: Drawn): void {
     const tip = drawn.tipped
     drawn.tipped = ''
-    if (tip === 'item') {
+    if (tip === 'ability') {
+      this.panorama.DispatchEvent(
+        'CitadelHideAbilityDetailsTooltip',
+        drawn.panel,
+      )
+    } else if (tip === 'item') {
       this.panorama.DispatchEvent('CitadelHideModHoverTooltip', drawn.panel)
     } else if (tip === 'text') {
       this.panorama.DispatchEvent('UIHideTextTooltip', drawn.panel)
@@ -1142,6 +1183,8 @@ export class Drawing {
       focused: !fresh && old.focused,
       tooltip: node.tooltip ?? '',
       item: node.item ?? 0,
+      ability: node.ability ?? 0,
+      abilityPlayer: node.abilityPlayer ?? 0,
       tipped: old?.panel === panel ? old.tipped : '',
       sound: soundOf(node.sound),
       hoverSound: soundOf(node.hoverSound),
@@ -1166,6 +1209,7 @@ export class Drawing {
         Object.keys(hover).length !== 0 ||
         !!each.tooltip ||
         !!each.item ||
+        !!each.ability ||
         !!each.hoverSound ||
         /scroll/.test(style.overflow ?? '')
     }
@@ -1190,9 +1234,16 @@ export class Drawing {
     this.paint(each)
     if (
       (each.tipped === 'text' && !each.tooltip) ||
-      (each.tipped === 'item' && each.item !== old?.item)
+      (each.tipped === 'item' && each.item !== old?.item) ||
+      (each.tipped === 'ability' &&
+        (each.ability !== old?.ability ||
+          each.abilityPlayer !== old.abilityPlayer))
     ) {
+      // What changed under the pointer shows at once.
       this.untip(each)
+      if (each.over) {
+        this.tip(each)
+      }
     }
 
     // A new panel eases from its enter style on the next frame, and a new

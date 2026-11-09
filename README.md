@@ -1304,8 +1304,11 @@ Style `panel`, `label`, `image`, `hero`, `button` and `layout` with:
   that the game animates eases to its new value instead of jumping.
 
 Any element takes `hover`, a style laid over its own while the pointer is on
-it, `tooltip`, text the game shows beside it, and `hoverSound`, a game sound
-event such as `'UI.MainMenu.Hover'`. A `button` also takes `sound`, played on
+it, `tooltip`, text the game shows beside it, `item`, an item's class name
+whose shop card shows instead, `ability`, `{ name, player }`, whose game window
+for that ability shows instead of either, in the player's language and with
+the numbers of `player`'s hero, and `hoverSound`, a game sound event such as
+`'UI.MainMenu.Hover'`. A `button` also takes `sound`, played on
 a press, and `disabled`, which stops its presses. An `image` takes `scaling`
 (`'fit'`, `'cover'`, `'stretch'`, `'fitWidth'`, `'fitHeight'`, `'none'`), and
 `<hero hero={15} look="card" />` draws the game's own picture of a hero, in the

@@ -73,10 +73,12 @@ const stock = new StockGuard(
 )
 // The game says the player is leaving as they ask to, and as it shuts the
 // map down; a server that just goes away says neither, and the guard's lease
-// runs out instead. Both events go on to other handlers.
+// runs out instead. Both events go on to other handlers, and close the
+// tooltips and windows the mods' panels opened.
 for (const event of ['CitadelDisconnectFromGame', 'GameSystemGameShutdown']) {
   $.RegisterForUnhandledEvent(event, () => {
     stock.leave()
+    drawing.untipAll()
     return false
   })
 }

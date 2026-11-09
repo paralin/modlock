@@ -15,7 +15,15 @@ import {
 } from '../../src/wasm/ui/ui.pb.js'
 import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
-import { Action, freeCursor, hideHud, jsx, sheet, show } from '../src/index.js'
+import {
+  Action,
+  freeCursor,
+  hideHud,
+  itemId,
+  jsx,
+  sheet,
+  show,
+} from '../src/index.js'
 import { Player } from '../src/host.gen.js'
 import { change } from '../src/ui.js'
 
@@ -124,6 +132,36 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
   show(player, score('Score  Leading'))
   const classed = sent.at(-1)!.change!.set!
   expect(classed.map((node) => node.classes)).toEqual([['Score', 'Leading']])
+})
+
+test("an ability names the game's window by its id and its hero's slot", () => {
+  // The window reads its numbers off the given player's hero.
+  const player = new Player(9)
+  const helper = new Player(0)
+  show(
+    player,
+    jsx('panel', {
+      ability: { name: 'ability_bebop_hook', player: helper },
+      children: jsx('panel', { tooltip: 'none' }),
+    }),
+  )
+  const nodes = sent.at(-1)!.change!.set!
+  const cell = nodes.find((node) => node.ability)!
+  expect(cell.ability).toBe(itemId('ability_bebop_hook'))
+  expect(cell.abilityPlayer ?? 0).toBe(0)
+  const plain = nodes.find((node) => node.tooltip === 'none')!
+  expect(plain.ability ?? 0).toBe(0)
+
+  // Another helper's slot rides the wire.
+  show(
+    player,
+    jsx('panel', {
+      ability: { name: 'ability_bebop_hook', player: new Player(5) },
+    }),
+  )
+  expect(
+    sent.at(-1)!.change!.set!.find((node) => node.ability)!.abilityPlayer,
+  ).toBe(5)
 })
 
 test("a style names the game's faces, edges, paint and motion on the wire", () => {

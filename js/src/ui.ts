@@ -339,6 +339,7 @@ export interface Props {
   readonly hover?: Style
   readonly tooltip?: string
   readonly item?: string
+  readonly ability?: AbilityTip
   readonly hoverSound?: string
   readonly children?: Child
   readonly src?: string
@@ -372,8 +373,9 @@ export interface Props {
  * ElementProps are the props every drawn element takes. hover is the style
  * drawn over style while the pointer is over the element; tooltip is the text
  * the game's tooltip shows then, item names an item by class name, such as
- * 'upgrade_ability_power_shard', whose shop card shows instead, and
- * hoverSound is the game's sound event played as the pointer enters, such as
+ * 'upgrade_ability_power_shard', whose shop card shows instead, ability names
+ * an ability whose window shows instead of either, and hoverSound is the
+ * game's sound event played as the pointer enters, such as
  * 'UI.MainMenu.Hover'. An element with any of them takes the pointer, so the
  * game behind it does not.
  */
@@ -384,6 +386,7 @@ export interface ElementProps {
   hover?: Style
   tooltip?: string
   item?: string
+  ability?: AbilityTip
   hoverSound?: string
   /** enter is the style the element's panel starts from when it first shows. */
   enter?: Style
@@ -391,6 +394,17 @@ export interface ElementProps {
   exit?: Style
   /** cycle swings the element to another style and back while it shows. */
   cycle?: Cycle
+}
+
+/**
+ * AbilityTip is the game's own window for an ability, in the player's
+ * language: name is the ability's class name, such as 'ability_bebop_hook',
+ * and player is whose hero the window reads its numbers from, a hero that
+ * stands on the map, such as a bot that plays it.
+ */
+export interface AbilityTip {
+  readonly name: string
+  readonly player: Player
 }
 
 /**
@@ -1051,6 +1065,8 @@ function place(layout: Layout, child: Child, at: string): string[] {
     hover: wireStyle(props.hover),
     tooltip: props.tooltip,
     item: props.item ? itemId(props.item) : undefined,
+    ability: props.ability?.name ? itemId(props.ability.name) : undefined,
+    abilityPlayer: props.ability?.name ? props.ability.player.slot : undefined,
     hoverSound: props.hoverSound,
     enter: wireStyle(props.enter),
     exit: wireStyle(props.exit),
