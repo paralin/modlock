@@ -14,8 +14,8 @@
 \* are empty once the server no longer lists the player, and a guest's Mirror
 \* is cleared when its stream from the host is lost (peernet/host.go watch).
 \* Hyperline's resident embeds the same Drawing and is left out here: its own
-\* StockHud.tla covers its lease, and it runs this guard's apply and restore
-\* under that lease.
+\* StockHud.tla covers its lease, and it runs this guard's HudParts, the same
+\* hide and restore, under that lease.
 \*
 \* Design "edge" is Modlock's Hud before the guard: it hides when a screen lists a part,
 \* sweeps every 0.1 s, and shows a part again only when a later screen, or the
@@ -67,7 +67,9 @@ Want == Allowed /\ claims
 
 \* Marked is what a restore can see: the guard's marks on the panels, which
 \* outlive the script that wrote them. The guard keeps no memory of its own;
-\* the edge design's Hud does.
+\* the edge design's Hud does. The whole HUD's marks are found by a walk the
+\* restore makes only while a mark on the HUD itself stands, which a hide sets
+\* first and a restore drops last, so every mark stays in sight.
 Marked == hidden
 
 \* Gate is whether a handler on a game panel acts: the guard's handlers act

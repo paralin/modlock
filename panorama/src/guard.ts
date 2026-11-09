@@ -249,6 +249,103 @@ export function restorePanel(panel: GuardPanel): void {
   if (panel.style.visibility === 'collapse') panel.style.visibility = null
 }
 
+/**
+ * ALL_MARK names the attribute on the game's HUD while a guard hides the
+ * whole HUD, so a restore walks it only then: the walk reaches thousands of
+ * panels, and a restore runs on every tick that hides nothing.
+ */
+export const ALL_MARK = 'modlock_hidden_all'
+
+/**
+ * HudParts hides and restores the game's HUD parts under one HUD, keeping the
+ * whole HUD's panels between walks. Modlock's StockGuard and Hyperline's
+ * resident each hold one, so both find, mark and give back the same panels.
+ */
+export class HudParts {
+  /** walked holds the whole HUD's panels from the last walk, and when. */
+  private walked: { panels: GuardPanel[]; at: number } | null = null
+
+  /**
+   * HudParts writes on hud's panels; now is the clock in seconds; HUD_PART_ALL
+   * leaves kept, such as the layout that runs the guard.
+   */
+  constructor(
+    private readonly hud: GuardPanel,
+    private readonly now: () => number,
+    private readonly kept: readonly GuardPanel[] = [],
+  ) {}
+
+  /** hide hides part's panels, the ones the game built since included. */
+  hide(part: HudPart): void {
+    if (
+      part === HudPart.ALL &&
+      this.hud.GetAttributeString(ALL_MARK, '') === ''
+    )
+      this.hud.SetAttributeString(ALL_MARK, '1')
+    for (const panel of this.find(part)) hidePanel(panel)
+  }
+
+  /**
+   * restore gives back every panel a mark on part's panels records, an
+   * earlier script's included.
+   */
+  restore(part: HudPart): void {
+    if (part === HudPart.ALL) {
+      // Walk the whole HUD only while a guard hides it, then drop the mark.
+      this.walked = null
+      if (this.hud.GetAttributeString(ALL_MARK, '') === '') return
+      for (const panel of everything(this.hud, this.scope(true)))
+        restorePanel(panel)
+      this.hud.SetAttributeString(ALL_MARK, '')
+      return
+    }
+    for (const panel of finders[part]?.(this.hud, this.scope(true)) ?? [])
+      restorePanel(panel)
+  }
+
+  /** restoreAll gives back every part's panels. */
+  restoreAll(): void {
+    for (const part of Object.keys(finders)) this.restore(Number(part))
+  }
+
+  /** scope is what a finder knows beyond the HUD. */
+  private scope(restoring: boolean): Scope {
+    return { kept: this.kept, restoring }
+  }
+
+  /**
+   * find returns part's panels to hide. The whole HUD's are kept from the
+   * last walk while they are valid and newer than WALK_SECONDS; a walk that
+   * no longer finds a panel the last one did, which now holds a panel that
+   * stays, gives it back.
+   */
+  private find(part: HudPart): GuardPanel[] {
+    // Find every other part afresh.
+    if (part !== HudPart.ALL)
+      return finders[part]?.(this.hud, this.scope(false)) ?? []
+
+    // Keep the last walk while it is new and whole.
+    const now = this.now()
+    const last = this.walked
+    if (
+      last &&
+      now - last.at < WALK_SECONDS &&
+      last.panels.every((panel) => panel.IsValid())
+    ) {
+      return last.panels
+    }
+
+    // Walk again, giving back what the walk no longer hides.
+    const panels = everything(this.hud, this.scope(false))
+    const found = new Set(panels)
+    for (const panel of last?.panels ?? []) {
+      if (!found.has(panel) && panel.IsValid()) restorePanel(panel)
+    }
+    this.walked = { panels, at: now }
+    return panels
+  }
+}
+
 /** StockGuard hides the game's HUD parts the live screen claims. */
 export class StockGuard {
   /** claims are the parts the last screen's roots hide. */
@@ -261,8 +358,8 @@ export class StockGuard {
   private left = false
   /** ticking records that a tick is scheduled. */
   private ticking = false
-  /** walked holds the whole HUD's panels from the last walk, and when. */
-  private walked: { panels: GuardPanel[]; at: number } | null = null
+  /** parts finds and writes the HUD's parts. */
+  private readonly parts: HudParts
 
   /**
    * The guard writes on hud's panels, on host's clock; HUD_PART_ALL leaves
@@ -271,15 +368,12 @@ export class StockGuard {
   constructor(
     private readonly hud: GuardPanel,
     private readonly host: GuardHost,
-    private readonly kept: readonly GuardPanel[] = [],
+    kept: readonly GuardPanel[] = [],
   ) {
     // A guard before this one may have left its marks; nothing is allowed
     // yet, so they all go.
-    for (const find of Object.values(finders)) {
-      for (const panel of find(hud, { kept, restoring: true })) {
-        restorePanel(panel)
-      }
-    }
+    this.parts = new HudParts(hud, () => host.now(), kept)
+    this.parts.restoreAll()
   }
 
   /** screen takes a screen's claims; null is a relay that ended. */
@@ -328,15 +422,10 @@ export class StockGuard {
     // Show what is no longer wanted, then hide what is.
     const want = this.allowed() ? this.claims : new Set<HudPart>()
     for (const part of this.applied) {
-      if (!want.has(part)) {
-        for (const panel of this.find(part, true)) restorePanel(panel)
-      }
+      if (!want.has(part)) this.parts.restore(part)
     }
-    for (const part of want) {
-      for (const panel of this.find(part, false)) hidePanel(panel)
-    }
+    for (const part of want) this.parts.hide(part)
     this.applied = new Set(want)
-    if (!want.has(HudPart.ALL)) this.walked = null
 
     // Tick while a part is hidden, to hide it again or give it back.
     if (this.applied.size !== 0 && !this.ticking) {
@@ -346,39 +435,5 @@ export class StockGuard {
         this.tick()
       })
     }
-  }
-
-  /**
-   * find returns part's panels. The whole HUD's are kept from the last walk
-   * while they are valid and newer than WALK_SECONDS; a walk that no longer
-   * finds a panel the last one did, which now holds a panel that stays,
-   * gives it back.
-   */
-  private find(part: HudPart, restoring: boolean): GuardPanel[] {
-    // Find every other part, and every restore, afresh.
-    const scope = { kept: this.kept, restoring }
-    if (part !== HudPart.ALL || restoring) {
-      return finders[part]!(this.hud, scope)
-    }
-
-    // Keep the last walk while it is new and whole.
-    const now = this.host.now()
-    const last = this.walked
-    if (
-      last &&
-      now - last.at < WALK_SECONDS &&
-      last.panels.every((panel) => panel.IsValid())
-    ) {
-      return last.panels
-    }
-
-    // Walk again, giving back what the walk no longer hides.
-    const panels = finders[part]!(this.hud, scope)
-    const found = new Set(panels)
-    for (const panel of last?.panels ?? []) {
-      if (!found.has(panel) && panel.IsValid()) restorePanel(panel)
-    }
-    this.walked = { panels, at: now }
-    return panels
   }
 }

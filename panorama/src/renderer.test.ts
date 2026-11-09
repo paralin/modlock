@@ -1,7 +1,7 @@
 import type { JsonObject } from '@aptre/protobuf-es-lite'
 import { beforeEach, expect, test } from 'bun:test'
 
-import { Screen } from '../../src/wasm/ui/ui.pb.js'
+import { HudPart, Screen } from '../../src/wasm/ui/ui.pb.js'
 import { Bridge } from './bridge.js'
 import {
   AddonLayouts,
@@ -11,8 +11,10 @@ import {
   layoutDataChanged,
 } from './draw.js'
 import {
+  ALL_MARK,
   CONNECTED_TO_HIDEOUT,
   HIDDEN_MARK,
+  HudParts,
   LEASE_SECONDS,
   StockGuard,
   WALK_SECONDS,
@@ -1193,13 +1195,47 @@ test('hides the whole HUD but the interfaces and tooltips that stay', () => {
 })
 
 test('a reloaded guard finds every mark the whole HUD walk passes', () => {
-  // A marked panel no finder names any more, deep in the HUD, comes back.
+  // A guard that hid the whole HUD marks it; a marked panel no finder names
+  // any more, deep in the HUD, comes back, and the HUD's mark goes.
   const hud = gameHud()
+  hud.game.attributes.set(ALL_MARK, '1')
   hud.held.visible = false
   hud.held.attributes.set(HIDDEN_MARK, 'shown')
   new StockGuard(hud.game, clock())
   expect(hud.held.visible).toBe(true)
   expect(hud.held.attributes.get(HIDDEN_MARK)).toBe('')
+  expect(hud.game.attributes.get(ALL_MARK)).toBe('')
+})
+
+test('a restore walks the whole HUD only while a guard hides it', () => {
+  // Count the reads of the HUD's children, which only a walk makes.
+  const hud = gameHud()
+  let walks = 0
+  const count = hud.game.GetChildCount.bind(hud.game)
+  hud.game.GetChildCount = () => (walks++, count())
+
+  // With no mark on the HUD, a guard starting and a restore walk nothing.
+  const parts = new HudParts(hud.game, () => 0)
+  new StockGuard(hud.game, clock())
+  parts.restoreAll()
+  expect(walks).toBe(0)
+
+  // Hiding the whole HUD marks it; giving it back walks and unmarks it, and
+  // the next restore walks nothing.
+  parts.hide(HudPart.ALL)
+  expect(hud.game.attributes.get(ALL_MARK)).toBe('1')
+  expect(hud.souls.visible).toBe(false)
+  parts.restore(HudPart.ALL)
+  expect(hud.souls.visible).toBe(true)
+  expect(hud.game.attributes.get(ALL_MARK)).toBe('')
+  walks = 0
+  parts.restoreAll()
+  expect(walks).toBe(0)
+
+  // Hidden again at once, it walks again and hides a panel added since.
+  const added = hud.add(hud.game, 'Added')
+  parts.hide(HudPart.ALL)
+  expect(added.visible).toBe(false)
 })
 
 test('loads layouts and style sheets a host allows and hands them data', () => {
