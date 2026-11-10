@@ -8,13 +8,10 @@
 // keep are in ../StockGuard.tla.
 
 import { type AbilityRow, HudPart } from '../../src/wasm/ui/ui.pb.js'
-import {
-  AbilityDisplay,
-  barIcons,
-  children,
-  type DisplayHost,
-  pipsOf,
-} from './abilities.js'
+import { children } from './abilities.js'
+import { type AbilityHost, AbilityHud } from './ability-hud.js'
+
+export { BAR_GATE, BAR_MARK, SAME_CLICK_SECONDS } from './ability-hud.js'
 
 /** GuardPanel is the part of a game panel the guard uses. */
 export interface GuardPanel {
@@ -37,34 +34,11 @@ export interface GuardPanel {
   DeleteAsync(seconds: number): void
 }
 
-/** GuardHost is the guard's clock, and what its ability display reaches. */
-export interface GuardHost extends DisplayHost {
+/** GuardHost is the guard's clock, and what its ability bar and display reach. */
+export interface GuardHost extends AbilityHost {
   /** Schedule runs callback once after seconds, as $.Schedule does. */
   Schedule(seconds: number, callback: () => void): void
-  /** now returns the time in seconds. */
-  now(): number
-  /**
-   * listen runs handler on each Activated event of panel, as
-   * $.RegisterEventHandler does. The handler stays on the panel after the
-   * script ends.
-   */
-  listen(panel: GuardPanel, handler: () => void): void
-  /** press sends mod a press of node, as the renderer's buttons do. */
-  press(mod: string, node: string): void
 }
-
-/**
- * BAR_GATE names the attribute on the game's HUD that holds the token of the
- * guard whose handlers on the ability bar and Tab act. Each guard writes its
- * own as it starts, so a handler an earlier script left does nothing.
- */
-export const BAR_GATE = 'modlock_bar_gate'
-
-/** BAR_MARK names the attribute on a bar panel that holds the token of the guard listening on it. */
-export const BAR_MARK = 'modlock_bar'
-
-/** SAME_CLICK_SECONDS joins the clicks on a slot's icon and its pips: one click reaches both. */
-export const SAME_CLICK_SECONDS = 0.2
 
 /**
  * HIDDEN_MARK names the attribute on each panel the guard hid: "shown" when
@@ -383,20 +357,8 @@ export class StockGuard {
   private ticking = false
   /** parts finds and writes the HUD's parts. */
   private readonly parts: HudParts
-  /** presses are the mods whose roots ask for clicks on the ability bar. */
-  private presses: readonly string[] = []
-  /** token tells this guard's bar handlers from an earlier script's. */
-  private readonly token: string
-  /** bar holds the bar's panels from the last look, and when. */
-  private bar: { panels: GuardPanel[]; at: number } | null = null
-  /** clickedAt holds when each slot's last click was sent. */
-  private readonly clickedAt = new Map<number, number>()
-  /** rows are the ability display's rows the last screen's roots name. */
-  private rows: readonly AbilityRow[] = []
-  /** display draws the rows on Tab and the bar. */
-  private readonly display: AbilityDisplay
-  /** displayed records that the last tick drew the rows. */
-  private displayed = false
+  /** abilities listens on the ability bar and draws the ability display. */
+  private readonly abilities: AbilityHud
 
   /**
    * The guard writes on hud's panels, on host's clock; HUD_PART_ALL leaves
@@ -412,19 +374,11 @@ export class StockGuard {
     this.parts = new HudParts(hud, () => host.now(), kept)
     this.parts.restoreAll()
 
-    // Handlers an earlier guard left on the bar and Tab act no more.
-    this.token = `${host.now()}:${Math.random()}`
-    hud.SetAttributeString(BAR_GATE, this.token)
-
-    // What an earlier guard drew on Tab and the bar goes too.
-    this.display = new AbilityDisplay(
-      hud,
-      host,
-      () => host.now(),
-      WALK_SECONDS,
-      () => this.live(),
+    // Handlers an earlier guard left on the bar and Tab act no more, and
+    // what it drew there goes too.
+    this.abilities = new AbilityHud(hud, host, WALK_SECONDS, () =>
+      this.allowed(),
     )
-    this.display.restore()
   }
 
   /**
@@ -439,8 +393,7 @@ export class StockGuard {
   ): void {
     // Take the claims and renew the lease, then reconcile.
     this.claims = new Set([...(parts ?? [])].filter((part) => finders[part]))
-    this.presses = presses
-    this.rows = rows
+    this.abilities.take(presses, rows)
     this.titleAt = this.host.now()
     this.left = false
     this.tick()
@@ -488,80 +441,19 @@ export class StockGuard {
     }
     for (const part of want) this.parts.hide(part)
     this.applied = new Set(want)
-    const listening = this.allowed() && this.presses.length !== 0
-    if (listening) this.listen()
 
-    // Draw the display's rows, or give back what it drew.
-    const displaying = this.allowed() && this.rows.length !== 0
-    if (displaying) this.display.draw(this.rows)
-    else if (this.displayed) this.display.restore()
-    this.displayed = displaying
+    // Listen on the bar and draw the display's rows, or give them back.
+    const abilities = this.abilities.apply()
 
-    // Tick while a part is hidden, to hide it again or give it back, while
-    // a mod asks for the bar, to listen on panels the game rebuilt, and
-    // while rows are drawn, to draw them on panels the game rebuilt.
-    if ((this.applied.size !== 0 || listening || displaying) && !this.ticking) {
+    // Tick while a part is hidden, to hide it again or give it back, and
+    // while a mod asks for the bar or rows are drawn, to reach panels the
+    // game rebuilt.
+    if ((this.applied.size !== 0 || abilities) && !this.ticking) {
       this.ticking = true
       this.host.Schedule(TICK_SECONDS, () => {
         this.ticking = false
         this.tick()
       })
     }
-  }
-
-  /**
-   * listen puts this guard's handler on each icon and upgrade pips of the
-   * ability bar that lacks one. The bar's panels are kept between looks while
-   * they are valid and newer than WALK_SECONDS.
-   */
-  private listen(): void {
-    // Keep the last look while it is new and whole.
-    const now = this.host.now()
-    const last = this.bar
-    if (
-      last &&
-      now - last.at < WALK_SECONDS &&
-      last.panels.every((panel) => panel.IsValid())
-    )
-      return
-
-    // Find each slot's icon by its id, and its pips by where they sit.
-    const icons = barIcons(this.hud)
-    const panels: GuardPanel[] = []
-    for (const icon of icons) {
-      const slot = Number(icon.id.slice(-1)) - 1
-      for (const panel of [icon, pipsOf(icon)]) {
-        if (!panel) continue
-        panels.push(panel)
-        if (panel.GetAttributeString(BAR_MARK, '') === this.token) continue
-        panel.SetAttributeString(BAR_MARK, this.token)
-        this.host.listen(panel, () => this.clicked(slot))
-      }
-    }
-    this.bar = { panels, at: now }
-  }
-
-  /**
-   * live reports whether this guard's handlers on game panels act: it is the
-   * guard the gate names, and allowed.
-   */
-  private live(): boolean {
-    return (
-      this.hud.GetAttributeString(BAR_GATE, '') === this.token && this.allowed()
-    )
-  }
-
-  /**
-   * clicked sends a click on slot's icon or pips as a press to each mod that
-   * asks, once per click, while this guard is the live one and allowed.
-   */
-  private clicked(slot: number): void {
-    // Act only as the live guard while allowed, once per click.
-    if (!this.live()) return
-    const now = this.host.now()
-    if (now - (this.clickedAt.get(slot) ?? -Infinity) < SAME_CLICK_SECONDS)
-      return
-    this.clickedAt.set(slot, now)
-    for (const mod of this.presses) this.host.press(mod, `ability:${slot}`)
   }
 }
