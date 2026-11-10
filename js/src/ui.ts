@@ -75,6 +75,7 @@
 
 import { itemId } from './item-id.js'
 import {
+  type AbilityRow as WireAbilityRow,
   Align,
   type Change,
   type Cue,
@@ -101,8 +102,10 @@ import {
   UiRequest,
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
+import { heroes } from './heroes.js'
 import { type Player, readField, type Wheel } from './host.gen.js'
 import { call } from './host.js'
+import { players } from './players.js'
 
 /**
  * Length is a size: pixels, a percentage of the parent, 'fit' to size to the
@@ -672,6 +675,70 @@ export function abilityBarPresses(
   return draw(player)
 }
 
+/** ShownAbility is the ability abilityDisplay shows in one slot. */
+export interface ShownAbility {
+  /** name is the ability's class name, whose window the game shows over it. */
+  readonly name: string
+  /** image is its picture, a path in the game's content as an image's src. */
+  readonly image: string
+  /** upgrades holds its bought tiers as Ability.upgrades: bit 0 unlocks it. */
+  readonly upgrades?: number
+}
+
+/** AbilityRow is the four abilities, in slot order, shown for one player. */
+export interface AbilityRow {
+  readonly player: Player
+  /** abilities holds slots 0 to 3; an undefined slot shows the game's own. */
+  readonly abilities: readonly (ShownAbility | undefined)[]
+}
+
+/**
+ * abilityDisplay shows viewer each row's abilities in place of the ones the
+ * game shows for that player's hero: on the player's row of the game's Tab
+ * screen, and for viewer's own row on viewer's ability bar too, in the game's
+ * frame, ring and pips, with the game's ability window over each. The game
+ * draws these from the hero's standard abilities, so one replaceAbility gave
+ * shows as the ability it replaced. Without rows the game's own come back,
+ * as they do when viewer leaves or the session ends. Rows match the Tab
+ * screen's by the player's name and else by the hero's, which a bot's row
+ * shows, so each row's player should have a hero.
+ */
+export function abilityDisplay(
+  viewer: Player,
+  rows: readonly AbilityRow[] = [],
+): boolean {
+  views.set(viewer.slot, { ...view(viewer), display: rows.slice(0, 64) })
+  return draw(viewer)
+}
+
+/**
+ * displayRows puts rows on the wire for viewer, with each player's name and
+ * hero as the Tab screen shows them now.
+ */
+function displayRows(
+  viewer: Player,
+  rows: readonly AbilityRow[],
+): WireAbilityRow[] {
+  // Read the names once, and each hero's class from its id.
+  if (rows.length === 0) return []
+  const names = new Map(players().map((c) => [c.player.slot, c.name]))
+  return rows.map((row) => {
+    const hero = row.player.pawn()?.hero
+    return {
+      player: row.player.slot,
+      // A Steam name is at most 32 characters, within the host's 128 bytes.
+      name: (names.get(row.player.slot) ?? '').slice(0, 32),
+      hero: heroes.find((each) => each.id === hero)?.name ?? '',
+      own: row.player.slot === viewer.slot,
+      abilities: row.abilities.slice(0, 4).map((shown) => ({
+        ability: shown?.name ? itemId(shown.name) : 0,
+        image: shown?.image ?? '',
+        upgrades: shown?.upgrades ?? 0,
+      })),
+    }
+  })
+}
+
 /** abilityBarNode matches the node of a click on the game's ability bar. */
 const abilityBarNode = /^ability:([0-3])$/
 
@@ -855,6 +922,8 @@ interface View {
   readonly cues: readonly Cue[]
   /** bar takes clicks on the game's ability bar, while the mod asks for them. */
   readonly bar: { readonly handler: AbilityBarHandler } | undefined
+  /** display is the abilities shown on Tab's rows and the ability bar. */
+  readonly display: readonly AbilityRow[]
   notices: readonly Notice[]
 }
 
@@ -905,6 +974,7 @@ function view(player: Player): View {
       routes: new Map(),
       cues: [],
       bar: undefined,
+      display: [],
       notices: [],
     }
   )
@@ -920,6 +990,7 @@ function draw(player: Player): boolean {
   ]
   const previous = screens.get(player.slot)
   const hud = current.hud.map((part) => hudParts[part])
+  const display = displayRows(player, current.display)
   const next = render(
     previous,
     root,
@@ -929,6 +1000,7 @@ function draw(player: Player): boolean {
     current.routes,
     current.cues,
     current.bar !== undefined,
+    display,
   )
   const change = diff(previous, next)
 
@@ -944,6 +1016,7 @@ function draw(player: Player): boolean {
       current.routes,
       current.cues,
       current.bar !== undefined,
+      display,
     )
     if (!send(player.slot, diff(undefined, whole)!)) {
       screens.delete(player.slot)
@@ -1039,6 +1112,7 @@ function render(
   routes: ReadonlyMap<string, string>,
   cues: readonly Cue[],
   bar: boolean,
+  display: readonly WireAbilityRow[],
 ): Screen {
   // The root is the full-screen panel the elements hang from, and it lists
   // the parts of the game's HUD to hide, whether the cursor is free, the
@@ -1054,6 +1128,7 @@ function render(
     sheets: [...sheets],
     cues: [...cues],
     abilityBarPresses: bar,
+    abilityDisplay: [...display],
   })
 
   // A route's id holds a colon, which no element's id does.

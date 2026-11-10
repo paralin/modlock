@@ -845,6 +845,15 @@ type Node struct {
 	// the game's HUD, so a handler left by an ended session sends nothing. Only
 	// the root's flag counts.
 	AbilityBarPresses bool `protobuf:"varint,37,opt,name=ability_bar_presses,json=abilityBarPresses,proto3" json:"abilityBarPresses,omitempty"`
+	// AbilityDisplay shows abilities in place of the ones the game shows for a
+	// player's hero: on that player's row of the game's Tab screen, and for the
+	// row marked own, on the player's own ability bar too. The game draws those
+	// from the hero's standard abilities by slot, so an ability the mod gave
+	// with replaceAbility shows as the one it replaced. The renderer's stock
+	// guard draws them in the game's own frame, ring and pips, opens the game's
+	// ability window for them, and gives the game's own back once the screen
+	// stops asking or it may no longer hold the HUD. Only the root's rows count.
+	AbilityDisplay []*AbilityRow `protobuf:"bytes,38,rep,name=ability_display,json=abilityDisplay,proto3" json:"abilityDisplay,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1119,6 +1128,13 @@ func (x *Node) GetAbilityBarPresses() bool {
 	return false
 }
 
+func (x *Node) GetAbilityDisplay() []*AbilityRow {
+	if x != nil {
+		return x.AbilityDisplay
+	}
+	return nil
+}
+
 type isNode_Input interface {
 	isNode_Input()
 }
@@ -1146,6 +1162,106 @@ func (*Node_Slider) isNode_Input() {}
 func (*Node_Toggle) isNode_Input() {}
 
 func (*Node_Dropdown) isNode_Input() {}
+
+// AbilityRow is one player's abilities, as AbilityDisplay shows them.
+type AbilityRow struct {
+	unknownFields []byte
+	// Player is the player's slot, whose hero the ability window reads its
+	// numbers from.
+	Player uint32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Name is the player's name, which matches the player's Tab row.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Hero is the class name of the player's hero, such as hero_atlas, which
+	// matches a bot's row: a bot's row shows its hero's name in place of one.
+	Hero string `protobuf:"bytes,3,opt,name=hero,proto3" json:"hero,omitempty"`
+	// Own marks the row of the player whose screen this is; its abilities go on
+	// the ability bar as well.
+	Own bool `protobuf:"varint,4,opt,name=own,proto3" json:"own,omitempty"`
+	// Abilities holds the four ability slots in order, at most four.
+	Abilities []*ShownAbility `protobuf:"bytes,5,rep,name=abilities,proto3" json:"abilities,omitempty"`
+}
+
+func (x *AbilityRow) Reset() {
+	*x = AbilityRow{}
+}
+
+func (*AbilityRow) ProtoMessage() {}
+
+func (x *AbilityRow) GetPlayer() uint32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *AbilityRow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AbilityRow) GetHero() string {
+	if x != nil {
+		return x.Hero
+	}
+	return ""
+}
+
+func (x *AbilityRow) GetOwn() bool {
+	if x != nil {
+		return x.Own
+	}
+	return false
+}
+
+func (x *AbilityRow) GetAbilities() []*ShownAbility {
+	if x != nil {
+		return x.Abilities
+	}
+	return nil
+}
+
+// ShownAbility is the ability AbilityDisplay shows in one slot.
+type ShownAbility struct {
+	unknownFields []byte
+	// Ability is the ability's id, as Node.ability, whose window the game shows
+	// over it; zero shows none.
+	Ability uint32 `protobuf:"varint,1,opt,name=ability,proto3" json:"ability,omitempty"`
+	// Image is the ability's picture, a path in the game's content as
+	// Node.image is. Without one, the slot shows the game's own ability.
+	Image string `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
+	// Upgrades holds the bought tiers, as Ability.upgrades does: bit 0 unlocks
+	// it and bits 1 to 3 are its upgrades.
+	Upgrades uint32 `protobuf:"varint,3,opt,name=upgrades,proto3" json:"upgrades,omitempty"`
+}
+
+func (x *ShownAbility) Reset() {
+	*x = ShownAbility{}
+}
+
+func (*ShownAbility) ProtoMessage() {}
+
+func (x *ShownAbility) GetAbility() uint32 {
+	if x != nil {
+		return x.Ability
+	}
+	return 0
+}
+
+func (x *ShownAbility) GetImage() string {
+	if x != nil {
+		return x.Image
+	}
+	return ""
+}
+
+func (x *ShownAbility) GetUpgrades() uint32 {
+	if x != nil {
+		return x.Upgrades
+	}
+	return 0
+}
 
 // Cue is one sound played to one player.
 type Cue struct {
@@ -2610,6 +2726,7 @@ func (m *Node) CloneVT() *Node {
 	r.Classes = protobuf_go_lite.CloneSlice(m.Classes)
 	r.Sheets = protobuf_go_lite.CloneSlice(m.Sheets)
 	r.Cues = protobuf_go_lite.CloneVTSlice(m.Cues)
+	r.AbilityDisplay = protobuf_go_lite.CloneVTSlice(m.AbilityDisplay)
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = slices.Clone(m.unknownFields)
 	}
@@ -2669,6 +2786,44 @@ func (m *Node_Dropdown) CloneVT() *Node_Dropdown {
 }
 
 func (m *Node_Dropdown) CloneOneofVT() isNode_Input {
+	return m.CloneVT()
+}
+
+func (m *AbilityRow) CloneVT() *AbilityRow {
+	if m == nil {
+		return (*AbilityRow)(nil)
+	}
+	r := new(AbilityRow)
+	r.Player = m.Player
+	r.Name = m.Name
+	r.Hero = m.Hero
+	r.Own = m.Own
+	r.Abilities = protobuf_go_lite.CloneVTSlice(m.Abilities)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *AbilityRow) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
+func (m *ShownAbility) CloneVT() *ShownAbility {
+	if m == nil {
+		return (*ShownAbility)(nil)
+	}
+	r := new(ShownAbility)
+	r.Ability = m.Ability
+	r.Image = m.Image
+	r.Upgrades = m.Upgrades
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *ShownAbility) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
@@ -3348,6 +3503,9 @@ func (this *Node) EqualVT(that *Node) bool {
 	if this.AbilityBarPresses != that.AbilityBarPresses {
 		return false
 	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.AbilityDisplay, that.AbilityDisplay, func() *AbilityRow { return &AbilityRow{} }) {
+		return false
+	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
 
@@ -3425,6 +3583,64 @@ func (this *Node_Dropdown) EqualVT(thatIface isNode_Input) bool {
 		return false
 	}
 	return true
+}
+
+func (this *AbilityRow) EqualVT(that *AbilityRow) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Hero != that.Hero {
+		return false
+	}
+	if this.Own != that.Own {
+		return false
+	}
+	if !protobuf_go_lite.EqualVTSliceImplicit(this.Abilities, that.Abilities, func() *ShownAbility { return &ShownAbility{} }) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AbilityRow) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*AbilityRow)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *ShownAbility) EqualVT(that *ShownAbility) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Ability != that.Ability {
+		return false
+	}
+	if this.Image != that.Image {
+		return false
+	}
+	if this.Upgrades != that.Upgrades {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ShownAbility) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*ShownAbility)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
 }
 
 func (this *Cue) EqualVT(that *Cue) bool {
@@ -5083,6 +5299,17 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		s.WriteObjectField("abilityBarPresses")
 		s.WriteBool(x.AbilityBarPresses)
 	}
+	if len(x.AbilityDisplay) > 0 || s.HasField("abilityDisplay") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("abilityDisplay")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.AbilityDisplay {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("abilityDisplay"))
+		}
+		s.WriteArrayEnd()
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5297,12 +5524,183 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 		case "ability_bar_presses", "abilityBarPresses":
 			s.AddField("ability_bar_presses")
 			x.AbilityBarPresses = s.ReadBool()
+		case "ability_display", "abilityDisplay":
+			s.AddField("ability_display")
+			if s.ReadNil() {
+				x.AbilityDisplay = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.AbilityDisplay = append(x.AbilityDisplay, nil)
+					return
+				}
+				v := &AbilityRow{}
+				v.UnmarshalProtoJSON(s.WithField("ability_display", false))
+				if s.Err() != nil {
+					return
+				}
+				x.AbilityDisplay = append(x.AbilityDisplay, v)
+			})
 		}
 	})
 }
 
 // UnmarshalJSON unmarshals the Node from JSON.
 func (x *Node) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the AbilityRow message to JSON.
+func (x *AbilityRow) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteUint32(x.Player)
+	}
+	if x.Name != "" || s.HasField("name") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("name")
+		s.WriteString(x.Name)
+	}
+	if x.Hero != "" || s.HasField("hero") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("hero")
+		s.WriteString(x.Hero)
+	}
+	if x.Own || s.HasField("own") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("own")
+		s.WriteBool(x.Own)
+	}
+	if len(x.Abilities) > 0 || s.HasField("abilities") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("abilities")
+		s.WriteArrayStart()
+		var wroteElement bool
+		for _, element := range x.Abilities {
+			s.WriteMoreIf(&wroteElement)
+			element.MarshalProtoJSON(s.WithField("abilities"))
+		}
+		s.WriteArrayEnd()
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the AbilityRow to JSON.
+func (x *AbilityRow) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the AbilityRow message from JSON.
+func (x *AbilityRow) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadUint32()
+		case "name":
+			s.AddField("name")
+			x.Name = s.ReadString()
+		case "hero":
+			s.AddField("hero")
+			x.Hero = s.ReadString()
+		case "own":
+			s.AddField("own")
+			x.Own = s.ReadBool()
+		case "abilities":
+			s.AddField("abilities")
+			if s.ReadNil() {
+				x.Abilities = nil
+				return
+			}
+			s.ReadArray(func() {
+				if s.ReadNil() {
+					x.Abilities = append(x.Abilities, nil)
+					return
+				}
+				v := &ShownAbility{}
+				v.UnmarshalProtoJSON(s.WithField("abilities", false))
+				if s.Err() != nil {
+					return
+				}
+				x.Abilities = append(x.Abilities, v)
+			})
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the AbilityRow from JSON.
+func (x *AbilityRow) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the ShownAbility message to JSON.
+func (x *ShownAbility) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Ability != 0 || s.HasField("ability") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("ability")
+		s.WriteUint32(x.Ability)
+	}
+	if x.Image != "" || s.HasField("image") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("image")
+		s.WriteString(x.Image)
+	}
+	if x.Upgrades != 0 || s.HasField("upgrades") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("upgrades")
+		s.WriteUint32(x.Upgrades)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the ShownAbility to JSON.
+func (x *ShownAbility) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the ShownAbility message from JSON.
+func (x *ShownAbility) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "ability":
+			s.AddField("ability")
+			x.Ability = s.ReadUint32()
+		case "image":
+			s.AddField("image")
+			x.Image = s.ReadString()
+		case "upgrades":
+			s.AddField("upgrades")
+			x.Upgrades = s.ReadUint32()
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the ShownAbility from JSON.
+func (x *ShownAbility) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -7253,6 +7651,20 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		}
 		i -= size
 	}
+	if len(m.AbilityDisplay) > 0 {
+		for iNdEx := len(m.AbilityDisplay) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.AbilityDisplay[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2
+			i--
+			dAtA[i] = 0xb2
+		}
+	}
 	if m.AbilityBarPresses {
 		i = protobuf_go_lite.EncodeBool(dAtA, i, m.AbilityBarPresses)
 		i--
@@ -7613,6 +8025,117 @@ func (m *Node_Dropdown) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		dAtA[i] = 0x1
 		i--
 		dAtA[i] = 0xb2
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AbilityRow) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AbilityRow) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *AbilityRow) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if len(m.Abilities) > 0 {
+		for iNdEx := len(m.Abilities) - 1; iNdEx >= 0; iNdEx-- {
+			size, err := m.Abilities[iNdEx].MarshalToSizedBufferVT(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if m.Own {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.Own)
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.Hero) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Hero)
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Name) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Name)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ShownAbility) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ShownAbility) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *ShownAbility) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Upgrades != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Upgrades))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Image) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Image)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Ability != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Ability))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -9254,6 +9777,10 @@ func (m *Node) SizeVT() (n int) {
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
 	n += protobuf_go_lite.SizeBoolNonZero(2, m.AbilityBarPresses)
+	for _, e := range m.AbilityDisplay {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(2, l)
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -9315,6 +9842,37 @@ func (m *Node_Dropdown) SizeVT() (n int) {
 	} else {
 		n += 3
 	}
+	return n
+}
+
+func (m *AbilityRow) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Name)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Hero)
+	n += protobuf_go_lite.SizeBoolNonZero(1, m.Own)
+	for _, e := range m.Abilities {
+		l = e.SizeVT()
+		n += protobuf_go_lite.SizeMessage(1, l)
+	}
+	n += len(m.unknownFields)
+	return n
+}
+
+func (m *ShownAbility) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Ability)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Image)
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Upgrades)
+	n += len(m.unknownFields)
 	return n
 }
 
@@ -10079,10 +10637,82 @@ func (x *Node) MarshalProtoText() string {
 		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability_bar_presses")
 		protobuf_go_lite.TextWriteBool(&sb, x.AbilityBarPresses)
 	}
+	if len(x.AbilityDisplay) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "ability_display")
+		for i, v := range x.AbilityDisplay {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &AbilityRow{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
 
 func (x *Node) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *AbilityRow) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "AbilityRow")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteUint(&sb, x.Player)
+	}
+	if x.Name != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "name")
+		protobuf_go_lite.TextWriteString(&sb, x.Name)
+	}
+	if x.Hero != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "hero")
+		protobuf_go_lite.TextWriteString(&sb, x.Hero)
+	}
+	if x.Own != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "own")
+		protobuf_go_lite.TextWriteBool(&sb, x.Own)
+	}
+	if len(x.Abilities) > 0 {
+		protobuf_go_lite.TextWriteListStart(&sb, initialLen, "abilities")
+		for i, v := range x.Abilities {
+			protobuf_go_lite.TextWriteListSeparator(&sb, i)
+			if v == nil {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, &ShownAbility{})
+			} else {
+				protobuf_go_lite.TextWriteTextMarshaler(&sb, v)
+			}
+		}
+		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *AbilityRow) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *ShownAbility) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "ShownAbility")
+	if x.Ability != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability")
+		protobuf_go_lite.TextWriteUint(&sb, x.Ability)
+	}
+	if x.Image != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "image")
+		protobuf_go_lite.TextWriteString(&sb, x.Image)
+	}
+	if x.Upgrades != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "upgrades")
+		protobuf_go_lite.TextWriteUint(&sb, x.Upgrades)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *ShownAbility) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -11326,6 +11956,185 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.AbilityBarPresses = bool(v)
+		case 38:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AbilityDisplay", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.AbilityDisplay = append(m.AbilityDisplay, &AbilityRow{})
+			if err := m.AbilityDisplay[len(m.AbilityDisplay)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *AbilityRow) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AbilityRow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AbilityRow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Name = v
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hero", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Hero = v
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Own", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Own = bool(v)
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Abilities", wireType)
+			}
+			msgStart, postIndex, err := protobuf_go_lite.DecodeLengthDelimited(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Abilities = append(m.Abilities, &ShownAbility{})
+			if err := m.Abilities[len(m.Abilities)-1].UnmarshalVT(dAtA[msgStart:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *ShownAbility) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ShownAbility: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ShownAbility: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ability", wireType)
+			}
+			m.Ability = 0
+			m.Ability, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Image = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Upgrades", wireType)
+			}
+			m.Upgrades = 0
+			m.Upgrades, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

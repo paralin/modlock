@@ -13,10 +13,15 @@ import {
   UiRequest,
   Weight,
 } from '../../src/wasm/ui/ui.pb.js'
+import {
+  PawnResponse,
+  PlayerRequest,
+} from '../../src/wasm/players/players.pb.js'
 import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
 import {
   abilityBarPresses,
+  abilityDisplay,
   Action,
   freeCursor,
   hideHud,
@@ -27,14 +32,28 @@ import {
   uiSound,
 } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
+import { keepPlayers } from '../src/players.js'
 import { change, press } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
-// records it.
+// records it. The stand-in game's pawns are slot 2's Atlas and slot 3's Bebop.
 const sent: UiRequest[] = []
+const heroOf = new Map([
+  [2, 6],
+  [3, 15],
+])
 bind((encoded) => {
   const call = Call.fromBinary(encoded)
   if (call.method === 'Ui') sent.push(UiRequest.fromBinary(call.request))
+  if (call.method === 'Pawn') {
+    const slot = PlayerRequest.fromBinary(call.request).player ?? 0
+    const hero = heroOf.get(slot)
+    return Reply.toBinary({
+      response: PawnResponse.toBinary({
+        pawn: hero === undefined ? undefined : { entity: 100 + slot, hero },
+      }),
+    })
+  }
   return Reply.toBinary({})
 })
 
@@ -157,6 +176,66 @@ test('clicks on the ability bar reach the handler while the root asks', () => {
   expect(sent.at(-1)!.change!.set![0]!.abilityBarPresses ?? false).toBe(false)
   press(player, 'ability:1')
   expect(slots).toEqual([0, 3])
+})
+
+test("the ability display names each row's player as Tab shows them", () => {
+  // Each row carries its player's slot, name and hero, with its abilities'
+  // ids, pictures and upgrades; the viewer's row is its own.
+  // Another test file may have left a reported roster; report this one.
+  const viewer = new Player(2)
+  keepPlayers(
+    [
+      [2, 'Ada', false],
+      [3, 'Bebop', true],
+    ].map(([slot, name, bot]) => ({
+      player: Player.of(slot as number),
+      steamId: 0n,
+      name: name as string,
+      bot: bot as boolean,
+      ready: false,
+      generation: 0,
+      roles: [],
+    })),
+  )
+  show(viewer, jsx('panel', {}))
+  abilityDisplay(viewer, [
+    {
+      player: viewer,
+      abilities: [
+        {
+          name: 'ability_bebop_hook',
+          image: 'file://{images}/hud/abilities/hook.psd',
+          upgrades: 0b11,
+        },
+        undefined,
+      ],
+    },
+    {
+      player: new Player(3),
+      abilities: [
+        { name: 'citadel_ability_bull_heal', image: 'file://{images}/a.psd' },
+      ],
+    },
+  ])
+  const rows = sent.at(-1)!.change!.set![0]!.abilityDisplay!
+  expect(
+    rows.map((row) => [row.player, row.name, row.hero, row.own ?? false]),
+  ).toEqual([
+    [2, 'Ada', 'hero_atlas', true],
+    [3, 'Bebop', 'hero_bebop', false],
+  ])
+  expect(rows[0]!.abilities).toEqual([
+    {
+      ability: itemId('ability_bebop_hook'),
+      image: 'file://{images}/hud/abilities/hook.psd',
+      upgrades: 3,
+    },
+    {},
+  ])
+
+  // Without rows the root shows none, and the game's own come back.
+  abilityDisplay(viewer)
+  expect(sent.at(-1)!.change!.set![0]!.abilityDisplay ?? []).toEqual([])
 })
 
 test("an ability names the game's window by its id and its hero's slot", () => {

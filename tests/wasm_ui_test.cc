@@ -73,6 +73,48 @@ TEST(UiTrees, TakesAbilityBarPressesOnlyWhileTheRootAsks) {
   EXPECT_FALSE(trees.IsButton(3, "ability:0"));
 }
 
+TEST(UiTrees, ChecksTheAbilityDisplay) {
+  // A row of four abilities with pictures from the game's content is drawn.
+  UiTrees trees;
+  auto shown = Set("", modlock::wasm::ui::KIND_PANEL);
+  auto* row = shown.mutable_set(0)->add_ability_display();
+  row->set_player(5);
+  row->set_name("Player One");
+  row->set_hero("hero_atlas");
+  for (int slot = 0; slot < 4; ++slot) {
+    auto* ability = row->add_abilities();
+    ability->set_ability(7);
+    ability->set_image("file://{images}/hud/abilities/bull_drain.psd");
+    ability->set_upgrades(0b11);
+  }
+  EXPECT_TRUE(trees.Apply(3, shown));
+
+  // A fifth ability, a picture from the web, a slot past the players or a hero
+  // that is not a word is refused.
+  auto fifth = shown;
+  fifth.mutable_set(0)->mutable_ability_display(0)->add_abilities();
+  EXPECT_FALSE(trees.Apply(3, fifth));
+  auto web = shown;
+  web.mutable_set(0)->mutable_ability_display(0)->mutable_abilities(1)->set_image(
+      "https://example.com/a.png");
+  EXPECT_FALSE(trees.Apply(3, web));
+  auto slot = shown;
+  slot.mutable_set(0)->mutable_ability_display(0)->set_player(64);
+  EXPECT_FALSE(trees.Apply(3, slot));
+  auto hero = shown;
+  hero.mutable_set(0)->mutable_ability_display(0)->set_hero("hero atlas");
+  EXPECT_FALSE(trees.Apply(3, hero));
+  auto name = shown;
+  name.mutable_set(0)->mutable_ability_display(0)->set_name(std::string(129, 'a'));
+  EXPECT_FALSE(trees.Apply(3, name));
+
+  // A slot that shows the game's own takes no picture; a bot's row no name.
+  auto plain = shown;
+  plain.mutable_set(0)->mutable_ability_display(0)->mutable_abilities(2)->clear_image();
+  plain.mutable_set(0)->mutable_ability_display(0)->clear_name();
+  EXPECT_TRUE(trees.Apply(3, plain));
+}
+
 TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   // Track a button.
   UiTrees trees;

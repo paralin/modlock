@@ -832,6 +832,17 @@ export interface Node {
    */
   abilityBarPresses?: boolean
   /**
+   * AbilityDisplay shows abilities in place of the ones the game shows for a
+   * player's hero: on that player's row of the game's Tab screen, and for the
+   * row marked own, on the player's own ability bar too. The game draws those
+   * from the hero's standard abilities by slot, so an ability the mod gave
+   * with replaceAbility shows as the one it replaced. The renderer's stock
+   * guard draws them in the game's own frame, ring and pips, opens the game's
+   * ability window for them, and gives the game's own back once the screen
+   * stops asking or it may no longer hold the HUD. Only the root's rows count.
+   */
+  abilityDisplay?: AbilityRow[]
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -889,6 +900,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [35, 'ability_player', 13],
     [36, 'cues', 11, 1, Cue.codec],
     [37, 'ability_bar_presses', 8],
+    [38, 'ability_display', 11, 1, AbilityRow.codec],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1043,6 +1055,11 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 37:
             m.abilityBarPresses = r.bool()
+            break
+          case 38:
+            ;(m.abilityDisplay ??= []).push(
+              AbilityRow.decode(r, r.delimited(), {}),
+            )
             break
           default:
             r.skip(t)
@@ -1213,9 +1230,177 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
         const v = m.abilityBarPresses
         if (v) w.uint32(296).bool(v)
       }
+      {
+        const a = m.abilityDisplay
+        if (a != null) for (const e of a) AbilityRow.writeField(w, 38, e)
+      }
     },
   },
 )
+
+/**
+ * AbilityRow is one player's abilities, as AbilityDisplay shows them.
+ *
+ * @generated from message modlock.wasm.ui.AbilityRow
+ */
+export interface AbilityRow {
+  /**
+   * Player is the player's slot, whose hero the ability window reads its
+   * numbers from.
+   */
+  player?: number
+  /**
+   * Name is the player's name, which matches the player's Tab row.
+   */
+  name?: string
+  /**
+   * Hero is the class name of the player's hero, such as hero_atlas, which
+   * matches a bot's row: a bot's row shows its hero's name in place of one.
+   */
+  hero?: string
+  /**
+   * Own marks the row of the player whose screen this is; its abilities go on
+   * the ability bar as well.
+   */
+  own?: boolean
+  /**
+   * Abilities holds the four ability slots in order, at most four.
+   */
+  abilities?: ShownAbility[]
+}
+
+export const AbilityRow: MessageType<AbilityRow> =
+  /* @__PURE__ */ createMessageType<AbilityRow>(
+    'modlock.wasm.ui.AbilityRow',
+    () => [
+      [1, 'player', 13],
+      [2, 'name', 9],
+      [3, 'hero', 9],
+      [4, 'own', 8],
+      [5, 'abilities', 11, 1, ShownAbility.codec],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: AbilityRow): AbilityRow => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.uint32()
+              break
+            case 2:
+              m.name = r.string()
+              break
+            case 3:
+              m.hero = r.string()
+              break
+            case 4:
+              m.own = r.bool()
+              break
+            case 5:
+              ;(m.abilities ??= []).push(
+                ShownAbility.decode(r, r.delimited(), {}),
+              )
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: AbilityRow, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.name
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.hero
+          if (v) w.uint32(26).string(v)
+        }
+        {
+          const v = m.own
+          if (v) w.uint32(32).bool(v)
+        }
+        {
+          const a = m.abilities
+          if (a != null) for (const e of a) ShownAbility.writeField(w, 5, e)
+        }
+      },
+    },
+  )
+
+/**
+ * ShownAbility is the ability AbilityDisplay shows in one slot.
+ *
+ * @generated from message modlock.wasm.ui.ShownAbility
+ */
+export interface ShownAbility {
+  /**
+   * Ability is the ability's id, as Node.ability, whose window the game shows
+   * over it; zero shows none.
+   */
+  ability?: number
+  /**
+   * Image is the ability's picture, a path in the game's content as
+   * Node.image is. Without one, the slot shows the game's own ability.
+   */
+  image?: string
+  /**
+   * Upgrades holds the bought tiers, as Ability.upgrades does: bit 0 unlocks
+   * it and bits 1 to 3 are its upgrades.
+   */
+  upgrades?: number
+}
+
+export const ShownAbility: MessageType<ShownAbility> =
+  /* @__PURE__ */ createMessageType<ShownAbility>(
+    'modlock.wasm.ui.ShownAbility',
+    () => [
+      [1, 'ability', 13],
+      [2, 'image', 9],
+      [3, 'upgrades', 13],
+    ],
+    {
+      decode: (r: BinaryReader, end: number, m: ShownAbility): ShownAbility => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.ability = r.uint32()
+              break
+            case 2:
+              m.image = r.string()
+              break
+            case 3:
+              m.upgrades = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ShownAbility, w: Writer): void => {
+        {
+          const v = m.ability
+          if (v) w.uint32(8).uint32(v)
+        }
+        {
+          const v = m.image
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.upgrades
+          if (v) w.uint32(24).uint32(v)
+        }
+      },
+    },
+  )
 
 /**
  * Cue is one sound played to one player.

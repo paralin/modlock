@@ -901,6 +901,12 @@ reports each click on a slot's icon or pips, so a mod answers it with
 `trainAbility`. A click the game answers itself, with `upgrade_ability`,
 reaches the mod both ways. Clicks arrive only while the mod's screen holds the
 player's HUD, so a player who left sends none.
+The game's Tab screen and ability bar draw each hero's standard abilities by
+slot, so a replaced one shows as the ability it replaced.
+`abilityDisplay(viewer, [{ player, abilities: [{ name, image, upgrades }] }])`
+shows viewer each row's abilities there instead, in the game's frame and pips
+with its ability window over them, the viewer's own row on the bar too, and
+Modlock gives the game's own back as the player leaves.
 `adjustAbilityPoints(points, unlocks)` gives or takes them, and the hero's
 `abilityPoints` and `abilityUnlocks` read what is left. A hero change or
 `resetHero` restores the hero's own abilities, so reapply a swap then. Use
@@ -1278,6 +1284,7 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
 | `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot, for abilities the game cannot train.    |
+| `abilityDisplay(viewer, rows?)`         | Show players' replaced abilities on Tab and the ability bar; no rows restores.         |
 | `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                      |
 | `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. `item` prop shows its card.  |
 | `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |

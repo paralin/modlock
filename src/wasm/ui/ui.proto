@@ -184,6 +184,52 @@ message Node {
   // the game's HUD, so a handler left by an ended session sends nothing. Only
   // the root's flag counts.
   bool ability_bar_presses = 37;
+
+  // AbilityDisplay shows abilities in place of the ones the game shows for a
+  // player's hero: on that player's row of the game's Tab screen, and for the
+  // row marked own, on the player's own ability bar too. The game draws those
+  // from the hero's standard abilities by slot, so an ability the mod gave
+  // with replaceAbility shows as the one it replaced. The renderer's stock
+  // guard draws them in the game's own frame, ring and pips, opens the game's
+  // ability window for them, and gives the game's own back once the screen
+  // stops asking or it may no longer hold the HUD. Only the root's rows count.
+  repeated AbilityRow ability_display = 38;
+}
+
+// AbilityRow is one player's abilities, as AbilityDisplay shows them.
+message AbilityRow {
+  // Player is the player's slot, whose hero the ability window reads its
+  // numbers from.
+  uint32 player = 1;
+
+  // Name is the player's name, which matches the player's Tab row.
+  string name = 2;
+
+  // Hero is the class name of the player's hero, such as hero_atlas, which
+  // matches a bot's row: a bot's row shows its hero's name in place of one.
+  string hero = 3;
+
+  // Own marks the row of the player whose screen this is; its abilities go on
+  // the ability bar as well.
+  bool own = 4;
+
+  // Abilities holds the four ability slots in order, at most four.
+  repeated ShownAbility abilities = 5;
+}
+
+// ShownAbility is the ability AbilityDisplay shows in one slot.
+message ShownAbility {
+  // Ability is the ability's id, as Node.ability, whose window the game shows
+  // over it; zero shows none.
+  uint32 ability = 1;
+
+  // Image is the ability's picture, a path in the game's content as
+  // Node.image is. Without one, the slot shows the game's own ability.
+  string image = 2;
+
+  // Upgrades holds the bought tiers, as Ability.upgrades does: bit 0 unlocks
+  // it and bits 1 to 3 are its upgrades.
+  uint32 upgrades = 3;
 }
 
 // Cue is one sound played to one player.
