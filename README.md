@@ -750,7 +750,9 @@ time to WebAssembly with [scriptc](https://scriptc.dev), which runs it about
 build, and which it downloads the first time. `modlock build --release` builds
 the same way to check the published build before you publish. When scriptc
 cannot compile part of the mod, the build lists each place and the reason, and
-bundles the mod for QuickJS instead.
+bundles the mod for QuickJS instead. `modlock publish` then refuses to publish
+it, so a mod does not ship on QuickJS unnoticed; fix what scriptc reports, or
+pass `--allow-fallback` to publish the QuickJS build.
 
 Before it ships the WebAssembly build, the build plays it in the sandbox beside
 the QuickJS bundle: Start, a player, the world and five seconds of frames, with
@@ -758,7 +760,7 @@ one clock and the same random bytes for both. Each event goes to QuickJS first,
 then to WebAssembly, which gets QuickJS's reply to each equal call. When the two
 builds make different calls or answer an event differently, the build prints
 the first event where they part, with what each build did there, and ships the
-QuickJS bundle. A run of server commands compares as a set, since the order in
+QuickJS bundle, which `modlock publish` refuses in the same way. A run of server commands compares as a set, since the order in
 which a mod sends a group of console variables does not change the game. The
 check builds the QuickJS runtime with the zig that scriptc uses, once per
 version.
