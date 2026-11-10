@@ -11,6 +11,7 @@ import type { AbilityRow } from '../../src/wasm/ui/ui.pb.js'
 import {
   AbilityDisplay,
   barIcons,
+  barPipRows,
   type DisplayHost,
   pipsOf,
 } from './abilities.js'
@@ -135,9 +136,10 @@ export class AbilityHud {
 
     // Find each slot's icon by its id, and its pips by where they sit.
     const panels: GuardPanel[] = []
+    const rows = barPipRows(this.hud)
     for (const icon of barIcons(this.hud)) {
       const slot = Number(icon.id.slice(-1)) - 1
-      for (const panel of [icon, pipsOf(icon)]) {
+      for (const panel of [icon, pipsOf(icon, rows)]) {
         if (!panel) continue
         panels.push(panel)
         if (panel.GetAttributeString(BAR_MARK, '') === this.token) continue

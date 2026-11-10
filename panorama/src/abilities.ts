@@ -73,8 +73,13 @@ export interface DisplayHost {
     id: string,
     properties?: Record<string, string>,
   ): GuardPanel
-  /** localize reads token against panel's dialog variables, as $.Localize does. */
-  localize(token: string, panel?: GuardPanel): string
+  /**
+   * localize reads token against panel's dialog variables, as $.Localize
+   * does. The panel is always given: the game's $.Localize throws on a
+   * second argument that is not a panel, so a host forwarding both
+   * arguments would throw on an absent one.
+   */
+  localize(token: string, panel: GuardPanel): string
   /** dispatch sends a Panorama event, as $.DispatchEvent does. */
   dispatch(event: string, ...values: unknown[]): void
 }
@@ -133,7 +138,9 @@ export class AbilityDisplay {
     // display serves one Tab row, so two players of a hero take one each.
     const tabs = this.tabRows()
     const heroes = rows.map((row) =>
-      (row.hero ?? '') !== '' ? this.host.localize(`#${row.hero}`) : '',
+      (row.hero ?? '') !== ''
+        ? this.host.localize(`#${row.hero}`, this.hud)
+        : '',
     )
     const used = new Set<number>()
     const matched = tabs.map((tab) => {
@@ -327,9 +334,10 @@ export class AbilityDisplay {
       )
     )
       return last.slots
+    const rows = barPipRows(this.hud)
     this.bar = {
       slots: barIcons(this.hud).map((icon) => {
-        const pips = pipsOf(icon)
+        const pips = pipsOf(icon, rows)
         const unlocks = [1, 2, 3].map(
           (tier) => pips?.FindChildTraverse(`AbilityUnlock${tier}`) ?? null,
         )
@@ -584,17 +592,32 @@ export function inOrder(
   return found
 }
 
+/** isPips reports whether panel is a row of upgrade pips. */
+function isPips(panel: GuardPanel): boolean {
+  return panel.paneltype === 'CitadelHudAbilityUpgradePips'
+}
+
+/** barPipRows returns every row of upgrade pips under the bar, in the order they sit. */
+export function barPipRows(hud: GuardPanel): GuardPanel[] {
+  const signature = hud.FindChildTraverse('hud_signature')
+  return signature ? inOrder(signature, BAR_DEPTH, isPips) : []
+}
+
 /**
- * pipsOf returns the upgrade pips of a bar icon: the row inside it, or the
- * one row beside it.
+ * pipsOf returns the upgrade pips of a bar icon: the row inside it, the one
+ * row beside it, or else its slot's row among rows, the bar's rows in the
+ * order they sit. The game makes the rows apart from the icons and hides
+ * them, so where they sit, not their place on screen, tells their slot.
  */
-export function pipsOf(icon: GuardPanel): GuardPanel | null {
-  // Look inside the icon first, then beside it.
-  const isPips = (panel: GuardPanel) =>
-    panel.paneltype === 'CitadelHudAbilityUpgradePips'
+export function pipsOf(
+  icon: GuardPanel,
+  rows: readonly GuardPanel[],
+): GuardPanel | null {
+  // Look inside the icon first, then beside it, then by slot.
   const inside = inOrder(icon, BAR_DEPTH, isPips)
   if (inside.length !== 0) return inside[0]!
   const parent = icon.GetParent()
   const beside = parent ? inOrder(parent, BAR_DEPTH, isPips) : []
-  return beside.length === 1 ? beside[0]! : null
+  if (beside.length === 1) return beside[0]!
+  return rows[Number(icon.id.slice(-1)) - 1] ?? null
 }
