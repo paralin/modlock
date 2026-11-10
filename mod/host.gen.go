@@ -960,6 +960,17 @@ func (p Player) GiveItem(item string, imbue *uint32) error {
 	return invoke("GiveItem", &abilitiespb.GiveItemRequest{Player: p.Slot, Item: item, Imbue: imbue}, nil)
 }
 
+// TrainAbility trains or upgrades whatever ability the hero holds in a
+// slot, 0 to 3, as the player holding the upgrade key and pressing the
+// slot's ability key does: an untrained ability trains for an ability
+// unlock, and a trained one buys its next tier for ability points. It works
+// on an ability ReplaceAbility put there, which the game's own commands for
+// a slot do not reach. When the game refuses, as without an unlock or the
+// points, the call fails and nothing is spent.
+func (p Player) TrainAbility(slot uint32) error {
+	return invoke("TrainAbility", &abilitiespb.TrainAbilityRequest{Player: p.Slot, Slot: slot}, nil)
+}
+
 // HeroBuild reads a hero's recommended build from the host's game data:
 // its categories of items in buying order. Items the game does not define
 // are left out, so every item returned is one GiveItem accepts. A hero

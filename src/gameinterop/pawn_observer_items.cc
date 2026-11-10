@@ -84,6 +84,62 @@ std::expected<ImbueFunctions, std::string> ImbueFunctions::Resolve(const ModuleI
   return functions;
 }
 
+std::expected<TrainFunctions, std::string> TrainFunctions::Resolve(const ModuleImage& server) {
+  TrainFunctions functions{};
+  const SignatureCall signatures[] = {
+      {"pawn.train-or-upgrade-ability", &functions.train_or_upgrade},
+  };
+  auto resolved = ResolveSignatures(server, signatures);
+  if (!resolved) {
+    return std::unexpected(resolved.error());
+  }
+  return functions;
+}
+
+std::expected<PawnObserver::Ability, std::string> PawnObserver::TrainAbility(
+    int32_t slot, uint16_t target, const TrainFunctions& functions) {
+  // Find the live ability the hero holds in the target slot.
+  if (target > kLastSignatureSlot) {
+    return std::unexpected("training targets an ability slot from 0 to 3");
+  }
+  if (!functions.train_or_upgrade) {
+    return std::unexpected("the game's ability training is unavailable");
+  }
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
+  const auto before = AbilitiesOf(*here);
+  if (!before) {
+    return std::unexpected(before.error());
+  }
+  const auto ability = std::ranges::find(*before, target, &Ability::slot);
+  if (ability == before->end()) {
+    return std::unexpected("the hero has no ability in that slot");
+  }
+  void* entity = InstanceOf(IdentityOfHandle(here->entity_list, ability->handle));
+  if (entity == nullptr) {
+    return std::unexpected("the ability is no longer live");
+  }
+
+  // The game trains or upgrades it, or refuses and changes nothing.
+  functions.train_or_upgrade(here->pawn, entity);
+  const auto after = PinnedAbilities(slot, *here);
+  if (!after) {
+    return std::unexpected(after.error());
+  }
+  const auto trained = std::ranges::find(*after, ability->handle, &Ability::handle);
+  if (trained == after->end()) {
+    return std::unexpected("the ability left the hero while training");
+  }
+  if (trained->upgrade_info == ability->upgrade_info) {
+    return std::unexpected(
+        "the game refused: no unlock or ability points to spend, learning prevented, or no tier "
+        "left");
+  }
+  return *trained;
+}
+
 std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantImbuingItem(
     int32_t slot, uint32_t subclass_id, uint16_t target, const AbilityDefinitions& definitions,
     const ItemFunctions& functions, const ImbueFunctions& imbue) {

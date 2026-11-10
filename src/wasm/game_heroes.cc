@@ -740,6 +740,29 @@ std::expected<void, std::string> Game::GiveItem(const abilities::GiveItemRequest
   return {};
 }
 
+std::expected<void, std::string> Game::TrainAbility(
+    const abilities::TrainAbilityRequest& request) {
+  // Resolve the game's training and the player's live pawn.
+  if (request.slot() > gameinterop::kLastSignatureSlot) {
+    return std::unexpected("slot names an ability slot from 0 to 3");
+  }
+  auto training = services_.Training();
+  if (!training) {
+    return std::unexpected(training.error());
+  }
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
+  }
+
+  // The game trains or upgrades the held ability, or refuses.
+  auto trained = observer_.TrainAbility(request.player(), static_cast<uint16_t>(request.slot()),
+                                        **training);
+  if (!trained) {
+    return std::unexpected(trained.error());
+  }
+  return {};
+}
+
 std::expected<void, std::string> Game::ReplaceAbility(
     const abilities::ReplaceAbilityRequest& request) {
   // Check the slot and resolve the ability tables.

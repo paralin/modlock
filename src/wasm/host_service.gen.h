@@ -310,6 +310,18 @@ class HostService {
     return std::unexpected("this host does not support GiveItem");
   }
 
+  // TrainAbility trains or upgrades whatever ability the hero holds in a
+  // slot, 0 to 3, as the player holding the upgrade key and pressing the
+  // slot's ability key does: an untrained ability trains for an ability
+  // unlock, and a trained one buys its next tier for ability points. It works
+  // on an ability ReplaceAbility put there, which the game's own commands for
+  // a slot do not reach. When the game refuses, as without an unlock or the
+  // points, the call fails and nothing is spent.
+  virtual std::expected<void, std::string> TrainAbility(
+      const abilities::TrainAbilityRequest& /*request*/) {
+    return std::unexpected("this host does not support TrainAbility");
+  }
+
   // HeroBuild reads a hero's recommended build from the host's game data:
   // its categories of items in buying order. Items the game does not define
   // are left out, so every item returned is one GiveItem accepts. A hero
@@ -1250,6 +1262,14 @@ class HostService {
              return detail::Fail("the GiveItem request is malformed");
            }
            return detail::Answer(host.GiveItem(request));
+         }},
+        {"TrainAbility",
+         [](HostService& host, const std::string& bytes) {
+           abilities::TrainAbilityRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the TrainAbility request is malformed");
+           }
+           return detail::Answer(host.TrainAbility(request));
          }},
         {"HeroBuild",
          [](HostService& host, const std::string& bytes) {

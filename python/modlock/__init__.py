@@ -2084,6 +2084,17 @@ class Player:
         """
         return _call("GiveItem", "GiveItemRequest", {"player": self, "item": item, "imbue": imbue}) is not None
 
+    def train_ability(self, slot: int) -> bool:
+        """train_ability trains or upgrades whatever ability the hero holds in a
+        slot, 0 to 3, as the player holding the upgrade key and pressing the
+        slot's ability key does: an untrained ability trains for an ability
+        unlock, and a trained one buys its next tier for ability points. It works
+        on an ability ReplaceAbility put there, which the game's own commands for
+        a slot do not reach. When the game refuses, as without an unlock or the
+        points, the call fails and nothing is spent.
+        """
+        return _call("TrainAbility", "TrainAbilityRequest", {"player": self, "slot": slot}) is not None
+
     def replace_ability(self, index: int, ability: str, keep: bool | None = None) -> bool:
         """replace_ability puts the ability named ability, untrained unless keep
         carries the old one's progress, in the hero's ability slot index, as
@@ -2443,6 +2454,13 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "item", "string"),
             wire.Field(3, "imbue", "uint32", optional=True),
+        ],
+    ),
+    "TrainAbilityRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "slot", "uint32"),
         ],
     ),
     "ReplaceAbilityRequest": (

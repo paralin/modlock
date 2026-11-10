@@ -1649,6 +1649,14 @@ export type Player = {
 	-- ability in that slot, 0 to 3, as the shop asks when one is bought; the
 	-- call fails, granting nothing, when the ability does not accept it.
 	giveItem: (self: Player, item: string, imbue: number?) -> boolean,
+	-- trainAbility trains or upgrades whatever ability the hero holds in a
+	-- slot, 0 to 3, as the player holding the upgrade key and pressing the
+	-- slot's ability key does: an untrained ability trains for an ability
+	-- unlock, and a trained one buys its next tier for ability points. It works
+	-- on an ability ReplaceAbility put there, which the game's own commands for
+	-- a slot do not reach. When the game refuses, as without an unlock or the
+	-- points, the call fails and nothing is spent.
+	trainAbility: (self: Player, slot: number) -> boolean,
 	-- replaceAbility puts the ability named ability, untrained unless keep
 	-- carries the old one's progress, in the hero's ability slot index, as
 	-- Ability.slot, removing the ability there. The game trains and upgrades an
@@ -1955,6 +1963,17 @@ end
 -- call fails, granting nothing, when the ability does not accept it.
 function Player.giveItem(self: Player, item: string, imbue: number?): boolean
 	return call("GiveItem", "GiveItemRequest", { player = self, item = item, imbue = imbue }) ~= nil
+end
+
+-- trainAbility trains or upgrades whatever ability the hero holds in a
+-- slot, 0 to 3, as the player holding the upgrade key and pressing the
+-- slot's ability key does: an untrained ability trains for an ability
+-- unlock, and a trained one buys its next tier for ability points. It works
+-- on an ability ReplaceAbility put there, which the game's own commands for
+-- a slot do not reach. When the game refuses, as without an unlock or the
+-- points, the call fails and nothing is spent.
+function Player.trainAbility(self: Player, slot: number): boolean
+	return call("TrainAbility", "TrainAbilityRequest", { player = self, slot = slot }) ~= nil
 end
 
 -- replaceAbility puts the ability named ability, untrained unless keep
@@ -2381,6 +2400,10 @@ schema.GiveItemRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "item", kind = "string" },
 	{ number = 3, name = "imbue", kind = "uint32", optional = true },
+}
+schema.TrainAbilityRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "slot", kind = "uint32" },
 }
 schema.ReplaceAbilityRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

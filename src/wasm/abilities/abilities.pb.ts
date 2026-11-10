@@ -516,6 +516,61 @@ export const GiveItemRequest: MessageType<GiveItemRequest> =
   )
 
 /**
+ * TrainAbilityRequest trains or upgrades one of a player's abilities.
+ *
+ * @generated from message modlock.wasm.abilities.TrainAbilityRequest
+ */
+export interface TrainAbilityRequest {
+  player?: number
+  /**
+   * Slot is the ability slot, 0 to 3, as Ability.slot.
+   */
+  slot?: number
+}
+
+export const TrainAbilityRequest: MessageType<TrainAbilityRequest> =
+  /* @__PURE__ */ createMessageType<TrainAbilityRequest>(
+    'modlock.wasm.abilities.TrainAbilityRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'slot', 13],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: TrainAbilityRequest,
+      ): TrainAbilityRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.slot = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: TrainAbilityRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.slot
+          if (v) w.uint32(16).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
  * ReplaceAbilityRequest puts an ability in one of a player's ability slots.
  *
  * @generated from message modlock.wasm.abilities.ReplaceAbilityRequest

@@ -272,6 +272,47 @@ TEST(PawnObserver, GrantsAnItemOnceAndPreservesTheExistingLoadout) {
   EXPECT_EQ(owned->at(1).subclass_id, 200);
 }
 
+TEST(PawnObserver, TrainsTheHeldAbilityThroughTheGameAndReportsARefusal) {
+  // Observe a pawn whose slot 0 holds an ability the game trains when asked.
+  ItemFixture fixture;
+  PawnObserver observer(fixture.Seams());
+  ASSERT_TRUE(observer.Observe());
+  modlock::gameinterop::TrainFunctions functions{
+      +[](void* pawn, void* ability) {
+        // The game gets the pawn and the held ability itself.
+        auto& fixture = *ItemFixture::current;
+        EXPECT_EQ(pawn, fixture.pawn.data());
+        EXPECT_EQ(ability, fixture.hero.data());
+        ++fixture.trains;
+
+        // It buys the next tier unless it refuses.
+        if (fixture.apply) {
+          const uint32_t packed = 3;
+          std::memcpy(fixture.hero.data() + 0x3c, &packed, sizeof(packed));
+        }
+      }};
+
+  // An item's slot past 3, an empty slot or no game function trains nothing.
+  EXPECT_FALSE(observer.TrainAbility(0, 23, functions));
+  EXPECT_FALSE(observer.TrainAbility(0, 2, functions));
+  EXPECT_FALSE(observer.TrainAbility(0, 0, modlock::gameinterop::TrainFunctions{}));
+  EXPECT_EQ(fixture.trains, 0);
+
+  // The game trains the ability, and the call reports it as read back.
+  const auto trained = observer.TrainAbility(0, 0, functions);
+  ASSERT_TRUE(trained) << trained.error();
+  EXPECT_EQ(trained->upgrade_info, 3u);
+  EXPECT_EQ(trained->handle, HandleOf(3, 9));
+  EXPECT_EQ(fixture.trains, 1);
+
+  // A refusal leaves the upgrades as they were and says so.
+  fixture.apply = false;
+  const auto refused = observer.TrainAbility(0, 0, functions);
+  ASSERT_FALSE(refused);
+  EXPECT_NE(refused.error().find("refused"), std::string::npos);
+  EXPECT_EQ(fixture.trains, 2);
+}
+
 TEST(PawnObserver, ReconcilesItemsIdempotentlyWithoutRemovingHeroAbilities) {
   // Observe the fixture's loadout.
   ItemFixture fixture;

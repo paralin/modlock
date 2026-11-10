@@ -203,6 +203,13 @@ std::expected<const gameinterop::ImbueFunctions*, std::string> GameServices::Imb
   return &*imbues_;
 }
 
+std::expected<const gameinterop::TrainFunctions*, std::string> GameServices::Training() {
+  if (auto cached = Cache(training_, &gameinterop::TrainFunctions::Resolve); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*training_;
+}
+
 std::expected<const gameinterop::AbilitySlots*, std::string> GameServices::Slots() {
   if (auto cached = Cache(slots_, &gameinterop::AbilitySlots::Resolve); !cached) {
     return std::unexpected(cached.error());

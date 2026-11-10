@@ -121,6 +121,10 @@ class ReplaceAbilityRequest;
 struct ReplaceAbilityRequestDefaultTypeInternal;
 MODLOCK_API extern ReplaceAbilityRequestDefaultTypeInternal _ReplaceAbilityRequest_default_instance_;
 MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull ReplaceAbilityRequest_class_data_;
+class TrainAbilityRequest;
+struct TrainAbilityRequestDefaultTypeInternal;
+MODLOCK_API extern TrainAbilityRequestDefaultTypeInternal _TrainAbilityRequest_default_instance_;
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TrainAbilityRequest_class_data_;
 }  // namespace abilities
 }  // namespace wasm
 }  // namespace modlock
@@ -136,6 +140,208 @@ namespace abilities {
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class MODLOCK_API TrainAbilityRequest final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:modlock.wasm.abilities.TrainAbilityRequest) */ {
+ public:
+  inline TrainAbilityRequest() : TrainAbilityRequest(nullptr) {}
+  ~TrainAbilityRequest() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(TrainAbilityRequest* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(TrainAbilityRequest));
+  }
+#endif
+
+  template <typename = void>
+  explicit PROTOBUF_CONSTEXPR TrainAbilityRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline TrainAbilityRequest(const TrainAbilityRequest& from) : TrainAbilityRequest(nullptr, from) {}
+  inline TrainAbilityRequest(TrainAbilityRequest&& from) noexcept
+      : TrainAbilityRequest(nullptr, ::std::move(from)) {}
+  inline TrainAbilityRequest& operator=(const TrainAbilityRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TrainAbilityRequest& operator=(TrainAbilityRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const TrainAbilityRequest& default_instance() {
+    return *reinterpret_cast<const TrainAbilityRequest*>(
+        &_TrainAbilityRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages = 6;
+  friend void swap(TrainAbilityRequest& a, TrainAbilityRequest& b) { a.Swap(&b); }
+  inline void Swap(TrainAbilityRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TrainAbilityRequest* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  TrainAbilityRequest* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<TrainAbilityRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const TrainAbilityRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const TrainAbilityRequest& from) { TrainAbilityRequest::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(TrainAbilityRequest* PROTOBUF_NONNULL other);
+ private:
+  template <typename T>
+  friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
+  static ::absl::string_view FullMessageName() { return "modlock.wasm.abilities.TrainAbilityRequest"; }
+
+  explicit TrainAbilityRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  TrainAbilityRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const TrainAbilityRequest& from);
+  TrainAbilityRequest(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, TrainAbilityRequest&& from) noexcept
+      : TrainAbilityRequest(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_();
+
+  ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kPlayerFieldNumber = 1,
+    kSlotFieldNumber = 2,
+  };
+  // int32 player = 1;
+  void clear_player() ;
+  ::int32_t player() const;
+  void set_player(::int32_t value);
+
+  private:
+  ::int32_t _internal_player() const;
+  void _internal_set_player(::int32_t value);
+
+  public:
+  // uint32 slot = 2;
+  void clear_slot() ;
+  ::uint32_t slot() const;
+  void set_slot(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_slot() const;
+  void _internal_set_slot(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:modlock.wasm.abilities.TrainAbilityRequest)
+ private:
+  class _Internal;
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   0, 0,
+                                   2>
+      _table_;
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const TrainAbilityRequest& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int32_t player_;
+    ::uint32_t slot_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto;
+};
+
+MODLOCK_API extern const ::google::protobuf::internal::ClassDataFull TrainAbilityRequest_class_data_;
 // -------------------------------------------------------------------
 
 class MODLOCK_API ReplaceAbilityRequest final : public ::google::protobuf::Message
@@ -193,7 +399,7 @@ class MODLOCK_API ReplaceAbilityRequest final : public ::google::protobuf::Messa
     return *reinterpret_cast<const ReplaceAbilityRequest*>(
         &_ReplaceAbilityRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 6;
+  static constexpr int kIndexInFileMessages = 7;
   friend void swap(ReplaceAbilityRequest& a, ReplaceAbilityRequest& b) { a.Swap(&b); }
   inline void Swap(ReplaceAbilityRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -632,7 +838,7 @@ class MODLOCK_API ModifierStateRequest final : public ::google::protobuf::Messag
     return *reinterpret_cast<const ModifierStateRequest*>(
         &_ModifierStateRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 9;
+  static constexpr int kIndexInFileMessages = 10;
   friend void swap(ModifierStateRequest& a, ModifierStateRequest& b) { a.Swap(&b); }
   inline void Swap(ModifierStateRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1029,7 +1235,7 @@ class MODLOCK_API HoldModifierStateRequest final : public ::google::protobuf::Me
     return *reinterpret_cast<const HoldModifierStateRequest*>(
         &_HoldModifierStateRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 11;
+  static constexpr int kIndexInFileMessages = 12;
   friend void swap(HoldModifierStateRequest& a, HoldModifierStateRequest& b) { a.Swap(&b); }
   inline void Swap(HoldModifierStateRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1249,7 +1455,7 @@ class MODLOCK_API HoldModifierRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HoldModifierRequest*>(
         &_HoldModifierRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 7;
+  static constexpr int kIndexInFileMessages = 8;
   friend void swap(HoldModifierRequest& a, HoldModifierRequest& b) { a.Swap(&b); }
   inline void Swap(HoldModifierRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1469,7 +1675,7 @@ class MODLOCK_API HeroBuildRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroBuildRequest*>(
         &_HeroBuildRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 12;
+  static constexpr int kIndexInFileMessages = 13;
   friend void swap(HeroBuildRequest& a, HeroBuildRequest& b) { a.Swap(&b); }
   inline void Swap(HeroBuildRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -1664,7 +1870,7 @@ class MODLOCK_API GiveModifierRequest final : public ::google::protobuf::Message
     return *reinterpret_cast<const GiveModifierRequest*>(
         &_GiveModifierRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 8;
+  static constexpr int kIndexInFileMessages = 9;
   friend void swap(GiveModifierRequest& a, GiveModifierRequest& b) { a.Swap(&b); }
   inline void Swap(GiveModifierRequest* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2103,7 +2309,7 @@ class MODLOCK_API BuildItem final : public ::google::protobuf::Message
     return *reinterpret_cast<const BuildItem*>(
         &_BuildItem_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 15;
+  static constexpr int kIndexInFileMessages = 16;
   friend void swap(BuildItem& a, BuildItem& b) { a.Swap(&b); }
   inline void Swap(BuildItem* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -2315,7 +2521,7 @@ class MODLOCK_API ActiveResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const ActiveResponse*>(
         &_ActiveResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 10;
+  static constexpr int kIndexInFileMessages = 11;
   friend void swap(ActiveResponse& a, ActiveResponse& b) { a.Swap(&b); }
   inline void Swap(ActiveResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3116,7 +3322,7 @@ class MODLOCK_API BuildCategory final : public ::google::protobuf::Message
     return *reinterpret_cast<const BuildCategory*>(
         &_BuildCategory_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 14;
+  static constexpr int kIndexInFileMessages = 15;
   friend void swap(BuildCategory& a, BuildCategory& b) { a.Swap(&b); }
   inline void Swap(BuildCategory* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -3544,7 +3750,7 @@ class MODLOCK_API HeroBuildResponse final : public ::google::protobuf::Message
     return *reinterpret_cast<const HeroBuildResponse*>(
         &_HeroBuildResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 13;
+  static constexpr int kIndexInFileMessages = 14;
   friend void swap(HeroBuildResponse& a, HeroBuildResponse& b) { a.Swap(&b); }
   inline void Swap(HeroBuildResponse* PROTOBUF_NONNULL other) {
     if (other == this) return;
@@ -4631,6 +4837,60 @@ inline ::uint32_t GiveItemRequest::_internal_imbue() const {
 inline void GiveItemRequest::_internal_set_imbue(::uint32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.imbue_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// TrainAbilityRequest
+
+// int32 player = 1;
+inline void TrainAbilityRequest::clear_player() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = 0;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline ::int32_t TrainAbilityRequest::player() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.TrainAbilityRequest.player)
+  return _internal_player();
+}
+inline void TrainAbilityRequest::set_player(::int32_t value) {
+  _internal_set_player(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.TrainAbilityRequest.player)
+}
+inline ::int32_t TrainAbilityRequest::_internal_player() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.player_;
+}
+inline void TrainAbilityRequest::_internal_set_player(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.player_ = value;
+}
+
+// uint32 slot = 2;
+inline void TrainAbilityRequest::clear_slot() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.slot_ = 0u;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000002U);
+}
+inline ::uint32_t TrainAbilityRequest::slot() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.abilities.TrainAbilityRequest.slot)
+  return _internal_slot();
+}
+inline void TrainAbilityRequest::set_slot(::uint32_t value) {
+  _internal_set_slot(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.abilities.TrainAbilityRequest.slot)
+}
+inline ::uint32_t TrainAbilityRequest::_internal_slot() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.slot_;
+}
+inline void TrainAbilityRequest::_internal_set_slot(::uint32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.slot_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -293,6 +293,19 @@ struct MODLOCK_API ImbueFunctions {
                                                             void* schema);
 };
 
+// TrainFunctions is the game's own training of one ability, the call a held
+// upgrade key with an ability key makes on the server. An untrained ability
+// trains for an ability unlock, and a trained one buys its next tier for
+// ability points. When the game refuses, it changes nothing and plays the
+// player's refusal sound. It reports nothing, so callers read the ability
+// back. It takes the ability itself, so it trains whatever ability the hero
+// holds, not the hero's own ability for the slot.
+struct MODLOCK_API TrainFunctions {
+  using TrainOrUpgrade = void (*)(void* pawn, void* ability);
+  TrainOrUpgrade train_or_upgrade = nullptr;
+  static std::expected<TrainFunctions, std::string> Resolve(const ModuleImage& server);
+};
+
 // PawnObserver resolves the connected human player each frame through the
 // addressed engine contracts: occupancy and xuid from ConnectionTracker's
 // engine-reported ClientPutInServer/ClientDisconnect lifecycle (no unproven
@@ -646,6 +659,13 @@ class MODLOCK_API PawnObserver {
                                                        const AbilityDefinitions& definitions,
                                                        const ItemFunctions& functions,
                                                        const ImbueFunctions& imbue);
+
+  // TrainAbility trains or upgrades the ability in the hero's signature slot
+  // target, 0 to 3, through the game's own path, which charges the unlock or
+  // the ability points. It returns the ability as read back, or why not when
+  // the game left its upgrades as they were.
+  std::expected<Ability, std::string> TrainAbility(int32_t slot, uint16_t target,
+                                                   const TrainFunctions& functions);
 
   // Converges owned upgrade definitions and masks through engine callbacks.
   // Restores observed active-item slots through the engine slot-table owner.

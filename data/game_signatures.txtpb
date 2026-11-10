@@ -481,6 +481,13 @@ signatures {
 }
 
 signatures {
+  id: "pawn.train-or-upgrade-ability"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 85 D2 0F 84 ?? ?? ?? ?? 55 41 54 48 81 EC ?? ?? ?? ?? 48 8B EA 4C 8B E1 0F B7 92 44 06 00 00 E8"
+  shape: "void TrainOrUpgradeAbility(CCitadelPlayerPawn* pawn, CCitadelBaseAbility* ability)"
+}
+
+signatures {
   id: "pawn.add-item"
   modules: GAME_MODULE_SERVER
   pattern: "48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC ?? 48 8B F9 49 8B E9 B9"
