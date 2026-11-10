@@ -9,6 +9,7 @@ import (
 	"github.com/paralin/modlock/project"
 	"github.com/paralin/modlock/publish"
 	modpublish "github.com/paralin/modlock/publish"
+	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
 )
 
@@ -26,6 +27,7 @@ func publishCommand(out *printer) *cli.Command {
 			&cli.StringFlag{Name: "origin", Value: modpublish.DefaultOrigin, Usage: "the Hyperline service to publish to"},
 			&cli.StringFlag{Name: "out", Value: ".", Usage: "the directory archive writes the zip to"},
 			&cli.StringFlag{Name: "notes", Usage: "what the release changed, for hyperline and github"},
+			&cli.BoolFlag{Name: "allow-fallback", Usage: "publish a mod that asks for RUNTIME_WASM on QuickJS when scriptc cannot compile it"},
 		},
 		Action: func(c *cli.Context) error {
 			// Build and check the mod.
@@ -39,6 +41,9 @@ func publishCommand(out *printer) *cli.Command {
 			manifest, err := check.Mod(c.Context, os.DirFS(opened.Output()))
 			if err != nil {
 				return errors.Wrap(err, "check the built mod")
+			}
+			if err := checkRuntime(opened.Manifest.GetRuntime(), manifest.GetRuntime(), c.Bool("allow-fallback")); err != nil {
+				return err
 			}
 			mod := &modpublish.Mod{Dir: opened.Output(), Manifest: manifest, Notes: c.String("notes")}
 			name := manifest.GetSlug() + " " + manifest.GetVersion()
@@ -109,4 +114,14 @@ func hyperlineSessionFile() (string, error) {
 		return "", errors.Wrap(err, "find the configuration directory")
 	}
 	return filepath.Join(config, "modlock", "hyperline-session.json"), nil
+}
+
+// checkRuntime refuses a build that runs on another runtime than the mod
+// asks for, as a RUNTIME_WASM mod scriptc could not compile does, unless the
+// author allows the fallback. The build has already printed why.
+func checkRuntime(asked, built wasm.Manifest_Runtime, allowFallback bool) error {
+	if asked != wasm.Manifest_RUNTIME_WASM || built == asked || allowFallback {
+		return nil
+	}
+	return errors.New("the mod asks for RUNTIME_WASM, but this build runs on QuickJS, as the warning above says; fix what scriptc reports, or publish on QuickJS with --allow-fallback")
 }
