@@ -173,6 +173,9 @@ std::expected<void, std::string> Check(const ui::Node& node) {
   if (node.id().size() > kMaxId) {
     return std::unexpected("a node id is too long");
   }
+  if (!node.id().empty() && !IsWord(node.id(), "-.:")) {
+    return std::unexpected("a node id is letters, digits, '_', '-', '.' and ':'");
+  }
   if (node.text().size() > kMaxText) {
     return std::unexpected("node " + node.id() + ": text is too long");
   }

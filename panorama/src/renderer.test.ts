@@ -9,6 +9,7 @@ import {
   type InputValue,
   inputCommand,
   layoutDataChanged,
+  pressCommand,
 } from './draw.js'
 import {
   ALL_MARK,
@@ -872,6 +873,21 @@ test('draws inputs, avatars and game text, and sends edits', () => {
   } satisfies InputValue)
   expect(long).toBe(
     `modlockinput arena name ${Buffer.from('é'.repeat(120)).toString('base64url')}`,
+  )
+
+  // A node that is no id or a mod that is no slug, which could start a
+  // command of its own, has an empty command.
+  const on = { case: 'on', value: true } satisfies InputValue
+  for (const node of ['', 'a b', 'a;quit', 'a\nquit', 'x'.repeat(65)]) {
+    expect(pressCommand('arena', node)).toBe('')
+    expect(inputCommand('arena', node, on)).toBe('')
+  }
+  for (const mod of ['', 'a;quit', 'a\nquit', 'Arena', '..', 'a--b']) {
+    expect(pressCommand(mod, 'ability:0')).toBe('')
+    expect(inputCommand(mod, 'ready', on)).toBe('')
+  }
+  expect(pressCommand('street-brawl', 'route:scores.v2')).toBe(
+    'modlockpress street-brawl route:scores.v2',
   )
 })
 

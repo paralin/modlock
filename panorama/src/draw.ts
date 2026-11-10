@@ -250,13 +250,26 @@ function isClassName(name: string): boolean {
   return /^[\w-]+$/.test(name)
 }
 
+/** isSlug reports whether name can be a mod's slug: lowercase letters and digits joined by single hyphens. */
+function isSlug(name: string): boolean {
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)
+}
+
+/** isNodeId reports whether id can be a node's: up to 64 letters, digits, '_', '-', '.' and ':'. */
+function isNodeId(id: string): boolean {
+  return /^[\w.:-]{1,64}$/.test(id)
+}
+
 /**
  * pressCommand is the console command that presses node in mod's interface.
  * The game server hears it with the sending player, so any player's game can
  * press by running it.
  */
 export function pressCommand(mod: string, node: string): string {
-  return `modlockpress ${mod} ${node}`
+  if (isSlug(mod) && isNodeId(node)) {
+    return `modlockpress ${mod} ${node}`
+  }
+  return ''
 }
 
 /**
@@ -271,7 +284,10 @@ export function inputCommand(
   node: string,
   value: InputValue,
 ): string {
-  return `modlockinput ${mod} ${node} ${encodeInput(value)}`
+  if (isSlug(mod) && isNodeId(node)) {
+    return `modlockinput ${mod} ${node} ${encodeInput(value)}`
+  }
+  return ''
 }
 
 /** encodeInput writes an input's value as inputCommand sends it. */

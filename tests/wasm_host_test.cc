@@ -11,6 +11,7 @@
 #include <cctype>
 #include <expected>
 #include <filesystem>
+#include <fstream>
 #include <set>
 #include <string>
 #include <string_view>
@@ -337,6 +338,26 @@ TEST(WasmHost, StoppedModWaitsForRestart) {
   EXPECT_EQ(*answer, "SAY:HI");
   (*plugin)->Stop();
   host.Unobserve(&events);
+}
+
+TEST(WasmHost, LoadsOnlyABuildNamedByASlug) {
+  // A build whose manifest names anything but a slug does not load.
+  WasmHost host({});
+  const auto build = std::filesystem::temp_directory_path() / "modlock-slug";
+  std::filesystem::create_directories(build);
+  for (const char* slug : {"..", "a b", "a;quit", "Arena", "a--b", "a-"}) {
+    std::ofstream(build / "mod.json") << R"({"slug": ")" << slug << R"(", "entry": "mod.wasm"})";
+    auto plugin = host.Load(build, PluginContext{.check_only = true});
+    ASSERT_FALSE(plugin) << slug;
+    EXPECT_TRUE(plugin.error().ends_with("invalid slug")) << plugin.error();
+  }
+
+  // A slug passes, and the load goes on to the entry this build lacks.
+  std::ofstream(build / "mod.json") << R"({"slug": "arena-2", "entry": "mod.wasm"})";
+  auto named = host.Load(build, PluginContext{.check_only = true});
+  ASSERT_FALSE(named);
+  EXPECT_TRUE(named.error().starts_with("cannot read ")) << named.error();
+  std::filesystem::remove_all(build);
 }
 
 }  // namespace
