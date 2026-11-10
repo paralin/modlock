@@ -2,7 +2,11 @@
 // the cursor; the stock guard (guard.ts) hides the parts, and Cursor frees the
 // cursor.
 
-import { type HudPart, type Screen } from '../../src/wasm/ui/ui.pb.js'
+import {
+  type AbilityRow,
+  type HudPart,
+  type Screen,
+} from '../../src/wasm/ui/ui.pb.js'
 
 /** Dispatch dispatches a Panorama event, as $.DispatchEvent does. */
 export type Dispatch = (event: string, ...values: unknown[]) => void
@@ -86,4 +90,15 @@ export function abilityBarMods(screen: Screen | null): string[] {
         tree.nodes?.find((node) => (node.id ?? '') === '')?.abilityBarPresses,
     )
     .map((tree) => tree.mod ?? '')
+}
+
+/**
+ * abilityRows lists the rows screen's roots show on Tab and the ability bar,
+ * in the order of their trees.
+ */
+export function abilityRows(screen: Screen | null): AbilityRow[] {
+  return (screen?.trees ?? []).flatMap(
+    (tree) =>
+      tree.nodes?.find((node) => (node.id ?? '') === '')?.abilityDisplay ?? [],
+  )
 }

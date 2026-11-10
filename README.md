@@ -906,7 +906,8 @@ slot, so a replaced one shows as the ability it replaced.
 `abilityDisplay(viewer, [{ player, abilities: [{ name, image, upgrades }] }])`
 shows viewer each row's abilities there instead, in the game's frame and pips
 with its ability window over them, the viewer's own row on the bar too, and
-Modlock gives the game's own back as the player leaves.
+Modlock gives the game's own back as the player leaves. A row finds its Tab
+row by the player's name, else by the hero's, which a bot's row shows.
 `adjustAbilityPoints(points, unlocks)` gives or takes them, and the hero's
 `abilityPoints` and `abilityUnlocks` read what is left. A hero change or
 `resetHero` restores the hero's own abilities, so reapply a swap then. Use

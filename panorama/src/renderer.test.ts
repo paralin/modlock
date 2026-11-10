@@ -22,8 +22,10 @@ import {
   SAME_CLICK_SECONDS,
   type GuardPanel,
 } from './guard.js'
+import { DISPLAY_COVER, DISPLAY_IMAGE, DRAWN_MARK } from './abilities.js'
 import {
   abilityBarMods,
+  abilityRows,
   Cursor,
   cursorAsks,
   cursorFreed,
@@ -1108,8 +1110,37 @@ function clock() {
     click: (panel: GuardPanel) => {
       for (const handler of host.listeners.get(panel) ?? []) handler()
     },
+    create: (
+      type: string,
+      parent: GuardPanel,
+      id: string,
+      properties?: Record<string, string>,
+    ) =>
+      $.CreatePanel(
+        type,
+        parent as unknown as Panel,
+        id,
+        properties,
+      ) as unknown as GuardPanel,
+    // A dialog variable reads the panel's; a hero's name reads heroNames.
+    localize: (token: string, panel?: GuardPanel) => {
+      const variable = /^\{s:(.*)\}$/.exec(token)
+      if (variable)
+        return (panel as FakePanel | undefined)?.dialog[variable[1]!] ?? token
+      return heroNames[token.slice(1)] ?? token
+    },
+    events: [] as unknown[][],
+    dispatch: (event: string, ...values: unknown[]) => {
+      host.events.push([event, ...values])
+    },
   }
   return host
+}
+
+/** heroNames holds the heroes' names as the game's language shows them. */
+const heroNames: Record<string, string> = {
+  hero_atlas: 'Abrams',
+  hero_bebop: 'Bebop',
 }
 
 /** parts reads the parts a screen whose one root hides names claims. */
@@ -1811,4 +1842,302 @@ test("acknowledges the relay's keepalive and reports it", () => {
   expect(alive).toBe(2)
   expect(state.url).toBe('https://relay/bridge.html#1')
   expect(shown).toEqual([])
+})
+
+/**
+ * abilityIcon lays one game ability icon under parent, as hud_ability_icon
+ * does: the frame and ring, the picture, the cooldown shade and the
+ * read-only pips.
+ */
+function abilityIcon(parent: FakePanel, id: string) {
+  const add = (under: FakePanel, name: string, ...classes: string[]) => {
+    const panel = new FakePanel('Panel', name)
+    panel.parent = under
+    under.children.push(panel)
+    panel.classes = classes
+    return panel
+  }
+  const icon = add(parent, id, 'ability_container')
+  const button = add(icon, 'button_container')
+  const frame = add(button, '', 'ability_bg')
+  const ring = add(button, '', 'ability_ring')
+  const images = add(button, '', 'image_container')
+  const own = add(images, 'ability_image', 'ability_image')
+  const shade = add(images, 'cooldown_mask')
+  const readOnly = add(icon, 'ReadOnlyPipsContainer')
+  const pips = [3, 2, 1].map((n) => add(readOnly, `Pip${n}`)).reverse()
+  return { icon, frame, ring, own, shade, readOnly, pips }
+}
+
+/**
+ * tabRows lays Tab's rows under the top bar: Ada's, a bot's showing its
+ * hero, and Cy's, each with four ability icons.
+ */
+function tabRows(hud: ReturnType<typeof gameHud>) {
+  const team = new FakePanel('CitadelHudTopBarTeam', '')
+  team.parent = hud.scores
+  hud.scores.children.push(team)
+  const row = (name: string, hero: string) => {
+    const panel = new FakePanel('CitadelHudTopBarPlayer', '')
+    panel.parent = team
+    team.children.push(panel)
+    panel.dialog.hero_name = hero
+    if (name !== '') panel.dialog.player_name = name
+    const box = hud.add(panel, 'PlayerAbilitiesContainer')
+    return [1, 2, 3, 4].map((n) => abilityIcon(box, `AbilityButton${n}`))
+  }
+  return {
+    ada: row('Ada', 'Abrams'),
+    bot: row('', 'Bebop'),
+    cy: row('Cy', 'Abrams'),
+  }
+}
+
+/** displayed is a screen whose root shows rows. */
+function displayed(...rows: JsonObject[]) {
+  return abilityRows(screen({ id: '', abilityDisplay: rows }))
+}
+
+test("dresses Tab's rows as the display names them, and gives them back", () => {
+  // Ada's row matches by name and the bot's by hero; Cy, whose hero is
+  // Abrams too, is named in no row and keeps the game's icons.
+  const hud = gameHud()
+  const tab = tabRows(hud)
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+  const rows = displayed(
+    {
+      player: 2,
+      name: 'Ada',
+      hero: 'hero_atlas',
+      abilities: [
+        { ability: 11, image: 'file://{images}/a.png', upgrades: 0b101 },
+      ],
+    },
+    {
+      player: 3,
+      name: 'BotPlayer',
+      hero: 'hero_bebop',
+      abilities: [{ ability: 22 }],
+    },
+  )
+  stock.screen(parts(), [], rows)
+
+  // Ada's first icon shows the named picture over the game's, the ring of
+  // its upgrades and its first and third read-only pips lit.
+  const ada = tab.ada[0]!
+  const picture = ada.icon.FindChildTraverse(DISPLAY_IMAGE)!
+  expect(picture.image).toBe('file://{images}/a.png')
+  expect(picture.GetParent()).toBe(ada.own.GetParent())
+  expect(ada.own.style.opacity).toBe('0')
+  expect(ada.ring.style.visibility).toBe('visible')
+  expect(ada.pips.map((pip) => pip.style.backgroundColor)).toEqual([
+    'black',
+    '#69e799',
+    'black',
+  ])
+
+  // The bot's icon keeps the game's picture, since none is named, but its
+  // hover opens the game's window for the named ability as slot 3 holds it.
+  const bot = tab.bot[0]!
+  expect(bot.own.style.opacity ?? null).toBeNull()
+  expect(bot.ring.style.visibility).toBe('collapse')
+  const cover = bot.icon.FindChildTraverse(DISPLAY_COVER)!
+  expect(cover.GetParent()).toBe(bot.icon)
+  cover.events.get('onmouseover')!()
+  expect(host.events).toEqual([
+    ['CitadelShowAbilityDetailsTooltip', bot.icon, 22, 3],
+  ])
+  cover.events.get('onmouseout')!()
+  expect(host.events[host.events.length - 1]).toEqual([
+    'CitadelHideAbilityDetailsTooltip',
+    bot.icon,
+  ])
+
+  // Slots no ability is named for, and Cy's row, are left to the game.
+  for (const icon of [tab.ada[1]!, tab.bot[3]!, ...tab.cy]) {
+    expect(icon.icon.FindChildTraverse(DISPLAY_COVER)).toBeNull()
+    expect(icon.icon.attributes.get(DRAWN_MARK) ?? '').toBe('')
+  }
+
+  // A row that drops an ability gives that icon back.
+  stock.screen(
+    parts(),
+    [],
+    displayed({ player: 2, name: 'Ada', abilities: [] }),
+  )
+  expect(ada.icon.FindChildTraverse(DISPLAY_IMAGE)).toBeNull()
+  expect(ada.own.style.opacity).toBeNull()
+  expect(ada.ring.style.visibility).toBeNull()
+  expect(ada.pips.map((pip) => pip.style.backgroundColor)).toEqual([
+    null,
+    null,
+    null,
+  ])
+
+  // A leave gives back every icon, and a hover left on a cover does nothing.
+  stock.screen(parts(), [], rows)
+  const left = tab.bot[0]!.icon.FindChildTraverse(DISPLAY_COVER)!
+  stock.leave()
+  for (const icon of [...tab.ada, ...tab.bot]) {
+    expect(icon.icon.FindChildTraverse(DISPLAY_IMAGE)).toBeNull()
+    expect(icon.icon.FindChildTraverse(DISPLAY_COVER)).toBeNull()
+    expect(icon.own.style.opacity ?? null).toBeNull()
+    expect(icon.ring.style.visibility ?? null).toBeNull()
+  }
+  host.events.length = 0
+  left.events.get('onmouseover')!()
+  expect(host.events).toEqual([])
+
+  // With nothing drawn and nothing hidden, the ticks stop.
+  runScheduled()
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+})
+
+test('a guard that starts again undresses what an earlier one drew', () => {
+  // The first guard's dressing stays on Tab and the bar after its script ends.
+  const hud = gameHud()
+  const tab = tabRows(hud)
+  const bar = barIcons(hud)
+  const host = clock()
+  new StockGuard(hud.game, host).screen(
+    parts(),
+    [],
+    displayed({
+      player: 2,
+      name: 'Ada',
+      own: true,
+      abilities: [
+        { ability: 11, image: 'file://{images}/a.png', upgrades: 0b11 },
+      ],
+    }),
+  )
+  const cover = tab.ada[0]!.icon.FindChildTraverse(DISPLAY_COVER)!
+  expect(bar[0]!.frame.style.backgroundImage).not.toBeNull()
+  scheduled.clear()
+
+  // The next guard gives it all back before any screen, and the old cover's
+  // hover, were it still reached, opens nothing.
+  host.time += 0.01
+  new StockGuard(hud.game, host)
+  expect(tab.ada[0]!.icon.FindChildTraverse(DISPLAY_IMAGE)).toBeNull()
+  expect(tab.ada[0]!.own.style.opacity).toBeNull()
+  expect(bar[0]!.frame.style.backgroundImage).toBeNull()
+  expect(bar[0]!.ring.style.visibility).toBeNull()
+  cover.events.get('onmouseover')!()
+  expect(host.events).toEqual([])
+})
+
+/**
+ * barIcons lays the ability bar's four icons under hud, as the game's
+ * hud_signature does, each with its upgrade pips.
+ */
+function barIcons(hud: ReturnType<typeof gameHud>) {
+  const signature = hud.add(hud.abilities, 'hud_signature')
+  return [1, 2, 3, 4].map((n) => {
+    const icon = abilityIcon(signature, `slot_signature_${n}`)
+    const pips = new FakePanel('CitadelHudAbilityUpgradePips', '')
+    pips.parent = icon.icon
+    icon.icon.children.push(pips)
+    const part = (under: FakePanel, id: string, ...classes: string[]) => {
+      const panel = hud.add(under, id, ...classes)
+      return panel
+    }
+    const train = part(pips, 'TrainButton')
+    const row = part(pips, 'AbilityUpgradePips')
+    const unlocks = [1, 2, 3].map((tier) => {
+      const unlock = part(row, `AbilityUnlock${tier}`)
+      return {
+        unlock,
+        flash: part(unlock, '', 'upgradeReadyFlash'),
+        pip: part(unlock, '', 'abilityLevelPip'),
+        cost: part(unlock, '', 'abilityUpgradeCostLabel'),
+      }
+    })
+    return { ...icon, pips, train, row, unlocks }
+  })
+}
+
+test("draws the viewer's own row on the ability bar, and gives it back", () => {
+  // The viewer's row draws the bar by slot; another player's draws nothing.
+  const hud = gameHud()
+  const bar = barIcons(hud)
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+  stock.screen(
+    parts(),
+    [],
+    displayed(
+      { player: 3, name: 'Bo', abilities: [{ ability: 9, upgrades: 0b1111 }] },
+      {
+        player: 2,
+        name: 'Ada',
+        own: true,
+        abilities: [
+          { ability: 11, upgrades: 0b1011 },
+          { ability: 12, upgrades: 0b1 },
+        ],
+      },
+    ),
+  )
+
+  // Two upgrades draw the second tier's frame, ring and shade.
+  const first = bar[0]!
+  expect(first.frame.style.backgroundImage).toBe(
+    'url("s2r://panorama/images/hud/core/ability_frame_passive_2_psd.vtex")',
+  )
+  expect(first.ring.style.visibility).toBe('visible')
+  expect(first.shade.style.opacityMask).toBe(
+    'url("s2r://panorama/images/hud/core/ability_frame_2.vsvg")',
+  )
+
+  // The pips show flat, lit by upgrade, without the cost or train button.
+  expect(first.train.style.visibility).toBe('collapse')
+  expect(first.row.style.visibility).toBe('visible')
+  expect(first.unlocks.map(({ pip }) => pip.style.backgroundColor)).toEqual([
+    '#69e799',
+    'black',
+    '#69e799',
+  ])
+  expect(first.unlocks[0]!.cost.style.visibility).toBe('collapse')
+  expect(first.unlocks[0]!.flash.style.opacity).toBe('0')
+  expect(first.unlocks[0]!.pip.style.height).toBe('6px')
+
+  // An unlocked ability without upgrades has the plain frame and no ring;
+  // a slot with no ability is the game's.
+  expect(bar[1]!.frame.style.backgroundImage).toBe(
+    'url("s2r://panorama/images/hud/core/ability_frame_passive_0_psd.vtex")',
+  )
+  expect(bar[1]!.ring.style.visibility).toBe('collapse')
+  expect(bar[2]!.frame.style.backgroundImage ?? null).toBeNull()
+  expect(bar[2]!.train.style.visibility ?? null).toBeNull()
+
+  // Pips the game builds again are drawn at the next look.
+  const rebuilt = new FakePanel('CitadelHudAbilityUpgradePips', '')
+  first.icon.children.splice(first.icon.children.indexOf(first.pips), 1)
+  first.pips.valid = false
+  rebuilt.parent = first.icon
+  first.icon.children.push(rebuilt)
+  const train = hud.add(rebuilt, 'TrainButton')
+  runScheduled()
+  expect(train.style.visibility).toBe('collapse')
+
+  // A relay that ended gives back every style, on the rebuilt pips too.
+  stock.screen(null)
+  expect(train.style.visibility).toBeNull()
+  for (const slot of bar.slice(1)) {
+    expect(slot.frame.style.backgroundImage ?? null).toBeNull()
+    expect(slot.ring.style.visibility ?? null).toBeNull()
+    expect(slot.shade.style.opacityMask ?? null).toBeNull()
+    expect(slot.train.style.visibility ?? null).toBeNull()
+    expect(slot.row.style.visibility ?? null).toBeNull()
+    for (const { pip, cost, flash } of slot.unlocks) {
+      expect(pip.style.backgroundColor ?? null).toBeNull()
+      expect(pip.style.height ?? null).toBeNull()
+      expect(cost.style.visibility ?? null).toBeNull()
+      expect(flash.style.opacity ?? null).toBeNull()
+    }
+    expect(slot.icon.attributes.get(DRAWN_MARK) ?? '').toBe('')
+  }
 })

@@ -10,6 +10,7 @@ import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
 import { StockGuard } from './guard.js'
 import {
   abilityBarMods,
+  abilityRows,
   Cursor,
   cursorAsks,
   cursorFreed,
@@ -81,6 +82,12 @@ const stock = new StockGuard(
     },
     press: (mod, node) =>
       $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
+    create: (type, parent, id, properties) =>
+      $.CreatePanel(type, parent as Panel, id, properties),
+    localize: (token, panel) => $.Localize(token, panel),
+    dispatch: (event, ...values) => {
+      $.DispatchEvent(event, ...values)
+    },
   },
   // Hiding the whole HUD leaves this layout, which reads the screens.
   [context],
@@ -106,7 +113,11 @@ new Bridge(
   (screen) => {
     layouts.follow(screen)
     drawing.draw(screen)
-    stock.screen(screen ? hiddenParts(screen) : null, abilityBarMods(screen))
+    stock.screen(
+      screen ? hiddenParts(screen) : null,
+      abilityBarMods(screen),
+      abilityRows(screen),
+    )
     cursor.set(cursorFreed(screen), cursorAsks(screen))
   },
   () => stock.alive(),

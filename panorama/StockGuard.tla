@@ -47,15 +47,18 @@ Owners == {"live", "dead"}
 VARIABLES
   game,     \* where the client is: the mod's server, the hideout, any other game
   listed,   \* the server lists the player and the relay delivers its titles
-  claims,   \* the last screen the renderer read claims game parts or the
-            \* ability bar's clicks (a root's ability_bar_presses)
+  claims,   \* the last screen the renderer read claims game parts, the
+            \* ability bar's clicks (a root's ability_bar_presses) or the
+            \* drawing of replaced abilities (a root's ability_display)
   late,     \* a claiming screen sent before the player left is still on its way
   fresh,    \* a title arrived within the lease (30 s)
   left,     \* a disconnect or shutdown event fired since the last screen
-  hidden,   \* the renderer's writes stand on the game's panels
+  hidden,   \* the renderer's writes stand on the game's panels: hidden
+            \* parts, and Tab and bar icons the ability display drew
   memory,   \* the running script remembers hiding them
-  handlers, \* click handlers on game panels, by the script that left them
-  barred    \* a handler sent a press while not allowed
+  handlers, \* click handlers on the ability bar and hover handlers on the
+            \* display's covers over Tab's icons, by the script that left them
+  barred    \* a handler sent a press or opened a window while not allowed
 
 vars == <<game, listed, claims, late, fresh, left, hidden, memory, handlers, barred>>
 
@@ -77,7 +80,8 @@ Marked == hidden
 \* only for the guard instance named in the gate attribute, and only while it
 \* is allowed. In code the attribute is BAR_GATE on the game's HUD, which
 \* each StockGuard sets to its own token as it starts, and a handler on the
-\* ability bar checks it and allowed() before it sends a press.
+\* ability bar or a display cover checks it and allowed() before it sends a
+\* press or opens the game's ability window.
 Gate(h) == h = "live" /\ Allowed
 
 Init == /\ game = "hideout" /\ listed = FALSE
@@ -195,9 +199,10 @@ Sweep ==
   /\ Edge /\ memory /\ ~hidden /\ hidden' = TRUE
   /\ UNCHANGED <<game, listed, claims, late, fresh, left, memory, handlers, barred>>
 
-\* Tick is the guard's 0.1 s reconcile: it hides what is wanted, restores
-\* what the marks record otherwise, and adds its handlers to the ability bar
-\* while a wanted screen asks for its clicks.
+\* Tick is the guard's 0.1 s reconcile: it hides and draws what is wanted,
+\* restores what the marks record otherwise, and adds its handlers to the
+\* ability bar and its covers to Tab while a wanted screen asks for them. A
+\* display cover is the guard's own panel, which a restore deletes.
 Tick ==
   /\ ~Edge
   /\ hidden' = IF Want THEN TRUE ELSE IF Marked THEN FALSE ELSE hidden
@@ -206,7 +211,7 @@ Tick ==
   /\ <<hidden', handlers'>> # <<hidden, handlers>>
   /\ UNCHANGED <<game, listed, claims, late, fresh, left, barred>>
 
-\* Press is a click on a game panel that carries a handler.
+\* Press is a click or a hover on a game panel that carries a handler.
 Press ==
   /\ \E h \in handlers: Gate(h)
   /\ barred' = (barred \/ ~Allowed)
