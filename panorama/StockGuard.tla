@@ -47,7 +47,8 @@ Owners == {"live", "dead"}
 VARIABLES
   game,     \* where the client is: the mod's server, the hideout, any other game
   listed,   \* the server lists the player and the relay delivers its titles
-  claims,   \* the last screen the renderer read claims game parts
+  claims,   \* the last screen the renderer read claims game parts or the
+            \* ability bar's clicks (a root's ability_bar_presses)
   late,     \* a claiming screen sent before the player left is still on its way
   fresh,    \* a title arrived within the lease (30 s)
   left,     \* a disconnect or shutdown event fired since the last screen
@@ -74,7 +75,9 @@ Marked == hidden
 
 \* Gate is whether a handler on a game panel acts: the guard's handlers act
 \* only for the guard instance named in the gate attribute, and only while it
-\* is allowed.
+\* is allowed. In code the attribute is BAR_GATE on the game's HUD, which
+\* each StockGuard sets to its own token as it starts, and a handler on the
+\* ability bar checks it and allowed() before it sends a press.
 Gate(h) == h = "live" /\ Allowed
 
 Init == /\ game = "hideout" /\ listed = FALSE
@@ -193,7 +196,8 @@ Sweep ==
   /\ UNCHANGED <<game, listed, claims, late, fresh, left, memory, handlers, barred>>
 
 \* Tick is the guard's 0.1 s reconcile: it hides what is wanted, restores
-\* what the marks record otherwise, and adds its handlers while it hides.
+\* what the marks record otherwise, and adds its handlers to the ability bar
+\* while a wanted screen asks for its clicks.
 Tick ==
   /\ ~Edge
   /\ hidden' = IF Want THEN TRUE ELSE IF Marked THEN FALSE ELSE hidden

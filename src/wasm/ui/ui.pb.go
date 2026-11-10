@@ -838,6 +838,13 @@ type Node struct {
 	// playing it, so a reloaded renderer plays nothing old, and plays a new UI
 	// lifetime's list from its start. The list keeps only the last few cues.
 	Cues []*Cue `protobuf:"bytes,36,rep,name=cues,proto3" json:"cues,omitempty"`
+	// AbilityBarPresses asks for clicks on the game's own ability bar: a click
+	// on the icon or the upgrade pips of the ability in slot N, 0 to 3, reaches
+	// the mod as a press of the node "ability:N", which no element's id can be.
+	// The renderer's stock guard sends one press per click while it may hold
+	// the game's HUD, so a handler left by an ended session sends nothing. Only
+	// the root's flag counts.
+	AbilityBarPresses bool `protobuf:"varint,37,opt,name=ability_bar_presses,json=abilityBarPresses,proto3" json:"abilityBarPresses,omitempty"`
 }
 
 func (x *Node) Reset() {
@@ -1103,6 +1110,13 @@ func (x *Node) GetCues() []*Cue {
 		return x.Cues
 	}
 	return nil
+}
+
+func (x *Node) GetAbilityBarPresses() bool {
+	if x != nil {
+		return x.AbilityBarPresses
+	}
+	return false
 }
 
 type isNode_Input interface {
@@ -2581,6 +2595,7 @@ func (m *Node) CloneVT() *Node {
 	r.SteamId = m.SteamId
 	r.FreeCursor = m.FreeCursor
 	r.FreeCursorAsks = m.FreeCursorAsks
+	r.AbilityBarPresses = m.AbilityBarPresses
 	r.Children = protobuf_go_lite.CloneSlice(m.Children)
 	r.Style = protobuf_go_lite.CloneVTValue(m.Style)
 	r.HideHud = protobuf_go_lite.CloneSlice(m.HideHud)
@@ -3328,6 +3343,9 @@ func (this *Node) EqualVT(that *Node) bool {
 		return false
 	}
 	if !protobuf_go_lite.EqualVTSliceImplicit(this.Cues, that.Cues, func() *Cue { return &Cue{} }) {
+		return false
+	}
+	if this.AbilityBarPresses != that.AbilityBarPresses {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -5060,6 +5078,11 @@ func (x *Node) MarshalProtoJSON(s *json.MarshalState) {
 		}
 		s.WriteArrayEnd()
 	}
+	if x.AbilityBarPresses || s.HasField("abilityBarPresses") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("abilityBarPresses")
+		s.WriteBool(x.AbilityBarPresses)
+	}
 	s.WriteObjectEnd()
 }
 
@@ -5271,6 +5294,9 @@ func (x *Node) UnmarshalProtoJSON(s *json.UnmarshalState) {
 				}
 				x.Cues = append(x.Cues, v)
 			})
+		case "ability_bar_presses", "abilityBarPresses":
+			s.AddField("ability_bar_presses")
+			x.AbilityBarPresses = s.ReadBool()
 		}
 	})
 }
@@ -7226,6 +7252,13 @@ func (m *Node) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 			return 0, err
 		}
 		i -= size
+	}
+	if m.AbilityBarPresses {
+		i = protobuf_go_lite.EncodeBool(dAtA, i, m.AbilityBarPresses)
+		i--
+		dAtA[i] = 0x2
+		i--
+		dAtA[i] = 0xa8
 	}
 	if len(m.Cues) > 0 {
 		for iNdEx := len(m.Cues) - 1; iNdEx >= 0; iNdEx-- {
@@ -9220,6 +9253,7 @@ func (m *Node) SizeVT() (n int) {
 		l = e.SizeVT()
 		n += protobuf_go_lite.SizeMessage(2, l)
 	}
+	n += protobuf_go_lite.SizeBoolNonZero(2, m.AbilityBarPresses)
 	n += len(m.unknownFields)
 	return n
 }
@@ -10040,6 +10074,10 @@ func (x *Node) MarshalProtoText() string {
 			}
 		}
 		protobuf_go_lite.TextWriteListEnd(&sb)
+	}
+	if x.AbilityBarPresses != false {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "ability_bar_presses")
+		protobuf_go_lite.TextWriteBool(&sb, x.AbilityBarPresses)
 	}
 	return protobuf_go_lite.TextFinishMessage(&sb)
 }
@@ -11278,6 +11316,16 @@ func (m *Node) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 37:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AbilityBarPresses", wireType)
+			}
+			var v bool
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintBool(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.AbilityBarPresses = bool(v)
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

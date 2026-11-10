@@ -77,3 +77,13 @@ export function cursorAsks(screen: Screen | null): number {
     0,
   )
 }
+
+/** abilityBarMods lists the mods whose roots in screen ask for clicks on the ability bar. */
+export function abilityBarMods(screen: Screen | null): string[] {
+  return (screen?.trees ?? [])
+    .filter(
+      (tree) =>
+        tree.nodes?.find((node) => (node.id ?? '') === '')?.abilityBarPresses,
+    )
+    .map((tree) => tree.mod ?? '')
+}

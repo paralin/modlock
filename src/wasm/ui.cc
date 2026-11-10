@@ -38,6 +38,14 @@ constexpr int kMaxOptions = 64;
 // line stays short of the engine's limit; kEntryLength is an entry's limit
 // in characters when the mod sets none.
 constexpr size_t kMaxInput = 240;
+
+// IsAbilityBarNode reports whether node is the reserved press of a click on
+// the game's ability bar: "ability:" and a slot from 0 to 3.
+bool IsAbilityBarNode(std::string_view node) {
+  constexpr std::string_view kPrefix = "ability:";
+  return node.size() == kPrefix.size() + 1 && node.starts_with(kPrefix) &&
+         node.back() >= '0' && node.back() <= '3';
+}
 constexpr uint32_t kEntryLength = 100;
 
 // kMaxClasses bounds a node's classes, and kMaxSheets the root's style sheets.
@@ -339,6 +347,11 @@ bool UiTrees::IsButton(int32_t slot, std::string_view node) const {
   if (tree == trees_.end()) {
     return false;
   }
+  // A press on the game's ability bar counts while the root asks for them.
+  if (IsAbilityBarNode(node)) {
+    auto root = tree->second.find("");
+    return root != tree->second.end() && root->second.ability_bar;
+  }
   auto found = tree->second.find(node);
   return found != tree->second.end() && found->second.kind == ui::KIND_BUTTON;
 }
@@ -347,6 +360,7 @@ UiTrees::Shown UiTrees::Keep(const ui::Node& node) {
   // Keep the kind, and an input's control and state.
   Shown shown;
   shown.kind = node.kind();
+  shown.ability_bar = node.id().empty() && node.ability_bar_presses();
   if (node.kind() != ui::KIND_INPUT) {
     return shown;
   }

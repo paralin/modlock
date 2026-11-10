@@ -63,6 +63,8 @@ class UiTrees {
     float max = 1;
     float step = 0;
     uint32_t options = 0;
+    // ability_bar is the root's ask for presses on the game's ability bar.
+    bool ability_bar = false;
   };
 
   // Keep returns what the host keeps of node.

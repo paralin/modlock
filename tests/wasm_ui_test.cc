@@ -44,6 +44,35 @@ TEST(UiTrees, TracksButtons) {
   EXPECT_FALSE(trees.IsButton(3, "ready"));
 }
 
+TEST(UiTrees, TakesAbilityBarPressesOnlyWhileTheRootAsks) {
+  // A root without the ask takes no bar press, even with a button of that id.
+  UiTrees trees;
+  ASSERT_TRUE(trees.Apply(3, Set("", modlock::wasm::ui::KIND_PANEL)));
+  ASSERT_TRUE(trees.Apply(3, Set("ability:0", modlock::wasm::ui::KIND_BUTTON)));
+  EXPECT_FALSE(trees.IsButton(3, "ability:0"));
+
+  // A root that asks takes a press on each of the four slots and nothing else.
+  auto asks = Set("", modlock::wasm::ui::KIND_PANEL);
+  asks.mutable_set(0)->set_ability_bar_presses(true);
+  ASSERT_TRUE(trees.Apply(3, asks));
+  for (const char* node : {"ability:0", "ability:1", "ability:2", "ability:3"}) {
+    EXPECT_TRUE(trees.IsButton(3, node)) << node;
+  }
+  for (const char* node : {"ability:4", "ability:", "ability:00", "ability:a"}) {
+    EXPECT_FALSE(trees.IsButton(3, node)) << node;
+  }
+  EXPECT_FALSE(trees.IsButton(4, "ability:0"));
+
+  // Only the root's ask counts, and a root that stops asking takes none.
+  auto child = Set("panel", modlock::wasm::ui::KIND_PANEL);
+  child.mutable_set(0)->set_ability_bar_presses(true);
+  ASSERT_TRUE(trees.Apply(4, Set("", modlock::wasm::ui::KIND_PANEL)));
+  ASSERT_TRUE(trees.Apply(4, child));
+  EXPECT_FALSE(trees.IsButton(4, "ability:0"));
+  ASSERT_TRUE(trees.Apply(3, Set("", modlock::wasm::ui::KIND_PANEL)));
+  EXPECT_FALSE(trees.IsButton(3, "ability:0"));
+}
+
 TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   // Track a button.
   UiTrees trees;

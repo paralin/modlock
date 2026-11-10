@@ -169,6 +169,8 @@ export {
   hideHud,
   cursorFree,
   freeCursor,
+  abilityBarPresses,
+  type AbilityBarHandler,
   type HudPart,
   type ImageProps,
   type JSX,

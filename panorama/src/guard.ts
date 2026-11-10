@@ -12,6 +12,7 @@ import { HudPart } from '../../src/wasm/ui/ui.pb.js'
 /** GuardPanel is the part of a game panel the guard uses. */
 export interface GuardPanel {
   readonly id: string
+  readonly paneltype: string
   visible: boolean
   readonly style: Record<string, string | null>
   IsValid(): boolean
@@ -31,7 +32,31 @@ export interface GuardHost {
   Schedule(seconds: number, callback: () => void): void
   /** now returns the time in seconds. */
   now(): number
+  /**
+   * listen runs handler on each Activated event of panel, as
+   * $.RegisterEventHandler does. The handler stays on the panel after the
+   * script ends.
+   */
+  listen(panel: GuardPanel, handler: () => void): void
+  /** press sends mod a press of node, as the renderer's buttons do. */
+  press(mod: string, node: string): void
 }
+
+/**
+ * BAR_GATE names the attribute on the game's HUD that holds the token of the
+ * guard whose ability bar handlers act. Each guard writes its own as it
+ * starts, so a handler an earlier script left on the bar does nothing.
+ */
+export const BAR_GATE = 'modlock_bar_gate'
+
+/** BAR_MARK names the attribute on a bar panel that holds the token of the guard listening on it. */
+export const BAR_MARK = 'modlock_bar'
+
+/** SAME_CLICK_SECONDS joins the clicks on a slot's icon and its pips: one click reaches both. */
+export const SAME_CLICK_SECONDS = 0.2
+
+/** BAR_DEPTH bounds how deep under hud_signature the bar's icons and pips are looked for. */
+const BAR_DEPTH = 8
 
 /**
  * HIDDEN_MARK names the attribute on each panel the guard hid: "shown" when
@@ -360,6 +385,14 @@ export class StockGuard {
   private ticking = false
   /** parts finds and writes the HUD's parts. */
   private readonly parts: HudParts
+  /** presses are the mods whose roots ask for clicks on the ability bar. */
+  private presses: readonly string[] = []
+  /** token tells this guard's bar handlers from an earlier script's. */
+  private readonly token: string
+  /** bar holds the bar's panels from the last look, and when. */
+  private bar: { panels: GuardPanel[]; at: number } | null = null
+  /** clickedAt holds when each slot's last click was sent. */
+  private readonly clickedAt = new Map<number, number>()
 
   /**
    * The guard writes on hud's panels, on host's clock; HUD_PART_ALL leaves
@@ -374,11 +407,22 @@ export class StockGuard {
     // yet, so they all go.
     this.parts = new HudParts(hud, () => host.now(), kept)
     this.parts.restoreAll()
+    // Handlers an earlier guard left on the bar act no more.
+    this.token = `${host.now()}:${Math.random()}`
+    hud.SetAttributeString(BAR_GATE, this.token)
   }
 
-  /** screen takes a screen's claims; null is a relay that ended. */
-  screen(parts: Iterable<HudPart> | null): void {
+  /**
+   * screen takes a screen's claims, and the mods whose roots ask for clicks
+   * on the ability bar; null is a relay that ended.
+   */
+  screen(
+    parts: Iterable<HudPart> | null,
+    presses: readonly string[] = [],
+  ): void {
+    // Take the claims and renew the lease, then reconcile.
     this.claims = new Set([...(parts ?? [])].filter((part) => finders[part]))
+    this.presses = presses
     this.titleAt = this.host.now()
     this.left = false
     this.tick()
@@ -426,9 +470,12 @@ export class StockGuard {
     }
     for (const part of want) this.parts.hide(part)
     this.applied = new Set(want)
+    const listening = this.allowed() && this.presses.length !== 0
+    if (listening) this.listen()
 
-    // Tick while a part is hidden, to hide it again or give it back.
-    if (this.applied.size !== 0 && !this.ticking) {
+    // Tick while a part is hidden, to hide it again or give it back, and
+    // while a mod asks for the bar, to listen on panels the game rebuilt.
+    if ((this.applied.size !== 0 || listening) && !this.ticking) {
       this.ticking = true
       this.host.Schedule(TICK_SECONDS, () => {
         this.ticking = false
@@ -436,4 +483,94 @@ export class StockGuard {
       })
     }
   }
+
+  /**
+   * listen puts this guard's handler on each icon and upgrade pips of the
+   * ability bar that lacks one. The bar's panels are kept between looks while
+   * they are valid and newer than WALK_SECONDS.
+   */
+  private listen(): void {
+    // Keep the last look while it is new and whole.
+    const now = this.host.now()
+    const last = this.bar
+    if (
+      last &&
+      now - last.at < WALK_SECONDS &&
+      last.panels.every((panel) => panel.IsValid())
+    )
+      return
+
+    // Find each slot's icon by its id, and its pips by where they sit.
+    const signature = this.hud.FindChildTraverse('hud_signature')
+    const icons = signature
+      ? inOrder(signature, BAR_DEPTH, (panel) =>
+          /^slot_signature_[1-4]$/.test(panel.id),
+        )
+      : []
+    const panels: GuardPanel[] = []
+    for (const icon of icons) {
+      const slot = Number(icon.id.slice(-1)) - 1
+      for (const panel of [icon, pipsOf(icon)]) {
+        if (!panel) continue
+        panels.push(panel)
+        if (panel.GetAttributeString(BAR_MARK, '') === this.token) continue
+        panel.SetAttributeString(BAR_MARK, this.token)
+        this.host.listen(panel, () => this.clicked(slot))
+      }
+    }
+    this.bar = { panels, at: now }
+  }
+
+  /**
+   * clicked sends a click on slot's icon or pips as a press to each mod that
+   * asks, once per click, while this guard is the live one and allowed.
+   */
+  private clicked(slot: number): void {
+    // Act only as the live guard while allowed, once per click.
+    if (
+      this.hud.GetAttributeString(BAR_GATE, '') !== this.token ||
+      !this.allowed()
+    )
+      return
+    const now = this.host.now()
+    if (now - (this.clickedAt.get(slot) ?? -Infinity) < SAME_CLICK_SECONDS)
+      return
+    this.clickedAt.set(slot, now)
+    for (const mod of this.presses) this.host.press(mod, `ability:${slot}`)
+  }
+}
+
+/**
+ * inOrder returns the panels under root, at most depth levels down, that
+ * wanted takes, in the order they sit, without looking inside them.
+ */
+function inOrder(
+  root: GuardPanel,
+  depth: number,
+  wanted: (panel: GuardPanel) => boolean,
+): GuardPanel[] {
+  const found: GuardPanel[] = []
+  const walk = (panel: GuardPanel, levels: number) => {
+    for (const child of children(panel)) {
+      if (wanted(child)) found.push(child)
+      else if (levels > 0) walk(child, levels - 1)
+    }
+  }
+  walk(root, depth)
+  return found
+}
+
+/**
+ * pipsOf returns the upgrade pips of a bar icon: the row inside it, or the
+ * one row beside it.
+ */
+function pipsOf(icon: GuardPanel): GuardPanel | null {
+  // Look inside the icon first, then beside it.
+  const isPips = (panel: GuardPanel) =>
+    panel.paneltype === 'CitadelHudAbilityUpgradePips'
+  const inside = inOrder(icon, BAR_DEPTH, isPips)
+  if (inside.length !== 0) return inside[0]!
+  const parent = icon.GetParent()
+  const beside = parent ? inOrder(parent, BAR_DEPTH, isPips) : []
+  return beside.length === 1 ? beside[0]! : null
 }

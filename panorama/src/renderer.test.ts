@@ -18,8 +18,17 @@ import {
   LEASE_SECONDS,
   StockGuard,
   WALK_SECONDS,
+  BAR_GATE,
+  SAME_CLICK_SECONDS,
+  type GuardPanel,
 } from './guard.js'
-import { Cursor, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
+import {
+  abilityBarMods,
+  Cursor,
+  cursorAsks,
+  cursorFreed,
+  hiddenParts,
+} from './hud.js'
 import { decodeUtf8 } from './packed.js'
 
 /** FakePanel records what the renderer does to one panel. */
@@ -1086,6 +1095,19 @@ function clock() {
       $.Schedule(0, callback)
     },
     now: () => host.time,
+    // Each panel keeps every handler put on it, as a dead script's stay.
+    listeners: new Map<GuardPanel, (() => void)[]>(),
+    listen: (panel: GuardPanel, handler: () => void) => {
+      host.listeners.set(panel, [...(host.listeners.get(panel) ?? []), handler])
+    },
+    pressed: [] as string[],
+    press: (mod: string, node: string) => {
+      host.pressed.push(`${mod} ${node}`)
+    },
+    /** click runs every handler on panel, as one Activated event does. */
+    click: (panel: GuardPanel) => {
+      for (const handler of host.listeners.get(panel) ?? []) handler()
+    },
   }
   return host
 }
@@ -1159,6 +1181,116 @@ test("hides the game's HUD parts while a live screen claims them", () => {
     expect(panel.visible).toBe(true)
   runScheduled()
   expect(scheduled.size).toBe(0)
+})
+
+/** abilityBar lays the ability bar under hud: four icons, each with its pips. */
+function abilityBar(hud: ReturnType<typeof gameHud>) {
+  const signature = hud.add(hud.abilities, 'hud_signature')
+  const icons = [1, 2, 3, 4].map((n) =>
+    hud.add(signature, `slot_signature_${n}`),
+  )
+  const pips = icons.map((icon) => {
+    const row = new FakePanel('CitadelHudAbilityUpgradePips', '')
+    row.parent = icon
+    icon.children.push(row)
+    return row
+  })
+  return { signature, icons, pips }
+}
+
+test('sends a click on the ability bar as a press only while allowed', () => {
+  // A screen whose root asks for none puts no handler on the bar.
+  const hud = gameHud()
+  const bar = abilityBar(hud)
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+  stock.screen(parts())
+  expect(host.listeners.size).toBe(0)
+
+  // One that asks puts one on each icon and its pips, and a click, which
+  // reaches both, is one press of the slot's node.
+  stock.screen(
+    parts(),
+    abilityBarMods(screen({ id: '', abilityBarPresses: true })),
+  )
+  expect(host.listeners.size).toBe(8)
+  host.click(bar.icons[1]!)
+  host.click(bar.pips[1]!)
+  expect(host.pressed).toEqual(['arena ability:1'])
+  host.time += SAME_CLICK_SECONDS
+  host.click(bar.pips[3]!)
+  host.click(bar.pips[1]!)
+  expect(host.pressed).toEqual([
+    'arena ability:1',
+    'arena ability:3',
+    'arena ability:1',
+  ])
+
+  // The ticks keep the handlers, adding none twice, and put one on an icon
+  // the game rebuilt.
+  host.time += WALK_SECONDS
+  runScheduled()
+  expect(host.listeners.get(bar.icons[0]!)?.length).toBe(1)
+  bar.icons[0]!.DeleteAsync(0)
+  const rebuilt = hud.add(bar.signature, 'slot_signature_1')
+  runScheduled()
+  host.time += 1
+  host.click(rebuilt)
+  expect(host.pressed[host.pressed.length - 1]).toBe('arena ability:0')
+
+  // A leave, the hideout, an ended relay and a lapsed lease each stop the
+  // presses.
+  const sent = () => host.pressed.length
+  let before = sent()
+  stock.leave()
+  host.time += 1
+  host.click(bar.icons[2]!)
+  expect(sent()).toBe(before)
+  stock.screen(parts(), ['arena'])
+  hud.game.classes.push(CONNECTED_TO_HIDEOUT)
+  host.click(bar.icons[2]!)
+  expect(sent()).toBe(before)
+  hud.game.classes.length = 0
+  host.click(bar.icons[2]!)
+  expect(sent()).toBe(++before)
+  host.time += LEASE_SECONDS
+  host.click(bar.icons[3]!)
+  expect(sent()).toBe(before)
+  stock.screen(null)
+  host.time += 1
+  host.click(bar.icons[3]!)
+  expect(sent()).toBe(before)
+
+  // With no claim and no bar asked, the ticks stop.
+  runScheduled()
+  runScheduled()
+  expect(scheduled.size).toBe(0)
+})
+
+test('a handler an earlier script left on the bar sends nothing', () => {
+  // The first guard's handlers stay on the bar after its script ends.
+  const hud = gameHud()
+  const bar = abilityBar(hud)
+  const host = clock()
+  const dead = new StockGuard(hud.game, host)
+  dead.screen(parts(), ['arena'])
+  const token = hud.game.GetAttributeString(BAR_GATE, '')
+  expect(token).not.toBe('')
+
+  // A guard that starts again takes the gate, and while it asks for nothing
+  // the dead handler, whose guard still counts itself allowed, sends nothing.
+  scheduled.clear()
+  host.time += 0.01
+  const live = new StockGuard(hud.game, host)
+  expect(hud.game.GetAttributeString(BAR_GATE, '')).not.toBe(token)
+  host.click(bar.icons[0]!)
+  expect(host.pressed).toEqual([])
+
+  // Once it asks, a click is one press, from its own handler.
+  live.screen(parts(), ['arena'])
+  expect(host.listeners.get(bar.icons[0]!)?.length).toBe(2)
+  host.click(bar.icons[0]!)
+  expect(host.pressed).toEqual(['arena ability:0'])
 })
 
 test('shows again a panel the guard hid only if it showed before', () => {

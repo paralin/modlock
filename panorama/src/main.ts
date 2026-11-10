@@ -8,7 +8,13 @@
 import { Bridge } from './bridge.js'
 import { AddonLayouts, Drawing, inputCommand, pressCommand } from './draw.js'
 import { StockGuard } from './guard.js'
-import { Cursor, cursorAsks, cursorFreed, hiddenParts } from './hud.js'
+import {
+  abilityBarMods,
+  Cursor,
+  cursorAsks,
+  cursorFreed,
+  hiddenParts,
+} from './hud.js'
 
 /**
  * defaultBridge is the relay page a package without the session's boot script
@@ -68,6 +74,13 @@ const stock = new StockGuard(
       $.Schedule(seconds, callback)
     },
     now: () => Date.now() / 1000,
+    listen: (panel, handler) => {
+      $.RegisterEventHandler('Activated', panel as Panel, () => {
+        handler()
+      })
+    },
+    press: (mod, node) =>
+      $.DispatchEvent('CitadelConCommand', pressCommand(mod, node)),
   },
   // Hiding the whole HUD leaves this layout, which reads the screens.
   [context],
@@ -93,7 +106,7 @@ new Bridge(
   (screen) => {
     layouts.follow(screen)
     drawing.draw(screen)
-    stock.screen(screen ? hiddenParts(screen) : null)
+    stock.screen(screen ? hiddenParts(screen) : null, abilityBarMods(screen))
     cursor.set(cursorFreed(screen), cursorAsks(screen))
   },
   () => stock.alive(),

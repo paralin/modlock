@@ -5632,6 +5632,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     kSteamIdFieldNumber = 25,
     kDisabledFieldNumber = 15,
     kFreeCursorFieldNumber = 31,
+    kAbilityBarPressesFieldNumber = 37,
     kAbilityPlayerFieldNumber = 35,
     kItemFieldNumber = 32,
     kFreeCursorAsksFieldNumber = 33,
@@ -6039,6 +6040,16 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   void _internal_set_free_cursor(bool value);
 
   public:
+  // bool ability_bar_presses = 37;
+  void clear_ability_bar_presses() ;
+  bool ability_bar_presses() const;
+  void set_ability_bar_presses(bool value);
+
+  private:
+  bool _internal_ability_bar_presses() const;
+  void _internal_set_ability_bar_presses(bool value);
+
+  public:
   // uint32 ability_player = 35;
   void clear_ability_player() ;
   ::uint32_t ability_player() const;
@@ -6182,7 +6193,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
   inline bool has_input() const;
   inline void clear_has_input();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 36,
+  static const ::google::protobuf::internal::TcParseTable<5, 37,
                                    11, 145,
                                    7>
       _table_;
@@ -6202,7 +6213,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
         const Node& from_msg);
-    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::HasBits<2> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField<::std::string> children_;
     ::google::protobuf::RepeatedField<int> hide_hud_;
@@ -6232,6 +6243,7 @@ class MODLOCK_API Node final : public ::google::protobuf::Message
     ::uint64_t steam_id_;
     bool disabled_;
     bool free_cursor_;
+    bool ability_bar_presses_;
     ::uint32_t ability_player_;
     ::uint32_t item_;
     ::uint32_t free_cursor_asks_;
@@ -7989,7 +8001,7 @@ inline void Node::clear_item() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.item_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x10000000U);
+                  0x20000000U);
 }
 inline ::uint32_t Node::item() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.item)
@@ -7997,7 +8009,7 @@ inline ::uint32_t Node::item() const {
 }
 inline void Node::set_item(::uint32_t value) {
   _internal_set_item(value);
-  SetHasBit(_impl_._has_bits_[0], 0x10000000U);
+  SetHasBit(_impl_._has_bits_[0], 0x20000000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.item)
 }
 inline ::uint32_t Node::_internal_item() const {
@@ -8014,7 +8026,7 @@ inline void Node::clear_ability() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ability_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x40000000U);
+                  0x80000000U);
 }
 inline ::uint32_t Node::ability() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.ability)
@@ -8022,7 +8034,7 @@ inline ::uint32_t Node::ability() const {
 }
 inline void Node::set_ability(::uint32_t value) {
   _internal_set_ability(value);
-  SetHasBit(_impl_._has_bits_[0], 0x40000000U);
+  SetHasBit(_impl_._has_bits_[0], 0x80000000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.ability)
 }
 inline ::uint32_t Node::_internal_ability() const {
@@ -8039,7 +8051,7 @@ inline void Node::clear_ability_player() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ability_player_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x08000000U);
+                  0x10000000U);
 }
 inline ::uint32_t Node::ability_player() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.ability_player)
@@ -8047,7 +8059,7 @@ inline ::uint32_t Node::ability_player() const {
 }
 inline void Node::set_ability_player(::uint32_t value) {
   _internal_set_ability_player(value);
-  SetHasBit(_impl_._has_bits_[0], 0x08000000U);
+  SetHasBit(_impl_._has_bits_[0], 0x10000000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.ability_player)
 }
 inline ::uint32_t Node::_internal_ability_player() const {
@@ -8692,8 +8704,8 @@ inline int Node::variables_size() const {
 inline void Node::clear_variables() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.variables_.Clear();
-  ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x80000000U);
+  ClearHasBitForRepeated(_impl_._has_bits_[1],
+                  0x00000001U);
 }
 inline const ::google::protobuf::Map<::std::string, ::std::string>& Node::_internal_variables() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -8709,7 +8721,7 @@ inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL N
 }
 inline ::google::protobuf::Map<::std::string, ::std::string>* PROTOBUF_NONNULL Node::mutable_variables()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x80000000U);
+  SetHasBitForRepeated(_impl_._has_bits_[1], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_map:modlock.wasm.ui.Node.variables)
   return _internal_mutable_variables();
 }
@@ -9210,7 +9222,7 @@ inline void Node::clear_free_cursor_asks() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.free_cursor_asks_ = 0u;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x20000000U);
+                  0x40000000U);
 }
 inline ::uint32_t Node::free_cursor_asks() const {
   // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.free_cursor_asks)
@@ -9218,7 +9230,7 @@ inline ::uint32_t Node::free_cursor_asks() const {
 }
 inline void Node::set_free_cursor_asks(::uint32_t value) {
   _internal_set_free_cursor_asks(value);
-  SetHasBit(_impl_._has_bits_[0], 0x20000000U);
+  SetHasBit(_impl_._has_bits_[0], 0x40000000U);
   // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.free_cursor_asks)
 }
 inline ::uint32_t Node::_internal_free_cursor_asks() const {
@@ -9284,6 +9296,31 @@ inline ::google::protobuf::RepeatedPtrField<::modlock::wasm::ui::Cue>* PROTOBUF_
 Node::_internal_mutable_cues() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.cues_;
+}
+
+// bool ability_bar_presses = 37;
+inline void Node::clear_ability_bar_presses() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_bar_presses_ = false;
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x08000000U);
+}
+inline bool Node::ability_bar_presses() const {
+  // @@protoc_insertion_point(field_get:modlock.wasm.ui.Node.ability_bar_presses)
+  return _internal_ability_bar_presses();
+}
+inline void Node::set_ability_bar_presses(bool value) {
+  _internal_set_ability_bar_presses(value);
+  SetHasBit(_impl_._has_bits_[0], 0x08000000U);
+  // @@protoc_insertion_point(field_set:modlock.wasm.ui.Node.ability_bar_presses)
+}
+inline bool Node::_internal_ability_bar_presses() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.ability_bar_presses_;
+}
+inline void Node::_internal_set_ability_bar_presses(bool value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.ability_bar_presses_ = value;
 }
 
 inline bool Node::has_input() const {

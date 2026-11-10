@@ -16,6 +16,7 @@ import {
 import { Call, FrameEvent, Reply } from '../../src/wasm/wasm.pb.js'
 import { bind, deliver } from '../src/host.js'
 import {
+  abilityBarPresses,
   Action,
   freeCursor,
   hideHud,
@@ -26,7 +27,7 @@ import {
   uiSound,
 } from '../src/index.js'
 import { Player } from '../src/host.gen.js'
-import { change } from '../src/ui.js'
+import { change, press } from '../src/ui.js'
 
 // The library sends each interface change through the transport, which
 // records it.
@@ -133,6 +134,29 @@ test('a redraw sends only the nodes that changed, under their first ids', () => 
   show(player, score('Score  Leading'))
   const classed = sent.at(-1)!.change!.set!
   expect(classed.map((node) => node.classes)).toEqual([['Score', 'Leading']])
+})
+
+test('clicks on the ability bar reach the handler while the root asks', () => {
+  // The root asks for the bar's clicks, and each slot's click reaches the
+  // handler with its slot.
+  const player = new Player(6)
+  show(player, jsx('panel', {}))
+  const slots: number[] = []
+  abilityBarPresses(player, (by, slot) => {
+    expect(by.slot).toBe(6)
+    slots.push(slot)
+  })
+  expect(sent.at(-1)!.change!.set![0]!.abilityBarPresses).toBe(true)
+  for (const node of ['ability:0', 'ability:3', 'ability:4', 'ability:', 'x']) {
+    press(player, node)
+  }
+  expect(slots).toEqual([0, 3])
+
+  // Without a handler the root stops asking and a click reaches nothing.
+  abilityBarPresses(player)
+  expect(sent.at(-1)!.change!.set![0]!.abilityBarPresses ?? false).toBe(false)
+  press(player, 'ability:1')
+  expect(slots).toEqual([0, 3])
 })
 
 test("an ability names the game's window by its id and its hero's slot", () => {

@@ -895,6 +895,12 @@ refuses. With `imbue`, the item strengthens whatever ability the hero holds in
 that slot, as `giveItem` does; the check runs before anything is spent. The
 game's `buydependentitem` command looks up the hero's own ability for the slot,
 so a mod that claims it answers with `buyItem`.
+A click on the game's ability bar sends nothing for an ability
+`replaceAbility` gave; `abilityBarPresses(player, (player, slot) => ...)`
+reports each click on a slot's icon or pips, so a mod answers it with
+`trainAbility`. A click the game answers itself, with `upgrade_ability`,
+reaches the mod both ways. Clicks arrive only while the mod's screen holds the
+player's HUD, so a player who left sends none.
 `adjustAbilityPoints(points, unlocks)` gives or takes them, and the hero's
 `abilityPoints` and `abilityUnlocks` read what is left. A hero change or
 `resetHero` restores the hero's own abilities, so reapply a swap then. Use
@@ -1271,6 +1277,7 @@ apply({ ...arena, citadel_allow_duplicate_heroes: true })
 | `uiSound(player, sound, { seconds? })`  | Play a game sound event to one player once, hero or not; `seconds` cuts it short.      |
 | `hideHud(player, parts)`                | Hide parts of the game's HUD, such as `'topBar'` or `'minimap'`; `[]` restores.        |
 | `freeCursor(player, free)`              | Show the mouse cursor without Tab, so the player can click; `false` returns aiming.    |
+| `abilityBarPresses(player, onPress?)`   | Take clicks on the game's ability bar by slot, for abilities the game cannot train.    |
 | `cursorFree(player)`                    | Read whether the player's cursor is up now, however it got there.                      |
 | `items`, `item(name)`                   | The shop's items: id, slot, tier, active, imbue and icon. `item` prop shows its card.  |
 | `player.screenEffect(effect, timing?)`  | Play `'black'`, `'killed'`, `'blinded'`, `'darkness'` or `'matchIntro'` over the view. |

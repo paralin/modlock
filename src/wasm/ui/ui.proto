@@ -176,6 +176,14 @@ message Node {
   // playing it, so a reloaded renderer plays nothing old, and plays a new UI
   // lifetime's list from its start. The list keeps only the last few cues.
   repeated Cue cues = 36;
+
+  // AbilityBarPresses asks for clicks on the game's own ability bar: a click
+  // on the icon or the upgrade pips of the ability in slot N, 0 to 3, reaches
+  // the mod as a press of the node "ability:N", which no element's id can be.
+  // The renderer's stock guard sends one press per click while it may hold
+  // the game's HUD, so a handler left by an ended session sends nothing. Only
+  // the root's flag counts.
+  bool ability_bar_presses = 37;
 }
 
 // Cue is one sound played to one player.

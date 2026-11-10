@@ -647,6 +647,34 @@ export function freeCursor(player: Player, free: boolean): boolean {
   return draw(player)
 }
 
+/** AbilityBarHandler takes a click on the ability in slot, 0 to 3. */
+export type AbilityBarHandler = (player: Player, slot: number) => void
+
+/**
+ * abilityBarPresses calls onPress with the slot, 0 to 3, each time player
+ * clicks the icon or upgrade pips of an ability on the game's own ability bar,
+ * as the game does when it trains one with Tab held; without onPress the
+ * clicks stop reaching the mod. The game answers a click from the hero's own
+ * abilities, and sends nothing for an ability replaceAbility gave, so a mod
+ * that replaces abilities answers here, with trainAbility. A click the game
+ * answers itself, with upgrade_ability, reaches the mod both ways. Clicks
+ * reach the mod only while its screen holds the player's HUD: a player who
+ * left, or whose session ended, sends none.
+ */
+export function abilityBarPresses(
+  player: Player,
+  onPress?: AbilityBarHandler,
+): boolean {
+  views.set(player.slot, {
+    ...view(player),
+    bar: onPress ? { handler: onPress } : undefined,
+  })
+  return draw(player)
+}
+
+/** abilityBarNode matches the node of a click on the game's ability bar. */
+const abilityBarNode = /^ability:([0-3])$/
+
 /**
  * cursorFree reports whether player's mouse cursor is up now, whether the mod
  * freed it with freeCursor or the player did with the game's own keys. It is
@@ -768,6 +796,13 @@ export function uiSound(
 
 /** press runs the handler of the button the player pressed. */
 export function press(player: Player, node: string): void {
+  // A click on the game's ability bar names its slot, which no button's id
+  // does.
+  const bar = abilityBarNode.exec(node)
+  if (bar) {
+    views.get(player.slot)?.bar?.handler(player, Number(bar[1]))
+    return
+  }
   const pressed = screens.get(player.slot)?.presses.get(node)
   if (pressed) {
     pressed.handler(player)
@@ -818,6 +853,8 @@ interface View {
   readonly routes: ReadonlyMap<string, string>
   /** cues are the last sounds played, which the renderer plays once each. */
   readonly cues: readonly Cue[]
+  /** bar takes clicks on the game's ability bar, while the mod asks for them. */
+  readonly bar: { readonly handler: AbilityBarHandler } | undefined
   notices: readonly Notice[]
 }
 
@@ -867,6 +904,7 @@ function view(player: Player): View {
       asks: 0,
       routes: new Map(),
       cues: [],
+      bar: undefined,
       notices: [],
     }
   )
@@ -890,6 +928,7 @@ function draw(player: Player): boolean {
     current.asks,
     current.routes,
     current.cues,
+    current.bar !== undefined,
   )
   const change = diff(previous, next)
 
@@ -904,6 +943,7 @@ function draw(player: Player): boolean {
       current.asks,
       current.routes,
       current.cues,
+      current.bar !== undefined,
     )
     if (!send(player.slot, diff(undefined, whole)!)) {
       screens.delete(player.slot)
@@ -998,6 +1038,7 @@ function render(
   asks: number,
   routes: ReadonlyMap<string, string>,
   cues: readonly Cue[],
+  bar: boolean,
 ): Screen {
   // The root is the full-screen panel the elements hang from, and it lists
   // the parts of the game's HUD to hide, whether the cursor is free, the
@@ -1012,6 +1053,7 @@ function render(
     freeCursorAsks: asks,
     sheets: [...sheets],
     cues: [...cues],
+    abilityBarPresses: bar,
   })
 
   // A route's id holds a colon, which no element's id does.

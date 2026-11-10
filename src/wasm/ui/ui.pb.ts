@@ -823,6 +823,15 @@ export interface Node {
    */
   cues?: Cue[]
   /**
+   * AbilityBarPresses asks for clicks on the game's own ability bar: a click
+   * on the icon or the upgrade pips of the ability in slot N, 0 to 3, reaches
+   * the mod as a press of the node "ability:N", which no element's id can be.
+   * The renderer's stock guard sends one press per click while it may hold
+   * the game's HUD, so a handler left by an ended session sends nothing. Only
+   * the root's flag counts.
+   */
+  abilityBarPresses?: boolean
+  /**
    * Input is the control an input node draws and the value it holds. Each
    * change the player makes reaches the mod as a UiInputEvent, which the host
    * checks against the control: a slider's range and step, a dropdown's
@@ -879,6 +888,7 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
     [34, 'ability', 13],
     [35, 'ability_player', 13],
     [36, 'cues', 11, 1, Cue.codec],
+    [37, 'ability_bar_presses', 8],
   ],
   {
     decode: (r: BinaryReader, end: number, m: Node): Node => {
@@ -1030,6 +1040,9 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
             break
           case 36:
             ;(m.cues ??= []).push(Cue.decode(r, r.delimited(), {}))
+            break
+          case 37:
+            m.abilityBarPresses = r.bool()
             break
           default:
             r.skip(t)
@@ -1195,6 +1208,10 @@ export const Node: MessageType<Node> = /* @__PURE__ */ createMessageType<Node>(
       {
         const a = m.cues
         if (a != null) for (const e of a) Cue.writeField(w, 36, e)
+      }
+      {
+        const v = m.abilityBarPresses
+        if (v) w.uint32(296).bool(v)
       }
     },
   },
