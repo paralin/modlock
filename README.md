@@ -1592,7 +1592,8 @@ with the player and anyone they landed on.
 ```
 
 Each entry changes one stock definition on the server; players' games keep
-their own definitions.
+their own definitions, so tooltips and parts of the HUD show the stock values
+while play uses the changed ones.
 
 | Field        | Value                                                                                                                                                                          |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
