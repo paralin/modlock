@@ -310,6 +310,36 @@ struct GiveItemRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GiveItemRequestDefaultTypeInternal _GiveItemRequest_default_instance_;
 
+inline constexpr BuyItemRequest::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : _cached_size_{0},
+        item_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        player_{0},
+        imbue_{0u},
+        source_{0u} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR BuyItemRequest::BuyItemRequest(::_pbi::ConstantInitialized)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(BuyItemRequest_class_data_.base()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(::_pbi::ConstantInitialized()) {
+}
+struct BuyItemRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR BuyItemRequestDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~BuyItemRequestDefaultTypeInternal() {}
+  union {
+    BuyItemRequest _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT MODLOCK_API
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BuyItemRequestDefaultTypeInternal _BuyItemRequest_default_instance_;
+
 inline constexpr BuildItem::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
@@ -597,6 +627,17 @@ const ::uint32_t
         0,
         2,
         0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::BuyItemRequest, _impl_._has_bits_),
+        7, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::BuyItemRequest, _impl_.player_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::BuyItemRequest, _impl_.item_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::BuyItemRequest, _impl_.imbue_),
+        PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::BuyItemRequest, _impl_.source_),
+        1,
+        0,
+        2,
+        3,
+        0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::TrainAbilityRequest, _impl_._has_bits_),
         5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::modlock::wasm::abilities::TrainAbilityRequest, _impl_.player_),
@@ -689,17 +730,18 @@ static const ::_pbi::MigrationSchema
         {17, sizeof(::modlock::wasm::abilities::Ability)},
         {44, sizeof(::modlock::wasm::abilities::AbilityOptions)},
         {61, sizeof(::modlock::wasm::abilities::GiveItemRequest)},
-        {70, sizeof(::modlock::wasm::abilities::TrainAbilityRequest)},
-        {77, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
-        {88, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
-        {97, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
-        {106, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
-        {113, sizeof(::modlock::wasm::abilities::ActiveResponse)},
-        {118, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
-        {127, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
-        {132, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
-        {137, sizeof(::modlock::wasm::abilities::BuildCategory)},
-        {146, sizeof(::modlock::wasm::abilities::BuildItem)},
+        {70, sizeof(::modlock::wasm::abilities::BuyItemRequest)},
+        {81, sizeof(::modlock::wasm::abilities::TrainAbilityRequest)},
+        {88, sizeof(::modlock::wasm::abilities::ReplaceAbilityRequest)},
+        {99, sizeof(::modlock::wasm::abilities::HoldModifierRequest)},
+        {108, sizeof(::modlock::wasm::abilities::GiveModifierRequest)},
+        {117, sizeof(::modlock::wasm::abilities::ModifierStateRequest)},
+        {124, sizeof(::modlock::wasm::abilities::ActiveResponse)},
+        {129, sizeof(::modlock::wasm::abilities::HoldModifierStateRequest)},
+        {138, sizeof(::modlock::wasm::abilities::HeroBuildRequest)},
+        {143, sizeof(::modlock::wasm::abilities::HeroBuildResponse)},
+        {148, sizeof(::modlock::wasm::abilities::BuildCategory)},
+        {157, sizeof(::modlock::wasm::abilities::BuildItem)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_HoldReloadRequest_default_instance_._instance,
@@ -708,6 +750,7 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
     &::modlock::wasm::abilities::_Ability_default_instance_._instance,
     &::modlock::wasm::abilities::_AbilityOptions_default_instance_._instance,
     &::modlock::wasm::abilities::_GiveItemRequest_default_instance_._instance,
+    &::modlock::wasm::abilities::_BuyItemRequest_default_instance_._instance,
     &::modlock::wasm::abilities::_TrainAbilityRequest_default_instance_._instance,
     &::modlock::wasm::abilities::_ReplaceAbilityRequest_default_instance_._instance,
     &::modlock::wasm::abilities::_HoldModifierRequest_default_instance_._instance,
@@ -742,39 +785,42 @@ const char descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwa
     "sB\017\n\r_cooldown_endB\017\n\r_recharge_endB\016\n\014_"
     "max_charges\"M\n\017GiveItemRequest\022\016\n\006player"
     "\030\001 \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001"
-    "B\010\n\006_imbue\"3\n\023TrainAbilityRequest\022\016\n\006pla"
-    "yer\030\001 \001(\005\022\014\n\004slot\030\002 \001(\r\"c\n\025ReplaceAbilit"
-    "yRequest\022\016\n\006player\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022"
-    "\017\n\007ability\030\003 \001(\t\022\021\n\004keep\030\004 \001(\010H\000\210\001\001B\007\n\005_"
-    "keep\"W\n\023HoldModifierRequest\022\016\n\006player\030\001 "
-    "\001(\005\022\020\n\010modifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210"
-    "\001\001B\t\n\007_active\"H\n\023GiveModifierRequest\022\016\n\006"
-    "player\030\001 \001(\005\022\020\n\010modifier\030\002 \001(\t\022\017\n\007second"
-    "s\030\003 \001(\002\"5\n\024ModifierStateRequest\022\016\n\006entit"
-    "y\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\" \n\016ActiveResponse"
-    "\022\016\n\006active\030\001 \001(\010\"Y\n\030HoldModifierStateReq"
-    "uest\022\016\n\006entity\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006a"
-    "ctive\030\003 \001(\010H\000\210\001\001B\t\n\007_active\" \n\020HeroBuild"
-    "Request\022\014\n\004hero\030\001 \001(\t\"N\n\021HeroBuildRespon"
-    "se\0229\n\ncategories\030\001 \003(\0132%.modlock.wasm.ab"
-    "ilities.BuildCategory\"d\n\rBuildCategory\022\014"
-    "\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\0220\n\005ite"
-    "ms\030\003 \003(\0132!.modlock.wasm.abilities.BuildI"
-    "tem\"-\n\tBuildItem\022\014\n\004item\030\001 \001(\t\022\022\n\nannota"
-    "tion\030\002 \001(\tB9Z7github.com/paralin/modlock"
-    "/src/wasm/abilities;abilitiesb\006proto3"
+    "B\010\n\006_imbue\"l\n\016BuyItemRequest\022\016\n\006player\030\001"
+    " \001(\005\022\014\n\004item\030\002 \001(\t\022\022\n\005imbue\030\003 \001(\rH\000\210\001\001\022\023"
+    "\n\006source\030\004 \001(\rH\001\210\001\001B\010\n\006_imbueB\t\n\007_source"
+    "\"3\n\023TrainAbilityRequest\022\016\n\006player\030\001 \001(\005\022"
+    "\014\n\004slot\030\002 \001(\r\"c\n\025ReplaceAbilityRequest\022\016"
+    "\n\006player\030\001 \001(\005\022\r\n\005index\030\002 \001(\r\022\017\n\007ability"
+    "\030\003 \001(\t\022\021\n\004keep\030\004 \001(\010H\000\210\001\001B\007\n\005_keep\"W\n\023Ho"
+    "ldModifierRequest\022\016\n\006player\030\001 \001(\005\022\020\n\010mod"
+    "ifier\030\002 \001(\t\022\023\n\006active\030\003 \001(\010H\000\210\001\001B\t\n\007_act"
+    "ive\"H\n\023GiveModifierRequest\022\016\n\006player\030\001 \001"
+    "(\005\022\020\n\010modifier\030\002 \001(\t\022\017\n\007seconds\030\003 \001(\002\"5\n"
+    "\024ModifierStateRequest\022\016\n\006entity\030\001 \001(\r\022\r\n"
+    "\005state\030\002 \001(\t\" \n\016ActiveResponse\022\016\n\006active"
+    "\030\001 \001(\010\"Y\n\030HoldModifierStateRequest\022\016\n\006en"
+    "tity\030\001 \001(\r\022\r\n\005state\030\002 \001(\t\022\023\n\006active\030\003 \001("
+    "\010H\000\210\001\001B\t\n\007_active\" \n\020HeroBuildRequest\022\014\n"
+    "\004hero\030\001 \001(\t\"N\n\021HeroBuildResponse\0229\n\ncate"
+    "gories\030\001 \003(\0132%.modlock.wasm.abilities.Bu"
+    "ildCategory\"d\n\rBuildCategory\022\014\n\004name\030\001 \001"
+    "(\t\022\023\n\013description\030\002 \001(\t\0220\n\005items\030\003 \003(\0132!"
+    ".modlock.wasm.abilities.BuildItem\"-\n\tBui"
+    "ldItem\022\014\n\004item\030\001 \001(\t\022\022\n\nannotation\030\002 \001(\t"
+    "B9Z7github.com/paralin/modlock/src/wasm/"
+    "abilities;abilitiesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto = {
     false,
     false,
-    1637,
+    1747,
     descriptor_table_protodef_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
     "github.com/paralin/modlock/src/wasm/abilities/abilities.proto",
     &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto_once,
     nullptr,
     0,
-    17,
+    18,
     schemas,
     file_default_instances,
     TableStruct_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto::offsets,
@@ -3032,6 +3078,377 @@ void GiveItemRequest::InternalSwap(GiveItemRequest* PROTOBUF_RESTRICT PROTOBUF_N
 }
 
 ::google::protobuf::Metadata GiveItemRequest::GetMetadata() const {
+  return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+class BuyItemRequest::_Internal {
+ public:
+  using HasBits =
+      decltype(::std::declval<BuyItemRequest>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_._has_bits_);
+};
+
+BuyItemRequest::BuyItemRequest(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, BuyItemRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:modlock.wasm.abilities.BuyItemRequest)
+}
+PROTOBUF_NDEBUG_INLINE BuyItemRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::modlock::wasm::abilities::BuyItemRequest& from_msg)
+      : _has_bits_{from._has_bits_},
+        _cached_size_{0},
+        item_(arena, from.item_) {}
+
+BuyItemRequest::BuyItemRequest(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const BuyItemRequest& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : ::google::protobuf::Message(arena, BuyItemRequest_class_data_.base()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : ::google::protobuf::Message(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  BuyItemRequest* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, player_),
+           offsetof(Impl_, source_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::source_));
+
+  // @@protoc_insertion_point(copy_constructor:modlock.wasm.abilities.BuyItemRequest)
+}
+PROTOBUF_NDEBUG_INLINE BuyItemRequest::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : _cached_size_{0},
+        item_(arena) {}
+
+inline void BuyItemRequest::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, player_),
+           0,
+           offsetof(Impl_, source_) -
+               offsetof(Impl_, player_) +
+               sizeof(Impl_::source_));
+}
+BuyItemRequest::~BuyItemRequest() {
+  // @@protoc_insertion_point(destructor:modlock.wasm.abilities.BuyItemRequest)
+  SharedDtor(*this);
+}
+inline void BuyItemRequest::SharedDtor(MessageLite& self) {
+  BuyItemRequest& this_ = static_cast<BuyItemRequest&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.item_.Destroy();
+  this_._impl_.~Impl_();
+}
+
+inline void* PROTOBUF_NONNULL BuyItemRequest::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) BuyItemRequest(arena);
+}
+constexpr auto BuyItemRequest::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(BuyItemRequest),
+                                            alignof(BuyItemRequest));
+}
+constexpr auto BuyItemRequest::InternalGenerateClassData_() {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &_BuyItemRequest_default_instance_._instance,
+          &_table_.header,
+          nullptr,  // OnDemandRegisterArenaDtor
+          nullptr,  // IsInitialized
+          &BuyItemRequest::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<BuyItemRequest>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &BuyItemRequest::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<BuyItemRequest>(), &BuyItemRequest::ByteSizeLong,
+              &BuyItemRequest::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_._cached_size_),
+          false,
+      },
+      &BuyItemRequest::kDescriptorMethods,
+      &descriptor_table_github_2ecom_2fparalin_2fmodlock_2fsrc_2fwasm_2fabilities_2fabilities_2eproto,
+      nullptr,  // tracker
+  };
+}
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull BuyItemRequest_class_data_ =
+        BuyItemRequest::InternalGenerateClassData_();
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+BuyItemRequest::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&BuyItemRequest_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(BuyItemRequest_class_data_.tc_table);
+  return BuyItemRequest_class_data_.base();
+}
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<2, 4, 0, 50, 2>
+BuyItemRequest::_table_ = {
+  {
+    PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_._has_bits_),
+    0, // no _extensions_
+    4, 24,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967280,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    4,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    BuyItemRequest_class_data_.base(),
+    nullptr,  // post_loop_handler
+    ::_pbi::TcParser::GenericFallback,  // fallback
+    #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+    ::_pbi::TcParser::GetTable<::modlock::wasm::abilities::BuyItemRequest>(),  // to_prefetch
+    #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  }, {{
+    // optional uint32 source = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(BuyItemRequest, _impl_.source_), 3>(),
+     {32, 3, 0,
+      PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.source_)}},
+    // int32 player = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(BuyItemRequest, _impl_.player_), 1>(),
+     {8, 1, 0,
+      PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.player_)}},
+    // string item = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 0, 0,
+      PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.item_)}},
+    // optional uint32 imbue = 3;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(BuyItemRequest, _impl_.imbue_), 2>(),
+     {24, 2, 0,
+      PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.imbue_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 player = 1;
+    {PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.player_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    // string item = 2;
+    {PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.item_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // optional uint32 imbue = 3;
+    {PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.imbue_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+    // optional uint32 source = 4;
+    {PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.source_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
+  }},
+  // no aux_entries
+  {{
+    "\45\0\4\0\0\0\0\0"
+    "modlock.wasm.abilities.BuyItemRequest"
+    "item"
+  }},
+};
+PROTOBUF_NOINLINE void BuyItemRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:modlock.wasm.abilities.BuyItemRequest)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  cached_has_bits = _impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.item_.ClearNonDefaultToEmpty();
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000eU)) {
+    ::memset(&_impl_.player_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.source_) -
+        reinterpret_cast<char*>(&_impl_.player_)) + sizeof(_impl_.source_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL BuyItemRequest::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const BuyItemRequest& this_ = static_cast<const BuyItemRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL BuyItemRequest::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const BuyItemRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:modlock.wasm.abilities.BuyItemRequest)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 player = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_player() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_player(), target);
+    }
+  }
+
+  // string item = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (!this_._internal_item().empty()) {
+      const ::std::string& _s = this_._internal_item();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "modlock.wasm.abilities.BuyItemRequest.item");
+      target = stream->WriteStringMaybeAliased(2, _s, target);
+    }
+  }
+
+  // optional uint32 imbue = 3;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+        3, this_._internal_imbue(), target);
+  }
+
+  // optional uint32 source = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(
+        4, this_._internal_source(), target);
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:modlock.wasm.abilities.BuyItemRequest)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t BuyItemRequest::ByteSizeLong(const MessageLite& base) {
+  const BuyItemRequest& this_ = static_cast<const BuyItemRequest&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t BuyItemRequest::ByteSizeLong() const {
+  const BuyItemRequest& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:modlock.wasm.abilities.BuyItemRequest)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void)cached_has_bits;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    // string item = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!this_._internal_item().empty()) {
+        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_item());
+      }
+    }
+    // int32 player = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_player() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_player());
+      }
+    }
+    // optional uint32 imbue = 3;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+          this_._internal_imbue());
+    }
+    // optional uint32 source = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
+          this_._internal_source());
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void BuyItemRequest::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                            const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this =
+      static_cast<BuyItemRequest*>(&to_msg);
+  auto& from = static_cast<const BuyItemRequest&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:modlock.wasm.abilities.BuyItemRequest)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (!from._internal_item().empty()) {
+        _this->_internal_set_item(from._internal_item());
+      } else {
+        if (_this->_impl_.item_.IsDefault()) {
+          _this->_internal_set_item("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_player() != 0) {
+        _this->_impl_.player_ = from._impl_.player_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_impl_.imbue_ = from._impl_.imbue_;
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      _this->_impl_.source_ = from._impl_.source_;
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void BuyItemRequest::CopyFrom(const BuyItemRequest& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:modlock.wasm.abilities.BuyItemRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void BuyItemRequest::InternalSwap(BuyItemRequest* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.item_, &other->_impl_.item_, arena);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.source_)
+      + sizeof(BuyItemRequest::_impl_.source_)
+      - PROTOBUF_FIELD_OFFSET(BuyItemRequest, _impl_.player_)>(
+          reinterpret_cast<char*>(&_impl_.player_),
+          reinterpret_cast<char*>(&other->_impl_.player_));
+}
+
+::google::protobuf::Metadata BuyItemRequest::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // ===================================================================

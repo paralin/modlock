@@ -1649,6 +1649,14 @@ export type Player = {
 	-- ability in that slot, 0 to 3, as the shop asks when one is bought; the
 	-- call fails, granting nothing, when the ability does not accept it.
 	giveItem: (self: Player, item: string, imbue: number?) -> boolean,
+	-- buyItem buys an item for the hero as the shop does, under the shop's own
+	-- rules and for the souls it charges, or fails and charges nothing when the
+	-- shop refuses, as away from the shop or without the souls. With imbue, an
+	-- imbuing item strengthens whatever ability the hero holds in that slot, 0
+	-- to 3, including one ReplaceAbility put there, which the game's own
+	-- buydependentitem refuses; the call fails, buying nothing, when the
+	-- ability does not accept it.
+	buyItem: (self: Player, item: string, imbue: number?, source: number?) -> boolean,
 	-- trainAbility trains or upgrades whatever ability the hero holds in a
 	-- slot, 0 to 3, as the player holding the upgrade key and pressing the
 	-- slot's ability key does: an untrained ability trains for an ability
@@ -1963,6 +1971,17 @@ end
 -- call fails, granting nothing, when the ability does not accept it.
 function Player.giveItem(self: Player, item: string, imbue: number?): boolean
 	return call("GiveItem", "GiveItemRequest", { player = self, item = item, imbue = imbue }) ~= nil
+end
+
+-- buyItem buys an item for the hero as the shop does, under the shop's own
+-- rules and for the souls it charges, or fails and charges nothing when the
+-- shop refuses, as away from the shop or without the souls. With imbue, an
+-- imbuing item strengthens whatever ability the hero holds in that slot, 0
+-- to 3, including one ReplaceAbility put there, which the game's own
+-- buydependentitem refuses; the call fails, buying nothing, when the
+-- ability does not accept it.
+function Player.buyItem(self: Player, item: string, imbue: number?, source: number?): boolean
+	return call("BuyItem", "BuyItemRequest", { player = self, item = item, imbue = imbue, source = source }) ~= nil
 end
 
 -- trainAbility trains or upgrades whatever ability the hero holds in a
@@ -2400,6 +2419,12 @@ schema.GiveItemRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
 	{ number = 2, name = "item", kind = "string" },
 	{ number = 3, name = "imbue", kind = "uint32", optional = true },
+}
+schema.BuyItemRequest = {
+	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },
+	{ number = 2, name = "item", kind = "string" },
+	{ number = 3, name = "imbue", kind = "uint32", optional = true },
+	{ number = 4, name = "source", kind = "uint32", optional = true },
 }
 schema.TrainAbilityRequest = {
 	{ number = 1, name = "player", kind = "int32", class = Player, key = "slot" },

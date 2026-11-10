@@ -516,6 +516,87 @@ export const GiveItemRequest: MessageType<GiveItemRequest> =
   )
 
 /**
+ * BuyItemRequest buys an item from the shop for one player's hero.
+ *
+ * @generated from message modlock.wasm.abilities.BuyItemRequest
+ */
+export interface BuyItemRequest {
+  player?: number
+  /**
+   * Item is the item's name, such as upgrade_fleetfoot_boots.
+   */
+  item?: string
+  /**
+   * Imbue is the ability slot, 0 to 3, whose ability an imbuing item
+   * strengthens, as the shop asks when one is bought.
+   */
+  imbue?: number
+  /**
+   * Source is where in the shop the purchase was made, from 0 to 21, as the
+   * game's buyitem and buydependentitem commands carry it; 0 when omitted.
+   */
+  source?: number
+}
+
+export const BuyItemRequest: MessageType<BuyItemRequest> =
+  /* @__PURE__ */ createMessageType<BuyItemRequest>(
+    'modlock.wasm.abilities.BuyItemRequest',
+    () => [
+      [1, 'player', 5],
+      [2, 'item', 9],
+      [3, 'imbue', 13, 4],
+      [4, 'source', 13, 4],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: BuyItemRequest,
+      ): BuyItemRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.player = r.int32()
+              break
+            case 2:
+              m.item = r.string()
+              break
+            case 3:
+              m.imbue = r.uint32()
+              break
+            case 4:
+              m.source = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: BuyItemRequest, w: Writer): void => {
+        {
+          const v = m.player
+          if (v) w.uint32(8).int32(v)
+        }
+        {
+          const v = m.item
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.imbue
+          if (v != null) w.uint32(24).uint32(v)
+        }
+        {
+          const v = m.source
+          if (v != null) w.uint32(32).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
  * TrainAbilityRequest trains or upgrades one of a player's abilities.
  *
  * @generated from message modlock.wasm.abilities.TrainAbilityRequest

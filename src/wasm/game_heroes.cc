@@ -740,6 +740,48 @@ std::expected<void, std::string> Game::GiveItem(const abilities::GiveItemRequest
   return {};
 }
 
+std::expected<void, std::string> Game::BuyItem(const abilities::BuyItemRequest& request) {
+  // Check the slot and the source, then resolve the shop and the player's pawn.
+  if (request.has_imbue() && request.imbue() > gameinterop::kLastSignatureSlot) {
+    return std::unexpected("imbue names an ability slot from 0 to 3");
+  }
+  if (request.source() >= gameinterop::kShopSources) {
+    return std::unexpected("source is from 0 to 21");
+  }
+  auto definitions = services_.Abilities();
+  if (!definitions) {
+    return std::unexpected(definitions.error());
+  }
+  auto shop = services_.Shop();
+  if (!shop) {
+    return std::unexpected(shop.error());
+  }
+  const gameinterop::ImbueFunctions* imbue = nullptr;
+  if (request.has_imbue()) {
+    auto imbues = services_.Imbues();
+    if (!imbues) {
+      return std::unexpected(imbues.error());
+    }
+    imbue = *imbues;
+  }
+  if (auto pawn = LivePawn(request.player()); !pawn) {
+    return std::unexpected(pawn.error());
+  }
+
+  // The shop sells it, imbuing the chosen ability, or refuses.
+  std::optional<uint16_t> target;
+  if (request.has_imbue()) {
+    target = static_cast<uint16_t>(request.imbue());
+  }
+  auto bought = observer_.BuyItem(request.player(), gameinterop::MakeMemberName(request.item()).hash,
+                                  target, static_cast<uint8_t>(request.source()), **definitions,
+                                  **shop, imbue);
+  if (!bought) {
+    return std::unexpected(bought.error());
+  }
+  return {};
+}
+
 std::expected<void, std::string> Game::TrainAbility(
     const abilities::TrainAbilityRequest& request) {
   // Resolve the game's training and the player's live pawn.

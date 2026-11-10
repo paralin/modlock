@@ -198,7 +198,8 @@ struct ItemFixture {
   Instance pawn{}, body{}, scene{}, hero{}, item{}, granted_item{};
   std::array<uint32_t, 4> handles{};
   std::array<unsigned char, 0x30> definition{};
-  int adds = 0, removes = 0, writes = 0, trains = 0;
+  int adds = 0, removes = 0, writes = 0, trains = 0, buys = 0, imbues = 0;
+  bool accept = true;
   bool apply = true;
   bool disconnect_on_remove = false;
   static inline ItemFixture* current = nullptr;

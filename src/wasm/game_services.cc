@@ -210,6 +210,13 @@ std::expected<const gameinterop::TrainFunctions*, std::string> GameServices::Tra
   return &*training_;
 }
 
+std::expected<const gameinterop::BuyFunctions*, std::string> GameServices::Shop() {
+  if (auto cached = Cache(shop_, &gameinterop::BuyFunctions::Resolve); !cached) {
+    return std::unexpected(cached.error());
+  }
+  return &*shop_;
+}
+
 std::expected<const gameinterop::AbilitySlots*, std::string> GameServices::Slots() {
   if (auto cached = Cache(slots_, &gameinterop::AbilitySlots::Resolve); !cached) {
     return std::unexpected(cached.error());

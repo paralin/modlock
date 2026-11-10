@@ -306,6 +306,22 @@ struct MODLOCK_API TrainFunctions {
   static std::expected<TrainFunctions, std::string> Resolve(const ModuleImage& server);
 };
 
+// BuyFunctions is the shop's own purchase, CCitadelPlayerPawn::BuyItem, which
+// the buyitem command calls. It applies the shop's rules, charges the souls
+// and returns the item, or null when the shop refuses.
+struct MODLOCK_API BuyFunctions {
+  using Buy = void* (*)(void* pawn, const char* name, uint32_t flags, uint8_t source);
+  Buy buy = nullptr;
+  static std::expected<BuyFunctions, std::string> Resolve(const ModuleImage& server);
+};
+
+// kShopBuyFlags are the checks the buyitem command asks BuyItem for.
+inline constexpr uint32_t kShopBuyFlags = 7;
+
+// kShopSources counts the purchase sources BuyItem takes; the buyitem command
+// passes 0 for any other.
+inline constexpr uint32_t kShopSources = 22;
+
 // PawnObserver resolves the connected human player each frame through the
 // addressed engine contracts: occupancy and xuid from ConnectionTracker's
 // engine-reported ClientPutInServer/ClientDisconnect lifecycle (no unproven
@@ -660,6 +676,17 @@ class MODLOCK_API PawnObserver {
                                                        const ItemFunctions& functions,
                                                        const ImbueFunctions& imbue);
 
+  // BuyItem buys an item through the shop's own purchase, under its rules and
+  // for the souls it charges, with source as the buyitem command passes it.
+  // With target, the item must imbue the ability in that signature slot and the
+  // ability must accept it before anything is spent; the bought item then
+  // imbues it, as buydependentitem does for the hero's own abilities.
+  std::expected<Ability, std::string> BuyItem(int32_t slot, uint32_t subclass_id,
+                                              std::optional<uint16_t> target, uint8_t source,
+                                              const AbilityDefinitions& definitions,
+                                              const BuyFunctions& functions,
+                                              const ImbueFunctions* imbue);
+
   // TrainAbility trains or upgrades the ability in the hero's signature slot
   // target, 0 to 3, through the game's own path, which charges the unlock or
   // the ability points. It returns the ability as read back, or why not when
@@ -725,6 +752,15 @@ class MODLOCK_API PawnObserver {
   std::expected<Located, std::string> Relocate(int32_t slot, const Located& before) const;
   // AbilitiesOf reads the abilities a located pawn owns.
   std::expected<std::vector<Ability>, std::string> AbilitiesOf(const Located& here);
+  // ImbueTarget returns the ability in the hero's signature slot target once
+  // the item imbues and the ability accepts it, changing nothing.
+  std::expected<Ability, std::string> ImbueTarget(int32_t slot, uint32_t subclass_id,
+                                                  uint16_t target,
+                                                  const AbilityDefinitions& definitions,
+                                                  const ImbueFunctions& imbue);
+  // ImbueOwned imbues the hero's ability with its item, both by handle.
+  std::expected<void, std::string> ImbueOwned(int32_t slot, uint32_t item, uint32_t ability,
+                                              const ImbueFunctions& imbue);
   // PinnedAbilities reads the abilities of the pawn before still selects.
   std::expected<std::vector<Ability>, std::string> PinnedAbilities(int32_t slot,
                                                                    const Located& before);

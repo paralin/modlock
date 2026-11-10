@@ -106,6 +106,22 @@ message GiveItemRequest {
   optional uint32 imbue = 3;
 }
 
+// BuyItemRequest buys an item from the shop for one player's hero.
+message BuyItemRequest {
+  int32 player = 1;
+
+  // Item is the item's name, such as upgrade_fleetfoot_boots.
+  string item = 2;
+
+  // Imbue is the ability slot, 0 to 3, whose ability an imbuing item
+  // strengthens, as the shop asks when one is bought.
+  optional uint32 imbue = 3;
+
+  // Source is where in the shop the purchase was made, from 0 to 21, as the
+  // game's buyitem and buydependentitem commands carry it; 0 when omitted.
+  optional uint32 source = 4;
+}
+
 // TrainAbilityRequest trains or upgrades one of a player's abilities.
 message TrainAbilityRequest {
   int32 player = 1;

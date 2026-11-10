@@ -2084,6 +2084,17 @@ class Player:
         """
         return _call("GiveItem", "GiveItemRequest", {"player": self, "item": item, "imbue": imbue}) is not None
 
+    def buy_item(self, item: str, imbue: int | None = None, source: int | None = None) -> bool:
+        """buy_item buys an item for the hero as the shop does, under the shop's own
+        rules and for the souls it charges, or fails and charges nothing when the
+        shop refuses, as away from the shop or without the souls. With imbue, an
+        imbuing item strengthens whatever ability the hero holds in that slot, 0
+        to 3, including one ReplaceAbility put there, which the game's own
+        buydependentitem refuses; the call fails, buying nothing, when the
+        ability does not accept it.
+        """
+        return _call("BuyItem", "BuyItemRequest", {"player": self, "item": item, "imbue": imbue, "source": source}) is not None
+
     def train_ability(self, slot: int) -> bool:
         """train_ability trains or upgrades whatever ability the hero holds in a
         slot, 0 to 3, as the player holding the upgrade key and pressing the
@@ -2454,6 +2465,15 @@ _SCHEMA: wire.Schema = {
             wire.Field(1, "player", "int32", cls=Player, key="slot"),
             wire.Field(2, "item", "string"),
             wire.Field(3, "imbue", "uint32", optional=True),
+        ],
+    ),
+    "BuyItemRequest": (
+        None,
+        [
+            wire.Field(1, "player", "int32", cls=Player, key="slot"),
+            wire.Field(2, "item", "string"),
+            wire.Field(3, "imbue", "uint32", optional=True),
+            wire.Field(4, "source", "uint32", optional=True),
         ],
     ),
     "TrainAbilityRequest": (

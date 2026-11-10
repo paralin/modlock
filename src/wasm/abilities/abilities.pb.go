@@ -320,6 +320,54 @@ func (x *GiveItemRequest) GetImbue() uint32 {
 	return 0
 }
 
+// BuyItemRequest buys an item from the shop for one player's hero.
+type BuyItemRequest struct {
+	unknownFields []byte
+	Player        int32 `protobuf:"varint,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Item is the item's name, such as upgrade_fleetfoot_boots.
+	Item string `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	// Imbue is the ability slot, 0 to 3, whose ability an imbuing item
+	// strengthens, as the shop asks when one is bought.
+	Imbue *uint32 `protobuf:"varint,3,opt,name=imbue,proto3,oneof" json:"imbue,omitempty"`
+	// Source is where in the shop the purchase was made, from 0 to 21, as the
+	// game's buyitem and buydependentitem commands carry it; 0 when omitted.
+	Source *uint32 `protobuf:"varint,4,opt,name=source,proto3,oneof" json:"source,omitempty"`
+}
+
+func (x *BuyItemRequest) Reset() {
+	*x = BuyItemRequest{}
+}
+
+func (*BuyItemRequest) ProtoMessage() {}
+
+func (x *BuyItemRequest) GetPlayer() int32 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *BuyItemRequest) GetItem() string {
+	if x != nil {
+		return x.Item
+	}
+	return ""
+}
+
+func (x *BuyItemRequest) GetImbue() uint32 {
+	if x != nil && x.Imbue != nil {
+		return *x.Imbue
+	}
+	return 0
+}
+
+func (x *BuyItemRequest) GetSource() uint32 {
+	if x != nil && x.Source != nil {
+		return *x.Source
+	}
+	return 0
+}
+
 // TrainAbilityRequest trains or upgrades one of a player's abilities.
 type TrainAbilityRequest struct {
 	unknownFields []byte
@@ -787,6 +835,25 @@ func (m *GiveItemRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
 	return m.CloneVT()
 }
 
+func (m *BuyItemRequest) CloneVT() *BuyItemRequest {
+	if m == nil {
+		return (*BuyItemRequest)(nil)
+	}
+	r := new(BuyItemRequest)
+	r.Player = m.Player
+	r.Item = m.Item
+	r.Imbue = protobuf_go_lite.ClonePtr(m.Imbue)
+	r.Source = protobuf_go_lite.ClonePtr(m.Source)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = slices.Clone(m.unknownFields)
+	}
+	return r
+}
+
+func (m *BuyItemRequest) CloneMessageVT() protobuf_go_lite.CloneMessage {
+	return m.CloneVT()
+}
+
 func (m *TrainAbilityRequest) CloneVT() *TrainAbilityRequest {
 	if m == nil {
 		return (*TrainAbilityRequest)(nil)
@@ -1151,6 +1218,35 @@ func (this *GiveItemRequest) EqualVT(that *GiveItemRequest) bool {
 
 func (this *GiveItemRequest) EqualMessageVT(thatMsg any) bool {
 	that, ok := thatMsg.(*GiveItemRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+
+func (this *BuyItemRequest) EqualVT(that *BuyItemRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Player != that.Player {
+		return false
+	}
+	if this.Item != that.Item {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Imbue, that.Imbue) {
+		return false
+	}
+	if !protobuf_go_lite.EqualPtr(this.Source, that.Source) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *BuyItemRequest) EqualMessageVT(thatMsg any) bool {
+	that, ok := thatMsg.(*BuyItemRequest)
 	if !ok {
 		return false
 	}
@@ -1883,6 +1979,82 @@ func (x *GiveItemRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
 
 // UnmarshalJSON unmarshals the GiveItemRequest from JSON.
 func (x *GiveItemRequest) UnmarshalJSON(b []byte) error {
+	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
+}
+
+// MarshalProtoJSON marshals the BuyItemRequest message to JSON.
+func (x *BuyItemRequest) MarshalProtoJSON(s *json.MarshalState) {
+	if x == nil {
+		s.WriteNil()
+		return
+	}
+	s.WriteObjectStart()
+	var wroteField bool
+	if x.Player != 0 || s.HasField("player") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("player")
+		s.WriteInt32(x.Player)
+	}
+	if x.Item != "" || s.HasField("item") {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("item")
+		s.WriteString(x.Item)
+	}
+	if x.Imbue != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("imbue")
+		s.WriteUint32(*x.Imbue)
+	}
+	if x.Source != nil {
+		s.WriteMoreIf(&wroteField)
+		s.WriteObjectField("source")
+		s.WriteUint32(*x.Source)
+	}
+	s.WriteObjectEnd()
+}
+
+// MarshalJSON marshals the BuyItemRequest to JSON.
+func (x *BuyItemRequest) MarshalJSON() ([]byte, error) {
+	return json.DefaultMarshalerConfig.Marshal(x)
+}
+
+// UnmarshalProtoJSON unmarshals the BuyItemRequest message from JSON.
+func (x *BuyItemRequest) UnmarshalProtoJSON(s *json.UnmarshalState) {
+	if s.ReadNil() {
+		return
+	}
+	s.ReadObject(func(key string) {
+		switch key {
+		default:
+			s.Skip() // ignore unknown field
+		case "player":
+			s.AddField("player")
+			x.Player = s.ReadInt32()
+		case "item":
+			s.AddField("item")
+			x.Item = s.ReadString()
+		case "imbue":
+			s.AddField("imbue")
+			if s.ReadNil() {
+				x.Imbue = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Imbue = &t
+		case "source":
+			s.AddField("source")
+			if s.ReadNil() {
+				x.Source = nil
+				return
+			}
+			t := s.ReadUint32()
+			x.Source = &t
+		}
+	})
+}
+
+// UnmarshalJSON unmarshals the BuyItemRequest from JSON.
+func (x *BuyItemRequest) UnmarshalJSON(b []byte) error {
 	return json.DefaultUnmarshalerConfig.Unmarshal(b, x)
 }
 
@@ -2848,6 +3020,58 @@ func (m *GiveItemRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *BuyItemRequest) MarshalVT() (dAtA []byte, err error) {
+	if m == nil {
+		return nil, nil
+	}
+	size := m.SizeVT()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBufferVT(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BuyItemRequest) MarshalToVT(dAtA []byte) (int, error) {
+	size := m.SizeVT()
+	return m.MarshalToSizedBufferVT(dAtA[:size])
+}
+
+func (m *BuyItemRequest) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
+	if m == nil {
+		return 0, nil
+	}
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.unknownFields != nil {
+		i = protobuf_go_lite.EncodeRawBytes(dAtA, i, m.unknownFields)
+	}
+	if m.Source != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Source))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Imbue != nil {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(*m.Imbue))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Item) > 0 {
+		i = protobuf_go_lite.EncodeString(dAtA, i, m.Item)
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Player != 0 {
+		i = protobuf_go_lite.EncodeVarint(dAtA, i, uint64(m.Player))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *TrainAbilityRequest) MarshalVT() (dAtA []byte, err error) {
 	if m == nil {
 		return nil, nil
@@ -3428,6 +3652,20 @@ func (m *GiveItemRequest) SizeVT() (n int) {
 	return n
 }
 
+func (m *BuyItemRequest) SizeVT() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	n += protobuf_go_lite.SizeVarintNonZero(1, m.Player)
+	n += protobuf_go_lite.SizeStringNonEmpty(1, m.Item)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Imbue)
+	n += protobuf_go_lite.SizeVarintPtr(1, m.Source)
+	n += len(m.unknownFields)
+	return n
+}
+
 func (m *TrainAbilityRequest) SizeVT() (n int) {
 	if m == nil {
 		return 0
@@ -3742,6 +3980,32 @@ func (x *GiveItemRequest) MarshalProtoText() string {
 }
 
 func (x *GiveItemRequest) String() string {
+	return x.MarshalProtoText()
+}
+
+func (x *BuyItemRequest) MarshalProtoText() string {
+	var sb protobuf_go_lite.TextBuilder
+	initialLen := protobuf_go_lite.TextStartMessage(&sb, "BuyItemRequest")
+	if x.Player != 0 {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "player")
+		protobuf_go_lite.TextWriteInt(&sb, x.Player)
+	}
+	if x.Item != "" {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "item")
+		protobuf_go_lite.TextWriteString(&sb, x.Item)
+	}
+	if x.Imbue != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "imbue")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Imbue)
+	}
+	if x.Source != nil {
+		protobuf_go_lite.TextWriteFieldPrefix(&sb, initialLen, "source")
+		protobuf_go_lite.TextWriteUint(&sb, *x.Source)
+	}
+	return protobuf_go_lite.TextFinishMessage(&sb)
+}
+
+func (x *BuyItemRequest) String() string {
 	return x.MarshalProtoText()
 }
 
@@ -4474,6 +4738,88 @@ func (m *GiveItemRequest) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			m.Imbue = &v
+		default:
+			iNdEx = preIndex
+			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return protobuf_go_lite.ErrInvalidLength
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.unknownFields = append(m.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+
+func (m *BuyItemRequest) UnmarshalVT(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	var err error
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		wire, iNdEx, err = protobuf_go_lite.DecodeVarint(dAtA, iNdEx)
+		if err != nil {
+			return err
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BuyItemRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BuyItemRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Player", wireType)
+			}
+			m.Player = 0
+			m.Player, iNdEx, err = protobuf_go_lite.DecodeVarintInt32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Item", wireType)
+			}
+			var v string
+			v, iNdEx, err = protobuf_go_lite.DecodeString(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Item = v
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Imbue", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Imbue = &v
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Source", wireType)
+			}
+			var v uint32
+			v, iNdEx, err = protobuf_go_lite.DecodeVarintUint32(dAtA, iNdEx)
+			if err != nil {
+				return err
+			}
+			m.Source = &v
 		default:
 			iNdEx = preIndex
 			skippy, err := protobuf_go_lite.Skip(dAtA[iNdEx:])

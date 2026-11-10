@@ -120,6 +120,7 @@ class GameServices {
   std::expected<const gameinterop::ItemFunctions*, std::string> Items();
   std::expected<const gameinterop::ImbueFunctions*, std::string> Imbues();
   std::expected<const gameinterop::TrainFunctions*, std::string> Training();
+  std::expected<const gameinterop::BuyFunctions*, std::string> Shop();
   std::expected<const gameinterop::AbilitySlots*, std::string> Slots();
   std::expected<gameinterop::CreateAbility, std::string> CreateAbility();
   std::expected<gameinterop::RespawnPawn, std::string> Respawn();
@@ -222,6 +223,7 @@ class GameServices {
   std::optional<gameinterop::ItemFunctions> items_;
   std::optional<gameinterop::ImbueFunctions> imbues_;
   std::optional<gameinterop::TrainFunctions> training_;
+  std::optional<gameinterop::BuyFunctions> shop_;
   std::optional<gameinterop::AbilitySlots> slots_;
   gameinterop::CreateAbility create_ability_ = nullptr;
   gameinterop::RespawnPawn respawn_ = nullptr;
@@ -467,6 +469,7 @@ class Game : public HostService {
   std::expected<void, std::string> GiveItem(const abilities::GiveItemRequest& request) override;
   std::expected<void, std::string> TrainAbility(
       const abilities::TrainAbilityRequest& request) override;
+  std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& request) override;
   std::expected<abilities::HeroBuildResponse, std::string> HeroBuild(
       const abilities::HeroBuildRequest& request) override;
   std::expected<void, std::string> ReplaceAbility(

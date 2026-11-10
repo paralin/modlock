@@ -481,6 +481,13 @@ signatures {
 }
 
 signatures {
+  id: "pawn.buy-item"
+  modules: GAME_MODULE_SERVER
+  pattern: "48 89 5C 24 08 44 88 4C 24 20 48 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 30 FF FF FF"
+  shape: "CCitadelBaseAbility* CCitadelPlayerPawn::BuyItem(const char* name, uint32 flags, uint8 source)"
+}
+
+signatures {
   id: "pawn.train-or-upgrade-ability"
   modules: GAME_MODULE_SERVER
   pattern: "48 85 D2 0F 84 ?? ?? ?? ?? 55 41 54 48 81 EC ?? ?? ?? ?? 48 8B EA 4C 8B E1 0F B7 92 44 06 00 00 E8"

@@ -2804,6 +2804,19 @@ export class Player {
   }
 
   /**
+   * buyItem buys an item for the hero as the shop does, under the shop's own
+   * rules and for the souls it charges, or fails and charges nothing when the
+   * shop refuses, as away from the shop or without the souls. With imbue, an
+   * imbuing item strengthens whatever ability the hero holds in that slot, 0
+   * to 3, including one ReplaceAbility put there, which the game's own
+   * buydependentitem refuses; the call fails, buying nothing, when the
+   * ability does not accept it.
+   */
+  buyItem(item: string, imbue?: number, source?: number): boolean {
+    return call('BuyItem', abilitiesPb.BuyItemRequest.toBinary({ player: this.slot, item, imbue, source })) !== undefined
+  }
+
+  /**
    * trainAbility trains or upgrades whatever ability the hero holds in a
    * slot, 0 to 3, as the player holding the upgrade key and pressing the
    * slot's ability key does: an untrained ability trains for an ability

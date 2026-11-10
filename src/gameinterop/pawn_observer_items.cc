@@ -96,6 +96,18 @@ std::expected<TrainFunctions, std::string> TrainFunctions::Resolve(const ModuleI
   return functions;
 }
 
+std::expected<BuyFunctions, std::string> BuyFunctions::Resolve(const ModuleImage& server) {
+  BuyFunctions functions{};
+  const SignatureCall signatures[] = {
+      {"pawn.buy-item", &functions.buy},
+  };
+  auto resolved = ResolveSignatures(server, signatures);
+  if (!resolved) {
+    return std::unexpected(resolved.error());
+  }
+  return functions;
+}
+
 std::expected<PawnObserver::Ability, std::string> PawnObserver::TrainAbility(
     int32_t slot, uint16_t target, const TrainFunctions& functions) {
   // Find the live ability the hero holds in the target slot.
@@ -140,9 +152,9 @@ std::expected<PawnObserver::Ability, std::string> PawnObserver::TrainAbility(
   return *trained;
 }
 
-std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantImbuingItem(
+std::expected<PawnObserver::Ability, std::string> PawnObserver::ImbueTarget(
     int32_t slot, uint32_t subclass_id, uint16_t target, const AbilityDefinitions& definitions,
-    const ItemFunctions& functions, const ImbueFunctions& imbue) {
+    const ImbueFunctions& imbue) {
   // Find the item and the ability in the target slot.
   if (target > kLastSignatureSlot) {
     return std::unexpected("an imbue targets an ability slot from 0 to 3");
@@ -164,7 +176,7 @@ std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantImbuingItem
     return std::unexpected(accepting.error());
   }
 
-  // The item must imbue, and the ability accept it, before the hero gets it.
+  // The item must imbue, and the ability accept it.
   uint32_t effects = 0;
   if (!ReadNative(static_cast<unsigned char*>(item->native_definition_pointer) + imbue.effects,
                   &effects, sizeof(effects)) ||
@@ -174,19 +186,89 @@ std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantImbuingItem
   if (!imbue.accepts(accepting->native_definition_pointer, item->native_definition_pointer)) {
     return std::unexpected(item->name + " cannot imbue " + accepting->name);
   }
+  return *ability;
+}
+
+std::expected<void, std::string> PawnObserver::ImbueOwned(int32_t slot, uint32_t item,
+                                                          uint32_t ability,
+                                                          const ImbueFunctions& imbue) {
+  void* item_entity = AbilityInstance(slot, item);
+  void* ability_entity = AbilityInstance(slot, ability);
+  if (item_entity == nullptr || ability_entity == nullptr) {
+    return std::unexpected("the item or the ability is no longer live");
+  }
+  imbue.imbue(item_entity, ability_entity);
+  return {};
+}
+
+std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantImbuingItem(
+    int32_t slot, uint32_t subclass_id, uint16_t target, const AbilityDefinitions& definitions,
+    const ItemFunctions& functions, const ImbueFunctions& imbue) {
+  // The ability must accept the item before the hero gets it.
+  const auto ability = ImbueTarget(slot, subclass_id, target, definitions, imbue);
+  if (!ability) {
+    return std::unexpected(ability.error());
+  }
   auto granted = GrantItem(slot, subclass_id, definitions, functions);
   if (!granted) {
     return std::unexpected(granted.error());
   }
 
   // Imbue the ability with the granted item.
-  void* item_entity = AbilityInstance(slot, granted->handle);
-  void* ability_entity = AbilityInstance(slot, ability->handle);
-  if (item_entity == nullptr || ability_entity == nullptr) {
-    return std::unexpected("the item or the ability is no longer live");
+  if (auto imbued = ImbueOwned(slot, granted->handle, ability->handle, imbue); !imbued) {
+    return std::unexpected(imbued.error());
   }
-  imbue.imbue(item_entity, ability_entity);
   return *granted;
+}
+
+std::expected<PawnObserver::Ability, std::string> PawnObserver::BuyItem(
+    int32_t slot, uint32_t subclass_id, std::optional<uint16_t> target, uint8_t source,
+    const AbilityDefinitions& definitions, const BuyFunctions& functions,
+    const ImbueFunctions* imbue) {
+  // Buy only an enabled item, and check an imbue before anything is spent.
+  const auto definition = definitions.Find(subclass_id);
+  if (!definition) {
+    return std::unexpected(definition.error());
+  }
+  if (definition->disabled || !definition->name.starts_with("upgrade_") || !functions.buy) {
+    return std::unexpected("enabled native item and the shop's purchase required");
+  }
+  std::optional<Ability> ability;
+  if (target) {
+    if (imbue == nullptr) {
+      return std::unexpected("the game's imbue is unavailable");
+    }
+    auto accepting = ImbueTarget(slot, subclass_id, *target, definitions, *imbue);
+    if (!accepting) {
+      return std::unexpected(accepting.error());
+    }
+    ability = *accepting;
+  }
+
+  // The shop sells the item under its own rules, charging the souls, or refuses.
+  const auto here = Locate(slot);
+  if (!here) {
+    return std::unexpected(here.error());
+  }
+  if (functions.buy(here->pawn, definition->name.c_str(), kShopBuyFlags, source) == nullptr) {
+    return std::unexpected("the shop refused " + definition->name);
+  }
+  const auto after = PinnedAbilities(slot, *here);
+  if (!after) {
+    return std::unexpected(after.error());
+  }
+  const auto bought = std::ranges::find(*after, subclass_id, &Ability::subclass_id);
+  if (bought == after->end()) {
+    return std::unexpected("the shop sold " + definition->name + " but the hero does not own it");
+  }
+
+  // Imbue the chosen ability with the bought item.
+  if (ability) {
+    if (auto imbued = ImbueOwned(slot, bought->handle, ability->handle, *imbue); !imbued) {
+      return std::unexpected(imbued.error());
+    }
+  }
+  return *bought;
 }
 
 std::expected<PawnObserver::Ability, std::string> PawnObserver::GrantItem(

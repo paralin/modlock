@@ -310,6 +310,17 @@ class HostService {
     return std::unexpected("this host does not support GiveItem");
   }
 
+  // BuyItem buys an item for the hero as the shop does, under the shop's own
+  // rules and for the souls it charges, or fails and charges nothing when the
+  // shop refuses, as away from the shop or without the souls. With imbue, an
+  // imbuing item strengthens whatever ability the hero holds in that slot, 0
+  // to 3, including one ReplaceAbility put there, which the game's own
+  // buydependentitem refuses; the call fails, buying nothing, when the
+  // ability does not accept it.
+  virtual std::expected<void, std::string> BuyItem(const abilities::BuyItemRequest& /*request*/) {
+    return std::unexpected("this host does not support BuyItem");
+  }
+
   // TrainAbility trains or upgrades whatever ability the hero holds in a
   // slot, 0 to 3, as the player holding the upgrade key and pressing the
   // slot's ability key does: an untrained ability trains for an ability
@@ -1262,6 +1273,14 @@ class HostService {
              return detail::Fail("the GiveItem request is malformed");
            }
            return detail::Answer(host.GiveItem(request));
+         }},
+        {"BuyItem",
+         [](HostService& host, const std::string& bytes) {
+           abilities::BuyItemRequest request;
+           if (!request.ParseFromString(bytes)) {
+             return detail::Fail("the BuyItem request is malformed");
+           }
+           return detail::Answer(host.BuyItem(request));
          }},
         {"TrainAbility",
          [](HostService& host, const std::string& bytes) {

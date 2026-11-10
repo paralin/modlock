@@ -846,28 +846,28 @@ whose `cancel` you call with a colon. In Python, `modlock.after`,
 
 ### Players and heroes
 
-| Call                                                                                                 | Effect                                                                |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `players()`                                                                                          | List the connected players and bots.                                  |
-| `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`                           | Keep one member per human and get them the hero they want.            |
-| `player.pawn()`                                                                                      | Read the hero: health, team, position, aim and stamina.               |
-| `player.chat`, `centerText`, `announce`                                                              | Show text to one player.                                              |
-| `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`                          | Move the hero through the match.                                      |
-| `player.zipline(lane)`                                                                               | Put the hero on the yellow, green, blue or purple lane's zipline.     |
-| `player.spectate()`                                                                                  | Move the player to the spectators, without a hero.                    |
-| `player.watch(target, chase?)`, `freeCamera(position, facing)`, `unwatch()`                          | Watch a hero, chase it or fly freely, and return to the hero.         |
-| `player.moveCamera(options)`, `clearCamera(context?)`                                                | Pull back, widen, offset or aim the camera, as abilities do.          |
-| `player.clearItems`, `giveItem(item, imbue?)`, `restoreStamina`, `setStamina`, `refreshAbility`      | Change what the hero carries, imbuing an ability with an item.        |
-| `player.abilities()`, `setAbility`, `replaceAbility`, `trainAbility`, `giveModifier`, `holdModifier` | Read, change or train abilities, their timers and charges, modifiers. |
-| `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)`               | Read or change the player's settings.                                 |
-| `player.addMetric(name, value, label?)`                                                              | Add to the player's total of a metric.                                |
-| `reportScore(player, board, value, options?)`, `reportMatch(board, places, options?)`                | Report a score or a match's places to a board.                        |
-| `readBoard(board, read?)`                                                                            | Read a page of a board, such as its top five.                         |
-| `player.handoff(text)`, `handedOff()`                                                                | Hand the player's state to the next build, and read it back.          |
-| `player.watchMovement(true)`                                                                         | Add the hero's movement, landings and wall jumps to each frame.       |
-| `playCamera(player, options)`, `cameraPulse`, `cameraShake`                                          | Play curves on the camera; see [Camera moves](#camera-moves).         |
-| `setOrbitCamera(player, enabled)`                                                                    | Switch the hero to the hideout's zoom camera and HUD, or back.        |
-| `addBot(options)`, `player.removeBot()`                                                              | Add or remove a bot player.                                           |
+| Call                                                                                                                              | Effect                                                                |
+| --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `players()`                                                                                                                       | List the connected players and bots.                                  |
+| `new Cast({ join, leave, bots })`, `cast.frame`, `members`, `want`, `pawn`                                                        | Keep one member per human and get them the hero they want.            |
+| `player.pawn()`                                                                                                                   | Read the hero: health, team, position, aim and stamina.               |
+| `player.chat`, `centerText`, `announce`                                                                                           | Show text to one player.                                              |
+| `player.selectHero`, `respawn`, `teleport`, `setVelocity`, `freeze`, `kill`                                                       | Move the hero through the match.                                      |
+| `player.zipline(lane)`                                                                                                            | Put the hero on the yellow, green, blue or purple lane's zipline.     |
+| `player.spectate()`                                                                                                               | Move the player to the spectators, without a hero.                    |
+| `player.watch(target, chase?)`, `freeCamera(position, facing)`, `unwatch()`                                                       | Watch a hero, chase it or fly freely, and return to the hero.         |
+| `player.moveCamera(options)`, `clearCamera(context?)`                                                                             | Pull back, widen, offset or aim the camera, as abilities do.          |
+| `player.clearItems`, `giveItem(item, imbue?)`, `buyItem(item, imbue?, source?)`, `restoreStamina`, `setStamina`, `refreshAbility` | Change what the hero carries, imbuing an ability with an item.        |
+| `player.abilities()`, `setAbility`, `replaceAbility`, `trainAbility`, `giveModifier`, `holdModifier`                              | Read, change or train abilities, their timers and charges, modifiers. |
+| `player.setting`, `setSetting`, `settingOn(player, key)`, `settingNumber(player, key)`                                            | Read or change the player's settings.                                 |
+| `player.addMetric(name, value, label?)`                                                                                           | Add to the player's total of a metric.                                |
+| `reportScore(player, board, value, options?)`, `reportMatch(board, places, options?)`                                             | Report a score or a match's places to a board.                        |
+| `readBoard(board, read?)`                                                                                                         | Read a page of a board, such as its top five.                         |
+| `player.handoff(text)`, `handedOff()`                                                                                             | Hand the player's state to the next build, and read it back.          |
+| `player.watchMovement(true)`                                                                                                      | Add the hero's movement, landings and wall jumps to each frame.       |
+| `playCamera(player, options)`, `cameraPulse`, `cameraShake`                                                                       | Play curves on the camera; see [Camera moves](#camera-moves).         |
+| `setOrbitCamera(player, enabled)`                                                                                                 | Switch the hero to the hideout's zoom camera and HUD, or back.        |
+| `addBot(options)`, `player.removeBot()`                                                                                           | Add or remove a bot player.                                           |
 
 `heroes` lists the released heroes by title, each with its game name, such as
 `hero_atlas`, and fixed id. `findHero(typed)` matches what a player typed,
@@ -889,6 +889,12 @@ the points, and returns false, spending nothing, when the game refuses. The
 game's own `upgrade_ability` and `trainorupgradeability` commands look up the
 hero's own ability for a slot, so a mod that claims them answers with
 `trainAbility`.
+`buyItem(item, imbue?, source?)` buys an item through the game's own shop,
+which applies its rules and charges the souls, and returns false when it
+refuses. With `imbue`, the item strengthens whatever ability the hero holds in
+that slot, as `giveItem` does; the check runs before anything is spent. The
+game's `buydependentitem` command looks up the hero's own ability for the slot,
+so a mod that claims it answers with `buyItem`.
 `adjustAbilityPoints(points, unlocks)` gives or takes them, and the hero's
 `abilityPoints` and `abilityUnlocks` read what is left. A hero change or
 `resetHero` restores the hero's own abilities, so reapply a swap then. Use
