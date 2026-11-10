@@ -129,6 +129,13 @@ TEST(UiTrees, RefusesWhatCannotBeDrawn) {
   EXPECT_FALSE(trees.Apply(0, Set(std::string(65, 'x'), modlock::wasm::ui::KIND_PANEL)));
   EXPECT_FALSE(trees.Apply(64, Set("ready", modlock::wasm::ui::KIND_BUTTON)));
 
+  // A press writes an id into a console command, so an id is a word that may
+  // hold '-', '.' and ':' and nothing that starts another command.
+  for (const char* id : {"a b", "a;quit", "a\nquit", "a\"b", "a/b"}) {
+    EXPECT_FALSE(trees.Apply(0, Set(id, modlock::wasm::ui::KIND_BUTTON))) << id;
+  }
+  EXPECT_TRUE(trees.Apply(0, Set("route:scores.v2", modlock::wasm::ui::KIND_BUTTON)));
+
   // A layout names an .xml file inside the mod's addon and nothing outside it.
   auto layout = Set("inventory", modlock::wasm::ui::KIND_LAYOUT);
   for (const char* path : {"", "inventory.js", "../hyperline/session.xml", "a//b.xml", "a b.xml"}) {

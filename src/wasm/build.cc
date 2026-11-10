@@ -4,6 +4,7 @@
 
 #include <google/protobuf/json/json.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <utility>
@@ -37,6 +38,14 @@ std::string_view InterpreterFile(wasm::Manifest::Runtime runtime) {
   }
 }
 
+// IsSlug reports whether name is a slug, as check.Slug holds one.
+bool IsSlug(std::string_view name) {
+  return !name.empty() && !name.starts_with('-') && !name.ends_with('-') && !name.contains("--") &&
+         std::ranges::all_of(name, [](char c) {
+           return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+         });
+}
+
 }  // namespace
 
 // ReadBuild reads a built mod directory through its mod.json, or a bare
@@ -48,6 +57,9 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
     auto module = ReadFile(path);
     if (!module) {
       return std::unexpected(module.error());
+    }
+    if (!IsSlug(path.stem().string())) {
+      return std::unexpected(path.string() + ": invalid slug");
     }
     return Build{.name = path.stem().string(), .module = std::move(*module)};
   }
@@ -72,6 +84,9 @@ std::expected<Build, std::string> ReadBuild(const std::filesystem::path& path,
   // collision its movement model needs.
   if (manifest.slug().empty()) {
     return std::unexpected(manifest_path.string() + ": no slug");
+  }
+  if (!IsSlug(manifest.slug())) {
+    return std::unexpected(manifest_path.string() + ": invalid slug");
   }
   auto entry = ReadFile(path / manifest.entry());
   if (!entry) {
