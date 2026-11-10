@@ -1123,7 +1123,13 @@ function clock() {
         properties,
       ) as unknown as GuardPanel,
     // A dialog variable reads the panel's; a hero's name reads heroNames.
-    localize: (token: string, panel?: GuardPanel) => {
+    // The game's $.Localize throws on a second argument that is not a panel.
+    localize: (...args: [string, GuardPanel?]) => {
+      const [token, panel] = args
+      if (args.length > 1 && !panel)
+        throw new Error(
+          "Localize() optional panel argument present but isn't a panel",
+        )
       const variable = /^\{s:(.*)\}$/.exec(token)
       if (variable)
         return (panel as FakePanel | undefined)?.dialog[variable[1]!] ?? token
@@ -2031,15 +2037,20 @@ test('a guard that starts again undresses what an earlier one drew', () => {
 
 /**
  * barIcons lays the ability bar's four icons under hud, as the game's
- * hud_signature does, each with its upgrade pips.
+ * hud_signature does, each with its upgrade pips: inside the icon, or apart,
+ * the four rows together in one panel of their own.
  */
-function barIcons(hud: ReturnType<typeof gameHud>) {
+function barIcons(hud: ReturnType<typeof gameHud>, apart = false) {
   const signature = hud.add(hud.abilities, 'hud_signature')
-  return [1, 2, 3, 4].map((n) => {
-    const icon = abilityIcon(signature, `slot_signature_${n}`)
+  const icons = [1, 2, 3, 4].map((n) =>
+    abilityIcon(signature, `slot_signature_${n}`),
+  )
+  const rows = apart ? hud.add(signature, 'pip_rows') : null
+  return icons.map((icon) => {
     const pips = new FakePanel('CitadelHudAbilityUpgradePips', '')
-    pips.parent = icon.icon
-    icon.icon.children.push(pips)
+    const holder = rows ?? icon.icon
+    pips.parent = holder
+    holder.children.push(pips)
     const part = (under: FakePanel, id: string, ...classes: string[]) => {
       const panel = hud.add(under, id, ...classes)
       return panel
@@ -2140,4 +2151,32 @@ test("draws the viewer's own row on the ability bar, and gives it back", () => {
     }
     expect(slot.icon.attributes.get(DRAWN_MARK) ?? '').toBe('')
   }
+})
+
+test('finds pips the game makes apart from the icons by where they sit', () => {
+  // The four rows sit together, apart from the icons; each slot's row is
+  // drawn and listened on as the one inside its icon would be.
+  const hud = gameHud()
+  const bar = barIcons(hud, true)
+  const host = clock()
+  const stock = new StockGuard(hud.game, host)
+  stock.screen(
+    parts(),
+    abilityBarMods(screen({ id: '', abilityBarPresses: true })),
+    displayed({
+      player: 2,
+      name: 'Ada',
+      own: true,
+      abilities: [{}, { ability: 12, upgrades: 0b11 }],
+    }),
+  )
+  expect(bar[1]!.train.style.visibility).toBe('collapse')
+  expect(bar[1]!.unlocks.map(({ pip }) => pip.style.backgroundColor)).toEqual([
+    '#69e799',
+    'black',
+    'black',
+  ])
+  expect(bar[0]!.train.style.visibility ?? null).toBeNull()
+  host.click(bar[3]!.pips)
+  expect(host.pressed).toEqual(['arena ability:3'])
 })
