@@ -1501,6 +1501,17 @@ The sandbox answers a named service from a fixture in the project:
 whose values are their replies, sent as JSON. Before the mod starts, the
 sandbox logs which provider answers each named service: a fixture or nobody.
 
+A service may answer in a later frame, as one that asks a server across the
+network does. `callServiceLater(service, method, payload, done)` returns at
+once, and `done(reply, error, failure)` runs once in a later frame: with the
+reply, or with the service's refusal, a timeout or `unavailable` when nobody
+provides the service, which is then never asked. The host waits at most 30
+seconds, or the call's own shorter timeout, and drops the calls a mod still
+waits for when it stops or reloads. A service that answers at once, a
+fixture among them, answers a started call the same way in the next frame, so
+a mod cannot tell which provider it has. A host provides a service that
+answers later with `WasmHost::ProvideLater`.
+
 ```json
 { "read": { "key": "slide" }, "save": true }
 ```

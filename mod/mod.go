@@ -26,6 +26,7 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/paralin/modlock/src/wasm/players"
@@ -44,6 +45,9 @@ type handlers struct {
 	commands map[string]func(Player, string)
 	// services maps each service the mod serves to its handler.
 	services map[string]Service
+	// waiting maps each started service call's number to the function its
+	// end runs.
+	waiting map[uint64]func(reply []byte, err error)
 
 	starts        []func(args []string)
 	frames        []func(*FrameEvent)
@@ -69,7 +73,11 @@ type handlers struct {
 }
 
 // registered is the mod's single set of handlers.
-var registered = &handlers{commands: map[string]func(Player, string){}, services: map[string]Service{}}
+var registered = &handlers{
+	commands: map[string]func(Player, string){},
+	services: map[string]Service{},
+	waiting:  map[uint64]func(reply []byte, err error){},
+}
 
 // Command calls handler when a player types /name in chat. The handler runs
 // with the next server frame, before the frame handlers, and receives the
@@ -83,6 +91,35 @@ func Command(name string, handler func(p Player, args string)) {
 // service again replaces its handler.
 func Serve(service string, handler Service) {
 	registered.services[service] = handler
+}
+
+// ServiceError ends a started service call without an answer: Failure says
+// why and Message describes it.
+type ServiceError struct {
+	Failure ServiceFailure
+	Message string
+}
+
+// Error returns the failure's description.
+func (e *ServiceError) Error() string {
+	return e.Message
+}
+
+// CallServiceLater calls method of a service the host provides and returns
+// at once; done runs in a later frame with the answer, or with a
+// *ServiceError when the service refused, the call waited past timeout or
+// nobody provides the service. A zero timeout waits the host's longest, 30
+// seconds. done runs exactly once while the mod runs; calls still waiting
+// when the mod stops end with it.
+func CallServiceLater(service, method string, payload []byte, timeout time.Duration, done func(reply []byte, err error)) {
+	// A call the host refuses to start ends in the next frame as well, so
+	// done never runs before this returns.
+	call, err := StartServiceCall(service, method, payload, uint32(timeout.Milliseconds()))
+	if err != nil {
+		After(0, func() { done(nil, &ServiceError{Failure: ServiceFailureUnavailable, Message: err.Error()}) })
+		return
+	}
+	registered.waiting[call] = done
 }
 
 // OnStart calls handler once when the server starts the mod, with the
@@ -314,6 +351,21 @@ func (h *handlers) NpcsRestored(event *NpcsRestoredEvent) error {
 	for _, handler := range h.npcsRestoreds {
 		handler(err)
 	}
+	return nil
+}
+
+// ServiceReplied ends one started service call.
+func (h *handlers) ServiceReplied(event *ServiceRepliedEvent) error {
+	done, ok := h.waiting[event.GetCall()]
+	if !ok {
+		return nil
+	}
+	delete(h.waiting, event.GetCall())
+	if event.GetFailure() != ServiceFailureNone {
+		done(nil, &ServiceError{Failure: event.GetFailure(), Message: event.GetError()})
+		return nil
+	}
+	done(event.GetPayload(), nil)
 	return nil
 }
 

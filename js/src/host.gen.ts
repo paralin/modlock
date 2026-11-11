@@ -503,6 +503,21 @@ const cameraParamValues: Record<CameraParam, playersPb.CameraParam> = {
   horizontalOffset: 4,
 }
 
+/** ServiceFailure says why a service call ended without an answer. */
+export type ServiceFailure =
+  | 'none'
+  | 'refused'
+  | 'timeout'
+  | 'unavailable'
+
+/** serviceFailureNames decodes each ServiceFailure; an unknown value has no name. */
+const serviceFailureNames: Partial<Record<number, ServiceFailure>> = {
+  0: 'none',
+  1: 'refused',
+  2: 'timeout',
+  3: 'unavailable',
+}
+
 /** Ability is one ability a hero owns. */
 export interface Ability {
   /** name is the ability's name, such as citadel_ability_hornet_snipe. */
@@ -2521,6 +2536,28 @@ export interface ServiceReply {
   payload: Uint8Array
 }
 
+/** ServiceRepliedEvent ends one started service call. */
+export interface ServiceRepliedEvent {
+  /** call is the number StartServiceCall returned. */
+  readonly call: bigint
+  /** payload is the answer, when failure is none. */
+  readonly payload: Uint8Array
+  /** failure says why the call ended without an answer. */
+  readonly failure?: ServiceFailure
+  /** error describes the failure. */
+  readonly error: string
+}
+
+/** fromServiceRepliedEvent decodes a ServiceRepliedEvent. */
+function fromServiceRepliedEvent(message: wasmPb.ServiceRepliedEvent): ServiceRepliedEvent {
+  return {
+    call: message.call ?? 0n,
+    payload: message.payload ?? new Uint8Array(),
+    failure: serviceFailureNames[message.failure ?? 0],
+    error: message.error ?? '',
+  }
+}
+
 /** PrecacheOptions names what the next world loads ahead of use. */
 export interface PrecacheOptions {
   /** heroes are hero names, such as hero_wraith. */
@@ -3548,6 +3585,23 @@ export function callService(service: string, method: string, payload: Uint8Array
 }
 
 /**
+ * startServiceCall calls method of a service the host provides and
+ * returns at once with a number; the answer arrives in a later frame as a
+ * ServiceReplied event carrying that number. Every call ends once: with
+ * the reply, the service's refusal, a timeout or no provider at all. A
+ * service nobody provides is never asked. The host waits at most 30
+ * seconds, or the call's shorter timeout, and drops the mod's waiting
+ * calls when the mod stops or reloads. A service that answers at once
+ * answers this way too, in the next frame.
+ */
+export function startServiceCall(service: string, method: string, payload: Uint8Array, timeoutMilliseconds: number): bigint | undefined {
+  const reply = call('StartServiceCall', wasmPb.StartServiceCallRequest.toBinary({ service, method, payload, timeoutMilliseconds }))
+  if (reply === undefined) return undefined
+  const response = wasmPb.ServiceCallStarted.fromBinary(reply)
+  return response.call ?? 0n
+}
+
+/**
  * createEntity creates any entity the server knows by its designer name,
  * such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
  * written before it spawns. The world removes it when the world ends;
@@ -3804,6 +3858,8 @@ export interface ModHandlers {
   uiInput(event: UiInputEvent): void
   /** serve calls a service the mod serves from the host. */
   serve(event: ServiceCall): ServiceReply
+  /** serviceReplied ends one StartServiceCall, in a frame after the call. */
+  serviceReplied(event: ServiceRepliedEvent): void
   /**
    * damage offers one hit before the game applies it, while the mod asked
    * for damage. The mod's answer may block the hit or change its amount.
@@ -3896,6 +3952,9 @@ export function serveMod(handlers: ModHandlers, bytes: Uint8Array): Uint8Array {
         return reply()
       case 'Serve':
         return reply(wasmPb.ServiceReply.toBinary(handlers.serve(fromServiceCall(wasmPb.ServiceCall.fromBinary(input)))))
+      case 'ServiceReplied':
+        handlers.serviceReplied(fromServiceRepliedEvent(wasmPb.ServiceRepliedEvent.fromBinary(input)))
+        return reply()
       case 'Damage':
         return reply(combatPb.DamageResult.toBinary(handlers.damage(fromDamageEvent(combatPb.DamageEvent.fromBinary(input)))))
       case 'Damaged':

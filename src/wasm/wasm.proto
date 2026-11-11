@@ -550,6 +550,16 @@ service Host {
   // service defines the payload's encoding.
   rpc CallService(ServiceCall) returns (ServiceReply);
 
+  // StartServiceCall calls method of a service the host provides and
+  // returns at once with a number; the answer arrives in a later frame as a
+  // ServiceReplied event carrying that number. Every call ends once: with
+  // the reply, the service's refusal, a timeout or no provider at all. A
+  // service nobody provides is never asked. The host waits at most 30
+  // seconds, or the call's shorter timeout, and drops the mod's waiting
+  // calls when the mod stops or reloads. A service that answers at once
+  // answers this way too, in the next frame.
+  rpc StartServiceCall(StartServiceCallRequest) returns (ServiceCallStarted);
+
   // CreateEntity creates any entity the server knows by its designer name,
   // such as npc_trooper_boss or prop_dynamic, with spawn key values and fields
   // written before it spawns. The world removes it when the world ends;
@@ -731,6 +741,9 @@ service Mod {
   // Serve calls a service the mod serves from the host.
   rpc Serve(ServiceCall) returns (ServiceReply);
 
+  // ServiceReplied ends one StartServiceCall, in a frame after the call.
+  rpc ServiceReplied(ServiceRepliedEvent) returns (Empty);
+
   // Damage offers one hit before the game applies it, while the mod asked
   // for damage. The mod's answer may block the hit or change its amount.
   rpc Damage(modlock.wasm.combat.DamageEvent) returns (modlock.wasm.combat.DamageResult);
@@ -898,6 +911,58 @@ message ServiceCall {
 message ServiceReply {
   // Payload is the answer.
   bytes payload = 1;
+}
+
+// StartServiceCallRequest calls one method of a service the host provides,
+// to be answered in a later frame.
+message StartServiceCallRequest {
+  // Service names the service, such as "arena.match".
+  string service = 1;
+
+  // Method names the method within the service.
+  string method = 2;
+
+  // Payload is the call's argument.
+  bytes payload = 3;
+
+  // TimeoutMilliseconds is how long the mod waits for the answer; zero or
+  // more than 30 seconds waits 30 seconds.
+  uint32 timeout_milliseconds = 4;
+}
+
+// ServiceCallStarted numbers a started service call.
+message ServiceCallStarted {
+  // Call is the number the call's ServiceReplied event carries, unique for
+  // the mod's instance.
+  uint64 call = 1;
+}
+
+// ServiceFailure says why a service call ended without an answer.
+enum ServiceFailure {
+  // SERVICE_FAILURE_NONE is an answered call.
+  SERVICE_FAILURE_NONE = 0;
+  // SERVICE_FAILURE_REFUSED is a call the service answered with an error.
+  SERVICE_FAILURE_REFUSED = 1;
+  // SERVICE_FAILURE_TIMEOUT is a call that waited out its timeout.
+  SERVICE_FAILURE_TIMEOUT = 2;
+  // SERVICE_FAILURE_UNAVAILABLE is a call to a service nobody provides
+  // here, or one more than the host keeps waiting for a mod.
+  SERVICE_FAILURE_UNAVAILABLE = 3;
+}
+
+// ServiceRepliedEvent ends one started service call.
+message ServiceRepliedEvent {
+  // Call is the number StartServiceCall returned.
+  uint64 call = 1;
+
+  // Payload is the answer, when failure is none.
+  bytes payload = 2;
+
+  // Failure says why the call ended without an answer.
+  ServiceFailure failure = 3;
+
+  // Error describes the failure.
+  string error = 4;
 }
 
 // LogRequest carries one log line.

@@ -100,6 +100,14 @@ void WasmHost::Provide(std::string service, WasmExtension extension) {
   }
 }
 
+void WasmHost::ProvideLater(std::string service, WasmLateExtension extension) {
+  if (extension) {
+    impl_->late_extensions.insert_or_assign(std::move(service), std::move(extension));
+  } else {
+    impl_->late_extensions.erase(service);
+  }
+}
+
 void WasmHost::KeepSettings(WasmSettings* settings) {
   impl_->settings = settings ? settings : &impl_->kept;
 }

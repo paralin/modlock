@@ -302,7 +302,9 @@ void WasmPlugin::Halt() {
   Untune(untuned_);
   tuned_ = false;
 
-  // Drop the movement, the subscriptions and the game state.
+  // Drop the movement, the subscriptions, the started service calls and
+  // the game state.
+  service_calls_.Drop();
   movement_.reset();
   hero_slots_.clear();
   Unsubscribe();
@@ -334,10 +336,9 @@ void WasmPlugin::ListenForRestart() {
     }
     text.remove_prefix(1);
     if (text.size() < kRestartCommand.size() ||
-        !std::ranges::equal(text.substr(0, kRestartCommand.size()), kRestartCommand,
-                            [](unsigned char a, unsigned char b) {
-                              return std::tolower(a) == b;
-                            })) {
+        !std::ranges::equal(
+            text.substr(0, kRestartCommand.size()), kRestartCommand,
+            [](unsigned char a, unsigned char b) { return std::tolower(a) == b; })) {
       return;
     }
     text.remove_prefix(kRestartCommand.size());
@@ -519,6 +520,9 @@ void WasmPlugin::Tick() {
   if (const auto now = std::chrono::steady_clock::now(); now - calls_reported_ >= kCallsPeriod) {
     ReportCalls();
   }
+
+  // End the started service calls that ended, which need no game.
+  DeliverServiceReplies();
 
   // Run the game's frame work, and deliver the frame to a mod that wants it.
   if (GameOpen()) {

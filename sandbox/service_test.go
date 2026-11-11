@@ -24,7 +24,7 @@ func TestCallService(t *testing.T) {
 	serve := func(service, method string, payload interface{ MarshalVT() ([]byte, error) }) *wasm.Reply {
 		data, _ := payload.MarshalVT()
 		request, _ := (&wasm.ServiceCall{Service: service, Method: method, Payload: data}).MarshalVT()
-		return s.answer(build, &wasm.Call{Method: "CallService", Request: request})
+		return s.answer(build, &serviceCalls{}, &wasm.Call{Method: "CallService", Request: request})
 	}
 
 	// Refuse a service the sandbox lacks.

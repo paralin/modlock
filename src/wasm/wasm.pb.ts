@@ -2,6 +2,7 @@
 // @generated from file github.com/paralin/modlock/src/wasm/wasm.proto (package modlock.wasm, syntax proto3)
 /* eslint-disable */
 
+import { createEnumType } from '@aptre/protobuf-es-lite/enum'
 import type { MessageType } from '@aptre/protobuf-es-lite/message'
 import { createMessageType } from '@aptre/protobuf-es-lite/message'
 import type {
@@ -10,6 +11,44 @@ import type {
 } from '@aptre/protobuf-es-lite/binary-encoding'
 import type { InteractionKind } from './movement/movement.pb.js'
 import { InteractionKind_Enum, MovementSample } from './movement/movement.pb.js'
+
+/**
+ * ServiceFailure says why a service call ended without an answer.
+ *
+ * @generated from enum modlock.wasm.ServiceFailure
+ */
+export enum ServiceFailure {
+  /**
+   * SERVICE_FAILURE_NONE is an answered call.
+   */
+  NONE = 0,
+
+  /**
+   * SERVICE_FAILURE_REFUSED is a call the service answered with an error.
+   */
+  REFUSED = 1,
+
+  /**
+   * SERVICE_FAILURE_TIMEOUT is a call that waited out its timeout.
+   */
+  TIMEOUT = 2,
+
+  /**
+   * SERVICE_FAILURE_UNAVAILABLE is a call to a service nobody provides
+   * here, or one more than the host keeps waiting for a mod.
+   */
+  UNAVAILABLE = 3,
+}
+
+export const ServiceFailure_Enum = /* @__PURE__ */ createEnumType(
+  'modlock.wasm.ServiceFailure',
+  [
+    [0, 'SERVICE_FAILURE_NONE'],
+    [1, 'SERVICE_FAILURE_REFUSED'],
+    [2, 'SERVICE_FAILURE_TIMEOUT'],
+    [3, 'SERVICE_FAILURE_UNAVAILABLE'],
+  ],
+)
 
 /**
  * Call is one method call across the boundary: a mod calling the game
@@ -718,6 +757,217 @@ export const ServiceReply: MessageType<ServiceReply> =
         {
           const v = m.payload
           if (v != null && v.length !== 0) w.uint32(10).bytes(v)
+        }
+      },
+    },
+  )
+
+/**
+ * StartServiceCallRequest calls one method of a service the host provides,
+ * to be answered in a later frame.
+ *
+ * @generated from message modlock.wasm.StartServiceCallRequest
+ */
+export interface StartServiceCallRequest {
+  /**
+   * Service names the service, such as "arena.match".
+   */
+  service?: string
+  /**
+   * Method names the method within the service.
+   */
+  method?: string
+  /**
+   * Payload is the call's argument.
+   */
+  payload?: Uint8Array
+  /**
+   * TimeoutMilliseconds is how long the mod waits for the answer; zero or
+   * more than 30 seconds waits 30 seconds.
+   */
+  timeoutMilliseconds?: number
+}
+
+export const StartServiceCallRequest: MessageType<StartServiceCallRequest> =
+  /* @__PURE__ */ createMessageType<StartServiceCallRequest>(
+    'modlock.wasm.StartServiceCallRequest',
+    () => [
+      [1, 'service', 9],
+      [2, 'method', 9],
+      [3, 'payload', 12],
+      [4, 'timeout_milliseconds', 13],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: StartServiceCallRequest,
+      ): StartServiceCallRequest => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.service = r.string()
+              break
+            case 2:
+              m.method = r.string()
+              break
+            case 3:
+              m.payload = r.bytes()
+              break
+            case 4:
+              m.timeoutMilliseconds = r.uint32()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: StartServiceCallRequest, w: Writer): void => {
+        {
+          const v = m.service
+          if (v) w.uint32(10).string(v)
+        }
+        {
+          const v = m.method
+          if (v) w.uint32(18).string(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(26).bytes(v)
+        }
+        {
+          const v = m.timeoutMilliseconds
+          if (v) w.uint32(32).uint32(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceCallStarted numbers a started service call.
+ *
+ * @generated from message modlock.wasm.ServiceCallStarted
+ */
+export interface ServiceCallStarted {
+  /**
+   * Call is the number the call's ServiceReplied event carries, unique for
+   * the mod's instance.
+   */
+  call?: bigint
+}
+
+export const ServiceCallStarted: MessageType<ServiceCallStarted> =
+  /* @__PURE__ */ createMessageType<ServiceCallStarted>(
+    'modlock.wasm.ServiceCallStarted',
+    () => [[1, 'call', 4]],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ServiceCallStarted,
+      ): ServiceCallStarted => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.call = r.uint64()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceCallStarted, w: Writer): void => {
+        {
+          const v = m.call
+          if (v) w.uint32(8).uint64(v)
+        }
+      },
+    },
+  )
+
+/**
+ * ServiceRepliedEvent ends one started service call.
+ *
+ * @generated from message modlock.wasm.ServiceRepliedEvent
+ */
+export interface ServiceRepliedEvent {
+  /**
+   * Call is the number StartServiceCall returned.
+   */
+  call?: bigint
+  /**
+   * Payload is the answer, when failure is none.
+   */
+  payload?: Uint8Array
+  /**
+   * Failure says why the call ended without an answer.
+   */
+  failure?: ServiceFailure
+  /**
+   * Error describes the failure.
+   */
+  error?: string
+}
+
+export const ServiceRepliedEvent: MessageType<ServiceRepliedEvent> =
+  /* @__PURE__ */ createMessageType<ServiceRepliedEvent>(
+    'modlock.wasm.ServiceRepliedEvent',
+    () => [
+      [1, 'call', 4],
+      [2, 'payload', 12],
+      [3, 'failure', 14, 0, ServiceFailure_Enum],
+      [4, 'error', 9],
+    ],
+    {
+      decode: (
+        r: BinaryReader,
+        end: number,
+        m: ServiceRepliedEvent,
+      ): ServiceRepliedEvent => {
+        while (r.pos < end) {
+          const t = r.tag()
+          if ((t & 7) === 4) return m
+          switch (t >>> 3) {
+            case 1:
+              m.call = r.uint64()
+              break
+            case 2:
+              m.payload = r.bytes()
+              break
+            case 3:
+              m.failure = r.int32()
+              break
+            case 4:
+              m.error = r.string()
+              break
+            default:
+              r.skip(t)
+          }
+        }
+        return m
+      },
+      encode: (m: ServiceRepliedEvent, w: Writer): void => {
+        {
+          const v = m.call
+          if (v) w.uint32(8).uint64(v)
+        }
+        {
+          const v = m.payload
+          if (v != null && v.length !== 0) w.uint32(18).bytes(v)
+        }
+        {
+          const v = m.failure
+          if (v) w.uint32(24).int32(v)
+        }
+        {
+          const v = m.error
+          if (v) w.uint32(34).string(v)
         }
       },
     },

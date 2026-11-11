@@ -31,6 +31,7 @@
 #include "wasm/metrics.h"
 #include "wasm/player_scope.h"
 #include "wasm/runtime.h"
+#include "wasm/service_calls.h"
 #include "wasm/settings.h"
 #include "wasm/ui.h"
 
@@ -48,6 +49,9 @@ struct Mods {
   std::map<std::string, WasmPlugin*, std::less<>> plugins;
   // extensions holds the services the host provides, by name.
   std::map<std::string, WasmExtension, std::less<>> extensions;
+  // late_extensions holds the services the host answers in a later frame,
+  // by name.
+  std::map<std::string, WasmLateExtension, std::less<>> late_extensions;
   // settings keeps players' settings: kept unless the host was given a
   // keeper.
   FileSettings kept;
@@ -91,6 +95,8 @@ class PluginGame final : public wasm::Game {
   std::expected<wasm::players::PlayersResponse, std::string> Players() override;
   std::expected<wasm::ServiceReply, std::string> CallService(
       const wasm::ServiceCall& request) override;
+  std::expected<wasm::ServiceCallStarted, std::string> StartServiceCall(
+      const wasm::StartServiceCallRequest& request) override;
   std::expected<wasm::settings::SettingResponse, std::string> PlayerSetting(
       const wasm::settings::PlayerSettingRequest& request) override;
   std::expected<void, std::string> SetPlayerSetting(
@@ -223,6 +229,11 @@ class WasmPlugin final : public Plugin {
   // CallService answers the mod's call to a service the host provides.
   std::expected<wasm::ServiceReply, std::string> CallService(const wasm::ServiceCall& call);
 
+  // StartServiceCall starts the mod's call to a service the host provides,
+  // which a later frame ends with a ServiceReplied event.
+  std::expected<wasm::ServiceCallStarted, std::string> StartServiceCall(
+      const wasm::StartServiceCallRequest& request);
+
   // PlayerSetting returns the value of the setting named key for the player
   // in slot: the kept value while the manifest still accepts it, and the
   // default otherwise.
@@ -335,6 +346,9 @@ class WasmPlugin final : public Plugin {
   // DeliverGameEvents passes on the button changes and ended restores the
   // game queued.
   void DeliverGameEvents();
+  // DeliverServiceReplies tells the mod of each started service call that
+  // ended.
+  void DeliverServiceReplies();
   void Unsubscribe();
   // Move installs the manifest's movement model on the server.
   void Move();
@@ -493,6 +507,10 @@ class WasmPlugin final : public Plugin {
   std::chrono::steady_clock::duration slowest_{};
   std::string slowest_report_;
   wasm::profile::SlowFrame slowest_frame_;
+
+  // service_calls_ holds the running instance's started service calls until
+  // a frame delivers their ends.
+  wasm::ServiceCalls service_calls_;
 
   // calls_ counts the mod's host calls since calls_reported_, the last time
   // they went to the observers.

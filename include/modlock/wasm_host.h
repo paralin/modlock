@@ -87,6 +87,19 @@ class MODLOCK_API WasmHostObserver {
 using WasmExtension = std::function<std::expected<std::string, std::string>(
     std::string_view mod, std::string_view method, std::string_view payload)>;
 
+// WasmReply ends one started call to a service the host provides: with the
+// answer, or an error the mod receives as the service's refusal. It may run
+// on any thread, at most once; once the call timed out or the mod stopped,
+// it does nothing.
+using WasmReply = std::function<void(std::expected<std::string, std::string> answer)>;
+
+// WasmLateExtension takes mods' started calls to one service the host
+// provides, answered in a later frame. It receives the calling mod's name,
+// the method, the payload and the reply that ends the call, which it may
+// keep and run later. Modlock times the call out after at most 30 seconds.
+using WasmLateExtension = std::function<void(std::string_view mod, std::string_view method,
+                                             std::string_view payload, WasmReply reply)>;
+
 // WasmHost runs WebAssembly mods. Each mod runs in its own sandbox and reaches
 // the game only through the host requests in src/wasm/wasm.proto. An
 // event that runs past half a second finishes; the host warns the players in
@@ -152,6 +165,14 @@ class MODLOCK_API WasmHost {
   // Provide answers mods' calls to service with extension, replacing the
   // service's earlier extension. An empty extension withdraws the service.
   void Provide(std::string service, WasmExtension extension);
+
+  // ProvideLater takes mods' started calls to service with extension, which
+  // answers each through its reply, replacing the service's earlier late
+  // extension. An empty extension withdraws it. A mod's started call to a
+  // service with only an extension from Provide is answered by that
+  // extension in the next frame; a CallService to a service with only a late
+  // extension is refused.
+  void ProvideLater(std::string service, WasmLateExtension extension);
 
   // KeepSettings keeps players' settings in settings, which must stay valid
   // until the host is destroyed or keeps them elsewhere. A null settings

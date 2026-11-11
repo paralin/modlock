@@ -38,7 +38,7 @@ func TestServiceFixture(t *testing.T) {
 	}
 	serve := func(service, method string) *wasm.Reply {
 		request, _ := (&wasm.ServiceCall{Service: service, Method: method, Payload: []byte(`{"key":"slide"}`)}).MarshalVT()
-		return s.answer(build, &wasm.Call{Method: "CallService", Request: request})
+		return s.answer(build, &serviceCalls{}, &wasm.Call{Method: "CallService", Request: request})
 	}
 
 	// Answer each method with its reply as compact JSON.
@@ -56,6 +56,46 @@ func TestServiceFixture(t *testing.T) {
 	}
 	if reply, want := serve("example.other.v1", "read"), "this host provides no service example.other.v1"; reply.GetError() != want {
 		t.Fatalf("error %q, want %q", reply.GetError(), want)
+	}
+}
+
+// TestStartedServiceCall answers a started call from the same fixture a
+// CallService reads, and keeps each end for the next frame: the answer, the
+// fixture's refusal, and a service nobody provides, which is never asked.
+func TestStartedServiceCall(t *testing.T) {
+	// Write one fixture and name its service.
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "example.drills.v1.json"), []byte(`{"read": {"key": "slide"}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	s := &Sandbox{config: Config{Fixtures: func(string) string { return dir }, Events: func(*control.HostEvent) {}}}
+	build := &Build{Manifest: &wasm.Manifest{Slug: "trial", Services: []*wasm.Service{{Name: "example.drills.v1"}}}}
+	if err := s.provide("build", build); err != nil {
+		t.Fatal(err)
+	}
+	calls := &serviceCalls{}
+	start := func(service, method string) uint64 {
+		request, _ := (&wasm.StartServiceCallRequest{Service: service, Method: method}).MarshalVT()
+		reply := s.answer(build, calls, &wasm.Call{Method: "StartServiceCall", Request: request})
+		started := &wasm.ServiceCallStarted{}
+		if reply.GetError() != "" || started.UnmarshalVT(reply.GetResponse()) != nil {
+			t.Fatalf("start %s.%s: %v", service, method, reply)
+		}
+		return started.GetCall()
+	}
+
+	// Each call has its own number and ends in order.
+	numbers := []uint64{start("example.drills.v1", "read"), start("example.drills.v1", "list"), start("example.other.v1", "read")}
+	if !slices.Equal(numbers, []uint64{1, 2, 3}) {
+		t.Fatalf("numbers %v", numbers)
+	}
+	want := []*wasm.ServiceRepliedEvent{
+		{Call: 1, Payload: []byte(`{"key":"slide"}`)},
+		{Call: 2, Failure: wasm.ServiceFailure_SERVICE_FAILURE_REFUSED, Error: "the fixture " + filepath.Join(dir, "example.drills.v1.json") + " has no method list"},
+		{Call: 3, Failure: wasm.ServiceFailure_SERVICE_FAILURE_UNAVAILABLE, Error: "this host provides no service example.other.v1"},
+	}
+	if !slices.EqualFunc(calls.ended, want, (*wasm.ServiceRepliedEvent).EqualVT) {
+		t.Fatalf("ended %v, want %v", calls.ended, want)
 	}
 }
 

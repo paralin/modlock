@@ -2,9 +2,11 @@ package sandbox
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/paralin/modlock/src/wasm"
 	"github.com/pkg/errors"
@@ -103,4 +105,86 @@ func (f *fixture) answer(call *wasm.ServiceCall) *wasm.Reply {
 	}
 	response, _ := (&wasm.ServiceReply{Payload: compact.Bytes()}).MarshalVT()
 	return &wasm.Reply{Response: response}
+}
+
+// maxServiceCalls bounds the calls a mod starts between frames, as the host
+// does.
+const maxServiceCalls = 256
+
+// serviceCalls holds one mod instance's started service calls. Every
+// provider here answers at once, so each call ends in the next frame.
+type serviceCalls struct {
+	// next is the number of the last call started.
+	next uint64
+	// ended holds the ends the next frame delivers, in call order.
+	ended []*wasm.ServiceRepliedEvent
+}
+
+// callService answers request from the provider of its service: the
+// sandbox's scores or the mod's fixture. It is nil when nobody provides the
+// service.
+func (s *Sandbox) callService(build *Build, request *wasm.ServiceCall) *wasm.Reply {
+	if request.GetService() == scoresService {
+		return s.scores(build.Manifest, request)
+	}
+	if provider := build.fixtures[request.GetService()]; provider != nil {
+		return provider.answer(request)
+	}
+	return nil
+}
+
+// startServiceCall numbers a StartServiceCall from the mod build describes
+// and keeps its end for the next frame. The provider answers through the
+// same path as a CallService, so a mod cannot tell a fixture from another
+// provider; a service nobody provides is never asked.
+func (s *Sandbox) startServiceCall(build *Build, calls *serviceCalls, call *wasm.Call) *wasm.Reply {
+	// Decode the call, refusing one past the bound.
+	request := &wasm.StartServiceCallRequest{}
+	if err := request.UnmarshalVT(call.GetRequest()); err != nil {
+		return &wasm.Reply{Error: "the StartServiceCall request is malformed"}
+	}
+	if len(calls.ended) >= maxServiceCalls {
+		return &wasm.Reply{Error: "the mod already holds " + strconv.Itoa(maxServiceCalls) + " service calls"}
+	}
+	calls.next++
+	event := &wasm.ServiceRepliedEvent{Call: calls.next}
+
+	// Ask the provider now, and keep the answer, its refusal or the absence
+	// of a provider.
+	reply := s.callService(build, &wasm.ServiceCall{
+		Service: request.GetService(),
+		Method:  request.GetMethod(),
+		Payload: request.GetPayload(),
+	})
+	switch {
+	case reply == nil:
+		event.Failure = wasm.ServiceFailure_SERVICE_FAILURE_UNAVAILABLE
+		event.Error = "this host provides no service " + request.GetService()
+	case reply.GetError() != "":
+		event.Failure = wasm.ServiceFailure_SERVICE_FAILURE_REFUSED
+		event.Error = reply.GetError()
+	default:
+		answer := &wasm.ServiceReply{}
+		_ = answer.UnmarshalVT(reply.GetResponse())
+		event.Payload = answer.GetPayload()
+	}
+	calls.ended = append(calls.ended, event)
+
+	// Return the call's number.
+	started, _ := (&wasm.ServiceCallStarted{Call: calls.next}).MarshalVT()
+	return &wasm.Reply{Response: started}
+}
+
+// endCalls delivers the ends of mod's started service calls.
+func (s *Sandbox) endCalls(ctx context.Context, mod *running) {
+	if mod.calls == nil || len(mod.calls.ended) == 0 {
+		return
+	}
+	ended := mod.calls.ended
+	mod.calls.ended = nil
+	for _, event := range ended {
+		if !s.deliver(ctx, mod, "ServiceReplied", event, nil) {
+			return
+		}
+	}
 }

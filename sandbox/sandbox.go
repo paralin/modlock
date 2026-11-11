@@ -89,6 +89,9 @@ type running struct {
 	mod *Mod
 	// wants lists the events the mod consumes.
 	wants *wasm.StartResult
+	// calls holds the instance's started service calls until a frame ends
+	// them.
+	calls *serviceCalls
 }
 
 // Start starts the mods in a new sandbox. A mod that fails to load reports
@@ -249,29 +252,31 @@ func (s *Sandbox) load(ctx context.Context, path string) {
 	}
 
 	// Load its module and start it in the world.
-	mod, wants, err := s.start(ctx, name, build)
+	calls := &serviceCalls{}
+	mod, wants, err := s.start(ctx, name, build, calls)
 	if err != nil {
 		fail(err)
 		return
 	}
 
-	// Replace the running mod of the same name, or add it.
+	// Replace the running mod of the same name, or add it; the calls the
+	// old instance started end with it.
 	for _, old := range s.mods {
 		if old.name == name {
 			if old.mod != nil {
 				_ = old.mod.Close(ctx)
 			}
-			old.mod, old.wants = mod, wants
+			old.mod, old.wants, old.calls = mod, wants, calls
 			s.event(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: name, Reloaded: true}}})
 			return
 		}
 	}
-	s.mods = append(s.mods, &running{name: name, mod: mod, wants: wants})
+	s.mods = append(s.mods, &running{name: name, mod: mod, wants: wants, calls: calls})
 	s.event(&control.HostEvent{Body: &control.HostEvent_Started{Started: &control.ModStarted{Mod: name}}})
 }
 
 // start loads build's module, starts it and gives it the world.
-func (s *Sandbox) start(ctx context.Context, name string, build *Build) (*Mod, *wasm.StartResult, error) {
+func (s *Sandbox) start(ctx context.Context, name string, build *Build, calls *serviceCalls) (*Mod, *wasm.StartResult, error) {
 	// Choose the module: the mod's own, or the interpreter for its source.
 	module, source, err := s.module(ctx, build)
 	if err != nil {
@@ -280,7 +285,7 @@ func (s *Sandbox) start(ctx context.Context, name string, build *Build) (*Mod, *
 
 	// Load it with the sandbox answering its host calls.
 	mod, err := Load(ctx, module, Options{
-		Calls:  func(call *wasm.Call) *wasm.Reply { return s.answer(build, call) },
+		Calls:  func(call *wasm.Call) *wasm.Reply { return s.answer(build, calls, call) },
 		Output: &lines{write: func(line string) { s.log(name, line) }},
 		Cache:  s.cache,
 	})
@@ -354,10 +359,12 @@ func (s *Sandbox) command(ctx context.Context, line string) bool {
 	return false
 }
 
-// frame gives one frame to each mod that consumes frames.
+// frame ends each mod's started service calls, then gives one frame to each
+// mod that consumes frames.
 func (s *Sandbox) frame(ctx context.Context, elapsed time.Duration) {
 	s.tick++
 	for _, mod := range s.mods {
+		s.endCalls(ctx, mod)
 		if mod.wants.GetFrames() {
 			s.deliver(ctx, mod, "Frame", &wasm.FrameEvent{Tick: s.tick, TimeSeconds: elapsed.Seconds()}, nil)
 		}
@@ -399,7 +406,7 @@ func (s *Sandbox) deliver(ctx context.Context, mod *running, method string, requ
 // stand-in player, keeps the player's settings, refuses service calls as a
 // host without extensions does, and answers the rest empty, as for a player
 // without a hero.
-func (s *Sandbox) answer(build *Build, call *wasm.Call) *wasm.Reply {
+func (s *Sandbox) answer(build *Build, calls *serviceCalls, call *wasm.Call) *wasm.Reply {
 	// Decode the requests the sandbox reports.
 	manifest := build.Manifest
 	mod := manifest.GetSlug()
@@ -464,13 +471,12 @@ func (s *Sandbox) answer(build *Build, call *wasm.Call) *wasm.Reply {
 	case "CallService":
 		request := &wasm.ServiceCall{}
 		_ = request.UnmarshalVT(call.GetRequest())
-		if request.GetService() == scoresService {
-			return s.scores(manifest, request)
-		}
-		if provider := build.fixtures[request.GetService()]; provider != nil {
-			return provider.answer(request)
+		if reply := s.callService(build, request); reply != nil {
+			return reply
 		}
 		return &wasm.Reply{Error: "this host provides no service " + request.GetService()}
+	case "StartServiceCall":
+		return s.startServiceCall(build, calls, call)
 	}
 
 	return &wasm.Reply{}
